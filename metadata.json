@@ -1,0 +1,5 @@
+{
+  "name": "Sherlock AI",
+  "description": "An investigative AI agent that monitors real-time news, uncovers hidden agendas, and generates leads using Google Search grounding.",
+  "requestFramePermissions": []
+}
