@@ -263,6 +263,8 @@ function App() {
             )}
             {currentView === AppView.LIVE_MONITOR && (
               <LiveMonitor
+                events={_liveEvents}
+                setEvents={_setLiveEvents}
                 onInvestigate={(topic, ctx, config) => startInvestigation(topic, ctx, true, config)}
               />
             )}

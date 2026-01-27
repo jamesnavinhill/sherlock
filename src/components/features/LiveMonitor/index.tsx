@@ -23,7 +23,7 @@ interface LiveMonitorProps {
  * Live Monitor component for real-time OSINT surveillance.
  * Streams events from various sources (news, social, official) and allows investigation.
  */
-export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onInvestigate }) => {
+export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents, onInvestigate }) => {
     const { headlines, addHeadline, cases, activeCaseId: selectedCaseId, setActiveCaseId: setSelectedCaseId } = useCaseStore();
 
     type FilterType = 'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL';
