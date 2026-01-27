@@ -24,6 +24,9 @@ interface LiveMonitorProps {
  * Streams events from various sources (news, social, official) and allows investigation.
  */
 export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents, onInvestigate }) => {
+    // Ensure events is always an array to prevent .map errors
+    const safeEvents = Array.isArray(events) ? events : [];
+
     const { headlines, addHeadline, cases, activeCaseId: selectedCaseId, setActiveCaseId: setSelectedCaseId } = useCaseStore();
 
     type FilterType = 'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL';
@@ -88,7 +91,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
         }
 
         try {
-            const existingContent = events.map(e => e.content);
+            const existingContent = safeEvents.map(e => e.content);
             const newIntel = await getLiveIntel(activeCase.title.replace('Operation: ', ''), feedConfig, existingContent);
 
             if (!isMonitoringRef.current) {
@@ -107,7 +110,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
             }
 
             const uniqueNewIntel = newIntel.filter(item =>
-                !events.some(existing => existing.content === item.content || existing.id === item.id)
+                !safeEvents.some(existing => existing.content === item.content || existing.id === item.id)
             );
 
             if (uniqueNewIntel.length === 0) {
@@ -206,7 +209,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
     };
 
     const getFilteredEvents = () => {
-        let filtered = events;
+        let filtered = safeEvents;
         if (filterType !== 'ALL') filtered = filtered.filter(e => e.type === filterType);
         if (filterThreat !== 'ALL') filtered = filtered.filter(e => e.threatLevel === filterThreat);
         return filtered;
@@ -291,7 +294,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                         </div>
                         <div className="flex items-center space-x-2">
                             <span className="w-1.5 h-1.5 bg-zinc-600 rounded-full"></span>
-                            <span>EVENTS: <span className="text-white font-bold">{events.length}</span></span>
+                            <span>EVENTS: <span className="text-white font-bold">{safeEvents.length}</span></span>
                         </div>
                     </div>
 

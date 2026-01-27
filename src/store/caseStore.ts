@@ -84,7 +84,7 @@ interface CaseState {
     setCases: (cases: Case[]) => void;
     setTasks: (tasks: InvestigationTask[]) => void;
     setActiveTaskId: (id: string | null) => void;
-    setLiveEvents: (events: MonitorEvent[]) => void;
+    setLiveEvents: (events: MonitorEvent[] | ((prev: MonitorEvent[]) => MonitorEvent[])) => void;
     setCurrentView: (view: AppView) => void;
     setNavStack: (stack: BreadcrumbItem[]) => void;
     setIsSidebarCollapsed: (collapsed: boolean) => void;
@@ -233,7 +233,13 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     setCases: (cases) => set({ cases }),
     setTasks: (tasks) => set({ tasks }),
     setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
-    setLiveEvents: (liveEvents) => set({ liveEvents }),
+    setLiveEvents: (eventsOrUpdater) => {
+        if (typeof eventsOrUpdater === 'function') {
+            set((state) => ({ liveEvents: eventsOrUpdater(state.liveEvents) }));
+        } else {
+            set({ liveEvents: eventsOrUpdater });
+        }
+    },
     setCurrentView: (currentView) => set({ currentView }),
     setNavStack: (navStack) => set({ navStack }),
     setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
@@ -498,7 +504,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             archives.push(savedReport);
         }
 
-        set({ archives, cases });
+        set({ archives, cases, activeCaseId: targetCaseId });
         return savedReport;
     }
 }));

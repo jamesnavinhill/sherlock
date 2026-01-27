@@ -13,7 +13,9 @@ import {
     Save,
     RefreshCw,
     AlertTriangle,
-    Compass
+    Compass,
+    Cpu,
+    ChevronDown
 } from 'lucide-react';
 import { useCaseStore } from '../../../store/caseStore';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
@@ -66,6 +68,22 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
             return config.quietMode ?? false;
         } catch { return false; }
     });
+    const [selectedModel, setSelectedModel] = useState(() => {
+        const configStr = localStorage.getItem('sherlock_config');
+        if (!configStr) return 'gemini-3-flash-preview';
+        try {
+            const config: SystemConfig = JSON.parse(configStr);
+            return config.modelId ?? 'gemini-3-flash-preview';
+        } catch { return 'gemini-3-flash-preview'; }
+    });
+
+    const AVAILABLE_MODELS = [
+        { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', description: 'Most capable, best for complex analysis' },
+        { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', description: 'Fast and efficient, great balance' },
+        { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Advanced reasoning, deep thinking' },
+        { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Quick responses, cost effective' },
+        { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', description: 'Low cost, high throughput' },
+    ];
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -78,6 +96,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
         localStorage.setItem('ANTHROPIC_API_KEY', anthropicKey);
 
         const config: SystemConfig = {
+            modelId: selectedModel,
             autoNormalizeEntities: autoResolve,
             quietMode,
             theme: themeColor
@@ -238,6 +257,34 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
                         </div>
 
                         <p className="text-[9px] text-zinc-600 font-mono italic pt-2">Keys are stored locally in your browser.</p>
+                    </div>
+                </section>
+
+                {/* AI Model Selection - Compact dropdown style */}
+                <section className="space-y-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Cpu className="w-4 h-4 text-osint-primary" />
+                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">AI Model</h3>
+                    </div>
+                    <div className="bg-zinc-900/40 border border-zinc-800 p-6 h-full flex flex-col justify-center">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h4 className="text-sm font-bold text-zinc-200 font-mono">Active Model</h4>
+                                <p className="text-[10px] text-zinc-500 font-mono mt-1">Gemini model for all AI operations</p>
+                            </div>
+                            <div className="relative">
+                                <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                                <select
+                                    value={selectedModel}
+                                    onChange={(e) => setSelectedModel(e.target.value)}
+                                    className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-2 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[160px]"
+                                >
+                                    {AVAILABLE_MODELS.map(model => (
+                                        <option key={model.id} value={model.id}>{model.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </section>
 

@@ -60,7 +60,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 <div className="relative group hidden md:block">
                     <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
                     <select
-                        value={filterCaseId}
+                        value={filterCaseId || ''}
                         onChange={(e) => onCaseChange(e.target.value)}
                         className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[180px] max-w-[220px] truncate"
                     >

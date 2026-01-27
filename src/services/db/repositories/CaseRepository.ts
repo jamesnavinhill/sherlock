@@ -99,50 +99,49 @@ export class CaseRepository {
         }
         const reportId = report.id;
 
-        await db.transaction(async (tx) => {
-            // Insert Report
-            await tx.insert(reports).values({
-                id: reportId,
-                caseId: report.caseId,
-                topic: report.topic,
-                dateStr: report.dateStr,
-                summary: report.summary,
-                rawText: report.rawText,
-                parentTopic: report.parentTopic,
-                configJson: report.config ? JSON.stringify(report.config) : null,
-                createdAt: now
-            });
-
-            // Insert Entities
-            if (report.entities && report.entities.length > 0) {
-                for (const entity of report.entities) {
-                    const entityObj = typeof entity === 'string'
-                        ? { name: entity, type: 'UNKNOWN' as const }
-                        : entity;
-
-                    await tx.insert(entities).values({
-                        id: `ent-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-                        reportId,
-                        name: entityObj.name,
-                        type: entityObj.type,
-                        role: entityObj.role,
-                        sentiment: entityObj.sentiment
-                    });
-                }
-            }
-
-            // Insert Sources
-            if (report.sources && report.sources.length > 0) {
-                for (const source of report.sources) {
-                    await tx.insert(sources).values({
-                        id: `src-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-                        reportId,
-                        title: source.title,
-                        url: source.url
-                    });
-                }
-            }
+        // Insert Report (wa-sqlite handles its own transactions, explicit drizzle transactions conflict)
+        await db.insert(reports).values({
+            id: reportId,
+            caseId: report.caseId,
+            topic: report.topic,
+            dateStr: report.dateStr,
+            summary: report.summary,
+            rawText: report.rawText,
+            parentTopic: report.parentTopic,
+            configJson: report.config ? JSON.stringify(report.config) : null,
+            createdAt: now
         });
+
+        // Insert Entities
+        if (report.entities && report.entities.length > 0) {
+            for (const entity of report.entities) {
+                const entityObj = typeof entity === 'string'
+                    ? { name: entity, type: 'UNKNOWN' as const }
+                    : entity;
+
+                await db.insert(entities).values({
+                    id: `ent-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                    reportId,
+                    name: entityObj.name,
+                    type: entityObj.type,
+                    role: entityObj.role,
+                    sentiment: entityObj.sentiment
+                });
+            }
+        }
+
+        // Insert Sources
+        if (report.sources && report.sources.length > 0) {
+            for (const source of report.sources) {
+                await db.insert(sources).values({
+                    id: `src-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                    reportId,
+                    title: source.title,
+                    url: source.url
+                });
+            }
+        }
+
 
         // Update parent case timestamp
         if (report.caseId) {

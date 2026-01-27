@@ -83,8 +83,15 @@ const getConfig = (): SystemConfig => {
     const stored = localStorage.getItem('sherlock_config');
     if (stored) {
       const parsed = JSON.parse(stored);
+      // Migrate old model names to correct API identifiers
       if (parsed.modelId === 'gemini-2.5-flash-latest') {
         parsed.modelId = 'gemini-2.5-flash';
+      }
+      if (parsed.modelId === 'gemini-3-flash') {
+        parsed.modelId = 'gemini-3-flash-preview';
+      }
+      if (parsed.modelId === 'gemini-3-pro') {
+        parsed.modelId = 'gemini-3-pro-preview';
       }
       return { ...DEFAULT_CONFIG, ...parsed };
     }
