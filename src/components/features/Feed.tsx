@@ -93,8 +93,23 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [config, setConfig] = useState({
     limit: 8,
-    prioritySources: ''
+    prioritySources: '',
+    autoRefresh: false,
+    refreshInterval: 60000 // default 1 minute
   });
+
+  // Background Polling Effect
+  useEffect(() => {
+    let intervalId: any;
+    if (config.autoRefresh && !loading) {
+      intervalId = setInterval(() => {
+        loadFeed();
+      }, config.refreshInterval);
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [config.autoRefresh, config.refreshInterval, loading]);
 
   const renderSettingsPanel = () => (
     <div className="absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
@@ -140,6 +155,33 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             className="w-full h-20 bg-black border border-zinc-700 text-xs text-zinc-300 p-2 font-mono focus:border-osint-primary outline-none resize-none placeholder-zinc-700"
           />
           <p className="text-[9px] text-zinc-600 mt-1 font-mono">Sources to prioritize during anomaly detection.</p>
+        </div>
+
+        {/* Polling Toggle */}
+        <div className="pt-4 border-t border-zinc-800">
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-[10px] text-zinc-500 font-mono uppercase">Background Surveillance</label>
+            <button
+              onClick={() => setConfig({ ...config, autoRefresh: !config.autoRefresh })}
+              className={`w-12 h-6 rounded-full relative transition-colors ${config.autoRefresh ? 'bg-osint-primary' : 'bg-zinc-800'}`}
+            >
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.autoRefresh ? 'left-7' : 'left-1'}`} />
+            </button>
+          </div>
+          {config.autoRefresh && (
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-zinc-600 font-mono">Interval</span>
+              <select
+                value={config.refreshInterval}
+                onChange={(e) => setConfig({ ...config, refreshInterval: parseInt(e.target.value) })}
+                className="bg-black border border-zinc-800 text-zinc-400 text-[10px] font-mono px-2 py-1 outline-none"
+              >
+                <option value={30000}>30 SECONDS</option>
+                <option value={60000}>1 MINUTE</option>
+                <option value={300000}>5 MINUTES</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

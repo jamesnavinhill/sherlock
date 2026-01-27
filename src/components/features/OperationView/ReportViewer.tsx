@@ -122,72 +122,89 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     }
 
     return (
-        <div className="flex-1 flex overflow-hidden bg-black relative">
+        <div className="flex-1 flex overflow-hidden bg-black relative animate-in fade-in duration-500">
             {/* MAIN COLUMN (Title, Exec Summary, Leads) - 3/4 Width */}
-            <div className="w-3/4 h-full overflow-y-auto p-6 custom-scrollbar border-r border-zinc-800">
+            <div className="w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800">
 
-                {/* Report Header */}
-                <div className="border-b border-zinc-800 pb-4 mb-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                {/* Sticky Header */}
+                <div className="sticky top-0 z-20 px-6 py-4 bg-black/90 backdrop-blur-md border-b border-zinc-800 shadow-lg">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
                         <Breadcrumbs items={navStack} onNavigate={onNavigate} />
                     </div>
-                    <EditableTitle
-                        value={report.topic}
-                        onSave={onTitleSave}
-                        className="text-2xl font-bold text-white uppercase tracking-tight font-mono"
-                        inputClassName="text-2xl font-bold uppercase tracking-tight"
-                    />
-                    <div className="flex items-center space-x-4">
-                        {report.dateStr && <p className="text-zinc-500 text-sm font-mono">LOG DATE: {report.dateStr}</p>}
+                    <div className="flex items-center justify-between gap-4">
+                        <EditableTitle
+                            value={report.topic}
+                            onSave={onTitleSave}
+                            className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
+                            inputClassName="text-2xl font-bold uppercase tracking-tight"
+                        />
+                        <div className="flex items-center space-x-4 flex-shrink-0">
+                            {report.dateStr && <p className="text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">LOG DATE: {report.dateStr}</p>}
+                        </div>
                     </div>
                 </div>
 
-                {/* Executive Summary */}
-                <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 shadow-2xl relative overflow-hidden group mb-8">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
-                    <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
-                        <h2 className="text-xl font-bold text-white flex items-center font-mono tracking-wide">
-                            <FileText className="w-5 h-5 mr-3 text-osint-primary" /> EXECUTIVE_SUMMARY
-                        </h2>
-                        <button onClick={handlePlayBriefing} disabled={isAudioLoading} className={`flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase transition-all border ${isPlaying ? 'bg-red-900/20 text-red-400 border-red-900 animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}>
-                            {isAudioLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : isPlaying ? <StopCircle className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                            {isAudioLoading ? 'Synth...' : isPlaying ? 'Stop' : 'Voice'}
-                        </button>
-                    </div>
-                    <div className="text-zinc-300 leading-relaxed font-sans text-base relative z-10 prose prose-invert max-w-none">
-                        <ReactMarkdown components={markdownComponents}>{report.summary}</ReactMarkdown>
-                    </div>
-                </div>
-
-                {/* Leads */}
-                {report.leads.length > 0 && (
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between border-b border-zinc-700 pb-2 mb-4 bg-black/30 p-2">
-                            <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
-                                <Target className="w-4 h-4 mr-2 text-osint-primary" /> Investigative Leads
+                <div className="p-6">
+                    {/* Executive Summary */}
+                    <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 shadow-2xl relative overflow-hidden group mb-8">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
+                        <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
+                            <h2 className="text-xl font-bold text-white flex items-center font-mono tracking-wide">
+                                <FileText className="w-5 h-5 mr-3 text-osint-primary" /> EXECUTIVE_SUMMARY
                             </h2>
-                            <button onClick={() => onBatchDeepDive(report.leads)} className="flex items-center text-xs font-mono font-bold text-black bg-osint-primary hover:bg-white px-3 py-1.5 uppercase transition-all shadow-[0_0_10px_-3px_var(--osint-primary)]">
-                                <Layers className="w-4 h-4 mr-2" /> Full Spectrum
+                            <button
+                                onClick={handlePlayBriefing}
+                                disabled={isAudioLoading}
+                                className={`flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase transition-all border ${isPlaying ? 'bg-red-900/20 text-red-400 border-red-900 animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}
+                                aria-label={isPlaying ? "Stop audio briefing" : "Play audio briefing"}
+                            >
+                                {isAudioLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : isPlaying ? <StopCircle className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                                {isAudioLoading ? 'Synth...' : isPlaying ? 'Stop' : 'Voice'}
                             </button>
                         </div>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            {report.leads.map((lead, idx) => (
-                                <div key={idx} className="bg-osint-surface/80 backdrop-blur-sm border border-zinc-700/60 p-5 hover:border-osint-primary/50 transition-colors relative group flex flex-col justify-between">
-                                    <div>
-                                        <div className="absolute top-4 right-4 text-zinc-800 font-mono text-4xl font-bold opacity-50 group-hover:text-zinc-700">{String(idx + 1).padStart(2, '0')}</div>
-                                        <Lightbulb className="w-6 h-6 text-osint-primary mb-3 opacity-80" />
-                                        <div className="text-zinc-300 font-medium text-sm leading-relaxed pr-6 prose prose-invert max-w-none prose-p:my-0 mb-4">
-                                            <ReactMarkdown components={markdownComponents}>{lead}</ReactMarkdown>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => onDeepDive(lead)} className="mt-2 w-full flex items-center justify-center bg-zinc-900 hover:bg-white hover:text-black text-zinc-400 py-3 text-xs font-mono font-bold transition-colors uppercase tracking-wider border border-zinc-700 hover:border-transparent group-hover:border-zinc-500">
-                                        <Microscope className="w-3 h-3 mr-2" /> DEEP DIVE
-                                    </button>
-                                </div>
-                            ))}
+                        <div className="text-zinc-300 leading-relaxed font-sans text-base relative z-10 prose prose-invert max-w-none">
+                            <ReactMarkdown components={markdownComponents}>{report.summary}</ReactMarkdown>
                         </div>
                     </div>
-                )}
+
+                    {/* Leads */}
+                    {report.leads.length > 0 && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between border-b border-zinc-700 pb-2 mb-4 bg-black/30 p-2">
+                                <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
+                                    <Target className="w-4 h-4 mr-2 text-osint-primary" /> Investigative Leads
+                                </h2>
+                                <button
+                                    onClick={() => onBatchDeepDive(report.leads)}
+                                    className="flex items-center text-xs font-mono font-bold text-black bg-osint-primary hover:bg-white px-3 py-1.5 uppercase transition-all shadow-[0_0_10px_-3px_var(--osint-primary)]"
+                                    aria-label="Investigate all leads"
+                                >
+                                    <Layers className="w-4 h-4 mr-2" /> Full Spectrum
+                                </button>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {report.leads.map((lead, idx) => (
+                                    <div key={idx} className="bg-osint-surface/80 backdrop-blur-sm border border-zinc-700/60 p-5 hover:border-osint-primary/50 transition-colors relative group flex flex-col justify-between">
+                                        <div>
+                                            <div className="absolute top-4 right-4 text-zinc-800 font-mono text-4xl font-bold opacity-50 group-hover:text-zinc-700">{String(idx + 1).padStart(2, '0')}</div>
+                                            <Lightbulb className="w-6 h-6 text-osint-primary mb-3 opacity-80" />
+                                            <div className="text-zinc-300 font-medium text-sm leading-relaxed pr-6 prose prose-invert max-w-none prose-p:my-0 mb-4">
+                                                <ReactMarkdown components={markdownComponents}>{lead}</ReactMarkdown>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => onDeepDive(lead)}
+                                            className="mt-2 w-full flex items-center justify-center bg-zinc-900 hover:bg-white hover:text-black text-zinc-400 py-3 text-xs font-mono font-bold transition-colors uppercase tracking-wider border border-zinc-700 hover:border-transparent group-hover:border-zinc-500"
+                                            aria-label={`Deep dive into lead ${idx + 1}`}
+                                        >
+                                            <Microscope className="w-3 h-3 mr-2" /> DEEP DIVE
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* RIGHT SIDE COLUMN (Anomalies, Entities, Resources) - 1/4 Width */}

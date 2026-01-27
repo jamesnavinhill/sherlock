@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, Activity, FolderClosed, Network } from 'lucide-react';
+import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, Activity, FolderClosed, Network, Clock } from 'lucide-react';
 import { AppView, InvestigationTask } from '../../types';
 import { TaskManager } from './TaskManager';
 

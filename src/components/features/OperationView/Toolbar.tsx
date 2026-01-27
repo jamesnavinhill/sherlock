@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Briefcase, ChevronRight, ChevronDown, Download, FileText, Plus, FileJson } from 'lucide-react';
 import { Case, InvestigationReport } from '../../../types';
-import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson } from '../../../utils/exportUtils';
+import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson, exportCaseAsMarkdown, exportReportAsMarkdown } from '../../../utils/exportUtils';
 
 interface ToolbarProps {
     activeCase: Case | null;
@@ -94,6 +94,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                             <span>Case as HTML Dossier</span>
                                         </button>
                                         <button
+                                            onClick={() => { exportCaseAsMarkdown(activeCase, allCaseReports); setShowExportMenu(false); }}
+                                            className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                                            title="Exports a full Markdown report of the case"
+                                        >
+                                            <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                                            <span>Case as Markdown (.md)</span>
+                                        </button>
+                                        <button
                                             onClick={() => { exportCaseAsJson(activeCase, allCaseReports); setShowExportMenu(false); }}
                                             className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
                                             title="Exports raw case data for backup/integration"
@@ -113,6 +121,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                         >
                                             <Download className="w-4 h-4 mr-3 text-zinc-500" />
                                             <span>Report as HTML</span>
+                                        </button>
+                                        <button
+                                            onClick={() => { exportReportAsMarkdown(report); setShowExportMenu(false); }}
+                                            className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                                            title="Exports this report as a Markdown file"
+                                        >
+                                            <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                                            <span>Report as Markdown</span>
                                         </button>
                                         <button
                                             onClick={() => { exportReportAsJson(report); setShowExportMenu(false); }}

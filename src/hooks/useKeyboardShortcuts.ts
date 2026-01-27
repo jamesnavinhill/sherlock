@@ -62,6 +62,8 @@ export const createAppShortcuts = (handlers: {
     onNewInvestigation?: () => void;
     onFocusSearch?: () => void;
     onCloseModal?: () => void;
+    onShowHelp?: () => void;
+    onGlobalSearch?: () => void;
 }): KeyboardShortcut[] => {
     const shortcuts: KeyboardShortcut[] = [];
 
@@ -80,6 +82,24 @@ export const createAppShortcuts = (handlers: {
             ctrl: true,
             action: handlers.onFocusSearch,
             description: 'Focus Search'
+        });
+    }
+
+    if (handlers.onGlobalSearch) {
+        shortcuts.push({
+            key: 'k',
+            ctrl: true,
+            action: handlers.onGlobalSearch,
+            description: 'Global Search'
+        });
+    }
+
+    if (handlers.onShowHelp) {
+        shortcuts.push({
+            key: '/',
+            ctrl: true,
+            action: handlers.onShowHelp,
+            description: 'How to use'
         });
     }
 

@@ -49,6 +49,7 @@ interface GraphCanvasProps {
     onSetLinkSource: (node: GraphNode | null) => void;
     onCreateManualLink: (source: GraphNode, target: GraphNode) => void;
     onStatsUpdate: (stats: { cases: number, entities: number, links: number, hubs: number }) => void;
+    isLocked?: boolean;
 }
 
 export interface GraphCanvasRef {
@@ -56,11 +57,10 @@ export interface GraphCanvasRef {
     zoomOut: () => void;
 }
 
-export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
-    reports, manualLinks, manualNodes, cases, aliases, hiddenNodeIds, flaggedNodeIds,
-    filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
+filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
     isLinkingMode, linkSourceNode,
-    onNodeClick, onSetLinkSource, onCreateManualLink, onStatsUpdate
+    onNodeClick, onSetLinkSource, onCreateManualLink, onStatsUpdate,
+    isLocked = false
 }, ref) => {
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -235,10 +235,18 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
 
         const simulation = d3.forceSimulation(filteredNodes)
             .force("link", d3.forceLink(filteredLinks).id((d: any) => d.id).distance(100))
-            .force("charge", d3.forceManyBody().strength(-300))
+            .force("charge", d3.forceManyBody().strength(-300).distanceMax(500)) // distanceMax for performance
             .force("x", d3.forceX(width / 2).strength(0.08))
             .force("y", d3.forceY(height / 2).strength(0.08))
-            .force("collide", d3.forceCollide().radius(30).iterations(2));
+            .force("collide", d3.forceCollide().radius(30).iterations(1)) // reduce iterations
+            .alphaDecay(0.05) // faster cooling
+            .velocityDecay(0.4); // higher friction
+
+        if (isLocked) {
+            simulation.stop();
+            // Assign positions manually or use last known positions if we want it truly locked
+        }
+
         simulationRef.current = simulation;
 
         const link = g.append("g").selectAll("line").data(filteredLinks).join("line")
@@ -326,7 +334,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         });
 
         return () => { simulation.stop(); };
-    }, [reports, manualLinks, cases, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly]);
+    }, [reports, manualLinks, cases, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, isLocked]);
 
     return (
         <div ref={containerRef} className="flex-1 w-full h-full relative z-0 bg-black cursor-move">

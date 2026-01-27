@@ -3,6 +3,9 @@ import { SystemConfig, InvestigatorPersona } from '../../types';
 import { Save, Cpu, UserCog, Database, Trash2, Check, Info, Settings as SettingsIcon, FileSearch, Shield, Newspaper, Eye, Palette, Download, Upload, Key } from 'lucide-react';
 import { clearApiKey } from '../../services/gemini';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
+import { TemplateGallery } from './TemplateGallery';
+import { useCaseStore } from '../../../store/caseStore';
+import { AppView, CaseTemplate } from '../../../types';
 
 const PERSONA_DETAILS: Record<InvestigatorPersona, { label: string; desc: string; icon: any }> = {
    'FORENSIC_ACCOUNTANT': {
@@ -42,11 +45,13 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ themeColor = '#e4e4e7cc', onThemeChange }) => {
+   const { addTemplate, setCurrentView, setShowNewCaseModal } = useCaseStore();
    const [config, setConfig] = useState<SystemConfig>({
       modelId: 'gemini-2.5-flash',
       thinkingBudget: 0,
       persona: 'FORENSIC_ACCOUNTANT',
-      searchDepth: 'STANDARD'
+      searchDepth: 'STANDARD',
+      autoNormalizeEntities: true
    });
    const [saved, setSaved] = useState(false);
    const [cleared, setCleared] = useState(false);
@@ -70,6 +75,30 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor = '#e4e4e7cc', on
       localStorage.setItem('sherlock_config', JSON.stringify(config));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+   };
+
+   const handleSaveAsTemplate = () => {
+      const name = prompt("Enter template name:");
+      if (!name) return;
+
+      const newTemplate: CaseTemplate = {
+         id: `tmp-${Date.now()}`,
+         name,
+         topic: "Custom search parameters",
+         config: { ...config },
+         createdAt: Date.now()
+      };
+
+      addTemplate(newTemplate);
+      alert("Template saved to local archive.");
+   };
+
+   const handleApplyTemplate = (template: CaseTemplate) => {
+      if (template.config) {
+         setConfig({ ...config, ...template.config });
+         localStorage.setItem('sherlock_config', JSON.stringify({ ...config, ...template.config }));
+         alert(`Applied template: ${template.name}. Configuration updated.`);
+      }
    };
 
    const handleClearData = () => {
@@ -233,6 +262,25 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor = '#e4e4e7cc', on
                </div>
             </section>
 
+            {/* CASE TEMPLATES */}
+            <section className="bg-osint-panel/90 backdrop-blur-md border border-zinc-800 p-6">
+               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <h2 className="text-lg font-bold text-white font-mono flex items-center uppercase tracking-wider">
+                     <Layout className="w-5 h-5 mr-3 text-osint-primary" />
+                     Saved Protocols (Templates)
+                  </h2>
+                  <button
+                     onClick={handleSaveAsTemplate}
+                     className="bg-osint-primary/10 border border-osint-primary/30 hover:bg-osint-primary/20 text-osint-primary px-4 py-2 font-mono text-xs uppercase transition-colors flex items-center"
+                  >
+                     <Plus className="w-4 h-4 mr-2" />
+                     Save Current as Template
+                  </button>
+               </div>
+
+               <TemplateGallery onApply={handleApplyTemplate} />
+            </section>
+
             {/* MODEL SELECTION */}
             <section className="bg-osint-panel/90 backdrop-blur-md border border-zinc-800 p-6 relative overflow-hidden">
                <div className="absolute top-0 left-0 bg-osint-primary/10 w-full h-1"></div>
@@ -354,6 +402,21 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor = '#e4e4e7cc', on
                         <p className="mt-2 text-[10px] text-zinc-500 font-mono">
                            'Deep Dive' forces the model to prioritize obscure filings and local reporting over mainstream headlines.
                         </p>
+                     </div>
+
+                     <div className="mt-6 pt-6 border-t border-zinc-800">
+                        <label className="flex items-center space-x-3 cursor-pointer group">
+                           <div
+                              onClick={() => setConfig({ ...config, autoNormalizeEntities: !config.autoNormalizeEntities })}
+                              className={`w-5 h-5 border flex items-center justify-center transition-all ${config.autoNormalizeEntities ? 'bg-osint-primary border-osint-primary' : 'bg-black border-zinc-700 group-hover:border-zinc-500'}`}
+                           >
+                              {config.autoNormalizeEntities && <Check className="w-3 h-3 text-black" />}
+                           </div>
+                           <div className="flex flex-col text-left">
+                              <span className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest font-bold">Auto-Resolve Entities</span>
+                              <span className="text-[9px] font-mono text-zinc-600">Fuzzily merge similar names (e.g. "Google Inc" & "Google") on ingestion.</span>
+                           </div>
+                        </label>
                      </div>
 
                      <div className="pt-4 mt-6 border-t border-zinc-800">

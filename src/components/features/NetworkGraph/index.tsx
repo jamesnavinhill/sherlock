@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { InvestigationReport, ManualConnection, Case, EntityAliasMap, ManualNode, Entity, SystemConfig, Headline, Source } from '../../../types';
 import { getItem, STORAGE_KEYS } from '../../../utils/localStorage';
+import { useCaseStore } from '../../../store/caseStore';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { BreadcrumbItem } from '../../ui/Breadcrumbs';
 
@@ -30,7 +31,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     const [manualNodes, setManualNodes] = useState<ManualNode[]>([]);
     const [hiddenNodeIds, setHiddenNodeIds] = useState<Set<string>>(new Set());
     const [cases, setCases] = useState<Case[]>([]);
-    const [aliases, setAliases] = useState<EntityAliasMap>({});
+    const { entityAliases: aliases, setEntityAliases: setAliases } = useCaseStore();
     const [headlines, setHeadlines] = useState<Headline[]>([]);
     const [flaggedNodeIds, setFlaggedNodeIds] = useState<Set<string>>(new Set());
 
@@ -39,6 +40,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     const [showHiddenNodes, setShowHiddenNodes] = useState(false);
     const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
     const [filterCaseId, setFilterCaseId] = useState<string>('');
+    const [isLocked, setIsLocked] = useState(false);
 
     // UI/Panel State
     const [showLeftPanel, setShowLeftPanel] = useState(false);
@@ -83,11 +85,17 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setReports(getItem<InvestigationReport[]>(STORAGE_KEYS.ARCHIVES, []));
         setManualLinks(getItem<ManualConnection[]>(STORAGE_KEYS.MANUAL_LINKS, []));
         setCases(getItem<Case[]>(STORAGE_KEYS.CASES, []));
-        setAliases(getItem<EntityAliasMap>(STORAGE_KEYS.ENTITY_ALIASES, {}));
-        setManualNodes(getItem<ManualNode[]>(STORAGE_KEYS.MANUAL_NODES, []));
         setHiddenNodeIds(new Set(getItem<string[]>(STORAGE_KEYS.HIDDEN_NODES, [])));
         setHeadlines(getItem<Headline[]>(STORAGE_KEYS.HEADLINES, []));
         setFlaggedNodeIds(new Set(getItem<string[]>(STORAGE_KEYS.FLAGGED_NODES, [])));
+
+        // Sync local storage aliases to store if store is empty (Migration)
+        if (Object.keys(aliases).length === 0) {
+            const storedAliases = getItem<EntityAliasMap>(STORAGE_KEYS.ENTITY_ALIASES, {});
+            if (Object.keys(storedAliases).length > 0) {
+                setAliases(storedAliases);
+            }
+        }
 
         const activeCaseId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CASE_ID);
         if (activeCaseId) setFilterCaseId(activeCaseId);
@@ -297,6 +305,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                 onZoom={(dir) => dir === 'IN' ? graphRef.current?.zoomIn() : graphRef.current?.zoomOut()}
                 onShowAddNode={() => setShowAddNodeUI(true)}
                 onShowResolution={() => setShowResolutionModal(true)}
+                isLocked={isLocked}
+                onToggleLock={() => setIsLocked(!isLocked)}
             />
 
             <div className="flex-1 flex overflow-hidden relative z-10">
@@ -338,6 +348,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                         showFlaggedOnly={showFlaggedOnly}
                         isLinkingMode={isLinkingMode}
                         linkSourceNode={linkSourceNode}
+                        isLocked={isLocked}
                         onNodeClick={handleNodeClick}
                         onSetLinkSource={setLinkSourceNode}
                         onCreateManualLink={handleCreateManualLink}

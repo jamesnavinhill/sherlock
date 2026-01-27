@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { SystemConfig, InvestigatorPersona, ManualNode } from '../../types';
-import {
-   Target, X, PlayCircle, UserCog, Microscope, AlignLeft,
-   ChevronRight, ChevronLeft, Lightbulb, Globe, BookOpen,
-   User, Building2, Plus, Trash2, Check
+User, Building2, Plus, Trash2, Check, Layout, Save
 } from 'lucide-react';
+import { useCaseStore } from '../../store/caseStore';
+import { CaseTemplate } from '../../types';
 
 interface TaskSetupModalProps {
    initialTopic: string;
@@ -30,7 +27,10 @@ interface KeyFigure {
 }
 
 export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, initialContext, onCancel, onStart }) => {
+   const { templates, addTemplate } = useCaseStore();
    const [currentStep, setCurrentStep] = useState(1);
+   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+   const [templateName, setTemplateName] = useState('');
 
    // Step 1: Target
    const [topic, setTopic] = useState(initialTopic);
@@ -52,7 +52,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
    const [thinkingBudget, setThinkingBudget] = useState(0);
 
    useEffect(() => {
-      const stored = localStorage.getItem('truthseeker_config');
+      const stored = localStorage.getItem('sherlock_config');
       if (stored) {
          const config = JSON.parse(stored);
          setPersona(config.persona || 'FORENSIC_ACCOUNTANT');
@@ -60,6 +60,13 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
          setThinkingBudget(config.thinkingBudget || 0);
       }
    }, []);
+
+   const applyTemplate = (t: CaseTemplate) => {
+      setTopic(t.topic);
+      if (t.config.persona) setPersona(t.config.persona);
+      if (t.config.searchDepth) setDepth(t.config.searchDepth);
+      if (t.config.thinkingBudget !== undefined) setThinkingBudget(t.config.thinkingBudget);
+   };
 
    const handleAddFigure = () => {
       if (!newFigureName.trim()) return;
@@ -97,6 +104,16 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
          searchDepth: depth,
          thinkingBudget
       }, preseededEntities.length > 0 ? preseededEntities : undefined);
+
+      if (saveAsTemplate && templateName.trim()) {
+         addTemplate({
+            id: `tmp-${Date.now()}`,
+            name: templateName.trim(),
+            topic: topic,
+            config: { persona, searchDepth: depth, thinkingBudget },
+            createdAt: Date.now()
+         });
+      }
    };
 
    const canProceed = () => {
@@ -132,6 +149,24 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                autoFocus
             />
          </div>
+
+         {templates.length > 0 && (
+            <div className="pt-2 border-t border-zinc-900">
+               <label className="block text-[10px] font-mono text-zinc-500 uppercase mb-2">Load From Template</label>
+               <div className="grid grid-cols-2 gap-2">
+                  {templates.slice(0, 4).map(t => (
+                     <button
+                        key={t.id}
+                        onClick={() => applyTemplate(t)}
+                        className="flex items-center p-2 bg-zinc-900 border border-zinc-800 hover:border-osint-primary text-zinc-400 hover:text-white transition-all text-[10px] font-mono uppercase truncate"
+                     >
+                        <Layout className="w-3 h-3 mr-2" />
+                        <span className="truncate">{t.name}</span>
+                     </button>
+                  ))}
+               </div>
+            </div>
+         )}
       </div>
    );
 
@@ -274,119 +309,142 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                   Deep Dive
                </button>
             </div>
-         </div>
-      </div>
-   );
+            {/* Save as Template Toggle */}
+            <div className="pt-6 border-t border-zinc-800">
+               <label className="flex items-center space-x-3 cursor-pointer group">
+                  <div
+                     onClick={() => setSaveAsTemplate(!saveAsTemplate)}
+                     className={`w-5 h-5 border flex items-center justify-center transition-all ${saveAsTemplate ? 'bg-osint-primary border-osint-primary' : 'bg-black border-zinc-700 group-hover:border-zinc-500'}`}
+                  >
+                     {saveAsTemplate && <Check className="w-3 h-3 text-black" />}
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Store as Reusable Protocol (Template)</span>
+               </label>
 
-   return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-         <div className="bg-osint-panel w-full max-w-2xl border border-zinc-600 shadow-2xl flex flex-col relative">
-
-            {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
-               <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
-                  <Target className="w-5 h-5 text-osint-primary" />
-                  <span>Initialize Operation</span>
-               </div>
-               <button onClick={onCancel} className="text-zinc-500 hover:text-white transition-colors">
-                  <X className="w-5 h-5" />
-               </button>
+               {saveAsTemplate && (
+                  <div className="mt-4 animate-in slide-in-from-top-2 duration-200">
+                     <input
+                        type="text"
+                        placeholder="Enter Template Name..."
+                        value={templateName}
+                        onChange={(e) => setTemplateName(e.target.value)}
+                        className="w-full bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
+                     />
+                  </div>
+               )}
             </div>
+         </div>
+         );
 
-            {/* Progress Indicator */}
-            <div className="px-6 pt-4 pb-2">
-               <div className="flex items-center justify-between">
-                  {STEPS.map((step, index) => (
-                     <React.Fragment key={step.id}>
-                        <button
-                           onClick={() => step.id < currentStep && setCurrentStep(step.id)}
-                           className={`flex flex-col items-center space-y-1 transition-all ${step.id === currentStep
+         return (
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-osint-panel w-full max-w-2xl border border-zinc-600 shadow-2xl flex flex-col relative">
+
+               {/* Header */}
+               <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
+                  <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
+                     <Target className="w-5 h-5 text-osint-primary" />
+                     <span>Initialize Operation</span>
+                  </div>
+                  <button onClick={onCancel} className="text-zinc-500 hover:text-white transition-colors">
+                     <X className="w-5 h-5" />
+                  </button>
+               </div>
+
+               {/* Progress Indicator */}
+               <div className="px-6 pt-4 pb-2">
+                  <div className="flex items-center justify-between">
+                     {STEPS.map((step, index) => (
+                        <React.Fragment key={step.id}>
+                           <button
+                              onClick={() => step.id < currentStep && setCurrentStep(step.id)}
+                              className={`flex flex-col items-center space-y-1 transition-all ${step.id === currentStep
                                  ? 'text-osint-primary'
                                  : step.id < currentStep
                                     ? 'text-green-500 cursor-pointer hover:text-green-400'
                                     : 'text-zinc-600'
-                              }`}
-                        >
-                           <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${step.id === currentStep
+                                 }`}
+                           >
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${step.id === currentStep
                                  ? 'border-osint-primary bg-osint-primary/20'
                                  : step.id < currentStep
                                     ? 'border-green-500 bg-green-500/20'
                                     : 'border-zinc-700'
-                              }`}>
-                              {step.id < currentStep ? (
-                                 <Check className="w-4 h-4" />
-                              ) : (
-                                 <step.icon className="w-4 h-4" />
-                              )}
-                           </div>
-                           <span className="text-[10px] font-mono uppercase hidden sm:block">{step.label}</span>
-                        </button>
-                        {index < STEPS.length - 1 && (
-                           <div className={`flex-1 h-px mx-2 ${step.id < currentStep ? 'bg-green-500' : 'bg-zinc-700'}`} />
-                        )}
-                     </React.Fragment>
-                  ))}
+                                 }`}>
+                                 {step.id < currentStep ? (
+                                    <Check className="w-4 h-4" />
+                                 ) : (
+                                    <step.icon className="w-4 h-4" />
+                                 )}
+                              </div>
+                              <span className="text-[10px] font-mono uppercase hidden sm:block">{step.label}</span>
+                           </button>
+                           {index < STEPS.length - 1 && (
+                              <div className={`flex-1 h-px mx-2 ${step.id < currentStep ? 'bg-green-500' : 'bg-zinc-700'}`} />
+                           )}
+                        </React.Fragment>
+                     ))}
+                  </div>
                </div>
-            </div>
 
-            {/* Context Banner */}
-            {initialContext && (
-               <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
-                  <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Parent Context</div>
-                  <div className="text-xs text-zinc-300 font-mono">{initialContext.topic}</div>
+               {/* Context Banner */}
+               {initialContext && (
+                  <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
+                     <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Parent Context</div>
+                     <div className="text-xs text-zinc-300 font-mono">{initialContext.topic}</div>
+                  </div>
+               )}
+
+               {/* Step Content */}
+               <div className="p-6 min-h-[200px]">
+                  {currentStep === 1 && renderStep1()}
+                  {currentStep === 2 && renderStep2()}
+                  {currentStep === 3 && renderStep3()}
+                  {currentStep === 4 && renderStep4()}
+                  {currentStep === 5 && renderStep5()}
                </div>
-            )}
 
-            {/* Step Content */}
-            <div className="p-6 min-h-[200px]">
-               {currentStep === 1 && renderStep1()}
-               {currentStep === 2 && renderStep2()}
-               {currentStep === 3 && renderStep3()}
-               {currentStep === 4 && renderStep4()}
-               {currentStep === 5 && renderStep5()}
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
-               <button
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-               >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
-                  Back
-               </button>
-
-               <div className="flex space-x-3">
+               {/* Footer */}
+               <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
                   <button
-                     onClick={onCancel}
-                     className="px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors"
+                     onClick={prevStep}
+                     disabled={currentStep === 1}
+                     className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                     Cancel
+                     <ChevronLeft className="w-4 h-4 mr-1" />
+                     Back
                   </button>
 
-                  {currentStep < 5 ? (
+                  <div className="flex space-x-3">
                      <button
-                        onClick={nextStep}
-                        disabled={!canProceed()}
-                        className="flex items-center px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold font-mono text-xs uppercase transition-colors disabled:opacity-50"
+                        onClick={onCancel}
+                        className="px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors"
                      >
-                        Next
-                        <ChevronRight className="w-4 h-4 ml-1" />
+                        Cancel
                      </button>
-                  ) : (
-                     <button
-                        onClick={handleStart}
-                        className="px-6 py-2 bg-white hover:bg-zinc-200 text-black font-bold font-mono text-xs uppercase flex items-center transition-colors shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)]"
-                     >
-                        <PlayCircle className="w-4 h-4 mr-2" />
-                        Execute Task
-                     </button>
-                  )}
-               </div>
-            </div>
 
+                     {currentStep < 5 ? (
+                        <button
+                           onClick={nextStep}
+                           disabled={!canProceed()}
+                           className="flex items-center px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold font-mono text-xs uppercase transition-colors disabled:opacity-50"
+                        >
+                           Next
+                           <ChevronRight className="w-4 h-4 ml-1" />
+                        </button>
+                     ) : (
+                        <button
+                           onClick={handleStart}
+                           className="px-6 py-2 bg-white hover:bg-zinc-200 text-black font-bold font-mono text-xs uppercase flex items-center transition-colors shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)]"
+                        >
+                           <PlayCircle className="w-4 h-4 mr-2" />
+                           Execute Task
+                        </button>
+                     )}
+                  </div>
+               </div>
+
+            </div>
          </div>
-      </div>
-   );
+         );
 };

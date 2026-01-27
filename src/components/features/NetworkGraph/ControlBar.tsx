@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-    Briefcase, ChevronRight, ChevronDown, Box, Eye, EyeOff, Star,
-    ZoomOut, ZoomIn, Link as LinkIcon, PlusCircle, GitMerge
+    ZoomOut, ZoomIn, Link as LinkIcon, PlusCircle, GitMerge,
+    Lock, Unlock
 } from 'lucide-react';
 import { Case } from '../../../types';
 
@@ -22,6 +22,8 @@ interface ControlBarProps {
     onZoom: (dir: 'IN' | 'OUT') => void;
     onShowAddNode: () => void;
     onShowResolution: () => void;
+    isLocked: boolean;
+    onToggleLock: () => void;
 }
 
 export const ControlBar: React.FC<ControlBarProps> = ({
@@ -40,7 +42,9 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     onToggleLinkingMode,
     onZoom,
     onShowAddNode,
-    onShowResolution
+    onShowResolution,
+    isLocked,
+    onToggleLock
 }) => {
     return (
         <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg flex-shrink-0">
@@ -109,7 +113,14 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     title="Zoom In"
                 >
                     <ZoomIn className="w-3.5 h-3.5" />
-                </button>
+                    <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+                    <button
+                        onClick={onToggleLock}
+                        className={`p-1.5 ${isLocked ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'} transition-colors`}
+                        title={isLocked ? "Unlock Simulation" : "Lock Layout (Performance)"}
+                    >
+                        {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                    </button>
             </div>
 
             <div className="flex items-center space-x-3 flex-shrink-0">

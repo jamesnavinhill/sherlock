@@ -9,39 +9,7 @@ interface EntityResolutionProps {
   onClose: () => void;
 }
 
-// Simple Levenshtein distance for fuzzy matching
-const getLevenshteinDistance = (a: string, b: string): number => {
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
-        );
-      }
-    }
-  }
-  return matrix[b.length][a.length];
-};
-
-// Advanced cleaning: Removes markdown, parenthesis content, and special chars
-const getCoreName = (str: string): string => {
-  let s = str.toLowerCase();
-  s = s.replace(/[*_~`]/g, '');
-  s = s.replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '');
-  s = s.replace(/[.,;:"'!?]/g, '');
-  return s.trim().replace(/\s+/g, ' ');
-};
-
-const getTokens = (str: string): Set<string> => {
-  return new Set(getCoreName(str).split(' ').filter(t => t.length > 0));
-};
+import { getLevenshteinDistance, getCoreName, getTokens } from '../../../utils/entityUtils';
 
 export const EntityResolution: React.FC<EntityResolutionProps> = ({
   allEntities,

@@ -18,6 +18,7 @@ export interface Headline {
   timestamp: string;
   type: 'SOCIAL' | 'NEWS' | 'OFFICIAL';
   status: LeadStatus;
+  threatLevel: 'INFO' | 'CAUTION' | 'CRITICAL';
   linkedReportId?: string;
 }
 
@@ -81,7 +82,9 @@ export interface MonitorEvent {
   sourceName: string;
   content: string;
   timestamp: string;
+  timestamp: string;
   sentiment: 'NEGATIVE' | 'NEUTRAL' | 'POSITIVE';
+  threatLevel: 'INFO' | 'CAUTION' | 'CRITICAL';
   url?: string;
 }
 
@@ -92,6 +95,7 @@ export enum AppView {
   NETWORK = 'NETWORK',
   LIVE_MONITOR = 'LIVE_MONITOR',
   SETTINGS = 'SETTINGS',
+  TIMELINE = 'TIMELINE',
 }
 
 export type InvestigatorPersona = 'FORENSIC_ACCOUNTANT' | 'JOURNALIST' | 'INTELLIGENCE_OFFICER' | 'CONSPIRACY_ANALYST';
@@ -101,6 +105,16 @@ export interface SystemConfig {
   thinkingBudget: number; // 0 to max
   persona: InvestigatorPersona;
   searchDepth: 'STANDARD' | 'DEEP';
+  autoNormalizeEntities?: boolean;
+}
+
+export interface CaseTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  topic: string;
+  config: Partial<SystemConfig>;
+  createdAt: number;
 }
 
 // Key is the "Variation" (e.g. "Google Inc"), Value is the "Canonical" (e.g. "Google")

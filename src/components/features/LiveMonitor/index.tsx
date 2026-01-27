@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { useCaseStore } from '../../../store/caseStore';
 import { Case, MonitorEvent, SystemConfig, Headline } from '../../../types';
 import { getLiveIntel, MonitorConfig } from '../../../services/gemini';
 import {
@@ -22,6 +23,7 @@ interface LiveMonitorProps {
  * Streams events from various sources (news, social, official) and allows investigation.
  */
 export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onInvestigate }) => {
+    const { headlines, addHeadline } = useCaseStore();
     // Case State
     const [cases, setCases] = useState<Case[]>([]);
     const [selectedCaseId, setSelectedCaseId] = useState<string>('');
@@ -33,6 +35,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
 
     // Filter & UI State
     const [filterType, setFilterType] = useState<'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL'>('ALL');
+    const [filterThreat, setFilterThreat] = useState<'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL'>('ALL');
     const [showSettings, setShowSettings] = useState(false);
 
     // Configuration State
@@ -51,7 +54,9 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
 
     // Event Expansion State
     const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
-    const [savedHeadlineIds, setSavedHeadlineIds] = useState<Set<string>>(new Set());
+
+    // Memoized saved headlines IDs for quick check
+    const savedHeadlineIds = useMemo(() => new Set(headlines.map(h => h.id.replace('headline-', ''))), [headlines]);
 
     // Task Selection State
     const [selectedEventForAnalysis, setSelectedEventForAnalysis] = useState<MonitorEvent | null>(null);
@@ -169,14 +174,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
         if (!selectedCaseId || savedHeadlineIds.has(event.id)) return;
 
         try {
-            const headlinesStr = localStorage.getItem('sherlock_headlines');
-            let headlines: Headline[] = headlinesStr ? JSON.parse(headlinesStr) : [];
-
-            if (headlines.some(h => h.id === event.id || h.content === event.content)) {
-                setSavedHeadlineIds(prev => new Set(prev).add(event.id));
-                return;
-            }
-
             const newHeadline: Headline = {
                 id: `headline-${event.id}`,
                 caseId: selectedCaseId,
@@ -185,12 +182,11 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
                 url: event.url,
                 timestamp: event.timestamp,
                 type: event.type,
+                threatLevel: event.threatLevel,
                 status: 'PENDING'
             };
 
-            headlines.push(newHeadline);
-            localStorage.setItem('sherlock_headlines', JSON.stringify(headlines));
-            setSavedHeadlineIds(prev => new Set(prev).add(event.id));
+            addHeadline(newHeadline);
         } catch (e) {
             console.error('Failed to save headline', e);
         }
@@ -216,8 +212,10 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
     };
 
     const getFilteredEvents = () => {
-        if (filterType === 'ALL') return events;
-        return events.filter(e => e.type === filterType);
+        let filtered = events;
+        if (filterType !== 'ALL') filtered = filtered.filter(e => e.type === filterType);
+        if (filterThreat !== 'ALL') filtered = filtered.filter(e => e.threatLevel === filterThreat);
+        return filtered;
     };
 
     // --- RENDER ---
@@ -261,6 +259,21 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
                             <option value="SOCIAL">FILTER: SOCIAL ONLY</option>
                             <option value="NEWS">FILTER: NEWS ONLY</option>
                             <option value="OFFICIAL">FILTER: OFFICIAL DOCS</option>
+                        </select>
+                    </div>
+
+                    {/* Threat Filter */}
+                    <div className="relative group">
+                        <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                        <select
+                            value={filterThreat}
+                            onChange={(e) => setFilterThreat(e.target.value as any)}
+                            className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[150px]"
+                        >
+                            <option value="ALL">THREAT: ALL LEVELS</option>
+                            <option value="INFO">THREAT: INFO ONLY</option>
+                            <option value="CAUTION">THREAT: CAUTION ONLY</option>
+                            <option value="CRITICAL">THREAT: CRITICAL ONLY</option>
                         </select>
                     </div>
                 </div>

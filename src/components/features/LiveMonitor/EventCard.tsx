@@ -2,7 +2,8 @@ import React from 'react';
 import { MonitorEvent } from '../../../types';
 import {
     AlertCircle, MessageSquare, Newspaper, Landmark,
-    ExternalLink, ChevronUp, Save, Microscope, Link as LinkIcon
+    ExternalLink, ChevronUp, Save, Microscope, Link as LinkIcon,
+    ShieldAlert, ShieldCheck, ShieldQuestion
 } from 'lucide-react';
 
 interface EventCardProps {
@@ -41,6 +42,17 @@ export const EventCard: React.FC<EventCardProps> = ({
         }
     };
 
+    const getThreatInfo = (level: string) => {
+        switch (level) {
+            case 'CRITICAL': return { color: 'text-red-400 border-red-500 bg-red-950/30', icon: ShieldAlert };
+            case 'CAUTION': return { color: 'text-amber-400 border-amber-500 bg-amber-950/30', icon: ShieldQuestion };
+            default: return { color: 'text-blue-400 border-blue-500 bg-blue-950/30', icon: ShieldCheck };
+        }
+    };
+
+    const threat = getThreatInfo(event.threatLevel || 'INFO');
+    const ThreatIcon = threat.icon;
+
     return (
         <div
             className={`bg-black/80 backdrop-blur-sm border p-5 flex flex-col gap-3 animate-in slide-in-from-top-4 fade-in duration-500 transition-all shadow-lg ${isExpanded
@@ -61,6 +73,10 @@ export const EventCard: React.FC<EventCardProps> = ({
                     )}
                 </div>
                 <div className="flex items-center space-x-2">
+                    <span className={`text-[10px] uppercase font-mono px-2 py-0.5 border flex items-center ${threat.color}`}>
+                        <ThreatIcon className="w-3 h-3 mr-1" />
+                        {event.threatLevel || 'INFO'}
+                    </span>
                     <span className={`text-[10px] uppercase font-mono px-2 py-0.5 border ${getSentimentColor(event.sentiment)}`}>
                         {event.sentiment}
                     </span>
@@ -108,10 +124,13 @@ export const EventCard: React.FC<EventCardProps> = ({
                         </div>
                         <button
                             onClick={(e) => { e.stopPropagation(); onInvestigate(); }}
-                            className="flex items-center px-4 py-2 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white transition-colors"
+                            className={`flex items-center px-4 py-2 font-mono text-xs font-bold uppercase transition-colors ${event.threatLevel === 'CRITICAL'
+                                    ? 'bg-red-600 text-white hover:bg-white hover:text-red-600 border border-red-600'
+                                    : 'bg-osint-primary text-black hover:bg-white'
+                                }`}
                         >
                             <Microscope className="w-3 h-3 mr-2" />
-                            Investigate This
+                            {event.threatLevel === 'CRITICAL' ? 'DEEP_DIVE_NOW' : 'Investigate This'}
                         </button>
                     </div>
                 </div>
