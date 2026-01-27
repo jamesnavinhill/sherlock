@@ -11,7 +11,7 @@ interface ScopeManagerProps {
     onClose?: () => void;
 }
 
-export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose }) => {
+export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose }) => {
     const {
         customScopes,
         activeScope: activeScopeId,

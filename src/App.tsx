@@ -29,11 +29,17 @@ function App() {
     navStack, setNavStack,
     isSidebarCollapsed, setIsSidebarCollapsed,
     themeColor, setThemeColor,
+    accentSettings, setAccentSettings,
     showNewCaseModal: _showNewCaseModal, setShowNewCaseModal,
     showGlobalSearch, setShowGlobalSearch,
     archiveReport, archives, cases,
-    addToast
+    addToast,
+    initializeStore, isLoading
   } = useCaseStore();
+
+  useEffect(() => {
+    initializeStore();
+  }, [initializeStore]);
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => hasApiKey());
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -214,6 +220,17 @@ function App() {
     startInvestigation(entity, context, true);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-zinc-950 text-zinc-400">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-zinc-600 border-t-zinc-200 rounded-full animate-spin" />
+          <p>Initializing Secure Database...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-osint-dark text-osint-text font-sans selection:bg-osint-primary selection:text-black overflow-hidden">
 
@@ -275,6 +292,8 @@ function App() {
               <Settings
                 themeColor={themeColor}
                 onThemeChange={(color) => setThemeColor(color)}
+                accentSettings={accentSettings}
+                onAccentChange={(settings) => setAccentSettings(settings)}
                 onStartCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
               />
             )}

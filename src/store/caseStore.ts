@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type {
     InvestigationReport,
     InvestigationTask,
@@ -18,6 +17,13 @@ import {
     AppView
 } from '../types';
 import { isLikelySameEntity } from '../utils/entityUtils';
+import { CaseRepository } from '../services/db/repositories/CaseRepository';
+import { ScopeRepository } from '../services/db/repositories/ScopeRepository';
+import { TaskRepository } from '../services/db/repositories/TaskRepository';
+import { SettingsRepository } from '../services/db/repositories/SettingsRepository';
+import { initDB } from '../services/db/client';
+import { migrateLocalStorageToSqlite } from '../services/db/migrate';
+import { DEFAULT_ACCENT_SETTINGS, buildAccentColor, parseOklch } from '../utils/accent';
 
 export interface Toast {
     id: string;
@@ -27,6 +33,10 @@ export interface Toast {
 
 interface CaseState {
     // --- CORE DATA STATE ---
+    isLoading: boolean;
+    error: string | null;
+    initializeStore: () => Promise<void>;
+
     archives: InvestigationReport[];
     cases: Case[];
     tasks: InvestigationTask[];
@@ -59,6 +69,11 @@ interface CaseState {
     navStack: BreadcrumbItem[];
     isSidebarCollapsed: boolean;
     themeColor: string;
+    accentSettings: {
+        hue: number;
+        lightness: number;
+        chroma: number;
+    };
     showNewCaseModal: boolean;
     showGlobalSearch: boolean;
 
@@ -72,6 +87,7 @@ interface CaseState {
     setNavStack: (stack: BreadcrumbItem[]) => void;
     setIsSidebarCollapsed: (collapsed: boolean) => void;
     setThemeColor: (color: string) => void;
+    setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
     setShowNewCaseModal: (show: boolean) => void;
     setShowGlobalSearch: (show: boolean) => void;
     setTemplates: (templates: CaseTemplate[]) => void;
@@ -108,267 +124,312 @@ interface CaseState {
     archiveReport: (report: InvestigationReport, parentContext?: { topic: string, summary: string }) => InvestigationReport;
 }
 
-export const useCaseStore = create<CaseState>()(
-    persist(
-        (set, get) => ({
-            // INITIAL STATE
-            archives: [],
-            cases: [],
-            tasks: [],
-            activeTaskId: null,
-            liveEvents: [],
-            toasts: [],
-            currentView: AppView.DASHBOARD,
-            navStack: [],
-            isSidebarCollapsed: true,
-            themeColor: '#e4e4e7cc',
-            showNewCaseModal: false,
-            showGlobalSearch: false,
-            templates: [],
-            headlines: [],
-            entityAliases: {},
-            feedItems: [],
-            feedConfig: {
-                limit: 8,
-                prioritySources: '',
-                autoRefresh: false,
-                refreshInterval: 60000
-            },
-            manualLinks: [],
-            manualNodes: [],
-            hiddenNodeIds: [],
-            flaggedNodeIds: [],
-            activeCaseId: null,
+export const useCaseStore = create<CaseState>()((set, get) => ({
+    // INITIAL STATE
+    isLoading: true,
+    error: null,
 
-            // Scope state
-            customScopes: [],
-            activeScope: null,
-            defaultScopeId: 'open-investigation',
+    archives: [],
+    cases: [],
+    tasks: [],
+    activeTaskId: null,
+    liveEvents: [],
+    toasts: [],
+    currentView: AppView.DASHBOARD,
+    navStack: [],
+    isSidebarCollapsed: true,
+    themeColor: '#e4e4e7cc',
+    accentSettings: DEFAULT_ACCENT_SETTINGS,
+    showNewCaseModal: false,
+    showGlobalSearch: false,
+    templates: [],
+    headlines: [],
+    entityAliases: {},
+    feedItems: [],
+    feedConfig: {
+        limit: 8,
+        prioritySources: '',
+        autoRefresh: false,
+        refreshInterval: 60000
+    },
+    manualLinks: [],
+    manualNodes: [],
+    hiddenNodeIds: [],
+    flaggedNodeIds: [],
+    activeCaseId: null,
 
-            // SIMPLE ACTIONS
-            setArchives: (archives) => set({ archives }),
-            setCases: (cases) => set({ cases }),
-            setTasks: (tasks) => set({ tasks }),
-            setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
-            setLiveEvents: (liveEvents) => set({ liveEvents }),
-            setCurrentView: (currentView) => set({ currentView }),
-            setNavStack: (navStack) => set({ navStack }),
-            setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
-            setThemeColor: (themeColor) => set({ themeColor }),
-            setShowNewCaseModal: (showNewCaseModal) => set({ showNewCaseModal }),
-            setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
-            setTemplates: (templates) => set({ templates }),
-            setHeadlines: (headlines) => set({ headlines }),
+    // Scope state
+    customScopes: [],
+    activeScope: null,
+    defaultScopeId: 'open-investigation',
 
-            addHeadline: (headline) => set((state) => ({
-                headlines: [...state.headlines, headline]
-            })),
+    initializeStore: async () => {
+        try {
+            set({ isLoading: true });
+            await initDB();
+            await migrateLocalStorageToSqlite();
 
-            addTemplate: (template) => set((state) => ({
-                templates: [...state.templates, template]
-            })),
+            // Load data
+            const cases = await CaseRepository.getAllCases();
+            const archives = await CaseRepository.getAllReports();
+            const scopes = await ScopeRepository.getAll();
+            const tasks = await TaskRepository.getAll();
+            const headlines = await CaseRepository.getHeadlines();
+            const storedAccent = await SettingsRepository.getSetting<{ hue: number; lightness: number; chroma: number }>('accent_settings');
+            const storedTheme = await SettingsRepository.getSetting<string>('theme_color');
 
-            deleteTemplate: (id) => set((state) => ({
-                templates: state.templates.filter(t => t.id !== id)
-            })),
-
-            setEntityAliases: (entityAliases) => set({ entityAliases }),
-
-            addAlias: (variant, canonical) => set((state) => ({
-                entityAliases: { ...state.entityAliases, [variant]: canonical }
-            })),
-
-            resolveEntity: (name) => {
-                const state = get();
-                return state.entityAliases[name] || name;
-            },
-
-            addToast: (message, type = 'INFO') => {
-                const id = `toast-${Date.now()}`;
-                set((state) => ({
-                    toasts: [...state.toasts, { id, message, type }]
-                }));
-                // Auto-remove after 5 seconds
-                setTimeout(() => {
-                    get().removeToast(id);
-                }, 5000);
-            },
-
-            removeToast: (id) => set((state) => ({
-                toasts: state.toasts.filter((t) => t.id !== id)
-            })),
-
-            setFeedItems: (feedItems) => set({ feedItems }),
-            setFeedConfig: (feedConfig) => set({ feedConfig }),
-
-            setManualLinks: (manualLinks) => set({ manualLinks }),
-            setManualNodes: (manualNodes) => set({ manualNodes }),
-            setHiddenNodeIds: (hiddenNodeIds) => set({ hiddenNodeIds }),
-            setFlaggedNodeIds: (flaggedNodeIds) => set({ flaggedNodeIds }),
-            setActiveCaseId: (activeCaseId) => set({ activeCaseId }),
-
-            toggleFlag: (id) => set((state) => {
-                const flagged = new Set(state.flaggedNodeIds);
-                if (flagged.has(id)) flagged.delete(id);
-                else flagged.add(id);
-                return { flaggedNodeIds: Array.from(flagged) };
-            }),
-
-            toggleHide: (id) => set((state) => {
-                const hidden = new Set(state.hiddenNodeIds);
-                if (hidden.has(id)) hidden.delete(id);
-                else hidden.add(id);
-                return { hiddenNodeIds: Array.from(hidden) };
-            }),
-
-            // Scope actions
-            setActiveScope: (activeScope) => set({ activeScope }),
-            setDefaultScope: (defaultScopeId) => set({ defaultScopeId }),
-            addScope: (scope) => set((state) => ({
-                customScopes: [...state.customScopes, scope]
-            })),
-            deleteScope: (id) => set((state) => ({
-                customScopes: state.customScopes.filter(s => s.id !== id)
-            })),
-
-            // COMPLEX ACTIONS
-            addTask: (task) => set((state) => ({
-                tasks: [...state.tasks, task]
-            })),
-
-            completeTask: (id, report) => set((state) => ({
-                tasks: state.tasks.map((t) =>
-                    t.id === id
-                        ? { ...t, status: 'COMPLETED', report, endTime: Date.now() }
-                        : t
-                )
-            })),
-
-            failTask: (id, error) => set((state) => ({
-                tasks: state.tasks.map((t) =>
-                    t.id === id
-                        ? { ...t, status: 'FAILED', error }
-                        : t
-                )
-            })),
-
-            clearCompletedTasks: () => set((state) => ({
-                tasks: state.tasks.filter((t) =>
-                    t.status === 'RUNNING' || t.status === 'QUEUED'
-                )
-            })),
-
-            archiveReport: (report, parentContext) => {
-                const state = get();
-                const archives = [...state.archives];
-                const cases = [...state.cases];
-                let targetCaseId = report.caseId;
-
-                // 1. Link to parent case
-                if (!targetCaseId && parentContext) {
-                    const parentReport = archives.find(r => r.topic === parentContext.topic);
-                    if (parentReport?.caseId) {
-                        targetCaseId = parentReport.caseId;
-                    } else {
-                        const parentCase = cases.find(c => c.title === parentContext.topic || c.title === `Operation: ${parentContext.topic}`);
-                        if (parentCase) targetCaseId = parentCase.id;
-                    }
+            const legacyTheme = localStorage.getItem('sherlock_theme');
+            const legacyConfigRaw = localStorage.getItem('sherlock_config');
+            const legacyConfigTheme = legacyConfigRaw ? (() => {
+                try {
+                    const parsed = JSON.parse(legacyConfigRaw);
+                    return typeof parsed?.theme === 'string' ? parsed.theme : null;
+                } catch {
+                    return null;
                 }
+            })() : null;
 
-                // 2. Check existing case for this topic
-                if (!targetCaseId) {
-                    const existingCase = cases.find(c => c.title === report.topic || c.title === `Operation: ${report.topic}`);
-                    if (existingCase) targetCaseId = existingCase.id;
-                }
+            const resolvedAccent = storedAccent
+                || (legacyTheme ? parseOklch(legacyTheme) : null)
+                || (legacyConfigTheme ? parseOklch(legacyConfigTheme) : null)
+                || DEFAULT_ACCENT_SETTINGS;
 
-                // 3. Create new case
-                if (!targetCaseId) {
-                    const newCaseId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-                    const newCase: Case = {
-                        id: newCaseId,
-                        title: `Operation: ${report.topic}`,
-                        status: 'ACTIVE',
-                        dateOpened: new Date().toLocaleDateString(),
-                        description: `Investigation started on ${report.topic}`
-                    };
-                    cases.push(newCase);
-                    targetCaseId = newCaseId;
-                }
+            const resolvedTheme = storedTheme
+                || (legacyTheme || legacyConfigTheme || buildAccentColor(resolvedAccent));
 
-                // 4. Entity Normalization & Alias Application
-                const storedConfig = localStorage.getItem('sherlock_config');
-                const config: SystemConfig | null = storedConfig ? JSON.parse(storedConfig) : null;
-                const autoNormalize = config?.autoNormalizeEntities ?? true;
+            await SettingsRepository.setSetting('accent_settings', resolvedAccent);
+            await SettingsRepository.setSetting('theme_color', resolvedTheme);
 
-                const processedEntities = report.entities.map(e => {
-                    const name = typeof e === 'string' ? e : e.name;
-                    // Check direct alias first
-                    let resolvedName = state.entityAliases[name] || name;
-
-                    if (autoNormalize && resolvedName === name) {
-                        // Try fuzzy match against all known entities in this case
-                        const existingCaseEntities = archives
-                            .filter(r => r.caseId === targetCaseId)
-                            .flatMap(r => r.entities)
-                            .map(ent => typeof ent === 'string' ? ent : ent.name);
-
-                        const match = existingCaseEntities.find(existingName =>
-                            isLikelySameEntity(name, existingName)
-                        );
-
-                        if (match && match !== name) {
-                            resolvedName = match;
-                            // Persist this auto-resolution
-                            state.addAlias(name, match);
-                        }
-                    }
-
-                    if (typeof e === 'string') return resolvedName;
-                    return { ...e, name: resolvedName };
-                });
-
-                // 5. Finalize report
-                const savedReport: InvestigationReport = {
-                    ...report,
-                    entities: processedEntities,
-                    id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-                    caseId: targetCaseId
-                };
-
-                // 6. Upsert
-                const existingIndex = archives.findIndex(r => r.id === savedReport.id || (r.topic === savedReport.topic && r.dateStr === savedReport.dateStr));
-                if (existingIndex >= 0) {
-                    archives[existingIndex] = savedReport;
-                } else {
-                    archives.push(savedReport);
-                }
-
-                set({ archives, cases });
-                return savedReport;
-            }
-        }),
-        {
-            name: 'sherlock-storage',
-            // Only persist specific pieces of state if needed
-            partialize: (state) => ({
-                archives: state.archives,
-                cases: state.cases,
-                templates: state.templates,
-                headlines: state.headlines,
-                entityAliases: state.entityAliases,
-                themeColor: state.themeColor,
-                feedItems: state.feedItems,
-                feedConfig: state.feedConfig,
-                manualLinks: state.manualLinks,
-                manualNodes: state.manualNodes,
-                hiddenNodeIds: state.hiddenNodeIds,
-                flaggedNodeIds: state.flaggedNodeIds,
-                activeCaseId: state.activeCaseId,
-                liveEvents: state.liveEvents,
-                // Scope persistence
-                customScopes: state.customScopes,
-                defaultScopeId: state.defaultScopeId,
-            }),
+            set({
+                cases,
+                archives,
+                customScopes: scopes,
+                tasks,
+                headlines,
+                accentSettings: resolvedAccent,
+                themeColor: resolvedTheme,
+                isLoading: false
+            });
+        } catch (err) {
+            console.error("Store initialization failed:", err);
+            set({ error: "Failed to load data", isLoading: false });
         }
-    )
-);
+    },
+
+    // SIMPLE ACTIONS
+    setArchives: (archives) => set({ archives }),
+    setCases: (cases) => set({ cases }),
+    setTasks: (tasks) => set({ tasks }),
+    setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
+    setLiveEvents: (liveEvents) => set({ liveEvents }),
+    setCurrentView: (currentView) => set({ currentView }),
+    setNavStack: (navStack) => set({ navStack }),
+    setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
+    setThemeColor: (themeColor) => {
+        const parsedAccent = parseOklch(themeColor);
+        set({
+            themeColor,
+            accentSettings: parsedAccent ?? get().accentSettings,
+        });
+        void SettingsRepository.setSetting('theme_color', themeColor);
+        if (parsedAccent) {
+            void SettingsRepository.setSetting('accent_settings', parsedAccent);
+        }
+    },
+    setAccentSettings: (accentSettings) => {
+        set({ accentSettings, themeColor: buildAccentColor(accentSettings) });
+        void SettingsRepository.setSetting('accent_settings', accentSettings);
+        void SettingsRepository.setSetting('theme_color', buildAccentColor(accentSettings));
+    },
+    setShowNewCaseModal: (showNewCaseModal) => set({ showNewCaseModal }),
+    setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
+    setTemplates: (templates) => set({ templates }),
+    setHeadlines: (headlines) => set({ headlines }),
+
+    addHeadline: (headline) => set((state) => ({
+        headlines: [...state.headlines, headline]
+    })),
+
+    addTemplate: (template) => set((state) => ({
+        templates: [...state.templates, template]
+    })),
+
+    deleteTemplate: (id) => set((state) => ({
+        templates: state.templates.filter(t => t.id !== id)
+    })),
+
+    setEntityAliases: (entityAliases) => set({ entityAliases }),
+
+    addAlias: (variant, canonical) => set((state) => ({
+        entityAliases: { ...state.entityAliases, [variant]: canonical }
+    })),
+
+    resolveEntity: (name) => {
+        const state = get();
+        return state.entityAliases[name] || name;
+    },
+
+    addToast: (message, type = 'INFO') => {
+        const id = `toast-${Date.now()}`;
+        set((state) => ({
+            toasts: [...state.toasts, { id, message, type }]
+        }));
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            get().removeToast(id);
+        }, 5000);
+    },
+
+    removeToast: (id) => set((state) => ({
+        toasts: state.toasts.filter((t) => t.id !== id)
+    })),
+
+    setFeedItems: (feedItems) => set({ feedItems }),
+    setFeedConfig: (feedConfig) => set({ feedConfig }),
+
+    setManualLinks: (manualLinks) => set({ manualLinks }),
+    setManualNodes: (manualNodes) => set({ manualNodes }),
+    setHiddenNodeIds: (hiddenNodeIds) => set({ hiddenNodeIds }),
+    setFlaggedNodeIds: (flaggedNodeIds) => set({ flaggedNodeIds }),
+    setActiveCaseId: (activeCaseId) => set({ activeCaseId }),
+
+    toggleFlag: (id) => set((state) => {
+        const flagged = new Set(state.flaggedNodeIds);
+        if (flagged.has(id)) flagged.delete(id);
+        else flagged.add(id);
+        return { flaggedNodeIds: Array.from(flagged) };
+    }),
+
+    toggleHide: (id) => set((state) => {
+        const hidden = new Set(state.hiddenNodeIds);
+        if (hidden.has(id)) hidden.delete(id);
+        else hidden.add(id);
+        return { hiddenNodeIds: Array.from(hidden) };
+    }),
+
+    // Scope actions
+    setActiveScope: (activeScope) => set({ activeScope }),
+    setDefaultScope: (defaultScopeId) => set({ defaultScopeId }),
+    addScope: (scope) => set((state) => ({
+        customScopes: [...state.customScopes, scope]
+    })),
+    deleteScope: (id) => set((state) => ({
+        customScopes: state.customScopes.filter(s => s.id !== id)
+    })),
+
+    // COMPLEX ACTIONS
+    addTask: (task) => set((state) => ({
+        tasks: [...state.tasks, task]
+    })),
+
+    completeTask: (id, report) => set((state) => ({
+        tasks: state.tasks.map((t) =>
+            t.id === id
+                ? { ...t, status: 'COMPLETED', report, endTime: Date.now() }
+                : t
+        )
+    })),
+
+    failTask: (id, error) => set((state) => ({
+        tasks: state.tasks.map((t) =>
+            t.id === id
+                ? { ...t, status: 'FAILED', error }
+                : t
+        )
+    })),
+
+    clearCompletedTasks: () => set((state) => ({
+        tasks: state.tasks.filter((t) =>
+            t.status === 'RUNNING' || t.status === 'QUEUED'
+        )
+    })),
+
+    archiveReport: (report, parentContext) => {
+        const state = get();
+        const archives = [...state.archives];
+        const cases = [...state.cases];
+        let targetCaseId = report.caseId;
+
+        // 1. Link to parent case
+        if (!targetCaseId && parentContext) {
+            const parentReport = archives.find(r => r.topic === parentContext.topic);
+            if (parentReport?.caseId) {
+                targetCaseId = parentReport.caseId;
+            } else {
+                const parentCase = cases.find(c => c.title === parentContext.topic || c.title === `Operation: ${parentContext.topic}`);
+                if (parentCase) targetCaseId = parentCase.id;
+            }
+        }
+
+        // 2. Check existing case for this topic
+        if (!targetCaseId) {
+            const existingCase = cases.find(c => c.title === report.topic || c.title === `Operation: ${report.topic}`);
+            if (existingCase) targetCaseId = existingCase.id;
+        }
+
+        // 3. Create new case
+        if (!targetCaseId) {
+            const newCaseId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            const newCase: Case = {
+                id: newCaseId,
+                title: `Operation: ${report.topic}`,
+                status: 'ACTIVE',
+                dateOpened: new Date().toLocaleDateString(),
+                description: `Investigation started on ${report.topic}`
+            };
+            cases.push(newCase);
+            targetCaseId = newCaseId;
+        }
+
+        // 4. Entity Normalization & Alias Application
+        const storedConfig = localStorage.getItem('sherlock_config');
+        const config: SystemConfig | null = storedConfig ? JSON.parse(storedConfig) : null;
+        const autoNormalize = config?.autoNormalizeEntities ?? true;
+
+        const processedEntities = report.entities.map(e => {
+            const name = typeof e === 'string' ? e : e.name;
+            // Check direct alias first
+            let resolvedName = state.entityAliases[name] || name;
+
+            if (autoNormalize && resolvedName === name) {
+                // Try fuzzy match against all known entities in this case
+                const existingCaseEntities = archives
+                    .filter(r => r.caseId === targetCaseId)
+                    .flatMap(r => r.entities)
+                    .map(ent => typeof ent === 'string' ? ent : ent.name);
+
+                const match = existingCaseEntities.find(existingName =>
+                    isLikelySameEntity(name, existingName)
+                );
+
+                if (match && match !== name) {
+                    resolvedName = match;
+                    // Persist this auto-resolution
+                    state.addAlias(name, match);
+                }
+            }
+
+            if (typeof e === 'string') return resolvedName;
+            return { ...e, name: resolvedName };
+        });
+
+        // 5. Finalize report
+        const savedReport: InvestigationReport = {
+            ...report,
+            entities: processedEntities,
+            id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            caseId: targetCaseId
+        };
+
+        // 6. Upsert
+        const existingIndex = archives.findIndex(r => r.id === savedReport.id || (r.topic === savedReport.topic && r.dateStr === savedReport.dateStr));
+        if (existingIndex >= 0) {
+            archives[existingIndex] = savedReport;
+        } else {
+            archives.push(savedReport);
+        }
+
+        set({ archives, cases });
+        return savedReport;
+    }
+}));

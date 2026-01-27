@@ -1,0 +1,172 @@
+import { eq, desc } from 'drizzle-orm';
+import { getDB } from '../client';
+import { cases, reports, entities, sources, leads } from '../schema';
+import type { Case, InvestigationReport, Entity, Headline } from '@/types';
+
+export class CaseRepository {
+    // --- CASES ---
+    static async getAllCases(): Promise<Case[]> {
+        const db = getDB();
+        const rows = await db.select().from(cases).orderBy(desc(cases.updatedAt));
+
+        return rows.map(row => ({
+            id: row.id,
+            title: row.title,
+            status: row.status as 'ACTIVE' | 'CLOSED',
+            dateOpened: row.dateOpened,
+            description: row.description || undefined,
+        }));
+    }
+
+    static async getCaseById(id: string): Promise<Case | null> {
+        const db = getDB();
+        const result = await db.select().from(cases).where(eq(cases.id, id));
+
+        if (result.length === 0) return null;
+
+        return {
+            id: result[0].id,
+            title: result[0].title,
+            status: result[0].status as 'ACTIVE' | 'CLOSED',
+            dateOpened: result[0].dateOpened,
+            description: result[0].description || undefined,
+        };
+    }
+
+    static async createCase(caseData: Case): Promise<void> {
+        const db = getDB();
+        const now = Date.now();
+        await db.insert(cases).values({
+            id: caseData.id,
+            title: caseData.title,
+            status: caseData.status,
+            dateOpened: caseData.dateOpened,
+            description: caseData.description,
+            createdAt: now,
+            updatedAt: now
+        });
+    }
+
+    // --- REPORTS ---
+    static async getAllReports(): Promise<InvestigationReport[]> {
+        const db = getDB();
+        // Join reports with entities and sources would be ideal, but for now we fetch reports and hydrate
+        // Drizzle's with query is powerful for this if relationships are defined, but here we'll keep it simple for now
+
+        // Fetch all reports
+        const reportRows = await db.select().from(reports).orderBy(desc(reports.createdAt));
+
+        // This N+1 query pattern is inefficient for large datasets, but okay for MVP client-side DB 
+        // Optimization: Use separate queries to fetch all entities/sources and map them in memory
+        const allEntities = await db.select().from(entities);
+        const allSources = await db.select().from(sources);
+
+        return reportRows.map(row => {
+            const reportEntities = allEntities.filter(e => e.reportId === row.id).map(e => ({
+                name: e.name,
+                type: e.type as Entity['type'],
+                role: e.role || undefined,
+                sentiment: e.sentiment as Entity['sentiment']
+            }));
+
+            const reportSources = allSources.filter(s => s.reportId === row.id).map(s => ({
+                title: s.title,
+                url: s.url
+            }));
+
+            return {
+                id: row.id,
+                caseId: row.caseId || undefined,
+                topic: row.topic,
+                dateStr: row.dateStr || undefined,
+                summary: row.summary || '',
+                rawText: row.rawText || '',
+                parentTopic: row.parentTopic || undefined,
+                config: row.configJson ? JSON.parse(row.configJson) : undefined,
+                entities: reportEntities,
+                sources: reportSources,
+                agendas: [], // Not persisted in simplified schema yet? or mapped from leads?
+                leads: [] // Need to fetch leads
+            };
+        });
+    }
+
+    static async createReport(report: InvestigationReport): Promise<void> {
+        const db = getDB();
+        const now = Date.now();
+        if (!report.id) {
+            throw new Error('Report must have an id before persistence.');
+        }
+        const reportId = report.id;
+
+        await db.transaction(async (tx) => {
+            // Insert Report
+            await tx.insert(reports).values({
+                id: reportId,
+                caseId: report.caseId,
+                topic: report.topic,
+                dateStr: report.dateStr,
+                summary: report.summary,
+                rawText: report.rawText,
+                parentTopic: report.parentTopic,
+                configJson: report.config ? JSON.stringify(report.config) : null,
+                createdAt: now
+            });
+
+            // Insert Entities
+            if (report.entities && report.entities.length > 0) {
+                for (const entity of report.entities) {
+                    const entityObj = typeof entity === 'string'
+                        ? { name: entity, type: 'UNKNOWN' as const }
+                        : entity;
+
+                    await tx.insert(entities).values({
+                        id: `ent-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                        reportId,
+                        name: entityObj.name,
+                        type: entityObj.type,
+                        role: entityObj.role,
+                        sentiment: entityObj.sentiment
+                    });
+                }
+            }
+
+            // Insert Sources
+            if (report.sources && report.sources.length > 0) {
+                for (const source of report.sources) {
+                    await tx.insert(sources).values({
+                        id: `src-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                        reportId,
+                        title: source.title,
+                        url: source.url
+                    });
+                }
+            }
+        });
+
+        // Update parent case timestamp
+        if (report.caseId) {
+            await db.update(cases)
+                .set({ updatedAt: now })
+                .where(eq(cases.id, report.caseId));
+        }
+    }
+
+    // --- LEADS ---
+    static async getHeadlines(): Promise<Headline[]> {
+        const db = getDB();
+        const rows = await db.select().from(leads);
+
+        return rows.map(row => ({
+            id: row.id,
+            caseId: row.caseId || '',
+            content: row.content,
+            source: row.source || '',
+            timestamp: row.timestamp || new Date().toISOString(),
+            type: 'NEWS' as const, // Default for now
+            status: row.status as Headline['status'],
+            threatLevel: (row.threatLevel as Headline['threatLevel']) || 'INFO',
+            linkedReportId: row.linkedReportId || undefined
+        }));
+    }
+}

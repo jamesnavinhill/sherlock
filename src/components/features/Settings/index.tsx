@@ -20,10 +20,14 @@ import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { TemplateGallery } from './TemplateGallery';
 import { ScopeManager } from '../../ui/ScopeManager';
 import type { SystemConfig } from '../../../types';
+import { AccentPicker } from '../../ui/AccentPicker';
+import { buildAccentColor } from '../../../utils/accent';
 
 interface SettingsProps {
     themeColor: string;
     onThemeChange: (color: string) => void;
+    onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
+    accentSettings: { hue: number; lightness: number; chroma: number };
     onStartCase: (topic: string, config: SystemConfig) => void;
 }
 
@@ -34,16 +38,7 @@ const TABS = [
     { id: 'MAINTENANCE', label: 'Maintenance', icon: Database }
 ];
 
-const PRESET_COLORS = [
-    '#e4e4e7cc', // Zinc (Default)
-    '#3b82f6',   // Blue
-    '#10b981',   // Emerald
-    '#f59e0b',   // Amber
-    '#ef4444',   // Red
-    '#8b5cf6',   // Violet
-];
-
-export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, onStartCase }) => {
+export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, onAccentChange, accentSettings, onStartCase }) => {
     const { archives, cases, setArchives, setCases } = useCaseStore();
     const [activeTab, setActiveTab] = useState('GENERAL');
     const [apiKey, setApiKey] = useState(() => localStorage.getItem('GEMINI_API_KEY') ?? '');
@@ -71,7 +66,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
         const config: SystemConfig = {
             autoNormalizeEntities: autoResolve,
             theme: themeColor
-        };
+        } as SystemConfig & { theme?: string };
         localStorage.setItem('sherlock_config', JSON.stringify(config));
 
         setTimeout(() => {
@@ -88,7 +83,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
             config: {
                 autoNormalizeEntities: autoResolve,
                 theme: themeColor
-            },
+            } as SystemConfig & { theme?: string },
             timestamp: new Date().toISOString()
         };
 
@@ -176,17 +171,16 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
                 </div>
                 <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6">
                     <div className="space-y-3">
-                        <label className="block text-[10px] text-zinc-500 font-mono uppercase">Accent Prototype Color</label>
-                        <div className="flex flex-wrap gap-3">
-                            {PRESET_COLORS.map(color => (
-                                <button
-                                    key={color}
-                                    onClick={() => onThemeChange(color)}
-                                    className={`w-10 h-10 rounded-none border-2 transition-all ${themeColor === color ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-transparent hover:border-zinc-500'}`}
-                                    style={{ backgroundColor: color }}
-                                />
-                            ))}
+                        <div className="flex items-center justify-between">
+                            <label className="block text-[10px] text-zinc-500 font-mono uppercase">Accent Color</label>
+                            <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(accentSettings)}</div>
                         </div>
+                        <AccentPicker
+                            hue={accentSettings.hue}
+                            lightness={accentSettings.lightness}
+                            chroma={accentSettings.chroma}
+                            onChange={(settings) => onAccentChange(settings)}
+                        />
                     </div>
                 </div>
             </section>
