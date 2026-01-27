@@ -52,6 +52,7 @@ export interface InvestigationReport {
   sources: Source[];
   rawText: string;
   parentTopic?: string;
+  config?: Partial<SystemConfig>;
 }
 
 export interface ManualConnection {
@@ -82,7 +83,6 @@ export interface MonitorEvent {
   sourceName: string;
   content: string;
   timestamp: string;
-  timestamp: string;
   sentiment: 'NEGATIVE' | 'NEUTRAL' | 'POSITIVE';
   threatLevel: 'INFO' | 'CAUTION' | 'CRITICAL';
   url?: string;
@@ -103,9 +103,45 @@ export type InvestigatorPersona = 'FORENSIC_ACCOUNTANT' | 'JOURNALIST' | 'INTELL
 export interface SystemConfig {
   modelId: string;
   thinkingBudget: number; // 0 to max
-  persona: InvestigatorPersona;
+  persona: string; // Now references PersonaDefinition.id from scope
   searchDepth: 'STANDARD' | 'DEEP';
   autoNormalizeEntities?: boolean;
+}
+
+// --- INVESTIGATION SCOPE SYSTEM ---
+
+export interface DateRangeConfig {
+  strategy: 'RELATIVE' | 'ABSOLUTE' | 'NONE';
+  relativeYears?: number;
+  absoluteStart?: string;
+  absoluteEnd?: string;
+}
+
+export interface SourceCategory {
+  name: string;
+  sources: { label: string; url?: string; handle?: string }[];
+}
+
+export interface PersonaDefinition {
+  id: string;
+  label: string;
+  instruction: string;
+}
+
+export interface InvestigationScope {
+  id: string;
+  name: string;
+  description: string;
+  domainContext: string;
+  investigationObjective: string;
+  defaultDateRange?: DateRangeConfig;
+  suggestedSources: SourceCategory[];
+  categories: string[];
+  personas: PersonaDefinition[];
+  defaultPersona?: string;
+  accentColor?: string;
+  icon?: string;
+  isBuiltIn?: boolean;
 }
 
 export interface CaseTemplate {
@@ -115,6 +151,7 @@ export interface CaseTemplate {
   topic: string;
   config: Partial<SystemConfig>;
   createdAt: number;
+  scopeId?: string; // Reference to InvestigationScope
 }
 
 // Key is the "Variation" (e.g. "Google Inc"), Value is the "Canonical" (e.g. "Google")
@@ -132,5 +169,6 @@ export interface InvestigationTask {
   endTime?: number;
   report?: InvestigationReport;
   parentContext?: { topic: string, summary: string };
+  config?: Partial<SystemConfig>;
   error?: string;
 }

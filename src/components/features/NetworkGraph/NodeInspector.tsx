@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import {
-    User, Building2, Network, X, Star, Search, FileText, ChevronRight, Newspaper, Globe, ExternalLink,
-    Lightbulb, FolderOpen, ChevronDown, EyeOff
+    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink,
+    Lightbulb, FolderOpen, EyeOff, Microscope, Link2
 } from 'lucide-react';
-import { Entity, Headline, InvestigationReport, InvestigationTask } from '../../../types';
+import type { Entity, Headline, InvestigationReport} from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { cleanEntityName } from '../../../utils/text';
+
+type InvestigationContext = { topic: string; summary: string };
 
 interface NodeInspectorProps {
     isOpen: boolean;
@@ -28,13 +30,13 @@ interface NodeInspectorProps {
     onReportSave: (report: InvestigationReport, newTitle: string) => void;
     onToggleFlag: (name: string) => void;
     onToggleHide: (name: string) => void;
-    onInvestigate: (topic: string, context?: any) => void; // Trigger modal or immediate
+    onInvestigate: (topic: string, context?: InvestigationContext) => void; // Trigger modal or immediate
     onOpenReport: (report: InvestigationReport) => void;
 }
 
 export const NodeInspector: React.FC<NodeInspectorProps> = ({
     isOpen, onClose, mode, selectedEntity, selectedHeadline, selectedReport,
-    reports, hiddenNodeIds, flaggedNodeIds,
+    reports, hiddenNodeIds: _hiddenNodeIds, flaggedNodeIds,
     onEntitySave, onReportSave, onToggleFlag, onToggleHide, onInvestigate, onOpenReport
 }) => {
     // Accordion Control
@@ -124,7 +126,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     <div className="flex-1 overflow-y-auto p-2 space-y-2">
                         <div className="bg-zinc-900/50 p-4 border border-zinc-800 relative group">
                             <h4 className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Captured Content</h4>
-                            <p className="text-sm font-mono text-zinc-300 leading-relaxed">"{selectedHeadline.content}"</p>
+                            <p className="text-sm font-mono text-zinc-300 leading-relaxed">&quot;{selectedHeadline.content}&quot;</p>
                             <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-600 font-mono">
                                 <span>TS: {selectedHeadline.timestamp}</span>
                             </div>

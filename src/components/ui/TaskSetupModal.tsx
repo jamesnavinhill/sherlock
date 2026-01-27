@@ -1,18 +1,31 @@
-User, Building2, Plus, Trash2, Check, Layout, Save
+import React, { useState } from 'react';
+import {
+   Target, Lightbulb, User, Globe, UserCog, Microscope,
+   ChevronLeft, ChevronRight, PlayCircle, X, AlignLeft,
+   Building2, Plus, Trash2, Check, Layout, Compass, Calendar
 } from 'lucide-react';
 import { useCaseStore } from '../../store/caseStore';
-import { CaseTemplate } from '../../types';
+import type { CaseTemplate, SystemConfig, ManualNode, InvestigationScope } from '../../types';
+import { BUILTIN_SCOPES, getScopeById, getAllScopes } from '../../data/presets';
 
 interface TaskSetupModalProps {
    initialTopic: string;
    initialContext?: { topic: string, summary: string };
+   initialScopeId?: string;
    onCancel: () => void;
-   onStart: (topic: string, configOverride: Partial<SystemConfig>, preseededEntities?: ManualNode[]) => void;
+   onStart: (
+      topic: string,
+      configOverride: Partial<SystemConfig>,
+      preseededEntities?: ManualNode[],
+      scope?: InvestigationScope,
+      dateRange?: { start?: string; end?: string }
+   ) => void;
 }
 
-const PERSONAS: InvestigatorPersona[] = ['FORENSIC_ACCOUNTANT', 'JOURNALIST', 'INTELLIGENCE_OFFICER', 'CONSPIRACY_ANALYST'];
+
 
 const STEPS = [
+   { id: 0, label: 'Scope', icon: Compass },
    { id: 1, label: 'Target', icon: Target },
    { id: 2, label: 'Hypothesis', icon: Lightbulb },
    { id: 3, label: 'Key Figures', icon: User },
@@ -26,11 +39,20 @@ interface KeyFigure {
    type: 'PERSON' | 'ORGANIZATION';
 }
 
-export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, initialContext, onCancel, onStart }) => {
-   const { templates, addTemplate } = useCaseStore();
-   const [currentStep, setCurrentStep] = useState(1);
+export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, initialContext, initialScopeId, onCancel, onStart }) => {
+   const { templates, addTemplate, customScopes, defaultScopeId } = useCaseStore();
+   const [currentStep, setCurrentStep] = useState(0);
    const [saveAsTemplate, setSaveAsTemplate] = useState(false);
    const [templateName, setTemplateName] = useState('');
+
+   // Step 0: Scope Selection
+   const allScopes = getAllScopes(customScopes);
+   const [selectedScopeId, setSelectedScopeId] = useState(initialScopeId || defaultScopeId);
+   const selectedScope = getScopeById(selectedScopeId) || allScopes.find(s => s.id === selectedScopeId) || BUILTIN_SCOPES[0];
+
+   // Step 0: Date Range
+   const [dateRangeStart, setDateRangeStart] = useState('');
+   const [dateRangeEnd, setDateRangeEnd] = useState('');
 
    // Step 1: Target
    const [topic, setTopic] = useState(initialTopic);
@@ -46,26 +68,38 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
    // Step 4: Sources
    const [prioritySources, setPrioritySources] = useState('');
 
-   // Step 5: Config
-   const [persona, setPersona] = useState<InvestigatorPersona>('FORENSIC_ACCOUNTANT');
-   const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>('STANDARD');
-   const [thinkingBudget, setThinkingBudget] = useState(0);
-
-   useEffect(() => {
+   // Step 5: Config - persona now uses scope personas
+   const [persona, setPersona] = useState<string>(() => {
+      // Default to scope's default persona or first persona
+      return selectedScope?.defaultPersona || selectedScope?.personas[0]?.id || 'general-investigator';
+   });
+   const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(() => {
       const stored = localStorage.getItem('sherlock_config');
-      if (stored) {
-         const config = JSON.parse(stored);
-         setPersona(config.persona || 'FORENSIC_ACCOUNTANT');
-         setDepth(config.searchDepth || 'STANDARD');
-         setThinkingBudget(config.thinkingBudget || 0);
+      if (!stored) return 'STANDARD';
+      try {
+         const config: SystemConfig = JSON.parse(stored);
+         return config.searchDepth ?? 'STANDARD';
+      } catch {
+         return 'STANDARD';
       }
-   }, []);
+   });
+   const [thinkingBudget, setThinkingBudget] = useState(() => {
+      const stored = localStorage.getItem('sherlock_config');
+      if (!stored) return 0;
+      try {
+         const config: SystemConfig = JSON.parse(stored);
+         return config.thinkingBudget ?? 0;
+      } catch {
+         return 0;
+      }
+   });
 
    const applyTemplate = (t: CaseTemplate) => {
       setTopic(t.topic);
       if (t.config.persona) setPersona(t.config.persona);
       if (t.config.searchDepth) setDepth(t.config.searchDepth);
       if (t.config.thinkingBudget !== undefined) setThinkingBudget(t.config.thinkingBudget);
+      if (t.scopeId) setSelectedScopeId(t.scopeId);
    };
 
    const handleAddFigure = () => {
@@ -99,11 +133,22 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
          fullTopic = `${topic}\n\n[HYPOTHESIS]: ${hypothesis.trim()}`;
       }
 
-      onStart(fullTopic, {
-         persona,
-         searchDepth: depth,
-         thinkingBudget
-      }, preseededEntities.length > 0 ? preseededEntities : undefined);
+      // Build date range if specified
+      const dateRange = (dateRangeStart || dateRangeEnd)
+         ? { start: dateRangeStart || undefined, end: dateRangeEnd || undefined }
+         : undefined;
+
+      onStart(
+         fullTopic,
+         {
+            persona,
+            searchDepth: depth,
+            thinkingBudget
+         },
+         preseededEntities.length > 0 ? preseededEntities : undefined,
+         selectedScope,
+         dateRange
+      );
 
       if (saveAsTemplate && templateName.trim()) {
          addTemplate({
@@ -111,12 +156,14 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
             name: templateName.trim(),
             topic: topic,
             config: { persona, searchDepth: depth, thinkingBudget },
+            scopeId: selectedScopeId,
             createdAt: Date.now()
          });
       }
    };
 
    const canProceed = () => {
+      if (currentStep === 0) return !!selectedScopeId;
       if (currentStep === 1) return topic.trim().length > 0;
       return true;
    };
@@ -124,16 +171,84 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
    const nextStep = () => {
       if (currentStep < 5 && canProceed()) {
          setCurrentStep(currentStep + 1);
+         // When leaving scope step, update persona to match scope default
+         if (currentStep === 0 && selectedScope) {
+            setPersona(selectedScope.defaultPersona || selectedScope.personas[0]?.id || persona);
+         }
       }
    };
 
    const prevStep = () => {
-      if (currentStep > 1) {
+      if (currentStep > 0) {
          setCurrentStep(currentStep - 1);
       }
    };
 
    // --- STEP RENDERS ---
+   const renderStep0 = () => (
+      <div className="space-y-5">
+         {/* Scope Selection */}
+         <div>
+            <label className="block text-xs font-mono text-zinc-400 uppercase mb-3 flex items-center">
+               <Compass className="w-3 h-3 mr-2" />
+               Investigation Scope
+            </label>
+            <p className="text-xs text-zinc-600 mb-3 font-mono">
+               Choose a domain preset to tailor prompts, sources, and personas.
+            </p>
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+               {allScopes.map(scope => (
+                  <button
+                     key={scope.id}
+                     onClick={() => setSelectedScopeId(scope.id)}
+                     className={`flex items-start p-3 border text-left transition-all ${selectedScopeId === scope.id
+                        ? 'border-osint-primary bg-osint-primary/10 text-white'
+                        : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'
+                        }`}
+                  >
+                     <span className="text-lg mr-2 flex-shrink-0">{scope.icon || '🔍'}</span>
+                     <div className="min-w-0">
+                        <div className="text-xs font-mono font-bold truncate">{scope.name}</div>
+                        <div className="text-[10px] text-zinc-500 line-clamp-2 mt-0.5">{scope.description}</div>
+                     </div>
+                  </button>
+               ))}
+            </div>
+         </div>
+
+         {/* Date Range */}
+         <div className="pt-3 border-t border-zinc-800">
+            <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+               <Calendar className="w-3 h-3 mr-2" />
+               Temporal Scope (Optional)
+            </label>
+            <p className="text-xs text-zinc-600 mb-3 font-mono">
+               Limit the investigation to a specific time period.
+            </p>
+            <div className="flex gap-3">
+               <div className="flex-1">
+                  <label className="block text-[10px] text-zinc-500 mb-1 font-mono">FROM</label>
+                  <input
+                     type="date"
+                     value={dateRangeStart}
+                     onChange={(e) => setDateRangeStart(e.target.value)}
+                     className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
+                  />
+               </div>
+               <div className="flex-1">
+                  <label className="block text-[10px] text-zinc-500 mb-1 font-mono">TO</label>
+                  <input
+                     type="date"
+                     value={dateRangeEnd}
+                     onChange={(e) => setDateRangeEnd(e.target.value)}
+                     className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
+                  />
+               </div>
+            </div>
+         </div>
+      </div>
+   );
+
    const renderStep1 = () => (
       <div className="space-y-4">
          <div>
@@ -278,13 +393,16 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                <UserCog className="w-3 h-3 mr-2" />
                Agent Persona
             </label>
+            <p className="text-[10px] text-zinc-600 mb-2 font-mono">
+               Personas tailored for {selectedScope?.name || 'this scope'}
+            </p>
             <select
                value={persona}
-               onChange={(e) => setPersona(e.target.value as InvestigatorPersona)}
+               onChange={(e) => setPersona(e.target.value)}
                className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
             >
-               {PERSONAS.map(p => (
-                  <option key={p} value={p}>{p.replace(/_/g, ' ')}</option>
+               {selectedScope?.personas.map(p => (
+                  <option key={p.id} value={p.id}>{p.label}</option>
                ))}
             </select>
          </div>
@@ -334,117 +452,122 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                )}
             </div>
          </div>
-         );
+      </div>
+   );
 
-         return (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-osint-panel w-full max-w-2xl border border-zinc-600 shadow-2xl flex flex-col relative">
-
-               {/* Header */}
-               <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
-                  <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
-                     <Target className="w-5 h-5 text-osint-primary" />
-                     <span>Initialize Operation</span>
-                  </div>
-                  <button onClick={onCancel} className="text-zinc-500 hover:text-white transition-colors">
-                     <X className="w-5 h-5" />
-                  </button>
+   return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+         <div className="bg-osint-panel w-full max-w-2xl border border-zinc-600 shadow-2xl flex flex-col relative">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
+               <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
+                  <Target className="w-5 h-5 text-osint-primary" />
+                  <span>Initialize Operation</span>
                </div>
+               <button onClick={onCancel} className="text-zinc-500 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+               </button>
+            </div>
 
-               {/* Progress Indicator */}
-               <div className="px-6 pt-4 pb-2">
-                  <div className="flex items-center justify-between">
-                     {STEPS.map((step, index) => (
-                        <React.Fragment key={step.id}>
-                           <button
-                              onClick={() => step.id < currentStep && setCurrentStep(step.id)}
-                              className={`flex flex-col items-center space-y-1 transition-all ${step.id === currentStep
-                                 ? 'text-osint-primary'
-                                 : step.id < currentStep
-                                    ? 'text-green-500 cursor-pointer hover:text-green-400'
-                                    : 'text-zinc-600'
-                                 }`}
-                           >
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${step.id === currentStep
+            {/* Progress Indicator */}
+            <div className="px-6 pt-4 pb-2">
+               <div className="flex items-center justify-between">
+                  {STEPS.map((step, index) => (
+                     <React.Fragment key={step.id}>
+                        <button
+                           onClick={() => step.id < currentStep && setCurrentStep(step.id)}
+                           className={`flex flex-col items-center space-y-1 transition-all ${step.id === currentStep
+                              ? 'text-osint-primary'
+                              : step.id < currentStep
+                                 ? 'text-green-500 cursor-pointer hover:text-green-400'
+                                 : 'text-zinc-600'
+                              }`}
+                        >
+                           <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${step.id === currentStep
                                  ? 'border-osint-primary bg-osint-primary/20'
                                  : step.id < currentStep
                                     ? 'border-green-500 bg-green-500/20'
                                     : 'border-zinc-700'
-                                 }`}>
-                                 {step.id < currentStep ? (
-                                    <Check className="w-4 h-4" />
-                                 ) : (
-                                    <step.icon className="w-4 h-4" />
-                                 )}
-                              </div>
-                              <span className="text-[10px] font-mono uppercase hidden sm:block">{step.label}</span>
-                           </button>
-                           {index < STEPS.length - 1 && (
-                              <div className={`flex-1 h-px mx-2 ${step.id < currentStep ? 'bg-green-500' : 'bg-zinc-700'}`} />
-                           )}
-                        </React.Fragment>
-                     ))}
-                  </div>
+                                 }`}
+                           >
+                              {step.id < currentStep ? (
+                                 <Check className="w-4 h-4" />
+                              ) : (
+                                 <step.icon className="w-4 h-4" />
+                              )}
+                           </div>
+                           <span className="text-[10px] font-mono uppercase hidden sm:block">{step.label}</span>
+                        </button>
+                        {index < STEPS.length - 1 && (
+                           <div
+                              className={`flex-1 h-px mx-2 ${step.id < currentStep ? 'bg-green-500' : 'bg-zinc-700'
+                                 }`}
+                           />
+                        )}
+                     </React.Fragment>
+                  ))}
                </div>
+            </div>
 
-               {/* Context Banner */}
-               {initialContext && (
-                  <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
-                     <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Parent Context</div>
-                     <div className="text-xs text-zinc-300 font-mono">{initialContext.topic}</div>
-                  </div>
-               )}
-
-               {/* Step Content */}
-               <div className="p-6 min-h-[200px]">
-                  {currentStep === 1 && renderStep1()}
-                  {currentStep === 2 && renderStep2()}
-                  {currentStep === 3 && renderStep3()}
-                  {currentStep === 4 && renderStep4()}
-                  {currentStep === 5 && renderStep5()}
+            {/* Context Banner */}
+            {initialContext && (
+               <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
+                  <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Parent Context</div>
+                  <div className="text-xs text-zinc-300 font-mono">{initialContext.topic}</div>
                </div>
+            )}
 
-               {/* Footer */}
-               <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
+         {/* Step Content */}
+         <div className="p-6 min-h-[200px]">
+            {currentStep === 0 && renderStep0()}
+            {currentStep === 1 && renderStep1()}
+            {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
+            {currentStep === 5 && renderStep5()}
+         </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
+            <button
+               onClick={prevStep}
+               disabled={currentStep === 0}
+                  className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+               >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Back
+               </button>
+
+               <div className="flex space-x-3">
                   <button
-                     onClick={prevStep}
-                     disabled={currentStep === 1}
-                     className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                     onClick={onCancel}
+                     className="px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors"
                   >
-                     <ChevronLeft className="w-4 h-4 mr-1" />
-                     Back
+                     Cancel
                   </button>
 
-                  <div className="flex space-x-3">
+                  {currentStep < 5 ? (
                      <button
-                        onClick={onCancel}
-                        className="px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors"
+                        onClick={nextStep}
+                        disabled={!canProceed()}
+                        className="flex items-center px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold font-mono text-xs uppercase transition-colors disabled:opacity-50"
                      >
-                        Cancel
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-1" />
                      </button>
-
-                     {currentStep < 5 ? (
-                        <button
-                           onClick={nextStep}
-                           disabled={!canProceed()}
-                           className="flex items-center px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold font-mono text-xs uppercase transition-colors disabled:opacity-50"
-                        >
-                           Next
-                           <ChevronRight className="w-4 h-4 ml-1" />
-                        </button>
-                     ) : (
-                        <button
-                           onClick={handleStart}
-                           className="px-6 py-2 bg-white hover:bg-zinc-200 text-black font-bold font-mono text-xs uppercase flex items-center transition-colors shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)]"
-                        >
-                           <PlayCircle className="w-4 h-4 mr-2" />
-                           Execute Task
-                        </button>
-                     )}
-                  </div>
+                  ) : (
+                     <button
+                        onClick={handleStart}
+                        className="px-6 py-2 bg-white hover:bg-zinc-200 text-black font-bold font-mono text-xs uppercase flex items-center transition-colors shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)]"
+                     >
+                        <PlayCircle className="w-4 h-4 mr-2" />
+                        Execute Task
+                     </button>
+                  )}
                </div>
-
             </div>
          </div>
-         );
+      </div>
+   );
 };

@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-    FileText, Users, Lightbulb, Globe, Newspaper, User, FolderOpen,
-    ChevronRight, Link2, MapPin
+    FileText, Users, Lightbulb, Globe, Newspaper, User,
+    ChevronRight, Link2
 } from 'lucide-react';
-import { Case, Entity, Headline, InvestigationReport, Source } from '../../../types';
+import type { Case, Entity, Headline, InvestigationReport, Source } from '../../../types';
 import { Accordion } from '../../ui/Accordion';
 
 interface DossierPanelProps {
@@ -43,7 +43,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
     activeReportId
 }) => {
     return (
-        <div className={`${isOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-r border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl`}>
+        <div className={`${isOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:-translate-x-0'} fixed inset-y-0 left-0 z-30 w-80 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-r border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-80' : 'lg:w-0'}`}>
             {activeCase && (
                 <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
                     <h2 className="text-base font-bold text-white font-mono leading-tight mb-2">{activeCase.title}</h2>

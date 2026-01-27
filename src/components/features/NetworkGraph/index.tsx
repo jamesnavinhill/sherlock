@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { InvestigationReport, ManualConnection, Case, EntityAliasMap, ManualNode, Entity, SystemConfig, Headline, Source } from '../../../types';
-import { getItem, STORAGE_KEYS } from '../../../utils/localStorage';
+import { Network } from 'lucide-react';
+import type { InvestigationReport, ManualConnection, ManualNode, Entity, SystemConfig, Headline, Source } from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
-import { BreadcrumbItem } from '../../ui/Breadcrumbs';
+import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 
 // Components
 import { ControlBar } from './ControlBar';
-import { GraphCanvas, GraphNode, GraphCanvasRef } from './GraphCanvas';
+import type { GraphNode, GraphCanvasRef } from './GraphCanvas';
+import { GraphCanvas } from './GraphCanvas';
 import { NodeInspector } from './NodeInspector';
 import { EntityResolution } from './EntityResolution';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
@@ -21,25 +22,36 @@ interface NetworkGraphProps {
     onNavigate?: (id: string) => void;
 }
 
-export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInvestigateEntity, onBack, navStack, onNavigate }) => {
+export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInvestigateEntity, onBack: _onBack, navStack: _navStack, onNavigate: _onNavigate }) => {
     // Refs
     const graphRef = useRef<GraphCanvasRef>(null);
 
     // Data State
-    const [reports, setReports] = useState<InvestigationReport[]>([]);
-    const [manualLinks, setManualLinks] = useState<ManualConnection[]>([]);
-    const [manualNodes, setManualNodes] = useState<ManualNode[]>([]);
-    const [hiddenNodeIds, setHiddenNodeIds] = useState<Set<string>>(new Set());
-    const [cases, setCases] = useState<Case[]>([]);
-    const { entityAliases: aliases, setEntityAliases: setAliases } = useCaseStore();
-    const [headlines, setHeadlines] = useState<Headline[]>([]);
-    const [flaggedNodeIds, setFlaggedNodeIds] = useState<Set<string>>(new Set());
+    const {
+        archives: reports,
+        manualLinks,
+        manualNodes,
+        hiddenNodeIds: hiddenNodeIdsArray,
+        cases,
+        entityAliases: aliases,
+        headlines,
+        flaggedNodeIds: flaggedNodeIdsArray,
+        activeCaseId: filterCaseId,
+        setManualLinks,
+        setManualNodes,
+        setEntityAliases: setAliases,
+        toggleFlag,
+        toggleHide,
+        setActiveCaseId
+    } = useCaseStore();
+
+    const hiddenNodeIds = useMemo(() => new Set(hiddenNodeIdsArray), [hiddenNodeIdsArray]);
+    const flaggedNodeIds = useMemo(() => new Set(flaggedNodeIdsArray), [flaggedNodeIdsArray]);
 
     // Filter State
     const [showSingletons, setShowSingletons] = useState(true);
     const [showHiddenNodes, setShowHiddenNodes] = useState(false);
     const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
-    const [filterCaseId, setFilterCaseId] = useState<string>('');
     const [isLocked, setIsLocked] = useState(false);
 
     // UI/Panel State
@@ -80,35 +92,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setDossierSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
-    // Load Data
+    // Load Data - Migration logic for store initialization
     useEffect(() => {
-        setReports(getItem<InvestigationReport[]>(STORAGE_KEYS.ARCHIVES, []));
-        setManualLinks(getItem<ManualConnection[]>(STORAGE_KEYS.MANUAL_LINKS, []));
-        setCases(getItem<Case[]>(STORAGE_KEYS.CASES, []));
-        setHiddenNodeIds(new Set(getItem<string[]>(STORAGE_KEYS.HIDDEN_NODES, [])));
-        setHeadlines(getItem<Headline[]>(STORAGE_KEYS.HEADLINES, []));
-        setFlaggedNodeIds(new Set(getItem<string[]>(STORAGE_KEYS.FLAGGED_NODES, [])));
-
-        // Sync local storage aliases to store if store is empty (Migration)
-        if (Object.keys(aliases).length === 0) {
-            const storedAliases = getItem<EntityAliasMap>(STORAGE_KEYS.ENTITY_ALIASES, {});
-            if (Object.keys(storedAliases).length > 0) {
-                setAliases(storedAliases);
-            }
-        }
-
-        const activeCaseId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CASE_ID);
-        if (activeCaseId) setFilterCaseId(activeCaseId);
+        // This is only needed for the first time transitioning from localStorage to store
+        // but since caseStore.ts already handles persistence, we might not need this anymore
+        // if the store is already populated.
     }, []);
 
     // Active Case Persistence
     const handleCaseChange = (id: string) => {
-        setFilterCaseId(id);
-        if (id === '' || id === 'ALL') {
-            localStorage.removeItem(STORAGE_KEYS.ACTIVE_CASE_ID);
-        } else {
-            localStorage.setItem(STORAGE_KEYS.ACTIVE_CASE_ID, id);
-        }
+        setActiveCaseId(id);
     };
 
     // Compute Dossier Data
@@ -130,7 +123,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         activeReports.flatMap(r => r.entities || []).forEach(e => {
             const name = typeof e === 'string' ? e : e.name;
             const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
-            const clean = cleanEntityName(name);
+            const _clean = cleanEntityName(name);
             // We use raw name for map key to match dossier behavior, but cleaned for dedupe?
             if (!entityMap.has(name) || (entityMap.get(name)?.type === 'UNKNOWN' && type !== 'UNKNOWN')) {
                 entityMap.set(name, typeof e === 'string' ? { name, type: 'UNKNOWN' } : e);
@@ -146,6 +139,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
             entities: allEntities
         };
     }, [reports, headlines, filterCaseId]);
+
+    const isEmpty = reports.length === 0 && manualNodes.length === 0;
 
     // Handlers
     const handleNodeClick = (node: GraphNode | null) => {
@@ -171,7 +166,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         };
         const updatedLinks = [...manualLinks, newLink];
         setManualLinks(updatedLinks);
-        localStorage.setItem(STORAGE_KEYS.MANUAL_LINKS, JSON.stringify(updatedLinks));
         setLinkSourceNode(null);
         setIsLinkingMode(false);
     };
@@ -180,9 +174,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         if (!newNodeLabel.trim()) return;
         const id = `manual-${Date.now()}`;
 
-        let mockReport: InvestigationReport | undefined = undefined;
+        let _mockReport: InvestigationReport | undefined = undefined;
         if (newNodeType === 'CASE') {
-            mockReport = {
+            _mockReport = {
                 id: id,
                 caseId: id,
                 topic: newNodeLabel.trim(),
@@ -200,7 +194,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
         const updatedManualNodes = [...manualNodes, newNode];
         setManualNodes(updatedManualNodes);
-        localStorage.setItem(STORAGE_KEYS.MANUAL_NODES, JSON.stringify(updatedManualNodes));
         setShowAddNodeUI(false);
         setNewNodeLabel('');
     };
@@ -232,58 +225,36 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
     // Update Handlers (Persistence)
     const handleEntitySave = (oldName: string, newName: string) => {
-        // Logic replicated from original
-        const archivesStr = localStorage.getItem('sherlock_archives');
-        if (archivesStr) {
-            const archives: InvestigationReport[] = JSON.parse(archivesStr);
-            const updated = archives.map(r => ({
-                ...r,
-                entities: (r.entities || []).map(e => {
-                    const name = typeof e === 'string' ? e : e.name;
-                    return name === oldName ? (typeof e === 'string' ? newName : { ...e, name: newName }) : e;
-                })
-            }));
-            localStorage.setItem('sherlock_archives', JSON.stringify(updated));
-            setReports(updated); // Update local state
-        }
+        const updated = reports.map(r => ({
+            ...r,
+            entities: (r.entities || []).map(e => {
+                const name = typeof e === 'string' ? e : e.name;
+                return name === oldName ? (typeof e === 'string' ? newName : { ...e, name: newName }) : e;
+            })
+        }));
+        useCaseStore.getState().setArchives(updated); // Update store Directly for this complex update
 
         // Update Flagged
-        const newFlagged = new Set(flaggedNodeIds);
-        if (newFlagged.has(oldName)) {
-            newFlagged.delete(oldName);
-            newFlagged.add(newName);
-            setFlaggedNodeIds(newFlagged);
-            localStorage.setItem(STORAGE_KEYS.FLAGGED_NODES, JSON.stringify(Array.from(newFlagged)));
+        if (flaggedNodeIds.has(oldName)) {
+            toggleFlag(oldName);
+            toggleFlag(newName);
         }
 
         setSelectedEntityName(newName);
     };
 
     const handleReportSave = (report: InvestigationReport, newTitle: string) => {
-        const archivesStr = localStorage.getItem('sherlock_archives');
-        if (archivesStr) {
-            const archives: InvestigationReport[] = JSON.parse(archivesStr);
-            const updated = archives.map(r => r.id === report.id ? { ...r, topic: newTitle } : r);
-            localStorage.setItem('sherlock_archives', JSON.stringify(updated));
-            setReports(updated);
-            setSelectedReport({ ...report, topic: newTitle });
-        }
+        const updated = reports.map(r => r.id === report.id ? { ...r, topic: newTitle } : r);
+        useCaseStore.getState().setArchives(updated);
+        setSelectedReport({ ...report, topic: newTitle });
     };
 
     const handleToggleFlag = (name: string) => {
-        const newSet = new Set(flaggedNodeIds);
-        if (newSet.has(name)) newSet.delete(name);
-        else newSet.add(name);
-        setFlaggedNodeIds(newSet);
-        localStorage.setItem(STORAGE_KEYS.FLAGGED_NODES, JSON.stringify(Array.from(newSet)));
+        toggleFlag(name);
     };
 
     const handleToggleHide = (name: string) => {
-        const newSet = new Set(hiddenNodeIds);
-        if (newSet.has(name)) newSet.delete(name);
-        else newSet.add(name);
-        setHiddenNodeIds(newSet);
-        localStorage.setItem(STORAGE_KEYS.HIDDEN_NODES, JSON.stringify(Array.from(newSet)));
+        toggleHide(name);
     };
 
     return (
@@ -333,27 +304,47 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
                 {/* Main Graph Canvas */}
                 <div className="flex-1 relative z-0">
-                    <GraphCanvas
-                        ref={graphRef}
-                        reports={reports}
-                        manualLinks={manualLinks}
-                        manualNodes={manualNodes}
-                        cases={cases}
-                        aliases={aliases}
-                        hiddenNodeIds={hiddenNodeIds}
-                        flaggedNodeIds={flaggedNodeIds}
-                        filterCaseId={filterCaseId}
-                        showSingletons={showSingletons}
-                        showHiddenNodes={showHiddenNodes}
-                        showFlaggedOnly={showFlaggedOnly}
-                        isLinkingMode={isLinkingMode}
-                        linkSourceNode={linkSourceNode}
-                        isLocked={isLocked}
-                        onNodeClick={handleNodeClick}
-                        onSetLinkSource={setLinkSourceNode}
-                        onCreateManualLink={handleCreateManualLink}
-                        onStatsUpdate={() => { }} // Could sync stats state if needed
-                    />
+                    {isEmpty ? (
+                        <div className="absolute inset-0 flex flex-center bg-black/80 flex-col items-center justify-center animate-in fade-in duration-700">
+                            <div className="bg-zinc-900/30 p-10 border border-zinc-800/50 flex flex-col items-center max-w-lg text-center backdrop-blur-sm">
+                                <Network className="w-20 h-20 text-zinc-800 mb-6 animate-pulse" />
+                                <h3 className="text-2xl font-bold text-zinc-500 font-mono mb-3 uppercase tracking-tighter">System Offline</h3>
+                                <p className="text-zinc-600 text-sm font-mono mb-10 leading-relaxed uppercase">
+                                    Graph engine awaiting connection. No intelligence nodes or link vectors detected in current matrix.
+                                </p>
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => setShowAddNodeUI(true)}
+                                        className="px-6 py-2 border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:bg-zinc-800 hover:text-white transition-all"
+                                    >
+                                        Add Manual Node
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <GraphCanvas
+                            ref={graphRef}
+                            reports={reports}
+                            manualLinks={manualLinks}
+                            manualNodes={manualNodes}
+                            cases={cases}
+                            aliases={aliases}
+                            hiddenNodeIds={hiddenNodeIds}
+                            flaggedNodeIds={flaggedNodeIds}
+                            filterCaseId={filterCaseId}
+                            showSingletons={showSingletons}
+                            showHiddenNodes={showHiddenNodes}
+                            showFlaggedOnly={showFlaggedOnly}
+                            isLinkingMode={isLinkingMode}
+                            linkSourceNode={linkSourceNode}
+                            isLocked={isLocked}
+                            onNodeClick={handleNodeClick}
+                            onSetLinkSource={setLinkSourceNode}
+                            onCreateManualLink={handleCreateManualLink}
+                            onStatsUpdate={() => { }} // Could sync stats state if needed
+                        />
+                    )}
 
                     {/* Add Node Overlay */}
                     {showAddNodeUI && (
@@ -425,7 +416,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                     currentAliases={aliases}
                     onSaveAliases={(newAliases) => {
                         setAliases(newAliases);
-                        localStorage.setItem(STORAGE_KEYS.ENTITY_ALIASES, JSON.stringify(newAliases));
                         setShowResolutionModal(false);
                     }}
                     onClose={() => setShowResolutionModal(false)}

@@ -40,6 +40,30 @@ flowchart TD
 
 ---
 
+## Mobile & Responsive Strategy
+
+The application implements a "Mobile-Overlay" pattern to handle complex information density on small screens.
+
+### Breakpoints
+
+- **Mobile (< 768px)**: Optimized for touch, reduced information density.
+- **Tablet (< 1024px)**: Sidebar automatically collapses.
+- **Desktop (≥ 1024px)**: Full 3-panel layouts and persistent sidebar.
+
+### UI Patterns
+
+1. **Sidebar Navigation**:
+   - Fixed width on desktop.
+   - Collapses to icon-only or hidden drawer on mobile.
+2. **Operation View Panels**:
+   - **Desktop**: Relative positioning, sharing space (33/33/33 or 20/60/20).
+   - **Mobile**: Absolute/Fixed positioning (Overlays). Panels slide in over the main content with a backdrop to maintain focus and maximize readable area.
+3. **Feed Filters**:
+   - **Desktop**: Inline filters in sticky header.
+   - **Mobile**: Dedicated overlay panel triggered by filter button to save header space.
+
+---
+
 ## Component Decomposition
 
 ### Operation View (Command Center)

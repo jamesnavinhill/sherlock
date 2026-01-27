@@ -34,6 +34,7 @@ Sherlock AI is a sophisticated React SPA that simulates the workflow of an OSINT
 - **Styling**: Tailwind CSS (CDN)
 - **AI**: Google Gemini SDK (`@google/genai`)
 - **Visualization**: D3.js v7
+- **Linting**: ESLint 9 + Prettier
 - **Fonts**: JetBrains Mono, Inter
 
 ## Getting Started

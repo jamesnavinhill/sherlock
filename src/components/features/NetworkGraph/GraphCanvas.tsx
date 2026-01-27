@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import * as d3 from 'd3';
-import { InvestigationReport, Case, EntityAliasMap, ManualConnection, ManualNode, Entity } from '../../../types';
+import type { InvestigationReport, Case, EntityAliasMap, ManualConnection, ManualNode} from '../../../types';
 import { cleanEntityName } from '../../../utils/text';
 
 // Graph Types
@@ -45,7 +45,7 @@ interface GraphCanvasProps {
     linkSourceNode: GraphNode | null;
 
     // Handlers
-    onNodeClick: (node: GraphNode) => void;
+    onNodeClick: (node: GraphNode | null) => void;
     onSetLinkSource: (node: GraphNode | null) => void;
     onCreateManualLink: (source: GraphNode, target: GraphNode) => void;
     onStatsUpdate: (stats: { cases: number, entities: number, links: number, hubs: number }) => void;
@@ -57,7 +57,9 @@ export interface GraphCanvasRef {
     zoomOut: () => void;
 }
 
-filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
+export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
+    reports, manualLinks, manualNodes, cases, aliases, hiddenNodeIds, flaggedNodeIds,
+    filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
     isLinkingMode, linkSourceNode,
     onNodeClick, onSetLinkSource, onCreateManualLink, onStatsUpdate,
     isLocked = false
@@ -138,7 +140,7 @@ filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
                     x: width / 2 + (Math.random() - 0.5) * 50, y: height / 2 + (Math.random() - 0.5) * 50
                 });
             }
-            return rawNodes.get(id)!;
+            return rawNodes.get(id) ?? null;
         };
 
         // Build Graph from Manual Nodes
@@ -184,17 +186,19 @@ filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
             if (rawNodes.has(ml.source) && rawNodes.has(ml.target)) {
                 if (!rawLinks.some(l => (l.source === ml.source && l.target === ml.target) || (l.source === ml.target && l.target === ml.source))) {
                     rawLinks.push({ source: ml.source, target: ml.target, value: 4, isManual: true });
-                    rawNodes.get(ml.source)!.connections++;
-                    rawNodes.get(ml.target)!.connections++;
+                    const sourceNode = rawNodes.get(ml.source);
+                    const targetNode = rawNodes.get(ml.target);
+                    if (sourceNode) sourceNode.connections++;
+                    if (targetNode) targetNode.connections++;
                 }
             }
         });
 
-        let nodesArray = Array.from(rawNodes.values());
-        let linksArray = [...rawLinks];
+        const nodesArray = Array.from(rawNodes.values());
+        const linksArray = [...rawLinks];
 
         // Filters (Singletons, Flagged)
-        let nodesToKeep = new Set<string>();
+        const nodesToKeep = new Set<string>();
         let filteredNodes = nodesArray;
         let filteredLinks = linksArray;
 
@@ -234,7 +238,7 @@ filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
         zoomRef.current = zoom;
 
         const simulation = d3.forceSimulation(filteredNodes)
-            .force("link", d3.forceLink(filteredLinks).id((d: any) => d.id).distance(100))
+            .force("link", d3.forceLink<GraphNode, GraphLink>(filteredLinks).id((d) => d.id).distance(100))
             .force("charge", d3.forceManyBody().strength(-300).distanceMax(500)) // distanceMax for performance
             .force("x", d3.forceX(width / 2).strength(0.08))
             .force("y", d3.forceY(height / 2).strength(0.08))
@@ -250,21 +254,29 @@ filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
         simulationRef.current = simulation;
 
         const link = g.append("g").selectAll("line").data(filteredLinks).join("line")
-            .attr("stroke", (d: any) => d.isManual ? "#ffffff" : "#52525b")
-            .attr("stroke-width", (d: any) => d.isManual ? 2 : 1)
-            .attr("stroke-dasharray", (d: any) => d.isManual ? "0" : "2,2");
+            .attr("stroke", (d: GraphLink) => d.isManual ? "#ffffff" : "#52525b")
+            .attr("stroke-width", (d: GraphLink) => d.isManual ? 2 : 1)
+            .attr("stroke-dasharray", (d: GraphLink) => d.isManual ? "0" : "2,2");
 
         const node = g.append("g").selectAll(".node").data(filteredNodes).join("g")
-            .call(d3.drag<SVGGElement, GraphNode>().on("start", (e, d: any) => {
-                if (!e.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x; d.fy = d.y;
-            }).on("drag", (e, d: any) => { d.fx = e.x; d.fy = e.y; })
-                .on("end", (e, d: any) => {
-                    if (!e.active) simulation.alphaTarget(0);
-                    d.fx = null; d.fy = null;
-                }) as any)
-            .on("click", (e, d) => {
-                e.stopPropagation();
+            .call(d3.drag<SVGGElement, GraphNode>()
+                .on("start", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x ?? null;
+                    d.fy = d.y ?? null;
+                })
+                .on("drag", (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                })
+                .on("end", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                })
+            )
+            .on("click", (event, d) => {
+                event.stopPropagation();
 
                 // Manual Linking Logic
                 const currentLinkSource = stateRef.current.linkSourceNode;
@@ -328,17 +340,20 @@ filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
             .attr("fill", "#a1a1aa").style("font-size", "10px").style("font-family", "monospace");
 
         simulation.on("tick", () => {
-            link.attr("x1", (d: any) => d.source.x).attr("y1", (d: any) => d.source.y)
-                .attr("x2", (d: any) => d.target.x).attr("y2", (d: any) => d.target.y);
-            node.attr("transform", (d: any) => `translate(${d.x},${d.y})`);
+            link
+                .attr("x1", (d: GraphLink) => (d.source as GraphNode).x ?? 0)
+                .attr("y1", (d: GraphLink) => (d.source as GraphNode).y ?? 0)
+                .attr("x2", (d: GraphLink) => (d.target as GraphNode).x ?? 0)
+                .attr("y2", (d: GraphLink) => (d.target as GraphNode).y ?? 0);
+            node.attr("transform", (d: GraphNode) => `translate(${d.x ?? 0},${d.y ?? 0})`);
         });
 
         return () => { simulation.stop(); };
-    }, [reports, manualLinks, cases, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, isLocked]);
+    }, [reports, manualLinks, cases, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, isLocked, linkSourceNode, onCreateManualLink, onNodeClick, onSetLinkSource, onStatsUpdate]);
 
     return (
         <div ref={containerRef} className="flex-1 w-full h-full relative z-0 bg-black cursor-move">
-            <svg ref={svgRef} className="w-full h-full" onClick={() => onNodeClick(null as any)} />
+            <svg ref={svgRef} className="w-full h-full" onClick={() => onNodeClick(null)} />
         </div>
     );
 });

@@ -1,9 +1,9 @@
 import React from 'react';
 import {
     ZoomOut, ZoomIn, Link as LinkIcon, PlusCircle, GitMerge,
-    Lock, Unlock
+    Lock, Unlock, Briefcase, ChevronRight, ChevronDown, Box, Eye, EyeOff, Star
 } from 'lucide-react';
-import { Case } from '../../../types';
+import type { Case } from '../../../types';
 
 interface ControlBarProps {
     cases: Case[];
@@ -113,14 +113,15 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     title="Zoom In"
                 >
                     <ZoomIn className="w-3.5 h-3.5" />
-                    <div className="w-px h-3 bg-zinc-800 mx-1"></div>
-                    <button
-                        onClick={onToggleLock}
-                        className={`p-1.5 ${isLocked ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'} transition-colors`}
-                        title={isLocked ? "Unlock Simulation" : "Lock Layout (Performance)"}
-                    >
-                        {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                    </button>
+                </button>
+                <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+                <button
+                    onClick={onToggleLock}
+                    className={`p-1.5 ${isLocked ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'} transition-colors`}
+                    title={isLocked ? "Unlock Simulation" : "Lock Layout (Performance)"}
+                >
+                    {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                </button>
             </div>
 
             <div className="flex items-center space-x-3 flex-shrink-0">

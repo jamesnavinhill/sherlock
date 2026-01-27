@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useCaseStore } from '../../../store/caseStore';
-import { Case, MonitorEvent, SystemConfig, Headline } from '../../../types';
-import { getLiveIntel, MonitorConfig } from '../../../services/gemini';
+import type { MonitorEvent, SystemConfig, Headline } from '../../../types';
+import type { MonitorConfig } from '../../../services/gemini';
+import { getLiveIntel } from '../../../services/gemini';
 import {
     Radio, Play, Pause, ChevronDown, Activity, Settings2, Radar
 } from 'lucide-react';
@@ -23,10 +24,10 @@ interface LiveMonitorProps {
  * Streams events from various sources (news, social, official) and allows investigation.
  */
 export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onInvestigate }) => {
-    const { headlines, addHeadline } = useCaseStore();
-    // Case State
-    const [cases, setCases] = useState<Case[]>([]);
-    const [selectedCaseId, setSelectedCaseId] = useState<string>('');
+    const { headlines, addHeadline, cases, activeCaseId: selectedCaseId, setActiveCaseId: setSelectedCaseId } = useCaseStore();
+
+    type FilterType = 'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL';
+    type ThreatFilter = 'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL';
 
     // Monitoring State
     const [isMonitoring, setIsMonitoring] = useState(false);
@@ -34,8 +35,8 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
     const [streamStatus, setStreamStatus] = useState<'IDLE' | 'SCANNING' | 'RECEIVING'>('IDLE');
 
     // Filter & UI State
-    const [filterType, setFilterType] = useState<'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL'>('ALL');
-    const [filterThreat, setFilterThreat] = useState<'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL'>('ALL');
+    const [filterType, setFilterType] = useState<FilterType>('ALL');
+    const [filterThreat, setFilterThreat] = useState<ThreatFilter>('ALL');
     const [showSettings, setShowSettings] = useState(false);
 
     // Configuration State
@@ -60,25 +61,11 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
 
     // Task Selection State
     const [selectedEventForAnalysis, setSelectedEventForAnalysis] = useState<MonitorEvent | null>(null);
+    const selectedCase = useMemo(() => cases.find(c => c.id === selectedCaseId) ?? null, [cases, selectedCaseId]);
 
     // --- EFFECTS ---
 
     useEffect(() => {
-        const casesData = localStorage.getItem('sherlock_cases');
-        if (casesData) {
-            try {
-                const parsed: Case[] = JSON.parse(casesData);
-                setCases(parsed);
-
-                // Load Active Case
-                const activeCaseId = localStorage.getItem('sherlock_active_case_id');
-                if (activeCaseId && parsed.some(c => c.id === activeCaseId)) {
-                    setSelectedCaseId(activeCaseId);
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
         return () => {
             isMonitoringRef.current = false;
         };
@@ -193,9 +180,8 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
     };
 
     const executeAnalysis = (topic: string, config: Partial<SystemConfig>) => {
-        const activeCase = cases.find(c => c.id === selectedCaseId);
-        const context = activeCase
-            ? { topic: activeCase.title, summary: activeCase.description || "Live monitoring operation" }
+        const context = selectedCase
+            ? { topic: selectedCase.title, summary: selectedCase.description || "Live monitoring operation" }
             : undefined;
 
         onInvestigate(topic, context, config);
@@ -232,10 +218,9 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
                     <div className="relative group hidden md:block">
                         <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
                         <select
-                            value={selectedCaseId}
+                            value={selectedCaseId || ''}
                             onChange={(e) => {
                                 setSelectedCaseId(e.target.value);
-                                localStorage.setItem('sherlock_active_case_id', e.target.value);
                             }}
                             disabled={isMonitoring}
                             className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[100px] max-w-[250px] truncate"
@@ -252,7 +237,12 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
                         <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
                         <select
                             value={filterType}
-                            onChange={(e) => setFilterType(e.target.value as any)}
+                            onChange={(e) => {
+                                const value = e.target.value as FilterType;
+                                if (value === 'ALL' || value === 'SOCIAL' || value === 'NEWS' || value === 'OFFICIAL') {
+                                    setFilterType(value);
+                                }
+                            }}
                             className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[150px]"
                         >
                             <option value="ALL">FILTER: ALL SIGNALS</option>
@@ -267,7 +257,12 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
                         <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
                         <select
                             value={filterThreat}
-                            onChange={(e) => setFilterThreat(e.target.value as any)}
+                            onChange={(e) => {
+                                const value = e.target.value as ThreatFilter;
+                                if (value === 'ALL' || value === 'INFO' || value === 'CAUTION' || value === 'CRITICAL') {
+                                    setFilterThreat(value);
+                                }
+                            }}
                             className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[150px]"
                         >
                             <option value="ALL">THREAT: ALL LEVELS</option>
@@ -393,7 +388,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events, setEvents, onI
             {selectedEventForAnalysis && (
                 <TaskSetupModal
                     initialTopic={selectedEventForAnalysis.content}
-                    initialContext={cases.find(c => c.id === selectedCaseId) ? { topic: cases.find(c => c.id === selectedCaseId)!.title, summary: cases.find(c => c.id === selectedCaseId)!.description || '' } : undefined}
+                    initialContext={selectedCase ? { topic: selectedCase.title, summary: selectedCase.description || '' } : undefined}
                     onCancel={() => setSelectedEventForAnalysis(null)}
                     onStart={executeAnalysis}
                 />

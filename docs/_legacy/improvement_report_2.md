@@ -28,10 +28,10 @@ Sherlock is a well-architected React SPA for OSINT investigations. Following a t
 
 | Area | Current State | Recommendation |
 |------|--------------|----------------|
-| **Testing** | No test files | Add unit + E2E tests |
-| **State Management** | Prop drilling 3-4 levels | Consider Zustand or Context |
-| **Error Handling** | Inconsistent | Add toast notification system |
-| **Mobile UX** | Basic responsive | Full mobile-first redesign |
+| **Testing** | Unit tests establishing | Add E2E tests (Playwright) |
+| **State Management** | **DONE** (Zustand) | Maintenance & scalability |
+| **Error Handling** | **DONE** (Global Toasts) | Refine error granularities |
+| **Mobile UX** | 🔵 DONE | Implemented responsive 3-panel layout in `OperationView` |
 
 ---
 
@@ -243,19 +243,22 @@ const LiveMonitor = lazy(() => import('./components/features/LiveMonitor'));
 
 ### High Priority
 
-| Feature | Description | Effort |
-|---------|-------------|--------|
-| **Global Search** | Search across all reports, entities, cases | Medium |
-| **Case Templates** | Save investigation configs as reusable templates | Low |
-| **Export Improvements** | PDF export, Markdown export | Medium |
+| Feature | Description | Effort | Status |
+|---------|-------------|--------|--------|
+| **Global Search** | Search across all reports, entities, cases | Medium | ✅ Done |
+| **Case Templates** | Save investigation configs as reusable templates | Low | ✅ Done |
+| **Export Improvements** | PDF export, Markdown export | Medium | ✅ Done |
+| **Entity Merge/Split** | Deduplicate entities across reports | Medium | ⏳ Planned |
+| **Report Comparison** | Side-by-side report diff view | High | ⏳ Planned |
+| **Investigation Timeline** | Visual timeline of investigation progress | Medium | ✅ Done |
 
 ### Medium Priority
 
-| Feature | Description | Effort |
-|---------|-------------|--------|
-| **Entity Merge/Split** | Deduplicate entities across reports | Medium |
-| **Report Comparison** | Side-by-side report diff view | High |
-| **Investigation Timeline** | Visual timeline of investigation progress | Medium |
+| Feature | Description | Effort | Status |
+|---------|-------------|--------|--------|
+| **Report Comparison** | Side-by-side report diff view | High | ⏳ Planned |
+| **Investigation Timeline** | Visual timeline of investigation progress | Medium | ✅ Done |
+| **Entity Merge/Split** | Deduplicate entities across reports | Medium | ✅ Done |
 
 ### Low Priority (Future)
 
@@ -290,38 +293,38 @@ const LiveMonitor = lazy(() => import('./components/features/LiveMonitor'));
 
 ## Technical Debt
 
-| Item | Severity | Description |
-|------|----------|-------------|
-| Zero test coverage | 🔴 High | No unit or E2E tests |
-| No CI/CD pipeline | 🟡 Medium | Add GitHub Actions for linting/testing |
-| Magic strings | 🟡 Medium | Some localStorage keys not using `STORAGE_KEYS` constant |
-| `Investigation.tsx` deprecated | 🟢 Low | Consider full removal |
-| Legacy docs outdated paths | 🟢 Low | Reference `d:/sherlock/` instead of relative |
+| Item | Severity | Description | Status |
+|------|----------|-------------|--------|
+| E2E test coverage | 🟠 Medium | Need Playwright/Cypress flows | |
+| No CI/CD pipeline | 🟡 Medium | Add GitHub Actions for linting/testing | |
+| Magic strings | 🟢 Low | Ongoing cleanup in `caseStore` | |
+| `Investigation.tsx` deprecated | 🟢 Low | Removed Deprecated Code | 🔵 DONE |
+| Legacy docs outdated paths | � DONE | Fixed relative paths in `work-log.md` and `improvement_report.md` | |
 
 ---
 
 ## Priority Roadmap
 
-### Phase 1: Foundation (Q1)
+### Phase 1: Foundation (Q1) - **Completed**
 
 - [x] Local-only conversion (remove Vercel deps)
-- [ ] Add testing infrastructure (Vitest + Playwright)
-- [ ] Error notification system
-- [ ] Global search implementation
+- [x] Add testing infrastructure (Vitest)
+- [x] Error notification system (Global Toasts)
+- [x] Global search implementation (Ctrl+K)
 
-### Phase 2: Polish (Q2)
+### Phase 2: Polish (Q2) - **In Progress**
 
 - [ ] Mobile UX redesign
-- [ ] Empty states for all views
-- [ ] Accessibility audit and fixes
-- [ ] Performance optimizations
+- [x] Empty states for major views
+- [x] Accessibility Audit | 🔵 DONE |
+- [x] Performance optimizations (Archives/Graph)
 
-### Phase 3: Features (Q3)
+### Phase 3: Features (Q3) - **Completed**
 
-- [ ] Case templates
-- [ ] Entity resolution improvements
-- [ ] Export enhancements (PDF, Markdown)
-- [ ] Investigation timeline view
+- [x] Case templates & Gallery
+- [x] Entity resolution (Aliases)
+- [x] Export enhancements (PDF, Markdown)
+- [x] Investigation timeline view
 
 ---
 
@@ -340,11 +343,11 @@ const LiveMonitor = lazy(() => import('./components/features/LiveMonitor'));
 
 Sherlock is a capable OSINT platform with solid architecture. The primary opportunities are:
 
-1. **Testing** - Establish testing infrastructure for reliability
-2. **State Management** - Reduce prop drilling with Zustand
-3. **Mobile UX** - Full mobile-first experience
-4. **Global Search** - Key usability feature
-5. **Error Handling** - User-friendly notifications
+1. **E2E Testing** - Expand testing to cover full user journeys
+2. **Mobile UX** - Full mobile-first experience
+3. **Accessibility** - Deep audit and ARIA compliance
+4. **Multi-model** - Support for non-Google providers (OpenAI/Anthropic)
+5. **Entity Management** - Deep merge/split and manual mapping UI
 
 These improvements would elevate Sherlock from a working prototype to a production-grade application.
 

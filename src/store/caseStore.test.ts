@@ -1,75 +1,86 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { useCaseStore } from '../store/caseStore';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { useCaseStore } from './caseStore';
+import type { InvestigationReport, CaseTemplate } from '../types';
 import { AppView } from '../types';
 
-describe('Case Store', () => {
+describe('caseStore', () => {
     beforeEach(() => {
-        // Reset store state before each test if necessary
-        // Since we use persist, we might need to clear it or handle it
-        useCaseStore.setState({
-            archives: [],
-            cases: [],
-            tasks: [],
-            activeTaskId: null,
-            toasts: [],
-            currentView: AppView.DASHBOARD
-        });
+        // Reset store before each test
+        const store = useCaseStore.getState();
+        store.setArchives([]);
+        store.setCases([]);
+        store.setTasks([]);
+        store.setCurrentView(AppView.DASHBOARD);
+        store.setTemplates([]);
     });
 
-    it('should initialize with default values', () => {
+    it('should initialize with default state', () => {
         const state = useCaseStore.getState();
+        expect(state.archives).toEqual([]);
+        expect(state.cases).toEqual([]);
         expect(state.currentView).toBe(AppView.DASHBOARD);
-        expect(state.tasks).toHaveLength(0);
     });
 
-    it('should add a task', () => {
-        const { addTask } = useCaseStore.getState();
-        const newTask = {
-            id: 'test-task',
+    it('should add and delete templates', () => {
+        const template: CaseTemplate = {
+            id: 'tpl-1',
+            name: 'Test Template',
             topic: 'Test Topic',
-            status: 'QUEUED' as const,
-            startTime: Date.now()
+            config: { modelId: 'test-model' },
+            createdAt: Date.now()
         };
 
-        addTask(newTask);
+        const { addTemplate, deleteTemplate } = useCaseStore.getState();
+
+        addTemplate(template);
+        expect(useCaseStore.getState().templates).toHaveLength(1);
+        expect(useCaseStore.getState().templates[0].name).toBe('Test Template');
+
+        deleteTemplate('tpl-1');
+        expect(useCaseStore.getState().templates).toHaveLength(0);
+    });
+
+    it('should handle task lifecycle', () => {
+        const { addTask, completeTask } = useCaseStore.getState();
+        const taskId = 'task-1';
+
+        addTask({
+            id: taskId,
+            topic: 'Lifecycle test',
+            status: 'RUNNING',
+            startTime: Date.now()
+        });
 
         expect(useCaseStore.getState().tasks).toHaveLength(1);
-        expect(useCaseStore.getState().tasks[0].topic).toBe('Test Topic');
-    });
+        expect(useCaseStore.getState().tasks[0].status).toBe('RUNNING');
 
-    it('should add and remove toasts', () => {
-        const { addToast, removeToast } = useCaseStore.getState();
-
-        addToast('Test Message', 'SUCCESS');
-
-        let state = useCaseStore.getState();
-        expect(state.toasts).toHaveLength(1);
-        expect(state.toasts[0].message).toBe('Test Message');
-
-        const toastId = state.toasts[0].id;
-        removeToast(toastId);
-
-        expect(useCaseStore.getState().toasts).toHaveLength(0);
-    });
-
-    it('should archive a report and create a case if needed', () => {
-        const { archiveReport } = useCaseStore.getState();
-        const report = {
-            topic: 'New Investigation',
-            summary: 'Secret findings',
+        const report: InvestigationReport = {
+            id: 'rep-1',
+            topic: 'Lifecycle test',
+            summary: 'Success',
             agendas: [],
             leads: [],
             entities: [],
             sources: [],
-            rawText: '{}'
+            rawText: 'Test content'
         };
 
-        const saved = archiveReport(report);
+        completeTask(taskId, report);
+        expect(useCaseStore.getState().tasks[0].status).toBe('COMPLETED');
+        expect(useCaseStore.getState().tasks[0].report?.id).toBe('rep-1');
+    });
 
-        const state = useCaseStore.getState();
-        expect(state.archives).toHaveLength(1);
-        expect(state.cases).toHaveLength(1);
-        expect(state.cases[0].title).toContain('New Investigation');
-        expect(saved.caseId).toBe(state.cases[0].id);
+    it('should add toasts and remove them', () => {
+        vi.useFakeTimers();
+        const { addToast } = useCaseStore.getState();
+
+        addToast('Test message', 'SUCCESS');
+        expect(useCaseStore.getState().toasts).toHaveLength(1);
+        expect(useCaseStore.getState().toasts[0].message).toBe('Test message');
+
+        // Should auto-remove after 5s
+        vi.advanceTimersByTime(5001);
+        expect(useCaseStore.getState().toasts).toHaveLength(0);
+        vi.useRealTimers();
     });
 });

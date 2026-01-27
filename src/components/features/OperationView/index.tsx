@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { InvestigationReport, InvestigationTask, Case, Entity, Headline, Source, SystemConfig } from '../../../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import type { InvestigationReport, InvestigationTask, Entity, Headline, Source, SystemConfig, CaseTemplate } from '../../../types';
+import { useCaseStore } from '../../../store/caseStore';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
-import { BreadcrumbItem } from '../../ui/Breadcrumbs';
+import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
-import { AlertOctagon } from 'lucide-react';
+import { AlertOctagon, Layout } from 'lucide-react';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
@@ -17,21 +18,33 @@ interface OperationViewProps {
     task: InvestigationTask | null;
     onBack: () => void;
     onDeepDive: (lead: string, currentReport: InvestigationReport) => void;
-    onJumpToParent: (parentTopic: string) => void;
     onBatchDeepDive: (leads: string[], currentReport: InvestigationReport) => void;
     navStack: BreadcrumbItem[];
     onNavigate: (id: string) => void;
     onSelectCase?: (caseId: string) => void;
-    onStartNewCase: (topic: string, config: any) => void;
+    onStartNewCase: (topic: string, config: SystemConfig) => void;
     onInvestigateHeadline?: (topic: string, context?: { topic: string, summary: string }, configOverride?: Partial<SystemConfig>) => void;
 }
 
 export const OperationView: React.FC<OperationViewProps> = ({
-    task, onBack, onDeepDive, onJumpToParent, onBatchDeepDive, navStack, onNavigate, onSelectCase, onStartNewCase, onInvestigateHeadline
+    task, onBack, onDeepDive, onBatchDeepDive, navStack, onNavigate, onSelectCase, onStartNewCase, onInvestigateHeadline
 }) => {
     // Panel visibility
-    const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+    const [leftPanelOpen, setLeftPanelOpen] = useState(window.innerWidth > 1024);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
+
+    // Responsive logic
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth <= 1024) {
+                setLeftPanelOpen(false);
+            } else {
+                setLeftPanelOpen(true);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Accordion State for Case Dossier
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -52,93 +65,50 @@ export const OperationView: React.FC<OperationViewProps> = ({
     const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
     const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
 
-    // Case, Reports & Headlines
-    const [activeCase, setActiveCase] = useState<Case | null>(null);
-    const [allCaseReports, setAllCaseReports] = useState<InvestigationReport[]>([]);
-    const [headlines, setHeadlines] = useState<Headline[]>([]);
-    const [saved, setSaved] = useState(false);
-
-    // All available cases for selector
-    const [allCases, setAllCases] = useState<Case[]>([]);
-    const [selectedCaseId, setSelectedCaseId] = useState<string>('ALL');
-
     // Pre-Investigation Modal State
     const [leadToAnalyze, setLeadToAnalyze] = useState<{ text: string, context?: { topic: string, summary: string } } | null>(null);
     const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
+    const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+    const [templateName, setTemplateName] = useState('');
+
+    const {
+        cases: allCases,
+        archives,
+        addTemplate,
+        activeCaseId: selectedCaseId,
+        setActiveCaseId
+    } = useCaseStore();
+
+    const activeCase = useMemo(() =>
+        allCases.find(c => c.id === selectedCaseId) || null
+        , [allCases, selectedCaseId]);
+
+    const allCaseReports = useMemo(() =>
+        archives.filter(r => r.caseId === selectedCaseId)
+        , [archives, selectedCaseId]);
+
+    const headlines = useMemo(() => {
+        // We'd need headlines in the * This is the modern investigation UI. Use this for all new development.
+        return useCaseStore.getState().headlines.filter(h => h.caseId === selectedCaseId);
+    }, [selectedCaseId]);
 
     const report = task?.report ?? null;
     const status = task?.status ?? null;
 
-    // Load all available cases on mount and sync active case
+    // Removed redundant effects, case switching now handled by store action in Toolbar/index
+    // No-op for now to keep structure clean during migration
     useEffect(() => {
-        const casesStr = localStorage.getItem('sherlock_cases');
-        if (casesStr) {
-            const parsedCases = JSON.parse(casesStr);
-            setAllCases(parsedCases);
-
-            // Initial sync if no report loaded
-            if (!report?.caseId) {
-                const storedId = localStorage.getItem('sherlock_active_case_id');
-                if (storedId && parsedCases.some((c: any) => c.id === storedId)) {
-                    setSelectedCaseId(storedId);
-                    const c = parsedCases.find((c: any) => c.id === storedId);
-                    if (c) setActiveCase(c);
-
-                    // Load reports for dossier
-                    const archivesStr = localStorage.getItem('sherlock_archives');
-                    if (archivesStr) {
-                        const archives = JSON.parse(archivesStr);
-                        setAllCaseReports(archives.filter((r: any) => r.caseId === storedId));
-                    }
-                }
-            }
+        if (selectedCaseId && selectedCaseId !== 'ALL' && !activeCase) {
+            // Re-sync if necessary
         }
-    }, [report?.caseId]);
-
-    // Sync selectedCaseId with task's report caseId
-    useEffect(() => {
-        // Check for external updates or mismatches
-        const storedId = localStorage.getItem('sherlock_active_case_id') || 'ALL';
-
-        // If we are currently running a task, we ignore external selection context until it's done
-        if (status === 'RUNNING' || status === 'QUEUED') return;
-
-        // If the stored case differs from the current active case ID state
-        if (storedId !== selectedCaseId) {
-            handleCaseSelect(storedId);
-        } else if (report?.caseId && report.caseId !== storedId && storedId !== 'ALL') {
-            // If we have a report loaded but the stored ID specifically points to another case, switch
-            handleCaseSelect(storedId);
-        }
-    }, [report?.caseId, status, selectedCaseId]);
+    }, [selectedCaseId, activeCase]);
 
     // Handle case selection from dropdown
     const handleCaseSelect = (caseId: string) => {
-        setSelectedCaseId(caseId);
+        setActiveCaseId(caseId);
 
-        if (caseId === 'ALL') {
-            localStorage.removeItem('sherlock_active_case_id');
-            setActiveCase(null);
-            setAllCaseReports([]);
-            return;
-        }
-
-        localStorage.setItem('sherlock_active_case_id', caseId);
-
-        // Try to find the case object to set active immediately for UI responsiveness
-        const casesStr = localStorage.getItem('sherlock_cases');
-        if (casesStr) {
-            const cases: Case[] = JSON.parse(casesStr);
-            const foundCase = cases.find(c => c.id === caseId);
-            if (foundCase) setActiveCase(foundCase);
-        }
-
-        const archivesStr = localStorage.getItem('sherlock_archives');
-        if (archivesStr) {
-            const archives: InvestigationReport[] = JSON.parse(archivesStr);
+        if (caseId !== 'ALL' && caseId !== '') {
             const caseReports = archives.filter(r => r.caseId === caseId);
-            setAllCaseReports(caseReports); // Update local list immediately
-
             if (caseReports.length > 0) {
                 const rootReport = caseReports.find(r => !r.parentTopic) || caseReports[0];
                 if (onSelectCase) {
@@ -150,51 +120,40 @@ export const OperationView: React.FC<OperationViewProps> = ({
         }
     };
 
-    useEffect(() => {
-        if (status === 'COMPLETED' && report) {
-            loadCaseData(report);
-        }
-    }, [status, report]);
+    const handleSaveTemplate = () => {
+        if (!report) return;
+        setShowSaveTemplateModal(true);
+        setTemplateName(`${activeCase?.title.replace('Operation: ', '') || 'Investigation'}: ${report.topic}`);
+    };
 
-    const loadCaseData = (rpt: InvestigationReport) => {
-        try {
-            const casesStr = localStorage.getItem('sherlock_cases');
-            const headlinesStr = localStorage.getItem('sherlock_headlines');
-            const archivesStr = localStorage.getItem('sherlock_archives');
+    const executeSaveTemplate = () => {
+        if (!report || !templateName.trim()) return;
 
-            if (casesStr && rpt.caseId) {
-                const cases: Case[] = JSON.parse(casesStr);
-                const foundCase = cases.find(c => c.id === rpt.caseId);
-                if (foundCase) setActiveCase(foundCase);
-            }
+        const newTemplate: CaseTemplate = {
+            id: `tpl-${Date.now()}`,
+            name: templateName.trim(),
+            topic: report.topic,
+            config: report.config || {},
+            createdAt: Date.now()
+        };
 
-            if (archivesStr && rpt.caseId) {
-                const archives: InvestigationReport[] = JSON.parse(archivesStr);
-                const caseReports = archives.filter(r => r.caseId === rpt.caseId);
-                setAllCaseReports(caseReports);
-
-                const savedVersion = archives.find(r => r.id === rpt.id || (r.topic === rpt.topic && r.dateStr === rpt.dateStr));
-                setSaved(!!savedVersion);
-            }
-
-            if (headlinesStr && rpt.caseId) {
-                const allHeadlines: Headline[] = JSON.parse(headlinesStr);
-                setHeadlines(allHeadlines.filter(h => h.caseId === rpt.caseId));
-            }
-        } catch (e) {
-            console.error("Failed to load case data", e);
-        }
+        addTemplate(newTemplate);
+        setShowSaveTemplateModal(false);
+        // Maybe add a toast here if available via store
+        useCaseStore.getState().addToast("Template saved successfully", "SUCCESS");
     };
 
     // --- Case-wide Data Aggregation ---
     const casePanelData = useMemo(() => {
-        if (!activeCase || allCaseReports.length === 0) return {
-            caseInfo: activeCase,
-            reports: [],
-            entities: [],
-            leads: [],
-            sources: []
-        };
+        if (!activeCase || allCaseReports.length === 0) {
+            return {
+                caseInfo: activeCase,
+                reports: [],
+                entities: [],
+                leads: [],
+                sources: []
+            };
+        }
 
         const entityMap = new Map<string, Entity>();
         allCaseReports.flatMap(r => r.entities || []).forEach(e => {
@@ -227,12 +186,20 @@ export const OperationView: React.FC<OperationViewProps> = ({
         setSelectedEntity(entity);
         setInspectorMode('ENTITY');
         setRightPanelOpen(true);
+        // Mobile: Close left panel if open to show content/inspector
+        if (window.innerWidth <= 1024) {
+            setLeftPanelOpen(false);
+        }
     };
 
     const handleHeadlineClick = (headline: Headline) => {
         setSelectedHeadline(headline);
         setInspectorMode('HEADLINE');
         setRightPanelOpen(true);
+        // Mobile: Close left panel if open
+        if (window.innerWidth <= 1024) {
+            setLeftPanelOpen(false);
+        }
     };
 
     const handleLeadClick = (lead: string) => {
@@ -256,15 +223,11 @@ export const OperationView: React.FC<OperationViewProps> = ({
     };
 
     const handleTitleSave = (newTitle: string) => {
-        // Update report topic in archives
-        const archivesStr = localStorage.getItem('sherlock_archives');
-        if (archivesStr) {
-            const archives: InvestigationReport[] = JSON.parse(archivesStr);
-            const updated = archives.map(r => r.id === report!.id ? { ...r, topic: newTitle } : r);
-            localStorage.setItem('sherlock_archives', JSON.stringify(updated));
-            // Trigger reload by navigating to same report
-            if (onNavigate) onNavigate(report!.id!);
-        }
+        if (!report) return;
+        const updated = archives.map(r => r.id === report.id ? { ...r, topic: newTitle } : r);
+        useCaseStore.getState().setArchives(updated);
+        // Trigger reload by navigating to same report
+        if (report.id) onNavigate(report.id);
     };
 
     const handleEntityNameSave = (newName: string) => {
@@ -272,28 +235,22 @@ export const OperationView: React.FC<OperationViewProps> = ({
         const oldName = selectedEntity.name;
 
         // Update entities in all archived reports
-        const archivesStr = localStorage.getItem('sherlock_archives');
-        if (archivesStr) {
-            const archives: InvestigationReport[] = JSON.parse(archivesStr);
-            const updated = archives.map(r => ({
-                ...r,
-                entities: (r.entities || []).map(e => {
-                    const name = typeof e === 'string' ? e : e.name;
-                    if (name === oldName) {
-                        return typeof e === 'string' ? newName : { ...e, name: newName };
-                    }
-                    return e;
-                })
-            }));
-            localStorage.setItem('sherlock_archives', JSON.stringify(updated));
-        }
+        const updated = archives.map(r => ({
+            ...r,
+            entities: (r.entities || []).map(e => {
+                const name = typeof e === 'string' ? e : e.name;
+                if (name === oldName) {
+                    return typeof e === 'string' ? newName : { ...e, name: newName };
+                }
+                return e;
+            })
+        }));
+        useCaseStore.getState().setArchives(updated);
 
         // Update flagged nodes if entity was flagged
-        const flaggedStr = localStorage.getItem('sherlock_flagged_nodes');
-        if (flaggedStr) {
-            const flagged: string[] = JSON.parse(flaggedStr);
-            const updatedFlagged = flagged.map(f => f === oldName ? newName : f);
-            localStorage.setItem('sherlock_flagged_nodes', JSON.stringify(updatedFlagged));
+        if (useCaseStore.getState().flaggedNodeIds.includes(oldName)) {
+            useCaseStore.getState().toggleFlag(oldName);
+            useCaseStore.getState().toggleFlag(newName);
         }
 
         // Update selected entity state
@@ -301,11 +258,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     };
 
     const handleFlagEntity = (entityName: string) => {
-        const flagged = JSON.parse(localStorage.getItem('sherlock_flagged_nodes') || '[]');
-        const set = new Set(flagged);
-        if (set.has(entityName)) set.delete(entityName);
-        else set.add(entityName);
-        localStorage.setItem('sherlock_flagged_nodes', JSON.stringify(Array.from(set)));
+        useCaseStore.getState().toggleFlag(entityName);
     };
 
     const handleInvestigateEntity = (entityName: string) => {
@@ -342,7 +295,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                     initialTopic={leadToAnalyze.text}
                     initialContext={leadToAnalyze.context}
                     onCancel={() => setLeadToAnalyze(null)}
-                    onStart={(topic, config) => {
+                    onStart={(topic, _config) => {
                         onDeepDive(topic, report);
                         setLeadToAnalyze(null);
                     }}
@@ -354,8 +307,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 <TaskSetupModal
                     initialTopic=""
                     onCancel={() => setIsNewCaseModalOpen(false)}
-                    onStart={(topic, config) => {
-                        onStartNewCase(topic, config);
+                    onStart={(topic, configOverride) => {
+                        onStartNewCase(topic, configOverride);
                         setIsNewCaseModalOpen(false);
                     }}
                 />
@@ -369,10 +322,71 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 report={report}
                 allCaseReports={allCaseReports}
                 leftPanelOpen={leftPanelOpen}
-                onToggleLeftPanel={() => setLeftPanelOpen(!leftPanelOpen)}
-                onCaseSelect={handleCaseSelect}
+                onToggleLeftPanel={() => {
+                    setLeftPanelOpen(!leftPanelOpen);
+                    if (window.innerWidth <= 1024) setRightPanelOpen(false);
+                }}
+                onSelectCase={handleCaseSelect}
                 onStartNewCase={() => setIsNewCaseModalOpen(true)}
+                onSaveTemplate={handleSaveTemplate}
             />
+
+            {/* Save Template Modal */}
+            {showSaveTemplateModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-zinc-900 border border-zinc-700 w-full max-w-md shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-osint-primary"></div>
+                        <div className="p-6">
+                            <h3 className="text-sm font-bold text-white font-mono uppercase tracking-widest mb-4 flex items-center">
+                                <Layout className="w-4 h-4 mr-2 text-osint-primary" />
+                                Save as Protocol Template
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-zinc-500 font-mono uppercase">Protocol Name</label>
+                                    <input
+                                        type="text"
+                                        value={templateName}
+                                        onChange={(e) => setTemplateName(e.target.value)}
+                                        placeholder="e.g., Financial Audit Protocol"
+                                        className="w-full bg-black border border-zinc-800 p-3 text-xs font-mono text-white focus:border-osint-primary outline-none transition-colors"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="p-3 bg-zinc-800/50 border border-zinc-800">
+                                    <div className="text-[9px] text-zinc-500 font-mono uppercase mb-1">Investigation Target</div>
+                                    <div className="text-xs text-zinc-300 font-mono truncate">&quot;{report?.topic}&quot;</div>
+                                </div>
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        onClick={() => setShowSaveTemplateModal(false)}
+                                        className="flex-1 py-2 text-xs font-mono text-zinc-500 hover:text-white transition-colors uppercase border border-zinc-800 hover:border-zinc-500"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={executeSaveTemplate}
+                                        className="flex-1 py-2 text-xs font-mono bg-osint-primary text-black font-bold hover:bg-white transition-all uppercase"
+                                    >
+                                        Save Protocol
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Backdrop for Panels */}
+            {(leftPanelOpen || rightPanelOpen) && (
+                <div
+                    className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm lg:hidden animate-in fade-in duration-300"
+                    onClick={() => {
+                        setLeftPanelOpen(false);
+                        setRightPanelOpen(false);
+                    }}
+                />
+            )}
 
             {/* 3-PANEL LAYOUT */}
             <div className="flex-1 flex overflow-hidden relative z-10">
@@ -402,8 +416,16 @@ export const OperationView: React.FC<OperationViewProps> = ({
                     showPlaceholder={showPlaceholder}
                     onStartNewCase={() => setIsNewCaseModalOpen(true)}
                     onTitleSave={handleTitleSave}
-                    onDeepDive={(lead) => onDeepDive(lead, report!)}
-                    onBatchDeepDive={(leads) => onBatchDeepDive(leads, report!)}
+                onDeepDive={(lead) => {
+                    if (report) {
+                        onDeepDive(lead, report);
+                    }
+                }}
+                onBatchDeepDive={(leads) => {
+                    if (report) {
+                        onBatchDeepDive(leads, report);
+                    }
+                }}
                     onEntityClick={handleEntityClick}
                 />
 

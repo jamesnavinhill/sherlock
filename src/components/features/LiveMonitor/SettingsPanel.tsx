@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonitorConfig } from '../../../services/gemini';
+import type { MonitorConfig } from '../../../services/gemini';
 import {
     Settings2, X, Trash2, Newspaper, MessageSquare,
     Landmark, Calendar, Save

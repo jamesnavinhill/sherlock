@@ -1,8 +1,9 @@
 import { GoogleGenAI, Type, Modality, HarmCategory, HarmBlockThreshold } from "@google/genai";
-import { InvestigationReport, Source, FeedItem, MonitorEvent, SystemConfig, InvestigatorPersona } from '../types';
+import type { InvestigationReport, Source, FeedItem, MonitorEvent, SystemConfig, InvestigationScope, DateRangeConfig } from '../types';
+import { BUILTIN_SCOPES, getScopeById } from '../data/presets';
 
 // --- API HARDENING UTILS ---
-const cache = new Map<string, any>();
+const cache = new Map<string, InvestigationReport>();
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000;
 
@@ -11,7 +12,10 @@ const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 const withRetry = async <T>(fn: () => Promise<T>, retries = MAX_RETRIES): Promise<T> => {
   try {
     return await fn();
-  } catch (error: any) {
+  } catch (error) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     if (retries > 0 && error.message !== 'MISSING_API_KEY') {
       console.warn(`API error, retrying in ${RETRY_DELAY}ms... (${retries} left)`);
       await wait(RETRY_DELAY);
@@ -70,7 +74,7 @@ const getAI = (): GoogleGenAI => {
 const DEFAULT_CONFIG: SystemConfig = {
   modelId: 'gemini-3-flash-preview',
   thinkingBudget: 0,
-  persona: 'FORENSIC_ACCOUNTANT',
+  persona: 'general-investigator', // Default to open investigation persona
   searchDepth: 'STANDARD'
 };
 
@@ -114,8 +118,15 @@ const extractJSON = (text: string): string => {
   return text.trim();
 };
 
-const getPersonaInstruction = (persona: InvestigatorPersona): string => {
-  switch (persona) {
+const getPersonaInstruction = (personaId: string, scope?: InvestigationScope): string => {
+  // First try to find persona in scope
+  if (scope) {
+    const scopePersona = scope.personas.find(p => p.id === personaId);
+    if (scopePersona) return scopePersona.instruction;
+  }
+
+  // Fallback to legacy personas for backwards compatibility
+  switch (personaId) {
     case 'JOURNALIST':
       return "You are an award-winning investigative journalist. Focus on public interest, uncovering corruption, and verifying sources with extreme rigor. Your tone is objective but compelling.";
     case 'INTELLIGENCE_OFFICER':
@@ -123,9 +134,88 @@ const getPersonaInstruction = (persona: InvestigatorPersona): string => {
     case 'CONSPIRACY_ANALYST':
       return "You are a fringe researcher looking for hidden patterns. You are skeptical of official narratives and look for deep state connections, though you must still rely on finding evidence. Your tone is urgent.";
     case 'FORENSIC_ACCOUNTANT':
-    default:
       return "You are a world-class forensic accountant and OSINT investigator. Focus on financial discrepancies, money trails, and regulatory violations. Your tone is professional and evidence-based.";
+    default:
+      // Try to find in all built-in scopes
+      for (const s of BUILTIN_SCOPES) {
+        const p = s.personas.find(p => p.id === personaId);
+        if (p) return p.instruction;
+      }
+      return "You are a versatile OSINT investigator. Adapt your approach to the subject matter. Your tone is professional and thorough.";
   }
+};
+
+// --- SCOPE-AWARE PROMPT HELPERS ---
+
+const resolveDateRange = (dateConfig?: DateRangeConfig, overrideRange?: { start?: string; end?: string }): string => {
+  // Override takes precedence if provided
+  if (overrideRange?.start || overrideRange?.end) {
+    const s = overrideRange.start || 'historical records';
+    const e = overrideRange.end || 'present';
+    return `Focus on the time period from ${s} to ${e}.`;
+  }
+
+  // Use scope's default date config
+  if (!dateConfig || dateConfig.strategy === 'NONE') {
+    return ''; // No date constraints
+  }
+
+  if (dateConfig.strategy === 'RELATIVE' && dateConfig.relativeYears) {
+    const startYear = new Date().getFullYear() - dateConfig.relativeYears;
+    return `Focus on the time period from ${startYear} to present.`;
+  }
+
+  if (dateConfig.strategy === 'ABSOLUTE' && (dateConfig.absoluteStart || dateConfig.absoluteEnd)) {
+    const s = dateConfig.absoluteStart || 'historical records';
+    const e = dateConfig.absoluteEnd || 'present';
+    return `Focus on the time period from ${s} to ${e}.`;
+  }
+
+  return '';
+};
+
+const formatSuggestedSources = (scope: InvestigationScope): string => {
+  if (!scope.suggestedSources || scope.suggestedSources.length === 0) return '';
+
+  const sourceList = scope.suggestedSources
+    .flatMap(cat => cat.sources.map(s => s.label))
+    .slice(0, 10) // Limit to prevent prompt bloat
+    .join(', ');
+
+  return `SUGGESTED SOURCES: ${sourceList}`;
+};
+
+const buildInvestigationPrompt = (
+  topic: string,
+  scope: InvestigationScope,
+  config: SystemConfig,
+  parentContext?: { topic: string; summary: string },
+  dateOverride?: { start?: string; end?: string }
+): string => {
+  const personaInstruction = getPersonaInstruction(config.persona, scope);
+  const dateInstruction = resolveDateRange(scope.defaultDateRange, dateOverride);
+  const sourcesInstruction = formatSuggestedSources(scope);
+
+  let prompt = `${personaInstruction}
+
+INVESTIGATION CONTEXT: ${scope.domainContext}
+OBJECTIVE: ${scope.investigationObjective}
+TARGET: "${topic}"
+${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
+${sourcesInstruction}
+`;
+
+  if (config.searchDepth === 'DEEP') {
+    prompt += `\nSTRICT REQUIREMENT: Prioritize obscure filings, local reports, and deep-web sources. Cross-reference multiple sources.`;
+  }
+
+  if (parentContext) {
+    prompt += `\nCONTEXT: This is a deep dive from parent investigation "${parentContext.topic}". Parent summary: "${parentContext.summary}". Build upon these findings.`;
+  }
+
+  prompt += `\n\nAnalyze thoroughly and extract entities, develop hypotheses, and identify actionable leads.`;
+
+  return prompt;
 };
 
 export const generateAudioBriefing = async (text: string): Promise<string> => {
@@ -162,28 +252,40 @@ export const scanForAnomalies = async (
   region: string = '',
   category: string = 'All',
   dateRange?: { start?: string, end?: string },
-  configOverride?: AnomaliesConfig
+  configOverride?: AnomaliesConfig,
+  scope?: InvestigationScope
 ): Promise<FeedItem[]> => {
   const config = getConfig();
   const useStructuredOutput = !isModel25(config.modelId);
   const limit = configOverride?.limit || 8;
   const prioritySources = configOverride?.prioritySources || '';
 
+  // Resolve scope - use provided or fall back to open investigation
+  const activeScope = scope || getScopeById('open-investigation') || BUILTIN_SCOPES[BUILTIN_SCOPES.length - 1];
+
   try {
     const ai = getAI();
-    const locationScope = region.trim() ? region : "the United States";
-    const topicScope = category !== 'All' ? `${category} related fraud, waste, and abuse` : "government spending fraud, misuse of federal grants, or wasteful allocation of funds";
+    const locationScope = region.trim() ? region : "globally";
 
-    let dateInstruction = "between 2020 and 2025";
-    if (dateRange?.start || dateRange?.end) {
-      const s = dateRange.start || "2020-01-01";
-      const e = dateRange.end || new Date().toISOString().split('T')[0];
-      dateInstruction = `specifically between ${s} and ${e}`;
-    }
+    // Use scope context instead of hardcoded fraud language
+    const domainContext = activeScope.domainContext;
+    const objective = activeScope.investigationObjective;
+    const topicScope = category !== 'All'
+      ? `${category}-related issues within the scope of: ${objective}`
+      : objective;
+
+    // Use scope-aware date resolution
+    const dateInstruction = resolveDateRange(activeScope.defaultDateRange, dateRange);
 
     let priorityInstruction = "";
     if (prioritySources.trim()) {
       priorityInstruction = `PRIORITY: Actively search for and prioritize information from these specific sources/handles: ${prioritySources}.`;
+    } else if (activeScope.suggestedSources.length > 0) {
+      const defaultSources = activeScope.suggestedSources
+        .flatMap(cat => cat.sources.map(s => s.label))
+        .slice(0, 5)
+        .join(', ');
+      priorityInstruction = `SUGGESTED SOURCES: Consider ${defaultSources}.`;
     }
 
     const jsonInstruction = useStructuredOutput ? '' : `
@@ -194,9 +296,12 @@ export const scanForAnomalies = async (
     const response = await ai.models.generateContent({
       model: config.modelId,
       contents: `
-        Analyze real-time news, official government reports, and social media discussions to identify ${limit} potential instances of ${topicScope} in ${locationScope} ${dateInstruction}.
+        CONTEXT: ${domainContext}
+        
+        Analyze real-time news, official reports, and social media discussions to identify ${limit} potential issues related to: ${topicScope} in ${locationScope}.
+        ${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
         ${priorityInstruction}
-        Focus on high-value discrepancies, suspicious contracts, or public outcry.
+        Focus on high-value findings, discrepancies, and notable developments.
         ${jsonInstruction}
       `,
       config: {
@@ -227,19 +332,19 @@ export const scanForAnomalies = async (
     const text = useStructuredOutput ? rawText : extractJSON(rawText);
     const items = JSON.parse(text);
 
-    return items.map((item: any) => ({
+    return (items as FeedItem[]).map((item) => ({
       ...item,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }));
-  } catch (error: any) {
-    if (error.message === 'MISSING_API_KEY') throw error;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'MISSING_API_KEY') throw error;
     console.error("Failed to scan anomalies:", error);
+    // Return scope-appropriate fallback items
+    const fallbackCategory = activeScope.categories[1] || 'General';
     return [
-      { id: '1', title: 'Unaccounted PPP Loans in Tech Sector', category: 'Grant Fraud', timestamp: '10:42 AM', riskLevel: 'HIGH' },
-      { id: '2', title: 'Infrastructure Project Cost Overruns', category: 'Public Spending', timestamp: '09:15 AM', riskLevel: 'MEDIUM' },
-      { id: '3', title: 'Suspicious Green Energy Subsidies', category: 'Federal Grants', timestamp: '08:30 AM', riskLevel: 'HIGH' },
-      { id: '4', title: 'Defense Contractor Overbilling', category: 'Defense', timestamp: '08:15 AM', riskLevel: 'HIGH' },
-      { id: '5', title: 'Education Dept Software Glitch', category: 'Education', timestamp: '07:45 AM', riskLevel: 'LOW' },
+      { id: '1', title: `Notable development in ${fallbackCategory}`, category: fallbackCategory, timestamp: '10:42 AM', riskLevel: 'HIGH' },
+      { id: '2', title: `Emerging pattern detected`, category: activeScope.categories[2] || 'Analysis', timestamp: '09:15 AM', riskLevel: 'MEDIUM' },
+      { id: '3', title: `New information surfaced`, category: activeScope.categories[0] || 'General', timestamp: '08:30 AM', riskLevel: 'HIGH' },
     ].slice(0, limit);
   }
 };
@@ -255,22 +360,36 @@ export interface MonitorConfig {
 export const getLiveIntel = async (
   topic: string,
   monitorConfig: MonitorConfig = { socialCount: 2, newsCount: 2, officialCount: 2, prioritySources: '' },
-  existingContent: string[] = []
+  existingContent: string[] = [],
+  scope?: InvestigationScope
 ): Promise<MonitorEvent[]> => {
   const config = getConfig();
   const useStructuredOutput = !isModel25(config.modelId);
+
+  // Resolve scope context
+  const activeScope = scope || getScopeById('open-investigation') || BUILTIN_SCOPES[BUILTIN_SCOPES.length - 1];
+
   try {
     const ai = getAI();
     const countInstruction = `Retrieve exactly: ${monitorConfig.newsCount} items of type 'NEWS', ${monitorConfig.socialCount} items of type 'SOCIAL', ${monitorConfig.officialCount} items of type 'OFFICIAL'`;
-    let priorityInstruction = monitorConfig.prioritySources.trim() ? `PRIORITY: Prioritize ${monitorConfig.prioritySources}.` : "";
-    let dateInstruction = (monitorConfig.dateRange?.start || monitorConfig.dateRange?.end) ? `TEMPORAL CONSTRAINT: Focus on ${monitorConfig.dateRange.start || "past"} to ${monitorConfig.dateRange.end || "now"}.` : "";
+    const priorityInstruction = monitorConfig.prioritySources.trim()
+      ? `PRIORITY: Prioritize ${monitorConfig.prioritySources}.`
+      : formatSuggestedSources(activeScope);
+    const dateInstruction = resolveDateRange(activeScope.defaultDateRange, monitorConfig.dateRange);
     const recentHistory = existingContent.slice(0, 20).join('; ');
     const dedupInstruction = recentHistory ? `CRITICAL EXCLUSION: Do NOT return items similar to: "${recentHistory}".` : "";
     const jsonInstruction = useStructuredOutput ? '' : `CRITICAL: Respond with ONLY a valid JSON array. Items: id, type, sourceName, content, timestamp, sentiment, threatLevel ("INFO" | "CAUTION" | "CRITICAL"), url (opt)`;
 
     const response = await ai.models.generateContent({
       model: config.modelId,
-      contents: `Search intelligence for: "${topic}". ${countInstruction} ${priorityInstruction} ${dateInstruction} ${dedupInstruction} ${jsonInstruction}`,
+      contents: `CONTEXT: ${activeScope.domainContext}
+      
+Search intelligence for: "${topic}".
+${countInstruction}
+${priorityInstruction}
+${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
+${dedupInstruction}
+${jsonInstruction}`,
       config: {
         ...(useStructuredOutput ? {
           responseMimeType: "application/json",
@@ -300,14 +419,14 @@ export const getLiveIntel = async (
     const rawText = response.text || "[]";
     const text = useStructuredOutput ? rawText : extractJSON(rawText);
     return JSON.parse(text);
-  } catch (error: any) {
-    if (error.message === 'MISSING_API_KEY') throw error;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'MISSING_API_KEY') throw error;
     console.error("Live Intel failed:", error);
     const now = Date.now();
     return [
-      { id: `sim-${now}-1`, type: 'NEWS', sourceName: 'Financial Times', content: `New allegations surface regarding ${topic} audits.`, timestamp: '5m ago', sentiment: 'NEGATIVE', threatLevel: 'CAUTION' },
-      { id: `sim-${now}-2`, type: 'SOCIAL', sourceName: 'Twitter @WatchDog_01', content: `Just saw the leaked docs on ${topic}.`, timestamp: '12m ago', sentiment: 'NEGATIVE', threatLevel: 'CRITICAL' },
-      { id: `sim-${now}-3`, type: 'OFFICIAL', sourceName: 'DOJ.gov', content: 'Investigation formally opened into related entities.', timestamp: '1h ago', sentiment: 'NEUTRAL', threatLevel: 'INFO' },
+      { id: `sim-${now}-1`, type: 'NEWS', sourceName: 'News Source', content: `New developments regarding ${topic}.`, timestamp: '5m ago', sentiment: 'NEGATIVE', threatLevel: 'CAUTION' },
+      { id: `sim-${now}-2`, type: 'SOCIAL', sourceName: 'Social Media', content: `Discussion emerging about ${topic}.`, timestamp: '12m ago', sentiment: 'NEGATIVE', threatLevel: 'CRITICAL' },
+      { id: `sim-${now}-3`, type: 'OFFICIAL', sourceName: 'Official Source', content: 'Related announcement published.', timestamp: '1h ago', sentiment: 'NEUTRAL', threatLevel: 'INFO' },
     ];
   }
 };
@@ -315,25 +434,36 @@ export const getLiveIntel = async (
 export const investigateTopic = async (
   topic: string,
   parentContext?: { topic: string, summary: string },
-  configOverride?: Partial<SystemConfig>
+  configOverride?: Partial<SystemConfig>,
+  scope?: InvestigationScope,
+  dateOverride?: { start?: string; end?: string }
 ): Promise<InvestigationReport> => {
-  const cacheKey = `investigate:${topic}:${JSON.stringify(configOverride)}`;
+  const cacheKey = `investigate:${topic}:${JSON.stringify(configOverride)}:${scope?.id}`;
   if (cache.has(cacheKey)) {
-    console.log(`Resource retrieved from cache: ${topic}`);
-    return cache.get(cacheKey);
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      console.warn(`Resource retrieved from cache: ${topic}`);
+      return cached;
+    }
   }
 
   return withRetry(async () => {
     const savedConfig = getConfig();
     const config = { ...savedConfig, ...configOverride };
     const useStructuredOutput = !isModel25(config.modelId);
-    const personaInstruction = getPersonaInstruction(config.persona);
 
-    let basePrompt = `${personaInstruction} Mission: Investigate target "${topic}" for potential fraud/waste/abuse (2020-2025).`;
-    if (config.searchDepth === 'DEEP') basePrompt += ` STRICT REQUIREMENT: Prioritize obscure filings and local reports.`;
-    if (parentContext) basePrompt += ` CONTEXT: Deep dive from "${parentContext.topic}". Parent summary: "${parentContext.summary}".`;
-    basePrompt += ` 1. SEARCH: USASpending.gov, SAM.gov, SAM.gov via Google. Look for hidden agendas. 2. ANALYZE: Extract entities, roles, sentiments. Gen at least 4 leads.`;
-    if (!useStructuredOutput) basePrompt += ` CRITICAL: JSON object only with: summary, entities[], agendas[], leads[].`;
+    // Resolve scope - use provided or fall back to open investigation
+    const activeScope = scope || getScopeById('open-investigation') || BUILTIN_SCOPES[BUILTIN_SCOPES.length - 1];
+
+    // Use scope-aware prompt builder
+    let basePrompt = buildInvestigationPrompt(topic, activeScope, config, parentContext, dateOverride);
+
+    // Add structured output instructions if needed
+    if (!useStructuredOutput) {
+      basePrompt += ` CRITICAL: Respond with a JSON object only containing: summary (string), entities (array), agendas (array), leads (array).`;
+    }
+
+    basePrompt += ` Extract at least 4 actionable leads. For each entity, specify: name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment.`;
 
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -377,8 +507,9 @@ export const investigateTopic = async (
     const sources: Source[] = [];
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
     if (chunks) {
-      chunks.forEach((chunk: any) => {
-        if (chunk.web) sources.push({ title: chunk.web.title || "Unknown Source", url: chunk.web.uri || "#" });
+      chunks.forEach((chunk) => {
+        const web = (chunk as { web?: { title?: string; uri?: string } }).web;
+        if (web) sources.push({ title: web.title || "Unknown Source", url: web.uri || "#" });
       });
     }
 

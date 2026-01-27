@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { CaseTemplate } from '../../../types';
+import type { CaseTemplate } from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 import {
-    Plus, Trash2, Play, FileText, Calendar,
+    Trash2, Play,
     Settings as SettingsIcon, Info, Search,
-    Briefcase, Layout, ChevronRight
+    Briefcase, Layout
 } from 'lucide-react';
 
 interface TemplateGalleryProps {
@@ -66,7 +66,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                     {t.name}
                                 </h3>
                                 <p className="text-zinc-500 text-[10px] font-mono mb-4 line-clamp-2 italic">
-                                    "{t.topic}"
+                                    &quot;{t.topic}&quot;
                                 </p>
 
                                 <div className="space-y-2 border-t border-zinc-800 pt-4">

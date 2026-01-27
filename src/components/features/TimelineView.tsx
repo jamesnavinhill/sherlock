@@ -2,17 +2,27 @@ import React, { useMemo } from 'react';
 import { useCaseStore } from '../../store/caseStore';
 import {
     Clock, Calendar, FileText, Target, Activity,
-    ChevronRight, ExternalLink, Filter, Search,
-    GitBranch, ArrowDown, User, Shield
+    ExternalLink, ArrowDown, Shield
 } from 'lucide-react';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
-import { InvestigationReport, Case } from '../../types';
+import type { InvestigationReport, Case } from '../../types';
+
+type TimelineEvent = {
+    id: string;
+    type: 'REPORT' | 'CASE';
+    title: string;
+    timestamp: string;
+    date: number;
+    data: InvestigationReport | Case;
+    icon: typeof FileText;
+    color: string;
+};
 
 export const TimelineView: React.FC = () => {
-    const { archives, cases, setCurrentView, onSelectReport } = useCaseStore() as any; // Using any for store methods not in interface but exist
+    const { archives, cases } = useCaseStore();
 
     const eventTimeline = useMemo(() => {
-        const events: any[] = [];
+        const events: TimelineEvent[] = [];
 
         // Add Reports
         archives.forEach((r: InvestigationReport) => {
@@ -60,7 +70,7 @@ export const TimelineView: React.FC = () => {
                 </h1>
             </div>
 
-            <div className="relative z-10 p-6 max-w-5xl mx-auto space-y-8 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="relative z-10 p-6 w-full space-y-8 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                 {eventTimeline.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-20 border-2 border-dashed border-zinc-800 bg-zinc-900/20">
@@ -116,21 +126,21 @@ export const TimelineView: React.FC = () => {
 
                                             {event.type === 'CASE' && (
                                                 <p className="text-zinc-500 text-xs font-mono leading-relaxed">
-                                                    Operation initialized. Target topic identified as "{event.data.description}".
+                                                    Operation initialized. Target topic identified as &quot;{event.data.description}&quot;.
                                                 </p>
                                             )}
 
                                             {/* Tags/Meta */}
                                             <div className="mt-4 pt-4 border-t border-zinc-800/50 flex flex-wrap gap-2">
-                                                {event.type === 'REPORT' && event.data.entities?.slice(0, 3).map((ent: any, i: number) => (
+                                            {event.type === 'REPORT' && (event.data as InvestigationReport).entities?.slice(0, 3).map((ent, i: number) => (
                                                     <span key={i} className="text-[9px] font-mono bg-zinc-900 text-zinc-500 px-2 py-0.5 border border-zinc-800">
                                                         @{typeof ent === 'string' ? ent : ent.name}
                                                     </span>
                                                 ))}
-                                                {event.type === 'CASE' && (
+                                            {event.type === 'CASE' && (
                                                     <span className="text-[9px] font-mono bg-zinc-900 text-zinc-300 px-2 py-0.5 border border-zinc-800 flex items-center">
                                                         <Shield className="w-3 h-3 mr-1 text-osint-primary" />
-                                                        STATUS: {event.data.status}
+                                                    STATUS: {(event.data as Case).status}
                                                     </span>
                                                 )}
                                             </div>

@@ -1,6 +1,7 @@
 import React from 'react';
-import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, Activity, FolderClosed, Network, Clock } from 'lucide-react';
-import { AppView, InvestigationTask } from '../../types';
+import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network } from 'lucide-react';
+import type { InvestigationTask } from '../../types';
+import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
 
 interface SidebarProps {
@@ -25,7 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClearCompleted
 }) => {
   const btnClass = (isActive: boolean) =>
-    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l-2 transition-all duration-200 ${isActive
+    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l-2 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${isActive
       ? 'bg-zinc-900 text-osint-primary border-osint-primary shadow-[inset_10px_0_20px_-10px_rgba(0,0,0,0.5)]'
       : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 border-transparent'
     }`;
@@ -57,6 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onChangeView(AppView.INVESTIGATION)}
             className={btnClass(currentView === AppView.INVESTIGATION)}
             title={isCollapsed ? "Current Operation" : undefined}
+            aria-label="Operation View"
           >
             <FileText className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Operation View</span>}
@@ -66,6 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onChangeView(AppView.NETWORK)}
             className={btnClass(currentView === AppView.NETWORK)}
             title={isCollapsed ? "Network Graph" : undefined}
+            aria-label="Network Graph"
           >
             <Network className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Network Graph</span>}
@@ -75,6 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onChangeView(AppView.LIVE_MONITOR)}
             className={btnClass(currentView === AppView.LIVE_MONITOR)}
             title={isCollapsed ? "Live Monitor" : undefined}
+            aria-label="Live Monitor"
           >
             <Radio className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Live Monitor</span>}
@@ -84,6 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onChangeView(AppView.ARCHIVES)}
             className={btnClass(currentView === AppView.ARCHIVES)}
             title={isCollapsed ? "Case Files" : undefined}
+            aria-label="Case Files"
           >
             <FolderClosed className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Case Files</span>}
@@ -93,6 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onChangeView(AppView.DASHBOARD)}
             className={btnClass(currentView === AppView.DASHBOARD)}
             title={isCollapsed ? "Finder" : undefined}
+            aria-label="Finder"
           >
             <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Finder</span>}
@@ -124,7 +130,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Toggle Button (Visible only when collapsed on small screens) */}
       <button
         onClick={toggleCollapse}
-        className={`md:hidden fixed bottom-6 right-6 z-50 p-4 bg-osint-primary text-black rounded-full shadow-lg transition-transform ${!isCollapsed ? 'scale-0' : 'scale-100'}`}
+        className={`md:hidden fixed bottom-6 right-6 z-50 p-4 bg-osint-primary text-black rounded-full shadow-lg transition-transform focus:ring-4 focus:ring-white/20 outline-none ${!isCollapsed ? 'scale-0' : 'scale-100'}`}
+        aria-label={isCollapsed ? "Open Sidebar" : "Close Sidebar"}
       >
         <ShieldAlert className="w-6 h-6" />
       </button>

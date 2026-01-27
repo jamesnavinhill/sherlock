@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link2, ExternalLink } from 'lucide-react';
-import { Source } from '../../types';
+import type { Source } from '../../types';
 
 interface SourceListProps {
     sources: Source[];
@@ -17,7 +17,8 @@ export const SourceList: React.FC<SourceListProps> = ({
     maxItems
 }) => {
     const displaySources = maxItems ? sources.slice(0, maxItems) : sources;
-    const hasMore = maxItems && sources.length > maxItems;
+    const hasMore = typeof maxItems === 'number' && sources.length > maxItems;
+    const remainingCount = typeof maxItems === 'number' ? Math.max(0, sources.length - maxItems) : 0;
 
     if (sources.length === 0) {
         return (
@@ -44,7 +45,7 @@ export const SourceList: React.FC<SourceListProps> = ({
             ))}
             {hasMore && (
                 <p className="text-[10px] text-zinc-600 font-mono px-2">
-                    +{sources.length - maxItems!} more sources
+                    +{remainingCount} more sources
                 </p>
             )}
         </div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { InvestigationTask } from '../../types';
+import React, { useState } from 'react';
+import type { InvestigationTask } from '../../types';
 import { Activity, ChevronUp, ChevronDown, CheckCircle2, AlertOctagon, Loader2, List, Trash2 } from 'lucide-react';
 
 interface TaskManagerProps {
@@ -17,18 +17,14 @@ export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, o
   const runningTasks = tasks.filter(t => t.status === 'RUNNING' || t.status === 'QUEUED');
   const completedTasks = tasks.filter(t => t.status === 'COMPLETED');
 
-  // Auto-collapse list if sidebar collapses
-  useEffect(() => {
-    if (isCollapsed) setIsExpanded(false);
-  }, [isCollapsed]);
-
   // Collapsed View: Just an icon in the sidebar flow
   if (isCollapsed) {
     return (
       <button
         onClick={onExpand}
-        className="w-full py-4 flex justify-center items-center text-zinc-500 hover:bg-zinc-900 hover:text-white relative group border-t border-osint-border transition-colors flex-shrink-0"
+        className="w-full py-4 flex justify-center items-center text-zinc-500 hover:bg-zinc-900 hover:text-white relative group border-t border-osint-border transition-colors flex-shrink-0 outline-none focus-visible:bg-zinc-900 focus-visible:text-white"
         title="Active Operations"
+        aria-label="Expand Operations Log"
       >
         {runningTasks.length > 0 && (
           <span className="absolute top-3 right-3 flex h-2 w-2">
@@ -62,8 +58,9 @@ export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, o
                       e.stopPropagation();
                       onClearCompleted();
                     }}
-                    className="text-[10px] text-zinc-500 hover:text-white font-mono p-1 border border-zinc-800 hover:border-zinc-500 transition-colors"
+                    className="text-[10px] text-zinc-500 hover:text-white font-mono p-1 border border-zinc-800 hover:border-zinc-500 transition-colors outline-none focus-visible:border-white focus-visible:text-white"
                     title="Clear Completed Tasks"
+                    aria-label="Clear Completed Tasks"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -113,7 +110,8 @@ export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, o
       <button
         onClick={() => tasks.length > 0 ? setIsExpanded(!isExpanded) : null}
         disabled={tasks.length === 0}
-        className={`w-full flex items-center justify-between px-3 py-4 group transition-all border-l-2 ${isExpanded
+        aria-label={isExpanded ? "Collapse Operations Log" : "Expand Operations Log"}
+        className={`w-full flex items-center justify-between px-3 py-4 group transition-all border-l-2 outline-none focus-visible:bg-zinc-900 ${isExpanded
           ? 'bg-zinc-900 border-osint-primary'
           : 'border-transparent hover:bg-zinc-900 hover:border-zinc-700'
           } ${tasks.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}

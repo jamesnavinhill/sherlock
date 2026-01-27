@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
-    User, Building2, Network, X, Star, Search, FileText, ChevronRight, Newspaper, Globe, ExternalLink
+    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink
 } from 'lucide-react';
-import { Entity, Headline, InvestigationReport } from '../../../types';
+import type { Entity, Headline, InvestigationReport } from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 
@@ -83,7 +83,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     };
 
     return (
-        <div className={`${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl`}>
+        <div className={`${isOpen ? 'translate-x-0' : 'translate-x-full lg:w-0 lg:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-96' : 'lg:w-0'}`}>
 
             {/* --- ENTITY INSPECTOR MODE --- */}
             {mode === 'ENTITY' && entity && (
@@ -233,7 +233,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                         <div className="bg-zinc-900/50 p-6 border border-zinc-800 relative group">
                             <h4 className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Captured Content</h4>
                             <p className="text-sm font-mono text-zinc-300 leading-relaxed">
-                                "{headline.content}"
+                                &quot;{headline.content}&quot;
                             </p>
                             <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-600 font-mono">
                                 <span>TS: {headline.timestamp}</span>

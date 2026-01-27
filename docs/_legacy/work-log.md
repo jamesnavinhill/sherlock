@@ -10,7 +10,7 @@
 
 # Sherlock Improvements - Implementation Plan (Phases 1-4)
 
-> Technical plan for the first 4 phases from [improvement_report.md](file:///d:/sherlock/docs/improvement_report.md)
+> Technical plan for the first 4 phases from [improvement_report.md](docs/improvement_report.md)
 
 ---
 
@@ -18,21 +18,21 @@
 
 ### Utility Extraction
 
-#### [NEW] [text.ts](file:///d:/sherlock/src/utils/text.ts)
+#### [NEW] [text.ts](src/utils/text.ts)
 
 Extract duplicated text helpers from `NetworkGraph.tsx` and `OperationView.tsx`:
 
 - `cleanEntityName(raw: string): string` - Normalizes entity names
 - `truncateText(text: string, maxLength: number): string` - Truncates with ellipsis
 
-#### [NEW] [audio.ts](file:///d:/sherlock/src/utils/audio.ts)
+#### [NEW] [audio.ts](src/utils/audio.ts)
 
 Extract audio helpers from `OperationView.tsx`:
 
 - `decodeBase64(base64: string): Uint8Array`
 - `decodeAudioData(data: Uint8Array, ctx: AudioContext): Promise<AudioBuffer>`
 
-#### [NEW] [localStorage.ts](file:///d:/sherlock/src/utils/localStorage.ts)
+#### [NEW] [localStorage.ts](src/utils/localStorage.ts)
 
 Centralize localStorage access pattern:
 
@@ -40,13 +40,13 @@ Centralize localStorage access pattern:
 - `setItem<T>(key: string, value: T): void`
 - `clearKey(key: string): void`
 
-#### [MODIFY] [NetworkGraph.tsx](file:///d:/sherlock/src/components/features/NetworkGraph.tsx)
+#### [MODIFY] [NetworkGraph.tsx](src/components/features/NetworkGraph.tsx)
 
 - Remove inline `cleanEntityName` function
 - Import from `@/utils/text`
 - Replace local `safelyParse` with `getItem` from localStorage utils
 
-#### [MODIFY] [OperationView.tsx](file:///d:/sherlock/src/components/features/OperationView.tsx)
+#### [MODIFY] [OperationView.tsx](src/components/features/OperationView.tsx)
 
 - Remove inline `cleanEntityName`, `decode`, `decodeAudioData`, `MatrixLoader`
 - Import utilities from respective files
@@ -55,25 +55,25 @@ Centralize localStorage access pattern:
 
 ### Shared Component Extraction
 
-#### [NEW] [MatrixLoader.tsx](file:///d:/sherlock/src/components/ui/MatrixLoader.tsx)
+#### [NEW] [MatrixLoader.tsx](src/components/ui/MatrixLoader.tsx)
 
 Extract from `OperationView.tsx` - the animated loading indicator with status text.
 
-#### [NEW] [Accordion.tsx](file:///d:/sherlock/src/components/ui/Accordion.tsx)
+#### [NEW] [Accordion.tsx](src/components/ui/Accordion.tsx)
 
 Create reusable accordion component with:
 
 - Props: `title`, `isOpen`, `onToggle`, `icon`, `children`
 - Consistent styling matching existing accordion patterns
 
-#### [NEW] [EntityBadge.tsx](file:///d:/sherlock/src/components/ui/EntityBadge.tsx)
+#### [NEW] [EntityBadge.tsx](src/components/ui/EntityBadge.tsx)
 
 Reusable entity display component:
 
 - Shows entity name with type icon
 - Color-coded by entity type (PERSON, ORGANIZATION, UNKNOWN)
 
-#### [NEW] [SentimentBadge.tsx](file:///d:/sherlock/src/components/ui/SentimentBadge.tsx)
+#### [NEW] [SentimentBadge.tsx](src/components/ui/SentimentBadge.tsx)
 
 Sentiment indicator with consistent styling:
 
@@ -81,7 +81,7 @@ Sentiment indicator with consistent styling:
 - NEGATIVE → red
 - NEUTRAL → gray/muted
 
-#### [NEW] [SourceList.tsx](file:///d:/sherlock/src/components/ui/SourceList.tsx)
+#### [NEW] [SourceList.tsx](src/components/ui/SourceList.tsx)
 
 Reusable source list rendering with icons and links.
 
@@ -91,7 +91,7 @@ Reusable source list rendering with icons and links.
 
 ### OperationView (~75KB → ~15KB + 4 sub-components)
 
-#### [NEW] [OperationView/index.tsx](file:///d:/sherlock/src/components/features/OperationView/index.tsx)
+#### [NEW] [OperationView/index.tsx](src/components/features/OperationView/index.tsx)
 
 Main orchestrator handling:
 
@@ -99,7 +99,7 @@ Main orchestrator handling:
 - Data loading
 - Component composition
 
-#### [NEW] [OperationView/DossierPanel.tsx](file:///d:/sherlock/src/components/features/OperationView/DossierPanel.tsx)
+#### [NEW] [OperationView/DossierPanel.tsx](src/components/features/OperationView/DossierPanel.tsx)
 
 Left panel with case dossier:
 
@@ -107,7 +107,7 @@ Left panel with case dossier:
 - Report list
 - Entity summary
 
-#### [NEW] [OperationView/ReportViewer.tsx](file:///d:/sherlock/src/components/features/OperationView/ReportViewer.tsx)
+#### [NEW] [OperationView/ReportViewer.tsx](src/components/features/OperationView/ReportViewer.tsx)
 
 Center panel with:
 
@@ -115,7 +115,7 @@ Center panel with:
 - Markdown rendering
 - Leads section
 
-#### [NEW] [OperationView/InspectorPanel.tsx](file:///d:/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
+#### [NEW] [OperationView/InspectorPanel.tsx](src/components/features/OperationView/InspectorPanel.tsx)
 
 Right panel with:
 
@@ -123,7 +123,7 @@ Right panel with:
 - Headline details
 - Lead details
 
-#### [NEW] [OperationView/Toolbar.tsx](file:///d:/sherlock/src/components/features/OperationView/Toolbar.tsx)
+#### [NEW] [OperationView/Toolbar.tsx](src/components/features/OperationView/Toolbar.tsx)
 
 Top toolbar with navigation and actions.
 
@@ -131,11 +131,11 @@ Top toolbar with navigation and actions.
 
 ### NetworkGraph (~80KB → ~20KB + 3 sub-components)
 
-#### [NEW] [NetworkGraph/index.tsx](file:///d:/sherlock/src/components/features/NetworkGraph/index.tsx)
+#### [NEW] [NetworkGraph/index.tsx](src/components/features/NetworkGraph/index.tsx)
 
 Main orchestrator with state management.
 
-#### [NEW] [NetworkGraph/GraphCanvas.tsx](file:///d:/sherlock/src/components/features/NetworkGraph/GraphCanvas.tsx)
+#### [NEW] [NetworkGraph/GraphCanvas.tsx](src/components/features/NetworkGraph/GraphCanvas.tsx)
 
 D3 rendering logic including:
 
@@ -143,11 +143,11 @@ D3 rendering logic including:
 - Zoom/pan controls
 - Force simulation
 
-#### [NEW] [NetworkGraph/NodeDossier.tsx](file:///d:/sherlock/src/components/features/NetworkGraph/NodeDossier.tsx)
+#### [NEW] [NetworkGraph/NodeDossier.tsx](src/components/features/NetworkGraph/NodeDossier.tsx)
 
 Info panel for selected nodes.
 
-#### [NEW] [NetworkGraph/GraphControls.tsx](file:///d:/sherlock/src/components/features/NetworkGraph/GraphControls.tsx)
+#### [NEW] [NetworkGraph/GraphControls.tsx](src/components/features/NetworkGraph/GraphControls.tsx)
 
 Filter and action controls.
 
@@ -155,15 +155,15 @@ Filter and action controls.
 
 ### LiveMonitor (~32KB → ~10KB + 2 sub-components)
 
-#### [NEW] [LiveMonitor/index.tsx](file:///d:/sherlock/src/components/features/LiveMonitor/index.tsx)
+#### [NEW] [LiveMonitor/index.tsx](src/components/features/LiveMonitor/index.tsx)
 
 Main component with core logic.
 
-#### [NEW] [LiveMonitor/EventCard.tsx](file:///d:/sherlock/src/components/features/LiveMonitor/EventCard.tsx)
+#### [NEW] [LiveMonitor/EventCard.tsx](src/components/features/LiveMonitor/EventCard.tsx)
 
 Event display card component.
 
-#### [NEW] [LiveMonitor/SettingsPanel.tsx](file:///d:/sherlock/src/components/features/LiveMonitor/SettingsPanel.tsx)
+#### [NEW] [LiveMonitor/SettingsPanel.tsx](src/components/features/LiveMonitor/SettingsPanel.tsx)
 
 Configuration panel (currently `renderSettingsPanel` function).
 
@@ -171,7 +171,7 @@ Configuration panel (currently `renderSettingsPanel` function).
 
 ## Phase 3: Quick Wins
 
-#### [MODIFY] [Investigation.tsx](file:///d:/sherlock/src/components/features/Investigation.tsx)
+#### [MODIFY] [Investigation.tsx](src/components/features/Investigation.tsx)
 
 Add deprecation notice at top of file:
 
@@ -182,11 +182,11 @@ Add deprecation notice at top of file:
  */
 ```
 
-#### [MODIFY] [Sidebar.tsx](file:///d:/sherlock/src/components/ui/Sidebar.tsx)
+#### [MODIFY] [Sidebar.tsx](src/components/ui/Sidebar.tsx)
 
 - Add `title` attributes to all icon-only buttons for accessibility
 
-#### [MODIFY] [OperationView.tsx](file:///d:/sherlock/src/components/features/OperationView.tsx)
+#### [MODIFY] [OperationView.tsx](src/components/features/OperationView.tsx)
 
 - Add loading state to voice briefing button (spinner while generating audio)
 
@@ -196,7 +196,7 @@ Add deprecation notice at top of file:
 
 ### Empty States
 
-#### [NEW] [EmptyState.tsx](file:///d:/sherlock/src/components/ui/EmptyState.tsx)
+#### [NEW] [EmptyState.tsx](src/components/ui/EmptyState.tsx)
 
 Reusable empty state component:
 
@@ -217,7 +217,7 @@ Apply to:
 
 ### Keyboard Navigation
 
-#### [NEW] [useKeyboardShortcuts.ts](file:///d:/sherlock/src/hooks/useKeyboardShortcuts.ts)
+#### [NEW] [useKeyboardShortcuts.ts](src/hooks/useKeyboardShortcuts.ts)
 
 Global keyboard shortcut handler:
 
@@ -225,7 +225,7 @@ Global keyboard shortcut handler:
 - `Ctrl/Cmd + F` → Focus search (where applicable)
 - `Escape` → Close modals/panels
 
-#### [MODIFY] [App.tsx](file:///d:/sherlock/src/App.tsx)
+#### [MODIFY] [App.tsx](src/App.tsx)
 
 Register global keyboard shortcuts hook.
 
@@ -245,7 +245,7 @@ Continuing from the previous session. **Phase 1 and Phase 7 are complete.** This
 
 Transform the Investigation view into a professional 3-panel "Command Center" layout.
 
-### [NEW] [OperationView.tsx](file:///d:/sherlock/src/components/features/OperationView.tsx)
+### [NEW] [OperationView.tsx](src/components/features/OperationView.tsx)
 
 New component with three resizable panels:
 
@@ -259,7 +259,7 @@ New component with three resizable panels:
 
 ## Phase 3: Breadcrumbs Component
 
-### [NEW] [Breadcrumbs.tsx](file:///d:/sherlock/src/components/ui/Breadcrumbs.tsx)
+### [NEW] [Breadcrumbs.tsx](src/components/ui/Breadcrumbs.tsx)
 
 Reusable breadcrumb navigation: `Case: Name > Report: Topic > Sub-Report: Topic`
 
@@ -267,7 +267,7 @@ Reusable breadcrumb navigation: `Case: Name > Report: Topic > Sub-Report: Topic`
 
 ## Phase 4: Task Setup Wizard
 
-### [MODIFY] [TaskSetupModal.tsx](file:///d:/sherlock/src/components/ui/TaskSetupModal.tsx)
+### [MODIFY] [TaskSetupModal.tsx](src/components/ui/TaskSetupModal.tsx)
 
 Convert single-page modal to multi-step wizard with progress indicator:
 Target → Hypothesis → Key Figures → Sources → Config
@@ -276,7 +276,7 @@ Target → Hypothesis → Key Figures → Sources → Config
 
 ## Phase 5: Live Monitor Expansion
 
-### [MODIFY] [LiveMonitor.tsx](file:///d:/sherlock/src/components/features/LiveMonitor.tsx)
+### [MODIFY] [LiveMonitor.tsx](src/components/features/LiveMonitor.tsx)
 
 - Click behavior expands card inline
 - "Investigate This" opens TaskSetupModal
@@ -286,12 +286,12 @@ Target → Hypothesis → Key Figures → Sources → Config
 
 ## Phase 6: Entity & Lead Tracking
 
-### [MODIFY] [NetworkGraph.tsx](file:///d:/sherlock/src/components/features/NetworkGraph.tsx)
+### [MODIFY] [NetworkGraph.tsx](src/components/features/NetworkGraph.tsx)
 
 - "Of Interest" flag on nodes (star icon)
 - Persist to `sherlock_flagged_nodes`
 
-### [MODIFY] [Investigation.tsx](file:///d:/sherlock/src/components/features/Investigation.tsx)
+### [MODIFY] [Investigation.tsx](src/components/features/Investigation.tsx)
 
 - Lead cards show badge if investigated
 

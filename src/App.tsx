@@ -1,23 +1,22 @@
-import { useRef, useState, useEffect, lazy, Suspense } from 'react';
-import { Sidebar } from './components/ui/Sidebar';
-import { OperationView } from './components/features/OperationView'; // Keep OperationView as eager for now
+import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { ApiKeyModal } from './components/ui/ApiKeyModal';
-import { BreadcrumbItem } from './components/ui/Breadcrumbs';
-import { AppView, InvestigationReport, InvestigationTask, Case, MonitorEvent, SystemConfig } from './types';
+import type { BreadcrumbItem } from './components/ui/Breadcrumbs';
+import type { InvestigationReport, InvestigationTask, SystemConfig } from './types';
+import { AppView } from './types';
 import { useCaseStore } from './store/caseStore';
 import { hasApiKey, investigateTopic } from './services/gemini';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
-import { Dashboard } from './components/features/Dashboard'; // Leave Dashboard as eager for LCP
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
 const Settings = lazy(() => import('./components/features/Settings').then(m => ({ default: m.Settings })));
 const TimelineView = lazy(() => import('./components/features/TimelineView').then(m => ({ default: m.TimelineView })));
-import { BackgroundMatrixRain } from './components/ui/BackgroundMatrixRain';
-import { TaskSetupModal } from './components/ui/TaskSetupModal';
-import { Toasts } from './components/ui/Toasts';
+const OperationView = lazy(() => import('./components/features/OperationView').then(m => ({ default: m.OperationView })));
+const Feed = lazy(() => import('./components/features/Feed').then(m => ({ default: m.Feed })));
+import { Sidebar } from './components/ui/Sidebar';
+import { ToastContainer } from './components/ui/Toast';
 import { GlobalSearch } from './components/ui/GlobalSearch';
 
 
@@ -26,17 +25,17 @@ function App() {
     currentView, setCurrentView,
     tasks, addTask, completeTask, failTask, clearCompletedTasks,
     activeTaskId, setActiveTaskId,
-    liveEvents, setLiveEvents,
+    liveEvents: _liveEvents, setLiveEvents: _setLiveEvents,
     navStack, setNavStack,
     isSidebarCollapsed, setIsSidebarCollapsed,
     themeColor, setThemeColor,
-    showNewCaseModal, setShowNewCaseModal,
+    showNewCaseModal: _showNewCaseModal, setShowNewCaseModal,
     showGlobalSearch, setShowGlobalSearch,
     archiveReport, archives, cases,
     addToast
   } = useCaseStore();
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => hasApiKey());
   const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Global Keyboard Shortcuts
@@ -57,15 +56,19 @@ function App() {
 
   useKeyboardShortcuts(shortcuts);
 
+  const handleBack = useCallback(() => {
+    setCurrentView(AppView.DASHBOARD);
+    setActiveTaskId(null);
+    setNavStack([]);
+  }, [setActiveTaskId, setCurrentView, setNavStack]);
+
   // Initialize
   useEffect(() => {
-    setIsAuthenticated(hasApiKey());
-
     // Listen for custom back event from Investigation view
     const handleNavBack = () => handleBack();
     window.addEventListener('NAVIGATE_BACK', handleNavBack);
     return () => window.removeEventListener('NAVIGATE_BACK', handleNavBack);
-  }, []);
+  }, [handleBack]);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--osint-primary', themeColor);
@@ -78,13 +81,15 @@ function App() {
       let report = await investigateTopic(topic, context, configOverride);
 
       // AUTO ARCHIVE REPORT
+      report = { ...report, config: configOverride };
       report = archiveReport(report, context);
 
       completeTask(taskId, report);
       addToast(`Investigation complete: ${topic}`, "SUCCESS");
-    } catch (e: any) {
-      console.error(`Task ${taskId} failed`, e);
-      failTask(taskId, e.message || "Unknown error occurred");
+    } catch (error: unknown) {
+      console.error(`Task ${taskId} failed`, error);
+      const message = error instanceof Error ? error.message : "Unknown error occurred";
+      failTask(taskId, message);
       addToast(`Investigation failed: ${topic}`, "ERROR");
     }
   }, [archiveReport, completeTask, failTask, addToast]);
@@ -97,7 +102,8 @@ function App() {
       topic: topic,
       status: 'RUNNING',
       startTime: Date.now(),
-      parentContext: context
+      parentContext: context,
+      config: configOverride
     };
 
     addTask(newTask);
@@ -148,29 +154,8 @@ function App() {
     setCurrentView(AppView.INVESTIGATION);
   };
 
-  const handleBack = () => {
-    setCurrentView(AppView.DASHBOARD);
-    setActiveTaskId(null);
-    setNavStack([]);
-  };
-
   const handleClearCompleted = () => {
     clearCompletedTasks();
-  };
-
-  // Logic to jump to parent task/report
-  const handleJumpToParent = (parentTopic: string) => {
-    const parentTask = tasks.find(t => t.report?.topic === parentTopic || t.topic === parentTopic);
-    if (parentTask) {
-      handleSelectTask(parentTask.id);
-    } else {
-      const archiveReport = archives.find(r => r.topic === parentTopic);
-      if (archiveReport) {
-        handleViewReport(archiveReport);
-      } else {
-        console.warn("Parent report not found in session or archives");
-      }
-    }
   };
 
   // Current active task object
@@ -251,24 +236,23 @@ function App() {
         onClearCompleted={handleClearCompleted}
       />
 
-      <main className={`flex-1 flex flex-col items-start h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}>
+      <main className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}>
 
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative w-full">
           <Suspense fallback={
             <div className="flex items-center justify-center h-full bg-black">
               <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">LOADING_PROTOCOL...</div>
             </div>
           }>
             {currentView === AppView.DASHBOARD && (
-              <Dashboard
-                onStartInvestigation={() => setShowNewCaseModal(true)}
-                onSelectReport={handleSelectReport}
+              <Feed
+                onInvestigate={(topic) => startInvestigation(topic, undefined, true)}
               />
             )}
             {currentView === AppView.ARCHIVES && (
               <Archives
                 onSelectReport={handleSelectReport}
-                onInvestigateEntity={handleInvestigateEntity}
+                onStartNewCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
               />
             )}
             {currentView === AppView.NETWORK && (
@@ -279,8 +263,6 @@ function App() {
             )}
             {currentView === AppView.LIVE_MONITOR && (
               <LiveMonitor
-                events={liveEvents}
-                setEvents={setLiveEvents}
                 onInvestigate={(topic, ctx, config) => startInvestigation(topic, ctx, true, config)}
               />
             )}
@@ -288,36 +270,38 @@ function App() {
               <TimelineView />
             )}
             {currentView === AppView.SETTINGS && (
-              <Settings themeColor={themeColor} onThemeChange={(color) => {
-                setThemeColor(color);
-                localStorage.setItem('sherlock_theme', color);
-              }} />
+              <Settings
+                themeColor={themeColor}
+                onThemeChange={(color) => setThemeColor(color)}
+                onStartCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
+              />
             )}
           </Suspense>
         </div>
 
-        {currentView === AppView.INVESTIGATION && (
-          <OperationView
-            task={activeTask ?? null}
-            onBack={handleBack}
-            onDeepDive={(lead, report) => startInvestigation(lead, { topic: report.topic, summary: report.summary }, true)}
-            onBatchDeepDive={handleBatchInvestigate}
-            onJumpToParent={handleJumpToParent}
-            navStack={navStack}
-            onNavigate={handleBreadcrumbNavigate}
-            onSelectCase={(reportId) => {
-              const foundReport = archives.find(r => r.id === reportId);
-              if (foundReport) {
-                handleViewReport(foundReport);
-              }
-            }}
-            onStartNewCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
-          />
-        )}
+        <Suspense fallback={<div className="flex-1 bg-black" />}>
+          {currentView === AppView.INVESTIGATION && (
+            <OperationView
+              task={activeTask ?? null}
+              onBack={handleBack}
+              onDeepDive={(lead, report) => startInvestigation(lead, { topic: report.topic, summary: report.summary }, true)}
+              onBatchDeepDive={handleBatchInvestigate}
+              navStack={navStack}
+              onNavigate={handleBreadcrumbNavigate}
+              onSelectCase={(reportId) => {
+                const foundReport = archives.find(r => r.id === reportId);
+                if (foundReport) {
+                  handleViewReport(foundReport);
+                }
+              }}
+              onStartNewCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
+            />
+          )}
+        </Suspense>
       </main>
       {showHelpModal && <HelpModal onClose={() => setShowHelpModal(false)} />}
       <GlobalSearch />
-      <Toasts />
+      <ToastContainer />
     </div>
   );
 }

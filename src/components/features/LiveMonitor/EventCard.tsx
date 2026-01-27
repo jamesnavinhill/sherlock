@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonitorEvent } from '../../../types';
+import type { MonitorEvent } from '../../../types';
 import {
     AlertCircle, MessageSquare, Newspaper, Landmark,
     ExternalLink, ChevronUp, Save, Microscope, Link as LinkIcon,
@@ -95,7 +95,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             <div className="flex-1">
                 <h4 className="text-sm font-bold text-zinc-200 mb-2 font-mono truncate">{event.sourceName}</h4>
                 <p className={`text-zinc-300 font-medium leading-relaxed font-mono text-sm ${isExpanded ? '' : 'line-clamp-3'}`}>
-                    "{event.content}"
+                    &quot;{event.content}&quot;
                 </p>
             </div>
 

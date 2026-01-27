@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
     FileText, Lightbulb, Microscope, Layers, AlertTriangle, Users,
-    Globe, ChevronDown, ChevronRight, Target, Volume2, Loader2, StopCircle, Link2
+    Globe, Target, Volume2, Loader2, StopCircle, Link2
 } from 'lucide-react';
-import { InvestigationReport, BreadcrumbItem, Entity } from '../../../types';
+import type { ComponentProps } from 'react';
+import type { InvestigationReport, BreadcrumbItem, Entity } from '../../../types';
 import { Breadcrumbs } from '../../ui/Breadcrumbs';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { EmptyState } from '../../ui/EmptyState';
@@ -59,7 +60,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
     const stopAudio = () => {
         if (sourceNodeRef.current) {
-            try { sourceNodeRef.current.stop(); } catch (e) { }
+            try { sourceNodeRef.current.stop(); } catch { /* audio already stopped */ }
             sourceNodeRef.current = null;
         }
         if (audioContextRef.current) {
@@ -76,7 +77,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         setIsAudioLoading(true);
         try {
             const base64Audio = await generateAudioBriefing(report.summary);
-            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+            const WebkitAudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!WebkitAudioContext) {
+                alert('Audio playback is not supported in this browser.');
+                return;
+            }
+            const ctx = new WebkitAudioContext({ sampleRate: 24000 });
             audioContextRef.current = ctx;
             const audioBuffer = await decodeAudioData(decodeBase64(base64Audio), ctx);
             const source = ctx.createBufferSource();
@@ -95,13 +101,16 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     };
 
     // --- Markdown Configuration ---
-    const markdownComponents = {
-        a: ({ node, ...props }: any) => (
+    const markdownComponents: {
+        a: (props: ComponentProps<'a'>) => JSX.Element;
+        p: (props: ComponentProps<'p'>) => JSX.Element;
+    } = {
+        a: ({ children, ...props }) => (
             <a {...props} target="_blank" rel="noopener noreferrer" className="text-osint-primary bg-zinc-900 border border-zinc-700 px-1.5 py-0.5 rounded hover:bg-osint-primary hover:text-black transition-all duration-200 font-medium no-underline inline-flex items-center gap-1 mx-0.5 text-[0.95em]">
-                {props.children}<Link2 className="w-3 h-3 opacity-70" />
+                {children}<Link2 className="w-3 h-3 opacity-70" />
             </a>
         ),
-        p: ({ node, ...props }: any) => <p className="mb-4 last:mb-0" {...props} />
+        p: (props) => <p className="mb-4 last:mb-0" {...props} />
     };
 
     // --- RENDER ---

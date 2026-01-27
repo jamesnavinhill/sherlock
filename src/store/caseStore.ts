@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import {
-    AppView,
+import type {
     InvestigationReport,
     InvestigationTask,
     Case,
@@ -9,10 +8,16 @@ import {
     SystemConfig,
     BreadcrumbItem,
     CaseTemplate,
-    Entity,
-    Headline
+    Headline,
+    FeedItem,
+    ManualConnection,
+    ManualNode,
+    InvestigationScope
 } from '../types';
-import { getCoreName, isLikelySameEntity } from '../utils/entityUtils';
+import {
+    AppView
+} from '../types';
+import { isLikelySameEntity } from '../utils/entityUtils';
 
 export interface Toast {
     id: string;
@@ -24,7 +29,6 @@ interface CaseState {
     // --- CORE DATA STATE ---
     archives: InvestigationReport[];
     cases: Case[];
-    cases: Case[];
     tasks: InvestigationTask[];
     activeTaskId: string | null;
     liveEvents: MonitorEvent[];
@@ -32,6 +36,23 @@ interface CaseState {
     templates: CaseTemplate[];
     entityAliases: EntityAliasMap;
     toasts: Toast[];
+    feedItems: FeedItem[];
+    feedConfig: {
+        limit: number;
+        prioritySources: string;
+        autoRefresh: boolean;
+        refreshInterval: number;
+    };
+    manualLinks: ManualConnection[];
+    manualNodes: ManualNode[];
+    hiddenNodeIds: string[]; // Store as array for persistence
+    flaggedNodeIds: string[]; // Store as array for persistence
+    activeCaseId: string | null;
+
+    // --- INVESTIGATION SCOPE STATE ---
+    customScopes: InvestigationScope[];  // User-created scopes
+    activeScope: string | null;           // Currently selected scope ID for active investigation
+    defaultScopeId: string;               // Global default scope ID
 
     // --- UI STATE ---
     currentView: AppView;
@@ -63,6 +84,21 @@ interface CaseState {
     resolveEntity: (name: string) => string;
     addToast: (message: string, type?: Toast['type']) => void;
     removeToast: (id: string) => void;
+    setFeedItems: (items: FeedItem[]) => void;
+    setFeedConfig: (config: CaseState['feedConfig']) => void;
+    setManualLinks: (links: ManualConnection[]) => void;
+    setManualNodes: (nodes: ManualNode[]) => void;
+    setHiddenNodeIds: (ids: string[]) => void;
+    setFlaggedNodeIds: (ids: string[]) => void;
+    setActiveCaseId: (id: string | null) => void;
+    toggleFlag: (id: string) => void;
+    toggleHide: (id: string) => void;
+
+    // --- SCOPE ACTIONS ---
+    setActiveScope: (id: string | null) => void;
+    setDefaultScope: (id: string) => void;
+    addScope: (scope: InvestigationScope) => void;
+    deleteScope: (id: string) => void;
 
     // --- DERIVED/COMPLEX ACTIONS ---
     addTask: (task: InvestigationTask) => void;
@@ -91,6 +127,23 @@ export const useCaseStore = create<CaseState>()(
             templates: [],
             headlines: [],
             entityAliases: {},
+            feedItems: [],
+            feedConfig: {
+                limit: 8,
+                prioritySources: '',
+                autoRefresh: false,
+                refreshInterval: 60000
+            },
+            manualLinks: [],
+            manualNodes: [],
+            hiddenNodeIds: [],
+            flaggedNodeIds: [],
+            activeCaseId: null,
+
+            // Scope state
+            customScopes: [],
+            activeScope: null,
+            defaultScopeId: 'open-investigation',
 
             // SIMPLE ACTIONS
             setArchives: (archives) => set({ archives }),
@@ -145,6 +198,39 @@ export const useCaseStore = create<CaseState>()(
                 toasts: state.toasts.filter((t) => t.id !== id)
             })),
 
+            setFeedItems: (feedItems) => set({ feedItems }),
+            setFeedConfig: (feedConfig) => set({ feedConfig }),
+
+            setManualLinks: (manualLinks) => set({ manualLinks }),
+            setManualNodes: (manualNodes) => set({ manualNodes }),
+            setHiddenNodeIds: (hiddenNodeIds) => set({ hiddenNodeIds }),
+            setFlaggedNodeIds: (flaggedNodeIds) => set({ flaggedNodeIds }),
+            setActiveCaseId: (activeCaseId) => set({ activeCaseId }),
+
+            toggleFlag: (id) => set((state) => {
+                const flagged = new Set(state.flaggedNodeIds);
+                if (flagged.has(id)) flagged.delete(id);
+                else flagged.add(id);
+                return { flaggedNodeIds: Array.from(flagged) };
+            }),
+
+            toggleHide: (id) => set((state) => {
+                const hidden = new Set(state.hiddenNodeIds);
+                if (hidden.has(id)) hidden.delete(id);
+                else hidden.add(id);
+                return { hiddenNodeIds: Array.from(hidden) };
+            }),
+
+            // Scope actions
+            setActiveScope: (activeScope) => set({ activeScope }),
+            setDefaultScope: (defaultScopeId) => set({ defaultScopeId }),
+            addScope: (scope) => set((state) => ({
+                customScopes: [...state.customScopes, scope]
+            })),
+            deleteScope: (id) => set((state) => ({
+                customScopes: state.customScopes.filter(s => s.id !== id)
+            })),
+
             // COMPLEX ACTIONS
             addTask: (task) => set((state) => ({
                 tasks: [...state.tasks, task]
@@ -174,8 +260,8 @@ export const useCaseStore = create<CaseState>()(
 
             archiveReport: (report, parentContext) => {
                 const state = get();
-                let archives = [...state.archives];
-                let cases = [...state.cases];
+                const archives = [...state.archives];
+                const cases = [...state.cases];
                 let targetCaseId = report.caseId;
 
                 // 1. Link to parent case
@@ -271,8 +357,17 @@ export const useCaseStore = create<CaseState>()(
                 headlines: state.headlines,
                 entityAliases: state.entityAliases,
                 themeColor: state.themeColor,
-                // We might not want to persist current tasks or views across sessions
-                // but archives and cases are essential.
+                feedItems: state.feedItems,
+                feedConfig: state.feedConfig,
+                manualLinks: state.manualLinks,
+                manualNodes: state.manualNodes,
+                hiddenNodeIds: state.hiddenNodeIds,
+                flaggedNodeIds: state.flaggedNodeIds,
+                activeCaseId: state.activeCaseId,
+                liveEvents: state.liveEvents,
+                // Scope persistence
+                customScopes: state.customScopes,
+                defaultScopeId: state.defaultScopeId,
             }),
         }
     )

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { EntityAliasMap } from '../../types';
-import { GitMerge, X, Check, AlertCircle, ArrowRight, Trash2, Split, Wand2, ArrowLeftRight, ArrowDown, Layers, MousePointer2, CheckSquare, Square } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import type { EntityAliasMap } from '../../../types';
+import { GitMerge, X, Check, AlertCircle, ArrowRight, Trash2, Split, Wand2, Layers, CheckSquare, Square } from 'lucide-react';
+import { getLevenshteinDistance, getCoreName, getTokens } from '../../../utils/entityUtils';
 
 interface EntityResolutionProps {
   allEntities: string[];
@@ -9,8 +10,6 @@ interface EntityResolutionProps {
   onClose: () => void;
 }
 
-import { getLevenshteinDistance, getCoreName, getTokens } from '../../../utils/entityUtils';
-
 export const EntityResolution: React.FC<EntityResolutionProps> = ({
   allEntities,
   currentAliases,
@@ -18,18 +17,16 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
   onClose
 }) => {
   // Instead of pairs, we now track Clusters (groups of variants)
-  const [clusters, setClusters] = useState<string[][]>([]);
   const [selectedCanonicals, setSelectedCanonicals] = useState<Record<number, string>>({}); // Map cluster index to selected canonical
   const [activeTab, setActiveTab] = useState<'CLUSTERS' | 'MANAGE'>('CLUSTERS');
   const [ignoredClusters, setIgnoredClusters] = useState<Set<string>>(new Set());
-  const [autoMergeCount, setAutoMergeCount] = useState(0);
 
   // Track which items are EXCLUDED from the merge (User unchecked them)
   // Key format: "clusterIdx::variantString"
   const [excludedVariants, setExcludedVariants] = useState<Set<string>>(new Set());
 
   // Union-Find implementation to group chains: A~B, B~C => {A,B,C}
-  useEffect(() => {
+  const clusters = useMemo(() => {
     // 1. Resolve all entities to their current canonical form
     const resolvedSet = new Set<string>();
     allEntities.forEach(e => {
@@ -111,25 +108,27 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
     });
 
     // 4. Filter for clusters > 1 and not ignored
-    const newClusters = Object.values(rawClusters)
+    return Object.values(rawClusters)
       .filter(c => c.length > 1)
       .filter(c => {
         // Generate a simple key for the cluster to check ignore list
         const key = c.sort().join('::');
         return !ignoredClusters.has(key);
       });
+  }, [allEntities, currentAliases, ignoredClusters]);
 
-    // 5. Default Canonicals (pick the longest string by default as it usually has more info)
+  const defaultCanonicals = useMemo(() => {
     const defaults: Record<number, string> = {};
-    newClusters.forEach((cluster, idx) => {
+    clusters.forEach((cluster, idx) => {
       defaults[idx] = cluster.reduce((a, b) => a.length >= b.length ? a : b);
     });
+    return defaults;
+  }, [clusters]);
 
-    setClusters(newClusters);
-    setSelectedCanonicals(defaults);
-    setAutoMergeCount(newClusters.length);
-
-  }, [allEntities, currentAliases, ignoredClusters]);
+  const canonicalSelections = useMemo(() => ({
+    ...defaultCanonicals,
+    ...selectedCanonicals
+  }), [defaultCanonicals, selectedCanonicals]);
 
   const toggleVariantExclusion = (clusterIdx: number, variant: string) => {
     const key = `${clusterIdx}::${variant}`;
@@ -143,7 +142,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
   const handleMergeCluster = (clusterIdx: number) => {
     const cluster = clusters[clusterIdx];
-    const target = selectedCanonicals[clusterIdx];
+    const target = canonicalSelections[clusterIdx];
 
     if (!target || !cluster) return;
 
@@ -170,10 +169,10 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
   };
 
   const handleAutoMergeAll = () => {
-    let newAliases = { ...currentAliases };
+    const newAliases = { ...currentAliases };
 
     clusters.forEach((cluster, idx) => {
-      const target = selectedCanonicals[idx];
+      const target = canonicalSelections[idx];
       if (!target) return;
 
       cluster.forEach(variant => {
@@ -221,13 +220,13 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
           </div>
 
           <div className="flex items-center space-x-4">
-            {activeTab === 'CLUSTERS' && autoMergeCount > 0 && (
+            {activeTab === 'CLUSTERS' && clusters.length > 0 && (
               <button
                 onClick={handleAutoMergeAll}
                 className="flex items-center px-4 py-2 bg-cyan-900/20 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-900/40 hover:border-cyan-400 transition-all font-mono text-xs font-bold uppercase tracking-wider animate-pulse"
               >
                 <Wand2 className="w-4 h-4 mr-2" />
-                Merge All Clusters ({autoMergeCount})
+                Merge All Clusters ({clusters.length})
               </button>
             )}
             <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors bg-zinc-900 hover:bg-zinc-800 p-2">
@@ -285,7 +284,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                           <span>Include in Merge</span>
                         </div>
                         {cluster.map((variant) => {
-                          const isSelected = selectedCanonicals[idx] === variant;
+                          const isSelected = canonicalSelections[idx] === variant;
                           const isExcluded = excludedVariants.has(`${idx}::${variant}`);
                           const isIncluded = !isExcluded;
 
@@ -352,7 +351,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                       </button>
 
                       <div className="mt-4 p-3 bg-cyan-900/10 border border-cyan-900/30 text-[10px] text-cyan-400 font-mono leading-tight">
-                        <span className="font-bold">NOTE:</span> Selected nodes will merge into "{selectedCanonicals[idx]?.substring(0, 15)}...". Unchecked nodes remain distinct.
+                        <span className="font-bold">NOTE:</span> Selected nodes will merge into &quot;{canonicalSelections[idx]?.substring(0, 15)}...&quot;. Unchecked nodes remain distinct.
                       </div>
                     </div>
 

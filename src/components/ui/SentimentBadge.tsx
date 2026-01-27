@@ -54,16 +54,3 @@ export const SentimentBadge: React.FC<SentimentBadgeProps> = ({
     );
 };
 
-/**
- * Returns the appropriate color class for a sentiment value
- * Useful for inline styling without the full badge component
- */
-export const getSentimentColor = (sentiment: Sentiment): string => {
-    const normalized = sentiment?.toUpperCase() || 'NEUTRAL';
-    switch (normalized) {
-        case 'POSITIVE': return 'text-green-500';
-        case 'NEGATIVE': return 'text-red-500';
-        case 'MIXED': return 'text-yellow-500';
-        default: return 'text-zinc-500';
-    }
-};

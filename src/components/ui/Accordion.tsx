@@ -1,5 +1,6 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface AccordionProps {
     title: string;

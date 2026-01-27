@@ -1,5 +1,6 @@
 import React from 'react';
-import { useCaseStore, Toast as ToastType } from '../../store/caseStore';
+import type { Toast as ToastType } from '../../store/caseStore';
+import { useCaseStore } from '../../store/caseStore';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 export const Toast: React.FC<{ toast: ToastType; onRemove: (id: string) => void }> = ({ toast, onRemove }) => {

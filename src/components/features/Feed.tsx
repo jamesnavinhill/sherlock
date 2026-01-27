@@ -1,24 +1,36 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { scanForAnomalies } from '../../services/gemini';
-import { FeedItem } from '../../types';
-import { AlertTriangle, RefreshCw, Search, ArrowRight, Filter, MapPin, Tag, Calendar, X, Globe, Plus, LayoutDashboard, Settings2 } from 'lucide-react';
+import type { FeedItem, SystemConfig, InvestigationScope } from '../../types';
+import { RefreshCw, Search, ArrowRight, Filter, MapPin, Tag, Calendar, X, LayoutDashboard, Settings2 } from 'lucide-react';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
-
-const STORAGE_KEY_FINDER_RESULTS = 'sherlock_finder_results';
+import { MatrixCardLoader } from '../ui/MatrixCardLoader';
+import { useCaseStore } from '../../store/caseStore';
+import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 
 interface FeedProps {
-  onInvestigate: (topic: string, context?: { topic: string, summary: string }) => void;
+  onInvestigate: (topic: string, context?: { topic: string; summary: string }, config?: Partial<SystemConfig>, scope?: InvestigationScope) => void;
 }
 
-const CATEGORIES = ['All', 'Defense', 'Healthcare', 'Infrastructure', 'Technology', 'Education', 'Environment'];
-
-import { MatrixCardLoader } from '../ui/MatrixCardLoader';
+const DEFAULT_CATEGORIES = ['All', 'Cybersecurity', 'Geopolitics', 'Finance', 'Infrastructure', 'Military', 'Social Unrest', 'Other'];
 
 export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
-  const [items, setItems] = useState<FeedItem[]>([]);
+  const { feedItems, feedConfig, setFeedItems, setFeedConfig, activeScope: activeScopeId, customScopes } = useCaseStore();
   const [loading, setLoading] = useState(false);
   const [customQuery, setCustomQuery] = useState('');
+
+  // Resolve active scope
+  const activeScope = useMemo(() => {
+    return getScopeById(activeScopeId) || getAllScopes(customScopes).find(s => s.id === activeScopeId) || BUILTIN_SCOPES[0];
+  }, [activeScopeId, customScopes]);
+
+  // Dynamic categories from scope
+  const categories = useMemo(() => {
+    if (activeScope?.categories && activeScope.categories.length > 0) {
+      return ['All', ...activeScope.categories];
+    }
+    return DEFAULT_CATEGORIES;
+  }, [activeScope]);
 
   // Selected item for investigation wizard
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
@@ -33,40 +45,19 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
   const [filterEndDate, setFilterEndDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Load persisted results on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_FINDER_RESULTS);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setItems(parsed);
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to load persisted finder results', e);
-    }
-  }, []);
-
-  const loadFeed = async () => {
+  const loadFeed = useCallback(async () => {
     setLoading(true);
     // Slight artificial delay to show off the matrix effect if data loads too fast
     const minTime = new Promise(resolve => setTimeout(resolve, 1500));
 
     const dateRange = filterStartDate || filterEndDate ? { start: filterStartDate, end: filterEndDate } : undefined;
-    const dataPromise = scanForAnomalies(filterRegion, filterCategory, dateRange, config);
+    const dataPromise = scanForAnomalies(filterRegion, filterCategory, dateRange, feedConfig, activeScope);
 
     const [_, data] = await Promise.all([minTime, dataPromise]);
 
-    setItems(data);
-    // Persist results to localStorage
-    try {
-      localStorage.setItem(STORAGE_KEY_FINDER_RESULTS, JSON.stringify(data));
-    } catch (e) {
-      console.warn('Failed to persist finder results', e);
-    }
+    setFeedItems(data);
     setLoading(false);
-  };
+  }, [feedConfig, filterCategory, filterEndDate, filterRegion, filterStartDate, setFeedItems, activeScope]);
 
   const handleCustomSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,25 +82,19 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
   // --- SETTINGS PANEL ---
   const [showSettings, setShowSettings] = useState(false);
-  const [config, setConfig] = useState({
-    limit: 8,
-    prioritySources: '',
-    autoRefresh: false,
-    refreshInterval: 60000 // default 1 minute
-  });
 
   // Background Polling Effect
   useEffect(() => {
-    let intervalId: any;
-    if (config.autoRefresh && !loading) {
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+    if (feedConfig.autoRefresh && !loading) {
       intervalId = setInterval(() => {
         loadFeed();
-      }, config.refreshInterval);
+      }, feedConfig.refreshInterval);
     }
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [config.autoRefresh, config.refreshInterval, loading]);
+  }, [feedConfig.autoRefresh, feedConfig.refreshInterval, loading, loadFeed]);
 
   const renderSettingsPanel = () => (
     <div className="absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
@@ -135,8 +120,8 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               {[4, 8, 12, 16].map(num => (
                 <button
                   key={num}
-                  onClick={() => setConfig({ ...config, limit: num })}
-                  className={`w-8 h-6 flex items-center justify-center text-[10px] font-mono border transition-all ${config.limit === num ? 'bg-osint-primary text-black border-osint-primary font-bold' : 'bg-transparent text-zinc-500 border-zinc-700 hover:border-zinc-500'}`}
+                  onClick={() => setFeedConfig({ ...feedConfig, limit: num })}
+                  className={`w-8 h-6 flex items-center justify-center text-[10px] font-mono border transition-all ${feedConfig.limit === num ? 'bg-osint-primary text-black border-osint-primary font-bold' : 'bg-transparent text-zinc-500 border-zinc-700 hover:border-zinc-500'}`}
                 >
                   {num}
                 </button>
@@ -149,8 +134,8 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
         <div>
           <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-2">Priority Sources</label>
           <textarea
-            value={config.prioritySources}
-            onChange={(e) => setConfig({ ...config, prioritySources: e.target.value })}
+            value={feedConfig.prioritySources}
+            onChange={(e) => setFeedConfig({ ...feedConfig, prioritySources: e.target.value })}
             placeholder="nytimes.com, @elonmusk, dod.gov..."
             className="w-full h-20 bg-black border border-zinc-700 text-xs text-zinc-300 p-2 font-mono focus:border-osint-primary outline-none resize-none placeholder-zinc-700"
           />
@@ -162,18 +147,18 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           <div className="flex items-center justify-between mb-3">
             <label className="text-[10px] text-zinc-500 font-mono uppercase">Background Surveillance</label>
             <button
-              onClick={() => setConfig({ ...config, autoRefresh: !config.autoRefresh })}
-              className={`w-12 h-6 rounded-full relative transition-colors ${config.autoRefresh ? 'bg-osint-primary' : 'bg-zinc-800'}`}
+              onClick={() => setFeedConfig({ ...feedConfig, autoRefresh: !feedConfig.autoRefresh })}
+              className={`w-12 h-6 rounded-full relative transition-colors ${feedConfig.autoRefresh ? 'bg-osint-primary' : 'bg-zinc-800'}`}
             >
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.autoRefresh ? 'left-7' : 'left-1'}`} />
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${feedConfig.autoRefresh ? 'left-7' : 'left-1'}`} />
             </button>
           </div>
-          {config.autoRefresh && (
+          {feedConfig.autoRefresh && (
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-zinc-600 font-mono">Interval</span>
               <select
-                value={config.refreshInterval}
-                onChange={(e) => setConfig({ ...config, refreshInterval: parseInt(e.target.value) })}
+                value={feedConfig.refreshInterval}
+                onChange={(e) => setFeedConfig({ ...feedConfig, refreshInterval: parseInt(e.target.value) })}
                 className="bg-black border border-zinc-800 text-zinc-400 text-[10px] font-mono px-2 py-1 outline-none"
               >
                 <option value={30000}>30 SECONDS</option>
@@ -187,7 +172,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
         {/* Actions */}
         <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
           <button
-            onClick={() => setConfig({ limit: 8, prioritySources: '' })}
+            onClick={() => setFeedConfig({ limit: 8, prioritySources: '', autoRefresh: false, refreshInterval: 60000 })}
             className="text-xs font-mono text-zinc-500 hover:text-white flex items-center uppercase"
           >
             Reset Defaults
@@ -213,7 +198,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           initialTopic={selectedItem.title}
           onCancel={() => setSelectedItem(null)}
           onStart={(topic, config) => {
-            onInvestigate(topic);
+            onInvestigate(topic, undefined, config);
             setSelectedItem(null);
           }}
         />
@@ -232,7 +217,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               onChange={(e) => setFilterCategory(e.target.value)}
               className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs pl-7 py-1.5 pr-2 font-mono focus:border-osint-primary outline-none appearance-none cursor-pointer hover:border-zinc-500"
             >
-              {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
           </div>
 
@@ -328,6 +313,78 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
         </div>
 
         {showSettings && renderSettingsPanel()}
+
+        {/* Mobile Filter Panel Overlay */}
+        {showFilters && (
+          <div className="absolute top-20 left-0 right-0 z-40 bg-osint-panel border-b border-zinc-700 p-4 md:hidden shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-mono font-bold uppercase text-sm flex items-center">
+                <Filter className="w-4 h-4 mr-2 text-osint-primary" />
+                Active Filters
+              </h3>
+              <button onClick={() => setShowFilters(false)} className="text-zinc-500 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Mobile Category */}
+              <div>
+                <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">Category</label>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs px-2 py-2 font-mono focus:border-osint-primary outline-none"
+                >
+                  {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
+              </div>
+
+              {/* Mobile Region */}
+              <div>
+                <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">Region</label>
+                <input
+                  type="text"
+                  value={filterRegion}
+                  onChange={(e) => setFilterRegion(e.target.value)}
+                  placeholder="e.g. Asia-Pacific"
+                  className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs px-2 py-2 font-mono focus:border-osint-primary outline-none"
+                />
+              </div>
+
+              {/* Mobile Date Range */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">From</label>
+                  <input
+                    type="date"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                    className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs px-2 py-2 font-mono focus:border-osint-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">To</label>
+                  <input
+                    type="date"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                    className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs px-2 py-2 font-mono focus:border-osint-primary outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={handleApplyFilters}
+                  className="w-full py-2 bg-osint-primary text-black font-bold font-mono text-xs uppercase hover:bg-white transition-colors"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -350,13 +407,13 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
         {/* Results Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-20">
-          {items.length === 0 ? (
+          {feedItems.length === 0 ? (
             // Placeholder / Empty State or Loading State
             Array.from({ length: 8 }).map((_, i) => (
               <MatrixCardLoader key={i} active={loading} />
             ))
           ) : (
-            items.map((item) => (
+            feedItems.map((item) => (
               <div
                 key={item.id}
                 className="h-full bg-osint-panel border border-zinc-800 p-6 hover:border-osint-primary transition-all cursor-pointer group flex flex-col hover:bg-zinc-900/80 animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-sm"

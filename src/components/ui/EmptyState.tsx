@@ -1,5 +1,6 @@
 import React from 'react';
-import { LucideIcon, FolderOpen, Plus } from 'lucide-react';
+import type { LucideIcon} from 'lucide-react';
+import { FolderOpen, Plus } from 'lucide-react';
 
 interface EmptyStateProps {
     icon?: LucideIcon;

@@ -11,7 +11,7 @@ export const cleanEntityName = (raw: string): string => {
     // Remove type prefixes like [PERSON] or [ORG]
     s = s.replace(/^[*_]*\[(PERSON|ORG)\][*_]*\s*/i, '');
     // Remove markdown links
-    s = s.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+    s = s.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
     // Remove bold/italic markers
     s = s.replace(/^[*_]{2,}|[*_]{2,}$/g, '');
     // Remove brackets

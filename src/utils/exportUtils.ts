@@ -3,7 +3,7 @@
  * Provides functions for exporting cases and reports as JSON or styled HTML
  */
 
-import { Case, InvestigationReport, Entity, Source } from '../types';
+import type { Case, InvestigationReport} from '../types';
 
 // ============================================================================
 // CORE DOWNLOAD HELPER
