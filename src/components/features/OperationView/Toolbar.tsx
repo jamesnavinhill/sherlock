@@ -40,7 +40,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
                 <button
                     onClick={onToggleLeftPanel}
-                    className={`p-2 border transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-osint-primary text-black border-osint-primary' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}
+                    className={`p-2 border transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-transparent text-white border-white shadow-[0_0_15px_-5px_rgba(255,255,255,0.3)]' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}
                     title="Toggle Dossier Panel (D)"
                     aria-label="Toggle Dossier Panel"
                 >
@@ -161,7 +161,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </div>
                     </div>
                 )}
-                <button onClick={onStartNewCase} className="flex items-center px-3 py-1.5 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white transition-colors">
+                <button onClick={onStartNewCase} className="flex items-center px-3 py-1.5 bg-white text-black border border-white font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-colors shadow-lg shadow-white/10">
                     <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">New Case</span>
                 </button>
             </div>

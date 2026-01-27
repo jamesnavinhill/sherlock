@@ -105,3 +105,9 @@ body {
 .duration-200 {
   animation-duration: 200ms;
 }
+
+/* Ensure date picker icon is white in dark mode */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}

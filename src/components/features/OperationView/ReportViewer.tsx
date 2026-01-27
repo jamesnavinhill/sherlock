@@ -185,7 +185,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                                 </h2>
                                 <button
                                     onClick={() => onBatchDeepDive(report.leads)}
-                                    className="flex items-center text-xs font-mono font-bold text-black bg-osint-primary hover:bg-white px-3 py-1.5 uppercase transition-all shadow-[0_0_10px_-3px_var(--osint-primary)]"
+                                    className="flex items-center text-xs font-mono font-bold text-black bg-white hover:bg-osint-primary px-3 py-1.5 uppercase transition-all shadow-[0_0_10px_-3px_rgba(255,255,255,0.5)] hover:shadow-[0_0_15px_-5px_var(--osint-primary)]"
                                     aria-label="Investigate all leads"
                                 >
                                     <Layers className="w-4 h-4 mr-2" /> Full Spectrum

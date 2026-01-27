@@ -42,7 +42,11 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
     const { archives, cases, setArchives, setCases } = useCaseStore();
     const [activeTab, setActiveTab] = useState('GENERAL');
     const [apiKey, setApiKey] = useState(() => localStorage.getItem('GEMINI_API_KEY') ?? '');
+    const [openAIKey, setOpenAIKey] = useState(() => localStorage.getItem('OPENAI_API_KEY') ?? '');
+    const [anthropicKey, setAnthropicKey] = useState(() => localStorage.getItem('ANTHROPIC_API_KEY') ?? '');
     const [showKey, setShowKey] = useState(false);
+    const [showOpenAIKey, setShowOpenAIKey] = useState(false);
+    const [showAnthropicKey, setShowAnthropicKey] = useState(false);
     const [autoResolve, setAutoResolve] = useState(() => {
         const configStr = localStorage.getItem('sherlock_config');
         if (!configStr) return true;
@@ -54,6 +58,14 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
             return true;
         }
     });
+    const [quietMode, setQuietMode] = useState(() => {
+        const configStr = localStorage.getItem('sherlock_config');
+        if (!configStr) return false;
+        try {
+            const config: SystemConfig = JSON.parse(configStr);
+            return config.quietMode ?? false;
+        } catch { return false; }
+    });
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -62,9 +74,12 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
     const handleSaveGeneral = () => {
         setIsSaving(true);
         localStorage.setItem('GEMINI_API_KEY', apiKey);
+        localStorage.setItem('OPENAI_API_KEY', openAIKey);
+        localStorage.setItem('ANTHROPIC_API_KEY', anthropicKey);
 
         const config: SystemConfig = {
             autoNormalizeEntities: autoResolve,
+            quietMode,
             theme: themeColor
         } as SystemConfig & { theme?: string };
         localStorage.setItem('sherlock_config', JSON.stringify(config));
@@ -82,6 +97,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
             cases,
             config: {
                 autoNormalizeEntities: autoResolve,
+                quietMode,
                 theme: themeColor
             } as SystemConfig & { theme?: string },
             timestamp: new Date().toISOString()
@@ -133,89 +149,141 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
     };
 
     const renderGeneral = () => (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* API Key */}
-            <section className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                    <Key className="w-4 h-4 text-osint-primary" />
-                    <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Access Credentials</h3>
-                </div>
-                <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4">
-                    <div className="space-y-2">
-                        <label className="block text-[10px] text-zinc-500 font-mono uppercase">Google Gemini API Key</label>
-                        <div className="flex gap-2">
-                            <input
-                                type={showKey ? 'text' : 'password'}
-                                value={apiKey}
-                                onChange={(e) => setApiKey(e.target.value)}
-                                placeholder="Enter API Key..."
-                                className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12">
+                {/* Visual Interface */}
+                <section className="space-y-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Palette className="w-4 h-4 text-osint-primary" />
+                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Visual Interface</h3>
+                    </div>
+                    <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-[10px] text-zinc-500 font-mono uppercase">Accent Color</label>
+                                <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(accentSettings)}</div>
+                            </div>
+                            <AccentPicker
+                                hue={accentSettings.hue}
+                                lightness={accentSettings.lightness}
+                                chroma={accentSettings.chroma}
+                                onChange={(settings) => onAccentChange(settings)}
                             />
+                        </div>
+                    </div>
+                </section>
+
+                {/* API Key */}
+                <section className="space-y-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Key className="w-4 h-4 text-osint-primary" />
+                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Access Credentials</h3>
+                    </div>
+                    <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 h-full">
+                        <div className="space-y-2">
+                            <label className="block text-[10px] text-zinc-500 font-mono uppercase">Google Gemini API Key</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type={showKey ? 'text' : 'password'}
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                    placeholder="Enter Gemini API Key..."
+                                    className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
+                                />
+                                <button
+                                    onClick={() => setShowKey(!showKey)}
+                                    className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors text-xs font-mono"
+                                >
+                                    {showKey ? 'HIDE' : 'SHOW'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-[10px] text-zinc-500 font-mono uppercase">OpenAI API Key</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type={showOpenAIKey ? 'text' : 'password'}
+                                    value={openAIKey}
+                                    onChange={(e) => setOpenAIKey(e.target.value)}
+                                    placeholder="Enter OpenAI API Key..."
+                                    className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
+                                />
+                                <button
+                                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                                    className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors text-xs font-mono"
+                                >
+                                    {showOpenAIKey ? 'HIDE' : 'SHOW'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-[10px] text-zinc-500 font-mono uppercase">Anthropic API Key</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type={showAnthropicKey ? 'text' : 'password'}
+                                    value={anthropicKey}
+                                    onChange={(e) => setAnthropicKey(e.target.value)}
+                                    placeholder="Enter Anthropic API Key..."
+                                    className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
+                                />
+                                <button
+                                    onClick={() => setShowAnthropicKey(!showAnthropicKey)}
+                                    className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors text-xs font-mono"
+                                >
+                                    {showAnthropicKey ? 'HIDE' : 'SHOW'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <p className="text-[9px] text-zinc-600 font-mono italic pt-2">Keys are stored locally in your browser.</p>
+                    </div>
+                </section>
+
+                {/* Intelligence Logic */}
+                <section className="space-y-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Shield className="w-4 h-4 text-osint-primary" />
+                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Intelligence Logic</h3>
+                    </div>
+                    <div className="bg-zinc-900/40 border border-zinc-800 p-6 h-full flex flex-col justify-center">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h4 className="text-sm font-bold text-zinc-200 font-mono">Auto-Resolve Entities</h4>
+                                <p className="text-[10px] text-zinc-500 font-mono mt-1">Automatically group variations of entity names</p>
+                            </div>
                             <button
-                                onClick={() => setShowKey(!showKey)}
-                                className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors text-xs font-mono"
+                                onClick={() => setAutoResolve(!autoResolve)}
+                                className={`w-12 h-6 rounded-full relative transition-colors ${autoResolve ? 'bg-zinc-200' : 'bg-zinc-800'}`}
                             >
-                                {showKey ? 'HIDE' : 'SHOW'}
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoResolve ? 'left-7' : 'left-1'}`} />
                             </button>
                         </div>
-                        <p className="text-[9px] text-zinc-600 font-mono italic">Keys are stored locally in your browser. They are never transmitted to our servers.</p>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* Appearance */}
-            <section className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                    <Palette className="w-4 h-4 text-osint-primary" />
-                    <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Visual Interface</h3>
-                </div>
-                <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6">
-                    <div className="space-y-3">
+                {/* Notification Logic */}
+                <section className="space-y-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Shield className="w-4 h-4 text-osint-primary" />
+                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Alert Protocols</h3>
+                    </div>
+                    <div className="bg-zinc-900/40 border border-zinc-800 p-6 h-full flex flex-col justify-center">
                         <div className="flex items-center justify-between">
-                            <label className="block text-[10px] text-zinc-500 font-mono uppercase">Accent Color</label>
-                            <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(accentSettings)}</div>
+                            <div>
+                                <h4 className="text-sm font-bold text-zinc-200 font-mono">Quiet Mode</h4>
+                                <p className="text-[10px] text-zinc-500 font-mono mt-1">Suppress non-critical system notifications</p>
+                            </div>
+                            <button
+                                onClick={() => setQuietMode(!quietMode)}
+                                className={`w-12 h-6 rounded-full relative transition-colors ${quietMode ? 'bg-zinc-200' : 'bg-zinc-800'}`}
+                            >
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${quietMode ? 'left-7' : 'left-1'}`} />
+                            </button>
                         </div>
-                        <AccentPicker
-                            hue={accentSettings.hue}
-                            lightness={accentSettings.lightness}
-                            chroma={accentSettings.chroma}
-                            onChange={(settings) => onAccentChange(settings)}
-                        />
                     </div>
-                </div>
-            </section>
-
-            {/* Intelligence Logic */}
-            <section className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                    <Shield className="w-4 h-4 text-osint-primary" />
-                    <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Intelligence Logic</h3>
-                </div>
-                <div className="bg-zinc-900/40 border border-zinc-800 p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h4 className="text-sm font-bold text-zinc-200 font-mono">Auto-Resolve Entities</h4>
-                            <p className="text-[10px] text-zinc-500 font-mono mt-1">Automatically group variations of entity names (e.g. &quot;Google Inc&quot; &amp; &quot;Google&quot;)</p>
-                        </div>
-                        <button
-                            onClick={() => setAutoResolve(!autoResolve)}
-                            className={`w-12 h-6 rounded-full relative transition-colors ${autoResolve ? 'bg-osint-primary' : 'bg-zinc-800'}`}
-                        >
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoResolve ? 'left-7' : 'left-1'}`} />
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <div className="pt-4 sticky bottom-0 bg-black/80 backdrop-blur-sm pb-6 border-t border-zinc-800 flex justify-end">
-                <button
-                    onClick={handleSaveGeneral}
-                    disabled={isSaving}
-                    className="flex items-center px-8 py-3 bg-osint-primary text-black font-mono text-sm font-bold uppercase hover:bg-white transition-all disabled:opacity-50"
-                >
-                    {isSaving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                    {isSaving ? 'Saving...' : saveSuccess ? 'Applied' : 'Apply Settings'}
-                </button>
+                </section>
             </div>
         </div>
     );
@@ -294,17 +362,29 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
             </header>
 
             {/* Navigation Tabs */}
-            <nav className="px-8 bg-zinc-900/50 border-b border-zinc-800 flex items-center space-x-8 relative z-20 flex-shrink-0">
-                {TABS.map(tab => (
+            <nav className="px-8 bg-zinc-900/50 border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0">
+                <div className="flex items-center space-x-8">
+                    {TABS.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`py-4 px-2 font-mono text-xs uppercase tracking-widest font-bold transition-all border-b-2 flex items-center space-x-2 ${activeTab === tab.id ? 'border-osint-primary text-osint-primary translate-y-[1px]' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                        >
+                            <tab.icon className="w-3 h-3" />
+                            <span>{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+                {activeTab === 'GENERAL' && (
                     <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`py-4 px-2 font-mono text-xs uppercase tracking-widest font-bold transition-all border-b-2 flex items-center space-x-2 ${activeTab === tab.id ? 'border-osint-primary text-osint-primary translate-y-[1px]' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                        onClick={handleSaveGeneral}
+                        disabled={isSaving}
+                        className="flex items-center px-6 py-2 bg-white text-black font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-all disabled:opacity-50 shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)] my-2"
                     >
-                        <tab.icon className="w-3 h-3" />
-                        <span>{tab.label}</span>
+                        {isSaving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        {isSaving ? 'Saving...' : saveSuccess ? 'Saved' : 'Save Configuration'}
                     </button>
-                ))}
+                )}
             </nav>
 
             {/* Scrollable Content */}

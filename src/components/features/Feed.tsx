@@ -148,7 +148,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             <label className="text-[10px] text-zinc-500 font-mono uppercase">Background Surveillance</label>
             <button
               onClick={() => setFeedConfig({ ...feedConfig, autoRefresh: !feedConfig.autoRefresh })}
-              className={`w-12 h-6 rounded-full relative transition-colors ${feedConfig.autoRefresh ? 'bg-osint-primary' : 'bg-zinc-800'}`}
+              className={`w-12 h-6 rounded-full relative transition-colors ${feedConfig.autoRefresh ? 'bg-zinc-200' : 'bg-zinc-800'}`}
             >
               <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${feedConfig.autoRefresh ? 'left-7' : 'left-1'}`} />
             </button>

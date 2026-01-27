@@ -193,10 +193,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                <Compass className="w-3 h-3 mr-2" />
                Investigation Scope
             </label>
-            <p className="text-xs text-zinc-600 mb-3 font-mono">
-               Choose a domain preset to tailor prompts, sources, and personas.
-            </p>
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+            <div className="grid grid-cols-2 gap-2 pr-1">
                {allScopes.map(scope => (
                   <button
                      key={scope.id}
@@ -222,9 +219,6 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                <Calendar className="w-3 h-3 mr-2" />
                Temporal Scope (Optional)
             </label>
-            <p className="text-xs text-zinc-600 mb-3 font-mono">
-               Limit the investigation to a specific time period.
-            </p>
             <div className="flex gap-3">
                <div className="flex-1">
                   <label className="block text-[10px] text-zinc-500 mb-1 font-mono">FROM</label>
@@ -457,7 +451,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
 
    return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-         <div className="bg-osint-panel w-full max-w-2xl border border-zinc-600 shadow-2xl flex flex-col relative">
+         <div className="bg-osint-panel w-full max-w-4xl border border-zinc-600 shadow-2xl flex flex-col relative">
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
                <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
@@ -518,21 +512,21 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                </div>
             )}
 
-         {/* Step Content */}
-         <div className="p-6 min-h-[200px]">
-            {currentStep === 0 && renderStep0()}
-            {currentStep === 1 && renderStep1()}
-            {currentStep === 2 && renderStep2()}
-            {currentStep === 3 && renderStep3()}
-            {currentStep === 4 && renderStep4()}
-            {currentStep === 5 && renderStep5()}
-         </div>
+            {/* Step Content */}
+            <div className="p-6 min-h-[200px]">
+               {currentStep === 0 && renderStep0()}
+               {currentStep === 1 && renderStep1()}
+               {currentStep === 2 && renderStep2()}
+               {currentStep === 3 && renderStep3()}
+               {currentStep === 4 && renderStep4()}
+               {currentStep === 5 && renderStep5()}
+            </div>
 
             {/* Footer */}
             <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
-            <button
-               onClick={prevStep}
-               disabled={currentStep === 0}
+               <button
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
                   className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                >
                   <ChevronLeft className="w-4 h-4 mr-1" />

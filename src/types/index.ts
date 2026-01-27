@@ -106,6 +106,7 @@ export interface SystemConfig {
   persona: string; // Now references PersonaDefinition.id from scope
   searchDepth: 'STANDARD' | 'DEEP';
   autoNormalizeEntities?: boolean;
+  quietMode?: boolean;
 }
 
 // --- INVESTIGATION SCOPE SYSTEM ---

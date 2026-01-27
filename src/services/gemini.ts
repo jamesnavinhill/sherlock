@@ -418,7 +418,8 @@ ${jsonInstruction}`,
 
     const rawText = response.text || "[]";
     const text = useStructuredOutput ? rawText : extractJSON(rawText);
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     if (error instanceof Error && error.message === 'MISSING_API_KEY') throw error;
     console.error("Live Intel failed:", error);

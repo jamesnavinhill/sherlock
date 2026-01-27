@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
 
 // --- SCOPES ---
 export const scopes = sqliteTable('scopes', {
@@ -94,3 +94,31 @@ export const settings = sqliteTable('settings', {
     key: text('key').primaryKey(),
     value: text('value').notNull(),
 });
+
+// --- TEMPLATES ---
+export const templates = sqliteTable('templates', {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    topic: text('topic').notNull(),
+    configJson: text('config_json').notNull(),
+    createdAt: integer('created_at').notNull(),
+    scopeId: text('scope_id'),
+});
+
+// --- MANUAL DATA (Graph) ---
+export const manualNodes = sqliteTable('manual_nodes', {
+    id: text('id').primaryKey(),
+    label: text('label').notNull(),
+    type: text('type').notNull(), // 'CASE' | 'ENTITY'
+    subtype: text('subtype'),
+    timestamp: integer('timestamp').notNull(),
+});
+
+export const manualLinks = sqliteTable('manual_links', {
+    source: text('source').notNull(),
+    target: text('target').notNull(),
+    timestamp: integer('timestamp').notNull(),
+}, (table) => ({
+    pk: primaryKey({ columns: [table.source, table.target] }),
+}));

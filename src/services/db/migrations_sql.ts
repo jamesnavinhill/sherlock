@@ -90,4 +90,29 @@ CREATE TABLE IF NOT EXISTS \`tasks\` (
 	\`end_time\` integer,
 	FOREIGN KEY (\`case_id\`) REFERENCES \`cases\`(\`id\`) ON UPDATE no action ON DELETE no action
 );
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS \`templates\` (
+	\`id\` text PRIMARY KEY NOT NULL,
+	\`name\` text NOT NULL,
+	\`description\` text,
+	\`topic\` text NOT NULL,
+	\`config_json\` text NOT NULL,
+	\`created_at\` integer NOT NULL,
+	\`scope_id\` text
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS \`manual_nodes\` (
+	\`id\` text PRIMARY KEY NOT NULL,
+	\`label\` text NOT NULL,
+	\`type\` text NOT NULL,
+	\`subtype\` text,
+	\`timestamp\` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS \`manual_links\` (
+	\`source\` text NOT NULL,
+	\`target\` text NOT NULL,
+	\`timestamp\` integer NOT NULL,
+	PRIMARY KEY(\`source\`, \`target\`)
+);
 `;

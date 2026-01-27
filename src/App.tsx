@@ -8,6 +8,7 @@ import { hasApiKey, investigateTopic } from './services/gemini';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
+import { buildAccentColor } from './utils/accent';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
@@ -82,16 +83,25 @@ function App() {
 
   // --- CORE INVESTIGATION LOGIC ---
 
+  const shouldNotify = () => {
+    try {
+      const configStr = localStorage.getItem('sherlock_config');
+      if (!configStr) return true;
+      const config = JSON.parse(configStr);
+      return !config.quietMode;
+    } catch { return true; }
+  };
+
   const runInvestigationTask = useCallback(async (taskId: string, topic: string, context?: { topic: string, summary: string }, configOverride?: Partial<SystemConfig>) => {
     try {
       let report = await investigateTopic(topic, context, configOverride);
 
       // AUTO ARCHIVE REPORT
       report = { ...report, config: configOverride };
-      report = archiveReport(report, context);
+      report = await archiveReport(report, context);
 
       completeTask(taskId, report);
-      addToast(`Investigation complete: ${topic}`, "SUCCESS");
+      if (shouldNotify()) addToast(`Investigation complete: ${topic}`, "SUCCESS");
     } catch (error: unknown) {
       console.error(`Task ${taskId} failed`, error);
       const message = error instanceof Error ? error.message : "Unknown error occurred";
@@ -113,7 +123,7 @@ function App() {
     };
 
     addTask(newTask);
-    addToast(`Scanning for leads on: ${topic}`, "INFO");
+    if (shouldNotify()) addToast(`Scanning for leads on: ${topic}`, "INFO");
 
     if (switchToView) {
       setActiveTaskId(newTaskId);
@@ -293,7 +303,11 @@ function App() {
                 themeColor={themeColor}
                 onThemeChange={(color) => setThemeColor(color)}
                 accentSettings={accentSettings}
-                onAccentChange={(settings) => setAccentSettings(settings)}
+                onAccentChange={(settings) => {
+                  setAccentSettings(settings);
+                  const newColor = buildAccentColor(settings);
+                  setThemeColor(newColor);
+                }}
                 onStartCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
               />
             )}

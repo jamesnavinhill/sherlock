@@ -98,6 +98,14 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
 
             setStreamStatus('RECEIVING');
 
+            if (!Array.isArray(newIntel)) {
+                console.error("Invalid intel format received", newIntel);
+                setStreamStatus('IDLE');
+                setIsMonitoring(false);
+                isMonitoringRef.current = false;
+                return;
+            }
+
             const uniqueNewIntel = newIntel.filter(item =>
                 !events.some(existing => existing.content === item.content || existing.id === item.id)
             );

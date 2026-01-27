@@ -21,6 +21,8 @@ import { CaseRepository } from '../services/db/repositories/CaseRepository';
 import { ScopeRepository } from '../services/db/repositories/ScopeRepository';
 import { TaskRepository } from '../services/db/repositories/TaskRepository';
 import { SettingsRepository } from '../services/db/repositories/SettingsRepository';
+import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
+import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
 import { initDB } from '../services/db/client';
 import { migrateLocalStorageToSqlite } from '../services/db/migrate';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor, parseOklch } from '../utils/accent';
@@ -117,11 +119,11 @@ interface CaseState {
     deleteScope: (id: string) => void;
 
     // --- DERIVED/COMPLEX ACTIONS ---
-    addTask: (task: InvestigationTask) => void;
-    completeTask: (id: string, report: InvestigationReport) => void;
-    failTask: (id: string, error: string) => void;
-    clearCompletedTasks: () => void;
-    archiveReport: (report: InvestigationReport, parentContext?: { topic: string, summary: string }) => InvestigationReport;
+    addTask: (task: InvestigationTask) => Promise<void>;
+    completeTask: (id: string, report: InvestigationReport) => Promise<void>;
+    failTask: (id: string, error: string) => Promise<void>;
+    clearCompletedTasks: () => Promise<void>;
+    archiveReport: (report: InvestigationReport, parentContext?: { topic: string, summary: string }) => Promise<InvestigationReport>;
 }
 
 export const useCaseStore = create<CaseState>()((set, get) => ({
@@ -175,6 +177,11 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const scopes = await ScopeRepository.getAll();
             const tasks = await TaskRepository.getAll();
             const headlines = await CaseRepository.getHeadlines();
+            const templates = await TemplateRepository.getAll();
+            const manualNodes = await ManualDataRepository.getAllNodes();
+            const manualLinks = await ManualDataRepository.getAllLinks();
+            const hiddenNodeIds = await SettingsRepository.getSetting<string[]>('hidden_nodes') || [];
+            const flaggedNodeIds = await SettingsRepository.getSetting<string[]>('flagged_nodes') || [];
             const storedAccent = await SettingsRepository.getSetting<{ hue: number; lightness: number; chroma: number }>('accent_settings');
             const storedTheme = await SettingsRepository.getSetting<string>('theme_color');
 
@@ -206,6 +213,11 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 customScopes: scopes,
                 tasks,
                 headlines,
+                templates,
+                manualNodes,
+                manualLinks,
+                hiddenNodeIds,
+                flaggedNodeIds,
                 accentSettings: resolvedAccent,
                 themeColor: resolvedTheme,
                 isLoading: false
@@ -250,13 +262,19 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         headlines: [...state.headlines, headline]
     })),
 
-    addTemplate: (template) => set((state) => ({
-        templates: [...state.templates, template]
-    })),
+    addTemplate: async (template) => {
+        await TemplateRepository.create(template);
+        set((state) => ({
+            templates: [...state.templates, template]
+        }));
+    },
 
-    deleteTemplate: (id) => set((state) => ({
-        templates: state.templates.filter(t => t.id !== id)
-    })),
+    deleteTemplate: async (id) => {
+        await TemplateRepository.delete(id);
+        set((state) => ({
+            templates: state.templates.filter(t => t.id !== id)
+        }));
+    },
 
     setEntityAliases: (entityAliases) => set({ entityAliases }),
 
@@ -287,68 +305,111 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     setFeedItems: (feedItems) => set({ feedItems }),
     setFeedConfig: (feedConfig) => set({ feedConfig }),
 
-    setManualLinks: (manualLinks) => set({ manualLinks }),
-    setManualNodes: (manualNodes) => set({ manualNodes }),
-    setHiddenNodeIds: (hiddenNodeIds) => set({ hiddenNodeIds }),
-    setFlaggedNodeIds: (flaggedNodeIds) => set({ flaggedNodeIds }),
+    setManualLinks: async (manualLinks) => {
+        set({ manualLinks });
+        await ManualDataRepository.saveAllLinks(manualLinks);
+    },
+    setManualNodes: async (manualNodes) => {
+        set({ manualNodes });
+        await ManualDataRepository.saveAllNodes(manualNodes);
+    },
+    setHiddenNodeIds: async (hiddenNodeIds) => {
+        set({ hiddenNodeIds });
+        await SettingsRepository.setSetting('hidden_nodes', hiddenNodeIds);
+    },
+    setFlaggedNodeIds: async (flaggedNodeIds) => {
+        set({ flaggedNodeIds });
+        await SettingsRepository.setSetting('flagged_nodes', flaggedNodeIds);
+    },
     setActiveCaseId: (activeCaseId) => set({ activeCaseId }),
 
-    toggleFlag: (id) => set((state) => {
+    toggleFlag: (id) => {
+        const state = get();
         const flagged = new Set(state.flaggedNodeIds);
         if (flagged.has(id)) flagged.delete(id);
         else flagged.add(id);
-        return { flaggedNodeIds: Array.from(flagged) };
-    }),
+        const newList = Array.from(flagged);
+        set({ flaggedNodeIds: newList });
+        void SettingsRepository.setSetting('flagged_nodes', newList);
+    },
 
-    toggleHide: (id) => set((state) => {
+    toggleHide: (id) => {
+        const state = get();
         const hidden = new Set(state.hiddenNodeIds);
         if (hidden.has(id)) hidden.delete(id);
         else hidden.add(id);
-        return { hiddenNodeIds: Array.from(hidden) };
-    }),
+        const newList = Array.from(hidden);
+        set({ hiddenNodeIds: newList });
+        void SettingsRepository.setSetting('hidden_nodes', newList);
+    },
 
     // Scope actions
     setActiveScope: (activeScope) => set({ activeScope }),
     setDefaultScope: (defaultScopeId) => set({ defaultScopeId }),
-    addScope: (scope) => set((state) => ({
-        customScopes: [...state.customScopes, scope]
-    })),
-    deleteScope: (id) => set((state) => ({
-        customScopes: state.customScopes.filter(s => s.id !== id)
-    })),
+    addScope: async (scope) => {
+        await ScopeRepository.create(scope);
+        set((state) => ({
+            customScopes: [...state.customScopes, scope]
+        }));
+    },
+    deleteScope: async (id) => {
+        await ScopeRepository.delete(id);
+        set((state) => ({
+            customScopes: state.customScopes.filter(s => s.id !== id)
+        }));
+    },
 
     // COMPLEX ACTIONS
-    addTask: (task) => set((state) => ({
-        tasks: [...state.tasks, task]
-    })),
+    addTask: async (task) => {
+        await TaskRepository.create(task);
+        set((state) => ({
+            tasks: [...state.tasks, task]
+        }));
+    },
 
-    completeTask: (id, report) => set((state) => ({
-        tasks: state.tasks.map((t) =>
-            t.id === id
-                ? { ...t, status: 'COMPLETED', report, endTime: Date.now() }
-                : t
-        )
-    })),
+    completeTask: async (id, report) => {
+        // Persist completion status
+        await TaskRepository.updateStatus(id, 'COMPLETED');
+        // Report persistence is handled in archiveReport before this is called
 
-    failTask: (id, error) => set((state) => ({
-        tasks: state.tasks.map((t) =>
-            t.id === id
-                ? { ...t, status: 'FAILED', error }
-                : t
-        )
-    })),
+        set((state) => ({
+            tasks: state.tasks.map((t) =>
+                t.id === id
+                    ? { ...t, status: 'COMPLETED', report, endTime: Date.now() }
+                    : t
+            )
+        }));
+    },
 
-    clearCompletedTasks: () => set((state) => ({
-        tasks: state.tasks.filter((t) =>
-            t.status === 'RUNNING' || t.status === 'QUEUED'
-        )
-    })),
+    failTask: async (id, error) => {
+        await TaskRepository.updateStatus(id, 'FAILED', error);
+        set((state) => ({
+            tasks: state.tasks.map((t) =>
+                t.id === id
+                    ? { ...t, status: 'FAILED', error }
+                    : t
+            )
+        }));
+    },
 
-    archiveReport: (report, parentContext) => {
+    clearCompletedTasks: async () => {
+        const state = get();
+        const tasksToRemove = state.tasks.filter(t => t.status === 'COMPLETED' || t.status === 'FAILED');
+        await Promise.all(tasksToRemove.map(t => TaskRepository.delete(t.id)));
+
+        set((state) => ({
+            tasks: state.tasks.filter((t) =>
+                t.status === 'RUNNING' || t.status === 'QUEUED'
+            )
+        }));
+    },
+
+    archiveReport: async (report, parentContext) => {
         const state = get();
         const archives = [...state.archives];
         const cases = [...state.cases];
         let targetCaseId = report.caseId;
+        let isNewCase = false;
 
         // 1. Link to parent case
         if (!targetCaseId && parentContext) {
@@ -379,6 +440,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             };
             cases.push(newCase);
             targetCaseId = newCaseId;
+            isNewCase = true;
         }
 
         // 4. Entity Normalization & Alias Application
@@ -421,7 +483,14 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             caseId: targetCaseId
         };
 
-        // 6. Upsert
+        // 6. Persistence
+        if (isNewCase) {
+            const caseToSave = cases.find(c => c.id === targetCaseId);
+            if (caseToSave) await CaseRepository.createCase(caseToSave);
+        }
+        await CaseRepository.createReport(savedReport);
+
+        // 7. Local Update
         const existingIndex = archives.findIndex(r => r.id === savedReport.id || (r.topic === savedReport.topic && r.dateStr === savedReport.dateStr));
         if (existingIndex >= 0) {
             archives[existingIndex] = savedReport;

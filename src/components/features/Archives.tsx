@@ -123,7 +123,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                 onClick={() => handleCaseSelect(c.id)}
                 className="bg-osint-panel/80 backdrop-blur-sm p-6 border border-zinc-800 hover:border-osint-primary cursor-pointer group transition-all relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
                   <Folder className="w-24 h-24 text-white" />
                 </div>
 
