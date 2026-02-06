@@ -32,6 +32,8 @@ import { AI_MODELS, DEFAULT_MODEL_ID, getModelOptionById } from '../../../config
 interface SettingsProps {
     themeColor: string;
     onThemeChange: (color: string) => void;
+    themeMode: 'dark' | 'light';
+    onThemeModeChange: (mode: 'dark' | 'light') => void;
     onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
     accentSettings: { hue: number; lightness: number; chroma: number };
     onStartCase: (topic: string, config: SystemConfig) => void;
@@ -57,7 +59,7 @@ const TABS = [
     { id: 'MAINTENANCE', label: 'Maintenance', icon: Database }
 ];
 
-export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, onAccentChange, accentSettings, onStartCase, onClose }) => {
+export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, themeMode, onThemeModeChange, onAccentChange, accentSettings, onStartCase, onClose }) => {
     const { archives, cases, importCaseData, clearCaseData } = useCaseStore();
 
     const initialConfig = loadStoredConfig();
@@ -121,7 +123,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
             quietMode
         };
 
-        localStorage.setItem('sherlock_config', JSON.stringify({ ...existingConfig, ...config, theme: themeColor }));
+        localStorage.setItem('sherlock_config', JSON.stringify({ ...existingConfig, ...config, theme: themeColor, themeMode }));
 
         setTimeout(() => {
             setIsSaving(false);
@@ -140,8 +142,9 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
                 thinkingBudget,
                 autoNormalizeEntities: autoResolve,
                 quietMode,
-                theme: themeColor
-            } as SystemConfig & { theme?: string },
+                theme: themeColor,
+                themeMode
+            } as SystemConfig & { theme?: string; themeMode?: 'dark' | 'light' },
             timestamp: new Date().toISOString()
         };
 
@@ -168,6 +171,9 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
                     if (confirm('This will overwrite your current database. Continue?')) {
                         await importCaseData({ cases: data.cases, archives: data.archives });
                         if (data.config?.theme) onThemeChange(data.config.theme);
+                        if (data.config?.themeMode === 'light' || data.config?.themeMode === 'dark') {
+                            onThemeModeChange(data.config.themeMode);
+                        }
                         alert('Data imported successfully.');
                     }
                 } else {

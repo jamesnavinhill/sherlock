@@ -1,28 +1,69 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @config "../tailwind.config.js";
 
 :root {
   --osint-primary: #e4e4e7cc;
+  --osint-dark: #000000;
+  --osint-panel: #09090b;
+  --osint-surface: #18181b;
+  --osint-border: #27272a;
+  --osint-text: #a1a1aa;
+  --osint-ink: #f4f4f5;
+}
+
+:root[data-theme='light'] {
+  --osint-dark: #f8f2e6;
+  --osint-panel: #fffaf0;
+  --osint-surface: #f3e9d8;
+  --osint-border: #cebea4;
+  --osint-text: #3a2c1f;
+  --osint-ink: #1f160d;
+
+  /* Light mode remap for existing dark-first utility usage */
+  --color-zinc-950: #ede1ce;
+  --color-zinc-900: #f6ecdc;
+  --color-zinc-800: #f1e5d3;
+  --color-zinc-700: #e4d6bf;
+  --color-zinc-600: #bba98b;
+  --color-zinc-500: #7a6852;
+  --color-zinc-400: #5e4d38;
+  --color-zinc-300: #463624;
+  --color-zinc-200: #312416;
+  --color-black: #1f160d;
+  --color-white: #fffdf8;
 }
 
 @theme {
-  --font-mono: "JetBrains Mono", monospace;
+  --font-mono: 'JetBrains Mono', monospace;
   --font-sans: Inter, sans-serif;
 
-  --color-osint-dark: #000000;
-  --color-osint-panel: #09090b;
-  --color-osint-surface: #18181b;
-  --color-osint-border: #27272a;
+  --color-osint-dark: var(--osint-dark);
+  --color-osint-panel: var(--osint-panel);
+  --color-osint-surface: var(--osint-surface);
+  --color-osint-border: var(--osint-border);
   --color-osint-primary: var(--osint-primary);
-  --color-osint-text: #a1a1aa;
+  --color-osint-text: var(--osint-text);
   --color-osint-warn: #fbbf24;
   --color-osint-danger: #f87171;
   --color-osint-success: #34d399;
 }
 
 body {
-  background-color: #000000;
-  color: #e4e4e7;
+  background-color: var(--osint-dark);
+  color: var(--osint-text);
+}
+
+#root {
+  background-color: var(--osint-dark);
+  color: var(--osint-text);
+}
+
+html,
+body,
+#root {
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
 }
 
 /* Custom scrollbar for webkit */
@@ -31,17 +72,17 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: var(--osint-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: var(--osint-border);
   border-radius: 0px;
-  border: 1px solid #000000;
+  border: 1px solid var(--osint-dark);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--osint-surface);
 }
 
 /* CRT Scanline Effect Overlay */
@@ -62,6 +103,53 @@ body {
   pointer-events: none;
   z-index: 9999;
   opacity: 0.15;
+}
+
+:root[data-theme='light'] .scanlines {
+  opacity: 0;
+}
+
+:root[data-theme='light'] .matrix-rain-canvas {
+  opacity: 0.14 !important;
+}
+
+:root[data-theme='light'] .bg-black {
+  background-color: #fffaf0 !important;
+}
+:root[data-theme='light'] .bg-black\/20 {
+  background-color: rgba(255, 250, 240, 0.72) !important;
+}
+:root[data-theme='light'] .bg-black\/30 {
+  background-color: rgba(255, 250, 240, 0.8) !important;
+}
+:root[data-theme='light'] .bg-black\/50 {
+  background-color: rgba(252, 245, 233, 0.86) !important;
+}
+:root[data-theme='light'] .bg-black\/60 {
+  background-color: rgba(250, 241, 227, 0.9) !important;
+}
+:root[data-theme='light'] .bg-black\/80 {
+  background-color: rgba(250, 241, 227, 0.94) !important;
+}
+
+/* Keep true overlays/backdrops dark for depth and modal readability */
+:root[data-theme='light'] .inset-0.bg-black\/80,
+:root[data-theme='light'] .inset-0.bg-black\/90,
+:root[data-theme='light'] .inset-0.bg-black\/95 {
+  background-color: rgba(20, 14, 9, 0.72) !important;
+}
+
+:root[data-theme='light'] input.bg-black,
+:root[data-theme='light'] select.bg-black,
+:root[data-theme='light'] textarea.bg-black {
+  background-color: #fffdf8 !important;
+  border-color: #bdaa8f !important;
+  color: #312416 !important;
+}
+
+:root[data-theme='light'] input.bg-black::placeholder,
+:root[data-theme='light'] textarea.bg-black::placeholder {
+  color: #7a6852 !important;
 }
 
 /* Custom Utility Animations (compatible with animate-in pattern) */
@@ -122,8 +210,13 @@ body {
   animation-duration: 200ms;
 }
 
-/* Ensure date picker icon is white in dark mode */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    cursor: pointer;
+/* Ensure date picker icon contrast follows active theme */
+:root[data-theme='dark'] input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+:root[data-theme='light'] input[type='date']::-webkit-calendar-picker-indicator {
+  filter: none;
+  cursor: pointer;
 }

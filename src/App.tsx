@@ -29,6 +29,7 @@ function App() {
     liveEvents: _liveEvents, setLiveEvents: _setLiveEvents,
     navStack, setNavStack,
     isSidebarCollapsed, setIsSidebarCollapsed,
+    themeMode, setThemeMode,
     themeColor, setThemeColor,
     accentSettings, setAccentSettings,
     showNewCaseModal: _showNewCaseModal, setShowNewCaseModal,
@@ -84,6 +85,11 @@ function App() {
   useEffect(() => {
     document.documentElement.style.setProperty('--osint-primary', themeColor);
   }, [themeColor]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+    document.documentElement.style.colorScheme = themeMode;
+  }, [themeMode]);
 
   useEffect(() => {
     if (currentView !== AppView.SETTINGS) {
@@ -283,6 +289,8 @@ function App() {
         activeTaskId={activeTaskId}
         onSelectTask={handleSelectTask}
         onClearCompleted={handleClearCompleted}
+        themeMode={themeMode}
+        onToggleTheme={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
       />
 
       <main className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}>
@@ -324,6 +332,8 @@ function App() {
               <Settings
                 themeColor={themeColor}
                 onThemeChange={(color) => setThemeColor(color)}
+                themeMode={themeMode}
+                onThemeModeChange={setThemeMode}
                 accentSettings={accentSettings}
                 onAccentChange={(settings) => {
                   setAccentSettings(settings);

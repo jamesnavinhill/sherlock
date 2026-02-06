@@ -34,6 +34,8 @@ export interface Toast {
     type: 'SUCCESS' | 'ERROR' | 'INFO';
 }
 
+export type ThemeMode = 'dark' | 'light';
+
 interface CaseState {
     // --- CORE DATA STATE ---
     isLoading: boolean;
@@ -71,6 +73,7 @@ interface CaseState {
     currentView: AppView;
     navStack: BreadcrumbItem[];
     isSidebarCollapsed: boolean;
+    themeMode: ThemeMode;
     themeColor: string;
     accentSettings: {
         hue: number;
@@ -89,6 +92,7 @@ interface CaseState {
     setCurrentView: (view: AppView) => void;
     setNavStack: (stack: BreadcrumbItem[]) => void;
     setIsSidebarCollapsed: (collapsed: boolean) => void;
+    setThemeMode: (mode: ThemeMode) => void;
     setThemeColor: (color: string) => void;
     setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
     setShowNewCaseModal: (show: boolean) => void;
@@ -147,6 +151,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     currentView: AppView.INVESTIGATION,
     navStack: [],
     isSidebarCollapsed: true,
+    themeMode: 'dark',
     themeColor: '#e4e4e7cc',
     accentSettings: DEFAULT_ACCENT_SETTINGS,
     showNewCaseModal: false,
@@ -190,6 +195,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const hiddenNodeIds = await SettingsRepository.getSetting<string[]>('hidden_nodes') || [];
             const flaggedNodeIds = await SettingsRepository.getSetting<string[]>('flagged_nodes') || [];
             const entityAliases = await SettingsRepository.getSetting<EntityAliasMap>('entity_aliases') || {};
+            const storedThemeMode = await SettingsRepository.getSetting<ThemeMode>('theme_mode');
             const storedAccent = await SettingsRepository.getSetting<{ hue: number; lightness: number; chroma: number }>('accent_settings');
             const storedTheme = await SettingsRepository.getSetting<string>('theme_color');
 
@@ -203,6 +209,14 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                     return null;
                 }
             })() : null;
+            const legacyThemeMode = legacyConfigRaw ? (() => {
+                try {
+                    const parsed = JSON.parse(legacyConfigRaw);
+                    return parsed?.themeMode === 'light' || parsed?.themeMode === 'dark' ? parsed.themeMode as ThemeMode : null;
+                } catch {
+                    return null;
+                }
+            })() : null;
 
             const resolvedAccent = storedAccent
                 || (legacyTheme ? parseOklch(legacyTheme) : null)
@@ -211,7 +225,11 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
 
             const resolvedTheme = storedTheme
                 || (legacyTheme || legacyConfigTheme || buildAccentColor(resolvedAccent));
+            const resolvedThemeMode: ThemeMode = storedThemeMode === 'light' || storedThemeMode === 'dark'
+                ? storedThemeMode
+                : (legacyThemeMode ?? 'dark');
 
+            await SettingsRepository.setSetting('theme_mode', resolvedThemeMode);
             await SettingsRepository.setSetting('accent_settings', resolvedAccent);
             await SettingsRepository.setSetting('theme_color', resolvedTheme);
 
@@ -227,6 +245,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 hiddenNodeIds,
                 flaggedNodeIds,
                 entityAliases,
+                themeMode: resolvedThemeMode,
                 accentSettings: resolvedAccent,
                 themeColor: resolvedTheme,
                 isLoading: false
@@ -252,6 +271,10 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     setCurrentView: (currentView) => set({ currentView }),
     setNavStack: (navStack) => set({ navStack }),
     setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
+    setThemeMode: (themeMode) => {
+        set({ themeMode });
+        void SettingsRepository.setSetting('theme_mode', themeMode);
+    },
     setThemeColor: (themeColor) => {
         const parsedAccent = parseOklch(themeColor);
         set({

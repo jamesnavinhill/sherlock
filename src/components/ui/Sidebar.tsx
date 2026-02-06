@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network } from 'lucide-react';
+import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network, Sun, Moon } from 'lucide-react';
 import type { InvestigationTask } from '../../types';
 import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
@@ -13,6 +13,8 @@ interface SidebarProps {
   activeTaskId: string | null;
   onSelectTask: (taskId: string) => void;
   onClearCompleted: () => void;
+  themeMode: 'dark' | 'light';
+  onToggleTheme: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -23,7 +25,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tasks,
   activeTaskId,
   onSelectTask,
-  onClearCompleted
+  onClearCompleted,
+  themeMode,
+  onToggleTheme
 }) => {
   const btnClass = (isActive: boolean) =>
     `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${isActive
@@ -123,6 +127,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Settings className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">System Config</span>}
+          </button>
+          <button
+            onClick={onToggleTheme}
+            className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 border-l border-transparent text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary`}
+            title={isCollapsed ? (themeMode === 'dark' ? 'Enable Light Mode' : 'Enable Dark Mode') : undefined}
+            aria-label={themeMode === 'dark' ? 'Enable Light Mode' : 'Enable Dark Mode'}
+          >
+            {themeMode === 'dark'
+              ? <Sun className="w-5 h-5 flex-shrink-0 text-osint-primary" />
+              : <Moon className="w-5 h-5 flex-shrink-0 text-osint-primary" />}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                {themeMode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </span>
+            )}
           </button>
         </div>
       </aside>
