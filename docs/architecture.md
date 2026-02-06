@@ -20,10 +20,11 @@ flowchart TD
         UI["UI Components"]
     end
 
-    subgraph AI["Gemini AI Layer"]
-        GS["gemini.ts Service"]
-        Tools["Google Search Tool"]
-        TTS["Gemini TTS"]
+    subgraph AI["Multi-Provider AI Layer"]
+        GS["gemini.ts Compatibility Facade"]
+        Router["providers/index.ts Router"]
+        Adapters["Gemini / OpenRouter / OpenAI / Anthropic Adapters"]
+        Tools["Provider Tools (Search/TTS/HTTP APIs)"]
     end
 
     subgraph Storage["Browser Storage"]
@@ -33,12 +34,21 @@ flowchart TD
     App --> Views
     App --> Sidebar
     Views --> GS
-    GS --> Tools
-    GS --> TTS
+    GS --> Router
+    Router --> Adapters
+    Adapters --> Tools
     App --> LS
 ```
 
 ---
+
+## Provider Runtime (Phase 3/4)
+
+- `src/services/providers/types.ts` defines the normalized provider contracts used by all AI operations.
+- `src/services/providers/shared/` contains cross-provider parsing, normalization, retry, logging, and error mapping utilities.
+- `src/services/providers/index.ts` is the provider router/registry and enforces capability checks by operation.
+- `src/services/gemini.ts` remains the app-facing API surface but now delegates to router operations.
+- Adapters currently implemented: `geminiProvider`, `openRouterProvider`, `openAIProvider`, `anthropicProvider`.
 
 ## Mobile & Responsive Strategy
 

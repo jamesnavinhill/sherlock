@@ -8,7 +8,8 @@ Build a clean, robust provider system where Google Gemini is the default and the
 
 - Phase 1 is implemented (provider/model config model and migration paths are in place).
 - Phase 2 is implemented (provider-aware key management is centralized and wired in UI/runtime checks).
-- OpenAI and Anthropic remain marked as planned runtime adapters until Phase 3.
+- Phase 3 is implemented (provider adapters extracted for Gemini, OpenRouter, OpenAI, Anthropic).
+- Phase 4 is implemented (provider router/registry live; `src/services/gemini.ts` is now a compatibility facade).
 
 ## Product Rules (Must Hold)
 
@@ -20,13 +21,11 @@ Build a clean, robust provider system where Google Gemini is the default and the
 
 ## Current Gaps (From Project Review)
 
-- Provider and transport logic are mixed in `src/services/gemini.ts`.
-- Runtime execution is still limited to Gemini/OpenRouter flows; OpenAI/Anthropic remain Phase 3 adapter work.
-- OpenAI and Anthropic keys are collected and validated, but are not yet wired to runtime clients.
+- Phase 5 flow propagation is not complete across all entry points yet.
+- Some investigations still branch by model/provider assumptions in feature-level flows that should move to unified launch requests.
 - Investigation wizard config is dropped in some paths:
   - `src/components/features/OperationView/index.tsx` lead modal ignores returned config.
   - `src/App.tsx` investigation start/run signatures do not carry scope/date override/preseeded input from wizard.
-- Provider behavior is selected mostly via `modelId` branching, which does not scale cleanly.
 
 ## Target Architecture
 
@@ -115,12 +114,12 @@ Exit criteria:
 
 ## Phase 3 - Adapter Extraction
 
-- [ ] Extract Gemini logic into `geminiProvider.ts`.
-- [ ] Extract OpenRouter logic into `openRouterProvider.ts`.
-- [ ] Implement OpenAI adapter for investigate/scan/live operations.
-- [ ] Implement Anthropic adapter for investigate/scan/live operations.
-- [ ] Normalize response shapes in adapter layer only.
-- [ ] Map provider errors into typed app errors (`MISSING_API_KEY`, `RATE_LIMITED`, `PARSE_ERROR`, `UPSTREAM_ERROR`).
+- [x] Extract Gemini logic into `geminiProvider.ts`.
+- [x] Extract OpenRouter logic into `openRouterProvider.ts`.
+- [x] Implement OpenAI adapter for investigate/scan/live operations.
+- [x] Implement Anthropic adapter for investigate/scan/live operations.
+- [x] Normalize response shapes in adapter layer only.
+- [x] Map provider errors into typed app errors (`MISSING_API_KEY`, `RATE_LIMITED`, `PARSE_ERROR`, `UPSTREAM_ERROR`).
 
 Exit criteria:
 
@@ -128,10 +127,10 @@ Exit criteria:
 
 ## Phase 4 - Router and Compatibility Facade
 
-- [ ] Implement provider registry/router (`src/services/providers/index.ts`).
-- [ ] Replace direct provider branching in `src/services/gemini.ts` with router dispatch.
-- [ ] Keep exported function signatures stable during this phase to reduce UI churn.
-- [ ] Add structured debug logs with `provider`, `modelId`, `operation`, `retryCount`, `errorClass`.
+- [x] Implement provider registry/router (`src/services/providers/index.ts`).
+- [x] Replace direct provider branching in `src/services/gemini.ts` with router dispatch.
+- [x] Keep exported function signatures stable during this phase to reduce UI churn.
+- [x] Add structured debug logs with `provider`, `modelId`, `operation`, `retryCount`, `errorClass`.
 
 Exit criteria:
 

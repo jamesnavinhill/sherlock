@@ -69,25 +69,25 @@ export const AI_PROVIDERS: AIProviderOption[] = [
     {
         id: 'OPENAI',
         label: 'OpenAI',
-        description: 'Planned direct provider adapter',
+        description: 'Direct provider adapter',
         defaultModelId: DEFAULT_MODELS_BY_PROVIDER.OPENAI,
         capabilities: {
             supportsThinkingBudget: false,
             supportsTts: false,
             supportsWebSearch: false,
-            runtimeStatus: 'PLANNED',
+            runtimeStatus: 'ACTIVE',
         },
     },
     {
         id: 'ANTHROPIC',
         label: 'Anthropic',
-        description: 'Planned direct provider adapter',
+        description: 'Direct provider adapter',
         defaultModelId: DEFAULT_MODELS_BY_PROVIDER.ANTHROPIC,
         capabilities: {
             supportsThinkingBudget: false,
             supportsTts: false,
             supportsWebSearch: false,
-            runtimeStatus: 'PLANNED',
+            runtimeStatus: 'ACTIVE',
         },
     },
 ];
@@ -240,25 +240,25 @@ export const AI_MODELS: AIModelOption[] = [
     {
         id: 'gpt-4.1-mini',
         name: 'GPT-4.1 Mini',
-        description: 'Planned OpenAI adapter model',
+        description: 'OpenAI fast general model',
         provider: 'OPENAI',
         capabilities: {
             supportsThinkingBudget: false,
             supportsStructuredOutput: true,
             supportsWebSearch: false,
-            runtimeStatus: 'PLANNED',
+            runtimeStatus: 'ACTIVE',
         },
     },
     {
         id: 'claude-3-5-haiku-latest',
         name: 'Claude 3.5 Haiku',
-        description: 'Planned Anthropic adapter model',
+        description: 'Anthropic fast general model',
         provider: 'ANTHROPIC',
         capabilities: {
             supportsThinkingBudget: false,
             supportsStructuredOutput: true,
             supportsWebSearch: false,
-            runtimeStatus: 'PLANNED',
+            runtimeStatus: 'ACTIVE',
         },
     },
 ];
