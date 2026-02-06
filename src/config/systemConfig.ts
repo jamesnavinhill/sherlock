@@ -1,5 +1,6 @@
 import type { SystemConfig } from '../types';
-import { DEFAULT_MODEL_ID, DEFAULT_PROVIDER, getDefaultModelForProvider, getModelProvider } from './aiModels';
+import type { AIProvider } from './aiModels';
+import { AI_PROVIDERS, DEFAULT_MODEL_ID, DEFAULT_PROVIDER, getDefaultModelForProvider, getModelProvider } from './aiModels';
 
 const STORAGE_KEY = 'sherlock_config';
 
@@ -36,11 +37,17 @@ const normalizeModelId = (modelId: unknown): string | undefined => {
     return LEGACY_MODEL_IDS[modelId] || modelId;
 };
 
+const isAIProvider = (value: unknown): value is AIProvider => {
+    return typeof value === 'string' && AI_PROVIDERS.some((provider) => provider.id === value);
+};
+
 export const migrateSystemConfig = (value?: Partial<SystemConfig> | null): SystemConfig => {
-    const raw = value || {};
+    const raw = (value || {}) as Partial<SystemConfig> & { provider?: unknown; modelId?: unknown };
 
     const fromModel = normalizeModelId(raw.modelId);
-    const provider = raw.provider || getModelProvider(fromModel || DEFAULT_MODEL_ID);
+    const provider = isAIProvider(raw.provider)
+        ? raw.provider
+        : getModelProvider(fromModel || DEFAULT_MODEL_ID);
     let modelId = fromModel || getDefaultModelForProvider(provider);
 
     // Keep provider/model pair aligned after legacy migrations or manual edits.

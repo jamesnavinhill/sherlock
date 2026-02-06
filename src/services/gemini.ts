@@ -3,7 +3,7 @@ import type { InvestigationReport, Source, FeedItem, MonitorEvent, SystemConfig,
 import { BUILTIN_SCOPES, getScopeById } from '../data/presets';
 import type { AIProvider } from '../config/aiModels';
 import { DEFAULT_PROVIDER, isGeminiModel, isOpenRouterModel } from '../config/aiModels';
-import { loadSystemConfig } from '../config/systemConfig';
+import { loadSystemConfig, migrateSystemConfig } from '../config/systemConfig';
 import {
   clearApiKey as clearProviderApiKey,
   getApiKeyOrThrow,
@@ -58,7 +58,8 @@ const toDisplayText = (value: unknown): string => {
 };
 
 export const hasApiKey = (provider?: AIProvider): boolean => {
-  return hasStoredApiKey(provider);
+  const activeProvider = provider || loadSystemConfig().provider;
+  return hasStoredApiKey(activeProvider);
 };
 
 export const setApiKey = (key: string, provider?: AIProvider) => {
@@ -740,7 +741,7 @@ export const investigateTopic = async (
 
   return withRetry(async () => {
     const savedConfig = getConfig();
-    const config = { ...savedConfig, ...configOverride };
+    const config = migrateSystemConfig({ ...savedConfig, ...configOverride });
     const useStructuredOutput = isGeminiModel(config.modelId) && !isModel25(config.modelId);
 
     // Resolve scope - use provided or fall back to open investigation
@@ -852,6 +853,7 @@ export const investigateTopic = async (
       sources,
       rawText: JSON.stringify(data, null, 2),
       config: {
+        provider: config.provider,
         modelId: config.modelId,
         persona: config.persona,
         searchDepth: config.searchDepth,

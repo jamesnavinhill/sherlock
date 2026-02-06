@@ -4,6 +4,12 @@
 
 Build a clean, robust provider system where Google Gemini is the default and the app can switch reliably to OpenRouter, OpenAI, or Anthropic, with uniform behavior across all investigation flows.
 
+## Status Snapshot (February 6, 2026)
+
+- Phase 1 is implemented (provider/model config model and migration paths are in place).
+- Phase 2 is implemented (provider-aware key management is centralized and wired in UI/runtime checks).
+- OpenAI and Anthropic remain marked as planned runtime adapters until Phase 3.
+
 ## Product Rules (Must Hold)
 
 - Default provider is `GEMINI`.
@@ -15,9 +21,8 @@ Build a clean, robust provider system where Google Gemini is the default and the
 ## Current Gaps (From Project Review)
 
 - Provider and transport logic are mixed in `src/services/gemini.ts`.
-- Provider support in `src/config/aiModels.ts` currently covers `GEMINI` and `OPENROUTER` only.
-- OpenAI and Anthropic keys are collected in Settings but not wired to runtime clients.
-- `hasApiKey()` and key management in `src/services/gemini.ts` are not provider-aware for OpenAI/Anthropic.
+- Runtime execution is still limited to Gemini/OpenRouter flows; OpenAI/Anthropic remain Phase 3 adapter work.
+- OpenAI and Anthropic keys are collected and validated, but are not yet wired to runtime clients.
 - Investigation wizard config is dropped in some paths:
   - `src/components/features/OperationView/index.tsx` lead modal ignores returned config.
   - `src/App.tsx` investigation start/run signatures do not carry scope/date override/preseeded input from wizard.
@@ -83,15 +88,15 @@ Exit criteria:
 
 ## Phase 1 - Provider Config Model
 
-- [ ] Extend provider enum/types to include OpenAI and Anthropic.
-- [ ] Update `src/config/aiModels.ts` with explicit provider metadata and per-model capabilities.
-- [ ] Add `getDefaultModelForProvider(provider)` and remove inference-only routing as primary strategy.
-- [ ] Define persisted config shape in `SystemConfig`:
+- [x] Extend provider enum/types to include OpenAI and Anthropic.
+- [x] Update `src/config/aiModels.ts` with explicit provider metadata and per-model capabilities.
+- [x] Add `getDefaultModelForProvider(provider)` and remove inference-only routing as primary strategy.
+- [x] Define persisted config shape in `SystemConfig`:
   - `provider`
   - `modelId`
   - `thinkingBudget`
   - existing search/persona settings
-- [ ] Add migration logic for existing configs that only store `modelId`.
+- [x] Add migration logic for existing configs that only store `modelId`.
 
 Exit criteria:
 
@@ -99,10 +104,10 @@ Exit criteria:
 
 ## Phase 2 - Key Management and Validation
 
-- [ ] Move key handling out of `src/services/gemini.ts` into `src/services/providers/keys.ts`.
-- [ ] Implement `hasApiKey(provider?)` and `getApiKeyOrThrow(provider)` for all 4 providers.
-- [ ] Keep local storage compatibility, but centralize all key reads/writes.
-- [ ] Update API key modal and settings to validate keys per selected provider.
+- [x] Move key handling out of `src/services/gemini.ts` into `src/services/providers/keys.ts`.
+- [x] Implement `hasApiKey(provider?)` and `getApiKeyOrThrow(provider)` for all 4 providers.
+- [x] Keep local storage compatibility, but centralize all key reads/writes.
+- [x] Update API key modal and settings to validate keys per selected provider.
 
 Exit criteria:
 
