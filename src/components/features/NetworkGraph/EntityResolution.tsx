@@ -10,6 +10,100 @@ interface EntityResolutionProps {
   onClose: () => void;
 }
 
+export const detectEntityClusters = (
+  allEntities: string[],
+  currentAliases: EntityAliasMap,
+  ignoredClusters: Set<string> = new Set()
+): string[][] => {
+  // 1. Resolve all entities to their current canonical form
+  const resolvedSet = new Set<string>();
+  allEntities.forEach(e => {
+    const canonical = currentAliases[e] || e;
+    resolvedSet.add(canonical);
+  });
+
+  const uniqueEntities = Array.from(resolvedSet);
+  const parent: Record<string, string> = {};
+
+  // Initialize Union-Find
+  uniqueEntities.forEach(e => parent[e] = e);
+
+  const find = (i: string): string => {
+    if (parent[i] === i) return i;
+    return find(parent[i]);
+  };
+
+  const union = (i: string, j: string) => {
+    const rootI = find(i);
+    const rootJ = find(j);
+    if (rootI !== rootJ) {
+      parent[rootI] = rootJ;
+    }
+  };
+
+  // 2. Pairwise comparison to build connections
+  for (let i = 0; i < uniqueEntities.length; i++) {
+    for (let j = i + 1; j < uniqueEntities.length; j++) {
+      const entA = uniqueEntities[i];
+      const entB = uniqueEntities[j];
+
+      const coreA = getCoreName(entA);
+      const coreB = getCoreName(entB);
+
+      let isMatch = false;
+
+      // STRATEGY 1: Exact Core Match
+      if (coreA === coreB && coreA.length > 0) isMatch = true;
+
+      // STRATEGY 2: Core Substring
+      if (!isMatch && coreA.length > 3 && coreB.length > 3) {
+        if (coreA.includes(coreB) || coreB.includes(coreA)) {
+          if (Math.min(coreA.length, coreB.length) > 4) isMatch = true;
+        }
+      }
+
+      // STRATEGY 3: Levenshtein
+      if (!isMatch) {
+        const dist = getLevenshteinDistance(coreA, coreB);
+        const maxLength = Math.max(coreA.length, coreB.length);
+        if (maxLength > 0 && dist / maxLength < 0.2) isMatch = true;
+      }
+
+      // STRATEGY 4: Jaccard
+      if (!isMatch) {
+        const tokensA = getTokens(entA);
+        const tokensB = getTokens(entB);
+        if (tokensA.size > 0 && tokensB.size > 0) {
+          const intersection = new Set([...tokensA].filter(x => tokensB.has(x)));
+          const unionSet = new Set([...tokensA, ...tokensB]);
+          const jaccard = intersection.size / unionSet.size;
+          if (jaccard > 0.6) isMatch = true;
+        }
+      }
+
+      if (isMatch) {
+        union(entA, entB);
+      }
+    }
+  }
+
+  // 3. Group by Root Parent
+  const rawClusters: Record<string, string[]> = {};
+  uniqueEntities.forEach(e => {
+    const root = find(e);
+    if (!rawClusters[root]) rawClusters[root] = [];
+    rawClusters[root].push(e);
+  });
+
+  // 4. Filter for clusters > 1 and not ignored
+  return Object.values(rawClusters)
+    .filter(c => c.length > 1)
+    .filter(c => {
+      const key = c.sort().join('::');
+      return !ignoredClusters.has(key);
+    });
+};
+
 export const EntityResolution: React.FC<EntityResolutionProps> = ({
   allEntities,
   currentAliases,
@@ -26,96 +120,10 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
   const [excludedVariants, setExcludedVariants] = useState<Set<string>>(new Set());
 
   // Union-Find implementation to group chains: A~B, B~C => {A,B,C}
-  const clusters = useMemo(() => {
-    // 1. Resolve all entities to their current canonical form
-    const resolvedSet = new Set<string>();
-    allEntities.forEach(e => {
-      const canonical = currentAliases[e] || e;
-      resolvedSet.add(canonical);
-    });
-
-    const uniqueEntities = Array.from(resolvedSet);
-    const parent: Record<string, string> = {};
-
-    // Initialize Union-Find
-    uniqueEntities.forEach(e => parent[e] = e);
-
-    const find = (i: string): string => {
-      if (parent[i] === i) return i;
-      return find(parent[i]);
-    };
-
-    const union = (i: string, j: string) => {
-      const rootI = find(i);
-      const rootJ = find(j);
-      if (rootI !== rootJ) {
-        parent[rootI] = rootJ;
-      }
-    };
-
-    // 2. Pairwise comparison to build connections
-    for (let i = 0; i < uniqueEntities.length; i++) {
-      for (let j = i + 1; j < uniqueEntities.length; j++) {
-        const entA = uniqueEntities[i];
-        const entB = uniqueEntities[j];
-
-        const coreA = getCoreName(entA);
-        const coreB = getCoreName(entB);
-
-        let isMatch = false;
-
-        // STRATEGY 1: Exact Core Match
-        if (coreA === coreB && coreA.length > 0) isMatch = true;
-
-        // STRATEGY 2: Core Substring
-        if (!isMatch && coreA.length > 3 && coreB.length > 3) {
-          if (coreA.includes(coreB) || coreB.includes(coreA)) {
-            if (Math.min(coreA.length, coreB.length) > 4) isMatch = true;
-          }
-        }
-
-        // STRATEGY 3: Levenshtein
-        if (!isMatch) {
-          const dist = getLevenshteinDistance(coreA, coreB);
-          const maxLength = Math.max(coreA.length, coreB.length);
-          if (maxLength > 0 && dist / maxLength < 0.2) isMatch = true;
-        }
-
-        // STRATEGY 4: Jaccard
-        if (!isMatch) {
-          const tokensA = getTokens(entA);
-          const tokensB = getTokens(entB);
-          if (tokensA.size > 0 && tokensB.size > 0) {
-            const intersection = new Set([...tokensA].filter(x => tokensB.has(x)));
-            const unionSet = new Set([...tokensA, ...tokensB]);
-            const jaccard = intersection.size / unionSet.size;
-            if (jaccard > 0.6) isMatch = true;
-          }
-        }
-
-        if (isMatch) {
-          union(entA, entB);
-        }
-      }
-    }
-
-    // 3. Group by Root Parent
-    const rawClusters: Record<string, string[]> = {};
-    uniqueEntities.forEach(e => {
-      const root = find(e);
-      if (!rawClusters[root]) rawClusters[root] = [];
-      rawClusters[root].push(e);
-    });
-
-    // 4. Filter for clusters > 1 and not ignored
-    return Object.values(rawClusters)
-      .filter(c => c.length > 1)
-      .filter(c => {
-        // Generate a simple key for the cluster to check ignore list
-        const key = c.sort().join('::');
-        return !ignoredClusters.has(key);
-      });
-  }, [allEntities, currentAliases, ignoredClusters]);
+  const clusters = useMemo(
+    () => detectEntityClusters(allEntities, currentAliases, ignoredClusters),
+    [allEntities, currentAliases, ignoredClusters]
+  );
 
   const defaultCanonicals = useMemo(() => {
     const defaults: Record<number, string> = {};
@@ -223,7 +231,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
             {activeTab === 'CLUSTERS' && clusters.length > 0 && (
               <button
                 onClick={handleAutoMergeAll}
-                className="flex items-center px-4 py-2 bg-cyan-900/20 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-900/40 hover:border-cyan-400 transition-all font-mono text-xs font-bold uppercase tracking-wider animate-pulse"
+                className="flex items-center px-4 py-2 bg-osint-primary/10 text-osint-primary border border-osint-primary/50 hover:bg-osint-primary/20 hover:border-osint-primary transition-all font-mono text-xs font-bold uppercase tracking-wider animate-pulse"
               >
                 <Wand2 className="w-4 h-4 mr-2" />
                 Merge All Clusters ({clusters.length})
@@ -266,12 +274,12 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                 </div>
               ) : (
                 clusters.map((cluster, idx) => (
-                  <div key={idx} className="bg-osint-panel border border-zinc-800 p-6 flex flex-col md:flex-row gap-6 relative group hover:border-cyan-900/50 transition-colors">
+                  <div key={idx} className="bg-osint-panel border border-zinc-800 p-6 flex flex-col md:flex-row gap-6 relative group hover:border-osint-primary/50 transition-colors">
 
                     {/* Left: Cluster List */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-4">
-                        <AlertCircle className="w-4 h-4 text-cyan-500" />
+                        <AlertCircle className="w-4 h-4 text-osint-primary" />
                         <h3 className="text-sm font-mono font-bold text-white uppercase">
                           Identity Cluster #{idx + 1}
                         </h3>
@@ -289,7 +297,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                           const isIncluded = !isExcluded;
 
                           return (
-                            <div key={variant} className={`flex items-start justify-between p-3 rounded transition-colors ${isSelected ? 'bg-cyan-900/10 border border-cyan-900/30' : 'hover:bg-zinc-800 border border-transparent'}`}>
+                            <div key={variant} className={`flex items-start justify-between p-3 rounded transition-colors ${isSelected ? 'bg-osint-primary/10 border border-osint-primary/30' : 'hover:bg-zinc-800 border border-transparent'}`}>
 
                               {/* Target Selection (Radio) */}
                               <div className="flex items-start flex-1 cursor-pointer pt-0.5" onClick={() => setSelectedCanonicals({ ...selectedCanonicals, [idx]: variant })}>
@@ -298,13 +306,13 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                                   name={`cluster-${idx}`}
                                   checked={isSelected}
                                   onChange={() => { }} // Handled by div click
-                                  className="form-radio text-cyan-500 bg-black border-zinc-600 focus:ring-cyan-500 focus:ring-offset-black mt-1"
+                                  className="form-radio text-osint-primary bg-black border-zinc-600 focus:ring-osint-primary focus:ring-offset-black mt-1"
                                 />
                                 <span className={`ml-3 font-mono text-sm break-words leading-relaxed ${isSelected ? 'text-white font-bold' : 'text-zinc-400'}`}>
                                   {variant}
                                 </span>
                                 {isSelected && (
-                                  <span className="ml-2 text-[10px] text-cyan-500 font-bold uppercase tracking-wider bg-black px-1 rounded whitespace-nowrap mt-0.5">MASTER</span>
+                                  <span className="ml-2 text-[10px] text-osint-primary font-bold uppercase tracking-wider bg-black px-1 rounded whitespace-nowrap mt-0.5">MASTER</span>
                                 )}
                               </div>
 
@@ -316,7 +324,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                                   className={`p-1 rounded transition-colors ${isSelected ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'}`}
                                 >
                                   {isSelected || isIncluded ? (
-                                    <CheckSquare className={`w-5 h-5 ${isSelected ? 'text-cyan-500' : 'text-zinc-400'}`} />
+                                    <CheckSquare className={`w-5 h-5 ${isSelected ? 'text-osint-primary' : 'text-zinc-400'}`} />
                                   ) : (
                                     <Square className="w-5 h-5 text-zinc-600" />
                                   )}
@@ -350,7 +358,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                         Ignore Cluster
                       </button>
 
-                      <div className="mt-4 p-3 bg-cyan-900/10 border border-cyan-900/30 text-[10px] text-cyan-400 font-mono leading-tight">
+                      <div className="mt-4 p-3 bg-osint-primary/10 border border-osint-primary/30 text-[10px] text-osint-primary font-mono leading-tight">
                         <span className="font-bold">NOTE:</span> Selected nodes will merge into &quot;{canonicalSelections[idx]?.substring(0, 15)}...&quot;. Unchecked nodes remain distinct.
                       </div>
                     </div>

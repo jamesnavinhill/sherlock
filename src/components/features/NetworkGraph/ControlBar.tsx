@@ -22,6 +22,7 @@ interface ControlBarProps {
     onZoom: (dir: 'IN' | 'OUT') => void;
     onShowAddNode: () => void;
     onShowResolution: () => void;
+    pendingClusterCount: number;
     isLocked: boolean;
     onToggleLock: () => void;
 }
@@ -43,6 +44,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     onZoom,
     onShowAddNode,
     onShowResolution,
+    pendingClusterCount,
     isLocked,
     onToggleLock
 }) => {
@@ -142,10 +144,20 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 </button>
                 <button
                     onClick={onShowResolution}
-                    className="p-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white transition-colors"
-                    title="Consolidate Entities"
+                    className={`p-2 border transition-colors relative ${pendingClusterCount > 0
+                        ? 'border-osint-primary text-osint-primary hover:text-white hover:border-white'
+                        : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-white'
+                        }`}
+                    title={pendingClusterCount > 0
+                        ? `Consolidate Entities (${pendingClusterCount} cluster${pendingClusterCount === 1 ? '' : 's'} detected)`
+                        : 'Consolidate Entities'}
                 >
                     <GitMerge className="w-4 h-4" />
+                    {pendingClusterCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-osint-primary text-black text-[9px] leading-4 font-bold font-mono text-center">
+                            {pendingClusterCount}
+                        </span>
+                    )}
                 </button>
             </div>
         </div>

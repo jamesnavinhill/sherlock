@@ -12,7 +12,7 @@ interface ArchivesProps {
 }
 
 export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase }) => {
-  const { archives, cases, setArchives, setCases } = useCaseStore();
+  const { archives, cases, deleteReport, deleteCase } = useCaseStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
     const activeCaseId = localStorage.getItem('sherlock_active_case_id');
     if (activeCaseId && activeCaseId !== 'ALL') {
@@ -47,25 +47,16 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     return archives.filter(r => !r.caseId);
   };
 
-  const handleDeleteReport = (e: React.MouseEvent, id?: string) => {
+  const handleDeleteReport = async (e: React.MouseEvent, id?: string) => {
     e.stopPropagation();
     if (!id) return;
-
-    const updated = archives.filter(r => r.id !== id);
-    setArchives(updated);
+    await deleteReport(id);
   };
 
-  const handleDeleteCase = (e: React.MouseEvent, caseId: string) => {
+  const handleDeleteCase = async (e: React.MouseEvent, caseId: string) => {
     e.stopPropagation();
     if (!confirm("Are you sure? This will delete the case folder but keep reports as unassigned.")) return;
-
-    // Delete case object
-    const updatedCases = cases.filter(c => c.id !== caseId);
-    setCases(updatedCases);
-
-    // Unassign reports
-    const updatedReports = archives.map(r => r.caseId === caseId ? { ...r, caseId: undefined } : r);
-    setArchives(updatedReports);
+    await deleteCase(caseId);
 
     if (selectedCaseId === caseId) {
       setSelectedCaseId(null);

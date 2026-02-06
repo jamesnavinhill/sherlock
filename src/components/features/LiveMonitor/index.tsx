@@ -168,7 +168,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
         setSelectedEventForAnalysis(event);
     };
 
-    const saveAsHeadline = (event: MonitorEvent) => {
+    const saveAsHeadline = async (event: MonitorEvent) => {
         if (!selectedCaseId || savedHeadlineIds.has(event.id)) return;
 
         try {
@@ -184,7 +184,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                 status: 'PENDING'
             };
 
-            addHeadline(newHeadline);
+            await addHeadline(newHeadline);
         } catch (e) {
             console.error('Failed to save headline', e);
         }

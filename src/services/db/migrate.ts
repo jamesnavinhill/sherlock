@@ -1,5 +1,7 @@
 import { CaseRepository } from './repositories/CaseRepository';
 import { ScopeRepository } from './repositories/ScopeRepository';
+import { ManualDataRepository } from './repositories/ManualDataRepository';
+import { SettingsRepository } from './repositories/SettingsRepository';
 import { getDB } from './client';
 import { settings } from './schema';
 import { eq } from 'drizzle-orm';
@@ -47,6 +49,30 @@ export const migrateLocalStorageToSqlite = async () => {
             for (const report of state.archives) {
                 await CaseRepository.createReport(report);
             }
+        }
+
+        // 4. Migrate Headlines
+        if (state.headlines && Array.isArray(state.headlines)) {
+            for (const headline of state.headlines) {
+                await CaseRepository.createHeadline(headline);
+            }
+        }
+
+        // 5. Migrate Aliases and Graph state
+        if (state.entityAliases && typeof state.entityAliases === 'object') {
+            await SettingsRepository.setSetting('entity_aliases', state.entityAliases);
+        }
+        if (state.hiddenNodeIds && Array.isArray(state.hiddenNodeIds)) {
+            await SettingsRepository.setSetting('hidden_nodes', state.hiddenNodeIds);
+        }
+        if (state.flaggedNodeIds && Array.isArray(state.flaggedNodeIds)) {
+            await SettingsRepository.setSetting('flagged_nodes', state.flaggedNodeIds);
+        }
+        if (state.manualNodes && Array.isArray(state.manualNodes)) {
+            await ManualDataRepository.saveAllNodes(state.manualNodes);
+        }
+        if (state.manualLinks && Array.isArray(state.manualLinks)) {
+            await ManualDataRepository.saveAllLinks(state.manualLinks);
         }
 
         await markMigrated();

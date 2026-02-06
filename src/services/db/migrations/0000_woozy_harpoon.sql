@@ -35,6 +35,8 @@ CREATE TABLE `leads` (
 	`case_id` text,
 	`content` text NOT NULL,
 	`source` text,
+	`type` text,
+	`url` text,
 	`status` text NOT NULL,
 	`threat_level` text,
 	`linked_report_id` text,

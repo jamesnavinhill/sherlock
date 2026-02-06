@@ -1,7 +1,23 @@
 @import "tailwindcss";
+@config "../tailwind.config.js";
 
 :root {
   --osint-primary: #e4e4e7cc;
+}
+
+@theme {
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: Inter, sans-serif;
+
+  --color-osint-dark: #000000;
+  --color-osint-panel: #09090b;
+  --color-osint-surface: #18181b;
+  --color-osint-border: #27272a;
+  --color-osint-primary: var(--osint-primary);
+  --color-osint-text: #a1a1aa;
+  --color-osint-warn: #fbbf24;
+  --color-osint-danger: #f87171;
+  --color-osint-success: #34d399;
 }
 
 body {

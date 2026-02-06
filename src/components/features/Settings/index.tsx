@@ -15,7 +15,8 @@ import {
     AlertTriangle,
     Compass,
     Cpu,
-    ChevronDown
+    ChevronDown,
+    X
 } from 'lucide-react';
 import { useCaseStore } from '../../../store/caseStore';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
@@ -31,6 +32,7 @@ interface SettingsProps {
     onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
     accentSettings: { hue: number; lightness: number; chroma: number };
     onStartCase: (topic: string, config: SystemConfig) => void;
+    onClose: () => void;
 }
 
 const TABS = [
@@ -40,8 +42,8 @@ const TABS = [
     { id: 'MAINTENANCE', label: 'Maintenance', icon: Database }
 ];
 
-export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, onAccentChange, accentSettings, onStartCase }) => {
-    const { archives, cases, setArchives, setCases } = useCaseStore();
+export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, onAccentChange, accentSettings, onStartCase, onClose }) => {
+    const { archives, cases, importCaseData, clearCaseData } = useCaseStore();
     const [activeTab, setActiveTab] = useState('GENERAL');
     const [apiKey, setApiKey] = useState(() => localStorage.getItem('GEMINI_API_KEY') ?? '');
     const [openAIKey, setOpenAIKey] = useState(() => localStorage.getItem('OPENAI_API_KEY') ?? '');
@@ -138,13 +140,12 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             try {
                 const data = JSON.parse(event.target?.result as string);
                 if (data.archives && data.cases) {
                     if (confirm("This will overwrite your current database. Continue?")) {
-                        setArchives(data.archives);
-                        setCases(data.cases);
+                        await importCaseData({ cases: data.cases, archives: data.archives });
                         if (data.config?.theme) onThemeChange(data.config.theme);
                         alert("Data imported successfully.");
                     }
@@ -158,10 +159,9 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
         reader.readAsText(file);
     };
 
-    const handleClearData = () => {
+    const handleClearData = async () => {
         if (confirm("CRITICAL WARNING: This will permanently delete all cases and reports. Proceed?")) {
-            setArchives([]);
-            setCases([]);
+            await clearCaseData();
             localStorage.removeItem('sherlock_active_case_id');
             alert("Database purged.");
         }
@@ -395,47 +395,43 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, o
         <div className="h-full w-full bg-black relative flex flex-col overflow-hidden">
             <BackgroundMatrixRain />
 
-            {/* Header */}
-            <header className="h-20 px-8 border-b border-zinc-800 flex items-center justify-between bg-black/95 backdrop-blur-md relative z-20 flex-shrink-0">
-                <div className="flex items-center space-x-4">
-                    <div className="bg-osint-primary/10 p-2 border border-osint-primary/30">
-                        <SettingsIcon className="w-6 h-6 text-osint-primary" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-white font-mono uppercase tracking-tighter">Command Center</h1>
-                        <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">System Protocols & Configuration</p>
-                    </div>
-                </div>
-            </header>
-
-            {/* Navigation Tabs */}
-            <nav className="px-8 bg-zinc-900/50 border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0">
-                <div className="flex items-center space-x-8">
+            {/* Unified Top Bar */}
+            <header className="h-20 px-8 bg-zinc-900/45 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0 shadow-[inset_0_-1px_0_rgba(39,39,42,0.8)]">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-700/70 to-transparent pointer-events-none" />
+                <div className="h-full flex items-center space-x-8">
                     {TABS.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`py-4 px-2 font-mono text-xs uppercase tracking-widest font-bold transition-all border-b-2 flex items-center space-x-2 ${activeTab === tab.id ? 'border-osint-primary text-osint-primary translate-y-[1px]' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                            className={`h-full px-2 font-mono text-xs uppercase tracking-widest font-bold transition-all border-b-2 flex items-center space-x-2 ${activeTab === tab.id ? 'border-osint-primary text-osint-primary' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                         >
                             <tab.icon className="w-3 h-3" />
                             <span>{tab.label}</span>
                         </button>
                     ))}
                 </div>
-                {activeTab === 'GENERAL' && (
+                <div className="h-full flex items-center gap-2">
                     <button
                         onClick={handleSaveGeneral}
-                        disabled={isSaving}
-                        className="flex items-center px-6 py-2 bg-white text-black font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-all disabled:opacity-50 shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)] my-2"
+                        disabled={isSaving || activeTab !== 'GENERAL'}
+                        className="flex items-center px-4 py-2 bg-white text-black border border-white font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_-5px_rgba(255,255,255,0.45)]"
                     >
                         {isSaving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                         {isSaving ? 'Saving...' : saveSuccess ? 'Saved' : 'Save Configuration'}
                     </button>
-                )}
-            </nav>
+                    <button
+                        onClick={onClose}
+                        className="p-2 border border-zinc-700 bg-zinc-900/60 text-zinc-500 hover:text-white hover:border-zinc-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
+                        title="Close Settings"
+                        aria-label="Close Settings"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+            </header>
 
             {/* Scrollable Content */}
-            <main className="flex-1 overflow-y-auto p-8 relative z-10 custom-scrollbar">
+            <main className="flex-1 overflow-y-auto p-8 relative custom-scrollbar">
                 <div className="w-full">
                     {activeTab === 'GENERAL' && renderGeneral()}
                     {activeTab === 'SCOPES' && <ScopeManager />}

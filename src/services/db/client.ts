@@ -34,6 +34,25 @@ export const initDB = async (): Promise<ReturnType<typeof drizzle>> => {
     }
 };
 
+const runSchemaUpgrades = async (api: SQLite.SQLiteAPI, db: number): Promise<void> => {
+    const alterStatements = [
+        'ALTER TABLE leads ADD COLUMN type text;',
+        'ALTER TABLE leads ADD COLUMN url text;'
+    ];
+
+    for (const sql of alterStatements) {
+        try {
+            await api.exec(db, sql);
+        } catch (e) {
+            const errStr = String(e);
+            if (!errStr.includes('duplicate column name') && !errStr.includes('already exists')) {
+                console.error('Schema upgrade error:', e);
+                throw e;
+            }
+        }
+    }
+};
+
 const doInitDB = async (): Promise<ReturnType<typeof drizzle>> => {
     try {
         // Initialize wa-sqlite with async WASM module
@@ -69,6 +88,7 @@ const doInitDB = async (): Promise<ReturnType<typeof drizzle>> => {
                 }
             }
         }
+        await runSchemaUpgrades(sqlite3, dbHandle);
 
         // Create drizzle proxy driver using exec with callback
         const api = sqlite3;

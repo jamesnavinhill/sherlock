@@ -60,6 +60,8 @@ export const leads = sqliteTable('leads', {
     caseId: text('case_id').references(() => cases.id),
     content: text('content').notNull(),
     source: text('source'),
+    type: text('type'),
+    url: text('url'),
     status: text('status').notNull(), // 'PENDING' | 'INVESTIGATED' | 'FLAGGED'
     threatLevel: text('threat_level'),
     linkedReportId: text('linked_report_id'),

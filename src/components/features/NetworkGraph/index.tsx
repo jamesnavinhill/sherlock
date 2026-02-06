@@ -10,7 +10,7 @@ import { ControlBar } from './ControlBar';
 import type { GraphNode, GraphCanvasRef } from './GraphCanvas';
 import { GraphCanvas } from './GraphCanvas';
 import { NodeInspector } from './NodeInspector';
-import { EntityResolution } from './EntityResolution';
+import { EntityResolution, detectEntityClusters } from './EntityResolution';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { cleanEntityName } from '../../../utils/text';
 
@@ -40,6 +40,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setManualLinks,
         setManualNodes,
         setEntityAliases: setAliases,
+        updateReportTitle,
+        renameEntityAcrossReports,
         toggleFlag,
         toggleHide,
         setActiveCaseId
@@ -141,6 +143,10 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     }, [reports, headlines, filterCaseId]);
 
     const isEmpty = reports.length === 0 && manualNodes.length === 0;
+    const pendingClusterCount = useMemo(
+        () => detectEntityClusters(dossierData.entities.map(entity => entity.name), aliases).length,
+        [dossierData.entities, aliases]
+    );
 
     // Handlers
     const handleNodeClick = (node: GraphNode | null) => {
@@ -224,15 +230,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     };
 
     // Update Handlers (Persistence)
-    const handleEntitySave = (oldName: string, newName: string) => {
-        const updated = reports.map(r => ({
-            ...r,
-            entities: (r.entities || []).map(e => {
-                const name = typeof e === 'string' ? e : e.name;
-                return name === oldName ? (typeof e === 'string' ? newName : { ...e, name: newName }) : e;
-            })
-        }));
-        useCaseStore.getState().setArchives(updated); // Update store Directly for this complex update
+    const handleEntitySave = async (oldName: string, newName: string) => {
+        await renameEntityAcrossReports(oldName, newName);
 
         // Update Flagged
         if (flaggedNodeIds.has(oldName)) {
@@ -243,9 +242,10 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setSelectedEntityName(newName);
     };
 
-    const handleReportSave = (report: InvestigationReport, newTitle: string) => {
-        const updated = reports.map(r => r.id === report.id ? { ...r, topic: newTitle } : r);
-        useCaseStore.getState().setArchives(updated);
+    const handleReportSave = async (report: InvestigationReport, newTitle: string) => {
+        if (report.id) {
+            await updateReportTitle(report.id, newTitle);
+        }
         setSelectedReport({ ...report, topic: newTitle });
     };
 
@@ -276,6 +276,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                 onZoom={(dir) => dir === 'IN' ? graphRef.current?.zoomIn() : graphRef.current?.zoomOut()}
                 onShowAddNode={() => setShowAddNodeUI(true)}
                 onShowResolution={() => setShowResolutionModal(true)}
+                pendingClusterCount={pendingClusterCount}
                 isLocked={isLocked}
                 onToggleLock={() => setIsLocked(!isLocked)}
             />
@@ -415,7 +416,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                     allEntities={dossierData.entities?.map(e => e.name) || []}
                     currentAliases={aliases}
                     onSaveAliases={(newAliases) => {
-                        setAliases(newAliases);
+                        void setAliases(newAliases);
                     }}
                     onClose={() => setShowResolutionModal(false)}
                 />

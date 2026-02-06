@@ -31,7 +31,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     task, reportOverride = null, onBack, onDeepDive, onBatchDeepDive, navStack, onNavigate, onSelectCase, onStartNewCase, onInvestigateHeadline
 }) => {
     // Panel visibility
-    const [leftPanelOpen, setLeftPanelOpen] = useState(window.innerWidth > 1024);
+    const [leftPanelOpen, setLeftPanelOpen] = useState(false);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
 
     // Responsive logic
@@ -75,7 +75,10 @@ export const OperationView: React.FC<OperationViewProps> = ({
     const {
         cases: allCases,
         archives,
+        headlines: allHeadlines,
         addTemplate,
+        updateReportTitle,
+        renameEntityAcrossReports,
         activeCaseId: selectedCaseId,
         setActiveCaseId
     } = useCaseStore();
@@ -94,8 +97,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
 
     const headlines = useMemo(() => {
         if (!effectiveCaseId) return [];
-        return useCaseStore.getState().headlines.filter(h => h.caseId === effectiveCaseId);
-    }, [effectiveCaseId]);
+        return allHeadlines.filter(h => h.caseId === effectiveCaseId);
+    }, [effectiveCaseId, allHeadlines]);
 
     // Removed redundant effects, case switching now handled by store action in Toolbar/index
     // No-op for now to keep structure clean during migration
@@ -224,30 +227,19 @@ export const OperationView: React.FC<OperationViewProps> = ({
         setRightPanelOpen(false);
     };
 
-    const handleTitleSave = (newTitle: string) => {
+    const handleTitleSave = async (newTitle: string) => {
         if (!report) return;
-        const updated = archives.map(r => r.id === report.id ? { ...r, topic: newTitle } : r);
-        useCaseStore.getState().setArchives(updated);
+        if (report.id) {
+            await updateReportTitle(report.id, newTitle);
+        }
         // Trigger reload by navigating to same report
         if (report.id) onNavigate(report.id);
     };
 
-    const handleEntityNameSave = (newName: string) => {
+    const handleEntityNameSave = async (newName: string) => {
         if (!selectedEntity) return;
         const oldName = selectedEntity.name;
-
-        // Update entities in all archived reports
-        const updated = archives.map(r => ({
-            ...r,
-            entities: (r.entities || []).map(e => {
-                const name = typeof e === 'string' ? e : e.name;
-                if (name === oldName) {
-                    return typeof e === 'string' ? newName : { ...e, name: newName };
-                }
-                return e;
-            })
-        }));
-        useCaseStore.getState().setArchives(updated);
+        await renameEntityAcrossReports(oldName, newName);
 
         // Update flagged nodes if entity was flagged
         if (useCaseStore.getState().flaggedNodeIds.includes(oldName)) {

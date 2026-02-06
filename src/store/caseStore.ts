@@ -11,7 +11,8 @@ import type {
     FeedItem,
     ManualConnection,
     ManualNode,
-    InvestigationScope
+    InvestigationScope,
+    EntityAliasMap
 } from '../types';
 import {
     AppView
@@ -94,10 +95,10 @@ interface CaseState {
     setShowGlobalSearch: (show: boolean) => void;
     setTemplates: (templates: CaseTemplate[]) => void;
     setHeadlines: (headlines: Headline[]) => void;
-    addHeadline: (headline: Headline) => void;
+    addHeadline: (headline: Headline) => Promise<void>;
     addTemplate: (template: CaseTemplate) => void;
     deleteTemplate: (id: string) => void;
-    setEntityAliases: (aliases: EntityAliasMap) => void;
+    setEntityAliases: (aliases: EntityAliasMap) => Promise<void>;
     addAlias: (variant: string, canonical: string) => void;
     resolveEntity: (name: string) => string;
     addToast: (message: string, type?: Toast['type']) => void;
@@ -124,6 +125,12 @@ interface CaseState {
     failTask: (id: string, error: string) => Promise<void>;
     clearCompletedTasks: () => Promise<void>;
     archiveReport: (report: InvestigationReport, parentContext?: { topic: string, summary: string }) => Promise<InvestigationReport>;
+    updateReportTitle: (reportId: string, title: string) => Promise<void>;
+    renameEntityAcrossReports: (oldName: string, newName: string) => Promise<void>;
+    deleteReport: (reportId: string) => Promise<void>;
+    deleteCase: (caseId: string) => Promise<void>;
+    importCaseData: (payload: { cases: Case[]; archives: InvestigationReport[] }) => Promise<void>;
+    clearCaseData: () => Promise<void>;
 }
 
 export const useCaseStore = create<CaseState>()((set, get) => ({
@@ -137,7 +144,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     activeTaskId: null,
     liveEvents: [],
     toasts: [],
-    currentView: AppView.DASHBOARD,
+    currentView: AppView.INVESTIGATION,
     navStack: [],
     isSidebarCollapsed: true,
     themeColor: '#e4e4e7cc',
@@ -182,6 +189,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const manualLinks = await ManualDataRepository.getAllLinks();
             const hiddenNodeIds = await SettingsRepository.getSetting<string[]>('hidden_nodes') || [];
             const flaggedNodeIds = await SettingsRepository.getSetting<string[]>('flagged_nodes') || [];
+            const entityAliases = await SettingsRepository.getSetting<EntityAliasMap>('entity_aliases') || {};
             const storedAccent = await SettingsRepository.getSetting<{ hue: number; lightness: number; chroma: number }>('accent_settings');
             const storedTheme = await SettingsRepository.getSetting<string>('theme_color');
 
@@ -218,6 +226,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 manualLinks,
                 hiddenNodeIds,
                 flaggedNodeIds,
+                entityAliases,
                 accentSettings: resolvedAccent,
                 themeColor: resolvedTheme,
                 isLoading: false
@@ -264,9 +273,18 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     setTemplates: (templates) => set({ templates }),
     setHeadlines: (headlines) => set({ headlines }),
 
-    addHeadline: (headline) => set((state) => ({
-        headlines: [...state.headlines, headline]
-    })),
+    addHeadline: async (headline) => {
+        await CaseRepository.createHeadline(headline);
+        set((state) => {
+            const existingIndex = state.headlines.findIndex(h => h.id === headline.id);
+            if (existingIndex >= 0) {
+                const headlines = [...state.headlines];
+                headlines[existingIndex] = headline;
+                return { headlines };
+            }
+            return { headlines: [...state.headlines, headline] };
+        });
+    },
 
     addTemplate: async (template) => {
         await TemplateRepository.create(template);
@@ -282,11 +300,17 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         }));
     },
 
-    setEntityAliases: (entityAliases) => set({ entityAliases }),
+    setEntityAliases: async (entityAliases) => {
+        set({ entityAliases });
+        await SettingsRepository.setSetting('entity_aliases', entityAliases);
+    },
 
-    addAlias: (variant, canonical) => set((state) => ({
-        entityAliases: { ...state.entityAliases, [variant]: canonical }
-    })),
+    addAlias: (variant, canonical) => {
+        set((state) => ({
+            entityAliases: { ...state.entityAliases, [variant]: canonical }
+        }));
+        void SettingsRepository.setSetting('entity_aliases', get().entityAliases);
+    },
 
     resolveEntity: (name) => {
         const state = get();
@@ -506,5 +530,67 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
 
         set({ archives, cases, activeCaseId: targetCaseId });
         return savedReport;
+    },
+
+    updateReportTitle: async (reportId, title) => {
+        await CaseRepository.updateReportTopic(reportId, title);
+        set((state) => ({
+            archives: state.archives.map((report) =>
+                report.id === reportId ? { ...report, topic: title } : report
+            )
+        }));
+    },
+
+    renameEntityAcrossReports: async (oldName, newName) => {
+        await CaseRepository.renameEntity(oldName, newName);
+        set((state) => ({
+            archives: state.archives.map((report) => ({
+                ...report,
+                entities: (report.entities || []).map((entity) => {
+                    const name = typeof entity === 'string' ? entity : entity.name;
+                    if (name !== oldName) return entity;
+                    return typeof entity === 'string' ? newName : { ...entity, name: newName };
+                })
+            }))
+        }));
+    },
+
+    deleteReport: async (reportId) => {
+        await CaseRepository.deleteReport(reportId);
+        set((state) => ({
+            archives: state.archives.filter((report) => report.id !== reportId)
+        }));
+    },
+
+    deleteCase: async (caseId) => {
+        await CaseRepository.unassignReportsFromCase(caseId);
+        await CaseRepository.deleteCase(caseId);
+        set((state) => ({
+            cases: state.cases.filter((item) => item.id !== caseId),
+            archives: state.archives.map((report) =>
+                report.caseId === caseId ? { ...report, caseId: undefined } : report
+            ),
+            activeCaseId: state.activeCaseId === caseId ? null : state.activeCaseId
+        }));
+    },
+
+    importCaseData: async ({ cases, archives }) => {
+        await CaseRepository.importCasesAndReports(cases, archives);
+        set({
+            cases,
+            archives,
+            headlines: [],
+            activeCaseId: null
+        });
+    },
+
+    clearCaseData: async () => {
+        await CaseRepository.clearCaseData();
+        set({
+            cases: [],
+            archives: [],
+            headlines: [],
+            activeCaseId: null
+        });
     }
 }));

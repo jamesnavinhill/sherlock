@@ -216,6 +216,58 @@ export class CaseRepository {
         }
     }
 
+    static async updateReportTopic(reportId: string, topic: string): Promise<void> {
+        const db = getDB();
+        await db.update(reports)
+            .set({ topic })
+            .where(eq(reports.id, reportId));
+    }
+
+    static async renameEntity(oldName: string, newName: string): Promise<void> {
+        const db = getDB();
+        await db.update(entities)
+            .set({ name: newName })
+            .where(eq(entities.name, oldName));
+    }
+
+    static async deleteReport(reportId: string): Promise<void> {
+        const db = getDB();
+        await db.delete(entities).where(eq(entities.reportId, reportId));
+        await db.delete(sources).where(eq(sources.reportId, reportId));
+        await db.delete(reports).where(eq(reports.id, reportId));
+    }
+
+    static async unassignReportsFromCase(caseId: string): Promise<void> {
+        const db = getDB();
+        await db.update(reports)
+            .set({ caseId: null })
+            .where(eq(reports.caseId, caseId));
+    }
+
+    static async deleteCase(caseId: string): Promise<void> {
+        const db = getDB();
+        await db.delete(cases).where(eq(cases.id, caseId));
+    }
+
+    static async clearCaseData(): Promise<void> {
+        const db = getDB();
+        await db.delete(entities);
+        await db.delete(sources);
+        await db.delete(reports);
+        await db.delete(leads);
+        await db.delete(cases);
+    }
+
+    static async importCasesAndReports(caseData: Case[], reportData: InvestigationReport[]): Promise<void> {
+        await this.clearCaseData();
+        for (const item of caseData) {
+            await this.createCase(item);
+        }
+        for (const report of reportData) {
+            await this.createReport(report);
+        }
+    }
+
     // --- LEADS ---
     static async getHeadlines(): Promise<Headline[]> {
         const db = getDB();
@@ -226,11 +278,41 @@ export class CaseRepository {
             caseId: row.caseId || '',
             content: row.content,
             source: row.source || '',
+            url: row.url || undefined,
             timestamp: row.timestamp || new Date().toISOString(),
-            type: 'NEWS' as const, // Default for now
+            type: row.type === 'SOCIAL' || row.type === 'OFFICIAL' ? row.type : 'NEWS',
             status: row.status as Headline['status'],
             threatLevel: (row.threatLevel as Headline['threatLevel']) || 'INFO',
             linkedReportId: row.linkedReportId || undefined
         }));
+    }
+
+    static async createHeadline(headline: Headline): Promise<void> {
+        const db = getDB();
+        await db.insert(leads).values({
+            id: headline.id,
+            caseId: headline.caseId,
+            content: headline.content,
+            source: headline.source,
+            type: headline.type,
+            url: headline.url,
+            status: headline.status,
+            threatLevel: headline.threatLevel,
+            linkedReportId: headline.linkedReportId,
+            timestamp: headline.timestamp
+        }).onConflictDoUpdate({
+            target: leads.id,
+            set: {
+                caseId: headline.caseId,
+                content: headline.content,
+                source: headline.source,
+                type: headline.type,
+                url: headline.url,
+                status: headline.status,
+                threatLevel: headline.threatLevel,
+                linkedReportId: headline.linkedReportId,
+                timestamp: headline.timestamp
+            }
+        });
     }
 }

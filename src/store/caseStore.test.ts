@@ -2,9 +2,17 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useCaseStore } from './caseStore';
 import type { InvestigationReport, CaseTemplate } from '../types';
 import { AppView } from '../types';
+import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
+import { TaskRepository } from '../services/db/repositories/TaskRepository';
 
 describe('caseStore', () => {
     beforeEach(() => {
+        vi.restoreAllMocks();
+        vi.spyOn(TemplateRepository, 'create').mockResolvedValue();
+        vi.spyOn(TemplateRepository, 'delete').mockResolvedValue();
+        vi.spyOn(TaskRepository, 'create').mockResolvedValue();
+        vi.spyOn(TaskRepository, 'updateStatus').mockResolvedValue();
+
         // Reset store before each test
         const store = useCaseStore.getState();
         store.setArchives([]);
@@ -21,7 +29,7 @@ describe('caseStore', () => {
         expect(state.currentView).toBe(AppView.DASHBOARD);
     });
 
-    it('should add and delete templates', () => {
+    it('should add and delete templates', async () => {
         const template: CaseTemplate = {
             id: 'tpl-1',
             name: 'Test Template',
@@ -32,19 +40,19 @@ describe('caseStore', () => {
 
         const { addTemplate, deleteTemplate } = useCaseStore.getState();
 
-        addTemplate(template);
+        await addTemplate(template);
         expect(useCaseStore.getState().templates).toHaveLength(1);
         expect(useCaseStore.getState().templates[0].name).toBe('Test Template');
 
-        deleteTemplate('tpl-1');
+        await deleteTemplate('tpl-1');
         expect(useCaseStore.getState().templates).toHaveLength(0);
     });
 
-    it('should handle task lifecycle', () => {
+    it('should handle task lifecycle', async () => {
         const { addTask, completeTask } = useCaseStore.getState();
         const taskId = 'task-1';
 
-        addTask({
+        await addTask({
             id: taskId,
             topic: 'Lifecycle test',
             status: 'RUNNING',
@@ -65,7 +73,7 @@ describe('caseStore', () => {
             rawText: 'Test content'
         };
 
-        completeTask(taskId, report);
+        await completeTask(taskId, report);
         expect(useCaseStore.getState().tasks[0].status).toBe('COMPLETED');
         expect(useCaseStore.getState().tasks[0].report?.id).toBe('rep-1');
     });

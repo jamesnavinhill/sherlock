@@ -46,6 +46,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => hasApiKey());
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [focusedReportId, setFocusedReportId] = useState<string | null>(null);
+  const [lastNonSettingsView, setLastNonSettingsView] = useState<AppView>(AppView.INVESTIGATION);
 
   // Global Keyboard Shortcuts
   const shortcuts = createAppShortcuts({
@@ -83,6 +84,12 @@ function App() {
   useEffect(() => {
     document.documentElement.style.setProperty('--osint-primary', themeColor);
   }, [themeColor]);
+
+  useEffect(() => {
+    if (currentView !== AppView.SETTINGS) {
+      setLastNonSettingsView(currentView);
+    }
+  }, [currentView]);
 
   // --- CORE INVESTIGATION LOGIC ---
 
@@ -255,7 +262,15 @@ function App() {
       <Sidebar
         currentView={currentView}
         onChangeView={(view) => {
-          setCurrentView(view);
+          if (view === AppView.SETTINGS) {
+            if (currentView === AppView.SETTINGS) {
+              setCurrentView(lastNonSettingsView);
+            } else {
+              setCurrentView(AppView.SETTINGS);
+            }
+          } else {
+            setCurrentView(view);
+          }
           // Mobile: close sidebar when navigating
           if (window.innerWidth < 768) {
             setIsSidebarCollapsed(true);
@@ -315,6 +330,7 @@ function App() {
                   setThemeColor(newColor);
                 }}
                 onStartCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
+                onClose={() => setCurrentView(lastNonSettingsView)}
               />
             )}
           </Suspense>
