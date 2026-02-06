@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Settings as SettingsIcon,
     Shield,
@@ -27,7 +27,24 @@ import { ScopeManager } from '../../ui/ScopeManager';
 import type { SystemConfig } from '../../../types';
 import { AccentPicker } from '../../ui/AccentPicker';
 import { buildAccentColor } from '../../../utils/accent';
-import { AI_MODELS, DEFAULT_MODEL_ID, getModelOptionById } from '../../../config/aiModels';
+import type { AIProvider } from '../../../config/aiModels';
+import {
+    AI_PROVIDERS,
+    DEFAULT_MODEL_ID,
+    getDefaultModelForProvider,
+    getModelProvider,
+    getModelOptionById,
+    getRuntimeReadyModelsForProvider,
+    isProviderRuntimeReady
+} from '../../../config/aiModels';
+import { loadSystemConfig, saveSystemConfig } from '../../../config/systemConfig';
+import {
+    clearApiKey as clearProviderApiKey,
+    getStoredApiKey,
+    hasApiKey as hasProviderApiKey,
+    setApiKey as setProviderApiKey,
+    validateApiKey
+} from '../../../services/providers/keys';
 
 interface SettingsProps {
     themeColor: string;
@@ -40,17 +57,6 @@ interface SettingsProps {
     onClose: () => void;
 }
 
-const loadStoredConfig = (): Partial<SystemConfig> => {
-    const configStr = localStorage.getItem('sherlock_config');
-    if (!configStr) return {};
-
-    try {
-        return JSON.parse(configStr) as Partial<SystemConfig>;
-    } catch {
-        return {};
-    }
-};
-
 const TABS = [
     { id: 'GENERAL', label: 'General', icon: SettingsIcon },
     { id: 'AI', label: 'AI', icon: Cpu },
@@ -62,13 +68,13 @@ const TABS = [
 export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, themeMode, onThemeModeChange, onAccentChange, accentSettings, onStartCase, onClose }) => {
     const { archives, cases, importCaseData, clearCaseData } = useCaseStore();
 
-    const initialConfig = loadStoredConfig();
+    const initialConfig = loadSystemConfig();
 
     const [activeTab, setActiveTab] = useState('GENERAL');
-    const [apiKey, setApiKey] = useState(() => localStorage.getItem('GEMINI_API_KEY') ?? localStorage.getItem('sherlock_api_key') ?? '');
-    const [openRouterKey, setOpenRouterKey] = useState(() => localStorage.getItem('OPENROUTER_API_KEY') ?? '');
-    const [openAIKey, setOpenAIKey] = useState(() => localStorage.getItem('OPENAI_API_KEY') ?? '');
-    const [anthropicKey, setAnthropicKey] = useState(() => localStorage.getItem('ANTHROPIC_API_KEY') ?? '');
+    const [geminiKey, setGeminiKey] = useState(() => getStoredApiKey('GEMINI') ?? '');
+    const [openRouterKey, setOpenRouterKey] = useState(() => getStoredApiKey('OPENROUTER') ?? '');
+    const [openAIKey, setOpenAIKey] = useState(() => getStoredApiKey('OPENAI') ?? '');
+    const [anthropicKey, setAnthropicKey] = useState(() => getStoredApiKey('ANTHROPIC') ?? '');
 
     const [showGeminiKey, setShowGeminiKey] = useState(false);
     const [showOpenRouterKey, setShowOpenRouterKey] = useState(false);
@@ -77,45 +83,70 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
 
     const [autoResolve, setAutoResolve] = useState(initialConfig.autoNormalizeEntities ?? true);
     const [quietMode, setQuietMode] = useState(initialConfig.quietMode ?? false);
+    const [selectedProvider, setSelectedProvider] = useState<AIProvider>(
+        isProviderRuntimeReady(initialConfig.provider) ? initialConfig.provider : 'GEMINI'
+    );
     const [selectedModel, setSelectedModel] = useState(initialConfig.modelId ?? DEFAULT_MODEL_ID);
     const [searchDepth, setSearchDepth] = useState<'STANDARD' | 'DEEP'>(initialConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD');
     const [thinkingBudget, setThinkingBudget] = useState(typeof initialConfig.thinkingBudget === 'number' ? initialConfig.thinkingBudget : 0);
 
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saveError, setSaveError] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const selectedModelMeta = getModelOptionById(selectedModel);
+    const activeProvider = isProviderRuntimeReady(selectedProvider) ? selectedProvider : 'GEMINI';
+    const selectableModels = getRuntimeReadyModelsForProvider(activeProvider);
+    const activeModelId = selectableModels.some((model) => model.id === selectedModel)
+        ? selectedModel
+        : (selectableModels[0]?.id ?? getDefaultModelForProvider(activeProvider));
+    const selectedModelMeta = getModelOptionById(activeModelId);
 
     const handleSaveConfiguration = () => {
         setIsSaving(true);
+        setSaveError('');
 
-        const gemini = apiKey.trim();
+        const gemini = geminiKey.trim();
         const openRouter = openRouterKey.trim();
         const openAI = openAIKey.trim();
         const anthropic = anthropicKey.trim();
 
-        if (gemini) {
-            localStorage.setItem('GEMINI_API_KEY', gemini);
-            localStorage.setItem('sherlock_api_key', gemini);
-        } else {
-            localStorage.removeItem('GEMINI_API_KEY');
-            localStorage.removeItem('sherlock_api_key');
+        const candidateKeys: Array<{ provider: AIProvider; key: string }> = [
+            { provider: 'GEMINI', key: gemini },
+            { provider: 'OPENROUTER', key: openRouter },
+            { provider: 'OPENAI', key: openAI },
+            { provider: 'ANTHROPIC', key: anthropic },
+        ];
+
+        for (const candidate of candidateKeys) {
+            if (!candidate.key) continue;
+            const validation = validateApiKey(candidate.provider, candidate.key);
+            if (!validation.isValid) {
+                setSaveError(validation.message || `Invalid ${candidate.provider} API key.`);
+                setIsSaving(false);
+                return;
+            }
         }
 
-        if (openRouter) localStorage.setItem('OPENROUTER_API_KEY', openRouter);
-        else localStorage.removeItem('OPENROUTER_API_KEY');
+        candidateKeys.forEach((candidate) => {
+            if (candidate.key) {
+                setProviderApiKey(candidate.provider, candidate.key);
+            } else {
+                clearProviderApiKey(candidate.provider);
+            }
+        });
 
-        if (openAI) localStorage.setItem('OPENAI_API_KEY', openAI);
-        else localStorage.removeItem('OPENAI_API_KEY');
+        if (!hasProviderApiKey(activeProvider)) {
+            setSaveError(`Missing ${activeProvider} API key. Add one or switch active provider.`);
+            setIsSaving(false);
+            return;
+        }
 
-        if (anthropic) localStorage.setItem('ANTHROPIC_API_KEY', anthropic);
-        else localStorage.removeItem('ANTHROPIC_API_KEY');
-
-        const existingConfig = loadStoredConfig();
+        const existingConfig = loadSystemConfig();
         const config: SystemConfig = {
-            modelId: selectedModel,
+            provider: activeProvider,
+            modelId: activeModelId,
             searchDepth,
             thinkingBudget,
             persona: existingConfig.persona || 'general-investigator',
@@ -123,7 +154,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
             quietMode
         };
 
-        localStorage.setItem('sherlock_config', JSON.stringify({ ...existingConfig, ...config, theme: themeColor, themeMode }));
+        saveSystemConfig(config, { theme: themeColor, themeMode });
 
         setTimeout(() => {
             setIsSaving(false);
@@ -137,7 +168,8 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
             archives,
             cases,
             config: {
-                modelId: selectedModel,
+                provider: activeProvider,
+                modelId: activeModelId,
                 searchDepth,
                 thinkingBudget,
                 autoNormalizeEntities: autoResolve,
@@ -269,8 +301,8 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                             <div className="flex gap-2">
                                 <input
                                     type={showGeminiKey ? 'text' : 'password'}
-                                    value={apiKey}
-                                    onChange={(e) => setApiKey(e.target.value)}
+                                    value={geminiKey}
+                                    onChange={(e) => setGeminiKey(e.target.value)}
                                     placeholder="Enter Gemini API Key..."
                                     className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
                                 />
@@ -340,6 +372,12 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                             </div>
                         </div>
 
+                        {saveError && (
+                            <div className="text-[10px] text-red-400 font-mono border border-red-900/50 bg-red-950/30 px-3 py-2">
+                                {saveError}
+                            </div>
+                        )}
+
                         <p className="text-[9px] text-zinc-600 font-mono italic pt-2">Keys are stored locally in your browser.</p>
                     </div>
                 </section>
@@ -351,21 +389,48 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                     </div>
                     <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
                         <div>
+                            <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-2">Active Provider</label>
+                            <div className="relative">
+                                <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                                <select
+                                    value={selectedProvider}
+                                    onChange={(e) => {
+                                        const nextProvider = e.target.value as AIProvider;
+                                        setSelectedProvider(nextProvider);
+                                        const fallbackModel = getRuntimeReadyModelsForProvider(nextProvider)[0]?.id || getDefaultModelForProvider(nextProvider);
+                                        setSelectedModel(fallbackModel);
+                                    }}
+                                    className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-3 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary"
+                                >
+                                    {AI_PROVIDERS.map((provider) => (
+                                        <option
+                                            key={provider.id}
+                                            value={provider.id}
+                                            disabled={provider.capabilities.runtimeStatus !== 'ACTIVE'}
+                                        >
+                                            {provider.label} {provider.capabilities.runtimeStatus === 'PLANNED' ? '(Phase 3)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-2">Active Model</label>
                             <div className="relative">
                                 <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
                                 <select
-                                    value={selectedModel}
+                                    value={activeModelId}
                                     onChange={(e) => setSelectedModel(e.target.value)}
                                     className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-3 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary"
                                 >
-                                    {AI_MODELS.map((model) => (
+                                    {selectableModels.map((model) => (
                                         <option key={model.id} value={model.id}>{model.name} ({model.id})</option>
                                     ))}
                                 </select>
                             </div>
                             <p className="text-[10px] text-zinc-500 font-mono mt-2">
-                                Provider: <span className="text-zinc-300">{selectedModelMeta?.provider || 'GEMINI'}</span>
+                                Provider: <span className="text-zinc-300">{selectedModelMeta?.provider || activeProvider}</span>
                             </p>
                         </div>
 
@@ -511,7 +576,20 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                     {activeTab === 'GENERAL' && renderGeneral()}
                     {activeTab === 'AI' && renderAI()}
                     {activeTab === 'SCOPES' && <ScopeManager />}
-                    {activeTab === 'TEMPLATES' && <TemplateGallery onApply={(t) => onStartCase(t.topic, t.config)} />}
+                    {activeTab === 'TEMPLATES' && (
+                        <TemplateGallery
+                            onApply={(t) => {
+                                const fallbackConfig = loadSystemConfig();
+                                const templateModel = t.config.modelId || fallbackConfig.modelId;
+                                onStartCase(t.topic, {
+                                    ...fallbackConfig,
+                                    ...t.config,
+                                    modelId: templateModel,
+                                    provider: t.config.provider || getModelProvider(templateModel),
+                                });
+                            }}
+                        />
+                    )}
                     {activeTab === 'MAINTENANCE' && renderMaintenance()}
                 </div>
             </main>

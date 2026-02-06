@@ -101,6 +101,7 @@ export enum AppView {
 export type InvestigatorPersona = 'FORENSIC_ACCOUNTANT' | 'JOURNALIST' | 'INTELLIGENCE_OFFICER' | 'CONSPIRACY_ANALYST';
 
 export interface SystemConfig {
+  provider: AIProvider;
   modelId: string;
   thinkingBudget: number; // 0 to max
   persona: string; // Now references PersonaDefinition.id from scope
@@ -173,3 +174,4 @@ export interface InvestigationTask {
   config?: Partial<SystemConfig>;
   error?: string;
 }
+import type { AIProvider } from '../config/aiModels';

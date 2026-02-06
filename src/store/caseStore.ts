@@ -4,7 +4,6 @@ import type {
     InvestigationTask,
     Case,
     MonitorEvent,
-    SystemConfig,
     BreadcrumbItem,
     CaseTemplate,
     Headline,
@@ -27,6 +26,7 @@ import { ManualDataRepository } from '../services/db/repositories/ManualDataRepo
 import { initDB } from '../services/db/client';
 import { migrateLocalStorageToSqlite } from '../services/db/migrate';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor, parseOklch } from '../utils/accent';
+import { loadSystemConfig } from '../config/systemConfig';
 
 export interface Toast {
     id: string;
@@ -497,9 +497,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         }
 
         // 4. Entity Normalization & Alias Application
-        const storedConfig = localStorage.getItem('sherlock_config');
-        const config: SystemConfig | null = storedConfig ? JSON.parse(storedConfig) : null;
-        const autoNormalize = config?.autoNormalizeEntities ?? true;
+        const autoNormalize = loadSystemConfig().autoNormalizeEntities ?? true;
 
         const processedEntities = report.entities.map(e => {
             const name = typeof e === 'string' ? e : e.name;

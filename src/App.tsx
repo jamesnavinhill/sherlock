@@ -9,6 +9,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
 import { buildAccentColor } from './utils/accent';
+import { loadSystemConfig } from './config/systemConfig';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
@@ -100,12 +101,8 @@ function App() {
   // --- CORE INVESTIGATION LOGIC ---
 
   const shouldNotify = () => {
-    try {
-      const configStr = localStorage.getItem('sherlock_config');
-      if (!configStr) return true;
-      const config = JSON.parse(configStr);
-      return !config.quietMode;
-    } catch { return true; }
+    const config = loadSystemConfig();
+    return !config.quietMode;
   };
 
   const runInvestigationTask = useCallback(async (taskId: string, topic: string, context?: { topic: string, summary: string }, configOverride?: Partial<SystemConfig>) => {

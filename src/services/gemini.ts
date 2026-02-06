@@ -1,7 +1,16 @@
 import { GoogleGenAI, Type, Modality, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import type { InvestigationReport, Source, FeedItem, MonitorEvent, SystemConfig, InvestigationScope, DateRangeConfig } from '../types';
 import { BUILTIN_SCOPES, getScopeById } from '../data/presets';
-import { DEFAULT_MODEL_ID, isGeminiModel, isOpenRouterModel } from '../config/aiModels';
+import type { AIProvider } from '../config/aiModels';
+import { DEFAULT_PROVIDER, isGeminiModel, isOpenRouterModel } from '../config/aiModels';
+import { loadSystemConfig } from '../config/systemConfig';
+import {
+  clearApiKey as clearProviderApiKey,
+  getApiKeyOrThrow,
+  hasApiKey as hasStoredApiKey,
+  inferProviderFromApiKey,
+  setApiKey as setProviderApiKey,
+} from './providers/keys';
 
 // --- API HARDENING UTILS ---
 const cache = new Map<string, InvestigationReport>();
@@ -30,17 +39,6 @@ const withRetry = async <T>(fn: () => Promise<T>, retries = MAX_RETRIES): Promis
 let aiInstance: GoogleGenAI | null = null;
 
 // --- KEY MANAGEMENT ---
-type Provider = 'GEMINI' | 'OPENROUTER';
-
-const getEnvApiKey = (provider: Provider): string | undefined => {
-  const env = (typeof import.meta !== 'undefined' ? (import.meta.env as Record<string, string | undefined>) : undefined);
-
-  if (provider === 'GEMINI') {
-    return env?.VITE_GEMINI_API_KEY || env?.API_KEY || (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
-  }
-
-  return env?.VITE_OPENROUTER_API_KEY || env?.OPENROUTER_API_KEY || (typeof process !== 'undefined' ? process.env?.OPENROUTER_API_KEY : undefined);
-};
 
 const toDisplayText = (value: unknown): string => {
   if (typeof value === 'string') return value;
@@ -59,88 +57,47 @@ const toDisplayText = (value: unknown): string => {
   return '';
 };
 
-const getGeminiApiKey = (): string | undefined => {
-  return localStorage.getItem('GEMINI_API_KEY')
-    || localStorage.getItem('sherlock_api_key')
-    || getEnvApiKey('GEMINI');
+export const hasApiKey = (provider?: AIProvider): boolean => {
+  return hasStoredApiKey(provider);
 };
 
-const getOpenRouterApiKey = (): string | undefined => {
-  return localStorage.getItem('OPENROUTER_API_KEY')
-    || getEnvApiKey('OPENROUTER');
-};
-
-export const hasApiKey = (): boolean => {
-  return !!(getGeminiApiKey() || getOpenRouterApiKey());
-};
-
-export const setApiKey = (key: string) => {
+export const setApiKey = (key: string, provider?: AIProvider) => {
   const normalized = key.trim();
   if (!normalized) return;
 
-  if (normalized.startsWith('sk-or-')) {
-    localStorage.setItem('OPENROUTER_API_KEY', normalized);
-    aiInstance = null;
-    return;
-  }
+  const resolvedProvider = provider || inferProviderFromApiKey(normalized) || DEFAULT_PROVIDER;
+  const result = setProviderApiKey(resolvedProvider, normalized);
+  if (!result.isValid) throw new Error(result.message || 'INVALID_API_KEY');
 
-  localStorage.setItem('GEMINI_API_KEY', normalized);
-  localStorage.setItem('sherlock_api_key', normalized);
-  aiInstance = new GoogleGenAI({ apiKey: normalized });
+  aiInstance = null;
+  if (resolvedProvider === 'GEMINI') {
+    aiInstance = new GoogleGenAI({ apiKey: normalized });
+  }
 };
 
-export const clearApiKey = () => {
-  localStorage.removeItem('sherlock_api_key');
-  localStorage.removeItem('GEMINI_API_KEY');
-  localStorage.removeItem('OPENROUTER_API_KEY');
-  aiInstance = null;
+export const clearApiKey = (provider?: AIProvider) => {
+  clearProviderApiKey(provider);
+  if (!provider || provider === 'GEMINI') {
+    aiInstance = null;
+  }
 };
 
 const getAI = (): GoogleGenAI => {
   if (aiInstance) return aiInstance;
-  const key = getGeminiApiKey();
-  if (!key) throw new Error("MISSING_API_KEY");
+  const key = getApiKeyOrThrow('GEMINI');
 
   aiInstance = new GoogleGenAI({ apiKey: key });
   return aiInstance;
 };
 
 const getOpenRouterKey = (): string => {
-  const key = getOpenRouterApiKey();
-  if (!key) throw new Error("MISSING_API_KEY");
-  return key;
+  return getApiKeyOrThrow('OPENROUTER');
 };
 
 // --- CONFIG ---
 
-const DEFAULT_CONFIG: SystemConfig = {
-  modelId: DEFAULT_MODEL_ID,
-  thinkingBudget: 0,
-  persona: 'general-investigator', // Default to open investigation persona
-  searchDepth: 'STANDARD'
-};
-
 const getConfig = (): SystemConfig => {
-  try {
-    const stored = localStorage.getItem('sherlock_config');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Migrate old model names to correct API identifiers
-      if (parsed.modelId === 'gemini-2.5-flash-latest') {
-        parsed.modelId = 'gemini-2.5-flash';
-      }
-      if (parsed.modelId === 'gemini-3-flash') {
-        parsed.modelId = 'gemini-3-flash-preview';
-      }
-      if (parsed.modelId === 'gemini-3-pro') {
-        parsed.modelId = 'gemini-3-pro-preview';
-      }
-      return { ...DEFAULT_CONFIG, ...parsed };
-    }
-  } catch (e) {
-    console.error("Config load error", e);
-  }
-  return DEFAULT_CONFIG;
+  return loadSystemConfig();
 };
 
 const SAFETY_SETTINGS = [

@@ -24,7 +24,8 @@ import {
 import { useCaseStore } from '../../store/caseStore';
 import type { CaseTemplate, SystemConfig, ManualNode, InvestigationScope } from '../../types';
 import { BUILTIN_SCOPES, getScopeById, getAllScopes } from '../../data/presets';
-import { AI_MODELS, DEFAULT_MODEL_ID } from '../../config/aiModels';
+import { AI_MODELS, DEFAULT_MODEL_ID, getModelProvider } from '../../config/aiModels';
+import { loadSystemConfig } from '../../config/systemConfig';
 
 interface TaskSetupModalProps {
   initialTopic: string;
@@ -63,6 +64,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   onStart,
 }) => {
   const { templates, addTemplate, customScopes, defaultScopeId } = useCaseStore();
+  const storedConfig = loadSystemConfig();
   const [currentStep, setCurrentStep] = useState(0);
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
@@ -100,42 +102,19 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
       selectedScope?.defaultPersona || selectedScope?.personas[0]?.id || 'general-investigator'
     );
   });
-  const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(() => {
-    const stored = localStorage.getItem('sherlock_config');
-    if (!stored) return 'STANDARD';
-    try {
-      const config: SystemConfig = JSON.parse(stored);
-      return config.searchDepth ?? 'STANDARD';
-    } catch {
-      return 'STANDARD';
-    }
-  });
-  const [thinkingBudget, setThinkingBudget] = useState(() => {
-    const stored = localStorage.getItem('sherlock_config');
-    if (!stored) return 0;
-    try {
-      const config: SystemConfig = JSON.parse(stored);
-      return config.thinkingBudget ?? 0;
-    } catch {
-      return 0;
-    }
-  });
-  const [selectedModel, setSelectedModel] = useState(() => {
-    const stored = localStorage.getItem('sherlock_config');
-    if (!stored) return DEFAULT_MODEL_ID;
-    try {
-      const config: SystemConfig = JSON.parse(stored);
-      return config.modelId ?? DEFAULT_MODEL_ID;
-    } catch {
-      return DEFAULT_MODEL_ID;
-    }
-  });
+  const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(
+    storedConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD'
+  );
+  const [thinkingBudget, setThinkingBudget] = useState(storedConfig.thinkingBudget ?? 0);
+  const [selectedModel, setSelectedModel] = useState(storedConfig.modelId ?? DEFAULT_MODEL_ID);
+  const selectableModels = AI_MODELS.filter((model) => model.capabilities.runtimeStatus === 'ACTIVE');
 
   const applyTemplate = (t: CaseTemplate) => {
     setTopic(t.topic);
     if (t.config.persona) setPersona(t.config.persona);
     if (t.config.searchDepth) setDepth(t.config.searchDepth);
     if (t.config.thinkingBudget !== undefined) setThinkingBudget(t.config.thinkingBudget);
+    if (t.config.modelId) setSelectedModel(t.config.modelId);
     if (t.scopeId) setSelectedScopeId(t.scopeId);
   };
 
@@ -179,6 +158,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     onStart(
       fullTopic,
       {
+        provider: getModelProvider(selectedModel),
         persona,
         searchDepth: depth,
         thinkingBudget,
@@ -194,7 +174,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         id: `tmp-${Date.now()}`,
         name: templateName.trim(),
         topic: topic,
-        config: { persona, searchDepth: depth, thinkingBudget, modelId: selectedModel },
+        config: { provider: getModelProvider(selectedModel), persona, searchDepth: depth, thinkingBudget, modelId: selectedModel },
         scopeId: selectedScopeId,
         createdAt: Date.now(),
       });
@@ -473,7 +453,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             onChange={(e) => setSelectedModel(e.target.value)}
             className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
           >
-            {AI_MODELS.map((model) => (
+            {selectableModels.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.name} - {model.description}
               </option>

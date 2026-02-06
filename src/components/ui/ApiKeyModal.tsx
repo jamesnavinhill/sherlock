@@ -1,23 +1,48 @@
 
 import React, { useState } from 'react';
 import { setApiKey } from '../../services/gemini';
-import { Key, ShieldCheck, Lock, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Key, ShieldCheck, Lock, ArrowRight, AlertTriangle, ChevronDown } from 'lucide-react';
+import type { AIProvider } from '../../config/aiModels';
+import { AI_PROVIDERS } from '../../config/aiModels';
+import { loadSystemConfig } from '../../config/systemConfig';
+import { validateApiKey } from '../../services/providers/keys';
 
 interface ApiKeyModalProps {
    onKeySet: () => void;
 }
 
 export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
+   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(() => loadSystemConfig().provider);
    const [inputKey, setInputKey] = useState('');
    const [error, setError] = useState('');
 
    const handleSave = () => {
-      if (!inputKey.trim()) {
+      const normalized = inputKey.trim();
+      if (!normalized) {
          setError('API Key cannot be empty');
          return;
       }
-      setApiKey(inputKey.trim());
-      onKeySet();
+
+      const validation = validateApiKey(selectedProvider, normalized);
+      if (!validation.isValid) {
+         setError(validation.message || `Invalid ${selectedProvider} API key`);
+         return;
+      }
+
+      try {
+         setApiKey(normalized, selectedProvider);
+         onKeySet();
+      } catch (err) {
+         const message = err instanceof Error ? err.message : 'Failed to save API key';
+         setError(message);
+      }
+   };
+
+   const placeholderByProvider: Record<AIProvider, string> = {
+      GEMINI: 'AIza...',
+      OPENROUTER: 'sk-or-v1-...',
+      OPENAI: 'sk-...',
+      ANTHROPIC: 'sk-ant-...',
    };
 
    return (
@@ -42,8 +67,29 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
 
                <div className="bg-zinc-900/50 border-l-2 border-osint-warn p-4">
                   <p className="text-sm text-zinc-300 font-mono leading-relaxed">
-                     To access this investigative terminal, provide your own Gemini or OpenRouter API key.
+                     To access this investigative terminal, provide a valid API key for your selected provider.
                   </p>
+               </div>
+
+               <div>
+                  <label className="block text-xs font-mono text-zinc-500 uppercase mb-2">Provider</label>
+                  <div className="relative">
+                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                     <select
+                        value={selectedProvider}
+                        onChange={(e) => {
+                           setSelectedProvider(e.target.value as AIProvider);
+                           setError('');
+                        }}
+                        className="w-full bg-black border border-zinc-700 text-white p-3 font-mono text-sm appearance-none focus:border-osint-primary outline-none"
+                     >
+                        {AI_PROVIDERS.map((provider) => (
+                           <option key={provider.id} value={provider.id}>
+                              {provider.label}
+                           </option>
+                        ))}
+                     </select>
+                  </div>
                </div>
 
                <div>
@@ -59,7 +105,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
                            setInputKey(e.target.value);
                            setError('');
                         }}
-                        placeholder="AIza... or sk-or-v1-..."
+                        placeholder={placeholderByProvider[selectedProvider]}
                         className="w-full bg-black border border-zinc-700 text-white p-3 pl-10 font-mono text-sm focus:border-osint-primary outline-none transition-colors"
                      />
                   </div>
@@ -96,6 +142,22 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
                         className="block hover:text-osint-primary underline decoration-dotted underline-offset-4"
                      >
                         Get an OpenRouter key
+                     </a>
+                     <a
+                        href="https://platform.openai.com/api-keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block hover:text-osint-primary underline decoration-dotted underline-offset-4"
+                     >
+                        Get an OpenAI key
+                     </a>
+                     <a
+                        href="https://console.anthropic.com/settings/keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block hover:text-osint-primary underline decoration-dotted underline-offset-4"
+                     >
+                        Get an Anthropic key
                      </a>
                   </div>
                </div>

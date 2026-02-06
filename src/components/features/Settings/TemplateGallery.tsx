@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import type { CaseTemplate, SystemConfig } from '../../../types';
+import type { CaseTemplate } from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 import {
     Trash2, Play, Plus, X, ChevronLeft, ChevronRight, Check,
@@ -7,7 +7,8 @@ import {
     Briefcase, Layout
 } from 'lucide-react';
 import { getAllScopes } from '../../../data/presets';
-import { AI_MODELS, DEFAULT_MODEL_ID, getModelDisplayName } from '../../../config/aiModels';
+import { AI_MODELS, DEFAULT_MODEL_ID, getModelDisplayName, getModelProvider } from '../../../config/aiModels';
+import { loadSystemConfig } from '../../../config/systemConfig';
 
 interface TemplateGalleryProps {
     onApply: (template: CaseTemplate) => void;
@@ -36,6 +37,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     const [persona, setPersona] = useState('');
     const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>('STANDARD');
     const [thinkingBudget, setThinkingBudget] = useState(0);
+    const selectableModels = AI_MODELS.filter((model) => model.capabilities.runtimeStatus === 'ACTIVE');
 
     const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
     const resolvedDefaultScopeId = allScopes.find((scope) => scope.id === defaultScopeId)?.id || allScopes[0]?.id || 'open-investigation';
@@ -59,25 +61,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     const openCreateModal = () => {
         const defaultScope = allScopes.find((scope) => scope.id === resolvedDefaultScopeId) || allScopes[0];
         const defaultPersona = defaultScope?.defaultPersona || defaultScope?.personas[0]?.id || 'general-investigator';
-        const savedConfig = localStorage.getItem('sherlock_config');
-        let nextModel = DEFAULT_MODEL_ID;
-        let nextDepth: 'STANDARD' | 'DEEP' = 'STANDARD';
-        let nextThinking = 0;
-        let nextPersona = defaultPersona;
-
-        if (savedConfig) {
-            try {
-                const parsed = JSON.parse(savedConfig) as Partial<SystemConfig>;
-                if (parsed.modelId) nextModel = parsed.modelId;
-                if (parsed.searchDepth === 'DEEP') nextDepth = 'DEEP';
-                if (typeof parsed.thinkingBudget === 'number') nextThinking = parsed.thinkingBudget;
-                if (parsed.persona && defaultScope?.personas.some((item) => item.id === parsed.persona)) {
-                    nextPersona = parsed.persona;
-                }
-            } catch {
-                // Ignore invalid local config
-            }
-        }
+        const parsed = loadSystemConfig();
+        const nextModel = parsed.modelId || DEFAULT_MODEL_ID;
+        const nextDepth: 'STANDARD' | 'DEEP' = parsed.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD';
+        const nextThinking = typeof parsed.thinkingBudget === 'number' ? parsed.thinkingBudget : 0;
+        const nextPersona = parsed.persona && defaultScope?.personas.some((item) => item.id === parsed.persona)
+            ? parsed.persona
+            : defaultPersona;
 
         setCreateStep(0);
         setTemplateName('');
@@ -119,6 +109,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 description: templateDescription.trim() || undefined,
                 topic: combinedTopic,
                 config: {
+                    provider: getModelProvider(selectedModel),
                     modelId: selectedModel,
                     persona,
                     searchDepth: depth,
@@ -344,7 +335,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                             onChange={(event) => setSelectedModel(event.target.value)}
                                             className="w-full bg-black border border-zinc-700 text-zinc-300 p-3 font-mono text-xs focus:border-osint-primary outline-none"
                                         >
-                                            {AI_MODELS.map((model) => (
+                                            {selectableModels.map((model) => (
                                                 <option key={model.id} value={model.id}>
                                                     {model.name} - {model.description}
                                                 </option>
