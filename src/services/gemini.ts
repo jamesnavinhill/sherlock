@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type, Modality, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import type { InvestigationReport, Source, FeedItem, MonitorEvent, SystemConfig, InvestigationScope, DateRangeConfig } from '../types';
 import { BUILTIN_SCOPES, getScopeById } from '../data/presets';
+import { DEFAULT_MODEL_ID, isGeminiModel, isOpenRouterModel } from '../config/aiModels';
 
 // --- API HARDENING UTILS ---
 const cache = new Map<string, InvestigationReport>();
@@ -29,50 +30,91 @@ const withRetry = async <T>(fn: () => Promise<T>, retries = MAX_RETRIES): Promis
 let aiInstance: GoogleGenAI | null = null;
 
 // --- KEY MANAGEMENT ---
+type Provider = 'GEMINI' | 'OPENROUTER';
 
-const getEnvApiKey = (): string | undefined => {
-  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) {
-    return import.meta.env.VITE_GEMINI_API_KEY;
+const getEnvApiKey = (provider: Provider): string | undefined => {
+  const env = (typeof import.meta !== 'undefined' ? (import.meta.env as Record<string, string | undefined>) : undefined);
+
+  if (provider === 'GEMINI') {
+    return env?.VITE_GEMINI_API_KEY || env?.API_KEY || (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
   }
-  if (typeof process !== 'undefined' && process.env?.API_KEY) {
-    return process.env.API_KEY;
+
+  return env?.VITE_OPENROUTER_API_KEY || env?.OPENROUTER_API_KEY || (typeof process !== 'undefined' ? process.env?.OPENROUTER_API_KEY : undefined);
+};
+
+const toDisplayText = (value: unknown): string => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.map(toDisplayText).filter(Boolean).join(' ').trim();
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    if (typeof record.text === 'string') return record.text;
+    if (typeof record.content === 'string') return record.content;
+    if (record.content) {
+      const nested = toDisplayText(record.content);
+      if (nested) return nested;
+    }
+    return JSON.stringify(value);
   }
-  return undefined;
+  return '';
+};
+
+const getGeminiApiKey = (): string | undefined => {
+  return localStorage.getItem('GEMINI_API_KEY')
+    || localStorage.getItem('sherlock_api_key')
+    || getEnvApiKey('GEMINI');
+};
+
+const getOpenRouterApiKey = (): string | undefined => {
+  return localStorage.getItem('OPENROUTER_API_KEY')
+    || getEnvApiKey('OPENROUTER');
 };
 
 export const hasApiKey = (): boolean => {
-  return !!(localStorage.getItem('sherlock_api_key') || getEnvApiKey());
+  return !!(getGeminiApiKey() || getOpenRouterApiKey());
 };
 
 export const setApiKey = (key: string) => {
-  localStorage.setItem('sherlock_api_key', key);
-  aiInstance = new GoogleGenAI({ apiKey: key });
+  const normalized = key.trim();
+  if (!normalized) return;
+
+  if (normalized.startsWith('sk-or-')) {
+    localStorage.setItem('OPENROUTER_API_KEY', normalized);
+    aiInstance = null;
+    return;
+  }
+
+  localStorage.setItem('GEMINI_API_KEY', normalized);
+  localStorage.setItem('sherlock_api_key', normalized);
+  aiInstance = new GoogleGenAI({ apiKey: normalized });
 };
 
 export const clearApiKey = () => {
   localStorage.removeItem('sherlock_api_key');
+  localStorage.removeItem('GEMINI_API_KEY');
+  localStorage.removeItem('OPENROUTER_API_KEY');
   aiInstance = null;
 };
 
 const getAI = (): GoogleGenAI => {
   if (aiInstance) return aiInstance;
-  const localKey = localStorage.getItem('sherlock_api_key');
-  if (localKey) {
-    aiInstance = new GoogleGenAI({ apiKey: localKey });
-    return aiInstance;
-  }
-  const envKey = getEnvApiKey();
-  if (envKey) {
-    aiInstance = new GoogleGenAI({ apiKey: envKey });
-    return aiInstance;
-  }
-  throw new Error("MISSING_API_KEY");
+  const key = getGeminiApiKey();
+  if (!key) throw new Error("MISSING_API_KEY");
+
+  aiInstance = new GoogleGenAI({ apiKey: key });
+  return aiInstance;
+};
+
+const getOpenRouterKey = (): string => {
+  const key = getOpenRouterApiKey();
+  if (!key) throw new Error("MISSING_API_KEY");
+  return key;
 };
 
 // --- CONFIG ---
 
 const DEFAULT_CONFIG: SystemConfig = {
-  modelId: 'gemini-3-flash-preview',
+  modelId: DEFAULT_MODEL_ID,
   thinkingBudget: 0,
   persona: 'general-investigator', // Default to open investigation persona
   searchDepth: 'STANDARD'
@@ -109,7 +151,7 @@ const SAFETY_SETTINGS = [
 ];
 
 const isModel25 = (modelId: string): boolean => {
-  return modelId.includes('2.5') || modelId.includes('2-5');
+  return isGeminiModel(modelId) && (modelId.includes('2.5') || modelId.includes('2-5'));
 };
 
 const extractJSON = (text: string): string => {
@@ -123,6 +165,137 @@ const extractJSON = (text: string): string => {
   if (arrayMatch) return arrayMatch[0];
 
   return text.trim();
+};
+
+const extractBalancedJsonCandidates = (text: string): string[] => {
+  const candidates: string[] = [];
+  const limit = Math.min(text.length, 20000);
+  const input = text.slice(0, limit);
+
+  for (let i = 0; i < input.length; i++) {
+    const start = input[i];
+    if (start !== '{' && start !== '[') continue;
+    const endChar = start === '{' ? '}' : ']';
+
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let j = i; j < input.length; j++) {
+      const ch = input[j];
+
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (ch === '\\') {
+          escaped = true;
+        } else if (ch === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (ch === '"') {
+        inString = true;
+        continue;
+      }
+
+      if (ch === start) depth++;
+      if (ch === endChar) depth--;
+
+      if (depth === 0) {
+        candidates.push(input.slice(i, j + 1));
+        i = j;
+        break;
+      }
+    }
+  }
+
+  return candidates;
+};
+
+const parseJsonWithFallback = (raw: string): unknown => {
+  const trimmed = raw.trim();
+  const candidates = [
+    trimmed,
+    extractJSON(trimmed),
+    ...Array.from(trimmed.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)).map(match => match[1].trim()),
+    ...extractBalancedJsonCandidates(trimmed),
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error('Failed to parse JSON payload from model response');
+};
+
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+const normalizeOpenRouterContent = (content: unknown): string => toDisplayText(content).trim();
+
+const queryOpenRouter = async (
+  modelId: string,
+  prompt: string,
+  options?: { expectJson?: boolean; maxTokens?: number }
+): Promise<string> => {
+  const key = getOpenRouterKey();
+
+  const response = await fetch(OPENROUTER_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
+      'X-Title': 'Sherlock AI',
+    },
+    body: JSON.stringify({
+      model: modelId,
+      messages: [{ role: 'user', content: prompt }],
+      ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
+      ...(options?.expectJson ? { response_format: { type: 'json_object' } } : {}),
+    }),
+  });
+
+  const rawBody = await response.text();
+  let payload: {
+    error?: { message?: string };
+    choices?: Array<{
+      message?: { content?: unknown; reasoning?: unknown; refusal?: unknown };
+      text?: unknown;
+      finish_reason?: string;
+    }>;
+  } = {};
+
+  try {
+    payload = JSON.parse(rawBody) as typeof payload;
+  } catch {
+    if (!response.ok) {
+      throw new Error(`OpenRouter request failed with status ${response.status}`);
+    }
+  }
+
+  if (!response.ok) {
+    const message = payload.error?.message || `OpenRouter request failed with status ${response.status}`;
+    throw new Error(message);
+  }
+
+  const firstChoice = payload.choices?.[0];
+  const content = normalizeOpenRouterContent(firstChoice?.message?.content)
+    || normalizeOpenRouterContent(firstChoice?.message?.reasoning)
+    || normalizeOpenRouterContent(firstChoice?.message?.refusal)
+    || normalizeOpenRouterContent(firstChoice?.text)
+    || normalizeOpenRouterContent(payload);
+
+  if (!content) {
+    throw new Error(`OpenRouter returned an empty response (finish_reason: ${firstChoice?.finish_reason || 'unknown'})`);
+  }
+
+  return content;
 };
 
 const URL_PATTERN = /https?:\/\/[^\s<>"'`)\]}]+/gi;
@@ -188,6 +361,43 @@ const extractSourcesFromGrounding = (response: unknown): Source[] => {
 const extractSourcesFromText = (text: string): Source[] => {
   const matches = text.match(URL_PATTERN) || [];
   return dedupeSources(matches.map(url => ({ title: 'Referenced Source', url })));
+};
+
+const normalizeStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => toDisplayText(item).trim())
+    .filter((item) => item.length > 0);
+};
+
+const normalizeEntities = (value: unknown): InvestigationReport['entities'] => {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((entry) => {
+      if (typeof entry === 'string') {
+        return { name: entry, type: 'UNKNOWN' as const };
+      }
+
+      if (!entry || typeof entry !== 'object') return null;
+      const record = entry as Record<string, unknown>;
+      const name = toDisplayText(record.name).trim();
+      if (!name) return null;
+
+      const rawType = toDisplayText(record.type).toUpperCase();
+      const type = rawType === 'PERSON' || rawType === 'ORGANIZATION' || rawType === 'UNKNOWN'
+        ? (rawType as 'PERSON' | 'ORGANIZATION' | 'UNKNOWN')
+        : 'UNKNOWN';
+
+      const role = toDisplayText(record.role).trim() || undefined;
+      const rawSentiment = toDisplayText(record.sentiment).toUpperCase();
+      const sentiment = rawSentiment === 'POSITIVE' || rawSentiment === 'NEGATIVE' || rawSentiment === 'NEUTRAL'
+        ? (rawSentiment as 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL')
+        : undefined;
+
+      return { name, type, role, sentiment };
+    })
+    .filter((entity): entity is NonNullable<typeof entity> => !!entity);
 };
 
 const getPersonaInstruction = (personaId: string, scope?: InvestigationScope): string => {
@@ -328,7 +538,7 @@ export const scanForAnomalies = async (
   scope?: InvestigationScope
 ): Promise<FeedItem[]> => {
   const config = getConfig();
-  const useStructuredOutput = !isModel25(config.modelId);
+  const useStructuredOutput = isGeminiModel(config.modelId) && !isModel25(config.modelId);
   const limit = configOverride?.limit || 8;
   const prioritySources = configOverride?.prioritySources || '';
 
@@ -336,7 +546,6 @@ export const scanForAnomalies = async (
   const activeScope = scope || getScopeById('open-investigation') || BUILTIN_SCOPES[BUILTIN_SCOPES.length - 1];
 
   try {
-    const ai = getAI();
     const locationScope = region.trim() ? region : "globally";
 
     // Use scope context instead of hardcoded fraud language
@@ -360,6 +569,38 @@ export const scanForAnomalies = async (
       priorityInstruction = `SUGGESTED SOURCES: Consider ${defaultSources}.`;
     }
 
+    const basePrompt = `
+      CONTEXT: ${domainContext}
+      
+      Analyze real-time news, official reports, and social media discussions to identify ${limit} potential issues related to: ${topicScope} in ${locationScope}.
+      ${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
+      ${priorityInstruction}
+      Focus on high-value findings, discrepancies, and notable developments.
+      CRITICAL: Return ONLY a valid JSON array.
+      Each item MUST include: id, title, category, riskLevel ("LOW" | "MEDIUM" | "HIGH").
+    `;
+
+    if (isOpenRouterModel(config.modelId)) {
+      const rawText = await withRetry(() => queryOpenRouter(config.modelId, basePrompt, { maxTokens: 1800 }));
+      const parsed = parseJsonWithFallback(rawText);
+      const items = Array.isArray(parsed) ? parsed : [];
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      return items.map((item, index) => {
+        const risk = item?.riskLevel === 'LOW' || item?.riskLevel === 'MEDIUM' || item?.riskLevel === 'HIGH'
+          ? item.riskLevel
+          : 'MEDIUM';
+        return {
+          id: typeof item?.id === 'string' ? item.id : `feed-${Date.now()}-${index}`,
+          title: typeof item?.title === 'string' ? item.title : 'Untitled signal',
+          category: typeof item?.category === 'string' ? item.category : (activeScope.categories[0] || 'General'),
+          riskLevel: risk,
+          timestamp: now,
+        } as FeedItem;
+      });
+    }
+
+    const ai = getAI();
     const jsonInstruction = useStructuredOutput ? '' : `
       CRITICAL: You MUST respond with ONLY a valid JSON array. No other text.
       Each item must have: id (string), title (string), category (string), riskLevel ("LOW" | "MEDIUM" | "HIGH")
@@ -367,15 +608,7 @@ export const scanForAnomalies = async (
 
     const response = await ai.models.generateContent({
       model: config.modelId,
-      contents: `
-        CONTEXT: ${domainContext}
-        
-        Analyze real-time news, official reports, and social media discussions to identify ${limit} potential issues related to: ${topicScope} in ${locationScope}.
-        ${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
-        ${priorityInstruction}
-        Focus on high-value findings, discrepancies, and notable developments.
-        ${jsonInstruction}
-      `,
+      contents: `${basePrompt}\n${jsonInstruction}`,
       config: {
         ...(useStructuredOutput ? {
           responseMimeType: "application/json",
@@ -401,8 +634,7 @@ export const scanForAnomalies = async (
     });
 
     const rawText = response.text || "[]";
-    const text = useStructuredOutput ? rawText : extractJSON(rawText);
-    const items = JSON.parse(text);
+    const items = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
 
     return (items as FeedItem[]).map((item) => ({
       ...item,
@@ -436,13 +668,12 @@ export const getLiveIntel = async (
   scope?: InvestigationScope
 ): Promise<MonitorEvent[]> => {
   const config = getConfig();
-  const useStructuredOutput = !isModel25(config.modelId);
+  const useStructuredOutput = isGeminiModel(config.modelId) && !isModel25(config.modelId);
 
   // Resolve scope context
   const activeScope = scope || getScopeById('open-investigation') || BUILTIN_SCOPES[BUILTIN_SCOPES.length - 1];
 
   try {
-    const ai = getAI();
     const countInstruction = `Retrieve exactly: ${monitorConfig.newsCount} items of type 'NEWS', ${monitorConfig.socialCount} items of type 'SOCIAL', ${monitorConfig.officialCount} items of type 'OFFICIAL'`;
     const priorityInstruction = monitorConfig.prioritySources.trim()
       ? `PRIORITY: Prioritize ${monitorConfig.prioritySources}.`
@@ -450,18 +681,49 @@ export const getLiveIntel = async (
     const dateInstruction = resolveDateRange(activeScope.defaultDateRange, monitorConfig.dateRange);
     const recentHistory = existingContent.slice(0, 20).join('; ');
     const dedupInstruction = recentHistory ? `CRITICAL EXCLUSION: Do NOT return items similar to: "${recentHistory}".` : "";
-    const jsonInstruction = useStructuredOutput ? '' : `CRITICAL: Respond with ONLY a valid JSON array. Items: id, type, sourceName, content, timestamp, sentiment, threatLevel ("INFO" | "CAUTION" | "CRITICAL"), url (opt)`;
+    const basePrompt = `CONTEXT: ${activeScope.domainContext}
 
-    const response = await ai.models.generateContent({
-      model: config.modelId,
-      contents: `CONTEXT: ${activeScope.domainContext}
-      
 Search intelligence for: "${topic}".
 ${countInstruction}
 ${priorityInstruction}
 ${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
 ${dedupInstruction}
-${jsonInstruction}`,
+CRITICAL: Respond with ONLY a valid JSON array.
+Items must include: id, type ("SOCIAL" | "NEWS" | "OFFICIAL"), sourceName, content, timestamp, sentiment ("NEGATIVE" | "NEUTRAL" | "POSITIVE"), threatLevel ("INFO" | "CAUTION" | "CRITICAL"), url (optional).`;
+
+    if (isOpenRouterModel(config.modelId)) {
+      const rawText = await withRetry(() => queryOpenRouter(config.modelId, basePrompt, { maxTokens: 2200 }));
+      const parsed = parseJsonWithFallback(rawText);
+      if (!Array.isArray(parsed)) return [];
+
+      return parsed.map((item, index) => {
+        const type = item?.type === 'SOCIAL' || item?.type === 'NEWS' || item?.type === 'OFFICIAL' ? item.type : 'NEWS';
+        const sentiment = item?.sentiment === 'NEGATIVE' || item?.sentiment === 'NEUTRAL' || item?.sentiment === 'POSITIVE'
+          ? item.sentiment
+          : 'NEUTRAL';
+        const threatLevel = item?.threatLevel === 'INFO' || item?.threatLevel === 'CAUTION' || item?.threatLevel === 'CRITICAL'
+          ? item.threatLevel
+          : 'INFO';
+
+        return {
+          id: typeof item?.id === 'string' ? item.id : `sim-${Date.now()}-${index}`,
+          type,
+          sourceName: typeof item?.sourceName === 'string' ? item.sourceName : 'Unknown Source',
+          content: typeof item?.content === 'string' ? item.content : '',
+          timestamp: typeof item?.timestamp === 'string' ? item.timestamp : 'now',
+          sentiment,
+          threatLevel,
+          url: typeof item?.url === 'string' ? item.url : undefined,
+        } as MonitorEvent;
+      });
+    }
+
+    const ai = getAI();
+    const jsonInstruction = useStructuredOutput ? '' : `CRITICAL: Respond with ONLY a valid JSON array. Items: id, type, sourceName, content, timestamp, sentiment, threatLevel ("INFO" | "CAUTION" | "CRITICAL"), url (opt)`;
+
+    const response = await ai.models.generateContent({
+      model: config.modelId,
+      contents: `${basePrompt}\n${jsonInstruction}`,
       config: {
         ...(useStructuredOutput ? {
           responseMimeType: "application/json",
@@ -489,8 +751,7 @@ ${jsonInstruction}`,
     });
 
     const rawText = response.text || "[]";
-    const text = useStructuredOutput ? rawText : extractJSON(rawText);
-    const parsed = JSON.parse(text);
+    const parsed = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     if (error instanceof Error && error.message === 'MISSING_API_KEY') throw error;
@@ -523,7 +784,7 @@ export const investigateTopic = async (
   return withRetry(async () => {
     const savedConfig = getConfig();
     const config = { ...savedConfig, ...configOverride };
-    const useStructuredOutput = !isModel25(config.modelId);
+    const useStructuredOutput = isGeminiModel(config.modelId) && !isModel25(config.modelId);
 
     // Resolve scope - use provided or fall back to open investigation
     const activeScope = scope || getScopeById('open-investigation') || BUILTIN_SCOPES[BUILTIN_SCOPES.length - 1];
@@ -538,56 +799,65 @@ export const investigateTopic = async (
 
     basePrompt += ` Extract at least 4 actionable leads. For each entity, specify: name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment. Include 3-8 unique sources and provide each source as { "title": "...", "url": "https://..." }.`;
 
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-      model: config.modelId,
-      contents: basePrompt,
-      config: {
-        tools: [{ googleSearch: {} }],
-        thinkingConfig: config.thinkingBudget > 0 ? { thinkingBudget: config.thinkingBudget } : undefined,
-        ...(useStructuredOutput ? {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              summary: { type: Type.STRING },
-              entities: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    type: { type: Type.STRING, enum: ["PERSON", "ORGANIZATION", "UNKNOWN"] },
-                    role: { type: Type.STRING },
-                    sentiment: { type: Type.STRING, enum: ["POSITIVE", "NEGATIVE", "NEUTRAL"] }
-                  },
-                  required: ["name", "type", "role", "sentiment"]
+    let rawText = "{}";
+    let groundingSources: Source[] = [];
+
+    if (isOpenRouterModel(config.modelId)) {
+      rawText = await queryOpenRouter(config.modelId, `${basePrompt}\nCRITICAL: Respond with JSON only.`, { maxTokens: 3200 });
+    } else {
+      const ai = getAI();
+      const response = await ai.models.generateContent({
+        model: config.modelId,
+        contents: basePrompt,
+        config: {
+          tools: [{ googleSearch: {} }],
+          thinkingConfig: config.thinkingBudget > 0 ? { thinkingBudget: config.thinkingBudget } : undefined,
+          ...(useStructuredOutput ? {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                summary: { type: Type.STRING },
+                entities: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      name: { type: Type.STRING },
+                      type: { type: Type.STRING, enum: ["PERSON", "ORGANIZATION", "UNKNOWN"] },
+                      role: { type: Type.STRING },
+                      sentiment: { type: Type.STRING, enum: ["POSITIVE", "NEGATIVE", "NEUTRAL"] }
+                    },
+                    required: ["name", "type", "role", "sentiment"]
+                  }
+                },
+                agendas: { type: Type.ARRAY, items: { type: Type.STRING } },
+                leads: { type: Type.ARRAY, items: { type: Type.STRING } },
+                sources: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      title: { type: Type.STRING },
+                      url: { type: Type.STRING }
+                    },
+                    required: ["title", "url"]
+                  }
                 }
               },
-              agendas: { type: Type.ARRAY, items: { type: Type.STRING } },
-              leads: { type: Type.ARRAY, items: { type: Type.STRING } },
-              sources: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    title: { type: Type.STRING },
-                    url: { type: Type.STRING }
-                  },
-                  required: ["title", "url"]
-                }
-              }
+              required: ["summary", "entities", "agendas", "leads", "sources"]
             },
-            required: ["summary", "entities", "agendas", "leads", "sources"]
-          },
-        } : {}),
-        safetySettings: SAFETY_SETTINGS,
-      },
-    });
+          } : {}),
+          safetySettings: SAFETY_SETTINGS,
+        },
+      });
 
-    const rawText = response.text || "{}";
-    const jsonText = useStructuredOutput ? rawText : extractJSON(rawText);
-    const data = JSON.parse(jsonText) as {
+      rawText = response.text || "{}";
+      groundingSources = extractSourcesFromGrounding(response);
+    }
+
+    const parsedData = useStructuredOutput && isGeminiModel(config.modelId) ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
+    const data = (parsedData && typeof parsedData === 'object' ? parsedData : {}) as {
       summary?: string;
       entities?: InvestigationReport['entities'];
       agendas?: string[];
@@ -595,7 +865,6 @@ export const investigateTopic = async (
       sources?: Array<{ title?: string; url?: string; uri?: string }>;
     };
 
-    const groundingSources = extractSourcesFromGrounding(response);
     const modelSources = Array.isArray(data.sources)
       ? dedupeSources(data.sources.map(source => ({
         title: source.title,
@@ -605,8 +874,8 @@ export const investigateTopic = async (
       : [];
     const textFallbackSources = extractSourcesFromText([
       rawText,
-      data.summary || '',
-      ...(Array.isArray(data.leads) ? data.leads : [])
+      toDisplayText(data.summary) || '',
+      ...normalizeStringList(data.leads)
     ].join('\n'));
 
     const sources = dedupeSources([
@@ -619,12 +888,18 @@ export const investigateTopic = async (
       topic,
       parentTopic: parentContext?.topic,
       dateStr: new Date().toLocaleDateString(),
-      summary: data.summary || "Analysis pending...",
-      entities: data.entities || [],
-      agendas: data.agendas || [],
-      leads: data.leads || [],
+      summary: toDisplayText(data.summary).trim() || "Analysis pending...",
+      entities: normalizeEntities(data.entities),
+      agendas: normalizeStringList(data.agendas),
+      leads: normalizeStringList(data.leads),
       sources,
-      rawText: JSON.stringify(data, null, 2)
+      rawText: JSON.stringify(data, null, 2),
+      config: {
+        modelId: config.modelId,
+        persona: config.persona,
+        searchDepth: config.searchDepth,
+        thinkingBudget: config.thinkingBudget,
+      }
     };
 
     cache.set(cacheKey, report);

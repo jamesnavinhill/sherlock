@@ -16,10 +16,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
          setError('API Key cannot be empty');
          return;
       }
-      if (!inputKey.startsWith('AIza')) {
-         setError('Invalid format. Google keys usually start with "AIza"');
-         return;
-      }
       setApiKey(inputKey.trim());
       onKeySet();
    };
@@ -38,7 +34,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
                   Security Clearance
                </h2>
                <p className="text-zinc-500 font-mono text-xs mt-2 relative z-10">
-                  Sherlock Protocol requires a valid Neural Engine Key.
+                  Sherlock Protocol requires a valid AI provider key.
                </p>
             </div>
 
@@ -46,12 +42,12 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
 
                <div className="bg-zinc-900/50 border-l-2 border-osint-warn p-4">
                   <p className="text-sm text-zinc-300 font-mono leading-relaxed">
-                     To access this investigative terminal, you must provide your own Google Gemini API Key.
+                     To access this investigative terminal, provide your own Gemini or OpenRouter API key.
                   </p>
                </div>
 
                <div>
-                  <label className="block text-xs font-mono text-zinc-500 uppercase mb-2">Enter Gemini API Key</label>
+                  <label className="block text-xs font-mono text-zinc-500 uppercase mb-2">Enter API Key</label>
                   <div className="relative">
                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Key className="h-4 w-4 text-zinc-500" />
@@ -63,7 +59,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
                            setInputKey(e.target.value);
                            setError('');
                         }}
-                        placeholder="AIzaSy..."
+                        placeholder="AIza... or sk-or-v1-..."
                         className="w-full bg-black border border-zinc-700 text-white p-3 pl-10 font-mono text-sm focus:border-osint-primary outline-none transition-colors"
                      />
                   </div>
@@ -84,14 +80,24 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
                      <ArrowRight className="w-4 h-4 ml-2" />
                   </button>
 
-                  <a
-                     href="https://aistudio.google.com/app/apikey"
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     className="text-center text-xs font-mono text-zinc-500 hover:text-osint-primary underline decoration-dotted underline-offset-4"
-                  >
-                     Get a free API Key from Google AI Studio
-                  </a>
+                  <div className="text-center text-xs font-mono text-zinc-500 space-y-1">
+                     <a
+                        href="https://aistudio.google.com/app/apikey"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block hover:text-osint-primary underline decoration-dotted underline-offset-4"
+                     >
+                        Get a Gemini key from Google AI Studio
+                     </a>
+                     <a
+                        href="https://openrouter.ai/keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block hover:text-osint-primary underline decoration-dotted underline-offset-4"
+                     >
+                        Get an OpenRouter key
+                     </a>
+                  </div>
                </div>
 
                <p className="text-[10px] text-zinc-600 text-center font-mono pt-4 border-t border-zinc-800">

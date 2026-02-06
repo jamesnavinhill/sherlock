@@ -107,7 +107,7 @@ function App() {
       let report = await investigateTopic(topic, context, configOverride);
 
       // AUTO ARCHIVE REPORT
-      report = { ...report, config: configOverride };
+      report = { ...report, config: { ...(report.config || {}), ...(configOverride || {}) } };
       report = await archiveReport(report, context);
 
       completeTask(taskId, report);
@@ -150,10 +150,11 @@ function App() {
 
   const handleBatchInvestigate = (leads: string[], parentReport: InvestigationReport) => {
     const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
+    const inheritedConfig = parentReport.config;
 
     leads.forEach((lead, index) => {
       setTimeout(() => {
-        startInvestigation(lead, parentContext, false);
+        startInvestigation(lead, parentContext, false, inheritedConfig);
       }, index * 200);
     });
   };
@@ -342,7 +343,7 @@ function App() {
               task={activeTask ?? null}
               reportOverride={activeReport}
               onBack={handleBack}
-              onDeepDive={(lead, report) => startInvestigation(lead, { topic: report.topic, summary: report.summary }, true)}
+              onDeepDive={(lead, report) => startInvestigation(lead, { topic: report.topic, summary: report.summary }, true, report.config)}
               onBatchDeepDive={handleBatchInvestigate}
               navStack={navStack}
               onNavigate={handleBreadcrumbNavigate}

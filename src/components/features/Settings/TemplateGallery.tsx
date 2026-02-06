@@ -7,6 +7,7 @@ import {
     Briefcase, Layout
 } from 'lucide-react';
 import { getAllScopes } from '../../../data/presets';
+import { AI_MODELS, DEFAULT_MODEL_ID, getModelDisplayName } from '../../../config/aiModels';
 
 interface TemplateGalleryProps {
     onApply: (template: CaseTemplate) => void;
@@ -17,14 +18,6 @@ const CREATE_STEPS = [
     { id: 1, label: 'Scope', icon: Compass },
     { id: 2, label: 'Target', icon: Target },
     { id: 3, label: 'Config', icon: Cpu }
-];
-
-const AVAILABLE_MODELS = [
-    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', description: 'Most capable' },
-    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', description: 'Fast & balanced' },
-    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Deep thinking' },
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Cost effective' },
-    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', description: 'High throughput' },
 ];
 
 export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => {
@@ -39,7 +32,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     const [selectedScopeId, setSelectedScopeId] = useState('');
     const [topic, setTopic] = useState('');
     const [hypothesis, setHypothesis] = useState('');
-    const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
+    const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
     const [persona, setPersona] = useState('');
     const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>('STANDARD');
     const [thinkingBudget, setThinkingBudget] = useState(0);
@@ -67,7 +60,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         const defaultScope = allScopes.find((scope) => scope.id === resolvedDefaultScopeId) || allScopes[0];
         const defaultPersona = defaultScope?.defaultPersona || defaultScope?.personas[0]?.id || 'general-investigator';
         const savedConfig = localStorage.getItem('sherlock_config');
-        let nextModel = 'gemini-3-flash-preview';
+        let nextModel = DEFAULT_MODEL_ID;
         let nextDepth: 'STANDARD' | 'DEEP' = 'STANDARD';
         let nextThinking = 0;
         let nextPersona = defaultPersona;
@@ -199,7 +192,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                 <div className="space-y-2 border-t border-zinc-800 pt-4">
                                     <div className="flex items-center text-[10px] font-mono text-zinc-400 capitalize">
                                         <SettingsIcon className="w-3 h-3 mr-2 text-zinc-600" />
-                                        <span>Model: {t.config.modelId?.replace('gemini-', '')}</span>
+                                        <span>Model: {getModelDisplayName(t.config.modelId || DEFAULT_MODEL_ID)}</span>
                                     </div>
                                     <div className="flex items-center text-[10px] font-mono text-zinc-400">
                                         <Info className="w-3 h-3 mr-2 text-zinc-600" />
@@ -351,7 +344,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                             onChange={(event) => setSelectedModel(event.target.value)}
                                             className="w-full bg-black border border-zinc-700 text-zinc-300 p-3 font-mono text-xs focus:border-osint-primary outline-none"
                                         >
-                                            {AVAILABLE_MODELS.map((model) => (
+                                            {AI_MODELS.map((model) => (
                                                 <option key={model.id} value={model.id}>
                                                     {model.name} - {model.description}
                                                 </option>

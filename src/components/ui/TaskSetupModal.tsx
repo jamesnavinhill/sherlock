@@ -7,6 +7,7 @@ import {
 import { useCaseStore } from '../../store/caseStore';
 import type { CaseTemplate, SystemConfig, ManualNode, InvestigationScope } from '../../types';
 import { BUILTIN_SCOPES, getScopeById, getAllScopes } from '../../data/presets';
+import { AI_MODELS, DEFAULT_MODEL_ID } from '../../config/aiModels';
 
 interface TaskSetupModalProps {
    initialTopic: string;
@@ -95,22 +96,14 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
    });
    const [selectedModel, setSelectedModel] = useState(() => {
       const stored = localStorage.getItem('sherlock_config');
-      if (!stored) return 'gemini-3-flash-preview';
+      if (!stored) return DEFAULT_MODEL_ID;
       try {
          const config: SystemConfig = JSON.parse(stored);
-         return config.modelId ?? 'gemini-3-flash-preview';
+         return config.modelId ?? DEFAULT_MODEL_ID;
       } catch {
-         return 'gemini-3-flash-preview';
+         return DEFAULT_MODEL_ID;
       }
    });
-
-   const AVAILABLE_MODELS = [
-      { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', description: 'Most capable' },
-      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', description: 'Fast & balanced' },
-      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Deep thinking' },
-      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Cost effective' },
-      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', description: 'High throughput' },
-   ];
 
    const applyTemplate = (t: CaseTemplate) => {
       setTopic(t.topic);
@@ -436,7 +429,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({ initialTopic, in
                   onChange={(e) => setSelectedModel(e.target.value)}
                   className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
                >
-                  {AVAILABLE_MODELS.map(model => (
+                  {AI_MODELS.map(model => (
                      <option key={model.id} value={model.id}>{model.name} - {model.description}</option>
                   ))}
                </select>
