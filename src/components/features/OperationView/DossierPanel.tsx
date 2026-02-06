@@ -102,58 +102,64 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 )}
 
                 {/* Leads */}
-                {leads.length > 0 && (
-                    <Accordion
-                        title="Open Leads"
-                        count={leads.length}
-                        icon={Lightbulb}
-                        isOpen={openSections.leads}
-                        onToggle={() => toggleSection('leads')}
-                    >
-                        <div className="space-y-1">
-                            {leads.map((lead, idx) => (
+                <Accordion
+                    title="Open Leads"
+                    count={leads.length}
+                    icon={Lightbulb}
+                    isOpen={openSections.leads}
+                    onToggle={() => toggleSection('leads')}
+                >
+                    <div className="space-y-1">
+                        {leads.length === 0 ? (
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No leads available for this case.</p>
+                        ) : (
+                            leads.map((lead, idx) => (
                                 <div key={idx} className="p-2 bg-zinc-900/20 border border-zinc-800/50 mb-1">
                                     <p className="text-[10px] text-zinc-400 font-mono mb-2 line-clamp-2">{lead}</p>
                                     <button onClick={() => onLeadClick(lead)} className="w-full text-center py-1 bg-zinc-900 border border-zinc-700 hover:bg-osint-primary hover:text-black text-[10px] font-bold uppercase transition-colors">
                                         Investigate
                                     </button>
                                 </div>
-                            ))}
-                        </div>
-                    </Accordion>
-                )}
+                            ))
+                        )}
+                    </div>
+                </Accordion>
 
                 {/* Sources */}
-                {sources.length > 0 && (
-                    <Accordion
-                        title="Verified Sources"
-                        count={sources.length}
-                        icon={Globe}
-                        isOpen={openSections.sources}
-                        onToggle={() => toggleSection('sources')}
-                    >
-                        <div className="space-y-1">
-                            {sources.map((s, idx) => (
+                <Accordion
+                    title="Verified Sources"
+                    count={sources.length}
+                    icon={Globe}
+                    isOpen={openSections.sources}
+                    onToggle={() => toggleSection('sources')}
+                >
+                    <div className="space-y-1">
+                        {sources.length === 0 ? (
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No case-level sources available yet.</p>
+                        ) : (
+                            sources.map((s, idx) => (
                                 <a key={idx} href={s.url} target="_blank" rel="noopener noreferrer" className="block p-2 hover:bg-zinc-900 text-[10px] font-mono text-blue-400 hover:underline truncate border-b border-zinc-900 last:border-0">
                                     <Link2 className="w-3 h-3 inline mr-1" />
                                     {s.title}
                                 </a>
-                            ))}
-                        </div>
-                    </Accordion>
-                )}
+                            ))
+                        )}
+                    </div>
+                </Accordion>
 
                 {/* Headlines */}
-                {headlines.length > 0 && (
-                    <Accordion
-                        title="Headlines"
-                        count={headlines.length}
-                        icon={Newspaper}
-                        isOpen={openSections.headlines}
-                        onToggle={() => toggleSection('headlines')}
-                    >
-                        <div className="space-y-1">
-                            {headlines.map((h) => (
+                <Accordion
+                    title="Headlines"
+                    count={headlines.length}
+                    icon={Newspaper}
+                    isOpen={openSections.headlines}
+                    onToggle={() => toggleSection('headlines')}
+                >
+                    <div className="space-y-1">
+                        {headlines.length === 0 ? (
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No headlines linked to this case.</p>
+                        ) : (
+                            headlines.map((h) => (
                                 <button
                                     key={h.id}
                                     onClick={() => onHeadlineClick(h)}
@@ -167,10 +173,10 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                                         <ChevronRight className="w-3 h-3 text-zinc-700 group-hover:text-osint-primary opacity-0 group-hover:opacity-100 transition-all" />
                                     </div>
                                 </button>
-                            ))}
-                        </div>
-                    </Accordion>
-                )}
+                            ))
+                        )}
+                    </div>
+                </Accordion>
             </div>
         </div>
     );

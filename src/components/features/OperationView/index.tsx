@@ -16,6 +16,7 @@ import { InspectorPanel } from './InspectorPanel';
 // --- PROPS ---
 interface OperationViewProps {
     task: InvestigationTask | null;
+    reportOverride?: InvestigationReport | null;
     onBack: () => void;
     onDeepDive: (lead: string, currentReport: InvestigationReport) => void;
     onBatchDeepDive: (leads: string[], currentReport: InvestigationReport) => void;
@@ -27,7 +28,7 @@ interface OperationViewProps {
 }
 
 export const OperationView: React.FC<OperationViewProps> = ({
-    task, onBack, onDeepDive, onBatchDeepDive, navStack, onNavigate, onSelectCase, onStartNewCase, onInvestigateHeadline
+    task, reportOverride = null, onBack, onDeepDive, onBatchDeepDive, navStack, onNavigate, onSelectCase, onStartNewCase, onInvestigateHeadline
 }) => {
     // Panel visibility
     const [leftPanelOpen, setLeftPanelOpen] = useState(window.innerWidth > 1024);
@@ -79,21 +80,22 @@ export const OperationView: React.FC<OperationViewProps> = ({
         setActiveCaseId
     } = useCaseStore();
 
+    const report = task?.report ?? reportOverride;
+    const status = task?.status ?? null;
+    const effectiveCaseId = selectedCaseId ?? report?.caseId ?? null;
+
     const activeCase = useMemo(() =>
-        allCases.find(c => c.id === selectedCaseId) || null
-        , [allCases, selectedCaseId]);
+        allCases.find(c => c.id === effectiveCaseId) || null
+        , [allCases, effectiveCaseId]);
 
     const allCaseReports = useMemo(() =>
-        archives.filter(r => r.caseId === selectedCaseId)
-        , [archives, selectedCaseId]);
+        archives.filter(r => r.caseId === effectiveCaseId)
+        , [archives, effectiveCaseId]);
 
     const headlines = useMemo(() => {
-        // We'd need headlines in the * This is the modern investigation UI. Use this for all new development.
-        return useCaseStore.getState().headlines.filter(h => h.caseId === selectedCaseId);
-    }, [selectedCaseId]);
-
-    const report = task?.report ?? null;
-    const status = task?.status ?? null;
+        if (!effectiveCaseId) return [];
+        return useCaseStore.getState().headlines.filter(h => h.caseId === effectiveCaseId);
+    }, [effectiveCaseId]);
 
     // Removed redundant effects, case switching now handled by store action in Toolbar/index
     // No-op for now to keep structure clean during migration

@@ -125,6 +125,71 @@ const extractJSON = (text: string): string => {
   return text.trim();
 };
 
+const URL_PATTERN = /https?:\/\/[^\s<>"'`)\]}]+/gi;
+
+const sanitizeUrl = (value: string): string | null => {
+  const cleaned = value.trim().replace(/[),.;\]}]+$/, '');
+  try {
+    const parsed = new URL(cleaned);
+    if (!parsed.hostname) return null;
+    parsed.hash = '';
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+};
+
+const normalizeSource = (source: { title?: unknown; url?: unknown; uri?: unknown }): Source | null => {
+  const rawUrl = typeof source.url === 'string' ? source.url : (typeof source.uri === 'string' ? source.uri : '');
+  const url = sanitizeUrl(rawUrl);
+  if (!url) return null;
+
+  const title = typeof source.title === 'string' && source.title.trim().length > 0
+    ? source.title.trim()
+    : 'Untitled Source';
+
+  return { title, url };
+};
+
+const dedupeSources = (sources: Array<{ title?: unknown; url?: unknown; uri?: unknown }>): Source[] => {
+  const unique = new Map<string, Source>();
+  sources.forEach((source) => {
+    const normalized = normalizeSource(source);
+    if (!normalized) return;
+    const key = normalized.url.toLowerCase();
+    if (!unique.has(key)) {
+      unique.set(key, normalized);
+    }
+  });
+  return Array.from(unique.values());
+};
+
+const extractSourcesFromGrounding = (response: unknown): Source[] => {
+  const result: Source[] = [];
+  const candidates = (response as {
+    candidates?: Array<{
+      groundingMetadata?: {
+        groundingChunks?: Array<{ web?: { title?: string; uri?: string } }>
+      }
+    }>
+  }).candidates || [];
+
+  candidates.forEach(candidate => {
+    const chunks = candidate.groundingMetadata?.groundingChunks || [];
+    chunks.forEach(chunk => {
+      const normalized = normalizeSource(chunk.web || {});
+      if (normalized) result.push(normalized);
+    });
+  });
+
+  return dedupeSources(result);
+};
+
+const extractSourcesFromText = (text: string): Source[] => {
+  const matches = text.match(URL_PATTERN) || [];
+  return dedupeSources(matches.map(url => ({ title: 'Referenced Source', url })));
+};
+
 const getPersonaInstruction = (personaId: string, scope?: InvestigationScope): string => {
   // First try to find persona in scope
   if (scope) {
@@ -468,10 +533,10 @@ export const investigateTopic = async (
 
     // Add structured output instructions if needed
     if (!useStructuredOutput) {
-      basePrompt += ` CRITICAL: Respond with a JSON object only containing: summary (string), entities (array), agendas (array), leads (array).`;
+      basePrompt += ` CRITICAL: Respond with a JSON object only containing: summary (string), entities (array), agendas (array), leads (array), sources (array of {title, url}).`;
     }
 
-    basePrompt += ` Extract at least 4 actionable leads. For each entity, specify: name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment.`;
+    basePrompt += ` Extract at least 4 actionable leads. For each entity, specify: name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment. Include 3-8 unique sources and provide each source as { "title": "...", "url": "https://..." }.`;
 
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -500,9 +565,20 @@ export const investigateTopic = async (
                 }
               },
               agendas: { type: Type.ARRAY, items: { type: Type.STRING } },
-              leads: { type: Type.ARRAY, items: { type: Type.STRING } }
+              leads: { type: Type.ARRAY, items: { type: Type.STRING } },
+              sources: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    title: { type: Type.STRING },
+                    url: { type: Type.STRING }
+                  },
+                  required: ["title", "url"]
+                }
+              }
             },
-            required: ["summary", "entities", "agendas", "leads"]
+            required: ["summary", "entities", "agendas", "leads", "sources"]
           },
         } : {}),
         safetySettings: SAFETY_SETTINGS,
@@ -511,15 +587,33 @@ export const investigateTopic = async (
 
     const rawText = response.text || "{}";
     const jsonText = useStructuredOutput ? rawText : extractJSON(rawText);
-    const data = JSON.parse(jsonText);
-    const sources: Source[] = [];
-    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-    if (chunks) {
-      chunks.forEach((chunk) => {
-        const web = (chunk as { web?: { title?: string; uri?: string } }).web;
-        if (web) sources.push({ title: web.title || "Unknown Source", url: web.uri || "#" });
-      });
-    }
+    const data = JSON.parse(jsonText) as {
+      summary?: string;
+      entities?: InvestigationReport['entities'];
+      agendas?: string[];
+      leads?: string[];
+      sources?: Array<{ title?: string; url?: string; uri?: string }>;
+    };
+
+    const groundingSources = extractSourcesFromGrounding(response);
+    const modelSources = Array.isArray(data.sources)
+      ? dedupeSources(data.sources.map(source => ({
+        title: source.title,
+        url: source.url,
+        uri: source.uri
+      })))
+      : [];
+    const textFallbackSources = extractSourcesFromText([
+      rawText,
+      data.summary || '',
+      ...(Array.isArray(data.leads) ? data.leads : [])
+    ].join('\n'));
+
+    const sources = dedupeSources([
+      ...groundingSources,
+      ...modelSources,
+      ...textFallbackSources
+    ]);
 
     const report: InvestigationReport = {
       topic,

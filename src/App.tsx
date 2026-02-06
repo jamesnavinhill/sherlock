@@ -34,6 +34,7 @@ function App() {
     showNewCaseModal: _showNewCaseModal, setShowNewCaseModal,
     showGlobalSearch, setShowGlobalSearch,
     archiveReport, archives, cases,
+    setActiveCaseId,
     addToast,
     initializeStore, isLoading
   } = useCaseStore();
@@ -44,6 +45,7 @@ function App() {
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => hasApiKey());
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [focusedReportId, setFocusedReportId] = useState<string | null>(null);
 
   // Global Keyboard Shortcuts
   const shortcuts = createAppShortcuts({
@@ -66,6 +68,7 @@ function App() {
   const handleBack = useCallback(() => {
     setCurrentView(AppView.DASHBOARD);
     setActiveTaskId(null);
+    setFocusedReportId(null);
     setNavStack([]);
   }, [setActiveTaskId, setCurrentView, setNavStack]);
 
@@ -101,6 +104,9 @@ function App() {
       report = await archiveReport(report, context);
 
       completeTask(taskId, report);
+      if (useCaseStore.getState().activeTaskId === taskId) {
+        setFocusedReportId(report.id || null);
+      }
       if (shouldNotify()) addToast(`Investigation complete: ${topic}`, "SUCCESS");
     } catch (error: unknown) {
       console.error(`Task ${taskId} failed`, error);
@@ -126,6 +132,7 @@ function App() {
     if (shouldNotify()) addToast(`Scanning for leads on: ${topic}`, "INFO");
 
     if (switchToView) {
+      setFocusedReportId(null);
       setActiveTaskId(newTaskId);
       setCurrentView(AppView.INVESTIGATION);
     }
@@ -145,22 +152,15 @@ function App() {
   };
 
   const handleViewReport = (report: InvestigationReport) => {
+    setFocusedReportId(report.id || null);
+    setActiveCaseId(report.caseId || null);
+
     const existingTask = tasks.find(t => t.report?.id === report.id || t.report?.topic === report.topic);
 
     if (existingTask) {
       setActiveTaskId(existingTask.id);
     } else {
-      const virtualTaskId = `virtual-${Date.now()}`;
-      const virtualTask: InvestigationTask = {
-        id: virtualTaskId,
-        topic: report.topic,
-        status: 'COMPLETED',
-        startTime: Date.now(),
-        report: report,
-        parentContext: report.parentTopic ? { topic: report.parentTopic, summary: "Loaded from archive" } : undefined
-      };
-      addTask(virtualTask);
-      setActiveTaskId(virtualTaskId);
+      setActiveTaskId(null);
     }
     setCurrentView(AppView.INVESTIGATION);
   };
@@ -170,17 +170,23 @@ function App() {
     setCurrentView(AppView.INVESTIGATION);
   };
 
-  const handleClearCompleted = () => {
-    clearCompletedTasks();
+  const handleClearCompleted = async () => {
+    const activeBeforeClear = tasks.find(t => t.id === activeTaskId);
+    await clearCompletedTasks();
+    if (activeBeforeClear && (activeBeforeClear.status === 'COMPLETED' || activeBeforeClear.status === 'FAILED')) {
+      setActiveTaskId(null);
+    }
   };
 
   // Current active task object
   const activeTask = tasks.find(t => t.id === activeTaskId);
+  const focusedReport = focusedReportId ? archives.find(r => r.id === focusedReportId) || null : null;
+  const activeReport = activeTask?.report || focusedReport || null;
 
-  // Build nav stack when activeTask changes
+  // Build nav stack from the currently visible report (task-driven or archive-driven)
   useEffect(() => {
-    if (activeTask?.report) {
-      const report = activeTask.report;
+    if (activeReport) {
+      const report = activeReport;
       const newStack: BreadcrumbItem[] = [];
 
       if (report.caseId) {
@@ -190,10 +196,10 @@ function App() {
         }
       }
 
-      newStack.push({ type: 'REPORT', id: report.id || activeTask.id, label: report.topic });
+      newStack.push({ type: 'REPORT', id: report.id || activeTaskId || 'report', label: report.topic });
       setNavStack(newStack);
     }
-  }, [activeTask, cases, setNavStack]);
+  }, [activeReport, cases, setNavStack, activeTaskId]);
 
   // Navigate via breadcrumbs or dossier report selection
   const handleBreadcrumbNavigate = (id: string) => {
@@ -318,6 +324,7 @@ function App() {
           {currentView === AppView.INVESTIGATION && (
             <OperationView
               task={activeTask ?? null}
+              reportOverride={activeReport}
               onBack={handleBack}
               onDeepDive={(lead, report) => startInvestigation(lead, { topic: report.topic, summary: report.summary }, true)}
               onBatchDeepDive={handleBatchInvestigate}

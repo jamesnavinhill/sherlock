@@ -26,7 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClearCompleted
 }) => {
   const btnClass = (isActive: boolean) =>
-    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l-2 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${isActive
+    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${isActive
       ? 'bg-zinc-900 text-osint-primary border-osint-primary shadow-[inset_10px_0_20px_-10px_rgba(0,0,0,0.5)]'
       : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 border-transparent'
     }`;
@@ -41,10 +41,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      <aside className={`${isCollapsed ? 'w-0 md:w-20 -translate-x-full md:translate-x-0' : 'w-64 translate-x-0'} bg-osint-dark border-r border-osint-border flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}>
+      <aside className={`${isCollapsed ? 'w-0 md:w-20 -translate-x-full md:translate-x-0' : 'w-64 translate-x-0'} bg-osint-dark border-r border-zinc-800 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}>
         <div
           onClick={toggleCollapse}
-          className={`h-20 flex items-center ${isCollapsed ? 'justify-center' : 'px-6 space-x-3'} border-b border-osint-border bg-osint-dark cursor-pointer hover:bg-zinc-900 transition-colors group flex-shrink-0`}
+          className={`h-20 flex items-center ${isCollapsed ? 'justify-center' : 'px-6 space-x-3'} border-b border-zinc-800 bg-osint-dark cursor-pointer hover:bg-zinc-900 transition-colors group flex-shrink-0`}
           title="Toggle Sidebar"
         >
           <ShieldAlert className={`w-8 h-8 text-osint-primary transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`} />
@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onExpand={() => isCollapsed && toggleCollapse()}
         />
 
-        <div className="border-t border-osint-border flex-shrink-0">
+        <div className="border-t border-zinc-800 flex-shrink-0">
           <button
             onClick={() => onChangeView(AppView.SETTINGS)}
             className={`${btnClass(currentView === AppView.SETTINGS)} py-4`}

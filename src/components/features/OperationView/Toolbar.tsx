@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout } from 'lucide-react';
+import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout, Briefcase, ChevronRight } from 'lucide-react';
 import type { Case, InvestigationReport } from '../../../types';
 import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson, exportCaseAsMarkdown, exportReportAsMarkdown } from '../../../utils/exportUtils';
 
@@ -40,7 +40,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
                 <button
                     onClick={onToggleLeftPanel}
-                    className={`p-2 border transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-transparent text-white border-white shadow-[0_0_15px_-5px_rgba(255,255,255,0.3)]' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}
+                    className={`hidden md:flex items-center space-x-2 px-3 py-1.5 border transition-all outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
+                    title="Toggle Dossier Panel (D)"
+                    aria-label="Toggle Dossier Panel"
+                >
+                    <Briefcase className="w-4 h-4" />
+                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">Case Dossier</span>
+                    <ChevronRight className={`w-3 h-3 transition-transform ${leftPanelOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <button
+                    onClick={onToggleLeftPanel}
+                    className={`md:hidden p-2 border transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-zinc-800 text-white border-white' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}
                     title="Toggle Dossier Panel (D)"
                     aria-label="Toggle Dossier Panel"
                 >

@@ -3,6 +3,65 @@ import { getDB } from '../client';
 import { cases, reports, entities, sources, leads } from '../schema';
 import type { Case, InvestigationReport, Entity, Headline } from '@/types';
 
+interface RawReportPayload {
+    summary?: string;
+    entities?: unknown;
+    sources?: unknown;
+    agendas?: unknown;
+    leads?: unknown;
+}
+
+const parseRawReportPayload = (rawText: string | null): RawReportPayload => {
+    if (!rawText) return {};
+    try {
+        const parsed = JSON.parse(rawText) as RawReportPayload;
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+        return {};
+    }
+};
+
+const toEntityList = (value: unknown): Entity[] => {
+    if (!Array.isArray(value)) return [];
+    return value
+        .map((item): Entity | null => {
+            if (typeof item === 'string') {
+                return { name: item, type: 'UNKNOWN' };
+            }
+            if (!item || typeof item !== 'object') return null;
+            const entity = item as Partial<Entity>;
+            if (!entity.name || typeof entity.name !== 'string') return null;
+            return {
+                name: entity.name,
+                type: entity.type === 'PERSON' || entity.type === 'ORGANIZATION' ? entity.type : 'UNKNOWN',
+                role: typeof entity.role === 'string' ? entity.role : undefined,
+                sentiment: entity.sentiment === 'POSITIVE' || entity.sentiment === 'NEGATIVE' || entity.sentiment === 'NEUTRAL'
+                    ? entity.sentiment
+                    : undefined
+            };
+        })
+        .filter((item): item is Entity => !!item);
+};
+
+const toStringList = (value: unknown): string[] => {
+    if (!Array.isArray(value)) return [];
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+};
+
+const toSourceList = (value: unknown): InvestigationReport['sources'] => {
+    if (!Array.isArray(value)) return [];
+    return value
+        .map((item): { title: string; url: string } | null => {
+            if (!item || typeof item !== 'object') return null;
+            const source = item as { title?: unknown; url?: unknown; uri?: unknown };
+            const title = typeof source.title === 'string' && source.title.trim().length > 0 ? source.title.trim() : 'Untitled Source';
+            const rawUrl = typeof source.url === 'string' ? source.url : (typeof source.uri === 'string' ? source.uri : '');
+            if (!rawUrl) return null;
+            return { title, url: rawUrl };
+        })
+        .filter((item): item is { title: string; url: string } => !!item);
+};
+
 export class CaseRepository {
     // --- CASES ---
     static async getAllCases(): Promise<Case[]> {
@@ -62,17 +121,23 @@ export class CaseRepository {
         const allSources = await db.select().from(sources);
 
         return reportRows.map(row => {
+            const rawPayload = parseRawReportPayload(row.rawText);
+
             const reportEntities = allEntities.filter(e => e.reportId === row.id).map(e => ({
                 name: e.name,
                 type: e.type as Entity['type'],
                 role: e.role || undefined,
                 sentiment: e.sentiment as Entity['sentiment']
             }));
+            const parsedEntities = toEntityList(rawPayload.entities);
 
             const reportSources = allSources.filter(s => s.reportId === row.id).map(s => ({
                 title: s.title,
                 url: s.url
             }));
+            const parsedSources = toSourceList(rawPayload.sources);
+            const parsedAgendas = toStringList(rawPayload.agendas);
+            const parsedLeads = toStringList(rawPayload.leads);
 
             return {
                 id: row.id,
@@ -83,10 +148,10 @@ export class CaseRepository {
                 rawText: row.rawText || '',
                 parentTopic: row.parentTopic || undefined,
                 config: row.configJson ? JSON.parse(row.configJson) : undefined,
-                entities: reportEntities,
-                sources: reportSources,
-                agendas: [], // Not persisted in simplified schema yet? or mapped from leads?
-                leads: [] // Need to fetch leads
+                entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
+                sources: reportSources.length > 0 ? reportSources : parsedSources,
+                agendas: parsedAgendas,
+                leads: parsedLeads
             };
         });
     }

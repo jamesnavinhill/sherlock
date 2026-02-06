@@ -130,6 +130,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         );
     }
 
+    const reportSources = report.sources || [];
+
     return (
         <div className="flex-1 flex overflow-hidden bg-black relative animate-in fade-in duration-500">
             {/* MAIN COLUMN (Title, Exec Summary, Leads) - 3/4 Width */}
@@ -177,12 +179,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                     </div>
 
                     {/* Leads */}
-                    {report.leads.length > 0 && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between border-b border-zinc-700 pb-2 mb-4 bg-black/30 p-2">
-                                <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
-                                    <Target className="w-4 h-4 mr-2 text-osint-primary" /> Investigative Leads
-                                </h2>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between border-b border-zinc-700 pb-2 mb-4 bg-black/30 p-2">
+                            <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
+                                <Target className="w-4 h-4 mr-2 text-osint-primary" /> Investigative Leads
+                            </h2>
+                            {report.leads.length > 0 && (
                                 <button
                                     onClick={() => onBatchDeepDive(report.leads)}
                                     className="flex items-center text-xs font-mono font-bold text-black bg-white hover:bg-osint-primary px-3 py-1.5 uppercase transition-all shadow-[0_0_10px_-3px_rgba(255,255,255,0.5)] hover:shadow-[0_0_15px_-5px_var(--osint-primary)]"
@@ -190,7 +192,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                                 >
                                     <Layers className="w-4 h-4 mr-2" /> Full Spectrum
                                 </button>
+                            )}
+                        </div>
+                        {report.leads.length === 0 ? (
+                            <div className="p-4 border border-zinc-800 bg-zinc-900/30 text-[11px] font-mono text-zinc-500 italic">
+                                No leads were extracted for this report.
                             </div>
+                        ) : (
                             <div className="grid md:grid-cols-2 gap-4">
                                 {report.leads.map((lead, idx) => (
                                     <div key={idx} className="bg-osint-surface/80 backdrop-blur-sm border border-zinc-700/60 p-5 hover:border-osint-primary/50 transition-colors relative group flex flex-col justify-between">
@@ -211,8 +219,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -220,24 +228,26 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             <div className="w-1/4 h-full overflow-y-auto p-2 bg-zinc-900/10 custom-scrollbar">
 
                 {/* Anomalies */}
-                {report.agendas.length > 0 && (
-                    <Accordion
-                        title={`Anomalies (${report.agendas.length})`}
-                        icon={AlertTriangle}
-                        isOpen={sidebarAccordions.anomalies}
-                        onToggle={() => toggleSidebarAccordion('anomalies')}
-                        className="mb-2"
-                        headerClassName="text-osint-danger"
-                    >
-                        <div className="space-y-2">
-                            {report.agendas.map((agenda, idx) => (
+                <Accordion
+                    title={`Anomalies (${report.agendas.length})`}
+                    icon={AlertTriangle}
+                    isOpen={sidebarAccordions.anomalies}
+                    onToggle={() => toggleSidebarAccordion('anomalies')}
+                    className="mb-2"
+                    headerClassName="text-osint-danger"
+                >
+                    <div className="space-y-2">
+                        {report.agendas.length === 0 ? (
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No anomalies extracted for this report.</p>
+                        ) : (
+                            report.agendas.map((agenda, idx) => (
                                 <div key={idx} className="bg-zinc-900/80 p-3 border-l-2 border-osint-danger text-xs text-zinc-300">
                                     <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
                                 </div>
-                            ))}
-                        </div>
-                    </Accordion>
-                )}
+                            ))
+                        )}
+                    </div>
+                </Accordion>
 
                 {/* Entities List */}
                 <Accordion
@@ -266,24 +276,26 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 </Accordion>
 
                 {/* Resources */}
-                {report.sources.length > 0 && (
-                    <Accordion
-                        title={`Sources (${report.sources.length})`}
-                        icon={Globe}
-                        isOpen={sidebarAccordions.resources}
-                        onToggle={() => toggleSidebarAccordion('resources')}
-                        className="mb-2"
-                    >
-                        <div className="space-y-1">
-                            {report.sources.map((source, idx) => (
+                <Accordion
+                    title={`Sources (${reportSources.length})`}
+                    icon={Globe}
+                    isOpen={sidebarAccordions.resources}
+                    onToggle={() => toggleSidebarAccordion('resources')}
+                    className="mb-2"
+                >
+                    <div className="space-y-1">
+                        {reportSources.length === 0 ? (
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No sources captured for this report.</p>
+                        ) : (
+                            reportSources.map((source, idx) => (
                                 <a key={idx} href={source.url} target="_blank" rel="noopener noreferrer" className="block p-2 hover:bg-zinc-900 text-[10px] font-mono text-blue-400 hover:underline truncate border-b border-zinc-900 last:border-0">
                                     <Link2 className="w-3 h-3 inline mr-1" />
                                     {source.title}
                                 </a>
-                            ))}
-                        </div>
-                    </Accordion>
-                )}
+                            ))
+                        )}
+                    </div>
+                </Accordion>
             </div>
         </div>
     );

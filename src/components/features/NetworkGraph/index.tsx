@@ -416,7 +416,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                     currentAliases={aliases}
                     onSaveAliases={(newAliases) => {
                         setAliases(newAliases);
-                        setShowResolutionModal(false);
                     }}
                     onClose={() => setShowResolutionModal(false)}
                 />
