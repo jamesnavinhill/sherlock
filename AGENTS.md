@@ -6,7 +6,6 @@ Repository-specific operating notes for coding/documentation agents.
 
 - Primary active code is under `src/`.
 - Active docs are in `README.md` and `docs/*.md`.
-- Treat `docs/_legacy/` as historical; do not modify unless explicitly asked.
 
 ## 2. Architecture Anchors
 
@@ -27,7 +26,7 @@ When unsure, start from:
 
 - Keep docs in sync with actual code behavior, not intended roadmap.
 - Update `README.md` when setup/validation/status changes.
-- Update `docs/architecture.md` for structural changes.
+- Update `docs/ARCHITECTURE.md` for structural changes.
 - Update `docs/OPERATIONS_RUNBOOK.md` for provider error/fallback changes.
 - Update `docs/SCOPES.md` and `docs/SOURCES.md` when scope presets change.
 

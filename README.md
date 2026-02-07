@@ -87,7 +87,7 @@ npm run check
 
 ## Documentation Index
 
-- `docs/architecture.md`
+- `docs/ARCHITECTURE.md`
 - `docs/BROAD_SCOPE.md`
 - `docs/SCOPES.md`
 - `docs/DATA_PERSISTENCE.md`
@@ -95,8 +95,6 @@ npm run check
 - `docs/SOURCES.md`
 - `docs/LINTING.md`
 - `docs/CONTRIBUTING.md`
-
-Legacy historical notes remain in `docs/_legacy/`.
 
 ## License
 
