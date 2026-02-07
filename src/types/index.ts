@@ -1,4 +1,4 @@
-
+import type { AIProvider } from '../config/aiModels';
 
 export interface Source {
   title: string;
@@ -28,7 +28,7 @@ export interface Case {
   status: 'ACTIVE' | 'CLOSED';
   dateOpened: string;
   description?: string;
-  headlines?: string[]; // IDs of associated headlines
+  headlines?: string[];
 }
 
 export type EntityType = 'PERSON' | 'ORGANIZATION' | 'UNKNOWN';
@@ -38,21 +38,6 @@ export interface Entity {
   type: EntityType;
   role?: string;
   sentiment?: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
-}
-
-export interface InvestigationReport {
-  id?: string;
-  caseId?: string; // Link to parent Case
-  topic: string;
-  dateStr?: string;
-  summary: string;
-  agendas: string[];
-  leads: string[];
-  entities: Entity[]; // Updated from string[]
-  sources: Source[];
-  rawText: string;
-  parentTopic?: string;
-  config?: Partial<SystemConfig>;
 }
 
 export interface ManualConnection {
@@ -65,7 +50,7 @@ export interface ManualNode {
   id: string;
   label: string;
   type: 'CASE' | 'ENTITY';
-  subtype?: 'PERSON' | 'ORGANIZATION'; // Entity subtype for manual nodes
+  subtype?: 'PERSON' | 'ORGANIZATION';
   timestamp: number;
 }
 
@@ -98,13 +83,17 @@ export enum AppView {
   TIMELINE = 'TIMELINE',
 }
 
-export type InvestigatorPersona = 'FORENSIC_ACCOUNTANT' | 'JOURNALIST' | 'INTELLIGENCE_OFFICER' | 'CONSPIRACY_ANALYST';
+export type InvestigatorPersona =
+  | 'FORENSIC_ACCOUNTANT'
+  | 'JOURNALIST'
+  | 'INTELLIGENCE_OFFICER'
+  | 'CONSPIRACY_ANALYST';
 
 export interface SystemConfig {
   provider: AIProvider;
   modelId: string;
-  thinkingBudget: number; // 0 to max
-  persona: string; // Now references PersonaDefinition.id from scope
+  thinkingBudget: number;
+  persona: string;
   searchDepth: 'STANDARD' | 'DEEP';
   autoNormalizeEntities?: boolean;
   quietMode?: boolean;
@@ -146,6 +135,50 @@ export interface InvestigationScope {
   isBuiltIn?: boolean;
 }
 
+export interface DateRangeOverride {
+  start?: string;
+  end?: string;
+}
+
+export interface InvestigationContext {
+  topic: string;
+  summary: string;
+}
+
+export interface InvestigationRunConfig extends Partial<SystemConfig> {
+  scopeId?: string;
+  scopeName?: string;
+  dateRangeOverride?: DateRangeOverride;
+  preseededEntities?: ManualNode[];
+  launchSource?: string;
+}
+
+export interface InvestigationLaunchRequest {
+  topic: string;
+  parentContext?: InvestigationContext;
+  configOverride?: Partial<SystemConfig>;
+  scope?: InvestigationScope;
+  dateRangeOverride?: DateRangeOverride;
+  preseededEntities?: ManualNode[];
+  switchToView?: boolean;
+  launchSource?: string;
+}
+
+export interface InvestigationReport {
+  id?: string;
+  caseId?: string;
+  topic: string;
+  dateStr?: string;
+  summary: string;
+  agendas: string[];
+  leads: string[];
+  entities: Entity[];
+  sources: Source[];
+  rawText: string;
+  parentTopic?: string;
+  config?: InvestigationRunConfig;
+}
+
 export interface CaseTemplate {
   id: string;
   name: string;
@@ -153,13 +186,13 @@ export interface CaseTemplate {
   topic: string;
   config: Partial<SystemConfig>;
   createdAt: number;
-  scopeId?: string; // Reference to InvestigationScope
+  scopeId?: string;
 }
 
-// Key is the "Variation" (e.g. "Google Inc"), Value is the "Canonical" (e.g. "Google")
+// Key is the variation, value is the canonical entity.
 export type EntityAliasMap = Record<string, string>;
 
-// --- NEW TASK SYSTEM ---
+// --- TASK SYSTEM ---
 
 export type InvestigationStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
@@ -170,8 +203,8 @@ export interface InvestigationTask {
   startTime: number;
   endTime?: number;
   report?: InvestigationReport;
-  parentContext?: { topic: string, summary: string };
-  config?: Partial<SystemConfig>;
+  parentContext?: InvestigationContext;
+  config?: InvestigationRunConfig;
+  launchRequest?: InvestigationLaunchRequest;
   error?: string;
 }
-import type { AIProvider } from '../config/aiModels';

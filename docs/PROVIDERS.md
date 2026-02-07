@@ -4,12 +4,14 @@
 
 Build a clean, robust provider system where Google Gemini is the default and the app can switch reliably to OpenRouter, OpenAI, or Anthropic, with uniform behavior across all investigation flows.
 
-## Status Snapshot (February 6, 2026)
+## Status Snapshot (February 7, 2026)
 
 - Phase 1 is implemented (provider/model config model and migration paths are in place).
 - Phase 2 is implemented (provider-aware key management is centralized and wired in UI/runtime checks).
 - Phase 3 is implemented (provider adapters extracted for Gemini, OpenRouter, OpenAI, Anthropic).
 - Phase 4 is implemented (provider router/registry live; `src/services/gemini.ts` is now a compatibility facade).
+- Phase 5 is implemented (all main investigation entry points now use one launch request contract).
+- Phase 6 is implemented (provider/model hierarchy and run-time key validation UX are aligned).
 
 ## Product Rules (Must Hold)
 
@@ -21,11 +23,8 @@ Build a clean, robust provider system where Google Gemini is the default and the
 
 ## Current Gaps (From Project Review)
 
-- Phase 5 flow propagation is not complete across all entry points yet.
-- Some investigations still branch by model/provider assumptions in feature-level flows that should move to unified launch requests.
-- Investigation wizard config is dropped in some paths:
-  - `src/components/features/OperationView/index.tsx` lead modal ignores returned config.
-  - `src/App.tsx` investigation start/run signatures do not carry scope/date override/preseeded input from wizard.
+- Phase 7 test matrix work remains (provider fixtures + broader integration coverage).
+- Phase 8 cleanup remains (README/runbook refresh and further legacy cleanup).
 
 ## Target Architecture
 
@@ -138,16 +137,16 @@ Exit criteria:
 
 ## Phase 5 - Flow Uniformity Across Investigation Entry Points
 
-- [ ] Introduce one shared `InvestigationLaunchRequest` type and use it end-to-end.
-- [ ] Update `src/App.tsx` start/run pipeline to carry:
+- [x] Introduce one shared `InvestigationLaunchRequest` type and use it end-to-end.
+- [x] Update `src/App.tsx` start/run pipeline to carry:
   - `configOverride`
   - scope
   - date range override
   - optional preseeded entities
-- [ ] Fix `src/components/features/OperationView/index.tsx` lead modal path to apply returned config override.
-- [ ] Ensure full-spectrum deep dives inherit parent config unless explicitly overridden.
-- [ ] Ensure `Feed`, `LiveMonitor`, entity inspector, and headline investigation all use the same launch path.
-- [ ] Persist effective run config into report/task snapshots for auditability.
+- [x] Fix `src/components/features/OperationView/index.tsx` lead modal path to apply returned config override.
+- [x] Ensure full-spectrum deep dives inherit parent config unless explicitly overridden.
+- [x] Ensure `Feed`, `LiveMonitor`, entity inspector, and headline investigation all use the same launch path.
+- [x] Persist effective run config into report/task snapshots for auditability.
 
 Exit criteria:
 
@@ -155,10 +154,10 @@ Exit criteria:
 
 ## Phase 6 - UI/UX Alignment
 
-- [ ] In Settings and wizard, show provider then model hierarchy clearly.
-- [ ] Add provider-specific capability hints (for example, thinking budget availability).
-- [ ] On run start, validate required key for effective provider and show clear prompt if missing.
-- [ ] Keep per-flow override option where it already exists, but make inheritance behavior explicit.
+- [x] In Settings and wizard, show provider then model hierarchy clearly.
+- [x] Add provider-specific capability hints (for example, thinking budget availability).
+- [x] On run start, validate required key for effective provider and show clear prompt if missing.
+- [x] Keep per-flow override option where it already exists, but make inheritance behavior explicit.
 
 Exit criteria:
 

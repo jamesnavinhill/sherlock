@@ -24,13 +24,24 @@ import {
 import { useCaseStore } from '../../store/caseStore';
 import type { CaseTemplate, SystemConfig, ManualNode, InvestigationScope } from '../../types';
 import { BUILTIN_SCOPES, getScopeById, getAllScopes } from '../../data/presets';
-import { AI_MODELS, DEFAULT_MODEL_ID, getModelProvider } from '../../config/aiModels';
+import type { AIProvider } from '../../config/aiModels';
+import {
+  AI_PROVIDERS,
+  DEFAULT_MODEL_ID,
+  getDefaultModelForProvider,
+  getModelProvider,
+  getProviderOptionById,
+  getRuntimeReadyModelsForProvider,
+} from '../../config/aiModels';
 import { loadSystemConfig } from '../../config/systemConfig';
 
 interface TaskSetupModalProps {
   initialTopic: string;
   initialContext?: { topic: string; summary: string };
   initialScopeId?: string;
+  initialConfigOverride?: Partial<SystemConfig>;
+  initialDateRangeOverride?: { start?: string; end?: string };
+  inheritanceHint?: string;
   onCancel: () => void;
   onStart: (
     topic: string,
@@ -60,6 +71,9 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   initialTopic,
   initialContext,
   initialScopeId,
+  initialConfigOverride,
+  initialDateRangeOverride,
+  inheritanceHint,
   onCancel,
   onStart,
 }) => {
@@ -78,8 +92,8 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     BUILTIN_SCOPES[0];
 
   // Step 0: Date Range
-  const [dateRangeStart, setDateRangeStart] = useState('');
-  const [dateRangeEnd, setDateRangeEnd] = useState('');
+  const [dateRangeStart, setDateRangeStart] = useState(initialDateRangeOverride?.start || '');
+  const [dateRangeEnd, setDateRangeEnd] = useState(initialDateRangeOverride?.end || '');
 
   // Step 1: Target
   const [topic, setTopic] = useState(initialTopic);
@@ -103,20 +117,52 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     );
   });
   const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(
-    storedConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD'
+    (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP' ? 'DEEP' : 'STANDARD'
   );
-  const [thinkingBudget, setThinkingBudget] = useState(storedConfig.thinkingBudget ?? 0);
-  const [selectedModel, setSelectedModel] = useState(storedConfig.modelId ?? DEFAULT_MODEL_ID);
-  const selectableModels = AI_MODELS.filter((model) => model.capabilities.runtimeStatus === 'ACTIVE');
+  const [thinkingBudget, setThinkingBudget] = useState(
+    typeof initialConfigOverride?.thinkingBudget === 'number'
+      ? initialConfigOverride.thinkingBudget
+      : (storedConfig.thinkingBudget ?? 0)
+  );
+
+  const initialModelId = initialConfigOverride?.modelId || storedConfig.modelId || DEFAULT_MODEL_ID;
+  const initialProvider = (
+    initialConfigOverride?.provider
+    || getModelProvider(initialModelId)
+  ) as AIProvider;
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>(initialProvider);
+  const [selectedModel, setSelectedModel] = useState(() => {
+    const providerModels = getRuntimeReadyModelsForProvider(initialProvider);
+    return providerModels.some((model) => model.id === initialModelId)
+      ? initialModelId
+      : (providerModels[0]?.id || getDefaultModelForProvider(initialProvider));
+  });
+  const selectableModels = getRuntimeReadyModelsForProvider(selectedProvider);
+  const selectedProviderMeta = getProviderOptionById(selectedProvider);
+  const supportsThinkingBudget = selectedProviderMeta?.capabilities.supportsThinkingBudget ?? false;
 
   const applyTemplate = (t: CaseTemplate) => {
     setTopic(t.topic);
     if (t.config.persona) setPersona(t.config.persona);
     if (t.config.searchDepth) setDepth(t.config.searchDepth);
     if (t.config.thinkingBudget !== undefined) setThinkingBudget(t.config.thinkingBudget);
-    if (t.config.modelId) setSelectedModel(t.config.modelId);
+    const templateProvider = (t.config.provider || getModelProvider(t.config.modelId || selectedModel)) as AIProvider;
+    setSelectedProvider(templateProvider);
+    if (t.config.modelId) {
+      setSelectedModel(t.config.modelId);
+    } else {
+      const fallbackModel = getRuntimeReadyModelsForProvider(templateProvider)[0]?.id
+        || getDefaultModelForProvider(templateProvider);
+      setSelectedModel(fallbackModel);
+    }
     if (t.scopeId) setSelectedScopeId(t.scopeId);
   };
+
+  React.useEffect(() => {
+    if (selectableModels.some((model) => model.id === selectedModel)) return;
+    const fallback = selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider);
+    setSelectedModel(fallback);
+  }, [selectedProvider, selectableModels, selectedModel]);
 
   const handleAddFigure = () => {
     if (!newFigureName.trim()) return;
@@ -158,10 +204,10 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     onStart(
       fullTopic,
       {
-        provider: getModelProvider(selectedModel),
+        provider: selectedProvider,
         persona,
         searchDepth: depth,
-        thinkingBudget,
+        thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
         modelId: selectedModel,
       },
       preseededEntities.length > 0 ? preseededEntities : undefined,
@@ -174,7 +220,13 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         id: `tmp-${Date.now()}`,
         name: templateName.trim(),
         topic: topic,
-        config: { provider: getModelProvider(selectedModel), persona, searchDepth: depth, thinkingBudget, modelId: selectedModel },
+        config: {
+          provider: selectedProvider,
+          persona,
+          searchDepth: depth,
+          thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
+          modelId: selectedModel
+        },
         scopeId: selectedScopeId,
         createdAt: Date.now(),
       });
@@ -415,6 +467,12 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
 
   const renderStep5 = () => (
     <div className="space-y-6">
+      <div className="bg-zinc-900/40 border border-zinc-800 p-3">
+        <p className="text-[10px] text-zinc-500 font-mono uppercase">
+          {inheritanceHint || 'This run inherits your global defaults. Any values below override this investigation only.'}
+        </p>
+      </div>
+
       {/* Persona Select */}
       <div>
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
@@ -437,14 +495,43 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         </select>
       </div>
 
+      {/* Provider Select */}
+      <div>
+        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+          <Cpu className="w-3 h-3 mr-2" />
+          Provider
+        </label>
+        <div className="relative">
+          <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+          <select
+            value={selectedProvider}
+            onChange={(e) => {
+              const provider = e.target.value as AIProvider;
+              setSelectedProvider(provider);
+              const providerDefault = getRuntimeReadyModelsForProvider(provider)[0]?.id || getDefaultModelForProvider(provider);
+              setSelectedModel(providerDefault);
+            }}
+            className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
+          >
+            {AI_PROVIDERS
+              .filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE')
+              .map((provider) => (
+              <option key={provider.id} value={provider.id}>
+                {provider.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Model Select */}
       <div>
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <Cpu className="w-3 h-3 mr-2" />
-          AI Model
+          Model
         </label>
         <p className="text-[10px] text-zinc-600 mb-2 font-mono">
-          Override global default for this investigation
+          Selected provider: {selectedProviderMeta?.label || selectedProvider}
         </p>
         <div className="relative">
           <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
@@ -460,6 +547,9 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             ))}
           </select>
         </div>
+        <p className="text-[10px] text-zinc-600 mt-2 font-mono">
+          Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'}, web search {selectedProviderMeta?.capabilities.supportsWebSearch ? 'available' : 'not available'}.
+        </p>
       </div>
 
       {/* Depth Select */}
@@ -482,32 +572,56 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             Deep Dive
           </button>
         </div>
-        {/* Save as Template Toggle */}
-        <div className="pt-6 border-t border-zinc-800">
-          <label className="flex items-center space-x-3 cursor-pointer group">
-            <div
-              onClick={() => setSaveAsTemplate(!saveAsTemplate)}
-              className={`w-5 h-5 border flex items-center justify-center transition-all ${saveAsTemplate ? 'bg-osint-primary border-osint-primary' : 'bg-black border-zinc-700 group-hover:border-zinc-500'}`}
-            >
-              {saveAsTemplate && <Check className="w-3 h-3 text-black" />}
-            </div>
-            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-              Store as Reusable Protocol (Template)
-            </span>
-          </label>
+      </div>
 
-          {saveAsTemplate && (
-            <div className="mt-4 animate-in slide-in-from-top-2 duration-200">
-              <input
-                type="text"
-                placeholder="Enter Template Name..."
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                className="w-full bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
-              />
-            </div>
-          )}
-        </div>
+      {/* Thinking Budget */}
+      <div>
+        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+          <Cpu className="w-3 h-3 mr-2" />
+          Thinking Budget ({supportsThinkingBudget ? thinkingBudget : 0})
+        </label>
+        <input
+          type="range"
+          min={0}
+          max={8192}
+          step={512}
+          value={supportsThinkingBudget ? thinkingBudget : 0}
+          onChange={(event) => setThinkingBudget(Number(event.target.value))}
+          disabled={!supportsThinkingBudget}
+          className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
+        />
+        <p className="text-[10px] text-zinc-600 mt-2 font-mono">
+          {supportsThinkingBudget
+            ? 'Controls reasoning token budget for compatible models.'
+            : `${selectedProviderMeta?.label || selectedProvider} ignores this setting.`}
+        </p>
+      </div>
+
+      {/* Save as Template Toggle */}
+      <div className="pt-6 border-t border-zinc-800">
+        <label className="flex items-center space-x-3 cursor-pointer group">
+          <div
+            onClick={() => setSaveAsTemplate(!saveAsTemplate)}
+            className={`w-5 h-5 border flex items-center justify-center transition-all ${saveAsTemplate ? 'bg-osint-primary border-osint-primary' : 'bg-black border-zinc-700 group-hover:border-zinc-500'}`}
+          >
+            {saveAsTemplate && <Check className="w-3 h-3 text-black" />}
+          </div>
+          <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+            Store as Reusable Protocol (Template)
+          </span>
+        </label>
+
+        {saveAsTemplate && (
+          <div className="mt-4 animate-in slide-in-from-top-2 duration-200">
+            <input
+              type="text"
+              placeholder="Enter Template Name..."
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              className="w-full bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

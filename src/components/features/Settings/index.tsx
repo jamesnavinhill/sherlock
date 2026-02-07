@@ -33,6 +33,7 @@ import {
     DEFAULT_MODEL_ID,
     getDefaultModelForProvider,
     getModelProvider,
+    getProviderOptionById,
     getModelOptionById,
     getRuntimeReadyModelsForProvider,
     isProviderRuntimeReady
@@ -102,6 +103,8 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
         ? selectedModel
         : (selectableModels[0]?.id ?? getDefaultModelForProvider(activeProvider));
     const selectedModelMeta = getModelOptionById(activeModelId);
+    const activeProviderMeta = getProviderOptionById(activeProvider);
+    const supportsThinkingBudget = !!selectedModelMeta?.capabilities.supportsThinkingBudget;
 
     const handleSaveConfiguration = () => {
         setIsSaving(true);
@@ -148,7 +151,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
             provider: activeProvider,
             modelId: activeModelId,
             searchDepth,
-            thinkingBudget,
+            thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
             persona: existingConfig.persona || 'general-investigator',
             autoNormalizeEntities: autoResolve,
             quietMode
@@ -432,6 +435,9 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                             <p className="text-[10px] text-zinc-500 font-mono mt-2">
                                 Provider: <span className="text-zinc-300">{selectedModelMeta?.provider || activeProvider}</span>
                             </p>
+                            <p className="text-[10px] text-zinc-500 font-mono mt-1">
+                                Capabilities: thinking {supportsThinkingBudget ? 'enabled' : 'not available'}, web search {activeProviderMeta?.capabilities.supportsWebSearch ? 'enabled' : 'not available'}, TTS {activeProviderMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
+                            </p>
                         </div>
 
                         <div className="pt-4 border-t border-zinc-800 space-y-4">
@@ -457,19 +463,24 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
 
                         <div className="pt-2 space-y-2">
                             <div className="flex items-center space-x-2">
-                                <Brain className="w-3 h-3 text-osint-primary" />
-                                <label className="text-[10px] text-zinc-500 font-mono uppercase">Thinking Budget ({thinkingBudget})</label>
+                                <Brain className={`w-3 h-3 ${supportsThinkingBudget ? 'text-osint-primary' : 'text-zinc-600'}`} />
+                                <label className="text-[10px] text-zinc-500 font-mono uppercase">Thinking Budget ({supportsThinkingBudget ? thinkingBudget : 0})</label>
                             </div>
                             <input
                                 type="range"
                                 min={0}
                                 max={8192}
                                 step={512}
-                                value={thinkingBudget}
+                                value={supportsThinkingBudget ? thinkingBudget : 0}
                                 onChange={(event) => setThinkingBudget(Number(event.target.value))}
-                                className="w-full accent-[var(--osint-primary)]"
+                                disabled={!supportsThinkingBudget}
+                                className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
                             />
-                            <p className="text-[9px] text-zinc-600 font-mono italic">Primarily applied by Gemini reasoning models.</p>
+                            <p className="text-[9px] text-zinc-600 font-mono italic">
+                                {supportsThinkingBudget
+                                    ? 'Applied by selected model.'
+                                    : `${activeProviderMeta?.label || activeProvider} does not support thinking budgets.`}
+                            </p>
                         </div>
                     </div>
                 </section>

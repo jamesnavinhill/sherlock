@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import type { InvestigationReport, SystemConfig } from '../../types';
+import type { InvestigationLaunchRequest, InvestigationReport } from '../../types';
 import { FileText, Trash2, ArrowRight, FolderOpen, Folder, ChevronLeft, Plus, FolderClosed, Download, FileJson, ChevronDown } from 'lucide-react';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { useCaseStore } from '../../store/caseStore';
@@ -8,7 +8,7 @@ import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../
 
 interface ArchivesProps {
   onSelectReport: (report: InvestigationReport) => void;
-  onStartNewCase: (topic: string, config: SystemConfig) => void;
+  onStartNewCase: (request: InvestigationLaunchRequest) => void;
 }
 
 export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase }) => {
@@ -381,8 +381,15 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
         <TaskSetupModal
           initialTopic=""
           onCancel={() => setIsNewCaseModalOpen(false)}
-          onStart={(topic, config) => {
-            onStartNewCase(topic, config);
+          onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
+            onStartNewCase({
+              topic,
+              configOverride,
+              preseededEntities,
+              scope,
+              dateRangeOverride: dateRange,
+              launchSource: 'ARCHIVES_NEW_CASE',
+            });
             setIsNewCaseModalOpen(false);
           }}
         />

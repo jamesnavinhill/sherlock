@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Network } from 'lucide-react';
-import type { InvestigationReport, ManualConnection, ManualNode, Entity, SystemConfig, Headline, Source } from '../../../types';
+import type { InvestigationLaunchRequest, InvestigationReport, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -16,7 +16,7 @@ import { cleanEntityName } from '../../../utils/text';
 
 interface NetworkGraphProps {
     onOpenReport: (report: InvestigationReport) => void;
-    onInvestigateEntity: (entity: string, context?: { topic: string, summary: string }, configOverride?: Partial<SystemConfig>) => void;
+    onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
     onBack?: () => void;
     navStack?: BreadcrumbItem[];
     onNavigate?: (id: string) => void;
@@ -37,6 +37,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         headlines,
         flaggedNodeIds: flaggedNodeIdsArray,
         activeCaseId: filterCaseId,
+        activeScope: activeScopeId,
         setManualLinks,
         setManualNodes,
         setEntityAliases: setAliases,
@@ -404,9 +405,18 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                 <TaskSetupModal
                     initialTopic={selectedLeadForAnalysis.text}
                     initialContext={selectedLeadForAnalysis.context}
+                    initialScopeId={activeScopeId || undefined}
                     onCancel={() => setSelectedLeadForAnalysis(null)}
-                    onStart={(topic, config) => {
-                        onInvestigateEntity(topic, selectedLeadForAnalysis.context, config);
+                    onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
+                        onInvestigateEntity({
+                            topic,
+                            parentContext: selectedLeadForAnalysis.context,
+                            configOverride,
+                            preseededEntities,
+                            scope,
+                            dateRangeOverride: dateRange,
+                            launchSource: 'NETWORK_GRAPH',
+                        });
                         setSelectedLeadForAnalysis(null);
                     }}
                 />

@@ -1,11 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import type { InvestigationReport, InvestigationTask, Entity, Headline, Source, SystemConfig, CaseTemplate } from '../../../types';
+import type {
+    InvestigationLaunchRequest,
+    InvestigationReport,
+    InvestigationRunConfig,
+    InvestigationScope,
+    InvestigationTask,
+    Entity,
+    Headline,
+    Source,
+    SystemConfig,
+    CaseTemplate
+} from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { AlertOctagon, Layout } from 'lucide-react';
+import { getAllScopes, getScopeById } from '../../../data/presets';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
@@ -18,13 +30,13 @@ interface OperationViewProps {
     task: InvestigationTask | null;
     reportOverride?: InvestigationReport | null;
     onBack: () => void;
-    onDeepDive: (lead: string, currentReport: InvestigationReport) => void;
+    onDeepDive: (request: InvestigationLaunchRequest) => void;
     onBatchDeepDive: (leads: string[], currentReport: InvestigationReport) => void;
     navStack: BreadcrumbItem[];
     onNavigate: (id: string) => void;
     onSelectCase?: (caseId: string) => void;
-    onStartNewCase: (topic: string, config: SystemConfig) => void;
-    onInvestigateHeadline?: (topic: string, context?: { topic: string, summary: string }, configOverride?: Partial<SystemConfig>) => void;
+    onStartNewCase: (request: InvestigationLaunchRequest) => void;
+    onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
 }
 
 export const OperationView: React.FC<OperationViewProps> = ({
@@ -67,7 +79,13 @@ export const OperationView: React.FC<OperationViewProps> = ({
     const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
 
     // Pre-Investigation Modal State
-    const [leadToAnalyze, setLeadToAnalyze] = useState<{ text: string, context?: { topic: string, summary: string } } | null>(null);
+    const [leadToAnalyze, setLeadToAnalyze] = useState<{
+        text: string;
+        context?: { topic: string, summary: string };
+        inheritedConfig?: Partial<SystemConfig>;
+        inheritedScopeId?: string;
+        inheritedDateRange?: InvestigationRunConfig['dateRangeOverride'];
+    } | null>(null);
     const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
     const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
     const [templateName, setTemplateName] = useState('');
@@ -80,7 +98,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
         updateReportTitle,
         renameEntityAcrossReports,
         activeCaseId: selectedCaseId,
-        setActiveCaseId
+        setActiveCaseId,
+        customScopes
     } = useCaseStore();
 
     const report = task?.report ?? reportOverride;
@@ -99,6 +118,23 @@ export const OperationView: React.FC<OperationViewProps> = ({
         if (!effectiveCaseId) return [];
         return allHeadlines.filter(h => h.caseId === effectiveCaseId);
     }, [effectiveCaseId, allHeadlines]);
+
+    const resolveScope = (scopeId?: string): InvestigationScope | undefined => {
+        if (!scopeId) return undefined;
+        return getScopeById(scopeId)
+            || getAllScopes(customScopes).find((scope) => scope.id === scopeId);
+    };
+
+    const toConfigOverride = (config?: InvestigationRunConfig): Partial<SystemConfig> | undefined => {
+        if (!config) return undefined;
+        return {
+            provider: config.provider,
+            modelId: config.modelId,
+            persona: config.persona,
+            searchDepth: config.searchDepth,
+            thinkingBudget: config.thinkingBudget,
+        };
+    };
 
     // Removed redundant effects, case switching now handled by store action in Toolbar/index
     // No-op for now to keep structure clean during migration
@@ -208,22 +244,32 @@ export const OperationView: React.FC<OperationViewProps> = ({
     };
 
     const handleLeadClick = (lead: string) => {
+        const parentContext = report
+            ? { topic: report.topic, summary: report.summary }
+            : activeCase
+                ? { topic: activeCase.title, summary: activeCase.description || `Investigating lead within ${activeCase.title}` }
+                : undefined;
+
         setLeadToAnalyze({
             text: lead,
-            context: activeCase ? {
-                topic: activeCase.title,
-                summary: activeCase.description || `Investigating lead within ${activeCase.title}`
-            } : undefined
+            context: parentContext,
+            inheritedConfig: toConfigOverride(report?.config),
+            inheritedScopeId: report?.config?.scopeId,
+            inheritedDateRange: report?.config?.dateRangeOverride,
         });
     };
 
     const handleHeadlineInvestigate = () => {
         if (!selectedHeadline || !onInvestigateHeadline) return;
 
-        onInvestigateHeadline(
-            selectedHeadline.content,
-            activeCase ? { topic: activeCase.title, summary: activeCase.description || '' } : undefined
-        );
+        onInvestigateHeadline({
+            topic: selectedHeadline.content,
+            parentContext: activeCase ? { topic: activeCase.title, summary: activeCase.description || '' } : undefined,
+            configOverride: toConfigOverride(report?.config),
+            scope: resolveScope(report?.config?.scopeId),
+            dateRangeOverride: report?.config?.dateRangeOverride,
+            launchSource: 'OPERATION_HEADLINE',
+        });
         setRightPanelOpen(false);
     };
 
@@ -288,9 +334,21 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 <TaskSetupModal
                     initialTopic={leadToAnalyze.text}
                     initialContext={leadToAnalyze.context}
+                    initialScopeId={leadToAnalyze.inheritedScopeId}
+                    initialConfigOverride={leadToAnalyze.inheritedConfig}
+                    initialDateRangeOverride={leadToAnalyze.inheritedDateRange}
+                    inheritanceHint="Inherited from parent report. Change settings below to override this run."
                     onCancel={() => setLeadToAnalyze(null)}
-                    onStart={(topic, _config) => {
-                        onDeepDive(topic, report);
+                    onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
+                        onDeepDive({
+                            topic,
+                            parentContext: leadToAnalyze.context,
+                            configOverride: { ...(leadToAnalyze.inheritedConfig || {}), ...(configOverride || {}) },
+                            preseededEntities,
+                            scope: scope || resolveScope(leadToAnalyze.inheritedScopeId),
+                            dateRangeOverride: dateRange || leadToAnalyze.inheritedDateRange,
+                            launchSource: 'OPERATION_LEAD_MODAL',
+                        });
                         setLeadToAnalyze(null);
                     }}
                 />
@@ -301,8 +359,15 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 <TaskSetupModal
                     initialTopic=""
                     onCancel={() => setIsNewCaseModalOpen(false)}
-                    onStart={(topic, configOverride) => {
-                        onStartNewCase(topic, configOverride);
+                    onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
+                        onStartNewCase({
+                            topic,
+                            configOverride,
+                            preseededEntities,
+                            scope,
+                            dateRangeOverride: dateRange,
+                            launchSource: 'OPERATION_NEW_CASE',
+                        });
                         setIsNewCaseModalOpen(false);
                     }}
                 />
@@ -412,7 +477,14 @@ export const OperationView: React.FC<OperationViewProps> = ({
                     onTitleSave={handleTitleSave}
                 onDeepDive={(lead) => {
                     if (report) {
-                        onDeepDive(lead, report);
+                        onDeepDive({
+                            topic: lead,
+                            parentContext: { topic: report.topic, summary: report.summary },
+                            configOverride: toConfigOverride(report.config),
+                            scope: resolveScope(report.config?.scopeId),
+                            dateRangeOverride: report.config?.dateRangeOverride,
+                            launchSource: 'OPERATION_DEEP_DIVE',
+                        });
                     }
                 }}
                 onBatchDeepDive={(leads) => {

@@ -50,6 +50,14 @@ flowchart TD
 - `src/services/gemini.ts` remains the app-facing API surface but now delegates to router operations.
 - Adapters currently implemented: `geminiProvider`, `openRouterProvider`, `openAIProvider`, `anthropicProvider`.
 
+## Launch Pipeline (Phase 5/6)
+
+- `src/types/index.ts` defines `InvestigationLaunchRequest` and `InvestigationRunConfig` as the shared launch contract.
+- `src/App.tsx` uses a single launch pipeline for Feed, LiveMonitor, NetworkGraph, OperationView, and Archives.
+- Launch payloads now carry config overrides, scope, date range overrides, and optional preseeded entities.
+- Effective run configuration is persisted on both task snapshots and report snapshots for auditability.
+- Run-start provider key checks are enforced before task creation, with provider-specific prompts when missing.
+
 ## Mobile & Responsive Strategy
 
 The application implements a "Mobile-Overlay" pattern to handle complex information density on small screens.

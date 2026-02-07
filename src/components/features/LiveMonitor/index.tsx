@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useCaseStore } from '../../../store/caseStore';
-import type { MonitorEvent, SystemConfig, Headline } from '../../../types';
+import type { MonitorEvent, InvestigationLaunchRequest, Headline, SystemConfig } from '../../../types';
 import type { MonitorConfig } from '../../../services/gemini';
 import { getLiveIntel } from '../../../services/gemini';
 import {
@@ -16,7 +16,7 @@ import { EventCard } from './EventCard';
 interface LiveMonitorProps {
     events: MonitorEvent[];
     setEvents: React.Dispatch<React.SetStateAction<MonitorEvent[]>>;
-    onInvestigate: (topic: string, context?: { topic: string, summary: string }, configOverride?: Partial<SystemConfig>) => void;
+    onInvestigate: (request: InvestigationLaunchRequest) => void;
 }
 
 /**
@@ -27,7 +27,14 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
     // Ensure events is always an array to prevent .map errors
     const safeEvents = Array.isArray(events) ? events : [];
 
-    const { headlines, addHeadline, cases, activeCaseId: selectedCaseId, setActiveCaseId: setSelectedCaseId } = useCaseStore();
+    const {
+        headlines,
+        addHeadline,
+        cases,
+        activeCaseId: selectedCaseId,
+        setActiveCaseId: setSelectedCaseId,
+        activeScope: activeScopeId,
+    } = useCaseStore();
 
     type FilterType = 'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL';
     type ThreatFilter = 'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL';
@@ -190,12 +197,26 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
         }
     };
 
-    const executeAnalysis = (topic: string, config: Partial<SystemConfig>) => {
+    const executeAnalysis = (
+        topic: string,
+        configOverride: Partial<SystemConfig>,
+        preseededEntities?: InvestigationLaunchRequest['preseededEntities'],
+        scope?: InvestigationLaunchRequest['scope'],
+        dateRange?: InvestigationLaunchRequest['dateRangeOverride']
+    ) => {
         const context = selectedCase
             ? { topic: selectedCase.title, summary: selectedCase.description || "Live monitoring operation" }
             : undefined;
 
-        onInvestigate(topic, context, config);
+        onInvestigate({
+            topic,
+            parentContext: context,
+            configOverride,
+            preseededEntities,
+            scope,
+            dateRangeOverride: dateRange,
+            launchSource: 'LIVE_MONITOR_EVENT',
+        });
         setSelectedEventForAnalysis(null);
     };
 
@@ -400,6 +421,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                 <TaskSetupModal
                     initialTopic={selectedEventForAnalysis.content}
                     initialContext={selectedCase ? { topic: selectedCase.title, summary: selectedCase.description || '' } : undefined}
+                    initialScopeId={activeScopeId || undefined}
                     onCancel={() => setSelectedEventForAnalysis(null)}
                     onStart={executeAnalysis}
                 />

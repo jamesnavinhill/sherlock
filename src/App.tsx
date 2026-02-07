@@ -1,7 +1,15 @@
 import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { ApiKeyModal } from './components/ui/ApiKeyModal';
 import type { BreadcrumbItem } from './components/ui/Breadcrumbs';
-import type { InvestigationReport, InvestigationTask, SystemConfig } from './types';
+import type {
+  InvestigationLaunchRequest,
+  InvestigationReport,
+  InvestigationRunConfig,
+  InvestigationScope,
+  InvestigationTask,
+  ManualNode,
+  SystemConfig,
+} from './types';
 import { AppView } from './types';
 import { useCaseStore } from './store/caseStore';
 import { hasApiKey, investigateTopic } from './services/gemini';
@@ -9,7 +17,8 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
 import { buildAccentColor } from './utils/accent';
-import { loadSystemConfig } from './config/systemConfig';
+import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
+import { getAllScopes, getScopeById } from './data/presets';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
@@ -21,6 +30,17 @@ import { Sidebar } from './components/ui/Sidebar';
 import { ToastContainer } from './components/ui/Toast';
 import { GlobalSearch } from './components/ui/GlobalSearch';
 
+const toSystemConfigOverride = (config?: InvestigationRunConfig): Partial<SystemConfig> | undefined => {
+  if (!config) return undefined;
+
+  return {
+    provider: config.provider,
+    modelId: config.modelId,
+    persona: config.persona,
+    searchDepth: config.searchDepth,
+    thinkingBudget: config.thinkingBudget,
+  };
+};
 
 function App() {
   const {
@@ -38,7 +58,8 @@ function App() {
     archiveReport, archives, cases,
     setActiveCaseId,
     addToast,
-    initializeStore, isLoading
+    initializeStore, isLoading,
+    customScopes,
   } = useCaseStore();
 
   useEffect(() => {
@@ -50,7 +71,6 @@ function App() {
   const [focusedReportId, setFocusedReportId] = useState<string | null>(null);
   const [lastNonSettingsView, setLastNonSettingsView] = useState<AppView>(AppView.INVESTIGATION);
 
-  // Global Keyboard Shortcuts
   const shortcuts = createAppShortcuts({
     onNewInvestigation: () => {
       setShowNewCaseModal(true);
@@ -75,9 +95,7 @@ function App() {
     setNavStack([]);
   }, [setActiveTaskId, setCurrentView, setNavStack]);
 
-  // Initialize
   useEffect(() => {
-    // Listen for custom back event from Investigation view
     const handleNavBack = () => handleBack();
     window.addEventListener('NAVIGATE_BACK', handleNavBack);
     return () => window.removeEventListener('NAVIGATE_BACK', handleNavBack);
@@ -98,48 +116,120 @@ function App() {
     }
   }, [currentView]);
 
-  // --- CORE INVESTIGATION LOGIC ---
-
   const shouldNotify = () => {
     const config = loadSystemConfig();
     return !config.quietMode;
   };
 
-  const runInvestigationTask = useCallback(async (taskId: string, topic: string, context?: { topic: string, summary: string }, configOverride?: Partial<SystemConfig>) => {
-    try {
-      let report = await investigateTopic(topic, context, configOverride);
+  const resolveScopeById = useCallback((scopeId?: string): InvestigationScope | undefined => {
+    if (!scopeId) return undefined;
 
-      // AUTO ARCHIVE REPORT
-      report = { ...report, config: { ...(report.config || {}), ...(configOverride || {}) } };
-      report = await archiveReport(report, context);
+    return getScopeById(scopeId)
+      || getAllScopes(customScopes).find((scope) => scope.id === scopeId);
+  }, [customScopes]);
+
+  const addPreseededEntitiesToGraph = useCallback((taskId: string, preseededEntities?: ManualNode[]) => {
+    if (!preseededEntities || preseededEntities.length === 0) return;
+
+    const state = useCaseStore.getState();
+    const existingNodes = state.manualNodes;
+    const nextNodes = [...existingNodes];
+
+    preseededEntities.forEach((entity, index) => {
+      const nodeId = `seed-${taskId}-${index}`;
+      if (nextNodes.some((node) => node.id === nodeId)) return;
+      nextNodes.push({
+        ...entity,
+        id: nodeId,
+        timestamp: Date.now(),
+      });
+    });
+
+    if (nextNodes.length !== existingNodes.length) {
+      void state.setManualNodes(nextNodes);
+    }
+  }, []);
+
+  const runInvestigationTask = useCallback(async (
+    taskId: string,
+    launchRequest: InvestigationLaunchRequest,
+    runConfig: InvestigationRunConfig
+  ) => {
+    try {
+      let report = await investigateTopic(
+        launchRequest.topic,
+        launchRequest.parentContext,
+        launchRequest.configOverride,
+        launchRequest.scope,
+        launchRequest.dateRangeOverride
+      );
+
+      report = { ...report, config: { ...(report.config || {}), ...runConfig } };
+      report = await archiveReport(report, launchRequest.parentContext);
+
+      if (launchRequest.preseededEntities?.length) {
+        addPreseededEntitiesToGraph(taskId, launchRequest.preseededEntities);
+      }
 
       completeTask(taskId, report);
       if (useCaseStore.getState().activeTaskId === taskId) {
         setFocusedReportId(report.id || null);
       }
-      if (shouldNotify()) addToast(`Investigation complete: ${topic}`, "SUCCESS");
+      if (shouldNotify()) addToast(`Investigation complete: ${launchRequest.topic}`, 'SUCCESS');
     } catch (error: unknown) {
       console.error(`Task ${taskId} failed`, error);
-      const message = error instanceof Error ? error.message : "Unknown error occurred";
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
       failTask(taskId, message);
-      addToast(`Investigation failed: ${topic}`, "ERROR");
+      addToast(`Investigation failed: ${launchRequest.topic}`, 'ERROR');
     }
-  }, [archiveReport, completeTask, failTask, addToast]);
+  }, [archiveReport, completeTask, failTask, addToast, addPreseededEntitiesToGraph]);
 
-  const startInvestigation = (topic: string, context?: { topic: string, summary: string }, switchToView: boolean = true, configOverride?: Partial<SystemConfig>) => {
+  const launchInvestigation = useCallback((request: InvestigationLaunchRequest) => {
+    const switchToView = request.switchToView ?? true;
+    const effectiveConfig = migrateSystemConfig({ ...loadSystemConfig(), ...(request.configOverride || {}) });
+
+    if (!hasApiKey(effectiveConfig.provider)) {
+      setIsAuthenticated(false);
+      addToast(`Missing ${effectiveConfig.provider} API key. Add it to continue.`, 'ERROR');
+      return;
+    }
+
+    const scopeFromConfig = resolveScopeById((request.configOverride as InvestigationRunConfig | undefined)?.scopeId);
+    const effectiveScope = request.scope || scopeFromConfig;
+
+    const launchRequest: InvestigationLaunchRequest = {
+      ...request,
+      switchToView,
+      scope: effectiveScope,
+    };
+
+    const runConfig: InvestigationRunConfig = {
+      provider: effectiveConfig.provider,
+      modelId: effectiveConfig.modelId,
+      persona: effectiveConfig.persona,
+      searchDepth: effectiveConfig.searchDepth,
+      thinkingBudget: effectiveConfig.thinkingBudget,
+      scopeId: effectiveScope?.id,
+      scopeName: effectiveScope?.name,
+      dateRangeOverride: launchRequest.dateRangeOverride,
+      preseededEntities: launchRequest.preseededEntities,
+      launchSource: launchRequest.launchSource,
+    };
+
     const newTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const newTask: InvestigationTask = {
       id: newTaskId,
-      topic: topic,
+      topic: launchRequest.topic,
       status: 'RUNNING',
       startTime: Date.now(),
-      parentContext: context,
-      config: configOverride
+      parentContext: launchRequest.parentContext,
+      config: runConfig,
+      launchRequest,
     };
 
     addTask(newTask);
-    if (shouldNotify()) addToast(`Scanning for leads on: ${topic}`, "INFO");
+    if (shouldNotify()) addToast(`Scanning for leads on: ${launchRequest.topic}`, 'INFO');
 
     if (switchToView) {
       setFocusedReportId(null);
@@ -147,17 +237,25 @@ function App() {
       setCurrentView(AppView.INVESTIGATION);
     }
 
-    // Run async without blocking UI
-    runInvestigationTask(newTaskId, topic, context, configOverride);
-  };
+    void runInvestigationTask(newTaskId, launchRequest, runConfig);
+  }, [addTask, addToast, resolveScopeById, runInvestigationTask, setActiveTaskId, setCurrentView]);
 
   const handleBatchInvestigate = (leads: string[], parentReport: InvestigationReport) => {
     const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
-    const inheritedConfig = parentReport.config;
+    const inheritedConfig = toSystemConfigOverride(parentReport.config);
+    const inheritedScope = resolveScopeById(parentReport.config?.scopeId);
 
     leads.forEach((lead, index) => {
       setTimeout(() => {
-        startInvestigation(lead, parentContext, false, inheritedConfig);
+        launchInvestigation({
+          topic: lead,
+          parentContext,
+          configOverride: inheritedConfig,
+          scope: inheritedScope,
+          dateRangeOverride: parentReport.config?.dateRangeOverride,
+          switchToView: false,
+          launchSource: 'FULL_SPECTRUM',
+        });
       }, index * 200);
     });
   };
@@ -189,12 +287,10 @@ function App() {
     }
   };
 
-  // Current active task object
   const activeTask = tasks.find(t => t.id === activeTaskId);
   const focusedReport = focusedReportId ? archives.find(r => r.id === focusedReportId) || null : null;
   const activeReport = activeTask?.report || focusedReport || null;
 
-  // Build nav stack from the currently visible report (task-driven or archive-driven)
   useEffect(() => {
     if (activeReport) {
       const report = activeReport;
@@ -212,7 +308,6 @@ function App() {
     }
   }, [activeReport, cases, setNavStack, activeTaskId]);
 
-  // Navigate via breadcrumbs or dossier report selection
   const handleBreadcrumbNavigate = (id: string) => {
     const caseItem = navStack.find(item => item.id === id && item.type === 'CASE');
     if (caseItem) {
@@ -243,10 +338,6 @@ function App() {
     handleViewReport(report);
   };
 
-  const handleInvestigateEntity = (entity: string, context?: { topic: string, summary: string }) => {
-    startInvestigation(entity, context, true);
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-zinc-950 text-zinc-400">
@@ -275,7 +366,6 @@ function App() {
           } else {
             setCurrentView(view);
           }
-          // Mobile: close sidebar when navigating
           if (window.innerWidth < 768) {
             setIsSidebarCollapsed(true);
           }
@@ -300,26 +390,26 @@ function App() {
           }>
             {currentView === AppView.DASHBOARD && (
               <Feed
-                onInvestigate={(topic) => startInvestigation(topic, undefined, true)}
+                onInvestigate={(request) => launchInvestigation({ ...request, switchToView: true })}
               />
             )}
             {currentView === AppView.ARCHIVES && (
               <Archives
                 onSelectReport={handleSelectReport}
-                onStartNewCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
+                onStartNewCase={(request) => launchInvestigation({ ...request, switchToView: true })}
               />
             )}
             {currentView === AppView.NETWORK && (
               <NetworkGraph
                 onOpenReport={handleSelectReport}
-                onInvestigateEntity={handleInvestigateEntity}
+                onInvestigateEntity={(request) => launchInvestigation({ ...request, switchToView: true })}
               />
             )}
             {currentView === AppView.LIVE_MONITOR && (
               <LiveMonitor
                 events={_liveEvents}
                 setEvents={_setLiveEvents}
-                onInvestigate={(topic, ctx, config) => startInvestigation(topic, ctx, true, config)}
+                onInvestigate={(request) => launchInvestigation({ ...request, switchToView: true })}
               />
             )}
             {currentView === AppView.TIMELINE && (
@@ -337,7 +427,12 @@ function App() {
                   const newColor = buildAccentColor(settings);
                   setThemeColor(newColor);
                 }}
-                onStartCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
+                onStartCase={(topic, config) => launchInvestigation({
+                  topic,
+                  configOverride: config,
+                  switchToView: true,
+                  launchSource: 'SETTINGS_TEMPLATE',
+                })}
                 onClose={() => setCurrentView(lastNonSettingsView)}
               />
             )}
@@ -350,7 +445,7 @@ function App() {
               task={activeTask ?? null}
               reportOverride={activeReport}
               onBack={handleBack}
-              onDeepDive={(lead, report) => startInvestigation(lead, { topic: report.topic, summary: report.summary }, true, report.config)}
+              onDeepDive={(request) => launchInvestigation({ ...request, switchToView: true })}
               onBatchDeepDive={handleBatchInvestigate}
               navStack={navStack}
               onNavigate={handleBreadcrumbNavigate}
@@ -360,7 +455,8 @@ function App() {
                   handleViewReport(foundReport);
                 }
               }}
-              onStartNewCase={(topic, config) => startInvestigation(topic, undefined, true, config)}
+              onStartNewCase={(request) => launchInvestigation({ ...request, switchToView: true })}
+              onInvestigateHeadline={(request) => launchInvestigation({ ...request, switchToView: true })}
             />
           )}
         </Suspense>

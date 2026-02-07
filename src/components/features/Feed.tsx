@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { scanForAnomalies } from '../../services/gemini';
-import type { FeedItem, SystemConfig, InvestigationScope } from '../../types';
+import type { FeedItem, InvestigationLaunchRequest } from '../../types';
 import { RefreshCw, Search, ArrowRight, Filter, MapPin, Tag, Calendar, X, LayoutDashboard, Settings2 } from 'lucide-react';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
@@ -9,7 +9,7 @@ import { useCaseStore } from '../../store/caseStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 
 interface FeedProps {
-  onInvestigate: (topic: string, context?: { topic: string; summary: string }, config?: Partial<SystemConfig>, scope?: InvestigationScope) => void;
+  onInvestigate: (request: InvestigationLaunchRequest) => void;
 }
 
 const DEFAULT_CATEGORIES = ['All', 'Cybersecurity', 'Geopolitics', 'Finance', 'Infrastructure', 'Military', 'Social Unrest', 'Other'];
@@ -62,7 +62,11 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
   const handleCustomSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (customQuery.trim()) {
-      onInvestigate(customQuery);
+      onInvestigate({
+        topic: customQuery.trim(),
+        scope: activeScope,
+        launchSource: 'FEED_SEARCH',
+      });
     }
   };
 
@@ -196,9 +200,17 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
       {selectedItem && (
         <TaskSetupModal
           initialTopic={selectedItem.title}
+          initialScopeId={activeScope?.id}
           onCancel={() => setSelectedItem(null)}
-          onStart={(topic, config) => {
-            onInvestigate(topic, undefined, config);
+          onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
+            onInvestigate({
+              topic,
+              configOverride,
+              preseededEntities,
+              scope: scope || activeScope,
+              dateRangeOverride: dateRange,
+              launchSource: 'FEED_WIZARD',
+            });
             setSelectedItem(null);
           }}
         />
