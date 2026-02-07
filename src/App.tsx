@@ -71,10 +71,17 @@ function App() {
   const [focusedReportId, setFocusedReportId] = useState<string | null>(null);
   const [lastNonSettingsView, setLastNonSettingsView] = useState<AppView>(AppView.INVESTIGATION);
 
+  const setView = useCallback((view: AppView) => {
+    if (view !== AppView.SETTINGS) {
+      setLastNonSettingsView(view);
+    }
+    setCurrentView(view);
+  }, [setCurrentView]);
+
   const shortcuts = createAppShortcuts({
     onNewInvestigation: () => {
       setShowNewCaseModal(true);
-      setCurrentView(AppView.INVESTIGATION);
+      setView(AppView.INVESTIGATION);
     },
     onCloseModal: () => {
       setShowNewCaseModal(false);
@@ -89,11 +96,11 @@ function App() {
   useKeyboardShortcuts(shortcuts);
 
   const handleBack = useCallback(() => {
-    setCurrentView(AppView.DASHBOARD);
+    setView(AppView.DASHBOARD);
     setActiveTaskId(null);
     setFocusedReportId(null);
     setNavStack([]);
-  }, [setActiveTaskId, setCurrentView, setNavStack]);
+  }, [setActiveTaskId, setNavStack, setView]);
 
   useEffect(() => {
     const handleNavBack = () => handleBack();
@@ -109,12 +116,6 @@ function App() {
     document.documentElement.setAttribute('data-theme', themeMode);
     document.documentElement.style.colorScheme = themeMode;
   }, [themeMode]);
-
-  useEffect(() => {
-    if (currentView !== AppView.SETTINGS) {
-      setLastNonSettingsView(currentView);
-    }
-  }, [currentView]);
 
   const shouldNotify = () => {
     const config = loadSystemConfig();
@@ -234,11 +235,11 @@ function App() {
     if (switchToView) {
       setFocusedReportId(null);
       setActiveTaskId(newTaskId);
-      setCurrentView(AppView.INVESTIGATION);
+      setView(AppView.INVESTIGATION);
     }
 
     void runInvestigationTask(newTaskId, launchRequest, runConfig);
-  }, [addTask, addToast, resolveScopeById, runInvestigationTask, setActiveTaskId, setCurrentView]);
+  }, [addTask, addToast, resolveScopeById, runInvestigationTask, setActiveTaskId, setView]);
 
   const handleBatchInvestigate = (leads: string[], parentReport: InvestigationReport) => {
     const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
@@ -271,12 +272,12 @@ function App() {
     } else {
       setActiveTaskId(null);
     }
-    setCurrentView(AppView.INVESTIGATION);
+    setView(AppView.INVESTIGATION);
   };
 
   const handleSelectTask = (taskId: string) => {
     setActiveTaskId(taskId);
-    setCurrentView(AppView.INVESTIGATION);
+    setView(AppView.INVESTIGATION);
   };
 
   const handleClearCompleted = async () => {
@@ -318,7 +319,7 @@ function App() {
         return;
       }
       setActiveTaskId(null);
-      setCurrentView(AppView.INVESTIGATION);
+      setView(AppView.INVESTIGATION);
       return;
     }
 
@@ -359,12 +360,12 @@ function App() {
         onChangeView={(view) => {
           if (view === AppView.SETTINGS) {
             if (currentView === AppView.SETTINGS) {
-              setCurrentView(lastNonSettingsView);
+              setView(lastNonSettingsView);
             } else {
-              setCurrentView(AppView.SETTINGS);
+              setView(AppView.SETTINGS);
             }
           } else {
-            setCurrentView(view);
+            setView(view);
           }
           if (window.innerWidth < 768) {
             setIsSidebarCollapsed(true);
@@ -433,7 +434,7 @@ function App() {
                   switchToView: true,
                   launchSource: 'SETTINGS_TEMPLATE',
                 })}
-                onClose={() => setCurrentView(lastNonSettingsView)}
+                onClose={() => setView(lastNonSettingsView)}
               />
             )}
           </Suspense>

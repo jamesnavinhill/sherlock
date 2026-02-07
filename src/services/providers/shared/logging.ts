@@ -25,5 +25,5 @@ export const logProviderDebug = (payload: ProviderLogPayload): void => {
     ];
     if (message) parts.push(`message=${message}`);
 
-    console.debug(parts.join(' '));
+    console.warn(parts.join(' '));
 };

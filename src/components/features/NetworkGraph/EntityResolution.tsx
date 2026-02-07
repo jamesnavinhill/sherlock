@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { EntityAliasMap } from '../../../types';
 import { GitMerge, X, Check, AlertCircle, ArrowRight, Trash2, Split, Wand2, Layers, CheckSquare, Square } from 'lucide-react';
-import { getLevenshteinDistance, getCoreName, getTokens } from '../../../utils/entityUtils';
+import { detectEntityClusters } from './entityResolutionUtils';
 
 interface EntityResolutionProps {
   allEntities: string[];
@@ -9,100 +9,6 @@ interface EntityResolutionProps {
   onSaveAliases: (newAliases: EntityAliasMap) => void;
   onClose: () => void;
 }
-
-export const detectEntityClusters = (
-  allEntities: string[],
-  currentAliases: EntityAliasMap,
-  ignoredClusters: Set<string> = new Set()
-): string[][] => {
-  // 1. Resolve all entities to their current canonical form
-  const resolvedSet = new Set<string>();
-  allEntities.forEach(e => {
-    const canonical = currentAliases[e] || e;
-    resolvedSet.add(canonical);
-  });
-
-  const uniqueEntities = Array.from(resolvedSet);
-  const parent: Record<string, string> = {};
-
-  // Initialize Union-Find
-  uniqueEntities.forEach(e => parent[e] = e);
-
-  const find = (i: string): string => {
-    if (parent[i] === i) return i;
-    return find(parent[i]);
-  };
-
-  const union = (i: string, j: string) => {
-    const rootI = find(i);
-    const rootJ = find(j);
-    if (rootI !== rootJ) {
-      parent[rootI] = rootJ;
-    }
-  };
-
-  // 2. Pairwise comparison to build connections
-  for (let i = 0; i < uniqueEntities.length; i++) {
-    for (let j = i + 1; j < uniqueEntities.length; j++) {
-      const entA = uniqueEntities[i];
-      const entB = uniqueEntities[j];
-
-      const coreA = getCoreName(entA);
-      const coreB = getCoreName(entB);
-
-      let isMatch = false;
-
-      // STRATEGY 1: Exact Core Match
-      if (coreA === coreB && coreA.length > 0) isMatch = true;
-
-      // STRATEGY 2: Core Substring
-      if (!isMatch && coreA.length > 3 && coreB.length > 3) {
-        if (coreA.includes(coreB) || coreB.includes(coreA)) {
-          if (Math.min(coreA.length, coreB.length) > 4) isMatch = true;
-        }
-      }
-
-      // STRATEGY 3: Levenshtein
-      if (!isMatch) {
-        const dist = getLevenshteinDistance(coreA, coreB);
-        const maxLength = Math.max(coreA.length, coreB.length);
-        if (maxLength > 0 && dist / maxLength < 0.2) isMatch = true;
-      }
-
-      // STRATEGY 4: Jaccard
-      if (!isMatch) {
-        const tokensA = getTokens(entA);
-        const tokensB = getTokens(entB);
-        if (tokensA.size > 0 && tokensB.size > 0) {
-          const intersection = new Set([...tokensA].filter(x => tokensB.has(x)));
-          const unionSet = new Set([...tokensA, ...tokensB]);
-          const jaccard = intersection.size / unionSet.size;
-          if (jaccard > 0.6) isMatch = true;
-        }
-      }
-
-      if (isMatch) {
-        union(entA, entB);
-      }
-    }
-  }
-
-  // 3. Group by Root Parent
-  const rawClusters: Record<string, string[]> = {};
-  uniqueEntities.forEach(e => {
-    const root = find(e);
-    if (!rawClusters[root]) rawClusters[root] = [];
-    rawClusters[root].push(e);
-  });
-
-  // 4. Filter for clusters > 1 and not ignored
-  return Object.values(rawClusters)
-    .filter(c => c.length > 1)
-    .filter(c => {
-      const key = c.sort().join('::');
-      return !ignoredClusters.has(key);
-    });
-};
 
 export const EntityResolution: React.FC<EntityResolutionProps> = ({
   allEntities,

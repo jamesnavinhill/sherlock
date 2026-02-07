@@ -22,9 +22,9 @@ import {
 } from './providers';
 import type { LiveIntelConfig, ScanAnomaliesOptions } from './providers/types';
 
-export interface AnomaliesConfig extends ScanAnomaliesOptions {}
+export type AnomaliesConfig = ScanAnomaliesOptions;
 
-export interface MonitorConfig extends LiveIntelConfig {}
+export type MonitorConfig = LiveIntelConfig;
 
 const getActiveProvider = (): AIProvider => {
     return loadSystemConfig().provider;

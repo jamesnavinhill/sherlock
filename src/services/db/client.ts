@@ -100,7 +100,6 @@ const doInitDB = async (): Promise<ReturnType<typeof drizzle>> => {
             }
 
             // Build SQL with bound parameters using sqlite3_str
-            let finalSql = sql;
             const rows: unknown[][] = [];
 
             // For parameterized queries, we need to use prepare/bind/step
@@ -151,7 +150,7 @@ const doInitDB = async (): Promise<ReturnType<typeof drizzle>> => {
                 }
             } else {
                 // No parameters - use exec with callback for efficiency
-                await api.exec(db, finalSql, (row, columns) => {
+                await api.exec(db, sql, (row, _columns) => {
                     rows.push([...row]);
                 });
             }

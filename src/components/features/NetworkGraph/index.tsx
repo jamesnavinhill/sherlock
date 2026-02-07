@@ -10,7 +10,8 @@ import { ControlBar } from './ControlBar';
 import type { GraphNode, GraphCanvasRef } from './GraphCanvas';
 import { GraphCanvas } from './GraphCanvas';
 import { NodeInspector } from './NodeInspector';
-import { EntityResolution, detectEntityClusters } from './EntityResolution';
+import { EntityResolution } from './EntityResolution';
+import { detectEntityClusters } from './entityResolutionUtils';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { cleanEntityName } from '../../../utils/text';
 
