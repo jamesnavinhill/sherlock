@@ -105,6 +105,10 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
                            setInputKey(e.target.value);
                            setError('');
                         }}
+                        autoComplete="new-password"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
+                        spellCheck={false}
                         placeholder={placeholderByProvider[selectedProvider]}
                         className="w-full bg-black border border-zinc-700 text-white p-3 pl-10 font-mono text-sm focus:border-osint-primary outline-none transition-colors"
                      />

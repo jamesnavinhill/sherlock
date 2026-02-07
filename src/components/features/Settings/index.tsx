@@ -106,6 +106,17 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
     const activeProviderMeta = getProviderOptionById(activeProvider);
     const supportsThinkingBudget = !!selectedModelMeta?.capabilities.supportsThinkingBudget;
 
+    const handleClearProviderKey = (provider: AIProvider) => {
+        clearProviderApiKey(provider);
+        setSaveError('');
+        setSaveSuccess(false);
+
+        if (provider === 'GEMINI') setGeminiKey('');
+        if (provider === 'OPENROUTER') setOpenRouterKey('');
+        if (provider === 'OPENAI') setOpenAIKey('');
+        if (provider === 'ANTHROPIC') setAnthropicKey('');
+    };
+
     const handleSaveConfiguration = () => {
         setIsSaving(true);
         setSaveError('');
@@ -132,13 +143,26 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
             }
         }
 
-        candidateKeys.forEach((candidate) => {
-            if (candidate.key) {
-                setProviderApiKey(candidate.provider, candidate.key);
-            } else {
-                clearProviderApiKey(candidate.provider);
+        for (const candidate of candidateKeys) {
+            // Ensure overwrite behavior by clearing previous provider keys first.
+            clearProviderApiKey(candidate.provider);
+
+            if (!candidate.key) continue;
+
+            const saveResult = setProviderApiKey(candidate.provider, candidate.key);
+            if (!saveResult.isValid) {
+                setSaveError(saveResult.message || `Failed to store ${candidate.provider} API key.`);
+                setIsSaving(false);
+                return;
             }
-        });
+
+            const persistedKey = getStoredApiKey(candidate.provider);
+            if (persistedKey !== candidate.key) {
+                setSaveError(`Failed to persist ${candidate.provider} API key. Please try again.`);
+                setIsSaving(false);
+                return;
+            }
+        }
 
         if (!hasProviderApiKey(activeProvider)) {
             setSaveError(`Missing ${activeProvider} API key. Add one or switch active provider.`);
@@ -301,11 +325,15 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                     <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 h-full">
                         <div className="space-y-2">
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase">Google Gemini API Key</label>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2">
                                 <input
                                     type={showGeminiKey ? 'text' : 'password'}
                                     value={geminiKey}
                                     onChange={(e) => setGeminiKey(e.target.value)}
+                                    autoComplete="new-password"
+                                    data-lpignore="true"
+                                    data-1p-ignore="true"
+                                    spellCheck={false}
                                     placeholder="Enter Gemini API Key..."
                                     className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
                                 />
@@ -315,16 +343,27 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                                 >
                                     {showGeminiKey ? 'HIDE' : 'SHOW'}
                                 </button>
+                                <button
+                                    onClick={() => handleClearProviderKey('GEMINI')}
+                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    title="Clear Gemini key"
+                                >
+                                    CLEAR
+                                </button>
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase">OpenRouter API Key</label>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2">
                                 <input
                                     type={showOpenRouterKey ? 'text' : 'password'}
                                     value={openRouterKey}
                                     onChange={(e) => setOpenRouterKey(e.target.value)}
+                                    autoComplete="new-password"
+                                    data-lpignore="true"
+                                    data-1p-ignore="true"
+                                    spellCheck={false}
                                     placeholder="Enter OpenRouter API Key..."
                                     className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
                                 />
@@ -334,16 +373,27 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                                 >
                                     {showOpenRouterKey ? 'HIDE' : 'SHOW'}
                                 </button>
+                                <button
+                                    onClick={() => handleClearProviderKey('OPENROUTER')}
+                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    title="Clear OpenRouter key"
+                                >
+                                    CLEAR
+                                </button>
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase">OpenAI API Key</label>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2">
                                 <input
                                     type={showOpenAIKey ? 'text' : 'password'}
                                     value={openAIKey}
                                     onChange={(e) => setOpenAIKey(e.target.value)}
+                                    autoComplete="new-password"
+                                    data-lpignore="true"
+                                    data-1p-ignore="true"
+                                    spellCheck={false}
                                     placeholder="Enter OpenAI API Key..."
                                     className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
                                 />
@@ -353,16 +403,27 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                                 >
                                     {showOpenAIKey ? 'HIDE' : 'SHOW'}
                                 </button>
+                                <button
+                                    onClick={() => handleClearProviderKey('OPENAI')}
+                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    title="Clear OpenAI key"
+                                >
+                                    CLEAR
+                                </button>
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase">Anthropic API Key</label>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2">
                                 <input
                                     type={showAnthropicKey ? 'text' : 'password'}
                                     value={anthropicKey}
                                     onChange={(e) => setAnthropicKey(e.target.value)}
+                                    autoComplete="new-password"
+                                    data-lpignore="true"
+                                    data-1p-ignore="true"
+                                    spellCheck={false}
                                     placeholder="Enter Anthropic API Key..."
                                     className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
                                 />
@@ -371,6 +432,13 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                                     className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors text-xs font-mono"
                                 >
                                     {showAnthropicKey ? 'HIDE' : 'SHOW'}
+                                </button>
+                                <button
+                                    onClick={() => handleClearProviderKey('ANTHROPIC')}
+                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    title="Clear Anthropic key"
+                                >
+                                    CLEAR
                                 </button>
                             </div>
                         </div>

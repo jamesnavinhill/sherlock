@@ -30,6 +30,12 @@ const KEY_CONFIG: Record<AIProvider, ProviderKeyConfig> = {
     },
 };
 
+const trimOrUndefined = (value: string | null): string | undefined => {
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+};
+
 const getEnvironmentValue = (keys: string[]): string | undefined => {
     const env =
         typeof import.meta !== 'undefined'
@@ -53,12 +59,26 @@ const getEnvironmentValue = (keys: string[]): string | undefined => {
 export const getStoredApiKey = (provider: AIProvider): string | undefined => {
     if (typeof localStorage === 'undefined') return undefined;
     const config = KEY_CONFIG[provider];
-    for (const keyName of config.storageKeys) {
-        const value = localStorage.getItem(keyName);
-        if (value && value.trim().length > 0) {
-            return value.trim();
-        }
+    const primaryKeyName = config.storageKeys[0];
+    const primaryValue = trimOrUndefined(localStorage.getItem(primaryKeyName));
+    if (primaryValue) {
+        return primaryValue;
     }
+
+    // Migrate legacy aliases forward to the primary key and return the migrated value.
+    for (const keyName of config.storageKeys.slice(1)) {
+        const value = trimOrUndefined(localStorage.getItem(keyName));
+        if (!value) continue;
+
+        try {
+            localStorage.setItem(primaryKeyName, value);
+            localStorage.removeItem(keyName);
+        } catch {
+            // Ignore migration write failures and still return the discovered value.
+        }
+        return value;
+    }
+
     return undefined;
 };
 
@@ -117,11 +137,17 @@ export const setApiKey = (provider: AIProvider, rawKey: string): ApiKeyValidatio
 
     const key = rawKey.trim();
     const config = KEY_CONFIG[provider];
+    config.storageKeys.forEach((keyName) => localStorage.removeItem(keyName));
     localStorage.setItem(config.storageKeys[0], key);
 
     // Maintain legacy alias for Gemini compatibility.
     if (provider === 'GEMINI') {
         localStorage.setItem('sherlock_api_key', key);
+    }
+
+    const persisted = getStoredApiKey(provider);
+    if (persisted !== key) {
+        return { isValid: false, message: `Failed to persist ${provider} API key.` };
     }
 
     return { isValid: true };
