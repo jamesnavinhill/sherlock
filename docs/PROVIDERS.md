@@ -12,6 +12,8 @@ Build a clean, robust provider system where Google Gemini is the default and the
 - Phase 4 is implemented (provider router/registry live; `src/services/gemini.ts` is now a compatibility facade).
 - Phase 5 is implemented (all main investigation entry points now use one launch request contract).
 - Phase 6 is implemented (provider/model hierarchy and run-time key validation UX are aligned).
+- Phase 7 is implemented (utility hardening, adapter fixture contracts, and launch propagation integration coverage are in place).
+- Phase 8 is implemented (architecture/README/runbook refresh completed; `gemini.ts` legacy inference/cache behavior removed).
 
 ## Product Rules (Must Hold)
 
@@ -23,8 +25,7 @@ Build a clean, robust provider system where Google Gemini is the default and the
 
 ## Current Gaps (From Project Review)
 
-- Phase 7 test matrix work remains (provider fixtures + broader integration coverage).
-- Phase 8 cleanup remains (README/runbook refresh and further legacy cleanup).
+- Phase 0 baseline harness items remain unimplemented (historical fixture snapshot + migration flag rollback path).
 
 ## Target Architecture
 
@@ -165,15 +166,15 @@ Exit criteria:
 
 ## Phase 7 - Testing Matrix
 
-- [ ] Unit tests for parsing and normalization utilities with malformed/markdown-wrapped JSON.
-- [ ] Adapter contract tests with canned payload fixtures for each provider.
-- [ ] Integration tests for investigation launch propagation across:
+- [x] Unit tests for parsing and normalization utilities with malformed/markdown-wrapped JSON.
+- [x] Adapter contract tests with canned payload fixtures for each provider.
+- [x] Integration tests for investigation launch propagation across:
   - dashboard/Feed
   - live monitor
   - operation deep dive
   - entity investigate
   - headline investigate
-- [ ] Regression tests for report rendering safety (summary/leads/agendas always strings).
+- [x] Regression tests for report rendering safety (summary/leads/agendas always strings).
 
 Exit criteria:
 
@@ -181,10 +182,10 @@ Exit criteria:
 
 ## Phase 8 - Documentation and Cleanup
 
-- [ ] Update `docs/architecture.md` provider section and component interaction diagrams.
-- [ ] Update `README.md` for multi-provider setup and key instructions.
-- [ ] Remove legacy mixed-provider internals from `src/services/gemini.ts` once router is stable.
-- [ ] Add an operations runbook section for debugging provider failures.
+- [x] Update `docs/architecture.md` provider section and component interaction diagrams.
+- [x] Update `README.md` for multi-provider setup and key instructions.
+- [x] Remove legacy mixed-provider internals from `src/services/gemini.ts` once router is stable.
+- [x] Add an operations runbook section for debugging provider failures.
 
 Exit criteria:
 
@@ -192,13 +193,13 @@ Exit criteria:
 
 ## Acceptance Checklist (Definition of Done)
 
-- [ ] Gemini remains default for new and migrated users.
-- [ ] Switching provider in Settings changes behavior for all subsequent investigations.
-- [ ] Flow-level override works and is preserved for spawned/deep-dive tasks.
-- [ ] OpenRouter, OpenAI, and Anthropic paths produce normalized outputs and do not break report rendering.
-- [ ] Missing-key errors are provider-specific and actionable.
-- [ ] Investigation report metadata records provider + model used.
-- [ ] Tests cover provider adapters and cross-flow propagation logic.
+- [x] Gemini remains default for new and migrated users.
+- [x] Switching provider in Settings changes behavior for all subsequent investigations.
+- [x] Flow-level override works and is preserved for spawned/deep-dive tasks.
+- [x] OpenRouter, OpenAI, and Anthropic paths produce normalized outputs and do not break report rendering.
+- [x] Missing-key errors are provider-specific and actionable.
+- [x] Investigation report metadata records provider + model used.
+- [x] Tests cover provider adapters and cross-flow propagation logic.
 
 ## Suggested Execution Order
 

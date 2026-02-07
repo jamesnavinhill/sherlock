@@ -50,6 +50,13 @@ flowchart TD
 - `src/services/gemini.ts` remains the app-facing API surface but now delegates to router operations.
 - Adapters currently implemented: `geminiProvider`, `openRouterProvider`, `openAIProvider`, `anthropicProvider`.
 
+## Provider Quality & Ops (Phase 7/8)
+
+- Utility hardening tests cover markdown-wrapped/malformed JSON and normalization fallbacks in `src/services/providers/shared/parsingNormalization.test.ts`.
+- Adapter contract fixtures cover investigate/scan/live for all providers in `src/services/providers/adapters.contract.test.ts`.
+- Launch propagation integration tests cover Feed, LiveMonitor, OperationView, and NetworkGraph investigate paths.
+- Runtime triage and failure handling procedures are documented in `docs/OPERATIONS_RUNBOOK.md`.
+
 ## Launch Pipeline (Phase 5/6)
 
 - `src/types/index.ts` defines `InvestigationLaunchRequest` and `InvestigationRunConfig` as the shared launch contract.
@@ -201,7 +208,7 @@ classDiagram
 | 2 | **Hypothesis** | Working theory (optional) |
 | 3 | **Key Figures** | Pre-seed entity names (PERSON/ORG) |
 | 4 | **Sources** | Priority domains to use |
-| 5 | **Config** | Persona, scan depth, model |
+| 5 | **Config** | Provider, model, persona, scan depth, thinking budget |
 
 ### Pre-seeded Entities
 
@@ -257,21 +264,24 @@ classDiagram
 sequenceDiagram
     participant User
     participant App
-    participant OpView
-    participant Gemini as gemini.ts
-    participant GoogleAI as Gemini API
+    participant Feature as Feed/Live/Op/Graph
+    participant Facade as gemini.ts
+    participant Router as providers/index.ts
+    participant Adapter as provider adapter
+    participant Upstream as provider API
 
-    User->>App: "New Case" (Wizard)
-    App->>App: Configure Params
-    App->>Gemini: investigateTopic(topic)
-    Gemini->>GoogleAI: generateContent + googleSearch
-    GoogleAI-->>Gemini: Structured JSON + sources
-    Gemini-->>App: InvestigationReport
-    App->>App: Auto-archive to localStorage
-    App->>OpView: Render Report
-    User->>OpView: Click Lead
-    OpView->>Gemini: Deep Dive (Sub-investigation)
-    Gemini-->>OpView: New Linked Report
+    User->>Feature: Start investigation
+    Feature->>App: InvestigationLaunchRequest
+    App->>Facade: investigateTopic(...)
+    Facade->>Router: investigateWithProviderRouter(...)
+    Router->>Adapter: resolve provider/model + dispatch
+    Adapter->>Upstream: provider request
+    Upstream-->>Adapter: raw payload
+    Adapter-->>Router: normalized report/feed/live payload
+    Router-->>Facade: normalized output
+    Facade-->>App: InvestigationReport
+    App->>App: Persist task/report config snapshot
+    App-->>Feature: Render updated view
 ```
 
 ---
@@ -305,7 +315,8 @@ src/
 │       ├── Feed.tsx           # Dashboard/Finder
 │       └── Settings.tsx       # System configuration
 └── services/
-    └── gemini.ts              # Gemini AI integration
+    ├── gemini.ts              # App-facing compatibility facade
+    └── providers/             # Provider router, adapters, shared utilities
 ```
 
 ---

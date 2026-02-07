@@ -7,12 +7,10 @@ import type {
     SystemConfig,
 } from '../types';
 import type { AIProvider } from '../config/aiModels';
-import { DEFAULT_PROVIDER } from '../config/aiModels';
 import { loadSystemConfig } from '../config/systemConfig';
 import {
     clearApiKey as clearProviderApiKey,
     hasApiKey as hasStoredApiKey,
-    inferProviderFromApiKey,
     setApiKey as setProviderApiKey,
 } from './providers/keys';
 import { resetGeminiProviderClient } from './providers/geminiProvider';
@@ -23,8 +21,6 @@ import {
     scanAnomaliesWithProviderRouter,
 } from './providers';
 import type { LiveIntelConfig, ScanAnomaliesOptions } from './providers/types';
-
-const investigationCache = new Map<string, InvestigationReport>();
 
 export interface AnomaliesConfig extends ScanAnomaliesOptions {}
 
@@ -42,7 +38,7 @@ export const setApiKey = (key: string, provider?: AIProvider): void => {
     const normalized = key.trim();
     if (!normalized) return;
 
-    const resolvedProvider = provider || inferProviderFromApiKey(normalized) || DEFAULT_PROVIDER;
+    const resolvedProvider = provider || getActiveProvider();
     const result = setProviderApiKey(resolvedProvider, normalized);
     if (!result.isValid) {
         throw new Error(result.message || 'INVALID_API_KEY');
@@ -105,25 +101,13 @@ export const investigateTopic = async (
     scope?: InvestigationScope,
     dateOverride?: { start?: string; end?: string }
 ): Promise<InvestigationReport> => {
-    const cacheKey = `investigate:${topic}:${JSON.stringify(configOverride)}:${scope?.id}`;
-    if (investigationCache.has(cacheKey)) {
-        const cached = investigationCache.get(cacheKey);
-        if (cached) {
-            console.warn(`Resource retrieved from cache: ${topic}`);
-            return cached;
-        }
-    }
-
-    const report = await investigateWithProviderRouter({
+    return investigateWithProviderRouter({
         topic,
         parentContext,
         configOverride,
         scope,
         dateOverride,
     });
-
-    investigationCache.set(cacheKey, report);
-    return report;
 };
 
 export type { DateRangeConfig };

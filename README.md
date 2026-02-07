@@ -2,11 +2,11 @@
 
 > 🔍 An AI-powered OSINT (Open Source Intelligence) investigation platform for tracking fraud, waste, and abuse in government spending.
 
-![Sherlock AI Dashboard](https://img.shields.io/badge/status-active-brightgreen) ![React 19](https://img.shields.io/badge/react-19-blue) ![Vite](https://img.shields.io/badge/vite-6-purple) ![Gemini AI](https://img.shields.io/badge/gemini-3.0-orange)
+![Sherlock AI Dashboard](https://img.shields.io/badge/status-active-brightgreen) ![React 19](https://img.shields.io/badge/react-19-blue) ![Vite](https://img.shields.io/badge/vite-6-purple) ![Providers](https://img.shields.io/badge/providers-gemini%20%7C%20openrouter%20%7C%20openai%20%7C%20anthropic-orange)
 
 ## Overview
 
-Sherlock AI is a sophisticated React SPA that simulates the workflow of an OSINT investigator. It leverages Google's Gemini AI models to perform:
+Sherlock AI is a sophisticated React SPA that simulates the workflow of an OSINT investigator. It uses a provider router that supports Gemini, OpenRouter, OpenAI, and Anthropic with a unified investigation contract:
 
 - **Web-grounded investigations** — Deep dives into any topic with real-time web search
 - **Entity extraction** — Automatic identification of people, organizations, and relationships
@@ -32,7 +32,7 @@ Sherlock AI is a sophisticated React SPA that simulates the workflow of an OSINT
 - **Framework**: React 19 with TypeScript
 - **Build**: Vite 6
 - **Styling**: Tailwind CSS (CDN)
-- **AI**: Google Gemini SDK (`@google/genai`)
+- **AI**: Multi-provider adapter/router (`src/services/providers/*`) + Google Gemini SDK (`@google/genai`)
 - **Visualization**: D3.js v7
 - **Linting**: ESLint 9 + Prettier
 - **Fonts**: JetBrains Mono, Inter
@@ -42,7 +42,11 @@ Sherlock AI is a sophisticated React SPA that simulates the workflow of an OSINT
 ### Prerequisites
 
 - Node.js 18+
-- A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (free tier available)
+- At least one provider API key:
+  - [Google Gemini key](https://aistudio.google.com/app/apikey)
+  - [OpenRouter key](https://openrouter.ai/keys)
+  - [OpenAI key](https://platform.openai.com/api-keys)
+  - [Anthropic key](https://console.anthropic.com/settings/keys)
 
 ### Installation
 
@@ -62,13 +66,25 @@ The app will be available at `http://localhost:3000`
 
 ### Configuration
 
-On first launch, you'll be prompted to enter your Gemini API key. The key is stored locally in your browser and never sent to external servers.
+On first launch, you'll be prompted to enter a provider key. Keys are stored locally in your browser and never sent to Sherlock servers.
 
 Alternatively, create a `.env.local` file:
 
 ```env
-GEMINI_API_KEY=your_api_key_here
+# Gemini
+VITE_GEMINI_API_KEY=AIza...
+
+# OpenRouter
+VITE_OPENROUTER_API_KEY=sk-or-v1-...
+
+# OpenAI
+VITE_OPENAI_API_KEY=sk-...
+
+# Anthropic
+VITE_ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+Provider and model selection is configured in **Settings → AI** and persisted in `sherlock_config`.
 
 ## Project Structure
 
@@ -100,7 +116,8 @@ sherlock/
 │   │       ├── Feed.tsx           # Dashboard/Finder
 │   │       └── Settings.tsx       # System configuration
 │   └── services/
-│       └── gemini.ts              # Gemini AI integration
+│       ├── gemini.ts              # App-facing compatibility facade
+│       └── providers/             # Provider adapters, router, shared utils
 ├── legacy/
 │   └── work-log.md                # Consolidated project history
 ├── docs/
@@ -122,12 +139,13 @@ sherlock/
 
 Access via **System Config** in the sidebar:
 
-| Setting             | Options                                                                   |
-| ------------------- | ------------------------------------------------------------------------- |
-| **Models**          | Gemini 3.0 Flash/Pro, Gemini 2.5 Flash/Pro/Lite                           |
-| **Thinking Budget** | 0-16K tokens for enhanced reasoning                                       |
-| **Persona**         | Forensic Accountant, Journalist, Intelligence Officer, Conspiracy Analyst |
-| **Search Depth**    | Standard or Deep Dive (prioritizes obscure sources)                       |
+| Setting             | Options                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| **Provider**        | Gemini (default), OpenRouter, OpenAI, Anthropic                                            |
+| **Model**           | Provider-specific runtime-ready model list                                                  |
+| **Thinking Budget** | Model capability-gated; enabled for supported Gemini models                                |
+| **Persona**         | Scope/persona driven investigator mode                                                      |
+| **Search Depth**    | Standard or Deep Dive (prioritizes obscure sources)                                         |
 
 ## Data Storage
 
@@ -141,9 +159,14 @@ All data is stored locally in browser `localStorage`:
 | `sherlock_manual_links`   | `ManualConnection[]`     |
 | `sherlock_manual_nodes`   | `ManualNode[]`           |
 | `sherlock_active_case_id` | Currently active case ID |
+| `sherlock_config`         | Persisted provider/model/persona/search config |
 | ...                       | ...                      |
 
 Use **System Config → Data Management** to export/import backups.
+
+## Operations Runbook
+
+Provider debugging and incident response steps are documented in `docs/OPERATIONS_RUNBOOK.md`.
 
 ## License
 
