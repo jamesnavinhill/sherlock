@@ -133,6 +133,7 @@ interface CaseState {
     renameEntityAcrossReports: (oldName: string, newName: string) => Promise<void>;
     deleteReport: (reportId: string) => Promise<void>;
     deleteCase: (caseId: string) => Promise<void>;
+    purgeCase: (caseId: string) => Promise<void>;
     importCaseData: (payload: { cases: Case[]; archives: InvestigationReport[] }) => Promise<void>;
     clearCaseData: () => Promise<void>;
 }
@@ -593,6 +594,23 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             ),
             activeCaseId: state.activeCaseId === caseId ? null : state.activeCaseId
         }));
+    },
+
+    purgeCase: async (caseId) => {
+        await CaseRepository.purgeCase(caseId);
+        set((state) => {
+            const nextTasks = state.tasks.filter((task) => task.report?.caseId !== caseId);
+            const activeTaskStillExists = !state.activeTaskId || nextTasks.some((task) => task.id === state.activeTaskId);
+
+            return {
+                cases: state.cases.filter((item) => item.id !== caseId),
+                archives: state.archives.filter((report) => report.caseId !== caseId),
+                headlines: state.headlines.filter((headline) => headline.caseId !== caseId),
+                tasks: nextTasks,
+                activeTaskId: activeTaskStillExists ? state.activeTaskId : null,
+                activeCaseId: state.activeCaseId === caseId ? null : state.activeCaseId
+            };
+        });
     },
 
     importCaseData: async ({ cases, archives }) => {

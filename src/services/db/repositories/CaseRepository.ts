@@ -249,6 +249,23 @@ export class CaseRepository {
         await db.delete(cases).where(eq(cases.id, caseId));
     }
 
+    static async purgeCase(caseId: string): Promise<void> {
+        const db = getDB();
+        const reportRows = await db
+            .select({ id: reports.id })
+            .from(reports)
+            .where(eq(reports.caseId, caseId));
+
+        for (const row of reportRows) {
+            await db.delete(entities).where(eq(entities.reportId, row.id));
+            await db.delete(sources).where(eq(sources.reportId, row.id));
+        }
+
+        await db.delete(reports).where(eq(reports.caseId, caseId));
+        await db.delete(leads).where(eq(leads.caseId, caseId));
+        await db.delete(cases).where(eq(cases.id, caseId));
+    }
+
     static async clearCaseData(): Promise<void> {
         const db = getDB();
         await db.delete(entities);

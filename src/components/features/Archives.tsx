@@ -12,7 +12,7 @@ interface ArchivesProps {
 }
 
 export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase }) => {
-  const { archives, cases, deleteReport, deleteCase } = useCaseStore();
+  const { archives, cases, deleteReport, purgeCase } = useCaseStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
     const activeCaseId = localStorage.getItem('sherlock_active_case_id');
     if (activeCaseId && activeCaseId !== 'ALL') {
@@ -39,6 +39,18 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const effectiveSelectedCaseId = selectedCaseId && selectedCaseId !== 'unassigned' && !cases.some((c) => c.id === selectedCaseId)
+    ? null
+    : selectedCaseId;
+
+  useEffect(() => {
+    if (!selectedCaseId || selectedCaseId === 'unassigned') return;
+    if (cases.some((c) => c.id === selectedCaseId)) return;
+    if (localStorage.getItem('sherlock_active_case_id') === selectedCaseId) {
+      localStorage.removeItem('sherlock_active_case_id');
+    }
+  }, [cases, selectedCaseId]);
+
   const getCaseReports = (caseId: string) => {
     return archives.filter(r => r.caseId === caseId);
   };
@@ -53,15 +65,25 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     await deleteReport(id);
   };
 
-  const handleDeleteCase = async (e: React.MouseEvent, caseId: string) => {
-    e.stopPropagation();
-    if (!confirm("Are you sure? This will delete the case folder but keep reports as unassigned.")) return;
-    await deleteCase(caseId);
+  const handlePurgeCase = async (caseId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
 
-    if (selectedCaseId === caseId) {
+    const targetCase = cases.find(c => c.id === caseId);
+    const reportCount = getCaseReports(caseId).length;
+    const caseName = targetCase?.title || 'this case';
+    const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} report(s) and linked headlines for this case.\n\nThis cannot be undone.`;
+    if (!confirm(warning)) return;
+
+    await purgeCase(caseId);
+
+    if (effectiveSelectedCaseId === caseId) {
       setSelectedCaseId(null);
+    }
+    if (localStorage.getItem('sherlock_active_case_id') === caseId) {
       localStorage.removeItem('sherlock_active_case_id');
     }
+    setShowExportMenu(false);
+    setCurrentPage(1);
   };
 
   const handleCaseSelect = (id: string) => {
@@ -160,9 +182,9 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                       <FileText className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={(e) => handleDeleteCase(e, c.id)}
+                      onClick={(e) => handlePurgeCase(c.id, e)}
                       className="p-1 hover:text-osint-danger transition-colors opacity-0 group-hover:opacity-100"
-                      title="Delete Case"
+                      title="Permanently Purge Case"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -308,7 +330,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
           <div className="relative group hidden md:block">
             <ChevronLeft className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none rotate-270" style={{ transform: 'translateY(-50%) rotate(-90deg)' }} />
             <select
-              value={selectedCaseId || 'ALL'}
+              value={effectiveSelectedCaseId || 'ALL'}
               onChange={(e) => handleCaseSelect(e.target.value)}
               className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[200px] max-w-[300px] truncate"
             >
@@ -323,8 +345,8 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
 
         <div className="flex items-center space-x-3">
           {/* Export Dropdown - only show when case is selected */}
-          {selectedCaseId && selectedCaseId !== 'unassigned' && (() => {
-            const currentCase = cases.find(c => c.id === selectedCaseId);
+          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (() => {
+            const currentCase = cases.find(c => c.id === effectiveSelectedCaseId);
             return currentCase ? (
               <div className="relative" ref={exportMenuRef}>
                 <button
@@ -373,6 +395,16 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
           <button onClick={() => setIsNewCaseModalOpen(true)} className="flex items-center px-3 py-1.5 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white transition-colors">
             <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">New Case</span>
           </button>
+          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (
+            <button
+              onClick={() => void handlePurgeCase(effectiveSelectedCaseId)}
+              className="flex items-center px-3 py-1.5 bg-red-600 text-white font-mono text-xs font-bold uppercase hover:bg-red-500 transition-colors"
+              title="Permanently purge selected case and all reports"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              <span className="hidden lg:inline">Delete Case</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -396,7 +428,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
       )}
 
       <div className="relative z-10 p-6 w-full h-full overflow-y-auto">
-        {selectedCaseId ? renderReportList(selectedCaseId) : renderCaseGrid()}
+        {effectiveSelectedCaseId ? renderReportList(effectiveSelectedCaseId) : renderCaseGrid()}
       </div>
     </div>
   );

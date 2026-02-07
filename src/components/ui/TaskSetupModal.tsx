@@ -473,109 +473,117 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         </p>
       </div>
 
-      {/* Persona Select */}
-      <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-          <UserCog className="w-3 h-3 mr-2" />
-          Agent Persona
-        </label>
-        <p className="text-[10px] text-zinc-600 mb-2 font-mono">
-          Personas tailored for {selectedScope?.name || 'this scope'}
-        </p>
-        <select
-          value={persona}
-          onChange={(e) => setPersona(e.target.value)}
-          className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
-        >
-          {selectedScope?.personas.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Provider Select */}
-      <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-          <Cpu className="w-3 h-3 mr-2" />
-          Provider
-        </label>
-        <div className="relative">
-          <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 auto-rows-fr">
+        {/* Persona Select */}
+        <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
+          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+            <UserCog className="w-3 h-3 mr-2" />
+            Agent Persona
+          </label>
+          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
+            Personas tailored for {selectedScope?.name || 'this scope'}
+          </p>
           <select
-            value={selectedProvider}
-            onChange={(e) => {
-              const provider = e.target.value as AIProvider;
-              setSelectedProvider(provider);
-              const providerDefault = getRuntimeReadyModelsForProvider(provider)[0]?.id || getDefaultModelForProvider(provider);
-              setSelectedModel(providerDefault);
-            }}
-            className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
+            value={persona}
+            onChange={(e) => setPersona(e.target.value)}
+            className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none mt-auto"
           >
-            {AI_PROVIDERS
-              .filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE')
-              .map((provider) => (
-              <option key={provider.id} value={provider.id}>
-                {provider.label}
+            {selectedScope?.personas.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
               </option>
             ))}
           </select>
-        </div>
-      </div>
+        </section>
 
-      {/* Model Select */}
-      <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-          <Cpu className="w-3 h-3 mr-2" />
-          Model
-        </label>
-        <p className="text-[10px] text-zinc-600 mb-2 font-mono">
-          Selected provider: {selectedProviderMeta?.label || selectedProvider}
-        </p>
-        <div className="relative">
-          <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-          <select
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
-          >
-            {selectableModels.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.name} - {model.description}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p className="text-[10px] text-zinc-600 mt-2 font-mono">
-          Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'}, web search {selectedProviderMeta?.capabilities.supportsWebSearch ? 'available' : 'not available'}.
-        </p>
-      </div>
+        {/* Provider Select */}
+        <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
+          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+            <Cpu className="w-3 h-3 mr-2" />
+            Provider
+          </label>
+          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
+            Choose the AI backend for this run.
+          </p>
+          <div className="relative mt-auto">
+            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            <select
+              value={selectedProvider}
+              onChange={(e) => {
+                const provider = e.target.value as AIProvider;
+                setSelectedProvider(provider);
+                const providerDefault = getRuntimeReadyModelsForProvider(provider)[0]?.id || getDefaultModelForProvider(provider);
+                setSelectedModel(providerDefault);
+              }}
+              className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
+            >
+              {AI_PROVIDERS
+                .filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE')
+                .map((provider) => (
+                <option key={provider.id} value={provider.id}>
+                  {provider.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </section>
 
-      {/* Depth Select */}
-      <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-          <Microscope className="w-3 h-3 mr-2" />
-          Scan Depth
-        </label>
-        <div className="flex border border-zinc-700">
-          <button
-            onClick={() => setDepth('STANDARD')}
-            className={`flex-1 py-2 text-xs font-mono uppercase ${depth === 'STANDARD' ? 'bg-zinc-800 text-white font-bold' : 'bg-black text-zinc-500 hover:text-zinc-300'}`}
-          >
-            Standard
-          </button>
-          <button
-            onClick={() => setDepth('DEEP')}
-            className={`flex-1 py-2 text-xs font-mono uppercase ${depth === 'DEEP' ? 'bg-osint-primary/20 text-osint-primary font-bold border-l border-zinc-700' : 'bg-black text-zinc-500 hover:text-zinc-300 border-l border-zinc-700'}`}
-          >
-            Deep Dive
-          </button>
-        </div>
+        {/* Model Select */}
+        <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
+          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+            <Cpu className="w-3 h-3 mr-2" />
+            Model
+          </label>
+          <p className="text-[10px] text-zinc-600 mb-2 font-mono">
+            Selected provider: {selectedProviderMeta?.label || selectedProvider}
+          </p>
+          <div className="relative">
+            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
+            >
+              {selectableModels.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.name} - {model.description}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="text-[10px] text-zinc-600 mt-2 font-mono">
+            Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'}, web search {selectedProviderMeta?.capabilities.supportsWebSearch ? 'available' : 'not available'}.
+          </p>
+        </section>
+
+        {/* Depth Select */}
+        <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
+          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+            <Microscope className="w-3 h-3 mr-2" />
+            Scan Depth
+          </label>
+          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
+            Controls analysis breadth and synthesis depth.
+          </p>
+          <div className="flex border border-zinc-700 mt-auto">
+            <button
+              onClick={() => setDepth('STANDARD')}
+              className={`flex-1 py-2 text-xs font-mono uppercase ${depth === 'STANDARD' ? 'bg-zinc-800 text-white font-bold' : 'bg-black text-zinc-500 hover:text-zinc-300'}`}
+            >
+              Standard
+            </button>
+            <button
+              onClick={() => setDepth('DEEP')}
+              className={`flex-1 py-2 text-xs font-mono uppercase ${depth === 'DEEP' ? 'bg-osint-primary/20 text-osint-primary font-bold border-l border-zinc-700' : 'bg-black text-zinc-500 hover:text-zinc-300 border-l border-zinc-700'}`}
+            >
+              Deep Dive
+            </button>
+          </div>
+        </section>
       </div>
 
       {/* Thinking Budget */}
-      <div>
+      <div className="border border-zinc-800 bg-zinc-900/30 p-4">
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <Cpu className="w-3 h-3 mr-2" />
           Thinking Budget ({supportsThinkingBudget ? thinkingBudget : 0})
@@ -627,8 +635,8 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-osint-panel w-full max-w-4xl border border-zinc-600 shadow-2xl flex flex-col relative">
+    <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-osint-panel w-full max-w-4xl h-full sm:h-auto max-h-[95vh] border border-zinc-600 shadow-2xl flex flex-col relative overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
           <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
@@ -695,7 +703,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         )}
 
         {/* Step Content */}
-        <div className="p-6 min-h-[200px]">
+        <div className="p-6 min-h-[200px] flex-1 overflow-y-auto custom-scrollbar">
           {currentStep === 0 && renderStep0()}
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}

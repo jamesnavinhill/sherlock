@@ -4,6 +4,7 @@ import type { InvestigationReport, CaseTemplate } from '../types';
 import { AppView } from '../types';
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
 import { TaskRepository } from '../services/db/repositories/TaskRepository';
+import { CaseRepository } from '../services/db/repositories/CaseRepository';
 
 describe('caseStore', () => {
     beforeEach(() => {
@@ -12,6 +13,7 @@ describe('caseStore', () => {
         vi.spyOn(TemplateRepository, 'delete').mockResolvedValue();
         vi.spyOn(TaskRepository, 'create').mockResolvedValue();
         vi.spyOn(TaskRepository, 'updateStatus').mockResolvedValue();
+        vi.spyOn(CaseRepository, 'purgeCase').mockResolvedValue();
 
         // Reset store before each test
         const store = useCaseStore.getState();
@@ -90,5 +92,31 @@ describe('caseStore', () => {
         vi.advanceTimersByTime(5001);
         expect(useCaseStore.getState().toasts).toHaveLength(0);
         vi.useRealTimers();
+    });
+
+    it('should purge a case and remove related local state', async () => {
+        const store = useCaseStore.getState();
+        store.setCases([
+            { id: 'case-1', title: 'Operation: Alpha', status: 'ACTIVE', dateOpened: '2026-02-07' },
+            { id: 'case-2', title: 'Operation: Bravo', status: 'ACTIVE', dateOpened: '2026-02-07' },
+        ]);
+        store.setArchives([
+            { id: 'rep-1', caseId: 'case-1', topic: 'A1', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' },
+            { id: 'rep-2', caseId: 'case-2', topic: 'B1', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' },
+            { id: 'rep-3', topic: 'Loose', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' },
+        ]);
+        store.setHeadlines([
+            { id: 'h-1', caseId: 'case-1', content: 'alpha', source: 'src', timestamp: 'now', type: 'NEWS', status: 'PENDING', threatLevel: 'INFO' },
+            { id: 'h-2', caseId: 'case-2', content: 'bravo', source: 'src', timestamp: 'now', type: 'NEWS', status: 'PENDING', threatLevel: 'INFO' },
+        ]);
+        store.setActiveCaseId('case-1');
+
+        await store.purgeCase('case-1');
+
+        expect(CaseRepository.purgeCase).toHaveBeenCalledWith('case-1');
+        expect(useCaseStore.getState().cases.map((c) => c.id)).toEqual(['case-2']);
+        expect(useCaseStore.getState().archives.map((r) => r.id)).toEqual(['rep-2', 'rep-3']);
+        expect(useCaseStore.getState().headlines.map((h) => h.id)).toEqual(['h-2']);
+        expect(useCaseStore.getState().activeCaseId).toBeNull();
     });
 });
