@@ -1,179 +1,103 @@
 # Sherlock AI
 
-> 🔍 An AI-powered OSINT (Open Source Intelligence) investigation platform for tracking fraud, waste, and abuse in government spending.
+Sherlock AI is a React + TypeScript OSINT investigation workspace for running AI-assisted investigations, tracking leads, and organizing reports into case files.
 
-![Sherlock AI Dashboard](https://img.shields.io/badge/status-active-brightgreen) ![React 19](https://img.shields.io/badge/react-19-blue) ![Vite](https://img.shields.io/badge/vite-6-purple) ![Providers](https://img.shields.io/badge/providers-gemini%20%7C%20openrouter%20%7C%20openai%20%7C%20anthropic-orange)
+## What It Does
 
-## Overview
+- Runs investigations through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
+- Maintains a unified launch pipeline across Finder, Operation View, Live Monitor, and Network Graph
+- Stores case/report/task data in browser-persistent SQLite (wa-sqlite + IndexedDB)
+- Supports deep dives, headline-to-investigation launches, entity graph workflows, and export tooling (HTML/Markdown/JSON)
+- Provides scope-driven investigation presets and persona templates
 
-Sherlock AI is a sophisticated React SPA that simulates the workflow of an OSINT investigator. It uses a provider router that supports Gemini, OpenRouter, OpenAI, and Anthropic with a unified investigation contract:
+## UI Areas
 
-- **Web-grounded investigations** — Deep dives into any topic with real-time web search
-- **Entity extraction** — Automatic identification of people, organizations, and relationships
-- **Network visualization** — D3.js-powered graph of connections between entities
-- **Live monitoring** — Stream intelligence from news, social media, and official sources
-- **Headline persistence** — Save live intel as first-class case items for follow-up
-
-## Features
-
-| Feature                    | Description                                                                                   |
-| -------------------------- | --------------------------------------------------------------------------------------------- |
-| 🎯 **Operation View**       | Primary "Command Center" workspace with resizable 3-panel layout (Dossier, Report, Inspector) |
-| 🔮 **Investigation Wizard** | Multi-step pre-flight configuration for investigations                                        |
-| 🕸️ **Network Graph**        | Interactive D3.js visualization with entity flagging, manual nodes, and force simulation      |
-| 📡 **Live Monitor**         | Real-time intel streaming with event cards and headline persistence                           |
-| 📁 **Case Management**      | Organize investigations with hierarchical reports and breadcrumb navigation                   |
-| 🔊 **Voice Briefings**      | Text-to-speech summaries powered by Gemini TTS                                                |
-| 🎨 **Theme System**         | Six customizable accent color schemes                                                         |
-| 📤 **Export**               | Export cases and reports as styled HTML dossiers or JSON                                      |
+- `Operation View`: report reading, lead deep dives, case dossier, inspector panel
+- `Network Graph`: D3 graph with manual nodes/links, flag/hide, entity resolution
+- `Live Monitor`: live intel scans, filtering, and headline persistence
+- `Case Files`: archive browsing, deletion, and exports
+- `Finder`: anomaly scanning and investigation wizard launch
+- `System Config`: provider/model keys, scope/template management, data import/export
 
 ## Tech Stack
 
-- **Framework**: React 19 with TypeScript
-- **Build**: Vite 6
-- **Styling**: Tailwind CSS (CDN)
-- **AI**: Multi-provider adapter/router (`src/services/providers/*`) + Google Gemini SDK (`@google/genai`)
-- **Visualization**: D3.js v7
-- **Linting**: ESLint 9 + Prettier
-- **Fonts**: JetBrains Mono, Inter
+- React 19 + TypeScript
+- Vite 6
+- Zustand for app state orchestration
+- Drizzle ORM + wa-sqlite (SQLite in browser via IndexedDB VFS)
+- Tailwind CSS v4 (PostCSS pipeline)
+- D3.js v7 for graph rendering
+- Vitest + Testing Library
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- At least one provider API key:
-  - [Google Gemini key](https://aistudio.google.com/app/apikey)
-  - [OpenRouter key](https://openrouter.ai/keys)
-  - [OpenAI key](https://platform.openai.com/api-keys)
-  - [Anthropic key](https://console.anthropic.com/settings/keys)
+- npm
+- At least one provider key (Gemini/OpenRouter/OpenAI/Anthropic)
 
-### Installation
+### Install and Run
 
 ```bash
-# Clone the repository
-git clone https://github.com/jamesnavinhill/sherlock.git
-cd sherlock
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-The app will be available at `http://localhost:3000`
+Dev server defaults to `http://localhost:3000`.
 
-### Configuration
+### Provider Configuration
 
-On first launch, you'll be prompted to enter a provider key. Keys are stored locally in your browser and never sent to Sherlock servers.
+Configure keys in either:
 
-Alternatively, create a `.env.local` file:
+1. UI: `System Config -> AI`
+2. Env file: copy `.env.example` to `.env.local`
 
-```env
-# Gemini
-VITE_GEMINI_API_KEY=AIza...
+Supported env vars:
 
-# OpenRouter
-VITE_OPENROUTER_API_KEY=sk-or-v1-...
+- `VITE_GEMINI_API_KEY`
+- `VITE_OPENROUTER_API_KEY`
+- `VITE_OPENAI_API_KEY`
+- `VITE_ANTHROPIC_API_KEY`
+- `OPENAI_API_KEY` (fallback)
+- `ANTHROPIC_API_KEY` (fallback)
 
-# OpenAI
-VITE_OPENAI_API_KEY=sk-...
+## Scripts
 
-# Anthropic
-VITE_ANTHROPIC_API_KEY=sk-ant-...
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run test
+npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
+npm run check
 ```
 
-Provider and model selection is configured in **Settings → AI** and persisted in `sherlock_config`.
+## Current Validation Snapshot (February 7, 2026)
 
-## Project Structure
+- `npm run build`: passes
+- `npm run test`: test files pass, but Vitest reports an unhandled worker-start timeout for `src/services/providers/router.test.ts`
+- `npm run lint`: fails on existing repo issues (not docs-related), including:
+  - `react-hooks/set-state-in-effect` in `src/App.tsx`
+  - `prefer-const` and unused args in `src/services/db/client.ts`
+  - `@typescript-eslint/no-empty-object-type` in `src/services/gemini.ts`
 
-```
-sherlock/
-├── src/
-│   ├── App.tsx                    # Root orchestrator
-│   ├── types/                     # TypeScript interfaces
-│   ├── utils/                     # Shared utilities (text, audio, localStorage)
-│   ├── components/
-│   │   ├── ui/                    # Reusable UI primitives (Accordion, EmptyState)
-│   │   └── features/              # Feature modules
-│   │       ├── OperationView/     # Main workspace components
-│   │       │   ├── index.tsx      # Orchestrator
-│   │       │   ├── DossierPanel.tsx
-│   │       │   ├── ReportViewer.tsx
-│   │       │   ├── InspectorPanel.tsx
-│   │       │   └── Toolbar.tsx
-│   │       ├── NetworkGraph/      # Graph visualization components
-│   │       │   ├── index.tsx      # Orchestrator
-│   │       │   ├── GraphCanvas.tsx
-│   │       │   ├── NodeDossier.tsx
-│   │       │   └── NodeInspector.tsx
-│   │       ├── LiveMonitor/       # Intel stream components
-│   │       │   ├── index.tsx
-│   │       │   ├── EventCard.tsx
-│   │       │   └── SettingsPanel.tsx
-│   │       ├── Archives.tsx       # Case file browser
-│   │       ├── Feed.tsx           # Dashboard/Finder
-│   │       └── Settings.tsx       # System configuration
-│   └── services/
-│       ├── gemini.ts              # App-facing compatibility facade
-│       └── providers/             # Provider adapters, router, shared utils
-├── legacy/
-│   └── work-log.md                # Consolidated project history
-├── docs/
-│   ├── architecture.md            # Technical architecture
-│   └── SOURCES.md                 # Data sources
-└── package.json
-```
+## Documentation Index
 
-## Usage
+- `docs/architecture.md`
+- `docs/BROAD_SCOPE.md`
+- `docs/SCOPES.md`
+- `docs/DATA_PERSISTENCE.md`
+- `docs/OPERATIONS_RUNBOOK.md`
+- `docs/SOURCES.md`
+- `docs/LINTING.md`
+- `docs/CONTRIBUTING.md`
 
-1. **Operation View** — Primary workspace with dossier panel, report viewer, and entity inspector
-2. **Investigation Wizard** — Click "+ New Case" to launch multi-step configuration (target, hypothesis, key figures, sources, settings)
-3. **Deep Dive** — Click any lead to spawn a sub-investigation linked to the parent
-4. **Network Graph** — Visualize connections, flag entities, merge duplicates, create manual nodes
-5. **Live Monitor** — Select a case and stream real-time intelligence; save items as Headlines
-6. **Case Files** — Browse archived investigations, export dossiers as HTML/JSON
-
-## Configuration Options
-
-Access via **System Config** in the sidebar:
-
-| Setting             | Options                                                                                     |
-| ------------------- | ------------------------------------------------------------------------------------------- |
-| **Provider**        | Gemini (default), OpenRouter, OpenAI, Anthropic                                            |
-| **Model**           | Provider-specific runtime-ready model list                                                  |
-| **Thinking Budget** | Model capability-gated; enabled for supported Gemini models                                |
-| **Persona**         | Scope/persona driven investigator mode                                                      |
-| **Search Depth**    | Standard or Deep Dive (prioritizes obscure sources)                                         |
-
-## Data Storage
-
-All data is stored locally in browser `localStorage`:
-
-| Key                       | Content                  |
-| ------------------------- | ------------------------ |
-| `sherlock_archives`       | `InvestigationReport[]`  |
-| `sherlock_cases`          | `Case[]`                 |
-| `sherlock_headlines`      | `Headline[]`             |
-| `sherlock_manual_links`   | `ManualConnection[]`     |
-| `sherlock_manual_nodes`   | `ManualNode[]`           |
-| `sherlock_active_case_id` | Currently active case ID |
-| `sherlock_config`         | Persisted provider/model/persona/search config |
-| ...                       | ...                      |
-
-Use **System Config → Data Management** to export/import backups.
-
-## Operations Runbook
-
-Provider debugging and incident response steps are documented in `docs/OPERATIONS_RUNBOOK.md`.
+Legacy historical notes remain in `docs/_legacy/`.
 
 ## License
 
 MIT
-
-## Acknowledgments
-
-- Built with [Google Gemini](https://ai.google.dev/)
-- Matrix rain effect inspired by the classic Hollywood hacker aesthetic
-- Originally prototyped in [Google AI Studio](https://aistudio.google.com/)

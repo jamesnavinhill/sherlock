@@ -1,122 +1,60 @@
-# Linting & Code Quality
+# Linting and Formatting
 
-This project uses **ESLint v9** (flat config) and **Prettier** for code quality and formatting.
+## Tooling
 
-## Quick Commands
+- ESLint 9 (flat config): `eslint.config.js`
+- Prettier 3: `.prettierrc`
+
+## Commands
 
 ```bash
-npm run lint          # Check for lint errors
-npm run lint:fix      # Auto-fix lint errors
-npm run format        # Format all files with Prettier
-npm run format:check  # Check formatting without changing files
-npm run check         # Run both lint and format checks
+npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
+npm run check
 ```
 
-## Configuration
+## Scope
 
-### ESLint (`eslint.config.js`)
+Current scripts target `src/`:
 
-Uses the modern flat config format with:
+- `lint`: `eslint src/`
+- `format`: `prettier --write src/`
 
-- **TypeScript**: `typescript-eslint` recommended rules
-- **React**: Official React and React Hooks plugins
-- **React Refresh**: Fast refresh compatibility checks
+If you need repo-wide lint/format behavior, update scripts intentionally in `package.json`.
 
-### Key Rules
+## Rule Highlights
 
-| Rule | Level | Rationale |
-|------|-------|-----------|
-| `@typescript-eslint/no-unused-vars` | error | Dead code detection; prefix with `_` to ignore |
-| `@typescript-eslint/no-explicit-any` | warn | Encourages proper typing without blocking progress |
-| `@typescript-eslint/consistent-type-imports` | error | Clearer distinction between runtime/type imports |
-| `no-console` | warn | Only `console.warn` and `console.error` allowed |
-| `prefer-const` | error | Immutability preference |
-| `eqeqeq` | error | Strict equality (except for null checks) |
-| `curly` | error | Braces required for multi-line blocks |
-| `react-hooks/exhaustive-deps` | warn | Hook dependency tracking |
+From `eslint.config.js`:
 
-### Prettier (`.prettierrc`)
+- `@typescript-eslint/no-unused-vars`: error (`^_` allowed)
+- `@typescript-eslint/no-explicit-any`: warning
+- `@typescript-eslint/consistent-type-imports`: error
+- `react-refresh/only-export-components`: warning
+- `no-console`: warning (`warn` + `error` allowed)
+- `prefer-const`, `no-var`, `eqeqeq`, `curly`: error
 
-```json
-{
-  "semi": true,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "printWidth": 100
-}
-```
+## Current Status (February 7, 2026)
 
-## Ignoring Rules
+`npm run lint` currently reports:
 
-### Unused Variables
+Errors:
 
-Prefix with underscore to indicate intentional non-use:
+1. `react-hooks/set-state-in-effect` in `src/App.tsx`
+2. `prefer-const` in `src/services/db/client.ts`
+3. `@typescript-eslint/no-unused-vars` in `src/services/db/client.ts`
+4. `@typescript-eslint/no-empty-object-type` in `src/services/gemini.ts` (2 occurrences)
 
-```typescript
-// Error: 'data' is assigned a value but never used
-const { data, error } = useQuery();
+Warnings:
 
-// OK: Underscore prefix signals intentional non-use
-const { _data, error } = useQuery();
-```
+1. `react-refresh/only-export-components` in `src/components/features/NetworkGraph/EntityResolution.tsx`
+2. `no-console` in `src/services/providers/shared/logging.ts`
 
-### File-level Disable (use sparingly)
+## Suggested Lint Workflow
 
-```typescript
-/* eslint-disable @typescript-eslint/no-explicit-any */
-```
-
-### Line-level Disable
-
-```typescript
-// eslint-disable-next-line no-console
-console.log('debug');
-```
-
-## Type Imports
-
-Always use `import type` for type-only imports:
-
-```typescript
-// ❌ Wrong
-import { UserProps } from './types';
-
-// ✅ Correct
-import type { UserProps } from './types';
-
-// ✅ Mixed imports
-import { UserComponent, type UserProps } from './User';
-```
-
-## IDE Integration
-
-### VS Code
-
-Install extensions:
-- ESLint (`dbaeumer.vscode-eslint`)
-- Prettier (`esbenp.prettier-vscode`)
-
-Add to `.vscode/settings.json`:
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  }
-}
-```
-
-## Current Status
-
-Run `npm run lint` to see current issues. Many are auto-fixable with `npm run lint:fix`.
-
-**Known parsing errors** indicate syntax issues in some files that need manual review:
-- `Archives.tsx` - Unexpected token
-- `ControlBar.tsx` - Unclosed JSX element
-- `GraphCanvas.tsx` - Declaration expected
-- `Toolbar.tsx` - Unexpected token
-
-These should be fixed before the auto-fixer can process those files.
+1. Run `npm run lint`.
+2. Apply safe autofixes with `npm run lint:fix`.
+3. Resolve remaining errors manually.
+4. Re-run `npm run lint` until clean.
+5. Run `npm run test` and `npm run build` before merging.

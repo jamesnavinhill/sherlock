@@ -1,67 +1,84 @@
-# Sherlock Provider Operations Runbook
+# Provider Operations Runbook
 
-## Scope
+This runbook covers runtime incidents in the provider router pipeline:
 
-This runbook covers runtime failures in the multi-provider AI pipeline (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`) for:
+- `INVESTIGATE`
+- `SCAN_ANOMALIES`
+- `LIVE_INTEL`
+- `TTS`
 
-- investigations
-- anomaly scans
-- live intel
-- Gemini TTS
+Adapters in scope:
 
-## 1) Fast Triage
+- `GEMINI`
+- `OPENROUTER`
+- `OPENAI`
+- `ANTHROPIC`
 
-1. Confirm active provider/model in **Settings → AI**.
-2. Confirm provider key exists for that provider in **Settings → AI** (or API key modal).
-3. Re-run the same action and check browser console for `[provider-router]` logs.
-4. Capture:
+## 1. Fast Triage
+
+1. Open `System Config -> AI` and capture selected `provider` and `model`.
+2. Verify a key exists for the selected provider.
+3. Reproduce once.
+4. Inspect browser console for `[provider-router]` entries.
+5. Capture:
    - `provider`
    - `modelId`
    - `operation`
    - `retryCount`
    - `errorClass`
 
-## 2) Error Class Mapping
+## 2. Error Class Reference
 
-| Error Class | Meaning | Primary Action |
+| Error | Meaning | Primary Action |
 | --- | --- | --- |
-| `MISSING_API_KEY` | No key was found for selected provider | Add key or switch provider |
-| `RATE_LIMITED` | Upstream throttling or quota limits | Retry later or switch model/provider |
-| `PARSE_ERROR` | Provider returned non-parseable payload | Re-run; if persistent, lower complexity and collect sample payload |
-| `UPSTREAM_ERROR` | Provider endpoint/network/server issue | Validate key/account status, then retry/switch provider |
-| `UNSUPPORTED_OPERATION` | Feature not available for provider/model (ex: TTS) | Use supported provider/model |
+| `MISSING_API_KEY` | No usable key for provider | Add key or switch provider |
+| `RATE_LIMITED` | Upstream quota/throttle | Retry later, change model/provider |
+| `PARSE_ERROR` | Model payload failed normalization | Retry with simpler topic, collect payload |
+| `UPSTREAM_ERROR` | Endpoint/network/provider failure | Validate account/status, retry/switch |
+| `UNSUPPORTED_OPERATION` | Capability mismatch (commonly TTS) | Use supported provider/model |
 
-## 3) Known Capability Constraints
+## 3. Capability Constraints
 
-- TTS is currently implemented for Gemini only.
-- Thinking budget is model-gated and primarily relevant to Gemini models.
-- Web search/tooling support varies by provider capability metadata.
+- TTS: Gemini adapter only.
+- Thinking budget: model-gated, mainly relevant to Gemini models.
+- Web search: capability varies by provider/model metadata.
 
-## 4) Launch Propagation Verification
+## 4. Launch Propagation Checks
 
-If users report "wrong provider/model used":
+If users report wrong provider/model context:
 
-1. Start a run from each flow:
-   - Feed
+1. Launch from each entry point:
+   - Finder search
+   - Finder wizard
    - Live Monitor event
-   - Operation deep dive
-   - NetworkGraph entity investigate
-   - Operation headline investigate
-2. Check archived report/task snapshot config (`provider`, `modelId`, `scopeId`, `dateRangeOverride`, `launchSource`).
-3. Confirm overrides are intentional and inherited fields match parent report where expected.
+   - Operation headline
+   - Full Spectrum (batch lead)
+2. Validate persisted config snapshots on task/report (`provider`, `modelId`, `scopeId`, `dateRangeOverride`, `launchSource`).
+3. Confirm inherited context from parent report/case where expected.
 
-## 5) Recovery Playbook
+## 5. Fallback Behavior Notes
 
-1. Switch to `GEMINI` with a known-good model and key to restore baseline.
-2. Reduce custom overrides (scope/date/preseed) and re-run.
-3. If parse instability continues, collect raw provider payload sample and attach it to a bug report.
-4. Include console `[provider-router]` entries and the failing launch source.
+Current adapter behavior:
 
-## 6) Escalation Artifact Checklist
+- `INVESTIGATE`: fails hard on provider errors (no simulated report fallback).
+- `SCAN_ANOMALIES` and `LIVE_INTEL`: return simulated fallback items for non-key failures.
+- `MISSING_API_KEY`: does not fallback; error is surfaced.
 
-- Timestamp and timezone
-- Selected provider/model
-- Operation type (`INVESTIGATE` / `SCAN_ANOMALIES` / `LIVE_INTEL` / `TTS`)
-- Error class and message
-- One minimal reproducible topic/request
-- Whether fallback behavior triggered
+This distinction is important when diagnosing “why data still appeared” in feed/live flows.
+
+## 6. Recovery Playbook
+
+1. Switch to a known-good provider/model with valid key.
+2. Retry with narrower scope/topic/date range.
+3. Disable or simplify optional overrides.
+4. Capture logs and failing input for escalation.
+
+## 7. Escalation Artifact Checklist
+
+- Timestamp + timezone
+- Browser and app context
+- Provider/model and operation
+- Launch source
+- Error class + message
+- Minimal reproducible prompt/topic
+- Whether fallback data appeared

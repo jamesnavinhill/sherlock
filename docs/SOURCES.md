@@ -1,124 +1,98 @@
-# Sherlock Agent Source Directory
+# Investigation Source Directory
 
-> [!NOTE]
-> This document provides a curated directory of official data sources for Sherlock OSINT investigations. Sources can be prioritized per-investigation via the "Priority Sources" field in the investigation wizard or monitor configuration.
+This catalog aligns with built-in investigation scopes in `src/data/presets.ts`.
 
----
+Use these sources as seed inputs for:
 
-## Federal Data Sources
+- investigation wizard `Priority Sources`
+- Finder scanner source hints
+- Live Monitor source targeting
 
-### Grants & Spending
+## Government Fraud
 
-| Source | Description | URL |
-|--------|-------------|-----|
-| **USASpending.gov** | Federal grants, contracts, and spending data (API available) | <https://www.usaspending.gov/> |
-| **Grants.gov** | Federal grant opportunities and awards | <https://www.grants.gov/> |
-| **Treasury Fiscal Data** | Federal revenue, spending, and debt data | <https://fiscaldata.treasury.gov/> |
-| **Data.gov** | Federal open data catalog | <https://data.gov/> |
+- USASpending: <https://usaspending.gov>
+- SAM.gov: <https://sam.gov>
+- FEC: <https://fec.gov>
+- FPDS: <https://fpds.gov>
+- GAO: <https://gao.gov>
+- IGNET: <https://ignet.gov>
+- FOIA.gov: <https://foia.gov>
+- OpenSecrets: <https://opensecrets.org>
+- ProPublica: <https://propublica.org>
+- GovTrack: <https://govtrack.us>
+- POGO: <https://pogo.org>
+- PACER: <https://pacer.uscourts.gov>
+- DOJ News: <https://justice.gov/news>
 
-### Loans & Business
+## Corporate Due Diligence
 
-| Source | Description | URL |
-|--------|-------------|-----|
-| **SBA Data Store** | PPP, EIDL, 7(a), and 504 loan data (FOIA releases) | <https://data.sba.gov/> |
-| **SAM.gov** | Entity registration, exclusions, contract awards | <https://sam.gov/> |
-| **FPDS** | Federal procurement data system | <https://www.fpds.gov/> |
+- SEC EDGAR: <https://sec.gov/edgar>
+- OpenCorporates: <https://opencorporates.com>
+- Crunchbase: <https://crunchbase.com>
+- LinkedIn: <https://linkedin.com>
+- Bloomberg: <https://bloomberg.com>
+- Reuters: <https://reuters.com>
+- CourtListener: <https://courtlistener.com>
+- Financial Times: <https://ft.com>
+- Wall Street Journal: <https://wsj.com>
+- The Information: <https://theinformation.com>
 
-### Campaign Finance
+## Geopolitical Analysis
 
-| Source | Description | URL |
-|--------|-------------|-----|
-| **FEC.gov** | Federal campaign finance and contributions | <https://www.fec.gov/data/> |
+- U.S. State Department: <https://state.gov>
+- United Nations: <https://un.org>
+- EEAS: <https://eeas.europa.eu>
+- CSIS: <https://csis.org>
+- CFR: <https://cfr.org>
+- Brookings: <https://brookings.edu>
+- Atlantic Council: <https://atlanticcouncil.org>
+- RAND: <https://rand.org>
+- Bellingcat: <https://bellingcat.com>
+- SIPRI: <https://sipri.org>
+- Crisis Group: <https://crisisgroup.org>
+- Foreign Affairs: <https://foreignaffairs.com>
+- The Economist: <https://economist.com>
+- Foreign Policy: <https://foreignpolicy.com>
 
----
+## Cybersecurity Research
 
-## Healthcare Sources
+- NVD: <https://nvd.nist.gov>
+- CVE: <https://cve.org>
+- Exploit-DB: <https://exploit-db.com>
+- MITRE ATT&CK: <https://attack.mitre.org>
+- CISA US-CERT: <https://cisa.gov/uscert>
+- VirusTotal: <https://virustotal.com>
+- OTX: <https://otx.alienvault.com>
+- KrebsOnSecurity: <https://krebsonsecurity.com>
+- SecurityWeek: <https://securityweek.com>
+- The Hacker News: <https://thehackernews.com>
+- BleepingComputer: <https://bleepingcomputer.com>
+- Mandiant: <https://mandiant.com>
+- CrowdStrike Blog: <https://crowdstrike.com/blog>
+- Microsoft Security Blog: <https://microsoft.com/security/blog>
 
-| Source | Description | URL |
-|--------|-------------|-----|
-| **HHS OIG Exclusions** | Excluded healthcare providers (LEIE database) | <https://oig.hhs.gov/exclusions/> |
-| **CMS Provider Data** | Nursing homes, hospitals, healthcare facilities | <https://data.cms.gov/provider-data/> |
+## Competitive Intelligence
 
----
+- Crunchbase: <https://crunchbase.com>
+- PitchBook: <https://pitchbook.com>
+- CB Insights: <https://cbinsights.com>
+- TechCrunch: <https://techcrunch.com>
+- The Verge: <https://theverge.com>
+- Ars Technica: <https://arstechnica.com>
+- Wired: <https://wired.com>
+- Google Patents: <https://patents.google.com>
+- USPTO: <https://uspto.gov>
+- PatentsView: <https://patentsview.org>
+- Product Hunt: <https://producthunt.com>
+- G2: <https://g2.com>
+- Gartner: <https://gartner.com>
 
-## Welfare & Housing
+## Open Investigation
 
-| Source | Description | URL |
-|--------|-------------|-----|
-| **USDA SNAP Retailers** | Authorized SNAP retailers | <https://www.fns.usda.gov/snap/retailer-locator> |
-| **USDA Disqualified Stores** | SNAP-disqualified retailers | <https://www.fns.usda.gov/snap/disqualifications/list> |
-| **HUD Data Portal** | Housing assistance, Section 8, public housing | <https://data.hud.gov/> |
+Open Investigation is intentionally unconstrained and does not ship with a fixed source list.
 
----
+## Notes
 
-## Oversight & Enforcement
-
-| Source | Description | URL |
-|--------|-------------|-----|
-| **DOJ Press Releases** | Fraud prosecution announcements | <https://www.justice.gov/news> |
-| **PaymentAccuracy.gov** | Improper payment rates by federal program | <https://www.paymentaccuracy.gov/> |
-| **Oversight.gov** | Inspector General reports across all agencies | <https://www.oversight.gov/> |
-| **GAO Reports** | Government Accountability Office audit reports | <https://www.gao.gov/reports-testimonies> |
-
----
-
-## Third-Party Aggregators
-
-| Source | Description | URL |
-|--------|-------------|-----|
-| **OpenTheBooks.com** | State and local government spending (FOIA aggregator) | <https://www.openthebooks.com/> |
-| **SomaliScan** | Fraud tracking, analysis, and data visualization | <https://www.somaliscan.com/> |
-| **SomaliScan Resources** | Curated directory of data source links | <https://www.somaliscan.com/resources/links> |
-| **Beaver Data (Substack)** | Investigative analysis and reporting | <https://beaverdata.substack.com> |
-
----
-
-## Baseline X (Twitter) Handles
-
-These accounts serve as the default source pool for social media intelligence gathering. Users can override or supplement this list via the Priority Sources configuration.
-
-### Government Watchdogs & Oversight
-
-- `@ABORNEOFFICE` - Office of Management & Budget
-- `@ABORNEOFFICE` - Government Accountability Office
-- `@ABORNEOFFICE` - Treasury Inspector General
-
-### Investigative Journalists & OSINT
-
-- `@WatchDog_01` - Fraud watchdog account
-- `@OpenTheBooks` - Government spending transparency
-- `@ProjectVeritas` - Investigative journalism
-
-### News Organizations
-
-- `@Reuters` - News wire service
-- `@AP` - Associated Press
-- `@WSJ` - Wall Street Journal
-- `@NYTimes` - New York Times
-- `@FinancialTimes` - Financial Times
-
-### Policy & Think Tanks
-
-- `@CatoInstitute` - Cato Institute
-- `@Heritage` - Heritage Foundation
-- `@BrookingsInst` - Brookings Institution
-
----
-
-## Usage Notes
-
-### In System Prompts
-
-The agent is instructed to query databases like USASpending.gov, Grants.gov, and SAM.gov for contract/grant details. These are referenced in the investigation search strategy.
-
-### Priority Sources
-
-Users can specify priority sources/handles in the investigation wizard or live monitor settings. The agent will actively search for and prioritize information from these specified sources.
-
-### Source Verification
-
-All sources should be cross-referenced. The agent extracts sources from grounding metadata and includes them in the "Verified Sources" section of each report.
-
----
-
-*Last updated: January 2026*
+- These are guidance sources, not enforced allowlists.
+- Provider output still requires human verification and cross-checking.
+- Keep source additions aligned with `src/data/presets.ts` to avoid prompt/doc drift.
