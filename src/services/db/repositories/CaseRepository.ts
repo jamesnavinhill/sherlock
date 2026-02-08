@@ -2,6 +2,11 @@ import { eq, desc } from 'drizzle-orm';
 import { getDB } from '../client';
 import { cases, reports, entities, sources, leads } from '../schema';
 import type { Case, InvestigationReport, Entity, Headline } from '@/types';
+import {
+    normalizeHumanText,
+    normalizeTopicText,
+    unwrapArrayContainer,
+} from '../../../utils/textNormalization';
 
 interface RawReportPayload {
     summary?: string;
@@ -44,8 +49,17 @@ const toEntityList = (value: unknown): Entity[] => {
 };
 
 const toStringList = (value: unknown): string[] => {
-    if (!Array.isArray(value)) return [];
-    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+    const list = unwrapArrayContainer(value, ['leads', 'agendas', 'items', 'results', 'data', 'list']);
+    const items =
+        list.length > 0
+            ? list
+            : value && typeof value === 'object' && !Array.isArray(value)
+              ? [value]
+              : [];
+
+    return items
+        .map((item) => normalizeHumanText(item).trim())
+        .filter((item) => item.length > 0);
 };
 
 const toSourceList = (value: unknown): InvestigationReport['sources'] => {
@@ -142,9 +156,9 @@ export class CaseRepository {
             return {
                 id: row.id,
                 caseId: row.caseId || undefined,
-                topic: row.topic,
+                topic: normalizeTopicText(row.topic),
                 dateStr: row.dateStr || undefined,
-                summary: row.summary || '',
+                summary: normalizeHumanText(row.summary, { includePriority: false }),
                 rawText: row.rawText || '',
                 parentTopic: row.parentTopic || undefined,
                 config: row.configJson ? JSON.parse(row.configJson) : undefined,
@@ -163,14 +177,19 @@ export class CaseRepository {
             throw new Error('Report must have an id before persistence.');
         }
         const reportId = report.id;
+        const normalizedTopic = normalizeTopicText(report.topic);
+        const normalizedSummary = normalizeHumanText(report.summary, {
+            includePriority: false,
+            fallback: 'Analysis pending...',
+        });
 
         // Insert Report (wa-sqlite handles its own transactions, explicit drizzle transactions conflict)
         await db.insert(reports).values({
             id: reportId,
             caseId: report.caseId,
-            topic: report.topic,
+            topic: normalizedTopic,
             dateStr: report.dateStr,
-            summary: report.summary,
+            summary: normalizedSummary,
             rawText: report.rawText,
             parentTopic: report.parentTopic,
             configJson: report.config ? JSON.stringify(report.config) : null,
@@ -219,7 +238,7 @@ export class CaseRepository {
     static async updateReportTopic(reportId: string, topic: string): Promise<void> {
         const db = getDB();
         await db.update(reports)
-            .set({ topic })
+            .set({ topic: normalizeTopicText(topic) })
             .where(eq(reports.id, reportId));
     }
 

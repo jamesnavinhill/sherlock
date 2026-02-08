@@ -1,5 +1,10 @@
 import type { FeedItem, InvestigationReport, MonitorEvent, Source } from '../../../types';
 import { toDisplayText } from './jsonParsing';
+import {
+    getCaseInsensitiveField,
+    normalizeHumanText,
+    unwrapArrayContainer,
+} from '../../../utils/textNormalization';
 
 const URL_PATTERN = /https?:\/\/[^\s<>"'`)\]}]+/gi;
 
@@ -77,10 +82,16 @@ export const extractSourcesFromText = (text: string): Source[] => {
 };
 
 export const normalizeStringList = (value: unknown): string[] => {
-    if (!Array.isArray(value)) return [];
+    const list = unwrapArrayContainer(value, ['leads', 'agendas', 'items', 'results', 'data', 'list']);
+    const items =
+        list.length > 0
+            ? list
+            : value && typeof value === 'object' && !Array.isArray(value)
+              ? [value]
+              : [];
 
-    return value
-        .map((item) => toDisplayText(item).trim())
+    return items
+        .map((item) => normalizeHumanText(item).trim())
         .filter((item) => item.length > 0);
 };
 
@@ -123,58 +134,115 @@ export const normalizeFeedItems = (
     now: string,
     idPrefix: string
 ): FeedItem[] => {
-    if (!Array.isArray(value)) return [];
+    const list = unwrapArrayContainer(value, ['items', 'results', 'data', 'signals', 'feed']);
+    const items =
+        list.length > 0
+            ? list
+            : value && typeof value === 'object' && !Array.isArray(value)
+              ? [value]
+              : [];
 
-    return value.map((item, index) => {
+    return items.map((item, index) => {
         const record = item as Record<string, unknown>;
-        const riskLevel =
-            record?.riskLevel === 'LOW' || record?.riskLevel === 'MEDIUM' || record?.riskLevel === 'HIGH'
-                ? record.riskLevel
-                : 'MEDIUM';
+        const rawRiskLevel = normalizeHumanText(getCaseInsensitiveField(record, 'riskLevel')).toUpperCase();
+        const riskLevel = rawRiskLevel === 'LOW' || rawRiskLevel === 'MEDIUM' || rawRiskLevel === 'HIGH'
+            ? rawRiskLevel
+            : 'MEDIUM';
 
         return {
-            id: typeof record?.id === 'string' ? record.id : `${idPrefix}-${Date.now()}-${index}`,
-            title: typeof record?.title === 'string' ? record.title : 'Untitled signal',
-            category: typeof record?.category === 'string' ? record.category : fallbackCategory,
+            id: normalizeHumanText(getCaseInsensitiveField(record, 'id'))
+                || `${idPrefix}-${Date.now()}-${index}`,
+            title: normalizeHumanText(
+                getCaseInsensitiveField(record, 'title')
+                ?? getCaseInsensitiveField(record, 'headline')
+                ?? getCaseInsensitiveField(record, 'name'),
+                { includePriority: false, fallback: 'Untitled signal' }
+            ),
+            category: normalizeHumanText(getCaseInsensitiveField(record, 'category'), {
+                includePriority: false,
+                fallback: fallbackCategory,
+            }),
             riskLevel,
-            timestamp: typeof record?.timestamp === 'string' ? record.timestamp : now,
+            timestamp: normalizeHumanText(
+                getCaseInsensitiveField(record, 'timestamp')
+                ?? getCaseInsensitiveField(record, 'publishedAt')
+                ?? getCaseInsensitiveField(record, 'time'),
+                { includePriority: false, fallback: now }
+            ),
         };
     });
 };
 
 export const normalizeLiveEvents = (value: unknown, idPrefix: string): MonitorEvent[] => {
-    if (!Array.isArray(value)) return [];
+    const list = unwrapArrayContainer(value, ['events', 'items', 'results', 'data', 'signals']);
+    const items =
+        list.length > 0
+            ? list
+            : value && typeof value === 'object' && !Array.isArray(value)
+              ? [value]
+              : [];
 
-    return value.map((item, index) => {
+    return items.map((item, index) => {
         const record = item as Record<string, unknown>;
-        const type =
-            record?.type === 'SOCIAL' || record?.type === 'NEWS' || record?.type === 'OFFICIAL'
-                ? record.type
-                : 'NEWS';
+        const rawType = normalizeHumanText(
+            getCaseInsensitiveField(record, 'type') ?? getCaseInsensitiveField(record, 'eventType')
+        ).toUpperCase();
+        const type = rawType === 'SOCIAL' || rawType === 'NEWS' || rawType === 'OFFICIAL'
+            ? rawType
+            : 'NEWS';
 
-        const sentiment =
-            record?.sentiment === 'NEGATIVE' ||
-            record?.sentiment === 'NEUTRAL' ||
-            record?.sentiment === 'POSITIVE'
-                ? record.sentiment
-                : 'NEUTRAL';
+        const rawSentiment = normalizeHumanText(getCaseInsensitiveField(record, 'sentiment')).toUpperCase();
+        const sentiment = rawSentiment === 'NEGATIVE' || rawSentiment === 'NEUTRAL' || rawSentiment === 'POSITIVE'
+            ? rawSentiment
+            : 'NEUTRAL';
 
-        const threatLevel =
-            record?.threatLevel === 'INFO' ||
-            record?.threatLevel === 'CAUTION' ||
-            record?.threatLevel === 'CRITICAL'
-                ? record.threatLevel
-                : 'INFO';
+        const rawThreatLevel = normalizeHumanText(
+            getCaseInsensitiveField(record, 'threatLevel')
+            ?? getCaseInsensitiveField(record, 'severity')
+            ?? getCaseInsensitiveField(record, 'riskLevel')
+        ).toUpperCase();
+        const threatLevel = rawThreatLevel === 'INFO' || rawThreatLevel === 'CAUTION' || rawThreatLevel === 'CRITICAL'
+            ? rawThreatLevel
+            : 'INFO';
 
         return {
-            id: typeof record?.id === 'string' ? record.id : `${idPrefix}-${Date.now()}-${index}`,
+            id: normalizeHumanText(
+                getCaseInsensitiveField(record, 'id')
+                ?? getCaseInsensitiveField(record, 'eventId'),
+                { includePriority: false, fallback: `${idPrefix}-${Date.now()}-${index}` }
+            ),
             type,
-            sourceName: typeof record?.sourceName === 'string' ? record.sourceName : 'Unknown Source',
-            content: typeof record?.content === 'string' ? record.content : '',
-            timestamp: typeof record?.timestamp === 'string' ? record.timestamp : 'now',
+            sourceName: normalizeHumanText(
+                getCaseInsensitiveField(record, 'sourceName')
+                ?? getCaseInsensitiveField(record, 'source')
+                ?? getCaseInsensitiveField(record, 'publisher')
+                ?? getCaseInsensitiveField(record, 'origin'),
+                { includePriority: false, fallback: 'Unknown Source' }
+            ),
+            content: normalizeHumanText(
+                getCaseInsensitiveField(record, 'content')
+                ?? getCaseInsensitiveField(record, 'description')
+                ?? getCaseInsensitiveField(record, 'summary')
+                ?? getCaseInsensitiveField(record, 'headline')
+                ?? getCaseInsensitiveField(record, 'title')
+                ?? record,
+                { includePriority: false }
+            ),
+            timestamp: normalizeHumanText(
+                getCaseInsensitiveField(record, 'timestamp')
+                ?? getCaseInsensitiveField(record, 'publishedAt')
+                ?? getCaseInsensitiveField(record, 'time')
+                ?? getCaseInsensitiveField(record, 'date'),
+                { includePriority: false, fallback: 'now' }
+            ),
             sentiment,
             threatLevel,
-            url: typeof record?.url === 'string' ? record.url : undefined,
+            url: normalizeHumanText(
+                getCaseInsensitiveField(record, 'url')
+                ?? getCaseInsensitiveField(record, 'link')
+                ?? getCaseInsensitiveField(record, 'sourceUrl'),
+                { includePriority: false }
+            ) || undefined,
         };
     });
 };

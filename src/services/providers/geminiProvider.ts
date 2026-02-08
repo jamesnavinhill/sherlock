@@ -24,6 +24,7 @@ import {
     normalizeLiveEvents,
     normalizeStringList,
 } from './shared/normalizers';
+import { normalizeTopicText } from '../../utils/textNormalization';
 import {
     buildAnomalyPrompt,
     buildInvestigationPrompt,
@@ -68,12 +69,28 @@ const supportsStructuredOutput = (modelId: string): boolean => {
 
 const investigate = async (request: InvestigationRequest): Promise<InvestigationReport> => {
     const { topic, parentContext, config, scope, dateOverride } = request;
+    const normalizedTopic = normalizeTopicText(topic);
+    const normalizedParentTopic = parentContext?.topic
+        ? normalizeTopicText(parentContext.topic, '')
+        : undefined;
+    const normalizedParentContext = parentContext
+        ? {
+              ...parentContext,
+              topic: normalizedParentTopic || parentContext.topic,
+          }
+        : undefined;
     const useStructuredOutput = supportsStructuredOutput(config.modelId);
 
     return withProviderRetry(
         async () => {
             const ai = getAI();
-            let basePrompt = buildInvestigationPrompt(topic, scope, config, parentContext, dateOverride);
+            let basePrompt = buildInvestigationPrompt(
+                normalizedTopic,
+                scope,
+                config,
+                normalizedParentContext,
+                dateOverride
+            );
 
             if (!useStructuredOutput) {
                 basePrompt +=
@@ -183,8 +200,8 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
             ]);
 
             return {
-                topic,
-                parentTopic: parentContext?.topic,
+                topic: normalizedTopic,
+                parentTopic: normalizedParentTopic || undefined,
                 dateStr: new Date().toLocaleDateString(),
                 summary: toDisplayText(data.summary).trim() || 'Analysis pending...',
                 entities: normalizeEntities(data.entities),
@@ -313,13 +330,14 @@ Each item must have: id (string), title (string), category (string), riskLevel (
 
 const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> => {
     const { topic, config, scope, monitorConfig, existingContent } = request;
+    const normalizedTopic = normalizeTopicText(topic);
     const useStructuredOutput = supportsStructuredOutput(config.modelId);
 
     return withProviderRetry(
         async () => {
             const ai = getAI();
             const basePrompt = buildLiveIntelPrompt({
-                topic,
+                topic: normalizedTopic,
                 monitorConfig,
                 scope,
                 existingContent,
@@ -395,7 +413,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 id: `sim-${now}-1`,
                 type: 'NEWS',
                 sourceName: 'News Source',
-                content: `New developments regarding ${topic}.`,
+                content: `New developments regarding ${normalizedTopic}.`,
                 timestamp: '5m ago',
                 sentiment: 'NEGATIVE',
                 threatLevel: 'CAUTION',
@@ -404,7 +422,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 id: `sim-${now}-2`,
                 type: 'SOCIAL',
                 sourceName: 'Social Media',
-                content: `Discussion emerging about ${topic}.`,
+                content: `Discussion emerging about ${normalizedTopic}.`,
                 timestamp: '12m ago',
                 sentiment: 'NEGATIVE',
                 threatLevel: 'CRITICAL',

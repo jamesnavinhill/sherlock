@@ -21,6 +21,7 @@ import {
     buildLiveIntelPrompt,
 } from './shared/prompts';
 import { withProviderRetry } from './shared/retry';
+import { normalizeTopicText } from '../../utils/textNormalization';
 
 const PROVIDER = 'OPENAI' as const;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -80,10 +81,26 @@ const queryOpenAI = async (
 
 const investigate = async (request: InvestigationRequest): Promise<InvestigationReport> => {
     const { topic, parentContext, config, scope, dateOverride } = request;
+    const normalizedTopic = normalizeTopicText(topic);
+    const normalizedParentTopic = parentContext?.topic
+        ? normalizeTopicText(parentContext.topic, '')
+        : undefined;
+    const normalizedParentContext = parentContext
+        ? {
+              ...parentContext,
+              topic: normalizedParentTopic || parentContext.topic,
+          }
+        : undefined;
 
     return withProviderRetry(
         async () => {
-            let prompt = buildInvestigationPrompt(topic, scope, config, parentContext, dateOverride);
+            let prompt = buildInvestigationPrompt(
+                normalizedTopic,
+                scope,
+                config,
+                normalizedParentContext,
+                dateOverride
+            );
             prompt +=
                 '\nCRITICAL: Respond with JSON only containing summary (string), entities (array), agendas (array), leads (array), and sources (array of {title, url}).';
             prompt +=
@@ -123,8 +140,8 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
             const sources = dedupeSources([...modelSources, ...textFallbackSources]);
 
             return {
-                topic,
-                parentTopic: parentContext?.topic,
+                topic: normalizedTopic,
+                parentTopic: normalizedParentTopic || undefined,
                 dateStr: new Date().toLocaleDateString(),
                 summary: toDisplayText(data.summary).trim() || 'Analysis pending...',
                 entities: normalizeEntities(data.entities),
@@ -214,11 +231,12 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
 
 const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> => {
     const { topic, config, scope, monitorConfig, existingContent } = request;
+    const normalizedTopic = normalizeTopicText(topic);
 
     return withProviderRetry(
         async () => {
             const prompt = buildLiveIntelPrompt({
-                topic,
+                topic: normalizedTopic,
                 scope,
                 monitorConfig,
                 existingContent,
@@ -245,7 +263,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 id: `sim-${now}-1`,
                 type: 'NEWS',
                 sourceName: 'News Source',
-                content: `New developments regarding ${topic}.`,
+                content: `New developments regarding ${normalizedTopic}.`,
                 timestamp: '5m ago',
                 sentiment: 'NEGATIVE',
                 threatLevel: 'CAUTION',
@@ -254,7 +272,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 id: `sim-${now}-2`,
                 type: 'SOCIAL',
                 sourceName: 'Social Media',
-                content: `Discussion emerging about ${topic}.`,
+                content: `Discussion emerging about ${normalizedTopic}.`,
                 timestamp: '12m ago',
                 sentiment: 'NEGATIVE',
                 threatLevel: 'CRITICAL',

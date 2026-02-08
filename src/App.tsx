@@ -17,6 +17,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
 import { buildAccentColor } from './utils/accent';
+import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
 import { getAllScopes, getScopeById } from './data/presets';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
@@ -188,6 +189,7 @@ function App() {
   const launchInvestigation = useCallback((request: InvestigationLaunchRequest) => {
     const switchToView = request.switchToView ?? true;
     const effectiveConfig = migrateSystemConfig({ ...loadSystemConfig(), ...(request.configOverride || {}) });
+    const normalizedTopic = normalizeTopicText(request.topic);
 
     if (!hasApiKey(effectiveConfig.provider)) {
       setIsAuthenticated(false);
@@ -200,6 +202,7 @@ function App() {
 
     const launchRequest: InvestigationLaunchRequest = {
       ...request,
+      topic: normalizedTopic,
       switchToView,
       scope: effectiveScope,
     };

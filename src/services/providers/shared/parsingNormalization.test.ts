@@ -8,6 +8,7 @@ import {
     normalizeStringList,
     sanitizeUrl,
 } from './normalizers';
+import { normalizeTopicText } from '../../../utils/textNormalization';
 
 describe('provider parsing utilities', () => {
     it('parses markdown-wrapped JSON payloads', () => {
@@ -57,11 +58,20 @@ describe('provider normalization utilities', () => {
             42,
             { text: 'inline' },
             { content: ['nested', true] },
+            { description: 'object lead', priority: 'HIGH' },
+            '{"description":"json lead","priority":"MEDIUM"}',
             null,
             undefined,
         ]);
 
-        expect(normalized).toEqual(['plain', '42', 'inline', 'nested true']);
+        expect(normalized).toEqual([
+            'plain',
+            '42',
+            'inline',
+            'nested true',
+            'object lead (Priority: HIGH)',
+            'json lead (Priority: MEDIUM)',
+        ]);
         expect(normalized.every((entry) => typeof entry === 'string')).toBe(true);
     });
 
@@ -122,6 +132,36 @@ describe('provider normalization utilities', () => {
         expect(typeof live[1].content).toBe('string');
     });
 
+    it('unwraps wrapped live-event payloads and normalizes fallback fields', () => {
+        const live = normalizeLiveEvents(
+            {
+                events: [
+                    {
+                        eventId: 'wrapped-1',
+                        source: 'Signals Desk',
+                        description: 'Wrapped response event',
+                        severity: 'CRITICAL',
+                        sentiment: 'NEGATIVE',
+                        time: '2m ago',
+                    },
+                ],
+            },
+            'evt'
+        );
+
+        expect(live).toHaveLength(1);
+        expect(live[0]).toEqual(
+            expect.objectContaining({
+                id: 'wrapped-1',
+                sourceName: 'Signals Desk',
+                content: 'Wrapped response event',
+                threatLevel: 'CRITICAL',
+                sentiment: 'NEGATIVE',
+                timestamp: '2m ago',
+            })
+        );
+    });
+
     it('sanitizes and deduplicates source urls', () => {
         expect(sanitizeUrl('https://example.com/path#frag).')).toBe('https://example.com/path');
         expect(sanitizeUrl('not-a-url')).toBeNull();
@@ -133,5 +173,11 @@ describe('provider normalization utilities', () => {
         ]);
 
         expect(sources).toEqual([{ title: 'One', url: 'https://example.com/a' }]);
+    });
+
+    it('normalizes JSON-like investigation topics to readable titles', () => {
+        expect(
+            normalizeTopicText('{"ID":4,"DESCRIPTION":"Investigate federal contract flows"}')
+        ).toBe('Investigate federal contract flows');
     });
 });
