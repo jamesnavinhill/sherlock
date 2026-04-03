@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import type { InvestigationLaunchRequest, InvestigationReport } from '../../types';
-import { FileText, Trash2, ArrowRight, FolderOpen, Folder, ChevronLeft, Plus, FolderClosed, Download, FileJson, ChevronDown } from 'lucide-react';
+import type { ChatOpenRequest, InvestigationLaunchRequest, InvestigationReport } from '../../types';
+import { FileText, Trash2, ArrowRight, FolderOpen, Folder, ChevronLeft, Plus, FolderClosed, Download, FileJson, ChevronDown, MessageSquare } from 'lucide-react';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { useCaseStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
@@ -15,9 +15,10 @@ import {
 interface ArchivesProps {
   onSelectReport: (report: InvestigationReport) => void;
   onStartNewCase: (request: InvestigationLaunchRequest) => void;
+  onOpenChat: (request: ChatOpenRequest) => void;
 }
 
-export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase }) => {
+export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase, onOpenChat }) => {
   const { archives, cases, deleteReport, purgeCase } = useCaseStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
     const activeCaseId = getStoredActiveWorkspaceId();
@@ -177,6 +178,13 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                   </span>
                   <div className="flex space-x-1">
                     <button
+                      onClick={(e) => { e.stopPropagation(); onOpenChat({ workspaceId: c.id }); }}
+                      className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                      title={`Open ${workspaceLabelLower} in workspace chat`}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={(e) => { e.stopPropagation(); exportCaseAsHtml(c, getCaseReports(c.id)); }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                       title={`Export formatted printable ${workspaceLabelLower} (HTML)`}
@@ -297,6 +305,23 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                 </div>
 
                 <div className="flex items-center space-x-4">
+                  {report.caseId && report.id && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenChat({
+                          workspaceId: report.caseId!,
+                          launchContext: {
+                            sourceReportId: report.id!,
+                          },
+                        });
+                      }}
+                      className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Open report context in workspace chat"
+                    >
+                      <MessageSquare className="w-5 h-5" />
+                    </button>
+                  )}
                   <button
                     onClick={(e) => handleDeleteReport(e, report.id)}
                     className="text-zinc-600 hover:text-red-500 p-2 transition-colors opacity-0 group-hover:opacity-100"

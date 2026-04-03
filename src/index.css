@@ -2,7 +2,7 @@
 @config "../tailwind.config.js";
 
 :root {
-  --osint-primary: #e4e4e7cc;
+  --osint-primary: oklch(0.64 0.14 360);
   --osint-dark-darkmode: oklch(0 0 0);
   --osint-panel-darkmode: oklch(0.141 0.004 286);
   --osint-surface-darkmode: oklch(0.21 0.006 286);

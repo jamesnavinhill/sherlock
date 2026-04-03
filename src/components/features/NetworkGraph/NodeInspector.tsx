@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink,
-    Lightbulb, FolderOpen, EyeOff, Microscope, Link2
+    Lightbulb, FolderOpen, EyeOff, Microscope, Link2, MessageSquare
 } from 'lucide-react';
 import type { Entity, Headline, InvestigationReport} from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
@@ -32,12 +32,15 @@ interface NodeInspectorProps {
     onToggleHide: (name: string) => void;
     onInvestigate: (topic: string, context?: InvestigationContext) => void; // Trigger modal or immediate
     onOpenReport: (report: InvestigationReport) => void;
+    onOpenEntityChat: (entityName: string) => void;
+    onOpenReportChat: (report: InvestigationReport) => void;
+    onOpenHeadlineChat: (headline: Headline) => void;
 }
 
 export const NodeInspector: React.FC<NodeInspectorProps> = ({
     isOpen, onClose, mode, selectedEntity, selectedHeadline, selectedReport,
     reports, hiddenNodeIds: _hiddenNodeIds, flaggedNodeIds,
-    onEntitySave, onReportSave, onToggleFlag, onToggleHide, onInvestigate, onOpenReport
+    onEntitySave, onReportSave, onToggleFlag, onToggleHide, onInvestigate, onOpenReport, onOpenEntityChat, onOpenReportChat, onOpenHeadlineChat
 }) => {
     // Accordion Control
     const [inspectorAccordions, setInspectorAccordions] = useState<Record<string, boolean>>({
@@ -173,6 +176,12 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     </div>
 
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
+                        <button
+                            onClick={() => { onOpenHeadlineChat(selectedHeadline); onClose(); }}
+                            className="w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
+                        >
+                            <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
+                        </button>
                         <button onClick={() => { onInvestigate(selectedHeadline.content); onClose(); }} className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center">
                             <Microscope className="w-4 h-4 mr-2" /> Launch Investigation
                         </button>
@@ -271,6 +280,12 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                         </Accordion>
                     </div>
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto">
+                        <button
+                            onClick={() => onOpenReportChat(selectedReport)}
+                            className="mb-3 w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
+                        >
+                            <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
+                        </button>
                         <button onClick={() => onOpenReport(selectedReport)} className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center">
                             <FolderOpen className="w-4 h-4 mr-2" /> Open Full Report
                         </button>
@@ -331,6 +346,13 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                         </div>
 
                         <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => onOpenEntityChat(selectedEntity)}
+                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-xs font-mono uppercase"
+                            >
+                                <MessageSquare className="w-3 h-3" />
+                                <span>Chat</span>
+                            </button>
                             <button
                                 onClick={() => onInvestigate(selectedEntity)}
                                 className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-200 hover:bg-white text-black font-bold font-mono text-xs uppercase transition-colors"

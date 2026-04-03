@@ -17,7 +17,7 @@ import {
     Trash2,
     Workflow,
 } from 'lucide-react';
-import type { AgentAction, ChatMessage, ChatSession, InvestigationLaunchRequest } from '@/types';
+import type { AgentAction, ChatLaunchContext, ChatMessage, ChatSession, Headline, InvestigationLaunchRequest, InvestigationReport } from '@/types';
 import { useCaseStore } from '../../../store/caseStore';
 import {
     buildArtifactAppendFromChatMessage,
@@ -43,6 +43,7 @@ import {
 import { exportChatSessionAsJson, exportChatSessionAsMarkdown } from '../../../utils/exportUtils';
 import { createLocalId } from '../../../utils/id';
 import { extractStreamingAnswerText } from '../../../services/providers/shared/chat';
+import { getChatLaunchContextFromSession } from '../../../services/chat/launchContext';
 import { GuidedRunBuilder } from './GuidedRunBuilder';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 
@@ -62,6 +63,55 @@ const formatMessageWithCitations = (message: ChatMessage): string => {
 };
 
 const getSessionTitle = (session: ChatSession): string => session.title.trim() || 'Untitled Chat';
+
+const getLaunchContextSummary = (params: {
+    launchContext: ChatLaunchContext | null;
+    reports: InvestigationReport[];
+    headlines: Headline[];
+}) => {
+    if (!params.launchContext) return null;
+
+    if (params.launchContext.sourceReportId) {
+        const report = params.reports.find((entry) => entry.id === params.launchContext?.sourceReportId);
+        if (!report) return null;
+
+        return {
+            label: 'Pinned Artifact',
+            title: report.topic,
+            body: report.summary || 'No saved summary is available for this artifact yet.',
+        };
+    }
+
+    if (params.launchContext.entityName) {
+        const relatedCount = params.reports.filter((report) =>
+            (report.entities || []).some((entity) => {
+                const name = typeof entity === 'string' ? entity : entity.name;
+                return name.trim().toLowerCase() === params.launchContext?.entityName?.trim().toLowerCase();
+            })
+        ).length;
+
+        return {
+            label: 'Pinned Entity',
+            title: params.launchContext.entityName,
+            body: relatedCount > 0
+                ? `${relatedCount} saved artifact(s) mention this entity in the active workspace.`
+                : 'No direct artifact mentions are saved for this entity yet.',
+        };
+    }
+
+    if (params.launchContext.headlineId) {
+        const headline = params.headlines.find((entry) => entry.id === params.launchContext?.headlineId);
+        if (!headline) return null;
+
+        return {
+            label: 'Pinned Signal',
+            title: headline.source || headline.type,
+            body: headline.content,
+        };
+    }
+
+    return null;
+};
 
 const getGuidedSessionState = (session: ChatSession | null): GuidedSessionState | null => {
     const metadata = session?.metadata as { guidedState?: unknown } | undefined;
@@ -178,6 +228,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         () => workspaceSessions.find((session) => session.id === activeChatSessionId) || null,
         [activeChatSessionId, workspaceSessions]
     );
+    const launchContext = useMemo(() => getChatLaunchContextFromSession(activeSession), [activeSession]);
 
     const guidedState = useMemo(() => getGuidedSessionState(activeSession), [activeSession]);
     const messages = activeSession ? chatMessagesBySessionId[activeSession.id] || [] : [];
@@ -194,6 +245,15 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const workspaceReports = useMemo(
         () => archives.filter((artifact) => artifact.caseId === activeWorkspace?.id),
         [activeWorkspace?.id, archives]
+    );
+    const launchContextSummary = useMemo(
+        () =>
+            getLaunchContextSummary({
+                launchContext,
+                reports: workspaceReports,
+                headlines: headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
+            }),
+        [activeWorkspace?.id, headlines, launchContext, workspaceReports]
     );
 
     const copyToClipboard = async (value: string, successMessage: string) => {
@@ -977,6 +1037,20 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                 {activeWorkspace?.description || 'No workspace summary saved yet.'}
                             </p>
                         </section>
+
+                        {launchContextSummary ? (
+                            <section className="mb-6">
+                                <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
+                                    {launchContextSummary.label}
+                                </div>
+                                <div className="mt-3 border border-zinc-800 bg-black/50 p-3">
+                                    <div className="text-sm text-white">{launchContextSummary.title}</div>
+                                    <p className="mt-2 text-xs leading-5 text-zinc-400">
+                                        {launchContextSummary.body}
+                                    </p>
+                                </div>
+                            </section>
+                        ) : null}
 
                         {latestAssistantMessage?.attachments?.length ? (
                             <section className="mb-6">

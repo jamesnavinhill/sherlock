@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Network } from 'lucide-react';
-import type { GraphNodeSubtype, InvestigationLaunchRequest, InvestigationReport, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
+import type { ChatOpenRequest, GraphNodeSubtype, InvestigationLaunchRequest, InvestigationReport, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -19,12 +19,13 @@ import { getLabelProfileById } from '../../../domain';
 interface NetworkGraphProps {
     onOpenReport: (report: InvestigationReport) => void;
     onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
+    onOpenChat: (request: ChatOpenRequest) => void;
     onBack?: () => void;
     navStack?: BreadcrumbItem[];
     onNavigate?: (id: string) => void;
 }
 
-export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInvestigateEntity, onBack: _onBack, navStack: _navStack, onNavigate: _onNavigate }) => {
+export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInvestigateEntity, onOpenChat, onBack: _onBack, navStack: _navStack, onNavigate: _onNavigate }) => {
     // Refs
     const graphRef = useRef<GraphCanvasRef>(null);
 
@@ -265,6 +266,36 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         toggleHide(name);
     };
 
+    const handleOpenEntityChat = (entityName: string) => {
+        if (!filterCaseId || filterCaseId === 'ALL') return;
+        onOpenChat({
+            workspaceId: filterCaseId,
+            launchContext: {
+                entityName,
+            },
+        });
+    };
+
+    const handleOpenReportChat = (report: InvestigationReport) => {
+        if (!report.caseId || !report.id) return;
+        onOpenChat({
+            workspaceId: report.caseId,
+            launchContext: {
+                sourceReportId: report.id,
+            },
+        });
+    };
+
+    const handleOpenHeadlineChat = (headline: Headline) => {
+        if (!headline.caseId) return;
+        onOpenChat({
+            workspaceId: headline.caseId,
+            launchContext: {
+                headlineId: headline.id,
+            },
+        });
+    };
+
     return (
         <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">
             <ControlBar
@@ -408,6 +439,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                     onToggleHide={handleToggleHide}
                     onInvestigate={handleLeadInvestigate}
                     onOpenReport={onOpenReport}
+                    onOpenEntityChat={handleOpenEntityChat}
+                    onOpenReportChat={handleOpenReportChat}
+                    onOpenHeadlineChat={handleOpenHeadlineChat}
                 />
             </div>
 

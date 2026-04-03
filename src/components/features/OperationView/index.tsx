@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type {
+    ChatOpenRequest,
     InvestigationLaunchRequest,
     InvestigationReport,
     InvestigationRunConfig,
@@ -38,10 +39,11 @@ interface OperationViewProps {
     onSelectCase?: (caseId: string) => void;
     onStartNewCase: (request: InvestigationLaunchRequest) => void;
     onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
+    onOpenChat: (request: ChatOpenRequest) => void;
 }
 
 export const OperationView: React.FC<OperationViewProps> = ({
-    task, reportOverride = null, onBack, onDeepDive, onBatchDeepDive, navStack, onNavigate, onSelectCase, onStartNewCase, onInvestigateHeadline
+    task, reportOverride = null, onBack, onDeepDive, onBatchDeepDive, navStack, onNavigate, onSelectCase, onStartNewCase, onInvestigateHeadline, onOpenChat
 }) => {
     // Panel visibility
     const [leftPanelOpen, setLeftPanelOpen] = useState(false);
@@ -279,6 +281,46 @@ export const OperationView: React.FC<OperationViewProps> = ({
         setRightPanelOpen(false);
     };
 
+    const handleOpenReportChat = () => {
+        const workspaceId = effectiveCaseId || report?.caseId;
+        if (!workspaceId) return;
+
+        onOpenChat({
+            workspaceId,
+            launchContext: report?.id
+                ? {
+                      sourceReportId: report.id,
+                  }
+                : undefined,
+        });
+    };
+
+    const handleOpenEntityChat = (entityName: string) => {
+        const workspaceId = effectiveCaseId || report?.caseId;
+        if (!workspaceId) return;
+
+        onOpenChat({
+            workspaceId,
+            launchContext: {
+                entityName,
+            },
+        });
+        setRightPanelOpen(false);
+    };
+
+    const handleOpenHeadlineChat = () => {
+        const workspaceId = effectiveCaseId || selectedHeadline?.caseId || report?.caseId;
+        if (!workspaceId || !selectedHeadline) return;
+
+        onOpenChat({
+            workspaceId,
+            launchContext: {
+                headlineId: selectedHeadline.id,
+            },
+        });
+        setRightPanelOpen(false);
+    };
+
     const handleTitleSave = async (newTitle: string) => {
         if (!report) return;
         if (report.id) {
@@ -395,6 +437,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 onSelectCase={handleCaseSelect}
                 onStartNewCase={() => setIsNewCaseModalOpen(true)}
                 onSaveTemplate={handleSaveTemplate}
+                onOpenChat={handleOpenReportChat}
             />
 
             {/* Save Template Modal */}
@@ -515,6 +558,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
                     onFlagEntity={handleFlagEntity}
                     onInvestigateEntity={handleInvestigateEntity}
                     onInvestigateHeadline={handleHeadlineInvestigate}
+                    onOpenEntityChat={handleOpenEntityChat}
+                    onOpenHeadlineChat={handleOpenHeadlineChat}
                     onNavigate={onNavigate}
                 />
             </div>

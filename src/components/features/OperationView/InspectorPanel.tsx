@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink
+    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink, MessageSquare
 } from 'lucide-react';
 import type { Entity, Headline, InvestigationReport } from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
@@ -17,6 +17,8 @@ interface InspectorPanelProps {
     onFlagEntity: (entityName: string) => void;
     onInvestigateEntity: (entityName: string) => void;
     onInvestigateHeadline: () => void;
+    onOpenEntityChat: (entityName: string) => void;
+    onOpenHeadlineChat: () => void;
     onNavigate: (reportId: string) => void;
 }
 
@@ -31,6 +33,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     onFlagEntity,
     onInvestigateEntity,
     onInvestigateHeadline,
+    onOpenEntityChat,
+    onOpenHeadlineChat,
     onNavigate
 }) => {
     // --- Internal State ---
@@ -123,6 +127,13 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                         </div>
 
                         <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => onOpenEntityChat(entity.name)}
+                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-xs font-mono uppercase"
+                            >
+                                <MessageSquare className="w-3 h-3" />
+                                <span>Chat</span>
+                            </button>
                             <button
                                 onClick={() => onInvestigateEntity(entity.name)}
                                 className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-200 hover:bg-white text-black font-bold font-mono text-xs uppercase transition-colors"
@@ -252,6 +263,12 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     </div>
 
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
+                        <button
+                            onClick={onOpenHeadlineChat}
+                            className="w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
+                        >
+                            <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
+                        </button>
                         <button onClick={onInvestigateHeadline} className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center">
                             Launch Investigation
                         </button>

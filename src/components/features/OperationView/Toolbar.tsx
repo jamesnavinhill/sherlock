@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout, Briefcase, ChevronRight } from 'lucide-react';
+import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout, Briefcase, ChevronRight, MessageSquare } from 'lucide-react';
 import type { Case, InvestigationReport, LabelProfile } from '../../../types';
 import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson, exportCaseAsMarkdown, exportReportAsMarkdown } from '../../../utils/exportUtils';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
@@ -16,11 +16,12 @@ interface ToolbarProps {
     onSelectCase: (caseId: string) => void;
     onStartNewCase: () => void;
     onSaveTemplate?: () => void;
+    onOpenChat?: () => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
     activeCase, allCases, selectedCaseId, report, allCaseReports, leftPanelOpen,
-    labelProfile, onToggleLeftPanel, onSelectCase, onStartNewCase, onSaveTemplate
+    labelProfile, onToggleLeftPanel, onSelectCase, onStartNewCase, onSaveTemplate, onOpenChat
 }) => {
     const [showExportMenu, setShowExportMenu] = useState(false);
     const exportMenuRef = useRef<HTMLDivElement>(null);
@@ -78,6 +79,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 {/* Export Dropdown - show when case or report is available */}
                 {(activeCase || report) && (
                     <div className="flex items-center space-x-2">
+                        {onOpenChat && (
+                            <button
+                                onClick={onOpenChat}
+                                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
+                                title={report ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat` : `Open ${labelProfile.workspaceLabel.toLowerCase()} in workspace chat`}
+                                aria-label="Open Workspace Chat"
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                                <span className="ml-2 hidden lg:inline">OPEN CHAT</span>
+                            </button>
+                        )}
                         {report && onSaveTemplate && (
                             <button
                                 onClick={onSaveTemplate}

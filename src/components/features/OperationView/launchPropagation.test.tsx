@@ -4,7 +4,11 @@ import type { InvestigationReport, InvestigationTask } from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 
 vi.mock('./Toolbar', () => ({
-    Toolbar: () => null,
+    Toolbar: ({ onOpenChat }: { onOpenChat?: () => void }) => (
+        <button data-testid="operation-open-chat" onClick={() => onOpenChat?.()}>
+            Open Chat
+        </button>
+    ),
 }));
 
 vi.mock('./DossierPanel', () => ({
@@ -45,9 +49,13 @@ vi.mock('./InspectorPanel', () => ({
     InspectorPanel: ({
         onInvestigateEntity,
         onInvestigateHeadline,
+        onOpenEntityChat,
+        onOpenHeadlineChat,
     }: {
         onInvestigateEntity: (entity: string) => void;
         onInvestigateHeadline: () => void;
+        onOpenEntityChat?: (entity: string) => void;
+        onOpenHeadlineChat?: () => void;
     }) => (
         <>
             <button data-testid="inspect-entity" onClick={() => onInvestigateEntity('Atlas Holdings')}>
@@ -55,6 +63,12 @@ vi.mock('./InspectorPanel', () => ({
             </button>
             <button data-testid="inspect-headline" onClick={() => onInvestigateHeadline()}>
                 Investigate Headline
+            </button>
+            <button data-testid="inspect-entity-chat" onClick={() => onOpenEntityChat?.('Atlas Holdings')}>
+                Open Entity Chat
+            </button>
+            <button data-testid="inspect-headline-chat" onClick={() => onOpenHeadlineChat?.()}>
+                Open Headline Chat
             </button>
         </>
     ),
@@ -174,6 +188,7 @@ describe('OperationView launch propagation', () => {
                 onNavigate={vi.fn()}
                 onStartNewCase={vi.fn()}
                 onInvestigateHeadline={vi.fn()}
+                onOpenChat={vi.fn()}
             />
         );
 
@@ -212,6 +227,7 @@ describe('OperationView launch propagation', () => {
                 onNavigate={vi.fn()}
                 onStartNewCase={vi.fn()}
                 onInvestigateHeadline={onInvestigateHeadline}
+                onOpenChat={vi.fn()}
             />
         );
 
@@ -241,6 +257,7 @@ describe('OperationView launch propagation', () => {
                 onNavigate={vi.fn()}
                 onStartNewCase={vi.fn()}
                 onInvestigateHeadline={vi.fn()}
+                onOpenChat={vi.fn()}
             />
         );
 
@@ -259,6 +276,57 @@ describe('OperationView launch propagation', () => {
                 }),
                 scope: expect.objectContaining({ id: 'open-investigation' }),
                 dateRangeOverride: { start: '2025-01-01', end: '2025-12-31' },
+            })
+        );
+    });
+
+    it('propagates report and inspector chat launches with grounding context', () => {
+        const onOpenChat = vi.fn();
+
+        render(
+            <OperationView
+                task={taskFixture}
+                onBack={vi.fn()}
+                onDeepDive={vi.fn()}
+                onBatchDeepDive={vi.fn()}
+                navStack={[]}
+                onNavigate={vi.fn()}
+                onStartNewCase={vi.fn()}
+                onInvestigateHeadline={vi.fn()}
+                onOpenChat={onOpenChat}
+            />
+        );
+
+        fireEvent.click(screen.getByTestId('operation-open-chat'));
+        fireEvent.click(screen.getByTestId('select-headline'));
+        fireEvent.click(screen.getByTestId('inspect-headline-chat'));
+        fireEvent.click(screen.getByTestId('inspect-entity-chat'));
+
+        expect(onOpenChat).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+                workspaceId: 'case-1',
+                launchContext: {
+                    sourceReportId: 'report-1',
+                },
+            })
+        );
+        expect(onOpenChat).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                workspaceId: 'case-1',
+                launchContext: {
+                    headlineId: 'headline-1',
+                },
+            })
+        );
+        expect(onOpenChat).toHaveBeenNthCalledWith(
+            3,
+            expect.objectContaining({
+                workspaceId: 'case-1',
+                launchContext: {
+                    entityName: 'Atlas Holdings',
+                },
             })
         );
     });

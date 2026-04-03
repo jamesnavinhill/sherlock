@@ -242,6 +242,11 @@ export interface ChatLaunchContext {
   headlineId?: string;
 }
 
+export interface ChatOpenRequest {
+  workspaceId: string;
+  launchContext?: ChatLaunchContext;
+}
+
 export interface WorkspaceContextSnippet {
   id: string;
   kind: ChatAttachmentKind;

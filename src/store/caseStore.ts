@@ -208,7 +208,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     navStack: [],
     isSidebarCollapsed: true,
     themeMode: 'dark',
-    themeColor: '#e4e4e7cc',
+    themeColor: buildAccentColor(DEFAULT_ACCENT_SETTINGS),
     accentSettings: DEFAULT_ACCENT_SETTINGS,
     themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,
     showNewCaseModal: false,

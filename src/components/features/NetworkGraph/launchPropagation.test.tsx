@@ -22,12 +22,19 @@ vi.mock('../OperationView/DossierPanel', () => ({
 vi.mock('./NodeInspector', () => ({
     NodeInspector: ({
         onInvestigate,
+        onOpenEntityChat,
     }: {
         onInvestigate: (topic: string) => void;
+        onOpenEntityChat?: (entityName: string) => void;
     }) => (
-        <button data-testid="network-investigate-entity" onClick={() => onInvestigate('Atlas Holdings')}>
-            Investigate Entity
-        </button>
+        <>
+            <button data-testid="network-investigate-entity" onClick={() => onInvestigate('Atlas Holdings')}>
+                Investigate Entity
+            </button>
+            <button data-testid="network-open-chat" onClick={() => onOpenEntityChat?.('Atlas Holdings')}>
+                Open Entity Chat
+            </button>
+        </>
     ),
 }));
 
@@ -114,6 +121,7 @@ describe('NetworkGraph launch propagation', () => {
             <NetworkGraph
                 onOpenReport={vi.fn()}
                 onInvestigateEntity={onInvestigateEntity}
+                onOpenChat={vi.fn()}
             />
         );
 
@@ -139,5 +147,26 @@ describe('NetworkGraph launch propagation', () => {
                 },
             })
         );
+    });
+
+    it('opens workspace chat with entity grounding from graph inspector', () => {
+        const onOpenChat = vi.fn();
+
+        render(
+            <NetworkGraph
+                onOpenReport={vi.fn()}
+                onInvestigateEntity={vi.fn()}
+                onOpenChat={onOpenChat}
+            />
+        );
+
+        fireEvent.click(screen.getByTestId('network-open-chat'));
+
+        expect(onOpenChat).toHaveBeenCalledWith({
+            workspaceId: 'case-1',
+            launchContext: {
+                entityName: 'Atlas Holdings',
+            },
+        });
     });
 });

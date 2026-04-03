@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { ApiKeyModal } from './components/ui/ApiKeyModal';
 import type { BreadcrumbItem } from './components/ui/Breadcrumbs';
 import type {
+  ChatOpenRequest,
   InvestigationLaunchRequest,
   InvestigationReport,
   InvestigationRunConfig,
@@ -22,6 +23,12 @@ import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
 import { getAllScopes, getScopeById } from './data/presets';
 import { getDomainPackForScope, getPurposeProfileById, stripLegacyWorkspacePrefix } from './domain';
+import {
+  buildChatSessionMetadata,
+  buildLaunchContextPrimer,
+  findReusableChatSession,
+  hasLaunchContextPrimer,
+} from './services/chat/launchContext';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
@@ -61,7 +68,11 @@ function App() {
     showNewCaseModal: _showNewCaseModal, setShowNewCaseModal,
     showGlobalSearch, setShowGlobalSearch,
     archiveReport, archives, cases,
+    chatMessagesBySessionId,
+    chatSessions,
+    createChatSession,
     setActiveCaseId,
+    setActiveChatSessionId,
     addToast,
     initializeStore, isLoading,
     customScopes,
@@ -280,6 +291,49 @@ function App() {
     void runInvestigationTask(newTaskId, launchRequest, runConfig);
   }, [addTask, addToast, resolveScopeById, runInvestigationTask, setActiveTaskId, setView]);
 
+  const openChat = useCallback(async (request: ChatOpenRequest) => {
+    const workspace = cases.find((entry) => entry.id === request.workspaceId);
+    if (!workspace) {
+      addToast('Unable to open chat because the target workspace was not found.', 'ERROR');
+      return;
+    }
+
+    setActiveCaseId(workspace.id);
+
+    let session = findReusableChatSession(chatSessions, request);
+    if (!session) {
+      session = await createChatSession({
+        workspaceId: workspace.id,
+        title: request.launchContext?.sourceReportId
+          ? archives.find((entry) => entry.id === request.launchContext?.sourceReportId)?.topic
+          : request.launchContext?.entityName || undefined,
+        sourceReportId: request.launchContext?.sourceReportId,
+        packId: workspace.packId,
+        purposeId: workspace.purposeId,
+        metadata: buildChatSessionMetadata(undefined, request.launchContext),
+      });
+    }
+
+    if (request.launchContext) {
+      const existingMessages = chatMessagesBySessionId[session.id] || [];
+      if (!hasLaunchContextPrimer(existingMessages, request.launchContext)) {
+        const primer = buildLaunchContextPrimer({
+          session,
+          launchContext: request.launchContext,
+          reports: archives.filter((entry) => entry.caseId === workspace.id),
+          headlines: useCaseStore.getState().headlines.filter((entry) => entry.caseId === workspace.id),
+        });
+
+        if (primer) {
+          await useCaseStore.getState().addChatMessage(primer);
+        }
+      }
+    }
+
+    setActiveChatSessionId(session.id);
+    setView(AppView.CHAT);
+  }, [addToast, archives, cases, chatMessagesBySessionId, chatSessions, createChatSession, setActiveCaseId, setActiveChatSessionId, setView]);
+
   const handleBatchInvestigate = (leads: string[], parentReport: InvestigationReport) => {
     const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
     const inheritedConfig = toSystemConfigOverride(parentReport.config);
@@ -437,6 +491,7 @@ function App() {
               <Archives
                 onSelectReport={handleSelectReport}
                 onStartNewCase={(request) => launchInvestigation({ ...request, switchToView: true })}
+                onOpenChat={openChat}
               />
             )}
             {currentView === AppView.CHAT && (
@@ -446,6 +501,7 @@ function App() {
               <NetworkGraph
                 onOpenReport={handleSelectReport}
                 onInvestigateEntity={(request) => launchInvestigation({ ...request, switchToView: true })}
+                onOpenChat={openChat}
               />
             )}
             {currentView === AppView.LIVE_MONITOR && (
@@ -501,6 +557,7 @@ function App() {
               }}
               onStartNewCase={(request) => launchInvestigation({ ...request, switchToView: true })}
               onInvestigateHeadline={(request) => launchInvestigation({ ...request, switchToView: true })}
+              onOpenChat={openChat}
             />
           )}
         </Suspense>
