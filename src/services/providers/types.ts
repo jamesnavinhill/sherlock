@@ -73,7 +73,7 @@ export interface TtsRequest {
 }
 
 export interface ChatTurn {
-    role: 'system' | 'user' | 'assistant';
+    role: 'system' | 'user' | 'assistant' | 'tool';
     content: string;
 }
 
@@ -107,10 +107,21 @@ export interface ChatResponse {
     modelId: string;
 }
 
+export type ChatStreamEvent =
+    | { type: 'START' }
+    | { type: 'DELTA'; delta: string; snapshot: string }
+    | { type: 'COMPLETE'; snapshot: string };
+
+export interface ChatStreamOptions {
+    signal?: AbortSignal;
+    onEvent?: (event: ChatStreamEvent) => void;
+}
+
 export interface ProviderAdapter {
     provider: AIProvider;
     investigate: (request: InvestigationRequest) => Promise<InvestigationReport>;
     chat: (request: ChatRequest) => Promise<ChatResponse>;
+    streamChat: (request: ChatRequest, options?: ChatStreamOptions) => Promise<ChatResponse>;
     scanAnomalies: (request: ScanAnomaliesRequest) => Promise<FeedItem[]>;
     getLiveIntel: (request: LiveIntelRequest) => Promise<MonitorEvent[]>;
     generateAudioBriefing?: (request: TtsRequest) => Promise<string>;

@@ -3,6 +3,7 @@ import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
     ChatRequest,
+    ChatStreamOptions,
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
@@ -23,9 +24,10 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
-import { buildWorkspaceChatPrompt, normalizeChatResponse } from './shared/chat';
+import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
+import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
 
 const PROVIDER = 'OPENAI' as const;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -33,12 +35,13 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const queryOpenAI = async (
     modelId: string,
     prompt: string,
-    options?: { maxTokens?: number; expectJson?: boolean }
+    options?: { maxTokens?: number; expectJson?: boolean; signal?: AbortSignal }
 ): Promise<string> => {
     const key = getApiKeyOrThrow(PROVIDER);
 
     const response = await fetch(OPENAI_API_URL, {
         method: 'POST',
+        signal: options?.signal,
         headers: {
             Authorization: `Bearer ${key}`,
             'Content-Type': 'application/json',
@@ -81,6 +84,66 @@ const queryOpenAI = async (
     }
 
     return content;
+};
+
+const streamOpenAI = async (
+    modelId: string,
+    prompt: string,
+    options?: ChatStreamOptions & { maxTokens?: number }
+): Promise<string> => {
+    const key = getApiKeyOrThrow(PROVIDER);
+    const accumulator = createChatStreamAccumulator(options);
+    accumulator.start();
+
+    const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        signal: options?.signal,
+        headers: {
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            model: modelId,
+            messages: [{ role: 'user', content: prompt }],
+            ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
+            temperature: 0.2,
+            stream: true,
+        }),
+    });
+
+    if (!response.ok) {
+        const rawBody = await response.text();
+        let payload: { error?: { message?: string } } = {};
+
+        try {
+            payload = JSON.parse(rawBody) as typeof payload;
+        } catch {
+            // Fall through to generic error.
+        }
+
+        throw new Error(
+            payload.error?.message ||
+                `UPSTREAM_ERROR: OpenAI request failed with status ${response.status}`
+        );
+    }
+
+    await readSseStream(response, (event) => {
+        if (event.data === '[DONE]') return;
+
+        try {
+            const payload = JSON.parse(event.data) as {
+                choices?: Array<{ delta?: { content?: unknown }; text?: unknown }>;
+            };
+            const delta = toDisplayText(
+                payload.choices?.[0]?.delta?.content ?? payload.choices?.[0]?.text
+            );
+            accumulator.push(delta);
+        } catch {
+            // Ignore malformed partial events and rely on the final response parse.
+        }
+    });
+
+    return accumulator.complete();
 };
 
 const investigate = async (request: InvestigationRequest): Promise<InvestigationReport> => {
@@ -228,6 +291,30 @@ const chat = async (request: ChatRequest) => {
     );
 };
 
+const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => {
+    const { config } = request;
+
+    return withProviderRetry(
+        async () => {
+            const rawText = await streamOpenAI(
+                config.modelId,
+                buildWorkspaceChatPromptWithFormat(request, 'tagged'),
+                {
+                    ...options,
+                    maxTokens: 2200,
+                }
+            );
+
+            return normalizeChatResponse(rawText, PROVIDER, config.modelId);
+        },
+        {
+            provider: PROVIDER,
+            modelId: config.modelId,
+            operation: 'CHAT',
+        }
+    );
+};
+
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
     const { region, category, dateRange, config, scope, options } = request;
     const limit = options?.limit || 8;
@@ -360,6 +447,7 @@ export const openAIProvider: ProviderAdapter = {
     provider: PROVIDER,
     investigate,
     chat,
+    streamChat,
     scanAnomalies,
     getLiveIntel,
 };

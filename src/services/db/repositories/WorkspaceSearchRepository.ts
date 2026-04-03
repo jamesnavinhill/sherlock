@@ -1,5 +1,5 @@
 import { desc, eq, inArray } from 'drizzle-orm';
-import type { InvestigationReport, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
+import type { Headline, InvestigationReport, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
 import { getDB } from '../client';
 import {
     artifactSections,
@@ -9,6 +9,7 @@ import {
     reports,
     sources,
 } from '../schema';
+import { CaseRepository } from './CaseRepository';
 
 const tokenize = (value: string): string[] =>
     value
@@ -252,5 +253,57 @@ export class WorkspaceSearchRepository {
             recentHeadlines,
             snippets,
         };
+    }
+
+    static async searchWorkspace(
+        workspaceId: string,
+        query: string,
+        options?: { limit?: number }
+    ): Promise<WorkspaceContextSnippet[]> {
+        const bundle = await this.getWorkspaceContextBundle(workspaceId, query, options);
+        return bundle.snippets;
+    }
+
+    static async getArtifactSummary(
+        workspaceId: string,
+        reportId: string
+    ): Promise<Pick<InvestigationReport, 'id' | 'topic' | 'summary' | 'dateStr' | 'artifactType'>> {
+        const report = await this.getWorkspaceReport(workspaceId, reportId);
+        return {
+            id: report.id,
+            topic: report.topic,
+            summary: report.summary,
+            dateStr: report.dateStr,
+            artifactType: report.artifactType,
+        };
+    }
+
+    static async getFullArtifactText(
+        workspaceId: string,
+        reportId: string
+    ): Promise<InvestigationReport> {
+        return this.getWorkspaceReport(workspaceId, reportId);
+    }
+
+    static async getRecentSignals(workspaceId: string, limit = 5): Promise<Headline[]> {
+        const headlines = await CaseRepository.getHeadlines();
+        return headlines
+            .filter((headline) => headline.caseId === workspaceId)
+            .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp))
+            .slice(0, limit);
+    }
+
+    private static async getWorkspaceReport(
+        workspaceId: string,
+        reportId: string
+    ): Promise<InvestigationReport> {
+        const reports = await CaseRepository.getAllReports();
+        const report = reports.find((entry) => entry.id === reportId && entry.caseId === workspaceId);
+
+        if (!report || !report.id) {
+            throw new Error(`Artifact ${reportId} was not found in workspace ${workspaceId}.`);
+        }
+
+        return report;
     }
 }

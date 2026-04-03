@@ -33,6 +33,10 @@ export const withProviderRetry = async <T>(
             });
             return await fn();
         } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                throw error;
+            }
+
             const wrapped = toProviderError(options.provider, options.operation, error);
             logProviderDebug({
                 provider: options.provider,

@@ -440,7 +440,7 @@ function App() {
               />
             )}
             {currentView === AppView.CHAT && (
-              <Chat />
+              <Chat onLaunchInvestigation={(request) => launchInvestigation({ ...request, switchToView: true })} />
             )}
             {currentView === AppView.NETWORK && (
               <NetworkGraph

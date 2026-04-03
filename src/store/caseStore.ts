@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type {
     AgentAction,
+    ArtifactSection,
     InvestigationReport,
     InvestigationTask,
     Case,
@@ -162,11 +163,16 @@ interface CaseState {
         modelId?: string;
         metadata?: Record<string, unknown>;
     }) => Promise<ChatSession>;
+    updateChatSession: (
+        sessionId: string,
+        patch: Partial<Omit<ChatSession, 'id' | 'workspaceId' | 'createdAt'>>
+    ) => Promise<void>;
     renameChatSession: (sessionId: string, title: string) => Promise<void>;
     deleteChatSession: (sessionId: string) => Promise<void>;
     addChatMessage: (message: ChatMessage) => Promise<void>;
     updateChatMessage: (messageId: string, sessionId: string, patch: Partial<ChatMessage>) => Promise<void>;
     addChatAction: (action: AgentAction) => Promise<void>;
+    appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
     completeTask: (id: string, report: InvestigationReport) => Promise<void>;
     failTask: (id: string, error: string) => Promise<void>;
     clearCompletedTasks: () => Promise<void>;
@@ -528,18 +534,26 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         return session;
     },
 
-    renameChatSession: async (sessionId, title) => {
-        const trimmedTitle = title.trim();
-        if (!trimmedTitle) return;
-
-        await ChatRepository.updateSession(sessionId, { title: trimmedTitle, updatedAt: Date.now() });
+    updateChatSession: async (sessionId, patch) => {
+        const updatedAt = patch.updatedAt ?? Date.now();
+        await ChatRepository.updateSession(sessionId, { ...patch, updatedAt });
         set((state) => ({
             chatSessions: state.chatSessions.map((session) =>
                 session.id === sessionId
-                    ? { ...session, title: trimmedTitle, updatedAt: Date.now() }
+                    ? {
+                          ...session,
+                          ...patch,
+                          updatedAt,
+                      }
                     : session
             ),
         }));
+    },
+
+    renameChatSession: async (sessionId, title) => {
+        const trimmedTitle = title.trim();
+        if (!trimmedTitle) return;
+        await get().updateChatSession(sessionId, { title: trimmedTitle });
     },
 
     deleteChatSession: async (sessionId) => {
@@ -606,6 +620,20 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 ...state.chatActionsBySessionId,
                 [action.sessionId]: [...(state.chatActionsBySessionId[action.sessionId] || []), action],
             },
+        }));
+    },
+
+    appendSectionToReport: async (reportId, section) => {
+        await CaseRepository.appendSectionToReport(reportId, section);
+        set((state) => ({
+            archives: state.archives.map((report) =>
+                report.id === reportId
+                    ? {
+                          ...report,
+                          sections: [...(report.sections || []), section],
+                      }
+                    : report
+            ),
         }));
     },
 

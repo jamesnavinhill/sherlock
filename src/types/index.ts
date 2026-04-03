@@ -149,8 +149,8 @@ export interface MonitorEvent {
 
 export type ChatSessionStatus = 'ACTIVE' | 'ARCHIVED';
 export type ChatMessageRole = 'system' | 'user' | 'assistant' | 'tool';
-export type ChatMessageStatus = 'PENDING' | 'STREAMING' | 'COMPLETED' | 'FAILED';
-export type ChatGenerationStatus = 'IDLE' | 'GENERATING' | 'FAILED';
+export type ChatMessageStatus = 'PENDING' | 'STREAMING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type ChatGenerationStatus = 'IDLE' | 'GENERATING' | 'CANCELLING' | 'FAILED';
 export type ChatAttachmentKind =
   | 'WORKSPACE'
   | 'REPORT'

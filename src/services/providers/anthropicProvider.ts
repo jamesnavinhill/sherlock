@@ -3,6 +3,7 @@ import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
     ChatRequest,
+    ChatStreamOptions,
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
@@ -23,9 +24,10 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
-import { buildWorkspaceChatPrompt, normalizeChatResponse } from './shared/chat';
+import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
+import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
 
 const PROVIDER = 'ANTHROPIC' as const;
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
@@ -33,12 +35,13 @@ const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const queryAnthropic = async (
     modelId: string,
     prompt: string,
-    options?: { maxTokens?: number }
+    options?: { maxTokens?: number; signal?: AbortSignal }
 ): Promise<string> => {
     const key = getApiKeyOrThrow(PROVIDER);
 
     const response = await fetch(ANTHROPIC_API_URL, {
         method: 'POST',
+        signal: options?.signal,
         headers: {
             'x-api-key': key,
             'anthropic-version': '2023-06-01',
@@ -85,6 +88,70 @@ const queryAnthropic = async (
     }
 
     return content;
+};
+
+const streamAnthropic = async (
+    modelId: string,
+    prompt: string,
+    options?: ChatStreamOptions & { maxTokens?: number }
+): Promise<string> => {
+    const key = getApiKeyOrThrow(PROVIDER);
+    const accumulator = createChatStreamAccumulator(options);
+    accumulator.start();
+
+    const response = await fetch(ANTHROPIC_API_URL, {
+        method: 'POST',
+        signal: options?.signal,
+        headers: {
+            'x-api-key': key,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+            model: modelId,
+            max_tokens: options?.maxTokens ?? 2048,
+            temperature: 0.2,
+            stream: true,
+            messages: [{ role: 'user', content: prompt }],
+        }),
+    });
+
+    if (!response.ok) {
+        const rawBody = await response.text();
+        let payload: { error?: { message?: string } } = {};
+
+        try {
+            payload = JSON.parse(rawBody) as typeof payload;
+        } catch {
+            // Fall through to generic error.
+        }
+
+        throw new Error(
+            payload.error?.message ||
+                `UPSTREAM_ERROR: Anthropic request failed with status ${response.status}`
+        );
+    }
+
+    await readSseStream(response, (event) => {
+        if (event.data === '[DONE]') return;
+
+        try {
+            const payload = JSON.parse(event.data) as {
+                type?: string;
+                delta?: { type?: string; text?: string };
+            };
+            const isDeltaEvent =
+                event.event === 'content_block_delta' || payload.type === 'content_block_delta';
+            if (!isDeltaEvent) return;
+
+            const delta = payload.delta?.type === 'text_delta' ? payload.delta.text || '' : '';
+            accumulator.push(delta);
+        } catch {
+            // Ignore malformed partial events and rely on the final response parse.
+        }
+    });
+
+    return accumulator.complete();
 };
 
 const investigate = async (request: InvestigationRequest): Promise<InvestigationReport> => {
@@ -213,6 +280,30 @@ const chat = async (request: ChatRequest) => {
             const rawText = await queryAnthropic(config.modelId, buildWorkspaceChatPrompt(request), {
                 maxTokens: 2200,
             });
+
+            return normalizeChatResponse(rawText, PROVIDER, config.modelId);
+        },
+        {
+            provider: PROVIDER,
+            modelId: config.modelId,
+            operation: 'CHAT',
+        }
+    );
+};
+
+const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => {
+    const { config } = request;
+
+    return withProviderRetry(
+        async () => {
+            const rawText = await streamAnthropic(
+                config.modelId,
+                buildWorkspaceChatPromptWithFormat(request, 'tagged'),
+                {
+                    ...options,
+                    maxTokens: 2200,
+                }
+            );
 
             return normalizeChatResponse(rawText, PROVIDER, config.modelId);
         },
@@ -354,6 +445,7 @@ export const anthropicProvider: ProviderAdapter = {
     provider: PROVIDER,
     investigate,
     chat,
+    streamChat,
     scanAnomalies,
     getLiveIntel,
 };

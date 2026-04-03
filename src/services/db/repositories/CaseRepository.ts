@@ -2,7 +2,7 @@ import { eq, desc } from 'drizzle-orm';
 import { getDB } from '../client';
 import { artifactSections, cases, reports, entities, sources, leads } from '../schema';
 import { buildArtifactSections, toLegacyReportArrays } from '../../../domain';
-import type { Case, InvestigationReport, Entity, Headline } from '@/types';
+import type { ArtifactSection, Case, InvestigationReport, Entity, Headline } from '@/types';
 import {
     normalizeHumanText,
     normalizeTopicText,
@@ -322,6 +322,37 @@ export class CaseRepository {
         await db.update(reports)
             .set({ topic: normalizeTopicText(topic) })
             .where(eq(reports.id, reportId));
+    }
+
+    static async appendSectionToReport(reportId: string, section: ArtifactSection): Promise<void> {
+        const db = getDB();
+        const existingSections = await db
+            .select({ sortOrder: artifactSections.sortOrder })
+            .from(artifactSections)
+            .where(eq(artifactSections.reportId, reportId));
+        const reportRows = await db
+            .select({ caseId: reports.caseId })
+            .from(reports)
+            .where(eq(reports.id, reportId));
+        const nextSortOrder =
+            existingSections.length > 0
+                ? Math.max(...existingSections.map((entry) => entry.sortOrder)) + 1
+                : 0;
+
+        await db.insert(artifactSections).values({
+            id: section.id,
+            reportId,
+            kind: section.kind,
+            title: section.title,
+            content: section.content,
+            itemsJson: section.items ? JSON.stringify(section.items) : null,
+            sortOrder: typeof section.order === 'number' ? section.order : nextSortOrder,
+        });
+
+        const caseId = reportRows[0]?.caseId;
+        if (caseId) {
+            await db.update(cases).set({ updatedAt: Date.now() }).where(eq(cases.id, caseId));
+        }
     }
 
     static async renameEntity(oldName: string, newName: string): Promise<void> {

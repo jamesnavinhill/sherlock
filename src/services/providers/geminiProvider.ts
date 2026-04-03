@@ -10,6 +10,7 @@ import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
     ChatRequest,
+    ChatStreamOptions,
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
@@ -33,8 +34,9 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
-import { buildWorkspaceChatPrompt, normalizeChatResponse } from './shared/chat';
+import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
+import { createChatStreamAccumulator } from './shared/streaming';
 
 const PROVIDER = 'GEMINI' as const;
 
@@ -332,6 +334,41 @@ const chat = async (request: ChatRequest) => {
     );
 };
 
+const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => {
+    const { config } = request;
+
+    return withProviderRetry(
+        async () => {
+            const ai = getAI();
+            const accumulator = createChatStreamAccumulator(options);
+            accumulator.start();
+            const stream = await ai.models.generateContentStream({
+                model: config.modelId,
+                contents: buildWorkspaceChatPromptWithFormat(request, 'tagged'),
+                config: {
+                    thinkingConfig:
+                        config.thinkingBudget > 0
+                            ? { thinkingBudget: config.thinkingBudget }
+                            : undefined,
+                    safetySettings: SAFETY_SETTINGS,
+                },
+                abortSignal: options?.signal,
+            });
+
+            for await (const chunk of stream) {
+                accumulator.push(chunk.text || '');
+            }
+
+            return normalizeChatResponse(accumulator.complete(), PROVIDER, config.modelId);
+        },
+        {
+            provider: PROVIDER,
+            modelId: config.modelId,
+            operation: 'CHAT',
+        }
+    );
+};
+
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
     const { region, category, dateRange, config, scope, options } = request;
     const useStructuredOutput = supportsStructuredOutput(config.modelId);
@@ -587,6 +624,7 @@ export const geminiProvider: ProviderAdapter = {
     provider: PROVIDER,
     investigate,
     chat,
+    streamChat,
     scanAnomalies,
     getLiveIntel,
     generateAudioBriefing,

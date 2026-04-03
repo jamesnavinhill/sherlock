@@ -7,14 +7,16 @@ import {
     OPENROUTER_FIXTURES,
 } from './__fixtures__/adapterPayloads';
 
-const { mockGeminiGenerateContent } = vi.hoisted(() => ({
+const { mockGeminiGenerateContent, mockGeminiGenerateContentStream } = vi.hoisted(() => ({
     mockGeminiGenerateContent: vi.fn(),
+    mockGeminiGenerateContentStream: vi.fn(),
 }));
 
 vi.mock('@google/genai', () => ({
     GoogleGenAI: class GoogleGenAIMock {
         models = {
             generateContent: mockGeminiGenerateContent,
+            generateContentStream: mockGeminiGenerateContentStream,
         };
     },
     HarmBlockThreshold: { BLOCK_ONLY_HIGH: 'BLOCK_ONLY_HIGH' },
@@ -126,6 +128,7 @@ describe('provider adapter contracts', () => {
         vi.stubGlobal('fetch', vi.fn());
         resetGeminiProviderClient();
         mockGeminiGenerateContent.mockReset();
+        mockGeminiGenerateContentStream.mockReset();
 
         localStorage.setItem('GEMINI_API_KEY', 'AIza-test-gemini');
         localStorage.setItem('OPENROUTER_API_KEY', 'sk-or-v1-test-openrouter');

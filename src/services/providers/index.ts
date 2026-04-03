@@ -8,6 +8,7 @@ import { BUILTIN_SCOPES, getScopeById } from '../../data/presets';
 import { getDomainPackById, getDomainPackForScope, getPurposeProfileById } from '../../domain';
 import type {
     ChatResponse,
+    ChatStreamOptions,
     DomainPack,
     FeedItem,
     InvestigationReport,
@@ -168,6 +169,40 @@ export const chatWithProviderRouter = async (
         recentHeadlines: request.recentHeadlines,
         retrievedContext: request.retrievedContext,
     });
+};
+
+export const streamChatWithProviderRouter = async (
+    request: RouterChatRequest,
+    options?: ChatStreamOptions
+): Promise<ChatResponse> => {
+    const config = resolveEffectiveConfig(request.configOverride);
+    const adapter = resolveAdapter(config);
+    const scope = resolveWorkspaceScope(request.workspace.scopeId);
+    const pack = resolvePack(scope, request.packId || request.workspace.packId);
+    const purpose = resolvePurpose(pack, request.purposeId || request.workspace.purposeId);
+    assertCapability(adapter, 'CHAT', config.modelId);
+
+    logProviderDebug({
+        provider: adapter.provider,
+        modelId: config.modelId,
+        operation: 'CHAT',
+        retryCount: 0,
+    });
+
+    return adapter.streamChat(
+        {
+            workspace: request.workspace,
+            config,
+            pack,
+            purpose,
+            messages: request.messages,
+            workspaceSummary: request.workspaceSummary,
+            recentArtifacts: request.recentArtifacts,
+            recentHeadlines: request.recentHeadlines,
+            retrievedContext: request.retrievedContext,
+        },
+        options
+    );
 };
 
 export const scanAnomaliesWithProviderRouter = async (
