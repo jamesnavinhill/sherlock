@@ -42,11 +42,20 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 ### Install and Run
 
 ```bash
-npm install
+npm ci --include=optional
 npm run dev
 ```
 
 Dev server defaults to `http://localhost:3000`.
+
+If you hit a Rollup native package error such as missing `@rollup/rollup-linux-x64-gnu`, repair the local install with:
+
+```bash
+rm -rf node_modules
+npm ci --include=optional
+```
+
+For this checkout, keep installs and script runs in the same environment. If you work in WSL, install and run from WSL rather than mixing Windows-side and WSL-side `node_modules`.
 
 ### Provider Configuration
 
@@ -81,8 +90,8 @@ npm run check
 ## Current Validation Snapshot (April 3, 2026)
 
 - `npm run lint`: passes
-- `npm run test`: currently fails because Rollup's optional native dependency `@rollup/rollup-linux-x64-gnu` is missing from `node_modules`
-- `npm run build`: currently fails for the same missing Rollup native dependency
+- `npm run test`: passes
+- `npm run build`: passes
 
 ## Documentation Index
 

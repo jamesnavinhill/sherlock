@@ -37,16 +37,9 @@ From `eslint.config.js`:
 
 ## Current Status (April 3, 2026)
 
-`npm run lint` currently reports:
-
-Errors:
-
-1. `react-hooks/preserve-manual-memoization` in `src/components/ui/TaskSetupModal.tsx`
-2. `react-hooks/set-state-in-effect` in `src/components/ui/TaskSetupModal.tsx` (3 occurrences)
-
-Warnings:
-
-1. `@typescript-eslint/no-non-null-assertion` in `src/components/features/OperationView/ReportViewer.tsx`
+- `npm run lint`: passes
+- `npm run test`: passes
+- `npm run build`: passes
 
 ## Suggested Lint Workflow
 
@@ -55,3 +48,20 @@ Warnings:
 3. Resolve remaining errors manually.
 4. Re-run `npm run lint` until clean.
 5. Run `npm run test` and `npm run build` before merging.
+
+## Install Troubleshooting
+
+If `npm run test` or `npm run build` fails with a Rollup native dependency error such as missing `@rollup/rollup-linux-x64-gnu`, the issue is usually an inconsistent local `node_modules` tree rather than an application regression.
+
+Preferred recovery:
+
+```bash
+rm -rf node_modules
+npm ci --include=optional
+```
+
+Notes:
+
+- prefer `npm ci --include=optional` over `npm install` for clean local restores
+- keep installs and command execution in one environment per clone
+- for this repo, avoid mixing Windows-side installs with WSL-side execution
