@@ -18,9 +18,10 @@ Sherlock helps analysts and researchers run iterative knowledge workflows by com
 - multi-provider AI routing (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
 - scope-derived domain packs and purpose profiles
 - case/report/headline lifecycle management with compatibility for broader workspace and artifact concepts
-- graph workflows for entities and manual relationships
+- graph workflows for entities, concepts, sources, and manual relationships
 - local-first persistence via browser SQLite
 - lightweight operational controls for providers and keys
+- pack-aware starter/template workflows for repeatable launches
 
 ## What Is Intentionally Out of Scope
 

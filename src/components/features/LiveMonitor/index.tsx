@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
+import { getDomainPackForScope, getLabelProfileById, stripLegacyWorkspacePrefix } from '../../../domain';
 
 // Sub-components
 import { SettingsPanel } from './SettingsPanel';
@@ -75,8 +76,10 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
     const [selectedEventForAnalysis, setSelectedEventForAnalysis] = useState<MonitorEvent | null>(null);
     const selectedCase = useMemo(() => cases.find(c => c.id === selectedCaseId) ?? null, [cases, selectedCaseId]);
     const activeScope = useMemo(() => {
-        return getScopeById(activeScopeId) || getAllScopes(customScopes).find((scope) => scope.id === activeScopeId);
+        return getScopeById(activeScopeId || '') || getAllScopes(customScopes).find((scope) => scope.id === activeScopeId);
     }, [activeScopeId, customScopes]);
+    const activePack = useMemo(() => getDomainPackForScope(activeScope, customScopes), [activeScope, customScopes]);
+    const labelProfile = useMemo(() => getLabelProfileById(activePack.labelProfileId), [activePack]);
 
     // --- EFFECTS ---
 
@@ -105,7 +108,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
         try {
             const existingContent = safeEvents.map(e => e.content);
             const newIntel = await getLiveIntel(
-                activeCase.title.replace('Operation: ', ''),
+                stripLegacyWorkspacePrefix(activeCase.title),
                 feedConfig,
                 existingContent,
                 activeScope,
@@ -271,9 +274,9 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                             disabled={isMonitoring}
                             className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[100px] max-w-[250px] truncate"
                         >
-                            <option value="">TARGET: NONE SELECTED</option>
+                            <option value="">{`${labelProfile.workspaceLabel.toUpperCase()}: NONE SELECTED`}</option>
                             {cases.map(c => (
-                                <option key={c.id} value={c.id} className="truncate">OP: {c.title.replace('Operation: ', '')}</option>
+                                <option key={c.id} value={c.id} className="truncate">{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
                             ))}
                         </select>
                     </div>

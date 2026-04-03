@@ -5,6 +5,7 @@ import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { useCaseStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
+import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../domain';
 
 interface ArchivesProps {
   onSelectReport: (report: InvestigationReport) => void;
@@ -23,6 +24,10 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const archiveLabelProfile = getLabelProfileById(
+    cases.find((entry) => entry.id === selectedCaseId)?.labelProfileId
+    || archives.find((entry) => entry.caseId === selectedCaseId)?.labelProfileId
+  );
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -107,13 +112,13 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
             <FolderOpen className="w-16 h-16 text-zinc-700 mb-6" />
             <h3 className="text-xl font-bold text-zinc-400 font-mono mb-2 uppercase tracking-tight">Archives Empty</h3>
             <p className="text-zinc-500 text-sm font-mono mb-8 leading-relaxed">
-              No active operations or digital fossils found. Initialize a new investigation to begin data collection.
+              {`No saved ${archiveLabelProfile.workspaceLabelPlural.toLowerCase()} or ${archiveLabelProfile.artifactLabelPlural.toLowerCase()} found yet. Start a new run to begin collecting work.`}
             </p>
             <button
               onClick={() => setIsNewCaseModalOpen(true)}
               className="px-6 py-2 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.2)]"
             >
-              Start New Operation
+              {`Start New ${archiveLabelProfile.workspaceLabel}`}
             </button>
           </div>
         </div>
@@ -150,7 +155,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                 </div>
 
                 <h3 className="text-lg font-bold text-white mb-1 group-hover:text-zinc-300 truncate relative z-10 font-mono">
-                  {c.title}
+                  {stripLegacyWorkspacePrefix(c.title)}
                 </h3>
                 <p className="text-zinc-600 text-sm font-mono mb-4">{c.dateOpened}</p>
 
@@ -206,7 +211,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                 </div>
               </div>
               <h3 className="text-lg font-bold text-zinc-400 mb-1 group-hover:text-white font-mono uppercase">Unassigned</h3>
-              <p className="text-zinc-600 text-sm font-mono mb-4">Miscellaneous Intel</p>
+              <p className="text-zinc-600 text-sm font-mono mb-4">Loose Artifacts</p>
               <div className="flex items-center text-sm text-zinc-500 border-t border-zinc-800 pt-4 font-mono uppercase">
                 <FileText className="w-4 h-4 mr-2" />
                 {getUnassignedReports().length} Files
@@ -334,11 +339,11 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
               onChange={(e) => handleCaseSelect(e.target.value)}
               className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[200px] max-w-[300px] truncate"
             >
-              <option value="ALL">VIEW ALL CASES</option>
+              <option value="ALL">{`VIEW ALL ${archiveLabelProfile.workspaceLabelPlural.toUpperCase()}`}</option>
               {cases.map(c => (
-                <option key={c.id} value={c.id}>CASE: {c.title.replace('Operation: ', '')}</option>
+                <option key={c.id} value={c.id}>{`${archiveLabelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
               ))}
-              {getUnassignedReports().length > 0 && <option value="unassigned">UNASSIGNED FILES</option>}
+              {getUnassignedReports().length > 0 && <option value="unassigned">{`UNASSIGNED ${archiveLabelProfile.artifactLabelPlural.toUpperCase()}`}</option>}
             </select>
           </div>
         </div>

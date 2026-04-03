@@ -172,7 +172,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                             <div className="space-y-1">
                                 {getEntityMentions(entity.name).length > 0 ? (
                                     getEntityMentions(entity.name).map(r => (
-                                        <button key={r.id} onClick={() => onNavigate(r.id)} className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group">
+                                        <button key={r.id || r.topic} onClick={() => r.id && onNavigate(r.id)} className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group">
                                             <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
                                             <span className="truncate text-xs font-mono">{r.topic}</span>
                                         </button>

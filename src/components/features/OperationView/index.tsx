@@ -18,6 +18,7 @@ import { MatrixLoader } from '../../ui/MatrixLoader';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { AlertOctagon, Layout } from 'lucide-react';
 import { getAllScopes, getScopeById } from '../../../data/presets';
+import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../../domain';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
@@ -118,6 +119,10 @@ export const OperationView: React.FC<OperationViewProps> = ({
         if (!effectiveCaseId) return [];
         return allHeadlines.filter(h => h.caseId === effectiveCaseId);
     }, [effectiveCaseId, allHeadlines]);
+    const labelProfile = useMemo(
+        () => getLabelProfileById(report?.labelProfileId || report?.config?.labelProfileId || activeCase?.labelProfileId),
+        [activeCase?.labelProfileId, report?.config?.labelProfileId, report?.labelProfileId]
+    );
 
     const resolveScope = (scopeId?: string): InvestigationScope | undefined => {
         if (!scopeId) return undefined;
@@ -152,6 +157,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
             const caseReports = archives.filter(r => r.caseId === caseId);
             if (caseReports.length > 0) {
                 const rootReport = caseReports.find(r => !r.parentTopic) || caseReports[0];
+                if (!rootReport.id) return;
                 if (onSelectCase) {
                     onSelectCase(rootReport.id);
                 } else {
@@ -164,7 +170,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     const handleSaveTemplate = () => {
         if (!report) return;
         setShowSaveTemplateModal(true);
-        setTemplateName(`${activeCase?.title.replace('Operation: ', '') || 'Investigation'}: ${report.topic}`);
+        setTemplateName(`${stripLegacyWorkspacePrefix(activeCase?.title || labelProfile.workspaceLabel)}: ${report.topic}`);
     };
 
     const executeSaveTemplate = () => {
@@ -380,6 +386,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 selectedCaseId={selectedCaseId}
                 report={report}
                 allCaseReports={allCaseReports}
+                labelProfile={labelProfile}
                 leftPanelOpen={leftPanelOpen}
                 onToggleLeftPanel={() => {
                     setLeftPanelOpen(!leftPanelOpen);
@@ -453,6 +460,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 <DossierPanel
                     isOpen={leftPanelOpen}
                     activeCase={activeCase}
+                    labelProfile={labelProfile}
                     reports={casePanelData.reports}
                     entities={casePanelData.entities}
                     leads={casePanelData.leads}

@@ -35,21 +35,18 @@ From `eslint.config.js`:
 - `no-console`: warning (`warn` + `error` allowed)
 - `prefer-const`, `no-var`, `eqeqeq`, `curly`: error
 
-## Current Status (February 7, 2026)
+## Current Status (April 3, 2026)
 
 `npm run lint` currently reports:
 
 Errors:
 
-1. `react-hooks/set-state-in-effect` in `src/App.tsx`
-2. `prefer-const` in `src/services/db/client.ts`
-3. `@typescript-eslint/no-unused-vars` in `src/services/db/client.ts`
-4. `@typescript-eslint/no-empty-object-type` in `src/services/gemini.ts` (2 occurrences)
+1. `react-hooks/preserve-manual-memoization` in `src/components/ui/TaskSetupModal.tsx`
+2. `react-hooks/set-state-in-effect` in `src/components/ui/TaskSetupModal.tsx` (3 occurrences)
 
 Warnings:
 
-1. `react-refresh/only-export-components` in `src/components/features/NetworkGraph/EntityResolution.tsx`
-2. `no-console` in `src/services/providers/shared/logging.ts`
+1. `@typescript-eslint/no-non-null-assertion` in `src/components/features/OperationView/ReportViewer.tsx`
 
 ## Suggested Lint Workflow
 

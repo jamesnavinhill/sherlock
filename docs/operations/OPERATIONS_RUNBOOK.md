@@ -53,8 +53,11 @@ If users report wrong provider/model context:
    - Live Monitor event
    - Operation headline
    - Full Spectrum (batch lead)
+   - Settings template or built-in starter
 2. Validate persisted config snapshots on task/report (`provider`, `modelId`, `scopeId`, `dateRangeOverride`, `launchSource`).
-3. Confirm inherited context from parent report/case where expected.
+3. Confirm pack/purpose snapshots (`packId`, `purposeId`, `artifactType`, `labelProfileId`) match the selected launch setup.
+4. Confirm inherited context from parent report/case where expected.
+5. If the launch used a starter or template, verify the resolved purpose and artifact type still match the prefilled copy shown in `TaskSetupModal`.
 
 ## 5. Fallback Behavior Notes
 

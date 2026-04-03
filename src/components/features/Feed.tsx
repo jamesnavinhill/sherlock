@@ -7,6 +7,7 @@ import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { MatrixCardLoader } from '../ui/MatrixCardLoader';
 import { useCaseStore } from '../../store/caseStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
+import { getDomainPackForScope, getLabelProfileById } from '../../domain';
 
 interface FeedProps {
   onInvestigate: (request: InvestigationLaunchRequest) => void;
@@ -21,8 +22,10 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
   // Resolve active scope
   const activeScope = useMemo(() => {
-    return getScopeById(activeScopeId) || getAllScopes(customScopes).find(s => s.id === activeScopeId) || BUILTIN_SCOPES[0];
+    return getScopeById(activeScopeId || '') || getAllScopes(customScopes).find(s => s.id === activeScopeId) || BUILTIN_SCOPES[0];
   }, [activeScopeId, customScopes]);
+  const activePack = useMemo(() => getDomainPackForScope(activeScope, customScopes), [activeScope, customScopes]);
+  const labelProfile = useMemo(() => getLabelProfileById(activePack.labelProfileId), [activePack]);
 
   // Dynamic categories from scope
   const categories = useMemo(() => {
@@ -108,7 +111,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
       <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-black">
         <h3 className="text-white font-mono font-bold uppercase text-sm flex items-center">
           <Settings2 className="w-4 h-4 mr-2 text-osint-primary" />
-          Scanner Config
+          Discovery Config
         </h3>
         <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white">
           <X className="w-4 h-4" />
@@ -146,13 +149,13 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             placeholder="nytimes.com, @elonmusk, dod.gov..."
             className="w-full h-20 bg-black border border-zinc-700 text-xs text-zinc-300 p-2 font-mono focus:border-osint-primary outline-none resize-none placeholder-zinc-700"
           />
-          <p className="text-[9px] text-zinc-600 mt-1 font-mono">Sources to prioritize during anomaly detection.</p>
+          <p className="text-[9px] text-zinc-600 mt-1 font-mono">Sources to prioritize during discovery for this pack.</p>
         </div>
 
         {/* Polling Toggle */}
         <div className="pt-4 border-t border-zinc-800">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-[10px] text-zinc-500 font-mono uppercase">Background Surveillance</label>
+            <label className="text-[10px] text-zinc-500 font-mono uppercase">Background Watch</label>
             <button
               onClick={() => setFeedConfig({ ...feedConfig, autoRefresh: !feedConfig.autoRefresh })}
               className={`w-12 h-6 rounded-full relative transition-colors ${feedConfig.autoRefresh ? 'bg-zinc-200' : 'bg-zinc-800'}`}
@@ -333,10 +336,10 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
         {showFilters && (
           <div className="absolute top-20 left-0 right-0 z-40 bg-osint-panel border-b border-zinc-700 p-4 md:hidden shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white font-mono font-bold uppercase text-sm flex items-center">
-                <Filter className="w-4 h-4 mr-2 text-osint-primary" />
-                Active Filters
-              </h3>
+                <h3 className="text-white font-mono font-bold uppercase text-sm flex items-center">
+                  <Filter className="w-4 h-4 mr-2 text-osint-primary" />
+                  Active Filters
+                </h3>
               <button onClick={() => setShowFilters(false)} className="text-zinc-500 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
@@ -351,7 +354,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                   onChange={(e) => setFilterCategory(e.target.value)}
                   className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs px-2 py-2 font-mono focus:border-osint-primary outline-none"
                 >
-                  {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
               </div>
 
@@ -448,7 +451,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 <div className="mt-auto pt-4 flex items-center justify-between text-sm text-zinc-500 border-t border-zinc-800">
                   <span className="font-mono text-xs uppercase">{item.category}</span>
                   <span className="flex items-center text-osint-primary opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono uppercase tracking-wider">
-                    Analyze <ArrowRight className="w-3 h-3 ml-1" />
+                    Open {labelProfile.workspaceLabel} <ArrowRight className="w-3 h-3 ml-1" />
                   </span>
                 </div>
               </div>

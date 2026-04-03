@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Network } from 'lucide-react';
-import type { InvestigationLaunchRequest, InvestigationReport, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
+import type { GraphNodeSubtype, InvestigationLaunchRequest, InvestigationReport, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
 import { useCaseStore } from '../../../store/caseStore';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -14,6 +14,7 @@ import { EntityResolution } from './EntityResolution';
 import { detectEntityClusters } from './entityResolutionUtils';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { cleanEntityName } from '../../../utils/text';
+import { getLabelProfileById } from '../../../domain';
 
 interface NetworkGraphProps {
     onOpenReport: (report: InvestigationReport) => void;
@@ -51,6 +52,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
     const hiddenNodeIds = useMemo(() => new Set(hiddenNodeIdsArray), [hiddenNodeIdsArray]);
     const flaggedNodeIds = useMemo(() => new Set(flaggedNodeIdsArray), [flaggedNodeIdsArray]);
+    const dossierLabelProfile = useMemo(() => {
+        const activeCase = cases.find((entry) => entry.id === filterCaseId);
+        const activeReport = reports.find((entry) => entry.caseId === filterCaseId);
+        return getLabelProfileById(activeCase?.labelProfileId || activeReport?.labelProfileId);
+    }, [cases, filterCaseId, reports]);
 
     // Filter State
     const [showSingletons, setShowSingletons] = useState(true);
@@ -78,7 +84,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
     const [newNodeLabel, setNewNodeLabel] = useState('');
     const [newNodeType, setNewNodeType] = useState<'ENTITY' | 'CASE'>('ENTITY');
-    const [newNodeSubtype, setNewNodeSubtype] = useState<'PERSON' | 'ORGANIZATION' | 'UNKNOWN'>('PERSON');
+    const [newNodeSubtype, setNewNodeSubtype] = useState<GraphNodeSubtype>('PERSON');
 
     // Modals
     const [showResolutionModal, setShowResolutionModal] = useState(false);
@@ -288,6 +294,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                 <DossierPanel
                     isOpen={showLeftPanel}
                     activeCase={cases.find(c => c.id === filterCaseId) || null}
+                    labelProfile={dossierLabelProfile}
                     reports={dossierData.reports}
                     entities={dossierData.entities}
                     leads={dossierData.leads}
@@ -367,9 +374,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
                             {/* Subtype Selection */}
                             {newNodeType === 'ENTITY' && (
-                                <div className="grid grid-cols-3 gap-1 mb-3">
+                                <div className="grid grid-cols-5 gap-1 mb-3">
                                     <button onClick={() => setNewNodeSubtype('PERSON')} className={`py-1 text-[9px] border ${newNodeSubtype === 'PERSON' ? 'bg-blue-900/30 border-blue-500 text-blue-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>PERSON</button>
                                     <button onClick={() => setNewNodeSubtype('ORGANIZATION')} className={`py-1 text-[9px] border ${newNodeSubtype === 'ORGANIZATION' ? 'bg-purple-900/30 border-purple-500 text-purple-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>ORG</button>
+                                    <button onClick={() => setNewNodeSubtype('CONCEPT')} className={`py-1 text-[9px] border ${newNodeSubtype === 'CONCEPT' ? 'bg-amber-900/30 border-amber-500 text-amber-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>CONCEPT</button>
+                                    <button onClick={() => setNewNodeSubtype('SOURCE')} className={`py-1 text-[9px] border ${newNodeSubtype === 'SOURCE' ? 'bg-green-900/30 border-green-500 text-green-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>SOURCE</button>
                                     <button onClick={() => setNewNodeSubtype('UNKNOWN')} className={`py-1 text-[9px] border ${newNodeSubtype === 'UNKNOWN' ? 'bg-zinc-800 border-zinc-500 text-zinc-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>UNKNOWN</button>
                                 </div>
                             )}

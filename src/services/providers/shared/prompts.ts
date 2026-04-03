@@ -1,4 +1,5 @@
 import { BUILTIN_SCOPES } from '../../../data/presets';
+import { getLabelProfileById } from '../../../domain';
 import type { DateRangeConfig, DomainPack, InvestigationScope, PurposeProfile, SystemConfig } from '../../../types';
 import type { LiveIntelConfig } from '../types';
 
@@ -84,10 +85,12 @@ export const buildInvestigationPrompt = (
     const outputInstruction = purpose
         ? `OUTPUT CONTRACT: Return a structured ${purpose.recommendedArtifactType.toLowerCase()} with sections covering ${purpose.defaultSectionKinds.join(', ')} when relevant.`
         : 'OUTPUT CONTRACT: Return a structured report with clear sections when relevant.';
+    const packAddendum = pack ? getPackPromptAddendum(pack) : '';
+    const purposeAddendum = purpose ? getPurposePromptAddendum(purpose) : '';
 
     let prompt = `${personaInstruction}
 
-INVESTIGATION CONTEXT: ${scope.domainContext}
+WORKSPACE CONTEXT: ${scope.domainContext}
 OBJECTIVE: ${scope.investigationObjective}
 TARGET: "${topic}"
 ${packInstruction}
@@ -95,6 +98,8 @@ ${purposeInstruction}
 ${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
 ${sourcesInstruction}
 ${outputInstruction}
+${packAddendum}
+${purposeAddendum}
 `;
 
     if (config.searchDepth === 'DEEP') {
@@ -102,12 +107,59 @@ ${outputInstruction}
     }
 
     if (parentContext) {
-        prompt += `\nCONTEXT: This is a deep dive from parent investigation "${parentContext.topic}". Parent summary: "${parentContext.summary}". Build upon these findings.`;
+        prompt += `\nCONTEXT: This run builds on parent workspace "${parentContext.topic}". Parent summary: "${parentContext.summary}". Extend, test, or refine those findings rather than repeating them.`;
     }
 
-    prompt += '\n\nAnalyze thoroughly and extract entities, develop hypotheses, and identify actionable leads.';
+    prompt += '\n\nAnalyze thoroughly, preserve uncertainty, distinguish evidence from inference, and make the output useful for follow-up work.';
 
     return prompt;
+};
+
+const getPackPromptAddendum = (pack: DomainPack): string => {
+    switch (pack.id) {
+        case 'scientific-research':
+            return 'PACK GUIDANCE: Prioritize peer-reviewed research, reputable preprints, review articles, and institutional sources. Explicitly call out methodology quality, limitations, uncertainty, and whether findings replicate or conflict.';
+        case 'ai-technology-landscape':
+            return 'PACK GUIDANCE: Prioritize primary releases, official documentation, model cards, benchmark reports, repositories, and direct product announcements before commentary. Separate capability claims from verified evidence.';
+        case 'policy-regulation':
+            return 'PACK GUIDANCE: Prioritize primary policy texts, regulator statements, official guidance, enforcement actions, and effective dates. Be precise about jurisdiction, timing, and affected stakeholders.';
+        case 'corporate-due-diligence':
+            return 'PACK GUIDANCE: Prioritize filings, court records, enforcement documents, ownership data, and reputable business reporting. Surface hidden liabilities, governance concerns, and reputational exposure.';
+        case 'government-fraud':
+            return 'PACK GUIDANCE: Prioritize procurement records, oversight reports, grants data, enforcement actions, and primary documentation. Look for unusual spending, conflicts, weak controls, and concentrated counterparties.';
+        default:
+            return 'PACK GUIDANCE: Prefer primary sources first, then add credible secondary reporting only where it adds context or synthesis.';
+    }
+};
+
+const getPurposePromptAddendum = (purpose: PurposeProfile): string => {
+    switch (purpose.id) {
+        case 'latest-findings':
+            return 'PURPOSE GUIDANCE: Emphasize recency, exact dates, what changed, and why the newest developments matter. Avoid padding with older background unless it changes interpretation.';
+        case 'monitor':
+            return 'PURPOSE GUIDANCE: Focus on deltas, escalation thresholds, and signals worth watching next. Prefer operational clarity over exhaustive history.';
+        case 'synthesis':
+            return 'PURPOSE GUIDANCE: Compare sources directly, surface consensus and disagreement, and preserve uncertainty. Organize findings so a reader can quickly understand the strongest evidence.';
+        case 'trend-scan':
+            return 'PURPOSE GUIDANCE: Focus on directional movement, major actors, repeated patterns, and strategic implications rather than one-off details.';
+        default:
+            return 'PURPOSE GUIDANCE: Develop a rigorous, evidence-backed picture of the topic and leave the reader with practical follow-up paths.';
+    }
+};
+
+export const buildStructuredArtifactResponseInstruction = (
+    purpose: PurposeProfile,
+    labelProfileId: string
+): string => {
+    const labelProfile = getLabelProfileById(labelProfileId);
+    const followUpCount =
+        purpose.id === 'deep-dive'
+            ? '4-6'
+            : purpose.id === 'monitor'
+              ? '3-5'
+              : '3-4';
+
+    return `CRITICAL: Respond with JSON only containing summary (string), entities (array), agendas (array), leads (array), sources (array of {title, url}), and optional sections (array). Use agendas for ${labelProfile.anomalyLabel.toLowerCase()}. Use leads for ${labelProfile.followUpLabel.toLowerCase()} even when they are questions, comparisons, monitoring actions, or recommendations. Include ${followUpCount} lead items when possible. For each entity, specify name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment. Include 3-8 unique sources and provide each source as { "title": "...", "url": "https://..." }. When useful, return sections as an array of { kind, title, content, items } aligned with the purpose.`;
 };
 
 export const buildAnomalyPrompt = (params: {

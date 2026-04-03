@@ -12,7 +12,7 @@ export class ManualDataRepository {
             id: row.id,
             label: row.label,
             type: row.type as 'CASE' | 'ENTITY',
-            subtype: row.subtype as 'PERSON' | 'ORGANIZATION' | undefined,
+            subtype: row.subtype as ManualNode['subtype'],
             timestamp: row.timestamp
         }));
     }

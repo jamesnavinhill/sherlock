@@ -1,13 +1,20 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import * as d3 from 'd3';
-import type { InvestigationReport, Case, EntityAliasMap, ManualConnection, ManualNode} from '../../../types';
+import type {
+    InvestigationReport,
+    Case,
+    EntityAliasMap,
+    GraphNodeSubtype,
+    ManualConnection,
+    ManualNode,
+} from '../../../types';
 import { cleanEntityName } from '../../../utils/text';
 
 // Graph Types
 export interface GraphNode extends d3.SimulationNodeDatum {
     id: string;
     type: 'CASE' | 'ENTITY';
-    subtype?: 'PERSON' | 'ORGANIZATION' | 'UNKNOWN';
+    subtype?: GraphNodeSubtype;
     label: string;
     data?: InvestigationReport;
     connections: number;
@@ -116,7 +123,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         const rawLinks: GraphLink[] = [];
 
         // Helper to get/create node
-        const getOrCreateNode = (id: string, type: 'CASE' | 'ENTITY', label: string, reportData?: InvestigationReport, isManual: boolean = false, subtype?: 'PERSON' | 'ORGANIZATION' | 'UNKNOWN') => {
+        const getOrCreateNode = (id: string, type: 'CASE' | 'ENTITY', label: string, reportData?: InvestigationReport, isManual: boolean = false, subtype?: GraphNodeSubtype) => {
             if (hiddenNodeIds.has(id) && !showHiddenNodes) return null;
             if (!rawNodes.has(id)) {
                 // If it's a Manual "CASE" node but has no report data
@@ -177,6 +184,24 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
                     rawLinks.push({ source: caseId, target: eId, value: 1 });
                     caseNode.connections++;
                     eNode.connections++;
+                }
+            });
+
+            (report.sources || []).forEach((source) => {
+                const sourceLabel = source.title || source.url;
+                const sourceId = `source-${normalizeId(source.url || source.title)}`;
+                const sourceNode = getOrCreateNode(sourceId, 'ENTITY', sourceLabel, undefined, false, 'SOURCE');
+                if (!sourceNode) return;
+
+                const linkExists = rawLinks.some(
+                    (link) =>
+                        (link.source === caseId && link.target === sourceId)
+                        || (link.source === sourceId && link.target === caseId)
+                );
+                if (!linkExists) {
+                    rawLinks.push({ source: caseId, target: sourceId, value: 0.8 });
+                    caseNode.connections++;
+                    sourceNode.connections++;
                 }
             });
         });
@@ -301,11 +326,31 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
             .attr("r", (d) => d.type === 'CASE' ? 20 : Math.min(6 + d.connections * 2, 20))
             .attr("fill", (d) => {
                 if (linkSourceNode && d.id === linkSourceNode.id) return '#ef4444';
-                return d.type === 'CASE' ? '#000' : (d.subtype === 'PERSON' ? '#0369a1' : (d.subtype === 'ORGANIZATION' ? '#7c3aed' : '#09090b'));
+                return d.type === 'CASE'
+                    ? '#000'
+                    : d.subtype === 'PERSON'
+                      ? '#0369a1'
+                      : d.subtype === 'ORGANIZATION'
+                        ? '#7c3aed'
+                        : d.subtype === 'SOURCE'
+                          ? '#14532d'
+                          : d.subtype === 'CONCEPT'
+                            ? '#78350f'
+                            : '#09090b';
             })
             .attr("stroke", (d) => {
                 if (linkSourceNode && d.id === linkSourceNode.id) return '#f87171';
-                return d.type === 'CASE' ? '#fff' : (d.subtype === 'PERSON' ? '#38bdf8' : (d.subtype === 'ORGANIZATION' ? '#a78bfa' : '#52525b'));
+                return d.type === 'CASE'
+                    ? '#fff'
+                    : d.subtype === 'PERSON'
+                      ? '#38bdf8'
+                      : d.subtype === 'ORGANIZATION'
+                        ? '#a78bfa'
+                        : d.subtype === 'SOURCE'
+                          ? '#4ade80'
+                          : d.subtype === 'CONCEPT'
+                            ? '#fbbf24'
+                            : '#52525b';
             })
             .attr("stroke-width", (d) => (linkSourceNode && d.id === linkSourceNode.id) ? 3 : 1.5)
             .classed("animate-pulse", (d) => !!linkSourceNode && d.id === linkSourceNode.id);
@@ -320,6 +365,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
                 iconPath = "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z";
             } else if (d.subtype === 'ORGANIZATION') {
                 iconPath = "M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2 M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2 M10 6h4 M10 10h4 M10 14h4 M10 18h4";
+            } else if (d.subtype === 'SOURCE') {
+                iconPath = "M3 6h18 M6 3v6 M18 3v6 M4 10h16v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9z";
+            } else if (d.subtype === 'CONCEPT') {
+                iconPath = "M12 2 4 7v10l8 5 8-5V7l-8-5z M12 12l8-5 M12 12 4 7 M12 12v10";
             } else {
                 iconPath = "M12 22c5.523 0 10-5 10-10S17.523 2 12 2 2 6.5 2 12s4.477 10 10 10z M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01";
             }

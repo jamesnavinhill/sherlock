@@ -3,12 +3,14 @@ import {
     FileText, Users, Lightbulb, Globe, Newspaper, User,
     ChevronRight, Link2
 } from 'lucide-react';
-import type { Case, Entity, Headline, InvestigationReport, Source } from '../../../types';
+import type { Case, Entity, Headline, InvestigationReport, LabelProfile, Source } from '../../../types';
 import { Accordion } from '../../ui/Accordion';
+import { stripLegacyWorkspacePrefix } from '../../../domain';
 
 interface DossierPanelProps {
     isOpen: boolean;
     activeCase: Case | null;
+    labelProfile: LabelProfile;
     // Data objects
     reports: InvestigationReport[];
     entities: Entity[];
@@ -29,6 +31,7 @@ interface DossierPanelProps {
 export const DossierPanel: React.FC<DossierPanelProps> = ({
     isOpen,
     activeCase,
+    labelProfile,
     reports,
     entities,
     leads,
@@ -46,17 +49,17 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         <div className={`${isOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:-translate-x-0'} fixed inset-y-0 left-0 z-30 w-80 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-r border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-80' : 'lg:w-0'}`}>
             {activeCase && (
                 <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
-                    <h2 className="text-base font-bold text-white font-mono leading-tight mb-2">{activeCase.title}</h2>
+                    <h2 className="text-base font-bold text-white font-mono leading-tight mb-2">{stripLegacyWorkspacePrefix(activeCase.title)}</h2>
                     <div className="flex items-center space-x-3 text-xs text-zinc-500 font-mono">
-                        <span className="flex items-center"><FileText className="w-3 h-3 mr-1" />{reports.length} Reports</span>
+                        <span className="flex items-center"><FileText className="w-3 h-3 mr-1" />{reports.length} {labelProfile.artifactLabelPlural}</span>
                         <span className="flex items-center"><Users className="w-3 h-3 mr-1" />{entities.length} Entities</span>
                     </div>
                 </div>
             )}
             {!activeCase && (
                 <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
-                    <h2 className="text-sm font-mono font-bold text-zinc-500 uppercase tracking-wider">No Case Selected</h2>
-                    <p className="text-xs text-zinc-600 mt-1">Select a case from the dropdown above.</p>
+                    <h2 className="text-sm font-mono font-bold text-zinc-500 uppercase tracking-wider">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
+                    <p className="text-xs text-zinc-600 mt-1">{`Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`}</p>
                 </div>
             )}
 
@@ -64,7 +67,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 {/* Reports */}
                 {reports.length > 0 && (
                     <Accordion
-                        title="Intelligence Reports"
+                        title={labelProfile.artifactLabelPlural}
                         count={reports.length}
                         icon={FileText}
                         isOpen={openSections.reports}
@@ -72,7 +75,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                     >
                         <div className="space-y-1">
                             {reports.map(r => (
-                                <button key={r.id} onClick={() => onNavigate(r.id)} className={`w-full text-left p-2 hover:bg-zinc-900 text-xs font-mono text-zinc-400 hover:text-white truncate flex items-center border-l-2 ${activeReportId === r.id ? 'border-osint-primary bg-zinc-900/50' : 'border-transparent hover:border-osint-primary'}`}>
+                                <button key={r.id || r.topic} onClick={() => r.id && onNavigate(r.id)} className={`w-full text-left p-2 hover:bg-zinc-900 text-xs font-mono text-zinc-400 hover:text-white truncate flex items-center border-l-2 ${activeReportId === r.id ? 'border-osint-primary bg-zinc-900/50' : 'border-transparent hover:border-osint-primary'}`}>
                                     <div className="w-1.5 h-1.5 bg-zinc-700 rounded-full mr-2"></div> {r.topic}
                                 </button>
                             ))}
@@ -103,7 +106,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
 
                 {/* Leads */}
                 <Accordion
-                    title="Open Leads"
+                    title={labelProfile.followUpLabel}
                     count={leads.length}
                     icon={Lightbulb}
                     isOpen={openSections.leads}
@@ -111,13 +114,13 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 >
                     <div className="space-y-1">
                         {leads.length === 0 ? (
-                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No leads available for this case.</p>
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
                         ) : (
                             leads.map((lead, idx) => (
                                 <div key={idx} className="p-2 bg-zinc-900/20 border border-zinc-800/50 mb-1">
                                     <p className="text-[10px] text-zinc-400 font-mono mb-2 line-clamp-2">{lead}</p>
                                     <button onClick={() => onLeadClick(lead)} className="w-full text-center py-1 bg-zinc-900 border border-zinc-700 hover:bg-osint-primary hover:text-black text-[10px] font-bold uppercase transition-colors">
-                                        Investigate
+                                        Open
                                     </button>
                                 </div>
                             ))
@@ -126,8 +129,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 </Accordion>
 
                 {/* Sources */}
-                <Accordion
-                    title="Verified Sources"
+                    <Accordion
+                    title={labelProfile.signalLabel}
                     count={sources.length}
                     icon={Globe}
                     isOpen={openSections.sources}
@@ -135,7 +138,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 >
                     <div className="space-y-1">
                         {sources.length === 0 ? (
-                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No case-level sources available yet.</p>
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.signalLabel.toLowerCase()} captured yet.`}</p>
                         ) : (
                             sources.map((s, idx) => (
                                 <a key={idx} href={s.url} target="_blank" rel="noopener noreferrer" className="block p-2 hover:bg-zinc-900 text-[10px] font-mono text-blue-400 hover:underline truncate border-b border-zinc-900 last:border-0">
@@ -149,7 +152,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
 
                 {/* Headlines */}
                 <Accordion
-                    title="Headlines"
+                    title="Saved Signals"
                     count={headlines.length}
                     icon={Newspaper}
                     isOpen={openSections.headlines}

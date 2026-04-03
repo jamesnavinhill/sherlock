@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout, Briefcase, ChevronRight } from 'lucide-react';
-import type { Case, InvestigationReport } from '../../../types';
+import type { Case, InvestigationReport, LabelProfile } from '../../../types';
 import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson, exportCaseAsMarkdown, exportReportAsMarkdown } from '../../../utils/exportUtils';
+import { stripLegacyWorkspacePrefix } from '../../../domain';
 
 interface ToolbarProps {
     activeCase: Case | null;
@@ -9,6 +10,7 @@ interface ToolbarProps {
     selectedCaseId: string | null;
     report: InvestigationReport | null; // The currently active report
     allCaseReports: InvestigationReport[]; // All reports for the active case
+    labelProfile: LabelProfile;
     leftPanelOpen: boolean;
     onToggleLeftPanel: () => void;
     onSelectCase: (caseId: string) => void;
@@ -18,7 +20,7 @@ interface ToolbarProps {
 
 export const Toolbar: React.FC<ToolbarProps> = ({
     activeCase, allCases, selectedCaseId, report, allCaseReports, leftPanelOpen,
-    onToggleLeftPanel, onSelectCase, onStartNewCase, onSaveTemplate
+    labelProfile, onToggleLeftPanel, onSelectCase, onStartNewCase, onSaveTemplate
 }) => {
     const [showExportMenu, setShowExportMenu] = useState(false);
     const exportMenuRef = useRef<HTMLDivElement>(null);
@@ -45,7 +47,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     aria-label="Toggle Dossier Panel"
                 >
                     <Briefcase className="w-4 h-4" />
-                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">Case Dossier</span>
+                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">{labelProfile.workspaceLabel} Dossier</span>
                     <ChevronRight className={`w-3 h-3 transition-transform ${leftPanelOpen ? 'rotate-180' : ''}`} />
                 </button>
                 <button
@@ -63,9 +65,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         onChange={(e) => onSelectCase(e.target.value)}
                         className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[180px] max-w-[220px] truncate"
                     >
-                        <option value="ALL">SELECT CASE</option>
+                        <option value="ALL">{`SELECT ${labelProfile.workspaceLabel.toUpperCase()}`}</option>
                         {allCases.map(c => (
-                            <option key={c.id} value={c.id}>CASE: {c.title.replace('Operation: ', '')}</option>
+                            <option key={c.id} value={c.id}>{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
                         ))}
                     </select>
                 </div>
@@ -80,7 +82,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             <button
                                 onClick={onSaveTemplate}
                                 className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
-                                title="Save current investigation config as reusable protocol template"
+                                title="Save current run config as reusable launch template"
                                 aria-label="Save as Template"
                             >
                                 <Save className="w-4 h-4" />
@@ -100,36 +102,36 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                 <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
                                     {activeCase && (
                                         <>
-                                            <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">Full Case</div>
+                                            <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">{`Full ${labelProfile.workspaceLabel}`}</div>
                                             <button
                                                 onClick={() => { exportCaseAsHtml(activeCase, allCaseReports); setShowExportMenu(false); }}
                                                 className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
-                                                title="Exports a formatted printable dossier of the entire case"
+                                                title={`Exports a formatted printable dossier of the entire ${labelProfile.workspaceLabel.toLowerCase()}`}
                                             >
                                                 <Download className="w-4 h-4 mr-3 text-zinc-500" />
-                                                <span>Case as HTML Dossier</span>
+                                                <span>{`${labelProfile.workspaceLabel} as HTML Dossier`}</span>
                                             </button>
                                             <button
                                                 onClick={() => { exportCaseAsMarkdown(activeCase, allCaseReports); setShowExportMenu(false); }}
                                                 className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
-                                                title="Exports a full Markdown report of the case"
+                                                title={`Exports a full Markdown package of the ${labelProfile.workspaceLabel.toLowerCase()}`}
                                             >
                                                 <FileText className="w-4 h-4 mr-3 text-zinc-500" />
-                                                <span>Case as Markdown (.md)</span>
+                                                <span>{`${labelProfile.workspaceLabel} as Markdown (.md)`}</span>
                                             </button>
                                             <button
                                                 onClick={() => { exportCaseAsJson(activeCase, allCaseReports); setShowExportMenu(false); }}
                                                 className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
-                                                title="Exports raw case data for backup/integration"
+                                                title={`Exports raw ${labelProfile.workspaceLabel.toLowerCase()} data for backup/integration`}
                                             >
                                                 <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
-                                                <span>Case as JSON Data</span>
+                                                <span>{`${labelProfile.workspaceLabel} as JSON Data`}</span>
                                             </button>
                                         </>
                                     )}
                                     {report && (
                                         <>
-                                            <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">Current Report</div>
+                                            <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">{`Current ${labelProfile.artifactLabel}`}</div>
                                             <button
                                                 onClick={() => { exportReportAsHtml(report, activeCase || undefined); setShowExportMenu(false); }}
                                                 className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
@@ -158,7 +160,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                                 <button
                                                     onClick={() => { onSaveTemplate(); setShowExportMenu(false); }}
                                                     className="w-full text-left px-4 py-2.5 text-xs font-mono text-osint-primary hover:bg-zinc-800 hover:text-white flex items-center border-t border-zinc-800"
-                                                    title="Saves this investigation's configuration as a template"
+                                                    title="Saves this run configuration as a template"
                                                 >
                                                     <Layout className="w-4 h-4 mr-3 text-osint-primary" />
                                                     <span>Save as Protocol Template</span>

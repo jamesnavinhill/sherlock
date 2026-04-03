@@ -68,6 +68,7 @@ Domain runtime helpers live in:
 - `src/domain/purposes.ts`
 - `src/domain/labels.ts`
 - `src/domain/artifacts.ts`
+- `src/domain/presentation.ts`
 
 Key responsibilities:
 
@@ -75,6 +76,7 @@ Key responsibilities:
 - resolve purpose profiles for each run
 - resolve label profiles for compatibility rendering
 - build typed artifact sections alongside legacy flattened fields
+- provide pack-aware launch copy, purpose-aware setup labels, starter templates, and legacy title cleanup helpers
 
 ## 4. AI Provider Layer
 
@@ -172,6 +174,8 @@ Supports deep dives, headline investigation, case/report editing, entity rename 
 - typed summary sections
 - supplemental sections such as findings, methodology, implications, or timeline
 - compatibility-mapped lead and anomaly sections for legacy artifacts
+- purpose-ordered section layouts with dedicated timeline and findings treatments
+- pack-aware section titles that map legacy labels into broader workspace terminology
 
 ### Network Graph
 
@@ -180,6 +184,8 @@ Supports deep dives, headline investigation, case/report editing, entity rename 
 - D3 canvas rendering
 - case/report/entity node inspection
 - manual node/link creation
+- source nodes derived from artifact sources for non-investigation graph work
+- broader manual node semantics for concepts and sources alongside legacy people and organizations
 - hidden/flagged filters
 - entity resolution workflow
 
@@ -205,6 +211,14 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 Finder still uses the existing UI, but scan requests now resolve through the selected scope's derived pack and default purpose.
 
+Task setup and template flows now expose:
+
+- domain pack selection
+- purpose selection
+- pack-specific starter prompts
+- purpose-aware copy and output defaults
+- template persistence for scope, pack, purpose, artifact type, and label profile metadata
+
 ### Archives
 
 `src/components/features/Archives.tsx`
@@ -212,6 +226,7 @@ Finder still uses the existing UI, but scan requests now resolve through the sel
 - case/report navigation
 - deletion workflows
 - exports (HTML/Markdown/JSON)
+- label-profile-aware workspace and artifact naming for mixed investigation and non-investigation archives
 
 ## 8. Testing Coverage
 
@@ -232,5 +247,5 @@ See:
 
 - Timeline view component exists but is not currently exposed in sidebar navigation.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
-- The current shell still uses investigation-first labels in many places; pack-aware terminology is only partially surfaced in Stream 1.
+- Stream 2 broadens labels across setup, templates, archives, sidebar navigation, and dossier/report surfaces, but a few legacy investigation names still remain in deeper compatibility paths.
 - Current lint/test status is tracked in `README.md` and `docs/LINTING.md`.

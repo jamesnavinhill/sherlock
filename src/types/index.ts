@@ -112,11 +112,18 @@ export interface ManualConnection {
   timestamp: number;
 }
 
+export type GraphNodeSubtype =
+  | 'PERSON'
+  | 'ORGANIZATION'
+  | 'UNKNOWN'
+  | 'CONCEPT'
+  | 'SOURCE';
+
 export interface ManualNode {
   id: string;
   label: string;
   type: 'CASE' | 'ENTITY';
-  subtype?: 'PERSON' | 'ORGANIZATION';
+  subtype?: GraphNodeSubtype;
   timestamp: number;
 }
 
@@ -281,7 +288,7 @@ export interface CaseTemplate {
   name: string;
   description?: string;
   topic: string;
-  config: Partial<SystemConfig>;
+  config: Partial<SystemConfig> & Partial<InvestigationRunConfig>;
   createdAt: number;
   scopeId?: string;
   packId?: string;

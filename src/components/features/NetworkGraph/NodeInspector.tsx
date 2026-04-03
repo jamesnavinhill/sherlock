@@ -66,6 +66,31 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         return null;
     };
 
+    const reportTextIncludes = (report: InvestigationReport, cleanName: string) => {
+        const sectionText = (report.sections || [])
+            .flatMap((section) => [section.title, section.content || '', ...(section.items || [])])
+            .join(' ');
+
+        return [report.summary, report.rawText, sectionText]
+            .filter(Boolean)
+            .some((value) => cleanEntityName(value).includes(cleanName));
+    };
+
+    const getNodeType = (entityName: string) => {
+        const entity = getEntityDetails(entityName);
+        if (entity) return entity.type;
+
+        const cleanName = cleanEntityName(entityName);
+        const sourceMatch = reports.some((report) =>
+            (report.sources || []).some((source) =>
+                cleanEntityName(source.title) === cleanName
+                || cleanEntityName(source.url || '').includes(cleanName)
+            )
+        );
+
+        return sourceMatch ? 'SOURCE' : 'UNKNOWN';
+    };
+
     const getEntityMentions = (entityName: string) => {
         const cleanName = cleanEntityName(entityName);
         return reports.filter(r =>
@@ -73,18 +98,21 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 const name = typeof e === 'string' ? e : e.name;
                 return cleanEntityName(name) === cleanName;
             })
+            || (r.sources || []).some((source) =>
+                cleanEntityName(source.title) === cleanName
+                || cleanEntityName(source.url || '').includes(cleanName)
+            )
+            || reportTextIncludes(r, cleanName)
         );
     };
 
     const getEntityConnections = (entityName: string) => {
         const cleanName = cleanEntityName(entityName);
         const connectedEntities = new Map<string, { entity: Entity, count: number }>();
+        const mentionIds = new Set(getEntityMentions(entityName).map((report) => report.id));
 
         reports.forEach(r => {
-            const hasEntity = (r.entities || []).some(e => {
-                const name = typeof e === 'string' ? e : e.name;
-                return cleanEntityName(name) === cleanName;
-            });
+            const hasEntity = !!r.id && mentionIds.has(r.id);
 
             if (hasEntity) {
                 (r.entities || []).forEach(e => {
@@ -100,6 +128,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
 
         return Array.from(connectedEntities.values()).sort((a, b) => b.count - a.count);
     };
+
+    const selectedNodeType = selectedEntity ? getNodeType(selectedEntity) : 'UNKNOWN';
 
     return (
         <div className={`${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl z-20`}>
@@ -254,11 +284,21 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     <div className="p-4 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
                         <div className="flex items-start space-x-3 flex-1 min-w-0">
                             <div className="p-2 border flex-shrink-0 bg-black text-white border-zinc-700">
-                                <User className="w-5 h-5" />
+                                {selectedNodeType === 'PERSON' ? (
+                                    <User className="w-5 h-5" />
+                                ) : selectedNodeType === 'ORGANIZATION' ? (
+                                    <Building2 className="w-5 h-5" />
+                                ) : selectedNodeType === 'SOURCE' ? (
+                                    <Globe className="w-5 h-5" />
+                                ) : (
+                                    <Network className="w-5 h-5" />
+                                )}
                             </div>
                             <div className="flex-1 min-w-0 pr-2">
                                 <div className="flex items-center space-x-2 mb-1">
-                                    <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">ENTITY</span>
+                                    <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
+                                        {selectedNodeType === 'SOURCE' ? 'SOURCE NODE' : selectedNodeType === 'UNKNOWN' ? 'KNOWLEDGE NODE' : `${selectedNodeType} ENTITY`}
+                                    </span>
                                 </div>
                                 <EditableTitle
                                     value={selectedEntity}
@@ -295,7 +335,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                                 onClick={() => onInvestigate(selectedEntity)}
                                 className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-200 hover:bg-white text-black font-bold font-mono text-xs uppercase transition-colors"
                             >
-                                <span>Investigate</span>
+                                <span>{selectedNodeType === 'SOURCE' ? 'Explore' : 'Investigate'}</span>
                             </button>
                             <a
                                 href={`https://www.google.com/search?q=${encodeURIComponent(selectedEntity)}`}

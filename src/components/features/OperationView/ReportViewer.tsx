@@ -4,10 +4,18 @@ import {
     FileText, Lightbulb, Microscope, Layers, AlertTriangle, Users,
     Globe, Target, Volume2, Loader2, StopCircle, Link2
 } from 'lucide-react';
-import type { ComponentProps } from 'react';
-import type { InvestigationReport, BreadcrumbItem, Entity } from '../../../types';
-import { getLabelProfileById, getSectionByKinds, getSectionItemsByKinds } from '../../../domain';
+import type { ComponentProps, ReactElement } from 'react';
+import type { InvestigationReport, Entity } from '../../../types';
+import {
+    getArtifactSectionTitle,
+    getLabelProfileById,
+    getPurposeProfileById,
+    getSectionByKinds,
+    getSectionItemsByKinds,
+    orderArtifactSections,
+} from '../../../domain';
 import { Breadcrumbs } from '../../ui/Breadcrumbs';
+import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { EmptyState } from '../../ui/EmptyState';
 import { generateAudioBriefing } from '../../../services/gemini';
@@ -78,7 +86,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         setIsAudioLoading(true);
         try {
             const base64Audio = await generateAudioBriefing(report.summary);
-            const WebkitAudioContext = window.AudioContext || window.webkitAudioContext;
+            const WebkitAudioContext = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
             if (!WebkitAudioContext) {
                 alert('Audio playback is not supported in this browser.');
                 return;
@@ -103,8 +111,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
     // --- Markdown Configuration ---
     const markdownComponents: {
-        a: (props: ComponentProps<'a'>) => JSX.Element;
-        p: (props: ComponentProps<'p'>) => JSX.Element;
+        a: (props: ComponentProps<'a'>) => ReactElement;
+        p: (props: ComponentProps<'p'>) => ReactElement;
     } = {
         a: ({ children, ...props }) => (
             <a {...props} target="_blank" rel="noopener noreferrer" className="text-osint-primary bg-zinc-900 border border-zinc-700 px-1.5 py-0.5 rounded hover:bg-osint-primary hover:text-black transition-all duration-200 font-medium no-underline inline-flex items-center gap-1 mx-0.5 text-[0.95em]">
@@ -114,16 +122,67 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         p: (props) => <p className="mb-4 last:mb-0" {...props} />
     };
 
+    const renderSectionBody = (section: NonNullable<InvestigationReport['sections']>[number]) => {
+        if (section.kind === 'TIMELINE' && section.items && section.items.length > 0) {
+            const items = section.items;
+            return (
+                <div className="space-y-3">
+                    {items.map((item, index) => (
+                        <div key={`${section.id}-${index}`} className="flex gap-3">
+                            <div className="flex flex-col items-center">
+                                <div className="w-2 h-2 rounded-full bg-osint-primary mt-2" />
+                                {index < items.length - 1 && <div className="w-px flex-1 bg-zinc-700 mt-2" />}
+                            </div>
+                            <div className="flex-1 pb-3">
+                                <div className="text-[10px] font-mono uppercase text-zinc-500 mb-1">{`Step ${index + 1}`}</div>
+                                <div className="text-sm text-zinc-300">
+                                    <ReactMarkdown components={markdownComponents}>{item}</ReactMarkdown>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        if (section.items && section.items.length > 0) {
+            const gridKinds = new Set(['KEY_FINDINGS', 'ANOMALIES', 'IMPLICATIONS', 'LEADS', 'NEXT_STEPS']);
+            const itemClass = gridKinds.has(section.kind)
+                ? 'bg-zinc-900/70 border border-zinc-800 p-4'
+                : 'border-l-2 border-osint-primary/40 pl-3 text-sm text-zinc-300';
+
+            return (
+                <div className={gridKinds.has(section.kind) ? 'grid md:grid-cols-2 gap-3' : 'space-y-2'}>
+                    {section.items.map((item, index) => (
+                        <div key={`${section.id}-${index}`} className={itemClass}>
+                            <ReactMarkdown components={markdownComponents}>{item}</ReactMarkdown>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        if (section.content) {
+            return (
+                <div className="text-zinc-300 prose prose-invert max-w-none text-sm">
+                    <ReactMarkdown components={markdownComponents}>{section.content}</ReactMarkdown>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     // --- RENDER ---
     if (showPlaceholder || !report) {
         return (
             <div className="flex-1 flex items-center justify-center bg-black relative">
                 <EmptyState
                     icon={FileText}
-                    title="No Case Selected"
-                    description="Select a case from the toolbar above or start a new investigation to begin."
+                    title="No Workspace Selected"
+                    description="Select a saved workspace from the toolbar above or start a new run to begin."
                     action={{
-                        label: "Start New Case",
+                        label: "Start New Run",
                         onClick: onStartNewCase
                     }}
                 />
@@ -133,20 +192,22 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
     const reportSources = report.sources || [];
     const labelProfile = getLabelProfileById(report.labelProfileId || report.config?.labelProfileId);
-    const primarySummarySection = getSectionByKinds(report.sections, ['EXECUTIVE_SUMMARY', 'KEY_FINDINGS']);
+    const purposeProfile = getPurposeProfileById(report.purposeId || report.config?.purposeId);
+    const orderedSections = orderArtifactSections(report.sections, purposeProfile);
+    const primarySummarySection = getSectionByKinds(orderedSections, ['EXECUTIVE_SUMMARY', 'KEY_FINDINGS']);
     const visibleSummary = primarySummarySection?.content || report.summary;
     const visibleLeads = report.leads.length > 0
         ? report.leads
-        : getSectionItemsByKinds(report.sections, ['LEADS', 'NEXT_STEPS']);
+        : getSectionItemsByKinds(orderedSections, ['LEADS', 'NEXT_STEPS']);
     const visibleAnomalies = report.agendas.length > 0
         ? report.agendas
-        : getSectionItemsByKinds(report.sections, ['ANOMALIES', 'KEY_FINDINGS']);
+        : getSectionItemsByKinds(orderedSections, ['ANOMALIES', 'KEY_FINDINGS']);
     const hiddenSectionKinds = new Set([
         primarySummarySection?.kind,
         'ANOMALIES',
         'LEADS',
     ].filter(Boolean));
-    const supplementalSections = (report.sections || []).filter(section =>
+    const supplementalSections = orderedSections.filter(section =>
         !hiddenSectionKinds.has(section.kind)
         && ((section.content && section.content.trim().length > 0) || (section.items && section.items.length > 0))
     );
@@ -161,13 +222,28 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                     <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
                         <Breadcrumbs items={navStack} onNavigate={onNavigate} />
                     </div>
-                    <div className="flex items-center justify-between gap-4">
-                        <EditableTitle
-                            value={report.topic}
-                            onSave={onTitleSave}
-                            className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
-                            inputClassName="text-2xl font-bold uppercase tracking-tight"
-                        />
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                            <EditableTitle
+                                value={report.topic}
+                                onSave={onTitleSave}
+                                className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
+                                inputClassName="text-2xl font-bold uppercase tracking-tight"
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
+                                    {labelProfile.artifactLabel}
+                                </span>
+                                <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+                                    {purposeProfile.name}
+                                </span>
+                                {report.artifactType && (
+                                    <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+                                        {report.artifactType}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                         <div className="flex items-center space-x-4 flex-shrink-0">
                             {report.dateStr && <p className="text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">LOG DATE: {report.dateStr}</p>}
                         </div>
@@ -180,7 +256,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
                         <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
                             <h2 className="text-xl font-bold text-white flex items-center font-mono tracking-wide">
-                                <FileText className="w-5 h-5 mr-3 text-osint-primary" /> EXECUTIVE_SUMMARY
+                                <FileText className="w-5 h-5 mr-3 text-osint-primary" /> {getArtifactSectionTitle(primarySummarySection?.kind || 'EXECUTIVE_SUMMARY', labelProfile, primarySummarySection?.title).toUpperCase()}
                             </h2>
                             <button
                                 onClick={handlePlayBriefing}
@@ -202,22 +278,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                             {supplementalSections.map((section) => (
                                 <div key={section.id} className="bg-zinc-950/60 border border-zinc-800 p-5">
                                     <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-white mb-3">
-                                        {section.title}
+                                        {getArtifactSectionTitle(section.kind, labelProfile, section.title)}
                                     </h3>
-                                    {section.content && (
-                                        <div className="text-zinc-300 prose prose-invert max-w-none text-sm mb-3">
-                                            <ReactMarkdown components={markdownComponents}>{section.content}</ReactMarkdown>
-                                        </div>
-                                    )}
-                                    {section.items && section.items.length > 0 && (
-                                        <div className="space-y-2">
-                                            {section.items.map((item, index) => (
-                                                <div key={`${section.id}-${index}`} className="border-l-2 border-osint-primary/40 pl-3 text-sm text-zinc-300">
-                                                    <ReactMarkdown components={markdownComponents}>{item}</ReactMarkdown>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {renderSectionBody(section)}
                                 </div>
                             ))}
                         </div>
@@ -241,7 +304,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                         </div>
                         {visibleLeads.length === 0 ? (
                             <div className="p-4 border border-zinc-800 bg-zinc-900/30 text-[11px] font-mono text-zinc-500 italic">
-                                No follow-up items were extracted for this artifact.
+                                {`No ${labelProfile.followUpLabel.toLowerCase()} were extracted for this artifact.`}
                             </div>
                         ) : (
                             <div className="grid md:grid-cols-2 gap-4">
@@ -283,7 +346,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 >
                     <div className="space-y-2">
                         {visibleAnomalies.length === 0 ? (
-                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No notable findings extracted for this artifact.</p>
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
                         ) : (
                             visibleAnomalies.map((agenda, idx) => (
                                 <div key={idx} className="bg-zinc-900/80 p-3 border-l-2 border-osint-danger text-xs text-zinc-300">
@@ -322,7 +385,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
                 {/* Resources */}
                 <Accordion
-                    title={`Sources (${reportSources.length})`}
+                    title={`${labelProfile.signalLabel} (${reportSources.length})`}
                     icon={Globe}
                     isOpen={sidebarAccordions.resources}
                     onToggle={() => toggleSidebarAccordion('resources')}

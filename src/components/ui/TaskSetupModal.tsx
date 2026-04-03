@@ -20,10 +20,20 @@ import {
   Calendar,
   Cpu,
   ChevronDown,
+  Sparkles,
+  Shapes,
+  Library,
 } from 'lucide-react';
 import { useCaseStore } from '../../store/caseStore';
-import type { CaseTemplate, SystemConfig, ManualNode, InvestigationScope } from '../../types';
-import { BUILTIN_SCOPES, getScopeById, getAllScopes } from '../../data/presets';
+import type {
+  CaseTemplate,
+  GraphNodeSubtype,
+  InvestigationRunConfig,
+  InvestigationScope,
+  ManualNode,
+  SystemConfig,
+} from '../../types';
+import { BUILTIN_SCOPES, getAllScopes, getScopeById } from '../../data/presets';
 import type { AIProvider } from '../../config/aiModels';
 import {
   AI_PROVIDERS,
@@ -34,38 +44,46 @@ import {
   getRuntimeReadyModelsForProvider,
 } from '../../config/aiModels';
 import { loadSystemConfig } from '../../config/systemConfig';
+import {
+  getDomainPackForScope,
+  getLabelProfileById,
+  getPurposeProfileById,
+  getStarterTemplates,
+  getTaskSetupCopy,
+} from '../../domain';
+
+type TaskSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
 
 interface TaskSetupModalProps {
   initialTopic: string;
   initialContext?: { topic: string; summary: string };
   initialScopeId?: string;
-  initialConfigOverride?: Partial<SystemConfig>;
+  initialConfigOverride?: TaskSetupConfigOverride;
   initialDateRangeOverride?: { start?: string; end?: string };
   inheritanceHint?: string;
   onCancel: () => void;
   onStart: (
     topic: string,
-    configOverride: Partial<SystemConfig>,
+    configOverride: TaskSetupConfigOverride,
     preseededEntities?: ManualNode[],
     scope?: InvestigationScope,
     dateRange?: { start?: string; end?: string }
   ) => void;
 }
 
-const STEPS = [
-  { id: 0, label: 'Scope', icon: Compass },
-  { id: 1, label: 'Target', icon: Target },
-  { id: 2, label: 'Hypothesis', icon: Lightbulb },
-  { id: 3, label: 'Key Figures', icon: User },
-  { id: 4, label: 'Sources', icon: Globe },
-  { id: 5, label: 'Config', icon: UserCog },
-];
-
-interface KeyFigure {
+interface SeedEntity {
   id: string;
   name: string;
-  type: 'PERSON' | 'ORGANIZATION';
+  type: GraphNodeSubtype;
 }
+
+const createTemplateMetadata = () => {
+  const createdAt = Date.now();
+  return {
+    id: `tmp-${createdAt}`,
+    createdAt,
+  };
+};
 
 export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   initialTopic,
@@ -79,123 +97,170 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
 }) => {
   const { templates, addTemplate, customScopes, defaultScopeId } = useCaseStore();
   const storedConfig = loadSystemConfig();
+  const allScopes = getAllScopes(customScopes);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
-
-  // Step 0: Scope Selection
-  const allScopes = getAllScopes(customScopes);
   const [selectedScopeId, setSelectedScopeId] = useState(initialScopeId || defaultScopeId);
-  const selectedScope =
-    getScopeById(selectedScopeId) ||
-    allScopes.find((s) => s.id === selectedScopeId) ||
-    BUILTIN_SCOPES[0];
-
-  // Step 0: Date Range
   const [dateRangeStart, setDateRangeStart] = useState(initialDateRangeOverride?.start || '');
   const [dateRangeEnd, setDateRangeEnd] = useState(initialDateRangeOverride?.end || '');
-
-  // Step 1: Target
   const [topic, setTopic] = useState(initialTopic);
-
-  // Step 2: Hypothesis
-  const [hypothesis, setHypothesis] = useState('');
-
-  // Step 3: Key Figures
-  const [keyFigures, setKeyFigures] = useState<KeyFigure[]>([]);
-  const [newFigureName, setNewFigureName] = useState('');
-  const [newFigureType, setNewFigureType] = useState<'PERSON' | 'ORGANIZATION'>('PERSON');
-
-  // Step 4: Sources
+  const [angle, setAngle] = useState('');
+  const [seedEntities, setSeedEntities] = useState<SeedEntity[]>([]);
+  const [newEntityName, setNewEntityName] = useState('');
+  const [newEntityType, setNewEntityType] = useState<GraphNodeSubtype>('PERSON');
   const [prioritySources, setPrioritySources] = useState('');
 
-  // Step 5: Config - persona now uses scope personas
+  const selectedScope =
+    getScopeById(selectedScopeId) ||
+    allScopes.find((scope) => scope.id === selectedScopeId) ||
+    BUILTIN_SCOPES[0];
+  const selectedPack = getDomainPackForScope(selectedScope, customScopes);
+  const supportedPurposes = selectedPack.supportedPurposeIds.map((purposeId) =>
+    getPurposeProfileById(purposeId)
+  );
+  const [selectedPurposeId, setSelectedPurposeId] = useState(
+    initialConfigOverride?.purposeId || selectedPack.defaultPurposeId
+  );
+  const resolvedPurposeId = supportedPurposes.some((purpose) => purpose.id === selectedPurposeId)
+    ? selectedPurposeId
+    : selectedPack.defaultPurposeId;
+  const selectedPurpose = getPurposeProfileById(resolvedPurposeId);
+  const selectedArtifactType = selectedPurpose.recommendedArtifactType;
+  const labelProfile = getLabelProfileById(selectedPack.labelProfileId);
+  const setupCopy = getTaskSetupCopy(selectedPack, selectedPurpose, labelProfile);
+  const starterTemplates = getStarterTemplates(selectedPack, selectedPurpose);
+
   const [persona, setPersona] = useState<string>(() => {
-    // Default to scope's default persona or first persona
-    return (
-      selectedScope?.defaultPersona || selectedScope?.personas[0]?.id || 'general-investigator'
-    );
+    return selectedScope?.defaultPersona || selectedScope?.personas[0]?.id || 'general-investigator';
   });
+  const defaultPersona =
+    selectedScope.defaultPersona || selectedScope.personas[0]?.id || 'general-investigator';
+  const effectivePersona = selectedScope.personas.some((candidate) => candidate.id === persona)
+    ? persona
+    : defaultPersona;
   const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(
     (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP' ? 'DEEP' : 'STANDARD'
   );
   const [thinkingBudget, setThinkingBudget] = useState(
     typeof initialConfigOverride?.thinkingBudget === 'number'
       ? initialConfigOverride.thinkingBudget
-      : (storedConfig.thinkingBudget ?? 0)
+      : storedConfig.thinkingBudget ?? 0
   );
 
   const initialModelId = initialConfigOverride?.modelId || storedConfig.modelId || DEFAULT_MODEL_ID;
   const initialProvider = (
-    initialConfigOverride?.provider
-    || getModelProvider(initialModelId)
+    initialConfigOverride?.provider || getModelProvider(initialModelId)
   ) as AIProvider;
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(initialProvider);
   const [selectedModel, setSelectedModel] = useState(() => {
     const providerModels = getRuntimeReadyModelsForProvider(initialProvider);
     return providerModels.some((model) => model.id === initialModelId)
       ? initialModelId
-      : (providerModels[0]?.id || getDefaultModelForProvider(initialProvider));
+      : providerModels[0]?.id || getDefaultModelForProvider(initialProvider);
   });
+
   const selectableModels = getRuntimeReadyModelsForProvider(selectedProvider);
+  const effectiveSelectedModel = selectableModels.some((model) => model.id === selectedModel)
+    ? selectedModel
+    : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider);
   const selectedProviderMeta = getProviderOptionById(selectedProvider);
   const supportsThinkingBudget = selectedProviderMeta?.capabilities.supportsThinkingBudget ?? false;
 
-  const applyTemplate = (t: CaseTemplate) => {
-    setTopic(t.topic);
-    if (t.config.persona) setPersona(t.config.persona);
-    if (t.config.searchDepth) setDepth(t.config.searchDepth);
-    if (t.config.thinkingBudget !== undefined) setThinkingBudget(t.config.thinkingBudget);
-    const templateProvider = (t.config.provider || getModelProvider(t.config.modelId || selectedModel)) as AIProvider;
+  const steps = [
+    { id: 0, label: 'Pack', icon: Compass },
+    { id: 1, label: 'Target', icon: Target },
+    { id: 2, label: setupCopy.angleLabel, icon: Lightbulb },
+    { id: 3, label: 'Entities', icon: Shapes },
+    { id: 4, label: 'Sources', icon: Globe },
+    { id: 5, label: 'Config', icon: UserCog },
+  ];
+
+  const applyTemplate = (template: CaseTemplate) => {
+    const nextScopeId = template.scopeId || selectedScopeId;
+    const nextScope =
+      getScopeById(nextScopeId || '')
+      || allScopes.find((scope) => scope.id === nextScopeId)
+      || selectedScope;
+    const nextPack = getDomainPackForScope(nextScope, customScopes);
+    const nextPurposeId =
+      template.config.purposeId || template.purposeId || nextPack.defaultPurposeId;
+    const templateProvider = (
+      template.config.provider || getModelProvider(template.config.modelId || effectiveSelectedModel)
+    ) as AIProvider;
+
+    setTopic(template.topic);
+    setSelectedScopeId(nextScope.id);
+    setSelectedPurposeId(nextPurposeId);
+    setPersona(
+      template.config.persona
+      || nextScope.defaultPersona
+      || nextScope.personas[0]?.id
+      || 'general-investigator'
+    );
+    setDepth(template.config.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD');
+    setThinkingBudget(template.config.thinkingBudget ?? 0);
     setSelectedProvider(templateProvider);
-    if (t.config.modelId) {
-      setSelectedModel(t.config.modelId);
-    } else {
-      const fallbackModel = getRuntimeReadyModelsForProvider(templateProvider)[0]?.id
-        || getDefaultModelForProvider(templateProvider);
-      setSelectedModel(fallbackModel);
-    }
-    if (t.scopeId) setSelectedScopeId(t.scopeId);
+    setSelectedModel(
+      template.config.modelId
+      || getRuntimeReadyModelsForProvider(templateProvider)[0]?.id
+      || getDefaultModelForProvider(templateProvider)
+    );
   };
 
-  React.useEffect(() => {
-    if (selectableModels.some((model) => model.id === selectedModel)) return;
-    const fallback = selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider);
-    setSelectedModel(fallback);
-  }, [selectedProvider, selectableModels, selectedModel]);
-
-  const handleAddFigure = () => {
-    if (!newFigureName.trim()) return;
-    const newFigure: KeyFigure = {
-      id: `fig-${Date.now()}`,
-      name: newFigureName.trim(),
-      type: newFigureType,
-    };
-    setKeyFigures([...keyFigures, newFigure]);
-    setNewFigureName('');
+  const applyStarter = (starter: (typeof starterTemplates)[number]) => {
+    setSelectedPurposeId(starter.purposeId);
+    setTopic(starter.topic);
+    setAngle(starter.hypothesis || '');
+    setPrioritySources(starter.prioritySources || '');
   };
 
-  const handleRemoveFigure = (id: string) => {
-    setKeyFigures(keyFigures.filter((f) => f.id !== id));
+  const handleAddEntity = () => {
+    if (!newEntityName.trim()) return;
+
+    setSeedEntities((current) => [
+      ...current,
+      {
+        id: `seed-${Date.now()}`,
+        name: newEntityName.trim(),
+        type: newEntityType,
+      },
+    ]);
+    setNewEntityName('');
+    setNewEntityType('PERSON');
+  };
+
+  const handleRemoveEntity = (id: string) => {
+    setSeedEntities((current) => current.filter((entity) => entity.id !== id));
+  };
+
+  const appendSuggestedSources = (entries: string[]) => {
+    const current = prioritySources
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+    const merged = Array.from(new Set([...current, ...entries]));
+    setPrioritySources(merged.join(', '));
   };
 
   const handleStart = () => {
-    // Convert keyFigures to ManualNodes
-    const preseededEntities: ManualNode[] = keyFigures.map((f) => ({
-      id: f.id,
-      label: f.name,
-      type: 'ENTITY' as const,
-      subtype: f.type,
+    const preseededEntities: ManualNode[] = seedEntities.map((entity) => ({
+      id: entity.id,
+      label: entity.name,
+      type: 'ENTITY',
+      subtype: entity.type,
       timestamp: Date.now(),
     }));
 
-    // Build the full topic including hypothesis if provided
     let fullTopic = topic;
-    if (hypothesis.trim()) {
-      fullTopic = `${topic}\n\n[HYPOTHESIS]: ${hypothesis.trim()}`;
+    if (angle.trim()) {
+      fullTopic = `${topic}\n\n[RUN_ANGLE]: ${angle.trim()}`;
+    }
+    if (prioritySources.trim()) {
+      fullTopic = `${fullTopic}\n\n[PRIORITY_SOURCES]: ${prioritySources.trim()}`;
     }
 
-    // Build date range if specified
     const dateRange =
       dateRangeStart || dateRangeEnd
         ? { start: dateRangeStart || undefined, end: dateRangeEnd || undefined }
@@ -205,10 +270,18 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
       fullTopic,
       {
         provider: selectedProvider,
-        persona,
+        persona: effectivePersona,
         searchDepth: depth,
         thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
-        modelId: selectedModel,
+        modelId: effectiveSelectedModel,
+        scopeId: selectedScope.id,
+        scopeName: selectedScope.name,
+        packId: selectedPack.id,
+        packName: selectedPack.name,
+        purposeId: selectedPurpose.id,
+        purposeName: selectedPurpose.name,
+        artifactType: selectedArtifactType,
+        labelProfileId: labelProfile.id,
       },
       preseededEntities.length > 0 ? preseededEntities : undefined,
       selectedScope,
@@ -216,55 +289,55 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     );
 
     if (saveAsTemplate && templateName.trim()) {
-      addTemplate({
-        id: `tmp-${Date.now()}`,
+      const templateMetadata = createTemplateMetadata();
+      void addTemplate({
+        id: templateMetadata.id,
         name: templateName.trim(),
-        topic: topic,
+        topic,
         config: {
           provider: selectedProvider,
-          persona,
+          persona: effectivePersona,
           searchDepth: depth,
           thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
-          modelId: selectedModel
+          modelId: effectiveSelectedModel,
+          packId: selectedPack.id,
+          purposeId: selectedPurpose.id,
+          artifactType: selectedArtifactType,
+          labelProfileId: labelProfile.id,
         },
-        scopeId: selectedScopeId,
-        createdAt: Date.now(),
+        scopeId: selectedScope.id,
+        createdAt: templateMetadata.createdAt,
       });
     }
   };
 
   const canProceed = () => {
-    if (currentStep === 0) return !!selectedScopeId;
+    if (currentStep === 0) return !!selectedScopeId && !!resolvedPurposeId;
     if (currentStep === 1) return topic.trim().length > 0;
     return true;
   };
 
   const nextStep = () => {
-    if (currentStep < 5 && canProceed()) {
-      setCurrentStep(currentStep + 1);
-      // When leaving scope step, update persona to match scope default
-      if (currentStep === 0 && selectedScope) {
-        setPersona(selectedScope.defaultPersona || selectedScope.personas[0]?.id || persona);
-      }
+    if (currentStep < steps.length - 1 && canProceed()) {
+      setCurrentStep((step) => step + 1);
     }
   };
 
   const prevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep((step) => step - 1);
     }
   };
 
-  // --- STEP RENDERS ---
   const renderStep0 = () => (
     <div className="space-y-5">
-      {/* Scope Selection */}
       <div>
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-3 flex items-center">
           <Compass className="w-3 h-3 mr-2" />
-          Investigation Scope
+          Domain Pack
         </label>
-        <div className="grid grid-cols-2 gap-2 pr-1">
+        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.scopeDescription}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pr-1">
           {allScopes.map((scope) => (
             <button
               key={scope.id}
@@ -287,7 +360,69 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         </div>
       </div>
 
-      {/* Date Range */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 pt-3 border-t border-zinc-800">
+        <div>
+          <label className="block text-xs font-mono text-zinc-400 uppercase mb-3 flex items-center">
+            <Sparkles className="w-3 h-3 mr-2" />
+            {setupCopy.purposeLabel}
+          </label>
+          <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.purposeDescription}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {supportedPurposes.map((purpose) => (
+              <button
+                key={purpose.id}
+                onClick={() => setSelectedPurposeId(purpose.id)}
+                className={`p-3 border text-left transition-all ${
+                  resolvedPurposeId === purpose.id
+                    ? 'border-osint-primary bg-osint-primary/10 text-white'
+                    : 'border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="text-xs font-mono font-bold uppercase">{purpose.name}</div>
+                  <span className="text-[9px] font-mono text-zinc-500 uppercase">
+                    {purpose.recommendedArtifactType}
+                  </span>
+                </div>
+                <p className="text-[10px] leading-relaxed text-zinc-500">{purpose.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="border border-zinc-800 bg-zinc-950/60 p-4 space-y-4">
+          <div>
+            <div className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Run Profile</div>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
+                {labelProfile.workspaceLabel}
+              </span>
+              <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+                {selectedPurpose.name}
+              </span>
+              <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+                {selectedArtifactType}
+              </span>
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Pack Guidance</div>
+            <p className="text-xs text-zinc-400 leading-relaxed">{selectedPack.description}</p>
+          </div>
+          {selectedScope.suggestedSources.length > 0 && (
+            <div>
+              <div className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Default Source Libraries</div>
+              <div className="text-[11px] text-zinc-400 leading-relaxed">
+                {selectedScope.suggestedSources
+                  .slice(0, 3)
+                  .map((category) => category.name)
+                  .join(' • ')}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="pt-3 border-t border-zinc-800">
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <Calendar className="w-3 h-3 mr-2" />
@@ -299,7 +434,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             <input
               type="date"
               value={dateRangeStart}
-              onChange={(e) => setDateRangeStart(e.target.value)}
+              onChange={(event) => setDateRangeStart(event.target.value)}
               className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
             />
           </div>
@@ -308,7 +443,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             <input
               type="date"
               value={dateRangeEnd}
-              onChange={(e) => setDateRangeEnd(e.target.value)}
+              onChange={(event) => setDateRangeEnd(event.target.value)}
               className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
             />
           </div>
@@ -318,35 +453,58 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   );
 
   const renderStep1 = () => (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <AlignLeft className="w-3 h-3 mr-2" />
-          Investigation Target / Query
+          {setupCopy.targetLabel}
         </label>
         <textarea
           value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder="Enter the subject, entity, or question to investigate..."
+          onChange={(event) => setTopic(event.target.value)}
+          placeholder={setupCopy.targetPlaceholder}
           className="w-full h-32 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
           autoFocus
         />
       </div>
 
+      <div className="space-y-3 border-t border-zinc-900 pt-4">
+        <label className="block text-[10px] font-mono text-zinc-500 uppercase flex items-center">
+          <Sparkles className="w-3 h-3 mr-2 text-osint-primary" />
+          Pack Starters
+        </label>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {starterTemplates.slice(0, 4).map((template) => (
+            <button
+              key={template.id}
+              onClick={() => applyStarter(template)}
+              className="p-3 text-left border border-zinc-800 bg-zinc-900/40 hover:border-osint-primary transition-all"
+            >
+              <div className="flex items-center justify-between gap-3 mb-1">
+                <span className="text-xs font-mono font-bold text-white uppercase">{template.name}</span>
+                <span className="text-[9px] font-mono text-zinc-500 uppercase">{template.purposeId}</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 leading-relaxed">{template.description}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {templates.length > 0 && (
-        <div className="pt-2 border-t border-zinc-900">
-          <label className="block text-[10px] font-mono text-zinc-500 uppercase mb-2">
-            Load From Template
+        <div className="space-y-3 border-t border-zinc-900 pt-4">
+          <label className="block text-[10px] font-mono text-zinc-500 uppercase flex items-center">
+            <Layout className="w-3 h-3 mr-2" />
+            Saved Templates
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {templates.slice(0, 4).map((t) => (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            {templates.slice(0, 4).map((template) => (
               <button
-                key={t.id}
-                onClick={() => applyTemplate(t)}
+                key={template.id}
+                onClick={() => applyTemplate(template)}
                 className="flex items-center p-2 bg-zinc-900 border border-zinc-800 hover:border-osint-primary text-zinc-400 hover:text-white transition-all text-[10px] font-mono uppercase truncate"
               >
                 <Layout className="w-3 h-3 mr-2" />
-                <span className="truncate">{t.name}</span>
+                <span className="truncate">{template.name}</span>
               </button>
             ))}
           </div>
@@ -360,16 +518,14 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
       <div>
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <Lightbulb className="w-3 h-3 mr-2" />
-          Working Hypothesis (Optional)
+          {setupCopy.angleLabel} (Optional)
         </label>
-        <p className="text-xs text-zinc-600 mb-3 font-mono">
-          What do you suspect? This helps guide the investigation focus.
-        </p>
+        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.angleDescription}</p>
         <textarea
-          value={hypothesis}
-          onChange={(e) => setHypothesis(e.target.value)}
-          placeholder="E.g., 'Company X may be funneling funds through shell entities...'"
-          className="w-full h-24 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+          value={angle}
+          onChange={(event) => setAngle(event.target.value)}
+          placeholder={setupCopy.anglePlaceholder}
+          className="w-full h-28 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
         />
       </div>
     </div>
@@ -380,65 +536,68 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
       <div>
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <User className="w-3 h-3 mr-2" />
-          Key Figures (Optional)
+          {setupCopy.entityLabel} (Optional)
         </label>
-        <p className="text-xs text-zinc-600 mb-3 font-mono">
-          Pre-seed entities of interest. These will be added to the network graph.
-        </p>
+        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.entityDescription}</p>
 
-        {/* Add Figure Form */}
         <div className="flex gap-2 mb-4">
           <input
             type="text"
-            value={newFigureName}
-            onChange={(e) => setNewFigureName(e.target.value)}
+            value={newEntityName}
+            onChange={(event) => setNewEntityName(event.target.value)}
             placeholder="Name..."
             className="flex-1 bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none placeholder-zinc-600"
-            onKeyDown={(e) => e.key === 'Enter' && handleAddFigure()}
+            onKeyDown={(event) => event.key === 'Enter' && handleAddEntity()}
           />
           <select
-            value={newFigureType}
-            onChange={(e) => setNewFigureType(e.target.value as 'PERSON' | 'ORGANIZATION')}
+            value={newEntityType}
+            onChange={(event) => setNewEntityType(event.target.value as GraphNodeSubtype)}
             className="bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
           >
             <option value="PERSON">Person</option>
-            <option value="ORGANIZATION">Org</option>
+            <option value="ORGANIZATION">Organization</option>
+            <option value="CONCEPT">Concept</option>
+            <option value="SOURCE">Source</option>
+            <option value="UNKNOWN">Unknown</option>
           </select>
           <button
-            onClick={handleAddFigure}
-            disabled={!newFigureName.trim()}
+            onClick={handleAddEntity}
+            disabled={!newEntityName.trim()}
             className="px-3 py-2 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Figure List */}
-        <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
-          {keyFigures.map((figure) => (
+        <div className="space-y-2 max-h-52 overflow-y-auto custom-scrollbar">
+          {seedEntities.map((entity) => (
             <div
-              key={figure.id}
+              key={entity.id}
               className="flex items-center justify-between bg-zinc-900 border border-zinc-800 p-2"
             >
-              <div className="flex items-center space-x-2">
-                {figure.type === 'PERSON' ? (
-                  <User className="w-3 h-3 text-osint-primary" />
+              <div className="flex items-center space-x-2 min-w-0">
+                {entity.type === 'PERSON' ? (
+                  <User className="w-3 h-3 text-osint-primary flex-shrink-0" />
+                ) : entity.type === 'ORGANIZATION' ? (
+                  <Building2 className="w-3 h-3 text-osint-primary flex-shrink-0" />
+                ) : entity.type === 'SOURCE' ? (
+                  <Library className="w-3 h-3 text-osint-primary flex-shrink-0" />
                 ) : (
-                  <Building2 className="w-3 h-3 text-osint-primary" />
+                  <Shapes className="w-3 h-3 text-osint-primary flex-shrink-0" />
                 )}
-                <span className="text-sm text-zinc-300 font-mono">{figure.name}</span>
-                <span className="text-[10px] text-zinc-600 uppercase">{figure.type}</span>
+                <span className="text-sm text-zinc-300 font-mono truncate">{entity.name}</span>
+                <span className="text-[10px] text-zinc-600 uppercase">{entity.type}</span>
               </div>
               <button
-                onClick={() => handleRemoveFigure(figure.id)}
+                onClick={() => handleRemoveEntity(entity.id)}
                 className="text-zinc-600 hover:text-red-500"
               >
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
           ))}
-          {keyFigures.length === 0 && (
-            <p className="text-xs text-zinc-600 font-mono italic">No key figures added yet.</p>
+          {seedEntities.length === 0 && (
+            <p className="text-xs text-zinc-600 font-mono italic">No seeded nodes added yet.</p>
           )}
         </div>
       </div>
@@ -450,53 +609,88 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
       <div>
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <Globe className="w-3 h-3 mr-2" />
-          Priority Sources (Optional)
+          {setupCopy.sourceLabel} (Optional)
         </label>
-        <p className="text-xs text-zinc-600 mb-3 font-mono">
-          Domains or handles to prioritize in the investigation.
-        </p>
+        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.sourceDescription}</p>
         <textarea
           value={prioritySources}
-          onChange={(e) => setPrioritySources(e.target.value)}
-          placeholder="nytimes.com, @DOJ, sec.gov..."
-          className="w-full h-20 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+          onChange={(event) => setPrioritySources(event.target.value)}
+          placeholder={setupCopy.sourcePlaceholder}
+          className="w-full h-24 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
         />
       </div>
+
+      {selectedScope.suggestedSources.length > 0 && (
+        <div className="space-y-3 pt-3 border-t border-zinc-800">
+          <label className="block text-[10px] font-mono text-zinc-500 uppercase">
+            Suggested Source Libraries
+          </label>
+          <div className="space-y-3">
+            {selectedScope.suggestedSources.slice(0, 4).map((category) => (
+              <div key={category.name}>
+                <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2">
+                  {category.name}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {category.sources.slice(0, 5).map((source) => (
+                    <button
+                      key={source.label}
+                      onClick={() => appendSuggestedSources([source.label])}
+                      className="px-2 py-1 border border-zinc-800 bg-zinc-900/50 text-[10px] font-mono text-zinc-400 hover:text-white hover:border-osint-primary transition-colors"
+                    >
+                      {source.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 
   const renderStep5 = () => (
     <div className="space-y-6">
-      <div className="bg-zinc-900/40 border border-zinc-800 p-3">
+      <div className="border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
+            {selectedPack.name}
+          </span>
+          <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+            {selectedPurpose.name}
+          </span>
+          <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+            {selectedArtifactType}
+          </span>
+        </div>
         <p className="text-[10px] text-zinc-500 font-mono uppercase">
-          {inheritanceHint || 'This run inherits your global defaults. Any values below override this investigation only.'}
+          {inheritanceHint || setupCopy.configHint}
         </p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 auto-rows-fr">
-        {/* Persona Select */}
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
           <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
             <UserCog className="w-3 h-3 mr-2" />
             Agent Persona
           </label>
           <p className="text-[10px] text-zinc-600 mb-3 font-mono">
-            Personas tailored for {selectedScope?.name || 'this scope'}
+            Personas tailored for {selectedScope?.name || 'this pack'}
           </p>
           <select
-            value={persona}
-            onChange={(e) => setPersona(e.target.value)}
+            value={effectivePersona}
+            onChange={(event) => setPersona(event.target.value)}
             className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none mt-auto"
           >
-            {selectedScope?.personas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
+            {selectedScope?.personas.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
               </option>
             ))}
           </select>
         </section>
 
-        {/* Provider Select */}
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
           <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
             <Cpu className="w-3 h-3 mr-2" />
@@ -506,29 +700,30 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             Choose the AI backend for this run.
           </p>
           <div className="relative mt-auto">
-            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={selectedProvider}
-              onChange={(e) => {
-                const provider = e.target.value as AIProvider;
+              onChange={(event) => {
+                const provider = event.target.value as AIProvider;
                 setSelectedProvider(provider);
-                const providerDefault = getRuntimeReadyModelsForProvider(provider)[0]?.id || getDefaultModelForProvider(provider);
-                setSelectedModel(providerDefault);
+                setSelectedModel(
+                  getRuntimeReadyModelsForProvider(provider)[0]?.id
+                  || getDefaultModelForProvider(provider)
+                );
               }}
               className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
             >
               {AI_PROVIDERS
                 .filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE')
                 .map((provider) => (
-                <option key={provider.id} value={provider.id}>
-                  {provider.label}
-                </option>
-              ))}
+                  <option key={provider.id} value={provider.id}>
+                    {provider.label}
+                  </option>
+                ))}
             </select>
           </div>
         </section>
 
-        {/* Model Select */}
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
           <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
             <Cpu className="w-3 h-3 mr-2" />
@@ -538,10 +733,10 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             Selected provider: {selectedProviderMeta?.label || selectedProvider}
           </p>
           <div className="relative">
-            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
+              value={effectiveSelectedModel}
+              onChange={(event) => setSelectedModel(event.target.value)}
               className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
             >
               {selectableModels.map((model) => (
@@ -552,37 +747,44 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             </select>
           </div>
           <p className="text-[10px] text-zinc-600 mt-2 font-mono">
-            Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'}, web search {selectedProviderMeta?.capabilities.supportsWebSearch ? 'available' : 'not available'}.
+            Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'},
+            web search {selectedProviderMeta?.capabilities.supportsWebSearch ? 'available' : 'not available'}.
           </p>
         </section>
 
-        {/* Depth Select */}
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
           <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
             <Microscope className="w-3 h-3 mr-2" />
             Scan Depth
           </label>
           <p className="text-[10px] text-zinc-600 mb-3 font-mono">
-            Controls analysis breadth and synthesis depth.
+            Controls breadth, synthesis depth, and investigative rigor.
           </p>
           <div className="flex border border-zinc-700 mt-auto">
             <button
               onClick={() => setDepth('STANDARD')}
-              className={`flex-1 py-2 text-xs font-mono uppercase ${depth === 'STANDARD' ? 'bg-zinc-800 text-white font-bold' : 'bg-black text-zinc-500 hover:text-zinc-300'}`}
+              className={`flex-1 py-2 text-xs font-mono uppercase ${
+                depth === 'STANDARD'
+                  ? 'bg-zinc-800 text-white font-bold'
+                  : 'bg-black text-zinc-500 hover:text-zinc-300'
+              }`}
             >
               Standard
             </button>
             <button
               onClick={() => setDepth('DEEP')}
-              className={`flex-1 py-2 text-xs font-mono uppercase ${depth === 'DEEP' ? 'bg-osint-primary/20 text-osint-primary font-bold border-l border-zinc-700' : 'bg-black text-zinc-500 hover:text-zinc-300 border-l border-zinc-700'}`}
+              className={`flex-1 py-2 text-xs font-mono uppercase ${
+                depth === 'DEEP'
+                  ? 'bg-osint-primary/20 text-osint-primary font-bold border-l border-zinc-700'
+                  : 'bg-black text-zinc-500 hover:text-zinc-300 border-l border-zinc-700'
+              }`}
             >
-              Deep Dive
+              Deep
             </button>
           </div>
         </section>
       </div>
 
-      {/* Thinking Budget */}
       <div className="border border-zinc-800 bg-zinc-900/30 p-4">
         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
           <Cpu className="w-3 h-3 mr-2" />
@@ -600,22 +802,25 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         />
         <p className="text-[10px] text-zinc-600 mt-2 font-mono">
           {supportsThinkingBudget
-            ? 'Controls reasoning token budget for compatible models.'
+            ? 'Controls reasoning budget for compatible models.'
             : `${selectedProviderMeta?.label || selectedProvider} ignores this setting.`}
         </p>
       </div>
 
-      {/* Save as Template Toggle */}
       <div className="pt-6 border-t border-zinc-800">
         <label className="flex items-center space-x-3 cursor-pointer group">
           <div
             onClick={() => setSaveAsTemplate(!saveAsTemplate)}
-            className={`w-5 h-5 border flex items-center justify-center transition-all ${saveAsTemplate ? 'bg-osint-primary border-osint-primary' : 'bg-black border-zinc-700 group-hover:border-zinc-500'}`}
+            className={`w-5 h-5 border flex items-center justify-center transition-all ${
+              saveAsTemplate
+                ? 'bg-osint-primary border-osint-primary'
+                : 'bg-black border-zinc-700 group-hover:border-zinc-500'
+            }`}
           >
             {saveAsTemplate && <Check className="w-3 h-3 text-black" />}
           </div>
           <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            Store as Reusable Protocol (Template)
+            {setupCopy.templateLabel}
           </span>
         </label>
 
@@ -625,7 +830,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
               type="text"
               placeholder="Enter Template Name..."
               value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
+              onChange={(event) => setTemplateName(event.target.value)}
               className="w-full bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
             />
           </div>
@@ -636,22 +841,20 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-osint-panel w-full max-w-4xl h-full sm:h-auto max-h-[95vh] border border-zinc-600 shadow-2xl flex flex-col relative overflow-hidden">
-        {/* Header */}
+      <div className="bg-osint-panel w-full max-w-5xl h-full sm:h-auto max-h-[95vh] border border-zinc-600 shadow-2xl flex flex-col relative overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
           <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
             <Target className="w-5 h-5 text-osint-primary" />
-            <span>Initialize Operation</span>
+            <span>{setupCopy.title}</span>
           </div>
           <button onClick={onCancel} className="text-zinc-500 hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Progress Indicator */}
         <div className="px-6 pt-4 pb-2">
-          <div className="flex items-center justify-between">
-            {STEPS.map((step, index) => (
+          <div className="flex items-center justify-between gap-2">
+            {steps.map((step, index) => (
               <React.Fragment key={step.id}>
                 <button
                   onClick={() => step.id < currentStep && setCurrentStep(step.id)}
@@ -678,11 +881,11 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
                       <step.icon className="w-4 h-4" />
                     )}
                   </div>
-                  <span className="text-[10px] font-mono uppercase hidden sm:block">
+                  <span className="text-[10px] font-mono uppercase hidden sm:block max-w-24 text-center">
                     {step.label}
                   </span>
                 </button>
-                {index < STEPS.length - 1 && (
+                {index < steps.length - 1 && (
                   <div
                     className={`flex-1 h-px mx-2 ${
                       step.id < currentStep ? 'bg-green-500' : 'bg-zinc-700'
@@ -694,7 +897,6 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           </div>
         </div>
 
-        {/* Context Banner */}
         {initialContext && (
           <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
             <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Parent Context</div>
@@ -702,8 +904,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           </div>
         )}
 
-        {/* Step Content */}
-        <div className="p-6 min-h-[200px] flex-1 overflow-y-auto custom-scrollbar">
+        <div className="p-6 min-h-[240px] flex-1 overflow-y-auto custom-scrollbar">
           {currentStep === 0 && renderStep0()}
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
@@ -712,7 +913,6 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           {currentStep === 5 && renderStep5()}
         </div>
 
-        {/* Footer */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
           <button
             onClick={prevStep}
@@ -731,7 +931,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
               Cancel
             </button>
 
-            {currentStep < 5 ? (
+            {currentStep < steps.length - 1 ? (
               <button
                 onClick={nextStep}
                 disabled={!canProceed()}
@@ -746,7 +946,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
                 className="px-6 py-2 bg-white hover:bg-zinc-200 text-black font-bold font-mono text-xs uppercase flex items-center transition-colors shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)]"
               >
                 <PlayCircle className="w-4 h-4 mr-2" />
-                Execute Task
+                {setupCopy.executeLabel}
               </button>
             )}
           </div>

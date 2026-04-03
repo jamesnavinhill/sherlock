@@ -20,7 +20,7 @@ import { buildAccentColor } from './utils/accent';
 import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
 import { getAllScopes, getScopeById } from './data/presets';
-import { getDomainPackForScope, getPurposeProfileById } from './domain';
+import { getDomainPackForScope, getPurposeProfileById, stripLegacyWorkspacePrefix } from './domain';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
@@ -327,7 +327,7 @@ function App() {
       if (report.caseId) {
         const foundCase = cases.find(c => c.id === report.caseId);
         if (foundCase) {
-          newStack.push({ type: 'CASE', id: foundCase.id, label: foundCase.title.replace('Operation: ', '') });
+          newStack.push({ type: 'CASE', id: foundCase.id, label: stripLegacyWorkspacePrefix(foundCase.title) });
         }
       }
 
@@ -455,9 +455,8 @@ function App() {
                   const newColor = buildAccentColor(settings);
                   setThemeColor(newColor);
                 }}
-                onStartCase={(topic, config) => launchInvestigation({
-                  topic,
-                  configOverride: config,
+                onStartCase={(request) => launchInvestigation({
+                  ...request,
                   switchToView: true,
                   launchSource: 'SETTINGS_TEMPLATE',
                 })}

@@ -20,6 +20,7 @@ import {
     buildAnomalyPrompt,
     buildInvestigationPrompt,
     buildLiveIntelPrompt,
+    buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
@@ -119,10 +120,10 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
                 request.purpose,
                 request.pack
             );
-            prompt +=
-                '\nCRITICAL: Respond with a JSON object only containing summary (string), entities (array), agendas (array), leads (array), sources (array of {title, url}), and optional sections (array).';
-            prompt +=
-                ' Extract at least 4 actionable leads. For each entity, specify: name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment. Include 3-8 unique sources and provide each source as { "title": "...", "url": "https://..." }. When useful, also return sections as an array of { kind, title, content, items }.';
+            prompt += `\n${buildStructuredArtifactResponseInstruction(
+                request.purpose,
+                request.labelProfileId
+            )}`;
 
             const rawText = await queryOpenRouter(config.modelId, prompt, {
                 maxTokens: 3200,

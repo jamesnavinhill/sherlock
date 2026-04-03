@@ -3,6 +3,8 @@ import type {
   ArtifactSectionKind,
   ArtifactType,
   InvestigationReport,
+  LabelProfile,
+  PurposeProfile,
 } from '../types';
 
 const SECTION_TITLES: Record<ArtifactSectionKind, string> = {
@@ -161,6 +163,44 @@ export const buildArtifactSections = (options: {
         },
       ]
     : [];
+};
+
+export const getArtifactSectionTitle = (
+  kind: ArtifactSectionKind,
+  labelProfile?: LabelProfile,
+  fallbackTitle?: string
+): string => {
+  if (kind === 'ANOMALIES' && labelProfile?.anomalyLabel) {
+    return labelProfile.anomalyLabel;
+  }
+
+  if ((kind === 'LEADS' || kind === 'NEXT_STEPS') && labelProfile?.followUpLabel) {
+    return labelProfile.followUpLabel;
+  }
+
+  return fallbackTitle || SECTION_TITLES[kind];
+};
+
+export const orderArtifactSections = (
+  sections: ArtifactSection[] | undefined,
+  purpose?: PurposeProfile
+): ArtifactSection[] => {
+  if (!sections || sections.length === 0) return [];
+
+  const purposeOrder = purpose?.defaultSectionKinds || [];
+
+  return [...sections].sort((left, right) => {
+    const leftIndex = purposeOrder.indexOf(left.kind);
+    const rightIndex = purposeOrder.indexOf(right.kind);
+
+    if (leftIndex !== -1 || rightIndex !== -1) {
+      if (leftIndex === -1) return 1;
+      if (rightIndex === -1) return -1;
+      if (leftIndex !== rightIndex) return leftIndex - rightIndex;
+    }
+
+    return (left.order ?? 0) - (right.order ?? 0);
+  });
 };
 
 export const getSectionByKinds = (

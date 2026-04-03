@@ -24,9 +24,10 @@ import { useCaseStore } from '../../../store/caseStore';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { TemplateGallery } from './TemplateGallery';
 import { ScopeManager } from '../../ui/ScopeManager';
-import type { SystemConfig } from '../../../types';
+import type { InvestigationLaunchRequest, SystemConfig } from '../../../types';
 import { AccentPicker } from '../../ui/AccentPicker';
 import { buildAccentColor } from '../../../utils/accent';
+import { getAllScopes, getScopeById } from '../../../data/presets';
 import type { AIProvider } from '../../../config/aiModels';
 import {
     AI_PROVIDERS,
@@ -54,7 +55,7 @@ interface SettingsProps {
     onThemeModeChange: (mode: 'dark' | 'light') => void;
     onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
     accentSettings: { hue: number; lightness: number; chroma: number };
-    onStartCase: (topic: string, config: SystemConfig) => void;
+    onStartCase: (request: InvestigationLaunchRequest) => void;
     onClose: () => void;
 }
 
@@ -67,7 +68,7 @@ const TABS = [
 ];
 
 export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, themeMode, onThemeModeChange, onAccentChange, accentSettings, onStartCase, onClose }) => {
-    const { archives, cases, importCaseData, clearCaseData } = useCaseStore();
+    const { archives, cases, customScopes, importCaseData, clearCaseData } = useCaseStore();
 
     const initialConfig = loadSystemConfig();
 
@@ -660,11 +661,24 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                             onApply={(t) => {
                                 const fallbackConfig = loadSystemConfig();
                                 const templateModel = t.config.modelId || fallbackConfig.modelId;
-                                onStartCase(t.topic, {
-                                    ...fallbackConfig,
-                                    ...t.config,
-                                    modelId: templateModel,
-                                    provider: t.config.provider || getModelProvider(templateModel),
+                                const resolvedScope = t.scopeId
+                                    ? getScopeById(t.scopeId)
+                                      || getAllScopes(customScopes).find((scope) => scope.id === t.scopeId)
+                                    : undefined;
+
+                                onStartCase({
+                                    topic: t.topic,
+                                    configOverride: {
+                                        ...fallbackConfig,
+                                        ...t.config,
+                                        modelId: templateModel,
+                                        provider: t.config.provider || getModelProvider(templateModel),
+                                    },
+                                    scope: resolvedScope,
+                                    packId: t.config.packId || t.packId,
+                                    purposeId: t.config.purposeId || t.purposeId,
+                                    artifactType: t.config.artifactType || t.artifactType,
+                                    labelProfileId: t.config.labelProfileId || t.labelProfileId,
                                 });
                             }}
                         />

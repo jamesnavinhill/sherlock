@@ -4,11 +4,17 @@ import { useCaseStore } from '../../../store/caseStore';
 import {
     Trash2, Play, Plus, X, ChevronLeft, ChevronRight, Check,
     Settings as SettingsIcon, Info, Search, Cpu, Target, Lightbulb, Compass,
-    Briefcase, Layout
+    Briefcase, Layout, Sparkles
 } from 'lucide-react';
-import { getAllScopes } from '../../../data/presets';
+import { BUILTIN_SCOPES, getAllScopes } from '../../../data/presets';
 import { AI_MODELS, DEFAULT_MODEL_ID, getModelDisplayName, getModelProvider } from '../../../config/aiModels';
 import { loadSystemConfig } from '../../../config/systemConfig';
+import {
+    getDomainPackForScope,
+    getLabelProfileById,
+    getPurposeProfileById,
+    getStarterTemplates,
+} from '../../../domain';
 
 interface TemplateGalleryProps {
     onApply: (template: CaseTemplate) => void;
@@ -35,13 +41,65 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     const [hypothesis, setHypothesis] = useState('');
     const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
     const [persona, setPersona] = useState('');
+    const [selectedPurposeId, setSelectedPurposeId] = useState('');
     const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>('STANDARD');
     const [thinkingBudget, setThinkingBudget] = useState(0);
     const selectableModels = AI_MODELS.filter((model) => model.capabilities.runtimeStatus === 'ACTIVE');
 
     const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
     const resolvedDefaultScopeId = allScopes.find((scope) => scope.id === defaultScopeId)?.id || allScopes[0]?.id || 'open-investigation';
-    const selectedScope = allScopes.find((scope) => scope.id === selectedScopeId) || allScopes[0];
+    const selectedScope = allScopes.find((scope) => scope.id === selectedScopeId) || allScopes[0] || BUILTIN_SCOPES[0];
+    const selectedPack = useMemo(
+        () => getDomainPackForScope(selectedScope, customScopes),
+        [selectedScope, customScopes]
+    );
+    const supportedPurposes = useMemo(
+        () => selectedPack.supportedPurposeIds.map((purposeId) => getPurposeProfileById(purposeId)),
+        [selectedPack]
+    );
+    const selectedPurpose = useMemo(
+        () => getPurposeProfileById(selectedPurposeId || selectedPack.defaultPurposeId),
+        [selectedPack, selectedPurposeId]
+    );
+    const starterScope = allScopes.find((scope) => scope.id === resolvedDefaultScopeId) || allScopes[0] || BUILTIN_SCOPES[0];
+    const starterPack = useMemo(
+        () => getDomainPackForScope(starterScope, customScopes),
+        [starterScope, customScopes]
+    );
+    const starterLabelProfile = useMemo(
+        () => getLabelProfileById(starterPack.labelProfileId),
+        [starterPack]
+    );
+    const starterPurpose = useMemo(
+        () => getPurposeProfileById(starterPack.defaultPurposeId),
+        [starterPack]
+    );
+    const starterTemplates = useMemo(() => {
+        const baseConfig = loadSystemConfig();
+        const baseModel = baseConfig.modelId || DEFAULT_MODEL_ID;
+
+        return getStarterTemplates(starterPack, starterPurpose).map((starter) => ({
+            id: `builtin-${starter.id}`,
+            name: `${starterPack.name}: ${starter.name}`,
+            description: starter.description,
+            topic: starter.hypothesis
+                ? `${starter.topic}\n\n[RUN_ANGLE]: ${starter.hypothesis}`
+                : starter.topic,
+            config: {
+                provider: baseConfig.provider || getModelProvider(baseModel),
+                modelId: baseModel,
+                persona: starterScope.defaultPersona || starterScope.personas[0]?.id,
+                searchDepth: baseConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD',
+                thinkingBudget: typeof baseConfig.thinkingBudget === 'number' ? baseConfig.thinkingBudget : 0,
+                packId: starterPack.id,
+                purposeId: starter.purposeId,
+                artifactType: starter.artifactType,
+                labelProfileId: starterPack.labelProfileId,
+            },
+            scopeId: starterScope.id,
+            createdAt: 0,
+        } satisfies CaseTemplate));
+    }, [starterPack, starterPurpose, starterScope]);
 
     const filteredTemplates = templates.filter(t =>
         t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,6 +115,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
             return defaultPersona;
         });
     }, [showCreateModal, selectedScope]);
+
+    useEffect(() => {
+        if (supportedPurposes.some((purpose) => purpose.id === selectedPurposeId)) return;
+        setSelectedPurposeId(selectedPack.defaultPurposeId);
+    }, [selectedPack, selectedPurposeId, supportedPurposes]);
 
     const openCreateModal = () => {
         const defaultScope = allScopes.find((scope) => scope.id === resolvedDefaultScopeId) || allScopes[0];
@@ -75,6 +138,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         setTopic('');
         setHypothesis('');
         setSelectedScopeId(defaultScope?.id || resolvedDefaultScopeId);
+        setSelectedPurposeId(getDomainPackForScope(defaultScope || allScopes[0], customScopes).defaultPurposeId);
         setSelectedModel(nextModel);
         setDepth(nextDepth);
         setThinkingBudget(nextThinking);
@@ -113,9 +177,17 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                     modelId: selectedModel,
                     persona,
                     searchDepth: depth,
-                    thinkingBudget
+                    thinkingBudget,
+                    packId: selectedPack.id,
+                    purposeId: selectedPurpose.id,
+                    artifactType: selectedPurpose.recommendedArtifactType,
+                    labelProfileId: selectedPack.labelProfileId,
                 },
                 scopeId: selectedScope.id,
+                packId: selectedPack.id,
+                purposeId: selectedPurpose.id,
+                artifactType: selectedPurpose.recommendedArtifactType,
+                labelProfileId: selectedPack.labelProfileId,
                 createdAt: Date.now()
             });
             addToast('Template created successfully', 'SUCCESS');
@@ -150,11 +222,57 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 </button>
             </div>
 
+            {starterTemplates.length > 0 && (
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div className="text-[10px] font-mono text-zinc-500 uppercase flex items-center">
+                            <Sparkles className="w-3 h-3 mr-2 text-osint-primary" />
+                            Built-in Starters
+                        </div>
+                        <div className="text-[10px] font-mono text-zinc-600 uppercase">
+                            {starterPack.name}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                        {starterTemplates.slice(0, 4).map((template) => (
+                            <div key={template.id} className="group bg-zinc-950/70 border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col">
+                                <div className="p-4 flex-1">
+                                    <div className="flex items-center justify-between mb-2 gap-3">
+                                        <span className="text-[10px] font-mono text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30 uppercase font-bold">
+                                            Starter
+                                        </span>
+                                        <span className="text-[9px] font-mono text-zinc-600 uppercase">
+                                            {template.config.purposeId}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-sm font-bold text-white mb-2 font-mono uppercase line-clamp-2">
+                                        {template.name}
+                                    </h3>
+                                    <p className="text-zinc-500 text-[10px] leading-relaxed mb-4 line-clamp-3">
+                                        {template.description}
+                                    </p>
+                                    <div className="text-[10px] font-mono text-zinc-600 border-t border-zinc-800 pt-3">
+                                        {starterLabelProfile.workspaceLabel} starter
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => onApply(template)}
+                                    className="flex items-center justify-center p-3 border-t border-zinc-800 bg-zinc-900 hover:bg-osint-primary text-zinc-300 hover:text-black font-mono text-[10px] font-bold uppercase transition-all"
+                                >
+                                    <Play className="w-3 h-3 mr-2" />
+                                    Launch Starter
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {filteredTemplates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-12 border border-dashed border-zinc-800 bg-zinc-900/20">
                     <Layout className="w-12 h-12 text-zinc-700 mb-4 opacity-30" />
                     <h3 className="text-zinc-500 font-mono text-xs uppercase font-bold mb-1">No Templates Found</h3>
-                    <p className="text-zinc-600 font-mono text-[10px]">Save investigation parameters to reuse them here.</p>
+                    <p className="text-zinc-600 font-mono text-[10px]">Save pack and purpose-aware launch setups to reuse them here.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -169,9 +287,16 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                     <span className="text-[10px] font-mono text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30 uppercase font-bold">
                                         Protocol
                                     </span>
-                                    <span className="text-[9px] font-mono text-zinc-600">
-                                        {new Date(t.createdAt).toLocaleDateString()}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {(t.config.purposeId || t.purposeId) && (
+                                            <span className="text-[9px] font-mono text-zinc-500 uppercase">
+                                                {t.config.purposeId || t.purposeId}
+                                            </span>
+                                        )}
+                                        <span className="text-[9px] font-mono text-zinc-600">
+                                            {new Date(t.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
                                 </div>
                                 <h3 className="text-sm font-bold text-white mb-1 font-mono uppercase truncate group-hover:text-osint-primary transition-colors">
                                     {t.name}
@@ -215,7 +340,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
             <p className="text-zinc-600 font-mono text-[9px] flex items-start bg-zinc-900/30 p-3 border border-zinc-800/50">
                 <Info className="w-3 h-3 mr-2 flex-shrink-0 text-osint-primary" />
-                Case templates store topics, model configurations, and reasoning budgets. Applying a template will redirect you to the Investigation workspace with parameters pre-filled.
+                Templates now capture pack, purpose, artifact, and model context. Applying one launches the matching workspace flow with those defaults prefilled.
             </p>
 
             {showCreateModal && (
@@ -224,7 +349,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-950 flex items-start justify-between gap-4">
                             <div>
                                 <h3 className="text-sm font-mono font-bold text-white uppercase tracking-widest">Create Protocol Template</h3>
-                                <p className="text-[10px] text-zinc-500 font-mono mt-1 uppercase">Reusable investigation setup for fast launches</p>
+                                <p className="text-[10px] text-zinc-500 font-mono mt-1 uppercase">Reusable pack and purpose-aware launch setup</p>
                             </div>
                             <button
                                 onClick={closeCreateModal}
@@ -278,24 +403,45 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                             )}
 
                             {createStep === 1 && (
-                                <div className="space-y-4">
-                                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Investigation Scope</label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {allScopes.map((scope) => (
-                                            <button
-                                                key={scope.id}
-                                                onClick={() => setSelectedScopeId(scope.id)}
-                                                className={`p-3 border text-left transition-all ${selectedScopeId === scope.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
-                                            >
-                                                <div className="flex items-start gap-2">
-                                                    <span className="text-lg">{scope.icon || '🔍'}</span>
-                                                    <div className="min-w-0">
-                                                        <div className="text-xs font-mono font-bold truncate">{scope.name}</div>
-                                                        <div className="text-[10px] text-zinc-500 mt-0.5 line-clamp-2">{scope.description}</div>
+                                <div className="space-y-5">
+                                    <div>
+                                        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Domain Pack</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            {allScopes.map((scope) => (
+                                                <button
+                                                    key={scope.id}
+                                                    onClick={() => setSelectedScopeId(scope.id)}
+                                                    className={`p-3 border text-left transition-all ${selectedScopeId === scope.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                                                >
+                                                    <div className="flex items-start gap-2">
+                                                        <span className="text-lg">{scope.icon || '🔍'}</span>
+                                                        <div className="min-w-0">
+                                                            <div className="text-xs font-mono font-bold truncate">{scope.name}</div>
+                                                            <div className="text-[10px] text-zinc-500 mt-0.5 line-clamp-2">{scope.description}</div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </button>
-                                        ))}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-zinc-800">
+                                        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Purpose</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            {supportedPurposes.map((purpose) => (
+                                                <button
+                                                    key={purpose.id}
+                                                    onClick={() => setSelectedPurposeId(purpose.id)}
+                                                    className={`p-3 border text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                                        <div className="text-xs font-mono font-bold truncate">{purpose.name}</div>
+                                                        <div className="text-[9px] font-mono text-zinc-500 uppercase">{purpose.recommendedArtifactType}</div>
+                                                    </div>
+                                                    <div className="text-[10px] text-zinc-500 line-clamp-2">{purpose.description}</div>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -303,23 +449,23 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                             {createStep === 2 && (
                                 <div className="space-y-5">
                                     <div>
-                                        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Investigation Target / Query</label>
+                                        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Launch Target</label>
                                         <textarea
                                             value={topic}
                                             onChange={(event) => setTopic(event.target.value)}
-                                            placeholder="Enter the investigation target this protocol starts from..."
+                                            placeholder="Enter the question, subject, or topic this template should launch with..."
                                             className="w-full h-32 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
                                             <Lightbulb className="w-3 h-3 mr-2" />
-                                            Working Hypothesis (Optional)
+                                            Run Angle (Optional)
                                         </label>
                                         <textarea
                                             value={hypothesis}
                                             onChange={(event) => setHypothesis(event.target.value)}
-                                            placeholder="Capture the default hypothesis this protocol should carry."
+                                            placeholder="Capture the default lens, hypothesis, or comparison this template should carry."
                                             className="w-full h-24 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
                                         />
                                     </div>
@@ -355,6 +501,20 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                                     <div className="text-[10px] text-zinc-500 mt-1 line-clamp-2">{item.instruction}</div>
                                                 </button>
                                             ))}
+                                        </div>
+                                    </div>
+                                    <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+                                        <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2">Output Profile</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
+                                                {selectedPack.name}
+                                            </span>
+                                            <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+                                                {selectedPurpose.name}
+                                            </span>
+                                            <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
+                                                {selectedPurpose.recommendedArtifactType}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

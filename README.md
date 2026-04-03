@@ -9,15 +9,16 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Resolves built-in domain packs and purpose profiles into run metadata and prompt behavior
 - Stores workspace/artifact/task data in browser-persistent SQLite (wa-sqlite + IndexedDB)
 - Supports typed artifact sections, deep dives, headline-to-analysis launches, entity graph workflows, and export tooling (HTML/Markdown/JSON)
-- Provides scope-driven domain packs, personas, and templates
+- Provides scope-driven domain packs, purpose-aware launch setup, built-in starters, personas, and reusable templates
+- Adapts launch copy, labels, and output defaults by pack and purpose while keeping saved investigation-era data compatible
 
 ## UI Areas
 
-- `Operation View`: artifact reading, deep dives, case dossier, inspector panel
-- `Network Graph`: D3 graph with manual nodes/links, flag/hide, entity resolution
+- `Operation View`: artifact reading, purpose-ordered typed-section rendering, dossier, inspector panel
+- `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution
 - `Live Monitor`: live signal scans, filtering, and headline persistence
 - `Case Files`: archive browsing, deletion, and exports
-- `Finder`: anomaly scanning and analysis launch
+- `Finder`: discovery scanning and analysis launch
 - `System Config`: provider/model keys, scope/template management, data import/export
 
 ## Tech Stack
@@ -80,8 +81,8 @@ npm run check
 ## Current Validation Snapshot (April 3, 2026)
 
 - `npm run lint`: passes
-- `npm run test`: fails before test execution because Rollup's native optional package `@rollup/rollup-linux-x64-gnu` is missing from `node_modules`
-- `npm run build`: fails for the same missing Rollup native dependency
+- `npm run test`: currently fails because Rollup's optional native dependency `@rollup/rollup-linux-x64-gnu` is missing from `node_modules`
+- `npm run build`: currently fails for the same missing Rollup native dependency
 
 ## Documentation Index
 

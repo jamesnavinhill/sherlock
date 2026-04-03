@@ -3,6 +3,9 @@ import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, 
 import type { InvestigationTask } from '../../types';
 import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
+import { useCaseStore } from '../../store/caseStore';
+import { getAllScopes, getScopeById } from '../../data/presets';
+import { getDomainPackForScope, getLabelProfileById } from '../../domain';
 
 interface SidebarProps {
   currentView: AppView;
@@ -29,6 +32,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   themeMode,
   onToggleTheme
 }) => {
+  const { activeScope: activeScopeId, customScopes } = useCaseStore();
+  const activeScope =
+    getScopeById(activeScopeId || '')
+    || getAllScopes(customScopes).find((scope) => scope.id === activeScopeId)
+    || getAllScopes(customScopes)[0];
+  const activePack = getDomainPackForScope(activeScope, customScopes);
+  const labelProfile = getLabelProfileById(activePack.labelProfileId);
+  const monitorLabel = activePack.workspaceMode === 'MONITORING' ? 'Signal Monitor' : 'Live Monitor';
+
   const btnClass = (isActive: boolean) =>
     `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${isActive
       ? 'bg-zinc-900 text-osint-primary border-osint-primary shadow-[inset_10px_0_20px_-10px_rgba(0,0,0,0.5)]'
@@ -61,11 +73,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => onChangeView(AppView.INVESTIGATION)}
             className={btnClass(currentView === AppView.INVESTIGATION)}
-            title={isCollapsed ? "Current Operation" : undefined}
-            aria-label="Operation View"
+            title={isCollapsed ? labelProfile.detailViewLabel : undefined}
+            aria-label={labelProfile.detailViewLabel}
           >
             <FileText className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Operation View</span>}
+            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">{labelProfile.detailViewLabel}</span>}
           </button>
 
           <button
@@ -81,31 +93,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => onChangeView(AppView.LIVE_MONITOR)}
             className={btnClass(currentView === AppView.LIVE_MONITOR)}
-            title={isCollapsed ? "Live Monitor" : undefined}
-            aria-label="Live Monitor"
+            title={isCollapsed ? monitorLabel : undefined}
+            aria-label={monitorLabel}
           >
             <Radio className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Live Monitor</span>}
+            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">{monitorLabel}</span>}
           </button>
 
           <button
             onClick={() => onChangeView(AppView.ARCHIVES)}
             className={btnClass(currentView === AppView.ARCHIVES)}
-            title={isCollapsed ? "Case Files" : undefined}
-            aria-label="Case Files"
+            title={isCollapsed ? labelProfile.archiveLabel : undefined}
+            aria-label={labelProfile.archiveLabel}
           >
             <FolderClosed className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Case Files</span>}
+            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">{labelProfile.archiveLabel}</span>}
           </button>
 
           <button
             onClick={() => onChangeView(AppView.DASHBOARD)}
             className={btnClass(currentView === AppView.DASHBOARD)}
-            title={isCollapsed ? "Finder" : undefined}
-            aria-label="Finder"
+            title={isCollapsed ? "Discovery Feed" : undefined}
+            aria-label="Discovery Feed"
           >
             <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Finder</span>}
+            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Discovery Feed</span>}
           </button>
         </nav>
 

@@ -10,6 +10,7 @@ interface AccordionProps {
     onToggle: () => void;
     children: React.ReactNode;
     className?: string;
+    headerClassName?: string;
 }
 
 /**
@@ -23,13 +24,14 @@ export const Accordion: React.FC<AccordionProps> = ({
     isOpen,
     onToggle,
     children,
-    className = ''
+    className = '',
+    headerClassName = ''
 }) => {
     return (
         <div className={`mb-2 border border-zinc-800 bg-black ${className}`}>
             <button
                 onClick={onToggle}
-                className="w-full flex items-center justify-between p-3 bg-zinc-900/50 hover:bg-zinc-800 text-xs font-mono uppercase font-bold text-zinc-300 transition-colors"
+                className={`w-full flex items-center justify-between p-3 bg-zinc-900/50 hover:bg-zinc-800 text-xs font-mono uppercase font-bold text-zinc-300 transition-colors ${headerClassName}`}
             >
                 <span className="flex items-center">
                     {Icon && <Icon className="w-4 h-4 mr-2 text-zinc-500" />}
