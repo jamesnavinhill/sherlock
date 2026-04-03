@@ -173,7 +173,7 @@ Persistence writes are handled through repository calls and settings KV writes r
 - ReportViewer
 - InspectorPanel
 
-Supports deep dives, headline follow-through, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
+Supports deep dives, headline follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
 ### Chat
 
@@ -187,7 +187,8 @@ Supports deep dives, headline follow-through, workspace/artifact editing, entity
 - save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
 - transcript copy plus Markdown/JSON export
 - guided conversational run builder that maps into the same launch request shape used by `TaskSetupModal`
-- context drawer with recent artifacts, recent signals, last-turn retrieval snippets, and action log
+- context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
+- contextual handoff from Operation View, Archives, and Network Graph into the same session backend, with report/entity/headline grounding persisted on the target chat session
 
 `ReportViewer` now renders:
 
@@ -203,6 +204,7 @@ Supports deep dives, headline follow-through, workspace/artifact editing, entity
 
 - D3 canvas rendering
 - case/report/entity node inspection
+- launch-into-chat handoff for inspected reports, entities, and headlines
 - manual node/link creation
 - source nodes derived from artifact sources for non-investigation graph work
 - broader manual node semantics for concepts and sources alongside legacy people and organizations
@@ -244,6 +246,7 @@ Task setup and template flows now expose:
 `src/components/features/Archives.tsx`
 
 - workspace/artifact navigation
+- launch directly into workspace chat from workspace cards and saved artifacts
 - deletion workflows
 - exports (HTML/Markdown/JSON)
 - label-profile-aware workspace and artifact naming for mixed investigation and non-investigation archives

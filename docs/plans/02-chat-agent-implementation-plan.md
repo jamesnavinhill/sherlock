@@ -1,7 +1,25 @@
 # Sherlock Chat and Agent Implementation Plan
 
 Date: 2026-04-03
-Status: Proposed
+Status: Implemented
+
+## Implementation Status
+
+All five streams in this plan are now implemented in the current codebase.
+
+- Stream 1: completed
+- Stream 2: completed
+- Stream 3: completed
+- Stream 4: completed
+- Stream 5: completed
+
+Shipped end state includes:
+
+- dedicated persisted workspace chat sessions in the main app shell
+- streaming grounded chat across Gemini, OpenRouter, OpenAI, and Anthropic
+- bounded retrieval/save/follow-up chat actions with persisted audit traces
+- guided conversational run building that maps into the existing launch pipeline
+- launch-into-chat entry points from Operation View, Archives, and Network Graph, all reusing the same session backend and carrying workspace/artifact/entity/headline grounding
 
 ## Objective
 

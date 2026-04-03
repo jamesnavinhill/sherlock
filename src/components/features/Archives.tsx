@@ -310,9 +310,9 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                       onClick={(e) => {
                         e.stopPropagation();
                         onOpenChat({
-                          workspaceId: report.caseId!,
+                          workspaceId: report.caseId,
                           launchContext: {
-                            sourceReportId: report.id!,
+                            sourceReportId: report.id,
                           },
                         });
                       }}
