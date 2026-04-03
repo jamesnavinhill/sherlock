@@ -131,7 +131,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 <button
                   key={num}
                   onClick={() => setFeedConfig({ ...feedConfig, limit: num })}
-                  className={`w-8 h-6 flex items-center justify-center text-[10px] font-mono border transition-all ${feedConfig.limit === num ? 'bg-osint-primary text-black border-osint-primary font-bold' : 'bg-transparent text-zinc-500 border-zinc-700 hover:border-zinc-500'}`}
+                  className={`w-8 h-6 flex items-center justify-center text-[10px] font-mono border transition-all ${feedConfig.limit === num ? 'osint-button-soft font-bold' : 'bg-transparent text-zinc-500 border-zinc-700 hover:border-zinc-500'}`}
                 >
                   {num}
                 </button>
@@ -189,7 +189,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           </button>
           <button
             onClick={() => { setShowSettings(false); loadFeed(); }}
-            className="px-4 py-1.5 bg-white text-black text-xs font-mono font-bold uppercase hover:bg-zinc-200"
+            className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
           >
             Apply & Scan
           </button>
@@ -287,7 +287,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                     />
                   </div>
                   <div className="flex justify-end pt-2">
-                    <button onClick={() => { setShowDatePicker(false); loadFeed(); }} className="px-3 py-1 bg-osint-primary text-black text-[10px] font-bold uppercase font-mono">Apply</button>
+                    <button onClick={() => { setShowDatePicker(false); loadFeed(); }} className="osint-button-primary px-3 py-1 text-[10px] font-bold uppercase font-mono">Apply</button>
                   </div>
                 </div>
               </div>
@@ -395,7 +395,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               <div className="pt-2">
                 <button
                   onClick={handleApplyFilters}
-                  className="w-full py-2 bg-osint-primary text-black font-bold font-mono text-xs uppercase hover:bg-white transition-colors"
+                  className="osint-button-primary w-full py-2 font-bold font-mono text-xs uppercase"
                 >
                   Apply Filters
                 </button>

@@ -563,7 +563,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           <button
             onClick={handleAddEntity}
             disabled={!newEntityName.trim()}
-            className="px-3 py-2 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="osint-button-primary px-3 py-2 font-mono text-xs font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -935,7 +935,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
               <button
                 onClick={nextStep}
                 disabled={!canProceed()}
-                className="tasksetup-next-button flex items-center px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold font-mono text-xs uppercase transition-colors disabled:opacity-50"
+                className="osint-button-primary flex items-center px-6 py-2 font-bold font-mono text-xs uppercase disabled:opacity-50"
               >
                 Next
                 <ChevronRight className="w-4 h-4 ml-1" />
@@ -943,7 +943,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             ) : (
               <button
                 onClick={handleStart}
-                className="px-6 py-2 bg-white hover:bg-zinc-200 text-black font-bold font-mono text-xs uppercase flex items-center transition-colors shadow-[0_0_15px_-5px_rgba(255,255,255,0.5)]"
+                className="osint-button-primary px-6 py-2 font-bold font-mono text-xs uppercase flex items-center"
               >
                 <PlayCircle className="w-4 h-4 mr-2" />
                 {setupCopy.executeLabel}

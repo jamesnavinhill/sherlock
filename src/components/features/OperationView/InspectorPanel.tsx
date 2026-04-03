@@ -252,7 +252,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     </div>
 
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
-                        <button onClick={onInvestigateHeadline} className="w-full py-3 bg-osint-primary hover:bg-white text-black font-bold font-mono text-sm uppercase transition-colors flex items-center justify-center shadow-lg">
+                        <button onClick={onInvestigateHeadline} className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center">
                             Launch Investigation
                         </button>
                     </div>

@@ -21,13 +21,17 @@ import {
     Workflow
 } from 'lucide-react';
 import { useCaseStore } from '../../../store/caseStore';
-import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { TemplateGallery } from './TemplateGallery';
 import { ScopeManager } from '../../ui/ScopeManager';
 import type { InvestigationLaunchRequest, SystemConfig } from '../../../types';
 import { AccentPicker } from '../../ui/AccentPicker';
-import { buildAccentColor } from '../../../utils/accent';
-import { parseThemeSurfaceSettings, type ThemeSurfaceScale, type ThemeSurfaceSettings } from '../../../utils/themeSurfaces';
+import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../../../utils/accent';
+import {
+    DEFAULT_THEME_SURFACE_SETTINGS,
+    parseThemeSurfaceSettings,
+    type ThemeSurfaceScale,
+    type ThemeSurfaceSettings
+} from '../../../utils/themeSurfaces';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import type { AIProvider } from '../../../config/aiModels';
 import {
@@ -288,6 +292,31 @@ export const Settings: React.FC<SettingsProps> = ({
         });
     };
 
+    const handleResetThemeSettings = () => {
+        onAccentChange(DEFAULT_ACCENT_SETTINGS);
+        onThemeSurfaceSettingsChange(DEFAULT_THEME_SURFACE_SETTINGS);
+    };
+
+    const renderToggleCard = (
+        title: string,
+        description: string,
+        isEnabled: boolean,
+        onToggle: () => void
+    ) => (
+        <div className="bg-zinc-900/40 border border-zinc-800 p-6 flex items-center justify-between gap-6 min-h-32">
+            <div className="space-y-2">
+                <h4 className="text-sm font-bold text-zinc-200 font-mono">{title}</h4>
+                <p className="text-[10px] text-zinc-500 font-mono leading-relaxed">{description}</p>
+            </div>
+            <button
+                onClick={onToggle}
+                className={`w-12 h-6 rounded-full relative transition-colors flex-shrink-0 ${isEnabled ? 'bg-zinc-200' : 'bg-zinc-800'}`}
+            >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isEnabled ? 'left-7' : 'left-1'}`} />
+            </button>
+        </div>
+    );
+
     const renderThemeSurfaceSection = (mode: keyof ThemeSurfaceSettings, title: string) => {
         const surfaceEntries: Array<{ key: keyof ThemeSurfaceScale; label: string }> = [
             { key: 'background', label: 'Workspace Background' },
@@ -305,16 +334,22 @@ export const Settings: React.FC<SettingsProps> = ({
                     {surfaceEntries.map(({ key, label }) => {
                         const current = themeSurfaceSettings[mode][key];
                         return (
-                            <div key={key} className="space-y-3">
+                            <div key={key} className="space-y-3 border-t border-zinc-800/80 pt-5 first:border-t-0 first:pt-0">
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-[10px] text-zinc-500 font-mono uppercase">{label}</label>
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                            className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                                            style={{ background: buildAccentColor(current) }}
+                                        />
+                                        <label className="block text-[10px] text-zinc-500 font-mono uppercase">{label}</label>
+                                    </div>
                                     <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(current)}</div>
                                 </div>
                                 <AccentPicker
                                     hue={current.hue}
                                     lightness={current.lightness}
                                     chroma={current.chroma}
-                                    previewLabel={label}
+                                    showPreview={false}
                                     onChange={(settings) => handleThemeSurfaceChange(mode, key, settings)}
                                 />
                             </div>
@@ -326,65 +361,71 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     const renderGeneral = () => (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-8">
+            <section className="space-y-4">
+                <div className="flex items-center space-x-2 mb-4">
+                    <Shield className="w-4 h-4 text-osint-primary" />
+                    <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Intelligence & Alerts</h3>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {renderToggleCard(
+                        'Auto-Resolve Entities',
+                        'Automatically group variations of entity names.',
+                        autoResolve,
+                        () => setAutoResolve(!autoResolve)
+                    )}
+                    {renderToggleCard(
+                        'Quiet Mode',
+                        'Suppress non-critical system notifications.',
+                        quietMode,
+                        () => setQuietMode(!quietMode)
+                    )}
+                </div>
+            </section>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-8">
                 <section className="space-y-4">
                     <div className="flex items-center space-x-2 mb-4">
                         <Palette className="w-4 h-4 text-osint-primary" />
-                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Visual Interface</h3>
+                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Accent Color</h3>
                     </div>
                     <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <label className="block text-[10px] text-zinc-500 font-mono uppercase">Accent Color</label>
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                                        style={{ background: buildAccentColor(accentSettings) }}
+                                    />
+                                    <label className="block text-[10px] text-zinc-500 font-mono uppercase">Custom Accent</label>
+                                </div>
+                                <button
+                                    onClick={handleResetThemeSettings}
+                                    className="px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-[10px] uppercase transition-colors"
+                                >
+                                    Reset Theme
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between">
                                 <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(accentSettings)}</div>
                             </div>
                             <AccentPicker
                                 hue={accentSettings.hue}
                                 lightness={accentSettings.lightness}
                                 chroma={accentSettings.chroma}
+                                showPreview={false}
                                 onChange={(settings) => onAccentChange(settings)}
                             />
                         </div>
                     </div>
                 </section>
 
+                <div className="hidden lg:block" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-8">
                 {renderThemeSurfaceSection('dark', 'Dark Theme Surfaces')}
                 {renderThemeSurfaceSection('light', 'Light Theme Surfaces')}
-
-                <section className="space-y-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Shield className="w-4 h-4 text-osint-primary" />
-                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Intelligence & Alerts</h3>
-                    </div>
-                    <div className="bg-zinc-900/40 border border-zinc-800 p-6 h-full flex flex-col justify-between">
-                        <div className="flex items-center justify-between py-2">
-                            <div>
-                                <h4 className="text-sm font-bold text-zinc-200 font-mono">Auto-Resolve Entities</h4>
-                                <p className="text-[10px] text-zinc-500 font-mono mt-1">Automatically group variations of entity names</p>
-                            </div>
-                            <button
-                                onClick={() => setAutoResolve(!autoResolve)}
-                                className={`w-12 h-6 rounded-full relative transition-colors ${autoResolve ? 'bg-zinc-200' : 'bg-zinc-800'}`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoResolve ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-                        <div className="my-4 border-t border-zinc-800" />
-                        <div className="flex items-center justify-between py-2">
-                            <div>
-                                <h4 className="text-sm font-bold text-zinc-200 font-mono">Quiet Mode</h4>
-                                <p className="text-[10px] text-zinc-500 font-mono mt-1">Suppress non-critical system notifications</p>
-                            </div>
-                            <button
-                                onClick={() => setQuietMode(!quietMode)}
-                                className={`w-12 h-6 rounded-full relative transition-colors ${quietMode ? 'bg-zinc-200' : 'bg-zinc-800'}`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${quietMode ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-                    </div>
-                </section>
             </div>
         </div>
     );
@@ -689,8 +730,6 @@ export const Settings: React.FC<SettingsProps> = ({
 
     return (
         <div className="h-full w-full bg-black relative flex flex-col overflow-hidden">
-            <BackgroundMatrixRain />
-
             <header className="h-20 px-8 bg-zinc-900/45 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0 shadow-[inset_0_-1px_0_rgba(39,39,42,0.8)]">
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-700/70 to-transparent pointer-events-none" />
                 <div className="h-full flex items-center space-x-8">
@@ -709,7 +748,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     <button
                         onClick={handleSaveConfiguration}
                         disabled={isSaving || (activeTab !== 'GENERAL' && activeTab !== 'AI')}
-                        className="flex items-center px-4 py-2 bg-white text-black border border-white font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_-5px_rgba(255,255,255,0.45)]"
+                        className="osint-button-primary flex items-center px-4 py-2 font-mono text-xs font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         {isSaving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                         {isSaving ? 'Saving...' : saveSuccess ? 'Saved' : 'Save Configuration'}

@@ -8,6 +8,7 @@ interface AccentPickerProps {
   onChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
   containerClassName?: string;
   previewLabel?: string;
+  showPreview?: boolean;
 }
 
 export const AccentPicker: React.FC<AccentPickerProps> = ({
@@ -17,6 +18,7 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
   onChange,
   containerClassName,
   previewLabel = 'Custom Accent',
+  showPreview = true,
 }) => {
   const [isDraggingHue, setIsDraggingHue] = useState(false);
   const hueRef = useRef<HTMLDivElement | null>(null);
@@ -161,13 +163,15 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 pt-3 border-t border-zinc-800">
+      {showPreview && (
+        <div className="flex items-center gap-3 pt-3 border-t border-zinc-800">
           <div className="w-10 h-10 rounded-xl border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]" style={{ background: oklchColor }} />
           <div className="flex-1">
-          <div className="text-sm font-bold text-white font-mono uppercase">{previewLabel}</div>
-          <div className="text-[10px] text-zinc-500 font-mono">oklch({lightness.toFixed(2)} {chroma.toFixed(2)} {hue})</div>
+            <div className="text-sm font-bold text-white font-mono uppercase">{previewLabel}</div>
+            <div className="text-[10px] text-zinc-500 font-mono">oklch({lightness.toFixed(2)} {chroma.toFixed(2)} {hue})</div>
           </div>
         </div>
+      )}
     </div>
   );
 };

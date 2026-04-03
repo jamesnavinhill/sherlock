@@ -173,7 +173,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     </div>
 
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
-                        <button onClick={() => { onInvestigate(selectedHeadline.content); onClose(); }} className="w-full py-3 bg-osint-primary hover:bg-white text-black font-bold font-mono text-sm uppercase transition-colors flex items-center justify-center shadow-lg">
+                        <button onClick={() => { onInvestigate(selectedHeadline.content); onClose(); }} className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center">
                             <Microscope className="w-4 h-4 mr-2" /> Launch Investigation
                         </button>
                     </div>
@@ -271,7 +271,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                         </Accordion>
                     </div>
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto">
-                        <button onClick={() => onOpenReport(selectedReport)} className="w-full py-3 bg-zinc-800 hover:bg-white hover:text-black text-white font-bold font-mono text-sm uppercase transition-colors flex items-center justify-center border border-zinc-700">
+                        <button onClick={() => onOpenReport(selectedReport)} className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center">
                             <FolderOpen className="w-4 h-4 mr-2" /> Open Full Report
                         </button>
                     </div>

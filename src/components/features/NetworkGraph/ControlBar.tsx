@@ -133,7 +133,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 <div className="h-6 w-px bg-zinc-800 mx-1"></div>
                 <button
                     onClick={onToggleLinkingMode}
-                    className={`p-2 border transition-colors ${isLinkingMode ? 'bg-osint-primary text-black border-osint-primary' : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-white'}`}
+                    className={`p-2 border transition-colors ${isLinkingMode ? 'osint-button-soft' : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-white'}`}
                     title="Manual Link Mode"
                 >
                     <LinkIcon className="w-4 h-4" />

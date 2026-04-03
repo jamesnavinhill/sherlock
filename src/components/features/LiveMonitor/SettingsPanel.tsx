@@ -179,7 +179,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </button>
           <button
             onClick={onClose}
-            className="scanner-apply-button px-4 py-1.5 bg-white text-black text-xs font-mono font-bold uppercase hover:bg-zinc-200"
+            className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
           >
             Apply
           </button>

@@ -127,7 +127,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
             </p>
             <button
               onClick={() => setIsNewCaseModalOpen(true)}
-              className="px-6 py-2 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.2)]"
+              className="osint-button-primary px-6 py-2 font-mono text-xs font-bold uppercase"
             >
               {`Start New ${archiveLabelProfile.workspaceLabel}`}
             </button>
@@ -408,7 +408,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
               </div>
             ) : null;
           })()}
-          <button onClick={() => setIsNewCaseModalOpen(true)} className="flex items-center px-3 py-1.5 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white transition-colors">
+          <button onClick={() => setIsNewCaseModalOpen(true)} className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase">
             <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
           </button>
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (

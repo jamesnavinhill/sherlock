@@ -173,7 +173,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </div>
                     </div>
                 )}
-                <button onClick={onStartNewCase} className="flex items-center px-3 py-1.5 bg-white text-black border border-white font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-colors shadow-lg shadow-white/10">
+                <button onClick={onStartNewCase} className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase">
                     <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">{`New ${labelProfile.workspaceLabel}`}</span>
                 </button>
             </div>
