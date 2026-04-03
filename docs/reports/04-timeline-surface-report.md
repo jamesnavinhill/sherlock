@@ -40,6 +40,7 @@ The recommended default is:
 
 - a sticky header
 - a compact summary strip
+- a dossier-style left panel for organization and coarse filtering
 - one mixed chronological stream for the active workspace
 - a right-side detail drawer for inspection and click-through
 
@@ -160,22 +161,51 @@ In other words:
 
 Timeline should open to a single workspace-scoped chronology page with:
 
+- a clean header matching other major Sherlock pages
 - the active workspace title
-- a date range control
-- track filter chips
+- a workspace selector
+- a text search field
+- a single filters button that opens a config-style popout
 - a compact summary strip
+- a dossier-style left panel with collapsible sections
 - a mixed event stream grouped by day, week, or month
 - a details drawer that opens when an event is selected
 
+### Left Dossier Structure
+
+The left panel should behave more like `OperationView` and `NetworkGraph` dossier panels than like a row of chips.
+
+Recommended top-level sections:
+
+- `Events`
+- `Runs`
+- `Artifacts`
+- `Signals`
+- `Chats`
+- `Follow-ups`
+
+Behavior:
+
+- sections are collapsible
+- each section shows counts
+- clicking a section filters or focuses the main chronology on that class of items
+- clicking a specific item highlights or isolates related timeline events
+- "All" lives naturally inside the dossier rather than as a top-row chip
+
+This makes the left panel do two jobs that fit Sherlock well:
+
+- structural navigation
+- coarse filter selection
+
 ### Default-On Tracks
 
-These are the most meaningful signals for a first Timeline release:
+These are the most meaningful timeline categories for a first release:
 
 - `Signals`
 - `Runs`
 - `Artifacts`
 
-These three already tell the clearest story:
+These three still tell the clearest story:
 
 - a signal arrived
 - a run was launched
@@ -183,7 +213,7 @@ These three already tell the clearest story:
 
 ### Secondary Tracks
 
-These should exist, but not dominate the default view:
+These should exist, but be controlled through the dossier and filters popout rather than always living in the header:
 
 - `Chat Sessions`
 - `Chat Actions`
@@ -216,33 +246,21 @@ These should live behind:
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ Timeline / Case Timeline                                                    │
-│ Workspace: [Acme Inquiry]   Range: [30d v]   Tracks: [All][Signals][Runs]  │
-│ Search: [entity, source, topic...]   Density: [Comfortable v]              │
-└──────────────────────────────────────────────────────────────────────────────┘
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ 12 Signals   4 Runs   3 Artifacts   2 Follow-ups   Last activity 2h ago    │
+│ [L] Timeline / Case Timeline   [Workspace Selector]   [Search]   [Filters] │
+│                                                     [Export] [Details] [R] │
 └──────────────────────────────────────────────────────────────────────────────┘
 ┌──────────────────────────────────────────────┬───────────────────────────────┐
-│ MAIN CHRONOLOGY                             │ DETAILS DRAWER                │
-│                                              │                               │
-│ Apr 03                                       │ [selected event title]        │
-│   09:14  SIGNAL    Reuters...                │ type: Signal                  │
-│          saved to workspace                  │ time: Apr 03, 09:14           │
-│          [Critical] [News] [Open Signal]     │ workspace: Acme Inquiry       │
-│          │                                   │ related run: run-42           │
-│          ├─ 09:28 RUN started                │ linked artifact: brief-7      │
-│          │        [Deep Dive] [Open Run]     │ citations / source / summary  │
-│          │                                   │                               │
-│          └─ 09:41 ARTIFACT created           │ actions:                      │
-│                   Acme Supplier Brief        │ - Open Artifact               │
-│                   [Brief] [Open Artifact]    │ - Open Chat                   │
-│                                              │ - Jump to Graph               │
-│ Apr 02                                       │                               │
-│   17:20  CHAT ACTION  Follow-up launched     │                               │
-│   16:55  ARTIFACT    Comparative Synthesis   │                               │
-│   14:05  SIGNAL      SEC filing saved        │                               │
-└──────────────────────────────────────────────┴───────────────────────────────┘
+│ TIMELINE DOSSIER             │ MAIN CHRONOLOGY       │ DETAILS DRAWER       │
+│                              │                       │                      │
+│ Events (21)                  │ Apr 03                │ selected event       │
+│ Runs (4)                     │  09:14 Signal saved   │ actions              │
+│ Artifacts (3)                │  09:28 Run started    │ collapsible sections │
+│   Artifact 1                 │  09:41 Artifact made  │ source/context       │
+│   Artifact 2                 │                       │ linked items         │
+│ Signals (12)                 │ Apr 02                │                      │
+│ Chats (5)                    │  17:20 Follow-up run  │                      │
+│ Follow-ups (2)               │  16:55 Artifact made  │                      │
+└──────────────────────────────┴───────────────────────┴──────────────────────┘
 ```
 
 ### Mobile
@@ -250,10 +268,11 @@ These should live behind:
 ```text
 ┌──────────────────────────────┐
 │ Timeline                     │
-│ [Workspace] [Range] [Filter] │
+│ [Workspace] [Search] [Filter]│
 └──────────────────────────────┘
 ┌──────────────────────────────┐
-│ summary chips                │
+│ dossier drawer               │
+│ collapsible sections         │
 └──────────────────────────────┘
 ┌──────────────────────────────┐
 │ grouped timeline list        │
@@ -294,21 +313,54 @@ That belongs in the drawer.
 
 ### Recommendation
 
-Use filter chips and a detail drawer, not heavy top-level tabs.
+Use:
+
+- a dossier-style left panel for organization and coarse filtering
+- a detail drawer on the right
+- one filters button with a config popout
+
+Do not use:
+
+- always-visible filter chips across the header
+- heavy top-level tabs
 
 Reason:
 
 - Timeline is strongest when it shows mixed chronology
+- a chip row adds visual noise quickly
 - hard tabs split the story into silos too early
 - Sherlock already uses drawers and contextual panels well
 
 ### Suggested Header Controls
 
-- date range: `24h`, `7d`, `30d`, `90d`, `All`
-- track chips: `All`, `Signals`, `Runs`, `Artifacts`, `Chat`, `Entities`
-- search box for entity/source/topic
-- density toggle
-- "Only selected workspace" should be implicit, since Timeline should be workspace-scoped by default
+- left panel toggle
+- page title
+- workspace selector
+- text search input
+- filters button
+- optional export button
+- right panel toggle
+
+This keeps the header closer to existing Sherlock shells:
+
+- uniform
+- readable
+- control-light
+- framed by outer panel toggles
+
+### Suggested Filters Popout
+
+Filters should open in a compact config-style popout matching the existing settings overlays used by `Feed` and `LiveMonitor`.
+
+Good candidates for that popout:
+
+- date range
+- event-type toggles
+- threat/severity filters
+- artifact type filters
+- "include chat actions"
+- "include graph edits"
+- density or grouping options if needed
 
 ### Suggested Drawer Content
 
@@ -320,6 +372,52 @@ The right drawer should hold:
 - related source, entity, or signal references
 - raw metadata expander
 - navigation actions into `OperationView`, `Chat`, `NetworkGraph`, or `Archives`
+
+## Search Model
+
+### Recommended Answer
+
+Use both text search and filters, but give them different responsibilities.
+
+### Text Search
+
+Search should be a direct text input in the header, placed naturally after the workspace selector.
+
+That search should feel like quick-find, not advanced filtering.
+
+It should match things users are likely to type:
+
+- artifact titles
+- run topics
+- signal text
+- entity names
+- source names
+- chat session titles
+
+### Filters
+
+Filters should not try to replace text search.
+
+Filters are better for narrowing the result set by structured constraints:
+
+- date range
+- track type
+- artifact type
+- severity
+- follow-up only
+- include or exclude chat/system activity
+
+### Left Dossier Vs Search
+
+The dossier should not become a second full search system.
+
+Recommended split:
+
+- header search = quick text lookup
+- filters popout = structured narrowing
+- left dossier = browse, organize, and focus by category or item
+
+That division feels clean and matches the rest of the app better than using chips for everything.
 
 ## Graph, Canvas, Or Regular Page?
 
@@ -437,6 +535,9 @@ To feel on-brand with the existing app:
 - keep the matrix/dark panel treatment already used by feature shells
 - use the same sticky-header pattern as `Feed` and `LiveMonitor`
 - use the same inspector/drawer behavior already familiar from `OperationView`, `Chat`, and `NetworkGraph`
+- let the left dossier work like existing dossier/navigation panels instead of a toolbar of chips
+- keep text search in the header near the workspace selector
+- keep advanced filters behind a single config-style popout
 - keep actions workspace-scoped and click-through oriented
 - reuse current label profiles for user-facing copy
 
@@ -525,7 +626,10 @@ The first real Timeline release should not try to show everything.
 A strong V1 is:
 
 - mixed workspace chronology
+- dossier-style left panel
 - signals + runs + artifacts
+- header text search
+- filters popout
 - detail drawer
 - click-through into existing views
 
