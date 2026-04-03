@@ -104,6 +104,59 @@ export const tasks = sqliteTable('tasks', {
     endTime: integer('end_time'),
 });
 
+// --- CHAT ---
+export const chatSessions = sqliteTable('chat_sessions', {
+    id: text('id').primaryKey(),
+    workspaceId: text('workspace_id').notNull().references(() => cases.id),
+    title: text('title').notNull(),
+    status: text('status').notNull(),
+    sourceReportId: text('source_report_id').references(() => reports.id),
+    packId: text('pack_id'),
+    purposeId: text('purpose_id'),
+    provider: text('provider'),
+    modelId: text('model_id'),
+    metadataJson: text('metadata_json'),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+});
+
+export const chatMessages = sqliteTable('chat_messages', {
+    id: text('id').primaryKey(),
+    sessionId: text('session_id').notNull().references(() => chatSessions.id),
+    role: text('role').notNull(),
+    content: text('content').notNull(),
+    status: text('status').notNull(),
+    citationsJson: text('citations_json'),
+    metadataJson: text('metadata_json'),
+    error: text('error'),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+});
+
+export const chatMessageAttachments = sqliteTable('chat_message_attachments', {
+    id: text('id').primaryKey(),
+    messageId: text('message_id').notNull().references(() => chatMessages.id),
+    kind: text('kind').notNull(),
+    title: text('title').notNull(),
+    refId: text('ref_id'),
+    refKind: text('ref_kind'),
+    snippet: text('snippet'),
+    metadataJson: text('metadata_json'),
+    createdAt: integer('created_at').notNull(),
+});
+
+export const chatActions = sqliteTable('chat_actions', {
+    id: text('id').primaryKey(),
+    sessionId: text('session_id').notNull().references(() => chatSessions.id),
+    messageId: text('message_id').references(() => chatMessages.id),
+    type: text('type').notNull(),
+    status: text('status').notNull(),
+    inputJson: text('input_json'),
+    resultJson: text('result_json'),
+    createdAt: integer('created_at').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+});
+
 // --- FEED ITEMS ---
 export const feedItems = sqliteTable('feed_items', {
     id: text('id').primaryKey(),

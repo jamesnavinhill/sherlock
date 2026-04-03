@@ -118,6 +118,64 @@ CREATE TABLE IF NOT EXISTS "tasks" (
 	FOREIGN KEY ("case_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "chat_sessions" (
+	"id" text PRIMARY KEY NOT NULL,
+	"workspace_id" text NOT NULL,
+	"title" text NOT NULL,
+	"status" text NOT NULL,
+	"source_report_id" text,
+	"pack_id" text,
+	"purpose_id" text,
+	"provider" text,
+	"model_id" text,
+	"metadata_json" text,
+	"created_at" integer NOT NULL,
+	"updated_at" integer NOT NULL,
+	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("source_report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "chat_messages" (
+	"id" text PRIMARY KEY NOT NULL,
+	"session_id" text NOT NULL,
+	"role" text NOT NULL,
+	"content" text NOT NULL,
+	"status" text NOT NULL,
+	"citations_json" text,
+	"metadata_json" text,
+	"error" text,
+	"created_at" integer NOT NULL,
+	"updated_at" integer NOT NULL,
+	FOREIGN KEY ("session_id") REFERENCES "chat_sessions"("id") ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "chat_message_attachments" (
+	"id" text PRIMARY KEY NOT NULL,
+	"message_id" text NOT NULL,
+	"kind" text NOT NULL,
+	"title" text NOT NULL,
+	"ref_id" text,
+	"ref_kind" text,
+	"snippet" text,
+	"metadata_json" text,
+	"created_at" integer NOT NULL,
+	FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "chat_actions" (
+	"id" text PRIMARY KEY NOT NULL,
+	"session_id" text NOT NULL,
+	"message_id" text,
+	"type" text NOT NULL,
+	"status" text NOT NULL,
+	"input_json" text,
+	"result_json" text,
+	"created_at" integer NOT NULL,
+	"updated_at" integer NOT NULL,
+	FOREIGN KEY ("session_id") REFERENCES "chat_sessions"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "templates" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,

@@ -85,6 +85,7 @@ export interface Headline {
 
 export interface Case {
   id: string;
+  scopeId?: string;
   title: string;
   status: 'ACTIVE' | 'CLOSED';
   dateOpened: string;
@@ -146,9 +147,125 @@ export interface MonitorEvent {
   url?: string;
 }
 
+export type ChatSessionStatus = 'ACTIVE' | 'ARCHIVED';
+export type ChatMessageRole = 'system' | 'user' | 'assistant' | 'tool';
+export type ChatMessageStatus = 'PENDING' | 'STREAMING' | 'COMPLETED' | 'FAILED';
+export type ChatGenerationStatus = 'IDLE' | 'GENERATING' | 'FAILED';
+export type ChatAttachmentKind =
+  | 'WORKSPACE'
+  | 'REPORT'
+  | 'SECTION'
+  | 'ENTITY'
+  | 'HEADLINE'
+  | 'SOURCE'
+  | 'CUSTOM';
+
+export type AgentActionType =
+  | 'SEARCH_WORKSPACE'
+  | 'FETCH_ARTIFACT_SUMMARY'
+  | 'FETCH_FULL_ARTIFACT_TEXT'
+  | 'FETCH_RECENT_SIGNALS'
+  | 'CREATE_ARTIFACT_DRAFT'
+  | 'APPEND_NOTE_TO_ARTIFACT'
+  | 'CREATE_FOLLOW_UP_RUN';
+
+export type AgentActionStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
+
+export interface ChatSession {
+  id: string;
+  workspaceId: string;
+  title: string;
+  status: ChatSessionStatus;
+  sourceReportId?: string;
+  packId?: string;
+  purposeId?: string;
+  provider?: AIProvider;
+  modelId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ChatAttachment {
+  id: string;
+  messageId: string;
+  kind: ChatAttachmentKind;
+  title: string;
+  refId?: string;
+  refKind?: string;
+  snippet?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  sessionId: string;
+  role: ChatMessageRole;
+  content: string;
+  status: ChatMessageStatus;
+  citations?: string[];
+  attachments?: ChatAttachment[];
+  metadata?: Record<string, unknown>;
+  error?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface AgentAction {
+  id: string;
+  sessionId: string;
+  messageId?: string;
+  type: AgentActionType;
+  status: AgentActionStatus;
+  input?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ChatDraftArtifact {
+  id: string;
+  workspaceId: string;
+  sourceMessageId: string;
+  title: string;
+  content: string;
+  artifactType?: ArtifactType;
+  citations?: string[];
+  metadata?: Record<string, unknown>;
+  createdAt: number;
+}
+
+export interface ChatLaunchContext {
+  sourceReportId?: string;
+  entityName?: string;
+  headlineId?: string;
+}
+
+export interface WorkspaceContextSnippet {
+  id: string;
+  kind: ChatAttachmentKind;
+  title: string;
+  snippet: string;
+  refId?: string;
+  refKind?: string;
+  score: number;
+  timestamp?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface WorkspaceContextBundle {
+  workspace: Case;
+  summary: string;
+  recentArtifacts: InvestigationReport[];
+  recentHeadlines: Headline[];
+  snippets: WorkspaceContextSnippet[];
+}
+
 export enum AppView {
   DASHBOARD = 'DASHBOARD',
   INVESTIGATION = 'INVESTIGATION',
+  CHAT = 'CHAT',
   ARCHIVES = 'ARCHIVES',
   NETWORK = 'NETWORK',
   LIVE_MONITOR = 'LIVE_MONITOR',

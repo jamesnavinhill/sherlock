@@ -9,6 +9,7 @@ import type { FeedItem, InvestigationReport, MonitorEvent, Source } from '../../
 import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
+    ChatRequest,
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
@@ -32,6 +33,7 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
+import { buildWorkspaceChatPrompt, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 
 const PROVIDER = 'GEMINI' as const;
@@ -280,6 +282,52 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
             provider: PROVIDER,
             modelId: config.modelId,
             operation: 'INVESTIGATE',
+        }
+    );
+};
+
+const chat = async (request: ChatRequest) => {
+    const { config } = request;
+    const useStructuredOutput = supportsStructuredOutput(config.modelId);
+
+    return withProviderRetry(
+        async () => {
+            const ai = getAI();
+            const response = await ai.models.generateContent({
+                model: config.modelId,
+                contents: buildWorkspaceChatPrompt(request),
+                config: {
+                    ...(useStructuredOutput
+                        ? {
+                              responseMimeType: 'application/json',
+                              responseSchema: {
+                                  type: Type.OBJECT,
+                                  properties: {
+                                      content: { type: Type.STRING },
+                                      citations: {
+                                          type: Type.ARRAY,
+                                          items: { type: Type.STRING },
+                                      },
+                                      suggestedTitle: { type: Type.STRING },
+                                  },
+                                  required: ['content', 'citations'],
+                              },
+                          }
+                        : {}),
+                    thinkingConfig:
+                        config.thinkingBudget > 0
+                            ? { thinkingBudget: config.thinkingBudget }
+                            : undefined,
+                    safetySettings: SAFETY_SETTINGS,
+                },
+            });
+
+            return normalizeChatResponse(response.text || '', PROVIDER, config.modelId);
+        },
+        {
+            provider: PROVIDER,
+            modelId: config.modelId,
+            operation: 'CHAT',
         }
     );
 };
@@ -538,6 +586,7 @@ const generateAudioBriefing = async (request: TtsRequest): Promise<string> => {
 export const geminiProvider: ProviderAdapter = {
     provider: PROVIDER,
     investigate,
+    chat,
     scanAnomalies,
     getLiveIntel,
     generateAudioBriefing,

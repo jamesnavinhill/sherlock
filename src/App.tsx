@@ -28,6 +28,7 @@ const Settings = lazy(() => import('./components/features/Settings').then(m => (
 const TimelineView = lazy(() => import('./components/features/TimelineView').then(m => ({ default: m.TimelineView })));
 const OperationView = lazy(() => import('./components/features/OperationView').then(m => ({ default: m.OperationView })));
 const Feed = lazy(() => import('./components/features/Feed').then(m => ({ default: m.Feed })));
+const Chat = lazy(() => import('./components/features/Chat').then(m => ({ default: m.Chat })));
 import { Sidebar } from './components/ui/Sidebar';
 import { ToastContainer } from './components/ui/Toast';
 import { GlobalSearch } from './components/ui/GlobalSearch';
@@ -426,6 +427,9 @@ function App() {
                 onSelectReport={handleSelectReport}
                 onStartNewCase={(request) => launchInvestigation({ ...request, switchToView: true })}
               />
+            )}
+            {currentView === AppView.CHAT && (
+              <Chat />
             )}
             {currentView === AppView.NETWORK && (
               <NetworkGraph

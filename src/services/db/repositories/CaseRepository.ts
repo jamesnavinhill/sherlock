@@ -86,6 +86,7 @@ export class CaseRepository {
 
         return rows.map(row => ({
             id: row.id,
+            scopeId: row.scopeId || undefined,
             title: row.title,
             status: row.status as 'ACTIVE' | 'CLOSED',
             dateOpened: row.dateOpened,
@@ -106,6 +107,7 @@ export class CaseRepository {
 
         return {
             id: result[0].id,
+            scopeId: result[0].scopeId || undefined,
             title: result[0].title,
             status: result[0].status as 'ACTIVE' | 'CLOSED',
             dateOpened: result[0].dateOpened,
@@ -123,6 +125,7 @@ export class CaseRepository {
         const now = Date.now();
         await db.insert(cases).values({
             id: caseData.id,
+            scopeId: caseData.scopeId,
             title: caseData.title,
             status: caseData.status,
             dateOpened: caseData.dateOpened,

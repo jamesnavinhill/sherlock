@@ -21,6 +21,7 @@ Primary views loaded from App:
 
 - `Feed` (`AppView.DASHBOARD`)
 - `OperationView` (`AppView.INVESTIGATION`)
+- `Chat` (`AppView.CHAT`)
 - `NetworkGraph` (`AppView.NETWORK`)
 - `LiveMonitor` (`AppView.LIVE_MONITOR`)
 - `Archives` (`AppView.ARCHIVES`)
@@ -105,7 +106,9 @@ Key behavior:
 
 - router enforces provider/model alignment and capability checks
 - router resolves a pack and purpose profile for each run
+- router now exposes a sibling `CHAT` runtime path for workspace-grounded conversational turns
 - adapters return typed artifact sections in addition to legacy `summary`, `agendas`, and `leads`
+- chat adapters accept message arrays plus deterministic workspace retrieval bundles and return structured citations
 - TTS is only implemented on Gemini adapter
 - provider debug logs use `[provider-router]` metadata
 
@@ -131,6 +134,7 @@ The schema still uses compatibility tables such as `cases`, `reports`, and `task
 - `reports` now store `artifactType`, pack/purpose references, label profiles, and metadata JSON
 - `artifact_sections` persists typed section rows separately from the legacy flattened report fields
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
+- `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
 
 Migration:
 
@@ -146,6 +150,7 @@ Global store:
 State domains include:
 
 - cases, archives, tasks, headlines
+- chat sessions, messages, generation state, and launch context
 - pack-aware report config snapshots
 - typed artifact sections
 - manual graph nodes/links
@@ -168,6 +173,16 @@ Persistence writes are handled through repository calls and settings KV writes r
 - InspectorPanel
 
 Supports deep dives, headline follow-through, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
+
+### Chat
+
+`src/components/features/Chat/index.tsx`
+
+- dedicated workspace-bound chat page
+- persisted session switching, rename, and delete flows
+- non-streaming grounded answers backed by deterministic workspace retrieval
+- transcript copy plus Markdown/JSON export
+- context drawer with recent artifacts, recent signals, and last-turn retrieval snippets
 
 `ReportViewer` now renders:
 
@@ -233,6 +248,7 @@ Task setup and template flows now expose:
 Tests are currently concentrated in:
 
 - provider parsing/contract tests
+- provider router chat dispatch tests
 - launch propagation tests across feature entry points
 - config/store/key utility tests
 

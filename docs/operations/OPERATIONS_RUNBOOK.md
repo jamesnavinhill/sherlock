@@ -3,6 +3,7 @@
 This runbook covers runtime incidents in the provider router pipeline:
 
 - `INVESTIGATE`
+- `CHAT`
 - `SCAN_ANOMALIES`
 - `LIVE_INTEL`
 - `TTS`
@@ -40,6 +41,7 @@ Adapters in scope:
 ## 3. Capability Constraints
 
 - TTS: Gemini adapter only.
+- Chat: all active providers support the persisted non-streaming workspace chat contract.
 - Thinking budget: model-gated, mainly relevant to Gemini models.
 - Web search: capability varies by provider/model metadata.
 
@@ -64,6 +66,7 @@ If users report wrong provider/model context:
 Current adapter behavior:
 
 - `INVESTIGATE`: fails hard on provider errors (no simulated artifact fallback).
+- `CHAT`: fails hard on provider or retrieval errors (no simulated transcript fallback).
 - `SCAN_ANOMALIES` and `LIVE_INTEL`: return simulated fallback items for non-key failures.
 - `MISSING_API_KEY`: does not fallback; error is surfaced.
 

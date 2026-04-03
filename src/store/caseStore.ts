@@ -1,8 +1,13 @@
 import { create } from 'zustand';
 import type {
+    AgentAction,
     InvestigationReport,
     InvestigationTask,
     Case,
+    ChatGenerationStatus,
+    ChatLaunchContext,
+    ChatMessage,
+    ChatSession,
     MonitorEvent,
     BreadcrumbItem,
     CaseTemplate,
@@ -23,10 +28,12 @@ import { TaskRepository } from '../services/db/repositories/TaskRepository';
 import { SettingsRepository } from '../services/db/repositories/SettingsRepository';
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
 import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
+import { ChatRepository } from '../services/db/repositories/ChatRepository';
 import { initDB } from '../services/db/client';
 import { migrateLocalStorageToSqlite } from '../services/db/migrate';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor, parseOklch } from '../utils/accent';
 import { loadSystemConfig } from '../config/systemConfig';
+import { createLocalId } from '../utils/id';
 
 export interface Toast {
     id: string;
@@ -45,6 +52,13 @@ interface CaseState {
     archives: InvestigationReport[];
     cases: Case[];
     tasks: InvestigationTask[];
+    chatSessions: ChatSession[];
+    chatMessagesBySessionId: Record<string, ChatMessage[]>;
+    chatActionsBySessionId: Record<string, AgentAction[]>;
+    activeChatSessionId: string | null;
+    chatGenerationStatus: ChatGenerationStatus;
+    partialAssistantOutput: string;
+    selectedChatLaunchContext: ChatLaunchContext | null;
     activeTaskId: string | null;
     liveEvents: MonitorEvent[];
     headlines: Headline[];
@@ -87,6 +101,12 @@ interface CaseState {
     setArchives: (archives: InvestigationReport[]) => void;
     setCases: (cases: Case[]) => void;
     setTasks: (tasks: InvestigationTask[]) => void;
+    setChatSessions: (sessions: ChatSession[]) => void;
+    setChatMessagesBySessionId: (messages: Record<string, ChatMessage[]>) => void;
+    setActiveChatSessionId: (id: string | null) => void;
+    setChatGenerationStatus: (status: ChatGenerationStatus) => void;
+    setPartialAssistantOutput: (value: string) => void;
+    setSelectedChatLaunchContext: (context: ChatLaunchContext | null) => void;
     setActiveTaskId: (id: string | null) => void;
     setLiveEvents: (events: MonitorEvent[] | ((prev: MonitorEvent[]) => MonitorEvent[])) => void;
     setCurrentView: (view: AppView) => void;
@@ -125,6 +145,21 @@ interface CaseState {
 
     // --- DERIVED/COMPLEX ACTIONS ---
     addTask: (task: InvestigationTask) => Promise<void>;
+    createChatSession: (input: {
+        workspaceId: string;
+        title?: string;
+        sourceReportId?: string;
+        packId?: string;
+        purposeId?: string;
+        provider?: ChatSession['provider'];
+        modelId?: string;
+        metadata?: Record<string, unknown>;
+    }) => Promise<ChatSession>;
+    renameChatSession: (sessionId: string, title: string) => Promise<void>;
+    deleteChatSession: (sessionId: string) => Promise<void>;
+    addChatMessage: (message: ChatMessage) => Promise<void>;
+    updateChatMessage: (messageId: string, sessionId: string, patch: Partial<ChatMessage>) => Promise<void>;
+    addChatAction: (action: AgentAction) => Promise<void>;
     completeTask: (id: string, report: InvestigationReport) => Promise<void>;
     failTask: (id: string, error: string) => Promise<void>;
     clearCompletedTasks: () => Promise<void>;
@@ -146,6 +181,13 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     archives: [],
     cases: [],
     tasks: [],
+    chatSessions: [],
+    chatMessagesBySessionId: {},
+    chatActionsBySessionId: {},
+    activeChatSessionId: null,
+    chatGenerationStatus: 'IDLE',
+    partialAssistantOutput: '',
+    selectedChatLaunchContext: null,
     activeTaskId: null,
     liveEvents: [],
     toasts: [],
@@ -189,6 +231,16 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const archives = await CaseRepository.getAllReports();
             const scopes = await ScopeRepository.getAll();
             const tasks = await TaskRepository.getAll();
+            const chatSessions = await ChatRepository.getAllSessions();
+            const chatMessagesBySessionId = await ChatRepository.getMessagesBySessionIds(chatSessions.map((session) => session.id));
+            const chatActionsBySessionId = Object.fromEntries(
+                await Promise.all(
+                    chatSessions.map(async (session) => [
+                        session.id,
+                        await ChatRepository.getActionsForSession(session.id),
+                    ])
+                )
+            );
             const headlines = await CaseRepository.getHeadlines();
             const templates = await TemplateRepository.getAll();
             const manualNodes = await ManualDataRepository.getAllNodes();
@@ -239,6 +291,9 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 archives,
                 customScopes: scopes,
                 tasks,
+                chatSessions,
+                chatMessagesBySessionId,
+                chatActionsBySessionId,
                 headlines,
                 templates,
                 manualNodes,
@@ -261,6 +316,12 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     setArchives: (archives) => set({ archives }),
     setCases: (cases) => set({ cases }),
     setTasks: (tasks) => set({ tasks }),
+    setChatSessions: (chatSessions) => set({ chatSessions }),
+    setChatMessagesBySessionId: (chatMessagesBySessionId) => set({ chatMessagesBySessionId }),
+    setActiveChatSessionId: (activeChatSessionId) => set({ activeChatSessionId }),
+    setChatGenerationStatus: (chatGenerationStatus) => set({ chatGenerationStatus }),
+    setPartialAssistantOutput: (partialAssistantOutput) => set({ partialAssistantOutput }),
+    setSelectedChatLaunchContext: (selectedChatLaunchContext) => set({ selectedChatLaunchContext }),
     setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
     setLiveEvents: (eventsOrUpdater) => {
         if (typeof eventsOrUpdater === 'function') {
@@ -414,6 +475,114 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     },
 
     // COMPLEX ACTIONS
+    createChatSession: async (input) => {
+        const systemConfig = loadSystemConfig();
+        const now = Date.now();
+        const session: ChatSession = {
+            id: createLocalId('chat-session'),
+            workspaceId: input.workspaceId,
+            title: input.title?.trim() || 'Untitled Chat',
+            status: 'ACTIVE',
+            sourceReportId: input.sourceReportId,
+            packId: input.packId,
+            purposeId: input.purposeId,
+            provider: input.provider || systemConfig.provider,
+            modelId: input.modelId || systemConfig.modelId,
+            metadata: input.metadata,
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        await ChatRepository.createSession(session);
+        set((state) => ({
+            chatSessions: [session, ...state.chatSessions],
+            activeChatSessionId: session.id,
+        }));
+
+        return session;
+    },
+
+    renameChatSession: async (sessionId, title) => {
+        const trimmedTitle = title.trim();
+        if (!trimmedTitle) return;
+
+        await ChatRepository.updateSession(sessionId, { title: trimmedTitle, updatedAt: Date.now() });
+        set((state) => ({
+            chatSessions: state.chatSessions.map((session) =>
+                session.id === sessionId
+                    ? { ...session, title: trimmedTitle, updatedAt: Date.now() }
+                    : session
+            ),
+        }));
+    },
+
+    deleteChatSession: async (sessionId) => {
+        await ChatRepository.deleteSession(sessionId);
+        set((state) => {
+            const nextSessions = state.chatSessions.filter((session) => session.id !== sessionId);
+            const nextMessages = { ...state.chatMessagesBySessionId };
+            const nextActions = { ...state.chatActionsBySessionId };
+            delete nextMessages[sessionId];
+            delete nextActions[sessionId];
+
+            return {
+                chatSessions: nextSessions,
+                chatMessagesBySessionId: nextMessages,
+                chatActionsBySessionId: nextActions,
+                activeChatSessionId:
+                    state.activeChatSessionId === sessionId ? nextSessions[0]?.id || null : state.activeChatSessionId,
+            };
+        });
+    },
+
+    addChatMessage: async (message) => {
+        await ChatRepository.createMessage(message);
+        set((state) => ({
+            chatMessagesBySessionId: {
+                ...state.chatMessagesBySessionId,
+                [message.sessionId]: [...(state.chatMessagesBySessionId[message.sessionId] || []), message],
+            },
+            chatSessions: state.chatSessions.map((session) =>
+                session.id === message.sessionId
+                    ? { ...session, updatedAt: message.updatedAt }
+                    : session
+            ),
+        }));
+    },
+
+    updateChatMessage: async (messageId, sessionId, patch) => {
+        await ChatRepository.updateMessage(messageId, patch);
+        if (patch.attachments) {
+            await ChatRepository.replaceAttachments(messageId, patch.attachments);
+        }
+
+        set((state) => ({
+            chatMessagesBySessionId: {
+                ...state.chatMessagesBySessionId,
+                [sessionId]: (state.chatMessagesBySessionId[sessionId] || []).map((message) =>
+                    message.id === messageId
+                        ? {
+                            ...message,
+                            ...patch,
+                            updatedAt: patch.updatedAt ?? Date.now(),
+                            attachments: patch.attachments ?? message.attachments,
+                        }
+                        : message
+                ),
+            },
+        }));
+    },
+
+    addChatAction: async (action) => {
+        await ChatRepository.createAction(action);
+        set((state) => ({
+            chatActionsBySessionId: {
+                ...state.chatActionsBySessionId,
+                [action.sessionId]: [...(state.chatActionsBySessionId[action.sessionId] || []), action],
+            },
+        }));
+    },
+
     addTask: async (task) => {
         await TaskRepository.create(task);
         set((state) => ({
@@ -487,6 +656,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const newCaseId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
             const newCase: Case = {
                 id: newCaseId,
+                scopeId: report.config?.scopeId,
                 title: report.topic,
                 status: 'ACTIVE',
                 dateOpened: new Date().toLocaleDateString(),

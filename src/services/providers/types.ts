@@ -1,5 +1,7 @@
 import type { AIProvider } from '../../config/aiModels';
 import type {
+    Case,
+    ChatAttachmentKind,
     DateRangeConfig,
     DomainPack,
     FeedItem,
@@ -7,10 +9,11 @@ import type {
     InvestigationScope,
     MonitorEvent,
     PurposeProfile,
+    WorkspaceContextSnippet,
     SystemConfig,
 } from '../../types';
 
-export type ProviderOperation = 'INVESTIGATE' | 'SCAN_ANOMALIES' | 'LIVE_INTEL' | 'TTS';
+export type ProviderOperation = 'INVESTIGATE' | 'SCAN_ANOMALIES' | 'LIVE_INTEL' | 'TTS' | 'CHAT';
 
 export interface ProviderRequestContext {
     provider: AIProvider;
@@ -69,9 +72,45 @@ export interface TtsRequest {
     config: SystemConfig;
 }
 
+export interface ChatTurn {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+
+export interface ChatRequest {
+    workspace: Case;
+    config: SystemConfig;
+    pack: DomainPack;
+    purpose: PurposeProfile;
+    messages: ChatTurn[];
+    workspaceSummary: string;
+    recentArtifacts: Array<Pick<InvestigationReport, 'id' | 'topic' | 'summary' | 'dateStr'>>;
+    recentHeadlines: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
+    retrievedContext: WorkspaceContextSnippet[];
+}
+
+export interface ChatResponse {
+    content: string;
+    citations: string[];
+    suggestedTitle?: string;
+    attachments?: Array<{
+        citationId: string;
+        kind: ChatAttachmentKind;
+        title: string;
+        snippet?: string;
+        refId?: string;
+        refKind?: string;
+        metadata?: Record<string, unknown>;
+    }>;
+    rawText: string;
+    provider: AIProvider;
+    modelId: string;
+}
+
 export interface ProviderAdapter {
     provider: AIProvider;
     investigate: (request: InvestigationRequest) => Promise<InvestigationReport>;
+    chat: (request: ChatRequest) => Promise<ChatResponse>;
     scanAnomalies: (request: ScanAnomaliesRequest) => Promise<FeedItem[]>;
     getLiveIntel: (request: LiveIntelRequest) => Promise<MonitorEvent[]>;
     generateAudioBriefing?: (request: TtsRequest) => Promise<string>;
@@ -115,6 +154,18 @@ export interface RouterLiveIntelRequest {
 
 export interface RouterTtsRequest {
     text: string;
+}
+
+export interface RouterChatRequest {
+    workspace: Case;
+    configOverride?: Partial<SystemConfig>;
+    packId?: string;
+    purposeId?: string;
+    messages: ChatTurn[];
+    workspaceSummary: string;
+    recentArtifacts: Array<Pick<InvestigationReport, 'id' | 'topic' | 'summary' | 'dateStr'>>;
+    recentHeadlines: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
+    retrievedContext: WorkspaceContextSnippet[];
 }
 
 export type NormalizedDateRangeConfig = DateRangeConfig | undefined;

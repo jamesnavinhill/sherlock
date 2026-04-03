@@ -5,16 +5,18 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 ## What It Does
 
 - Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
+- Runs workspace-grounded chat through the same provider router with persisted sessions and message history
 - Maintains a unified launch pipeline across Finder, Operation View, Live Monitor, and Network Graph
 - Resolves built-in domain packs and purpose profiles into run metadata and prompt behavior
 - Stores workspace/artifact/task data in browser-persistent SQLite (wa-sqlite + IndexedDB)
-- Supports typed artifact sections, deep dives, headline-to-analysis launches, entity graph workflows, and export tooling (HTML/Markdown/JSON)
+- Supports typed artifact sections, deep dives, headline-to-analysis launches, entity graph workflows, chat transcript export, and artifact/workspace export tooling (HTML/Markdown/JSON)
 - Provides scope-driven domain packs, purpose-aware launch setup, built-in starters, personas, and reusable templates
 - Adapts launch copy, labels, and output defaults by pack and purpose while keeping saved investigation-era data compatible
 
 ## UI Areas
 
 - `Operation View`: artifact reading, purpose-ordered typed-section rendering, dossier, inspector panel
+- `Workspace Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution
 - `Live Monitor`: live signal scans, filtering, and headline persistence
 - `Case Files`: workspace/archive browsing, deletion, and exports

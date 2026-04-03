@@ -5,6 +5,7 @@ import { AppView } from '../types';
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
 import { TaskRepository } from '../services/db/repositories/TaskRepository';
 import { CaseRepository } from '../services/db/repositories/CaseRepository';
+import { ChatRepository } from '../services/db/repositories/ChatRepository';
 
 describe('caseStore', () => {
     beforeEach(() => {
@@ -14,12 +15,21 @@ describe('caseStore', () => {
         vi.spyOn(TaskRepository, 'create').mockResolvedValue();
         vi.spyOn(TaskRepository, 'updateStatus').mockResolvedValue();
         vi.spyOn(CaseRepository, 'purgeCase').mockResolvedValue();
+        vi.spyOn(ChatRepository, 'createSession').mockResolvedValue();
+        vi.spyOn(ChatRepository, 'updateSession').mockResolvedValue();
+        vi.spyOn(ChatRepository, 'deleteSession').mockResolvedValue();
+        vi.spyOn(ChatRepository, 'createMessage').mockResolvedValue();
+        vi.spyOn(ChatRepository, 'updateMessage').mockResolvedValue();
+        vi.spyOn(ChatRepository, 'replaceAttachments').mockResolvedValue();
+        vi.spyOn(ChatRepository, 'createAction').mockResolvedValue();
 
         // Reset store before each test
         const store = useCaseStore.getState();
         store.setArchives([]);
         store.setCases([]);
         store.setTasks([]);
+        store.setChatSessions([]);
+        store.setChatMessagesBySessionId({});
         store.setCurrentView(AppView.DASHBOARD);
         store.setTemplates([]);
     });
@@ -78,6 +88,38 @@ describe('caseStore', () => {
         await completeTask(taskId, report);
         expect(useCaseStore.getState().tasks[0].status).toBe('COMPLETED');
         expect(useCaseStore.getState().tasks[0].report?.id).toBe('rep-1');
+    });
+
+    it('should create and update chat sessions and messages', async () => {
+        const store = useCaseStore.getState();
+        store.setCases([
+            { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
+        ]);
+
+        const session = await store.createChatSession({ workspaceId: 'case-1', title: 'Alpha Chat' });
+        expect(useCaseStore.getState().chatSessions).toHaveLength(1);
+        expect(session.title).toBe('Alpha Chat');
+
+        await store.renameChatSession(session.id, 'Renamed Alpha Chat');
+        expect(useCaseStore.getState().chatSessions[0].title).toBe('Renamed Alpha Chat');
+
+        await store.addChatMessage({
+            id: 'msg-1',
+            sessionId: session.id,
+            role: 'user',
+            content: 'Hello workspace',
+            status: 'COMPLETED',
+            createdAt: 1,
+            updatedAt: 1,
+        });
+        expect(useCaseStore.getState().chatMessagesBySessionId[session.id]).toHaveLength(1);
+
+        await store.updateChatMessage('msg-1', session.id, {
+            content: 'Updated workspace message',
+            status: 'COMPLETED',
+            updatedAt: 2,
+        });
+        expect(useCaseStore.getState().chatMessagesBySessionId[session.id][0].content).toBe('Updated workspace message');
     });
 
     it('should add toasts and remove them', () => {

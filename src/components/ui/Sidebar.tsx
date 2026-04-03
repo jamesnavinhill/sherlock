@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network, Sun, Moon, MessageSquare } from 'lucide-react';
 import type { InvestigationTask } from '../../types';
 import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
@@ -78,6 +78,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <FileText className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">{labelProfile.detailViewLabel}</span>}
+          </button>
+
+          <button
+            onClick={() => onChangeView(AppView.CHAT)}
+            className={btnClass(currentView === AppView.CHAT)}
+            title={isCollapsed ? "Workspace Chat" : undefined}
+            aria-label="Workspace Chat"
+          >
+            <MessageSquare className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Workspace Chat</span>}
           </button>
 
           <button

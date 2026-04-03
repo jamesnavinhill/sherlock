@@ -21,6 +21,10 @@ Defined in `src/services/db/schema.ts`:
 - `sources`
 - `leads` (headline storage)
 - `tasks`
+- `chat_sessions`
+- `chat_messages`
+- `chat_message_attachments`
+- `chat_actions`
 - `feed_items`
 - `settings`
 - `templates`
@@ -37,6 +41,8 @@ Persistence is routed through repository classes:
 - `TemplateRepository`
 - `ManualDataRepository`
 - `SettingsRepository`
+- `ChatRepository`
+- `WorkspaceSearchRepository`
 
 ## Stream 1 Additions
 
@@ -66,6 +72,13 @@ The Stream 1 domain-pack cutover extends persistence without replacing the compa
 - `label_profile_id`
 
 `artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility.
+
+The chat implementation adds:
+
+- `chat_sessions` for workspace-bound conversation metadata and model snapshots
+- `chat_messages` for persisted transcript turns and citation metadata
+- `chat_message_attachments` for retrieved context snippets attached to a turn
+- `chat_actions` for auditable retrieval operations
 
 ## Legacy Migration
 

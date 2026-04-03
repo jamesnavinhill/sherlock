@@ -2,6 +2,7 @@ import type { FeedItem, InvestigationReport, MonitorEvent } from '../../types';
 import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
+    ChatRequest,
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
@@ -22,6 +23,7 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
+import { buildWorkspaceChatPrompt, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 
@@ -213,6 +215,25 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
     );
 };
 
+const chat = async (request: ChatRequest) => {
+    const { config } = request;
+
+    return withProviderRetry(
+        async () => {
+            const rawText = await queryOpenRouter(config.modelId, buildWorkspaceChatPrompt(request), {
+                maxTokens: 2200,
+            });
+
+            return normalizeChatResponse(rawText, PROVIDER, config.modelId);
+        },
+        {
+            provider: PROVIDER,
+            modelId: config.modelId,
+            operation: 'CHAT',
+        }
+    );
+};
+
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
     const { region, category, dateRange, config, scope, options } = request;
     const limit = options?.limit || 8;
@@ -341,6 +362,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
 export const openRouterProvider: ProviderAdapter = {
     provider: PROVIDER,
     investigate,
+    chat,
     scanAnomalies,
     getLiveIntel,
 };
