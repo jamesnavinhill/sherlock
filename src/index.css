@@ -3,26 +3,35 @@
 
 :root {
   --osint-primary: #e4e4e7cc;
-  --osint-dark: #000000;
-  --osint-panel: #09090b;
-  --osint-surface: #18181b;
+  --osint-dark-darkmode: oklch(0 0 0);
+  --osint-panel-darkmode: oklch(0.141 0.004 286);
+  --osint-surface-darkmode: oklch(0.21 0.006 286);
+  --osint-dark-lightmode: oklch(0.963 0.017 85);
+  --osint-panel-lightmode: oklch(0.986 0.014 85);
+  --osint-surface-lightmode: oklch(0.937 0.025 81);
+  --osint-dark: var(--osint-dark-darkmode);
+  --osint-panel: var(--osint-panel-darkmode);
+  --osint-surface: var(--osint-surface-darkmode);
   --osint-border: #27272a;
   --osint-text: #a1a1aa;
   --osint-ink: #f4f4f5;
+  --color-zinc-950: color-mix(in oklab, var(--osint-panel-darkmode) 42%, var(--osint-dark-darkmode));
+  --color-zinc-900: var(--osint-panel-darkmode);
+  --color-zinc-800: var(--osint-surface-darkmode);
 }
 
 :root[data-theme='light'] {
-  --osint-dark: #f8f2e6;
-  --osint-panel: #fffaf0;
-  --osint-surface: #f3e9d8;
+  --osint-dark: var(--osint-dark-lightmode);
+  --osint-panel: var(--osint-panel-lightmode);
+  --osint-surface: var(--osint-surface-lightmode);
   --osint-border: #cebea4;
   --osint-text: #3a2c1f;
   --osint-ink: #1f160d;
 
   /* Light mode remap for existing dark-first utility usage */
-  --color-zinc-950: #f3ebdc;
-  --color-zinc-900: #f8f2e6;
-  --color-zinc-800: #f3e9d8;
+  --color-zinc-950: color-mix(in oklab, var(--osint-surface-lightmode) 44%, var(--osint-dark-lightmode));
+  --color-zinc-900: var(--osint-dark-lightmode);
+  --color-zinc-800: var(--osint-surface-lightmode);
   --color-zinc-700: #eadfc9;
   --color-zinc-600: #d6c6ac;
   --color-zinc-500: #9f8d70;
@@ -43,6 +52,7 @@
   --color-osint-border: var(--osint-border);
   --color-osint-primary: var(--osint-primary);
   --color-osint-text: var(--osint-text);
+  --color-osint-ink: var(--osint-ink);
   --color-osint-warn: #fbbf24;
   --color-osint-danger: #f87171;
   --color-osint-success: #34d399;
@@ -118,28 +128,28 @@ body,
 }
 
 :root[data-theme='light'] .bg-black {
-  background-color: #fffaf0 !important;
+  background-color: var(--osint-panel) !important;
 }
 :root[data-theme='light'] .bg-black\/20 {
-  background-color: rgba(255, 250, 240, 0.72) !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 72%, transparent) !important;
 }
 :root[data-theme='light'] .bg-black\/30 {
-  background-color: rgba(255, 250, 240, 0.8) !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 80%, transparent) !important;
 }
 :root[data-theme='light'] .bg-black\/50 {
-  background-color: rgba(252, 245, 233, 0.86) !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 86%, transparent) !important;
 }
 :root[data-theme='light'] .bg-black\/60 {
-  background-color: rgba(250, 241, 227, 0.9) !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 90%, transparent) !important;
 }
 :root[data-theme='light'] .bg-black\/80 {
-  background-color: rgba(250, 241, 227, 0.94) !important;
+  background-color: color-mix(in oklab, var(--osint-dark) 94%, transparent) !important;
 }
 :root[data-theme='light'] .bg-black\/90 {
-  background-color: rgba(250, 241, 227, 0.97) !important;
+  background-color: color-mix(in oklab, var(--osint-dark) 97%, transparent) !important;
 }
 :root[data-theme='light'] .bg-black\/95 {
-  background-color: rgba(250, 241, 227, 0.98) !important;
+  background-color: color-mix(in oklab, var(--osint-dark) 98%, transparent) !important;
 }
 
 /* Keep true overlays/backdrops dark for depth and modal readability */
@@ -201,7 +211,7 @@ body,
 :root[data-theme='light'] input.bg-black,
 :root[data-theme='light'] select.bg-black,
 :root[data-theme='light'] textarea.bg-black {
-  background-color: #fffdf8 !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 92%, white) !important;
   border-color: #bdaa8f !important;
   color: #312416 !important;
 }

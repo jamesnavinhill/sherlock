@@ -27,6 +27,7 @@ import { ScopeManager } from '../../ui/ScopeManager';
 import type { InvestigationLaunchRequest, SystemConfig } from '../../../types';
 import { AccentPicker } from '../../ui/AccentPicker';
 import { buildAccentColor } from '../../../utils/accent';
+import { parseThemeSurfaceSettings, type ThemeSurfaceScale, type ThemeSurfaceSettings } from '../../../utils/themeSurfaces';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import type { AIProvider } from '../../../config/aiModels';
 import {
@@ -56,6 +57,8 @@ interface SettingsProps {
     onThemeModeChange: (mode: 'dark' | 'light') => void;
     onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
     accentSettings: { hue: number; lightness: number; chroma: number };
+    themeSurfaceSettings: ThemeSurfaceSettings;
+    onThemeSurfaceSettingsChange: (settings: ThemeSurfaceSettings) => void;
     onStartCase: (request: InvestigationLaunchRequest) => void;
     onClose: () => void;
 }
@@ -68,7 +71,18 @@ const TABS = [
     { id: 'MAINTENANCE', label: 'Maintenance', icon: Database }
 ];
 
-export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, themeMode, onThemeModeChange, onAccentChange, accentSettings, onStartCase, onClose }) => {
+export const Settings: React.FC<SettingsProps> = ({
+    themeColor,
+    onThemeChange,
+    themeMode,
+    onThemeModeChange,
+    onAccentChange,
+    accentSettings,
+    themeSurfaceSettings,
+    onThemeSurfaceSettingsChange,
+    onStartCase,
+    onClose
+}) => {
     const { archives, cases, customScopes, importCaseData, clearCaseData } = useCaseStore();
 
     const initialConfig = loadSystemConfig();
@@ -183,7 +197,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
             quietMode
         };
 
-        saveSystemConfig(config, { theme: themeColor, themeMode });
+        saveSystemConfig(config, { theme: themeColor, themeMode, themeSurfaceSettings });
 
         setTimeout(() => {
             setIsSaving(false);
@@ -204,8 +218,9 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                 autoNormalizeEntities: autoResolve,
                 quietMode,
                 theme: themeColor,
-                themeMode
-            } as SystemConfig & { theme?: string; themeMode?: 'dark' | 'light' },
+                themeMode,
+                themeSurfaceSettings
+            } as SystemConfig & { theme?: string; themeMode?: 'dark' | 'light'; themeSurfaceSettings?: ThemeSurfaceSettings },
             timestamp: new Date().toISOString()
         };
 
@@ -235,6 +250,10 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                         if (data.config?.themeMode === 'light' || data.config?.themeMode === 'dark') {
                             onThemeModeChange(data.config.themeMode);
                         }
+                        const importedThemeSurfaceSettings = parseThemeSurfaceSettings(data.config?.themeSurfaceSettings);
+                        if (importedThemeSurfaceSettings) {
+                            onThemeSurfaceSettingsChange(importedThemeSurfaceSettings);
+                        }
                         alert('Data imported successfully.');
                     }
                 } else {
@@ -253,6 +272,57 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
             clearStoredActiveWorkspaceId();
             alert('Database purged.');
         }
+    };
+
+    const handleThemeSurfaceChange = (
+        mode: keyof ThemeSurfaceSettings,
+        surfaceKey: keyof ThemeSurfaceScale,
+        settings: ThemeSurfaceScale[keyof ThemeSurfaceScale]
+    ) => {
+        onThemeSurfaceSettingsChange({
+            ...themeSurfaceSettings,
+            [mode]: {
+                ...themeSurfaceSettings[mode],
+                [surfaceKey]: settings,
+            },
+        });
+    };
+
+    const renderThemeSurfaceSection = (mode: keyof ThemeSurfaceSettings, title: string) => {
+        const surfaceEntries: Array<{ key: keyof ThemeSurfaceScale; label: string }> = [
+            { key: 'background', label: 'Workspace Background' },
+            { key: 'panel', label: 'Panel Background' },
+            { key: 'surface', label: 'Raised Surface' },
+        ];
+
+        return (
+            <section className="space-y-4">
+                <div className="flex items-center space-x-2 mb-4">
+                    <Palette className="w-4 h-4 text-osint-primary" />
+                    <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">{title}</h3>
+                </div>
+                <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
+                    {surfaceEntries.map(({ key, label }) => {
+                        const current = themeSurfaceSettings[mode][key];
+                        return (
+                            <div key={key} className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="block text-[10px] text-zinc-500 font-mono uppercase">{label}</label>
+                                    <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(current)}</div>
+                                </div>
+                                <AccentPicker
+                                    hue={current.hue}
+                                    lightness={current.lightness}
+                                    chroma={current.chroma}
+                                    previewLabel={label}
+                                    onChange={(settings) => handleThemeSurfaceChange(mode, key, settings)}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </section>
+        );
     };
 
     const renderGeneral = () => (
@@ -278,6 +348,9 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                         </div>
                     </div>
                 </section>
+
+                {renderThemeSurfaceSection('dark', 'Dark Theme Surfaces')}
+                {renderThemeSurfaceSection('light', 'Light Theme Surfaces')}
 
                 <section className="space-y-4">
                     <div className="flex items-center space-x-2 mb-4">

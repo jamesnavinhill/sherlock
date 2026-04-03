@@ -17,6 +17,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
 import { buildAccentColor } from './utils/accent';
+import { buildThemeSurfaceCssVars } from './utils/themeSurfaces';
 import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
 import { getAllScopes, getScopeById } from './data/presets';
@@ -56,6 +57,7 @@ function App() {
     themeMode, setThemeMode,
     themeColor, setThemeColor,
     accentSettings, setAccentSettings,
+    themeSurfaceSettings, setThemeSurfaceSettings,
     showNewCaseModal: _showNewCaseModal, setShowNewCaseModal,
     showGlobalSearch, setShowGlobalSearch,
     archiveReport, archives, cases,
@@ -114,6 +116,15 @@ function App() {
   useEffect(() => {
     document.documentElement.style.setProperty('--osint-primary', themeColor);
   }, [themeColor]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const surfaceVars = buildThemeSurfaceCssVars(themeSurfaceSettings);
+
+    Object.entries(surfaceVars).forEach(([name, value]) => {
+      root.style.setProperty(name, value);
+    });
+  }, [themeSurfaceSettings]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeMode);
@@ -459,6 +470,8 @@ function App() {
                   const newColor = buildAccentColor(settings);
                   setThemeColor(newColor);
                 }}
+                themeSurfaceSettings={themeSurfaceSettings}
+                onThemeSurfaceSettingsChange={setThemeSurfaceSettings}
                 onStartCase={(request) => launchInvestigation({
                   ...request,
                   switchToView: true,

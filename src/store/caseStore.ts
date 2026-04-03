@@ -32,6 +32,11 @@ import { ChatRepository } from '../services/db/repositories/ChatRepository';
 import { initDB } from '../services/db/client';
 import { migrateLocalStorageToSqlite } from '../services/db/migrate';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor, parseOklch } from '../utils/accent';
+import {
+    DEFAULT_THEME_SURFACE_SETTINGS,
+    parseThemeSurfaceSettings,
+    type ThemeSurfaceSettings,
+} from '../utils/themeSurfaces';
 import { loadSystemConfig } from '../config/systemConfig';
 import { createLocalId } from '../utils/id';
 
@@ -94,6 +99,7 @@ interface CaseState {
         lightness: number;
         chroma: number;
     };
+    themeSurfaceSettings: ThemeSurfaceSettings;
     showNewCaseModal: boolean;
     showGlobalSearch: boolean;
 
@@ -115,6 +121,7 @@ interface CaseState {
     setThemeMode: (mode: ThemeMode) => void;
     setThemeColor: (color: string) => void;
     setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
+    setThemeSurfaceSettings: (settings: ThemeSurfaceSettings) => void;
     setShowNewCaseModal: (show: boolean) => void;
     setShowGlobalSearch: (show: boolean) => void;
     setTemplates: (templates: CaseTemplate[]) => void;
@@ -197,6 +204,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     themeMode: 'dark',
     themeColor: '#e4e4e7cc',
     accentSettings: DEFAULT_ACCENT_SETTINGS,
+    themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,
     showNewCaseModal: false,
     showGlobalSearch: false,
     templates: [],
@@ -251,6 +259,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const storedThemeMode = await SettingsRepository.getSetting<ThemeMode>('theme_mode');
             const storedAccent = await SettingsRepository.getSetting<{ hue: number; lightness: number; chroma: number }>('accent_settings');
             const storedTheme = await SettingsRepository.getSetting<string>('theme_color');
+            const storedThemeSurfaceSettings = await SettingsRepository.getSetting<ThemeSurfaceSettings>('theme_surface_settings');
 
             const legacyTheme = localStorage.getItem('sherlock_theme');
             const legacyConfigRaw = localStorage.getItem('sherlock_config');
@@ -270,6 +279,14 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                     return null;
                 }
             })() : null;
+            const legacyThemeSurfaceSettings = legacyConfigRaw ? (() => {
+                try {
+                    const parsed = JSON.parse(legacyConfigRaw);
+                    return parseThemeSurfaceSettings(parsed?.themeSurfaceSettings);
+                } catch {
+                    return null;
+                }
+            })() : null;
 
             const resolvedAccent = storedAccent
                 || (legacyTheme ? parseOklch(legacyTheme) : null)
@@ -281,10 +298,14 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const resolvedThemeMode: ThemeMode = storedThemeMode === 'light' || storedThemeMode === 'dark'
                 ? storedThemeMode
                 : (legacyThemeMode ?? 'dark');
+            const resolvedThemeSurfaceSettings = parseThemeSurfaceSettings(storedThemeSurfaceSettings)
+                || legacyThemeSurfaceSettings
+                || DEFAULT_THEME_SURFACE_SETTINGS;
 
             await SettingsRepository.setSetting('theme_mode', resolvedThemeMode);
             await SettingsRepository.setSetting('accent_settings', resolvedAccent);
             await SettingsRepository.setSetting('theme_color', resolvedTheme);
+            await SettingsRepository.setSetting('theme_surface_settings', resolvedThemeSurfaceSettings);
 
             set({
                 cases,
@@ -304,6 +325,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 themeMode: resolvedThemeMode,
                 accentSettings: resolvedAccent,
                 themeColor: resolvedTheme,
+                themeSurfaceSettings: resolvedThemeSurfaceSettings,
                 isLoading: false
             });
         } catch (err) {
@@ -352,6 +374,10 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         set({ accentSettings, themeColor: buildAccentColor(accentSettings) });
         void SettingsRepository.setSetting('accent_settings', accentSettings);
         void SettingsRepository.setSetting('theme_color', buildAccentColor(accentSettings));
+    },
+    setThemeSurfaceSettings: (themeSurfaceSettings) => {
+        set({ themeSurfaceSettings });
+        void SettingsRepository.setSetting('theme_surface_settings', themeSurfaceSettings);
     },
     setShowNewCaseModal: (showNewCaseModal) => set({ showNewCaseModal }),
     setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),

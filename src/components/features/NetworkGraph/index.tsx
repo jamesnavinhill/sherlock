@@ -266,7 +266,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     };
 
     return (
-        <div className="w-full h-screen bg-black relative flex flex-col overflow-hidden">
+        <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">
             <ControlBar
                 cases={cases}
                 labelProfile={dossierLabelProfile}
@@ -316,9 +316,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                 {/* Main Graph Canvas */}
                 <div className="flex-1 relative z-0">
                     {isEmpty ? (
-                        <div className="absolute inset-0 flex flex-center bg-black/80 flex-col items-center justify-center animate-in fade-in duration-700">
-                            <div className="bg-zinc-900/30 p-10 border border-zinc-800/50 flex flex-col items-center max-w-lg text-center backdrop-blur-sm">
-                                <Network className="w-20 h-20 text-zinc-800 mb-6 animate-pulse" />
+                        <div className="absolute inset-0 flex flex-center bg-osint-dark flex-col items-center justify-center animate-in fade-in duration-700">
+                            <div className="bg-osint-panel/60 p-10 border border-osint-border/60 flex flex-col items-center max-w-lg text-center backdrop-blur-sm">
+                                <Network className="w-20 h-20 text-osint-ink/70 mb-6 animate-pulse" />
                                 <h3 className="text-2xl font-bold text-zinc-500 font-mono mb-3 uppercase tracking-tighter">System Offline</h3>
                                 <p className="text-zinc-600 text-sm font-mono mb-10 leading-relaxed uppercase">
                                     Graph engine awaiting connection. No intelligence nodes or link vectors detected in current matrix.
@@ -326,7 +326,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                                 <div className="flex gap-4">
                                     <button
                                         onClick={() => setShowAddNodeUI(true)}
-                                        className="px-6 py-2 border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:bg-zinc-800 hover:text-white transition-all"
+                                        className="px-6 py-2 border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:bg-osint-surface hover:text-white transition-all"
                                     >
                                         Add Manual Node
                                     </button>
