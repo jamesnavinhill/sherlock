@@ -142,7 +142,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                             <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.signalLabel.toLowerCase()} captured yet.`}</p>
                         ) : (
                             sources.map((s, idx) => (
-                                <a key={idx} href={s.url} target="_blank" rel="noopener noreferrer" className="block p-2 hover:bg-zinc-900 text-[10px] font-mono text-blue-400 hover:underline truncate border-b border-zinc-900 last:border-0">
+                                <a key={idx} href={s.url} target="_blank" rel="noopener noreferrer" className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0">
                                     <Link2 className="w-3 h-3 inline mr-1" />
                                     {s.title}
                                 </a>

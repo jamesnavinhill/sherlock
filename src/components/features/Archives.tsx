@@ -439,7 +439,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (
             <button
               onClick={() => void handlePurgeCase(effectiveSelectedCaseId)}
-              className="flex items-center px-3 py-1.5 bg-red-600 text-white font-mono text-xs font-bold uppercase hover:bg-red-500 transition-colors"
+              className="osint-button-danger flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
               title={`Permanently purge selected ${workspaceLabelLower} and all ${artifactLabelPluralLower}`}
             >
               <Trash2 className="w-4 h-4 mr-1" />

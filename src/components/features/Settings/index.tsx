@@ -731,17 +731,17 @@ export const Settings: React.FC<SettingsProps> = ({
                 </div>
             </section>
 
-            <section className="bg-red-900/10 border border-red-900/30 p-8 space-y-6">
+            <section className="osint-danger-panel border p-8 space-y-6">
                 <div className="flex items-center space-x-3 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
-                    <h3 className="text-lg font-bold text-red-500 font-mono uppercase tracking-widest">System Purge</h3>
+                    <AlertTriangle className="w-5 h-5 osint-danger-text" />
+                    <h3 className="text-lg font-bold osint-danger-text font-mono uppercase tracking-widest">System Purge</h3>
                 </div>
-                <p className="text-red-900/60 text-xs font-mono leading-relaxed max-w-2xl">
+                <p className="text-xs font-mono leading-relaxed max-w-2xl osint-danger-text">
                     The purge protocol will permanently delete all local workspaces, artifacts, and active task history. This action cannot be reversed.
                 </p>
                 <button
                     onClick={handleClearData}
-                    className="flex items-center px-6 py-3 bg-red-600 text-white font-mono text-xs font-bold uppercase hover:bg-red-500 transition-all shadow-[0_4px_20px_rgba(220,38,38,0.2)]"
+                    className="osint-button-danger flex items-center px-6 py-3 font-mono text-xs font-bold uppercase"
                 >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Execute System Purge

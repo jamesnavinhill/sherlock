@@ -34,7 +34,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block p-2 hover:bg-zinc-900 text-[10px] font-mono text-blue-400 hover:underline truncate border-b border-zinc-900 last:border-0 group transition-colors"
+                    className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0 group"
                 >
                     <div className="flex items-center gap-1">
                         <Link2 className="w-3 h-3 flex-shrink-0" />

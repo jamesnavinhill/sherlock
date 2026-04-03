@@ -20,6 +20,9 @@
   --osint-border: #27272a;
   --osint-text: #a1a1aa;
   --osint-ink: #f4f4f5;
+  --osint-danger-soft-bg: color-mix(in oklab, var(--color-osint-danger) 14%, transparent);
+  --osint-danger-soft-bg-strong: color-mix(in oklab, var(--color-osint-danger) 20%, transparent);
+  --osint-danger-soft-border: color-mix(in oklab, var(--color-osint-danger) 42%, transparent);
   --color-zinc-950: color-mix(in oklab, var(--osint-panel-darkmode) 42%, var(--osint-dark-darkmode));
   --color-zinc-900: var(--osint-panel-darkmode);
   --color-zinc-800: var(--osint-surface-darkmode);
@@ -269,6 +272,49 @@ body,
   border-color: color-mix(in oklab, var(--osint-primary) 60%, transparent);
   color: var(--osint-ink);
   box-shadow: 0 0 8px -8px color-mix(in oklab, var(--osint-primary) 18%, transparent);
+}
+
+.osint-button-danger {
+  background-color: var(--osint-danger-soft-bg);
+  color: var(--color-osint-danger);
+  border: 1px solid var(--osint-danger-soft-border);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-button-danger:hover,
+.osint-button-danger:focus-visible {
+  background-color: var(--osint-danger-soft-bg-strong);
+  color: var(--osint-ink);
+  border-color: color-mix(in oklab, var(--color-osint-danger) 58%, transparent);
+  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--color-osint-danger) 24%, transparent);
+}
+
+.osint-danger-panel {
+  background-color: color-mix(in oklab, var(--color-osint-danger) 7%, var(--osint-panel));
+  border-color: color-mix(in oklab, var(--color-osint-danger) 28%, transparent);
+}
+
+.osint-danger-text {
+  color: color-mix(in oklab, var(--color-osint-danger) 88%, var(--osint-ink));
+}
+
+.osint-link-list-item {
+  color: var(--osint-primary);
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.osint-link-list-item:hover,
+.osint-link-list-item:focus-visible {
+  color: var(--osint-ink);
+  background-color: var(--osint-primary-soft-bg);
+  border-color: var(--osint-primary-soft-border);
 }
 
 .entity-tone-person {

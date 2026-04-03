@@ -327,7 +327,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                 </button>
                                 <button
                                     onClick={() => { void deleteTemplate(t.id); }}
-                                    className="flex-shrink-0 p-3 border-l border-zinc-800 bg-zinc-900 hover:bg-red-900/50 text-zinc-600 hover:text-red-500 transition-all"
+                                    className="flex-shrink-0 p-3 border-l border-zinc-800 bg-zinc-900 text-zinc-600 transition-all hover:bg-[color:var(--osint-danger-soft-bg)] hover:text-osint-danger"
                                     title="Delete Template"
                                 >
                                     <Trash2 className="w-4 h-4" />

@@ -43,8 +43,20 @@ export interface TaskSetupCopy {
   templateLabel: string;
 }
 
+const CONTROL_TAG_PATTERN = /\s*\[[A-Z_]+\]:[\s\S]*$/;
+const WRAPPED_TOPIC_PATTERN = /^\[(.+)\]$/;
+
+export const sanitizeDisplayTitle = (title: string): string => {
+  const withoutLegacyPrefix = title.replace(/^Operation:\s*/i, '').trim();
+  const withoutControlTags = withoutLegacyPrefix.replace(CONTROL_TAG_PATTERN, '').trim();
+  const singleLineTitle = withoutControlTags.replace(/\s+/g, ' ').trim();
+  const unwrappedTitle = singleLineTitle.match(WRAPPED_TOPIC_PATTERN)?.[1]?.trim() || singleLineTitle;
+
+  return unwrappedTitle || withoutLegacyPrefix || title;
+};
+
 export const stripLegacyWorkspacePrefix = (title: string): string =>
-  title.replace(/^Operation:\s*/i, '').trim();
+  sanitizeDisplayTitle(title);
 
 export const resolveDomainPresentation = (options: {
   scope?: InvestigationScope;
