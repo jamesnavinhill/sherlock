@@ -37,7 +37,31 @@ export const initDB = async (): Promise<ReturnType<typeof drizzle>> => {
 const runSchemaUpgrades = async (api: SQLite.SQLiteAPI, db: number): Promise<void> => {
     const alterStatements = [
         'ALTER TABLE leads ADD COLUMN type text;',
-        'ALTER TABLE leads ADD COLUMN url text;'
+        'ALTER TABLE leads ADD COLUMN url text;',
+        'ALTER TABLE cases ADD COLUMN mode text;',
+        'ALTER TABLE cases ADD COLUMN pack_id text;',
+        'ALTER TABLE cases ADD COLUMN purpose_id text;',
+        'ALTER TABLE cases ADD COLUMN label_profile_id text;',
+        'ALTER TABLE cases ADD COLUMN metadata_json text;',
+        'ALTER TABLE reports ADD COLUMN artifact_type text;',
+        'ALTER TABLE reports ADD COLUMN pack_id text;',
+        'ALTER TABLE reports ADD COLUMN purpose_id text;',
+        'ALTER TABLE reports ADD COLUMN label_profile_id text;',
+        'ALTER TABLE reports ADD COLUMN metadata_json text;',
+        'ALTER TABLE tasks ADD COLUMN pack_id text;',
+        'ALTER TABLE tasks ADD COLUMN purpose_id text;',
+        'ALTER TABLE tasks ADD COLUMN artifact_type text;',
+        'ALTER TABLE tasks ADD COLUMN label_profile_id text;',
+        `CREATE TABLE IF NOT EXISTS "artifact_sections" (
+            "id" text PRIMARY KEY NOT NULL,
+            "report_id" text NOT NULL,
+            "kind" text NOT NULL,
+            "title" text NOT NULL,
+            "content" text,
+            "items_json" text,
+            "sort_order" integer NOT NULL,
+            FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+        );`
     ];
 
     for (const sql of alterStatements) {

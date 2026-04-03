@@ -20,6 +20,7 @@ import { buildAccentColor } from './utils/accent';
 import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
 import { getAllScopes, getScopeById } from './data/presets';
+import { getDomainPackForScope, getPurposeProfileById } from './domain';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
@@ -163,7 +164,8 @@ function App() {
         launchRequest.parentContext,
         launchRequest.configOverride,
         launchRequest.scope,
-        launchRequest.dateRangeOverride
+        launchRequest.dateRangeOverride,
+        runConfig
       );
 
       report = { ...report, config: { ...(report.config || {}), ...runConfig } };
@@ -199,12 +201,28 @@ function App() {
 
     const scopeFromConfig = resolveScopeById((request.configOverride as InvestigationRunConfig | undefined)?.scopeId);
     const effectiveScope = request.scope || scopeFromConfig;
+    const effectivePack = getDomainPackForScope(effectiveScope);
+    const effectivePurpose = getPurposeProfileById(
+      request.purposeId
+      || (request.configOverride as InvestigationRunConfig | undefined)?.purposeId
+      || effectivePack.defaultPurposeId
+    );
+    const artifactType = request.artifactType
+      || (request.configOverride as InvestigationRunConfig | undefined)?.artifactType
+      || effectivePurpose.recommendedArtifactType;
+    const labelProfileId = request.labelProfileId
+      || (request.configOverride as InvestigationRunConfig | undefined)?.labelProfileId
+      || effectivePack.labelProfileId;
 
     const launchRequest: InvestigationLaunchRequest = {
       ...request,
       topic: normalizedTopic,
       switchToView,
       scope: effectiveScope,
+      packId: effectivePack.id,
+      purposeId: effectivePurpose.id,
+      artifactType,
+      labelProfileId,
     };
 
     const runConfig: InvestigationRunConfig = {
@@ -215,6 +233,12 @@ function App() {
       thinkingBudget: effectiveConfig.thinkingBudget,
       scopeId: effectiveScope?.id,
       scopeName: effectiveScope?.name,
+      packId: effectivePack.id,
+      packName: effectivePack.name,
+      purposeId: effectivePurpose.id,
+      purposeName: effectivePurpose.name,
+      artifactType,
+      labelProfileId,
       dateRangeOverride: launchRequest.dateRangeOverride,
       preseededEntities: launchRequest.preseededEntities,
       launchSource: launchRequest.launchSource,

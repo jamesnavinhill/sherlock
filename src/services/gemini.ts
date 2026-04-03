@@ -2,6 +2,7 @@ import type {
     DateRangeConfig,
     FeedItem,
     InvestigationReport,
+    InvestigationRunConfig,
     InvestigationScope,
     MonitorEvent,
     SystemConfig,
@@ -64,7 +65,8 @@ export const scanForAnomalies = async (
     category = 'All',
     dateRange?: { start?: string; end?: string },
     configOverride?: AnomaliesConfig,
-    scope?: InvestigationScope
+    scope?: InvestigationScope,
+    runConfig?: Pick<InvestigationRunConfig, 'packId' | 'purposeId'>
 ): Promise<FeedItem[]> => {
     return scanAnomaliesWithProviderRouter({
         region,
@@ -72,6 +74,8 @@ export const scanForAnomalies = async (
         dateRange,
         options: configOverride,
         scope,
+        packId: runConfig?.packId,
+        purposeId: runConfig?.purposeId,
     });
 };
 
@@ -84,13 +88,16 @@ export const getLiveIntel = async (
         prioritySources: '',
     },
     existingContent: string[] = [],
-    scope?: InvestigationScope
+    scope?: InvestigationScope,
+    runConfig?: Pick<InvestigationRunConfig, 'packId' | 'purposeId'>
 ): Promise<MonitorEvent[]> => {
     return getLiveIntelWithProviderRouter({
         topic,
         monitorConfig,
         existingContent,
         scope,
+        packId: runConfig?.packId,
+        purposeId: runConfig?.purposeId,
     });
 };
 
@@ -99,13 +106,18 @@ export const investigateTopic = async (
     parentContext?: { topic: string; summary: string },
     configOverride?: Partial<SystemConfig>,
     scope?: InvestigationScope,
-    dateOverride?: { start?: string; end?: string }
+    dateOverride?: { start?: string; end?: string },
+    runConfig?: Pick<InvestigationRunConfig, 'packId' | 'purposeId' | 'artifactType' | 'labelProfileId'>
 ): Promise<InvestigationReport> => {
     return investigateWithProviderRouter({
         topic,
         parentContext,
         configOverride,
         scope,
+        packId: runConfig?.packId,
+        purposeId: runConfig?.purposeId,
+        artifactType: runConfig?.artifactType,
+        labelProfileId: runConfig?.labelProfileId,
         dateOverride,
     });
 };

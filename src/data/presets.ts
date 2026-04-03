@@ -112,6 +112,60 @@ const OPEN_INVESTIGATION_PERSONAS: PersonaDefinition[] = [
     },
 ];
 
+const SCIENTIFIC_RESEARCH_PERSONAS: PersonaDefinition[] = [
+    {
+        id: 'literature-analyst',
+        label: 'Literature Analyst',
+        instruction: 'You are a rigorous research analyst. Focus on recent findings, study quality, reproducibility, and open questions. Your tone is evidence-based and precise.',
+    },
+    {
+        id: 'scientific-scout',
+        label: 'Scientific Scout',
+        instruction: 'You are a scientific scout tracking the newest work in a field. Focus on what is new, what matters, and where the field is moving next. Your tone is concise and current.',
+    },
+    {
+        id: 'methods-reviewer',
+        label: 'Methods Reviewer',
+        instruction: 'You are a methods-oriented reviewer. Focus on methodology, limitations, sample quality, and whether conclusions are supported by the evidence. Your tone is skeptical and structured.',
+    },
+];
+
+const AI_TECH_PERSONAS: PersonaDefinition[] = [
+    {
+        id: 'ai-landscape-analyst',
+        label: 'AI Landscape Analyst',
+        instruction: 'You are an AI landscape analyst. Focus on model releases, benchmark movement, ecosystem shifts, infrastructure changes, and strategic implications. Your tone is sharp and practical.',
+    },
+    {
+        id: 'technical-researcher',
+        label: 'Technical Researcher',
+        instruction: 'You are a technical researcher tracking emerging systems. Focus on architecture details, capabilities, tradeoffs, and implementation signals. Your tone is technical and grounded.',
+    },
+    {
+        id: 'industry-strategist',
+        label: 'Industry Strategist',
+        instruction: 'You are a strategist following AI and technology markets. Focus on competition, product direction, partnerships, and long-term positioning. Your tone is strategic and high signal.',
+    },
+];
+
+const POLICY_REGULATION_PERSONAS: PersonaDefinition[] = [
+    {
+        id: 'policy-analyst',
+        label: 'Policy Analyst',
+        instruction: 'You are a policy analyst. Focus on regulatory developments, policy intent, enforcement posture, and downstream effects for stakeholders. Your tone is neutral and well-structured.',
+    },
+    {
+        id: 'regulatory-monitor',
+        label: 'Regulatory Monitor',
+        instruction: 'You are a regulatory monitor. Focus on what changed, who it affects, timelines, and where more guidance is likely to emerge. Your tone is current and operational.',
+    },
+    {
+        id: 'public-affairs-researcher',
+        label: 'Public Affairs Researcher',
+        instruction: 'You are a public affairs researcher. Focus on institutions, public statements, implementation realities, and competing stakeholder positions. Your tone is contextual and balanced.',
+    },
+];
+
 // --- BUILT-IN SCOPE PRESETS ---
 
 export const BUILTIN_SCOPES: InvestigationScope[] = [
@@ -162,6 +216,11 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
         defaultPersona: 'forensic-accountant',
         icon: '🎯',
         isBuiltIn: true,
+        workspaceMode: 'INVESTIGATION',
+        labelProfileId: 'investigation',
+        supportedPurposeIds: ['deep-dive', 'monitor', 'synthesis'],
+        defaultPurposeId: 'deep-dive',
+        defaultArtifactType: 'REPORT',
     },
     {
         id: 'corporate-due-diligence',
@@ -210,6 +269,11 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
         defaultPersona: 'compliance-analyst',
         icon: '🏢',
         isBuiltIn: true,
+        workspaceMode: 'DUE_DILIGENCE',
+        labelProfileId: 'investigation',
+        supportedPurposeIds: ['deep-dive', 'synthesis', 'trend-scan'],
+        defaultPurposeId: 'deep-dive',
+        defaultArtifactType: 'REPORT',
     },
     {
         id: 'geopolitical-analysis',
@@ -259,6 +323,11 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
         defaultPersona: 'geopolitical-analyst',
         icon: '🌐',
         isBuiltIn: true,
+        workspaceMode: 'INVESTIGATION',
+        labelProfileId: 'investigation',
+        supportedPurposeIds: ['deep-dive', 'monitor', 'synthesis'],
+        defaultPurposeId: 'deep-dive',
+        defaultArtifactType: 'REPORT',
     },
     {
         id: 'cybersecurity-research',
@@ -308,6 +377,11 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
         defaultPersona: 'threat-hunter',
         icon: '🔒',
         isBuiltIn: true,
+        workspaceMode: 'INVESTIGATION',
+        labelProfileId: 'investigation',
+        supportedPurposeIds: ['deep-dive', 'monitor', 'synthesis'],
+        defaultPurposeId: 'deep-dive',
+        defaultArtifactType: 'REPORT',
     },
     {
         id: 'competitive-intelligence',
@@ -356,6 +430,146 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
         defaultPersona: 'market-analyst',
         icon: '📊',
         isBuiltIn: true,
+        workspaceMode: 'RESEARCH',
+        labelProfileId: 'research',
+        supportedPurposeIds: ['trend-scan', 'latest-findings', 'synthesis'],
+        defaultPurposeId: 'trend-scan',
+        defaultArtifactType: 'BRIEF',
+    },
+    {
+        id: 'scientific-research',
+        name: 'Scientific Research',
+        description: 'Research the latest scientific findings, compare studies, and surface the strongest evidence and open questions.',
+        domainContext: 'You are conducting cross-domain scientific research. Focus on recent papers, review articles, preprints, reputable institutions, and evidence quality. Compare findings carefully and preserve uncertainty where appropriate.',
+        investigationObjective: 'Summarize the latest credible findings, highlight methodological quality, identify consensus and disagreement, and surface meaningful open questions.',
+        defaultDateRange: { strategy: 'RELATIVE', relativeYears: 3 },
+        suggestedSources: [
+            {
+                name: 'Literature Databases',
+                sources: [
+                    { label: 'Google Scholar', url: 'https://scholar.google.com' },
+                    { label: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov' },
+                    { label: 'arXiv', url: 'https://arxiv.org' },
+                    { label: 'Semantic Scholar', url: 'https://semanticscholar.org' },
+                ],
+            },
+            {
+                name: 'Journals & Reviews',
+                sources: [
+                    { label: 'Nature', url: 'https://nature.com' },
+                    { label: 'Science', url: 'https://science.org' },
+                    { label: 'Cell Press', url: 'https://cell.com' },
+                    { label: 'PLOS', url: 'https://plos.org' },
+                ],
+            },
+            {
+                name: 'Institutions',
+                sources: [
+                    { label: 'NIH', url: 'https://nih.gov' },
+                    { label: 'WHO', url: 'https://who.int' },
+                    { label: 'CDC', url: 'https://cdc.gov' },
+                ],
+            },
+        ],
+        categories: ['Biology', 'Medicine', 'Climate', 'Physics', 'Psychology', 'Public Health', 'Methods'],
+        personas: SCIENTIFIC_RESEARCH_PERSONAS,
+        defaultPersona: 'literature-analyst',
+        icon: '🧪',
+        isBuiltIn: true,
+        workspaceMode: 'RESEARCH',
+        labelProfileId: 'research',
+        supportedPurposeIds: ['latest-findings', 'synthesis', 'deep-dive'],
+        defaultPurposeId: 'latest-findings',
+        defaultArtifactType: 'SYNTHESIS',
+    },
+    {
+        id: 'ai-technology-landscape',
+        name: 'AI & Technology Landscape',
+        description: 'Track the latest developments across AI, ML, infrastructure, product launches, and ecosystem shifts.',
+        domainContext: 'You are researching the AI and technology landscape. Focus on model releases, product launches, capabilities, benchmarks, infrastructure, talent moves, funding, and ecosystem strategy.',
+        investigationObjective: 'Identify meaningful technological developments, compare capabilities and positioning, and explain why the latest changes matter.',
+        defaultDateRange: { strategy: 'RELATIVE', relativeYears: 2 },
+        suggestedSources: [
+            {
+                name: 'Labs & Vendors',
+                sources: [
+                    { label: 'OpenAI', url: 'https://openai.com' },
+                    { label: 'Anthropic', url: 'https://anthropic.com' },
+                    { label: 'Google DeepMind', url: 'https://deepmind.google' },
+                    { label: 'Meta AI', url: 'https://ai.meta.com' },
+                ],
+            },
+            {
+                name: 'Research & Community',
+                sources: [
+                    { label: 'arXiv', url: 'https://arxiv.org' },
+                    { label: 'Hugging Face', url: 'https://huggingface.co' },
+                    { label: 'Papers with Code', url: 'https://paperswithcode.com' },
+                ],
+            },
+            {
+                name: 'Industry Coverage',
+                sources: [
+                    { label: 'The Information', url: 'https://theinformation.com' },
+                    { label: 'TechCrunch', url: 'https://techcrunch.com' },
+                    { label: 'Semafor', url: 'https://semafor.com' },
+                ],
+            },
+        ],
+        categories: ['AI', 'ML', 'Models', 'Infrastructure', 'Agents', 'Open Source', 'Industry'],
+        personas: AI_TECH_PERSONAS,
+        defaultPersona: 'ai-landscape-analyst',
+        icon: '🤖',
+        isBuiltIn: true,
+        workspaceMode: 'RESEARCH',
+        labelProfileId: 'research',
+        supportedPurposeIds: ['trend-scan', 'latest-findings', 'synthesis'],
+        defaultPurposeId: 'trend-scan',
+        defaultArtifactType: 'BRIEF',
+    },
+    {
+        id: 'policy-regulation',
+        name: 'Policy & Regulation',
+        description: 'Monitor policy developments, enforcement signals, and regulatory shifts across jurisdictions.',
+        domainContext: 'You are tracking policy and regulation. Focus on official statements, agency guidance, legislation, rulemaking, enforcement, and cross-jurisdictional differences.',
+        investigationObjective: 'Surface meaningful policy changes, clarify who is affected, explain implications, and identify follow-up developments to monitor.',
+        defaultDateRange: { strategy: 'RELATIVE', relativeYears: 2 },
+        suggestedSources: [
+            {
+                name: 'Government Sources',
+                sources: [
+                    { label: 'Federal Register', url: 'https://federalregister.gov' },
+                    { label: 'Congress.gov', url: 'https://congress.gov' },
+                    { label: 'EUR-Lex', url: 'https://eur-lex.europa.eu' },
+                ],
+            },
+            {
+                name: 'Agencies & Regulators',
+                sources: [
+                    { label: 'FTC', url: 'https://ftc.gov' },
+                    { label: 'SEC', url: 'https://sec.gov' },
+                    { label: 'CISA', url: 'https://cisa.gov' },
+                ],
+            },
+            {
+                name: 'Analysis',
+                sources: [
+                    { label: 'Brookings', url: 'https://brookings.edu' },
+                    { label: 'CSIS', url: 'https://csis.org' },
+                    { label: 'Lawfare', url: 'https://lawfaremedia.org' },
+                ],
+            },
+        ],
+        categories: ['Regulation', 'Legislation', 'Enforcement', 'Compliance', 'AI Policy', 'Privacy', 'Security'],
+        personas: POLICY_REGULATION_PERSONAS,
+        defaultPersona: 'policy-analyst',
+        icon: '🏛️',
+        isBuiltIn: true,
+        workspaceMode: 'MONITORING',
+        labelProfileId: 'monitoring',
+        supportedPurposeIds: ['monitor', 'latest-findings', 'synthesis'],
+        defaultPurposeId: 'monitor',
+        defaultArtifactType: 'MONITOR_SNAPSHOT',
     },
     {
         id: 'open-investigation',
@@ -370,6 +584,11 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
         defaultPersona: 'general-investigator',
         icon: '🔍',
         isBuiltIn: true,
+        workspaceMode: 'INVESTIGATION',
+        labelProfileId: 'investigation',
+        supportedPurposeIds: ['deep-dive', 'synthesis', 'latest-findings'],
+        defaultPurposeId: 'deep-dive',
+        defaultArtifactType: 'REPORT',
     },
 ];
 

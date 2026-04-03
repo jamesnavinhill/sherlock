@@ -5,6 +5,67 @@ export interface Source {
   url: string;
 }
 
+export type WorkspaceMode =
+  | 'INVESTIGATION'
+  | 'RESEARCH'
+  | 'MONITORING'
+  | 'BRIEFING'
+  | 'DUE_DILIGENCE';
+
+export type ArtifactType =
+  | 'REPORT'
+  | 'SYNTHESIS'
+  | 'BRIEF'
+  | 'DIGEST'
+  | 'COMPARISON'
+  | 'TIMELINE'
+  | 'MONITOR_SNAPSHOT'
+  | 'NOTE';
+
+export type ArtifactSectionKind =
+  | 'EXECUTIVE_SUMMARY'
+  | 'KEY_FINDINGS'
+  | 'ANOMALIES'
+  | 'LEADS'
+  | 'EVIDENCE'
+  | 'TIMELINE'
+  | 'METHODOLOGY'
+  | 'LITERATURE_REVIEW'
+  | 'IMPLICATIONS'
+  | 'NEXT_STEPS'
+  | 'CUSTOM';
+
+export interface ArtifactSection {
+  id: string;
+  kind: ArtifactSectionKind;
+  title: string;
+  content?: string;
+  items?: string[];
+  order?: number;
+}
+
+export interface LabelProfile {
+  id: string;
+  workspaceLabel: string;
+  workspaceLabelPlural: string;
+  artifactLabel: string;
+  artifactLabelPlural: string;
+  detailViewLabel: string;
+  followUpLabel: string;
+  anomalyLabel: string;
+  signalLabel: string;
+  archiveLabel: string;
+}
+
+export interface PurposeProfile {
+  id: string;
+  name: string;
+  description: string;
+  promptDirective: string;
+  recommendedArtifactType: ArtifactType;
+  defaultSectionKinds: ArtifactSectionKind[];
+}
+
 // --- LEAD & HEADLINE TYPES ---
 
 export type LeadStatus = 'PENDING' | 'INVESTIGATED' | 'FLAGGED';
@@ -29,6 +90,11 @@ export interface Case {
   dateOpened: string;
   description?: string;
   headlines?: string[];
+  mode?: WorkspaceMode;
+  packId?: string;
+  purposeId?: string;
+  labelProfileId?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export type EntityType = 'PERSON' | 'ORGANIZATION' | 'UNKNOWN';
@@ -133,6 +199,19 @@ export interface InvestigationScope {
   accentColor?: string;
   icon?: string;
   isBuiltIn?: boolean;
+  workspaceMode?: WorkspaceMode;
+  labelProfileId?: string;
+  supportedPurposeIds?: string[];
+  defaultPurposeId?: string;
+  defaultArtifactType?: ArtifactType;
+}
+
+export interface DomainPack extends InvestigationScope {
+  workspaceMode: WorkspaceMode;
+  labelProfileId: string;
+  supportedPurposeIds: string[];
+  defaultPurposeId: string;
+  defaultArtifactType: ArtifactType;
 }
 
 export interface DateRangeOverride {
@@ -148,6 +227,13 @@ export interface InvestigationContext {
 export interface InvestigationRunConfig extends Partial<SystemConfig> {
   scopeId?: string;
   scopeName?: string;
+  packId?: string;
+  packName?: string;
+  purposeId?: string;
+  purposeName?: string;
+  artifactType?: ArtifactType;
+  labelProfileId?: string;
+  outputProfileId?: string;
   dateRangeOverride?: DateRangeOverride;
   preseededEntities?: ManualNode[];
   launchSource?: string;
@@ -158,6 +244,10 @@ export interface InvestigationLaunchRequest {
   parentContext?: InvestigationContext;
   configOverride?: Partial<SystemConfig>;
   scope?: InvestigationScope;
+  packId?: string;
+  purposeId?: string;
+  artifactType?: ArtifactType;
+  labelProfileId?: string;
   dateRangeOverride?: DateRangeOverride;
   preseededEntities?: ManualNode[];
   switchToView?: boolean;
@@ -172,10 +262,17 @@ export interface InvestigationReport {
   summary: string;
   agendas: string[];
   leads: string[];
+  sections?: ArtifactSection[];
+  followUps?: string[];
+  artifactType?: ArtifactType;
   entities: Entity[];
   sources: Source[];
   rawText: string;
   parentTopic?: string;
+  packId?: string;
+  purposeId?: string;
+  labelProfileId?: string;
+  metadata?: Record<string, unknown>;
   config?: InvestigationRunConfig;
 }
 
@@ -187,6 +284,10 @@ export interface CaseTemplate {
   config: Partial<SystemConfig>;
   createdAt: number;
   scopeId?: string;
+  packId?: string;
+  purposeId?: string;
+  artifactType?: ArtifactType;
+  labelProfileId?: string;
 }
 
 // Key is the variation, value is the canonical entity.
@@ -207,4 +308,23 @@ export interface InvestigationTask {
   config?: InvestigationRunConfig;
   launchRequest?: InvestigationLaunchRequest;
   error?: string;
+}
+
+export type Workspace = Case;
+export type Artifact = InvestigationReport;
+export type WorkspaceRun = InvestigationTask;
+
+export interface Signal {
+  id: string;
+  title: string;
+  content: string;
+  timestamp: string;
+  category?: string;
+  signalType?: string;
+  sourceName?: string;
+  severity?: string;
+  url?: string;
+  workspaceId?: string;
+  artifactId?: string;
+  metadata?: Record<string, unknown>;
 }

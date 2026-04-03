@@ -5,11 +5,14 @@ import {
 } from '../../config/aiModels';
 import { loadSystemConfig, migrateSystemConfig } from '../../config/systemConfig';
 import { BUILTIN_SCOPES, getScopeById } from '../../data/presets';
+import { getDomainPackById, getDomainPackForScope, getPurposeProfileById } from '../../domain';
 import type {
+    DomainPack,
     FeedItem,
     InvestigationReport,
     InvestigationScope,
     MonitorEvent,
+    PurposeProfile,
     SystemConfig,
 } from '../../types';
 import { anthropicProvider } from './anthropicProvider';
@@ -43,6 +46,14 @@ const DEFAULT_MONITOR_CONFIG: LiveIntelConfig = {
 
 const resolveScope = (scope?: InvestigationScope): InvestigationScope => {
     return scope || getScopeById('open-investigation') || BUILTIN_SCOPES[BUILTIN_SCOPES.length - 1];
+};
+
+const resolvePack = (scope: InvestigationScope, packId?: string): DomainPack => {
+    return getDomainPackById(packId || scope.id) || getDomainPackForScope(scope);
+};
+
+const resolvePurpose = (pack: DomainPack, purposeId?: string): PurposeProfile => {
+    return getPurposeProfileById(purposeId || pack.defaultPurposeId);
 };
 
 const resolveEffectiveConfig = (configOverride?: Partial<SystemConfig>): SystemConfig => {
@@ -98,6 +109,9 @@ export const investigateWithProviderRouter = async (
 ): Promise<InvestigationReport> => {
     const config = resolveEffectiveConfig(request.configOverride);
     const adapter = resolveAdapter(config);
+    const scope = resolveScope(request.scope);
+    const pack = resolvePack(scope, request.packId);
+    const purpose = resolvePurpose(pack, request.purposeId);
     assertCapability(adapter, 'INVESTIGATE', config.modelId);
 
     logProviderDebug({
@@ -111,7 +125,11 @@ export const investigateWithProviderRouter = async (
         topic: request.topic,
         parentContext: request.parentContext,
         config,
-        scope: resolveScope(request.scope),
+        scope,
+        pack,
+        purpose,
+        artifactType: request.artifactType || purpose.recommendedArtifactType,
+        labelProfileId: request.labelProfileId || pack.labelProfileId,
         dateOverride: request.dateOverride,
     });
 };
@@ -121,6 +139,9 @@ export const scanAnomaliesWithProviderRouter = async (
 ): Promise<FeedItem[]> => {
     const config = resolveEffectiveConfig();
     const adapter = resolveAdapter(config);
+    const scope = resolveScope(request.scope);
+    const pack = resolvePack(scope, request.packId);
+    const purpose = resolvePurpose(pack, request.purposeId || pack.defaultPurposeId);
     assertCapability(adapter, 'SCAN_ANOMALIES', config.modelId);
 
     logProviderDebug({
@@ -135,7 +156,9 @@ export const scanAnomaliesWithProviderRouter = async (
         category: request.category || 'All',
         dateRange: request.dateRange,
         config,
-        scope: resolveScope(request.scope),
+        scope,
+        pack,
+        purpose,
         options: request.options,
     });
 };
@@ -145,6 +168,9 @@ export const getLiveIntelWithProviderRouter = async (
 ): Promise<MonitorEvent[]> => {
     const config = resolveEffectiveConfig();
     const adapter = resolveAdapter(config);
+    const scope = resolveScope(request.scope);
+    const pack = resolvePack(scope, request.packId);
+    const purpose = resolvePurpose(pack, request.purposeId || pack.defaultPurposeId);
     assertCapability(adapter, 'LIVE_INTEL', config.modelId);
 
     logProviderDebug({
@@ -157,7 +183,9 @@ export const getLiveIntelWithProviderRouter = async (
     return adapter.getLiveIntel({
         topic: request.topic,
         config,
-        scope: resolveScope(request.scope),
+        scope,
+        pack,
+        purpose,
         monitorConfig: request.monitorConfig || DEFAULT_MONITOR_CONFIG,
         existingContent: request.existingContent || [],
     });

@@ -1,5 +1,5 @@
 import { BUILTIN_SCOPES } from '../../../data/presets';
-import type { DateRangeConfig, InvestigationScope, SystemConfig } from '../../../types';
+import type { DateRangeConfig, DomainPack, InvestigationScope, PurposeProfile, SystemConfig } from '../../../types';
 import type { LiveIntelConfig } from '../types';
 
 const getPersonaInstruction = (personaId: string, scope?: InvestigationScope): string => {
@@ -68,19 +68,33 @@ export const buildInvestigationPrompt = (
     scope: InvestigationScope,
     config: SystemConfig,
     parentContext?: { topic: string; summary: string },
-    dateOverride?: { start?: string; end?: string }
+    dateOverride?: { start?: string; end?: string },
+    purpose?: PurposeProfile,
+    pack?: DomainPack
 ): string => {
     const personaInstruction = getPersonaInstruction(config.persona, scope);
     const dateInstruction = resolveDateRange(scope.defaultDateRange, dateOverride);
     const sourcesInstruction = formatSuggestedSources(scope);
+    const purposeInstruction = purpose
+        ? `RUN PURPOSE: ${purpose.name}. ${purpose.promptDirective}`
+        : '';
+    const packInstruction = pack
+        ? `DOMAIN PACK: ${pack.name}. Workspace mode: ${pack.workspaceMode}.`
+        : '';
+    const outputInstruction = purpose
+        ? `OUTPUT CONTRACT: Return a structured ${purpose.recommendedArtifactType.toLowerCase()} with sections covering ${purpose.defaultSectionKinds.join(', ')} when relevant.`
+        : 'OUTPUT CONTRACT: Return a structured report with clear sections when relevant.';
 
     let prompt = `${personaInstruction}
 
 INVESTIGATION CONTEXT: ${scope.domainContext}
 OBJECTIVE: ${scope.investigationObjective}
 TARGET: "${topic}"
+${packInstruction}
+${purposeInstruction}
 ${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
 ${sourcesInstruction}
+${outputInstruction}
 `;
 
     if (config.searchDepth === 'DEEP') {
@@ -102,14 +116,18 @@ export const buildAnomalyPrompt = (params: {
     limit: number;
     prioritySources: string;
     scope: InvestigationScope;
+    purpose?: PurposeProfile;
+    pack?: DomainPack;
     dateRange?: { start?: string; end?: string };
 }): string => {
-    const { region, category, limit, prioritySources, scope, dateRange } = params;
+    const { region, category, limit, prioritySources, scope, dateRange, purpose, pack } = params;
 
     const locationScope = region.trim() ? region : 'globally';
     const objective = scope.investigationObjective;
     const topicScope = category !== 'All' ? `${category}-related issues within the scope of: ${objective}` : objective;
     const dateInstruction = resolveDateRange(scope.defaultDateRange, dateRange);
+    const packInstruction = pack ? `DOMAIN PACK: ${pack.name}.` : '';
+    const purposeInstruction = purpose ? `RUN PURPOSE: ${purpose.name}. ${purpose.promptDirective}` : '';
 
     let priorityInstruction = '';
     if (prioritySources.trim()) {
@@ -124,6 +142,8 @@ export const buildAnomalyPrompt = (params: {
 
     return `
 CONTEXT: ${scope.domainContext}
+${packInstruction}
+${purposeInstruction}
 
 Analyze real-time news, official reports, and social media discussions to identify ${limit} potential issues related to: ${topicScope} in ${locationScope}.
 ${dateInstruction ? `TEMPORAL SCOPE: ${dateInstruction}` : ''}
@@ -138,9 +158,11 @@ export const buildLiveIntelPrompt = (params: {
     topic: string;
     monitorConfig: LiveIntelConfig;
     scope: InvestigationScope;
+    purpose?: PurposeProfile;
+    pack?: DomainPack;
     existingContent: string[];
 }): string => {
-    const { topic, monitorConfig, scope, existingContent } = params;
+    const { topic, monitorConfig, scope, existingContent, purpose, pack } = params;
 
     const countInstruction = `Retrieve exactly: ${monitorConfig.newsCount} items of type 'NEWS', ${monitorConfig.socialCount} items of type 'SOCIAL', ${monitorConfig.officialCount} items of type 'OFFICIAL'`;
     const priorityInstruction = monitorConfig.prioritySources.trim()
@@ -151,8 +173,12 @@ export const buildLiveIntelPrompt = (params: {
     const dedupInstruction = recentHistory
         ? `CRITICAL EXCLUSION: Do NOT return items similar to: "${recentHistory}".`
         : '';
+    const packInstruction = pack ? `DOMAIN PACK: ${pack.name}.` : '';
+    const purposeInstruction = purpose ? `RUN PURPOSE: ${purpose.name}. ${purpose.promptDirective}` : '';
 
     return `CONTEXT: ${scope.domainContext}
+${packInstruction}
+${purposeInstruction}
 
 Search intelligence for: "${topic}".
 ${countInstruction}

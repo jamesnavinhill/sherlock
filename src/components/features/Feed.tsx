@@ -51,7 +51,10 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
     const minTime = new Promise(resolve => setTimeout(resolve, 1500));
 
     const dateRange = filterStartDate || filterEndDate ? { start: filterStartDate, end: filterEndDate } : undefined;
-    const dataPromise = scanForAnomalies(filterRegion, filterCategory, dateRange, feedConfig, activeScope);
+    const dataPromise = scanForAnomalies(filterRegion, filterCategory, dateRange, feedConfig, activeScope, {
+      packId: activeScope?.id,
+      purposeId: activeScope?.defaultPurposeId,
+    });
 
     const [_, data] = await Promise.all([minTime, dataPromise]);
 

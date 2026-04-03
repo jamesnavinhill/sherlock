@@ -1,6 +1,7 @@
 import { eq, desc } from 'drizzle-orm';
 import { getDB } from '../client';
-import { cases, reports, entities, sources, leads } from '../schema';
+import { artifactSections, cases, reports, entities, sources, leads } from '../schema';
+import { buildArtifactSections, toLegacyReportArrays } from '../../../domain';
 import type { Case, InvestigationReport, Entity, Headline } from '@/types';
 import {
     normalizeHumanText,
@@ -14,6 +15,7 @@ interface RawReportPayload {
     sources?: unknown;
     agendas?: unknown;
     leads?: unknown;
+    sections?: unknown;
 }
 
 const parseRawReportPayload = (rawText: string | null): RawReportPayload => {
@@ -88,6 +90,11 @@ export class CaseRepository {
             status: row.status as 'ACTIVE' | 'CLOSED',
             dateOpened: row.dateOpened,
             description: row.description || undefined,
+            mode: (row.mode as Case['mode']) || undefined,
+            packId: row.packId || undefined,
+            purposeId: row.purposeId || undefined,
+            labelProfileId: row.labelProfileId || undefined,
+            metadata: row.metadataJson ? JSON.parse(row.metadataJson) : undefined,
         }));
     }
 
@@ -103,6 +110,11 @@ export class CaseRepository {
             status: result[0].status as 'ACTIVE' | 'CLOSED',
             dateOpened: result[0].dateOpened,
             description: result[0].description || undefined,
+            mode: (result[0].mode as Case['mode']) || undefined,
+            packId: result[0].packId || undefined,
+            purposeId: result[0].purposeId || undefined,
+            labelProfileId: result[0].labelProfileId || undefined,
+            metadata: result[0].metadataJson ? JSON.parse(result[0].metadataJson) : undefined,
         };
     }
 
@@ -115,6 +127,11 @@ export class CaseRepository {
             status: caseData.status,
             dateOpened: caseData.dateOpened,
             description: caseData.description,
+            mode: caseData.mode,
+            packId: caseData.packId,
+            purposeId: caseData.purposeId,
+            labelProfileId: caseData.labelProfileId,
+            metadataJson: caseData.metadata ? JSON.stringify(caseData.metadata) : null,
             createdAt: now,
             updatedAt: now
         });
@@ -133,6 +150,7 @@ export class CaseRepository {
         // Optimization: Use separate queries to fetch all entities/sources and map them in memory
         const allEntities = await db.select().from(entities);
         const allSources = await db.select().from(sources);
+        const allSections = await db.select().from(artifactSections);
 
         return reportRows.map(row => {
             const rawPayload = parseRawReportPayload(row.rawText);
@@ -152,8 +170,26 @@ export class CaseRepository {
             const parsedSources = toSourceList(rawPayload.sources);
             const parsedAgendas = toStringList(rawPayload.agendas);
             const parsedLeads = toStringList(rawPayload.leads);
+            const reportSections = allSections
+                .filter(section => section.reportId === row.id)
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map(section => ({
+                    id: section.id,
+                    kind: section.kind as NonNullable<InvestigationReport['sections']>[number]['kind'],
+                    title: section.title,
+                    content: section.content || undefined,
+                    items: section.itemsJson ? JSON.parse(section.itemsJson) : undefined,
+                    order: section.sortOrder,
+                }));
+            const sections = buildArtifactSections({
+                sections: reportSections.length > 0 ? reportSections : rawPayload.sections,
+                summary: normalizeHumanText(row.summary, { includePriority: false }),
+                agendas: parsedAgendas,
+                leads: parsedLeads,
+                artifactType: (row.artifactType as InvestigationReport['artifactType']) || undefined,
+            });
 
-            return {
+            const legacyArrays = toLegacyReportArrays({
                 id: row.id,
                 caseId: row.caseId || undefined,
                 topic: normalizeTopicText(row.topic),
@@ -165,7 +201,31 @@ export class CaseRepository {
                 entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
                 sources: reportSources.length > 0 ? reportSources : parsedSources,
                 agendas: parsedAgendas,
-                leads: parsedLeads
+                leads: parsedLeads,
+                sections,
+                artifactType: (row.artifactType as InvestigationReport['artifactType']) || undefined,
+            });
+
+            return {
+                id: row.id,
+                caseId: row.caseId || undefined,
+                topic: normalizeTopicText(row.topic),
+                dateStr: row.dateStr || undefined,
+                summary: normalizeHumanText(row.summary, { includePriority: false }),
+                rawText: row.rawText || '',
+                parentTopic: row.parentTopic || undefined,
+                config: row.configJson ? JSON.parse(row.configJson) : undefined,
+                artifactType: (row.artifactType as InvestigationReport['artifactType']) || undefined,
+                packId: row.packId || undefined,
+                purposeId: row.purposeId || undefined,
+                labelProfileId: row.labelProfileId || undefined,
+                metadata: row.metadataJson ? JSON.parse(row.metadataJson) : undefined,
+                entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
+                sources: reportSources.length > 0 ? reportSources : parsedSources,
+                agendas: legacyArrays.agendas,
+                leads: legacyArrays.leads,
+                followUps: legacyArrays.followUps,
+                sections,
             };
         });
     }
@@ -192,6 +252,11 @@ export class CaseRepository {
             summary: normalizedSummary,
             rawText: report.rawText,
             parentTopic: report.parentTopic,
+            artifactType: report.artifactType,
+            packId: report.packId || report.config?.packId,
+            purposeId: report.purposeId || report.config?.purposeId,
+            labelProfileId: report.labelProfileId || report.config?.labelProfileId,
+            metadataJson: report.metadata ? JSON.stringify(report.metadata) : null,
             configJson: report.config ? JSON.stringify(report.config) : null,
             createdAt: now
         });
@@ -226,6 +291,20 @@ export class CaseRepository {
             }
         }
 
+        if (report.sections && report.sections.length > 0) {
+            for (const [index, section] of report.sections.entries()) {
+                await db.insert(artifactSections).values({
+                    id: section.id || `sec-${reportId}-${index}`,
+                    reportId,
+                    kind: section.kind,
+                    title: section.title,
+                    content: section.content,
+                    itemsJson: section.items ? JSON.stringify(section.items) : null,
+                    sortOrder: typeof section.order === 'number' ? section.order : index,
+                });
+            }
+        }
+
 
         // Update parent case timestamp
         if (report.caseId) {
@@ -251,6 +330,7 @@ export class CaseRepository {
 
     static async deleteReport(reportId: string): Promise<void> {
         const db = getDB();
+        await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
         await db.delete(entities).where(eq(entities.reportId, reportId));
         await db.delete(sources).where(eq(sources.reportId, reportId));
         await db.delete(reports).where(eq(reports.id, reportId));
@@ -276,6 +356,7 @@ export class CaseRepository {
             .where(eq(reports.caseId, caseId));
 
         for (const row of reportRows) {
+            await db.delete(artifactSections).where(eq(artifactSections.reportId, row.id));
             await db.delete(entities).where(eq(entities.reportId, row.id));
             await db.delete(sources).where(eq(sources.reportId, row.id));
         }
@@ -287,6 +368,7 @@ export class CaseRepository {
 
     static async clearCaseData(): Promise<void> {
         const db = getDB();
+        await db.delete(artifactSections);
         await db.delete(entities);
         await db.delete(sources);
         await db.delete(reports);

@@ -1,10 +1,12 @@
 import type { AIProvider } from '../../config/aiModels';
 import type {
     DateRangeConfig,
+    DomainPack,
     FeedItem,
     InvestigationReport,
     InvestigationScope,
     MonitorEvent,
+    PurposeProfile,
     SystemConfig,
 } from '../../types';
 
@@ -21,6 +23,10 @@ export interface InvestigationRequest {
     parentContext?: { topic: string; summary: string };
     config: SystemConfig;
     scope: InvestigationScope;
+    pack: DomainPack;
+    purpose: PurposeProfile;
+    artifactType: NonNullable<InvestigationReport['artifactType']>;
+    labelProfileId: string;
     dateOverride?: { start?: string; end?: string };
 }
 
@@ -35,6 +41,8 @@ export interface ScanAnomaliesRequest {
     dateRange?: { start?: string; end?: string };
     config: SystemConfig;
     scope: InvestigationScope;
+    pack: DomainPack;
+    purpose: PurposeProfile;
     options?: ScanAnomaliesOptions;
 }
 
@@ -50,6 +58,8 @@ export interface LiveIntelRequest {
     topic: string;
     config: SystemConfig;
     scope: InvestigationScope;
+    pack: DomainPack;
+    purpose: PurposeProfile;
     monitorConfig: LiveIntelConfig;
     existingContent: string[];
 }
@@ -77,6 +87,10 @@ export interface RouterInvestigationRequest {
     parentContext?: { topic: string; summary: string };
     configOverride?: Partial<SystemConfig>;
     scope?: InvestigationScope;
+    packId?: string;
+    purposeId?: string;
+    artifactType?: NonNullable<InvestigationReport['artifactType']>;
+    labelProfileId?: string;
     dateOverride?: DateRangeOverride;
 }
 
@@ -86,6 +100,8 @@ export interface RouterScanRequest {
     dateRange?: DateRangeOverride;
     options?: ScanAnomaliesOptions;
     scope?: InvestigationScope;
+    packId?: string;
+    purposeId?: string;
 }
 
 export interface RouterLiveIntelRequest {
@@ -93,6 +109,8 @@ export interface RouterLiveIntelRequest {
     monitorConfig?: LiveIntelConfig;
     existingContent?: string[];
     scope?: InvestigationScope;
+    packId?: string;
+    purposeId?: string;
 }
 
 export interface RouterTtsRequest {

@@ -2,17 +2,20 @@
 
 This document describes the current runtime architecture as implemented in `src/`.
 
+Sherlock now runs on a compatibility-first domain-pack architecture. The established investigation shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the hood.
+
 ## 1. Application Shell
 
 `src/App.tsx` is the root orchestrator.
 
 Responsibilities:
 
-- Initializes persistence/state (`useCaseStore().initializeStore()`)
-- Owns active view routing (`AppView`)
-- Owns the unified investigation launch pipeline
-- Wires lazy-loaded feature modules
-- Applies theme/accent runtime CSS variables
+- initializes persistence/state (`useCaseStore().initializeStore()`)
+- owns active view routing (`AppView`)
+- owns the unified launch pipeline
+- resolves domain-pack and purpose metadata into run config
+- wires lazy-loaded feature modules
+- applies theme/accent runtime CSS variables
 
 Primary views loaded from App:
 
@@ -25,17 +28,27 @@ Primary views loaded from App:
 
 ## 2. Launch Pipeline
 
-All investigation launches converge through `launchInvestigation` in `src/App.tsx`.
+All launches still converge through `launchInvestigation` in `src/App.tsx`.
 
 Flow:
 
 1. Merge `configOverride` with persisted `SystemConfig`
 2. Enforce provider API key presence before task creation
-3. Resolve effective scope/date/context
+3. Resolve effective scope, domain pack, purpose profile, artifact type, and label profile
 4. Create and persist a task (`TaskRepository`)
 5. Execute provider investigation via `investigateTopic`
-6. Archive resulting report into case structures
-7. Persist run config snapshots for traceability
+6. Normalize typed artifact sections and run metadata
+7. Archive the resulting artifact into compatibility case structures
+8. Persist run config snapshots for traceability
+
+Run config snapshots now include:
+
+- `scopeId` and `scopeName`
+- `packId` and `packName`
+- `purposeId` and `purposeName`
+- `artifactType`
+- `labelProfileId`
+- date-range, launch source, and provider/model snapshots
 
 Launch sources currently used:
 
@@ -46,7 +59,24 @@ Launch sources currently used:
 - `FULL_SPECTRUM`
 - `SETTINGS_TEMPLATE`
 
-## 3. AI Provider Layer
+## 3. Domain Runtime Layer
+
+Domain runtime helpers live in:
+
+- `src/domain/index.ts`
+- `src/domain/packs.ts`
+- `src/domain/purposes.ts`
+- `src/domain/labels.ts`
+- `src/domain/artifacts.ts`
+
+Key responsibilities:
+
+- derive first-party domain packs from scopes
+- resolve purpose profiles for each run
+- resolve label profiles for compatibility rendering
+- build typed artifact sections alongside legacy flattened fields
+
+## 4. AI Provider Layer
 
 App-facing compatibility facade:
 
@@ -71,13 +101,15 @@ Shared provider utilities:
 
 Key behavior:
 
-- Router enforces provider/model alignment and capability checks
+- router enforces provider/model alignment and capability checks
+- router resolves a pack and purpose profile for each run
+- adapters return typed artifact sections in addition to legacy `summary`, `agendas`, and `leads`
 - TTS is only implemented on Gemini adapter
-- Provider debug logs use `[provider-router]` metadata
+- provider debug logs use `[provider-router]` metadata
 
-## 4. Persistence Model
+## 5. Persistence Model
 
-Sherlock now persists core application data to SQLite in-browser.
+Sherlock persists core application data to SQLite in-browser.
 
 Runtime storage stack:
 
@@ -91,11 +123,19 @@ Entry points:
 - `src/services/db/schema.ts`
 - `src/services/db/repositories/*`
 
+The schema still uses compatibility tables such as `cases`, `reports`, and `tasks`, but Stream 1 extends them with generalized metadata:
+
+- `cases` can now hold workspace-oriented metadata such as `mode`, `packId`, `purposeId`, and `labelProfileId`
+- `reports` now store `artifactType`, pack/purpose references, label profiles, and metadata JSON
+- `artifact_sections` persists typed section rows separately from the legacy flattened report fields
+- `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
+
 Migration:
 
-- `src/services/db/migrate.ts` migrates prior `localStorage` Zustand payload (`sherlock-storage`) into SQLite one time.
+- `src/services/db/migrate.ts` migrates prior `localStorage` Zustand payload (`sherlock-storage`) into SQLite one time
+- `src/services/db/client.ts` applies additive schema upgrades for existing local databases
 
-## 5. State Layer
+## 6. State Layer
 
 Global store:
 
@@ -104,6 +144,8 @@ Global store:
 State domains include:
 
 - cases, archives, tasks, headlines
+- pack-aware report config snapshots
+- typed artifact sections
 - manual graph nodes/links
 - entity aliases and hide/flag sets
 - theme/accent mode
@@ -112,7 +154,7 @@ State domains include:
 
 Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use.
 
-## 6. Feature Composition
+## 7. Feature Composition
 
 ### Operation View
 
@@ -124,6 +166,12 @@ Persistence writes are handled through repository calls and settings KV writes r
 - InspectorPanel
 
 Supports deep dives, headline investigation, case/report editing, entity rename flows, and report/case exports.
+
+`ReportViewer` now renders:
+
+- typed summary sections
+- supplemental sections such as findings, methodology, implications, or timeline
+- compatibility-mapped lead and anomaly sections for legacy artifacts
 
 ### Network Graph
 
@@ -144,6 +192,8 @@ Supports deep dives, headline investigation, case/report editing, entity rename 
 - optional auto-save to headlines
 - launch into investigation wizard from events
 
+Live monitor requests now resolve through the active scope's derived pack and default purpose.
+
 ### Feed
 
 `src/components/features/Feed.tsx`
@@ -153,6 +203,8 @@ Supports deep dives, headline investigation, case/report editing, entity rename 
 - custom search and investigation launches
 - scanner settings (limit/priority/polling)
 
+Finder still uses the existing UI, but scan requests now resolve through the selected scope's derived pack and default purpose.
+
 ### Archives
 
 `src/components/features/Archives.tsx`
@@ -161,7 +213,7 @@ Supports deep dives, headline investigation, case/report editing, entity rename 
 - deletion workflows
 - exports (HTML/Markdown/JSON)
 
-## 7. Testing Coverage
+## 8. Testing Coverage
 
 Tests are currently concentrated in:
 
@@ -176,8 +228,9 @@ See:
 - `src/store/caseStore.test.ts`
 - `src/config/systemConfig.test.ts`
 
-## 8. Notable Constraints
+## 9. Notable Constraints
 
 - Timeline view component exists but is not currently exposed in sidebar navigation.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
+- The current shell still uses investigation-first labels in many places; pack-aware terminology is only partially surfaced in Stream 1.
 - Current lint/test status is tracked in `README.md` and `docs/LINTING.md`.

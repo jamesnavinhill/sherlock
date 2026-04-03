@@ -6,9 +6,25 @@ CREATE TABLE IF NOT EXISTS "cases" (
 	"status" text NOT NULL,
 	"date_opened" text NOT NULL,
 	"description" text,
+	"mode" text,
+	"pack_id" text,
+	"purpose_id" text,
+	"label_profile_id" text,
+	"metadata_json" text,
 	"created_at" integer NOT NULL,
 	"updated_at" integer NOT NULL,
 	FOREIGN KEY ("scope_id") REFERENCES "scopes"("id") ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "artifact_sections" (
+	"id" text PRIMARY KEY NOT NULL,
+	"report_id" text NOT NULL,
+	"kind" text NOT NULL,
+	"title" text NOT NULL,
+	"content" text,
+	"items_json" text,
+	"sort_order" integer NOT NULL,
+	FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "entities" (
@@ -53,6 +69,11 @@ CREATE TABLE IF NOT EXISTS "reports" (
 	"summary" text,
 	"raw_text" text,
 	"parent_topic" text,
+	"artifact_type" text,
+	"pack_id" text,
+	"purpose_id" text,
+	"label_profile_id" text,
+	"metadata_json" text,
 	"config_json" text,
 	"created_at" integer NOT NULL,
 	FOREIGN KEY ("case_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
@@ -87,6 +108,10 @@ CREATE TABLE IF NOT EXISTS "tasks" (
 	"topic" text NOT NULL,
 	"status" text NOT NULL,
 	"error" text,
+	"pack_id" text,
+	"purpose_id" text,
+	"artifact_type" text,
+	"label_profile_id" text,
 	"config_json" text,
 	"start_time" integer,
 	"end_time" integer,

@@ -3,6 +3,7 @@ import { useCaseStore } from '../../../store/caseStore';
 import type { MonitorEvent, InvestigationLaunchRequest, Headline, SystemConfig } from '../../../types';
 import type { MonitorConfig } from '../../../services/gemini';
 import { getLiveIntel } from '../../../services/gemini';
+import { getAllScopes, getScopeById } from '../../../data/presets';
 import {
     Radio, Play, Pause, ChevronDown, Activity, Settings2, Radar
 } from 'lucide-react';
@@ -34,6 +35,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
         activeCaseId: selectedCaseId,
         setActiveCaseId: setSelectedCaseId,
         activeScope: activeScopeId,
+        customScopes,
     } = useCaseStore();
 
     type FilterType = 'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL';
@@ -72,6 +74,9 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
     // Task Selection State
     const [selectedEventForAnalysis, setSelectedEventForAnalysis] = useState<MonitorEvent | null>(null);
     const selectedCase = useMemo(() => cases.find(c => c.id === selectedCaseId) ?? null, [cases, selectedCaseId]);
+    const activeScope = useMemo(() => {
+        return getScopeById(activeScopeId) || getAllScopes(customScopes).find((scope) => scope.id === activeScopeId);
+    }, [activeScopeId, customScopes]);
 
     // --- EFFECTS ---
 
@@ -99,7 +104,16 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
 
         try {
             const existingContent = safeEvents.map(e => e.content);
-            const newIntel = await getLiveIntel(activeCase.title.replace('Operation: ', ''), feedConfig, existingContent);
+            const newIntel = await getLiveIntel(
+                activeCase.title.replace('Operation: ', ''),
+                feedConfig,
+                existingContent,
+                activeScope,
+                {
+                    packId: activeScope?.id,
+                    purposeId: activeScope?.defaultPurposeId,
+                }
+            );
 
             if (!isMonitoringRef.current) {
                 resetState();

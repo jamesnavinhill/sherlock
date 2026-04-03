@@ -15,7 +15,14 @@ export class TaskRepository {
             startTime: row.startTime || 0,
             endTime: row.endTime || undefined,
             error: row.error || undefined,
-            config: row.configJson ? JSON.parse(row.configJson) : undefined,
+            config: row.configJson
+                ? JSON.parse(row.configJson)
+                : {
+                    packId: row.packId || undefined,
+                    purposeId: row.purposeId || undefined,
+                    artifactType: row.artifactType || undefined,
+                    labelProfileId: row.labelProfileId || undefined,
+                },
             // Note: report usually attached in memory or fetched separately via ReportRepository if needed
             // For tasks list we might not need full report body
         }));
@@ -30,6 +37,10 @@ export class TaskRepository {
             // We might need to handle standalone tasks.
             topic: task.topic,
             status: task.status,
+            packId: task.config?.packId,
+            purposeId: task.config?.purposeId,
+            artifactType: task.config?.artifactType,
+            labelProfileId: task.config?.labelProfileId,
             startTime: task.startTime,
             endTime: task.endTime,
             error: task.error,

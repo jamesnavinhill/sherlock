@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { InvestigationScope, SystemConfig } from '../../types';
+import type { DomainPack, InvestigationScope, PurposeProfile, SystemConfig } from '../../types';
 import {
     ANTHROPIC_FIXTURES,
     GEMINI_FIXTURES,
@@ -52,6 +52,28 @@ const scopeFixture: InvestigationScope = {
         },
     ],
     suggestedSources: [],
+    labelProfileId: 'investigation',
+    supportedPurposeIds: ['deep-dive'],
+    defaultPurposeId: 'deep-dive',
+    defaultArtifactType: 'REPORT',
+};
+
+const purposeFixture: PurposeProfile = {
+    id: 'deep-dive',
+    name: 'Deep Dive',
+    description: 'Fixture purpose',
+    promptDirective: 'Investigate comprehensively.',
+    recommendedArtifactType: 'REPORT',
+    defaultSectionKinds: ['EXECUTIVE_SUMMARY', 'ANOMALIES', 'LEADS'],
+};
+
+const packFixture: DomainPack = {
+    ...scopeFixture,
+    workspaceMode: 'INVESTIGATION',
+    labelProfileId: 'investigation',
+    supportedPurposeIds: ['deep-dive'],
+    defaultPurposeId: 'deep-dive',
+    defaultArtifactType: 'REPORT',
 };
 
 const makeConfig = (provider: SystemConfig['provider'], modelId: string): SystemConfig => ({
@@ -124,18 +146,26 @@ describe('provider adapter contracts', () => {
             parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
+            artifactType: 'REPORT',
+            labelProfileId: 'investigation',
         });
         const feed = await geminiProvider.scanAnomalies({
             region: 'US',
             category: 'Finance',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             options: { limit: 8, prioritySources: '' },
         });
         const live = await geminiProvider.getLiveIntel({
             topic: 'Atlas Holdings',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             monitorConfig: {
                 socialCount: 2,
                 newsCount: 2,
@@ -163,18 +193,26 @@ describe('provider adapter contracts', () => {
             parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
+            artifactType: 'REPORT',
+            labelProfileId: 'investigation',
         });
         const feed = await openRouterProvider.scanAnomalies({
             region: 'US',
             category: 'Finance',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             options: { limit: 8, prioritySources: '' },
         });
         const live = await openRouterProvider.getLiveIntel({
             topic: 'Atlas Holdings',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             monitorConfig: {
                 socialCount: 2,
                 newsCount: 2,
@@ -202,18 +240,26 @@ describe('provider adapter contracts', () => {
             parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
+            artifactType: 'REPORT',
+            labelProfileId: 'investigation',
         });
         const feed = await openAIProvider.scanAnomalies({
             region: 'US',
             category: 'Finance',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             options: { limit: 8, prioritySources: '' },
         });
         const live = await openAIProvider.getLiveIntel({
             topic: 'Atlas Holdings',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             monitorConfig: {
                 socialCount: 2,
                 newsCount: 2,
@@ -241,18 +287,26 @@ describe('provider adapter contracts', () => {
             parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
+            artifactType: 'REPORT',
+            labelProfileId: 'investigation',
         });
         const feed = await anthropicProvider.scanAnomalies({
             region: 'US',
             category: 'Finance',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             options: { limit: 8, prioritySources: '' },
         });
         const live = await anthropicProvider.getLiveIntel({
             topic: 'Atlas Holdings',
             config,
             scope: scopeFixture,
+            pack: packFixture,
+            purpose: purposeFixture,
             monitorConfig: {
                 socialCount: 2,
                 newsCount: 2,

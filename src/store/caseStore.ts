@@ -487,10 +487,15 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             const newCaseId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
             const newCase: Case = {
                 id: newCaseId,
-                title: `Operation: ${report.topic}`,
+                title: report.topic,
                 status: 'ACTIVE',
                 dateOpened: new Date().toLocaleDateString(),
-                description: `Investigation started on ${report.topic}`
+                description: report.summary || `Workspace started on ${report.topic}`,
+                mode: (report.metadata?.workspaceMode as Case['mode']) || undefined,
+                packId: report.packId || report.config?.packId,
+                purposeId: report.purposeId || report.config?.purposeId,
+                labelProfileId: report.labelProfileId || report.config?.labelProfileId,
+                metadata: report.metadata,
             };
             cases.push(newCase);
             targetCaseId = newCaseId;

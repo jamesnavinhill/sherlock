@@ -19,6 +19,11 @@ export const cases = sqliteTable('cases', {
     status: text('status').notNull(), // 'ACTIVE' | 'CLOSED'
     dateOpened: text('date_opened').notNull(),
     description: text('description'),
+    mode: text('mode'),
+    packId: text('pack_id'),
+    purposeId: text('purpose_id'),
+    labelProfileId: text('label_profile_id'),
+    metadataJson: text('metadata_json'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
 });
@@ -32,8 +37,23 @@ export const reports = sqliteTable('reports', {
     summary: text('summary'),
     rawText: text('raw_text'),
     parentTopic: text('parent_topic'),
+    artifactType: text('artifact_type'),
+    packId: text('pack_id'),
+    purposeId: text('purpose_id'),
+    labelProfileId: text('label_profile_id'),
+    metadataJson: text('metadata_json'),
     configJson: text('config_json'), // Stores snapshot of config used
     createdAt: integer('created_at').notNull(),
+});
+
+export const artifactSections = sqliteTable('artifact_sections', {
+    id: text('id').primaryKey(),
+    reportId: text('report_id').notNull().references(() => reports.id),
+    kind: text('kind').notNull(),
+    title: text('title').notNull(),
+    content: text('content'),
+    itemsJson: text('items_json'),
+    sortOrder: integer('sort_order').notNull(),
 });
 
 // --- ENTITIES ---
@@ -75,6 +95,10 @@ export const tasks = sqliteTable('tasks', {
     topic: text('topic').notNull(),
     status: text('status').notNull(), // 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED'
     error: text('error'),
+    packId: text('pack_id'),
+    purposeId: text('purpose_id'),
+    artifactType: text('artifact_type'),
+    labelProfileId: text('label_profile_id'),
     configJson: text('config_json'),
     startTime: integer('start_time'),
     endTime: integer('end_time'),

@@ -6,6 +6,7 @@ import {
     Type,
 } from '@google/genai';
 import type { FeedItem, InvestigationReport, MonitorEvent, Source } from '../../types';
+import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
     InvestigationRequest,
@@ -89,16 +90,18 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
                 scope,
                 config,
                 normalizedParentContext,
-                dateOverride
+                dateOverride,
+                request.purpose,
+                request.pack
             );
 
             if (!useStructuredOutput) {
                 basePrompt +=
-                    ' CRITICAL: Respond with a JSON object only containing: summary (string), entities (array), agendas (array), leads (array), sources (array of {title, url}).';
+                    ' CRITICAL: Respond with a JSON object only containing: summary (string), entities (array), agendas (array), leads (array), sources (array of {title, url}), and optional sections (array).';
             }
 
             basePrompt +=
-                ' Extract at least 4 actionable leads. For each entity, specify: name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment. Include 3-8 unique sources and provide each source as { "title": "...", "url": "https://..." }.';
+                ' Extract at least 4 actionable leads. For each entity, specify: name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment. Include 3-8 unique sources and provide each source as { "title": "...", "url": "https://..." }. When useful, also return sections as an array of { kind, title, content, items }.';
 
             const response = await ai.models.generateContent({
                 model: config.modelId,
@@ -154,6 +157,22 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
                                               required: ['title', 'url'],
                                           },
                                       },
+                                      sections: {
+                                          type: Type.ARRAY,
+                                          items: {
+                                              type: Type.OBJECT,
+                                              properties: {
+                                                  kind: { type: Type.STRING },
+                                                  title: { type: Type.STRING },
+                                                  content: { type: Type.STRING },
+                                                  items: {
+                                                      type: Type.ARRAY,
+                                                      items: { type: Type.STRING },
+                                                  },
+                                              },
+                                              required: ['kind', 'title'],
+                                          },
+                                      },
                                   },
                                   required: ['summary', 'entities', 'agendas', 'leads', 'sources'],
                               },
@@ -176,8 +195,20 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
                           agendas?: unknown;
                           leads?: unknown;
                           sources?: Array<{ title?: unknown; url?: unknown; uri?: unknown }>;
+                          sections?: unknown;
                       })
                     : {};
+
+            const agendas = normalizeStringList(data.agendas);
+            const leads = normalizeStringList(data.leads);
+            const summary = toDisplayText(data.summary).trim() || 'Analysis pending...';
+            const sections = buildArtifactSections({
+                sections: data.sections,
+                summary,
+                agendas,
+                leads,
+                artifactType: request.artifactType,
+            });
 
             const modelSources = Array.isArray(data.sources)
                 ? dedupeSources(
@@ -190,7 +221,7 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
                 : [];
 
             const textFallbackSources = extractSourcesFromText(
-                [rawText, toDisplayText(data.summary), ...normalizeStringList(data.leads)].join('\n')
+                [rawText, summary, ...leads].join('\n')
             );
 
             const sources = dedupeSources([
@@ -203,18 +234,38 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
                 topic: normalizedTopic,
                 parentTopic: normalizedParentTopic || undefined,
                 dateStr: new Date().toLocaleDateString(),
-                summary: toDisplayText(data.summary).trim() || 'Analysis pending...',
+                summary,
                 entities: normalizeEntities(data.entities),
-                agendas: normalizeStringList(data.agendas),
-                leads: normalizeStringList(data.leads),
+                agendas,
+                leads,
+                followUps: leads,
+                sections,
+                artifactType: request.artifactType,
                 sources,
                 rawText: JSON.stringify(data, null, 2),
+                packId: request.pack.id,
+                purposeId: request.purpose.id,
+                labelProfileId: request.labelProfileId,
+                metadata: {
+                    packName: request.pack.name,
+                    purposeName: request.purpose.name,
+                    scopeId: scope.id,
+                    workspaceMode: request.pack.workspaceMode,
+                },
                 config: {
                     provider: config.provider,
                     modelId: config.modelId,
                     persona: config.persona,
                     searchDepth: config.searchDepth,
                     thinkingBudget: config.thinkingBudget,
+                    scopeId: scope.id,
+                    scopeName: scope.name,
+                    packId: request.pack.id,
+                    packName: request.pack.name,
+                    purposeId: request.purpose.id,
+                    purposeName: request.purpose.name,
+                    artifactType: request.artifactType,
+                    labelProfileId: request.labelProfileId,
                 },
             };
         },
@@ -240,6 +291,8 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
                 limit,
                 prioritySources: options?.prioritySources || '',
                 scope,
+                pack: request.pack,
+                purpose: request.purpose,
                 dateRange,
             });
 
@@ -340,6 +393,8 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 topic: normalizedTopic,
                 monitorConfig,
                 scope,
+                pack: request.pack,
+                purpose: request.purpose,
                 existingContent,
             });
 

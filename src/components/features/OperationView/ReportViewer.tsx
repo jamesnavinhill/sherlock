@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import type { InvestigationReport, BreadcrumbItem, Entity } from '../../../types';
+import { getLabelProfileById, getSectionByKinds, getSectionItemsByKinds } from '../../../domain';
 import { Breadcrumbs } from '../../ui/Breadcrumbs';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { EmptyState } from '../../ui/EmptyState';
@@ -131,6 +132,24 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     }
 
     const reportSources = report.sources || [];
+    const labelProfile = getLabelProfileById(report.labelProfileId || report.config?.labelProfileId);
+    const primarySummarySection = getSectionByKinds(report.sections, ['EXECUTIVE_SUMMARY', 'KEY_FINDINGS']);
+    const visibleSummary = primarySummarySection?.content || report.summary;
+    const visibleLeads = report.leads.length > 0
+        ? report.leads
+        : getSectionItemsByKinds(report.sections, ['LEADS', 'NEXT_STEPS']);
+    const visibleAnomalies = report.agendas.length > 0
+        ? report.agendas
+        : getSectionItemsByKinds(report.sections, ['ANOMALIES', 'KEY_FINDINGS']);
+    const hiddenSectionKinds = new Set([
+        primarySummarySection?.kind,
+        'ANOMALIES',
+        'LEADS',
+    ].filter(Boolean));
+    const supplementalSections = (report.sections || []).filter(section =>
+        !hiddenSectionKinds.has(section.kind)
+        && ((section.content && section.content.trim().length > 0) || (section.items && section.items.length > 0))
+    );
 
     return (
         <div className="flex-1 flex overflow-hidden bg-black relative animate-in fade-in duration-500">
@@ -174,33 +193,59 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                             </button>
                         </div>
                         <div className="text-zinc-300 leading-relaxed font-sans text-base relative z-10 prose prose-invert max-w-none">
-                            <ReactMarkdown components={markdownComponents}>{report.summary}</ReactMarkdown>
+                            <ReactMarkdown components={markdownComponents}>{visibleSummary}</ReactMarkdown>
                         </div>
                     </div>
+
+                    {supplementalSections.length > 0 && (
+                        <div className="space-y-4 mb-8">
+                            {supplementalSections.map((section) => (
+                                <div key={section.id} className="bg-zinc-950/60 border border-zinc-800 p-5">
+                                    <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-white mb-3">
+                                        {section.title}
+                                    </h3>
+                                    {section.content && (
+                                        <div className="text-zinc-300 prose prose-invert max-w-none text-sm mb-3">
+                                            <ReactMarkdown components={markdownComponents}>{section.content}</ReactMarkdown>
+                                        </div>
+                                    )}
+                                    {section.items && section.items.length > 0 && (
+                                        <div className="space-y-2">
+                                            {section.items.map((item, index) => (
+                                                <div key={`${section.id}-${index}`} className="border-l-2 border-osint-primary/40 pl-3 text-sm text-zinc-300">
+                                                    <ReactMarkdown components={markdownComponents}>{item}</ReactMarkdown>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Leads */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between border-b border-zinc-700 pb-2 mb-4 bg-black/30 p-2">
                             <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
-                                <Target className="w-4 h-4 mr-2 text-osint-primary" /> Investigative Leads
+                                <Target className="w-4 h-4 mr-2 text-osint-primary" /> {labelProfile.followUpLabel}
                             </h2>
-                            {report.leads.length > 0 && (
+                            {visibleLeads.length > 0 && (
                                 <button
-                                    onClick={() => onBatchDeepDive(report.leads)}
+                                    onClick={() => onBatchDeepDive(visibleLeads)}
                                     className="flex items-center text-xs font-mono font-bold text-black bg-white hover:bg-osint-primary px-3 py-1.5 uppercase transition-all shadow-[0_0_10px_-3px_rgba(255,255,255,0.5)] hover:shadow-[0_0_15px_-5px_var(--osint-primary)]"
-                                    aria-label="Investigate all leads"
+                                    aria-label={`Investigate all ${labelProfile.followUpLabel.toLowerCase()}`}
                                 >
                                     <Layers className="w-4 h-4 mr-2" /> Full Spectrum
                                 </button>
                             )}
                         </div>
-                        {report.leads.length === 0 ? (
+                        {visibleLeads.length === 0 ? (
                             <div className="p-4 border border-zinc-800 bg-zinc-900/30 text-[11px] font-mono text-zinc-500 italic">
-                                No leads were extracted for this report.
+                                No follow-up items were extracted for this artifact.
                             </div>
                         ) : (
                             <div className="grid md:grid-cols-2 gap-4">
-                                {report.leads.map((lead, idx) => (
+                                {visibleLeads.map((lead, idx) => (
                                     <div key={idx} className="bg-osint-surface/80 backdrop-blur-sm border border-zinc-700/60 p-5 hover:border-osint-primary/50 transition-colors relative group flex flex-col justify-between">
                                         <div>
                                             <div className="absolute top-4 right-4 text-zinc-800 font-mono text-4xl font-bold opacity-50 group-hover:text-zinc-700">{String(idx + 1).padStart(2, '0')}</div>
@@ -229,7 +274,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
                 {/* Anomalies */}
                 <Accordion
-                    title={`Anomalies (${report.agendas.length})`}
+                    title={`${labelProfile.anomalyLabel} (${visibleAnomalies.length})`}
                     icon={AlertTriangle}
                     isOpen={sidebarAccordions.anomalies}
                     onToggle={() => toggleSidebarAccordion('anomalies')}
@@ -237,10 +282,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                     headerClassName="text-osint-danger"
                 >
                     <div className="space-y-2">
-                        {report.agendas.length === 0 ? (
-                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No anomalies extracted for this report.</p>
+                        {visibleAnomalies.length === 0 ? (
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No notable findings extracted for this artifact.</p>
                         ) : (
-                            report.agendas.map((agenda, idx) => (
+                            visibleAnomalies.map((agenda, idx) => (
                                 <div key={idx} className="bg-zinc-900/80 p-3 border-l-2 border-osint-danger text-xs text-zinc-300">
                                     <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
                                 </div>

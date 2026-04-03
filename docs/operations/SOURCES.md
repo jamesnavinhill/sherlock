@@ -1,6 +1,6 @@
 # Investigation Source Directory
 
-This catalog aligns with built-in investigation scopes in `src/data/presets.ts`.
+This catalog aligns with built-in scopes in `src/data/presets.ts`.
 
 Use these sources as seed inputs for:
 
@@ -87,12 +87,51 @@ Use these sources as seed inputs for:
 - G2: <https://g2.com>
 - Gartner: <https://gartner.com>
 
+## Scientific Research
+
+- Google Scholar: <https://scholar.google.com>
+- PubMed: <https://pubmed.ncbi.nlm.nih.gov>
+- arXiv: <https://arxiv.org>
+- Semantic Scholar: <https://semanticscholar.org>
+- Nature: <https://nature.com>
+- Science: <https://science.org>
+- Cell Press: <https://cell.com>
+- PLOS: <https://plos.org>
+- NIH: <https://nih.gov>
+- WHO: <https://who.int>
+- CDC: <https://cdc.gov>
+
+## AI & Technology Landscape
+
+- OpenAI: <https://openai.com>
+- Anthropic: <https://anthropic.com>
+- Google DeepMind: <https://deepmind.google>
+- Meta AI: <https://ai.meta.com>
+- arXiv: <https://arxiv.org>
+- Hugging Face: <https://huggingface.co>
+- Papers with Code: <https://paperswithcode.com>
+- The Information: <https://theinformation.com>
+- TechCrunch: <https://techcrunch.com>
+- Semafor: <https://semafor.com>
+
+## Policy & Regulation
+
+- Federal Register: <https://federalregister.gov>
+- Congress.gov: <https://congress.gov>
+- EUR-Lex: <https://eur-lex.europa.eu>
+- FTC: <https://ftc.gov>
+- SEC: <https://sec.gov>
+- CISA: <https://cisa.gov>
+- Brookings: <https://brookings.edu>
+- CSIS: <https://csis.org>
+- Lawfare: <https://lawfaremedia.org>
+
 ## Open Investigation
 
 Open Investigation is intentionally unconstrained and does not ship with a fixed source list.
 
 ## Notes
 
-- These are guidance sources, not enforced allowlists.
-- Provider output still requires human verification and cross-checking.
-- Keep source additions aligned with `src/data/presets.ts` to avoid prompt/doc drift.
+- these are guidance sources, not enforced allowlists
+- provider output still requires human verification and cross-checking
+- keep source additions aligned with `src/data/presets.ts` to avoid prompt/doc drift
