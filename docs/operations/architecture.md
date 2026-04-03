@@ -107,8 +107,9 @@ Key behavior:
 - router enforces provider/model alignment and capability checks
 - router resolves a pack and purpose profile for each run
 - router now exposes a sibling `CHAT` runtime path for workspace-grounded conversational turns
+- router now exposes both non-streaming and streaming chat paths with a provider-agnostic event envelope and abort support
 - adapters return typed artifact sections in addition to legacy `summary`, `agendas`, and `leads`
-- chat adapters accept message arrays plus deterministic workspace retrieval bundles and return structured citations
+- chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations
 - TTS is only implemented on Gemini adapter
 - provider debug logs use `[provider-router]` metadata
 
@@ -176,13 +177,17 @@ Supports deep dives, headline follow-through, workspace/artifact editing, entity
 
 ### Chat
 
-`src/components/features/Chat/index.tsx`
+`src/components/features/Chat/ChatPage.tsx`
 
 - dedicated workspace-bound chat page
-- persisted session switching, rename, and delete flows
-- non-streaming grounded answers backed by deterministic workspace retrieval
+- persisted session switching, rename, delete, and guided-run session flows
+- streaming grounded answers backed by deterministic workspace retrieval
+- stop/cancel handling for in-flight assistant turns
+- bounded retrieval actions for artifact summaries, full artifact text, and recent signals
+- save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
 - transcript copy plus Markdown/JSON export
-- context drawer with recent artifacts, recent signals, and last-turn retrieval snippets
+- guided conversational run builder that maps into the same launch request shape used by `TaskSetupModal`
+- context drawer with recent artifacts, recent signals, last-turn retrieval snippets, and action log
 
 `ReportViewer` now renders:
 

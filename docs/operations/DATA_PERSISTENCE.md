@@ -78,7 +78,14 @@ The chat implementation adds:
 - `chat_sessions` for workspace-bound conversation metadata and model snapshots
 - `chat_messages` for persisted transcript turns and citation metadata
 - `chat_message_attachments` for retrieved context snippets attached to a turn
-- `chat_actions` for auditable retrieval operations
+- `chat_actions` for auditable retrieval, save, append, and follow-up operations
+
+Stream 3 and 4 behavior built on that model:
+
+- streaming assistant text is transient UI state, while final message state persists back into `chat_messages`
+- cancelled turns persist with final message status rather than leaving orphaned partial rows
+- guided run mode persists its draft step state in `chat_sessions.metadata_json`
+- guided run saves reuse the existing `reports` and `artifact_sections` tables rather than introducing a parallel draft store
 
 ## Legacy Migration
 
