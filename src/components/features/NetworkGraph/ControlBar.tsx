@@ -3,10 +3,12 @@ import {
     ZoomOut, ZoomIn, Link as LinkIcon, PlusCircle, GitMerge,
     Lock, Unlock, Briefcase, ChevronRight, ChevronDown, Box, Eye, EyeOff, Star
 } from 'lucide-react';
-import type { Case } from '../../../types';
+import type { Case, LabelProfile } from '../../../types';
+import { stripLegacyWorkspacePrefix } from '../../../domain';
 
 interface ControlBarProps {
     cases: Case[];
+    labelProfile: LabelProfile;
     filterCaseId: string;
     onCaseChange: (caseId: string) => void;
     showLeftPanel: boolean;
@@ -29,6 +31,7 @@ interface ControlBarProps {
 
 export const ControlBar: React.FC<ControlBarProps> = ({
     cases,
+    labelProfile,
     filterCaseId,
     onCaseChange,
     showLeftPanel,
@@ -56,7 +59,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     className={`hidden md:flex items-center space-x-2 px-3 py-1.5 border transition-all ${showLeftPanel ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
                 >
                     <Briefcase className="w-4 h-4" />
-                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">Case Dossier</span>
+                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">{`${labelProfile.workspaceLabel} Dossier`}</span>
                     <ChevronRight className={`w-3 h-3 transition-transform ${showLeftPanel ? 'rotate-180' : ''}`} />
                 </button>
                 <div className="relative group hidden md:block">
@@ -66,11 +69,11 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                         onChange={(e) => onCaseChange(e.target.value)}
                         className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[180px] max-w-[220px] truncate"
                     >
-                        <option value="">SELECT CASE</option>
+                        <option value="">{`SELECT ${labelProfile.workspaceLabel.toUpperCase()}`}</option>
                         {cases.map(c => (
-                            <option key={c.id} value={c.id}>CASE: {c.title.replace('Operation: ', '')}</option>
+                            <option key={c.id} value={c.id}>{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
                         ))}
-                        <option value="ALL" className="font-bold border-t border-zinc-700">ALL CASES (GLOBAL VIEW)</option>
+                        <option value="ALL" className="font-bold border-t border-zinc-700">{`ALL ${labelProfile.workspaceLabelPlural.toUpperCase()} (GLOBAL VIEW)`}</option>
                     </select>
                 </div>
             </div>

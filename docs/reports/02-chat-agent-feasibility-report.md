@@ -2,6 +2,10 @@
 
 Date: 2026-04-03
 
+Planning follow-through:
+
+- implementation plan: `docs/plans/02-chat-agent-implementation-plan.md`
+
 ## Purpose
 
 This report assesses the feasibility of adding a focused chat and agent experience to Sherlock so users can:

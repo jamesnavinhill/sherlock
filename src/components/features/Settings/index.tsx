@@ -47,6 +47,7 @@ import {
     setApiKey as setProviderApiKey,
     validateApiKey
 } from '../../../services/providers/keys';
+import { clearStoredActiveWorkspaceId } from '../../../utils/localStorage';
 
 interface SettingsProps {
     themeColor: string;
@@ -247,9 +248,9 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
     };
 
     const handleClearData = async () => {
-        if (confirm('CRITICAL WARNING: This will permanently delete all cases and reports. Proceed?')) {
+        if (confirm('CRITICAL WARNING: This will permanently delete all saved workspaces, artifacts, and task history. Proceed?')) {
             await clearCaseData();
-            localStorage.removeItem('sherlock_active_case_id');
+            clearStoredActiveWorkspaceId();
             alert('Database purged.');
         }
     };
@@ -565,7 +566,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                     <h3 className="text-lg font-bold text-white font-mono uppercase tracking-widest">Data Management</h3>
                 </div>
                 <p className="text-zinc-500 text-xs font-mono leading-relaxed max-w-2xl">
-                    Sherlock operates as a client-side laboratory. All evidence, case files, and intelligence reports are stored exclusively within your browser&apos;s persistent storage. We recommend regular exports to ensure data stability.
+                    Sherlock operates as a client-side workspace. All saved workspaces, artifacts, and task history stay inside your browser&apos;s persistent storage. We recommend regular exports to ensure data stability.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
@@ -574,7 +575,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                         className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 hover:border-white transition-all group"
                     >
                         <div className="text-left">
-                            <span className="block text-xs font-bold text-white font-mono uppercase">Export Dossier</span>
+                            <span className="block text-xs font-bold text-white font-mono uppercase">Export Workspace Data</span>
                             <span className="text-[10px] text-zinc-500 font-mono">Create localized JSON backup</span>
                         </div>
                         <Download className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
@@ -586,7 +587,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                     >
                         <div className="text-left">
                             <span className="block text-xs font-bold text-white font-mono uppercase">Restore Backup</span>
-                            <span className="text-[10px] text-zinc-500 font-mono">Import previous JSON dossier</span>
+                            <span className="text-[10px] text-zinc-500 font-mono">Import previous workspace backup</span>
                         </div>
                         <Upload className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
                     </button>
@@ -600,7 +601,7 @@ export const Settings: React.FC<SettingsProps> = ({ themeColor, onThemeChange, t
                     <h3 className="text-lg font-bold text-red-500 font-mono uppercase tracking-widest">System Purge</h3>
                 </div>
                 <p className="text-red-900/60 text-xs font-mono leading-relaxed max-w-2xl">
-                    The purge protocol will permanently delete all local intelligence records, cases, and active task history. This action cannot be reversed.
+                    The purge protocol will permanently delete all local workspaces, artifacts, and active task history. This action cannot be reversed.
                 </p>
                 <button
                     onClick={handleClearData}

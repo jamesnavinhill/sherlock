@@ -92,14 +92,15 @@ Some non-tabular values are still stored directly in localStorage:
 - legacy compatibility key aliases
 - `sherlock_config` (system config object)
 - `sherlock_livestream_autosave`
-- `sherlock_active_case_id` (archive selection hint)
+- `sherlock_active_workspace_id` (archive selection hint)
+- `sherlock_active_case_id` (legacy fallback alias for older archive selections)
 
 ## Backup/Restore
 
 User-facing maintenance tools in Settings:
 
-- export case/archive JSON snapshot
-- import JSON snapshot (overwrites current case/report data)
-- clear case/report data
+- export workspace data JSON snapshot
+- import JSON snapshot (overwrites current workspace/artifact data)
+- clear workspace/artifact data
 
 See `src/components/features/Settings/index.tsx` for exact behavior.

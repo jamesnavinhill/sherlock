@@ -179,12 +179,12 @@ function App() {
       if (useCaseStore.getState().activeTaskId === taskId) {
         setFocusedReportId(report.id || null);
       }
-      if (shouldNotify()) addToast(`Investigation complete: ${launchRequest.topic}`, 'SUCCESS');
+      if (shouldNotify()) addToast(`Run complete: ${launchRequest.topic}`, 'SUCCESS');
     } catch (error: unknown) {
       console.error(`Task ${taskId} failed`, error);
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
       failTask(taskId, message);
-      addToast(`Investigation failed: ${launchRequest.topic}`, 'ERROR');
+      addToast(`Run failed: ${launchRequest.topic}`, 'ERROR');
     }
   }, [archiveReport, completeTask, failTask, addToast, addPreseededEntitiesToGraph]);
 
@@ -257,7 +257,7 @@ function App() {
     };
 
     addTask(newTask);
-    if (shouldNotify()) addToast(`Scanning for leads on: ${launchRequest.topic}`, 'INFO');
+    if (shouldNotify()) addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
 
     if (switchToView) {
       setFocusedReportId(null);

@@ -6,6 +6,11 @@ import { useCaseStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
 import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../domain';
+import {
+  clearStoredActiveWorkspaceId,
+  getStoredActiveWorkspaceId,
+  setStoredActiveWorkspaceId,
+} from '../../utils/localStorage';
 
 interface ArchivesProps {
   onSelectReport: (report: InvestigationReport) => void;
@@ -15,7 +20,7 @@ interface ArchivesProps {
 export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase }) => {
   const { archives, cases, deleteReport, purgeCase } = useCaseStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
-    const activeCaseId = localStorage.getItem('sherlock_active_case_id');
+    const activeCaseId = getStoredActiveWorkspaceId();
     if (activeCaseId && activeCaseId !== 'ALL') {
       return activeCaseId;
     }
@@ -28,6 +33,12 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     cases.find((entry) => entry.id === selectedCaseId)?.labelProfileId
     || archives.find((entry) => entry.caseId === selectedCaseId)?.labelProfileId
   );
+  const workspaceLabel = archiveLabelProfile.workspaceLabel;
+  const workspaceLabelLower = workspaceLabel.toLowerCase();
+  const artifactLabel = archiveLabelProfile.artifactLabel;
+  const artifactLabelLower = artifactLabel.toLowerCase();
+  const artifactLabelPlural = archiveLabelProfile.artifactLabelPlural;
+  const artifactLabelPluralLower = artifactLabelPlural.toLowerCase();
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,8 +62,8 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   useEffect(() => {
     if (!selectedCaseId || selectedCaseId === 'unassigned') return;
     if (cases.some((c) => c.id === selectedCaseId)) return;
-    if (localStorage.getItem('sherlock_active_case_id') === selectedCaseId) {
-      localStorage.removeItem('sherlock_active_case_id');
+    if (getStoredActiveWorkspaceId() === selectedCaseId) {
+      clearStoredActiveWorkspaceId();
     }
   }, [cases, selectedCaseId]);
 
@@ -75,8 +86,8 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
 
     const targetCase = cases.find(c => c.id === caseId);
     const reportCount = getCaseReports(caseId).length;
-    const caseName = targetCase?.title || 'this case';
-    const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} report(s) and linked headlines for this case.\n\nThis cannot be undone.`;
+    const caseName = targetCase?.title || `this ${workspaceLabelLower}`;
+    const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} ${artifactLabelLower}(s) and linked headlines for this ${workspaceLabelLower}.\n\nThis cannot be undone.`;
     if (!confirm(warning)) return;
 
     await purgeCase(caseId);
@@ -84,8 +95,8 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     if (effectiveSelectedCaseId === caseId) {
       setSelectedCaseId(null);
     }
-    if (localStorage.getItem('sherlock_active_case_id') === caseId) {
-      localStorage.removeItem('sherlock_active_case_id');
+    if (getStoredActiveWorkspaceId() === caseId) {
+      clearStoredActiveWorkspaceId();
     }
     setShowExportMenu(false);
     setCurrentPage(1);
@@ -94,10 +105,10 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   const handleCaseSelect = (id: string) => {
     if (id === 'ALL') {
       setSelectedCaseId(null);
-      localStorage.removeItem('sherlock_active_case_id');
+      clearStoredActiveWorkspaceId();
     } else {
       setSelectedCaseId(id);
-      localStorage.setItem('sherlock_active_case_id', id);
+      setStoredActiveWorkspaceId(id);
     }
     setCurrentPage(1); // Reset pagination on filter change
   };
@@ -162,34 +173,34 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                 <div className="flex items-center justify-between text-sm text-zinc-500 border-t border-zinc-800 pt-4 relative z-10 font-mono uppercase">
                   <span className="flex items-center">
                     <FileText className="w-4 h-4 mr-2" />
-                    {fileCount} {fileCount === 1 ? 'File' : 'Files'}
+                    {fileCount} {fileCount === 1 ? artifactLabel : artifactLabelPlural}
                   </span>
                   <div className="flex space-x-1">
                     <button
                       onClick={(e) => { e.stopPropagation(); exportCaseAsHtml(c, getCaseReports(c.id)); }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                      title="Export formatted printable dossier (HTML)"
+                      title={`Export formatted printable ${workspaceLabelLower} (HTML)`}
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); exportCaseAsJson(c, getCaseReports(c.id)); }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                      title="Export raw case data for backup (JSON)"
+                      title={`Export raw ${workspaceLabelLower} data for backup (JSON)`}
                     >
                       <FileJson className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); exportCaseAsMarkdown(c, getCaseReports(c.id)); }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                      title="Export case as Markdown (.md)"
+                      title={`Export ${workspaceLabelLower} as Markdown (.md)`}
                     >
                       <FileText className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => handlePurgeCase(c.id, e)}
                       className="p-1 hover:text-osint-danger transition-colors opacity-0 group-hover:opacity-100"
-                      title="Permanently Purge Case"
+                      title={`Permanently Purge ${workspaceLabel}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -211,10 +222,10 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                 </div>
               </div>
               <h3 className="text-lg font-bold text-zinc-400 mb-1 group-hover:text-white font-mono uppercase">Unassigned</h3>
-              <p className="text-zinc-600 text-sm font-mono mb-4">Loose Artifacts</p>
+              <p className="text-zinc-600 text-sm font-mono mb-4">{`Loose ${artifactLabelPlural}`}</p>
               <div className="flex items-center text-sm text-zinc-500 border-t border-zinc-800 pt-4 font-mono uppercase">
                 <FileText className="w-4 h-4 mr-2" />
-                {getUnassignedReports().length} Files
+                {getUnassignedReports().length} {artifactLabelPlural}
               </div>
             </div>
           )}
@@ -370,12 +381,12 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                         setShowExportMenu(false);
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
-                      title="Exports a formatted printable dossier"
+                      title={`Exports a formatted printable ${workspaceLabelLower}`}
                     >
                       <Download className="w-4 h-4 mr-3 text-zinc-500" />
                       <div>
-                        <div className="font-bold">HTML Dossier</div>
-                        <div className="text-[10px] text-zinc-500">Formatted printable report</div>
+                        <div className="font-bold">{`${workspaceLabel} HTML`}</div>
+                        <div className="text-[10px] text-zinc-500">{`Formatted printable ${workspaceLabelLower}`}</div>
                       </div>
                     </button>
                     <button
@@ -384,12 +395,12 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                         setShowExportMenu(false);
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
-                      title="Exports raw case data for backup/integration"
+                      title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
                     >
                       <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
                       <div>
-                        <div className="font-bold">JSON Data</div>
-                        <div className="text-[10px] text-zinc-500">Raw data for backup</div>
+                        <div className="font-bold">{`${workspaceLabel} JSON`}</div>
+                        <div className="text-[10px] text-zinc-500">{`Raw ${workspaceLabelLower} data for backup`}</div>
                       </div>
                     </button>
                   </div>
@@ -398,16 +409,16 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
             ) : null;
           })()}
           <button onClick={() => setIsNewCaseModalOpen(true)} className="flex items-center px-3 py-1.5 bg-osint-primary text-black font-mono text-xs font-bold uppercase hover:bg-white transition-colors">
-            <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">New Case</span>
+            <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
           </button>
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (
             <button
               onClick={() => void handlePurgeCase(effectiveSelectedCaseId)}
               className="flex items-center px-3 py-1.5 bg-red-600 text-white font-mono text-xs font-bold uppercase hover:bg-red-500 transition-colors"
-              title="Permanently purge selected case and all reports"
+              title={`Permanently purge selected ${workspaceLabelLower} and all ${artifactLabelPluralLower}`}
             >
               <Trash2 className="w-4 h-4 mr-1" />
-              <span className="hidden lg:inline">Delete Case</span>
+              <span className="hidden lg:inline">{`Delete ${workspaceLabel}`}</span>
             </button>
           )}
         </div>

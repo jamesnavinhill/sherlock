@@ -160,7 +160,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 >
                     <div className="space-y-1">
                         {headlines.length === 0 ? (
-                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No headlines linked to this case.</p>
+                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No saved signals linked to this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
                         ) : (
                             headlines.map((h) => (
                                 <button

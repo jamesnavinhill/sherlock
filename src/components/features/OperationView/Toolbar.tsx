@@ -135,26 +135,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                             <button
                                                 onClick={() => { exportReportAsHtml(report, activeCase || undefined); setShowExportMenu(false); }}
                                                 className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
-                                                title="Exports this report as a formatted printable document"
+                                                title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a formatted printable document`}
                                             >
                                                 <Download className="w-4 h-4 mr-3 text-zinc-500" />
-                                                <span>Report as HTML</span>
+                                                <span>{`${labelProfile.artifactLabel} as HTML`}</span>
                                             </button>
                                             <button
                                                 onClick={() => { exportReportAsMarkdown(report); setShowExportMenu(false); }}
                                                 className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
-                                                title="Exports this report as a Markdown file"
+                                                title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a Markdown file`}
                                             >
                                                 <FileText className="w-4 h-4 mr-3 text-zinc-500" />
-                                                <span>Report as Markdown</span>
+                                                <span>{`${labelProfile.artifactLabel} as Markdown`}</span>
                                             </button>
                                             <button
                                                 onClick={() => { exportReportAsJson(report); setShowExportMenu(false); }}
                                                 className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
-                                                title="Exports this report as raw JSON data"
+                                                title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as raw JSON data`}
                                             >
                                                 <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
-                                                <span>Report as JSON</span>
+                                                <span>{`${labelProfile.artifactLabel} as JSON`}</span>
                                             </button>
                                             {onSaveTemplate && (
                                                 <button
@@ -174,7 +174,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     </div>
                 )}
                 <button onClick={onStartNewCase} className="flex items-center px-3 py-1.5 bg-white text-black border border-white font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-colors shadow-lg shadow-white/10">
-                    <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">New Case</span>
+                    <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">{`New ${labelProfile.workspaceLabel}`}</span>
                 </button>
             </div>
         </div>

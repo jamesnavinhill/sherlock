@@ -416,7 +416,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
                 {selectedScope.suggestedSources
                   .slice(0, 3)
                   .map((category) => category.name)
-                  .join(' • ')}
+                  .join(' | ')}
               </div>
             </div>
           )}

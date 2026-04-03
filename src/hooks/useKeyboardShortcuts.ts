@@ -16,7 +16,7 @@ interface UseKeyboardShortcutsOptions {
 
 /**
  * Global keyboard shortcuts hook
- * Handles common shortcuts like Ctrl+N for new investigation, Escape for close, etc.
+ * Handles common shortcuts like Ctrl+N for a new run, Escape for close, etc.
  */
 export const useKeyboardShortcuts = (
     shortcuts: KeyboardShortcut[],
@@ -72,7 +72,7 @@ export const createAppShortcuts = (handlers: {
             key: 'n',
             ctrl: true,
             action: handlers.onNewInvestigation,
-            description: 'New Investigation'
+            description: 'New Run'
         });
     }
 

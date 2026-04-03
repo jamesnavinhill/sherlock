@@ -54,20 +54,20 @@ If users report wrong provider/model context:
    - Operation headline
    - Full Spectrum (batch lead)
    - Settings template or built-in starter
-2. Validate persisted config snapshots on task/report (`provider`, `modelId`, `scopeId`, `dateRangeOverride`, `launchSource`).
+2. Validate persisted config snapshots on task/artifact (`provider`, `modelId`, `scopeId`, `dateRangeOverride`, `launchSource`).
 3. Confirm pack/purpose snapshots (`packId`, `purposeId`, `artifactType`, `labelProfileId`) match the selected launch setup.
-4. Confirm inherited context from parent report/case where expected.
+4. Confirm inherited context from parent artifact/workspace where expected.
 5. If the launch used a starter or template, verify the resolved purpose and artifact type still match the prefilled copy shown in `TaskSetupModal`.
 
 ## 5. Fallback Behavior Notes
 
 Current adapter behavior:
 
-- `INVESTIGATE`: fails hard on provider errors (no simulated report fallback).
+- `INVESTIGATE`: fails hard on provider errors (no simulated artifact fallback).
 - `SCAN_ANOMALIES` and `LIVE_INTEL`: return simulated fallback items for non-key failures.
 - `MISSING_API_KEY`: does not fallback; error is surfaced.
 
-This distinction is important when diagnosing “why data still appeared” in feed/live flows.
+This distinction is important when diagnosing "why data still appeared" in feed/live flows.
 
 ## 6. Recovery Playbook
 

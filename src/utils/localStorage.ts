@@ -46,6 +46,7 @@ export const STORAGE_KEYS = {
     CASES: 'sherlock_cases',
     HEADLINES: 'sherlock_headlines',
     ACTIVE_CASE_ID: 'sherlock_active_case_id',
+    ACTIVE_WORKSPACE_ID: 'sherlock_active_workspace_id',
     MANUAL_LINKS: 'sherlock_manual_links',
     MANUAL_NODES: 'sherlock_manual_nodes',
     HIDDEN_NODES: 'sherlock_hidden_nodes',
@@ -54,3 +55,33 @@ export const STORAGE_KEYS = {
     API_KEY: 'sherlock_api_key',
     THEME: 'sherlock_theme',
 } as const;
+
+export const getStoredActiveWorkspaceId = (): string | null => {
+    try {
+        return (
+            localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID)
+            || localStorage.getItem(STORAGE_KEYS.ACTIVE_CASE_ID)
+        );
+    } catch (e) {
+        console.error('Failed to read active workspace selection from localStorage.', e);
+        return null;
+    }
+};
+
+export const setStoredActiveWorkspaceId = (value: string): void => {
+    try {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID, value);
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_CASE_ID);
+    } catch (e) {
+        console.error('Failed to store active workspace selection in localStorage.', e);
+    }
+};
+
+export const clearStoredActiveWorkspaceId = (): void => {
+    try {
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_CASE_ID);
+    } catch (e) {
+        console.error('Failed to clear active workspace selection from localStorage.', e);
+    }
+};

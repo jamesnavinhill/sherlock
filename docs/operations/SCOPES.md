@@ -1,8 +1,8 @@
-# Investigation Scopes
+# Scopes and Derived Domain Packs
 
 Source of truth: `src/data/presets.ts`.
 
-In Stream 1, scopes still drive the existing UI, but they also act as the source material for derived first-party domain packs.
+Scopes still drive the current UI, and they also act as the source material for derived first-party domain packs.
 
 ## Built-in Scopes
 
@@ -56,13 +56,13 @@ Persona definitions are scope-local and include:
 - `label`
 - `instruction`
 
-Selected persona is passed into run config and persisted on task/report snapshots.
+Selected persona is passed into run config and persisted on task/artifact snapshots.
 
 ## Domain-Pack Derivation
 
 Stream 1 derives first-party domain packs from scopes via `src/domain/packs.ts`.
 
-This means a built-in scope now influences:
+This means a built-in scope influences:
 
 - workspace mode
 - label profile

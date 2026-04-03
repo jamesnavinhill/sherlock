@@ -1,56 +1,47 @@
 /**
- * Export Utilities for Sherlock OSINT Platform
- * Provides functions for exporting cases and reports as JSON or styled HTML
+ * Export utilities for Sherlock AI.
+ * Provides pack-aware workspace and artifact exports in JSON, HTML, and Markdown.
  */
 
-import type { Case, InvestigationReport} from '../types';
-
-// ============================================================================
-// CORE DOWNLOAD HELPER
-// ============================================================================
+import type { Case, InvestigationReport, LabelProfile } from '../types';
+import { getLabelProfileById } from '../domain';
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
   URL.revokeObjectURL(url);
 };
 
-// ============================================================================
-// JSON EXPORTS
-// ============================================================================
+const normalizeLabelToken = (label: string) =>
+  label
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
 
-/**
- * Export a full case with all reports as JSON
- */
-export const exportCaseAsJson = (caseObj: Case, reports: InvestigationReport[]) => {
-  const data = {
-    case: caseObj,
-    reports: reports,
-    exportedAt: new Date().toISOString()
-  };
-  downloadFile(JSON.stringify(data, null, 2), `CASE_${caseObj.id}_DATA.json`, 'application/json');
+const getWorkspaceLabelProfile = (
+  caseObj?: Case,
+  reports: InvestigationReport[] = []
+): LabelProfile => {
+  return getLabelProfileById(
+    caseObj?.labelProfileId
+    || reports[0]?.labelProfileId
+    || reports[0]?.config?.labelProfileId
+  );
 };
 
-/**
- * Export a single report as JSON
- */
-export const exportReportAsJson = (report: InvestigationReport) => {
-  const data = {
-    report: report,
-    exportedAt: new Date().toISOString()
-  };
-  downloadFile(JSON.stringify(data, null, 2), `REPORT_${report.id || 'unknown'}_DATA.json`, 'application/json');
+const getArtifactLabelProfile = (report: InvestigationReport, caseObj?: Case): LabelProfile => {
+  return getLabelProfileById(
+    report.labelProfileId
+    || report.config?.labelProfileId
+    || caseObj?.labelProfileId
+  );
 };
-
-// ============================================================================
-// HTML EXPORTS
-// ============================================================================
 
 const HTML_STYLES = `
 body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px; color: #1a1a1a; background: #f4f4f5; line-height: 1.6; }
@@ -78,41 +69,75 @@ h3 { font-size: 16px; margin-bottom: 15px; background: #f8fafc; padding: 10px; b
 }
 `;
 
-/**
- * Export a full case with all reports as styled HTML dossier
- */
+export const exportCaseAsJson = (caseObj: Case, reports: InvestigationReport[]) => {
+  const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
+  const data = {
+    case: caseObj,
+    reports,
+    exportedAt: new Date().toISOString(),
+  };
+
+  downloadFile(
+    JSON.stringify(data, null, 2),
+    `${normalizeLabelToken(labelProfile.workspaceLabel)}_${caseObj.id}_DATA.json`,
+    'application/json'
+  );
+};
+
+export const exportReportAsJson = (report: InvestigationReport) => {
+  const labelProfile = getArtifactLabelProfile(report);
+  const data = {
+    report,
+    exportedAt: new Date().toISOString(),
+  };
+
+  downloadFile(
+    JSON.stringify(data, null, 2),
+    `${normalizeLabelToken(labelProfile.artifactLabel)}_${report.id || 'unknown'}_DATA.json`,
+    'application/json'
+  );
+};
+
 export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) => {
-  // Aggregate entities with type info
+  const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
+  const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
+  const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
+
   const people = new Set<string>();
-  const orgs = new Set<string>();
+  const organizations = new Set<string>();
   const allEntityNames = new Set<string>();
 
-  reports.forEach(r => {
-    (r.entities || []).forEach(e => {
-      const name = typeof e === 'string' ? e : e.name;
-      const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
+  reports.forEach((report) => {
+    (report.entities || []).forEach((entity) => {
+      const name = typeof entity === 'string' ? entity : entity.name;
+      const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
       allEntityNames.add(name);
       if (type === 'PERSON') people.add(name);
-      if (type === 'ORGANIZATION') orgs.add(name);
+      if (type === 'ORGANIZATION') organizations.add(name);
     });
   });
 
-  const allSources = reports.flatMap(r => r.sources || []);
+  const allSources = reports.flatMap((report) => report.sources || []);
 
-  const entityTagsHtml = Array.from(allEntityNames).map(e => {
+  const entityTagsHtml = Array.from(allEntityNames).map((entityName) => {
     let className = 'entity-tag';
     let prefix = '';
-    if (people.has(e)) { className += ' person'; prefix = '[P] '; }
-    else if (orgs.has(e)) { className += ' org'; prefix = '[O] '; }
-    return `<span class="${className}">${prefix}${e}</span>`;
+    if (people.has(entityName)) {
+      className += ' person';
+      prefix = '[P] ';
+    } else if (organizations.has(entityName)) {
+      className += ' org';
+      prefix = '[O] ';
+    }
+    return `<span class="${className}">${prefix}${entityName}</span>`;
   }).join('');
 
   const reportsHtml = reports.map((report, idx) => `
     <div class="page page-break">
       <div class="report-section">
-        <h3>REPORT #${idx + 1}: ${report.topic}</h3>
-        <div class="meta">DATE: ${report.dateStr || 'Unknown'} | ID: ${report.id || 'N/A'}</div>
-        
+        <h3>${labelProfile.artifactLabel.toUpperCase()} #${idx + 1}: ${report.topic}</h3>
+        <div class="meta">DATE: ${report.dateStr || 'Unknown'} | ${artifactToken} ID: ${report.id || 'N/A'}</div>
+
         <div style="margin-bottom: 20px;">
           <strong>Summary:</strong><br/>
           ${report.summary}
@@ -122,22 +147,22 @@ export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) 
         <div style="margin-bottom: 20px;">
           <strong>Key Findings:</strong>
           <ul>
-            ${report.agendas.map(a => `<li>${a}</li>`).join('')}
+            ${report.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
           </ul>
         </div>` : ''}
 
         ${report.leads && report.leads.length > 0 ? `
         <div style="margin-bottom: 20px;">
-          <strong>Investigative Leads:</strong>
+          <strong>${labelProfile.followUpLabel}:</strong>
           <ul>
-            ${report.leads.map(l => `<li>${l}</li>`).join('')}
+            ${report.leads.map((lead) => `<li>${lead}</li>`).join('')}
           </ul>
         </div>` : ''}
-        
+
         ${report.sources && report.sources.length > 0 ? `
         <div style="margin-top: 30px; padding-top: 10px; border-top: 1px dashed #ccc;">
           <strong>Source Evidence:</strong>
-          ${report.sources.map(s => `<a href="${s.url}" class="source-link" target="_blank">[LINK] ${s.title}</a>`).join('')}
+          ${report.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
         </div>` : ''}
       </div>
     </div>
@@ -147,7 +172,7 @@ export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) 
     <!DOCTYPE html>
     <html>
     <head>
-      <title>DOSSIER: ${caseObj.title}</title>
+      <title>${workspaceToken}: ${caseObj.title}</title>
       <style>${HTML_STYLES}</style>
     </head>
     <body>
@@ -156,7 +181,7 @@ export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) 
           <div>
             <h1>${caseObj.title}</h1>
             <div class="meta">
-              CASE ID: ${caseObj.id}<br/>
+              ${workspaceToken} ID: ${caseObj.id}<br/>
               INITIATED: ${caseObj.dateOpened}<br/>
               STATUS: ${caseObj.status}
             </div>
@@ -166,11 +191,11 @@ export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) 
 
         <h2>Executive Overview</h2>
         <p>${caseObj.description || 'No description provided.'}</p>
-        
+
         <div style="display: flex; gap: 20px; margin-top: 30px;">
           <div class="stat-box">
             <div class="stat-number">${reports.length}</div>
-            <div class="stat-label">Intelligence Reports</div>
+            <div class="stat-label">${labelProfile.artifactLabelPlural}</div>
           </div>
           <div class="stat-box">
             <div class="stat-number">${allEntityNames.size}</div>
@@ -195,20 +220,26 @@ export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) 
     </html>
   `;
 
-  downloadFile(htmlContent, `CASE_${caseObj.id}_DOSSIER.html`, 'text/html');
+  downloadFile(htmlContent, `${workspaceToken}_${caseObj.id}_DOSSIER.html`, 'text/html');
 };
 
-/**
- * Export a single report as styled HTML
- */
 export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) => {
-  const entityTagsHtml = (report.entities || []).map(e => {
-    const name = typeof e === 'string' ? e : e.name;
-    const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
+  const labelProfile = getArtifactLabelProfile(report, caseObj);
+  const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
+  const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
+
+  const entityTagsHtml = (report.entities || []).map((entity) => {
+    const name = typeof entity === 'string' ? entity : entity.name;
+    const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
     let className = 'entity-tag';
     let prefix = '';
-    if (type === 'PERSON') { className += ' person'; prefix = '[P] '; }
-    else if (type === 'ORGANIZATION') { className += ' org'; prefix = '[O] '; }
+    if (type === 'PERSON') {
+      className += ' person';
+      prefix = '[P] ';
+    } else if (type === 'ORGANIZATION') {
+      className += ' org';
+      prefix = '[O] ';
+    }
     return `<span class="${className}">${prefix}${name}</span>`;
   }).join('');
 
@@ -216,7 +247,7 @@ export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) 
     <!DOCTYPE html>
     <html>
     <head>
-      <title>REPORT: ${report.topic}</title>
+      <title>${artifactToken}: ${report.topic}</title>
       <style>${HTML_STYLES}</style>
     </head>
     <body>
@@ -225,9 +256,9 @@ export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) 
           <div>
             <h1>${report.topic}</h1>
             <div class="meta">
-              ${caseObj ? `CASE: ${caseObj.title}<br/>` : ''}
+              ${caseObj ? `${workspaceToken}: ${caseObj.title}<br/>` : ''}
               DATE: ${report.dateStr || 'Unknown'}<br/>
-              REPORT ID: ${report.id || 'N/A'}
+              ${artifactToken} ID: ${report.id || 'N/A'}
             </div>
           </div>
           <div class="stamp">Sherlock Confidential</div>
@@ -239,13 +270,13 @@ export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) 
         ${report.agendas && report.agendas.length > 0 ? `
         <h2>Key Findings</h2>
         <ul>
-          ${report.agendas.map(a => `<li>${a}</li>`).join('')}
+          ${report.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
         </ul>` : ''}
 
         ${report.leads && report.leads.length > 0 ? `
-        <h2>Investigative Leads</h2>
+        <h2>${labelProfile.followUpLabel}</h2>
         <ul>
-          ${report.leads.map(l => `<li>${l}</li>`).join('')}
+          ${report.leads.map((lead) => `<li>${lead}</li>`).join('')}
         </ul>` : ''}
 
         <h2>Identified Entities</h2>
@@ -254,7 +285,7 @@ export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) 
         ${report.sources && report.sources.length > 0 ? `
         <h2>Source Evidence</h2>
         <div>
-          ${report.sources.map(s => `<a href="${s.url}" class="source-link" target="_blank">[LINK] ${s.title}</a>`).join('')}
+          ${report.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
         </div>` : ''}
       </div>
 
@@ -265,71 +296,71 @@ export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) 
     </html>
   `;
 
-  downloadFile(htmlContent, `REPORT_${report.id || 'unknown'}_DOSSIER.html`, 'text/html');
+  downloadFile(htmlContent, `${artifactToken}_${report.id || 'unknown'}_DOSSIER.html`, 'text/html');
 };
 
-// ============================================================================
-// MARKDOWN EXPORTS
-// ============================================================================
+const formatReportMarkdown = (
+  report: InvestigationReport,
+  labelProfile: LabelProfile,
+  idx?: number
+) => {
+  const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
 
-const formatReportMarkdown = (report: InvestigationReport, idx?: number) => {
   return `
-### ${idx !== undefined ? `REPORT #${idx + 1}: ` : ''}${report.topic}
-**Date:** ${report.dateStr || 'Unknown'} | **ID:** ${report.id || 'N/A'}
+### ${idx !== undefined ? `${artifactToken} #${idx + 1}: ` : ''}${report.topic}
+**Date:** ${report.dateStr || 'Unknown'} | **${artifactToken} ID:** ${report.id || 'N/A'}
 
 #### Executive Summary
 ${report.summary}
 
 ${report.agendas?.length ? `#### Key Findings
-${report.agendas.map(a => `- ${a}`).join('\n')}` : ''}
+${report.agendas.map((agenda) => `- ${agenda}`).join('\n')}` : ''}
 
-${report.leads?.length ? `#### Investigative Leads
-${report.leads.map(l => `- ${l}`).join('\n')}` : ''}
+${report.leads?.length ? `#### ${labelProfile.followUpLabel}
+${report.leads.map((lead) => `- ${lead}`).join('\n')}` : ''}
 
 #### Entities Detected
-${(report.entities || []).map(e => `\`${typeof e === 'string' ? e : e.name}\` (${typeof e === 'string' ? 'UNKNOWN' : e.type})`).join(', ') || '*No entities detected.*'}
+${(report.entities || []).map((entity) => `\`${typeof entity === 'string' ? entity : entity.name}\` (${typeof entity === 'string' ? 'UNKNOWN' : entity.type})`).join(', ') || '*No entities detected.*'}
 
 ${report.sources?.length ? `#### Sources
-${report.sources.map(s => `- [${s.title}](${s.url})`).join('\n')}` : ''}
+${report.sources.map((source) => `- [${source.title}](${source.url})`).join('\n')}` : ''}
 
 ---
 `;
 };
 
-/**
- * Export a full case with all reports as Markdown
- */
 export const exportCaseAsMarkdown = (caseObj: Case, reports: InvestigationReport[]) => {
+  const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
+  const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const markdownContent = `
-# CASE DOSSIER: ${caseObj.title}
-**Case ID:** ${caseObj.id}
+# ${workspaceToken} DOSSIER: ${caseObj.title}
+**${workspaceToken} ID:** ${caseObj.id}
 **Initiated:** ${caseObj.dateOpened}
 **Status:** ${caseObj.status}
 
 ## Executive Overview
 ${caseObj.description || 'No description provided.'}
 
-## Investigation Activity
-${reports.map((r, i) => formatReportMarkdown(r, i)).join('\n')}
+## ${labelProfile.artifactLabelPlural}
+${reports.map((report, idx) => formatReportMarkdown(report, labelProfile, idx)).join('\n')}
 
 ---
 *Generated by Sherlock AI on ${new Date().toLocaleDateString()}*
 `;
 
-  downloadFile(markdownContent.trim(), `CASE_${caseObj.id}_DOSSIER.md`, 'text/markdown');
+  downloadFile(markdownContent.trim(), `${workspaceToken}_${caseObj.id}_DOSSIER.md`, 'text/markdown');
 };
 
-/**
- * Export a single report as Markdown
- */
 export const exportReportAsMarkdown = (report: InvestigationReport) => {
+  const labelProfile = getArtifactLabelProfile(report);
+  const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
   const markdownContent = `
-# REPORT: ${report.topic}
+# ${artifactToken}: ${report.topic}
 
-${formatReportMarkdown(report)}
+${formatReportMarkdown(report, labelProfile)}
 
 *Generated by Sherlock AI on ${new Date().toLocaleDateString()}*
 `;
 
-  downloadFile(markdownContent.trim(), `REPORT_${report.id || 'unknown'}_DOSSIER.md`, 'text/markdown');
+  downloadFile(markdownContent.trim(), `${artifactToken}_${report.id || 'unknown'}_DOSSIER.md`, 'text/markdown');
 };

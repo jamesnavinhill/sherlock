@@ -17,7 +17,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - `Operation View`: artifact reading, purpose-ordered typed-section rendering, dossier, inspector panel
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution
 - `Live Monitor`: live signal scans, filtering, and headline persistence
-- `Case Files`: archive browsing, deletion, and exports
+- `Case Files`: workspace/archive browsing, deletion, and exports
 - `Finder`: discovery scanning and analysis launch
 - `System Config`: provider/model keys, scope/template management, data import/export
 
@@ -48,10 +48,9 @@ npm run dev
 
 Dev server defaults to `http://localhost:3000`.
 
-If you hit a Rollup native package error such as missing `@rollup/rollup-linux-x64-gnu`, repair the local install with:
+If you hit a Rollup native package error because an optional native package was skipped, delete `node_modules` and repair the local install with:
 
 ```bash
-rm -rf node_modules
 npm ci --include=optional
 ```
 

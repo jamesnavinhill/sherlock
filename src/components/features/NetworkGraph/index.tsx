@@ -269,6 +269,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         <div className="w-full h-screen bg-black relative flex flex-col overflow-hidden">
             <ControlBar
                 cases={cases}
+                labelProfile={dossierLabelProfile}
                 filterCaseId={filterCaseId}
                 onCaseChange={handleCaseChange}
                 showLeftPanel={showLeftPanel}

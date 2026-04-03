@@ -11,6 +11,8 @@ interface ScopeManagerProps {
     onClose?: () => void;
 }
 
+const DEFAULT_SCOPE_ICON = '*';
+
 export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose }) => {
     const {
         customScopes,
@@ -27,17 +29,16 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
     const [editingScope, setEditingScope] = useState<InvestigationScope | null>(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
 
-    // Form state for creating/editing scopes
     const [formName, setFormName] = useState('');
     const [formDescription, setFormDescription] = useState('');
-    const [formIcon, setFormIcon] = useState('🔍');
+    const [formIcon, setFormIcon] = useState(DEFAULT_SCOPE_ICON);
     const [formCategories, setFormCategories] = useState('');
     const [formDomainContext, setFormDomainContext] = useState('');
 
     const resetForm = () => {
         setFormName('');
         setFormDescription('');
-        setFormIcon('🔍');
+        setFormIcon(DEFAULT_SCOPE_ICON);
         setFormCategories('');
         setFormDomainContext('');
         setEditingScope(null);
@@ -47,7 +48,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
     const startEdit = (scope: InvestigationScope) => {
         setFormName(scope.name);
         setFormDescription(scope.description || '');
-        setFormIcon(scope.icon || '🔍');
+        setFormIcon(scope.icon || DEFAULT_SCOPE_ICON);
         setFormCategories(scope.categories?.join(', ') || '');
         setFormDomainContext(scope.domainContext || '');
         setEditingScope(scope);
@@ -57,16 +58,16 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
     const handleSave = () => {
         if (!formName.trim()) return;
 
-        const categories = formCategories.split(',').map(c => c.trim()).filter(Boolean);
+        const categories = formCategories.split(',').map((category) => category.trim()).filter(Boolean);
 
         const newScope: InvestigationScope = {
             id: editingScope?.id || `custom-${Date.now()}`,
             name: formName.trim(),
             description: formDescription.trim(),
-            icon: formIcon,
+            icon: formIcon || DEFAULT_SCOPE_ICON,
             categories,
             domainContext: formDomainContext.trim(),
-            personas: editingScope?.personas || BUILTIN_SCOPES[0].personas, // Use default personas
+            personas: editingScope?.personas || BUILTIN_SCOPES[0].personas,
             suggestedSources: editingScope?.suggestedSources || [],
             defaultPersona: editingScope?.defaultPersona || 'general-investigator',
         };
@@ -76,23 +77,22 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
     };
 
     const handleDelete = (scopeId: string) => {
-        if (confirm('Delete this custom scope? This cannot be undone.')) {
-            deleteScope(scopeId);
-            if (activeScopeId === scopeId) {
-                setActiveScope(BUILTIN_SCOPES[0].id);
-            }
+        if (!confirm('Delete this custom scope? This cannot be undone.')) return;
+
+        deleteScope(scopeId);
+        if (activeScopeId === scopeId) {
+            setActiveScope(BUILTIN_SCOPES[0].id);
         }
     };
 
-    const isBuiltin = (scopeId: string) => BUILTIN_SCOPES.some(s => s.id === scopeId);
+    const isBuiltin = (scopeId: string) => BUILTIN_SCOPES.some((scope) => scope.id === scopeId);
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                     <Compass className="w-5 h-5 text-osint-primary" />
-                    <h3 className="text-white font-mono font-bold uppercase text-sm">Investigation Scopes</h3>
+                    <h3 className="text-white font-mono font-bold uppercase text-sm">Scopes and Domain Packs</h3>
                 </div>
                 <button
                     onClick={() => setShowCreateForm(true)}
@@ -103,13 +103,16 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                 </button>
             </div>
 
-            {/* Active Scope Indicator */}
             <div className="bg-zinc-900/50 border border-zinc-800 p-3">
                 <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Active Scope</div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                        <span className="text-lg">{allScopes.find(s => s.id === activeScopeId)?.icon || '🔍'}</span>
-                        <span className="text-white font-mono">{allScopes.find(s => s.id === activeScopeId)?.name || 'None'}</span>
+                        <span className="text-lg">
+                            {allScopes.find((scope) => scope.id === activeScopeId)?.icon || DEFAULT_SCOPE_ICON}
+                        </span>
+                        <span className="text-white font-mono">
+                            {allScopes.find((scope) => scope.id === activeScopeId)?.name || 'None'}
+                        </span>
                     </div>
                     {defaultScopeId === activeScopeId && (
                         <span className="flex items-center text-[10px] text-osint-primary font-mono">
@@ -120,7 +123,6 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                 </div>
             </div>
 
-            {/* Create/Edit Form */}
             {showCreateForm && (
                 <div className="bg-black border border-zinc-700 p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
                     <div className="flex items-center justify-between">
@@ -138,7 +140,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                             <input
                                 type="text"
                                 value={formIcon}
-                                onChange={(e) => setFormIcon(e.target.value.slice(0, 2))}
+                                onChange={(event) => setFormIcon(event.target.value.slice(0, 2))}
                                 className="w-full bg-zinc-900 border border-zinc-700 text-white p-2 text-center text-lg focus:border-osint-primary outline-none"
                                 maxLength={2}
                             />
@@ -148,7 +150,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                             <input
                                 type="text"
                                 value={formName}
-                                onChange={(e) => setFormName(e.target.value)}
+                                onChange={(event) => setFormName(event.target.value)}
                                 placeholder="e.g., Supply Chain Analysis"
                                 className="w-full bg-zinc-900 border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
                             />
@@ -159,8 +161,8 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                         <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">Description</label>
                         <textarea
                             value={formDescription}
-                            onChange={(e) => setFormDescription(e.target.value)}
-                            placeholder="Brief description of this investigation scope..."
+                            onChange={(event) => setFormDescription(event.target.value)}
+                            placeholder="Brief description of this scope or pack..."
                             className="w-full h-16 bg-zinc-900 border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none resize-none"
                         />
                     </div>
@@ -170,7 +172,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                         <input
                             type="text"
                             value={formCategories}
-                            onChange={(e) => setFormCategories(e.target.value)}
+                            onChange={(event) => setFormCategories(event.target.value)}
                             placeholder="e.g., Finance, Contracts, Compliance"
                             className="w-full bg-zinc-900 border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
                         />
@@ -180,8 +182,8 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                         <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">Domain Context</label>
                         <textarea
                             value={formDomainContext}
-                            onChange={(e) => setFormDomainContext(e.target.value)}
-                            placeholder="Provide context about the investigation domain..."
+                            onChange={(event) => setFormDomainContext(event.target.value)}
+                            placeholder="Provide context about this domain, workflow, or monitoring area..."
                             className="w-full h-20 bg-zinc-900 border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none resize-none"
                         />
                     </div>
@@ -205,25 +207,24 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                 </div>
             )}
 
-            {/* Scope List */}
             <div className="space-y-2">
                 <div className="text-[10px] text-zinc-500 font-mono uppercase">Available Scopes</div>
 
-                {allScopes.map(scope => (
+                {allScopes.map((scope) => (
                     <div
                         key={scope.id}
-                        className={`border transition-all ${activeScopeId === scope.id
+                        className={`border transition-all ${
+                            activeScopeId === scope.id
                                 ? 'border-osint-primary bg-osint-primary/5'
                                 : 'border-zinc-800 hover:border-zinc-600'
-                            }`}
+                        }`}
                     >
-                        {/* Scope Header */}
                         <div
                             className="flex items-center justify-between p-3 cursor-pointer"
                             onClick={() => setExpandedScopeId(expandedScopeId === scope.id ? null : scope.id)}
                         >
                             <div className="flex items-center space-x-3">
-                                <span className="text-lg">{scope.icon || '🔍'}</span>
+                                <span className="text-lg">{scope.icon || DEFAULT_SCOPE_ICON}</span>
                                 <div>
                                     <div className="flex items-center space-x-2">
                                         <span className="text-white font-mono text-sm">{scope.name}</span>
@@ -250,44 +251,41 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                             </div>
                         </div>
 
-                        {/* Expanded Details */}
                         {expandedScopeId === scope.id && (
                             <div className="px-3 pb-3 pt-0 border-t border-zinc-800 space-y-3 animate-in slide-in-from-top-1 duration-150">
-                                {/* Categories */}
                                 {scope.categories && scope.categories.length > 0 && (
                                     <div>
                                         <div className="text-[10px] text-zinc-600 font-mono uppercase mb-1">Categories</div>
                                         <div className="flex flex-wrap gap-1">
-                                            {scope.categories.map(cat => (
-                                                <span key={cat} className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[10px] font-mono">
-                                                    {cat}
+                                            {scope.categories.map((category) => (
+                                                <span key={category} className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-[10px] font-mono">
+                                                    {category}
                                                 </span>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Personas */}
                                 {scope.personas && scope.personas.length > 0 && (
                                     <div>
                                         <div className="text-[10px] text-zinc-600 font-mono uppercase mb-1">Personas</div>
                                         <div className="flex flex-wrap gap-1">
-                                            {scope.personas.map(p => (
+                                            {scope.personas.map((persona) => (
                                                 <span
-                                                    key={p.id}
-                                                    className={`px-2 py-0.5 text-[10px] font-mono ${p.id === scope.defaultPersona
+                                                    key={persona.id}
+                                                    className={`px-2 py-0.5 text-[10px] font-mono ${
+                                                        persona.id === scope.defaultPersona
                                                             ? 'bg-osint-primary/20 text-osint-primary'
                                                             : 'bg-zinc-800 text-zinc-400'
-                                                        }`}
+                                                    }`}
                                                 >
-                                                    {p.label}
+                                                    {persona.label}
                                                 </span>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Actions */}
                                 <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
                                     <div className="flex space-x-2">
                                         {activeScopeId !== scope.id && (

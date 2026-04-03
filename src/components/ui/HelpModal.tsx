@@ -7,7 +7,7 @@ interface HelpModalProps {
 
 export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
     const shortcuts = [
-        { keys: ['Ctrl', 'N'], description: 'Start New Investigation' },
+        { keys: ['Ctrl', 'N'], description: 'Start New Run' },
         { keys: ['Ctrl', 'K'], description: 'Global Search / Quick Jump' },
         { keys: ['Ctrl', 'F'], description: 'Focus Search in View' },
         { keys: ['Ctrl', '/'], description: 'Show this Help Modal' },

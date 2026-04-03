@@ -2,7 +2,7 @@
 
 This document describes the current runtime architecture as implemented in `src/`.
 
-Sherlock now runs on a compatibility-first domain-pack architecture. The established investigation shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the hood.
+Sherlock now runs on a compatibility-first domain-pack architecture. The established shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the hood.
 
 ## 1. Application Shell
 
@@ -36,7 +36,7 @@ Flow:
 2. Enforce provider API key presence before task creation
 3. Resolve effective scope, domain pack, purpose profile, artifact type, and label profile
 4. Create and persist a task (`TaskRepository`)
-5. Execute provider investigation via `investigateTopic`
+5. Execute the provider run via `investigateTopic`
 6. Normalize typed artifact sections and run metadata
 7. Archive the resulting artifact into compatibility case structures
 8. Persist run config snapshots for traceability
@@ -76,7 +76,7 @@ Key responsibilities:
 - resolve purpose profiles for each run
 - resolve label profiles for compatibility rendering
 - build typed artifact sections alongside legacy flattened fields
-- provide pack-aware launch copy, purpose-aware setup labels, starter templates, and legacy title cleanup helpers
+- provide pack-aware launch copy, purpose-aware setup labels, starter templates, export naming, and legacy title cleanup helpers
 
 ## 4. AI Provider Layer
 
@@ -167,7 +167,7 @@ Persistence writes are handled through repository calls and settings KV writes r
 - ReportViewer
 - InspectorPanel
 
-Supports deep dives, headline investigation, case/report editing, entity rename flows, and report/case exports.
+Supports deep dives, headline follow-through, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
 `ReportViewer` now renders:
 
@@ -196,7 +196,7 @@ Supports deep dives, headline investigation, case/report editing, entity rename 
 - batch scan runs
 - source/threat filters
 - optional auto-save to headlines
-- launch into investigation wizard from events
+- launch into task setup from events
 
 Live monitor requests now resolve through the active scope's derived pack and default purpose.
 
@@ -206,7 +206,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 - anomaly scanning
 - scope-based categories
-- custom search and investigation launches
+- custom search and run launches
 - scanner settings (limit/priority/polling)
 
 Finder still uses the existing UI, but scan requests now resolve through the selected scope's derived pack and default purpose.
@@ -223,7 +223,7 @@ Task setup and template flows now expose:
 
 `src/components/features/Archives.tsx`
 
-- case/report navigation
+- workspace/artifact navigation
 - deletion workflows
 - exports (HTML/Markdown/JSON)
 - label-profile-aware workspace and artifact naming for mixed investigation and non-investigation archives
@@ -247,5 +247,5 @@ See:
 
 - Timeline view component exists but is not currently exposed in sidebar navigation.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
-- Stream 2 broadens labels across setup, templates, archives, sidebar navigation, and dossier/report surfaces, but a few legacy investigation names still remain in deeper compatibility paths.
+- Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
 - Current lint/test status is tracked in `README.md` and `docs/LINTING.md`.
