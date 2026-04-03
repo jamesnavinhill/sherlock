@@ -89,10 +89,10 @@ export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, o
                         {task.status === 'RUNNING' && <Loader2 className="w-3 h-3 text-osint-primary animate-spin" />}
                         {task.status === 'QUEUED' && <div className="w-3 h-3 rounded-full border-2 border-zinc-600 border-t-zinc-400 animate-spin" />}
                         {task.status === 'COMPLETED' && <CheckCircle2 className="w-3 h-3 text-osint-primary" />}
-                        {task.status === 'FAILED' && <AlertOctagon className="w-3 h-3 text-red-500" />}
+                        {task.status === 'FAILED' && <AlertOctagon className="w-3 h-3 osint-danger-text" />}
                         <span className={`text-[9px] font-bold font-mono uppercase ${task.status === 'RUNNING' ? 'text-osint-primary' :
                           task.status === 'COMPLETED' ? 'text-osint-primary' :
-                            task.status === 'FAILED' ? 'text-red-500' : 'text-zinc-500'
+                            task.status === 'FAILED' ? 'osint-danger-text' : 'text-zinc-500'
                           }`}>
                           {task.status}
                         </span>

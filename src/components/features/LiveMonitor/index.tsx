@@ -349,7 +349,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                         <button
                             onClick={isMonitoring ? stopMonitoring : runBatchScan}
                             className={`flex items-center px-4 py-1.5 text-xs font-bold font-mono transition-all border uppercase ${isMonitoring
-                                ? 'bg-red-900/10 text-red-500 border-red-900 hover:bg-red-900/20'
+                                ? 'osint-button-danger'
                                 : 'osint-button-primary'
                                 }`}
                         >

@@ -319,7 +319,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(scope.id)}
-                                                className="p-1 text-zinc-500 hover:text-red-500"
+                                                className="p-1 text-zinc-500 osint-danger-inline"
                                                 title="Delete"
                                             >
                                                 <Trash2 className="w-3 h-3" />

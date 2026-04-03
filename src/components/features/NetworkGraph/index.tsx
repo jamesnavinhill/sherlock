@@ -17,6 +17,24 @@ import { cleanEntityName } from '../../../utils/text';
 import { getLabelProfileById } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 
+const normalizeGraphId = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const getEntityGraphNodeId = (entityName: string) => `entity-${normalizeGraphId(cleanEntityName(entityName))}`;
+
+const getDeletedNodeToken = (nodeId: string) => `deleted:${nodeId}`;
+
+const replaceNodeReference = (values: string[], references: string[], nextValue: string) => {
+    const shouldReplace = values.some((value) => references.includes(value));
+    if (!shouldReplace) return values;
+
+    const next = new Set(values.filter((value) => !references.includes(value)));
+    next.add(nextValue);
+    return Array.from(next);
+};
+
+const removeNodeReferences = (values: string[], references: string[]) =>
+    values.filter((value) => !references.includes(value));
+
 interface NetworkGraphProps {
     onOpenReport: (report: InvestigationReport) => void;
     onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
@@ -47,9 +65,10 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setEntityAliases: setAliases,
         updateReportTitle,
         renameEntityAcrossReports,
-        toggleFlag,
-        toggleHide,
-        setActiveCaseId
+        setActiveCaseId,
+        setFlaggedNodeIds,
+        setHiddenNodeIds,
+        addToast,
     } = useCaseStore();
 
     const hiddenNodeIds = useMemo(() => new Set(hiddenNodeIdsArray), [hiddenNodeIdsArray]);
@@ -75,6 +94,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     const [selectedEntityName, setSelectedEntityName] = useState<string | null>(null);
     const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
     const [selectedReport, setSelectedReport] = useState<InvestigationReport | null>(null);
+    const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
     // Linking & Add Node Logic
     const [isLinkingMode, setIsLinkingMode] = useState(false);
@@ -164,13 +184,17 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
             // Background click
             setShowRightPanel(false);
             setInspectorMode(null);
+            setSelectedEntityName(null);
+            setSelectedHeadline(null);
+            setSelectedReport(null);
+            setSelectedNode(null);
             return;
         }
 
         if (node.type === 'CASE' && node.data) {
-            handleOpenReportInspector(node.data);
+            handleOpenReportInspector(node.data, node);
         } else if (node.type === 'ENTITY') {
-            handleOpenEntityInspector(node.label);
+            handleOpenEntityInspector(node.label, node);
         }
     };
 
@@ -217,18 +241,44 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     // Inspector Handlers
     const handleOpenHeadlineInspector = (headline: Headline) => {
         setSelectedHeadline(headline);
+        setSelectedNode(null);
         setInspectorMode('HEADLINE');
         setShowRightPanel(true);
     };
 
-    const handleOpenEntityInspector = (entityName: string) => {
+    const handleOpenEntityInspector = (entityName: string, node: GraphNode | null = null) => {
         setSelectedEntityName(entityName);
+        setSelectedNode(
+            node || {
+                id: getEntityGraphNodeId(entityName),
+                type: 'ENTITY',
+                label: entityName,
+                connections: 0,
+                subtype: 'UNKNOWN',
+            }
+        );
+        setSelectedHeadline(null);
+        setSelectedReport(null);
         setInspectorMode('ENTITY');
         setShowRightPanel(true);
     };
 
-    const handleOpenReportInspector = (report: InvestigationReport) => {
+    const handleOpenReportInspector = (report: InvestigationReport, node: GraphNode | null = null) => {
         setSelectedReport(report);
+        setSelectedNode(
+            node ||
+                (report.id
+                    ? {
+                          id: `case-${report.id}`,
+                          type: 'CASE',
+                          label: report.topic,
+                          data: report,
+                          connections: 0,
+                      }
+                    : null)
+        );
+        setSelectedHeadline(null);
+        setSelectedEntityName(null);
         setInspectorMode('REPORT');
         setShowRightPanel(true);
     };
@@ -241,12 +291,63 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
     // Update Handlers (Persistence)
     const handleEntitySave = async (oldName: string, newName: string) => {
+        if (selectedNode?.isManual) {
+            await setManualNodes(
+                manualNodes.map((node) => (node.id === selectedNode.id ? { ...node, label: newName } : node))
+            );
+            setSelectedNode({ ...selectedNode, label: newName });
+            setSelectedEntityName(newName);
+            addToast(`Renamed manual node to ${newName}.`, 'SUCCESS');
+            return;
+        }
+
+        if (selectedNode?.subtype === 'SOURCE') {
+            addToast('Renaming source nodes from the graph is not supported yet.', 'INFO');
+            return;
+        }
+
         await renameEntityAcrossReports(oldName, newName);
 
-        // Update Flagged
-        if (flaggedNodeIds.has(oldName)) {
-            toggleFlag(oldName);
-            toggleFlag(newName);
+        const oldNodeId = selectedNode?.id || getEntityGraphNodeId(oldName);
+        const newNodeId = getEntityGraphNodeId(newName);
+        const oldDeletedToken = getDeletedNodeToken(oldNodeId);
+        const nextDeletedToken = getDeletedNodeToken(newNodeId);
+
+        if (oldNodeId !== newNodeId) {
+            const nextManualLinks = manualLinks.map((link) => ({
+                ...link,
+                source: link.source === oldNodeId ? newNodeId : link.source,
+                target: link.target === oldNodeId ? newNodeId : link.target,
+            }));
+            if (
+                nextManualLinks.some(
+                    (link, index) =>
+                        link.source !== manualLinks[index]?.source || link.target !== manualLinks[index]?.target
+                )
+            ) {
+                await setManualLinks(nextManualLinks);
+            }
+
+            const nextFlaggedNodeIds = replaceNodeReference(flaggedNodeIdsArray, [oldNodeId, oldName], newNodeId);
+            if (nextFlaggedNodeIds !== flaggedNodeIdsArray) {
+                await setFlaggedNodeIds(nextFlaggedNodeIds);
+            }
+
+            let nextHiddenNodeIds = replaceNodeReference(hiddenNodeIdsArray, [oldNodeId, oldName], newNodeId);
+            nextHiddenNodeIds = replaceNodeReference(nextHiddenNodeIds, [oldDeletedToken], nextDeletedToken);
+            if (nextHiddenNodeIds !== hiddenNodeIdsArray) {
+                await setHiddenNodeIds(nextHiddenNodeIds);
+            }
+
+            if (linkSourceNode?.id === oldNodeId) {
+                setLinkSourceNode({ ...linkSourceNode, id: newNodeId, label: newName });
+            }
+
+            if (selectedNode) {
+                setSelectedNode({ ...selectedNode, id: newNodeId, label: newName });
+            }
+        } else if (selectedNode) {
+            setSelectedNode({ ...selectedNode, label: newName });
         }
 
         setSelectedEntityName(newName);
@@ -259,12 +360,81 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setSelectedReport({ ...report, topic: newTitle });
     };
 
-    const handleToggleFlag = (name: string) => {
-        toggleFlag(name);
+    const handleToggleFlag = async () => {
+        if (!selectedNode) return;
+
+        const references = [selectedNode.id, selectedNode.label];
+        const nextFlaggedNodeIds = flaggedNodeIdsArray.some((value) => references.includes(value))
+            ? flaggedNodeIdsArray.filter((value) => !references.includes(value))
+            : [...flaggedNodeIdsArray.filter((value) => !references.includes(value)), selectedNode.id];
+
+        await setFlaggedNodeIds(Array.from(new Set(nextFlaggedNodeIds)));
     };
 
-    const handleToggleHide = (name: string) => {
-        toggleHide(name);
+    const handleToggleHide = async () => {
+        if (!selectedNode) return;
+
+        const references = [selectedNode.id, selectedNode.label];
+        const nextHiddenNodeIds = hiddenNodeIdsArray.some((value) => references.includes(value))
+            ? hiddenNodeIdsArray.filter((value) => !references.includes(value))
+            : [...hiddenNodeIdsArray.filter((value) => !references.includes(value)), selectedNode.id];
+
+        await setHiddenNodeIds(Array.from(new Set(nextHiddenNodeIds)));
+        setShowRightPanel(false);
+    };
+
+    const handleDeleteNode = async () => {
+        if (!selectedNode) return;
+
+        const deleteMessage = selectedNode.isManual
+            ? `Delete "${selectedNode.label}" and its manual links from the graph?`
+            : `Remove "${selectedNode.label}" from the graph?`;
+        if (!window.confirm(deleteMessage)) return;
+
+        const nextManualLinks = manualLinks.filter(
+            (link) => link.source !== selectedNode.id && link.target !== selectedNode.id
+        );
+        if (nextManualLinks.length !== manualLinks.length) {
+            await setManualLinks(nextManualLinks);
+        }
+
+        if (selectedNode.isManual) {
+            await setManualNodes(manualNodes.filter((node) => node.id !== selectedNode.id));
+            const cleanupReferences = [
+                selectedNode.id,
+                selectedNode.label,
+                getDeletedNodeToken(selectedNode.id),
+                getDeletedNodeToken(selectedNode.label),
+            ];
+            await setFlaggedNodeIds(removeNodeReferences(flaggedNodeIdsArray, cleanupReferences));
+            await setHiddenNodeIds(removeNodeReferences(hiddenNodeIdsArray, cleanupReferences));
+            addToast(`Deleted ${selectedNode.label} from the graph.`, 'SUCCESS');
+        } else {
+            const nextHiddenNodeIds = Array.from(
+                new Set([
+                    ...hiddenNodeIdsArray.filter(
+                        (value) =>
+                            value !== selectedNode.id &&
+                            value !== selectedNode.label &&
+                            value !== getDeletedNodeToken(selectedNode.label)
+                    ),
+                    getDeletedNodeToken(selectedNode.id),
+                ])
+            );
+            await setHiddenNodeIds(nextHiddenNodeIds);
+            addToast(`Removed ${selectedNode.label} from the graph.`, 'SUCCESS');
+        }
+
+        if (linkSourceNode?.id === selectedNode.id) {
+            setLinkSourceNode(null);
+        }
+
+        setShowRightPanel(false);
+        setInspectorMode(null);
+        setSelectedNode(null);
+        setSelectedEntityName(null);
+        setSelectedHeadline(null);
+        setSelectedReport(null);
     };
 
     const handleOpenEntityChat = (entityName: string) => {
@@ -428,6 +598,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                     isOpen={showRightPanel}
                     onClose={() => setShowRightPanel(false)}
                     mode={inspectorMode}
+                    selectedNode={selectedNode}
                     selectedEntity={selectedEntityName}
                     selectedHeadline={selectedHeadline}
                     selectedReport={selectedReport}
@@ -438,6 +609,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                     onReportSave={handleReportSave}
                     onToggleFlag={handleToggleFlag}
                     onToggleHide={handleToggleHide}
+                    onDeleteNode={handleDeleteNode}
                     onInvestigate={handleLeadInvestigate}
                     onOpenReport={onOpenReport}
                     onOpenEntityChat={handleOpenEntityChat}

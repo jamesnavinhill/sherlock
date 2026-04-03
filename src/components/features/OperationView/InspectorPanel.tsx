@@ -167,7 +167,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                                 {entity.sentiment && (
                                     <div>
                                         <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Sentiment</div>
-                                        <span className={`text-xs uppercase font-mono px-2 py-1 border ${entity.sentiment === 'NEGATIVE' ? 'border-red-500 text-red-500' : entity.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}>
+                                        <span className={`text-xs uppercase font-mono px-2 py-1 border ${entity.sentiment === 'NEGATIVE' ? 'border-osint-danger/40 osint-danger-text bg-osint-danger/10' : entity.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}>
                                             {entity.sentiment}
                                         </span>
                                     </div>

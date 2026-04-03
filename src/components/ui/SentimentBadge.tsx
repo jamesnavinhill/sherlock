@@ -27,7 +27,7 @@ export const SentimentBadge: React.FC<SentimentBadgeProps> = ({
             label: 'Positive'
         },
         NEGATIVE: {
-            color: 'text-red-500',
+            color: 'osint-danger-text',
             icon: TrendingDown,
             label: 'Negative'
         },

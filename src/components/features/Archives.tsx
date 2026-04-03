@@ -324,7 +324,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                   )}
                   <button
                     onClick={(e) => handleDeleteReport(e, report.id)}
-                    className="text-zinc-600 hover:text-red-500 p-2 transition-colors opacity-0 group-hover:opacity-100"
+                    className="text-zinc-600 osint-danger-inline p-2 opacity-0 group-hover:opacity-100"
                     title="Delete Report"
                   >
                     <Trash2 className="w-5 h-5" />

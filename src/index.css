@@ -298,8 +298,27 @@ body,
   border-color: color-mix(in oklab, var(--color-osint-danger) 28%, transparent);
 }
 
+.osint-danger-banner {
+  color: color-mix(in oklab, var(--color-osint-danger) 88%, var(--osint-ink));
+  background-color: color-mix(in oklab, var(--color-osint-danger) 10%, var(--osint-panel));
+  border-color: color-mix(in oklab, var(--color-osint-danger) 34%, transparent);
+}
+
 .osint-danger-text {
   color: color-mix(in oklab, var(--color-osint-danger) 88%, var(--osint-ink));
+}
+
+.osint-danger-inline {
+  color: color-mix(in oklab, var(--color-osint-danger) 78%, var(--osint-text));
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.osint-danger-inline:hover,
+.osint-danger-inline:focus-visible {
+  color: var(--color-osint-danger);
 }
 
 .osint-link-list-item {

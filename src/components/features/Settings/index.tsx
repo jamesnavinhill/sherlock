@@ -483,7 +483,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                 </button>
                                 <button
                                     onClick={() => handleClearProviderKey('GEMINI')}
-                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    className="osint-button-danger px-4 text-xs font-mono"
                                     title="Clear Gemini key"
                                 >
                                     CLEAR
@@ -513,7 +513,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                 </button>
                                 <button
                                     onClick={() => handleClearProviderKey('OPENROUTER')}
-                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    className="osint-button-danger px-4 text-xs font-mono"
                                     title="Clear OpenRouter key"
                                 >
                                     CLEAR
@@ -543,7 +543,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                 </button>
                                 <button
                                     onClick={() => handleClearProviderKey('OPENAI')}
-                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    className="osint-button-danger px-4 text-xs font-mono"
                                     title="Clear OpenAI key"
                                 >
                                     CLEAR
@@ -573,7 +573,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                 </button>
                                 <button
                                     onClick={() => handleClearProviderKey('ANTHROPIC')}
-                                    className="px-4 border border-red-900/60 hover:border-red-500 text-red-400 hover:text-red-300 transition-colors text-xs font-mono"
+                                    className="osint-button-danger px-4 text-xs font-mono"
                                     title="Clear Anthropic key"
                                 >
                                     CLEAR
@@ -582,7 +582,7 @@ export const Settings: React.FC<SettingsProps> = ({
                         </div>
 
                         {saveError && (
-                            <div className="text-[10px] text-red-400 font-mono border border-red-900/50 bg-red-950/30 px-3 py-2">
+                            <div className="osint-danger-banner text-[10px] font-mono border px-3 py-2">
                                 {saveError}
                             </div>
                         )}

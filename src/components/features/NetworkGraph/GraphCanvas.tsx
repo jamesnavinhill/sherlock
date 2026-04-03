@@ -113,6 +113,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
 
         const normalizeId = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
         const resolveEntityName = (name: string): string => aliases[name] || name;
+        const deletedNodeToken = (nodeId: string) => `deleted:${nodeId}`;
+        const isNodeDeleted = (id: string, label: string) =>
+            hiddenNodeIds.has(deletedNodeToken(id)) || hiddenNodeIds.has(deletedNodeToken(label));
+        const isNodeHidden = (id: string, label: string) => hiddenNodeIds.has(id) || hiddenNodeIds.has(label);
 
         // Filter reports by selected case
         const activeReports = filterCaseId === 'ALL' || !filterCaseId
@@ -129,7 +133,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
 
         // Helper to get/create node
         const getOrCreateNode = (id: string, type: 'CASE' | 'ENTITY', label: string, reportData?: InvestigationReport, isManual: boolean = false, subtype?: GraphNodeSubtype) => {
-            if (hiddenNodeIds.has(id) && !showHiddenNodes) return null;
+            if (isNodeDeleted(id, label) || (isNodeHidden(id, label) && !showHiddenNodes)) return null;
             if (!rawNodes.has(id)) {
                 // If it's a Manual "CASE" node but has no report data
                 let data = reportData;
@@ -164,13 +168,13 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
             const caseNode = getOrCreateNode(caseId, 'CASE', report.topic, report);
             if (!caseNode) return;
 
-            if (report.parentTopic) {
-                const parentReport = activeReports.find(r => r.topic === report.parentTopic);
-                if (parentReport) {
-                    const pId = `case-${parentReport.id}`;
-                    if (!hiddenNodeIds.has(pId)) rawLinks.push({ source: pId, target: caseId, value: 3 });
+                if (report.parentTopic) {
+                    const parentReport = activeReports.find(r => r.topic === report.parentTopic);
+                    if (parentReport) {
+                        const pId = `case-${parentReport.id}`;
+                        if (rawNodes.has(pId)) rawLinks.push({ source: pId, target: caseId, value: 3 });
+                    }
                 }
-            }
 
             report.entities.forEach(e => {
                 const name = typeof e === 'string' ? e : e.name;
@@ -234,7 +238,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
 
         if (showFlaggedOnly) {
             nodesArray.forEach(n => {
-                if (flaggedNodeIds.has(n.id) || n.type === 'CASE') nodesToKeep.add(n.id);
+                if (flaggedNodeIds.has(n.id) || flaggedNodeIds.has(n.label) || n.type === 'CASE') nodesToKeep.add(n.id);
             });
             filteredNodes = nodesArray.filter(n => nodesToKeep.has(n.id));
             filteredLinks = linksArray.filter(l => nodesToKeep.has(l.source as string) && nodesToKeep.has(l.target as string));

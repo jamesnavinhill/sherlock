@@ -329,7 +329,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                             <button
                                 type="button"
                                 onClick={() => handleRemoveEntity(entity.id)}
-                                className="text-zinc-500 transition hover:text-red-400"
+                                className="text-zinc-500 transition osint-danger-inline"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>

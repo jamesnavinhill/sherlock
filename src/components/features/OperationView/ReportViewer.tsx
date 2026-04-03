@@ -262,7 +262,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                             <button
                                 onClick={handlePlayBriefing}
                                 disabled={isAudioLoading}
-                                className={`flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase transition-all border ${isPlaying ? 'bg-red-900/20 text-red-400 border-red-900 animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}
+                                className={`flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase transition-all border ${isPlaying ? 'osint-button-danger animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}
                                 aria-label={isPlaying ? "Stop audio briefing" : "Play audio briefing"}
                             >
                                 {isAudioLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : isPlaying ? <StopCircle className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}

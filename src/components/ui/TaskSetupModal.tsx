@@ -591,7 +591,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
               </div>
               <button
                 onClick={() => handleRemoveEntity(entity.id)}
-                className="text-zinc-600 hover:text-red-500"
+                className="text-zinc-600 osint-danger-inline"
               >
                 <Trash2 className="w-3 h-3" />
               </button>

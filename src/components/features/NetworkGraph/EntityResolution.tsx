@@ -301,7 +301,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
                     <button
                       onClick={() => handleUnmerge(alias)}
-                      className="w-full md:w-auto px-4 py-2 bg-black border border-zinc-800 hover:border-red-500 hover:text-red-500 text-zinc-500 transition-all font-mono text-xs uppercase flex items-center justify-center"
+                      className="w-full md:w-auto px-4 py-2 bg-black border border-zinc-800 text-zinc-500 transition-all font-mono text-xs uppercase flex items-center justify-center osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Unlink

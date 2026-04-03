@@ -7,7 +7,9 @@ import {
     ChevronRight,
     CircleStop,
     Clipboard,
+    Download,
     FilePlus2,
+    FileJson,
     FileSearch,
     FileText,
     Layout,
@@ -203,10 +205,14 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const [workingAssistantMessageId, setWorkingAssistantMessageId] = useState<string | null>(null);
     const [manualSetupDraft, setManualSetupDraft] = useState<GuidedRunDraft | null>(null);
     const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+    const [showNewMenu, setShowNewMenu] = useState(false);
+    const [showExportMenu, setShowExportMenu] = useState(false);
     const [expandedArtifactIds, setExpandedArtifactIds] = useState<Record<string, boolean>>({});
     const abortControllerRef = useRef<AbortController | null>(null);
     const streamedAnswerRef = useRef('');
     const transcriptEndRef = useRef<HTMLDivElement | null>(null);
+    const newMenuRef = useRef<HTMLDivElement | null>(null);
+    const exportMenuRef = useRef<HTMLDivElement | null>(null);
     const [leftPanelSections, setLeftPanelSections] = useState({
         sessions: true,
         workspace: true,
@@ -224,6 +230,20 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             setActiveCaseId(cases[0].id);
         }
     }, [activeCaseId, cases, setActiveCaseId]);
+
+    useEffect(() => {
+        const handlePointerDown = (event: MouseEvent) => {
+            if (newMenuRef.current && !newMenuRef.current.contains(event.target as Node)) {
+                setShowNewMenu(false);
+            }
+            if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+                setShowExportMenu(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handlePointerDown);
+        return () => document.removeEventListener('mousedown', handlePointerDown);
+    }, []);
 
     useEffect(() => {
         const handleResize = () => {
@@ -372,6 +392,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     };
 
     const handleCreateSession = async () => {
+        setShowNewMenu(false);
         if (!activeWorkspace) {
             addToast('Select or create a workspace before starting chat.', 'ERROR');
             return;
@@ -386,6 +407,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     };
 
     const handleCreateGuidedSession = async () => {
+        setShowNewMenu(false);
         if (!activeWorkspace) {
             addToast('Select or create a workspace before starting guided mode.', 'ERROR');
             return;
@@ -751,7 +773,20 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     };
 
     const handleStartNewProject = () => {
+        setShowNewMenu(false);
         setShowNewProjectModal(true);
+    };
+
+    const handleExportSessionMarkdown = () => {
+        if (!activeSession) return;
+        exportChatSessionAsMarkdown(activeSession, messages, activeWorkspace || undefined);
+        setShowExportMenu(false);
+    };
+
+    const handleExportSessionJson = () => {
+        if (!activeSession) return;
+        exportChatSessionAsJson(activeSession, messages, activeWorkspace || undefined);
+        setShowExportMenu(false);
     };
 
     if (cases.length === 0) {
@@ -829,43 +864,109 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     </div>
 
                     <div className="flex shrink-0 items-center gap-2">
-                        <button
-                            onClick={handleStartNewProject}
-                            className="border border-zinc-700 px-3 py-1.5 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                        >
-                            Start Project
-                        </button>
-                        <button
-                            onClick={handleCreateSession}
-                            className="border border-zinc-700 px-3 py-1.5 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                        >
-                            New Session
-                        </button>
-                        <button
-                            onClick={handleCreateGuidedSession}
-                            className="border border-zinc-700 px-3 py-1.5 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                        >
-                            Guided Run
-                        </button>
+                        <div className="relative" ref={newMenuRef}>
+                            <button
+                                onClick={() => {
+                                    setShowNewMenu((current) => !current);
+                                    setShowExportMenu(false);
+                                }}
+                                className="flex items-center px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-700 hover:text-white transition-colors"
+                                title="Create a new chat item"
+                            >
+                                <Plus className="w-4 h-4 mr-1" />
+                                <span className="hidden lg:inline">New</span>
+                                <ChevronDown className="w-3 h-3 ml-1" />
+                            </button>
+                            {showNewMenu && (
+                                <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                                    <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
+                                        Chat
+                                    </div>
+                                    <button
+                                        onClick={() => void handleCreateSession()}
+                                        disabled={!activeWorkspace}
+                                        className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                                        title="Start a fresh chat session in the selected workspace"
+                                    >
+                                        <MessageSquare className="w-4 h-4 mr-3 text-zinc-500" />
+                                        <div>
+                                            <div className="font-bold">New Session</div>
+                                            <div className="text-[10px] text-zinc-500">Start a standard workspace chat</div>
+                                        </div>
+                                    </button>
+                                    <button
+                                        onClick={() => void handleCreateGuidedSession()}
+                                        disabled={!activeWorkspace}
+                                        className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                                        title="Open a guided run builder in the selected workspace"
+                                    >
+                                        <PlayCircle className="w-4 h-4 mr-3 text-zinc-500" />
+                                        <div>
+                                            <div className="font-bold">Guided Run</div>
+                                            <div className="text-[10px] text-zinc-500">Use the step-by-step run builder</div>
+                                        </div>
+                                    </button>
+                                    <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-y border-zinc-800 bg-zinc-900/50">
+                                        Workspace
+                                    </div>
+                                    <button
+                                        onClick={handleStartNewProject}
+                                        className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                                        title="Create a new workspace"
+                                    >
+                                        <FilePlus2 className="w-4 h-4 mr-3 text-zinc-500" />
+                                        <div>
+                                            <div className="font-bold">New Project</div>
+                                            <div className="text-[10px] text-zinc-500">Create or launch a new workspace</div>
+                                        </div>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         {activeSession && (
-                            <>
+                            <div className="relative" ref={exportMenuRef}>
                                 <button
-                                    onClick={() =>
-                                        exportChatSessionAsMarkdown(activeSession, messages, activeWorkspace || undefined)
-                                    }
-                                    className="border border-zinc-700 px-3 py-1.5 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                    onClick={() => {
+                                        setShowExportMenu((current) => !current);
+                                        setShowNewMenu(false);
+                                    }}
+                                    className="flex items-center px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-700 hover:text-white transition-colors"
+                                    title="Export current chat session"
                                 >
-                                    Export MD
+                                    <Download className="w-4 h-4 mr-1" />
+                                    <span className="hidden lg:inline">Export</span>
+                                    <ChevronDown className="w-3 h-3 ml-1" />
                                 </button>
-                                <button
-                                    onClick={() =>
-                                        exportChatSessionAsJson(activeSession, messages, activeWorkspace || undefined)
-                                    }
-                                    className="border border-zinc-700 px-3 py-1.5 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                >
-                                    Export JSON
-                                </button>
-                            </>
+                                {showExportMenu && (
+                                    <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                                        <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
+                                            Current Session
+                                        </div>
+                                        <button
+                                            onClick={handleExportSessionMarkdown}
+                                            className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                                            title="Export the current chat session as Markdown"
+                                        >
+                                            <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                                            <div>
+                                                <div className="font-bold">Session Markdown</div>
+                                                <div className="text-[10px] text-zinc-500">Readable transcript export</div>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={handleExportSessionJson}
+                                            className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                                            title="Export the current chat session as JSON"
+                                        >
+                                            <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                                            <div>
+                                                <div className="font-bold">Session JSON</div>
+                                                <div className="text-[10px] text-zinc-500">Raw session data for backup</div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         )}
                         <button
                             onClick={() => setRightPanelOpen((current) => !current)}
@@ -957,7 +1058,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteSession(session)}
-                                                className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-red-400"
+                                                className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 osint-danger-inline"
                                             >
                                                 <Trash2 className="h-3 w-3" />
                                                 Delete
@@ -1101,7 +1202,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                         )}
 
                                         {message.error && (
-                                            <div className="mt-3 border-t border-red-950 pt-3 text-sm text-red-400">
+                                            <div className="osint-danger-banner mt-3 border-t pt-3 text-sm">
                                                 {message.error}
                                             </div>
                                         )}

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import {
     User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink,
-    Lightbulb, FolderOpen, EyeOff, Microscope, Link2, MessageSquare, Shapes
+    Lightbulb, FolderOpen, EyeOff, Microscope, Link2, MessageSquare, Shapes, Trash2
 } from 'lucide-react';
 import type { Entity, Headline, InvestigationReport} from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneClass } from '../../../utils/entityPalette';
+import type { GraphNode } from './GraphCanvas';
 
 type InvestigationContext = { topic: string; summary: string };
 
@@ -17,6 +18,7 @@ interface NodeInspectorProps {
 
     // Mode & Data
     mode: 'ENTITY' | 'HEADLINE' | 'REPORT' | null;
+    selectedNode: GraphNode | null;
     selectedEntity: string | null;
     selectedHeadline: Headline | null;
     selectedReport: InvestigationReport | null;
@@ -29,8 +31,9 @@ interface NodeInspectorProps {
     // Actions
     onEntitySave: (oldName: string, newName: string) => void;
     onReportSave: (report: InvestigationReport, newTitle: string) => void;
-    onToggleFlag: (name: string) => void;
-    onToggleHide: (name: string) => void;
+    onToggleFlag: () => void;
+    onToggleHide: () => void;
+    onDeleteNode: () => void;
     onInvestigate: (topic: string, context?: InvestigationContext) => void; // Trigger modal or immediate
     onOpenReport: (report: InvestigationReport) => void;
     onOpenEntityChat: (entityName: string) => void;
@@ -39,10 +42,15 @@ interface NodeInspectorProps {
 }
 
 export const NodeInspector: React.FC<NodeInspectorProps> = ({
-    isOpen, onClose, mode, selectedEntity, selectedHeadline, selectedReport,
-    reports, hiddenNodeIds: _hiddenNodeIds, flaggedNodeIds,
-    onEntitySave, onReportSave, onToggleFlag, onToggleHide, onInvestigate, onOpenReport, onOpenEntityChat, onOpenReportChat, onOpenHeadlineChat
+    isOpen, onClose, mode, selectedNode, selectedEntity, selectedHeadline, selectedReport,
+    reports, hiddenNodeIds, flaggedNodeIds,
+    onEntitySave, onReportSave, onToggleFlag, onToggleHide, onDeleteNode, onInvestigate, onOpenReport, onOpenEntityChat, onOpenReportChat, onOpenHeadlineChat
 }) => {
+    const entityIconButtonClassName =
+        'inline-flex h-10 w-10 items-center justify-center border border-zinc-700 text-zinc-400 transition-colors hover:border-white hover:text-white';
+    const entityActionButtonClassName =
+        'inline-flex h-10 items-center justify-center gap-2 border border-zinc-700 px-3 text-xs font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white';
+
     // Accordion Control
     const [inspectorAccordions, setInspectorAccordions] = useState<Record<string, boolean>>({
         mentions: false,
@@ -135,6 +143,10 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     const selectedEntityToneClass = selectedEntity ? getEntityToneClass(getNodeType(selectedEntity)) : getEntityToneClass('UNKNOWN');
 
     const selectedNodeType = selectedEntity ? getNodeType(selectedEntity) : 'UNKNOWN';
+    const isSelectedNodeFlagged =
+        !!selectedNode && (flaggedNodeIds.has(selectedNode.id) || flaggedNodeIds.has(selectedNode.label));
+    const isSelectedNodeHidden =
+        !!selectedNode && (hiddenNodeIds.has(selectedNode.id) || hiddenNodeIds.has(selectedNode.label));
 
     return (
         <div className={`${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl z-20`}>
@@ -282,6 +294,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                         </Accordion>
                     </div>
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto">
+                        {selectedNode && (
+                            <button
+                                onClick={onDeleteNode}
+                                className="osint-button-danger mb-3 w-full py-3 font-mono text-sm uppercase flex items-center justify-center"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                {selectedNode.isManual ? 'Delete Node' : 'Remove From Graph'}
+                            </button>
+                        )}
                         <button
                             onClick={() => onOpenReportChat(selectedReport)}
                             className="mb-3 w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
@@ -329,45 +350,56 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     </div>
 
                     {/* Actions */}
-                    <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/10">
-                        <div className="flex space-x-2">
+                    <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900/10 space-y-2">
+                        <div className="flex items-center gap-2">
                             <button
-                                onClick={() => onToggleFlag(selectedEntity)}
-                                className={`p-2 border rounded-sm transition-colors ${flaggedNodeIds.has(selectedEntity) ? 'bg-yellow-900/20 border-yellow-700 text-yellow-500' : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-white'}`}
+                                onClick={onToggleFlag}
+                                className={`${entityIconButtonClassName} ${
+                                    isSelectedNodeFlagged
+                                        ? 'border-yellow-700 bg-yellow-900/20 text-yellow-500 hover:border-yellow-600 hover:text-yellow-400'
+                                        : ''
+                                }`}
                                 title="Flag Entity"
                             >
-                                <Star className={`w-4 h-4 ${flaggedNodeIds.has(selectedEntity) ? 'fill-current' : ''}`} />
+                                <Star className={`w-4 h-4 ${isSelectedNodeFlagged ? 'fill-current' : ''}`} />
                             </button>
                             <button
-                                onClick={() => { onToggleHide(selectedEntity); onClose(); }}
-                                className="p-2 border border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-400 transition-colors"
-                                title="Hide/Delete Entity"
+                                onClick={onToggleHide}
+                                className={`${entityIconButtonClassName} ${isSelectedNodeHidden ? 'border-zinc-500 bg-zinc-900/40 text-white' : ''}`}
+                                title={isSelectedNodeHidden ? 'Unhide Node' : 'Hide Node'}
                             >
                                 <EyeOff className="w-4 h-4" />
                             </button>
+                            <button
+                                onClick={onDeleteNode}
+                                className={`${entityIconButtonClassName} osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]`}
+                                title={selectedNode?.isManual ? 'Delete Node' : 'Remove From Graph'}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         </div>
-
-                        <div className="flex items-center space-x-2">
+                        <div className="grid grid-cols-3 gap-2">
                             <button
                                 onClick={() => onOpenEntityChat(selectedEntity)}
-                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-xs font-mono uppercase"
+                                className={entityActionButtonClassName}
                             >
-                                <MessageSquare className="w-3 h-3" />
+                                <MessageSquare className="w-3.5 h-3.5" />
                                 <span>Chat</span>
                             </button>
                             <button
                                 onClick={() => onInvestigate(selectedEntity)}
-                                className="osint-button-primary flex items-center space-x-2 px-3 py-1.5 font-bold font-mono text-xs uppercase"
+                                className="osint-button-primary inline-flex h-10 items-center justify-center gap-2 px-3 font-bold font-mono text-xs uppercase"
                             >
+                                <Microscope className="w-3.5 h-3.5" />
                                 <span>{selectedNodeType === 'SOURCE' ? 'Explore' : 'Investigate'}</span>
                             </button>
                             <a
                                 href={`https://www.google.com/search?q=${encodeURIComponent(selectedEntity)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-xs font-mono uppercase"
+                                className={entityActionButtonClassName}
                             >
-                                <Search className="w-3 h-3" />
+                                <Search className="w-3.5 h-3.5" />
                                 <span>Google</span>
                             </a>
                         </div>
@@ -389,7 +421,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                                             {details.sentiment && (
                                                 <div>
                                                     <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Sentiment</div>
-                                                    <span className={`text-xs uppercase font-mono px-2 py-1 border ${details.sentiment === 'NEGATIVE' ? 'border-red-500 text-red-500' : details.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}>
+                                                    <span className={`text-xs uppercase font-mono px-2 py-1 border ${details.sentiment === 'NEGATIVE' ? 'border-osint-danger/40 osint-danger-text bg-osint-danger/10' : details.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}>
                                                         {details.sentiment}
                                                     </span>
                                                 </div>

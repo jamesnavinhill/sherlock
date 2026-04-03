@@ -37,14 +37,14 @@ export const EventCard: React.FC<EventCardProps> = ({
     const getSentimentColor = (sentiment: string) => {
         switch (sentiment) {
             case 'POSITIVE': return 'text-green-500 border-green-900 bg-green-900/10';
-            case 'NEGATIVE': return 'text-red-500 border-red-900 bg-red-900/10';
+            case 'NEGATIVE': return 'osint-danger-text border-osint-danger/30 bg-osint-danger/10';
             default: return 'text-zinc-500 border-zinc-700 bg-zinc-900/50';
         }
     };
 
     const getThreatInfo = (level: string) => {
         switch (level) {
-            case 'CRITICAL': return { color: 'text-red-400 border-red-500 bg-red-950/30', icon: ShieldAlert };
+            case 'CRITICAL': return { color: 'osint-danger-text border-osint-danger/30 bg-osint-danger/10', icon: ShieldAlert };
             case 'CAUTION': return { color: 'text-amber-400 border-amber-500 bg-amber-950/30', icon: ShieldQuestion };
             default: return { color: 'text-blue-400 border-blue-500 bg-blue-950/30', icon: ShieldCheck };
         }

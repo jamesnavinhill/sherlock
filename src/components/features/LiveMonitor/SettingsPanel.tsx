@@ -173,7 +173,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
           <button
             onClick={onClearFeed}
-            className="text-xs font-mono text-red-500 hover:text-red-400 flex items-center uppercase"
+            className="text-xs font-mono osint-danger-inline flex items-center uppercase"
           >
             <Trash2 className="w-3 h-3 mr-1" /> Clear Feed
           </button>

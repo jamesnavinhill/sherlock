@@ -6,13 +6,13 @@ import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 export const Toast: React.FC<{ toast: ToastType; onRemove: (id: string) => void }> = ({ toast, onRemove }) => {
     const icons = {
         SUCCESS: <CheckCircle className="w-5 h-5 text-green-500" />,
-        ERROR: <AlertCircle className="w-5 h-5 text-red-500" />,
+        ERROR: <AlertCircle className="w-5 h-5 osint-danger-text" />,
         INFO: <Info className="w-5 h-5 text-osint-primary" />,
     };
 
     const bgColors = {
         SUCCESS: 'bg-green-500/10 border-green-500/50',
-        ERROR: 'bg-red-500/10 border-red-500/50',
+        ERROR: 'osint-danger-banner',
         INFO: 'bg-osint-primary/10 border-osint-primary/50',
     };
 
