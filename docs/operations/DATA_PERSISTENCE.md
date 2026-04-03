@@ -119,8 +119,43 @@ Some non-tabular values are still stored directly in localStorage:
 
 User-facing maintenance tools in Settings:
 
-- export workspace data JSON snapshot
-- import JSON snapshot (overwrites current workspace/artifact data)
-- clear workspace/artifact data
+- export workspace-data JSON snapshot
+- import JSON snapshot (replaces current workspace-data domain)
+- clear workspace-data domain
 
-See `src/components/features/Settings/index.tsx` for exact behavior.
+Canonical exported shape:
+
+- `workspaces`
+- `artifacts`
+- `runs`
+- `chat`
+- `signals`
+- `graph`
+- `templates`
+- `metadata`
+
+Workspace-data backups include:
+
+- workspaces (`cases`)
+- artifacts (`reports`, `artifact_sections`, `entities`, `sources`)
+- runs (`tasks`)
+- chat sessions, messages, attachments, and actions
+- saved signals/headlines (`leads`)
+- manual graph nodes and links
+- templates
+
+Workspace-data backups intentionally exclude:
+
+- theme mode and theme surface settings
+- provider/model defaults
+- API keys
+- quiet mode and other device-local preferences
+
+Maintenance cleanup behavior:
+
+- importing workspace data clears the current workspace-data domain first, then restores the backup payload
+- deleting a workspace removes workspace-linked chat sessions and saved signals, while artifacts are unassigned rather than purged
+- purging a workspace removes the workspace, its artifacts, saved signals, linked chat history, linked run rows, and directly linked manual graph references
+- clearing workspace data removes all persisted workspace-domain records and resets graph hide/flag filters that only reference workspace data
+
+See `src/components/features/Settings/index.tsx`, `src/store/caseStore.ts`, and `src/services/maintenance/workspaceData.ts` for the implemented flow.

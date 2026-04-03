@@ -17,7 +17,8 @@ import type {
     ManualConnection,
     ManualNode,
     InvestigationScope,
-    EntityAliasMap
+    EntityAliasMap,
+    WorkspaceDataBackup,
 } from '../types';
 import {
     AppView
@@ -38,6 +39,11 @@ import {
     parseThemeSurfaceSettings,
     type ThemeSurfaceSettings,
 } from '../utils/themeSurfaces';
+import {
+    filterManualGraphForWorkspaceRemoval,
+    groupChatActionsBySessionId,
+    groupChatMessagesBySessionId,
+} from '../services/maintenance/workspaceData';
 import { loadSystemConfig } from '../config/systemConfig';
 import { createLocalId } from '../utils/id';
 
@@ -101,7 +107,6 @@ interface CaseState {
         chroma: number;
     };
     themeSurfaceSettings: ThemeSurfaceSettings;
-    showNewCaseModal: boolean;
     showGlobalSearch: boolean;
 
     // --- ACTIONS ---
@@ -123,7 +128,6 @@ interface CaseState {
     setThemeColor: (color: string) => void;
     setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
     setThemeSurfaceSettings: (settings: ThemeSurfaceSettings) => void;
-    setShowNewCaseModal: (show: boolean) => void;
     setShowGlobalSearch: (show: boolean) => void;
     setTemplates: (templates: CaseTemplate[]) => void;
     setHeadlines: (headlines: Headline[]) => void;
@@ -182,8 +186,8 @@ interface CaseState {
     deleteReport: (reportId: string) => Promise<void>;
     deleteCase: (caseId: string) => Promise<void>;
     purgeCase: (caseId: string) => Promise<void>;
-    importCaseData: (payload: { cases: Case[]; archives: InvestigationReport[] }) => Promise<void>;
-    clearCaseData: () => Promise<void>;
+    importWorkspaceData: (payload: WorkspaceDataBackup) => Promise<void>;
+    clearWorkspaceData: () => Promise<void>;
 }
 
 export const useCaseStore = create<CaseState>()((set, get) => ({
@@ -211,7 +215,6 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     themeColor: buildAccentColor(DEFAULT_ACCENT_SETTINGS),
     accentSettings: DEFAULT_ACCENT_SETTINGS,
     themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,
-    showNewCaseModal: false,
     showGlobalSearch: false,
     templates: [],
     headlines: [],
@@ -385,7 +388,6 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         set({ themeSurfaceSettings });
         void SettingsRepository.setSetting('theme_surface_settings', themeSurfaceSettings);
     },
-    setShowNewCaseModal: (showNewCaseModal) => set({ showNewCaseModal }),
     setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
     setTemplates: (templates) => set({ templates }),
     setHeadlines: (headlines) => set({ headlines }),
@@ -647,12 +649,15 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     completeTask: async (id, report) => {
         // Persist completion status
         await TaskRepository.updateStatus(id, 'COMPLETED');
+        if (report.caseId) {
+            await TaskRepository.updateWorkspace(id, report.caseId);
+        }
         // Report persistence is handled in archiveReport before this is called
 
         set((state) => ({
             tasks: state.tasks.map((t) =>
                 t.id === id
-                    ? { ...t, status: 'COMPLETED', report, endTime: Date.now() }
+                    ? { ...t, status: 'COMPLETED', report, workspaceId: report.caseId ?? t.workspaceId, endTime: Date.now() }
                     : t
             )
         }));
@@ -817,10 +822,38 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         await CaseRepository.unassignReportsFromCase(caseId);
         await CaseRepository.deleteCase(caseId);
         set((state) => ({
+            chatSessions: state.chatSessions.filter((session) => session.workspaceId !== caseId),
+            chatMessagesBySessionId: Object.fromEntries(
+                Object.entries(state.chatMessagesBySessionId).filter(([sessionId]) =>
+                    !state.chatSessions.some((session) => session.id === sessionId && session.workspaceId === caseId)
+                )
+            ),
+            chatActionsBySessionId: Object.fromEntries(
+                Object.entries(state.chatActionsBySessionId).filter(([sessionId]) =>
+                    !state.chatSessions.some((session) => session.id === sessionId && session.workspaceId === caseId)
+                )
+            ),
             cases: state.cases.filter((item) => item.id !== caseId),
             archives: state.archives.map((report) =>
                 report.caseId === caseId ? { ...report, caseId: undefined } : report
             ),
+            headlines: state.headlines.filter((headline) => headline.caseId !== caseId),
+            tasks: state.tasks.map((task) => {
+                if (task.workspaceId !== caseId && task.report?.caseId !== caseId) {
+                    return task;
+                }
+
+                return {
+                    ...task,
+                    workspaceId: undefined,
+                    report: task.report ? { ...task.report, caseId: undefined } : task.report,
+                };
+            }),
+            activeChatSessionId:
+                state.activeChatSessionId
+                && state.chatSessions.some((session) => session.id === state.activeChatSessionId && session.workspaceId === caseId)
+                    ? null
+                    : state.activeChatSessionId,
             activeCaseId: state.activeCaseId === caseId ? null : state.activeCaseId
         }));
     },
@@ -828,36 +861,124 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     purgeCase: async (caseId) => {
         await CaseRepository.purgeCase(caseId);
         set((state) => {
-            const nextTasks = state.tasks.filter((task) => task.report?.caseId !== caseId);
+            const reportIds = state.archives
+                .filter((report) => report.caseId === caseId && !!report.id)
+                .map((report) => report.id as string);
+            const chatSessionIds = state.chatSessions
+                .filter((session) => session.workspaceId === caseId)
+                .map((session) => session.id);
+            const nextTasks = state.tasks.filter(
+                (task) => task.workspaceId !== caseId && task.report?.caseId !== caseId
+            );
             const activeTaskStillExists = !state.activeTaskId || nextTasks.some((task) => task.id === state.activeTaskId);
+            const nextGraph = filterManualGraphForWorkspaceRemoval({
+                manualNodes: state.manualNodes,
+                manualLinks: state.manualLinks,
+                hiddenNodeIds: state.hiddenNodeIds,
+                flaggedNodeIds: state.flaggedNodeIds,
+                workspaceId: caseId,
+                artifactIds: reportIds,
+            });
+            const activeChatSessionStillExists =
+                !state.activeChatSessionId || !chatSessionIds.includes(state.activeChatSessionId);
 
             return {
+                chatSessions: state.chatSessions.filter((session) => session.workspaceId !== caseId),
+                chatMessagesBySessionId: Object.fromEntries(
+                    Object.entries(state.chatMessagesBySessionId).filter(
+                        ([sessionId]) => !chatSessionIds.includes(sessionId)
+                    )
+                ),
+                chatActionsBySessionId: Object.fromEntries(
+                    Object.entries(state.chatActionsBySessionId).filter(
+                        ([sessionId]) => !chatSessionIds.includes(sessionId)
+                    )
+                ),
                 cases: state.cases.filter((item) => item.id !== caseId),
                 archives: state.archives.filter((report) => report.caseId !== caseId),
                 headlines: state.headlines.filter((headline) => headline.caseId !== caseId),
                 tasks: nextTasks,
+                manualNodes: nextGraph.manualNodes,
+                manualLinks: nextGraph.manualLinks,
+                hiddenNodeIds: nextGraph.hiddenNodeIds,
+                flaggedNodeIds: nextGraph.flaggedNodeIds,
                 activeTaskId: activeTaskStillExists ? state.activeTaskId : null,
+                activeChatSessionId: activeChatSessionStillExists ? state.activeChatSessionId : null,
                 activeCaseId: state.activeCaseId === caseId ? null : state.activeCaseId
             };
         });
     },
 
-    importCaseData: async ({ cases, archives }) => {
-        await CaseRepository.importCasesAndReports(cases, archives);
+    importWorkspaceData: async (payload) => {
+        await CaseRepository.clearCaseData();
+
+        for (const workspace of payload.workspaces) {
+            await CaseRepository.createCase(workspace);
+        }
+        for (const artifact of payload.artifacts) {
+            await CaseRepository.createReport(artifact);
+        }
+        for (const run of payload.runs) {
+            await TaskRepository.create(run);
+        }
+        for (const session of payload.chat.sessions) {
+            await ChatRepository.createSession(session);
+        }
+        for (const message of payload.chat.messages) {
+            await ChatRepository.createMessage(message);
+        }
+        for (const action of payload.chat.actions) {
+            await ChatRepository.createAction(action);
+        }
+        for (const headline of payload.signals.headlines) {
+            await CaseRepository.createHeadline(headline);
+        }
+        for (const template of payload.templates) {
+            await TemplateRepository.create(template);
+        }
+        await ManualDataRepository.saveAllNodes(payload.graph.manualNodes);
+        await ManualDataRepository.saveAllLinks(payload.graph.manualLinks);
+        await SettingsRepository.setSetting('hidden_nodes', []);
+        await SettingsRepository.setSetting('flagged_nodes', []);
+
         set({
-            cases,
-            archives,
-            headlines: [],
+            cases: payload.workspaces,
+            archives: payload.artifacts,
+            tasks: payload.runs,
+            chatSessions: payload.chat.sessions,
+            chatMessagesBySessionId: groupChatMessagesBySessionId(payload.chat.messages),
+            chatActionsBySessionId: groupChatActionsBySessionId(payload.chat.actions),
+            headlines: payload.signals.headlines,
+            templates: payload.templates,
+            manualNodes: payload.graph.manualNodes,
+            manualLinks: payload.graph.manualLinks,
+            hiddenNodeIds: [],
+            flaggedNodeIds: [],
+            activeTaskId: null,
+            activeChatSessionId: null,
             activeCaseId: null
         });
     },
 
-    clearCaseData: async () => {
+    clearWorkspaceData: async () => {
         await CaseRepository.clearCaseData();
+        await SettingsRepository.setSetting('hidden_nodes', []);
+        await SettingsRepository.setSetting('flagged_nodes', []);
         set({
             cases: [],
             archives: [],
+            tasks: [],
+            chatSessions: [],
+            chatMessagesBySessionId: {},
+            chatActionsBySessionId: {},
             headlines: [],
+            templates: [],
+            manualNodes: [],
+            manualLinks: [],
+            hiddenNodeIds: [],
+            flaggedNodeIds: [],
+            activeTaskId: null,
+            activeChatSessionId: null,
             activeCaseId: null
         });
     }

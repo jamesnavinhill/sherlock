@@ -26,6 +26,7 @@ Primary views loaded from App:
 - `LiveMonitor` (`AppView.LIVE_MONITOR`)
 - `Archives` (`AppView.ARCHIVES`)
 - `Settings` (`AppView.SETTINGS`)
+- `TimelineView` (`AppView.TIMELINE`, currently parked as a Slice 2 placeholder and not exposed in sidebar navigation)
 
 ## 2. Launch Pipeline
 
@@ -136,6 +137,12 @@ The schema still uses compatibility tables such as `cases`, `reports`, and `task
 - `artifact_sections` persists typed section rows separately from the legacy flattened report fields
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
 - `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
+
+Maintenance flows now treat SQLite data as a workspace-data domain:
+
+- Settings export/import use a canonical backup payload with `workspaces`, `artifacts`, `runs`, `chat`, `signals`, `graph`, `templates`, and `metadata`
+- workspace-data restore clears the current workspace-data domain before replaying the backup
+- app-level settings such as theme, provider defaults, and API keys remain outside workspace backup/restore
 
 Migration:
 
@@ -269,7 +276,8 @@ See:
 
 ## 9. Notable Constraints
 
-- Timeline view component exists but is not currently exposed in sidebar navigation.
+- Timeline is intentionally parked during Slice 1 cleanup. The route still exists for the upcoming chronology rebuild, but the current surface is a placeholder rather than a live feature.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
 - Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
-- Current lint/test status is tracked in `README.md` and `docs/LINTING.md`.
+- `Ctrl+N` now routes through Archives and opens the active new-workspace modal rather than relying on dead shell state.
+- Current lint/test status is tracked in `README.md` and `docs/operations/LINTING.md`.

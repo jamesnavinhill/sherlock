@@ -19,16 +19,16 @@ When unsure, start from:
 ## 3. Data and Persistence
 
 - Core entities persist via wa-sqlite + IndexedDB.
-- Do not introduce new persistence pathways without documenting them in `docs/DATA_PERSISTENCE.md`.
+- Do not introduce new persistence pathways without documenting them in `docs/operations/DATA_PERSISTENCE.md`.
 - Keep provider key handling in `src/services/providers/keys.ts`.
 
 ## 4. Documentation Rules
 
 - Keep docs in sync with actual code behavior, not intended roadmap.
 - Update `README.md` when setup/validation/status changes.
-- Update `docs/ARCHITECTURE.md` for structural changes.
-- Update `docs/OPERATIONS_RUNBOOK.md` for provider error/fallback changes.
-- Update `docs/SCOPES.md` and `docs/SOURCES.md` when scope presets change.
+- Update `docs/operations/architecture.md` for structural changes.
+- Update `docs/operations/OPERATIONS_RUNBOOK.md` for provider error/fallback changes.
+- Update `docs/operations/SCOPES.md` and `docs/operations/SOURCES.md` when scope presets change.
 
 ## 5. Validation Expectations
 

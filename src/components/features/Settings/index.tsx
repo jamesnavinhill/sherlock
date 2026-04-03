@@ -28,7 +28,6 @@ import { AccentPicker } from '../../ui/AccentPicker';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../../../utils/accent';
 import {
     DEFAULT_THEME_SURFACE_SETTINGS,
-    parseThemeSurfaceSettings,
     type ThemeSurfaceScale,
     type ThemeSurfaceSettings
 } from '../../../utils/themeSurfaces';
@@ -52,13 +51,15 @@ import {
     setApiKey as setProviderApiKey,
     validateApiKey
 } from '../../../services/providers/keys';
+import {
+    buildWorkspaceDataBackup,
+    normalizeWorkspaceDataBackup,
+} from '../../../services/maintenance/workspaceData';
 import { clearStoredActiveWorkspaceId } from '../../../utils/localStorage';
 
 interface SettingsProps {
     themeColor: string;
-    onThemeChange: (color: string) => void;
     themeMode: 'dark' | 'light';
-    onThemeModeChange: (mode: 'dark' | 'light') => void;
     onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
     accentSettings: { hue: number; lightness: number; chroma: number };
     themeSurfaceSettings: ThemeSurfaceSettings;
@@ -77,9 +78,7 @@ const TABS = [
 
 export const Settings: React.FC<SettingsProps> = ({
     themeColor,
-    onThemeChange,
     themeMode,
-    onThemeModeChange,
     onAccentChange,
     accentSettings,
     themeSurfaceSettings,
@@ -87,7 +86,21 @@ export const Settings: React.FC<SettingsProps> = ({
     onStartCase,
     onClose
 }) => {
-    const { archives, cases, customScopes, importCaseData, clearCaseData } = useCaseStore();
+    const {
+        archives,
+        cases,
+        tasks,
+        chatSessions,
+        chatMessagesBySessionId,
+        chatActionsBySessionId,
+        headlines,
+        templates,
+        manualNodes,
+        manualLinks,
+        customScopes,
+        importWorkspaceData,
+        clearWorkspaceData,
+    } = useCaseStore();
 
     const initialConfig = loadSystemConfig();
 
@@ -211,28 +224,24 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     const handleExportData = () => {
-        const data = {
-            archives,
-            cases,
-            config: {
-                provider: activeProvider,
-                modelId: activeModelId,
-                searchDepth,
-                thinkingBudget,
-                autoNormalizeEntities: autoResolve,
-                quietMode,
-                theme: themeColor,
-                themeMode,
-                themeSurfaceSettings
-            } as SystemConfig & { theme?: string; themeMode?: 'dark' | 'light'; themeSurfaceSettings?: ThemeSurfaceSettings },
-            timestamp: new Date().toISOString()
-        };
+        const data = buildWorkspaceDataBackup({
+            workspaces: cases,
+            artifacts: archives,
+            runs: tasks,
+            chatSessions,
+            chatMessagesBySessionId,
+            chatActionsBySessionId,
+            headlines,
+            manualNodes,
+            manualLinks,
+            templates,
+        });
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `sherlock-export-${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `sherlock-workspace-data-${new Date().toISOString().split('T')[0]}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -246,35 +255,25 @@ export const Settings: React.FC<SettingsProps> = ({
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
-                const data = JSON.parse(event.target?.result as string);
-                if (data.archives && data.cases) {
-                    if (confirm('This will overwrite your current database. Continue?')) {
-                        await importCaseData({ cases: data.cases, archives: data.archives });
-                        if (data.config?.theme) onThemeChange(data.config.theme);
-                        if (data.config?.themeMode === 'light' || data.config?.themeMode === 'dark') {
-                            onThemeModeChange(data.config.themeMode);
-                        }
-                        const importedThemeSurfaceSettings = parseThemeSurfaceSettings(data.config?.themeSurfaceSettings);
-                        if (importedThemeSurfaceSettings) {
-                            onThemeSurfaceSettingsChange(importedThemeSurfaceSettings);
-                        }
-                        alert('Data imported successfully.');
-                    }
-                } else {
-                    alert('Invalid backup file format.');
+                const data = normalizeWorkspaceDataBackup(JSON.parse(event.target?.result as string));
+                if (confirm('This will overwrite your current workspace data. Provider keys, theme settings, and other local app preferences will stay as-is. Continue?')) {
+                    await importWorkspaceData(data);
+                    clearStoredActiveWorkspaceId();
+                    alert('Workspace data imported successfully.');
                 }
-            } catch {
-                alert('Failed to parse JSON file.');
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Failed to parse JSON file.';
+                alert(message);
             }
         };
         reader.readAsText(file);
     };
 
     const handleClearData = async () => {
-        if (confirm('CRITICAL WARNING: This will permanently delete all saved workspaces, artifacts, and task history. Proceed?')) {
-            await clearCaseData();
+        if (confirm('CRITICAL WARNING: This will permanently delete all saved workspace data, including artifacts, runs, chat history, graph data, templates, and saved signals. Local theme settings, provider defaults, and API keys will stay untouched. Proceed?')) {
+            await clearWorkspaceData();
             clearStoredActiveWorkspaceId();
-            alert('Database purged.');
+            alert('Workspace data purged.');
         }
     };
 
@@ -702,7 +701,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     <h3 className="text-lg font-bold text-white font-mono uppercase tracking-widest">Data Management</h3>
                 </div>
                 <p className="text-zinc-500 text-xs font-mono leading-relaxed max-w-2xl">
-                    Sherlock operates as a client-side workspace. All saved workspaces, artifacts, and task history stay inside your browser&apos;s persistent storage. We recommend regular exports to ensure data stability.
+                    Sherlock stores workspace data locally in your browser. Exports and restores include workspaces, artifacts, runs, chat history, saved signals, manual graph data, and templates. Theme preferences, provider defaults, and API keys stay local to this device and are not part of workspace backups.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
@@ -712,7 +711,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     >
                         <div className="text-left">
                             <span className="block text-xs font-bold text-white font-mono uppercase">Export Workspace Data</span>
-                            <span className="text-[10px] text-zinc-500 font-mono">Create localized JSON backup</span>
+                            <span className="text-[10px] text-zinc-500 font-mono">Create a workspace-data JSON backup</span>
                         </div>
                         <Download className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
                     </button>
@@ -723,7 +722,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     >
                         <div className="text-left">
                             <span className="block text-xs font-bold text-white font-mono uppercase">Restore Backup</span>
-                            <span className="text-[10px] text-zinc-500 font-mono">Import previous workspace backup</span>
+                            <span className="text-[10px] text-zinc-500 font-mono">Replace current workspace data from backup</span>
                         </div>
                         <Upload className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
                     </button>
@@ -737,7 +736,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     <h3 className="text-lg font-bold osint-danger-text font-mono uppercase tracking-widest">System Purge</h3>
                 </div>
                 <p className="text-xs font-mono leading-relaxed max-w-2xl osint-danger-text">
-                    The purge protocol will permanently delete all local workspaces, artifacts, and active task history. This action cannot be reversed.
+                    The purge protocol will permanently delete all local workspace data, including runs, chat history, saved signals, templates, and manual graph data. This action cannot be reversed.
                 </p>
                 <button
                     onClick={handleClearData}

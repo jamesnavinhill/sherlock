@@ -66,7 +66,6 @@ function App() {
     themeColor, setThemeColor,
     accentSettings, setAccentSettings,
     themeSurfaceSettings, setThemeSurfaceSettings,
-    showNewCaseModal: _showNewCaseModal, setShowNewCaseModal,
     showGlobalSearch, setShowGlobalSearch,
     archiveReport, archives, cases,
     chatMessagesBySessionId,
@@ -97,11 +96,12 @@ function App() {
 
   const shortcuts = createAppShortcuts({
     onNewInvestigation: () => {
-      setShowNewCaseModal(true);
-      setView(AppView.INVESTIGATION);
+      setView(AppView.ARCHIVES);
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('OPEN_NEW_WORKSPACE_MODAL'));
+      }, 0);
     },
     onCloseModal: () => {
-      setShowNewCaseModal(false);
       setShowHelpModal(false);
     },
     onShowHelp: () => setShowHelpModal(true),
@@ -523,9 +523,7 @@ function App() {
             {currentView === AppView.SETTINGS && (
               <Settings
                 themeColor={themeColor}
-                onThemeChange={(color) => setThemeColor(color)}
                 themeMode={themeMode}
-                onThemeModeChange={setThemeMode}
                 accentSettings={accentSettings}
                 onAccentChange={(settings) => {
                   setAccentSettings(settings);

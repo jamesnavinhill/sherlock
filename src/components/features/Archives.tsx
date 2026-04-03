@@ -56,6 +56,12 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleOpenNewWorkspaceModal = () => setIsNewCaseModalOpen(true);
+    window.addEventListener('OPEN_NEW_WORKSPACE_MODAL', handleOpenNewWorkspaceModal);
+    return () => window.removeEventListener('OPEN_NEW_WORKSPACE_MODAL', handleOpenNewWorkspaceModal);
+  }, []);
+
   const effectiveSelectedCaseId = selectedCaseId && selectedCaseId !== 'unassigned' && !cases.some((c) => c.id === selectedCaseId)
     ? null
     : selectedCaseId;
@@ -88,7 +94,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     const targetCase = cases.find(c => c.id === caseId);
     const reportCount = getCaseReports(caseId).length;
     const caseName = targetCase?.title || `this ${workspaceLabelLower}`;
-    const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} ${artifactLabelLower}(s) and linked headlines for this ${workspaceLabelLower}.\n\nThis cannot be undone.`;
+    const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} ${artifactLabelLower}(s), saved signals, workspace chat sessions, linked run history, and directly linked manual graph references for this ${workspaceLabelLower}.\n\nThis cannot be undone.`;
     if (!confirm(warning)) return;
 
     await purgeCase(caseId);

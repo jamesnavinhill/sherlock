@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../client';
 import { manualNodes, manualLinks } from '../schema';
 import type { ManualNode, ManualConnection } from '@/types';
+import { buildWorkspaceLinkedGraphReferenceIds } from '../../maintenance/workspaceData';
 
 export class ManualDataRepository {
     // --- NODES ---
@@ -76,5 +77,27 @@ export class ManualDataRepository {
                 }
             }
         });
+    }
+
+    static async removeWorkspaceLinkedData(workspaceId: string, artifactIds: string[]): Promise<void> {
+        const removableIds = buildWorkspaceLinkedGraphReferenceIds(workspaceId, artifactIds);
+        const [nodes, links] = await Promise.all([this.getAllNodes(), this.getAllLinks()]);
+        const nextNodes = nodes.filter((node) => !removableIds.has(node.id));
+        const nextLinks = links.filter(
+            (link) => !removableIds.has(link.source) && !removableIds.has(link.target)
+        );
+
+        if (nextNodes.length !== nodes.length) {
+            await this.saveAllNodes(nextNodes);
+        }
+        if (nextLinks.length !== links.length) {
+            await this.saveAllLinks(nextLinks);
+        }
+    }
+
+    static async clearAll(): Promise<void> {
+        const db = getDB();
+        await db.delete(manualLinks);
+        await db.delete(manualNodes);
     }
 }

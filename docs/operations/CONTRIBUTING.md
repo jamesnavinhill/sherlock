@@ -5,15 +5,13 @@
 This guide covers contributions to active docs/code under:
 
 - `src/`
-- `docs/` (excluding `docs/_legacy/`)
+- `docs/operations/`
 - root project config files
-
-Do not rewrite or delete `docs/_legacy/*` unless explicitly requested.
 
 ## Local Setup
 
 ```bash
-npm install
+npm ci --include=optional
 npm run dev
 ```
 
@@ -45,15 +43,7 @@ npm run check
 ## Documentation Conventions
 
 - Treat `README.md` as onboarding and truth source for setup/runtime status.
-- Keep architecture details in `docs/architecture.md`.
-- Keep operational incident procedures in `docs/OPERATIONS_RUNBOOK.md`.
-- Keep source catalogs in `docs/SOURCES.md` and scope metadata in `docs/SCOPES.md`.
-
-## Known Baseline Issues (As of February 7, 2026)
-
-Current repository baseline includes existing lint/test friction not caused by docs:
-
-- Lint: 5 errors + 2 warnings
-- Tests: suite passes, but Vitest reports an unhandled worker timeout for `src/services/providers/router.test.ts`
-
-If you resolve these, include exact changes and updated command output in the PR.
+- Keep architecture details in `docs/operations/architecture.md`.
+- Keep operational incident procedures in `docs/operations/OPERATIONS_RUNBOOK.md`.
+- Keep source catalogs in `docs/operations/SOURCES.md` and scope metadata in `docs/operations/SCOPES.md`.
+- Keep `docs/operations/DATA_PERSISTENCE.md` aligned with actual backup/restore and cleanup behavior whenever workspace-data scope changes.

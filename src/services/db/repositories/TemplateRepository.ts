@@ -36,4 +36,9 @@ export class TemplateRepository {
         const db = getDB();
         await db.delete(templates).where(eq(templates.id, id));
     }
+
+    static async clearAll(): Promise<void> {
+        const db = getDB();
+        await db.delete(templates);
+    }
 }

@@ -35,6 +35,7 @@ Sherlock helps analysts and researchers run iterative knowledge workflows by com
 
 - Finder (scan + launch)
 - Operation View (primary deep work surface)
+- Workspace Chat (grounded conversational work inside an active workspace)
 - Network Graph (entity relationship analysis)
 - Live Monitor (event stream and escalation)
 - Case Files (archive and export)

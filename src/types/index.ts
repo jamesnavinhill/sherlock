@@ -432,6 +432,7 @@ export interface InvestigationTask {
   status: InvestigationStatus;
   startTime: number;
   endTime?: number;
+  workspaceId?: string;
   report?: InvestigationReport;
   parentContext?: InvestigationContext;
   config?: InvestigationRunConfig;
@@ -456,4 +457,36 @@ export interface Signal {
   workspaceId?: string;
   artifactId?: string;
   metadata?: Record<string, unknown>;
+}
+
+export interface WorkspaceDataChatSnapshot {
+  sessions: ChatSession[];
+  messages: ChatMessage[];
+  actions: AgentAction[];
+}
+
+export interface WorkspaceDataSignalSnapshot {
+  headlines: Headline[];
+}
+
+export interface WorkspaceDataGraphSnapshot {
+  manualNodes: ManualNode[];
+  manualLinks: ManualConnection[];
+}
+
+export interface WorkspaceDataBackupMetadata {
+  kind: 'SHERLOCK_WORKSPACE_DATA';
+  formatVersion: 1;
+  exportedAt: string;
+}
+
+export interface WorkspaceDataBackup {
+  workspaces: Workspace[];
+  artifacts: Artifact[];
+  runs: WorkspaceRun[];
+  chat: WorkspaceDataChatSnapshot;
+  signals: WorkspaceDataSignalSnapshot;
+  graph: WorkspaceDataGraphSnapshot;
+  templates: CaseTemplate[];
+  metadata: WorkspaceDataBackupMetadata;
 }

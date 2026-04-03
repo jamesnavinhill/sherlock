@@ -14,6 +14,7 @@ export class TaskRepository {
             status: row.status as InvestigationTask['status'],
             startTime: row.startTime || 0,
             endTime: row.endTime || undefined,
+            workspaceId: row.caseId || undefined,
             error: row.error || undefined,
             config: row.configJson
                 ? JSON.parse(row.configJson)
@@ -23,8 +24,6 @@ export class TaskRepository {
                     artifactType: row.artifactType || undefined,
                     labelProfileId: row.labelProfileId || undefined,
                 },
-            // Note: report usually attached in memory or fetched separately via ReportRepository if needed
-            // For tasks list we might not need full report body
         }));
     }
 
@@ -32,9 +31,7 @@ export class TaskRepository {
         const db = getDB();
         await db.insert(tasks).values({
             id: task.id,
-            caseId: null, // Optional in task interface but required in schema? Let's check schema. Schema allowed null? 
-            // Checking schema.ts: caseId references cases.id. If task doesn't have caseId yet... 
-            // We might need to handle standalone tasks.
+            caseId: task.workspaceId || task.report?.caseId || null,
             topic: task.topic,
             status: task.status,
             packId: task.config?.packId,
@@ -57,6 +54,30 @@ export class TaskRepository {
         await db.update(tasks)
             .set(updateData)
             .where(eq(tasks.id, id));
+    }
+
+    static async updateWorkspace(id: string, workspaceId: string | null): Promise<void> {
+        const db = getDB();
+        await db.update(tasks)
+            .set({ caseId: workspaceId })
+            .where(eq(tasks.id, id));
+    }
+
+    static async clearWorkspace(workspaceId: string): Promise<void> {
+        const db = getDB();
+        await db.update(tasks)
+            .set({ caseId: null })
+            .where(eq(tasks.caseId, workspaceId));
+    }
+
+    static async deleteByWorkspace(workspaceId: string): Promise<void> {
+        const db = getDB();
+        await db.delete(tasks).where(eq(tasks.caseId, workspaceId));
+    }
+
+    static async clearAll(): Promise<void> {
+        const db = getDB();
+        await db.delete(tasks);
     }
 
     static async delete(id: string): Promise<void> {

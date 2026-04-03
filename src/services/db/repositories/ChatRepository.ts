@@ -170,6 +170,26 @@ export class ChatRepository {
         await db.delete(chatSessions).where(eq(chatSessions.id, id));
     }
 
+    static async deleteSessionsForWorkspace(workspaceId: string): Promise<void> {
+        const db = getDB();
+        const sessions = await db
+            .select({ id: chatSessions.id })
+            .from(chatSessions)
+            .where(eq(chatSessions.workspaceId, workspaceId));
+
+        for (const session of sessions) {
+            await this.deleteSession(session.id);
+        }
+    }
+
+    static async clearAll(): Promise<void> {
+        const db = getDB();
+        await db.delete(chatMessageAttachments);
+        await db.delete(chatActions);
+        await db.delete(chatMessages);
+        await db.delete(chatSessions);
+    }
+
     static async createMessage(message: ChatMessage): Promise<void> {
         const db = getDB();
         await db.insert(chatMessages).values({

@@ -3,6 +3,10 @@ import { getDB } from '../client';
 import { artifactSections, cases, reports, entities, sources, leads } from '../schema';
 import { buildArtifactSections, toLegacyReportArrays } from '../../../domain';
 import type { ArtifactSection, Case, InvestigationReport, Entity, Headline } from '@/types';
+import { ChatRepository } from './ChatRepository';
+import { TaskRepository } from './TaskRepository';
+import { TemplateRepository } from './TemplateRepository';
+import { ManualDataRepository } from './ManualDataRepository';
 import {
     normalizeHumanText,
     normalizeTopicText,
@@ -76,6 +80,17 @@ const toSourceList = (value: unknown): InvestigationReport['sources'] => {
             return { title, url: rawUrl };
         })
         .filter((item): item is { title: string; url: string } => !!item);
+};
+
+const deleteReportDependencies = async (reportIds: string[]) => {
+    if (reportIds.length === 0) return;
+
+    const db = getDB();
+    for (const reportId of reportIds) {
+        await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
+        await db.delete(entities).where(eq(entities.reportId, reportId));
+        await db.delete(sources).where(eq(sources.reportId, reportId));
+    }
 };
 
 export class CaseRepository {
@@ -379,6 +394,10 @@ export class CaseRepository {
 
     static async deleteCase(caseId: string): Promise<void> {
         const db = getDB();
+        await ChatRepository.deleteSessionsForWorkspace(caseId);
+        await TaskRepository.clearWorkspace(caseId);
+        await db.delete(leads).where(eq(leads.caseId, caseId));
+        await ManualDataRepository.removeWorkspaceLinkedData(caseId, []);
         await db.delete(cases).where(eq(cases.id, caseId));
     }
 
@@ -388,13 +407,12 @@ export class CaseRepository {
             .select({ id: reports.id })
             .from(reports)
             .where(eq(reports.caseId, caseId));
+        const reportIds = reportRows.map((row) => row.id);
 
-        for (const row of reportRows) {
-            await db.delete(artifactSections).where(eq(artifactSections.reportId, row.id));
-            await db.delete(entities).where(eq(entities.reportId, row.id));
-            await db.delete(sources).where(eq(sources.reportId, row.id));
-        }
-
+        await deleteReportDependencies(reportIds);
+        await ChatRepository.deleteSessionsForWorkspace(caseId);
+        await TaskRepository.deleteByWorkspace(caseId);
+        await ManualDataRepository.removeWorkspaceLinkedData(caseId, reportIds);
         await db.delete(reports).where(eq(reports.caseId, caseId));
         await db.delete(leads).where(eq(leads.caseId, caseId));
         await db.delete(cases).where(eq(cases.id, caseId));
@@ -402,6 +420,10 @@ export class CaseRepository {
 
     static async clearCaseData(): Promise<void> {
         const db = getDB();
+        await ChatRepository.clearAll();
+        await TaskRepository.clearAll();
+        await TemplateRepository.clearAll();
+        await ManualDataRepository.clearAll();
         await db.delete(artifactSections);
         await db.delete(entities);
         await db.delete(sources);

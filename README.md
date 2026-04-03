@@ -12,6 +12,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Supports typed artifact sections, deep dives, headline-to-analysis launches, entity graph workflows, chat transcript export, guided run building, and artifact/workspace export tooling (HTML/Markdown/JSON)
 - Provides scope-driven domain packs, purpose-aware launch setup, built-in starters, personas, and reusable templates
 - Adapts launch copy, labels, and output defaults by pack and purpose while keeping saved investigation-era data compatible
+- Exports and restores workspace-data backups for workspaces, artifacts, runs, chat history, templates, manual graph data, and saved signals without bundling device-local app preferences or API keys
 
 ## UI Areas
 
@@ -21,7 +22,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - `Live Monitor`: live signal scans, filtering, and headline persistence
 - `Case Files`: workspace/archive browsing, deletion, and exports
 - `Finder`: discovery scanning and analysis launch
-- `System Config`: provider/model keys, scope/template management, data import/export
+- `System Config`: provider/model keys, scope/template management, workspace-data import/export
 
 ## Tech Stack
 
