@@ -215,7 +215,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 </div>
                 <button
                     onClick={openCreateModal}
-                    className="flex items-center px-4 py-2 bg-white text-black border border-white font-mono text-xs font-bold uppercase hover:bg-osint-primary hover:border-osint-primary transition-all"
+                    className="osint-button-primary flex items-center px-4 py-2 font-mono text-xs font-bold uppercase"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Create Template
@@ -257,7 +257,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                 </div>
                                 <button
                                     onClick={() => onApply(template)}
-                                    className="flex items-center justify-center p-3 border-t border-zinc-800 bg-zinc-900 hover:bg-osint-primary text-zinc-300 hover:text-black font-mono text-[10px] font-bold uppercase transition-all"
+                                    className="osint-button-primary flex items-center justify-center p-3 border-t border-zinc-800 font-mono text-[10px] font-bold uppercase"
                                 >
                                     <Play className="w-3 h-3 mr-2" />
                                     Launch Starter
@@ -320,7 +320,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                             <div className="flex border-t border-zinc-800 relative z-10">
                                 <button
                                     onClick={() => onApply(t)}
-                                    className="flex-1 flex items-center justify-center p-3 bg-zinc-900 hover:bg-osint-primary text-zinc-400 hover:text-black font-mono text-[10px] font-bold uppercase transition-all"
+                                    className="osint-button-primary flex-1 flex items-center justify-center p-3 font-mono text-[10px] font-bold uppercase"
                                 >
                                     <Play className="w-3 h-3 mr-2" />
                                     Launch
@@ -582,7 +582,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                             }
                                         }}
                                         disabled={!canProceed()}
-                                        className="px-4 py-2 bg-white text-black border border-white hover:bg-osint-primary hover:border-osint-primary disabled:opacity-50 disabled:cursor-not-allowed font-mono text-xs font-bold uppercase transition-all flex items-center"
+                                        className="osint-button-primary px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed font-mono text-xs font-bold uppercase flex items-center"
                                     >
                                         Next
                                         <ChevronRight className="w-3 h-3 ml-1" />
@@ -591,7 +591,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                     <button
                                         onClick={() => { void handleCreateTemplate(); }}
                                         disabled={!canProceed() || isCreating}
-                                        className="px-4 py-2 bg-white text-black border border-white hover:bg-osint-primary hover:border-osint-primary disabled:opacity-50 disabled:cursor-not-allowed font-mono text-xs font-bold uppercase transition-all"
+                                        className="osint-button-primary px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed font-mono text-xs font-bold uppercase"
                                     >
                                         {isCreating ? 'Creating...' : 'Create Template'}
                                     </button>

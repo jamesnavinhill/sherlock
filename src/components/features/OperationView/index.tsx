@@ -366,7 +366,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 <AlertOctagon className="w-16 h-16 text-osint-danger mb-4" />
                 <h2 className="text-xl text-white font-bold mb-2">OPERATION FAILED</h2>
                 <p className="text-zinc-500 font-mono mb-6">{task.error || "Signal interrupted during data acquisition."}</p>
-                <button onClick={onBack} className="mt-4 text-white border border-white hover:bg-white hover:text-black px-4 py-2 font-mono uppercase transition-colors">Return to Base</button>
+                <button onClick={onBack} className="osint-button-primary mt-4 px-4 py-2 font-mono uppercase">Return to Base</button>
             </div>
         );
     }
@@ -475,7 +475,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                                     </button>
                                     <button
                                         onClick={executeSaveTemplate}
-                                        className="flex-1 py-2 text-xs font-mono bg-osint-primary text-black font-bold hover:bg-white transition-all uppercase"
+                                        className="osint-button-primary flex-1 py-2 text-xs font-mono font-bold uppercase"
                                     >
                                         Save Protocol
                                     </button>

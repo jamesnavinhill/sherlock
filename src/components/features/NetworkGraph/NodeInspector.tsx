@@ -253,7 +253,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                                         <button onClick={() => {
                                             onInvestigate(lead);
                                             onClose();
-                                        }} className="w-full text-center py-1 bg-zinc-900 border border-zinc-700 hover:bg-osint-primary hover:text-black text-[10px] font-bold uppercase transition-colors">
+                                        }} className="osint-button-primary w-full text-center py-1 text-[10px] font-bold uppercase">
                                             Investigate
                                         </button>
                                     </div>
@@ -355,7 +355,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                             </button>
                             <button
                                 onClick={() => onInvestigate(selectedEntity)}
-                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-200 hover:bg-white text-black font-bold font-mono text-xs uppercase transition-colors"
+                                className="osint-button-primary flex items-center space-x-2 px-3 py-1.5 font-bold font-mono text-xs uppercase"
                             >
                                 <span>{selectedNodeType === 'SOURCE' ? 'Explore' : 'Investigate'}</span>
                             </button>

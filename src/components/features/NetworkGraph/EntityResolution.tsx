@@ -153,13 +153,13 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
         <div className="flex border-b border-zinc-800 bg-zinc-900/50 flex-shrink-0">
           <button
             onClick={() => setActiveTab('CLUSTERS')}
-            className={`flex-1 md:flex-none px-8 py-4 text-xs font-mono font-bold uppercase tracking-wider border-r border-zinc-800 transition-all ${activeTab === 'CLUSTERS' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
+            className={`flex-1 md:flex-none px-8 py-4 text-xs font-mono font-bold uppercase tracking-wider border-r border-zinc-800 transition-all ${activeTab === 'CLUSTERS' ? 'osint-button-soft' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
           >
             Detected Clusters ({clusters.length})
           </button>
           <button
             onClick={() => setActiveTab('MANAGE')}
-            className={`flex-1 md:flex-none px-8 py-4 text-xs font-mono font-bold uppercase tracking-wider border-r border-zinc-800 transition-all ${activeTab === 'MANAGE' ? 'bg-white text-black' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
+            className={`flex-1 md:flex-none px-8 py-4 text-xs font-mono font-bold uppercase tracking-wider border-r border-zinc-800 transition-all ${activeTab === 'MANAGE' ? 'osint-button-soft' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
           >
             Active Mappings ({Object.keys(currentAliases).length})
           </button>
@@ -250,7 +250,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
                       <button
                         onClick={() => handleMergeCluster(idx)}
-                        className="w-full flex items-center justify-center px-4 py-3 bg-white hover:bg-zinc-200 text-black font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_15px_-5px_rgba(255,255,255,0.3)]"
+                        className="osint-button-primary w-full flex items-center justify-center px-4 py-3 font-mono text-xs font-bold uppercase tracking-wider"
                       >
                         <GitMerge className="w-4 h-4 mr-2" />
                         Harmonize Group

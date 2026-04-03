@@ -136,7 +136,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                             </button>
                             <button
                                 onClick={() => onInvestigateEntity(entity.name)}
-                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-200 hover:bg-white text-black font-bold font-mono text-xs uppercase transition-colors"
+                                className="osint-button-primary flex items-center space-x-2 px-3 py-1.5 font-bold font-mono text-xs uppercase"
                             >
                                 <span>Investigate</span>
                             </button>

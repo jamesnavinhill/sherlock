@@ -373,8 +373,8 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     const renderGeneral = () => (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12">
                 <section className="space-y-4">
                     <div className="flex items-center space-x-2 mb-4">
                         <Palette className="w-4 h-4 text-osint-primary" />
@@ -417,7 +417,7 @@ export const Settings: React.FC<SettingsProps> = ({
                         <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Intelligence & Alerts</h3>
                     </div>
                     <div className="bg-zinc-900/40 border border-zinc-800 h-full">
-                        <div className="p-6 flex items-center justify-between gap-6">
+                        <div className="p-6 flex items-center justify-between gap-6 min-h-32">
                             <div className="space-y-2">
                                 <h4 className="text-sm font-bold text-zinc-200 font-mono">Auto-Resolve Entities</h4>
                                 <p className="text-[10px] text-zinc-500 font-mono leading-relaxed">Automatically group variations of entity names.</p>
@@ -429,7 +429,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoResolve ? 'left-7' : 'left-1'}`} />
                             </button>
                         </div>
-                        <div className="p-6 flex items-center justify-between gap-6 border-t border-zinc-800">
+                        <div className="p-6 flex items-center justify-between gap-6 border-t border-zinc-800 min-h-32">
                             <div className="space-y-2">
                                 <h4 className="text-sm font-bold text-zinc-200 font-mono">Quiet Mode</h4>
                                 <p className="text-[10px] text-zinc-500 font-mono leading-relaxed">Suppress non-critical system notifications.</p>
@@ -445,7 +445,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 </section>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10 pt-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12 pt-4">
                 {renderThemeSurfaceSection('dark', 'Dark Theme Surfaces')}
                 {renderThemeSurfaceSection('light', 'Light Theme Surfaces')}
             </div>
@@ -654,13 +654,13 @@ export const Settings: React.FC<SettingsProps> = ({
                             <div className="grid grid-cols-2 gap-2">
                                 <button
                                     onClick={() => setSearchDepth('STANDARD')}
-                                    className={`py-2 border font-mono text-xs uppercase ${searchDepth === 'STANDARD' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
+                                    className={`py-2 font-mono text-xs uppercase ${searchDepth === 'STANDARD' ? 'osint-button-soft' : 'osint-button-primary'}`}
                                 >
                                     Standard
                                 </button>
                                 <button
                                     onClick={() => setSearchDepth('DEEP')}
-                                    className={`py-2 border font-mono text-xs uppercase ${searchDepth === 'DEEP' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
+                                    className={`py-2 font-mono text-xs uppercase ${searchDepth === 'DEEP' ? 'osint-button-soft' : 'osint-button-primary'}`}
                                 >
                                     Deep
                                 </button>

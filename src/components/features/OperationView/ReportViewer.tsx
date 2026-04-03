@@ -115,7 +115,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         p: (props: ComponentProps<'p'>) => ReactElement;
     } = {
         a: ({ children, ...props }) => (
-            <a {...props} target="_blank" rel="noopener noreferrer" className="text-osint-primary bg-zinc-900 border border-zinc-700 px-1.5 py-0.5 rounded hover:bg-osint-primary hover:text-black transition-all duration-200 font-medium no-underline inline-flex items-center gap-1 mx-0.5 text-[0.95em]">
+            <a {...props} target="_blank" rel="noopener noreferrer" className="text-osint-primary bg-zinc-900 border border-zinc-700 px-1.5 py-0.5 rounded hover:bg-osint-primary/10 hover:text-osint-ink hover:border-osint-primary/40 transition-all duration-200 font-medium no-underline inline-flex items-center gap-1 mx-0.5 text-[0.95em]">
                 {children}<Link2 className="w-3 h-3 opacity-70" />
             </a>
         ),
@@ -295,7 +295,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                             {visibleLeads.length > 0 && (
                                 <button
                                     onClick={() => onBatchDeepDive(visibleLeads)}
-                                    className="flex items-center text-xs font-mono font-bold text-black bg-white hover:bg-osint-primary px-3 py-1.5 uppercase transition-all shadow-[0_0_10px_-3px_rgba(255,255,255,0.5)] hover:shadow-[0_0_15px_-5px_var(--osint-primary)]"
+                                    className="osint-button-primary flex items-center text-xs font-mono font-bold px-3 py-1.5 uppercase"
                                     aria-label={`Investigate all ${labelProfile.followUpLabel.toLowerCase()}`}
                                 >
                                     <Layers className="w-4 h-4 mr-2" /> Full Spectrum
@@ -319,7 +319,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                                         </div>
                                         <button
                                             onClick={() => onDeepDive(lead)}
-                                            className="mt-2 w-full flex items-center justify-center bg-zinc-900 hover:bg-white hover:text-black text-zinc-400 py-3 text-xs font-mono font-bold transition-colors uppercase tracking-wider border border-zinc-700 hover:border-transparent group-hover:border-zinc-500"
+                                            className="osint-button-primary mt-2 w-full flex items-center justify-center py-3 text-xs font-mono font-bold uppercase tracking-wider"
                                             aria-label={`Deep dive into lead ${idx + 1}`}
                                         >
                                             <Microscope className="w-3 h-3 mr-2" /> DEEP DIVE

@@ -126,7 +126,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                             onClick={(e) => { e.stopPropagation(); onInvestigate(); }}
                             className={`flex items-center px-4 py-2 font-mono text-xs font-bold uppercase transition-colors ${event.threatLevel === 'CRITICAL'
                                     ? 'bg-red-600 text-white hover:bg-white hover:text-red-600 border border-red-600'
-                                    : 'bg-osint-primary text-black hover:bg-white'
+                                    : 'osint-button-primary'
                                 }`}
                         >
                             <Microscope className="w-3 h-3 mr-2" />

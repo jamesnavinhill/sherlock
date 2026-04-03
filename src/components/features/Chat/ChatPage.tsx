@@ -1009,7 +1009,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                                 chatGenerationStatus === 'GENERATING' ||
                                                 chatGenerationStatus === 'CANCELLING'
                                             }
-                                            className="inline-flex items-center gap-2 bg-white px-4 py-2 text-xs font-mono uppercase tracking-wide text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="osint-button-primary inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             <Send className="h-4 w-4" />
                                             Send

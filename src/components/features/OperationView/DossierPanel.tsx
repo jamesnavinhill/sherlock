@@ -119,7 +119,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                             leads.map((lead, idx) => (
                                 <div key={idx} className="p-2 bg-zinc-900/20 border border-zinc-800/50 mb-1">
                                     <p className="text-[10px] text-zinc-400 font-mono mb-2 line-clamp-2">{lead}</p>
-                                    <button onClick={() => onLeadClick(lead)} className="w-full text-center py-1 bg-zinc-900 border border-zinc-700 hover:bg-osint-primary hover:text-black text-[10px] font-bold uppercase transition-colors">
+                                    <button onClick={() => onLeadClick(lead)} className="osint-button-primary w-full text-center py-1 text-[10px] font-bold uppercase">
                                         Open
                                     </button>
                                 </div>

@@ -416,7 +416,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                             )}
                             <div className="flex justify-between">
                                 <button onClick={() => setShowAddNodeUI(false)} className="text-xs text-zinc-500 hover:text-white">Cancel</button>
-                                <button onClick={handleCreateNode} className="px-3 py-1 bg-osint-primary text-black text-xs font-bold">ADD</button>
+                                <button onClick={handleCreateNode} className="osint-button-primary px-3 py-1 text-xs font-bold">ADD</button>
                             </div>
                         </div>
                     )}

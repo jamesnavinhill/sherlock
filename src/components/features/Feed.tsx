@@ -418,7 +418,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               placeholder="Search..."
               className="flex-1 bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm font-mono focus:border-osint-primary outline-none"
             />
-            <button type="submit" className="bg-osint-primary text-black px-4"><Search className="w-5 h-5" /></button>
+            <button type="submit" className="osint-button-primary px-4"><Search className="w-5 h-5" /></button>
             <button type="button" onClick={() => setShowFilters(!showFilters)} className="bg-zinc-800 text-white px-4 border border-zinc-700"><Filter className="w-5 h-5" /></button>
           </form>
         </div>

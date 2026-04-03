@@ -495,7 +495,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     type="button"
                     onClick={onLaunchRun}
                     disabled={isBusy}
-                    className="inline-flex items-center justify-center gap-2 bg-white px-4 py-2 text-xs font-mono uppercase tracking-wide text-black transition hover:bg-zinc-200 disabled:opacity-50"
+                    className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
                 >
                     <Sparkles className="h-4 w-4" />
                     Launch Run
@@ -504,7 +504,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     type="button"
                     onClick={onSaveDraft}
                     disabled={isBusy}
-                    className="inline-flex items-center justify-center gap-2 border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-mono uppercase tracking-wide text-zinc-200 transition hover:border-osint-primary hover:text-white disabled:opacity-50"
+                    className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
                 >
                     <Target className="h-4 w-4" />
                     Save Brief
@@ -513,7 +513,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     type="button"
                     onClick={onOpenManualSetup}
                     disabled={isBusy}
-                    className="inline-flex items-center justify-center gap-2 border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs font-mono uppercase tracking-wide text-zinc-200 transition hover:border-osint-primary hover:text-white disabled:opacity-50"
+                    className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
                 >
                     <Cpu className="h-4 w-4" />
                     Open Manual Setup
@@ -536,11 +536,11 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     {GUIDED_STEP_ORDER.map((step, index) => (
                         <span
                             key={step}
-                            className={`border px-2 py-1 text-[10px] font-mono uppercase ${
+                            className={`px-2 py-1 text-[10px] font-mono uppercase ${
                                 step === state.step
-                                    ? 'border-osint-primary bg-osint-primary/10 text-white'
+                                    ? 'osint-button-soft'
                                     : index < currentStepIndex
-                                      ? 'border-zinc-700 bg-zinc-900 text-zinc-300'
+                                      ? 'osint-button-primary'
                                       : 'border-zinc-800 bg-black text-zinc-600'
                             }`}
                         >
@@ -574,7 +574,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                             type="button"
                             onClick={() => onAdvance(draft)}
                             disabled={!canAdvance || isBusy}
-                            className="inline-flex items-center gap-2 bg-white px-4 py-2 text-xs font-mono uppercase tracking-wide text-black transition hover:bg-zinc-200 disabled:opacity-50"
+                            className="osint-button-primary inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
                         >
                             {state.step === 'TARGET' ? <Target className="h-4 w-4" /> : null}
                             {state.step === 'ANGLE' ? <Lightbulb className="h-4 w-4" /> : null}

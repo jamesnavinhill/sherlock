@@ -124,7 +124,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
                <div className="flex flex-col space-y-3">
                   <button
                      onClick={handleSave}
-                     className="w-full py-3 bg-white hover:bg-zinc-200 text-black font-bold font-mono uppercase tracking-widest flex items-center justify-center transition-colors hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                     className="osint-button-primary w-full py-3 font-bold font-mono uppercase tracking-widest flex items-center justify-center"
                   >
                      Authenticate
                      <ArrowRight className="w-4 h-4 ml-2" />

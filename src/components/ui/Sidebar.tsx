@@ -171,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Toggle Button (Visible only when collapsed on small screens) */}
       <button
         onClick={toggleCollapse}
-        className={`md:hidden fixed bottom-6 right-6 z-50 p-4 bg-osint-primary text-black rounded-full shadow-lg transition-transform focus:ring-4 focus:ring-white/20 outline-none ${!isCollapsed ? 'scale-0' : 'scale-100'}`}
+        className={`osint-button-primary md:hidden fixed bottom-6 right-6 z-50 p-4 rounded-full transition-transform focus:ring-4 focus:ring-white/20 outline-none ${!isCollapsed ? 'scale-0' : 'scale-100'}`}
         aria-label={isCollapsed ? "Open Sidebar" : "Close Sidebar"}
       >
         <ShieldAlert className="w-6 h-6" />
