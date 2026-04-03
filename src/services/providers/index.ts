@@ -2,6 +2,7 @@ import {
     AI_PROVIDERS,
     getModelProvider,
     getProviderOptionById,
+    type AIProvider,
 } from '../../config/aiModels';
 import { loadSystemConfig, migrateSystemConfig } from '../../config/systemConfig';
 import { BUILTIN_SCOPES, getScopeById } from '../../data/presets';
@@ -17,10 +18,6 @@ import type {
     PurposeProfile,
     SystemConfig,
 } from '../../types';
-import { anthropicProvider } from './anthropicProvider';
-import { geminiProvider } from './geminiProvider';
-import { openAIProvider } from './openAIProvider';
-import { openRouterProvider } from './openRouterProvider';
 import { ProviderError } from './shared/errors';
 import { logProviderDebug } from './shared/logging';
 import type {
@@ -33,12 +30,14 @@ import type {
     RouterTtsRequest,
 } from './types';
 
-const ADAPTER_REGISTRY: Record<string, ProviderAdapter> = {
-    GEMINI: geminiProvider,
-    OPENROUTER: openRouterProvider,
-    OPENAI: openAIProvider,
-    ANTHROPIC: anthropicProvider,
+const ADAPTER_LOADERS: Record<AIProvider, () => Promise<ProviderAdapter>> = {
+    GEMINI: async () => (await import('./geminiProvider')).geminiProvider,
+    OPENROUTER: async () => (await import('./openRouterProvider')).openRouterProvider,
+    OPENAI: async () => (await import('./openAIProvider')).openAIProvider,
+    ANTHROPIC: async () => (await import('./anthropicProvider')).anthropicProvider,
 };
+
+const adapterCache = new Map<AIProvider, Promise<ProviderAdapter>>();
 
 const DEFAULT_MONITOR_CONFIG: LiveIntelConfig = {
     socialCount: 2,
@@ -68,12 +67,12 @@ const resolveEffectiveConfig = (configOverride?: Partial<SystemConfig>): SystemC
     return migrateSystemConfig({ ...baseConfig, ...(configOverride || {}) });
 };
 
-const resolveAdapter = (config: SystemConfig): ProviderAdapter => {
+const resolveAdapter = async (config: SystemConfig): Promise<ProviderAdapter> => {
     const modelProvider = getModelProvider(config.modelId);
     const provider = config.provider === modelProvider ? config.provider : modelProvider;
-    const adapter = ADAPTER_REGISTRY[provider];
+    const loader = ADAPTER_LOADERS[provider];
 
-    if (!adapter) {
+    if (!loader) {
         throw new ProviderError({
             code: 'UPSTREAM_ERROR',
             provider,
@@ -82,6 +81,18 @@ const resolveAdapter = (config: SystemConfig): ProviderAdapter => {
         });
     }
 
+    const cached = adapterCache.get(provider);
+    if (cached) {
+        return cached;
+    }
+
+    const adapterPromise = loader().catch((error) => {
+        adapterCache.delete(provider);
+        throw error;
+    });
+    adapterCache.set(provider, adapterPromise);
+
+    const adapter = await adapterPromise;
     return adapter;
 };
 
@@ -115,7 +126,7 @@ export const investigateWithProviderRouter = async (
     request: RouterInvestigationRequest
 ): Promise<InvestigationReport> => {
     const config = resolveEffectiveConfig(request.configOverride);
-    const adapter = resolveAdapter(config);
+    const adapter = await resolveAdapter(config);
     const scope = resolveScope(request.scope);
     const pack = resolvePack(scope, request.packId);
     const purpose = resolvePurpose(pack, request.purposeId);
@@ -145,7 +156,7 @@ export const chatWithProviderRouter = async (
     request: RouterChatRequest
 ): Promise<ChatResponse> => {
     const config = resolveEffectiveConfig(request.configOverride);
-    const adapter = resolveAdapter(config);
+    const adapter = await resolveAdapter(config);
     const scope = resolveWorkspaceScope(request.workspace.scopeId);
     const pack = resolvePack(scope, request.packId || request.workspace.packId);
     const purpose = resolvePurpose(pack, request.purposeId || request.workspace.purposeId);
@@ -176,7 +187,7 @@ export const streamChatWithProviderRouter = async (
     options?: ChatStreamOptions
 ): Promise<ChatResponse> => {
     const config = resolveEffectiveConfig(request.configOverride);
-    const adapter = resolveAdapter(config);
+    const adapter = await resolveAdapter(config);
     const scope = resolveWorkspaceScope(request.workspace.scopeId);
     const pack = resolvePack(scope, request.packId || request.workspace.packId);
     const purpose = resolvePurpose(pack, request.purposeId || request.workspace.purposeId);
@@ -209,7 +220,7 @@ export const scanAnomaliesWithProviderRouter = async (
     request: RouterScanRequest
 ): Promise<FeedItem[]> => {
     const config = resolveEffectiveConfig();
-    const adapter = resolveAdapter(config);
+    const adapter = await resolveAdapter(config);
     const scope = resolveScope(request.scope);
     const pack = resolvePack(scope, request.packId);
     const purpose = resolvePurpose(pack, request.purposeId || pack.defaultPurposeId);
@@ -238,7 +249,7 @@ export const getLiveIntelWithProviderRouter = async (
     request: RouterLiveIntelRequest
 ): Promise<MonitorEvent[]> => {
     const config = resolveEffectiveConfig();
-    const adapter = resolveAdapter(config);
+    const adapter = await resolveAdapter(config);
     const scope = resolveScope(request.scope);
     const pack = resolvePack(scope, request.packId);
     const purpose = resolvePurpose(pack, request.purposeId || pack.defaultPurposeId);
@@ -266,7 +277,7 @@ export const generateAudioBriefingWithProviderRouter = async (
     request: RouterTtsRequest
 ): Promise<string> => {
     const config = resolveEffectiveConfig();
-    const adapter = resolveAdapter(config);
+    const adapter = await resolveAdapter(config);
     assertCapability(adapter, 'TTS', config.modelId);
 
     if (!adapter.generateAudioBriefing) {
@@ -293,6 +304,6 @@ export const generateAudioBriefingWithProviderRouter = async (
 
 export const getRegisteredProviders = (): string[] => {
     return AI_PROVIDERS.map((provider) => provider.id).filter(
-        (provider) => !!ADAPTER_REGISTRY[provider]
+        (provider) => !!ADAPTER_LOADERS[provider]
     );
 };

@@ -27,20 +27,29 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
+      chunkSizeWarningLimit: 500,
       rollupOptions: {
         output: {
-          manualChunks: {
-            // React core - cached well, rarely changes
-            'vendor-react': ['react', 'react-dom'],
-            // D3 visualization library - large, separate chunk
-            'vendor-d3': ['d3'],
-            // Lucide icons - many icons, separate chunk
-            'vendor-icons': ['lucide-react'],
-            // Markdown rendering
-            'vendor-markdown': ['react-markdown'],
-            // Google Gemini SDK
-            'vendor-gemini': ['@google/genai'],
-          }
+          manualChunks(id) {
+            const normalizedId = id.replace(/\\/g, '/');
+            if (!normalizedId.includes('/node_modules/')) return undefined;
+
+            if (normalizedId.includes('/node_modules/react-markdown/')) return 'vendor-markdown';
+            if (normalizedId.includes('/node_modules/lucide-react/')) return 'vendor-icons';
+            if (normalizedId.includes('/node_modules/d3')) return 'vendor-d3';
+            if (normalizedId.includes('/node_modules/@google/genai/')) return 'vendor-gemini';
+            if (
+              normalizedId.includes('/node_modules/wa-sqlite/')
+              || normalizedId.includes('/node_modules/drizzle-orm/')
+            ) return 'vendor-db';
+            if (
+              normalizedId.includes('/node_modules/react/')
+              || normalizedId.includes('/node_modules/react-dom/')
+              || normalizedId.includes('/node_modules/scheduler/')
+            ) return 'vendor-react';
+
+            return 'vendor';
+          },
         }
       }
     }

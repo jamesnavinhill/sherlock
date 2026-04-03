@@ -14,7 +14,7 @@ import {
     hasApiKey as hasStoredApiKey,
     setApiKey as setProviderApiKey,
 } from './providers/keys';
-import { resetGeminiProviderClient } from './providers/geminiProvider';
+import { resetGeminiProviderClient } from './providers/geminiClientState';
 import {
     generateAudioBriefingWithProviderRouter,
     getLiveIntelWithProviderRouter,

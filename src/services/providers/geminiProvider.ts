@@ -37,17 +37,21 @@ import {
 import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { createChatStreamAccumulator } from './shared/streaming';
+import {
+    getCachedGeminiClient,
+    setCachedGeminiClient,
+} from './geminiClientState';
 
 const PROVIDER = 'GEMINI' as const;
 
-let aiInstance: GoogleGenAI | null = null;
-
 const getAI = (): GoogleGenAI => {
-    if (aiInstance) return aiInstance;
+    const cached = getCachedGeminiClient<GoogleGenAI>();
+    if (cached) return cached;
 
     const key = getApiKeyOrThrow(PROVIDER);
-    aiInstance = new GoogleGenAI({ apiKey: key });
-    return aiInstance;
+    const ai = new GoogleGenAI({ apiKey: key });
+    setCachedGeminiClient(ai);
+    return ai;
 };
 
 const SAFETY_SETTINGS = [
@@ -630,9 +634,7 @@ export const geminiProvider: ProviderAdapter = {
     generateAudioBriefing,
 };
 
-export const resetGeminiProviderClient = (): void => {
-    aiInstance = null;
-};
+export { resetGeminiProviderClient } from './geminiClientState';
 
 export const collectSourcesFromGeminiResponse = (
     response: unknown,
