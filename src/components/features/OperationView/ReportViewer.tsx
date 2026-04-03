@@ -21,6 +21,7 @@ import { EmptyState } from '../../ui/EmptyState';
 import { generateAudioBriefing } from '../../../services/gemini';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import { Accordion } from '../../ui/Accordion';
+import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface ReportViewerProps {
     report: InvestigationReport | null;
@@ -218,7 +219,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             <div className="w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800">
 
                 {/* Sticky Header */}
-                <div className="sticky top-0 z-20 px-6 py-4 bg-black/90 backdrop-blur-md border-b border-zinc-800 shadow-lg">
+                <div className="sticky top-0 z-20 px-6 py-4 bg-black/90 backdrop-blur-md border-b border-zinc-800 osint-header-shadow">
                     <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
                         <Breadcrumbs items={navStack} onNavigate={onNavigate} />
                     </div>
@@ -252,7 +253,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
                 <div className="p-6">
                     {/* Executive Summary */}
-                    <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 shadow-2xl relative overflow-hidden group mb-8">
+                    <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 osint-section-shadow relative overflow-hidden group mb-8">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
                         <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
                             <h2 className="text-xl font-bold text-white flex items-center font-mono tracking-wide">
@@ -374,7 +375,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                                 const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
                                 return (
                                     <button key={idx} onClick={() => onEntityClick(typeof e === 'string' ? { name, type: 'UNKNOWN' } : e)} className="w-full text-left p-2 bg-zinc-900/50 hover:bg-zinc-800 border border-transparent hover:border-osint-primary transition-all rounded flex items-center group">
-                                        <div className={`w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${type === 'PERSON' ? 'bg-blue-500' : type === 'ORGANIZATION' ? 'bg-purple-500' : 'bg-zinc-500'}`}></div>
+                                        <div className={`w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${getEntityToneClass(type)} entity-tone-dot`}></div>
                                         <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white truncate">{name}</span>
                                     </button>
                                 );

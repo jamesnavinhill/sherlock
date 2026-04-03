@@ -9,6 +9,7 @@ import type {
     ManualNode,
 } from '../../../types';
 import { cleanEntityName } from '../../../utils/text';
+import { getEntityToneCssVar } from '../../../utils/entityPalette';
 
 // Graph Types
 export interface GraphNode extends d3.SimulationNodeDatum {
@@ -71,6 +72,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
     onNodeClick, onSetLinkSource, onCreateManualLink, onStatsUpdate,
     isLocked = false
 }, ref) => {
+    const getEntityFillColor = (subtype?: GraphNodeSubtype) =>
+        `color-mix(in oklab, ${getEntityToneCssVar(subtype)} 28%, var(--osint-dark))`;
+    const getEntityStrokeColor = (subtype?: GraphNodeSubtype) => getEntityToneCssVar(subtype);
+
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const gRef = useRef<SVGGElement | null>(null);
@@ -328,29 +333,13 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
                 if (linkSourceNode && d.id === linkSourceNode.id) return '#ef4444';
                 return d.type === 'CASE'
                     ? '#000'
-                    : d.subtype === 'PERSON'
-                      ? '#0369a1'
-                      : d.subtype === 'ORGANIZATION'
-                        ? '#7c3aed'
-                        : d.subtype === 'SOURCE'
-                          ? '#14532d'
-                          : d.subtype === 'CONCEPT'
-                            ? '#78350f'
-                            : '#09090b';
+                    : getEntityFillColor(d.subtype);
             })
             .attr("stroke", (d) => {
                 if (linkSourceNode && d.id === linkSourceNode.id) return '#f87171';
                 return d.type === 'CASE'
                     ? '#fff'
-                    : d.subtype === 'PERSON'
-                      ? '#38bdf8'
-                      : d.subtype === 'ORGANIZATION'
-                        ? '#a78bfa'
-                        : d.subtype === 'SOURCE'
-                          ? '#4ade80'
-                          : d.subtype === 'CONCEPT'
-                            ? '#fbbf24'
-                            : '#52525b';
+                    : getEntityStrokeColor(d.subtype);
             })
             .attr("stroke-width", (d) => (linkSourceNode && d.id === linkSourceNode.id) ? 3 : 1.5)
             .classed("animate-pulse", (d) => !!linkSourceNode && d.id === linkSourceNode.id);
@@ -376,13 +365,15 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
             g.append("path")
                 .attr("d", iconPath)
                 .attr("fill", "transparent")
-                .attr("stroke", (d.type === 'CASE' || d.subtype === 'UNKNOWN') ? (d.type === 'CASE' ? '#000' : '#71717a') : (d.subtype === 'PERSON' ? '#0369a1' : '#7c3aed'))
+                .attr("stroke", d.type === 'CASE' ? '#000' : getEntityStrokeColor(d.subtype))
                 .attr("stroke-width", 2)
                 .attr("stroke-linecap", "round")
                 .attr("stroke-linejoin", "round")
                 .attr("transform", "translate(-7, -7) scale(0.6)");
 
-            g.selectAll("path").attr("stroke", d.type === 'CASE' ? (linkSourceNode && d.id === linkSourceNode.id ? '#f87171' : '#fff') : (d.subtype === 'UNKNOWN' ? '#a1a1aa' : (linkSourceNode && d.id === linkSourceNode.id ? '#fff' : 'rgba(255,255,255,0.8)')));
+            g.selectAll("path").attr("stroke", d.type === 'CASE'
+                ? (linkSourceNode && d.id === linkSourceNode.id ? '#f87171' : '#fff')
+                : (linkSourceNode && d.id === linkSourceNode.id ? '#fff' : getEntityStrokeColor(d.subtype)));
         });
 
         node.append("text").attr("dy", 30).attr("text-anchor", "middle").text(d => d.label.substring(0, 15))

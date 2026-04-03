@@ -15,6 +15,7 @@ import { detectEntityClusters } from './entityResolutionUtils';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { cleanEntityName } from '../../../utils/text';
 import { getLabelProfileById } from '../../../domain';
+import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface NetworkGraphProps {
     onOpenReport: (report: InvestigationReport) => void;
@@ -407,11 +408,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                             {/* Subtype Selection */}
                             {newNodeType === 'ENTITY' && (
                                 <div className="grid grid-cols-5 gap-1 mb-3">
-                                    <button onClick={() => setNewNodeSubtype('PERSON')} className={`py-1 text-[9px] border ${newNodeSubtype === 'PERSON' ? 'bg-blue-900/30 border-blue-500 text-blue-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>PERSON</button>
-                                    <button onClick={() => setNewNodeSubtype('ORGANIZATION')} className={`py-1 text-[9px] border ${newNodeSubtype === 'ORGANIZATION' ? 'bg-purple-900/30 border-purple-500 text-purple-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>ORG</button>
-                                    <button onClick={() => setNewNodeSubtype('CONCEPT')} className={`py-1 text-[9px] border ${newNodeSubtype === 'CONCEPT' ? 'bg-amber-900/30 border-amber-500 text-amber-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>CONCEPT</button>
-                                    <button onClick={() => setNewNodeSubtype('SOURCE')} className={`py-1 text-[9px] border ${newNodeSubtype === 'SOURCE' ? 'bg-green-900/30 border-green-500 text-green-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>SOURCE</button>
-                                    <button onClick={() => setNewNodeSubtype('UNKNOWN')} className={`py-1 text-[9px] border ${newNodeSubtype === 'UNKNOWN' ? 'bg-zinc-800 border-zinc-500 text-zinc-400' : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>UNKNOWN</button>
+                                    <button onClick={() => setNewNodeSubtype('PERSON')} className={`py-1 text-[9px] border ${newNodeSubtype === 'PERSON' ? `${getEntityToneClass('PERSON')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>PERSON</button>
+                                    <button onClick={() => setNewNodeSubtype('ORGANIZATION')} className={`py-1 text-[9px] border ${newNodeSubtype === 'ORGANIZATION' ? `${getEntityToneClass('ORGANIZATION')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>ORG</button>
+                                    <button onClick={() => setNewNodeSubtype('CONCEPT')} className={`py-1 text-[9px] border ${newNodeSubtype === 'CONCEPT' ? `${getEntityToneClass('CONCEPT')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>CONCEPT</button>
+                                    <button onClick={() => setNewNodeSubtype('SOURCE')} className={`py-1 text-[9px] border ${newNodeSubtype === 'SOURCE' ? `${getEntityToneClass('SOURCE')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>SOURCE</button>
+                                    <button onClick={() => setNewNodeSubtype('UNKNOWN')} className={`py-1 text-[9px] border ${newNodeSubtype === 'UNKNOWN' ? `${getEntityToneClass('UNKNOWN')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>UNKNOWN</button>
                                 </div>
                             )}
                             <div className="flex justify-between">

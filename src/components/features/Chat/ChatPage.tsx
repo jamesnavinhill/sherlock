@@ -50,6 +50,14 @@ import { TaskSetupModal } from '../../ui/TaskSetupModal';
 const formatTimestamp = (value: number): string =>
     new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+const formatDateTime = (value: number): string =>
+    new Date(value).toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
 const formatMessageWithCitations = (message: ChatMessage): string => {
     const citations = message.attachments?.length
         ? `\n\nCitations:\n${message.attachments
@@ -148,6 +156,8 @@ const buildManualSetupSeed = (draft: GuidedRunDraft) => ({
             : undefined,
 });
 
+const sectionLabelClassName = 'text-[11px] font-mono uppercase tracking-[0.28em] text-zinc-500';
+
 interface ChatProps {
     onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
 }
@@ -185,8 +195,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const [workingSessionId, setWorkingSessionId] = useState<string | null>(null);
     const [workingAssistantMessageId, setWorkingAssistantMessageId] = useState<string | null>(null);
     const [manualSetupDraft, setManualSetupDraft] = useState<GuidedRunDraft | null>(null);
+    const [showNewProjectModal, setShowNewProjectModal] = useState(false);
     const abortControllerRef = useRef<AbortController | null>(null);
     const streamedAnswerRef = useRef('');
+    const transcriptEndRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (!activeCaseId && cases.length > 0) {
@@ -231,7 +243,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const launchContext = useMemo(() => getChatLaunchContextFromSession(activeSession), [activeSession]);
 
     const guidedState = useMemo(() => getGuidedSessionState(activeSession), [activeSession]);
-    const messages = activeSession ? chatMessagesBySessionId[activeSession.id] || [] : [];
+    const messages = useMemo(
+        () => (activeSession ? chatMessagesBySessionId[activeSession.id] || [] : []),
+        [activeSession, chatMessagesBySessionId]
+    );
     const latestAssistantMessage = [...messages]
         .reverse()
         .find((message) => message.role === 'assistant' && message.content.trim().length > 0);
@@ -246,15 +261,23 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         () => archives.filter((artifact) => artifact.caseId === activeWorkspace?.id),
         [activeWorkspace?.id, archives]
     );
+    const workspaceHeadlines = useMemo(
+        () => headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
+        [activeWorkspace?.id, headlines]
+    );
     const launchContextSummary = useMemo(
         () =>
             getLaunchContextSummary({
                 launchContext,
                 reports: workspaceReports,
-                headlines: headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
+                headlines: workspaceHeadlines,
             }),
-        [activeWorkspace?.id, headlines, launchContext, workspaceReports]
+        [launchContext, workspaceHeadlines, workspaceReports]
     );
+
+    useEffect(() => {
+        transcriptEndRef.current?.scrollIntoView({ block: 'end' });
+    }, [messages, partialAssistantOutput, guidedState]);
 
     const copyToClipboard = async (value: string, successMessage: string) => {
         await navigator.clipboard.writeText(value);
@@ -666,9 +689,20 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         await addToolMessageResult((session) => fetchRecentSignalsForChat({ session }));
     };
 
+    const handleComposerKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            event.currentTarget.form?.requestSubmit();
+        }
+    };
+
+    const handleStartNewProject = () => {
+        setShowNewProjectModal(true);
+    };
+
     if (cases.length === 0) {
         return (
-            <div className="flex h-full min-h-screen items-center justify-center bg-black px-6">
+            <div className="flex h-full min-h-0 items-center justify-center bg-black px-6">
                 <div className="max-w-xl border border-zinc-800 bg-zinc-950/70 p-8 text-center">
                     <MessageSquare className="mx-auto mb-4 h-10 w-10 text-osint-primary" />
                     <h2 className="mb-3 text-xl font-semibold text-white">Workspace Chat Needs A Workspace</h2>
@@ -676,27 +710,62 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                         Start or reopen a workspace first. Chat sessions are scoped to one workspace so every answer
                         stays local, grounded, and auditable.
                     </p>
+                    <button
+                        onClick={handleStartNewProject}
+                        className="osint-button-primary mt-6 inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Start New Project
+                    </button>
                 </div>
+
+                {showNewProjectModal && (
+                    <TaskSetupModal
+                        initialTopic=""
+                        onCancel={() => setShowNewProjectModal(false)}
+                        onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
+                            onLaunchInvestigation({
+                                topic,
+                                configOverride,
+                                preseededEntities,
+                                scope,
+                                dateRangeOverride: dateRange,
+                                switchToView: true,
+                                launchSource: 'CHAT_NEW_PROJECT',
+                            });
+                            setShowNewProjectModal(false);
+                        }}
+                    />
+                )}
             </div>
         );
     }
 
     return (
-        <div className="flex h-full min-h-screen flex-col bg-black text-zinc-100">
-            <header className="border-b border-zinc-800 bg-zinc-950/90 px-4 py-4 backdrop-blur sm:px-6">
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                    <div>
-                        <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
+        <div className="flex h-full min-h-0 flex-col bg-black text-zinc-100">
+            <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
+                <div className="flex min-h-20 flex-col gap-4 px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="min-w-0">
+                        <div className={`flex items-center gap-2 ${sectionLabelClassName}`}>
                             <Sparkles className="h-4 w-4 text-osint-primary" />
                             Chat
                         </div>
-                        <h1 className="mt-2 text-2xl font-semibold text-white">Workspace Grounded Chat</h1>
+                        <div className="mt-1 flex flex-wrap items-center gap-3">
+                            <h1 className="text-xl font-semibold text-white sm:text-2xl">Workspace Chat</h1>
+                            <span className="border border-zinc-700 bg-zinc-900/60 px-2 py-1 text-[11px] font-mono uppercase tracking-wide text-zinc-400">
+                                {guidedState ? 'Guided Session' : 'Standard Session'}
+                            </span>
+                        </div>
+                        <p className="mt-1 text-sm text-zinc-400">
+                            Grounded conversation, local transcript, and launch-ready actions in one place.
+                        </p>
                     </div>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+                    <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                         <select
                             value={activeWorkspace?.id || ''}
                             onChange={(event) => setActiveCaseId(event.target.value || null)}
-                            className="border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
+                            className="min-w-[240px] border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none transition focus:border-osint-primary"
                         >
                             {cases.map((workspace) => (
                                 <option key={workspace.id} value={workspace.id}>
@@ -705,10 +774,17 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                             ))}
                         </select>
                         <button
-                            onClick={handleCreateSession}
+                            onClick={handleStartNewProject}
                             className="inline-flex items-center justify-center gap-2 border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-200 transition hover:border-osint-primary hover:text-white"
                         >
                             <Plus className="h-4 w-4" />
+                            Start Project
+                        </button>
+                        <button
+                            onClick={handleCreateSession}
+                            className="inline-flex items-center justify-center gap-2 border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-200 transition hover:border-osint-primary hover:text-white"
+                        >
+                            <MessageSquare className="h-4 w-4" />
                             New Session
                         </button>
                         <button
@@ -744,30 +820,47 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                 </div>
             </header>
 
-            <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-                <aside className="border-b border-zinc-800 bg-zinc-950/70 lg:border-b-0 lg:border-r">
-                    <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-                        <span className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                            Sessions
-                        </span>
-                        <span className="text-xs text-zinc-600">{workspaceSessions.length}</span>
+            <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
+                <aside className="hidden min-h-0 border-r border-zinc-800 bg-black/95 backdrop-blur-md lg:flex lg:flex-col">
+                    <div className="border-b border-zinc-800 bg-zinc-950/40 px-4 py-4">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <div className={sectionLabelClassName}>Sessions</div>
+                                <div className="mt-1 text-lg text-white">{activeWorkspace?.title}</div>
+                            </div>
+                            <span className="border border-zinc-800 bg-black px-2 py-1 text-xs text-zinc-500">
+                                {workspaceSessions.length}
+                            </span>
+                        </div>
+                        <div className="mt-4 border border-zinc-800 bg-black/50 p-3">
+                            <div className="text-sm text-white">Workspace Summary</div>
+                            <p className="mt-2 text-xs leading-5 text-zinc-400">
+                                {activeWorkspace?.description || 'No workspace summary saved yet.'}
+                            </p>
+                        </div>
                     </div>
-                    <div className="max-h-72 overflow-y-auto p-3 lg:max-h-full">
+                    <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                         <div className="space-y-2">
                             {workspaceSessions.length === 0 && (
-                                <div className="border border-dashed border-zinc-800 p-4 text-sm text-zinc-500">
-                                    No chat history for this workspace yet.
+                                <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-4">
+                                    <div className="text-sm text-white">No chat history yet</div>
+                                    <p className="mt-2 text-xs leading-5 text-zinc-500">
+                                        Start typing below or create a guided session to open the first transcript for
+                                        this workspace.
+                                    </p>
                                 </div>
                             )}
                             {workspaceSessions.map((session) => {
                                 const sessionGuidedState = getGuidedSessionState(session);
+                                const sessionMessageCount = chatMessagesBySessionId[session.id]?.length || 0;
+
                                 return (
                                     <div
                                         key={session.id}
-                                        className={`border p-3 transition ${
+                                        className={`border-l-2 p-3 transition ${
                                             activeSession?.id === session.id
-                                                ? 'border-osint-primary bg-zinc-900 text-white'
-                                                : 'border-zinc-800 bg-zinc-950/70 text-zinc-300 hover:border-zinc-600'
+                                                ? 'border-osint-primary bg-zinc-900/90 text-white'
+                                                : 'border-transparent bg-zinc-950/70 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900/70'
                                         }`}
                                     >
                                         <button
@@ -775,14 +868,17 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                             className="w-full text-left"
                                         >
                                             <div className="line-clamp-2 text-sm font-medium">{getSessionTitle(session)}</div>
-                                            <div className="mt-2 text-xs text-zinc-500">
-                                                {sessionGuidedState ? 'Guided run builder' : 'Standard workspace chat'}
+                                            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
+                                                <span className="border border-zinc-800 px-1.5 py-0.5">
+                                                    {sessionGuidedState ? 'Guided' : 'Standard'}
+                                                </span>
+                                                <span>{sessionMessageCount} messages</span>
                                             </div>
-                                            <div className="mt-1 text-xs text-zinc-600">
-                                                Updated {new Date(session.updatedAt).toLocaleDateString()}
+                                            <div className="mt-2 text-xs text-zinc-600">
+                                                Updated {formatDateTime(session.updatedAt)}
                                             </div>
                                         </button>
-                                        <div className="mt-3 flex gap-2">
+                                        <div className="mt-3 flex gap-3">
                                             <button
                                                 onClick={() => handleRenameSession(session)}
                                                 className="inline-flex items-center gap-1 text-xs text-zinc-500 transition hover:text-white"
@@ -805,40 +901,92 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     </div>
                 </aside>
 
-                <section className="flex min-h-0 flex-col">
+                <section className="flex min-h-0 flex-col bg-black">
                     <div className="border-b border-zinc-800 bg-zinc-950/40 px-4 py-3 sm:px-6">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                    Transcript
+                        <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div className="min-w-0">
+                                <div className={sectionLabelClassName}>Transcript</div>
+                                <div className="mt-1 flex flex-wrap items-center gap-3">
+                                    <div className="text-lg text-white">
+                                        {activeSession ? getSessionTitle(activeSession) : 'Start a new session'}
+                                    </div>
+                                    <span className="border border-zinc-800 bg-black px-2 py-1 text-[11px] font-mono uppercase tracking-wide text-zinc-500">
+                                        {guidedState ? 'Guided workflow' : 'Grounded workspace chat'}
+                                    </span>
                                 </div>
-                                <div className="mt-1 text-lg text-white">
-                                    {activeSession ? getSessionTitle(activeSession) : 'Start a new session'}
-                                </div>
+                                <p className="mt-2 text-sm text-zinc-500">
+                                    {launchContextSummary
+                                        ? `${launchContextSummary.label}: ${launchContextSummary.title}`
+                                        : 'Ask what changed, compare artifacts, or turn the conversation into the next run.'}
+                                </p>
                             </div>
-                            {latestAssistantMessage && (
+
+                            <div className="flex flex-wrap items-center gap-2">
                                 <button
-                                    onClick={() =>
-                                        void copyToClipboard(
-                                            formatMessageWithCitations(latestAssistantMessage),
-                                            'Copied latest assistant message.'
-                                        )
-                                    }
+                                    onClick={() => void handleFetchRecentSignals()}
                                     className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
                                 >
-                                    <Clipboard className="h-4 w-4" />
-                                    Copy Latest
+                                    <FileSearch className="h-4 w-4" />
+                                    Pin Signals
                                 </button>
-                            )}
+                                {latestAssistantMessage && (
+                                    <button
+                                        onClick={() =>
+                                            void copyToClipboard(
+                                                formatMessageWithCitations(latestAssistantMessage),
+                                                'Copied latest assistant message.'
+                                            )
+                                        }
+                                        className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                    >
+                                        <Clipboard className="h-4 w-4" />
+                                        Copy Latest
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-                        <div className="mx-auto flex max-w-4xl flex-col gap-4 pb-10">
+                    <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+                        <div className="mx-auto flex max-w-4xl flex-col gap-4 pb-6">
+                            {launchContextSummary ? (
+                                <div className="border border-zinc-800 bg-zinc-950/80 p-4">
+                                    <div className={sectionLabelClassName}>{launchContextSummary.label}</div>
+                                    <div className="mt-2 text-base text-white">{launchContextSummary.title}</div>
+                                    <p className="mt-2 text-sm leading-6 text-zinc-400">{launchContextSummary.body}</p>
+                                </div>
+                            ) : null}
+
                             {messages.length === 0 && (
-                                <div className="border border-dashed border-zinc-800 bg-zinc-950/60 p-6 text-sm leading-6 text-zinc-400">
-                                    Ask what changed in this workspace, summarize recent artifacts, compare saved materials,
-                                    or use guided mode to turn a conversation into a launch-ready run.
+                                <div className="border border-dashed border-zinc-800 bg-zinc-950/60 p-6">
+                                    <div className="text-base text-white">Start the conversation intentionally</div>
+                                    <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                                        Ask what changed in this workspace, summarize recent artifacts, compare saved
+                                        materials, or use guided mode to turn the conversation into a launch-ready run.
+                                    </p>
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <button
+                                            onClick={() => void handleFetchRecentSignals()}
+                                            className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                        >
+                                            <FileSearch className="h-4 w-4" />
+                                            Recent Signals
+                                        </button>
+                                        <button
+                                            onClick={handleCreateGuidedSession}
+                                            className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                        >
+                                            <Workflow className="h-4 w-4" />
+                                            Guided Run
+                                        </button>
+                                        <button
+                                            onClick={handleStartNewProject}
+                                            className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            Start Project
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
@@ -851,21 +999,26 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                     isStreamingMessage && partialAssistantOutput
                                         ? partialAssistantOutput
                                         : message.content;
+                                const isAssistant = message.role === 'assistant';
+                                const isUser = message.role === 'user';
+                                const isTool = message.role === 'tool';
 
                                 return (
                                     <article
                                         key={message.id}
-                                        className={`rounded-none border p-4 ${
-                                            message.role === 'user'
-                                                ? 'border-zinc-800 bg-zinc-950/80'
-                                                : message.role === 'tool'
+                                        className={`${
+                                            isUser ? 'self-end' : 'self-start'
+                                        } ${isTool ? 'w-full' : 'w-full max-w-3xl'} border p-4 shadow-[0_0_0_1px_rgba(0,0,0,0.2)] ${
+                                            isUser
+                                                ? 'border-osint-primary/35 bg-zinc-950/90'
+                                                : isTool
                                                   ? 'border-amber-800/60 bg-amber-950/20'
                                                   : 'border-zinc-700 bg-zinc-900/80'
                                         }`}
                                     >
                                         <div className="mb-3 flex items-center justify-between gap-3">
-                                            <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                                {message.role === 'assistant' ? (
+                                            <div className={`flex items-center gap-2 ${sectionLabelClassName}`}>
+                                                {isAssistant ? (
                                                     <Bot className="h-4 w-4 text-osint-primary" />
                                                 ) : (
                                                     <MessageSquare className="h-4 w-4 text-zinc-400" />
@@ -911,7 +1064,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                             </div>
                                         )}
 
-                                        {message.role === 'assistant' &&
+                                        {isAssistant &&
                                         message.status === 'COMPLETED' &&
                                         message.content.trim().length > 0 ? (
                                             <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-800 pt-3">
@@ -953,6 +1106,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                     </article>
                                 );
                             })}
+
+                            <div ref={transcriptEndRef} />
                         </div>
                     </div>
 
@@ -970,27 +1125,49 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                             onOpenManualSetup={handleOpenManualSetup}
                         />
                     ) : (
-                        <form onSubmit={handleSend} className="border-t border-zinc-800 bg-zinc-950/80 px-4 py-4 sm:px-6">
-                            <div className="mx-auto max-w-4xl">
+                        <form
+                            onSubmit={handleSend}
+                            className="border-t border-zinc-800 bg-gradient-to-t from-black via-zinc-950/95 to-zinc-950/80 px-4 py-4 sm:px-6"
+                        >
+                            <div className="mx-auto max-w-4xl border border-zinc-800 bg-zinc-950/90 p-3 shadow-2xl">
+                                <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-3 text-[11px] font-mono uppercase tracking-wide text-zinc-500">
+                                    <span className="border border-zinc-800 bg-black px-2 py-1 text-zinc-400">
+                                        {activeWorkspace?.title || 'No Workspace'}
+                                    </span>
+                                    <span>
+                                        {chatGenerationStatus === 'GENERATING' && workingSessionId
+                                            ? 'Streaming grounded response'
+                                            : chatGenerationStatus === 'CANCELLING'
+                                              ? 'Stopping current response'
+                                              : 'Responses stay scoped to the active workspace'}
+                                    </span>
+                                </div>
+
                                 <textarea
                                     value={draft}
                                     onChange={(event) => setDraft(event.target.value)}
+                                    onKeyDown={handleComposerKeyDown}
                                     placeholder={
                                         activeWorkspace
                                             ? `Ask about ${activeWorkspace.title}...`
                                             : 'Select a workspace to begin chatting...'
                                     }
-                                    className="h-28 w-full resize-none border border-zinc-700 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
+                                    className="mt-3 min-h-[120px] w-full resize-none bg-transparent px-1 py-1 text-sm text-white outline-none placeholder:text-zinc-600"
                                 />
-                                <div className="mt-3 flex items-center justify-between gap-4">
+
+                                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 pt-3">
                                     <div className="text-xs text-zinc-500">
-                                        {chatGenerationStatus === 'GENERATING' && workingSessionId
-                                            ? 'Streaming the next answer with workspace retrieval and action logging...'
-                                            : chatGenerationStatus === 'CANCELLING'
-                                              ? 'Stopping the current response...'
-                                              : 'Responses are grounded in the active workspace and saved locally.'}
+                                        Enter to send. Shift + Enter for a new line.
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleCreateSession}
+                                            className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            Fresh Session
+                                        </button>
                                         {chatGenerationStatus === 'GENERATING' ||
                                         chatGenerationStatus === 'CANCELLING' ? (
                                             <button
@@ -1021,45 +1198,96 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     )}
                 </section>
 
-                <aside className="hidden border-l border-zinc-800 bg-zinc-950/70 xl:flex xl:flex-col">
-                    <div className="border-b border-zinc-800 px-5 py-3">
-                        <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                            Context
-                        </div>
+                <aside className="hidden min-h-0 border-l border-zinc-800 bg-black/95 backdrop-blur-md xl:flex xl:flex-col">
+                    <div className="border-b border-zinc-800 bg-zinc-950/40 px-5 py-4">
+                        <div className={sectionLabelClassName}>Context</div>
                         <div className="mt-1 text-lg text-white">{activeWorkspace?.title}</div>
                     </div>
-                    <div className="flex-1 overflow-y-auto px-5 py-5">
-                        <section className="mb-6">
-                            <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                Workspace Summary
-                            </div>
+                    <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5 custom-scrollbar">
+                        <section className="border border-zinc-800 bg-black/50 p-4">
+                            <div className={sectionLabelClassName}>Workspace Summary</div>
                             <p className="mt-3 text-sm leading-6 text-zinc-300">
                                 {activeWorkspace?.description || 'No workspace summary saved yet.'}
                             </p>
                         </section>
 
                         {launchContextSummary ? (
-                            <section className="mb-6">
-                                <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                    {launchContextSummary.label}
-                                </div>
-                                <div className="mt-3 border border-zinc-800 bg-black/50 p-3">
-                                    <div className="text-sm text-white">{launchContextSummary.title}</div>
-                                    <p className="mt-2 text-xs leading-5 text-zinc-400">
-                                        {launchContextSummary.body}
-                                    </p>
-                                </div>
+                            <section className="border border-zinc-800 bg-black/50 p-4">
+                                <div className={sectionLabelClassName}>{launchContextSummary.label}</div>
+                                <div className="mt-2 text-sm text-white">{launchContextSummary.title}</div>
+                                <p className="mt-2 text-xs leading-5 text-zinc-400">{launchContextSummary.body}</p>
                             </section>
                         ) : null}
 
+                        <section className="border border-zinc-800 bg-black/50 p-4">
+                            <div className="mb-3 flex items-center justify-between">
+                                <div className={sectionLabelClassName}>Recent Artifacts</div>
+                            </div>
+                            <div className="space-y-3">
+                                {workspaceReports.slice(0, 4).length === 0 ? (
+                                    <div className="border border-dashed border-zinc-800 p-3 text-xs text-zinc-500">
+                                        No saved artifacts for this workspace yet.
+                                    </div>
+                                ) : (
+                                    workspaceReports.slice(0, 4).map((artifact) => (
+                                        <div key={artifact.id} className="border border-zinc-800 bg-zinc-950/60 p-3">
+                                            <div className="text-sm text-white">{artifact.topic}</div>
+                                            <p className="mt-2 text-xs leading-5 text-zinc-400">{artifact.summary}</p>
+                                            <div className="mt-3 flex gap-3">
+                                                <button
+                                                    onClick={() => artifact.id && void handleFetchArtifactSummary(artifact.id)}
+                                                    className="inline-flex items-center gap-1 text-[11px] text-zinc-500 transition hover:text-white"
+                                                >
+                                                    <FileText className="h-3.5 w-3.5" />
+                                                    Summary
+                                                </button>
+                                                <button
+                                                    onClick={() => artifact.id && void handleFetchFullArtifact(artifact.id)}
+                                                    className="inline-flex items-center gap-1 text-[11px] text-zinc-500 transition hover:text-white"
+                                                >
+                                                    <FileSearch className="h-3.5 w-3.5" />
+                                                    Full Text
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+
+                        <section className="border border-zinc-800 bg-black/50 p-4">
+                            <div className="mb-3 flex items-center justify-between">
+                                <div className={sectionLabelClassName}>Recent Signals</div>
+                                <button
+                                    onClick={() => void handleFetchRecentSignals()}
+                                    className="inline-flex items-center gap-1 text-[11px] text-zinc-500 transition hover:text-white"
+                                >
+                                    <FileSearch className="h-3.5 w-3.5" />
+                                    Pin To Chat
+                                </button>
+                            </div>
+                            <div className="space-y-3">
+                                {workspaceHeadlines.slice(0, 4).length === 0 ? (
+                                    <div className="border border-dashed border-zinc-800 p-3 text-xs text-zinc-500">
+                                        No saved signals linked to this workspace.
+                                    </div>
+                                ) : (
+                                    workspaceHeadlines.slice(0, 4).map((headline) => (
+                                        <div key={headline.id} className="border border-zinc-800 bg-zinc-950/60 p-3">
+                                            <div className="text-sm text-white">{headline.source || headline.type}</div>
+                                            <p className="mt-2 text-xs leading-5 text-zinc-400">{headline.content}</p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+
                         {latestAssistantMessage?.attachments?.length ? (
-                            <section className="mb-6">
-                                <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                    Latest Retrieval
-                                </div>
+                            <section className="border border-zinc-800 bg-black/50 p-4">
+                                <div className={sectionLabelClassName}>Latest Retrieval</div>
                                 <div className="mt-3 space-y-3">
                                     {latestAssistantMessage.attachments.map((attachment) => (
-                                        <div key={attachment.id} className="border border-zinc-800 bg-black/50 p-3">
+                                        <div key={attachment.id} className="border border-zinc-800 bg-zinc-950/60 p-3">
                                             <div className="text-sm text-white">{attachment.title}</div>
                                             {attachment.snippet && (
                                                 <p className="mt-2 text-xs leading-5 text-zinc-400">
@@ -1072,68 +1300,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                             </section>
                         ) : null}
 
-                        <section className="mb-6">
-                            <div className="mb-3 flex items-center justify-between">
-                                <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                    Recent Artifacts
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                {workspaceReports.slice(0, 4).map((artifact) => (
-                                    <div key={artifact.id} className="border border-zinc-800 bg-black/50 p-3">
-                                        <div className="text-sm text-white">{artifact.topic}</div>
-                                        <p className="mt-2 text-xs leading-5 text-zinc-400">{artifact.summary}</p>
-                                        <div className="mt-3 flex gap-2">
-                                            <button
-                                                onClick={() => artifact.id && void handleFetchArtifactSummary(artifact.id)}
-                                                className="inline-flex items-center gap-1 text-[11px] text-zinc-500 transition hover:text-white"
-                                            >
-                                                <FileText className="h-3.5 w-3.5" />
-                                                Summary
-                                            </button>
-                                            <button
-                                                onClick={() => artifact.id && void handleFetchFullArtifact(artifact.id)}
-                                                className="inline-flex items-center gap-1 text-[11px] text-zinc-500 transition hover:text-white"
-                                            >
-                                                <FileSearch className="h-3.5 w-3.5" />
-                                                Full Text
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        <section className="mb-6">
-                            <div className="mb-3 flex items-center justify-between">
-                                <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                    Recent Signals
-                                </div>
-                                <button
-                                    onClick={() => void handleFetchRecentSignals()}
-                                    className="inline-flex items-center gap-1 text-[11px] text-zinc-500 transition hover:text-white"
-                                >
-                                    <FileSearch className="h-3.5 w-3.5" />
-                                    Pin To Chat
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {headlines
-                                    .filter((headline) => headline.caseId === activeWorkspace?.id)
-                                    .slice(0, 4)
-                                    .map((headline) => (
-                                        <div key={headline.id} className="border border-zinc-800 bg-black/50 p-3">
-                                            <div className="text-sm text-white">{headline.source || headline.type}</div>
-                                            <p className="mt-2 text-xs leading-5 text-zinc-400">{headline.content}</p>
-                                        </div>
-                                    ))}
-                            </div>
-                        </section>
-
-                        <section>
-                            <div className="text-xs font-mono uppercase tracking-[0.28em] text-zinc-500">
-                                Action Log
-                            </div>
+                        <section className="border border-zinc-800 bg-black/50 p-4">
+                            <div className={sectionLabelClassName}>Action Log</div>
                             <div className="mt-3 space-y-3">
                                 {sessionActions.length === 0 ? (
                                     <div className="border border-dashed border-zinc-800 p-3 text-xs text-zinc-500">
@@ -1141,12 +1309,12 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                     </div>
                                 ) : (
                                     sessionActions.slice(0, 8).map((action) => (
-                                        <div key={action.id} className="border border-zinc-800 bg-black/50 p-3">
+                                        <div key={action.id} className="border border-zinc-800 bg-zinc-950/60 p-3">
                                             <div className="text-[11px] font-mono uppercase text-zinc-400">
                                                 {action.type}
                                             </div>
                                             <div className="mt-2 text-xs leading-5 text-zinc-500">
-                                                {new Date(action.createdAt).toLocaleString()}
+                                                {formatDateTime(action.createdAt)}
                                             </div>
                                         </div>
                                     ))
@@ -1181,6 +1349,26 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                             launchSource: 'CHAT_GUIDED_MANUAL',
                         });
                         setManualSetupDraft(null);
+                    }}
+                />
+            )}
+
+            {showNewProjectModal && (
+                <TaskSetupModal
+                    initialTopic=""
+                    initialScopeId={activeWorkspace?.scopeId}
+                    onCancel={() => setShowNewProjectModal(false)}
+                    onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
+                        onLaunchInvestigation({
+                            topic,
+                            configOverride,
+                            preseededEntities,
+                            scope,
+                            dateRangeOverride: dateRange,
+                            switchToView: true,
+                            launchSource: 'CHAT_NEW_PROJECT',
+                        });
+                        setShowNewProjectModal(false);
                     }}
                 />
             )}

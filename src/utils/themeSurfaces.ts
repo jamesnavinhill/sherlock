@@ -19,9 +19,9 @@ export const DEFAULT_THEME_SURFACE_SETTINGS: ThemeSurfaceSettings = {
     surface: { hue: 286, lightness: 0.21, chroma: 0.006 },
   },
   light: {
-    background: { hue: 85, lightness: 0.963, chroma: 0.017 },
-    panel: { hue: 85, lightness: 0.986, chroma: 0.014 },
-    surface: { hue: 81, lightness: 0.937, chroma: 0.025 },
+    background: { hue: 85, lightness: 0.94, chroma: 0.03 },
+    panel: { hue: 85, lightness: 0.95, chroma: 0.03 },
+    surface: { hue: 81, lightness: 0.91, chroma: 0.03 },
   },
 };
 

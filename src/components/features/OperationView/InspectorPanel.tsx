@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink, MessageSquare
+    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink, MessageSquare, Shapes
 } from 'lucide-react';
 import type { Entity, Headline, InvestigationReport } from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
+import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface InspectorPanelProps {
     isOpen: boolean;
@@ -37,6 +38,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     onOpenHeadlineChat,
     onNavigate
 }) => {
+    const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
     // --- Internal State ---
     const [inspectorAccordions, setInspectorAccordions] = useState({
         mentions: false,
@@ -94,7 +96,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 <div className="flex flex-col h-full">
                     <div className="p-4 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
                         <div className="flex items-start space-x-3 flex-1 min-w-0">
-                            <div className={`p-2 border flex-shrink-0 ${entity.type === 'PERSON' ? 'bg-blue-900/30 text-blue-400 border-blue-800' : entity.type === 'ORGANIZATION' ? 'bg-purple-900/30 text-purple-400 border-purple-800' : 'bg-black text-white border-zinc-700'}`}>
+                            <div className={`p-2 border flex-shrink-0 ${entityToneClass} entity-tone-icon-panel`}>
                                 {entity.type === 'PERSON' && <User className="w-5 h-5" />}
                                 {entity.type === 'ORGANIZATION' && <Building2 className="w-5 h-5" />}
                                 {entity.type === 'UNKNOWN' && <Network className="w-5 h-5" />}
@@ -206,7 +208,11 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                                     getEntityConnections(entity.name).map((conn, idx) => (
                                         <div key={idx} className="flex items-center justify-between p-2 bg-zinc-900/20 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-900/40">
                                             <div className="flex items-center truncate max-w-[70%]">
-                                                {conn.entity.type === 'PERSON' ? <User className="w-3 h-3 mr-2 text-blue-500" /> : <Building2 className="w-3 h-3 mr-2 text-purple-500" />}
+                                                {conn.entity.type === 'PERSON'
+                                                    ? <User className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`} />
+                                                    : conn.entity.type === 'ORGANIZATION'
+                                                        ? <Building2 className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`} />
+                                                        : <Shapes className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`} />}
                                                 <span className="text-xs font-mono text-zinc-400 truncate" title={conn.entity.name}>{conn.entity.name}</span>
                                             </div>
                                             <span className="text-[9px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded-sm font-mono">{conn.count} Links</span>

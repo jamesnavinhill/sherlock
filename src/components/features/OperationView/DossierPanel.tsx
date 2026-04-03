@@ -6,6 +6,7 @@ import {
 import type { Case, Entity, Headline, InvestigationReport, LabelProfile, Source } from '../../../types';
 import { Accordion } from '../../ui/Accordion';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
+import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface DossierPanelProps {
     isOpen: boolean;
@@ -95,8 +96,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                         <div className="grid grid-cols-2 gap-1">
                             {entities.map((e, idx) => (
                                 <button key={idx} onClick={() => onEntityClick(e)} className="text-left p-2 bg-zinc-900/30 hover:bg-zinc-800 text-[10px] font-mono text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-600 truncate" title={e.name}>
-                                    {e.type === 'PERSON' && <span className="text-blue-500 font-bold mr-1">[P]</span>}
-                                    {e.type === 'ORGANIZATION' && <span className="text-purple-500 font-bold mr-1">[O]</span>}
+                                    {e.type === 'PERSON' && <span className={`${getEntityToneClass(e.type)} entity-tone-text font-bold mr-1`}>[P]</span>}
+                                    {e.type === 'ORGANIZATION' && <span className={`${getEntityToneClass(e.type)} entity-tone-text font-bold mr-1`}>[O]</span>}
                                     {e.name}
                                 </button>
                             ))}

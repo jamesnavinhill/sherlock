@@ -38,7 +38,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }, []);
 
     return (
-        <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg flex-shrink-0">
+        <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 osint-header-shadow flex items-center justify-between flex-shrink-0">
             <div className="flex items-center space-x-4 min-w-0 flex-1">
 
                 <button

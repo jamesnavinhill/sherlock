@@ -51,6 +51,7 @@ import {
   getStarterTemplates,
   getTaskSetupCopy,
 } from '../../domain';
+import { getEntityToneClass } from '../../utils/entityPalette';
 
 type TaskSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
 
@@ -577,13 +578,13 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             >
               <div className="flex items-center space-x-2 min-w-0">
                 {entity.type === 'PERSON' ? (
-                  <User className="w-3 h-3 text-osint-primary flex-shrink-0" />
+                  <User className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
                 ) : entity.type === 'ORGANIZATION' ? (
-                  <Building2 className="w-3 h-3 text-osint-primary flex-shrink-0" />
+                  <Building2 className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
                 ) : entity.type === 'SOURCE' ? (
-                  <Library className="w-3 h-3 text-osint-primary flex-shrink-0" />
+                  <Library className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
                 ) : (
-                  <Shapes className="w-3 h-3 text-osint-primary flex-shrink-0" />
+                  <Shapes className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
                 )}
                 <span className="text-sm text-zinc-300 font-mono truncate">{entity.name}</span>
                 <span className="text-[10px] text-zinc-600 uppercase">{entity.type}</span>

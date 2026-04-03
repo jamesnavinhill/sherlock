@@ -18,6 +18,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
 import { buildAccentColor } from './utils/accent';
+import { buildEntityPaletteCssVars } from './utils/entityPalette';
 import { buildThemeSurfaceCssVars } from './utils/themeSurfaces';
 import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
@@ -125,8 +126,13 @@ function App() {
   }, [handleBack]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--osint-primary', themeColor);
-  }, [themeColor]);
+    const root = document.documentElement;
+    root.style.setProperty('--osint-primary', themeColor);
+
+    Object.entries(buildEntityPaletteCssVars(accentSettings)).forEach(([name, value]) => {
+      root.style.setProperty(name, value);
+    });
+  }, [accentSettings, themeColor]);
 
   useEffect(() => {
     const root = document.documentElement;

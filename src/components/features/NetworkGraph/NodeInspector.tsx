@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
     User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink,
-    Lightbulb, FolderOpen, EyeOff, Microscope, Link2, MessageSquare
+    Lightbulb, FolderOpen, EyeOff, Microscope, Link2, MessageSquare, Shapes
 } from 'lucide-react';
 import type { Entity, Headline, InvestigationReport} from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { cleanEntityName } from '../../../utils/text';
+import { getEntityToneClass } from '../../../utils/entityPalette';
 
 type InvestigationContext = { topic: string; summary: string };
 
@@ -131,6 +132,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
 
         return Array.from(connectedEntities.values()).sort((a, b) => b.count - a.count);
     };
+    const selectedEntityToneClass = selectedEntity ? getEntityToneClass(getNodeType(selectedEntity)) : getEntityToneClass('UNKNOWN');
 
     const selectedNodeType = selectedEntity ? getNodeType(selectedEntity) : 'UNKNOWN';
 
@@ -298,7 +300,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 <div className="flex flex-col h-full">
                     <div className="p-4 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
                         <div className="flex items-start space-x-3 flex-1 min-w-0">
-                            <div className="p-2 border flex-shrink-0 bg-black text-white border-zinc-700">
+                            <div className={`p-2 border flex-shrink-0 ${selectedEntityToneClass} entity-tone-icon-panel`}>
                                 {selectedNodeType === 'PERSON' ? (
                                     <User className="w-5 h-5" />
                                 ) : selectedNodeType === 'ORGANIZATION' ? (
@@ -429,7 +431,11 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                                     getEntityConnections(selectedEntity).map((conn, idx) => (
                                         <div key={idx} className="flex items-center justify-between p-2 bg-zinc-900/20 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-900/40">
                                             <div className="flex items-center truncate max-w-[70%]">
-                                                {conn.entity.type === 'PERSON' ? <User className="w-3 h-3 mr-2 text-blue-500" /> : <Building2 className="w-3 h-3 mr-2 text-purple-500" />}
+                                                {conn.entity.type === 'PERSON'
+                                                    ? <User className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`} />
+                                                    : conn.entity.type === 'ORGANIZATION'
+                                                        ? <Building2 className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`} />
+                                                        : <Shapes className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`} />}
                                                 <span className="text-xs font-mono text-zinc-400 truncate" title={conn.entity.name}>{conn.entity.name}</span>
                                             </div>
                                             <span className="text-[9px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded-sm font-mono">{conn.count} Links</span>
