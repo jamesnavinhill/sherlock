@@ -66,6 +66,24 @@ describe('chat launch context helpers', () => {
         expect(getChatLaunchContextFromSession(matchingSession)).toEqual({ sourceReportId: 'report-1' });
     });
 
+    it('reuses an exact requested session before other workspace sessions', () => {
+        const request: ChatOpenRequest = {
+            workspaceId: 'case-1',
+            sessionId: 'chat-session-2',
+        };
+
+        const olderSession = buildSession({
+            id: 'chat-session-1',
+            updatedAt: 10,
+        });
+        const exactSession = buildSession({
+            id: 'chat-session-2',
+            updatedAt: 1,
+        });
+
+        expect(findReusableChatSession([olderSession, exactSession], request)?.id).toBe('chat-session-2');
+    });
+
     it('skips guided sessions when opening a generic workspace chat', () => {
         const request: ChatOpenRequest = {
             workspaceId: 'case-1',

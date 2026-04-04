@@ -110,6 +110,10 @@ export const findReusableChatSession = (
         .filter((session) => session.workspaceId === request.workspaceId)
         .sort((left, right) => right.updatedAt - left.updatedAt);
 
+    if (request.sessionId) {
+        return workspaceSessions.find((session) => session.id === request.sessionId) || null;
+    }
+
     if (request.launchContext) {
         return (
             workspaceSessions.find((session) =>

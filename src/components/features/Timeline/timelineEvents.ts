@@ -1,4 +1,6 @@
 import type {
+    AgentAction,
+    ChatSession,
     Headline,
     InvestigationReport,
     InvestigationTask,
@@ -8,9 +10,16 @@ import type {
     TimelineTrack,
 } from '@/types';
 import { sanitizeDisplayTitle } from '../../../domain';
+import { getChatLaunchContextFromSession, isGuidedChatSession } from '../../../services/chat/launchContext';
 
 const FALLBACK_OCCURED_AT = 0;
 const DEFAULT_TRACKS: TimelineTrack[] = ['SIGNAL', 'RUN', 'ARTIFACT'];
+const HIGH_SIGNAL_CHAT_ACTIONS = new Set<AgentAction['type']>([
+    'SEARCH_WORKSPACE',
+    'CREATE_ARTIFACT_DRAFT',
+    'APPEND_NOTE_TO_ARTIFACT',
+    'CREATE_FOLLOW_UP_RUN',
+]);
 
 const summarize = (value: string | undefined, max = 140): string | undefined => {
     if (!value) return undefined;
@@ -57,6 +66,49 @@ const buildRunSearchText = (run: InvestigationTask): string =>
         .join(' ')
         .toLowerCase();
 
+const buildChatSessionSearchText = (session: ChatSession): string => {
+    const launchContext = getChatLaunchContextFromSession(session);
+
+    return [
+        session.title,
+        session.status,
+        session.packId,
+        session.purposeId,
+        session.sourceReportId,
+        launchContext?.sourceReportId,
+        launchContext?.headlineId,
+        launchContext?.entityName,
+        isGuidedChatSession(session) ? 'guided session' : 'workspace chat',
+    ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+};
+
+const extractStringValues = (value: unknown): string[] => {
+    if (typeof value === 'string') return [value];
+    if (Array.isArray(value)) {
+        return value.flatMap((entry) => extractStringValues(entry));
+    }
+    if (value && typeof value === 'object') {
+        return Object.values(value).flatMap((entry) => extractStringValues(entry));
+    }
+
+    return [];
+};
+
+const buildChatActionSearchText = (action: AgentAction, session: ChatSession | undefined): string =>
+    [
+        session?.title,
+        action.type,
+        action.status,
+        ...extractStringValues(action.input),
+        ...extractStringValues(action.result),
+    ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
 const buildParentArtifactMap = (artifacts: InvestigationReport[], workspaceId: string) => {
     const scopedArtifacts = artifacts.filter((artifact) => artifact.caseId === workspaceId);
     return new Map(
@@ -77,9 +129,7 @@ const inferArtifactForRun = (run: InvestigationTask, artifacts: InvestigationRep
 };
 
 const eventReferencesFocus = (event: TimelineEvent, focusedRefId: string) => {
-    const metadataValues = event.metadata
-        ? Object.values(event.metadata).filter((value): value is string => typeof value === 'string')
-        : [];
+    const metadataValues = event.metadata ? extractStringValues(event.metadata) : [];
 
     return (
         event.refId === focusedRefId
@@ -93,8 +143,21 @@ export const buildWorkspaceTimelineEvents = (input: {
     artifacts: InvestigationReport[];
     runs: InvestigationTask[];
     signals: Headline[];
+    chatSessions: ChatSession[];
+    chatActionsBySessionId: Record<string, AgentAction[]>;
 }): TimelineEvent[] => {
+    const scopedArtifacts = input.artifacts.filter((artifact) => artifact.caseId === input.workspaceId);
     const parentArtifactMap = buildParentArtifactMap(input.artifacts, input.workspaceId);
+    const artifactById = new Map(
+        scopedArtifacts
+            .filter((artifact): artifact is InvestigationReport & { id: string } => !!artifact.id)
+            .map((artifact) => [artifact.id, artifact])
+    );
+    const sessionById = new Map(
+        input.chatSessions
+            .filter((session) => session.workspaceId === input.workspaceId)
+            .map((session) => [session.id, session])
+    );
 
     const signalEvents = input.signals
         .filter((headline) => headline.caseId === input.workspaceId)
@@ -221,7 +284,187 @@ export const buildWorkspaceTimelineEvents = (input: {
             };
         });
 
-    return [...signalEvents, ...runEvents, ...artifactEvents].sort((a, b) => {
+    const chatSessionEvents = input.chatSessions
+        .filter((session) => session.workspaceId === input.workspaceId)
+        .map<TimelineEvent>((session) => {
+            const launchContext = getChatLaunchContextFromSession(session);
+            const guided = isGuidedChatSession(session);
+            const summary = guided
+                ? 'Guided run builder started for this workspace.'
+                : launchContext?.sourceReportId
+                  ? 'Chat opened from a saved workspace artifact.'
+                  : launchContext?.headlineId
+                    ? 'Chat opened from a saved workspace signal.'
+                    : launchContext?.entityName
+                      ? 'Chat opened with a pinned workspace entity.'
+                      : 'Workspace chat session started.';
+
+            return {
+                id: `chat-session-${session.id}`,
+                occurredAt: session.createdAt || FALLBACK_OCCURED_AT,
+                track: 'CHAT',
+                type: 'CHAT_SESSION_STARTED',
+                workspaceId: input.workspaceId,
+                title: session.title || 'Workspace Chat',
+                summary,
+                refId: session.id,
+                refKind: 'CHAT_SESSION',
+                badges: [guided ? 'GUIDED' : 'CHAT', session.status, session.purposeId].filter(
+                    (value): value is string => !!value
+                ),
+                searchText: buildChatSessionSearchText(session),
+                metadata: {
+                    sessionId: session.id,
+                    sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                    sourceSignalId: launchContext?.headlineId,
+                    entityName: launchContext?.entityName,
+                    sessionMode: guided ? 'GUIDED' : 'STANDARD',
+                    packId: session.packId,
+                    purposeId: session.purposeId,
+                },
+            };
+        });
+
+    const chatActionEvents = Array.from(sessionById.values()).flatMap<TimelineEvent>((session) => {
+        const launchContext = getChatLaunchContextFromSession(session);
+        const actions = (input.chatActionsBySessionId[session.id] || []).filter((action) =>
+            HIGH_SIGNAL_CHAT_ACTIONS.has(action.type)
+        );
+
+        return actions.map<TimelineEvent | null>((action) => {
+            const artifactIdFromResult =
+                typeof action.result?.artifactId === 'string' ? action.result.artifactId : undefined;
+            const artifactIdFromInput =
+                typeof action.input?.reportId === 'string' ? action.input.reportId : undefined;
+            const relatedArtifactId = artifactIdFromResult || artifactIdFromInput || session.sourceReportId;
+            const relatedArtifact = relatedArtifactId ? artifactById.get(relatedArtifactId) : undefined;
+
+            switch (action.type) {
+                case 'SEARCH_WORKSPACE': {
+                    const query = typeof action.input?.query === 'string' ? action.input.query : undefined;
+                    const citedSnippetIds = Array.isArray(action.result?.citedSnippetIds)
+                        ? action.result.citedSnippetIds.filter((value): value is string => typeof value === 'string')
+                        : [];
+
+                    return {
+                        id: `chat-action-${action.id}`,
+                        occurredAt: action.createdAt || FALLBACK_OCCURED_AT,
+                        track: 'CHAT',
+                        type: 'CHAT_SEARCHED_WORKSPACE',
+                        workspaceId: input.workspaceId,
+                        title: summarize(query, 84) || session.title || 'Workspace chat search',
+                        summary: 'Chat searched saved workspace context.',
+                        refId: action.id,
+                        refKind: 'CHAT_ACTION',
+                        parentRefId: session.id,
+                        badges: ['SEARCH', action.status].filter((value): value is string => !!value),
+                        searchText: buildChatActionSearchText(action, session),
+                        metadata: {
+                            sessionId: session.id,
+                            query,
+                            citedSnippetCount: citedSnippetIds.length,
+                            sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                            sourceSignalId: launchContext?.headlineId,
+                        },
+                    };
+                }
+                case 'CREATE_ARTIFACT_DRAFT':
+                    return {
+                        id: `chat-action-${action.id}`,
+                        occurredAt: action.createdAt || FALLBACK_OCCURED_AT,
+                        track: 'CHAT',
+                        type: 'CHAT_ARTIFACT_SAVED',
+                        workspaceId: input.workspaceId,
+                        title: relatedArtifact?.topic
+                            ? sanitizeDisplayTitle(relatedArtifact.topic)
+                            : summarize(
+                                  typeof action.input?.title === 'string'
+                                      ? action.input.title
+                                      : typeof action.input?.topic === 'string'
+                                        ? action.input.topic
+                                        : session.title,
+                                  84
+                              ) || 'Saved chat artifact',
+                        summary: relatedArtifactId
+                            ? 'Chat saved a workspace artifact.'
+                            : 'Chat created an artifact draft.',
+                        refId: action.id,
+                        refKind: 'CHAT_ACTION',
+                        parentRefId: session.id,
+                        badges: ['SAVE', relatedArtifact?.artifactType, action.status].filter(
+                            (value): value is string => !!value
+                        ),
+                        searchText: buildChatActionSearchText(action, session),
+                        metadata: {
+                            sessionId: session.id,
+                            relatedArtifactId,
+                            sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                            sourceSignalId: launchContext?.headlineId,
+                        },
+                    };
+                case 'APPEND_NOTE_TO_ARTIFACT':
+                    return {
+                        id: `chat-action-${action.id}`,
+                        occurredAt: action.createdAt || FALLBACK_OCCURED_AT,
+                        track: 'CHAT',
+                        type: 'CHAT_ARTIFACT_NOTED',
+                        workspaceId: input.workspaceId,
+                        title: relatedArtifact?.topic
+                            ? `Note added to ${sanitizeDisplayTitle(relatedArtifact.topic)}`
+                            : typeof action.input?.reportTopic === 'string'
+                              ? `Note added to ${sanitizeDisplayTitle(action.input.reportTopic)}`
+                              : 'Artifact note added from chat',
+                        summary: 'Chat appended a note to a saved workspace artifact.',
+                        refId: action.id,
+                        refKind: 'CHAT_ACTION',
+                        parentRefId: session.id,
+                        badges: ['NOTE', action.status].filter((value): value is string => !!value),
+                        searchText: buildChatActionSearchText(action, session),
+                        metadata: {
+                            sessionId: session.id,
+                            relatedArtifactId,
+                            sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                            sourceSignalId: launchContext?.headlineId,
+                        },
+                    };
+                case 'CREATE_FOLLOW_UP_RUN':
+                    return {
+                        id: `chat-action-${action.id}`,
+                        occurredAt: action.createdAt || FALLBACK_OCCURED_AT,
+                        track: 'CHAT',
+                        type: 'CHAT_FOLLOW_UP_LAUNCHED',
+                        workspaceId: input.workspaceId,
+                        title: summarize(
+                            typeof action.input?.topic === 'string' ? action.input.topic : session.title,
+                            84
+                        ) || 'Chat follow-up run',
+                        summary: 'Chat launched a follow-up workspace run.',
+                        refId: action.id,
+                        refKind: 'CHAT_ACTION',
+                        parentRefId: session.id,
+                        badges: [
+                            typeof action.result?.launchSource === 'string' ? action.result.launchSource : 'FOLLOW_UP',
+                            action.status,
+                        ].filter((value): value is string => !!value),
+                        searchText: buildChatActionSearchText(action, session),
+                        metadata: {
+                            sessionId: session.id,
+                            relatedArtifactId: session.sourceReportId || launchContext?.sourceReportId,
+                            sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                            sourceSignalId: launchContext?.headlineId,
+                            launchSource:
+                                typeof action.result?.launchSource === 'string'
+                                    ? action.result.launchSource
+                                    : undefined,
+                        },
+                    };
+                default:
+                    return null;
+            }
+        }).filter((event): event is TimelineEvent => !!event);
+    });
+
+    return [...signalEvents, ...runEvents, ...artifactEvents, ...chatSessionEvents, ...chatActionEvents].sort((a, b) => {
         if (b.occurredAt !== a.occurredAt) return b.occurredAt - a.occurredAt;
         return a.title.localeCompare(b.title);
     });

@@ -246,6 +246,7 @@ export interface ChatLaunchContext {
 
 export interface ChatOpenRequest {
   workspaceId: string;
+  sessionId?: string;
   launchContext?: ChatLaunchContext;
 }
 
@@ -455,14 +456,19 @@ export type Workspace = Case;
 export type Artifact = InvestigationReport;
 export type WorkspaceRun = InvestigationTask;
 
-export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT';
+export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT';
 
 export type TimelineEventType =
   | 'SIGNAL_SAVED'
   | 'RUN_STARTED'
   | 'RUN_COMPLETED'
   | 'RUN_FAILED'
-  | 'ARTIFACT_CREATED';
+  | 'ARTIFACT_CREATED'
+  | 'CHAT_SESSION_STARTED'
+  | 'CHAT_SEARCHED_WORKSPACE'
+  | 'CHAT_ARTIFACT_SAVED'
+  | 'CHAT_ARTIFACT_NOTED'
+  | 'CHAT_FOLLOW_UP_LAUNCHED';
 
 export interface TimelineEvent {
   id: string;
@@ -473,7 +479,7 @@ export interface TimelineEvent {
   title: string;
   summary?: string;
   refId?: string;
-  refKind?: 'SIGNAL' | 'RUN' | 'ARTIFACT';
+  refKind?: 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT_SESSION' | 'CHAT_ACTION';
   parentRefId?: string;
   badges?: string[];
   searchText?: string;

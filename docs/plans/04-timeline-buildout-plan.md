@@ -11,7 +11,7 @@ Current status on this checkout:
 - Stream 2: completed
 - Stream 3: completed
 - Stream 4: completed for the first meaningful pass
-- Stream 5: in progress
+- Stream 5: completed for the second meaningful pass
 
 Current delivered state includes:
 
@@ -20,14 +20,17 @@ Current delivered state includes:
 - dossier-style left panel
 - header workspace selector, text search, and filters popout
 - mixed chronology rendering for signals, runs, and artifacts
+- opt-in chronology rendering for chat sessions and high-signal chat actions
 - right-side details drawer with event-specific context
 - explicit lineage refs threaded through current run/artifact/signal flows without introducing a new persistence schema yet
+- exact-session click-through from chat timeline events back into workspace chat
+- lightweight lineage chips in the chronology stream for signal, run, artifact, and chat relationships
 
-The biggest remaining work is now polish and extension rather than basic existence:
+The biggest remaining work is now extension rather than basic existence:
 
-- make lineage fully explicit across more launch paths and stored relationships
-- expand event-specific details and lineage rendering
-- add secondary tracks such as chat actions and entity milestones once chronology remains clear
+- extend secondary chronology beyond curated chat activity into entity milestones and other truly high-signal derived events
+- make lineage fully explicit across additional stored relationships where inference still remains
+- evaluate whether exportable timeline artifacts are worthwhile after the chronology model settles
 
 ## Objective
 

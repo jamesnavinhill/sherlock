@@ -44,6 +44,7 @@ Adapters in scope:
 - Chat: all active providers support the persisted workspace chat contract for both non-streaming and streaming turns.
 - Chat stop/cancel: aborts the active provider request and persists the turn as cancelled if a final answer was not completed.
 - Chat actions: retrieval/save/follow-up operations are persisted in `chat_actions`; use them when confirming what the system actually did for a user.
+- Timeline audit: persisted chat sessions and high-signal `chat_actions` now surface in `Timeline`, so operator verification can cross-check Chat's action log against the workspace chronology.
 - Thinking budget: model-gated, mainly relevant to Gemini models.
 - Web search: capability varies by provider/model metadata.
 

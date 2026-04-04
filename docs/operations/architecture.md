@@ -26,7 +26,7 @@ Primary views loaded from App:
 - `LiveMonitor` (`AppView.LIVE_MONITOR`)
 - `Archives` (`AppView.ARCHIVES`)
 - `Settings` (`AppView.SETTINGS`)
-- `TimelineView` (`AppView.TIMELINE`, currently parked as a Slice 2 placeholder and not exposed in sidebar navigation)
+- `TimelineView` (`AppView.TIMELINE`, exposed in sidebar navigation as the workspace chronology surface)
 
 ## 2. Launch Pipeline
 
@@ -229,6 +229,17 @@ Supports deep dives, headline follow-through, launch-into-chat handoff for the a
 
 Live monitor requests now resolve through the active scope's derived pack and default purpose.
 
+### Timeline
+
+`src/components/features/TimelineView.tsx`
+
+- routed chronology page with header search, filters popout, dossier, central event stream, and details drawer
+- normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
+- default-on chronology for saved signals, runs, and artifacts
+- opt-in secondary `CHAT` track for chat session starts plus high-signal chat actions (`SEARCH_WORKSPACE`, saved artifact drafts, append-note actions, and follow-up launches)
+- lineage rendering across signal, run, artifact, and chat relationships without introducing a new persistence schema
+- click-through into saved artifacts and exact workspace chat sessions from timeline events
+
 ### Feed
 
 `src/components/features/Feed.tsx`
@@ -276,7 +287,7 @@ See:
 
 ## 9. Notable Constraints
 
-- Timeline is intentionally parked during Slice 1 cleanup. The route still exists for the upcoming chronology rebuild, but the current surface is a placeholder rather than a live feature.
+- Timeline is now a live feature surface, but secondary chronology remains intentionally curated; entity milestones and lower-signal audit tracks are still deferred to later slices.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
 - Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
 - `Ctrl+N` now routes through Archives and opens the active new-workspace modal rather than relying on dead shell state.

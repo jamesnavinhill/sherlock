@@ -22,6 +22,7 @@ import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { Accordion } from '../ui/Accordion';
 import { EmptyState } from '../ui/EmptyState';
 import { getLabelProfileById, sanitizeDisplayTitle } from '../../domain';
+import { getChatLaunchContextFromSession } from '../../services/chat/launchContext';
 import {
     buildWorkspaceTimelineEvents,
     filterTimelineEvents,
@@ -40,6 +41,7 @@ type DossierSections = {
     runs: boolean;
     artifacts: boolean;
     signals: boolean;
+    chats: boolean;
 };
 
 type DetailSections = {
@@ -57,6 +59,7 @@ const TRACK_OPTIONS: Array<{ track: TimelineTrack; label: string; icon: typeof R
     { track: 'SIGNAL', label: 'Signals', icon: Radio },
     { track: 'RUN', label: 'Runs', icon: Activity },
     { track: 'ARTIFACT', label: 'Artifacts', icon: FileText },
+    { track: 'CHAT', label: 'Chats', icon: MessageSquare },
 ];
 
 const formatEventTime = (value: number) =>
@@ -75,6 +78,8 @@ const getEventIcon = (event: TimelineEvent) => {
             return Activity;
         case 'ARTIFACT':
             return FileText;
+        case 'CHAT':
+            return MessageSquare;
         default:
             return Clock3;
     }
@@ -86,6 +91,14 @@ const getEventTone = (event: TimelineEvent) => {
             return 'border-osint-danger/40 bg-osint-danger/10 text-osint-danger';
         case 'RUN_COMPLETED':
             return 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary';
+        case 'CHAT_ARTIFACT_SAVED':
+            return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300';
+        case 'CHAT_FOLLOW_UP_LAUNCHED':
+            return 'border-amber-500/40 bg-amber-500/10 text-amber-300';
+        case 'CHAT_SESSION_STARTED':
+        case 'CHAT_SEARCHED_WORKSPACE':
+        case 'CHAT_ARTIFACT_NOTED':
+            return 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300';
         default:
             return 'border-zinc-700 bg-zinc-900 text-zinc-300';
     }
@@ -117,8 +130,22 @@ const getMetadataValue = <T,>(event: TimelineEvent | null, key: string): T | und
     return value as T | undefined;
 };
 
+const getPrimaryRefId = (event: TimelineEvent | null, refKind: TimelineEvent['refKind']) => {
+    if (!event || event.refKind !== refKind) return undefined;
+    return event.refId;
+};
+
 export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpenChat }) => {
-    const { activeCaseId, archives, cases, headlines, setActiveCaseId, tasks } = useCaseStore();
+    const {
+        activeCaseId,
+        archives,
+        cases,
+        chatActionsBySessionId,
+        chatSessions,
+        headlines,
+        setActiveCaseId,
+        tasks,
+    } = useCaseStore();
     const [leftPanelOpen, setLeftPanelOpen] = useState(false);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
@@ -132,6 +159,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         runs: true,
         artifacts: true,
         signals: true,
+        chats: true,
     });
     const [detailSections, setDetailSections] = useState<DetailSections>({
         summary: true,
@@ -197,8 +225,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             artifacts: archives,
             runs: tasks,
             signals: headlines,
+            chatSessions,
+            chatActionsBySessionId,
         });
-    }, [activeWorkspace, archives, headlines, tasks]);
+    }, [activeWorkspace, archives, chatActionsBySessionId, chatSessions, headlines, tasks]);
 
     const visibleEvents = useMemo(
         () =>
@@ -216,6 +246,31 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const runItems = useMemo(() => toUniqueItems(allTimelineEvents, 'RUN'), [allTimelineEvents]);
     const artifactItems = useMemo(() => toUniqueItems(allTimelineEvents, 'ARTIFACT'), [allTimelineEvents]);
     const signalItems = useMemo(() => toUniqueItems(allTimelineEvents, 'SIGNAL'), [allTimelineEvents]);
+    const chatSessionItems = useMemo(
+        () => allTimelineEvents.filter((event) => event.type === 'CHAT_SESSION_STARTED'),
+        [allTimelineEvents]
+    );
+    const artifactTitleById = useMemo(
+        () =>
+            new Map(
+                archives
+                    .filter((artifact): artifact is InvestigationReport & { id: string } => !!artifact.id)
+                    .map((artifact) => [artifact.id, sanitizeDisplayTitle(artifact.topic)])
+            ),
+        [archives]
+    );
+    const runTitleById = useMemo(
+        () => new Map(tasks.map((task) => [task.id, sanitizeDisplayTitle(task.topic)])),
+        [tasks]
+    );
+    const signalTitleById = useMemo(
+        () => new Map(headlines.map((headline) => [headline.id, headline.source || headline.type])),
+        [headlines]
+    );
+    const chatTitleById = useMemo(
+        () => new Map(chatSessions.map((session) => [session.id, session.title || 'Workspace Chat'])),
+        [chatSessions]
+    );
     const effectiveSelectedEventId = useMemo(
         () => (selectedEventId && visibleEvents.some((event) => event.id === selectedEventId) ? selectedEventId : null),
         [selectedEventId, visibleEvents]
@@ -228,35 +283,63 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         if (!selectedEvent) return null;
 
         const artifactId =
-            selectedEvent.refKind === 'ARTIFACT'
-                ? selectedEvent.refId
-                : getMetadataValue<string>(selectedEvent, 'relatedArtifactId')
-                  || getMetadataValue<string>(selectedEvent, 'linkedArtifactId');
+            getPrimaryRefId(selectedEvent, 'ARTIFACT')
+            || getMetadataValue<string>(selectedEvent, 'relatedArtifactId')
+            || getMetadataValue<string>(selectedEvent, 'linkedArtifactId');
 
         return archives.find((artifact) => artifact.id === artifactId) || null;
     }, [archives, selectedEvent]);
     const selectedRun = useMemo(() => {
         if (!selectedEvent) return null;
 
-        const runId = selectedEvent.refKind === 'RUN' ? selectedEvent.refId : getMetadataValue<string>(selectedEvent, 'sourceRunId');
+        const runId = getPrimaryRefId(selectedEvent, 'RUN') || getMetadataValue<string>(selectedEvent, 'sourceRunId');
         return tasks.find((task) => task.id === runId) || null;
     }, [selectedEvent, tasks]);
     const relatedSignal = useMemo(() => {
         if (!selectedEvent) return null;
 
-        const signalId = selectedEvent.refKind === 'SIGNAL'
-            ? selectedEvent.refId
-            : getMetadataValue<string>(selectedEvent, 'sourceSignalId');
+        const signalId = getPrimaryRefId(selectedEvent, 'SIGNAL')
+            || getMetadataValue<string>(selectedEvent, 'sourceSignalId');
         return headlines.find((headline) => headline.id === signalId) || null;
     }, [headlines, selectedEvent]);
     const parentArtifact = useMemo(() => {
         const parentArtifactId = getMetadataValue<string>(selectedEvent, 'parentArtifactId') || selectedEvent?.parentRefId;
         return archives.find((artifact) => artifact.id === parentArtifactId) || null;
     }, [archives, selectedEvent]);
+    const selectedChatSession = useMemo(() => {
+        if (!selectedEvent) return null;
+
+        const sessionId = getPrimaryRefId(selectedEvent, 'CHAT_SESSION') || getMetadataValue<string>(selectedEvent, 'sessionId');
+        return chatSessions.find((session) => session.id === sessionId) || null;
+    }, [chatSessions, selectedEvent]);
+    const selectedChatAction = useMemo(() => {
+        const actionId = getPrimaryRefId(selectedEvent, 'CHAT_ACTION');
+        if (!actionId) return null;
+
+        return Object.values(chatActionsBySessionId)
+            .flat()
+            .find((action) => action.id === actionId) || null;
+    }, [chatActionsBySessionId, selectedEvent]);
+    const selectedChatLaunchContext = useMemo(
+        () => getChatLaunchContextFromSession(selectedChatSession),
+        [selectedChatSession]
+    );
 
     const lastActivity = useMemo(() => getLatestTimelineActivity(visibleEvents), [visibleEvents]);
 
+    const ensureTrackVisible = (track: TimelineTrack) => {
+        setFilters((current) =>
+            current.tracks.includes(track)
+                ? current
+                : {
+                      ...current,
+                      tracks: [...current.tracks, track],
+                  }
+        );
+    };
+
     const setTrackFocus = (track: TimelineTrack | 'ALL') => {
+        if (track !== 'ALL') ensureTrackVisible(track);
         setFocusedTrack(track);
         setFocusedRefId(undefined);
     };
@@ -270,6 +353,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
     const focusReference = (track: TimelineTrack, refId?: string) => {
         if (!refId) return;
+        ensureTrackVisible(track);
         setFocusedTrack(track);
         setFocusedRefId(refId);
     };
@@ -297,18 +381,27 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const openWorkspaceChat = (event?: TimelineEvent | null) => {
         if (!activeWorkspace) return;
 
-        if (event?.refKind === 'ARTIFACT' && event.refId) {
+        const sessionId = getPrimaryRefId(event || null, 'CHAT_SESSION') || getMetadataValue<string>(event || null, 'sessionId');
+        if (sessionId) {
             onOpenChat({
                 workspaceId: activeWorkspace.id,
-                launchContext: { sourceReportId: event.refId },
+                sessionId,
             });
             return;
         }
 
-        if (event?.refKind === 'SIGNAL' && event.refId) {
+        if (getPrimaryRefId(event || null, 'ARTIFACT')) {
             onOpenChat({
                 workspaceId: activeWorkspace.id,
-                launchContext: { headlineId: event.refId },
+                launchContext: { sourceReportId: getPrimaryRefId(event || null, 'ARTIFACT') },
+            });
+            return;
+        }
+
+        if (getPrimaryRefId(event || null, 'SIGNAL')) {
+            onOpenChat({
+                workspaceId: activeWorkspace.id,
+                launchContext: { headlineId: getPrimaryRefId(event || null, 'SIGNAL') },
             });
             return;
         }
@@ -322,7 +415,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 <EmptyState
                     icon={Clock3}
                     title="Timeline Unavailable"
-                    description="Create or open a workspace first. Timeline becomes useful once Sherlock has saved signals, runs, or artifacts to a workspace."
+                    description="Create or open a workspace first. Timeline becomes useful once Sherlock has saved signals, runs, artifacts, or chat activity to a workspace."
                 />
             </div>
         );
@@ -379,7 +472,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             <input
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
-                                placeholder={`Search ${labelProfile.artifactLabelPlural.toLowerCase()}, runs, signals...`}
+                                placeholder={`Search ${labelProfile.artifactLabelPlural.toLowerCase()}, runs, signals, chats...`}
                                 className="w-full border border-zinc-700 bg-black py-1.5 pl-9 pr-3 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
                             />
                         </div>
@@ -645,12 +738,43 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                 )}
                             </div>
                         </Accordion>
+
+                        <Accordion
+                            title="Chats"
+                            icon={MessageSquare}
+                            count={chatSessionItems.length}
+                            isOpen={dossierSections.chats}
+                            onToggle={() =>
+                                setDossierSections((current) => ({ ...current, chats: !current.chats }))
+                            }
+                        >
+                            <div className="space-y-2">
+                                {chatSessionItems.length === 0 ? (
+                                    <div className="px-3 py-2 text-[11px] font-mono text-zinc-600">
+                                        No workspace chats available yet.
+                                    </div>
+                                ) : (
+                                    chatSessionItems.map((item) => (
+                                        <button
+                                            key={item.refId}
+                                            onClick={() => focusReference('CHAT', item.refId)}
+                                            className={getFocusedButtonClass(focusedRefId === item.refId)}
+                                        >
+                                            <div className="truncate font-bold text-zinc-200">{item.title}</div>
+                                            <div className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-500">
+                                                {item.badges?.join(' / ') || 'CHAT'}
+                                            </div>
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </Accordion>
                     </div>
                 </aside>
 
                 <main className="flex min-w-0 flex-1 flex-col overflow-hidden border-x border-zinc-800 bg-black/70">
                     <div className="border-b border-zinc-800 px-4 py-3">
-                        <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+                        <div className="grid grid-cols-2 gap-3 xl:grid-cols-6">
                             <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
                                 <div className="text-[10px] font-mono uppercase text-zinc-500">Visible Events</div>
                                 <div className="mt-1 text-lg font-bold text-white">{visibleEvents.length}</div>
@@ -670,6 +794,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                 <div className="mt-1 text-lg font-bold text-white">{toUniqueItems(visibleEvents, 'ARTIFACT').length}</div>
                             </div>
                             <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
+                                <div className="text-[10px] font-mono uppercase text-zinc-500">Chat Events</div>
+                                <div className="mt-1 text-lg font-bold text-white">{getTrackCount(visibleEvents, 'CHAT')}</div>
+                            </div>
+                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
                                 <div className="text-[10px] font-mono uppercase text-zinc-500">Last Activity</div>
                                 <div className="mt-1 text-sm font-bold text-white">{lastActivity || 'N/A'}</div>
                             </div>
@@ -681,7 +809,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             <EmptyState
                                 icon={Clock3}
                                 title="No Timeline Events"
-                                description="This workspace does not match the current search and filter selection yet."
+                                description="This workspace does not match the current search and filter selection yet, including any optional chat activity tracks."
                                 action={{
                                     label: 'Reset Timeline Filters',
                                     onClick: clearFilters,
@@ -703,10 +831,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                             {group.events.map((event) => {
                                                 const EventIcon = getEventIcon(event);
                                                 const relatedArtifactId =
-                                                    event.refKind === 'ARTIFACT'
-                                                        ? event.refId
-                                                        : getMetadataValue<string>(event, 'relatedArtifactId')
-                                                          || getMetadataValue<string>(event, 'linkedArtifactId');
+                                                    getPrimaryRefId(event, 'ARTIFACT')
+                                                    || getMetadataValue<string>(event, 'relatedArtifactId')
+                                                    || getMetadataValue<string>(event, 'linkedArtifactId');
+                                                const sourceSignalId = getMetadataValue<string>(event, 'sourceSignalId');
+                                                const parentArtifactId =
+                                                    getMetadataValue<string>(event, 'parentArtifactId') || event.parentRefId;
+                                                const sourceRunId = getMetadataValue<string>(event, 'sourceRunId');
+                                                const sessionId =
+                                                    getPrimaryRefId(event, 'CHAT_SESSION')
+                                                    || getMetadataValue<string>(event, 'sessionId');
 
                                                 return (
                                                     <div
@@ -762,6 +896,54 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                         ))}
                                                                     </div>
                                                                 )}
+                                                                {(sourceSignalId || parentArtifactId || sourceRunId || sessionId) && (
+                                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                                        {sourceSignalId && (
+                                                                            <button
+                                                                                onClick={(clickEvent) => {
+                                                                                    clickEvent.stopPropagation();
+                                                                                    focusReference('SIGNAL', sourceSignalId);
+                                                                                }}
+                                                                                className="border border-cyan-500/30 bg-cyan-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-cyan-200 transition hover:border-cyan-400 hover:text-white"
+                                                                            >
+                                                                                From {signalTitleById.get(sourceSignalId) || 'Signal'}
+                                                                            </button>
+                                                                        )}
+                                                                        {parentArtifactId && (
+                                                                            <button
+                                                                                onClick={(clickEvent) => {
+                                                                                    clickEvent.stopPropagation();
+                                                                                    focusReference('ARTIFACT', parentArtifactId);
+                                                                                }}
+                                                                                className="border border-amber-500/30 bg-amber-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-amber-200 transition hover:border-amber-400 hover:text-white"
+                                                                            >
+                                                                                Parent {artifactTitleById.get(parentArtifactId) || labelProfile.artifactLabel}
+                                                                            </button>
+                                                                        )}
+                                                                        {sourceRunId && (
+                                                                            <button
+                                                                                onClick={(clickEvent) => {
+                                                                                    clickEvent.stopPropagation();
+                                                                                    focusReference('RUN', sourceRunId);
+                                                                                }}
+                                                                                className="border border-osint-primary/30 bg-osint-primary/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-osint-primary transition hover:border-osint-primary hover:text-white"
+                                                                            >
+                                                                                Source {runTitleById.get(sourceRunId) || 'Run'}
+                                                                            </button>
+                                                                        )}
+                                                                        {sessionId && event.track !== 'CHAT' && (
+                                                                            <button
+                                                                                onClick={(clickEvent) => {
+                                                                                    clickEvent.stopPropagation();
+                                                                                    focusReference('CHAT', sessionId);
+                                                                                }}
+                                                                                className="border border-emerald-500/30 bg-emerald-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-emerald-200 transition hover:border-emerald-400 hover:text-white"
+                                                                            >
+                                                                                Chat {chatTitleById.get(sessionId) || 'Session'}
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
 
                                                             <div className="flex shrink-0 flex-wrap gap-2">
@@ -783,7 +965,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                     }}
                                                                     className="border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
                                                                 >
-                                                                    Workspace Chat
+                                                                    {sessionId ? 'Open Chat Session' : 'Workspace Chat'}
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -819,7 +1001,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             <EmptyState
                                 icon={MessageSquare}
                                 title="Select An Event"
-                                description="Pick a signal, run, or artifact from the chronology to inspect its context and jump into related workspace views."
+                                description="Pick a signal, run, artifact, or chat event from the chronology to inspect its context and jump into related workspace views."
                                 className="py-20"
                             />
                         ) : (
@@ -877,6 +1059,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                 {activeWorkspace ? sanitizeDisplayTitle(activeWorkspace.title) : 'Unknown'}
                                             </div>
                                         </div>
+                                        {selectedChatSession && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Chat Session</div>
+                                                <div className="mt-1">{selectedChatSession.title || 'Workspace Chat'}</div>
+                                            </div>
+                                        )}
                                         {selectedArtifact && (
                                             <div>
                                                 <div className="text-[10px] uppercase text-zinc-500">
@@ -903,6 +1091,30 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                             <div>
                                                 <div className="text-[10px] uppercase text-zinc-500">Source Run</div>
                                                 <div className="mt-1">{sanitizeDisplayTitle(selectedRun.topic)}</div>
+                                            </div>
+                                        )}
+                                        {selectedChatLaunchContext?.entityName && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Pinned Entity</div>
+                                                <div className="mt-1">{selectedChatLaunchContext.entityName}</div>
+                                            </div>
+                                        )}
+                                        {typeof selectedChatAction?.input?.query === 'string' && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Workspace Query</div>
+                                                <div className="mt-1">{selectedChatAction.input.query}</div>
+                                            </div>
+                                        )}
+                                        {typeof selectedChatAction?.input?.topic === 'string' && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Requested Topic</div>
+                                                <div className="mt-1">{selectedChatAction.input.topic}</div>
+                                            </div>
+                                        )}
+                                        {typeof getMetadataValue<number>(selectedEvent, 'citedSnippetCount') === 'number' && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Citations Used</div>
+                                                <div className="mt-1">{getMetadataValue<number>(selectedEvent, 'citedSnippetCount')}</div>
                                             </div>
                                         )}
                                         {getMetadataValue<string>(selectedEvent, 'source') && (
@@ -947,6 +1159,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                     }
                                 >
                                     <div className="space-y-2 px-1 py-1">
+                                        {selectedChatSession && selectedEvent.refKind !== 'CHAT_SESSION' && (
+                                            <button
+                                                onClick={() => focusReference('CHAT', selectedChatSession.id)}
+                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                            >
+                                                Focus Chat Session
+                                            </button>
+                                        )}
                                         {relatedSignal && (
                                             <button
                                                 onClick={() => focusReference('SIGNAL', relatedSignal.id)}
@@ -983,7 +1203,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                             onClick={() => openWorkspaceChat(selectedEvent)}
                                             className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
                                         >
-                                            Open Workspace Chat
+                                            {selectedChatSession ? 'Open Chat Session' : 'Open Workspace Chat'}
                                         </button>
                                     </div>
                                 </Accordion>

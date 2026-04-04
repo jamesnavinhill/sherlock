@@ -48,6 +48,8 @@ describe('timelineEvents', () => {
             artifacts,
             runs,
             signals,
+            chatSessions: [],
+            chatActionsBySessionId: {},
         });
 
         expect(events.map((event) => event.type)).toEqual([
@@ -102,6 +104,8 @@ describe('timelineEvents', () => {
                     threatLevel: 'INFO',
                 },
             ],
+            chatSessions: [],
+            chatActionsBySessionId: {},
         });
 
         const query: TimelineQueryState = {
@@ -183,6 +187,8 @@ describe('timelineEvents', () => {
                     linkedReportId: 'rep-2',
                 },
             ],
+            chatSessions: [],
+            chatActionsBySessionId: {},
         });
 
         const artifactEvent = events.find((event) => event.refId === 'rep-2');
@@ -205,5 +211,118 @@ describe('timelineEvents', () => {
         expect(focused.map((event) => event.refId)).toContain('sig-1');
         expect(focused.map((event) => event.refId)).toContain('run-1');
         expect(focused.map((event) => event.refId)).toContain('rep-2');
+    });
+
+    it('adds opt-in chat session and action events with session lineage', () => {
+        const events = buildWorkspaceTimelineEvents({
+            workspaceId: 'case-1',
+            artifacts: [
+                {
+                    id: 'rep-1',
+                    caseId: 'case-1',
+                    topic: 'Atlas Chat Brief',
+                    createdAt: 400,
+                    summary: 'Saved from chat',
+                    agendas: [],
+                    leads: [],
+                    entities: [],
+                    sources: [],
+                    rawText: 'raw',
+                    artifactType: 'BRIEF',
+                },
+            ],
+            runs: [],
+            signals: [
+                {
+                    id: 'sig-1',
+                    caseId: 'case-1',
+                    content: 'Atlas signal',
+                    source: 'Desk',
+                    timestamp: '2026-04-01T00:00:00.000Z',
+                    type: 'NEWS',
+                    status: 'PENDING',
+                    threatLevel: 'INFO',
+                },
+            ],
+            chatSessions: [
+                {
+                    id: 'chat-1',
+                    workspaceId: 'case-1',
+                    title: 'Atlas Workspace Chat',
+                    status: 'ACTIVE',
+                    sourceReportId: 'rep-1',
+                    metadata: {
+                        launchContext: {
+                            headlineId: 'sig-1',
+                            sourceReportId: 'rep-1',
+                        },
+                    },
+                    createdAt: 100,
+                    updatedAt: 500,
+                },
+            ],
+            chatActionsBySessionId: {
+                'chat-1': [
+                    {
+                        id: 'act-search',
+                        sessionId: 'chat-1',
+                        type: 'SEARCH_WORKSPACE',
+                        status: 'COMPLETED',
+                        input: {
+                            query: 'atlas exposure',
+                        },
+                        result: {
+                            citedSnippetIds: ['snippet-1', 'snippet-2'],
+                        },
+                        createdAt: 200,
+                        updatedAt: 200,
+                    },
+                    {
+                        id: 'act-save',
+                        sessionId: 'chat-1',
+                        type: 'CREATE_ARTIFACT_DRAFT',
+                        status: 'COMPLETED',
+                        result: {
+                            artifactId: 'rep-1',
+                        },
+                        createdAt: 300,
+                        updatedAt: 300,
+                    },
+                ],
+            },
+        });
+
+        expect(events.map((event) => event.type)).toEqual([
+            'SIGNAL_SAVED',
+            'ARTIFACT_CREATED',
+            'CHAT_ARTIFACT_SAVED',
+            'CHAT_SEARCHED_WORKSPACE',
+            'CHAT_SESSION_STARTED',
+        ]);
+
+        const sessionEvent = events.find((event) => event.type === 'CHAT_SESSION_STARTED');
+        const saveEvent = events.find((event) => event.type === 'CHAT_ARTIFACT_SAVED');
+
+        expect(sessionEvent?.refKind).toBe('CHAT_SESSION');
+        expect(sessionEvent?.metadata?.sourceSignalId).toBe('sig-1');
+        expect(saveEvent?.parentRefId).toBe('chat-1');
+        expect(saveEvent?.metadata?.relatedArtifactId).toBe('rep-1');
+
+        const focused = filterTimelineEvents(events, {
+            workspaceId: 'case-1',
+            search: '',
+            filters: {
+                range: 'ALL',
+                tracks: ['CHAT'],
+            },
+            focusedTrack: 'CHAT',
+            focusedRefId: 'chat-1',
+        });
+
+        expect(focused.map((event) => event.type)).toEqual([
+            'CHAT_ARTIFACT_SAVED',
+            'CHAT_SEARCHED_WORKSPACE',
+            'CHAT_SESSION_STARTED',
+        ]);
     });
 });

@@ -5,7 +5,7 @@ Status: Active Handoff
 
 ## What Landed
 
-The first meaningful Timeline slices are now implemented.
+The next Timeline buildout slice is now implemented.
 
 Current delivered state:
 
@@ -24,9 +24,14 @@ Current delivered state:
   - signals
   - runs
   - artifacts
+  - chat sessions
+  - curated high-signal chat actions
+- chat remains opt-in at the filter layer rather than default-on in the main chronology
+- chronology cards now show lightweight lineage chips for related signals, runs, artifacts, and chat sessions
 - event cards support click-through into:
   - `OperationView` for related artifacts
   - `Chat` for workspace or event-context chat entry
+  - exact saved chat sessions when the timeline event belongs to a persisted chat session/action
 
 ## Files Added
 
@@ -37,22 +42,24 @@ Current delivered state:
 ## Files Updated
 
 - `src/components/features/TimelineView.tsx`
-- `src/components/ui/Sidebar.tsx`
-- `src/App.tsx`
+- `src/services/chat/launchContext.ts`
 - `src/types/index.ts`
-- `src/services/db/repositories/CaseRepository.ts`
-- `src/store/caseStore.ts`
+- `README.md`
+- `docs/operations/architecture.md`
+- `docs/operations/OPERATIONS_RUNBOOK.md`
 - `docs/plans/04-timeline-buildout-plan.md`
+- `docs/reports/05-timeline-implementation-handoff.md`
 
 ## Validation
 
 Completed on this checkout:
 
 - `npm run lint`
-- `npm run test`
+- `npx eslint src/types/index.ts src/services/chat/launchContext.ts src/services/chat/launchContext.test.ts src/components/features/Timeline/timelineEvents.ts src/components/features/Timeline/timelineEvents.test.ts src/components/features/TimelineView.tsx`
+- `npx vitest run src/components/features/Timeline/timelineEvents.test.ts src/services/chat/launchContext.test.ts --pool=forks`
 - `npm run build`
 
-All three passed.
+All of the above passed.
 
 ## Important Technical Notes
 
@@ -66,7 +73,23 @@ That was necessary to make artifacts first-class timeline events instead of rely
 
 `Case` now exposes optional `createdAt` and `updatedAt`, and `CaseRepository` maps them.
 
-### 3. Current Lineage Is Transitional
+### 3. Timeline Now Has A Curated Chat Track
+
+Timeline now derives a secondary `CHAT` track from persisted:
+
+- `chat_sessions`
+- high-signal `chat_actions`
+
+Included chat action types are intentionally limited to:
+
+- `SEARCH_WORKSPACE`
+- `CREATE_ARTIFACT_DRAFT`
+- `APPEND_NOTE_TO_ARTIFACT`
+- `CREATE_FOLLOW_UP_RUN`
+
+Lower-signal retrieval helpers and raw transcript messages are still intentionally excluded from the main chronology.
+
+### 4. Current Lineage Is Transitional
 
 Run-to-artifact linkage is currently inferred in a compatibility-safe way:
 
@@ -77,15 +100,15 @@ Artifact follow-up lineage is currently inferred from:
 
 - `parentTopic`
 
-This is good enough for the current slice, but it is not the final lineage model.
+Chat lineage is now explicit at the session/action layer, but run/artifact lineage is still not the final model everywhere.
 
 ## Best Next Session Starting Point
 
-The most valuable next steps are:
+The most valuable next steps are now:
 
 1. strengthen lineage with explicit IDs
-2. improve Timeline details and event-specific context
-3. add secondary tracks once the core chronology remains stable
+2. add entity milestone chronology
+3. continue mobile and presentation polish
 
 ### Recommended Order
 
@@ -112,40 +135,21 @@ Most likely files:
 - `src/services/db/repositories/CaseRepository.ts`
 - `src/components/features/Timeline/timelineEvents.ts`
 
-#### 2. Enrich The Details Drawer
+#### 2. Add Entity Milestones
 
-Good next UX improvement after lineage.
+The most natural next secondary chronology after curated chat events.
 
-Current drawer state:
+Recommended scope:
 
-- useful, but intentionally light
-- summary, context, and actions
-
-Best next additions:
-
-- event-specific sections for signals, runs, and artifacts
-- stronger display of related refs
-- clearer causal chain when a signal led to a run or a run produced an artifact
-
-Main file:
-
-- `src/components/features/TimelineView.tsx`
-
-#### 3. Add Secondary Tracks
-
-Only after the core remains legible.
-
-Recommended next tracks:
-
-- `ChatSession`
-- high-signal `AgentAction`
-- entity milestones
+- first-seen entity moments
+- repeated-mention thresholds
+- artifact-backed entity reappearance
 
 Recommended hold:
 
-- graph edits
-- raw chat messages
-- low-level retrieval traces in the main stream
+- raw graph edits
+- individual chat messages
+- low-level retrieval traces
 
 Most likely files:
 
@@ -153,7 +157,7 @@ Most likely files:
 - `src/components/features/TimelineView.tsx`
 - `src/types/index.ts`
 
-#### 4. Mobile Header Polish
+#### 3. Mobile Header Polish
 
 The desktop shell is the stronger implementation right now.
 
@@ -171,8 +175,8 @@ Main file:
 
 These are expected at this handoff point.
 
-- Timeline does not yet render chat actions in the main chronology
 - Timeline does not yet render entity milestones
+- Timeline only renders curated high-signal chat actions, not the full chat audit stream
 - run/artifact lineage is still partly inferred
 - export is not yet implemented
-- the details drawer is intentionally functional rather than fully polished
+- mobile Timeline ergonomics are still behind the desktop shell
