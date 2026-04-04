@@ -3,6 +3,18 @@
 Date: 2026-04-03
 Status: In Progress
 
+## Status Note
+
+This document still covers the implemented Timeline buildout and the chronology-specific remaining work.
+
+For the broader active next-phase plan that sequences:
+
+- required Timeline extensions first
+- canonical cutover and legacy removal second
+- major doc refresh after implementation settles
+
+use `docs/plans/05-timeline-completion-and-canonical-cutover-plan.md`.
+
 ## Implementation Status
 
 Current status on this checkout:

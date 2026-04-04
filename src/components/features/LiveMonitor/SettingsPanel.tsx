@@ -1,5 +1,5 @@
 import React from 'react';
-import type { MonitorConfig } from '../../../services/gemini';
+import type { MonitorConfig } from '../../../services/runtime';
 import {
   Settings2,
   X,

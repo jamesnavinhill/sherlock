@@ -1,6 +1,6 @@
 # Provider Operations Runbook
 
-This runbook covers runtime incidents in the provider router pipeline:
+This runbook covers runtime incidents in the provider router pipeline as surfaced through `src/services/runtime.ts`:
 
 - `INVESTIGATE`
 - `CHAT`

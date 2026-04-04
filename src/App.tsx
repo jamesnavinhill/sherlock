@@ -13,7 +13,7 @@ import type {
 } from './types';
 import { AppView } from './types';
 import { useCaseStore } from './store/caseStore';
-import { hasApiKey, investigateTopic } from './services/gemini';
+import { hasApiKey, runWorkspaceInvestigation } from './services/runtime';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
 import { HelpModal } from './components/ui/HelpModal';
@@ -189,7 +189,7 @@ function App() {
     runConfig: InvestigationRunConfig
   ) => {
     try {
-      let report = await investigateTopic(
+      let report = await runWorkspaceInvestigation(
         launchRequest.topic,
         launchRequest.parentContext,
         launchRequest.configOverride,
@@ -437,12 +437,10 @@ function App() {
   const handleBreadcrumbNavigate = (id: string) => {
     const caseItem = navStack.find(item => item.id === id && item.type === 'CASE');
     if (caseItem) {
-      const caseReports = archives.filter(r => r.caseId === id);
-      if (caseReports.length > 0) {
-        const root =
-          caseReports.find(r => !r.config?.parentArtifactId && !r.parentTopic)
-          || caseReports.find(r => !r.config?.parentArtifactId)
-          || caseReports.find(r => !r.parentTopic)
+        const caseReports = archives.filter(r => r.caseId === id);
+        if (caseReports.length > 0) {
+          const root =
+          caseReports.find(r => !r.config?.parentArtifactId)
           || caseReports[0];
         handleViewReport(root);
         return;

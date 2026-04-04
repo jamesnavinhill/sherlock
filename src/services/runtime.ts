@@ -1,11 +1,11 @@
 import type {
     DateRangeConfig,
     FeedItem,
-    InvestigationReport,
     InvestigationRunConfig,
     InvestigationScope,
     MonitorEvent,
     SystemConfig,
+    Artifact,
 } from '../types';
 import type { AIProvider } from '../config/aiModels';
 import { loadSystemConfig } from '../config/systemConfig';
@@ -23,13 +23,10 @@ import {
 } from './providers';
 import type { LiveIntelConfig, ScanAnomaliesOptions } from './providers/types';
 
-export type AnomaliesConfig = ScanAnomaliesOptions;
-
+export type DiscoveryConfig = ScanAnomaliesOptions;
 export type MonitorConfig = LiveIntelConfig;
 
-const getActiveProvider = (): AIProvider => {
-    return loadSystemConfig().provider;
-};
+const getActiveProvider = (): AIProvider => loadSystemConfig().provider;
 
 export const hasApiKey = (provider?: AIProvider): boolean => {
     return hasStoredApiKey(provider || getActiveProvider());
@@ -45,7 +42,6 @@ export const setApiKey = (key: string, provider?: AIProvider): void => {
         throw new Error(result.message || 'INVALID_API_KEY');
     }
 
-    // Clear cached Gemini client whenever keys change.
     resetGeminiProviderClient();
 };
 
@@ -60,11 +56,11 @@ export const generateAudioBriefing = async (text: string): Promise<string> => {
     return generateAudioBriefingWithProviderRouter({ text });
 };
 
-export const scanForAnomalies = async (
+export const scanForDiscoveries = async (
     region = '',
     category = 'All',
     dateRange?: { start?: string; end?: string },
-    configOverride?: AnomaliesConfig,
+    configOverride?: DiscoveryConfig,
     scope?: InvestigationScope,
     runConfig?: Pick<InvestigationRunConfig, 'packId' | 'purposeId'>
 ): Promise<FeedItem[]> => {
@@ -79,7 +75,7 @@ export const scanForAnomalies = async (
     });
 };
 
-export const getLiveIntel = async (
+export const getLiveWorkspaceIntel = async (
     topic: string,
     monitorConfig: MonitorConfig = {
         socialCount: 2,
@@ -101,14 +97,14 @@ export const getLiveIntel = async (
     });
 };
 
-export const investigateTopic = async (
+export const runWorkspaceInvestigation = async (
     topic: string,
     parentContext?: { topic: string; summary: string },
     configOverride?: Partial<SystemConfig>,
     scope?: InvestigationScope,
     dateOverride?: { start?: string; end?: string },
     runConfig?: Pick<InvestigationRunConfig, 'packId' | 'purposeId' | 'artifactType' | 'labelProfileId'>
-): Promise<InvestigationReport> => {
+): Promise<Artifact> => {
     return investigateWithProviderRouter({
         topic,
         parentContext,

@@ -227,7 +227,6 @@ const investigate = async (request: InvestigationRequest): Promise<Investigation
 
             return {
                 topic: normalizedTopic,
-                parentTopic: normalizedParentTopic || undefined,
                 dateStr: new Date().toLocaleDateString(),
                 summary,
                 entities: normalizeEntities(data.entities),

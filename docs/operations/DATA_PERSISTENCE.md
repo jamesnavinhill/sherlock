@@ -44,9 +44,15 @@ Persistence is routed through repository classes:
 - `ChatRepository`
 - `WorkspaceSearchRepository`
 
-## Stream 1 Additions
+## Current Runtime Model
 
-The Stream 1 domain-pack cutover extends persistence without replacing the compatibility tables already used by the UI.
+Runtime code now treats persisted records as:
+
+- `Workspace` -> stored in `cases`
+- `Artifact` -> stored in `reports` plus `artifact_sections`, `entities`, and `sources`
+- `WorkspaceRun` -> stored in `tasks`
+
+The table names remain for persistence continuity, but the primary runtime model is canonical workspace terminology.
 
 `cases` can now store workspace-oriented metadata:
 
@@ -109,11 +115,9 @@ Existing local databases are upgraded additively in `src/services/db/client.ts`.
 Some non-tabular values are still stored directly in localStorage:
 
 - provider keys (for selected providers)
-- legacy compatibility key aliases
 - `sherlock_config` (system config object)
 - `sherlock_livestream_autosave`
 - `sherlock_active_workspace_id` (archive selection hint)
-- `sherlock_active_case_id` (legacy fallback alias for older archive selections)
 
 ## Backup/Restore
 
@@ -143,6 +147,7 @@ Workspace-data backups include:
 - saved signals/headlines (`leads`)
 - manual graph nodes and links
 - templates
+- Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `reports`/`artifact_sections`
 
 Workspace-data backups intentionally exclude:
 

@@ -2,7 +2,7 @@
 
 This document describes the current runtime architecture as implemented in `src/`.
 
-Sherlock now runs on a compatibility-first domain-pack architecture. The established shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the hood.
+Sherlock now runs on a canonical workspace architecture. The domain-pack shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the settled `Workspace -> Artifact -> WorkspaceRun` model.
 
 ## 1. Application Shell
 
@@ -10,7 +10,7 @@ Sherlock now runs on a compatibility-first domain-pack architecture. The establi
 
 Responsibilities:
 
-- initializes persistence/state (`useCaseStore().initializeStore()`)
+- initializes persistence/state (`useWorkspaceStore().initializeStore()`, re-exported from `src/store/caseStore.ts`)
 - owns active view routing (`AppView`)
 - owns the unified launch pipeline
 - resolves domain-pack and purpose metadata into run config
@@ -37,10 +37,10 @@ Flow:
 1. Merge `configOverride` with persisted `SystemConfig`
 2. Enforce provider API key presence before task creation
 3. Resolve effective scope, domain pack, purpose profile, artifact type, and label profile
-4. Create and persist a task (`TaskRepository`)
-5. Execute the provider run via `investigateTopic`
+4. Create and persist a workspace run (`TaskRepository`)
+5. Execute the provider run via `runWorkspaceInvestigation`
 6. Normalize typed artifact sections and run metadata
-7. Archive the resulting artifact into compatibility case structures
+7. Save the resulting artifact into the canonical workspace/artifact store
 8. Persist run config snapshots for traceability
 
 Run config snapshots now include:
@@ -85,9 +85,9 @@ Key responsibilities:
 
 ## 4. AI Provider Layer
 
-App-facing compatibility facade:
+App-facing runtime facade:
 
-- `src/services/gemini.ts`
+- `src/services/runtime.ts`
 
 Provider router and adapters:
 
@@ -133,7 +133,7 @@ Entry points:
 - `src/services/db/schema.ts`
 - `src/services/db/repositories/*`
 
-The schema still uses compatibility tables such as `cases`, `reports`, and `tasks`, but Stream 1 extends them with generalized metadata:
+The schema still uses compatibility table names such as `cases`, `reports`, and `tasks`, while runtime code treats them as workspaces, artifacts, and workspace runs:
 
 - `cases` can now hold workspace-oriented metadata such as `mode`, `packId`, `purposeId`, and `labelProfileId`
 - `reports` now store `artifactType`, pack/purpose references, label profiles, and metadata JSON
@@ -141,7 +141,7 @@ The schema still uses compatibility tables such as `cases`, `reports`, and `task
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
 - `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
 
-Artifact persistence still uses the existing `reports` table, but report `configJson` is now also used to preserve run/source lineage snapshots that can be backfilled from the originating task during archive flows.
+Artifact persistence still uses the existing `reports` table, and `configJson` now carries the explicit lineage refs that Timeline and other runtime surfaces use directly.
 
 Maintenance flows now treat SQLite data as a workspace-data domain:
 
@@ -162,7 +162,7 @@ Global store:
 
 State domains include:
 
-- cases, archives, tasks, headlines
+- workspaces, artifacts, workspace runs, headlines
 - chat sessions, messages, generation state, and launch context
 - pack-aware report config snapshots
 - typed artifact sections
@@ -244,9 +244,10 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - opt-in secondary `ENTITY` track for first-seen moments, repeated-mention thresholds, and artifact-backed reappearance milestones
 - opt-in secondary `CHAT` track for chat session starts plus high-signal chat actions (`SEARCH_WORKSPACE`, saved artifact drafts, append-note actions, and follow-up launches)
 - lineage rendering across signal, run, artifact, entity, and chat relationships without introducing a new persistence schema
-- explicit lineage ids now win before topic-based compatibility matching in timeline run/artifact derivation and nearby report-navigation helpers
+- explicit lineage ids now drive timeline run/artifact derivation and nearby report-navigation helpers
 - smaller-breakpoint header controls now keep workspace switching and chronology search visible without opening the dossier first
 - click-through into saved artifacts and exact workspace chat sessions from timeline events
+- timeline snapshot export in JSON/Markdown plus save-as-artifact support for `artifactType: TIMELINE`
 
 ### Feed
 
@@ -295,7 +296,7 @@ See:
 
 ## 9. Notable Constraints
 
-- Timeline is now a live feature surface, but secondary chronology remains intentionally curated; lower-signal graph/chat audit traces and exportable timeline artifacts are still deferred to later slices.
+- Timeline is now a live feature surface with exportable timeline snapshots, while secondary chronology remains intentionally curated and lower-signal graph/chat audit traces stay out of the main stream.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
 - Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
 - `Ctrl+N` now routes through Archives and opens the active new-workspace modal rather than relying on dead shell state.

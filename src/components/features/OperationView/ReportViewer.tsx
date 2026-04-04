@@ -18,7 +18,7 @@ import { Breadcrumbs } from '../../ui/Breadcrumbs';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { EmptyState } from '../../ui/EmptyState';
-import { generateAudioBriefing } from '../../../services/gemini';
+import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import { Accordion } from '../../ui/Accordion';
 import { getEntityToneClass } from '../../../utils/entityPalette';

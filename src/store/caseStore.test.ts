@@ -229,7 +229,6 @@ describe('caseStore', () => {
         });
 
         expect(saved.caseId).toBe('case-1');
-        expect(saved.parentTopic).toBe('Parent Artifact');
         expect(saved.config).toEqual(
             expect.objectContaining({
                 sourceRunId: 'run-1',

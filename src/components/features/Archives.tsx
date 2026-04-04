@@ -301,9 +301,9 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                     <h3 className="text-base font-bold text-zinc-200 group-hover:text-white transition-colors font-mono">{report.topic}</h3>
                     <div className="flex flex-wrap gap-4 text-xs text-zinc-500 font-mono mt-1 uppercase">
                       <span>{report.dateStr || 'Unknown Date'}</span>
-                      {report.parentTopic && (
+                      {report.config?.parentArtifactId && (
                         <span className="flex items-center text-zinc-400">
-                          <ArrowRight className="w-3 h-3 mr-1" /> Linked: {report.parentTopic}
+                          <ArrowRight className="w-3 h-3 mr-1" /> Linked: {archives.find((entry) => entry.id === report.config?.parentArtifactId)?.topic || artifactLabel}
                         </span>
                       )}
                     </div>
@@ -315,10 +315,13 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        const workspaceId = report.caseId;
+                        const sourceReportId = report.id;
+                        if (!workspaceId || !sourceReportId) return;
                         onOpenChat({
-                          workspaceId: report.caseId,
+                          workspaceId,
                           launchContext: {
-                            sourceReportId: report.id,
+                            sourceReportId,
                           },
                         });
                       }}

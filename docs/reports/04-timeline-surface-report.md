@@ -2,6 +2,8 @@
 
 Date: 2026-04-03
 
+Historical note: this report captures the recommended Timeline surface before the final implementation pass. The current Timeline behavior is described in `README.md` and `docs/operations/architecture.md`.
+
 ## Purpose
 
 This report turns Slice 2 of `docs/plans/03-cleanup-parity-and-timeline-plan.md` into a concrete product recommendation.

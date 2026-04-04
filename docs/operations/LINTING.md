@@ -38,8 +38,9 @@ From `eslint.config.js`:
 ## Current Status (April 3, 2026)
 
 - `npm run lint`: passes
-- `npm run test`: passes
+- targeted Vitest coverage for Timeline/store/maintenance/repository changes: passes
 - `npm run build`: passes
+- `npm run test`: attempted for the full suite, but timed out in this environment after partial progress
 
 ## Suggested Lint Workflow
 

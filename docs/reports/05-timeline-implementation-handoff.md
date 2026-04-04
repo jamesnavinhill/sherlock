@@ -3,6 +3,8 @@
 Date: 2026-04-03
 Status: Active Handoff
 
+Historical note: this handoff reflects the initial Timeline landing. The current codebase now includes later completion work such as Timeline snapshot export/save and stricter explicit-lineage handling.
+
 ## What Landed
 
 The next Timeline buildout slice is now implemented.

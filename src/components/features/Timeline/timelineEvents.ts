@@ -1,13 +1,13 @@
 import type {
+    Artifact,
     AgentAction,
     ChatSession,
     Headline,
-    InvestigationReport,
-    InvestigationTask,
     TimelineEvent,
     TimelineQueryState,
     TimelineRange,
     TimelineTrack,
+    WorkspaceRun,
 } from '@/types';
 import { sanitizeDisplayTitle } from '../../../domain';
 import { getChatLaunchContextFromSession, isGuidedChatSession } from '../../../services/chat/launchContext';
@@ -42,7 +42,7 @@ const buildSignalSearchText = (headline: Headline): string =>
         .join(' ')
         .toLowerCase();
 
-const buildArtifactSearchText = (artifact: InvestigationReport): string =>
+const buildArtifactSearchText = (artifact: Artifact): string =>
     [
         artifact.topic,
         artifact.summary,
@@ -54,7 +54,7 @@ const buildArtifactSearchText = (artifact: InvestigationReport): string =>
         .join(' ')
         .toLowerCase();
 
-const buildEntitySearchText = (entityName: string, artifact: InvestigationReport, mentionCount: number): string =>
+const buildEntitySearchText = (entityName: string, artifact: Artifact, mentionCount: number): string =>
     [
         entityName,
         artifact.topic,
@@ -66,7 +66,7 @@ const buildEntitySearchText = (entityName: string, artifact: InvestigationReport
         .join(' ')
         .toLowerCase();
 
-const buildRunSearchText = (run: InvestigationTask): string =>
+const buildRunSearchText = (run: WorkspaceRun): string =>
     [
         run.topic,
         run.status,
@@ -123,25 +123,9 @@ const buildChatActionSearchText = (action: AgentAction, session: ChatSession | u
         .join(' ')
         .toLowerCase();
 
-const buildParentArtifactMap = (artifacts: InvestigationReport[], workspaceId: string) => {
-    const scopedArtifacts = artifacts.filter((artifact) => artifact.caseId === workspaceId);
-    return new Map(
-        scopedArtifacts.map((artifact) => [sanitizeDisplayTitle(artifact.topic).toLowerCase(), artifact.id]).filter(
-            (entry): entry is [string, string] => !!entry[1]
-        )
-    );
-};
+const getArtifactParentId = (artifact: Artifact) => artifact.config?.parentArtifactId;
 
-const getArtifactParentId = (
-    artifact: InvestigationReport,
-    parentArtifactMap: Map<string, string>
-) =>
-    artifact.config?.parentArtifactId
-    || (artifact.parentTopic
-        ? parentArtifactMap.get(sanitizeDisplayTitle(artifact.parentTopic).toLowerCase())
-        : undefined);
-
-const inferArtifactForRun = (run: InvestigationTask, artifacts: InvestigationReport[], workspaceId: string) => {
+const inferArtifactForRun = (run: WorkspaceRun, artifacts: Artifact[], workspaceId: string) => {
     if (run.config?.producedArtifactId) return run.config.producedArtifactId;
     if (run.report?.id) return run.report.id;
 
@@ -174,17 +158,16 @@ const eventReferencesFocus = (event: TimelineEvent, focusedRefId: string) => {
 
 export const buildWorkspaceTimelineEvents = (input: {
     workspaceId: string;
-    artifacts: InvestigationReport[];
-    runs: InvestigationTask[];
+    artifacts: Artifact[];
+    runs: WorkspaceRun[];
     signals: Headline[];
     chatSessions: ChatSession[];
     chatActionsBySessionId: Record<string, AgentAction[]>;
 }): TimelineEvent[] => {
     const scopedArtifacts = input.artifacts.filter((artifact) => artifact.caseId === input.workspaceId);
-    const parentArtifactMap = buildParentArtifactMap(input.artifacts, input.workspaceId);
     const artifactById = new Map(
         scopedArtifacts
-            .filter((artifact): artifact is InvestigationReport & { id: string } => !!artifact.id)
+            .filter((artifact): artifact is Artifact & { id: string } => !!artifact.id)
             .map((artifact) => [artifact.id, artifact])
     );
     const sessionById = new Map(
@@ -282,7 +265,7 @@ export const buildWorkspaceTimelineEvents = (input: {
     const artifactEvents = input.artifacts
         .filter((artifact) => artifact.caseId === input.workspaceId)
         .map<TimelineEvent>((artifact) => {
-            const parentRefId = getArtifactParentId(artifact, parentArtifactMap);
+            const parentRefId = getArtifactParentId(artifact);
             const artifactSummary = artifact.config?.sourceSignalId
                 ? 'Saved artifact created from a signal-driven run.'
                 : artifact.config?.parentArtifactId

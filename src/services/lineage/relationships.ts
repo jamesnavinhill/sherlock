@@ -1,12 +1,12 @@
-import type { InvestigationLaunchRequest, InvestigationReport, InvestigationTask } from '@/types';
+import type { Artifact, InvestigationLaunchRequest, WorkspaceRun } from '@/types';
 
-const findArtifactById = (artifacts: InvestigationReport[], artifactId?: string) =>
+const findArtifactById = (artifacts: Artifact[], artifactId?: string) =>
     artifactId ? artifacts.find((artifact) => artifact.id === artifactId) : undefined;
 
-const findRunById = (runs: InvestigationTask[], runId?: string) =>
+const findRunById = (runs: WorkspaceRun[], runId?: string) =>
     runId ? runs.find((run) => run.id === runId) : undefined;
 
-const findRunProducingArtifact = (runs: InvestigationTask[], artifactId?: string) => {
+const findRunProducingArtifact = (runs: WorkspaceRun[], artifactId?: string) => {
     if (!artifactId) return undefined;
 
     return runs.find(
@@ -16,7 +16,7 @@ const findRunProducingArtifact = (runs: InvestigationTask[], artifactId?: string
     );
 };
 
-const findArtifactProducedByRun = (artifacts: InvestigationReport[], run?: InvestigationTask) => {
+const findArtifactProducedByRun = (artifacts: Artifact[], run?: WorkspaceRun) => {
     if (!run) return undefined;
 
     const explicitArtifactId = run.config?.producedArtifactId || run.report?.id;
@@ -29,8 +29,8 @@ const findArtifactProducedByRun = (artifacts: InvestigationReport[], run?: Inves
 
 export const resolveLaunchLineage = (input: {
     request: InvestigationLaunchRequest;
-    artifacts: InvestigationReport[];
-    runs: InvestigationTask[];
+    artifacts: Artifact[];
+    runs: WorkspaceRun[];
 }) => {
     let parentArtifact = findArtifactById(input.artifacts, input.request.parentArtifactId);
     let parentRun = findRunById(input.runs, input.request.parentRunId);
@@ -54,4 +54,3 @@ export const resolveLaunchLineage = (input: {
             || parentRun?.config?.sourceSignalId,
     };
 };
-

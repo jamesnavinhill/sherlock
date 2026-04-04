@@ -1,14 +1,14 @@
 import type {
     AgentAction,
+    Artifact,
     CaseTemplate,
     ChatMessage,
     ChatSession,
     Headline,
-    InvestigationReport,
-    InvestigationTask,
     ManualConnection,
     ManualNode,
     WorkspaceDataBackup,
+    WorkspaceRun,
 } from '@/types';
 
 export const WORKSPACE_DATA_BACKUP_KIND = 'SHERLOCK_WORKSPACE_DATA';
@@ -38,7 +38,7 @@ const flattenSessionRecord = <T extends { sessionId: string }>(value: unknown): 
     return Object.values(value as Record<string, unknown>).flatMap((entry) => asArray<T>(entry));
 };
 
-const withWorkspaceLink = (run: InvestigationTask): InvestigationTask => ({
+const withWorkspaceLink = (run: WorkspaceRun): WorkspaceRun => ({
     ...run,
     workspaceId: run.workspaceId || run.report?.caseId,
 });
@@ -96,8 +96,8 @@ export const filterManualGraphForWorkspaceRemoval = (input: {
 
 export const buildWorkspaceDataBackup = (input: {
     workspaces: WorkspaceDataBackup['workspaces'];
-    artifacts: InvestigationReport[];
-    runs: InvestigationTask[];
+    artifacts: Artifact[];
+    runs: WorkspaceRun[];
     chatSessions: ChatSession[];
     chatMessagesBySessionId: Record<string, ChatMessage[]>;
     chatActionsBySessionId: Record<string, AgentAction[]>;
@@ -145,8 +145,8 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
     }
 
     const workspaces = looksCanonical ? asArray<WorkspaceDataBackup['workspaces'][number]>(payload.workspaces) : asArray(payload.cases);
-    const artifacts = looksCanonical ? asArray<InvestigationReport>(payload.artifacts) : asArray<InvestigationReport>(payload.archives);
-    const runs = (looksCanonical ? asArray<InvestigationTask>(payload.runs) : asArray<InvestigationTask>(payload.tasks)).map(withWorkspaceLink);
+    const artifacts = looksCanonical ? asArray<Artifact>(payload.artifacts) : asArray<Artifact>(payload.archives);
+    const runs = (looksCanonical ? asArray<WorkspaceRun>(payload.runs) : asArray<WorkspaceRun>(payload.tasks)).map(withWorkspaceLink);
     const sessions = looksCanonical ? asArray<ChatSession>(payload.chat?.sessions) : asArray<ChatSession>(payload.chatSessions);
     const messages = looksCanonical
         ? asArray<ChatMessage>(payload.chat?.messages)

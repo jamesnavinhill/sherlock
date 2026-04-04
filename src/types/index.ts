@@ -83,7 +83,7 @@ export interface Headline {
   linkedReportId?: string;
 }
 
-export interface Case {
+export interface Workspace {
   id: string;
   scopeId?: string;
   title: string;
@@ -263,9 +263,9 @@ export interface WorkspaceContextSnippet {
 }
 
 export interface WorkspaceContextBundle {
-  workspace: Case;
+  workspace: Workspace;
   summary: string;
-  recentArtifacts: InvestigationReport[];
+  recentArtifacts: Artifact[];
   recentHeadlines: Headline[];
   snippets: WorkspaceContextSnippet[];
 }
@@ -394,7 +394,7 @@ export interface InvestigationLaunchRequest {
   parentRunId?: string;
 }
 
-export interface InvestigationReport {
+export interface Artifact {
   id?: string;
   caseId?: string;
   topic: string;
@@ -409,7 +409,6 @@ export interface InvestigationReport {
   entities: Entity[];
   sources: Source[];
   rawText: string;
-  parentTopic?: string;
   packId?: string;
   purposeId?: string;
   labelProfileId?: string;
@@ -438,23 +437,34 @@ export type EntityAliasMap = Record<string, string>;
 
 export type InvestigationStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
-export interface InvestigationTask {
+export interface WorkspaceRun {
   id: string;
   topic: string;
   status: InvestigationStatus;
   startTime: number;
   endTime?: number;
   workspaceId?: string;
-  report?: InvestigationReport;
+  report?: Artifact;
   parentContext?: InvestigationContext;
   config?: InvestigationRunConfig;
   launchRequest?: InvestigationLaunchRequest;
   error?: string;
 }
 
-export type Workspace = Case;
-export type Artifact = InvestigationReport;
-export type WorkspaceRun = InvestigationTask;
+export interface TimelineSnapshotMetadata {
+  generatedAt: string;
+  range: TimelineRange;
+  tracks: TimelineTrack[];
+  search: string;
+  focusedTrack?: TimelineTrack | 'ALL';
+  focusedRefId?: string;
+}
+
+export interface TimelineSnapshot {
+  workspace: Workspace;
+  events: TimelineEvent[];
+  metadata: TimelineSnapshotMetadata;
+}
 
 export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT' | 'ENTITY';
 
@@ -554,3 +564,7 @@ export interface WorkspaceDataBackup {
   templates: CaseTemplate[];
   metadata: WorkspaceDataBackupMetadata;
 }
+
+export type Case = Workspace;
+export type InvestigationReport = Artifact;
+export type InvestigationTask = WorkspaceRun;

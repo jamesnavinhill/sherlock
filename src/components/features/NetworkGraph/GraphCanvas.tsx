@@ -168,8 +168,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
             const caseNode = getOrCreateNode(caseId, 'CASE', report.topic, report);
             if (!caseNode) return;
 
-                if (report.parentTopic) {
-                    const parentReport = activeReports.find(r => r.topic === report.parentTopic);
+                if (report.config?.parentArtifactId) {
+                    const parentReport = activeReports.find((entry) => entry.id === report.config?.parentArtifactId);
                     if (parentReport) {
                         const pId = `case-${parentReport.id}`;
                         if (rawNodes.has(pId)) rawLinks.push({ source: pId, target: caseId, value: 3 });

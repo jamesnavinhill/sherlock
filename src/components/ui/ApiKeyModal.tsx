@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { setApiKey } from '../../services/gemini';
+import { setApiKey } from '../../services/runtime';
 import { Key, ShieldCheck, Lock, ArrowRight, AlertTriangle, ChevronDown } from 'lucide-react';
 import type { AIProvider } from '../../config/aiModels';
 import { AI_PROVIDERS } from '../../config/aiModels';

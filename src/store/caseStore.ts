@@ -1,16 +1,14 @@
 import { create } from 'zustand';
 import type {
     AgentAction,
+    Artifact,
     ArtifactSection,
-    InvestigationReport,
-    InvestigationTask,
-    Case,
     ChatGenerationStatus,
     ChatLaunchContext,
     ChatMessage,
     ChatSession,
+    Entity,
     MonitorEvent,
-    BreadcrumbItem,
     CaseTemplate,
     Headline,
     FeedItem,
@@ -18,8 +16,11 @@ import type {
     ManualNode,
     InvestigationScope,
     EntityAliasMap,
+    Workspace,
     WorkspaceDataBackup,
+    WorkspaceRun,
 } from '../types';
+import type { BreadcrumbItem } from '../components/ui/Breadcrumbs';
 import {
     AppView
 } from '../types';
@@ -55,15 +56,19 @@ export interface Toast {
 
 export type ThemeMode = 'dark' | 'light';
 
-interface CaseState {
+interface WorkspaceState {
     // --- CORE DATA STATE ---
     isLoading: boolean;
     error: string | null;
     initializeStore: () => Promise<void>;
 
-    archives: InvestigationReport[];
-    cases: Case[];
-    tasks: InvestigationTask[];
+    workspaces: Workspace[];
+    artifacts: Artifact[];
+    workspaceRuns: WorkspaceRun[];
+    // Deprecated runtime aliases kept temporarily for untouched surfaces.
+    archives: Artifact[];
+    cases: Workspace[];
+    tasks: WorkspaceRun[];
     chatSessions: ChatSession[];
     chatMessagesBySessionId: Record<string, ChatMessage[]>;
     chatActionsBySessionId: Record<string, AgentAction[]>;
@@ -71,6 +76,7 @@ interface CaseState {
     chatGenerationStatus: ChatGenerationStatus;
     partialAssistantOutput: string;
     selectedChatLaunchContext: ChatLaunchContext | null;
+    activeWorkspaceRunId: string | null;
     activeTaskId: string | null;
     liveEvents: MonitorEvent[];
     headlines: Headline[];
@@ -88,6 +94,7 @@ interface CaseState {
     manualNodes: ManualNode[];
     hiddenNodeIds: string[]; // Store as array for persistence
     flaggedNodeIds: string[]; // Store as array for persistence
+    activeWorkspaceId: string | null;
     activeCaseId: string | null;
 
     // --- INVESTIGATION SCOPE STATE ---
@@ -110,15 +117,19 @@ interface CaseState {
     showGlobalSearch: boolean;
 
     // --- ACTIONS ---
-    setArchives: (archives: InvestigationReport[]) => void;
-    setCases: (cases: Case[]) => void;
-    setTasks: (tasks: InvestigationTask[]) => void;
+    setWorkspaces: (workspaces: Workspace[]) => void;
+    setArtifacts: (artifacts: Artifact[]) => void;
+    setWorkspaceRuns: (workspaceRuns: WorkspaceRun[]) => void;
+    setArchives: (archives: Artifact[]) => void;
+    setCases: (cases: Workspace[]) => void;
+    setTasks: (tasks: WorkspaceRun[]) => void;
     setChatSessions: (sessions: ChatSession[]) => void;
     setChatMessagesBySessionId: (messages: Record<string, ChatMessage[]>) => void;
     setActiveChatSessionId: (id: string | null) => void;
     setChatGenerationStatus: (status: ChatGenerationStatus) => void;
     setPartialAssistantOutput: (value: string) => void;
     setSelectedChatLaunchContext: (context: ChatLaunchContext | null) => void;
+    setActiveWorkspaceRunId: (id: string | null) => void;
     setActiveTaskId: (id: string | null) => void;
     setLiveEvents: (events: MonitorEvent[] | ((prev: MonitorEvent[]) => MonitorEvent[])) => void;
     setCurrentView: (view: AppView) => void;
@@ -140,11 +151,12 @@ interface CaseState {
     addToast: (message: string, type?: Toast['type']) => void;
     removeToast: (id: string) => void;
     setFeedItems: (items: FeedItem[]) => void;
-    setFeedConfig: (config: CaseState['feedConfig']) => void;
+    setFeedConfig: (config: WorkspaceState['feedConfig']) => void;
     setManualLinks: (links: ManualConnection[]) => void;
     setManualNodes: (nodes: ManualNode[]) => void;
     setHiddenNodeIds: (ids: string[]) => void;
     setFlaggedNodeIds: (ids: string[]) => void;
+    setActiveWorkspaceId: (id: string | null) => void;
     setActiveCaseId: (id: string | null) => void;
     toggleFlag: (id: string) => void;
     toggleHide: (id: string) => void;
@@ -156,7 +168,8 @@ interface CaseState {
     deleteScope: (id: string) => void;
 
     // --- DERIVED/COMPLEX ACTIONS ---
-    addTask: (task: InvestigationTask) => Promise<void>;
+    addWorkspaceRun: (workspaceRun: WorkspaceRun) => Promise<void>;
+    addTask: (task: WorkspaceRun) => Promise<void>;
     createChatSession: (input: {
         workspaceId: string;
         title?: string;
@@ -177,24 +190,34 @@ interface CaseState {
     updateChatMessage: (messageId: string, sessionId: string, patch: Partial<ChatMessage>) => Promise<void>;
     addChatAction: (action: AgentAction) => Promise<void>;
     appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
-    completeTask: (id: string, report: InvestigationReport) => Promise<void>;
+    completeWorkspaceRun: (id: string, artifact: Artifact) => Promise<void>;
+    completeTask: (id: string, report: Artifact) => Promise<void>;
     failTask: (id: string, error: string) => Promise<void>;
     clearCompletedTasks: () => Promise<void>;
-    archiveReport: (report: InvestigationReport, parentContext?: { topic: string, summary: string }) => Promise<InvestigationReport>;
+    saveArtifact: (artifact: Artifact, parentContext?: { topic: string, summary: string }) => Promise<Artifact>;
+    archiveReport: (report: Artifact, parentContext?: { topic: string, summary: string }) => Promise<Artifact>;
+    updateArtifactTitle: (artifactId: string, title: string) => Promise<void>;
     updateReportTitle: (reportId: string, title: string) => Promise<void>;
+    renameEntityAcrossArtifacts: (oldName: string, newName: string) => Promise<void>;
     renameEntityAcrossReports: (oldName: string, newName: string) => Promise<void>;
+    deleteArtifact: (artifactId: string) => Promise<void>;
     deleteReport: (reportId: string) => Promise<void>;
+    deleteWorkspace: (workspaceId: string) => Promise<void>;
     deleteCase: (caseId: string) => Promise<void>;
+    purgeWorkspace: (workspaceId: string) => Promise<void>;
     purgeCase: (caseId: string) => Promise<void>;
     importWorkspaceData: (payload: WorkspaceDataBackup) => Promise<void>;
     clearWorkspaceData: () => Promise<void>;
 }
 
-export const useCaseStore = create<CaseState>()((set, get) => ({
+export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     // INITIAL STATE
     isLoading: true,
     error: null,
 
+    workspaces: [],
+    artifacts: [],
+    workspaceRuns: [],
     archives: [],
     cases: [],
     tasks: [],
@@ -205,6 +228,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     chatGenerationStatus: 'IDLE',
     partialAssistantOutput: '',
     selectedChatLaunchContext: null,
+    activeWorkspaceRunId: null,
     activeTaskId: null,
     liveEvents: [],
     toasts: [],
@@ -230,6 +254,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     manualNodes: [],
     hiddenNodeIds: [],
     flaggedNodeIds: [],
+    activeWorkspaceId: null,
     activeCaseId: null,
 
     // Scope state
@@ -244,10 +269,10 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             await migrateLocalStorageToSqlite();
 
             // Load data
-            const cases = await CaseRepository.getAllCases();
-            const archives = await CaseRepository.getAllReports();
+            const workspaces = await CaseRepository.getAllCases();
+            const artifacts = await CaseRepository.getAllReports();
             const scopes = await ScopeRepository.getAll();
-            const tasks = await TaskRepository.getAll();
+            const workspaceRuns = await TaskRepository.getAll();
             const chatSessions = await ChatRepository.getAllSessions();
             const chatMessagesBySessionId = await ChatRepository.getMessagesBySessionIds(chatSessions.map((session) => session.id));
             const chatActionsBySessionId = Object.fromEntries(
@@ -317,10 +342,13 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             await SettingsRepository.setSetting('theme_surface_settings', resolvedThemeSurfaceSettings);
 
             set({
-                cases,
-                archives,
+                workspaces,
+                artifacts,
+                workspaceRuns,
+                cases: workspaces,
+                archives: artifacts,
                 customScopes: scopes,
-                tasks,
+                tasks: workspaceRuns,
                 chatSessions,
                 chatMessagesBySessionId,
                 chatActionsBySessionId,
@@ -344,16 +372,20 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     },
 
     // SIMPLE ACTIONS
-    setArchives: (archives) => set({ archives }),
-    setCases: (cases) => set({ cases }),
-    setTasks: (tasks) => set({ tasks }),
+    setWorkspaces: (workspaces) => set({ workspaces, cases: workspaces }),
+    setArtifacts: (artifacts) => set({ artifacts, archives: artifacts }),
+    setWorkspaceRuns: (workspaceRuns) => set({ workspaceRuns, tasks: workspaceRuns }),
+    setArchives: (archives) => set({ artifacts: archives, archives }),
+    setCases: (cases) => set({ workspaces: cases, cases }),
+    setTasks: (tasks) => set({ workspaceRuns: tasks, tasks }),
     setChatSessions: (chatSessions) => set({ chatSessions }),
     setChatMessagesBySessionId: (chatMessagesBySessionId) => set({ chatMessagesBySessionId }),
     setActiveChatSessionId: (activeChatSessionId) => set({ activeChatSessionId }),
     setChatGenerationStatus: (chatGenerationStatus) => set({ chatGenerationStatus }),
     setPartialAssistantOutput: (partialAssistantOutput) => set({ partialAssistantOutput }),
     setSelectedChatLaunchContext: (selectedChatLaunchContext) => set({ selectedChatLaunchContext }),
-    setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
+    setActiveWorkspaceRunId: (activeWorkspaceRunId) => set({ activeWorkspaceRunId, activeTaskId: activeWorkspaceRunId }),
+    setActiveTaskId: (activeTaskId) => set({ activeWorkspaceRunId: activeTaskId, activeTaskId }),
     setLiveEvents: (eventsOrUpdater) => {
         if (typeof eventsOrUpdater === 'function') {
             set((state) => ({ liveEvents: eventsOrUpdater(state.liveEvents) }));
@@ -470,7 +502,8 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         set({ flaggedNodeIds });
         await SettingsRepository.setSetting('flagged_nodes', flaggedNodeIds);
     },
-    setActiveCaseId: (activeCaseId) => set({ activeCaseId }),
+    setActiveWorkspaceId: (activeWorkspaceId) => set({ activeWorkspaceId, activeCaseId: activeWorkspaceId }),
+    setActiveCaseId: (activeCaseId) => set({ activeWorkspaceId: activeCaseId, activeCaseId }),
 
     toggleFlag: (id) => {
         const state = get();
@@ -627,172 +660,193 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
 
     appendSectionToReport: async (reportId, section) => {
         await CaseRepository.appendSectionToReport(reportId, section);
-        set((state) => ({
-            archives: state.archives.map((report) =>
-                report.id === reportId
+        set((state) => {
+            const artifacts = state.artifacts.map((artifact) =>
+                artifact.id === reportId
                     ? {
-                          ...report,
-                          sections: [...(report.sections || []), section],
+                          ...artifact,
+                          sections: [...(artifact.sections || []), section],
                       }
-                    : report
-            ),
-        }));
+                    : artifact
+            );
+
+            return {
+                artifacts,
+                archives: artifacts,
+            };
+        });
     },
 
-    addTask: async (task) => {
-        await TaskRepository.create(task);
-        set((state) => ({
-            tasks: [...state.tasks, task]
-        }));
+    addWorkspaceRun: async (workspaceRun) => {
+        await TaskRepository.create(workspaceRun);
+        set((state) => {
+            const workspaceRuns = [...state.workspaceRuns, workspaceRun];
+            return {
+                workspaceRuns,
+                tasks: workspaceRuns,
+            };
+        });
     },
 
-    completeTask: async (id, report) => {
-        const existingTask = get().tasks.find((task) => task.id === id);
+    addTask: async (task) => get().addWorkspaceRun(task),
+
+    completeWorkspaceRun: async (id, artifact) => {
+        const existingTask = get().workspaceRuns.find((task) => task.id === id);
         const nextConfig = existingTask?.config
             ? {
                   ...existingTask.config,
-                  producedArtifactId: report.id,
+                  producedArtifactId: artifact.id,
               }
             : existingTask?.config;
 
         // Persist completion status
         await TaskRepository.updateStatus(id, 'COMPLETED');
-        if (report.caseId) {
-            await TaskRepository.updateWorkspace(id, report.caseId);
+        if (artifact.caseId) {
+            await TaskRepository.updateWorkspace(id, artifact.caseId);
         }
         if (nextConfig) {
             await TaskRepository.updateConfig(id, nextConfig);
         }
-        // Report persistence is handled in archiveReport before this is called
+        // Artifact persistence is handled in saveArtifact before this is called.
 
-        set((state) => ({
-            tasks: state.tasks.map((t) =>
-                t.id === id
+        set((state) => {
+            const workspaceRuns = state.workspaceRuns.map((workspaceRun) =>
+                workspaceRun.id === id
                     ? {
-                          ...t,
-                          status: 'COMPLETED',
-                          report,
-                          config: nextConfig || t.config,
-                          workspaceId: report.caseId ?? t.workspaceId,
+                          ...workspaceRun,
+                          status: 'COMPLETED' as const,
+                          report: artifact,
+                          config: nextConfig || workspaceRun.config,
+                          workspaceId: artifact.caseId ?? workspaceRun.workspaceId,
                           endTime: Date.now(),
                       }
-                    : t
-            )
-        }));
+                    : workspaceRun
+            );
+
+            return {
+                workspaceRuns,
+                tasks: workspaceRuns,
+            };
+        });
     },
+
+    completeTask: async (id, report) => get().completeWorkspaceRun(id, report),
 
     failTask: async (id, error) => {
         await TaskRepository.updateStatus(id, 'FAILED', error);
-        set((state) => ({
-            tasks: state.tasks.map((t) =>
-                t.id === id
-                    ? { ...t, status: 'FAILED', error }
-                    : t
-            )
-        }));
+        set((state) => {
+            const workspaceRuns = state.workspaceRuns.map((workspaceRun) =>
+                workspaceRun.id === id
+                    ? { ...workspaceRun, status: 'FAILED' as const, error }
+                    : workspaceRun
+            );
+
+            return {
+                workspaceRuns,
+                tasks: workspaceRuns,
+            };
+        });
     },
 
     clearCompletedTasks: async () => {
         const state = get();
-        const tasksToRemove = state.tasks.filter(t => t.status === 'COMPLETED' || t.status === 'FAILED');
-        await Promise.all(tasksToRemove.map(t => TaskRepository.delete(t.id)));
+        const tasksToRemove = state.workspaceRuns.filter((workspaceRun) => workspaceRun.status === 'COMPLETED' || workspaceRun.status === 'FAILED');
+        await Promise.all(tasksToRemove.map((workspaceRun) => TaskRepository.delete(workspaceRun.id)));
 
-        set((state) => ({
-            tasks: state.tasks.filter((t) =>
-                t.status === 'RUNNING' || t.status === 'QUEUED'
-            )
-        }));
+        set((current) => {
+            const workspaceRuns = current.workspaceRuns.filter((workspaceRun) =>
+                workspaceRun.status === 'RUNNING' || workspaceRun.status === 'QUEUED'
+            );
+
+            return {
+                workspaceRuns,
+                tasks: workspaceRuns,
+            };
+        });
     },
 
-    archiveReport: async (report, parentContext) => {
+    saveArtifact: async (artifact, parentContext) => {
         const state = get();
-        const archives = [...state.archives];
-        const cases = [...state.cases];
-        const sourceRun = report.config?.sourceRunId
-            ? state.tasks.find((task) => task.id === report.config?.sourceRunId)
-            : undefined;
-        const matchedParentArtifact = parentContext
-            ? archives.find((artifact) => artifact.topic === parentContext.topic)
+        const artifacts = [...state.artifacts];
+        const workspaces = [...state.workspaces];
+        const sourceRun = artifact.config?.sourceRunId
+            ? state.workspaceRuns.find((workspaceRun) => workspaceRun.id === artifact.config?.sourceRunId)
             : undefined;
         const parentArtifactId =
-            report.config?.parentArtifactId
+            artifact.config?.parentArtifactId
             || sourceRun?.config?.parentArtifactId
-            || matchedParentArtifact?.id;
         const sourceSignalId =
-            report.config?.sourceSignalId
+            artifact.config?.sourceSignalId
             || sourceRun?.config?.sourceSignalId;
         const parentRunId =
-            report.config?.parentRunId
+            artifact.config?.parentRunId
             || sourceRun?.config?.parentRunId;
-        let targetCaseId = report.caseId;
-        let isNewCase = false;
+        let targetWorkspaceId = artifact.caseId;
+        let isNewWorkspace = false;
 
-        // 1. Link to parent case
-        if (!targetCaseId && parentArtifactId) {
-            const parentArtifact = archives.find((artifact) => artifact.id === parentArtifactId);
+        // 1. Link to parent workspace
+        if (!targetWorkspaceId && parentArtifactId) {
+            const parentArtifact = artifacts.find((entry) => entry.id === parentArtifactId);
             if (parentArtifact?.caseId) {
-                targetCaseId = parentArtifact.caseId;
+                targetWorkspaceId = parentArtifact.caseId;
             }
         }
-        if (!targetCaseId && sourceRun?.workspaceId) {
-            targetCaseId = sourceRun.workspaceId;
+        if (!targetWorkspaceId && sourceRun?.workspaceId) {
+            targetWorkspaceId = sourceRun.workspaceId;
         }
-        if (!targetCaseId && parentContext) {
-            const parentReport = archives.find(r => r.topic === parentContext.topic);
-            if (parentReport?.caseId) {
-                targetCaseId = parentReport.caseId;
-            } else {
-                const parentCase = cases.find(c => c.title === parentContext.topic || c.title === `Operation: ${parentContext.topic}`);
-                if (parentCase) targetCaseId = parentCase.id;
+        if (!targetWorkspaceId && parentContext) {
+            const parentWorkspace = workspaces.find((workspace) => workspace.title === parentContext.topic);
+            if (parentWorkspace) {
+                targetWorkspaceId = parentWorkspace.id;
             }
         }
 
-        // 2. Check existing case for this topic
-        if (!targetCaseId) {
-            const existingCase = cases.find(c => c.title === report.topic || c.title === `Operation: ${report.topic}`);
-            if (existingCase) targetCaseId = existingCase.id;
+        // 2. Reuse an existing workspace for this topic if one already exists.
+        if (!targetWorkspaceId) {
+            const existingWorkspace = workspaces.find((workspace) => workspace.title === artifact.topic);
+            if (existingWorkspace) targetWorkspaceId = existingWorkspace.id;
         }
 
-        // 3. Create new case
-        if (!targetCaseId) {
+        // 3. Create a new workspace when the artifact starts a new thread.
+        if (!targetWorkspaceId) {
             const now = Date.now();
-            const newCaseId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-            const newCase: Case = {
-                id: newCaseId,
-                scopeId: report.config?.scopeId,
-                title: report.topic,
+            const newWorkspaceId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            const newWorkspace: Workspace = {
+                id: newWorkspaceId,
+                scopeId: artifact.config?.scopeId,
+                title: artifact.topic,
                 status: 'ACTIVE',
                 dateOpened: new Date().toLocaleDateString(),
                 createdAt: now,
                 updatedAt: now,
-                description: report.summary || `Workspace started on ${report.topic}`,
-                mode: (report.metadata?.workspaceMode as Case['mode']) || undefined,
-                packId: report.packId || report.config?.packId,
-                purposeId: report.purposeId || report.config?.purposeId,
-                labelProfileId: report.labelProfileId || report.config?.labelProfileId,
-                metadata: report.metadata,
+                description: artifact.summary || `Workspace started on ${artifact.topic}`,
+                mode: (artifact.metadata?.workspaceMode as Workspace['mode']) || undefined,
+                packId: artifact.packId || artifact.config?.packId,
+                purposeId: artifact.purposeId || artifact.config?.purposeId,
+                labelProfileId: artifact.labelProfileId || artifact.config?.labelProfileId,
+                metadata: artifact.metadata,
             };
-            cases.push(newCase);
-            targetCaseId = newCaseId;
-            isNewCase = true;
+            workspaces.push(newWorkspace);
+            targetWorkspaceId = newWorkspaceId;
+            isNewWorkspace = true;
         }
 
         // 4. Entity Normalization & Alias Application
         const autoNormalize = loadSystemConfig().autoNormalizeEntities ?? true;
 
-        const processedEntities = report.entities.map(e => {
-            const name = typeof e === 'string' ? e : e.name;
+        const processedEntities: Entity[] = artifact.entities.map((entity) => {
+            const name = entity.name;
             // Check direct alias first
             let resolvedName = state.entityAliases[name] || name;
 
             if (autoNormalize && resolvedName === name) {
                 // Try fuzzy match against all known entities in this case
-                const existingCaseEntities = archives
-                    .filter(r => r.caseId === targetCaseId)
-                    .flatMap(r => r.entities)
-                    .map(ent => typeof ent === 'string' ? ent : ent.name);
+                const existingWorkspaceEntities = artifacts
+                    .filter((entry) => entry.caseId === targetWorkspaceId)
+                    .flatMap((entry) => entry.entities)
+                    .map((entry) => typeof entry === 'string' ? entry : entry.name);
 
-                const match = existingCaseEntities.find(existingName =>
+                const match = existingWorkspaceEntities.find((existingName) =>
                     isLikelySameEntity(name, existingName)
                 );
 
@@ -803,54 +857,59 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 }
             }
 
-            if (typeof e === 'string') return resolvedName;
-            return { ...e, name: resolvedName };
+            return { ...entity, name: resolvedName };
         });
 
-        // 5. Finalize report
-        const savedReport: InvestigationReport = {
-            ...report,
+        // 5. Finalize artifact with explicit lineage only.
+        const savedArtifact: Artifact = {
+            ...artifact,
             entities: processedEntities,
-            id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            createdAt: report.createdAt ?? Date.now(),
-            config: report.config
+            id: artifact.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            createdAt: artifact.createdAt ?? Date.now(),
+            config: artifact.config
                 ? {
-                      ...report.config,
-                      sourceRunId: report.config.sourceRunId || sourceRun?.id,
+                      ...artifact.config,
+                      sourceRunId: artifact.config.sourceRunId || sourceRun?.id,
                       sourceSignalId,
                       parentArtifactId,
                       parentRunId,
                   }
                 : undefined,
-            parentTopic:
-                report.parentTopic
-                || (parentArtifactId ? archives.find((artifact) => artifact.id === parentArtifactId)?.topic : undefined),
-            caseId: targetCaseId
+            caseId: targetWorkspaceId
         };
 
         // 6. Persistence
-        if (isNewCase) {
-            const caseToSave = cases.find(c => c.id === targetCaseId);
-            if (caseToSave) await CaseRepository.createCase(caseToSave);
+        if (isNewWorkspace) {
+            const workspaceToSave = workspaces.find((workspace) => workspace.id === targetWorkspaceId);
+            if (workspaceToSave) await CaseRepository.createCase(workspaceToSave);
         }
-        await CaseRepository.createReport(savedReport);
+        await CaseRepository.createReport(savedArtifact);
 
-        // 7. Local Update
-        const existingIndex = archives.findIndex(r => r.id === savedReport.id || (r.topic === savedReport.topic && r.dateStr === savedReport.dateStr));
+        // 7. Local update
+        const existingIndex = artifacts.findIndex(
+            (entry) => entry.id === savedArtifact.id || (entry.topic === savedArtifact.topic && entry.dateStr === savedArtifact.dateStr)
+        );
         if (existingIndex >= 0) {
-            archives[existingIndex] = savedReport;
+            artifacts[existingIndex] = savedArtifact;
         } else {
-            archives.push(savedReport);
+            artifacts.push(savedArtifact);
         }
 
-        set({ archives, cases, activeCaseId: targetCaseId });
+        set({
+            workspaces,
+            cases: workspaces,
+            artifacts,
+            archives: artifacts,
+            activeWorkspaceId: targetWorkspaceId,
+            activeCaseId: targetWorkspaceId,
+        });
 
-        if (sourceSignalId && savedReport.id) {
+        if (sourceSignalId && savedArtifact.id) {
             const matchingHeadline = state.headlines.find((headline) => headline.id === sourceSignalId);
             if (matchingHeadline) {
                 const updatedHeadline = {
                     ...matchingHeadline,
-                    linkedReportId: savedReport.id,
+                    linkedReportId: savedArtifact.id,
                 };
 
                 await CaseRepository.createHeadline(updatedHeadline);
@@ -864,105 +923,138 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             }
         }
 
-        return savedReport;
+        return savedArtifact;
     },
 
-    updateReportTitle: async (reportId, title) => {
-        await CaseRepository.updateReportTopic(reportId, title);
-        set((state) => ({
-            archives: state.archives.map((report) =>
-                report.id === reportId ? { ...report, topic: title } : report
-            )
-        }));
+    archiveReport: async (report, parentContext) => get().saveArtifact(report, parentContext),
+
+    updateArtifactTitle: async (artifactId, title) => {
+        await CaseRepository.updateReportTopic(artifactId, title);
+        set((state) => {
+            const artifacts = state.artifacts.map((artifact) =>
+                artifact.id === artifactId ? { ...artifact, topic: title } : artifact
+            );
+
+            return {
+                artifacts,
+                archives: artifacts,
+            };
+        });
     },
 
-    renameEntityAcrossReports: async (oldName, newName) => {
+    updateReportTitle: async (reportId, title) => get().updateArtifactTitle(reportId, title),
+
+    renameEntityAcrossArtifacts: async (oldName, newName) => {
         await CaseRepository.renameEntity(oldName, newName);
-        set((state) => ({
-            archives: state.archives.map((report) => ({
-                ...report,
-                entities: (report.entities || []).map((entity) => {
-                    const name = typeof entity === 'string' ? entity : entity.name;
-                    if (name !== oldName) return entity;
-                    return typeof entity === 'string' ? newName : { ...entity, name: newName };
-                })
-            }))
-        }));
+        set((state) => {
+            const artifacts = state.artifacts.map((artifact) => ({
+                ...artifact,
+                entities: (artifact.entities || []).map((entity) =>
+                    entity.name !== oldName ? entity : { ...entity, name: newName }
+                )
+            }));
+
+            return {
+                artifacts,
+                archives: artifacts,
+            };
+        });
     },
 
-    deleteReport: async (reportId) => {
-        await CaseRepository.deleteReport(reportId);
-        set((state) => ({
-            archives: state.archives.filter((report) => report.id !== reportId)
-        }));
+    renameEntityAcrossReports: async (oldName, newName) => get().renameEntityAcrossArtifacts(oldName, newName),
+
+    deleteArtifact: async (artifactId) => {
+        await CaseRepository.deleteReport(artifactId);
+        set((state) => {
+            const artifacts = state.artifacts.filter((artifact) => artifact.id !== artifactId);
+            return {
+                artifacts,
+                archives: artifacts,
+            };
+        });
     },
 
-    deleteCase: async (caseId) => {
-        await CaseRepository.unassignReportsFromCase(caseId);
-        await CaseRepository.deleteCase(caseId);
-        set((state) => ({
-            chatSessions: state.chatSessions.filter((session) => session.workspaceId !== caseId),
+    deleteReport: async (reportId) => get().deleteArtifact(reportId),
+
+    deleteWorkspace: async (workspaceId) => {
+        await CaseRepository.unassignReportsFromCase(workspaceId);
+        await CaseRepository.deleteCase(workspaceId);
+        set((state) => {
+            const workspaces = state.workspaces.filter((item) => item.id !== workspaceId);
+            const artifacts = state.artifacts.map((artifact) =>
+                artifact.caseId === workspaceId ? { ...artifact, caseId: undefined } : artifact
+            );
+            const workspaceRuns = state.workspaceRuns.map((workspaceRun) => {
+                if (workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.caseId !== workspaceId) {
+                    return workspaceRun;
+                }
+
+                return {
+                    ...workspaceRun,
+                    workspaceId: undefined,
+                    report: workspaceRun.report ? { ...workspaceRun.report, caseId: undefined } : workspaceRun.report,
+                };
+            });
+
+            return {
+                chatSessions: state.chatSessions.filter((session) => session.workspaceId !== workspaceId),
             chatMessagesBySessionId: Object.fromEntries(
                 Object.entries(state.chatMessagesBySessionId).filter(([sessionId]) =>
-                    !state.chatSessions.some((session) => session.id === sessionId && session.workspaceId === caseId)
+                    !state.chatSessions.some((session) => session.id === sessionId && session.workspaceId === workspaceId)
                 )
             ),
             chatActionsBySessionId: Object.fromEntries(
                 Object.entries(state.chatActionsBySessionId).filter(([sessionId]) =>
-                    !state.chatSessions.some((session) => session.id === sessionId && session.workspaceId === caseId)
+                    !state.chatSessions.some((session) => session.id === sessionId && session.workspaceId === workspaceId)
                 )
             ),
-            cases: state.cases.filter((item) => item.id !== caseId),
-            archives: state.archives.map((report) =>
-                report.caseId === caseId ? { ...report, caseId: undefined } : report
-            ),
-            headlines: state.headlines.filter((headline) => headline.caseId !== caseId),
-            tasks: state.tasks.map((task) => {
-                if (task.workspaceId !== caseId && task.report?.caseId !== caseId) {
-                    return task;
-                }
-
-                return {
-                    ...task,
-                    workspaceId: undefined,
-                    report: task.report ? { ...task.report, caseId: undefined } : task.report,
-                };
-            }),
+            workspaces,
+            cases: workspaces,
+            artifacts,
+            archives: artifacts,
+            headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
+            workspaceRuns,
+            tasks: workspaceRuns,
             activeChatSessionId:
                 state.activeChatSessionId
-                && state.chatSessions.some((session) => session.id === state.activeChatSessionId && session.workspaceId === caseId)
+                && state.chatSessions.some((session) => session.id === state.activeChatSessionId && session.workspaceId === workspaceId)
                     ? null
                     : state.activeChatSessionId,
-            activeCaseId: state.activeCaseId === caseId ? null : state.activeCaseId
-        }));
+            activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
+            activeCaseId: state.activeCaseId === workspaceId ? null : state.activeCaseId
+            };
+        });
     },
 
-    purgeCase: async (caseId) => {
-        await CaseRepository.purgeCase(caseId);
+    deleteCase: async (caseId) => get().deleteWorkspace(caseId),
+
+    purgeWorkspace: async (workspaceId) => {
+        await CaseRepository.purgeCase(workspaceId);
         set((state) => {
-            const reportIds = state.archives
-                .filter((report) => report.caseId === caseId && !!report.id)
-                .map((report) => report.id as string);
+            const artifactIds = state.artifacts
+                .filter((artifact) => artifact.caseId === workspaceId && !!artifact.id)
+                .map((artifact) => artifact.id as string);
             const chatSessionIds = state.chatSessions
-                .filter((session) => session.workspaceId === caseId)
+                .filter((session) => session.workspaceId === workspaceId)
                 .map((session) => session.id);
-            const nextTasks = state.tasks.filter(
-                (task) => task.workspaceId !== caseId && task.report?.caseId !== caseId
+            const nextWorkspaceRuns = state.workspaceRuns.filter(
+                (workspaceRun) => workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.caseId !== workspaceId
             );
-            const activeTaskStillExists = !state.activeTaskId || nextTasks.some((task) => task.id === state.activeTaskId);
+            const activeTaskStillExists =
+                !state.activeWorkspaceRunId || nextWorkspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeWorkspaceRunId);
             const nextGraph = filterManualGraphForWorkspaceRemoval({
                 manualNodes: state.manualNodes,
                 manualLinks: state.manualLinks,
                 hiddenNodeIds: state.hiddenNodeIds,
                 flaggedNodeIds: state.flaggedNodeIds,
-                workspaceId: caseId,
-                artifactIds: reportIds,
+                workspaceId,
+                artifactIds,
             });
             const activeChatSessionStillExists =
                 !state.activeChatSessionId || !chatSessionIds.includes(state.activeChatSessionId);
 
             return {
-                chatSessions: state.chatSessions.filter((session) => session.workspaceId !== caseId),
+                chatSessions: state.chatSessions.filter((session) => session.workspaceId !== workspaceId),
                 chatMessagesBySessionId: Object.fromEntries(
                     Object.entries(state.chatMessagesBySessionId).filter(
                         ([sessionId]) => !chatSessionIds.includes(sessionId)
@@ -973,20 +1065,27 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                         ([sessionId]) => !chatSessionIds.includes(sessionId)
                     )
                 ),
-                cases: state.cases.filter((item) => item.id !== caseId),
-                archives: state.archives.filter((report) => report.caseId !== caseId),
-                headlines: state.headlines.filter((headline) => headline.caseId !== caseId),
-                tasks: nextTasks,
+                workspaces: state.workspaces.filter((item) => item.id !== workspaceId),
+                cases: state.workspaces.filter((item) => item.id !== workspaceId),
+                artifacts: state.artifacts.filter((artifact) => artifact.caseId !== workspaceId),
+                archives: state.artifacts.filter((artifact) => artifact.caseId !== workspaceId),
+                headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
+                workspaceRuns: nextWorkspaceRuns,
+                tasks: nextWorkspaceRuns,
                 manualNodes: nextGraph.manualNodes,
                 manualLinks: nextGraph.manualLinks,
                 hiddenNodeIds: nextGraph.hiddenNodeIds,
                 flaggedNodeIds: nextGraph.flaggedNodeIds,
-                activeTaskId: activeTaskStillExists ? state.activeTaskId : null,
+                activeWorkspaceRunId: activeTaskStillExists ? state.activeWorkspaceRunId : null,
+                activeTaskId: activeTaskStillExists ? state.activeWorkspaceRunId : null,
                 activeChatSessionId: activeChatSessionStillExists ? state.activeChatSessionId : null,
-                activeCaseId: state.activeCaseId === caseId ? null : state.activeCaseId
+                activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
+                activeCaseId: state.activeCaseId === workspaceId ? null : state.activeCaseId
             };
         });
     },
+
+    purgeCase: async (caseId) => get().purgeWorkspace(caseId),
 
     importWorkspaceData: async (payload) => {
         await CaseRepository.clearCaseData();
@@ -1021,8 +1120,11 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         await SettingsRepository.setSetting('flagged_nodes', []);
 
         set({
+            workspaces: payload.workspaces,
             cases: payload.workspaces,
+            artifacts: payload.artifacts,
             archives: payload.artifacts,
+            workspaceRuns: payload.runs,
             tasks: payload.runs,
             chatSessions: payload.chat.sessions,
             chatMessagesBySessionId: groupChatMessagesBySessionId(payload.chat.messages),
@@ -1033,8 +1135,10 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             manualLinks: payload.graph.manualLinks,
             hiddenNodeIds: [],
             flaggedNodeIds: [],
+            activeWorkspaceRunId: null,
             activeTaskId: null,
             activeChatSessionId: null,
+            activeWorkspaceId: null,
             activeCaseId: null
         });
     },
@@ -1044,8 +1148,11 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         await SettingsRepository.setSetting('hidden_nodes', []);
         await SettingsRepository.setSetting('flagged_nodes', []);
         set({
+            workspaces: [],
             cases: [],
+            artifacts: [],
             archives: [],
+            workspaceRuns: [],
             tasks: [],
             chatSessions: [],
             chatMessagesBySessionId: {},
@@ -1056,9 +1163,13 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             manualLinks: [],
             hiddenNodeIds: [],
             flaggedNodeIds: [],
+            activeWorkspaceRunId: null,
             activeTaskId: null,
             activeChatSessionId: null,
+            activeWorkspaceId: null,
             activeCaseId: null
         });
     }
 }));
+
+export const useCaseStore = useWorkspaceStore;

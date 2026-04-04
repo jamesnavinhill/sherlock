@@ -2,6 +2,8 @@
 
 Date: 2026-04-03
 
+Historical note: this report is a point-in-time audit from before the canonical cutover and final Timeline completion work. Use `README.md`, `docs/operations/*.md`, and `docs/plans/05-timeline-completion-and-canonical-cutover-plan.md` for current implementation truth.
+
 ## Purpose
 
 This report audits the current Sherlock codebase against:

@@ -13,7 +13,9 @@ When unsure, start from:
 
 - `src/App.tsx` (app shell + launch pipeline)
 - `src/store/caseStore.ts` (state + persistence orchestration)
+- `src/services/runtime.ts` (app-facing runtime facade over the provider router)
 - `src/services/providers/index.ts` (provider router)
+- `src/components/features/Timeline/*` (chronology derivation, snapshot export, and Timeline UI)
 - `src/services/db/*` (SQLite + repositories)
 
 ## 3. Data and Persistence
@@ -21,6 +23,7 @@ When unsure, start from:
 - Core entities persist via wa-sqlite + IndexedDB.
 - Do not introduce new persistence pathways without documenting them in `docs/operations/DATA_PERSISTENCE.md`.
 - Keep provider key handling in `src/services/providers/keys.ts`.
+- Timeline snapshot save/export should continue to reuse the existing artifact persistence path rather than introducing a dedicated timeline store.
 
 ## 4. Documentation Rules
 

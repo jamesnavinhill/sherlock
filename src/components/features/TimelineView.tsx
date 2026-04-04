@@ -2,23 +2,25 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Activity,
     Clock3,
+    Download,
     FileText,
     Filter,
     Fingerprint,
     MessageSquare,
     Radio,
+    Save,
     Search,
     Workflow,
 } from 'lucide-react';
 import type {
+    Artifact,
     ChatOpenRequest,
-    InvestigationReport,
     TimelineEvent,
     TimelineFilters,
     TimelineRange,
     TimelineTrack,
 } from '../../types';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { Accordion } from '../ui/Accordion';
 import { EmptyState } from '../ui/EmptyState';
@@ -31,9 +33,15 @@ import {
     getTrackCount,
     groupTimelineEventsByDay,
 } from './Timeline/timelineEvents';
+import {
+    buildTimelineSnapshot,
+    buildTimelineSnapshotArtifact,
+    downloadTimelineSnapshotJson,
+    downloadTimelineSnapshotMarkdown,
+} from './Timeline/timelineSnapshot';
 
 interface TimelineViewProps {
-    onOpenReport: (report: InvestigationReport) => void;
+    onOpenReport: (report: Artifact) => void;
     onOpenChat: (request: ChatOpenRequest) => void;
 }
 
@@ -151,15 +159,18 @@ const buildTimelineSearchPlaceholder = (artifactLabelPlural: string) =>
 
 export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpenChat }) => {
     const {
-        activeCaseId,
-        archives,
-        cases,
+        activeWorkspaceId,
+        artifacts,
         chatActionsBySessionId,
         chatSessions,
         headlines,
-        setActiveCaseId,
-        tasks,
-    } = useCaseStore();
+        isLoading,
+        addToast,
+        saveArtifact,
+        setActiveWorkspaceId,
+        workspaceRuns,
+        workspaces,
+    } = useWorkspaceStore();
     const [leftPanelOpen, setLeftPanelOpen] = useState(false);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
@@ -184,10 +195,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const filterMenuRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        if (!activeCaseId && cases.length > 0) {
-            setActiveCaseId(cases[0].id);
+        if (!activeWorkspaceId && workspaces.length > 0) {
+            setActiveWorkspaceId(workspaces[0].id);
         }
-    }, [activeCaseId, cases, setActiveCaseId]);
+    }, [activeWorkspaceId, setActiveWorkspaceId, workspaces]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -220,16 +231,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     }, []);
 
     const activeWorkspace = useMemo(
-        () => cases.find((workspace) => workspace.id === activeCaseId) || null,
-        [activeCaseId, cases]
+        () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
+        [activeWorkspaceId, workspaces]
     );
 
     const labelProfile = useMemo(
         () =>
             getLabelProfileById(
-                activeWorkspace?.labelProfileId || archives.find((artifact) => artifact.caseId === activeWorkspace?.id)?.labelProfileId
+                activeWorkspace?.labelProfileId || artifacts.find((artifact) => artifact.caseId === activeWorkspace?.id)?.labelProfileId
             ),
-        [activeWorkspace?.id, activeWorkspace?.labelProfileId, archives]
+        [activeWorkspace?.id, activeWorkspace?.labelProfileId, artifacts]
     );
 
     const allTimelineEvents = useMemo(() => {
@@ -237,13 +248,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
         return buildWorkspaceTimelineEvents({
             workspaceId: activeWorkspace.id,
-            artifacts: archives,
-            runs: tasks,
+            artifacts,
+            runs: workspaceRuns,
             signals: headlines,
             chatSessions,
             chatActionsBySessionId,
         });
-    }, [activeWorkspace, archives, chatActionsBySessionId, chatSessions, headlines, tasks]);
+    }, [activeWorkspace, artifacts, chatActionsBySessionId, chatSessions, headlines, workspaceRuns]);
 
     const visibleEvents = useMemo(
         () =>
@@ -269,15 +280,15 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const artifactTitleById = useMemo(
         () =>
             new Map(
-                archives
-                    .filter((artifact): artifact is InvestigationReport & { id: string } => !!artifact.id)
+                artifacts
+                    .filter((artifact): artifact is Artifact & { id: string } => !!artifact.id)
                     .map((artifact) => [artifact.id, sanitizeDisplayTitle(artifact.topic)])
             ),
-        [archives]
+        [artifacts]
     );
     const runTitleById = useMemo(
-        () => new Map(tasks.map((task) => [task.id, sanitizeDisplayTitle(task.topic)])),
-        [tasks]
+        () => new Map(workspaceRuns.map((workspaceRun) => [workspaceRun.id, sanitizeDisplayTitle(workspaceRun.topic)])),
+        [workspaceRuns]
     );
     const signalTitleById = useMemo(
         () => new Map(headlines.map((headline) => [headline.id, headline.source || headline.type])),
@@ -303,14 +314,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             || getMetadataValue<string>(selectedEvent, 'relatedArtifactId')
             || getMetadataValue<string>(selectedEvent, 'linkedArtifactId');
 
-        return archives.find((artifact) => artifact.id === artifactId) || null;
-    }, [archives, selectedEvent]);
+        return artifacts.find((artifact) => artifact.id === artifactId) || null;
+    }, [artifacts, selectedEvent]);
     const selectedRun = useMemo(() => {
         if (!selectedEvent) return null;
 
         const runId = getPrimaryRefId(selectedEvent, 'RUN') || getMetadataValue<string>(selectedEvent, 'sourceRunId');
-        return tasks.find((task) => task.id === runId) || null;
-    }, [selectedEvent, tasks]);
+        return workspaceRuns.find((workspaceRun) => workspaceRun.id === runId) || null;
+    }, [selectedEvent, workspaceRuns]);
     const relatedSignal = useMemo(() => {
         if (!selectedEvent) return null;
 
@@ -320,8 +331,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     }, [headlines, selectedEvent]);
     const parentArtifact = useMemo(() => {
         const parentArtifactId = getMetadataValue<string>(selectedEvent, 'parentArtifactId') || selectedEvent?.parentRefId;
-        return archives.find((artifact) => artifact.id === parentArtifactId) || null;
-    }, [archives, selectedEvent]);
+        return artifacts.find((artifact) => artifact.id === parentArtifactId) || null;
+    }, [artifacts, selectedEvent]);
     const selectedChatSession = useMemo(() => {
         if (!selectedEvent) return null;
 
@@ -346,6 +357,18 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     );
 
     const lastActivity = useMemo(() => getLatestTimelineActivity(visibleEvents), [visibleEvents]);
+    const timelineSnapshot = useMemo(() => {
+        if (!activeWorkspace) return null;
+
+        return buildTimelineSnapshot({
+            workspace: activeWorkspace,
+            events: visibleEvents,
+            filters,
+            search,
+            focusedTrack,
+            focusedRefId,
+        });
+    }, [activeWorkspace, filters, focusedRefId, focusedTrack, search, visibleEvents]);
 
     const ensureTrackVisible = (track: TimelineTrack) => {
         setFilters((current) =>
@@ -393,9 +416,28 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
     const openArtifact = (artifactId?: string) => {
         if (!artifactId) return;
-        const artifact = archives.find((entry) => entry.id === artifactId);
+        const artifact = artifacts.find((entry) => entry.id === artifactId);
         if (!artifact) return;
         onOpenReport(artifact);
+    };
+
+    const handleExportTimelineJson = () => {
+        if (!timelineSnapshot) return;
+        downloadTimelineSnapshotJson(timelineSnapshot);
+        addToast('Timeline snapshot exported as JSON.', 'SUCCESS');
+    };
+
+    const handleExportTimelineMarkdown = () => {
+        if (!timelineSnapshot) return;
+        downloadTimelineSnapshotMarkdown(timelineSnapshot);
+        addToast('Timeline snapshot exported as Markdown.', 'SUCCESS');
+    };
+
+    const handleSaveTimelineArtifact = async () => {
+        if (!timelineSnapshot) return;
+
+        const saved = await saveArtifact(buildTimelineSnapshotArtifact(timelineSnapshot));
+        addToast(`Saved timeline snapshot to ${saved.topic}.`, 'SUCCESS');
     };
 
     const openWorkspaceChat = (event?: TimelineEvent | null) => {
@@ -441,7 +483,19 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         onOpenChat({ workspaceId: activeWorkspace.id });
     };
 
-    if (cases.length === 0) {
+    if (isLoading) {
+        return (
+            <div className="flex min-h-screen w-full items-center justify-center bg-black">
+                <EmptyState
+                    icon={Clock3}
+                    title="Loading Timeline"
+                    description="Sherlock is assembling saved workspace chronology from artifacts, runs, signals, and chat activity."
+                />
+            </div>
+        );
+    }
+
+    if (workspaces.length === 0) {
         return (
             <div className="flex min-h-screen w-full items-center justify-center bg-black">
                 <EmptyState
@@ -493,10 +547,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             <div className="relative hidden w-60 min-w-0 md:block lg:w-72">
                                 <select
                                     value={activeWorkspace?.id || ''}
-                                    onChange={(event) => setActiveCaseId(event.target.value || null)}
+                                    onChange={(event) => setActiveWorkspaceId(event.target.value || null)}
                                     className="w-full appearance-none border border-zinc-700 bg-black py-1.5 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
                                 >
-                                    {cases.map((workspace) => (
+                                    {workspaces.map((workspace) => (
                                         <option key={workspace.id} value={workspace.id}>
                                             {sanitizeDisplayTitle(workspace.title)}
                                         </option>
@@ -506,6 +560,36 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                         </div>
 
                         <div className="flex shrink-0 items-center gap-2">
+                            <button
+                                onClick={handleExportTimelineJson}
+                                disabled={!timelineSnapshot}
+                                className="flex items-center gap-2 border border-zinc-700 bg-black px-3 py-1.5 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                title="Export the visible timeline snapshot as JSON"
+                            >
+                                <Download className="h-4 w-4" />
+                                <span className="hidden xl:inline">Export JSON</span>
+                            </button>
+
+                            <button
+                                onClick={handleExportTimelineMarkdown}
+                                disabled={!timelineSnapshot}
+                                className="flex items-center gap-2 border border-zinc-700 bg-black px-3 py-1.5 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                title="Export the visible timeline snapshot as Markdown"
+                            >
+                                <FileText className="h-4 w-4" />
+                                <span className="hidden xl:inline">Export Markdown</span>
+                            </button>
+
+                            <button
+                                onClick={() => void handleSaveTimelineArtifact()}
+                                disabled={!timelineSnapshot}
+                                className="flex items-center gap-2 border border-zinc-700 bg-black px-3 py-1.5 text-xs font-mono uppercase text-zinc-400 transition hover:border-osint-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                title="Save the current timeline snapshot as a TIMELINE artifact"
+                            >
+                                <Save className="h-4 w-4" />
+                                <span className="hidden xl:inline">Save Snapshot</span>
+                            </button>
+
                             <div className="relative" ref={filterMenuRef}>
                                 <button
                                     onClick={() => setShowFilters((current) => !current)}
@@ -611,10 +695,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                         <div className="relative min-w-0 md:hidden">
                             <select
                                 value={activeWorkspace?.id || ''}
-                                onChange={(event) => setActiveCaseId(event.target.value || null)}
+                                onChange={(event) => setActiveWorkspaceId(event.target.value || null)}
                                 className="w-full appearance-none border border-zinc-700 bg-black py-2 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
                             >
-                                {cases.map((workspace) => (
+                                {workspaces.map((workspace) => (
                                     <option key={workspace.id} value={workspace.id}>
                                         {sanitizeDisplayTitle(workspace.title)}
                                     </option>

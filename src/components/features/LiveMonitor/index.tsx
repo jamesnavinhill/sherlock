@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useCaseStore } from '../../../store/caseStore';
 import type { MonitorEvent, InvestigationLaunchRequest, Headline, SystemConfig } from '../../../types';
-import type { MonitorConfig } from '../../../services/gemini';
-import { getLiveIntel } from '../../../services/gemini';
+import type { MonitorConfig } from '../../../services/runtime';
+import { getLiveWorkspaceIntel } from '../../../services/runtime';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import {
     Radio, Play, Pause, ChevronDown, Activity, Settings2, Radar
@@ -107,7 +107,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
 
         try {
             const existingContent = safeEvents.map(e => e.content);
-            const newIntel = await getLiveIntel(
+            const newIntel = await getLiveWorkspaceIntel(
                 stripLegacyWorkspacePrefix(activeCase.title),
                 feedConfig,
                 existingContent,

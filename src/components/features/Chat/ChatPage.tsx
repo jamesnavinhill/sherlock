@@ -1314,21 +1314,25 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                         No saved artifacts for this workspace yet.
                                     </p>
                                 ) : (
-                                    workspaceReports.slice(0, 4).map((artifact) => (
-                                        <div key={artifact.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
+                                    workspaceReports.slice(0, 4).map((artifact) => {
+                                        const artifactKey = artifact.id || artifact.topic;
+                                        const isExpanded = !!expandedArtifactIds[artifactKey];
+
+                                        return (
+                                        <div key={artifactKey} className="border border-zinc-800 bg-zinc-900/20 p-2">
                                             <button
                                                 type="button"
-                                                onClick={() => toggleArtifactCard(artifact.id)}
+                                                onClick={() => toggleArtifactCard(artifactKey)}
                                                 className="flex w-full items-start justify-between gap-3 text-left"
                                             >
                                                 <div className="text-sm text-zinc-200">{artifact.topic}</div>
-                                                {expandedArtifactIds[artifact.id] ? (
+                                                {isExpanded ? (
                                                     <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
                                                 ) : (
                                                     <ChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
                                                 )}
                                             </button>
-                                            {expandedArtifactIds[artifact.id] ? (
+                                            {isExpanded ? (
                                                 <>
                                                     <p className="mt-1 text-xs leading-5 text-zinc-500">{artifact.summary}</p>
                                                     <div className="mt-2 flex gap-3">
@@ -1350,7 +1354,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                                 </>
                                             ) : null}
                                         </div>
-                                    ))
+                                    )})
                                 )}
                             </div>
                         </Accordion>

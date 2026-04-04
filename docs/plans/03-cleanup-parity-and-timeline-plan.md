@@ -1,7 +1,17 @@
 # Sherlock Cleanup, Parity, and Timeline Plan
 
 Date: 2026-04-03
-Status: Proposed
+Status: Partially Implemented, Sequencing Superseded By `docs/plans/05-timeline-completion-and-canonical-cutover-plan.md`
+
+## Status Note
+
+This plan remains useful as decision history, but its original execution order is no longer the recommended active sequence for remaining work.
+
+What changed:
+
+- the workspace-data lifecycle parity work called out in Slice 1 is now materially implemented
+- Timeline is no longer a parked future surface; it is an active feature with meaningful remaining extension work
+- the active next-phase sequence is now defined in `docs/plans/05-timeline-completion-and-canonical-cutover-plan.md`
 
 ## Objective
 

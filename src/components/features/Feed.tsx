@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { scanForAnomalies } from '../../services/gemini';
+import { scanForDiscoveries } from '../../services/runtime';
 import type { FeedItem, InvestigationLaunchRequest } from '../../types';
 import { RefreshCw, Search, ArrowRight, Filter, MapPin, Tag, Calendar, X, LayoutDashboard, Settings2 } from 'lucide-react';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
@@ -54,7 +54,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
     const minTime = new Promise(resolve => setTimeout(resolve, 1500));
 
     const dateRange = filterStartDate || filterEndDate ? { start: filterStartDate, end: filterEndDate } : undefined;
-    const dataPromise = scanForAnomalies(filterRegion, filterCategory, dateRange, feedConfig, activeScope, {
+    const dataPromise = scanForDiscoveries(filterRegion, filterCategory, dateRange, feedConfig, activeScope, {
       packId: activeScope?.id,
       purposeId: activeScope?.defaultPurposeId,
     });
