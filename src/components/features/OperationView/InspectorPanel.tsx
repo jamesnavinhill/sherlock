@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink, MessageSquare, Shapes
+    User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink, MessageSquare, Shapes, Microscope
 } from 'lucide-react';
 import type { Entity, Headline, Artifact } from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
+import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface InspectorPanelProps {
@@ -39,6 +40,36 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     onNavigate
 }) => {
     const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
+    const entityActions: InspectorActionItem[] = entity
+        ? [
+              {
+                  id: 'entity-chat',
+                  label: 'Open In Chat',
+                  icon: MessageSquare,
+                  onClick: () => onOpenEntityChat(entity.name),
+              },
+              {
+                  id: 'entity-investigate',
+                  label: 'Investigate Entity',
+                  icon: Microscope,
+                  onClick: () => onInvestigateEntity(entity.name),
+              },
+              {
+                  id: 'entity-google',
+                  label: 'Search Google',
+                  icon: Search,
+                  href: `https://www.google.com/search?q=${encodeURIComponent(entity.name)}`,
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+              },
+              {
+                  id: 'entity-flag',
+                  label: 'Flag Entity',
+                  icon: Star,
+                  onClick: () => onFlagEntity(entity.name),
+              },
+          ]
+        : [];
     // --- Internal State ---
     const [inspectorAccordions, setInspectorAccordions] = useState({
         mentions: false,
@@ -116,43 +147,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                         <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors flex-shrink-0"><X className="w-6 h-6" /></button>
                     </div>
 
-                    {/* Entity Actions Bar */}
-                    <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/10">
-                        <div className="flex space-x-2">
-                            <button
-                                onClick={() => onFlagEntity(entity.name)}
-                                className="p-2 border border-zinc-700 text-zinc-400 hover:text-yellow-500 hover:border-yellow-700 transition-colors"
-                                title="Flag Entity (Saved to Global)"
-                            >
-                                <Star className="w-4 h-4" />
-                            </button>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => onOpenEntityChat(entity.name)}
-                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-xs font-mono uppercase"
-                            >
-                                <MessageSquare className="w-3 h-3" />
-                                <span>Chat</span>
-                            </button>
-                            <button
-                                onClick={() => onInvestigateEntity(entity.name)}
-                                className="osint-button-primary flex items-center space-x-2 px-3 py-1.5 font-bold font-mono text-xs uppercase"
-                            >
-                                <span>Investigate</span>
-                            </button>
-
-                            <a
-                                href={`https://www.google.com/search?q=${encodeURIComponent(entity.name)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-2 px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-xs font-mono uppercase"
-                            >
-                                <Search className="w-3 h-3" />
-                                <span>Google</span>
-                            </a>
-                        </div>
+                    <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+                        <InspectorActionRow actions={entityActions} />
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-2 space-y-2 pb-24 custom-scrollbar">

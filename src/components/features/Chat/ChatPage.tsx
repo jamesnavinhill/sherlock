@@ -166,6 +166,8 @@ const buildManualSetupSeed = (draft: GuidedRunDraft) => ({
 });
 
 const sectionLabelClassName = 'text-[11px] font-mono uppercase tracking-[0.28em] text-zinc-500';
+const getDefaultLeftPanelOpen = () => (typeof window !== 'undefined' ? window.innerWidth > 1024 : false);
+const getDefaultRightPanelOpen = () => (typeof window !== 'undefined' ? window.innerWidth >= 1280 : false);
 
 interface ChatProps {
     onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -201,8 +203,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     } = useWorkspaceStore();
 
     const [draft, setDraft] = useState('');
-    const [leftPanelOpen, setLeftPanelOpen] = useState(false);
-    const [rightPanelOpen, setRightPanelOpen] = useState(false);
+    const [leftPanelOpen, setLeftPanelOpen] = useState(getDefaultLeftPanelOpen);
+    const [rightPanelOpen, setRightPanelOpen] = useState(getDefaultRightPanelOpen);
     const [workingSessionId, setWorkingSessionId] = useState<string | null>(null);
     const [workingAssistantMessageId, setWorkingAssistantMessageId] = useState<string | null>(null);
     const [manualSetupDraft, setManualSetupDraft] = useState<GuidedRunDraft | null>(null);
@@ -215,6 +217,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const transcriptEndRef = useRef<HTMLDivElement | null>(null);
     const newMenuRef = useRef<HTMLDivElement | null>(null);
     const exportMenuRef = useRef<HTMLDivElement | null>(null);
+    const previousWorkspaceIdRef = useRef<string | null>(null);
     const [leftPanelSections, setLeftPanelSections] = useState({
         sessions: true,
         workspace: true,
@@ -223,15 +226,9 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         launchContext: true,
         recentArtifacts: true,
         recentSignals: false,
-        latestRetrieval: true,
+        latestRetrieval: false,
         actionLog: false,
     });
-
-    useEffect(() => {
-        if (!activeWorkspaceId && workspaces.length > 0) {
-            setActiveWorkspaceId(workspaces[0].id);
-        }
-    }, [activeWorkspaceId, workspaces, setActiveWorkspaceId]);
 
     useEffect(() => {
         const handlePointerDown = (event: MouseEvent) => {
@@ -252,7 +249,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             if (window.innerWidth <= 1024) {
                 setLeftPanelOpen(false);
                 setRightPanelOpen(false);
-            } else if (window.innerWidth <= 1440) {
+            } else if (window.innerWidth < 1280) {
                 setLeftPanelOpen(true);
                 setRightPanelOpen(false);
             } else {
@@ -270,10 +267,6 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
         [activeWorkspaceId, workspaces]
     );
-
-    useEffect(() => {
-        setExpandedArtifactIds({});
-    }, [activeWorkspace?.id]);
 
     const workspaceSessions = useMemo(
         () =>
@@ -338,6 +331,16 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             }),
         [launchContext, workspaceHeadlines, workspaceReports]
     );
+
+    useEffect(() => {
+        if (previousWorkspaceIdRef.current === activeWorkspace?.id) return;
+        previousWorkspaceIdRef.current = activeWorkspace?.id || null;
+        setExpandedArtifactIds(
+            Object.fromEntries(
+                workspaceReports.slice(0, 4).map((artifact) => [artifact.id || artifact.topic, true])
+            )
+        );
+    }, [activeWorkspace?.id, workspaceReports]);
 
     useEffect(() => {
         transcriptEndRef.current?.scrollIntoView({ block: 'end' });
@@ -791,42 +794,6 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         setShowExportMenu(false);
     };
 
-    if (workspaces.length === 0) {
-        return (
-            <div className="flex h-full min-h-0 items-center justify-center bg-black px-6">
-                <EmptyState
-                    icon={MessageSquare}
-                    title="Workspace Chat Needs A Workspace"
-                    description="Start or reopen a workspace first. Chat sessions are scoped to one workspace so every answer stays local, grounded, and auditable."
-                    action={{
-                        label: 'Start New Project',
-                        onClick: handleStartNewProject,
-                    }}
-                    panelClassName="max-w-xl"
-                />
-
-                {showNewProjectModal && (
-                    <TaskSetupModal
-                        initialTopic=""
-                        onCancel={() => setShowNewProjectModal(false)}
-                        onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
-                            onLaunchInvestigation({
-                                topic,
-                                configOverride,
-                                preseededEntities,
-                                scope,
-                                dateRangeOverride: dateRange,
-                                switchToView: true,
-                                launchSource: 'CHAT_NEW_PROJECT',
-                            });
-                            setShowNewProjectModal(false);
-                        }}
-                    />
-                )}
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-full min-h-0 flex-col bg-black text-zinc-100">
             <header className="sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 px-4 backdrop-blur-md sm:px-6">
@@ -850,6 +817,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                 ariaLabel="Chat workspace"
                                 value={activeWorkspace?.id || ''}
                                 onChange={(value) => setActiveWorkspaceId(value || null)}
+                                placeholder="Select workspace"
                                 triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
                                 options={workspaces.map((workspace) => ({
                                     value: workspace.id,
@@ -866,7 +834,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                     setShowNewMenu((current) => !current);
                                     setShowExportMenu(false);
                                 }}
-                                className="flex items-center px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-700 hover:text-white transition-colors"
+                                className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
                                 title="Create a new chat item"
                             >
                                 <Plus className="w-4 h-4 mr-1" />
@@ -926,7 +894,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                         setShowExportMenu((current) => !current);
                                         setShowNewMenu(false);
                                     }}
-                                    className="flex items-center px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-700 hover:text-white transition-colors"
+                                    className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
                                     title="Export current chat session"
                                 >
                                     <Download className="w-4 h-4 mr-1" />
@@ -1083,7 +1051,27 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                 <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-black">
                     <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6">
                         <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 pb-4">
-                            {messages.length === 0 && (
+                            {!activeWorkspace ? (
+                                <EmptyState
+                                    icon={MessageSquare}
+                                    title={workspaces.length === 0 ? 'Workspace Chat Needs A Workspace' : 'No Workspace Selected'}
+                                    description={
+                                        workspaces.length === 0
+                                            ? 'Start a workspace first. Chat sessions are scoped to one workspace so every answer stays local, grounded, and auditable.'
+                                            : 'Select a workspace from the header to open sessions, context, and chat history.'
+                                    }
+                                    action={
+                                        workspaces.length === 0
+                                            ? {
+                                                  label: 'Start New Project',
+                                                  onClick: handleStartNewProject,
+                                              }
+                                            : undefined
+                                    }
+                                    className="px-0 py-6"
+                                    panelClassName="max-w-3xl px-6 py-8"
+                                />
+                            ) : messages.length === 0 && (
                                 <EmptyState
                                     icon={MessageSquare}
                                     title={activeSession ? 'Session Ready' : 'No Chat Session'}
@@ -1129,7 +1117,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                             isUser
                                                 ? 'border-zinc-700 bg-black'
                                                 : isTool
-                                                  ? 'border-amber-800/60 bg-amber-950/20'
+                                                  ? 'border-osint-primary/30 bg-osint-primary/5'
                                                   : 'border-zinc-800 bg-zinc-900/80'
                                         }`}
                                     >
@@ -1228,7 +1216,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                         </div>
                     </div>
 
-                    {guidedState ? (
+                    {activeWorkspace && guidedState ? (
                         <GuidedRunBuilder
                             key={`${activeSession?.id || 'guided'}:${guidedState.step}`}
                             state={guidedState}
@@ -1278,6 +1266,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                         <button
                                             type="submit"
                                             disabled={
+                                                !activeWorkspace ||
                                                 !draft.trim() ||
                                                 chatGenerationStatus === 'GENERATING' ||
                                                 chatGenerationStatus === 'CANCELLING'

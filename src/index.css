@@ -150,6 +150,9 @@ body,
 :root[data-theme='light'] .bg-black\/60 {
   background-color: color-mix(in oklab, var(--osint-panel) 90%, transparent) !important;
 }
+:root[data-theme='light'] .bg-black\/70 {
+  background-color: color-mix(in oklab, var(--osint-panel) 92%, transparent) !important;
+}
 :root[data-theme='light'] .bg-black\/80 {
   background-color: color-mix(in oklab, var(--osint-dark) 94%, transparent) !important;
 }

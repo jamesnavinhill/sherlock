@@ -6,6 +6,7 @@ import {
 import type { Entity, Headline, Artifact} from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
+import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import type { GraphNode } from './GraphCanvas';
@@ -46,11 +47,6 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     reports, hiddenNodeIds, flaggedNodeIds,
     onEntitySave, onReportSave, onToggleFlag, onToggleHide, onDeleteNode, onInvestigate, onOpenReport, onOpenEntityChat, onOpenReportChat, onOpenHeadlineChat
 }) => {
-    const entityIconButtonClassName =
-        'inline-flex h-10 w-10 items-center justify-center border border-zinc-700 text-zinc-400 transition-colors hover:border-white hover:text-white';
-    const entityActionButtonClassName =
-        'inline-flex h-10 items-center justify-center gap-2 border border-zinc-700 px-3 text-xs font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white';
-
     // Accordion Control
     const [inspectorAccordions, setInspectorAccordions] = useState<Record<string, boolean>>({
         mentions: false,
@@ -147,6 +143,109 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         !!selectedNode && (flaggedNodeIds.has(selectedNode.id) || flaggedNodeIds.has(selectedNode.label));
     const isSelectedNodeHidden =
         !!selectedNode && (hiddenNodeIds.has(selectedNode.id) || hiddenNodeIds.has(selectedNode.label));
+    const selectedNodeDeleteLabel = selectedNode?.isManual ? 'Delete Node' : 'Remove From Graph';
+    const reportActions: InspectorActionItem[] = selectedReport
+        ? [
+              {
+                  id: 'report-chat',
+                  label: 'Open In Chat',
+                  icon: MessageSquare,
+                  onClick: () => onOpenReportChat(selectedReport),
+              },
+              {
+                  id: 'report-open',
+                  label: 'Open Full Report',
+                  icon: FolderOpen,
+                  onClick: () => onOpenReport(selectedReport),
+              },
+              {
+                  id: 'report-search',
+                  label: 'Search Report Topic',
+                  icon: Search,
+                  href: `https://www.google.com/search?q=${encodeURIComponent(selectedReport.topic)}`,
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+              },
+              {
+                  id: 'report-flag',
+                  label: isSelectedNodeFlagged ? 'Unstar Node' : 'Star Node',
+                  icon: Star,
+                  onClick: onToggleFlag,
+                  iconClassName: isSelectedNodeFlagged ? 'fill-current' : undefined,
+                  className: isSelectedNodeFlagged
+                      ? 'border-yellow-700 bg-yellow-900/20 text-yellow-500 hover:border-yellow-600 hover:text-yellow-400'
+                      : undefined,
+              },
+              {
+                  id: 'report-hide',
+                  label: isSelectedNodeHidden ? 'Unhide Node' : 'Hide Node',
+                  icon: EyeOff,
+                  onClick: onToggleHide,
+                  className: isSelectedNodeHidden
+                      ? 'border-zinc-500 bg-zinc-900/50 text-white hover:border-white hover:text-white'
+                      : undefined,
+              },
+              {
+                  id: 'report-delete',
+                  label: selectedNodeDeleteLabel,
+                  icon: Trash2,
+                  onClick: onDeleteNode,
+                  className:
+                      'osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]',
+              },
+          ]
+        : [];
+    const entityActions: InspectorActionItem[] = selectedEntity
+        ? [
+              {
+                  id: 'entity-chat',
+                  label: 'Open In Chat',
+                  icon: MessageSquare,
+                  onClick: () => onOpenEntityChat(selectedEntity),
+              },
+              {
+                  id: 'entity-investigate',
+                  label: selectedNodeType === 'SOURCE' ? 'Explore Source' : 'Investigate Entity',
+                  icon: Microscope,
+                  onClick: () => onInvestigate(selectedEntity),
+              },
+              {
+                  id: 'entity-search',
+                  label: 'Search Google',
+                  icon: Search,
+                  href: `https://www.google.com/search?q=${encodeURIComponent(selectedEntity)}`,
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+              },
+              {
+                  id: 'entity-flag',
+                  label: isSelectedNodeFlagged ? 'Unstar Node' : 'Star Node',
+                  icon: Star,
+                  onClick: onToggleFlag,
+                  iconClassName: isSelectedNodeFlagged ? 'fill-current' : undefined,
+                  className: isSelectedNodeFlagged
+                      ? 'border-yellow-700 bg-yellow-900/20 text-yellow-500 hover:border-yellow-600 hover:text-yellow-400'
+                      : undefined,
+              },
+              {
+                  id: 'entity-hide',
+                  label: isSelectedNodeHidden ? 'Unhide Node' : 'Hide Node',
+                  icon: EyeOff,
+                  onClick: onToggleHide,
+                  className: isSelectedNodeHidden
+                      ? 'border-zinc-500 bg-zinc-900/50 text-white hover:border-white hover:text-white'
+                      : undefined,
+              },
+              {
+                  id: 'entity-delete',
+                  label: selectedNodeDeleteLabel,
+                  icon: Trash2,
+                  onClick: onDeleteNode,
+                  className:
+                      'osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]',
+              },
+          ]
+        : [];
 
     return (
         <div className={`${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl z-20`}>
@@ -225,6 +324,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                         </div>
                         <button onClick={onClose} className="text-zinc-500 hover:text-white"><X className="w-6 h-6" /></button>
                     </div>
+                    <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+                        <InspectorActionRow actions={reportActions} />
+                    </div>
 
                     <div className="flex-1 overflow-y-auto p-2 space-y-2">
                         <div className="bg-zinc-900/50 p-4 border border-zinc-800">
@@ -293,26 +395,6 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                             </div>
                         </Accordion>
                     </div>
-                    <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto">
-                        {selectedNode && (
-                            <button
-                                onClick={onDeleteNode}
-                                className="osint-button-danger mb-3 w-full py-3 font-mono text-sm uppercase flex items-center justify-center"
-                            >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                {selectedNode.isManual ? 'Delete Node' : 'Remove From Graph'}
-                            </button>
-                        )}
-                        <button
-                            onClick={() => onOpenReportChat(selectedReport)}
-                            className="mb-3 w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
-                        >
-                            <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
-                        </button>
-                        <button onClick={() => onOpenReport(selectedReport)} className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center">
-                            <FolderOpen className="w-4 h-4 mr-2" /> Open Full Report
-                        </button>
-                    </div>
                 </div>
             )}
 
@@ -348,61 +430,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                         </div>
                         <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors flex-shrink-0"><X className="w-6 h-6" /></button>
                     </div>
-
-                    {/* Actions */}
-                    <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900/10 space-y-2">
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={onToggleFlag}
-                                className={`${entityIconButtonClassName} ${
-                                    isSelectedNodeFlagged
-                                        ? 'border-yellow-700 bg-yellow-900/20 text-yellow-500 hover:border-yellow-600 hover:text-yellow-400'
-                                        : ''
-                                }`}
-                                title="Flag Entity"
-                            >
-                                <Star className={`w-4 h-4 ${isSelectedNodeFlagged ? 'fill-current' : ''}`} />
-                            </button>
-                            <button
-                                onClick={onToggleHide}
-                                className={`${entityIconButtonClassName} ${isSelectedNodeHidden ? 'border-zinc-500 bg-zinc-900/40 text-white' : ''}`}
-                                title={isSelectedNodeHidden ? 'Unhide Node' : 'Hide Node'}
-                            >
-                                <EyeOff className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={onDeleteNode}
-                                className={`${entityIconButtonClassName} osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]`}
-                                title={selectedNode?.isManual ? 'Delete Node' : 'Remove From Graph'}
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                            <button
-                                onClick={() => onOpenEntityChat(selectedEntity)}
-                                className={entityActionButtonClassName}
-                            >
-                                <MessageSquare className="w-3.5 h-3.5" />
-                                <span>Chat</span>
-                            </button>
-                            <button
-                                onClick={() => onInvestigate(selectedEntity)}
-                                className="osint-button-primary inline-flex h-10 items-center justify-center gap-2 px-3 font-bold font-mono text-xs uppercase"
-                            >
-                                <Microscope className="w-3.5 h-3.5" />
-                                <span>{selectedNodeType === 'SOURCE' ? 'Explore' : 'Investigate'}</span>
-                            </button>
-                            <a
-                                href={`https://www.google.com/search?q=${encodeURIComponent(selectedEntity)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={entityActionButtonClassName}
-                            >
-                                <Search className="w-3.5 h-3.5" />
-                                <span>Google</span>
-                            </a>
-                        </div>
+                    <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+                        <InspectorActionRow actions={entityActions} />
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-2 space-y-2">

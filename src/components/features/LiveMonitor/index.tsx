@@ -357,7 +357,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                                 }`}
                         >
                             {isMonitoring ? <Pause className="w-3 h-3 mr-2" /> : <Play className="w-3 h-3 mr-2" />}
-                            {isMonitoring ? 'STOP SCAN' : 'INITIATE SCAN'}
+                            {isMonitoring ? 'STOP SCAN' : 'SCAN'}
                         </button>
                     )}
                 </div>

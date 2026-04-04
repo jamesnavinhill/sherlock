@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Activity,
+    ChevronDown,
     Clock3,
     Download,
+    FileJson,
     FileText,
     Filter,
     Fingerprint,
+    FolderOpen,
     MessageSquare,
     Radio,
     Save,
@@ -24,13 +27,13 @@ import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { Accordion } from '../ui/Accordion';
 import { EmptyState } from '../ui/EmptyState';
+import { InspectorActionRow, type InspectorActionItem } from '../ui/InspectorActionRow';
 import { OsintSelect } from '../ui/OsintSelect';
 import { getLabelProfileById, sanitizeDisplayTitle } from '../../domain';
 import { getChatLaunchContextFromSession } from '../../services/chat/launchContext';
 import {
     buildWorkspaceTimelineEvents,
     filterTimelineEvents,
-    getLatestTimelineActivity,
     getTrackCount,
     groupTimelineEventsByDay,
 } from './Timeline/timelineEvents';
@@ -58,7 +61,6 @@ type DossierSections = {
 type DetailSections = {
     summary: boolean;
     context: boolean;
-    actions: boolean;
 };
 
 const DEFAULT_FILTERS: TimelineFilters = {
@@ -174,6 +176,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     } = useWorkspaceStore();
     const [leftPanelOpen, setLeftPanelOpen] = useState(false);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
+    const [showExportMenu, setShowExportMenu] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [search, setSearch] = useState('');
     const [filters, setFilters] = useState<TimelineFilters>(DEFAULT_FILTERS);
@@ -182,24 +185,18 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [dossierSections, setDossierSections] = useState<DossierSections>({
         events: true,
-        runs: true,
-        artifacts: true,
-        signals: true,
-        entities: true,
-        chats: true,
+        runs: false,
+        artifacts: false,
+        signals: false,
+        entities: false,
+        chats: false,
     });
     const [detailSections, setDetailSections] = useState<DetailSections>({
         summary: true,
         context: true,
-        actions: true,
     });
+    const exportMenuRef = useRef<HTMLDivElement | null>(null);
     const filterMenuRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        if (!activeWorkspaceId && workspaces.length > 0) {
-            setActiveWorkspaceId(workspaces[0].id);
-        }
-    }, [activeWorkspaceId, setActiveWorkspaceId, workspaces]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -222,6 +219,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
     useEffect(() => {
         const handlePointerDown = (event: MouseEvent) => {
+            if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+                setShowExportMenu(false);
+            }
             if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
                 setShowFilters(false);
             }
@@ -356,8 +356,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         () => getPrimaryRefId(selectedEvent, 'ENTITY') || getMetadataValue<string>(selectedEvent, 'entityName') || null,
         [selectedEvent]
     );
+    const previousArtifactId = useMemo(
+        () => getMetadataValue<string>(selectedEvent, 'previousArtifactId'),
+        [selectedEvent]
+    );
 
-    const lastActivity = useMemo(() => getLatestTimelineActivity(visibleEvents), [visibleEvents]);
     const timelineSnapshot = useMemo(() => {
         if (!activeWorkspace) return null;
 
@@ -425,12 +428,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const handleExportTimelineJson = () => {
         if (!timelineSnapshot) return;
         downloadTimelineSnapshotJson(timelineSnapshot);
+        setShowExportMenu(false);
         addToast('Timeline snapshot exported as JSON.', 'SUCCESS');
     };
 
     const handleExportTimelineMarkdown = () => {
         if (!timelineSnapshot) return;
         downloadTimelineSnapshotMarkdown(timelineSnapshot);
+        setShowExportMenu(false);
         addToast('Timeline snapshot exported as Markdown.', 'SUCCESS');
     };
 
@@ -438,6 +443,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         if (!timelineSnapshot) return;
 
         const saved = await saveArtifact(buildTimelineSnapshotArtifact(timelineSnapshot));
+        setShowExportMenu(false);
         addToast(`Saved timeline snapshot to ${saved.topic}.`, 'SUCCESS');
     };
 
@@ -484,6 +490,84 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         onOpenChat({ workspaceId: activeWorkspace.id });
     };
 
+    const detailActions: InspectorActionItem[] = (() => {
+        if (!selectedEvent) return [];
+
+        const actions: InspectorActionItem[] = [
+            {
+                id: 'timeline-chat',
+                label: selectedChatSession ? 'Open Chat Session' : 'Open Workspace Chat',
+                icon: MessageSquare,
+                onClick: () => openWorkspaceChat(selectedEvent),
+            },
+        ];
+
+        if (selectedArtifact?.id) {
+            actions.push({
+                id: 'timeline-report',
+                label: `Open ${labelProfile.artifactLabel}`,
+                icon: FolderOpen,
+                onClick: () => openArtifact(selectedArtifact.id),
+            });
+        }
+
+        if (selectedRun) {
+            actions.push({
+                id: 'timeline-run',
+                label: 'Focus Source Run',
+                icon: Activity,
+                onClick: () => focusReference('RUN', selectedRun.id),
+            });
+        }
+
+        if (relatedSignal) {
+            actions.push({
+                id: 'timeline-signal',
+                label: 'Focus Origin Signal',
+                icon: Radio,
+                onClick: () => focusReference('SIGNAL', relatedSignal.id),
+            });
+        }
+
+        if (selectedEntityName && selectedEvent.refKind !== 'ENTITY') {
+            actions.push({
+                id: 'timeline-entity',
+                label: 'Focus Entity Milestones',
+                icon: Fingerprint,
+                onClick: () => focusReference('ENTITY', selectedEntityName),
+            });
+        }
+
+        if (selectedChatSession && selectedEvent.refKind !== 'CHAT_SESSION') {
+            actions.push({
+                id: 'timeline-chat-focus',
+                label: 'Focus Chat Session',
+                icon: MessageSquare,
+                onClick: () => focusReference('CHAT', selectedChatSession.id),
+            });
+        }
+
+        if (parentArtifact?.id) {
+            actions.push({
+                id: 'timeline-parent',
+                label: `Focus Parent ${labelProfile.artifactLabel}`,
+                icon: FileText,
+                onClick: () => focusReference('ARTIFACT', parentArtifact.id),
+            });
+        }
+
+        if (previousArtifactId) {
+            actions.push({
+                id: 'timeline-previous',
+                label: `Focus Previous ${labelProfile.artifactLabel}`,
+                icon: FileText,
+                onClick: () => focusReference('ARTIFACT', previousArtifactId),
+            });
+        }
+
+        return actions.slice(0, 6);
+    })();
+
     if (isLoading) {
         return (
             <div className="flex min-h-screen w-full items-center justify-center bg-black">
@@ -496,227 +580,205 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         );
     }
 
-    if (workspaces.length === 0) {
-        return (
-            <div className="flex min-h-screen w-full items-center justify-center bg-black">
-                <EmptyState
-                    icon={Clock3}
-                    title="Timeline Unavailable"
-                    description="Create or open a workspace first. Timeline becomes useful once Sherlock has saved signals, runs, artifacts, or chat activity to a workspace."
-                />
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
             <BackgroundMatrixRain />
 
-            <header className="sticky top-0 z-30 border-b border-zinc-800 bg-black/95 px-4 py-3 backdrop-blur-md sm:px-6">
-                <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 flex-1 items-start gap-3">
-                            <button
-                                onClick={() => setLeftPanelOpen((current) => !current)}
-                                className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
-                                    leftPanelOpen
-                                        ? 'border-white bg-zinc-800 text-white'
-                                        : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
-                                }`}
-                                title="Toggle timeline dossier"
-                            >
-                                <Workflow className="h-4 w-4" />
-                                <span className="hidden lg:inline">Dossier</span>
-                            </button>
+            <header className="sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md shadow-lg">
+                <div className="flex h-full min-w-0 items-center gap-3">
+                    <button
+                        onClick={() => setLeftPanelOpen((current) => !current)}
+                        className={`flex shrink-0 items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+                            leftPanelOpen
+                                ? 'border-white bg-zinc-800 text-white'
+                                : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                        }`}
+                        title="Toggle timeline dossier"
+                    >
+                        <Workflow className="h-4 w-4" />
+                        <span className="hidden lg:inline">Dossier</span>
+                    </button>
 
-                            <div className="min-w-0 flex-1">
-                                <div className="flex min-w-0 items-center gap-3">
-                                    <Clock3 className="hidden h-5 w-5 shrink-0 text-osint-primary xl:block" />
-                                    <div className="min-w-0">
-                                        <div className="truncate text-sm font-bold uppercase tracking-[0.24em] text-white">
-                                            {labelProfile.workspaceLabel} Timeline
+                    <div className="w-full max-w-[320px] min-w-[220px] shrink-0">
+                        <OsintSelect
+                            ariaLabel={`${labelProfile.workspaceLabel} timeline workspace`}
+                            value={activeWorkspace?.id || ''}
+                            onChange={(value) => setActiveWorkspaceId(value || null)}
+                            placeholder={`Select ${labelProfile.workspaceLabel.toLowerCase()}`}
+                            triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
+                            options={workspaces.map((workspace) => ({
+                                value: workspace.id,
+                                label: sanitizeDisplayTitle(workspace.title),
+                            }))}
+                        />
+                    </div>
+
+                    <div className="relative min-w-0 flex-1">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                        <input
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                            placeholder={buildTimelineSearchPlaceholder(labelProfile.artifactLabelPlural)}
+                            className="w-full border border-zinc-700 bg-black py-1.5 pl-9 pr-3 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
+                        />
+                    </div>
+
+                    <div className="relative shrink-0" ref={exportMenuRef}>
+                        <button
+                            onClick={() => {
+                                setShowExportMenu((current) => !current);
+                                setShowFilters(false);
+                            }}
+                            disabled={!timelineSnapshot}
+                            className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                            title="Export or save the current timeline snapshot"
+                        >
+                            <Download className="w-4 h-4 mr-1" />
+                            <span className="hidden lg:inline">Export</span>
+                            <ChevronDown className="w-3 h-3 ml-1" />
+                        </button>
+                        {showExportMenu && timelineSnapshot && (
+                            <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                                <button
+                                    onClick={handleExportTimelineMarkdown}
+                                    className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                                    title="Export the visible timeline snapshot as Markdown"
+                                >
+                                    <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                                    <div>
+                                        <div className="font-bold">Timeline Markdown</div>
+                                        <div className="text-[10px] text-zinc-500">Readable visible timeline export</div>
+                                    </div>
+                                </button>
+                                <button
+                                    onClick={handleExportTimelineJson}
+                                    className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                                    title="Export the visible timeline snapshot as JSON"
+                                >
+                                    <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                                    <div>
+                                        <div className="font-bold">Timeline JSON</div>
+                                        <div className="text-[10px] text-zinc-500">Raw visible timeline data for backup</div>
+                                    </div>
+                                </button>
+                                <button
+                                    onClick={() => void handleSaveTimelineArtifact()}
+                                    className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                                    title="Save the current timeline snapshot as a TIMELINE artifact"
+                                >
+                                    <Save className="w-4 h-4 mr-3 text-zinc-500" />
+                                    <div>
+                                        <div className="font-bold">Save Snapshot</div>
+                                        <div className="text-[10px] text-zinc-500">Store this view in the dossier</div>
+                                    </div>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="relative shrink-0" ref={filterMenuRef}>
+                        <button
+                            onClick={() => {
+                                setShowFilters((current) => !current);
+                                setShowExportMenu(false);
+                            }}
+                            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+                                showFilters
+                                    ? 'border-white bg-zinc-800 text-white'
+                                    : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                            }`}
+                        >
+                            <Filter className="h-4 w-4" />
+                            <span className="hidden lg:inline">Filters</span>
+                        </button>
+
+                        {showFilters && (
+                            <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
+                                <div className="border-b border-zinc-800 bg-black px-4 py-3">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-white">
+                                        Timeline Filters
+                                    </h3>
+                                </div>
+                                <div className="space-y-5 p-4">
+                                    <div>
+                                        <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
+                                            Date Range
+                                        </label>
+                                        <OsintSelect
+                                            ariaLabel="Timeline date range"
+                                            value={filters.range}
+                                            onChange={(value) =>
+                                                setFilters((current) => ({
+                                                    ...current,
+                                                    range: value as TimelineRange,
+                                                }))
+                                            }
+                                            triggerClassName="px-3 py-2 pr-8 text-xs font-mono"
+                                            options={[
+                                                { value: 'ALL', label: 'All Activity' },
+                                                { value: '7D', label: 'Last 7 Days' },
+                                                { value: '30D', label: 'Last 30 Days' },
+                                                { value: '90D', label: 'Last 90 Days' },
+                                            ]}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
+                                            Visible Tracks
+                                        </label>
+                                        <div className="space-y-2">
+                                            {TRACK_OPTIONS.map((option) => (
+                                                <label
+                                                    key={option.track}
+                                                    className="flex items-center justify-between border border-zinc-800 bg-black px-3 py-2 text-xs font-mono text-zinc-300"
+                                                >
+                                                    <span className="flex items-center gap-2">
+                                                        <option.icon className="h-4 w-4 text-zinc-500" />
+                                                        {option.label}
+                                                    </span>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={filters.tracks.includes(option.track)}
+                                                        onChange={() => toggleTrackFilter(option.track)}
+                                                        className="h-4 w-4 accent-[var(--osint-primary)]"
+                                                    />
+                                                </label>
+                                            ))}
                                         </div>
-                                        <div className="truncate text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-                                            {activeWorkspace
-                                                ? sanitizeDisplayTitle(activeWorkspace.title)
-                                                : 'Workspace chronology'}
-                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
+                                        <button
+                                            onClick={clearFilters}
+                                            className="text-xs font-mono uppercase text-zinc-500 hover:text-white"
+                                        >
+                                            Reset
+                                        </button>
+                                        <button
+                                            onClick={() => setShowFilters(false)}
+                                            className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
+                                        >
+                                            Apply
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="hidden w-60 min-w-0 md:block lg:w-72">
-                                <OsintSelect
-                                    ariaLabel={`${labelProfile.workspaceLabel} timeline workspace`}
-                                    value={activeWorkspace?.id || ''}
-                                    onChange={(value) => setActiveWorkspaceId(value || null)}
-                                    triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
-                                    options={workspaces.map((workspace) => ({
-                                        value: workspace.id,
-                                        label: sanitizeDisplayTitle(workspace.title),
-                                    }))}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                            <button
-                                onClick={handleExportTimelineJson}
-                                disabled={!timelineSnapshot}
-                                className="flex items-center gap-2 border border-zinc-700 bg-black px-3 py-1.5 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                                title="Export the visible timeline snapshot as JSON"
-                            >
-                                <Download className="h-4 w-4" />
-                                <span className="hidden xl:inline">Export JSON</span>
-                            </button>
-
-                            <button
-                                onClick={handleExportTimelineMarkdown}
-                                disabled={!timelineSnapshot}
-                                className="flex items-center gap-2 border border-zinc-700 bg-black px-3 py-1.5 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                                title="Export the visible timeline snapshot as Markdown"
-                            >
-                                <FileText className="h-4 w-4" />
-                                <span className="hidden xl:inline">Export Markdown</span>
-                            </button>
-
-                            <button
-                                onClick={() => void handleSaveTimelineArtifact()}
-                                disabled={!timelineSnapshot}
-                                className="flex items-center gap-2 border border-zinc-700 bg-black px-3 py-1.5 text-xs font-mono uppercase text-zinc-400 transition hover:border-osint-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                                title="Save the current timeline snapshot as a TIMELINE artifact"
-                            >
-                                <Save className="h-4 w-4" />
-                                <span className="hidden xl:inline">Save Snapshot</span>
-                            </button>
-
-                            <div className="relative" ref={filterMenuRef}>
-                                <button
-                                    onClick={() => setShowFilters((current) => !current)}
-                                    className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
-                                        showFilters
-                                            ? 'border-white bg-zinc-800 text-white'
-                                            : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
-                                    }`}
-                                >
-                                    <Filter className="h-4 w-4" />
-                                    <span className="hidden lg:inline">Filters</span>
-                                </button>
-
-                                {showFilters && (
-                                    <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
-                                        <div className="border-b border-zinc-800 bg-black px-4 py-3">
-                                            <h3 className="text-sm font-bold uppercase tracking-widest text-white">
-                                                Timeline Filters
-                                            </h3>
-                                        </div>
-                                        <div className="space-y-5 p-4">
-                                            <div>
-                                                <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                                                    Date Range
-                                                </label>
-                                                <OsintSelect
-                                                    ariaLabel="Timeline date range"
-                                                    value={filters.range}
-                                                    onChange={(value) =>
-                                                        setFilters((current) => ({
-                                                            ...current,
-                                                            range: value as TimelineRange,
-                                                        }))
-                                                    }
-                                                    triggerClassName="px-3 py-2 pr-8 text-xs font-mono"
-                                                    options={[
-                                                        { value: 'ALL', label: 'All Activity' },
-                                                        { value: '7D', label: 'Last 7 Days' },
-                                                        { value: '30D', label: 'Last 30 Days' },
-                                                        { value: '90D', label: 'Last 90 Days' },
-                                                    ]}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                                                    Visible Tracks
-                                                </label>
-                                                <div className="space-y-2">
-                                                    {TRACK_OPTIONS.map((option) => (
-                                                        <label
-                                                            key={option.track}
-                                                            className="flex items-center justify-between border border-zinc-800 bg-black px-3 py-2 text-xs font-mono text-zinc-300"
-                                                        >
-                                                            <span className="flex items-center gap-2">
-                                                                <option.icon className="h-4 w-4 text-zinc-500" />
-                                                                {option.label}
-                                                            </span>
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={filters.tracks.includes(option.track)}
-                                                                onChange={() => toggleTrackFilter(option.track)}
-                                                                className="h-4 w-4 accent-[var(--osint-primary)]"
-                                                            />
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-                                                <button
-                                                    onClick={clearFilters}
-                                                    className="text-xs font-mono uppercase text-zinc-500 hover:text-white"
-                                                >
-                                                    Reset
-                                                </button>
-                                                <button
-                                                    onClick={() => setShowFilters(false)}
-                                                    className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
-                                                >
-                                                    Apply
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <button
-                                onClick={() => setRightPanelOpen((current) => !current)}
-                                className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
-                                    rightPanelOpen
-                                        ? 'border-white bg-zinc-800 text-white'
-                                        : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
-                                }`}
-                                title="Toggle event details"
-                            >
-                                <MessageSquare className="h-4 w-4" />
-                                <span className="hidden lg:inline">Details</span>
-                            </button>
-                        </div>
+                        )}
                     </div>
 
-                    <div className="grid gap-3 md:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
-                        <div className="min-w-0 md:hidden">
-                            <OsintSelect
-                                ariaLabel={`${labelProfile.workspaceLabel} timeline workspace mobile`}
-                                value={activeWorkspace?.id || ''}
-                                onChange={(value) => setActiveWorkspaceId(value || null)}
-                                triggerClassName="py-2 pl-3 pr-8 text-xs font-mono"
-                                options={workspaces.map((workspace) => ({
-                                    value: workspace.id,
-                                    label: sanitizeDisplayTitle(workspace.title),
-                                }))}
-                            />
-                        </div>
-
-                        <div className="relative min-w-0">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-                            <input
-                                value={search}
-                                onChange={(event) => setSearch(event.target.value)}
-                                placeholder={buildTimelineSearchPlaceholder(labelProfile.artifactLabelPlural)}
-                                className="w-full border border-zinc-700 bg-black py-2 pl-9 pr-3 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
-                            />
-                        </div>
-                    </div>
+                    <button
+                        onClick={() => setRightPanelOpen((current) => !current)}
+                        className={`flex shrink-0 items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+                            rightPanelOpen
+                                ? 'border-white bg-zinc-800 text-white'
+                                : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                        }`}
+                        title="Toggle event details"
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="hidden lg:inline">Details</span>
+                    </button>
                 </div>
             </header>
 
@@ -943,43 +1005,18 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 </aside>
 
                 <main className="flex min-w-0 flex-1 flex-col overflow-hidden border-x border-zinc-800 bg-black/70">
-                    <div className="border-b border-zinc-800 px-4 py-3">
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-7">
-                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
-                                <div className="text-[10px] font-mono uppercase text-zinc-500">Visible Events</div>
-                                <div className="mt-1 text-lg font-bold text-white">{visibleEvents.length}</div>
-                            </div>
-                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
-                                <div className="text-[10px] font-mono uppercase text-zinc-500">Signals</div>
-                                <div className="mt-1 text-lg font-bold text-white">{toUniqueItems(visibleEvents, 'SIGNAL').length}</div>
-                            </div>
-                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
-                                <div className="text-[10px] font-mono uppercase text-zinc-500">Runs</div>
-                                <div className="mt-1 text-lg font-bold text-white">{toUniqueItems(visibleEvents, 'RUN').length}</div>
-                            </div>
-                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
-                                <div className="text-[10px] font-mono uppercase text-zinc-500">
-                                    {labelProfile.artifactLabelPlural}
-                                </div>
-                                <div className="mt-1 text-lg font-bold text-white">{toUniqueItems(visibleEvents, 'ARTIFACT').length}</div>
-                            </div>
-                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
-                                <div className="text-[10px] font-mono uppercase text-zinc-500">Entities</div>
-                                <div className="mt-1 text-lg font-bold text-white">{toUniqueItems(visibleEvents, 'ENTITY').length}</div>
-                            </div>
-                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
-                                <div className="text-[10px] font-mono uppercase text-zinc-500">Chat Events</div>
-                                <div className="mt-1 text-lg font-bold text-white">{getTrackCount(visibleEvents, 'CHAT')}</div>
-                            </div>
-                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
-                                <div className="text-[10px] font-mono uppercase text-zinc-500">Last Activity</div>
-                                <div className="mt-1 text-sm font-bold text-white">{lastActivity || 'N/A'}</div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
-                        {visibleEvents.length === 0 ? (
+                        {!activeWorkspace ? (
+                            <EmptyState
+                                icon={Clock3}
+                                title={workspaces.length === 0 ? 'Timeline Unavailable' : 'No Workspace Selected'}
+                                description={
+                                    workspaces.length === 0
+                                        ? 'Create a workspace first. Timeline becomes useful once Sherlock has saved signals, runs, artifacts, or chat activity.'
+                                        : 'Select a workspace from the header to inspect its chronology.'
+                                }
+                            />
+                        ) : visibleEvents.length === 0 ? (
                             <EmptyState
                                 icon={Clock3}
                                 title="No Timeline Events"
@@ -1178,7 +1215,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 </main>
 
                 <aside
-                    className={`absolute right-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
+                    className={`absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
                         rightPanelOpen
                             ? 'w-[min(24rem,calc(100vw-1rem))] translate-x-0 border-l border-zinc-800'
                             : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full border-l border-zinc-800 lg:w-0 lg:border-l-0'
@@ -1192,8 +1229,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             {selectedEvent ? selectedEvent.title : 'No event selected'}
                         </div>
                     </div>
+                    {selectedEvent && detailActions.length > 0 && (
+                        <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+                            <InspectorActionRow actions={detailActions} />
+                        </div>
+                    )}
 
-                    <div className="h-[calc(100%-72px)] overflow-y-auto p-3 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
                         {!selectedEvent ? (
                             <EmptyState
                                 icon={MessageSquare}
@@ -1369,82 +1411,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                     </div>
                                 </Accordion>
 
-                                <Accordion
-                                    title="Actions"
-                                    icon={MessageSquare}
-                                    isOpen={detailSections.actions}
-                                    onToggle={() =>
-                                        setDetailSections((current) => ({
-                                            ...current,
-                                            actions: !current.actions,
-                                        }))
-                                    }
-                                >
-                                    <div className="space-y-2 px-1 py-1">
-                                        {selectedEntityName && selectedEvent.refKind !== 'ENTITY' && (
-                                            <button
-                                                onClick={() => focusReference('ENTITY', selectedEntityName)}
-                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                            >
-                                                Focus Entity Milestones
-                                            </button>
-                                        )}
-                                        {selectedChatSession && selectedEvent.refKind !== 'CHAT_SESSION' && (
-                                            <button
-                                                onClick={() => focusReference('CHAT', selectedChatSession.id)}
-                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                            >
-                                                Focus Chat Session
-                                            </button>
-                                        )}
-                                        {relatedSignal && (
-                                            <button
-                                                onClick={() => focusReference('SIGNAL', relatedSignal.id)}
-                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                            >
-                                                Focus Origin Signal
-                                            </button>
-                                        )}
-                                        {parentArtifact && (
-                                            <button
-                                                onClick={() => focusReference('ARTIFACT', parentArtifact.id)}
-                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                            >
-                                                Focus Parent {labelProfile.artifactLabel}
-                                            </button>
-                                        )}
-                                        {selectedRun && (
-                                            <button
-                                                onClick={() => focusReference('RUN', selectedRun.id)}
-                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                            >
-                                                Focus Source Run
-                                            </button>
-                                        )}
-                                        {selectedArtifact && (
-                                            <button
-                                                onClick={() => openArtifact(selectedArtifact.id)}
-                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                            >
-                                                Open {labelProfile.artifactLabel}
-                                            </button>
-                                        )}
-                                        {getMetadataValue<string>(selectedEvent, 'previousArtifactId') && (
-                                            <button
-                                                onClick={() => focusReference('ARTIFACT', getMetadataValue<string>(selectedEvent, 'previousArtifactId'))}
-                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                            >
-                                                Focus Previous {labelProfile.artifactLabel}
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => openWorkspaceChat(selectedEvent)}
-                                            className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                                        >
-                                            {selectedChatSession ? 'Open Chat Session' : 'Open Workspace Chat'}
-                                        </button>
-                                    </div>
-                                </Accordion>
                             </>
                         )}
                     </div>

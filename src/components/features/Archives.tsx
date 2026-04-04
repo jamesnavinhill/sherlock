@@ -402,7 +402,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
               <div className="relative" ref={exportMenuRef}>
                 <button
                   onClick={() => setShowExportMenu(!showExportMenu)}
-                  className="flex items-center px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-700 hover:text-white transition-colors"
+                  className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
                 >
                   <Download className="w-4 h-4 mr-1" />
                   <span className="hidden lg:inline">Export</span>

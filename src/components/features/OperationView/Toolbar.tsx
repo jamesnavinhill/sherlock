@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout, Briefcase, ChevronRight, MessageSquare } from 'lucide-react';
+import { ChevronDown, Download, FileText, Plus, FileJson, Layout, Briefcase, ChevronRight, MessageSquare } from 'lucide-react';
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson, exportCaseAsMarkdown, exportReportAsMarkdown } from '../../../utils/exportUtils';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
@@ -93,21 +93,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                 <span className="ml-2 hidden lg:inline">OPEN CHAT</span>
                             </button>
                         )}
-                        {report && onSaveTemplate && (
-                            <button
-                                onClick={onSaveTemplate}
-                                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
-                                title="Save current run config as reusable launch template"
-                                aria-label="Save as Template"
-                            >
-                                <Save className="w-4 h-4" />
-                                <span className="ml-2 hidden lg:inline">SAVE PROTOCOL</span>
-                            </button>
-                        )}
                         <div className="relative" ref={exportMenuRef}>
                             <button
                                 onClick={() => setShowExportMenu(!showExportMenu)}
-                                className="flex items-center px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-700 hover:text-white transition-colors"
+                                className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
                             >
                                 <Download className="w-4 h-4 mr-1" />
                                 <span className="hidden lg:inline">Export</span>
