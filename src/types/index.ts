@@ -456,7 +456,7 @@ export type Workspace = Case;
 export type Artifact = InvestigationReport;
 export type WorkspaceRun = InvestigationTask;
 
-export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT';
+export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT' | 'ENTITY';
 
 export type TimelineEventType =
   | 'SIGNAL_SAVED'
@@ -464,6 +464,9 @@ export type TimelineEventType =
   | 'RUN_COMPLETED'
   | 'RUN_FAILED'
   | 'ARTIFACT_CREATED'
+  | 'ENTITY_FIRST_SEEN'
+  | 'ENTITY_MENTION_THRESHOLD'
+  | 'ENTITY_REAPPEARED'
   | 'CHAT_SESSION_STARTED'
   | 'CHAT_SEARCHED_WORKSPACE'
   | 'CHAT_ARTIFACT_SAVED'
@@ -479,7 +482,7 @@ export interface TimelineEvent {
   title: string;
   summary?: string;
   refId?: string;
-  refKind?: 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT_SESSION' | 'CHAT_ACTION';
+  refKind?: 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT_SESSION' | 'CHAT_ACTION' | 'ENTITY';
   parentRefId?: string;
   badges?: string[];
   searchText?: string;

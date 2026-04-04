@@ -17,7 +17,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 ## UI Areas
 
 - `Operation View`: artifact reading, purpose-ordered typed-section rendering, dossier, inspector panel
-- `Timeline`: workspace chronology across saved signals, runs, artifacts, chat sessions, and high-signal chat actions, with lineage focus chips and exact-session jump-through into workspace chat
+- `Timeline`: workspace chronology across saved signals, runs, artifacts, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, small-screen header controls, and exact-session jump-through into workspace chat
 - `Workspace Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution
 - `Live Monitor`: live signal scans, filtering, and headline persistence

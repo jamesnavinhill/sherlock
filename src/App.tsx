@@ -385,7 +385,12 @@ function App() {
     setFocusedReportId(report.id || null);
     setActiveCaseId(report.caseId || null);
 
-    const existingTask = tasks.find(t => t.report?.id === report.id || t.report?.topic === report.topic);
+    const existingTask = tasks.find(
+      t =>
+        t.report?.id === report.id
+        || t.id === report.config?.sourceRunId
+        || t.report?.topic === report.topic
+    );
 
     if (existingTask) {
       setActiveTaskId(existingTask.id);
@@ -434,7 +439,11 @@ function App() {
     if (caseItem) {
       const caseReports = archives.filter(r => r.caseId === id);
       if (caseReports.length > 0) {
-        const root = caseReports.find(r => !r.parentTopic) || caseReports[0];
+        const root =
+          caseReports.find(r => !r.config?.parentArtifactId && !r.parentTopic)
+          || caseReports.find(r => !r.config?.parentArtifactId)
+          || caseReports.find(r => !r.parentTopic)
+          || caseReports[0];
         handleViewReport(root);
         return;
       }

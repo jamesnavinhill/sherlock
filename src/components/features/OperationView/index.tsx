@@ -159,7 +159,11 @@ export const OperationView: React.FC<OperationViewProps> = ({
         if (caseId !== 'ALL' && caseId !== '') {
             const caseReports = archives.filter(r => r.caseId === caseId);
             if (caseReports.length > 0) {
-                const rootReport = caseReports.find(r => !r.parentTopic) || caseReports[0];
+                const rootReport =
+                    caseReports.find(r => !r.config?.parentArtifactId && !r.parentTopic)
+                    || caseReports.find(r => !r.config?.parentArtifactId)
+                    || caseReports.find(r => !r.parentTopic)
+                    || caseReports[0];
                 if (!rootReport.id) return;
                 if (onSelectCase) {
                     onSelectCase(rootReport.id);

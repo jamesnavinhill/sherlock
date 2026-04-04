@@ -24,16 +24,20 @@ Current delivered state:
   - signals
   - runs
   - artifacts
+  - entity milestones
   - chat sessions
   - curated high-signal chat actions
-- chat remains opt-in at the filter layer rather than default-on in the main chronology
-- chronology cards now show lightweight lineage chips for related signals, runs, artifacts, and chat sessions
+- entity and chat chronology remain opt-in at the filter layer rather than default-on in the main chronology
+- chronology cards now show lightweight lineage chips for related signals, runs, artifacts, entities, and chat sessions
 - event cards support click-through into:
   - `OperationView` for related artifacts
   - `Chat` for workspace or event-context chat entry
   - exact saved chat sessions when the timeline event belongs to a persisted chat session/action
 - launch requests now derive missing `parentArtifactId`, `parentRunId`, and `sourceSignalId` lineage from known parent artifacts/runs before task persistence
 - artifact saves now backfill lineage from `sourceRunId` when the incoming report payload is partial
+- Timeline now derives explicit run-to-artifact links from saved `sourceRunId` before falling back to topic matching
+- nearby report-selection helpers in `App.tsx` and `OperationView` now prefer stored `sourceRunId` / `parentArtifactId` lineage before legacy topic-only heuristics
+- smaller-breakpoint Timeline header controls now keep workspace switching and chronology search visible without opening drawers first
 
 ## Files Added
 
@@ -43,7 +47,9 @@ Current delivered state:
 
 ## Files Updated
 
+- `src/App.tsx`
 - `src/components/features/TimelineView.tsx`
+- `src/components/features/OperationView/index.tsx`
 - `src/services/chat/launchContext.ts`
 - `src/types/index.ts`
 - `README.md`
@@ -57,8 +63,8 @@ Current delivered state:
 Completed on this checkout:
 
 - `npm run lint`
-- `npx eslint src/types/index.ts src/services/chat/launchContext.ts src/services/chat/launchContext.test.ts src/components/features/Timeline/timelineEvents.ts src/components/features/Timeline/timelineEvents.test.ts src/components/features/TimelineView.tsx`
-- `npx vitest run src/components/features/Timeline/timelineEvents.test.ts src/services/chat/launchContext.test.ts --pool=forks`
+- `npx eslint src/types/index.ts src/components/features/Timeline/timelineEvents.ts src/components/features/Timeline/timelineEvents.test.ts src/components/features/TimelineView.tsx src/App.tsx src/components/features/OperationView/index.tsx`
+- `npx vitest run src/components/features/Timeline/timelineEvents.test.ts --pool=forks`
 - `npm run build`
 
 All of the above passed.
@@ -91,100 +97,78 @@ Included chat action types are intentionally limited to:
 
 Lower-signal retrieval helpers and raw transcript messages are still intentionally excluded from the main chronology.
 
-### 4. Current Lineage Is Transitional
+### 4. Entity Milestones Are Now A Secondary Track
 
-Run-to-artifact linkage is currently inferred in a compatibility-safe way:
+Timeline now derives an opt-in `ENTITY` track from persisted artifacts for:
 
-- `task.report?.id` if available
-- otherwise topic matching within the active workspace
+- first-seen entity moments
+- repeated-mention thresholds
+- artifact-backed reappearance after meaningful chronology gaps
 
-Artifact follow-up lineage is currently inferred from:
+The milestone events keep click-through attached to the originating artifact so they remain chronology aids rather than becoming a second graph surface.
 
-- `parentTopic`
+### 5. Current Lineage Is Stronger, But Still Compatibility-Aware For Legacy Records
 
-This slice reduced the inference surface by:
+Run-to-artifact linkage now prefers:
 
-- deriving run lineage from known parent artifacts/runs at launch time
-- backfilling artifact lineage from `sourceRunId` during archive persistence
-- preserving signal lineage across chat follow-up launches when the chat session was opened from a signal
+- `task.config.producedArtifactId`
+- `task.report?.id`
+- artifact `config.sourceRunId`
+- only then topic matching within the active workspace
 
-Chat lineage is explicit at the session/action layer, but run/artifact lineage is still not the final model everywhere.
+Artifact follow-up lineage now prefers:
+
+- `config.parentArtifactId`
+- only then legacy `parentTopic`
+
+This slice further reduced the inference surface by:
+
+- deriving timeline run lineage from saved `sourceRunId` before topic fallback
+- preferring explicit parent ids in Timeline and nearby report-navigation helpers
+- keeping older compatibility fields as a final fallback for legacy records that predate stored lineage ids
 
 ## Best Next Session Starting Point
 
 The most valuable next steps are now:
 
-1. strengthen lineage with explicit IDs
-2. add entity milestone chronology
-3. continue mobile and presentation polish
+1. evaluate timeline export and snapshot value
+2. decide whether broader secondary chronology is worth the extra density
+3. tighten legacy-record migration/backfill only if older data needs it
 
 ### Recommended Order
 
-#### 1. Add Explicit Lineage IDs
+#### 1. Evaluate Timeline Export
 
-Highest leverage next improvement.
+Still explicitly later-slice work.
+
+Question to answer:
+
+- does a saved `TIMELINE` artifact meaningfully help operators, or would it just duplicate Archives plus Timeline screenshots/exported chat context?
+
+#### 2. Decide Whether To Broaden Secondary Tracks
+
+Current state is intentionally curated.
+
+Possible future additions:
+
+- richer graph-edit milestones
+- broader chat audit traces
+- other derived workspace milestones that are high-signal without overwhelming the stream
+
+#### 3. Backfill Legacy Records Only If Needed
 
 Current issue:
 
-- some runs and artifacts still rely on compatibility fallbacks when no explicit stored ancestor id is available
+- older persisted artifacts/runs can still fall back to `parentTopic` or topic similarity when explicit ids were never stored
 
-Best next change:
+Likely next step if this matters:
 
-- eliminate the remaining `parentTopic` and topic-match fallbacks where a stronger stored ref can be derived or persisted safely
-- keep tightening the event builder so explicit stored refs win in every path
-
-Most likely files:
-
-- `src/types/index.ts`
-- `src/store/caseStore.ts`
-- `src/App.tsx`
-- `src/services/db/schema.ts`
-- `src/services/db/repositories/TaskRepository.ts`
-- `src/services/db/repositories/CaseRepository.ts`
-- `src/components/features/Timeline/timelineEvents.ts`
-
-#### 2. Add Entity Milestones
-
-The most natural next secondary chronology after curated chat events.
-
-Recommended scope:
-
-- first-seen entity moments
-- repeated-mention thresholds
-- artifact-backed entity reappearance
-
-Recommended hold:
-
-- raw graph edits
-- individual chat messages
-- low-level retrieval traces
-
-Most likely files:
-
-- `src/components/features/Timeline/timelineEvents.ts`
-- `src/components/features/TimelineView.tsx`
-- `src/types/index.ts`
-
-#### 3. Mobile Header Polish
-
-The desktop shell is the stronger implementation right now.
-
-Worth improving next:
-
-- mobile workspace selector visibility
-- mobile search ergonomics
-- filters and dossier drawer rhythm on smaller breakpoints
-
-Main file:
-
-- `src/components/features/TimelineView.tsx`
+- add migration/backfill work rather than expanding more runtime compatibility heuristics
 
 ## Known Gaps
 
 These are expected at this handoff point.
 
-- Timeline does not yet render entity milestones
 - Timeline only renders curated high-signal chat actions, not the full chat audit stream
-- some run/artifact lineage is still partly inferred when older records or weaker launch paths do not carry explicit ids
+- some run/artifact lineage is still partly inferred for older records that never stored explicit ids
 - export is not yet implemented
-- mobile Timeline ergonomics are still behind the desktop shell

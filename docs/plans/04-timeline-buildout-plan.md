@@ -20,18 +20,21 @@ Current delivered state includes:
 - dossier-style left panel
 - header workspace selector, text search, and filters popout
 - mixed chronology rendering for signals, runs, and artifacts
+- opt-in entity milestone chronology for first-seen moments, repeated-mention thresholds, and artifact-backed reappearance
 - opt-in chronology rendering for chat sessions and high-signal chat actions
 - right-side details drawer with event-specific context
 - explicit lineage refs threaded through current run/artifact/signal flows without introducing a new persistence schema yet
 - exact-session click-through from chat timeline events back into workspace chat
-- lightweight lineage chips in the chronology stream for signal, run, artifact, and chat relationships
+- lightweight lineage chips in the chronology stream for signal, run, artifact, entity, and chat relationships
 - launch/save flows now derive and persist more explicit `parentRunId`, `parentArtifactId`, and `sourceSignalId` lineage when parent records already exist
+- timeline event derivation and nearby report-selection helpers now prefer stored ids over topic-based compatibility matching when those ids are available
+- smaller-breakpoint Timeline header controls now keep workspace switching and search visible
 
 The biggest remaining work is now extension rather than basic existence:
 
-- extend secondary chronology beyond curated chat activity into entity milestones and other truly high-signal derived events
-- finish the last lineage gaps where compatibility fallbacks such as `parentTopic` or topic matching still remain
-- evaluate whether exportable timeline artifacts are worthwhile after the chronology model settles
+- decide whether exportable timeline artifacts are worthwhile after the chronology model settles
+- optionally broaden secondary chronology beyond the currently curated entity/chat tracks
+- reduce legacy-record compatibility fallbacks further if older persisted records need richer backfill/migration support
 
 ## Objective
 

@@ -241,8 +241,11 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - routed chronology page with header search, filters popout, dossier, central event stream, and details drawer
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
 - default-on chronology for saved signals, runs, and artifacts
+- opt-in secondary `ENTITY` track for first-seen moments, repeated-mention thresholds, and artifact-backed reappearance milestones
 - opt-in secondary `CHAT` track for chat session starts plus high-signal chat actions (`SEARCH_WORKSPACE`, saved artifact drafts, append-note actions, and follow-up launches)
-- lineage rendering across signal, run, artifact, and chat relationships without introducing a new persistence schema
+- lineage rendering across signal, run, artifact, entity, and chat relationships without introducing a new persistence schema
+- explicit lineage ids now win before topic-based compatibility matching in timeline run/artifact derivation and nearby report-navigation helpers
+- smaller-breakpoint header controls now keep workspace switching and chronology search visible without opening the dossier first
 - click-through into saved artifacts and exact workspace chat sessions from timeline events
 
 ### Feed
@@ -292,7 +295,7 @@ See:
 
 ## 9. Notable Constraints
 
-- Timeline is now a live feature surface, but secondary chronology remains intentionally curated; entity milestones and lower-signal audit tracks are still deferred to later slices.
+- Timeline is now a live feature surface, but secondary chronology remains intentionally curated; lower-signal graph/chat audit traces and exportable timeline artifacts are still deferred to later slices.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
 - Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
 - `Ctrl+N` now routes through Archives and opens the active new-workspace modal rather than relying on dead shell state.

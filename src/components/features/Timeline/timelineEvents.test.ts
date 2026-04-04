@@ -213,6 +213,123 @@ describe('timelineEvents', () => {
         expect(focused.map((event) => event.refId)).toContain('rep-2');
     });
 
+    it('prefers explicit source run lineage over topic matching when linking runs to artifacts', () => {
+        const events = buildWorkspaceTimelineEvents({
+            workspaceId: 'case-1',
+            artifacts: [
+                {
+                    id: 'rep-1',
+                    caseId: 'case-1',
+                    topic: 'Atlas Follow-up Brief',
+                    createdAt: 300,
+                    summary: 'Child artifact',
+                    agendas: [],
+                    leads: [],
+                    entities: [],
+                    sources: [],
+                    rawText: 'raw',
+                    config: {
+                        sourceRunId: 'run-1',
+                    },
+                },
+            ],
+            runs: [
+                {
+                    id: 'run-1',
+                    workspaceId: 'case-1',
+                    topic: 'Run title without a matching artifact topic',
+                    status: 'COMPLETED',
+                    startTime: 100,
+                    endTime: 200,
+                },
+            ],
+            signals: [],
+            chatSessions: [],
+            chatActionsBySessionId: {},
+        });
+
+        expect(events.find((event) => event.id === 'run-complete-run-1')?.metadata?.relatedArtifactId).toBe('rep-1');
+    });
+
+    it('adds entity milestone chronology for first-seen, reappearance, and mention thresholds', () => {
+        const events = buildWorkspaceTimelineEvents({
+            workspaceId: 'case-1',
+            artifacts: [
+                {
+                    id: 'rep-1',
+                    caseId: 'case-1',
+                    topic: 'Atlas Initial Brief',
+                    createdAt: Date.parse('2026-01-01T00:00:00.000Z'),
+                    summary: 'First artifact',
+                    agendas: [],
+                    leads: [],
+                    entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
+                    sources: [],
+                    rawText: 'raw',
+                    artifactType: 'BRIEF',
+                },
+                {
+                    id: 'rep-2',
+                    caseId: 'case-1',
+                    topic: 'Atlas Update',
+                    createdAt: Date.parse('2026-01-05T00:00:00.000Z'),
+                    summary: 'Second artifact',
+                    agendas: [],
+                    leads: [],
+                    entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
+                    sources: [],
+                    rawText: 'raw',
+                    artifactType: 'DIGEST',
+                },
+                {
+                    id: 'rep-3',
+                    caseId: 'case-1',
+                    topic: 'Atlas Returns',
+                    createdAt: Date.parse('2026-01-20T00:00:00.000Z'),
+                    summary: 'Third artifact',
+                    agendas: [],
+                    leads: [],
+                    entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
+                    sources: [],
+                    rawText: 'raw',
+                    artifactType: 'REPORT',
+                },
+            ],
+            runs: [],
+            signals: [],
+            chatSessions: [],
+            chatActionsBySessionId: {},
+        });
+
+        const entityEvents = events.filter((event) => event.track === 'ENTITY');
+
+        expect(entityEvents.map((event) => event.type)).toEqual([
+            'ENTITY_REAPPEARED',
+            'ENTITY_MENTION_THRESHOLD',
+            'ENTITY_FIRST_SEEN',
+        ]);
+        expect(entityEvents[0]?.metadata?.previousArtifactId).toBe('rep-2');
+        expect(entityEvents[1]?.metadata?.threshold).toBe(3);
+        expect(entityEvents[2]?.refKind).toBe('ENTITY');
+
+        const focused = filterTimelineEvents(events, {
+            workspaceId: 'case-1',
+            search: '',
+            filters: {
+                range: 'ALL',
+                tracks: ['ENTITY'],
+            },
+            focusedTrack: 'ENTITY',
+            focusedRefId: 'Atlas Holdings',
+        });
+
+        expect(focused.map((event) => event.type)).toEqual([
+            'ENTITY_REAPPEARED',
+            'ENTITY_MENTION_THRESHOLD',
+            'ENTITY_FIRST_SEEN',
+        ]);
+    });
+
     it('adds opt-in chat session and action events with session lineage', () => {
         const events = buildWorkspaceTimelineEvents({
             workspaceId: 'case-1',

@@ -14,6 +14,8 @@ import { getChatLaunchContextFromSession, isGuidedChatSession } from '../../../s
 
 const FALLBACK_OCCURED_AT = 0;
 const DEFAULT_TRACKS: TimelineTrack[] = ['SIGNAL', 'RUN', 'ARTIFACT'];
+const ENTITY_MENTION_THRESHOLDS = [3, 5];
+const ENTITY_REAPPEARANCE_GAP_MS = 14 * 24 * 60 * 60 * 1000;
 const HIGH_SIGNAL_CHAT_ACTIONS = new Set<AgentAction['type']>([
     'SEARCH_WORKSPACE',
     'CREATE_ARTIFACT_DRAFT',
@@ -47,6 +49,18 @@ const buildArtifactSearchText = (artifact: InvestigationReport): string =>
         artifact.artifactType,
         artifact.sources.map((source) => `${source.title} ${source.url}`).join(' '),
         artifact.entities.map((entity) => entity.name).join(' '),
+    ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+const buildEntitySearchText = (entityName: string, artifact: InvestigationReport, mentionCount: number): string =>
+    [
+        entityName,
+        artifact.topic,
+        artifact.summary,
+        artifact.artifactType,
+        mentionCount.toString(),
     ]
         .filter(Boolean)
         .join(' ')
@@ -118,14 +132,34 @@ const buildParentArtifactMap = (artifacts: InvestigationReport[], workspaceId: s
     );
 };
 
+const getArtifactParentId = (
+    artifact: InvestigationReport,
+    parentArtifactMap: Map<string, string>
+) =>
+    artifact.config?.parentArtifactId
+    || (artifact.parentTopic
+        ? parentArtifactMap.get(sanitizeDisplayTitle(artifact.parentTopic).toLowerCase())
+        : undefined);
+
 const inferArtifactForRun = (run: InvestigationTask, artifacts: InvestigationReport[], workspaceId: string) => {
+    if (run.config?.producedArtifactId) return run.config.producedArtifactId;
     if (run.report?.id) return run.report.id;
+
+    const artifactFromSourceRun = artifacts.find(
+        (artifact) => artifact.caseId === workspaceId && artifact.config?.sourceRunId === run.id
+    )?.id;
+    if (artifactFromSourceRun) return artifactFromSourceRun;
 
     return artifacts.find(
         (artifact) =>
             artifact.caseId === workspaceId &&
             sanitizeDisplayTitle(artifact.topic).toLowerCase() === sanitizeDisplayTitle(run.topic).toLowerCase()
     )?.id;
+};
+
+const formatDayGap = (gapMs: number) => {
+    const dayCount = Math.max(1, Math.round(gapMs / (24 * 60 * 60 * 1000)));
+    return `${dayCount}d`;
 };
 
 const eventReferencesFocus = (event: TimelineEvent, focusedRefId: string) => {
@@ -248,10 +282,7 @@ export const buildWorkspaceTimelineEvents = (input: {
     const artifactEvents = input.artifacts
         .filter((artifact) => artifact.caseId === input.workspaceId)
         .map<TimelineEvent>((artifact) => {
-            const parentRefId = artifact.config?.parentArtifactId
-                || (artifact.parentTopic
-                    ? parentArtifactMap.get(sanitizeDisplayTitle(artifact.parentTopic).toLowerCase())
-                    : undefined);
+            const parentRefId = getArtifactParentId(artifact, parentArtifactMap);
             const artifactSummary = artifact.config?.sourceSignalId
                 ? 'Saved artifact created from a signal-driven run.'
                 : artifact.config?.parentArtifactId
@@ -283,6 +314,137 @@ export const buildWorkspaceTimelineEvents = (input: {
                 },
             };
         });
+
+    const entityEvents = (() => {
+        const entityMilestones: TimelineEvent[] = [];
+        const entityState = new Map<
+            string,
+            {
+                mentionCount: number;
+                lastArtifactId?: string;
+                lastSeenAt: number;
+            }
+        >();
+        const thresholdSet = new Set(ENTITY_MENTION_THRESHOLDS);
+
+        const chronologicalArtifacts = [...scopedArtifacts].sort((a, b) => {
+            const delta = (a.createdAt ?? FALLBACK_OCCURED_AT) - (b.createdAt ?? FALLBACK_OCCURED_AT);
+            if (delta !== 0) return delta;
+            return sanitizeDisplayTitle(a.topic).localeCompare(sanitizeDisplayTitle(b.topic));
+        });
+
+        chronologicalArtifacts.forEach((artifact) => {
+            const seenInArtifact = new Set<string>();
+            const artifactEntityNames = artifact.entities
+                .map((entity) => sanitizeDisplayTitle((typeof entity === 'string' ? entity : entity.name) || '').trim())
+                .filter((name) => !!name)
+                .filter((name) => {
+                    const key = name.toLowerCase();
+                    if (seenInArtifact.has(key)) return false;
+                    seenInArtifact.add(key);
+                    return true;
+                });
+
+            artifactEntityNames.forEach((displayName) => {
+                const entityKey = displayName.toLowerCase();
+                const occurredAt = artifact.createdAt ?? FALLBACK_OCCURED_AT;
+                const previous = entityState.get(entityKey);
+                const mentionCount = (previous?.mentionCount || 0) + 1;
+                const relatedArtifactId = artifact.id;
+                const previousArtifactId = previous?.lastArtifactId;
+                const gapMs =
+                    previous && occurredAt > 0 && previous.lastSeenAt > 0
+                        ? occurredAt - previous.lastSeenAt
+                        : 0;
+
+                if (!previous) {
+                    entityMilestones.push({
+                        id: `entity-first-seen-${entityKey}-${relatedArtifactId || occurredAt}`,
+                        occurredAt,
+                        track: 'ENTITY',
+                        type: 'ENTITY_FIRST_SEEN',
+                        workspaceId: input.workspaceId,
+                        title: displayName,
+                        summary: relatedArtifactId
+                            ? `First seen in ${sanitizeDisplayTitle(artifact.topic)}.`
+                            : 'First seen in a saved workspace artifact.',
+                        refId: displayName,
+                        refKind: 'ENTITY',
+                        badges: ['FIRST_SEEN', artifact.artifactType || 'ARTIFACT'].filter(
+                            (value): value is string => !!value
+                        ),
+                        searchText: buildEntitySearchText(displayName, artifact, mentionCount),
+                        metadata: {
+                            entityName: displayName,
+                            relatedArtifactId,
+                            mentionCount,
+                        },
+                    });
+                } else {
+                    if (gapMs >= ENTITY_REAPPEARANCE_GAP_MS) {
+                        entityMilestones.push({
+                            id: `entity-reappeared-${entityKey}-${relatedArtifactId || occurredAt}`,
+                            occurredAt,
+                            track: 'ENTITY',
+                            type: 'ENTITY_REAPPEARED',
+                            workspaceId: input.workspaceId,
+                            title: displayName,
+                            summary: relatedArtifactId
+                                ? `Reappeared in ${sanitizeDisplayTitle(artifact.topic)} after ${formatDayGap(gapMs)}.`
+                                : `Reappeared in a saved workspace artifact after ${formatDayGap(gapMs)}.`,
+                            refId: displayName,
+                            refKind: 'ENTITY',
+                            badges: ['REAPPEARED', artifact.artifactType || 'ARTIFACT'].filter(
+                                (value): value is string => !!value
+                            ),
+                            searchText: buildEntitySearchText(displayName, artifact, mentionCount),
+                            metadata: {
+                                entityName: displayName,
+                                relatedArtifactId,
+                                previousArtifactId,
+                                mentionCount,
+                                daysSincePrevious: formatDayGap(gapMs),
+                            },
+                        });
+                    }
+
+                    if (thresholdSet.has(mentionCount)) {
+                        entityMilestones.push({
+                            id: `entity-threshold-${entityKey}-${mentionCount}-${relatedArtifactId || occurredAt}`,
+                            occurredAt,
+                            track: 'ENTITY',
+                            type: 'ENTITY_MENTION_THRESHOLD',
+                            workspaceId: input.workspaceId,
+                            title: displayName,
+                            summary: relatedArtifactId
+                                ? `Reached ${mentionCount} saved artifact mentions in ${sanitizeDisplayTitle(artifact.topic)}.`
+                                : `Reached ${mentionCount} saved artifact mentions.`,
+                            refId: displayName,
+                            refKind: 'ENTITY',
+                            badges: [`${mentionCount}X`, artifact.artifactType || 'ARTIFACT'].filter(
+                                (value): value is string => !!value
+                            ),
+                            searchText: buildEntitySearchText(displayName, artifact, mentionCount),
+                            metadata: {
+                                entityName: displayName,
+                                relatedArtifactId,
+                                mentionCount,
+                                threshold: mentionCount,
+                            },
+                        });
+                    }
+                }
+
+                entityState.set(entityKey, {
+                    mentionCount,
+                    lastArtifactId: relatedArtifactId,
+                    lastSeenAt: occurredAt,
+                });
+            });
+        });
+
+        return entityMilestones;
+    })();
 
     const chatSessionEvents = input.chatSessions
         .filter((session) => session.workspaceId === input.workspaceId)
@@ -464,7 +626,7 @@ export const buildWorkspaceTimelineEvents = (input: {
         }).filter((event): event is TimelineEvent => !!event);
     });
 
-    return [...signalEvents, ...runEvents, ...artifactEvents, ...chatSessionEvents, ...chatActionEvents].sort((a, b) => {
+    return [...signalEvents, ...runEvents, ...artifactEvents, ...entityEvents, ...chatSessionEvents, ...chatActionEvents].sort((a, b) => {
         if (b.occurredAt !== a.occurredAt) return b.occurredAt - a.occurredAt;
         return a.title.localeCompare(b.title);
     });

@@ -4,6 +4,7 @@ import {
     Clock3,
     FileText,
     Filter,
+    Fingerprint,
     MessageSquare,
     Radio,
     Search,
@@ -41,6 +42,7 @@ type DossierSections = {
     runs: boolean;
     artifacts: boolean;
     signals: boolean;
+    entities: boolean;
     chats: boolean;
 };
 
@@ -59,6 +61,7 @@ const TRACK_OPTIONS: Array<{ track: TimelineTrack; label: string; icon: typeof R
     { track: 'SIGNAL', label: 'Signals', icon: Radio },
     { track: 'RUN', label: 'Runs', icon: Activity },
     { track: 'ARTIFACT', label: 'Artifacts', icon: FileText },
+    { track: 'ENTITY', label: 'Entities', icon: Fingerprint },
     { track: 'CHAT', label: 'Chats', icon: MessageSquare },
 ];
 
@@ -78,6 +81,8 @@ const getEventIcon = (event: TimelineEvent) => {
             return Activity;
         case 'ARTIFACT':
             return FileText;
+        case 'ENTITY':
+            return Fingerprint;
         case 'CHAT':
             return MessageSquare;
         default:
@@ -95,6 +100,12 @@ const getEventTone = (event: TimelineEvent) => {
             return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300';
         case 'CHAT_FOLLOW_UP_LAUNCHED':
             return 'border-amber-500/40 bg-amber-500/10 text-amber-300';
+        case 'ENTITY_FIRST_SEEN':
+            return 'border-violet-500/40 bg-violet-500/10 text-violet-200';
+        case 'ENTITY_MENTION_THRESHOLD':
+            return 'border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200';
+        case 'ENTITY_REAPPEARED':
+            return 'border-indigo-500/40 bg-indigo-500/10 text-indigo-200';
         case 'CHAT_SESSION_STARTED':
         case 'CHAT_SEARCHED_WORKSPACE':
         case 'CHAT_ARTIFACT_NOTED':
@@ -135,6 +146,9 @@ const getPrimaryRefId = (event: TimelineEvent | null, refKind: TimelineEvent['re
     return event.refId;
 };
 
+const buildTimelineSearchPlaceholder = (artifactLabelPlural: string) =>
+    `Search ${artifactLabelPlural.toLowerCase()}, runs, signals, entities, chats...`;
+
 export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpenChat }) => {
     const {
         activeCaseId,
@@ -159,6 +173,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         runs: true,
         artifacts: true,
         signals: true,
+        entities: true,
         chats: true,
     });
     const [detailSections, setDetailSections] = useState<DetailSections>({
@@ -246,6 +261,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const runItems = useMemo(() => toUniqueItems(allTimelineEvents, 'RUN'), [allTimelineEvents]);
     const artifactItems = useMemo(() => toUniqueItems(allTimelineEvents, 'ARTIFACT'), [allTimelineEvents]);
     const signalItems = useMemo(() => toUniqueItems(allTimelineEvents, 'SIGNAL'), [allTimelineEvents]);
+    const entityItems = useMemo(() => toUniqueItems(allTimelineEvents, 'ENTITY'), [allTimelineEvents]);
     const chatSessionItems = useMemo(
         () => allTimelineEvents.filter((event) => event.type === 'CHAT_SESSION_STARTED'),
         [allTimelineEvents]
@@ -323,6 +339,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     const selectedChatLaunchContext = useMemo(
         () => getChatLaunchContextFromSession(selectedChatSession),
         [selectedChatSession]
+    );
+    const selectedEntityName = useMemo(
+        () => getPrimaryRefId(selectedEvent, 'ENTITY') || getMetadataValue<string>(selectedEvent, 'entityName') || null,
+        [selectedEvent]
     );
 
     const lastActivity = useMemo(() => getLatestTimelineActivity(visibleEvents), [visibleEvents]);
@@ -406,6 +426,18 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             return;
         }
 
+        const entityName = getPrimaryRefId(event || null, 'ENTITY') || getMetadataValue<string>(event || null, 'entityName');
+        if (entityName) {
+            onOpenChat({
+                workspaceId: activeWorkspace.id,
+                launchContext: {
+                    entityName,
+                    sourceReportId: getMetadataValue<string>(event || null, 'relatedArtifactId'),
+                },
+            });
+            return;
+        }
+
         onOpenChat({ workspaceId: activeWorkspace.id });
     };
 
@@ -425,39 +457,162 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
             <BackgroundMatrixRain />
 
-            <header className="sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 px-4 backdrop-blur-md sm:px-6">
-                <div className="flex h-full items-center justify-between gap-4">
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <button
-                            onClick={() => setLeftPanelOpen((current) => !current)}
-                            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
-                                leftPanelOpen
-                                    ? 'border-white bg-zinc-800 text-white'
-                                    : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
-                            }`}
-                            title="Toggle timeline dossier"
-                        >
-                            <Workflow className="h-4 w-4" />
-                            <span className="hidden lg:inline">Dossier</span>
-                        </button>
+            <header className="sticky top-0 z-30 border-b border-zinc-800 bg-black/95 px-4 py-3 backdrop-blur-md sm:px-6">
+                <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                            <button
+                                onClick={() => setLeftPanelOpen((current) => !current)}
+                                className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+                                    leftPanelOpen
+                                        ? 'border-white bg-zinc-800 text-white'
+                                        : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                                }`}
+                                title="Toggle timeline dossier"
+                            >
+                                <Workflow className="h-4 w-4" />
+                                <span className="hidden lg:inline">Dossier</span>
+                            </button>
 
-                        <div className="hidden min-w-0 items-center gap-3 xl:flex">
-                            <Clock3 className="h-5 w-5 text-osint-primary" />
-                            <div className="min-w-0">
-                                <div className="truncate text-sm font-bold uppercase tracking-[0.24em] text-white">
-                                    {labelProfile.workspaceLabel} Timeline
+                            <div className="min-w-0 flex-1">
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <Clock3 className="hidden h-5 w-5 shrink-0 text-osint-primary xl:block" />
+                                    <div className="min-w-0">
+                                        <div className="truncate text-sm font-bold uppercase tracking-[0.24em] text-white">
+                                            {labelProfile.workspaceLabel} Timeline
+                                        </div>
+                                        <div className="truncate text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+                                            {activeWorkspace
+                                                ? sanitizeDisplayTitle(activeWorkspace.title)
+                                                : 'Workspace chronology'}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="truncate text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-                                    {activeWorkspace ? sanitizeDisplayTitle(activeWorkspace.title) : 'Workspace chronology'}
-                                </div>
+                            </div>
+
+                            <div className="relative hidden w-60 min-w-0 md:block lg:w-72">
+                                <select
+                                    value={activeWorkspace?.id || ''}
+                                    onChange={(event) => setActiveCaseId(event.target.value || null)}
+                                    className="w-full appearance-none border border-zinc-700 bg-black py-1.5 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
+                                >
+                                    {cases.map((workspace) => (
+                                        <option key={workspace.id} value={workspace.id}>
+                                            {sanitizeDisplayTitle(workspace.title)}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
-                        <div className="relative hidden w-60 min-w-0 md:block lg:w-72">
+                        <div className="flex shrink-0 items-center gap-2">
+                            <div className="relative" ref={filterMenuRef}>
+                                <button
+                                    onClick={() => setShowFilters((current) => !current)}
+                                    className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+                                        showFilters
+                                            ? 'border-white bg-zinc-800 text-white'
+                                            : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                                    }`}
+                                >
+                                    <Filter className="h-4 w-4" />
+                                    <span className="hidden lg:inline">Filters</span>
+                                </button>
+
+                                {showFilters && (
+                                    <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
+                                        <div className="border-b border-zinc-800 bg-black px-4 py-3">
+                                            <h3 className="text-sm font-bold uppercase tracking-widest text-white">
+                                                Timeline Filters
+                                            </h3>
+                                        </div>
+                                        <div className="space-y-5 p-4">
+                                            <div>
+                                                <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
+                                                    Date Range
+                                                </label>
+                                                <select
+                                                    value={filters.range}
+                                                    onChange={(event) =>
+                                                        setFilters((current) => ({
+                                                            ...current,
+                                                            range: event.target.value as TimelineRange,
+                                                        }))
+                                                    }
+                                                    className="w-full border border-zinc-700 bg-black px-3 py-2 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
+                                                >
+                                                    <option value="ALL">All Activity</option>
+                                                    <option value="7D">Last 7 Days</option>
+                                                    <option value="30D">Last 30 Days</option>
+                                                    <option value="90D">Last 90 Days</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
+                                                    Visible Tracks
+                                                </label>
+                                                <div className="space-y-2">
+                                                    {TRACK_OPTIONS.map((option) => (
+                                                        <label
+                                                            key={option.track}
+                                                            className="flex items-center justify-between border border-zinc-800 bg-black px-3 py-2 text-xs font-mono text-zinc-300"
+                                                        >
+                                                            <span className="flex items-center gap-2">
+                                                                <option.icon className="h-4 w-4 text-zinc-500" />
+                                                                {option.label}
+                                                            </span>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={filters.tracks.includes(option.track)}
+                                                                onChange={() => toggleTrackFilter(option.track)}
+                                                                className="h-4 w-4 accent-[var(--osint-primary)]"
+                                                            />
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
+                                                <button
+                                                    onClick={clearFilters}
+                                                    className="text-xs font-mono uppercase text-zinc-500 hover:text-white"
+                                                >
+                                                    Reset
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowFilters(false)}
+                                                    className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
+                                                >
+                                                    Apply
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => setRightPanelOpen((current) => !current)}
+                                className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+                                    rightPanelOpen
+                                        ? 'border-white bg-zinc-800 text-white'
+                                        : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                                }`}
+                                title="Toggle event details"
+                            >
+                                <MessageSquare className="h-4 w-4" />
+                                <span className="hidden lg:inline">Details</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
+                        <div className="relative min-w-0 md:hidden">
                             <select
                                 value={activeWorkspace?.id || ''}
                                 onChange={(event) => setActiveCaseId(event.target.value || null)}
-                                className="w-full appearance-none border border-zinc-700 bg-black py-1.5 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
+                                className="w-full appearance-none border border-zinc-700 bg-black py-2 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
                             >
                                 {cases.map((workspace) => (
                                     <option key={workspace.id} value={workspace.id}>
@@ -467,116 +622,15 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             </select>
                         </div>
 
-                        <div className="relative hidden min-w-0 flex-1 md:block lg:max-w-md xl:max-w-xl">
+                        <div className="relative min-w-0">
                             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                             <input
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
-                                placeholder={`Search ${labelProfile.artifactLabelPlural.toLowerCase()}, runs, signals, chats...`}
-                                className="w-full border border-zinc-700 bg-black py-1.5 pl-9 pr-3 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
+                                placeholder={buildTimelineSearchPlaceholder(labelProfile.artifactLabelPlural)}
+                                className="w-full border border-zinc-700 bg-black py-2 pl-9 pr-3 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
                             />
                         </div>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-2">
-                        <div className="relative" ref={filterMenuRef}>
-                            <button
-                                onClick={() => setShowFilters((current) => !current)}
-                                className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
-                                    showFilters
-                                        ? 'border-white bg-zinc-800 text-white'
-                                        : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
-                                }`}
-                            >
-                                <Filter className="h-4 w-4" />
-                                <span className="hidden lg:inline">Filters</span>
-                            </button>
-
-                            {showFilters && (
-                                <div className="absolute right-0 top-full z-50 mt-2 w-80 border border-zinc-700 bg-osint-panel shadow-2xl">
-                                    <div className="border-b border-zinc-800 bg-black px-4 py-3">
-                                        <h3 className="text-sm font-bold uppercase tracking-widest text-white">
-                                            Timeline Filters
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-5 p-4">
-                                        <div>
-                                            <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                                                Date Range
-                                            </label>
-                                            <select
-                                                value={filters.range}
-                                                onChange={(event) =>
-                                                    setFilters((current) => ({
-                                                        ...current,
-                                                        range: event.target.value as TimelineRange,
-                                                    }))
-                                                }
-                                                className="w-full border border-zinc-700 bg-black px-3 py-2 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
-                                            >
-                                                <option value="ALL">All Activity</option>
-                                                <option value="7D">Last 7 Days</option>
-                                                <option value="30D">Last 30 Days</option>
-                                                <option value="90D">Last 90 Days</option>
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                                                Visible Tracks
-                                            </label>
-                                            <div className="space-y-2">
-                                                {TRACK_OPTIONS.map((option) => (
-                                                    <label
-                                                        key={option.track}
-                                                        className="flex items-center justify-between border border-zinc-800 bg-black px-3 py-2 text-xs font-mono text-zinc-300"
-                                                    >
-                                                        <span className="flex items-center gap-2">
-                                                            <option.icon className="h-4 w-4 text-zinc-500" />
-                                                            {option.label}
-                                                        </span>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={filters.tracks.includes(option.track)}
-                                                            onChange={() => toggleTrackFilter(option.track)}
-                                                            className="h-4 w-4 accent-[var(--osint-primary)]"
-                                                        />
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-                                            <button
-                                                onClick={clearFilters}
-                                                className="text-xs font-mono uppercase text-zinc-500 hover:text-white"
-                                            >
-                                                Reset
-                                            </button>
-                                            <button
-                                                onClick={() => setShowFilters(false)}
-                                                className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
-                                            >
-                                                Apply
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <button
-                            onClick={() => setRightPanelOpen((current) => !current)}
-                            className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
-                                rightPanelOpen
-                                    ? 'border-white bg-zinc-800 text-white'
-                                    : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
-                            }`}
-                            title="Toggle event details"
-                        >
-                            <MessageSquare className="h-4 w-4" />
-                            <span className="hidden lg:inline">Details</span>
-                        </button>
                     </div>
                 </div>
             </header>
@@ -595,8 +649,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 <aside
                     className={`absolute left-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
                         leftPanelOpen
-                            ? 'w-[20rem] translate-x-0 border-r border-zinc-800'
-                            : 'w-[20rem] -translate-x-full border-r border-zinc-800 lg:w-0 lg:border-r-0'
+                            ? 'w-[min(20rem,calc(100vw-1rem))] translate-x-0 border-r border-zinc-800'
+                            : 'w-[min(20rem,calc(100vw-1rem))] -translate-x-full border-r border-zinc-800 lg:w-0 lg:border-r-0'
                     }`}
                 >
                     <div className="border-b border-zinc-800 px-4 py-3">
@@ -740,6 +794,37 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                         </Accordion>
 
                         <Accordion
+                            title="Entities"
+                            icon={Fingerprint}
+                            count={entityItems.length}
+                            isOpen={dossierSections.entities}
+                            onToggle={() =>
+                                setDossierSections((current) => ({ ...current, entities: !current.entities }))
+                            }
+                        >
+                            <div className="space-y-2">
+                                {entityItems.length === 0 ? (
+                                    <div className="px-3 py-2 text-[11px] font-mono text-zinc-600">
+                                        No entity milestones in this workspace yet.
+                                    </div>
+                                ) : (
+                                    entityItems.map((item) => (
+                                        <button
+                                            key={item.refId}
+                                            onClick={() => focusReference('ENTITY', item.refId)}
+                                            className={getFocusedButtonClass(focusedRefId === item.refId)}
+                                        >
+                                            <div className="truncate font-bold text-zinc-200">{item.title}</div>
+                                            <div className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-500">
+                                                {item.badges?.join(' / ') || 'ENTITY'}
+                                            </div>
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </Accordion>
+
+                        <Accordion
                             title="Chats"
                             icon={MessageSquare}
                             count={chatSessionItems.length}
@@ -774,7 +859,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
                 <main className="flex min-w-0 flex-1 flex-col overflow-hidden border-x border-zinc-800 bg-black/70">
                     <div className="border-b border-zinc-800 px-4 py-3">
-                        <div className="grid grid-cols-2 gap-3 xl:grid-cols-6">
+                        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-7">
                             <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
                                 <div className="text-[10px] font-mono uppercase text-zinc-500">Visible Events</div>
                                 <div className="mt-1 text-lg font-bold text-white">{visibleEvents.length}</div>
@@ -794,6 +879,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                 <div className="mt-1 text-lg font-bold text-white">{toUniqueItems(visibleEvents, 'ARTIFACT').length}</div>
                             </div>
                             <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
+                                <div className="text-[10px] font-mono uppercase text-zinc-500">Entities</div>
+                                <div className="mt-1 text-lg font-bold text-white">{toUniqueItems(visibleEvents, 'ENTITY').length}</div>
+                            </div>
+                            <div className="border border-zinc-800 bg-zinc-900/80 px-3 py-2">
                                 <div className="text-[10px] font-mono uppercase text-zinc-500">Chat Events</div>
                                 <div className="mt-1 text-lg font-bold text-white">{getTrackCount(visibleEvents, 'CHAT')}</div>
                             </div>
@@ -809,7 +898,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             <EmptyState
                                 icon={Clock3}
                                 title="No Timeline Events"
-                                description="This workspace does not match the current search and filter selection yet, including any optional chat activity tracks."
+                                description="This workspace does not match the current search and filter selection yet, including any optional entity or chat chronology tracks."
                                 action={{
                                     label: 'Reset Timeline Filters',
                                     onClick: clearFilters,
@@ -838,6 +927,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                 const parentArtifactId =
                                                     getMetadataValue<string>(event, 'parentArtifactId') || event.parentRefId;
                                                 const sourceRunId = getMetadataValue<string>(event, 'sourceRunId');
+                                                const previousArtifactId = getMetadataValue<string>(event, 'previousArtifactId');
                                                 const sessionId =
                                                     getPrimaryRefId(event, 'CHAT_SESSION')
                                                     || getMetadataValue<string>(event, 'sessionId');
@@ -896,8 +986,19 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                         ))}
                                                                     </div>
                                                                 )}
-                                                                {(sourceSignalId || parentArtifactId || sourceRunId || sessionId) && (
+                                                                {(relatedArtifactId || sourceSignalId || parentArtifactId || sourceRunId || previousArtifactId || sessionId) && (
                                                                     <div className="mt-3 flex flex-wrap gap-2">
+                                                                        {relatedArtifactId && event.track === 'ENTITY' && (
+                                                                            <button
+                                                                                onClick={(clickEvent) => {
+                                                                                    clickEvent.stopPropagation();
+                                                                                    focusReference('ARTIFACT', relatedArtifactId);
+                                                                                }}
+                                                                                className="border border-violet-500/30 bg-violet-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-violet-200 transition hover:border-violet-400 hover:text-white"
+                                                                            >
+                                                                                In {artifactTitleById.get(relatedArtifactId) || labelProfile.artifactLabel}
+                                                                            </button>
+                                                                        )}
                                                                         {sourceSignalId && (
                                                                             <button
                                                                                 onClick={(clickEvent) => {
@@ -929,6 +1030,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                                 className="border border-osint-primary/30 bg-osint-primary/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-osint-primary transition hover:border-osint-primary hover:text-white"
                                                                             >
                                                                                 Source {runTitleById.get(sourceRunId) || 'Run'}
+                                                                            </button>
+                                                                        )}
+                                                                        {previousArtifactId && (
+                                                                            <button
+                                                                                onClick={(clickEvent) => {
+                                                                                    clickEvent.stopPropagation();
+                                                                                    focusReference('ARTIFACT', previousArtifactId);
+                                                                                }}
+                                                                                className="border border-indigo-500/30 bg-indigo-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-indigo-200 transition hover:border-indigo-400 hover:text-white"
+                                                                            >
+                                                                                Previous {artifactTitleById.get(previousArtifactId) || labelProfile.artifactLabel}
                                                                             </button>
                                                                         )}
                                                                         {sessionId && event.track !== 'CHAT' && (
@@ -983,8 +1095,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 <aside
                     className={`absolute right-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
                         rightPanelOpen
-                            ? 'w-[24rem] translate-x-0 border-l border-zinc-800'
-                            : 'w-[24rem] translate-x-full border-l border-zinc-800 lg:w-0 lg:border-l-0'
+                            ? 'w-[min(24rem,calc(100vw-1rem))] translate-x-0 border-l border-zinc-800'
+                            : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full border-l border-zinc-800 lg:w-0 lg:border-l-0'
                     }`}
                 >
                     <div className="border-b border-zinc-800 px-4 py-3">
@@ -1001,7 +1113,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                             <EmptyState
                                 icon={MessageSquare}
                                 title="Select An Event"
-                                description="Pick a signal, run, artifact, or chat event from the chronology to inspect its context and jump into related workspace views."
+                                description="Pick a signal, run, artifact, entity milestone, or chat event from the chronology to inspect its context and jump into related workspace views."
                                 className="py-20"
                             />
                         ) : (
@@ -1065,6 +1177,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                 <div className="mt-1">{selectedChatSession.title || 'Workspace Chat'}</div>
                                             </div>
                                         )}
+                                        {selectedEntityName && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Entity</div>
+                                                <div className="mt-1">{selectedEntityName}</div>
+                                            </div>
+                                        )}
                                         {selectedArtifact && (
                                             <div>
                                                 <div className="text-[10px] uppercase text-zinc-500">
@@ -1097,6 +1215,24 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                             <div>
                                                 <div className="text-[10px] uppercase text-zinc-500">Pinned Entity</div>
                                                 <div className="mt-1">{selectedChatLaunchContext.entityName}</div>
+                                            </div>
+                                        )}
+                                        {typeof getMetadataValue<number>(selectedEvent, 'mentionCount') === 'number' && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Artifact Mentions</div>
+                                                <div className="mt-1">{getMetadataValue<number>(selectedEvent, 'mentionCount')}</div>
+                                            </div>
+                                        )}
+                                        {typeof getMetadataValue<number>(selectedEvent, 'threshold') === 'number' && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Milestone Threshold</div>
+                                                <div className="mt-1">{getMetadataValue<number>(selectedEvent, 'threshold')} mentions</div>
+                                            </div>
+                                        )}
+                                        {getMetadataValue<string>(selectedEvent, 'daysSincePrevious') && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Gap Since Previous</div>
+                                                <div className="mt-1">{getMetadataValue<string>(selectedEvent, 'daysSincePrevious')}</div>
                                             </div>
                                         )}
                                         {typeof selectedChatAction?.input?.query === 'string' && (
@@ -1159,6 +1295,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                     }
                                 >
                                     <div className="space-y-2 px-1 py-1">
+                                        {selectedEntityName && selectedEvent.refKind !== 'ENTITY' && (
+                                            <button
+                                                onClick={() => focusReference('ENTITY', selectedEntityName)}
+                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                            >
+                                                Focus Entity Milestones
+                                            </button>
+                                        )}
                                         {selectedChatSession && selectedEvent.refKind !== 'CHAT_SESSION' && (
                                             <button
                                                 onClick={() => focusReference('CHAT', selectedChatSession.id)}
@@ -1197,6 +1341,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                 className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
                                             >
                                                 Open {labelProfile.artifactLabel}
+                                            </button>
+                                        )}
+                                        {getMetadataValue<string>(selectedEvent, 'previousArtifactId') && (
+                                            <button
+                                                onClick={() => focusReference('ARTIFACT', getMetadataValue<string>(selectedEvent, 'previousArtifactId'))}
+                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                            >
+                                                Focus Previous {labelProfile.artifactLabel}
                                             </button>
                                         )}
                                         <button
