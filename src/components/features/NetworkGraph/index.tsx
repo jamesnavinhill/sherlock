@@ -112,6 +112,13 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     // Modals
     const [showResolutionModal, setShowResolutionModal] = useState(false);
     const [selectedLeadForAnalysis, setSelectedLeadForAnalysis] = useState<{ text: string, context?: { topic: string, summary: string } } | null>(null);
+    const subtypeOptions: Array<{ value: GraphNodeSubtype; label: string; className?: string }> = [
+        { value: 'PERSON', label: 'PERSON' },
+        { value: 'ORGANIZATION', label: 'ORG' },
+        { value: 'CONCEPT', label: 'CONCEPT' },
+        { value: 'SOURCE', label: 'SOURCE', className: 'col-start-1 sm:col-start-2' },
+        { value: 'UNKNOWN', label: 'UNKNOWN' },
+    ];
 
     // Dossier Panel Accordion State
     const [dossierSections, setDossierSections] = useState<Record<string, boolean>>({
@@ -575,12 +582,20 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
                             {/* Subtype Selection */}
                             {newNodeType === 'ENTITY' && (
-                                <div className="grid grid-cols-5 gap-1 mb-3">
-                                    <button onClick={() => setNewNodeSubtype('PERSON')} className={`py-1 text-[9px] border ${newNodeSubtype === 'PERSON' ? `${getEntityToneClass('PERSON')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>PERSON</button>
-                                    <button onClick={() => setNewNodeSubtype('ORGANIZATION')} className={`py-1 text-[9px] border ${newNodeSubtype === 'ORGANIZATION' ? `${getEntityToneClass('ORGANIZATION')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>ORG</button>
-                                    <button onClick={() => setNewNodeSubtype('CONCEPT')} className={`py-1 text-[9px] border ${newNodeSubtype === 'CONCEPT' ? `${getEntityToneClass('CONCEPT')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>CONCEPT</button>
-                                    <button onClick={() => setNewNodeSubtype('SOURCE')} className={`py-1 text-[9px] border ${newNodeSubtype === 'SOURCE' ? `${getEntityToneClass('SOURCE')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>SOURCE</button>
-                                    <button onClick={() => setNewNodeSubtype('UNKNOWN')} className={`py-1 text-[9px] border ${newNodeSubtype === 'UNKNOWN' ? `${getEntityToneClass('UNKNOWN')} entity-tone-toggle-active` : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'}`}>UNKNOWN</button>
+                                <div className="grid grid-cols-3 gap-1.5 mb-3">
+                                    {subtypeOptions.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => setNewNodeSubtype(option.value)}
+                                            className={`min-w-0 px-1.5 py-1.5 text-[9px] leading-none border text-center whitespace-nowrap ${
+                                                newNodeSubtype === option.value
+                                                    ? `${getEntityToneClass(option.value)} entity-tone-toggle-active`
+                                                    : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'
+                                            } ${option.className || ''}`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
                                 </div>
                             )}
                             <div className="flex justify-between">
