@@ -105,6 +105,8 @@ export class CaseRepository {
             title: row.title,
             status: row.status as 'ACTIVE' | 'CLOSED',
             dateOpened: row.dateOpened,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
             description: row.description || undefined,
             mode: (row.mode as Case['mode']) || undefined,
             packId: row.packId || undefined,
@@ -126,6 +128,8 @@ export class CaseRepository {
             title: result[0].title,
             status: result[0].status as 'ACTIVE' | 'CLOSED',
             dateOpened: result[0].dateOpened,
+            createdAt: result[0].createdAt,
+            updatedAt: result[0].updatedAt,
             description: result[0].description || undefined,
             mode: (result[0].mode as Case['mode']) || undefined,
             packId: result[0].packId || undefined,
@@ -137,7 +141,8 @@ export class CaseRepository {
 
     static async createCase(caseData: Case): Promise<void> {
         const db = getDB();
-        const now = Date.now();
+        const createdAt = caseData.createdAt ?? Date.now();
+        const updatedAt = caseData.updatedAt ?? createdAt;
         await db.insert(cases).values({
             id: caseData.id,
             scopeId: caseData.scopeId,
@@ -150,8 +155,8 @@ export class CaseRepository {
             purposeId: caseData.purposeId,
             labelProfileId: caseData.labelProfileId,
             metadataJson: caseData.metadata ? JSON.stringify(caseData.metadata) : null,
-            createdAt: now,
-            updatedAt: now
+            createdAt,
+            updatedAt
         });
     }
 
@@ -212,6 +217,7 @@ export class CaseRepository {
                 caseId: row.caseId || undefined,
                 topic: normalizeTopicText(row.topic),
                 dateStr: row.dateStr || undefined,
+                createdAt: row.createdAt,
                 summary: normalizeHumanText(row.summary, { includePriority: false }),
                 rawText: row.rawText || '',
                 parentTopic: row.parentTopic || undefined,
@@ -229,6 +235,7 @@ export class CaseRepository {
                 caseId: row.caseId || undefined,
                 topic: normalizeTopicText(row.topic),
                 dateStr: row.dateStr || undefined,
+                createdAt: row.createdAt,
                 summary: normalizeHumanText(row.summary, { includePriority: false }),
                 rawText: row.rawText || '',
                 parentTopic: row.parentTopic || undefined,
@@ -250,7 +257,7 @@ export class CaseRepository {
 
     static async createReport(report: InvestigationReport): Promise<void> {
         const db = getDB();
-        const now = Date.now();
+        const now = report.createdAt ?? Date.now();
         if (!report.id) {
             throw new Error('Report must have an id before persistence.');
         }

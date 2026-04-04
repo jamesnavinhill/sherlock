@@ -89,6 +89,8 @@ export interface Case {
   title: string;
   status: 'ACTIVE' | 'CLOSED';
   dateOpened: string;
+  createdAt?: number;
+  updatedAt?: number;
   description?: string;
   headlines?: string[];
   mode?: WorkspaceMode;
@@ -388,6 +390,7 @@ export interface InvestigationReport {
   caseId?: string;
   topic: string;
   dateStr?: string;
+  createdAt?: number;
   summary: string;
   agendas: string[];
   leads: string[];
@@ -443,6 +446,50 @@ export interface InvestigationTask {
 export type Workspace = Case;
 export type Artifact = InvestigationReport;
 export type WorkspaceRun = InvestigationTask;
+
+export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT';
+
+export type TimelineEventType =
+  | 'SIGNAL_SAVED'
+  | 'RUN_STARTED'
+  | 'RUN_COMPLETED'
+  | 'RUN_FAILED'
+  | 'ARTIFACT_CREATED';
+
+export interface TimelineEvent {
+  id: string;
+  occurredAt: number;
+  track: TimelineTrack;
+  type: TimelineEventType;
+  workspaceId: string;
+  title: string;
+  summary?: string;
+  refId?: string;
+  refKind?: 'SIGNAL' | 'RUN' | 'ARTIFACT';
+  parentRefId?: string;
+  badges?: string[];
+  searchText?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export type TimelineRange = 'ALL' | '7D' | '30D' | '90D';
+
+export interface TimelineFilters {
+  range: TimelineRange;
+  tracks: TimelineTrack[];
+}
+
+export interface TimelineQueryState {
+  workspaceId?: string;
+  search: string;
+  filters: TimelineFilters;
+  focusedTrack?: TimelineTrack | 'ALL';
+  focusedRefId?: string;
+}
+
+export interface TimelineSelectionState {
+  selectedEventId: string | null;
+}
 
 export interface Signal {
   id: string;

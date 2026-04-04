@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network, Sun, Moon, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network, Sun, Moon, MessageSquare, Clock3 } from 'lucide-react';
 import type { InvestigationTask } from '../../types';
 import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
@@ -88,6 +88,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <MessageSquare className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Workspace Chat</span>}
+          </button>
+
+          <button
+            onClick={() => onChangeView(AppView.TIMELINE)}
+            className={btnClass(currentView === AppView.TIMELINE)}
+            title={isCollapsed ? 'Timeline' : undefined}
+            aria-label="Timeline"
+          >
+            <Clock3 className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Timeline</span>}
           </button>
 
           <button

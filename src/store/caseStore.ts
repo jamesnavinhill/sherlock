@@ -712,6 +712,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
 
         // 3. Create new case
         if (!targetCaseId) {
+            const now = Date.now();
             const newCaseId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
             const newCase: Case = {
                 id: newCaseId,
@@ -719,6 +720,8 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
                 title: report.topic,
                 status: 'ACTIVE',
                 dateOpened: new Date().toLocaleDateString(),
+                createdAt: now,
+                updatedAt: now,
                 description: report.summary || `Workspace started on ${report.topic}`,
                 mode: (report.metadata?.workspaceMode as Case['mode']) || undefined,
                 packId: report.packId || report.config?.packId,
@@ -766,6 +769,7 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             ...report,
             entities: processedEntities,
             id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            createdAt: report.createdAt ?? Date.now(),
             caseId: targetCaseId
         };
 

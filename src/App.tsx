@@ -518,7 +518,10 @@ function App() {
               />
             )}
             {currentView === AppView.TIMELINE && (
-              <TimelineView />
+              <TimelineView
+                onOpenReport={handleSelectReport}
+                onOpenChat={openChat}
+              />
             )}
             {currentView === AppView.SETTINGS && (
               <Settings
