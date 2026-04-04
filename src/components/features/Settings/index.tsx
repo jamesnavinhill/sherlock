@@ -675,57 +675,57 @@ export const Settings: React.FC<SettingsProps> = ({
     );
 
     const renderMaintenance = () => (
-        <div className="space-y-8">
-            <section className="bg-zinc-900/40 border border-zinc-800 p-8 space-y-6">
-                <div className="flex items-center space-x-3 mb-2">
-                    <Database className="w-5 h-5 text-osint-primary" />
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
+            <section className="flex h-full flex-col border border-zinc-800 bg-zinc-900/40 p-8">
+                <div className="flex items-center gap-3">
+                    <Database className="h-5 w-5 text-osint-primary" />
                     <h3 className="text-lg font-bold text-white font-mono uppercase tracking-widest">Data Management</h3>
                 </div>
-                <p className="text-zinc-500 text-xs font-mono leading-relaxed max-w-2xl">
+                <p className="mt-5 max-w-2xl text-xs font-mono leading-relaxed text-zinc-500">
                     Sherlock stores workspace data locally in your browser. Exports and restores include workspaces, artifacts, runs, chat history, saved signals, manual graph data, and templates. Theme preferences, provider defaults, and API keys stay local to this device and are not part of workspace backups.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button
+                        type="button"
                         onClick={handleExportData}
-                        className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 hover:border-white transition-all group"
+                        className="group flex h-14 items-center justify-between gap-4 border border-zinc-800 bg-black/60 px-5 text-left transition-all hover:border-osint-primary/50 hover:bg-zinc-900"
                     >
-                        <div className="text-left">
-                            <span className="block text-xs font-bold text-white font-mono uppercase">Export Workspace Data</span>
-                            <span className="text-[10px] text-zinc-500 font-mono">Create a workspace-data JSON backup</span>
-                        </div>
-                        <Download className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
+                        <div className="min-w-0 text-xs font-bold text-white font-mono uppercase">Export Workspace Data</div>
+                        <Download className="h-5 w-5 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 hover:border-white transition-all group"
+                        className="group flex h-14 items-center justify-between gap-4 border border-zinc-800 bg-black/60 px-5 text-left transition-all hover:border-osint-primary/50 hover:bg-zinc-900"
                     >
-                        <div className="text-left">
-                            <span className="block text-xs font-bold text-white font-mono uppercase">Restore Backup</span>
-                            <span className="text-[10px] text-zinc-500 font-mono">Replace current workspace data from backup</span>
-                        </div>
-                        <Upload className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
+                        <div className="min-w-0 text-xs font-bold text-white font-mono uppercase">Restore Backup</div>
+                        <Upload className="h-5 w-5 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleImportJSON} accept=".json" className="hidden" />
                 </div>
             </section>
 
-            <section className="osint-danger-panel border p-8 space-y-6">
-                <div className="flex items-center space-x-3 mb-2">
-                    <AlertTriangle className="w-5 h-5 osint-danger-text" />
+            <section className="osint-danger-panel flex h-full flex-col border p-8">
+                <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-5 w-5 osint-danger-text" />
                     <h3 className="text-lg font-bold osint-danger-text font-mono uppercase tracking-widest">System Purge</h3>
                 </div>
-                <p className="text-xs font-mono leading-relaxed max-w-2xl osint-danger-text">
+                <p className="mt-5 max-w-2xl text-xs font-mono leading-relaxed osint-danger-text">
                     The purge protocol will permanently delete all local workspace data, including runs, chat history, saved signals, templates, and manual graph data. This action cannot be reversed.
                 </p>
-                <button
-                    onClick={handleClearData}
-                    className="osint-button-danger flex items-center px-6 py-3 font-mono text-xs font-bold uppercase"
-                >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Execute System Purge
-                </button>
+
+                <div className="mt-8 flex flex-1 items-end">
+                    <button
+                        type="button"
+                        onClick={handleClearData}
+                        className="osint-button-danger inline-flex items-center px-6 py-3 font-mono text-xs font-bold uppercase"
+                    >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Execute System Purge
+                    </button>
+                </div>
             </section>
         </div>
     );
@@ -800,25 +800,27 @@ export const Settings: React.FC<SettingsProps> = ({
                 </Accordion>
             </div>
 
-            <Accordion
-                title="Dark Theme Surfaces"
-                icon={Palette}
-                isOpen={themeSections.darkSurfaces}
-                onToggle={() => toggleThemeSection('darkSurfaces')}
-                className="mb-0"
-            >
-                {renderThemeSurfaceSection('dark')}
-            </Accordion>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+                <Accordion
+                    title="Dark Theme Surfaces"
+                    icon={Palette}
+                    isOpen={themeSections.darkSurfaces}
+                    onToggle={() => toggleThemeSection('darkSurfaces')}
+                    className="mb-0"
+                >
+                    {renderThemeSurfaceSection('dark')}
+                </Accordion>
 
-            <Accordion
-                title="Light Theme Surfaces"
-                icon={Palette}
-                isOpen={themeSections.lightSurfaces}
-                onToggle={() => toggleThemeSection('lightSurfaces')}
-                className="mb-0"
-            >
-                {renderThemeSurfaceSection('light')}
-            </Accordion>
+                <Accordion
+                    title="Light Theme Surfaces"
+                    icon={Palette}
+                    isOpen={themeSections.lightSurfaces}
+                    onToggle={() => toggleThemeSection('lightSurfaces')}
+                    className="mb-0"
+                >
+                    {renderThemeSurfaceSection('light')}
+                </Accordion>
+            </div>
         </div>
     );
 
