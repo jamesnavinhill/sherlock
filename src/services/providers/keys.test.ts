@@ -18,7 +18,7 @@ describe('provider keys', () => {
     it('validates key formats by provider', () => {
         const cases: Array<{ provider: AIProvider; valid: string; invalid: string }> = [
             { provider: 'GEMINI', valid: 'AIza-example', invalid: 'sk-invalid' },
-            { provider: 'OPENROUTER', valid: 'sk-or-v1-example', invalid: 'sk-example' },
+            { provider: 'OPENROUTER', valid: 'sk-or-x', invalid: 'sk-example' },
             { provider: 'OPENAI', valid: 'sk-example', invalid: 'sk-ant-example' },
             { provider: 'ANTHROPIC', valid: 'sk-ant-example', invalid: 'AIza-example' },
         ];
@@ -30,29 +30,29 @@ describe('provider keys', () => {
     });
 
     it('stores and reads keys per provider, with Gemini legacy alias compatibility', () => {
-        expect(setApiKey('GEMINI', 'AIza-live-gemini').isValid).toBe(true);
-        expect(setApiKey('OPENROUTER', 'sk-or-v1-live-openrouter').isValid).toBe(true);
-        expect(setApiKey('OPENAI', 'sk-live-openai').isValid).toBe(true);
-        expect(setApiKey('ANTHROPIC', 'sk-ant-live-anthropic').isValid).toBe(true);
+        expect(setApiKey('GEMINI', 'AIza-test').isValid).toBe(true);
+        expect(setApiKey('OPENROUTER', 'sk-or-test').isValid).toBe(true);
+        expect(setApiKey('OPENAI', 'sk-test').isValid).toBe(true);
+        expect(setApiKey('ANTHROPIC', 'sk-ant-test').isValid).toBe(true);
 
-        expect(getStoredApiKey('GEMINI')).toBe('AIza-live-gemini');
-        expect(getStoredApiKey('OPENROUTER')).toBe('sk-or-v1-live-openrouter');
-        expect(getStoredApiKey('OPENAI')).toBe('sk-live-openai');
-        expect(getStoredApiKey('ANTHROPIC')).toBe('sk-ant-live-anthropic');
+        expect(getStoredApiKey('GEMINI')).toBe('AIza-test');
+        expect(getStoredApiKey('OPENROUTER')).toBe('sk-or-test');
+        expect(getStoredApiKey('OPENAI')).toBe('sk-test');
+        expect(getStoredApiKey('ANTHROPIC')).toBe('sk-ant-test');
 
-        expect(localStorage.getItem('sherlock_api_key')).toBe('AIza-live-gemini');
+        expect(localStorage.getItem('sherlock_api_key')).toBe('AIza-test');
         expect(hasApiKey('GEMINI')).toBe(true);
         expect(hasApiKey('OPENROUTER')).toBe(true);
         expect(hasApiKey('OPENAI')).toBe(true);
         expect(hasApiKey('ANTHROPIC')).toBe(true);
 
-        expect(getApiKeyOrThrow('GEMINI')).toBe('AIza-live-gemini');
-        expect(getApiKeyOrThrow('OPENROUTER')).toBe('sk-or-v1-live-openrouter');
+        expect(getApiKeyOrThrow('GEMINI')).toBe('AIza-test');
+        expect(getApiKeyOrThrow('OPENROUTER')).toBe('sk-or-test');
     });
 
     it('clears provider keys and bulk clear removes all local keys', () => {
-        setApiKey('GEMINI', 'AIza-live-gemini');
-        setApiKey('OPENAI', 'sk-live-openai');
+        setApiKey('GEMINI', 'AIza-test');
+        setApiKey('OPENAI', 'sk-test');
 
         clearApiKey('GEMINI');
         expect(getStoredApiKey('GEMINI')).toBeUndefined();
@@ -65,21 +65,21 @@ describe('provider keys', () => {
     });
 
     it('overwrites existing keys for each provider', () => {
-        localStorage.setItem('GEMINI_API_KEY', 'AIza-old-gemini');
-        localStorage.setItem('sherlock_api_key', 'AIza-legacy-old-gemini');
-        localStorage.setItem('OPENROUTER_API_KEY', 'sk-or-v1-old-openrouter');
-        localStorage.setItem('OPENAI_API_KEY', 'sk-old-openai');
-        localStorage.setItem('ANTHROPIC_API_KEY', 'sk-ant-old-anthropic');
+        localStorage.setItem('GEMINI_API_KEY', 'AIza-old');
+        localStorage.setItem('sherlock_api_key', 'AIza-legacy-old');
+        localStorage.setItem('OPENROUTER_API_KEY', 'sk-or-old');
+        localStorage.setItem('OPENAI_API_KEY', 'sk-old');
+        localStorage.setItem('ANTHROPIC_API_KEY', 'sk-ant-old');
 
-        expect(setApiKey('GEMINI', 'AIza-new-gemini').isValid).toBe(true);
-        expect(setApiKey('OPENROUTER', 'sk-or-v1-new-openrouter').isValid).toBe(true);
-        expect(setApiKey('OPENAI', 'sk-new-openai').isValid).toBe(true);
-        expect(setApiKey('ANTHROPIC', 'sk-ant-new-anthropic').isValid).toBe(true);
+        expect(setApiKey('GEMINI', 'AIza-new').isValid).toBe(true);
+        expect(setApiKey('OPENROUTER', 'sk-or-new').isValid).toBe(true);
+        expect(setApiKey('OPENAI', 'sk-new').isValid).toBe(true);
+        expect(setApiKey('ANTHROPIC', 'sk-ant-new').isValid).toBe(true);
 
-        expect(localStorage.getItem('GEMINI_API_KEY')).toBe('AIza-new-gemini');
-        expect(localStorage.getItem('sherlock_api_key')).toBe('AIza-new-gemini');
-        expect(localStorage.getItem('OPENROUTER_API_KEY')).toBe('sk-or-v1-new-openrouter');
-        expect(localStorage.getItem('OPENAI_API_KEY')).toBe('sk-new-openai');
-        expect(localStorage.getItem('ANTHROPIC_API_KEY')).toBe('sk-ant-new-anthropic');
+        expect(localStorage.getItem('GEMINI_API_KEY')).toBe('AIza-new');
+        expect(localStorage.getItem('sherlock_api_key')).toBe('AIza-new');
+        expect(localStorage.getItem('OPENROUTER_API_KEY')).toBe('sk-or-new');
+        expect(localStorage.getItem('OPENAI_API_KEY')).toBe('sk-new');
+        expect(localStorage.getItem('ANTHROPIC_API_KEY')).toBe('sk-ant-new');
     });
 });

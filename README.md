@@ -67,6 +67,12 @@ Configure keys in either:
 1. UI: `System Config -> AI`
 2. Env file: copy `.env.example` to `.env.local`
 
+For public or shared-hosting deployments, keep Sherlock in strict BYOK mode:
+
+- do not set shared provider API keys in Vercel
+- do not rely on `VITE_*` provider env vars for a public site
+- have each user enter their own key in `System Config -> AI`
+
 Supported env vars:
 
 - `VITE_GEMINI_API_KEY`
@@ -75,6 +81,24 @@ Supported env vars:
 - `VITE_ANTHROPIC_API_KEY`
 - `OPENAI_API_KEY` (fallback)
 - `ANTHROPIC_API_KEY` (fallback)
+
+## Vercel Deployment
+
+Sherlock deploys cleanly to Vercel as a static Vite app.
+
+- No server database is required for the current runtime model.
+- Workspace and artifact data stay in the browser via SQLite over IndexedDB.
+- API keys stay browser-local when users add them through `System Config -> AI`.
+- Each origin has its own local data, so Vercel preview URLs do not share storage with production.
+
+Recommended flow:
+
+1. Import the GitHub repo into Vercel.
+2. Let Vercel use the repo `vercel.json` or set `npm ci --include=optional`, `npm run build`, and `dist` manually.
+3. Leave provider env vars unset in Vercel for public BYOK hosting.
+4. Deploy and have each user add their own provider key in-app.
+
+See `docs/operations/DEPLOYMENT.md` for the full checklist.
 
 ## Scripts
 
@@ -103,6 +127,7 @@ npm run check
 - `docs/plans/01-canonical-runtime-cutover-plan.md`
 - `docs/operations/architecture.md`
 - `docs/operations/BROAD_SCOPE.md`
+- `docs/operations/DEPLOYMENT.md`
 - `docs/operations/SCOPES.md`
 - `docs/operations/DATA_PERSISTENCE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`

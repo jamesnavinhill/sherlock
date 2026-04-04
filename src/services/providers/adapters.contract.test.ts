@@ -130,10 +130,10 @@ describe('provider adapter contracts', () => {
         mockGeminiGenerateContent.mockReset();
         mockGeminiGenerateContentStream.mockReset();
 
-        localStorage.setItem('GEMINI_API_KEY', 'AIza-test-gemini');
-        localStorage.setItem('OPENROUTER_API_KEY', 'sk-or-v1-test-openrouter');
-        localStorage.setItem('OPENAI_API_KEY', 'sk-test-openai');
-        localStorage.setItem('ANTHROPIC_API_KEY', 'sk-ant-test-anthropic');
+        localStorage.setItem('GEMINI_API_KEY', 'AIza-test');
+        localStorage.setItem('OPENROUTER_API_KEY', 'sk-or-test');
+        localStorage.setItem('OPENAI_API_KEY', 'sk-test');
+        localStorage.setItem('ANTHROPIC_API_KEY', 'sk-ant-test');
     });
 
     it('validates Gemini investigate/scan/live contracts with fixture payloads', async () => {

@@ -301,3 +301,4 @@ See:
 - Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
 - `Ctrl+N` now routes through Archives and opens the active new-workspace modal rather than relying on dead shell state.
 - Current lint/test status is tracked in `README.md` and `docs/operations/LINTING.md`.
+- Static hosting on Vercel is supported because runtime state, provider access, and persistence are browser-local; each origin keeps its own IndexedDB SQLite database and local BYOK settings, so preview URLs and the production domain do not share persisted data.

@@ -157,6 +157,13 @@ Workspace-data backups intentionally exclude:
 - API keys
 - quiet mode and other device-local preferences
 
+## Hosting Implications
+
+- Workspace data is scoped to the current browser origin, so local data on a Vercel preview URL is separate from local data on the production domain.
+- Redeploying the same production domain does not clear IndexedDB or localStorage by itself.
+- Clearing browser storage removes the local SQLite database and any browser-stored API keys.
+- The current runtime is browser-local only: there is no shared server database, automatic cross-device sync, or multi-user persistence layer.
+
 Maintenance cleanup behavior:
 
 - importing workspace data clears the current workspace-data domain first, then restores the backup payload
