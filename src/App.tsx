@@ -72,6 +72,7 @@ function App() {
     chatMessagesBySessionId,
     chatSessions,
     createChatSession,
+    activeWorkspaceId,
     setActiveWorkspaceId,
     setActiveChatSessionId,
     addToast,
@@ -416,6 +417,22 @@ function App() {
   const activeTask = workspaceRuns.find(t => t.id === activeTaskId);
   const focusedReport = focusedReportId ? artifacts.find(r => r.id === focusedReportId) || null : null;
   const activeReport = activeTask?.report || focusedReport || null;
+
+  useEffect(() => {
+    if (currentView !== AppView.INVESTIGATION) return;
+    if (activeTaskId || focusedReportId || !activeWorkspaceId) return;
+
+    const caseReports = artifacts.filter((report) => report.caseId === activeWorkspaceId);
+    if (caseReports.length === 0) return;
+
+    const rootReport =
+      caseReports.find((report) => !report.config?.parentArtifactId)
+      || caseReports[0];
+
+    if (rootReport?.id) {
+      setFocusedReportId(rootReport.id);
+    }
+  }, [activeTaskId, activeWorkspaceId, artifacts, currentView, focusedReportId]);
 
   useEffect(() => {
     if (activeReport) {
