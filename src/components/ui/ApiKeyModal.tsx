@@ -66,7 +66,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
 
             <div className="p-8 space-y-6">
 
-               <div className="bg-zinc-900/50 border-l-2 border-osint-warn p-4">
+               <div
+                  className="border-l-2 p-4"
+                  style={{
+                     backgroundColor: 'var(--osint-primary-soft-bg)',
+                     borderColor: 'var(--osint-primary-soft-border)',
+                  }}
+               >
                   <p className="text-sm text-zinc-300 font-mono leading-relaxed">
                      To access this investigative terminal, provide a valid API key for your selected provider.
                   </p>
