@@ -45,6 +45,7 @@ import {
     groupChatActionsBySessionId,
     groupChatMessagesBySessionId,
 } from '../services/maintenance/workspaceData';
+import { normalizeWorkspaceDataBackup } from '../services/maintenance/workspaceData';
 import { loadSystemConfig } from '../config/systemConfig';
 import { createLocalId } from '../utils/id';
 
@@ -55,6 +56,78 @@ export interface Toast {
 }
 
 export type ThemeMode = 'dark' | 'light';
+
+const DEMO_WORKSPACE_SEED_PATH = '/seeds/demo-workspace.json';
+const DEMO_WORKSPACE_SEED_STORAGE_KEY = 'sherlock_demo_seed_v1_applied';
+
+const hasExistingWorkspaceData = (input: {
+    workspaces: Workspace[];
+    artifacts: Artifact[];
+    workspaceRuns: WorkspaceRun[];
+    chatSessions: ChatSession[];
+    headlines: Headline[];
+    templates: CaseTemplate[];
+    manualNodes: ManualNode[];
+    manualLinks: ManualConnection[];
+}) =>
+    input.workspaces.length > 0
+    || input.artifacts.length > 0
+    || input.workspaceRuns.length > 0
+    || input.chatSessions.length > 0
+    || input.headlines.length > 0
+    || input.templates.length > 0
+    || input.manualNodes.length > 0
+    || input.manualLinks.length > 0;
+
+const persistWorkspaceDataBackup = async (payload: WorkspaceDataBackup) => {
+    await CaseRepository.clearCaseData();
+
+    for (const workspace of payload.workspaces) {
+        await CaseRepository.createCase(workspace);
+    }
+    for (const artifact of payload.artifacts) {
+        await CaseRepository.createReport(artifact);
+    }
+    for (const run of payload.runs) {
+        await TaskRepository.create(run);
+    }
+    for (const session of payload.chat.sessions) {
+        await ChatRepository.createSession(session);
+    }
+    for (const message of payload.chat.messages) {
+        await ChatRepository.createMessage(message);
+    }
+    for (const action of payload.chat.actions) {
+        await ChatRepository.createAction(action);
+    }
+    for (const headline of payload.signals.headlines) {
+        await CaseRepository.createHeadline(headline);
+    }
+    for (const template of payload.templates) {
+        await TemplateRepository.create(template);
+    }
+
+    await ManualDataRepository.saveAllNodes(payload.graph.manualNodes);
+    await ManualDataRepository.saveAllLinks(payload.graph.manualLinks);
+    await SettingsRepository.setSetting('hidden_nodes', []);
+    await SettingsRepository.setSetting('flagged_nodes', []);
+};
+
+const loadDemoWorkspaceSeed = async () => {
+    if (typeof window === 'undefined') return null;
+    if (localStorage.getItem(DEMO_WORKSPACE_SEED_STORAGE_KEY) === 'true') return null;
+
+    try {
+        const response = await fetch(DEMO_WORKSPACE_SEED_PATH, { cache: 'no-store' });
+        if (!response.ok) return null;
+
+        const payload = normalizeWorkspaceDataBackup(await response.json());
+        return payload;
+    } catch (error) {
+        console.warn('Demo workspace seed bootstrap skipped:', error);
+        return null;
+    }
+};
 
 interface WorkspaceState {
     // --- CORE DATA STATE ---
@@ -256,13 +329,13 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
             await migrateLocalStorageToSqlite();
 
             // Load data
-            const workspaces = await CaseRepository.getAllCases();
-            const artifacts = await CaseRepository.getAllReports();
+            let workspaces = await CaseRepository.getAllCases();
+            let artifacts = await CaseRepository.getAllReports();
             const scopes = await ScopeRepository.getAll();
-            const workspaceRuns = await TaskRepository.getAll();
-            const chatSessions = await ChatRepository.getAllSessions();
-            const chatMessagesBySessionId = await ChatRepository.getMessagesBySessionIds(chatSessions.map((session) => session.id));
-            const chatActionsBySessionId = Object.fromEntries(
+            let workspaceRuns = await TaskRepository.getAll();
+            let chatSessions = await ChatRepository.getAllSessions();
+            let chatMessagesBySessionId = await ChatRepository.getMessagesBySessionIds(chatSessions.map((session) => session.id));
+            let chatActionsBySessionId = Object.fromEntries(
                 await Promise.all(
                     chatSessions.map(async (session) => [
                         session.id,
@@ -270,12 +343,12 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
                     ])
                 )
             );
-            const headlines = await CaseRepository.getHeadlines();
-            const templates = await TemplateRepository.getAll();
-            const manualNodes = await ManualDataRepository.getAllNodes();
-            const manualLinks = await ManualDataRepository.getAllLinks();
-            const hiddenNodeIds = await SettingsRepository.getSetting<string[]>('hidden_nodes') || [];
-            const flaggedNodeIds = await SettingsRepository.getSetting<string[]>('flagged_nodes') || [];
+            let headlines = await CaseRepository.getHeadlines();
+            let templates = await TemplateRepository.getAll();
+            let manualNodes = await ManualDataRepository.getAllNodes();
+            let manualLinks = await ManualDataRepository.getAllLinks();
+            let hiddenNodeIds = await SettingsRepository.getSetting<string[]>('hidden_nodes') || [];
+            let flaggedNodeIds = await SettingsRepository.getSetting<string[]>('flagged_nodes') || [];
             const entityAliases = await SettingsRepository.getSetting<EntityAliasMap>('entity_aliases') || {};
             const storedThemeMode = await SettingsRepository.getSetting<ThemeMode>('theme_mode');
             const storedAccent = await SettingsRepository.getSetting<{ hue: number; lightness: number; chroma: number }>('accent_settings');
@@ -327,6 +400,37 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
             await SettingsRepository.setSetting('accent_settings', resolvedAccent);
             await SettingsRepository.setSetting('theme_color', resolvedTheme);
             await SettingsRepository.setSetting('theme_surface_settings', resolvedThemeSurfaceSettings);
+
+            if (!hasExistingWorkspaceData({
+                workspaces,
+                artifacts,
+                workspaceRuns,
+                chatSessions,
+                headlines,
+                templates,
+                manualNodes,
+                manualLinks,
+            })) {
+                const demoSeed = await loadDemoWorkspaceSeed();
+
+                if (demoSeed) {
+                    await persistWorkspaceDataBackup(demoSeed);
+                    localStorage.setItem(DEMO_WORKSPACE_SEED_STORAGE_KEY, 'true');
+
+                    workspaces = demoSeed.workspaces;
+                    artifacts = demoSeed.artifacts;
+                    workspaceRuns = demoSeed.runs;
+                    chatSessions = demoSeed.chat.sessions;
+                    chatMessagesBySessionId = groupChatMessagesBySessionId(demoSeed.chat.messages);
+                    chatActionsBySessionId = groupChatActionsBySessionId(demoSeed.chat.actions);
+                    headlines = demoSeed.signals.headlines;
+                    templates = demoSeed.templates;
+                    manualNodes = demoSeed.graph.manualNodes;
+                    manualLinks = demoSeed.graph.manualLinks;
+                    hiddenNodeIds = [];
+                    flaggedNodeIds = [];
+                }
+            }
 
             set({
                 workspaces,
@@ -1045,36 +1149,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     purgeCase: async (caseId) => get().purgeWorkspace(caseId),
 
     importWorkspaceData: async (payload) => {
-        await CaseRepository.clearCaseData();
-
-        for (const workspace of payload.workspaces) {
-            await CaseRepository.createCase(workspace);
-        }
-        for (const artifact of payload.artifacts) {
-            await CaseRepository.createReport(artifact);
-        }
-        for (const run of payload.runs) {
-            await TaskRepository.create(run);
-        }
-        for (const session of payload.chat.sessions) {
-            await ChatRepository.createSession(session);
-        }
-        for (const message of payload.chat.messages) {
-            await ChatRepository.createMessage(message);
-        }
-        for (const action of payload.chat.actions) {
-            await ChatRepository.createAction(action);
-        }
-        for (const headline of payload.signals.headlines) {
-            await CaseRepository.createHeadline(headline);
-        }
-        for (const template of payload.templates) {
-            await TemplateRepository.create(template);
-        }
-        await ManualDataRepository.saveAllNodes(payload.graph.manualNodes);
-        await ManualDataRepository.saveAllLinks(payload.graph.manualLinks);
-        await SettingsRepository.setSetting('hidden_nodes', []);
-        await SettingsRepository.setSetting('flagged_nodes', []);
+        await persistWorkspaceDataBackup(payload);
 
         set({
             workspaces: payload.workspaces,

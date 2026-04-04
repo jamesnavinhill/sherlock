@@ -8,10 +8,15 @@ import { CaseRepository } from '../services/db/repositories/CaseRepository';
 import { ChatRepository } from '../services/db/repositories/ChatRepository';
 import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
 import { SettingsRepository } from '../services/db/repositories/SettingsRepository';
+import { ScopeRepository } from '../services/db/repositories/ScopeRepository';
+import * as dbClient from '../services/db/client';
+import * as dbMigrate from '../services/db/migrate';
 
 describe('caseStore', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+        localStorage.clear();
         vi.spyOn(TemplateRepository, 'create').mockResolvedValue();
         vi.spyOn(TemplateRepository, 'delete').mockResolvedValue();
         vi.spyOn(TemplateRepository, 'clearAll').mockResolvedValue();
@@ -68,6 +73,91 @@ describe('caseStore', () => {
         expect(state.artifacts).toEqual([]);
         expect(state.workspaces).toEqual([]);
         expect(state.currentView).toBe(AppView.DASHBOARD);
+    });
+
+    it('bootstraps the demo workspace seed once when local workspace data is empty', async () => {
+        const payload: WorkspaceDataBackup = {
+            workspaces: [
+                {
+                    id: 'ws-seed',
+                    title: 'Seed Workspace',
+                    status: 'ACTIVE',
+                    dateOpened: '2026-04-04',
+                },
+            ],
+            artifacts: [
+                {
+                    id: 'artifact-seed',
+                    caseId: 'ws-seed',
+                    topic: 'Seed Artifact',
+                    summary: 'Saved artifact',
+                    agendas: [],
+                    leads: [],
+                    entities: [],
+                    sources: [],
+                    rawText: 'seed artifact',
+                },
+            ],
+            runs: [
+                {
+                    id: 'run-seed',
+                    workspaceId: 'ws-seed',
+                    topic: 'Seed Run',
+                    status: 'COMPLETED',
+                    startTime: 1,
+                    endTime: 2,
+                    config: {},
+                },
+            ],
+            chat: {
+                sessions: [],
+                messages: [],
+                actions: [],
+            },
+            signals: {
+                headlines: [],
+            },
+            graph: {
+                manualNodes: [],
+                manualLinks: [],
+            },
+            templates: [],
+            metadata: {
+                kind: 'SHERLOCK_WORKSPACE_DATA',
+                formatVersion: 1,
+                exportedAt: '2026-04-04T00:00:00.000Z',
+            },
+        };
+
+        vi.spyOn(dbClient, 'initDB').mockResolvedValue();
+        vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue();
+        vi.spyOn(CaseRepository, 'getAllCases').mockResolvedValue([]);
+        vi.spyOn(CaseRepository, 'getAllReports').mockResolvedValue([]);
+        vi.spyOn(ScopeRepository, 'getAll').mockResolvedValue([]);
+        vi.spyOn(TaskRepository, 'getAll').mockResolvedValue([]);
+        vi.spyOn(ChatRepository, 'getAllSessions').mockResolvedValue([]);
+        vi.spyOn(ChatRepository, 'getMessagesBySessionIds').mockResolvedValue({});
+        vi.spyOn(CaseRepository, 'getHeadlines').mockResolvedValue([]);
+        vi.spyOn(TemplateRepository, 'getAll').mockResolvedValue([]);
+        vi.spyOn(ManualDataRepository, 'getAllNodes').mockResolvedValue([]);
+        vi.spyOn(ManualDataRepository, 'getAllLinks').mockResolvedValue([]);
+        vi.spyOn(SettingsRepository, 'getSetting').mockResolvedValue(undefined);
+
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => payload,
+        });
+        vi.stubGlobal('fetch', fetchMock);
+
+        await useWorkspaceStore.getState().initializeStore();
+
+        expect(fetchMock).toHaveBeenCalledWith('/seeds/demo-workspace.json', { cache: 'no-store' });
+        expect(CaseRepository.createCase).toHaveBeenCalledWith(payload.workspaces[0]);
+        expect(CaseRepository.createReport).toHaveBeenCalledWith(payload.artifacts[0]);
+        expect(TaskRepository.create).toHaveBeenCalledWith(payload.runs[0]);
+        expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
+        expect(useWorkspaceStore.getState().artifacts).toEqual(payload.artifacts);
+        expect(localStorage.getItem('sherlock_demo_seed_v1_applied')).toBe('true');
     });
 
     it('should add and delete templates', async () => {

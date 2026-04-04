@@ -90,13 +90,15 @@ Sherlock deploys cleanly to Vercel as a static Vite app.
 - Workspace and artifact data stay in the browser via SQLite over IndexedDB.
 - API keys stay browser-local when users add them through `System Config -> AI`.
 - Each origin has its own local data, so Vercel preview URLs do not share storage with production.
+- If `public/seeds/demo-workspace.json` exists, an empty browser profile will import that workspace-data backup once on first load for demo browsing.
 
 Recommended flow:
 
 1. Import the GitHub repo into Vercel.
 2. Let Vercel use the repo `vercel.json` or set `npm ci --include=optional`, `npm run build`, and `dist` manually.
-3. Leave provider env vars unset in Vercel for public BYOK hosting.
-4. Deploy and have each user add their own provider key in-app.
+3. Optionally place a canonical workspace-data backup at `public/seeds/demo-workspace.json` if you want first-time visitors to land in a pre-seeded demo workspace.
+4. Leave provider env vars unset in Vercel for public BYOK hosting.
+5. Deploy and have each user add their own provider key in-app if they want to run new analysis or chat.
 
 See `docs/operations/DEPLOYMENT.md` for the full checklist.
 

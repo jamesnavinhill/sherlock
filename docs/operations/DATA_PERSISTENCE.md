@@ -119,6 +119,7 @@ Some non-tabular values are still stored directly in localStorage:
 - `sherlock_config` (system config object)
 - `sherlock_livestream_autosave`
 - `sherlock_active_workspace_id` (archive selection hint)
+- `sherlock_demo_seed_v1_applied` (one-time demo workspace bootstrap marker)
 
 ## Backup/Restore
 
@@ -163,6 +164,8 @@ Workspace-data backups intentionally exclude:
 - Redeploying the same production domain does not clear IndexedDB or localStorage by itself.
 - Clearing browser storage removes the local SQLite database and any browser-stored API keys.
 - The current runtime is browser-local only: there is no shared server database, automatic cross-device sync, or multi-user persistence layer.
+- If `public/seeds/demo-workspace.json` is present, Sherlock will auto-import that workspace-data backup once for a browser profile whose workspace-data domain is still empty.
+- The demo bootstrap is device-local and origin-local. Updating the JSON file affects only browsers that have not already applied the seed marker.
 
 Maintenance cleanup behavior:
 
