@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { Network } from 'lucide-react';
 import type { ChatOpenRequest, GraphNodeSubtype, InvestigationLaunchRequest, Artifact, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
@@ -180,7 +180,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     );
 
     // Handlers
-    const handleNodeClick = (node: GraphNode | null) => {
+    const handleNodeClick = useCallback((node: GraphNode | null) => {
         if (!node) {
             // Background click
             setShowRightPanel(false);
@@ -197,9 +197,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         } else if (node.type === 'ENTITY') {
             handleOpenEntityInspector(node.label, node);
         }
-    };
+    }, []);
 
-    const handleCreateManualLink = (source: GraphNode, target: GraphNode) => {
+    const handleCreateManualLink = useCallback((source: GraphNode, target: GraphNode) => {
         const newLink: ManualConnection = {
             source: source.id,
             target: target.id,
@@ -209,7 +209,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setManualLinks(updatedLinks);
         setLinkSourceNode(null);
         setIsLinkingMode(false);
-    };
+    }, [manualLinks, setManualLinks]);
+
+    const handleGraphStatsUpdate = useCallback(() => {}, []);
 
     const handleCreateNode = () => {
         if (!newNodeLabel.trim()) return;
@@ -551,7 +553,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                             onNodeClick={handleNodeClick}
                             onSetLinkSource={setLinkSourceNode}
                             onCreateManualLink={handleCreateManualLink}
-                            onStatsUpdate={() => { }} // Could sync stats state if needed
+                            onStatsUpdate={handleGraphStatsUpdate}
                         />
                     )}
 

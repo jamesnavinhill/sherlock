@@ -79,6 +79,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const gRef = useRef<SVGGElement | null>(null);
+    const nodePositionsRef = useRef<Record<string, Pick<GraphNode, 'x' | 'y' | 'fx' | 'fy'>>>({});
+    const zoomTransformRef = useRef<d3.ZoomTransform | null>(null);
 
     // D3 Refs
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -89,6 +91,36 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
     useEffect(() => {
         stateRef.current = { isLinkingMode, linkSourceNode };
     }, [isLinkingMode, linkSourceNode]);
+
+    const applyLinkSourceStyling = () => {
+        if (!svgRef.current) return;
+
+        const selectedSourceId = linkSourceNode?.id || null;
+        d3.select(svgRef.current)
+            .selectAll<SVGGElement, GraphNode>('.node-group')
+            .each(function (d) {
+                const group = d3.select(this);
+                const isLinkSource = !!selectedSourceId && d.id === selectedSourceId;
+
+                group.select('circle')
+                    .attr('fill', isLinkSource
+                        ? '#ef4444'
+                        : d.type === 'CASE'
+                          ? '#000'
+                          : getEntityFillColor(d.subtype))
+                    .attr('stroke', isLinkSource
+                        ? '#f87171'
+                        : d.type === 'CASE'
+                          ? '#fff'
+                          : getEntityStrokeColor(d.subtype))
+                    .attr('stroke-width', isLinkSource ? 3 : 1.5);
+
+                group.selectAll('path')
+                    .attr('stroke', d.type === 'CASE'
+                        ? (isLinkSource ? '#f87171' : '#fff')
+                        : (isLinkSource ? '#fff' : getEntityStrokeColor(d.subtype)));
+            });
+    };
 
     // Expose Zoom Methods
     useImperativeHandle(ref, () => ({
@@ -105,6 +137,23 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
     }));
 
     // --- D3 Simulation ---
+    useEffect(() => {
+        applyLinkSourceStyling();
+    }, [linkSourceNode]);
+
+    useEffect(() => {
+        const simulation = simulationRef.current;
+        if (!simulation) return;
+
+        if (isLocked) {
+            simulation.stop();
+            return;
+        }
+
+        simulation.alphaTarget(0.15).restart();
+        simulation.alphaTarget(0);
+    }, [isLocked]);
+
     useEffect(() => {
         if (!svgRef.current || !containerRef.current) return;
 
@@ -135,6 +184,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         const getOrCreateNode = (id: string, type: 'CASE' | 'ENTITY', label: string, reportData?: Artifact, isManual: boolean = false, subtype?: GraphNodeSubtype) => {
             if (isNodeDeleted(id, label) || (isNodeHidden(id, label) && !showHiddenNodes)) return null;
             if (!rawNodes.has(id)) {
+                const previousPosition = nodePositionsRef.current[id];
                 // If it's a Manual "CASE" node but has no report data
                 let data = reportData;
                 if (type === 'CASE' && isManual && !data) {
@@ -153,7 +203,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
 
                 rawNodes.set(id, {
                     id, type, subtype, label, data: data, connections: 0, isManual,
-                    x: width / 2 + (Math.random() - 0.5) * 50, y: height / 2 + (Math.random() - 0.5) * 50
+                    x: previousPosition?.x ?? (width / 2 + (Math.random() - 0.5) * 50),
+                    y: previousPosition?.y ?? (height / 2 + (Math.random() - 0.5) * 50),
+                    fx: previousPosition?.fx ?? null,
+                    fy: previousPosition?.fy ?? null,
                 });
             }
             return rawNodes.get(id) ?? null;
@@ -267,9 +320,15 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         const g = svg.append("g");
         gRef.current = g.node();
 
-        const zoom = d3.zoom<SVGSVGElement, unknown>().scaleExtent([0.1, 4]).on("zoom", (e) => g.attr("transform", e.transform));
+        const zoom = d3.zoom<SVGSVGElement, unknown>().scaleExtent([0.1, 4]).on("zoom", (e) => {
+            zoomTransformRef.current = e.transform;
+            g.attr("transform", e.transform);
+        });
         svg.call(zoom);
         zoomRef.current = zoom;
+        if (zoomTransformRef.current) {
+            svg.call(zoom.transform, zoomTransformRef.current);
+        }
 
         const simulation = d3.forceSimulation(filteredNodes)
             .force("link", d3.forceLink<GraphNode, GraphLink>(filteredLinks).id((d) => d.id).distance(100))
@@ -282,7 +341,6 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
 
         if (isLocked) {
             simulation.stop();
-            // Assign positions manually or use last known positions if we want it truly locked
         }
 
         simulationRef.current = simulation;
@@ -293,6 +351,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
             .attr("stroke-dasharray", (d: GraphLink) => d.isManual ? "0" : "2,2");
 
         const node = g.append("g").selectAll(".node").data(filteredNodes).join("g")
+            .attr("class", "node-group")
             .call(d3.drag<SVGGElement, GraphNode>()
                 .on("start", (event, d) => {
                     if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -332,21 +391,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
             });
 
         node.append("circle")
-            .attr("r", (d) => d.type === 'CASE' ? 20 : Math.min(6 + d.connections * 2, 20))
-            .attr("fill", (d) => {
-                if (linkSourceNode && d.id === linkSourceNode.id) return '#ef4444';
-                return d.type === 'CASE'
-                    ? '#000'
-                    : getEntityFillColor(d.subtype);
-            })
-            .attr("stroke", (d) => {
-                if (linkSourceNode && d.id === linkSourceNode.id) return '#f87171';
-                return d.type === 'CASE'
-                    ? '#fff'
-                    : getEntityStrokeColor(d.subtype);
-            })
-            .attr("stroke-width", (d) => (linkSourceNode && d.id === linkSourceNode.id) ? 3 : 1.5)
-            .classed("animate-pulse", (d) => !!linkSourceNode && d.id === linkSourceNode.id);
+            .attr("r", (d) => d.type === 'CASE' ? 20 : Math.min(6 + d.connections * 2, 20));
 
         // Icons
         node.each(function (d) {
@@ -375,15 +420,23 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
                 .attr("stroke-linejoin", "round")
                 .attr("transform", "translate(-7, -7) scale(0.6)");
 
-            g.selectAll("path").attr("stroke", d.type === 'CASE'
-                ? (linkSourceNode && d.id === linkSourceNode.id ? '#f87171' : '#fff')
-                : (linkSourceNode && d.id === linkSourceNode.id ? '#fff' : getEntityStrokeColor(d.subtype)));
+            g.selectAll("path").attr("stroke", d.type === 'CASE' ? '#fff' : getEntityStrokeColor(d.subtype));
         });
 
         node.append("text").attr("dy", 30).attr("text-anchor", "middle").text(d => d.label.substring(0, 15))
             .attr("fill", "#a1a1aa").style("font-size", "10px").style("font-family", "monospace");
 
+        applyLinkSourceStyling();
+
         simulation.on("tick", () => {
+            filteredNodes.forEach((graphNode) => {
+                nodePositionsRef.current[graphNode.id] = {
+                    x: graphNode.x,
+                    y: graphNode.y,
+                    fx: graphNode.fx ?? null,
+                    fy: graphNode.fy ?? null,
+                };
+            });
             link
                 .attr("x1", (d: GraphLink) => (d.source as GraphNode).x ?? 0)
                 .attr("y1", (d: GraphLink) => (d.source as GraphNode).y ?? 0)
@@ -393,7 +446,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         });
 
         return () => { simulation.stop(); };
-    }, [reports, manualLinks, workspaces, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, isLocked, linkSourceNode, onCreateManualLink, onNodeClick, onSetLinkSource, onStatsUpdate]);
+    }, [reports, manualLinks, workspaces, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, onCreateManualLink, onNodeClick, onSetLinkSource, onStatsUpdate]);
 
     return (
         <div ref={containerRef} className="flex-1 w-full h-full relative z-0 bg-black cursor-move">
