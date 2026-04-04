@@ -48,6 +48,11 @@ import {
 import { normalizeWorkspaceDataBackup } from '../services/maintenance/workspaceData';
 import { loadSystemConfig } from '../config/systemConfig';
 import { createLocalId } from '../utils/id';
+import {
+    clearStoredActiveWorkspaceId,
+    getStoredActiveWorkspaceId,
+    setStoredActiveWorkspaceId,
+} from '../utils/localStorage';
 
 export interface Toast {
     id: string;
@@ -432,6 +437,17 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
                 }
             }
 
+            const storedActiveWorkspaceId = getStoredActiveWorkspaceId();
+            const resolvedActiveWorkspaceId = workspaces.some((workspace) => workspace.id === storedActiveWorkspaceId)
+                ? storedActiveWorkspaceId
+                : workspaces[0]?.id || null;
+
+            if (resolvedActiveWorkspaceId) {
+                setStoredActiveWorkspaceId(resolvedActiveWorkspaceId);
+            } else {
+                clearStoredActiveWorkspaceId();
+            }
+
             set({
                 workspaces,
                 artifacts,
@@ -451,6 +467,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
                 accentSettings: resolvedAccent,
                 themeColor: resolvedTheme,
                 themeSurfaceSettings: resolvedThemeSurfaceSettings,
+                activeWorkspaceId: resolvedActiveWorkspaceId,
                 isLoading: false
             });
         } catch (err) {
@@ -587,7 +604,14 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         set({ flaggedNodeIds });
         await SettingsRepository.setSetting('flagged_nodes', flaggedNodeIds);
     },
-    setActiveWorkspaceId: (activeWorkspaceId) => set({ activeWorkspaceId }),
+    setActiveWorkspaceId: (activeWorkspaceId) => {
+        if (activeWorkspaceId) {
+            setStoredActiveWorkspaceId(activeWorkspaceId);
+        } else {
+            clearStoredActiveWorkspaceId();
+        }
+        set({ activeWorkspaceId });
+    },
 
     toggleFlag: (id) => {
         const state = get();

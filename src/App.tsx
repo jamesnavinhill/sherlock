@@ -485,7 +485,7 @@ function App() {
           onKeySet={() => setIsAuthenticated(hasApiKey())}
           onBypass={() => {
             setIsAuthenticated(true);
-            setView(AppView.DASHBOARD);
+            setView(AppView.INVESTIGATION);
           }}
         />
       )}

@@ -157,6 +157,8 @@ describe('caseStore', () => {
         expect(TaskRepository.create).toHaveBeenCalledWith(payload.runs[0]);
         expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
         expect(useWorkspaceStore.getState().artifacts).toEqual(payload.artifacts);
+        expect(useWorkspaceStore.getState().activeWorkspaceId).toBe('ws-seed');
+        expect(localStorage.getItem('sherlock_active_workspace_id')).toBe('ws-seed');
         expect(localStorage.getItem('sherlock_demo_seed_v1_applied')).toBe('true');
     });
 
