@@ -1046,9 +1046,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                     || getMetadataValue<string>(event, 'relatedArtifactId')
                                                     || getMetadataValue<string>(event, 'linkedArtifactId');
                                                 const sourceSignalId = getMetadataValue<string>(event, 'sourceSignalId');
-                                                const parentArtifactId =
-                                                    getMetadataValue<string>(event, 'parentArtifactId') || event.parentRefId;
-                                                const sourceRunId = getMetadataValue<string>(event, 'sourceRunId');
                                                 const previousArtifactId = getMetadataValue<string>(event, 'previousArtifactId');
                                                 const sessionId =
                                                     getPrimaryRefId(event, 'CHAT_SESSION')
@@ -1075,9 +1072,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                 : 'border-zinc-800 bg-zinc-950/80 hover:border-zinc-600 hover:bg-zinc-900/80'
                                                         }`}
                                                     >
-                                                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                                            <div className="min-w-0 flex-1">
-                                                                <div className="flex items-center gap-3">
+                                                        <div className="flex flex-col gap-3">
+                                                            <div className="min-w-0">
+                                                                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                                                                     <span className="text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                                                                         {formatEventTime(event.occurredAt)}
                                                                     </span>
@@ -1087,6 +1084,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                         <EventIcon className="h-3.5 w-3.5" />
                                                                         {event.track}
                                                                     </span>
+                                                                    {event.badges?.map((badge) => (
+                                                                        <span
+                                                                            key={`${event.id}-${badge}`}
+                                                                            className="border border-zinc-700 bg-black px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-zinc-500"
+                                                                        >
+                                                                            {badge}
+                                                                        </span>
+                                                                    ))}
                                                                 </div>
                                                                 <div className="mt-3 text-sm font-bold uppercase tracking-wide text-white">
                                                                     {event.title}
@@ -1096,19 +1101,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                         {event.summary}
                                                                     </p>
                                                                 )}
-                                                                {event.badges && event.badges.length > 0 && (
-                                                                    <div className="mt-3 flex flex-wrap gap-2">
-                                                                        {event.badges.map((badge) => (
-                                                                            <span
-                                                                                key={`${event.id}-${badge}`}
-                                                                                className="border border-zinc-700 bg-black px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-zinc-500"
-                                                                            >
-                                                                                {badge}
-                                                                            </span>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                                {(relatedArtifactId || sourceSignalId || parentArtifactId || sourceRunId || previousArtifactId || sessionId) && (
+                                                                {(relatedArtifactId || sourceSignalId || previousArtifactId || sessionId) && (
                                                                     <div className="mt-3 flex flex-wrap gap-2">
                                                                         {relatedArtifactId && event.track === 'ENTITY' && (
                                                                             <button
@@ -1130,28 +1123,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                                 className="border border-cyan-500/30 bg-cyan-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-cyan-200 transition hover:border-cyan-400 hover:text-white"
                                                                             >
                                                                                 From {signalTitleById.get(sourceSignalId) || 'Signal'}
-                                                                            </button>
-                                                                        )}
-                                                                        {parentArtifactId && (
-                                                                            <button
-                                                                                onClick={(clickEvent) => {
-                                                                                    clickEvent.stopPropagation();
-                                                                                    focusReference('ARTIFACT', parentArtifactId);
-                                                                                }}
-                                                                                className="border border-amber-500/30 bg-amber-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-amber-200 transition hover:border-amber-400 hover:text-white"
-                                                                            >
-                                                                                Parent {artifactTitleById.get(parentArtifactId) || labelProfile.artifactLabel}
-                                                                            </button>
-                                                                        )}
-                                                                        {sourceRunId && (
-                                                                            <button
-                                                                                onClick={(clickEvent) => {
-                                                                                    clickEvent.stopPropagation();
-                                                                                    focusReference('RUN', sourceRunId);
-                                                                                }}
-                                                                                className="border border-osint-primary/30 bg-osint-primary/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-osint-primary transition hover:border-osint-primary hover:text-white"
-                                                                            >
-                                                                                Source {runTitleById.get(sourceRunId) || 'Run'}
                                                                             </button>
                                                                         )}
                                                                         {previousArtifactId && (
@@ -1180,7 +1151,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                                 )}
                                                             </div>
 
-                                                            <div className="flex shrink-0 flex-wrap gap-2">
+                                                            <div className="flex flex-wrap items-center gap-2">
                                                                 {relatedArtifactId && (
                                                                     <button
                                                                         onClick={(clickEvent) => {
