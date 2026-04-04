@@ -2,12 +2,12 @@
 @config "../tailwind.config.js";
 
 :root {
-  --osint-primary: oklch(0.64 0.14 360);
-  --entity-person: oklch(0.64 0.14 332);
-  --entity-organization: oklch(0.64 0.14 36);
-  --entity-concept: oklch(0.64 0.14 84);
-  --entity-source: oklch(0.64 0.14 156);
-  --entity-unknown: oklch(0.68 0.025 360);
+  --osint-primary: oklch(0.62 0.05 264);
+  --entity-person: oklch(0.62 0.1 236);
+  --entity-organization: oklch(0.62 0.1 300);
+  --entity-concept: oklch(0.62 0.1 348);
+  --entity-source: oklch(0.62 0.1 60);
+  --entity-unknown: oklch(0.66 0.01 264);
   --osint-dark-darkmode: oklch(0 0 0);
   --osint-panel-darkmode: oklch(0.141 0.004 286);
   --osint-surface-darkmode: oklch(0.21 0.006 286);
