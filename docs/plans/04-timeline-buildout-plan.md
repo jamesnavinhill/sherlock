@@ -625,15 +625,6 @@ Mitigation:
 - keep Timeline centered on sequence and causality
 - treat `Archives` as inventory and `NetworkGraph` as topology
 
-## Recommended Execution Order
-
-1. Finish Slice 1 cleanup/parity work from `docs/plans/03-cleanup-parity-and-timeline-plan.md`.
-2. Land Timeline event normalization and timestamp cleanup.
-3. Replace the parked Timeline shell with the real three-pane layout.
-4. Add dossier, search, and filters behavior.
-5. Add details drawer click-through integration.
-6. Add lineage markers and secondary tracks.
-
 ## Final Recommendation
 
 Build Timeline as a clean, dossier-driven chronology page:
