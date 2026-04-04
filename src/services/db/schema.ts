@@ -46,14 +46,16 @@ export const reports = sqliteTable('reports', {
 });
 
 export const artifactSections = sqliteTable('artifact_sections', {
-    id: text('id').primaryKey(),
+    id: text('id').notNull(),
     reportId: text('report_id').notNull().references(() => reports.id),
     kind: text('kind').notNull(),
     title: text('title').notNull(),
     content: text('content'),
     itemsJson: text('items_json'),
     sortOrder: integer('sort_order').notNull(),
-});
+}, (table) => ({
+    pk: primaryKey({ columns: [table.reportId, table.id] }),
+}));
 
 // --- ENTITIES ---
 export const entities = sqliteTable('entities', {

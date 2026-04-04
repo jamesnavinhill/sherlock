@@ -78,7 +78,7 @@ Finder/Feed discovery results are transient runtime state in the store and are n
 - `artifact_type`
 - `label_profile_id`
 
-`artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility.
+`artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility. Section ids are unique within a report, and the table uses a composite primary key of `report_id + id` so repeated section labels from different artifacts do not collide.
 
 The chat implementation adds:
 
@@ -109,7 +109,7 @@ Migration completion marker:
 
 - settings key: `migration_v1_complete = true`
 
-Existing local databases are upgraded additively in `src/services/db/client.ts`.
+Existing local databases are upgraded additively in `src/services/db/client.ts`, including an in-place rebuild of legacy `artifact_sections` tables that still enforce a global primary key on `id`.
 
 ## Remaining localStorage Usage
 

@@ -78,6 +78,39 @@ const formatMessageWithCitations = (message: ChatMessage): string => {
     return `${message.content}${citations}`;
 };
 
+const followUpTopicLinePattern = /^\[[^\]]+\]\s*\[RUN_ANGLE\]:/i;
+
+const splitCollapsedFollowUpBlock = (body: string) => {
+    const trimmedBody = body.trimEnd();
+    const lines = trimmedBody.split('\n');
+    const followUpStartIndex = lines.findIndex((line, index) => {
+        if (!followUpTopicLinePattern.test(line.trim())) return false;
+        if (index === 0) return false;
+
+        const remainingLines = lines.slice(index).filter((entry) => entry.trim().length > 0);
+        const matchingLines = remainingLines.filter((entry) => followUpTopicLinePattern.test(entry.trim()));
+        return matchingLines.length >= 1;
+    });
+
+    if (followUpStartIndex === -1) {
+        return {
+            primaryBody: trimmedBody,
+            collapsedBody: '',
+        };
+    }
+
+    const primaryLines = [...lines.slice(0, followUpStartIndex)];
+    const trailingPrimaryLine = primaryLines[primaryLines.length - 1]?.trim();
+    if (trailingPrimaryLine === '---' || trailingPrimaryLine === '***' || trailingPrimaryLine === '___') {
+        primaryLines.pop();
+    }
+
+    return {
+        primaryBody: primaryLines.join('\n').trimEnd(),
+        collapsedBody: lines.slice(followUpStartIndex).join('\n').trim(),
+    };
+};
+
 const getSessionTitle = (session: ChatSession): string =>
     sanitizeDisplayTitle(session.title.trim() || 'Untitled Chat');
 
@@ -1107,6 +1140,9 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                 const isAssistant = message.role === 'assistant';
                                 const isUser = message.role === 'user';
                                 const isTool = message.role === 'tool';
+                                const { primaryBody, collapsedBody } = isAssistant
+                                    ? splitCollapsedFollowUpBlock(body)
+                                    : { primaryBody: body, collapsedBody: '' };
 
                                 return (
                                     <article
@@ -1150,22 +1186,45 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                         {isStreamingMessage && !body ? (
                                             <div className="text-sm text-zinc-500">Generating response...</div>
                                         ) : (
-                                            <div className="prose prose-invert max-w-none text-sm leading-7 prose-p:my-2 prose-ul:my-2 prose-headings:my-3">
-                                                <ReactMarkdown>{body}</ReactMarkdown>
-                                            </div>
+                                            <>
+                                                <div className="prose prose-invert max-w-none text-sm leading-7 prose-p:my-2 prose-ul:my-2 prose-headings:my-3">
+                                                    <ReactMarkdown>{primaryBody}</ReactMarkdown>
+                                                </div>
+                                                {collapsedBody && (
+                                                    <div className="mt-4 border-t border-zinc-800 pt-3">
+                                                        <details className="group">
+                                                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500 transition hover:text-white [&::-webkit-details-marker]:hidden">
+                                                                Suggested Topics
+                                                                <ChevronDown className="h-4 w-4 shrink-0" />
+                                                            </summary>
+                                                            <div className="mt-3 prose prose-invert max-w-none text-sm leading-7 prose-p:my-2 prose-ul:my-2 prose-headings:my-3">
+                                                                <ReactMarkdown>{collapsedBody}</ReactMarkdown>
+                                                            </div>
+                                                        </details>
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
 
                                         {!!message.attachments?.length && (
-                                            <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-800 pt-3">
-                                                {message.attachments.map((attachment) => (
-                                                    <span
-                                                        key={attachment.id}
-                                                        className="border border-zinc-700 bg-black px-2 py-1 text-[11px] text-zinc-300"
-                                                        title={attachment.snippet}
-                                                    >
-                                                        {attachment.title}
-                                                    </span>
-                                                ))}
+                                            <div className="mt-4 border-t border-zinc-800 pt-3">
+                                                <details className="group">
+                                                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500 transition hover:text-white [&::-webkit-details-marker]:hidden">
+                                                        {`Related Context (${message.attachments.length})`}
+                                                        <ChevronDown className="h-4 w-4 shrink-0" />
+                                                    </summary>
+                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                        {message.attachments.map((attachment) => (
+                                                            <span
+                                                                key={attachment.id}
+                                                                className="border border-zinc-700 bg-black px-2 py-1 text-[11px] text-zinc-300"
+                                                                title={attachment.snippet}
+                                                            >
+                                                                {attachment.title}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </details>
                                             </div>
                                         )}
 
@@ -1232,32 +1291,29 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     ) : (
                         <form
                             onSubmit={handleSend}
-                            className="border-t border-zinc-800 bg-black/95 px-4 py-4 sm:px-6"
+                            className="h-[150px] border-t border-zinc-800 bg-black/95 px-4 sm:px-6"
                         >
-                            <div className="mx-auto max-w-4xl">
-                                <textarea
-                                    value={draft}
-                                    onChange={(event) => setDraft(event.target.value)}
-                                    onKeyDown={handleComposerKeyDown}
-                                    placeholder={
-                                        activeWorkspace
-                                            ? `Ask about ${sanitizeDisplayTitle(activeWorkspace.title)}...`
-                                            : 'Select a workspace to begin chatting...'
-                                    }
-                                    className="h-28 w-full resize-none border border-zinc-700 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
-                                />
+                            <div className="mx-auto h-full max-w-4xl py-2">
+                                <div className="relative">
+                                    <textarea
+                                        value={draft}
+                                        onChange={(event) => setDraft(event.target.value)}
+                                        onKeyDown={handleComposerKeyDown}
+                                        placeholder={
+                                            activeWorkspace
+                                                ? `Ask about ${sanitizeDisplayTitle(activeWorkspace.title)}...`
+                                                : 'Select a workspace to begin chatting...'
+                                        }
+                                        className="h-full min-h-0 w-full resize-none border border-zinc-700 bg-black px-4 py-4 pb-14 pr-24 text-sm text-white outline-none transition focus:border-osint-primary"
+                                    />
 
-                                <div className="mt-3 flex items-center justify-between gap-4">
-                                    <div className="text-xs text-zinc-500">
-                                        Enter to send. Shift + Enter for a new line.
-                                    </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="absolute bottom-3 right-3 flex items-center gap-2">
                                         {chatGenerationStatus === 'GENERATING' ||
                                         chatGenerationStatus === 'CANCELLING' ? (
                                             <button
                                                 type="button"
                                                 onClick={handleStopGeneration}
-                                                className="osint-button-danger inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide"
+                                                className="osint-button-danger inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase tracking-wide"
                                             >
                                                 <CircleStop className="h-4 w-4" />
                                                 Stop
@@ -1271,13 +1327,14 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                                 chatGenerationStatus === 'GENERATING' ||
                                                 chatGenerationStatus === 'CANCELLING'
                                             }
-                                            className="osint-button-primary inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50"
+                                            aria-label="Send message"
+                                            title="Send message"
+                                            className="osint-button-primary inline-flex h-10 w-10 items-center justify-center p-0 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
-                                            <Send className="h-4 w-4" />
-                                            Send
-                                        </button>
+                                                <Send className="h-4 w-4" />
+                                            </button>
                                     </div>
-                                </div>
+                                    </div>
                             </div>
                         </form>
                     )}

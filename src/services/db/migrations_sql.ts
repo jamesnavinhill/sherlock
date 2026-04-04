@@ -17,13 +17,14 @@ CREATE TABLE IF NOT EXISTS "cases" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "artifact_sections" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" text NOT NULL,
 	"report_id" text NOT NULL,
 	"kind" text NOT NULL,
 	"title" text NOT NULL,
 	"content" text,
 	"items_json" text,
 	"sort_order" integer NOT NULL,
+	PRIMARY KEY ("report_id", "id"),
 	FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

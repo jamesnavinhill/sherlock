@@ -16,6 +16,67 @@ let queryLock: Promise<void> = Promise.resolve();
 
 const DATABASE_NAME = 'sherlock-v1.sqlite';
 
+export const ARTIFACT_SECTIONS_TABLE_SQL = `CREATE TABLE IF NOT EXISTS "artifact_sections" (
+    "id" text NOT NULL,
+    "report_id" text NOT NULL,
+    "kind" text NOT NULL,
+    "title" text NOT NULL,
+    "content" text,
+    "items_json" text,
+    "sort_order" integer NOT NULL,
+    PRIMARY KEY ("report_id", "id"),
+    FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+);`;
+
+export const artifactSectionsTableRequiresUpgrade = (tableSql: string | null | undefined): boolean => {
+    if (!tableSql) return false;
+
+    const normalizedSql = tableSql.replace(/\s+/g, ' ').trim().toLowerCase();
+    return normalizedSql.includes('create table')
+        && normalizedSql.includes('artifact_sections')
+        && normalizedSql.includes('"id" text primary key');
+};
+
+export const ensureArtifactSectionsCompositeKey = async (
+    api: Pick<SQLite.SQLiteAPI, 'exec'>,
+    db: number
+): Promise<void> => {
+    let tableSql: string | null = null;
+
+    await api.exec(
+        db,
+        `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'artifact_sections';`,
+        (row) => {
+            tableSql = typeof row[0] === 'string' ? row[0] : null;
+        }
+    );
+
+    if (!tableSql) {
+        await api.exec(db, ARTIFACT_SECTIONS_TABLE_SQL);
+        return;
+    }
+
+    if (!artifactSectionsTableRequiresUpgrade(tableSql)) {
+        return;
+    }
+
+    await api.exec(db, 'PRAGMA foreign_keys = OFF;');
+
+    try {
+        await api.exec(db, 'ALTER TABLE "artifact_sections" RENAME TO "artifact_sections_legacy";');
+        await api.exec(db, ARTIFACT_SECTIONS_TABLE_SQL.replace(' IF NOT EXISTS', ''));
+        await api.exec(
+            db,
+            `INSERT INTO "artifact_sections" ("id", "report_id", "kind", "title", "content", "items_json", "sort_order")
+             SELECT "id", "report_id", "kind", "title", "content", "items_json", "sort_order"
+             FROM "artifact_sections_legacy";`
+        );
+        await api.exec(db, 'DROP TABLE "artifact_sections_legacy";');
+    } finally {
+        await api.exec(db, 'PRAGMA foreign_keys = ON;');
+    }
+};
+
 export const initDB = async (): Promise<ReturnType<typeof drizzle>> => {
     // Return existing instance if already initialized
     if (dbInstance) return dbInstance;
@@ -106,16 +167,6 @@ const runSchemaUpgrades = async (api: SQLite.SQLiteAPI, db: number): Promise<voi
             FOREIGN KEY ("session_id") REFERENCES "chat_sessions"("id") ON UPDATE no action ON DELETE no action,
             FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON UPDATE no action ON DELETE no action
         );`,
-        `CREATE TABLE IF NOT EXISTS "artifact_sections" (
-            "id" text PRIMARY KEY NOT NULL,
-            "report_id" text NOT NULL,
-            "kind" text NOT NULL,
-            "title" text NOT NULL,
-            "content" text,
-            "items_json" text,
-            "sort_order" integer NOT NULL,
-            FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
-        );`
     ];
 
     for (const sql of alterStatements) {
@@ -129,6 +180,8 @@ const runSchemaUpgrades = async (api: SQLite.SQLiteAPI, db: number): Promise<voi
             }
         }
     }
+
+    await ensureArtifactSectionsCompositeKey(api, db);
 };
 
 const doInitDB = async (): Promise<ReturnType<typeof drizzle>> => {

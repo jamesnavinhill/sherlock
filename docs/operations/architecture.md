@@ -137,7 +137,7 @@ The schema still uses compatibility table names such as `cases`, `reports`, and 
 
 - `cases` can now hold workspace-oriented metadata such as `mode`, `packId`, `purposeId`, and `labelProfileId`
 - `reports` now store `artifactType`, pack/purpose references, label profiles, and metadata JSON
-- `artifact_sections` persists typed section rows separately from the legacy flattened report fields
+- `artifact_sections` persists typed section rows separately from the legacy flattened report fields, with section ids scoped per report rather than globally across the table
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
 - `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
 
@@ -152,7 +152,7 @@ Maintenance flows now treat SQLite data as a workspace-data domain:
 Migration:
 
 - `src/services/db/migrate.ts` migrates prior `localStorage` Zustand payload (`sherlock-storage`) into SQLite one time
-- `src/services/db/client.ts` applies additive schema upgrades for existing local databases
+- `src/services/db/client.ts` applies additive schema upgrades for existing local databases, including rebuilding `artifact_sections` when older installs still use the legacy global section-id primary key
 
 ## 6. State Layer
 

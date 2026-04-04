@@ -56,6 +56,22 @@ const normalizeItems = (value: unknown): string[] => {
   return value.map(normalizeText).filter((entry) => entry.length > 0);
 };
 
+const ensureUniqueSectionIds = (sections: ArtifactSection[]): ArtifactSection[] => {
+  const seenIds = new Map<string, number>();
+
+  return sections.map((section, index) => {
+    const baseId =
+      normalizeText(section.id) || `section-${section.kind.toLowerCase()}-${section.order ?? index}`;
+    const duplicateCount = seenIds.get(baseId) ?? 0;
+    seenIds.set(baseId, duplicateCount + 1);
+
+    return {
+      ...section,
+      id: duplicateCount === 0 ? baseId : `${baseId}-${duplicateCount}`,
+    };
+  });
+};
+
 export const normalizeArtifactSectionKind = (value: unknown): ArtifactSectionKind => {
   const raw = normalizeText(value).replace(/[\s-]+/g, '_').toUpperCase();
   if (
@@ -105,10 +121,10 @@ const normalizeSectionRecord = (value: unknown, index: number): ArtifactSection 
 export const normalizeArtifactSections = (value: unknown): ArtifactSection[] => {
   if (!Array.isArray(value)) return [];
 
-  return value
+  return ensureUniqueSectionIds(value
     .map((entry, index) => normalizeSectionRecord(entry, index))
     .filter((section): section is ArtifactSection => !!section)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
 };
 
 const createSection = (
@@ -150,9 +166,9 @@ export const buildArtifactSections = (options: {
     createSection('LEADS', 3, { items: options.leads }),
   ].filter((section): section is ArtifactSection => !!section);
 
-  if (derivedSections.length > 0) return derivedSections;
+  if (derivedSections.length > 0) return ensureUniqueSectionIds(derivedSections);
 
-  return options.summary
+  return ensureUniqueSectionIds(options.summary
     ? [
         {
           id: 'section-executive_summary-0',
@@ -162,7 +178,7 @@ export const buildArtifactSections = (options: {
           order: 0,
         },
       ]
-    : [];
+    : []);
 };
 
 export const getArtifactSectionTitle = (
