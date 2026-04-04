@@ -636,6 +636,7 @@ export const buildFollowUpRunFromChatMessage = (params: {
         artifactType: purpose.recommendedArtifactType,
         labelProfileId: params.workspace.labelProfileId || pack.labelProfileId,
         launchSource: 'CHAT_FOLLOW_UP',
+        parentArtifactId: params.session.sourceReportId,
         switchToView: true,
     };
 

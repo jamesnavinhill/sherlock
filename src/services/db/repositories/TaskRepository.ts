@@ -63,6 +63,13 @@ export class TaskRepository {
             .where(eq(tasks.id, id));
     }
 
+    static async updateConfig(id: string, config: InvestigationTask['config']): Promise<void> {
+        const db = getDB();
+        await db.update(tasks)
+            .set({ configJson: config ? JSON.stringify(config) : null })
+            .where(eq(tasks.id, id));
+    }
+
     static async clearWorkspace(workspaceId: string): Promise<void> {
         const db = getDB();
         await db.update(tasks)

@@ -198,6 +198,14 @@ function App() {
       );
 
       report = { ...report, config: { ...(report.config || {}), ...runConfig } };
+      report = {
+        ...report,
+        config: {
+          ...(report.config || {}),
+          ...runConfig,
+          sourceRunId: taskId,
+        },
+      };
       report = await archiveReport(report, launchRequest.parentContext);
 
       if (launchRequest.preseededEntities?.length) {
@@ -271,6 +279,9 @@ function App() {
       dateRangeOverride: launchRequest.dateRangeOverride,
       preseededEntities: launchRequest.preseededEntities,
       launchSource: launchRequest.launchSource,
+      sourceSignalId: launchRequest.sourceSignalId,
+      parentArtifactId: launchRequest.parentArtifactId,
+      parentRunId: launchRequest.parentRunId,
     };
 
     const newTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -355,6 +366,7 @@ function App() {
           dateRangeOverride: parentReport.config?.dateRangeOverride,
           switchToView: false,
           launchSource: 'FULL_SPECTRUM',
+          parentArtifactId: parentReport.id,
         });
       }, index * 200);
     });

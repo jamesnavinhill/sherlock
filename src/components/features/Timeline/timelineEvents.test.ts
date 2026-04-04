@@ -120,4 +120,90 @@ describe('timelineEvents', () => {
 
         vi.useRealTimers();
     });
+
+    it('uses explicit lineage ids when present and lets related events survive focused filtering', () => {
+        const events = buildWorkspaceTimelineEvents({
+            workspaceId: 'case-1',
+            artifacts: [
+                {
+                    id: 'rep-1',
+                    caseId: 'case-1',
+                    topic: 'Parent Artifact',
+                    createdAt: 50,
+                    summary: 'Parent',
+                    agendas: [],
+                    leads: [],
+                    entities: [],
+                    sources: [],
+                    rawText: 'raw',
+                },
+                {
+                    id: 'rep-2',
+                    caseId: 'case-1',
+                    topic: 'Child Artifact',
+                    createdAt: 300,
+                    summary: 'Child',
+                    agendas: [],
+                    leads: [],
+                    entities: [],
+                    sources: [],
+                    rawText: 'raw',
+                    config: {
+                        parentArtifactId: 'rep-1',
+                        sourceSignalId: 'sig-1',
+                        sourceRunId: 'run-1',
+                    },
+                },
+            ],
+            runs: [
+                {
+                    id: 'run-1',
+                    workspaceId: 'case-1',
+                    topic: 'Child Artifact',
+                    status: 'COMPLETED',
+                    startTime: 100,
+                    endTime: 200,
+                    config: {
+                        parentArtifactId: 'rep-1',
+                        sourceSignalId: 'sig-1',
+                        producedArtifactId: 'rep-2',
+                    },
+                },
+            ],
+            signals: [
+                {
+                    id: 'sig-1',
+                    caseId: 'case-1',
+                    content: 'Trigger signal',
+                    source: 'Reuters',
+                    timestamp: '2026-04-01T10:00:00.000Z',
+                    type: 'NEWS',
+                    status: 'PENDING',
+                    threatLevel: 'CAUTION',
+                    linkedReportId: 'rep-2',
+                },
+            ],
+        });
+
+        const artifactEvent = events.find((event) => event.refId === 'rep-2');
+        const runCompletedEvent = events.find((event) => event.id === 'run-complete-run-1');
+
+        expect(artifactEvent?.parentRefId).toBe('rep-1');
+        expect(runCompletedEvent?.metadata?.relatedArtifactId).toBe('rep-2');
+
+        const focused = filterTimelineEvents(events, {
+            workspaceId: 'case-1',
+            search: '',
+            filters: {
+                range: 'ALL',
+                tracks: ['SIGNAL', 'RUN', 'ARTIFACT'],
+            },
+            focusedTrack: 'ALL',
+            focusedRefId: 'sig-1',
+        });
+
+        expect(focused.map((event) => event.refId)).toContain('sig-1');
+        expect(focused.map((event) => event.refId)).toContain('run-1');
+        expect(focused.map((event) => event.refId)).toContain('rep-2');
+    });
 });

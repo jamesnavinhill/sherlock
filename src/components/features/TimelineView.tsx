@@ -235,6 +235,24 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
         return archives.find((artifact) => artifact.id === artifactId) || null;
     }, [archives, selectedEvent]);
+    const selectedRun = useMemo(() => {
+        if (!selectedEvent) return null;
+
+        const runId = selectedEvent.refKind === 'RUN' ? selectedEvent.refId : getMetadataValue<string>(selectedEvent, 'sourceRunId');
+        return tasks.find((task) => task.id === runId) || null;
+    }, [selectedEvent, tasks]);
+    const relatedSignal = useMemo(() => {
+        if (!selectedEvent) return null;
+
+        const signalId = selectedEvent.refKind === 'SIGNAL'
+            ? selectedEvent.refId
+            : getMetadataValue<string>(selectedEvent, 'sourceSignalId');
+        return headlines.find((headline) => headline.id === signalId) || null;
+    }, [headlines, selectedEvent]);
+    const parentArtifact = useMemo(() => {
+        const parentArtifactId = getMetadataValue<string>(selectedEvent, 'parentArtifactId') || selectedEvent?.parentRefId;
+        return archives.find((artifact) => artifact.id === parentArtifactId) || null;
+    }, [archives, selectedEvent]);
 
     const lastActivity = useMemo(() => getLatestTimelineActivity(visibleEvents), [visibleEvents]);
 
@@ -248,6 +266,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         setFilters(DEFAULT_FILTERS);
         setFocusedTrack('ALL');
         setFocusedRefId(undefined);
+    };
+
+    const focusReference = (track: TimelineTrack, refId?: string) => {
+        if (!refId) return;
+        setFocusedTrack(track);
+        setFocusedRefId(refId);
     };
 
     const toggleTrackFilter = (track: TimelineTrack) => {
@@ -861,6 +885,26 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                 <div className="mt-1">{sanitizeDisplayTitle(selectedArtifact.topic)}</div>
                                             </div>
                                         )}
+                                        {parentArtifact && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">
+                                                    Parent {labelProfile.artifactLabel}
+                                                </div>
+                                                <div className="mt-1">{sanitizeDisplayTitle(parentArtifact.topic)}</div>
+                                            </div>
+                                        )}
+                                        {relatedSignal && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Origin Signal</div>
+                                                <div className="mt-1">{relatedSignal.content}</div>
+                                            </div>
+                                        )}
+                                        {selectedRun && (
+                                            <div>
+                                                <div className="text-[10px] uppercase text-zinc-500">Source Run</div>
+                                                <div className="mt-1">{sanitizeDisplayTitle(selectedRun.topic)}</div>
+                                            </div>
+                                        )}
                                         {getMetadataValue<string>(selectedEvent, 'source') && (
                                             <div>
                                                 <div className="text-[10px] uppercase text-zinc-500">Source</div>
@@ -903,6 +947,30 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                     }
                                 >
                                     <div className="space-y-2 px-1 py-1">
+                                        {relatedSignal && (
+                                            <button
+                                                onClick={() => focusReference('SIGNAL', relatedSignal.id)}
+                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                            >
+                                                Focus Origin Signal
+                                            </button>
+                                        )}
+                                        {parentArtifact && (
+                                            <button
+                                                onClick={() => focusReference('ARTIFACT', parentArtifact.id)}
+                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                            >
+                                                Focus Parent {labelProfile.artifactLabel}
+                                            </button>
+                                        )}
+                                        {selectedRun && (
+                                            <button
+                                                onClick={() => focusReference('RUN', selectedRun.id)}
+                                                className="w-full border border-zinc-700 px-3 py-2 text-left text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                            >
+                                                Focus Source Run
+                                            </button>
+                                        )}
                                         {selectedArtifact && (
                                             <button
                                                 onClick={() => openArtifact(selectedArtifact.id)}

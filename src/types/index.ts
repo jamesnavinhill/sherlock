@@ -368,6 +368,11 @@ export interface InvestigationRunConfig extends Partial<SystemConfig> {
   dateRangeOverride?: DateRangeOverride;
   preseededEntities?: ManualNode[];
   launchSource?: string;
+  sourceSignalId?: string;
+  parentArtifactId?: string;
+  parentRunId?: string;
+  sourceRunId?: string;
+  producedArtifactId?: string;
 }
 
 export interface InvestigationLaunchRequest {
@@ -383,6 +388,9 @@ export interface InvestigationLaunchRequest {
   preseededEntities?: ManualNode[];
   switchToView?: boolean;
   launchSource?: string;
+  sourceSignalId?: string;
+  parentArtifactId?: string;
+  parentRunId?: string;
 }
 
 export interface InvestigationReport {

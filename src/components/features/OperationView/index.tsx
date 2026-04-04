@@ -88,6 +88,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
         inheritedConfig?: Partial<SystemConfig>;
         inheritedScopeId?: string;
         inheritedDateRange?: InvestigationRunConfig['dateRangeOverride'];
+        parentArtifactId?: string;
     } | null>(null);
     const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
     const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
@@ -264,6 +265,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
             inheritedConfig: toConfigOverride(report?.config),
             inheritedScopeId: report?.config?.scopeId,
             inheritedDateRange: report?.config?.dateRangeOverride,
+            parentArtifactId: report?.id,
         });
     };
 
@@ -277,6 +279,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
             scope: resolveScope(report?.config?.scopeId),
             dateRangeOverride: report?.config?.dateRangeOverride,
             launchSource: 'OPERATION_HEADLINE',
+            sourceSignalId: selectedHeadline.id,
+            parentArtifactId: report?.id,
         });
         setRightPanelOpen(false);
     };
@@ -396,6 +400,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                             scope: scope || resolveScope(leadToAnalyze.inheritedScopeId),
                             dateRangeOverride: dateRange || leadToAnalyze.inheritedDateRange,
                             launchSource: 'OPERATION_LEAD_MODAL',
+                            parentArtifactId: leadToAnalyze.parentArtifactId,
                         });
                         setLeadToAnalyze(null);
                     }}
@@ -535,6 +540,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                             scope: resolveScope(report.config?.scopeId),
                             dateRangeOverride: report.config?.dateRangeOverride,
                             launchSource: 'OPERATION_DEEP_DIVE',
+                            parentArtifactId: report.id,
                         });
                     }
                 }}

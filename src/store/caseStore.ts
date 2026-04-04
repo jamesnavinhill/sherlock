@@ -647,17 +647,35 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
     },
 
     completeTask: async (id, report) => {
+        const existingTask = get().tasks.find((task) => task.id === id);
+        const nextConfig = existingTask?.config
+            ? {
+                  ...existingTask.config,
+                  producedArtifactId: report.id,
+              }
+            : existingTask?.config;
+
         // Persist completion status
         await TaskRepository.updateStatus(id, 'COMPLETED');
         if (report.caseId) {
             await TaskRepository.updateWorkspace(id, report.caseId);
+        }
+        if (nextConfig) {
+            await TaskRepository.updateConfig(id, nextConfig);
         }
         // Report persistence is handled in archiveReport before this is called
 
         set((state) => ({
             tasks: state.tasks.map((t) =>
                 t.id === id
-                    ? { ...t, status: 'COMPLETED', report, workspaceId: report.caseId ?? t.workspaceId, endTime: Date.now() }
+                    ? {
+                          ...t,
+                          status: 'COMPLETED',
+                          report,
+                          config: nextConfig || t.config,
+                          workspaceId: report.caseId ?? t.workspaceId,
+                          endTime: Date.now(),
+                      }
                     : t
             )
         }));
@@ -690,10 +708,18 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         const state = get();
         const archives = [...state.archives];
         const cases = [...state.cases];
+        const sourceSignalId = report.config?.sourceSignalId;
+        const parentArtifactId = report.config?.parentArtifactId;
         let targetCaseId = report.caseId;
         let isNewCase = false;
 
         // 1. Link to parent case
+        if (!targetCaseId && parentArtifactId) {
+            const parentArtifact = archives.find((artifact) => artifact.id === parentArtifactId);
+            if (parentArtifact?.caseId) {
+                targetCaseId = parentArtifact.caseId;
+            }
+        }
         if (!targetCaseId && parentContext) {
             const parentReport = archives.find(r => r.topic === parentContext.topic);
             if (parentReport?.caseId) {
@@ -770,6 +796,9 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             entities: processedEntities,
             id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             createdAt: report.createdAt ?? Date.now(),
+            parentTopic:
+                report.parentTopic
+                || (parentArtifactId ? archives.find((artifact) => artifact.id === parentArtifactId)?.topic : undefined),
             caseId: targetCaseId
         };
 
@@ -789,6 +818,26 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         }
 
         set({ archives, cases, activeCaseId: targetCaseId });
+
+        if (sourceSignalId && savedReport.id) {
+            const matchingHeadline = state.headlines.find((headline) => headline.id === sourceSignalId);
+            if (matchingHeadline) {
+                const updatedHeadline = {
+                    ...matchingHeadline,
+                    linkedReportId: savedReport.id,
+                };
+
+                await CaseRepository.createHeadline(updatedHeadline);
+                set((current) => ({
+                    headlines: current.headlines.map((headline) =>
+                        headline.id === sourceSignalId
+                            ? updatedHeadline
+                            : headline
+                    ),
+                }));
+            }
+        }
+
         return savedReport;
     },
 

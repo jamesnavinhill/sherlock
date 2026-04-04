@@ -50,6 +50,8 @@ const buildRunSearchText = (run: InvestigationTask): string =>
         run.config?.purposeName,
         run.config?.artifactType,
         run.config?.launchSource,
+        run.config?.sourceSignalId,
+        run.config?.parentArtifactId,
     ]
         .filter(Boolean)
         .join(' ')
@@ -72,6 +74,18 @@ const inferArtifactForRun = (run: InvestigationTask, artifacts: InvestigationRep
             artifact.caseId === workspaceId &&
             sanitizeDisplayTitle(artifact.topic).toLowerCase() === sanitizeDisplayTitle(run.topic).toLowerCase()
     )?.id;
+};
+
+const eventReferencesFocus = (event: TimelineEvent, focusedRefId: string) => {
+    const metadataValues = event.metadata
+        ? Object.values(event.metadata).filter((value): value is string => typeof value === 'string')
+        : [];
+
+    return (
+        event.refId === focusedRefId
+        || event.parentRefId === focusedRefId
+        || metadataValues.includes(focusedRefId)
+    );
 };
 
 export const buildWorkspaceTimelineEvents = (input: {
@@ -106,11 +120,17 @@ export const buildWorkspaceTimelineEvents = (input: {
     const runEvents = input.runs
         .filter((run) => run.workspaceId === input.workspaceId || run.report?.caseId === input.workspaceId)
         .flatMap<TimelineEvent>((run) => {
-            const relatedArtifactId = inferArtifactForRun(run, input.artifacts, input.workspaceId);
+            const relatedArtifactId = run.config?.producedArtifactId || inferArtifactForRun(run, input.artifacts, input.workspaceId);
             const badges = [run.status, run.config?.artifactType, run.config?.purposeName].filter(
                 (value): value is string => !!value
             );
             const summaryBase = summarize(run.parentContext?.summary, 120);
+            const lineageSummary =
+                run.config?.sourceSignalId
+                    ? 'Run launched from a saved workspace signal.'
+                    : run.config?.parentArtifactId
+                      ? 'Run launched as a follow-up from a saved artifact.'
+                      : undefined;
 
             const startEvent: TimelineEvent = {
                 id: `run-start-${run.id}`,
@@ -119,7 +139,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                 type: 'RUN_STARTED',
                 workspaceId: input.workspaceId,
                 title: sanitizeDisplayTitle(run.topic),
-                summary: summaryBase || 'Workspace run started.',
+                summary: summaryBase || lineageSummary || 'Workspace run started.',
                 refId: run.id,
                 refKind: 'RUN',
                 badges,
@@ -130,6 +150,9 @@ export const buildWorkspaceTimelineEvents = (input: {
                     launchSource: run.config?.launchSource,
                     artifactType: run.config?.artifactType,
                     purposeName: run.config?.purposeName,
+                    sourceSignalId: run.config?.sourceSignalId,
+                    parentArtifactId: run.config?.parentArtifactId,
+                    parentRunId: run.config?.parentRunId,
                 },
             };
 
@@ -162,9 +185,15 @@ export const buildWorkspaceTimelineEvents = (input: {
     const artifactEvents = input.artifacts
         .filter((artifact) => artifact.caseId === input.workspaceId)
         .map<TimelineEvent>((artifact) => {
-            const parentRefId = artifact.parentTopic
-                ? parentArtifactMap.get(sanitizeDisplayTitle(artifact.parentTopic).toLowerCase())
-                : undefined;
+            const parentRefId = artifact.config?.parentArtifactId
+                || (artifact.parentTopic
+                    ? parentArtifactMap.get(sanitizeDisplayTitle(artifact.parentTopic).toLowerCase())
+                    : undefined);
+            const artifactSummary = artifact.config?.sourceSignalId
+                ? 'Saved artifact created from a signal-driven run.'
+                : artifact.config?.parentArtifactId
+                  ? 'Saved artifact created from a follow-up artifact run.'
+                  : summarize(artifact.summary, 160) || 'Saved artifact created.';
 
             return {
                 id: `artifact-${artifact.id || sanitizeDisplayTitle(artifact.topic)}`,
@@ -173,7 +202,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                 type: 'ARTIFACT_CREATED',
                 workspaceId: input.workspaceId,
                 title: sanitizeDisplayTitle(artifact.topic),
-                summary: summarize(artifact.summary, 160) || 'Saved artifact created.',
+                summary: artifactSummary,
                 refId: artifact.id,
                 refKind: 'ARTIFACT',
                 parentRefId,
@@ -185,6 +214,9 @@ export const buildWorkspaceTimelineEvents = (input: {
                     sourceCount: artifact.sources.length,
                     entityCount: artifact.entities.length,
                     followUpCount: artifact.followUps?.length || artifact.leads.length,
+                    sourceSignalId: artifact.config?.sourceSignalId,
+                    parentArtifactId: artifact.config?.parentArtifactId,
+                    sourceRunId: artifact.config?.sourceRunId,
                 },
             };
         });
@@ -217,7 +249,7 @@ export const filterTimelineEvents = (
         if (query.focusedTrack && query.focusedTrack !== 'ALL' && event.track !== query.focusedTrack) {
             return false;
         }
-        if (query.focusedRefId && event.refId !== query.focusedRefId && event.parentRefId !== query.focusedRefId) {
+        if (query.focusedRefId && !eventReferencesFocus(event, query.focusedRefId)) {
             return false;
         }
         if (!search) return true;

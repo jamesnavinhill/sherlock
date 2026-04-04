@@ -18,6 +18,7 @@ describe('caseStore', () => {
         vi.spyOn(TaskRepository, 'create').mockResolvedValue();
         vi.spyOn(TaskRepository, 'updateStatus').mockResolvedValue();
         vi.spyOn(TaskRepository, 'updateWorkspace').mockResolvedValue();
+        vi.spyOn(TaskRepository, 'updateConfig').mockResolvedValue();
         vi.spyOn(TaskRepository, 'clearWorkspace').mockResolvedValue();
         vi.spyOn(TaskRepository, 'deleteByWorkspace').mockResolvedValue();
         vi.spyOn(CaseRepository, 'purgeCase').mockResolvedValue();
@@ -96,7 +97,8 @@ describe('caseStore', () => {
             id: taskId,
             topic: 'Lifecycle test',
             status: 'RUNNING',
-            startTime: Date.now()
+            startTime: Date.now(),
+            config: {},
         });
 
         expect(useCaseStore.getState().tasks).toHaveLength(1);
@@ -116,6 +118,54 @@ describe('caseStore', () => {
         await completeTask(taskId, report);
         expect(useCaseStore.getState().tasks[0].status).toBe('COMPLETED');
         expect(useCaseStore.getState().tasks[0].report?.id).toBe('rep-1');
+        expect(TaskRepository.updateConfig).toHaveBeenCalledWith(taskId, {
+            producedArtifactId: 'rep-1',
+        });
+    });
+
+    it('should link a signal to its saved artifact when archive lineage is present', async () => {
+        const store = useCaseStore.getState();
+        store.setCases([
+            { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
+        ]);
+        store.setHeadlines([
+            {
+                id: 'head-1',
+                caseId: 'case-1',
+                content: 'Signal',
+                source: 'Desk',
+                timestamp: '2026-04-03T00:00:00.000Z',
+                type: 'NEWS',
+                status: 'PENDING',
+                threatLevel: 'INFO',
+            },
+        ]);
+
+        const saved = await store.archiveReport({
+            id: 'rep-1',
+            caseId: 'case-1',
+            topic: 'Signal Follow-up',
+            createdAt: 1,
+            summary: 'Summary',
+            agendas: [],
+            leads: [],
+            entities: [],
+            sources: [],
+            rawText: 'raw',
+            config: {
+                sourceSignalId: 'head-1',
+                sourceRunId: 'run-1',
+            },
+        });
+
+        expect(saved.id).toBe('rep-1');
+        expect(CaseRepository.createHeadline).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: 'head-1',
+                linkedReportId: 'rep-1',
+            })
+        );
+        expect(useCaseStore.getState().headlines[0].linkedReportId).toBe('rep-1');
     });
 
     it('should create and update chat sessions and messages', async () => {

@@ -233,6 +233,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
             scope,
             dateRangeOverride: dateRange,
             launchSource: 'LIVE_MONITOR_EVENT',
+            sourceSignalId: selectedEventForAnalysis ? `headline-${selectedEventForAnalysis.id}` : undefined,
         });
         setSelectedEventForAnalysis(null);
     };

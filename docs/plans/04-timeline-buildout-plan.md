@@ -3,6 +3,32 @@
 Date: 2026-04-03
 Status: In Progress
 
+## Implementation Status
+
+Current status on this checkout:
+
+- Stream 1: completed
+- Stream 2: completed
+- Stream 3: completed
+- Stream 4: completed for the first meaningful pass
+- Stream 5: in progress
+
+Current delivered state includes:
+
+- Timeline exposed in the main app sidebar
+- a real Timeline shell replacing the parked placeholder
+- dossier-style left panel
+- header workspace selector, text search, and filters popout
+- mixed chronology rendering for signals, runs, and artifacts
+- right-side details drawer with event-specific context
+- explicit lineage refs threaded through current run/artifact/signal flows without introducing a new persistence schema yet
+
+The biggest remaining work is now polish and extension rather than basic existence:
+
+- make lineage fully explicit across more launch paths and stored relationships
+- expand event-specific details and lineage rendering
+- add secondary tracks such as chat actions and entity milestones once chronology remains clear
+
 ## Objective
 
 Build Timeline into a first-class workspace chronology surface that shows how a workspace evolved over time across signals, runs, artifacts, chat actions, and follow-up activity.
