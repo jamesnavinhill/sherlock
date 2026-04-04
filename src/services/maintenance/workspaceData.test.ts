@@ -78,6 +78,24 @@ describe('workspaceData maintenance helpers', () => {
         expect(payload).not.toHaveProperty('config');
     });
 
+    it('normalizes workspace export JSON into the canonical workspace-data shape', () => {
+        const payload = normalizeWorkspaceDataBackup({
+            case: { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
+            reports: [{ id: 'rep-1', caseId: 'case-1', topic: 'Alpha', summary: 'Summary', agendas: [], leads: [], entities: [], sources: [], rawText: 'raw' }],
+            exportedAt: '2026-04-03T00:00:00.000Z',
+        });
+
+        expect(payload.workspaces).toEqual([
+            { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
+        ]);
+        expect(payload.artifacts).toEqual([
+            { id: 'rep-1', caseId: 'case-1', topic: 'Alpha', summary: 'Summary', agendas: [], leads: [], entities: [], sources: [], rawText: 'raw' },
+        ]);
+        expect(payload.runs).toEqual([]);
+        expect(payload.chat.sessions).toEqual([]);
+        expect(payload.metadata.exportedAt).toBe('2026-04-03T00:00:00.000Z');
+    });
+
     it('filters workspace-linked graph references during purge cleanup', () => {
         const next = filterManualGraphForWorkspaceRemoval({
             workspaceId: 'case-1',

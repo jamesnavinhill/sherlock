@@ -164,7 +164,8 @@ Workspace-data backups intentionally exclude:
 - Redeploying the same production domain does not clear IndexedDB or localStorage by itself.
 - Clearing browser storage removes the local SQLite database and any browser-stored API keys.
 - The current runtime is browser-local only: there is no shared server database, automatic cross-device sync, or multi-user persistence layer.
-- If `public/seeds/demo-workspace.json` is present, Sherlock will auto-import that workspace-data backup once for a browser profile whose workspace-data domain is still empty.
+- If `public/seeds/demo-workspace.json` is present, Sherlock will auto-import it once for a browser profile whose workspace-data domain is still empty.
+- The seed file may be either a canonical workspace-data backup or a simpler workspace export JSON with top-level `case` and `reports` keys.
 - The demo bootstrap is device-local and origin-local. Updating the JSON file affects only browsers that have not already applied the seed marker.
 
 Maintenance cleanup behavior:
