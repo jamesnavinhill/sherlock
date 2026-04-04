@@ -275,10 +275,10 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                             disabled={isMonitoring}
                             triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate hover:border-white focus-visible:border-white"
                             options={[
-                                { value: '', label: `${labelProfile.workspaceLabel.toUpperCase()}: NONE SELECTED` },
+                                { value: '', label: 'None Selected' },
                                 ...workspaces.map((workspace) => ({
                                     value: workspace.id,
-                                    label: `${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                                    label: stripLegacyWorkspacePrefix(workspace.title),
                                 })),
                             ]}
                         />
@@ -296,10 +296,10 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                             }}
                             triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono hover:border-white focus-visible:border-white"
                             options={[
-                                { value: 'ALL', label: 'FILTER: ALL SIGNALS' },
-                                { value: 'SOCIAL', label: 'FILTER: SOCIAL ONLY' },
-                                { value: 'NEWS', label: 'FILTER: NEWS ONLY' },
-                                { value: 'OFFICIAL', label: 'FILTER: OFFICIAL DOCS' },
+                                { value: 'ALL', label: 'All Signals' },
+                                { value: 'SOCIAL', label: 'Social Only' },
+                                { value: 'NEWS', label: 'News Only' },
+                                { value: 'OFFICIAL', label: 'Official Docs' },
                             ]}
                         />
                     </div>
@@ -316,10 +316,10 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                             }}
                             triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono hover:border-white focus-visible:border-white"
                             options={[
-                                { value: 'ALL', label: 'THREAT: ALL LEVELS' },
-                                { value: 'INFO', label: 'THREAT: INFO ONLY' },
-                                { value: 'CAUTION', label: 'THREAT: CAUTION ONLY' },
-                                { value: 'CRITICAL', label: 'THREAT: CRITICAL ONLY' },
+                                { value: 'ALL', label: 'All Levels' },
+                                { value: 'INFO', label: 'Info Only' },
+                                { value: 'CAUTION', label: 'Caution Only' },
+                                { value: 'CRITICAL', label: 'Critical Only' },
                             ]}
                         />
                     </div>

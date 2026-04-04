@@ -381,13 +381,13 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
               onChange={handleCaseSelect}
               triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
               options={[
-                { value: 'ALL', label: `VIEW ALL ${archiveLabelProfile.workspaceLabelPlural.toUpperCase()}` },
+                { value: 'ALL', label: `All ${archiveLabelProfile.workspaceLabelPlural}` },
                 ...workspaces.map((workspace) => ({
                   value: workspace.id,
-                  label: `${archiveLabelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                  label: stripLegacyWorkspacePrefix(workspace.title),
                 })),
                 ...(getUnassignedReports().length > 0
-                  ? [{ value: 'unassigned', label: `UNASSIGNED ${archiveLabelProfile.artifactLabelPlural.toUpperCase()}` }]
+                  ? [{ value: 'unassigned', label: `Unassigned ${archiveLabelProfile.artifactLabelPlural}` }]
                   : []),
               ]}
             />

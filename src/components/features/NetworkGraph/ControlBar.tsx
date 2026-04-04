@@ -60,7 +60,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     className={`hidden md:flex items-center space-x-2 px-3 py-1.5 border transition-all ${showLeftPanel ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
                 >
                     <Briefcase className="w-4 h-4" />
-                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">{`${labelProfile.workspaceLabel} Dossier`}</span>
+                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">Dossier</span>
                     <ChevronRight className={`w-3 h-3 transition-transform ${showLeftPanel ? 'rotate-180' : ''}`} />
                 </button>
                 <div className="hidden md:block min-w-[180px] max-w-[220px]">
@@ -70,12 +70,12 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                         onChange={onCaseChange}
                         triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
                         options={[
-                            { value: '', label: `SELECT ${labelProfile.workspaceLabel.toUpperCase()}` },
+                            { value: '', label: `Select ${labelProfile.workspaceLabel}` },
                             ...workspaces.map((workspace) => ({
                                 value: workspace.id,
-                                label: `${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                                label: stripLegacyWorkspacePrefix(workspace.title),
                             })),
-                            { value: 'ALL', label: `ALL ${labelProfile.workspaceLabelPlural.toUpperCase()} (GLOBAL VIEW)` },
+                            { value: 'ALL', label: `All ${labelProfile.workspaceLabelPlural} (Global View)` },
                         ]}
                     />
                 </div>

@@ -49,7 +49,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     aria-label="Toggle Dossier Panel"
                 >
                     <Briefcase className="w-4 h-4" />
-                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">{labelProfile.workspaceLabel} Dossier</span>
+                    <span className="text-xs font-mono uppercase font-bold hidden lg:inline">Dossier</span>
                     <ChevronRight className={`w-3 h-3 transition-transform ${leftPanelOpen ? 'rotate-180' : ''}`} />
                 </button>
                 <button
@@ -67,10 +67,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         onChange={onSelectCase}
                         triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
                         options={[
-                            { value: 'ALL', label: `SELECT ${labelProfile.workspaceLabel.toUpperCase()}` },
+                            { value: 'ALL', label: `All ${labelProfile.workspaceLabelPlural}` },
                             ...allCases.map((workspace) => ({
                                 value: workspace.id,
-                                label: `${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                                label: stripLegacyWorkspacePrefix(workspace.title),
                             })),
                         ]}
                     />
