@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-    Compass, Check, Plus, Trash2, Edit2, X, Save,
+    Check, Plus, Trash2, Edit2, X, Save, Search,
     ChevronDown, ChevronUp, Star
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/caseStore';
@@ -25,9 +25,10 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
     } = useWorkspaceStore();
 
     const allScopes = getAllScopes(customScopes);
-    const [expandedScopeId, setExpandedScopeId] = useState<string | null>(null);
+    const [expandedScopeIds, setExpandedScopeIds] = useState<string[]>(() => allScopes.map((scope) => scope.id));
     const [editingScope, setEditingScope] = useState<InvestigationScope | null>(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [formName, setFormName] = useState('');
     const [formDescription, setFormDescription] = useState('');
@@ -73,6 +74,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
         };
 
         addScope(newScope);
+        setExpandedScopeIds((current) => (current.includes(newScope.id) ? current : [...current, newScope.id]));
         resetForm();
     };
 
@@ -80,23 +82,44 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
         if (!confirm('Delete this custom scope? This cannot be undone.')) return;
 
         deleteScope(scopeId);
+        setExpandedScopeIds((current) => current.filter((id) => id !== scopeId));
         if (activeScopeId === scopeId) {
             setActiveScope(BUILTIN_SCOPES[0].id);
         }
     };
 
     const isBuiltin = (scopeId: string) => BUILTIN_SCOPES.some((scope) => scope.id === scopeId);
+    const filteredScopes = allScopes.filter((scope) => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return true;
+
+        return [
+            scope.name,
+            scope.description,
+            scope.domainContext,
+            ...(scope.categories || []),
+            ...(scope.personas || []).map((persona) => persona.label),
+        ]
+            .filter((value): value is string => typeof value === 'string')
+            .some((value) => value.toLowerCase().includes(query));
+    });
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    <Compass className="w-5 h-5 text-osint-primary" />
-                    <h3 className="text-white font-mono font-bold uppercase text-sm">Scopes and Domain Packs</h3>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/50 p-4 border border-zinc-800">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                    <input
+                        type="search"
+                        placeholder="Search scopes..."
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        className="w-full bg-black border border-zinc-700 text-white pl-10 pr-4 py-2 font-mono text-xs focus:border-osint-primary outline-none transition-colors"
+                    />
                 </div>
                 <button
                     onClick={() => setShowCreateForm(true)}
-                    className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
+                    className="osint-button-primary flex items-center px-4 py-2 font-mono text-xs font-bold uppercase"
                 >
                     <Plus className="w-3 h-3 mr-1" />
                     New Scope
@@ -207,52 +230,65 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                 </div>
             )}
 
-            <div className="space-y-2">
-                <div className="text-[10px] text-zinc-500 font-mono uppercase">Available Scopes</div>
+            <div>
+                <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-3">
+                {filteredScopes.map((scope) => {
+                    const expanded = expandedScopeIds.includes(scope.id);
 
-                {allScopes.map((scope) => (
+                    return (
                     <div
                         key={scope.id}
-                        className={`border transition-all ${
+                        className={`overflow-hidden border bg-zinc-950/60 transition-all ${
                             activeScopeId === scope.id
-                                ? 'border-osint-primary bg-osint-primary/5'
+                                ? 'border-osint-primary/50 bg-osint-primary/5'
                                 : 'border-zinc-800 hover:border-zinc-600'
                         }`}
                     >
-                        <div
-                            className="flex items-center justify-between p-3 cursor-pointer"
-                            onClick={() => setExpandedScopeId(expandedScopeId === scope.id ? null : scope.id)}
+                        <button
+                            type="button"
+                            className="w-full p-5 text-left"
+                            onClick={() => setExpandedScopeIds((current) => (
+                                current.includes(scope.id)
+                                    ? current.filter((id) => id !== scope.id)
+                                    : [...current, scope.id]
+                            ))}
                         >
-                            <div className="flex items-center space-x-3">
-                                <span className="text-lg">{scope.icon || DEFAULT_SCOPE_ICON}</span>
-                                <div>
-                                    <div className="flex items-center space-x-2">
-                                        <span className="text-white font-mono text-sm">{scope.name}</span>
-                                        {isBuiltin(scope.id) && (
-                                            <span className="text-[9px] text-zinc-600 font-mono uppercase px-1 border border-zinc-700">BUILTIN</span>
-                                        )}
-                                        {defaultScopeId === scope.id && (
-                                            <Star className="w-3 h-3 text-osint-primary fill-current" />
-                                        )}
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3 min-w-0">
+                                    <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center border text-lg ${
+                                        activeScopeId === scope.id
+                                            ? 'border-osint-primary/40 bg-osint-primary/10'
+                                            : 'border-zinc-800 bg-black/60'
+                                    }`}>
+                                        {scope.icon || DEFAULT_SCOPE_ICON}
                                     </div>
-                                    <p className="text-[10px] text-zinc-500 line-clamp-1">{scope.description}</p>
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="text-white font-mono text-lg leading-none">{scope.name}</span>
+                                            {activeScopeId === scope.id && (
+                                                <span className="text-[9px] text-osint-primary font-mono uppercase px-1.5 py-0.5 border border-osint-primary/40 bg-osint-primary/10">Active</span>
+                                            )}
+                                            {defaultScopeId === scope.id && (
+                                                <span className="inline-flex items-center gap-1 text-[9px] text-osint-primary font-mono uppercase px-1.5 py-0.5 border border-osint-primary/30">
+                                                    <Star className="w-3 h-3 fill-current" />
+                                                    Default
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="mt-2 text-xs text-zinc-500 line-clamp-3">{scope.description}</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="flex items-center space-x-2">
-                                {activeScopeId === scope.id && (
-                                    <span className="text-[10px] text-osint-primary font-mono uppercase">Active</span>
-                                )}
-                                {expandedScopeId === scope.id ? (
-                                    <ChevronUp className="w-4 h-4 text-zinc-500" />
+                                {expanded ? (
+                                    <ChevronUp className="mt-1 w-4 h-4 flex-shrink-0 text-zinc-500" />
                                 ) : (
-                                    <ChevronDown className="w-4 h-4 text-zinc-500" />
+                                    <ChevronDown className="mt-1 w-4 h-4 flex-shrink-0 text-zinc-500" />
                                 )}
                             </div>
-                        </div>
+                        </button>
 
-                        {expandedScopeId === scope.id && (
-                            <div className="px-3 pb-3 pt-0 border-t border-zinc-800 space-y-3 animate-in slide-in-from-top-1 duration-150">
+                        {expanded && (
+                            <div className="px-5 pb-4 pt-0 border-t border-zinc-800 space-y-3 animate-in slide-in-from-top-1 duration-150">
                                 {scope.categories && scope.categories.length > 0 && (
                                     <div>
                                         <div className="text-[10px] text-zinc-600 font-mono uppercase mb-1">Categories</div>
@@ -287,7 +323,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                                 )}
 
                                 <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
-                                    <div className="flex space-x-2">
+                                    <div className="flex flex-wrap gap-2">
                                         {activeScopeId !== scope.id && (
                                             <button
                                                 onClick={() => setActiveScope(scope.id)}
@@ -330,7 +366,9 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                             </div>
                         )}
                     </div>
-                ))}
+                    );
+                })}
+                </div>
             </div>
         </div>
     );
