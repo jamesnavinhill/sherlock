@@ -168,6 +168,78 @@ describe('caseStore', () => {
         expect(useCaseStore.getState().headlines[0].linkedReportId).toBe('rep-1');
     });
 
+    it('should backfill artifact lineage from the source run when the report input is partial', async () => {
+        const store = useCaseStore.getState();
+        store.setCases([
+            { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
+        ]);
+        store.setArchives([
+            {
+                id: 'rep-parent',
+                caseId: 'case-1',
+                topic: 'Parent Artifact',
+                createdAt: 1,
+                summary: 'Parent summary',
+                agendas: [],
+                leads: [],
+                entities: [],
+                sources: [],
+                rawText: 'raw',
+            },
+        ]);
+        store.setHeadlines([
+            {
+                id: 'head-1',
+                caseId: 'case-1',
+                content: 'Signal',
+                source: 'Desk',
+                timestamp: '2026-04-03T00:00:00.000Z',
+                type: 'NEWS',
+                status: 'PENDING',
+                threatLevel: 'INFO',
+            },
+        ]);
+        store.setTasks([
+            {
+                id: 'run-1',
+                workspaceId: 'case-1',
+                topic: 'Follow-up',
+                status: 'RUNNING',
+                startTime: 1,
+                config: {
+                    parentArtifactId: 'rep-parent',
+                    parentRunId: 'run-root',
+                    sourceSignalId: 'head-1',
+                },
+            },
+        ]);
+
+        const saved = await store.archiveReport({
+            id: 'rep-child',
+            topic: 'Child Artifact',
+            summary: 'Child summary',
+            agendas: [],
+            leads: [],
+            entities: [],
+            sources: [],
+            rawText: 'raw',
+            config: {
+                sourceRunId: 'run-1',
+            },
+        });
+
+        expect(saved.caseId).toBe('case-1');
+        expect(saved.parentTopic).toBe('Parent Artifact');
+        expect(saved.config).toEqual(
+            expect.objectContaining({
+                sourceRunId: 'run-1',
+                parentArtifactId: 'rep-parent',
+                parentRunId: 'run-root',
+                sourceSignalId: 'head-1',
+            })
+        );
+    });
+
     it('should create and update chat sessions and messages', async () => {
         const store = useCaseStore.getState();
         store.setCases([

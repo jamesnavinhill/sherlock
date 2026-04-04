@@ -51,6 +51,9 @@ Run config snapshots now include:
 - `artifactType`
 - `labelProfileId`
 - date-range, launch source, and provider/model snapshots
+- lineage refs such as `sourceSignalId`, `parentArtifactId`, `parentRunId`, `sourceRunId`, and `producedArtifactId` when available
+
+Launch handling now derives missing lineage refs from already-known parent artifacts and runs before task persistence so downstream chronology surfaces do not have to rely on topic inference as often.
 
 Launch sources currently used:
 
@@ -137,6 +140,8 @@ The schema still uses compatibility tables such as `cases`, `reports`, and `task
 - `artifact_sections` persists typed section rows separately from the legacy flattened report fields
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
 - `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
+
+Artifact persistence still uses the existing `reports` table, but report `configJson` is now also used to preserve run/source lineage snapshots that can be backfilled from the originating task during archive flows.
 
 Maintenance flows now treat SQLite data as a workspace-data domain:
 

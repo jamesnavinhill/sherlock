@@ -17,6 +17,7 @@ import { createLocalId } from '../../utils/id';
 import { chatWithProviderRouter, streamChatWithProviderRouter } from '../providers';
 import { WorkspaceSearchRepository } from '../db/repositories/WorkspaceSearchRepository';
 import { getScopeById } from '../../data/presets';
+import { getChatLaunchContextFromSession } from './launchContext';
 
 const toProviderMessages = (messages: ChatMessage[]) =>
     messages
@@ -613,6 +614,7 @@ export const buildFollowUpRunFromChatMessage = (params: {
 }): { request: InvestigationLaunchRequest; action: AgentAction; suggestedTopic: string } => {
     const now = Date.now();
     const { pack, purpose, labelProfile } = resolveRunProfile(params.session, params.workspace);
+    const launchContext = getChatLaunchContextFromSession(params.session);
     const suggestedTopic = deriveTitleFromContent(
         params.message.content,
         `Follow up on ${labelProfile.artifactLabel.toLowerCase()}`
@@ -636,7 +638,8 @@ export const buildFollowUpRunFromChatMessage = (params: {
         artifactType: purpose.recommendedArtifactType,
         labelProfileId: params.workspace.labelProfileId || pack.labelProfileId,
         launchSource: 'CHAT_FOLLOW_UP',
-        parentArtifactId: params.session.sourceReportId,
+        sourceSignalId: launchContext?.headlineId,
+        parentArtifactId: params.session.sourceReportId || launchContext?.sourceReportId,
         switchToView: true,
     };
 

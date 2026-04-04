@@ -708,8 +708,22 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
         const state = get();
         const archives = [...state.archives];
         const cases = [...state.cases];
-        const sourceSignalId = report.config?.sourceSignalId;
-        const parentArtifactId = report.config?.parentArtifactId;
+        const sourceRun = report.config?.sourceRunId
+            ? state.tasks.find((task) => task.id === report.config?.sourceRunId)
+            : undefined;
+        const matchedParentArtifact = parentContext
+            ? archives.find((artifact) => artifact.topic === parentContext.topic)
+            : undefined;
+        const parentArtifactId =
+            report.config?.parentArtifactId
+            || sourceRun?.config?.parentArtifactId
+            || matchedParentArtifact?.id;
+        const sourceSignalId =
+            report.config?.sourceSignalId
+            || sourceRun?.config?.sourceSignalId;
+        const parentRunId =
+            report.config?.parentRunId
+            || sourceRun?.config?.parentRunId;
         let targetCaseId = report.caseId;
         let isNewCase = false;
 
@@ -719,6 +733,9 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             if (parentArtifact?.caseId) {
                 targetCaseId = parentArtifact.caseId;
             }
+        }
+        if (!targetCaseId && sourceRun?.workspaceId) {
+            targetCaseId = sourceRun.workspaceId;
         }
         if (!targetCaseId && parentContext) {
             const parentReport = archives.find(r => r.topic === parentContext.topic);
@@ -796,6 +813,15 @@ export const useCaseStore = create<CaseState>()((set, get) => ({
             entities: processedEntities,
             id: report.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             createdAt: report.createdAt ?? Date.now(),
+            config: report.config
+                ? {
+                      ...report.config,
+                      sourceRunId: report.config.sourceRunId || sourceRun?.id,
+                      sourceSignalId,
+                      parentArtifactId,
+                      parentRunId,
+                  }
+                : undefined,
             parentTopic:
                 report.parentTopic
                 || (parentArtifactId ? archives.find((artifact) => artifact.id === parentArtifactId)?.topic : undefined),

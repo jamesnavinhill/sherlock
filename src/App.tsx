@@ -30,6 +30,7 @@ import {
   findReusableChatSession,
   hasLaunchContextPrimer,
 } from './services/chat/launchContext';
+import { resolveLaunchLineage } from './services/lineage/relationships';
 const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
 const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
 const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
@@ -250,6 +251,11 @@ function App() {
     const labelProfileId = request.labelProfileId
       || (request.configOverride as InvestigationRunConfig | undefined)?.labelProfileId
       || effectivePack.labelProfileId;
+    const derivedLineage = resolveLaunchLineage({
+      request,
+      artifacts: archives,
+      runs: tasks,
+    });
 
     const launchRequest: InvestigationLaunchRequest = {
       ...request,
@@ -260,6 +266,9 @@ function App() {
       purposeId: effectivePurpose.id,
       artifactType,
       labelProfileId,
+      sourceSignalId: derivedLineage.sourceSignalId,
+      parentArtifactId: derivedLineage.parentArtifactId,
+      parentRunId: derivedLineage.parentRunId,
     };
 
     const runConfig: InvestigationRunConfig = {
@@ -306,7 +315,7 @@ function App() {
     }
 
     void runInvestigationTask(newTaskId, launchRequest, runConfig);
-  }, [addTask, addToast, resolveScopeById, runInvestigationTask, setActiveTaskId, setView]);
+  }, [addTask, addToast, archives, resolveScopeById, runInvestigationTask, setActiveTaskId, setView, tasks]);
 
   const openChat = useCallback(async (request: ChatOpenRequest) => {
     const workspace = cases.find((entry) => entry.id === request.workspaceId);

@@ -32,6 +32,8 @@ Current delivered state:
   - `OperationView` for related artifacts
   - `Chat` for workspace or event-context chat entry
   - exact saved chat sessions when the timeline event belongs to a persisted chat session/action
+- launch requests now derive missing `parentArtifactId`, `parentRunId`, and `sourceSignalId` lineage from known parent artifacts/runs before task persistence
+- artifact saves now backfill lineage from `sourceRunId` when the incoming report payload is partial
 
 ## Files Added
 
@@ -100,7 +102,13 @@ Artifact follow-up lineage is currently inferred from:
 
 - `parentTopic`
 
-Chat lineage is now explicit at the session/action layer, but run/artifact lineage is still not the final model everywhere.
+This slice reduced the inference surface by:
+
+- deriving run lineage from known parent artifacts/runs at launch time
+- backfilling artifact lineage from `sourceRunId` during archive persistence
+- preserving signal lineage across chat follow-up launches when the chat session was opened from a signal
+
+Chat lineage is explicit at the session/action layer, but run/artifact lineage is still not the final model everywhere.
 
 ## Best Next Session Starting Point
 
@@ -118,12 +126,12 @@ Highest leverage next improvement.
 
 Current issue:
 
-- runs and artifacts do not yet have strong explicit parent/child linkage everywhere
+- some runs and artifacts still rely on compatibility fallbacks when no explicit stored ancestor id is available
 
 Best next change:
 
-- introduce explicit identifiers such as `parentArtifactId`, `parentRunId`, `sourceSignalId`, or equivalent metadata
-- update the timeline event builder to use those IDs instead of topic inference
+- eliminate the remaining `parentTopic` and topic-match fallbacks where a stronger stored ref can be derived or persisted safely
+- keep tightening the event builder so explicit stored refs win in every path
 
 Most likely files:
 
@@ -177,6 +185,6 @@ These are expected at this handoff point.
 
 - Timeline does not yet render entity milestones
 - Timeline only renders curated high-signal chat actions, not the full chat audit stream
-- run/artifact lineage is still partly inferred
+- some run/artifact lineage is still partly inferred when older records or weaker launch paths do not carry explicit ids
 - export is not yet implemented
 - mobile Timeline ergonomics are still behind the desktop shell

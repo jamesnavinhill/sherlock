@@ -1,0 +1,57 @@
+import type { InvestigationLaunchRequest, InvestigationReport, InvestigationTask } from '@/types';
+
+const findArtifactById = (artifacts: InvestigationReport[], artifactId?: string) =>
+    artifactId ? artifacts.find((artifact) => artifact.id === artifactId) : undefined;
+
+const findRunById = (runs: InvestigationTask[], runId?: string) =>
+    runId ? runs.find((run) => run.id === runId) : undefined;
+
+const findRunProducingArtifact = (runs: InvestigationTask[], artifactId?: string) => {
+    if (!artifactId) return undefined;
+
+    return runs.find(
+        (run) =>
+            run.report?.id === artifactId
+            || run.config?.producedArtifactId === artifactId
+    );
+};
+
+const findArtifactProducedByRun = (artifacts: InvestigationReport[], run?: InvestigationTask) => {
+    if (!run) return undefined;
+
+    const explicitArtifactId = run.config?.producedArtifactId || run.report?.id;
+    if (explicitArtifactId) {
+        return findArtifactById(artifacts, explicitArtifactId);
+    }
+
+    return undefined;
+};
+
+export const resolveLaunchLineage = (input: {
+    request: InvestigationLaunchRequest;
+    artifacts: InvestigationReport[];
+    runs: InvestigationTask[];
+}) => {
+    let parentArtifact = findArtifactById(input.artifacts, input.request.parentArtifactId);
+    let parentRun = findRunById(input.runs, input.request.parentRunId);
+
+    if (!parentArtifact && parentRun) {
+        parentArtifact = findArtifactProducedByRun(input.artifacts, parentRun);
+    }
+
+    if (!parentRun && parentArtifact) {
+        parentRun =
+            findRunById(input.runs, parentArtifact.config?.sourceRunId)
+            || findRunProducingArtifact(input.runs, parentArtifact.id);
+    }
+
+    return {
+        parentArtifactId: input.request.parentArtifactId || parentArtifact?.id,
+        parentRunId: input.request.parentRunId || parentRun?.id || parentArtifact?.config?.sourceRunId,
+        sourceSignalId:
+            input.request.sourceSignalId
+            || parentArtifact?.config?.sourceSignalId
+            || parentRun?.config?.sourceSignalId,
+    };
+};
+

@@ -25,11 +25,12 @@ Current delivered state includes:
 - explicit lineage refs threaded through current run/artifact/signal flows without introducing a new persistence schema yet
 - exact-session click-through from chat timeline events back into workspace chat
 - lightweight lineage chips in the chronology stream for signal, run, artifact, and chat relationships
+- launch/save flows now derive and persist more explicit `parentRunId`, `parentArtifactId`, and `sourceSignalId` lineage when parent records already exist
 
 The biggest remaining work is now extension rather than basic existence:
 
 - extend secondary chronology beyond curated chat activity into entity milestones and other truly high-signal derived events
-- make lineage fully explicit across additional stored relationships where inference still remains
+- finish the last lineage gaps where compatibility fallbacks such as `parentTopic` or topic matching still remain
 - evaluate whether exportable timeline artifacts are worthwhile after the chronology model settles
 
 ## Objective
