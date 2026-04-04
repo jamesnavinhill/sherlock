@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { CaseTemplate } from '../../../types';
-import { useCaseStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/caseStore';
 import {
     Trash2, Play, Plus, X, ChevronLeft, ChevronRight, Check,
     Settings as SettingsIcon, Info, Search, Cpu, Target, Lightbulb, Compass,
@@ -28,7 +28,7 @@ const CREATE_STEPS = [
 ];
 
 export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => {
-    const { templates, deleteTemplate, addTemplate, customScopes, defaultScopeId, addToast } = useCaseStore();
+    const { templates, deleteTemplate, addTemplate, customScopes, defaultScopeId, addToast } = useWorkspaceStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [createStep, setCreateStep] = useState(0);

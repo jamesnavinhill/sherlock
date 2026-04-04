@@ -1,15 +1,15 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout, Briefcase, ChevronRight, MessageSquare } from 'lucide-react';
-import type { Case, InvestigationReport, LabelProfile } from '../../../types';
+import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson, exportCaseAsMarkdown, exportReportAsMarkdown } from '../../../utils/exportUtils';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
 
 interface ToolbarProps {
-    activeCase: Case | null;
-    allCases: Case[];
+    activeCase: Workspace | null;
+    allCases: Workspace[];
     selectedCaseId: string | null;
-    report: InvestigationReport | null; // The currently active report
-    allCaseReports: InvestigationReport[]; // All reports for the active case
+    report: Artifact | null; // The currently active report
+    allCaseReports: Artifact[]; // All reports for the active case
     labelProfile: LabelProfile;
     leftPanelOpen: boolean;
     onToggleLeftPanel: () => void;

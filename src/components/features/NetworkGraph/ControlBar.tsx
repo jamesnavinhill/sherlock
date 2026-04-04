@@ -3,11 +3,11 @@ import {
     ZoomOut, ZoomIn, Link as LinkIcon, PlusCircle, GitMerge,
     Lock, Unlock, Briefcase, ChevronRight, ChevronDown, Box, Eye, EyeOff, Star
 } from 'lucide-react';
-import type { Case, LabelProfile } from '../../../types';
+import type { Workspace, LabelProfile } from '../../../types';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
 
 interface ControlBarProps {
-    cases: Case[];
+    workspaces: Workspace[];
     labelProfile: LabelProfile;
     filterCaseId: string;
     onCaseChange: (caseId: string) => void;
@@ -30,7 +30,7 @@ interface ControlBarProps {
 }
 
 export const ControlBar: React.FC<ControlBarProps> = ({
-    cases,
+    workspaces,
     labelProfile,
     filterCaseId,
     onCaseChange,
@@ -70,7 +70,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                         className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[180px] max-w-[220px] truncate"
                     >
                         <option value="">{`SELECT ${labelProfile.workspaceLabel.toUpperCase()}`}</option>
-                        {cases.map(c => (
+                        {workspaces.map(c => (
                             <option key={c.id} value={c.id}>{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
                         ))}
                         <option value="ALL" className="font-bold border-t border-zinc-700">{`ALL ${labelProfile.workspaceLabelPlural.toUpperCase()} (GLOBAL VIEW)`}</option>

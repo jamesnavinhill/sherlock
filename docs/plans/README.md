@@ -1,11 +1,11 @@
-# Plans Retired
+# Plans
 
-The previous implementation plan stack has been retired to `docs/_legacy/plans/`.
+The previous implementation plan stack was retired to `docs/_legacy/plans/`.
 
-Use these active docs for current truth instead:
+Active current-work docs:
 
-- `README.md`
-- `docs/operations/CURRENT_STATUS.md`
+- `docs/plans/01-canonical-runtime-cutover-plan.md`
+- `docs/reports/CURRENT_STATUS.md`
 - `docs/operations/architecture.md`
 
-Create new plan documents here only for fresh work that starts from the current baseline rather than the retired April 3, 2026 planning stack.
+Create new plan documents here for fresh work from the current baseline, not by reviving the retired April 3, 2026 planning stack in place.

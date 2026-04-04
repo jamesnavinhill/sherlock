@@ -65,10 +65,6 @@ interface WorkspaceState {
     workspaces: Workspace[];
     artifacts: Artifact[];
     workspaceRuns: WorkspaceRun[];
-    // Deprecated runtime aliases kept temporarily for untouched surfaces.
-    archives: Artifact[];
-    cases: Workspace[];
-    tasks: WorkspaceRun[];
     chatSessions: ChatSession[];
     chatMessagesBySessionId: Record<string, ChatMessage[]>;
     chatActionsBySessionId: Record<string, AgentAction[]>;
@@ -95,7 +91,6 @@ interface WorkspaceState {
     hiddenNodeIds: string[]; // Store as array for persistence
     flaggedNodeIds: string[]; // Store as array for persistence
     activeWorkspaceId: string | null;
-    activeCaseId: string | null;
 
     // --- INVESTIGATION SCOPE STATE ---
     customScopes: InvestigationScope[];  // User-created scopes
@@ -120,9 +115,6 @@ interface WorkspaceState {
     setWorkspaces: (workspaces: Workspace[]) => void;
     setArtifacts: (artifacts: Artifact[]) => void;
     setWorkspaceRuns: (workspaceRuns: WorkspaceRun[]) => void;
-    setArchives: (archives: Artifact[]) => void;
-    setCases: (cases: Workspace[]) => void;
-    setTasks: (tasks: WorkspaceRun[]) => void;
     setChatSessions: (sessions: ChatSession[]) => void;
     setChatMessagesBySessionId: (messages: Record<string, ChatMessage[]>) => void;
     setActiveChatSessionId: (id: string | null) => void;
@@ -157,7 +149,6 @@ interface WorkspaceState {
     setHiddenNodeIds: (ids: string[]) => void;
     setFlaggedNodeIds: (ids: string[]) => void;
     setActiveWorkspaceId: (id: string | null) => void;
-    setActiveCaseId: (id: string | null) => void;
     toggleFlag: (id: string) => void;
     toggleHide: (id: string) => void;
 
@@ -218,9 +209,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     workspaces: [],
     artifacts: [],
     workspaceRuns: [],
-    archives: [],
-    cases: [],
-    tasks: [],
     chatSessions: [],
     chatMessagesBySessionId: {},
     chatActionsBySessionId: {},
@@ -255,7 +243,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     hiddenNodeIds: [],
     flaggedNodeIds: [],
     activeWorkspaceId: null,
-    activeCaseId: null,
 
     // Scope state
     customScopes: [],
@@ -345,10 +332,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
                 workspaces,
                 artifacts,
                 workspaceRuns,
-                cases: workspaces,
-                archives: artifacts,
                 customScopes: scopes,
-                tasks: workspaceRuns,
                 chatSessions,
                 chatMessagesBySessionId,
                 chatActionsBySessionId,
@@ -372,12 +356,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     },
 
     // SIMPLE ACTIONS
-    setWorkspaces: (workspaces) => set({ workspaces, cases: workspaces }),
-    setArtifacts: (artifacts) => set({ artifacts, archives: artifacts }),
-    setWorkspaceRuns: (workspaceRuns) => set({ workspaceRuns, tasks: workspaceRuns }),
-    setArchives: (archives) => set({ artifacts: archives, archives }),
-    setCases: (cases) => set({ workspaces: cases, cases }),
-    setTasks: (tasks) => set({ workspaceRuns: tasks, tasks }),
+    setWorkspaces: (workspaces) => set({ workspaces }),
+    setArtifacts: (artifacts) => set({ artifacts }),
+    setWorkspaceRuns: (workspaceRuns) => set({ workspaceRuns }),
     setChatSessions: (chatSessions) => set({ chatSessions }),
     setChatMessagesBySessionId: (chatMessagesBySessionId) => set({ chatMessagesBySessionId }),
     setActiveChatSessionId: (activeChatSessionId) => set({ activeChatSessionId }),
@@ -502,8 +483,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         set({ flaggedNodeIds });
         await SettingsRepository.setSetting('flagged_nodes', flaggedNodeIds);
     },
-    setActiveWorkspaceId: (activeWorkspaceId) => set({ activeWorkspaceId, activeCaseId: activeWorkspaceId }),
-    setActiveCaseId: (activeCaseId) => set({ activeWorkspaceId: activeCaseId, activeCaseId }),
+    setActiveWorkspaceId: (activeWorkspaceId) => set({ activeWorkspaceId }),
 
     toggleFlag: (id) => {
         const state = get();
@@ -672,7 +652,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
             return {
                 artifacts,
-                archives: artifacts,
             };
         });
     },
@@ -681,10 +660,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         await TaskRepository.create(workspaceRun);
         set((state) => {
             const workspaceRuns = [...state.workspaceRuns, workspaceRun];
-            return {
-                workspaceRuns,
-                tasks: workspaceRuns,
-            };
+            return { workspaceRuns };
         });
     },
 
@@ -725,7 +701,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
             return {
                 workspaceRuns,
-                tasks: workspaceRuns,
             };
         });
     },
@@ -743,7 +718,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
             return {
                 workspaceRuns,
-                tasks: workspaceRuns,
             };
         });
     },
@@ -760,7 +734,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
             return {
                 workspaceRuns,
-                tasks: workspaceRuns,
             };
         });
     },
@@ -897,11 +870,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
         set({
             workspaces,
-            cases: workspaces,
             artifacts,
-            archives: artifacts,
             activeWorkspaceId: targetWorkspaceId,
-            activeCaseId: targetWorkspaceId,
         });
 
         if (sourceSignalId && savedArtifact.id) {
@@ -937,7 +907,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
             return {
                 artifacts,
-                archives: artifacts,
             };
         });
     },
@@ -956,7 +925,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
             return {
                 artifacts,
-                archives: artifacts,
             };
         });
     },
@@ -967,10 +935,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         await CaseRepository.deleteReport(artifactId);
         set((state) => {
             const artifacts = state.artifacts.filter((artifact) => artifact.id !== artifactId);
-            return {
-                artifacts,
-                archives: artifacts,
-            };
+            return { artifacts };
         });
     },
 
@@ -1009,19 +974,15 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
                 )
             ),
             workspaces,
-            cases: workspaces,
             artifacts,
-            archives: artifacts,
             headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
             workspaceRuns,
-            tasks: workspaceRuns,
             activeChatSessionId:
                 state.activeChatSessionId
                 && state.chatSessions.some((session) => session.id === state.activeChatSessionId && session.workspaceId === workspaceId)
                     ? null
                     : state.activeChatSessionId,
-            activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
-            activeCaseId: state.activeCaseId === workspaceId ? null : state.activeCaseId
+            activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId
             };
         });
     },
@@ -1066,12 +1027,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
                     )
                 ),
                 workspaces: state.workspaces.filter((item) => item.id !== workspaceId),
-                cases: state.workspaces.filter((item) => item.id !== workspaceId),
                 artifacts: state.artifacts.filter((artifact) => artifact.caseId !== workspaceId),
-                archives: state.artifacts.filter((artifact) => artifact.caseId !== workspaceId),
                 headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
                 workspaceRuns: nextWorkspaceRuns,
-                tasks: nextWorkspaceRuns,
                 manualNodes: nextGraph.manualNodes,
                 manualLinks: nextGraph.manualLinks,
                 hiddenNodeIds: nextGraph.hiddenNodeIds,
@@ -1079,8 +1037,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
                 activeWorkspaceRunId: activeTaskStillExists ? state.activeWorkspaceRunId : null,
                 activeTaskId: activeTaskStillExists ? state.activeWorkspaceRunId : null,
                 activeChatSessionId: activeChatSessionStillExists ? state.activeChatSessionId : null,
-                activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
-                activeCaseId: state.activeCaseId === workspaceId ? null : state.activeCaseId
+                activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId
             };
         });
     },
@@ -1121,11 +1078,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
         set({
             workspaces: payload.workspaces,
-            cases: payload.workspaces,
             artifacts: payload.artifacts,
-            archives: payload.artifacts,
             workspaceRuns: payload.runs,
-            tasks: payload.runs,
             chatSessions: payload.chat.sessions,
             chatMessagesBySessionId: groupChatMessagesBySessionId(payload.chat.messages),
             chatActionsBySessionId: groupChatActionsBySessionId(payload.chat.actions),
@@ -1138,8 +1092,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
             activeWorkspaceRunId: null,
             activeTaskId: null,
             activeChatSessionId: null,
-            activeWorkspaceId: null,
-            activeCaseId: null
+            activeWorkspaceId: null
         });
     },
 
@@ -1149,11 +1102,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         await SettingsRepository.setSetting('flagged_nodes', []);
         set({
             workspaces: [],
-            cases: [],
             artifacts: [],
-            archives: [],
             workspaceRuns: [],
-            tasks: [],
             chatSessions: [],
             chatMessagesBySessionId: {},
             chatActionsBySessionId: {},
@@ -1166,10 +1116,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
             activeWorkspaceRunId: null,
             activeTaskId: null,
             activeChatSessionId: null,
-            activeWorkspaceId: null,
-            activeCaseId: null
+            activeWorkspaceId: null
         });
     }
 }));
-
-export const useCaseStore = useWorkspaceStore;

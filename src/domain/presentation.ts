@@ -2,7 +2,7 @@ import type {
   ArtifactType,
   CaseTemplate,
   DomainPack,
-  InvestigationReport,
+  Artifact,
   InvestigationScope,
   LabelProfile,
   PurposeProfile,
@@ -60,7 +60,7 @@ export const stripLegacyWorkspacePrefix = (title: string): string =>
 
 export const resolveDomainPresentation = (options: {
   scope?: InvestigationScope;
-  report?: InvestigationReport | null;
+  report?: Artifact | null;
   purposeId?: string;
   labelProfileId?: string;
 }) => {

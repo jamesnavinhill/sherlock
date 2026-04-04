@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Headline, InvestigationReport, InvestigationTask, TimelineQueryState } from '@/types';
+import type { Headline, Artifact, WorkspaceRun, TimelineQueryState } from '@/types';
 import { buildWorkspaceTimelineEvents, filterTimelineEvents, getTrackCount } from './timelineEvents';
 
 describe('timelineEvents', () => {
     it('builds a mixed chronology for a workspace', () => {
-        const artifacts: InvestigationReport[] = [
+        const artifacts: Artifact[] = [
             {
                 id: 'rep-1',
                 caseId: 'case-1',
@@ -20,7 +20,7 @@ describe('timelineEvents', () => {
                 purposeId: 'deep-dive',
             },
         ];
-        const runs: InvestigationTask[] = [
+        const runs: WorkspaceRun[] = [
             {
                 id: 'run-1',
                 workspaceId: 'case-1',

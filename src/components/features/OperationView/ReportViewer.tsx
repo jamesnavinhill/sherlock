@@ -5,7 +5,7 @@ import {
     Globe, Target, Volume2, Loader2, StopCircle, Link2
 } from 'lucide-react';
 import type { ComponentProps, ReactElement } from 'react';
-import type { InvestigationReport, Entity } from '../../../types';
+import type { Artifact, Entity } from '../../../types';
 import {
     getArtifactSectionTitle,
     getLabelProfileById,
@@ -24,7 +24,7 @@ import { Accordion } from '../../ui/Accordion';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface ReportViewerProps {
-    report: InvestigationReport | null;
+    report: Artifact | null;
     navStack: BreadcrumbItem[];
     onNavigate: (id: string) => void;
     showPlaceholder: boolean;
@@ -123,7 +123,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         p: (props) => <p className="mb-4 last:mb-0" {...props} />
     };
 
-    const renderSectionBody = (section: NonNullable<InvestigationReport['sections']>[number]) => {
+    const renderSectionBody = (section: NonNullable<Artifact['sections']>[number]) => {
         if (section.kind === 'TIMELINE' && section.items && section.items.length > 0) {
             const items = section.items;
             return (

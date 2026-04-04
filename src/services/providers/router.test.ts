@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { InvestigationReport } from '../../types';
+import type { Artifact } from '../../types';
 
 const {
     mockGeminiInvestigate,
@@ -88,7 +88,7 @@ import {
     streamChatWithProviderRouter,
 } from './index';
 
-const reportFixture: InvestigationReport = {
+const reportFixture: Artifact = {
     topic: 'fixture',
     summary: 'ok',
     agendas: [],

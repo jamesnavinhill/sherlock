@@ -1,11 +1,11 @@
 import type { AIProvider } from '../../config/aiModels';
 import type {
-    Case,
+    Workspace,
     ChatAttachmentKind,
     DateRangeConfig,
     DomainPack,
     FeedItem,
-    InvestigationReport,
+    Artifact,
     InvestigationScope,
     MonitorEvent,
     PurposeProfile,
@@ -28,7 +28,7 @@ export interface InvestigationRequest {
     scope: InvestigationScope;
     pack: DomainPack;
     purpose: PurposeProfile;
-    artifactType: NonNullable<InvestigationReport['artifactType']>;
+    artifactType: NonNullable<Artifact['artifactType']>;
     labelProfileId: string;
     dateOverride?: { start?: string; end?: string };
 }
@@ -78,13 +78,13 @@ export interface ChatTurn {
 }
 
 export interface ChatRequest {
-    workspace: Case;
+    workspace: Workspace;
     config: SystemConfig;
     pack: DomainPack;
     purpose: PurposeProfile;
     messages: ChatTurn[];
     workspaceSummary: string;
-    recentArtifacts: Array<Pick<InvestigationReport, 'id' | 'topic' | 'summary' | 'dateStr'>>;
+    recentArtifacts: Array<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr'>>;
     recentHeadlines: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
     retrievedContext: WorkspaceContextSnippet[];
 }
@@ -119,7 +119,7 @@ export interface ChatStreamOptions {
 
 export interface ProviderAdapter {
     provider: AIProvider;
-    investigate: (request: InvestigationRequest) => Promise<InvestigationReport>;
+    investigate: (request: InvestigationRequest) => Promise<Artifact>;
     chat: (request: ChatRequest) => Promise<ChatResponse>;
     streamChat: (request: ChatRequest, options?: ChatStreamOptions) => Promise<ChatResponse>;
     scanAnomalies: (request: ScanAnomaliesRequest) => Promise<FeedItem[]>;
@@ -139,7 +139,7 @@ export interface RouterInvestigationRequest {
     scope?: InvestigationScope;
     packId?: string;
     purposeId?: string;
-    artifactType?: NonNullable<InvestigationReport['artifactType']>;
+    artifactType?: NonNullable<Artifact['artifactType']>;
     labelProfileId?: string;
     dateOverride?: DateRangeOverride;
 }
@@ -168,13 +168,13 @@ export interface RouterTtsRequest {
 }
 
 export interface RouterChatRequest {
-    workspace: Case;
+    workspace: Workspace;
     configOverride?: Partial<SystemConfig>;
     packId?: string;
     purposeId?: string;
     messages: ChatTurn[];
     workspaceSummary: string;
-    recentArtifacts: Array<Pick<InvestigationReport, 'id' | 'topic' | 'summary' | 'dateStr'>>;
+    recentArtifacts: Array<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr'>>;
     recentHeadlines: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
     retrievedContext: WorkspaceContextSnippet[];
 }

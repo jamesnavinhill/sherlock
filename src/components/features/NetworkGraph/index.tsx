@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Network } from 'lucide-react';
-import type { ChatOpenRequest, GraphNodeSubtype, InvestigationLaunchRequest, InvestigationReport, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
-import { useCaseStore } from '../../../store/caseStore';
+import type { ChatOpenRequest, GraphNodeSubtype, InvestigationLaunchRequest, Artifact, ManualConnection, ManualNode, Entity, Headline, Source } from '../../../types';
+import { useWorkspaceStore } from '../../../store/caseStore';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 
@@ -36,7 +36,7 @@ const removeNodeReferences = (values: string[], references: string[]) =>
     values.filter((value) => !references.includes(value));
 
 interface NetworkGraphProps {
-    onOpenReport: (report: InvestigationReport) => void;
+    onOpenReport: (report: Artifact) => void;
     onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
     onOpenChat: (request: ChatOpenRequest) => void;
     onBack?: () => void;
@@ -50,34 +50,34 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
 
     // Data State
     const {
-        archives: reports,
+        artifacts: reports,
         manualLinks,
         manualNodes,
         hiddenNodeIds: hiddenNodeIdsArray,
-        cases,
+        workspaces,
         entityAliases: aliases,
         headlines,
         flaggedNodeIds: flaggedNodeIdsArray,
-        activeCaseId: filterCaseId,
+        activeWorkspaceId: filterCaseId,
         activeScope: activeScopeId,
         setManualLinks,
         setManualNodes,
         setEntityAliases: setAliases,
         updateReportTitle,
         renameEntityAcrossReports,
-        setActiveCaseId,
+        setActiveWorkspaceId,
         setFlaggedNodeIds,
         setHiddenNodeIds,
         addToast,
-    } = useCaseStore();
+    } = useWorkspaceStore();
 
     const hiddenNodeIds = useMemo(() => new Set(hiddenNodeIdsArray), [hiddenNodeIdsArray]);
     const flaggedNodeIds = useMemo(() => new Set(flaggedNodeIdsArray), [flaggedNodeIdsArray]);
     const dossierLabelProfile = useMemo(() => {
-        const activeCase = cases.find((entry) => entry.id === filterCaseId);
+        const activeCase = workspaces.find((entry) => entry.id === filterCaseId);
         const activeReport = reports.find((entry) => entry.caseId === filterCaseId);
         return getLabelProfileById(activeCase?.labelProfileId || activeReport?.labelProfileId);
-    }, [cases, filterCaseId, reports]);
+    }, [workspaces, filterCaseId, reports]);
 
     // Filter State
     const [showSingletons, setShowSingletons] = useState(true);
@@ -93,7 +93,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     const [inspectorMode, setInspectorMode] = useState<'ENTITY' | 'HEADLINE' | 'REPORT' | null>(null);
     const [selectedEntityName, setSelectedEntityName] = useState<string | null>(null);
     const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
-    const [selectedReport, setSelectedReport] = useState<InvestigationReport | null>(null);
+    const [selectedReport, setSelectedReport] = useState<Artifact | null>(null);
     const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
     // Linking & Add Node Logic
@@ -131,9 +131,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         // if the store is already populated.
     }, []);
 
-    // Active Case Persistence
+    // Active Workspace Persistence
     const handleCaseChange = (id: string) => {
-        setActiveCaseId(id);
+        setActiveWorkspaceId(id);
     };
 
     // Compute Dossier Data
@@ -214,7 +214,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         if (!newNodeLabel.trim()) return;
         const id = `manual-${Date.now()}`;
 
-        let _mockReport: InvestigationReport | undefined = undefined;
+        let _mockReport: Artifact | undefined = undefined;
         if (newNodeType === 'CASE') {
             _mockReport = {
                 id: id,
@@ -263,7 +263,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setShowRightPanel(true);
     };
 
-    const handleOpenReportInspector = (report: InvestigationReport, node: GraphNode | null = null) => {
+    const handleOpenReportInspector = (report: Artifact, node: GraphNode | null = null) => {
         setSelectedReport(report);
         setSelectedNode(
             node ||
@@ -284,7 +284,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     };
 
     const handleLeadInvestigate = (lead: string) => {
-        const activeCase = cases.find(c => c.id === filterCaseId);
+        const activeCase = workspaces.find(c => c.id === filterCaseId);
         const context = activeCase ? { topic: activeCase.title, summary: activeCase.description || '' } : undefined;
         setSelectedLeadForAnalysis({ text: lead, context });
     };
@@ -353,7 +353,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setSelectedEntityName(newName);
     };
 
-    const handleReportSave = async (report: InvestigationReport, newTitle: string) => {
+    const handleReportSave = async (report: Artifact, newTitle: string) => {
         if (report.id) {
             await updateReportTitle(report.id, newTitle);
         }
@@ -447,7 +447,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         });
     };
 
-    const handleOpenReportChat = (report: InvestigationReport) => {
+    const handleOpenReportChat = (report: Artifact) => {
         if (!report.caseId || !report.id) return;
         onOpenChat({
             workspaceId: report.caseId,
@@ -470,7 +470,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     return (
         <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">
             <ControlBar
-                cases={cases}
+                workspaces={workspaces}
                 labelProfile={dossierLabelProfile}
                 filterCaseId={filterCaseId}
                 onCaseChange={handleCaseChange}
@@ -496,7 +496,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                 {/* Dossier Panel (Reused) */}
                 <DossierPanel
                     isOpen={showLeftPanel}
-                    activeCase={cases.find(c => c.id === filterCaseId) || null}
+                    activeCase={workspaces.find(c => c.id === filterCaseId) || null}
                     labelProfile={dossierLabelProfile}
                     reports={dossierData.reports}
                     entities={dossierData.entities}
@@ -541,7 +541,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
                             reports={reports}
                             manualLinks={manualLinks}
                             manualNodes={manualNodes}
-                            cases={cases}
+                            workspaces={workspaces}
                             aliases={aliases}
                             hiddenNodeIds={hiddenNodeIds}
                             flaggedNodeIds={flaggedNodeIds}

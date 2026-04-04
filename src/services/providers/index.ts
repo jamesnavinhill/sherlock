@@ -12,7 +12,7 @@ import type {
     ChatStreamOptions,
     DomainPack,
     FeedItem,
-    InvestigationReport,
+    Artifact,
     InvestigationScope,
     MonitorEvent,
     PurposeProfile,
@@ -124,7 +124,7 @@ const assertCapability = (
 
 export const investigateWithProviderRouter = async (
     request: RouterInvestigationRequest
-): Promise<InvestigationReport> => {
+): Promise<Artifact> => {
     const config = resolveEffectiveConfig(request.configOverride);
     const adapter = await resolveAdapter(config);
     const scope = resolveScope(request.scope);

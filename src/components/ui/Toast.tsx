@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Toast as ToastType } from '../../store/caseStore';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 export const Toast: React.FC<{ toast: ToastType; onRemove: (id: string) => void }> = ({ toast, onRemove }) => {
@@ -35,7 +35,7 @@ export const Toast: React.FC<{ toast: ToastType; onRemove: (id: string) => void 
 };
 
 export const ToastContainer: React.FC = () => {
-    const { toasts, removeToast } = useCaseStore();
+    const { toasts, removeToast } = useWorkspaceStore();
 
     return (
         <div className="fixed bottom-6 right-6 z-[9999] flex flex-col space-y-4">

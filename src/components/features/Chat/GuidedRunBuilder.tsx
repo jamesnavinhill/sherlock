@@ -11,7 +11,7 @@ import {
     Target,
     Trash2,
 } from 'lucide-react';
-import type { Case, GraphNodeSubtype, InvestigationScope } from '@/types';
+import type { Workspace, GraphNodeSubtype, InvestigationScope } from '@/types';
 import {
     AI_PROVIDERS,
     getDefaultModelForProvider,
@@ -31,7 +31,7 @@ import { createLocalId } from '../../../utils/id';
 interface GuidedRunBuilderProps {
     state: GuidedSessionState;
     customScopes: InvestigationScope[];
-    workspace?: Case | null;
+    workspace?: Workspace | null;
     isBusy?: boolean;
     onAdvance: (draft: GuidedRunDraft) => void;
     onBack: () => void;

@@ -20,7 +20,7 @@ import {
     Brain,
     Workflow
 } from 'lucide-react';
-import { useCaseStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/caseStore';
 import { TemplateGallery } from './TemplateGallery';
 import { ScopeManager } from '../../ui/ScopeManager';
 import type { InvestigationLaunchRequest, SystemConfig } from '../../../types';
@@ -87,9 +87,9 @@ export const Settings: React.FC<SettingsProps> = ({
     onClose
 }) => {
     const {
-        archives,
-        cases,
-        tasks,
+        artifacts,
+        workspaces,
+        workspaceRuns,
         chatSessions,
         chatMessagesBySessionId,
         chatActionsBySessionId,
@@ -100,7 +100,7 @@ export const Settings: React.FC<SettingsProps> = ({
         customScopes,
         importWorkspaceData,
         clearWorkspaceData,
-    } = useCaseStore();
+    } = useWorkspaceStore();
 
     const initialConfig = loadSystemConfig();
 
@@ -225,9 +225,9 @@ export const Settings: React.FC<SettingsProps> = ({
 
     const handleExportData = () => {
         const data = buildWorkspaceDataBackup({
-            workspaces: cases,
-            artifacts: archives,
-            runs: tasks,
+            workspaces: workspaces,
+            artifacts: artifacts,
+            runs: workspaceRuns,
             chatSessions,
             chatMessagesBySessionId,
             chatActionsBySessionId,

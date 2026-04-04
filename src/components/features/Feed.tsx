@@ -5,7 +5,7 @@ import { RefreshCw, Search, ArrowRight, Filter, MapPin, Tag, Calendar, X, Layout
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { MatrixCardLoader } from '../ui/MatrixCardLoader';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 import { getDomainPackForScope, getLabelProfileById } from '../../domain';
 
@@ -16,7 +16,7 @@ interface FeedProps {
 const DEFAULT_CATEGORIES = ['All', 'Cybersecurity', 'Geopolitics', 'Finance', 'Infrastructure', 'Military', 'Social Unrest', 'Other'];
 
 export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
-  const { feedItems, feedConfig, setFeedItems, setFeedConfig, activeScope: activeScopeId, customScopes } = useCaseStore();
+  const { feedItems, feedConfig, setFeedItems, setFeedConfig, activeScope: activeScopeId, customScopes } = useWorkspaceStore();
   const [loading, setLoading] = useState(false);
   const [customQuery, setCustomQuery] = useState('');
 

@@ -3,17 +3,17 @@ import {
     FileText, Users, Lightbulb, Globe, Newspaper, User,
     ChevronRight, Link2
 } from 'lucide-react';
-import type { Case, Entity, Headline, InvestigationReport, LabelProfile, Source } from '../../../types';
+import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from '../../../types';
 import { Accordion } from '../../ui/Accordion';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface DossierPanelProps {
     isOpen: boolean;
-    activeCase: Case | null;
+    activeCase: Workspace | null;
     labelProfile: LabelProfile;
     // Data objects
-    reports: InvestigationReport[];
+    reports: Artifact[];
     entities: Entity[];
     leads: string[];
     sources: Source[];

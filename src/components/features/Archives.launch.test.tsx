@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 
 vi.mock('../ui/BackgroundMatrixRain', () => ({
     BackgroundMatrixRain: () => null,
@@ -23,8 +23,8 @@ describe('Archives chat launch propagation', () => {
         localStorage.clear();
         vi.restoreAllMocks();
 
-        useCaseStore.setState({
-            cases: [
+        useWorkspaceStore.setState({
+            workspaces: [
                 {
                     id: 'case-1',
                     title: 'Operation: Atlas',
@@ -33,7 +33,7 @@ describe('Archives chat launch propagation', () => {
                     description: 'Procurement case',
                 },
             ],
-            archives: [
+            artifacts: [
                 {
                     id: 'report-1',
                     caseId: 'case-1',

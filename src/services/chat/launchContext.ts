@@ -1,4 +1,4 @@
-import type { ChatAttachment, ChatLaunchContext, ChatMessage, ChatOpenRequest, ChatSession, Headline, InvestigationReport } from '@/types';
+import type { ChatAttachment, ChatLaunchContext, ChatMessage, ChatOpenRequest, ChatSession, Headline, Artifact } from '@/types';
 import { createLocalId } from '../../utils/id';
 import { cleanEntityName } from '../../utils/text';
 
@@ -9,7 +9,7 @@ const summarizeText = (value: string, max = 220): string => {
 
 const createReportAttachment = (
     messageId: string,
-    report: InvestigationReport
+    report: Artifact
 ): ChatAttachment | null => {
     if (!report.id) return null;
 
@@ -132,7 +132,7 @@ export const findReusableChatSession = (
 export const buildLaunchContextPrimer = (params: {
     session: ChatSession;
     launchContext: ChatLaunchContext;
-    reports: InvestigationReport[];
+    reports: Artifact[];
     headlines: Headline[];
 }): ChatMessage | null => {
     const now = Date.now();

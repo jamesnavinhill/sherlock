@@ -1,4 +1,4 @@
-import type { FeedItem, InvestigationReport, MonitorEvent, Source } from '../../../types';
+import type { FeedItem, Artifact, MonitorEvent, Source } from '../../../types';
 import { toDisplayText } from './jsonParsing';
 import {
     getCaseInsensitiveField,
@@ -95,7 +95,7 @@ export const normalizeStringList = (value: unknown): string[] => {
         .filter((item) => item.length > 0);
 };
 
-export const normalizeEntities = (value: unknown): InvestigationReport['entities'] => {
+export const normalizeEntities = (value: unknown): Artifact['entities'] => {
     if (!Array.isArray(value)) return [];
 
     return value

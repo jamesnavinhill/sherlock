@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ChatMessage, ChatSession } from '@/types';
-import { useCaseStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/caseStore';
 import { Chat } from './ChatPage';
 
 const { streamWorkspaceChatTurn } = vi.hoisted(() => ({
@@ -35,16 +35,16 @@ describe('Chat page', () => {
         vi.restoreAllMocks();
         streamWorkspaceChatTurn.mockReset();
         Element.prototype.scrollIntoView = vi.fn();
-        useCaseStore.setState({
-            archives: [],
-            cases: [],
+        useWorkspaceStore.setState({
+            artifacts: [],
+            workspaces: [],
             chatActionsBySessionId: {},
             chatGenerationStatus: 'IDLE',
             chatMessagesBySessionId: {},
             chatSessions: [],
             customScopes: [],
             headlines: [],
-            activeCaseId: null,
+            activeWorkspaceId: null,
             activeChatSessionId: null,
             partialAssistantOutput: '',
         });
@@ -98,8 +98,8 @@ describe('Chat page', () => {
             suggestedTitle: 'Atlas Chat',
         });
 
-        useCaseStore.setState({
-            cases: [
+        useWorkspaceStore.setState({
+            workspaces: [
                 {
                     id: 'case-1',
                     title: 'Atlas Workspace',
@@ -108,7 +108,7 @@ describe('Chat page', () => {
                     description: 'Procurement activity',
                 },
             ],
-            activeCaseId: 'case-1',
+            activeWorkspaceId: 'case-1',
             createChatSession,
             addChatMessage,
             addChatAction,
@@ -128,7 +128,7 @@ describe('Chat page', () => {
                 rawText: 'draft',
             })),
             appendSectionToReport: vi.fn(async () => undefined),
-            setActiveCaseId: vi.fn(),
+            setActiveWorkspaceId: vi.fn(),
             setActiveChatSessionId: vi.fn(),
             setChatGenerationStatus: vi.fn(),
             setPartialAssistantOutput: vi.fn(),

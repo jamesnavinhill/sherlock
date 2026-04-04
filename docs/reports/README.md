@@ -5,7 +5,7 @@ The previous audit and handoff reports have been retired to `docs/_legacy/report
 Use these active docs for current truth instead:
 
 - `README.md`
-- `docs/operations/CURRENT_STATUS.md`
+- `docs/reports/CURRENT_STATUS.md`
 - `docs/operations/architecture.md`
 
 Create new reports here only when they describe new work from the post-retirement baseline.

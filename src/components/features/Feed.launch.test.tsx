@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Feed } from './Feed';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 
 vi.mock('../ui/BackgroundMatrixRain', () => ({
     BackgroundMatrixRain: () => null,
@@ -12,7 +12,7 @@ describe('Feed launch propagation', () => {
         localStorage.clear();
         vi.restoreAllMocks();
 
-        useCaseStore.setState({
+        useWorkspaceStore.setState({
             feedItems: [],
             feedConfig: {
                 limit: 8,

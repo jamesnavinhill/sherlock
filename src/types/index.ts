@@ -564,7 +564,3 @@ export interface WorkspaceDataBackup {
   templates: CaseTemplate[];
   metadata: WorkspaceDataBackupMetadata;
 }
-
-export type Case = Workspace;
-export type InvestigationReport = Artifact;
-export type InvestigationTask = WorkspaceRun;

@@ -51,7 +51,7 @@ npm run check
 ## Documentation Conventions
 
 - Treat `README.md` as onboarding and truth source for setup/runtime status.
-- Keep the active implementation checkpoint in `docs/operations/CURRENT_STATUS.md`.
+- Keep the active implementation checkpoint in `docs/reports/CURRENT_STATUS.md`.
 - Keep architecture details in `docs/operations/architecture.md`.
 - Keep operational incident procedures in `docs/operations/OPERATIONS_RUNBOOK.md`.
 - Keep source catalogs in `docs/operations/SOURCES.md` and scope metadata in `docs/operations/SCOPES.md`.

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import type { ChatOpenRequest, InvestigationLaunchRequest, InvestigationReport } from '../../types';
+import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact } from '../../types';
 import { FileText, Trash2, ArrowRight, FolderOpen, Folder, ChevronLeft, Plus, FolderClosed, Download, FileJson, ChevronDown, MessageSquare } from 'lucide-react';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
 import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../domain';
@@ -13,17 +13,17 @@ import {
 } from '../../utils/localStorage';
 
 interface ArchivesProps {
-  onSelectReport: (report: InvestigationReport) => void;
+  onSelectReport: (report: Artifact) => void;
   onStartNewCase: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 
 export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase, onOpenChat }) => {
-  const { archives, cases, deleteReport, purgeCase } = useCaseStore();
+  const { artifacts, workspaces, deleteReport, purgeCase } = useWorkspaceStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
-    const activeCaseId = getStoredActiveWorkspaceId();
-    if (activeCaseId && activeCaseId !== 'ALL') {
-      return activeCaseId;
+    const activeWorkspaceId = getStoredActiveWorkspaceId();
+    if (activeWorkspaceId && activeWorkspaceId !== 'ALL') {
+      return activeWorkspaceId;
     }
     return null;
   });
@@ -31,8 +31,8 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const archiveLabelProfile = getLabelProfileById(
-    cases.find((entry) => entry.id === selectedCaseId)?.labelProfileId
-    || archives.find((entry) => entry.caseId === selectedCaseId)?.labelProfileId
+    workspaces.find((entry) => entry.id === selectedCaseId)?.labelProfileId
+    || artifacts.find((entry) => entry.caseId === selectedCaseId)?.labelProfileId
   );
   const workspaceLabel = archiveLabelProfile.workspaceLabel;
   const workspaceLabelLower = workspaceLabel.toLowerCase();
@@ -62,24 +62,24 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     return () => window.removeEventListener('OPEN_NEW_WORKSPACE_MODAL', handleOpenNewWorkspaceModal);
   }, []);
 
-  const effectiveSelectedCaseId = selectedCaseId && selectedCaseId !== 'unassigned' && !cases.some((c) => c.id === selectedCaseId)
+  const effectiveSelectedCaseId = selectedCaseId && selectedCaseId !== 'unassigned' && !workspaces.some((c) => c.id === selectedCaseId)
     ? null
     : selectedCaseId;
 
   useEffect(() => {
     if (!selectedCaseId || selectedCaseId === 'unassigned') return;
-    if (cases.some((c) => c.id === selectedCaseId)) return;
+    if (workspaces.some((c) => c.id === selectedCaseId)) return;
     if (getStoredActiveWorkspaceId() === selectedCaseId) {
       clearStoredActiveWorkspaceId();
     }
-  }, [cases, selectedCaseId]);
+  }, [workspaces, selectedCaseId]);
 
   const getCaseReports = (caseId: string) => {
-    return archives.filter(r => r.caseId === caseId);
+    return artifacts.filter(r => r.caseId === caseId);
   };
 
   const getUnassignedReports = () => {
-    return archives.filter(r => !r.caseId);
+    return artifacts.filter(r => !r.caseId);
   };
 
   const handleDeleteReport = async (e: React.MouseEvent, id?: string) => {
@@ -91,7 +91,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   const handlePurgeCase = async (caseId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
 
-    const targetCase = cases.find(c => c.id === caseId);
+    const targetCase = workspaces.find(c => c.id === caseId);
     const reportCount = getCaseReports(caseId).length;
     const caseName = targetCase?.title || `this ${workspaceLabelLower}`;
     const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} ${artifactLabelLower}(s), saved signals, workspace chat sessions, linked run history, and directly linked manual graph references for this ${workspaceLabelLower}.\n\nThis cannot be undone.`;
@@ -123,7 +123,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   // --- RENDER HELPERS ---
 
   const renderCaseGrid = () => {
-    if (cases.length === 0 && getUnassignedReports().length === 0) {
+    if (workspaces.length === 0 && getUnassignedReports().length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-24 animate-in fade-in duration-700">
           <div className="bg-zinc-900/50 p-8 border border-dashed border-zinc-800 flex flex-col items-center max-w-md text-center">
@@ -144,15 +144,15 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
     }
 
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedCases = cases.slice(startIndex, startIndex + itemsPerPage);
-    const totalPages = Math.ceil(cases.length / itemsPerPage);
+    const paginatedCases = workspaces.slice(startIndex, startIndex + itemsPerPage);
+    const totalPages = Math.ceil(workspaces.length / itemsPerPage);
 
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
           {/* Active Cases */}
           {paginatedCases.map((c) => {
-            const fileCount = archives.filter(r => r.caseId === c.id).length;
+            const fileCount = artifacts.filter(r => r.caseId === c.id).length;
             return (
               <div
                 key={c.id}
@@ -271,7 +271,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
 
   const renderReportList = (caseId: string) => {
     const isUnassigned = caseId === 'unassigned';
-    const _currentCase = cases.find(c => c.id === caseId);
+    const _currentCase = workspaces.find(c => c.id === caseId);
     const caseReports = isUnassigned ? getUnassignedReports() : getCaseReports(caseId);
 
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -303,7 +303,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                       <span>{report.dateStr || 'Unknown Date'}</span>
                       {report.config?.parentArtifactId && (
                         <span className="flex items-center text-zinc-400">
-                          <ArrowRight className="w-3 h-3 mr-1" /> Linked: {archives.find((entry) => entry.id === report.config?.parentArtifactId)?.topic || artifactLabel}
+                          <ArrowRight className="w-3 h-3 mr-1" /> Linked: {artifacts.find((entry) => entry.id === report.config?.parentArtifactId)?.topic || artifactLabel}
                         </span>
                       )}
                     </div>
@@ -376,7 +376,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg">
         <div className="flex items-center space-x-6">
-          {/* Case Selector */}
+          {/* Workspace Selector */}
           <div className="relative group hidden md:block">
             <ChevronLeft className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none rotate-270" style={{ transform: 'translateY(-50%) rotate(-90deg)' }} />
             <select
@@ -385,7 +385,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
               className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[200px] max-w-[300px] truncate"
             >
               <option value="ALL">{`VIEW ALL ${archiveLabelProfile.workspaceLabelPlural.toUpperCase()}`}</option>
-              {cases.map(c => (
+              {workspaces.map(c => (
                 <option key={c.id} value={c.id}>{`${archiveLabelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
               ))}
               {getUnassignedReports().length > 0 && <option value="unassigned">{`UNASSIGNED ${archiveLabelProfile.artifactLabelPlural.toUpperCase()}`}</option>}
@@ -396,7 +396,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
         <div className="flex items-center space-x-3">
           {/* Export Dropdown - only show when case is selected */}
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (() => {
-            const currentCase = cases.find(c => c.id === effectiveSelectedCaseId);
+            const currentCase = workspaces.find(c => c.id === effectiveSelectedCaseId);
             return currentCase ? (
               <div className="relative" ref={exportMenuRef}>
                 <button
@@ -458,7 +458,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
         </div>
       </div>
 
-      {/* Start New Case Modal */}
+      {/* Start New Workspace Modal */}
       {isNewCaseModalOpen && (
         <TaskSetupModal
           initialTopic=""

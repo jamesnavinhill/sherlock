@@ -1,10 +1,10 @@
 import type {
     ArtifactType,
-    Case,
+    Workspace,
     ChatDraftArtifact,
     GraphNodeSubtype,
     InvestigationLaunchRequest,
-    InvestigationReport,
+    Artifact,
     InvestigationRunConfig,
     InvestigationScope,
     ManualNode,
@@ -86,7 +86,7 @@ const resolveDomainProfile = (draft: GuidedRunDraft, customScopes: Investigation
 };
 
 export const createDefaultGuidedSessionState = (
-    workspace?: Case | null,
+    workspace?: Workspace | null,
     customScopes: InvestigationScope[] = []
 ): GuidedSessionState => {
     const systemConfig = loadSystemConfig();
@@ -138,7 +138,7 @@ export const getPreviousGuidedStep = (step: GuidedStepId): GuidedStepId => {
 export const getGuidedAssistantPrompt = (
     state: GuidedSessionState,
     customScopes: InvestigationScope[],
-    workspace?: Case | null
+    workspace?: Workspace | null
 ): string => {
     const { pack, purpose, labelProfile, setupCopy } = resolveDomainProfile(state.draft, customScopes);
 
@@ -221,7 +221,7 @@ const buildPreseededEntities = (draft: GuidedRunDraft): ManualNode[] | undefined
 export const buildLaunchRequestFromGuidedDraft = (
     draft: GuidedRunDraft,
     customScopes: InvestigationScope[],
-    workspace?: Case | null
+    workspace?: Workspace | null
 ): InvestigationLaunchRequest => {
     const { pack, purpose, labelProfile } = resolveDomainProfile(draft, customScopes);
     const scope = resolveScope(draft.scopeId, customScopes);
@@ -272,7 +272,7 @@ export const buildLaunchRequestFromGuidedDraft = (
 export const buildGuidedReviewMarkdown = (
     draft: GuidedRunDraft,
     customScopes: InvestigationScope[],
-    workspace?: Case | null
+    workspace?: Workspace | null
 ): string => {
     const { pack, purpose, labelProfile } = resolveDomainProfile(draft, customScopes);
     const entityLine =
@@ -304,8 +304,8 @@ export const buildGuidedReviewMarkdown = (
 export const buildArtifactDraftFromGuidedDraft = (
     draft: GuidedRunDraft,
     customScopes: InvestigationScope[],
-    workspace?: Case | null
-): { draftArtifact: ChatDraftArtifact; report: InvestigationReport } => {
+    workspace?: Workspace | null
+): { draftArtifact: ChatDraftArtifact; report: Artifact } => {
     const now = Date.now();
     const { pack, purpose, labelProfile } = resolveDomainProfile(draft, customScopes);
     const title = `${labelProfile.artifactLabel} Brief: ${draft.topic.trim() || purpose.name}`;

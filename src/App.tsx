@@ -4,15 +4,15 @@ import type { BreadcrumbItem } from './components/ui/Breadcrumbs';
 import type {
   ChatOpenRequest,
   InvestigationLaunchRequest,
-  InvestigationReport,
+  Artifact,
   InvestigationRunConfig,
   InvestigationScope,
-  InvestigationTask,
+  WorkspaceRun,
   ManualNode,
   SystemConfig,
 } from './types';
 import { AppView } from './types';
-import { useCaseStore } from './store/caseStore';
+import { useWorkspaceStore } from './store/caseStore';
 import { hasApiKey, runWorkspaceInvestigation } from './services/runtime';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from './hooks/useKeyboardShortcuts';
@@ -58,7 +58,7 @@ const toSystemConfigOverride = (config?: InvestigationRunConfig): Partial<System
 function App() {
   const {
     currentView, setCurrentView,
-    tasks, addTask, completeTask, failTask, clearCompletedTasks,
+    workspaceRuns, addTask, completeTask, failTask, clearCompletedTasks,
     activeTaskId, setActiveTaskId,
     liveEvents: _liveEvents, setLiveEvents: _setLiveEvents,
     navStack, setNavStack,
@@ -68,16 +68,16 @@ function App() {
     accentSettings, setAccentSettings,
     themeSurfaceSettings, setThemeSurfaceSettings,
     showGlobalSearch, setShowGlobalSearch,
-    archiveReport, archives, cases,
+    archiveReport, artifacts, workspaces,
     chatMessagesBySessionId,
     chatSessions,
     createChatSession,
-    setActiveCaseId,
+    setActiveWorkspaceId,
     setActiveChatSessionId,
     addToast,
     initializeStore, isLoading,
     customScopes,
-  } = useCaseStore();
+  } = useWorkspaceStore();
 
   useEffect(() => {
     initializeStore();
@@ -164,7 +164,7 @@ function App() {
   const addPreseededEntitiesToGraph = useCallback((taskId: string, preseededEntities?: ManualNode[]) => {
     if (!preseededEntities || preseededEntities.length === 0) return;
 
-    const state = useCaseStore.getState();
+    const state = useWorkspaceStore.getState();
     const existingNodes = state.manualNodes;
     const nextNodes = [...existingNodes];
 
@@ -214,7 +214,7 @@ function App() {
       }
 
       completeTask(taskId, report);
-      if (useCaseStore.getState().activeTaskId === taskId) {
+      if (useWorkspaceStore.getState().activeTaskId === taskId) {
         setFocusedReportId(report.id || null);
       }
       if (shouldNotify()) addToast(`Run complete: ${launchRequest.topic}`, 'SUCCESS');
@@ -253,8 +253,8 @@ function App() {
       || effectivePack.labelProfileId;
     const derivedLineage = resolveLaunchLineage({
       request,
-      artifacts: archives,
-      runs: tasks,
+      artifacts: artifacts,
+      runs: workspaceRuns,
     });
 
     const launchRequest: InvestigationLaunchRequest = {
@@ -295,7 +295,7 @@ function App() {
 
     const newTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    const newTask: InvestigationTask = {
+    const newTask: WorkspaceRun = {
       id: newTaskId,
       topic: launchRequest.topic,
       status: 'RUNNING',
@@ -315,23 +315,23 @@ function App() {
     }
 
     void runInvestigationTask(newTaskId, launchRequest, runConfig);
-  }, [addTask, addToast, archives, resolveScopeById, runInvestigationTask, setActiveTaskId, setView, tasks]);
+  }, [addTask, addToast, artifacts, resolveScopeById, runInvestigationTask, setActiveTaskId, setView, workspaceRuns]);
 
   const openChat = useCallback(async (request: ChatOpenRequest) => {
-    const workspace = cases.find((entry) => entry.id === request.workspaceId);
+    const workspace = workspaces.find((entry) => entry.id === request.workspaceId);
     if (!workspace) {
       addToast('Unable to open chat because the target workspace was not found.', 'ERROR');
       return;
     }
 
-    setActiveCaseId(workspace.id);
+    setActiveWorkspaceId(workspace.id);
 
     let session = findReusableChatSession(chatSessions, request);
     if (!session) {
       session = await createChatSession({
         workspaceId: workspace.id,
         title: request.launchContext?.sourceReportId
-          ? archives.find((entry) => entry.id === request.launchContext?.sourceReportId)?.topic
+          ? artifacts.find((entry) => entry.id === request.launchContext?.sourceReportId)?.topic
           : request.launchContext?.entityName || undefined,
         sourceReportId: request.launchContext?.sourceReportId,
         packId: workspace.packId,
@@ -346,21 +346,21 @@ function App() {
         const primer = buildLaunchContextPrimer({
           session,
           launchContext: request.launchContext,
-          reports: archives.filter((entry) => entry.caseId === workspace.id),
-          headlines: useCaseStore.getState().headlines.filter((entry) => entry.caseId === workspace.id),
+          reports: artifacts.filter((entry) => entry.caseId === workspace.id),
+          headlines: useWorkspaceStore.getState().headlines.filter((entry) => entry.caseId === workspace.id),
         });
 
         if (primer) {
-          await useCaseStore.getState().addChatMessage(primer);
+          await useWorkspaceStore.getState().addChatMessage(primer);
         }
       }
     }
 
     setActiveChatSessionId(session.id);
     setView(AppView.CHAT);
-  }, [addToast, archives, cases, chatMessagesBySessionId, chatSessions, createChatSession, setActiveCaseId, setActiveChatSessionId, setView]);
+  }, [addToast, artifacts, workspaces, chatMessagesBySessionId, chatSessions, createChatSession, setActiveWorkspaceId, setActiveChatSessionId, setView]);
 
-  const handleBatchInvestigate = (leads: string[], parentReport: InvestigationReport) => {
+  const handleBatchInvestigate = (leads: string[], parentReport: Artifact) => {
     const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
     const inheritedConfig = toSystemConfigOverride(parentReport.config);
     const inheritedScope = resolveScopeById(parentReport.config?.scopeId);
@@ -381,11 +381,11 @@ function App() {
     });
   };
 
-  const handleViewReport = (report: InvestigationReport) => {
+  const handleViewReport = (report: Artifact) => {
     setFocusedReportId(report.id || null);
-    setActiveCaseId(report.caseId || null);
+    setActiveWorkspaceId(report.caseId || null);
 
-    const existingTask = tasks.find(
+    const existingTask = workspaceRuns.find(
       t =>
         t.report?.id === report.id
         || t.id === report.config?.sourceRunId
@@ -406,15 +406,15 @@ function App() {
   };
 
   const handleClearCompleted = async () => {
-    const activeBeforeClear = tasks.find(t => t.id === activeTaskId);
+    const activeBeforeClear = workspaceRuns.find(t => t.id === activeTaskId);
     await clearCompletedTasks();
     if (activeBeforeClear && (activeBeforeClear.status === 'COMPLETED' || activeBeforeClear.status === 'FAILED')) {
       setActiveTaskId(null);
     }
   };
 
-  const activeTask = tasks.find(t => t.id === activeTaskId);
-  const focusedReport = focusedReportId ? archives.find(r => r.id === focusedReportId) || null : null;
+  const activeTask = workspaceRuns.find(t => t.id === activeTaskId);
+  const focusedReport = focusedReportId ? artifacts.find(r => r.id === focusedReportId) || null : null;
   const activeReport = activeTask?.report || focusedReport || null;
 
   useEffect(() => {
@@ -423,7 +423,7 @@ function App() {
       const newStack: BreadcrumbItem[] = [];
 
       if (report.caseId) {
-        const foundCase = cases.find(c => c.id === report.caseId);
+        const foundCase = workspaces.find(c => c.id === report.caseId);
         if (foundCase) {
           newStack.push({ type: 'CASE', id: foundCase.id, label: stripLegacyWorkspacePrefix(foundCase.title) });
         }
@@ -432,12 +432,12 @@ function App() {
       newStack.push({ type: 'REPORT', id: report.id || activeTaskId || 'report', label: report.topic });
       setNavStack(newStack);
     }
-  }, [activeReport, cases, setNavStack, activeTaskId]);
+  }, [activeReport, workspaces, setNavStack, activeTaskId]);
 
   const handleBreadcrumbNavigate = (id: string) => {
     const caseItem = navStack.find(item => item.id === id && item.type === 'CASE');
     if (caseItem) {
-        const caseReports = archives.filter(r => r.caseId === id);
+        const caseReports = artifacts.filter(r => r.caseId === id);
         if (caseReports.length > 0) {
           const root =
           caseReports.find(r => !r.config?.parentArtifactId)
@@ -450,19 +450,19 @@ function App() {
       return;
     }
 
-    const task = tasks.find(t => t.id === id || t.report?.id === id);
+    const task = workspaceRuns.find(t => t.id === id || t.report?.id === id);
     if (task) {
       handleSelectTask(task.id);
       return;
     }
 
-    const archiveReport = archives.find(r => r.id === id);
+    const archiveReport = artifacts.find(r => r.id === id);
     if (archiveReport) {
       handleViewReport(archiveReport);
     }
   };
 
-  const handleSelectReport = (report: InvestigationReport) => {
+  const handleSelectReport = (report: Artifact) => {
     handleViewReport(report);
   };
 
@@ -500,7 +500,7 @@ function App() {
         }}
         isCollapsed={isSidebarCollapsed}
         toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        tasks={tasks}
+        workspaceRuns={workspaceRuns}
         activeTaskId={activeTaskId}
         onSelectTask={handleSelectTask}
         onClearCompleted={handleClearCompleted}
@@ -585,7 +585,7 @@ function App() {
               navStack={navStack}
               onNavigate={handleBreadcrumbNavigate}
               onSelectCase={(reportId) => {
-                const foundReport = archives.find(r => r.id === reportId);
+                const foundReport = artifacts.find(r => r.id === reportId);
                 if (foundReport) {
                   handleViewReport(foundReport);
                 }

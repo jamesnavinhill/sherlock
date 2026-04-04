@@ -3,7 +3,7 @@ import type { LabelProfile } from '../types';
 export const LABEL_PROFILES: LabelProfile[] = [
   {
     id: 'investigation',
-    workspaceLabel: 'Case',
+    workspaceLabel: 'Workspace',
     workspaceLabelPlural: 'Cases',
     artifactLabel: 'Report',
     artifactLabelPlural: 'Reports',
@@ -11,7 +11,7 @@ export const LABEL_PROFILES: LabelProfile[] = [
     followUpLabel: 'Investigative Leads',
     anomalyLabel: 'Anomalies',
     signalLabel: 'Signals',
-    archiveLabel: 'Case Files',
+    archiveLabel: 'Workspace Files',
   },
   {
     id: 'research',

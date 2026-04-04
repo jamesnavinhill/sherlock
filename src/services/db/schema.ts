@@ -36,7 +36,6 @@ export const reports = sqliteTable('reports', {
     dateStr: text('date_str'),
     summary: text('summary'),
     rawText: text('raw_text'),
-    parentTopic: text('parent_topic'),
     artifactType: text('artifact_type'),
     packId: text('pack_id'),
     purposeId: text('purpose_id'),
@@ -155,17 +154,6 @@ export const chatActions = sqliteTable('chat_actions', {
     resultJson: text('result_json'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
-});
-
-// --- FEED ITEMS ---
-export const feedItems = sqliteTable('feed_items', {
-    id: text('id').primaryKey(),
-    title: text('title').notNull(),
-    category: text('category').notNull(),
-    content: text('content'),
-    url: text('url'),
-    riskLevel: text('risk_level').default('LOW'),
-    timestamp: text('timestamp').notNull(),
 });
 
 // --- SETTINGS (Global KV) ---

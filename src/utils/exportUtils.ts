@@ -3,7 +3,7 @@
  * Provides pack-aware workspace and artifact exports in JSON, HTML, and Markdown.
  */
 
-import type { Case, ChatMessage, ChatSession, InvestigationReport, LabelProfile } from '../types';
+import type { Workspace, ChatMessage, ChatSession, Artifact, LabelProfile } from '../types';
 import { getLabelProfileById } from '../domain';
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
@@ -25,8 +25,8 @@ const normalizeLabelToken = (label: string) =>
     .replace(/^_+|_+$/g, '');
 
 const getWorkspaceLabelProfile = (
-  caseObj?: Case,
-  reports: InvestigationReport[] = []
+  caseObj?: Workspace,
+  reports: Artifact[] = []
 ): LabelProfile => {
   return getLabelProfileById(
     caseObj?.labelProfileId
@@ -35,7 +35,7 @@ const getWorkspaceLabelProfile = (
   );
 };
 
-const getArtifactLabelProfile = (report: InvestigationReport, caseObj?: Case): LabelProfile => {
+const getArtifactLabelProfile = (report: Artifact, caseObj?: Workspace): LabelProfile => {
   return getLabelProfileById(
     report.labelProfileId
     || report.config?.labelProfileId
@@ -69,7 +69,7 @@ h3 { font-size: 16px; margin-bottom: 15px; background: #f8fafc; padding: 10px; b
 }
 `;
 
-export const exportCaseAsJson = (caseObj: Case, reports: InvestigationReport[]) => {
+export const exportCaseAsJson = (caseObj: Workspace, reports: Artifact[]) => {
   const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
   const data = {
     case: caseObj,
@@ -84,7 +84,7 @@ export const exportCaseAsJson = (caseObj: Case, reports: InvestigationReport[]) 
   );
 };
 
-export const exportReportAsJson = (report: InvestigationReport) => {
+export const exportReportAsJson = (report: Artifact) => {
   const labelProfile = getArtifactLabelProfile(report);
   const data = {
     report,
@@ -98,7 +98,7 @@ export const exportReportAsJson = (report: InvestigationReport) => {
   );
 };
 
-export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) => {
+export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
   const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
   const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
@@ -223,7 +223,7 @@ export const exportCaseAsHtml = (caseObj: Case, reports: InvestigationReport[]) 
   downloadFile(htmlContent, `${workspaceToken}_${caseObj.id}_DOSSIER.html`, 'text/html');
 };
 
-export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) => {
+export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
   const labelProfile = getArtifactLabelProfile(report, caseObj);
   const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
@@ -300,7 +300,7 @@ export const exportReportAsHtml = (report: InvestigationReport, caseObj?: Case) 
 };
 
 const formatReportMarkdown = (
-  report: InvestigationReport,
+  report: Artifact,
   labelProfile: LabelProfile,
   idx?: number
 ) => {
@@ -329,7 +329,7 @@ ${report.sources.map((source) => `- [${source.title}](${source.url})`).join('\n'
 `;
 };
 
-export const exportCaseAsMarkdown = (caseObj: Case, reports: InvestigationReport[]) => {
+export const exportCaseAsMarkdown = (caseObj: Workspace, reports: Artifact[]) => {
   const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
   const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const markdownContent = `
@@ -351,7 +351,7 @@ ${reports.map((report, idx) => formatReportMarkdown(report, labelProfile, idx)).
   downloadFile(markdownContent.trim(), `${workspaceToken}_${caseObj.id}_DOSSIER.md`, 'text/markdown');
 };
 
-export const exportReportAsMarkdown = (report: InvestigationReport) => {
+export const exportReportAsMarkdown = (report: Artifact) => {
   const labelProfile = getArtifactLabelProfile(report);
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
   const markdownContent = `
@@ -383,7 +383,7 @@ const formatChatMessageMarkdown = (message: ChatMessage) => {
 export const exportChatSessionAsJson = (
   session: ChatSession,
   messages: ChatMessage[],
-  workspace?: Case
+  workspace?: Workspace
 ) => {
   const data = {
     session,
@@ -402,7 +402,7 @@ export const exportChatSessionAsJson = (
 export const exportChatSessionAsMarkdown = (
   session: ChatSession,
   messages: ChatMessage[],
-  workspace?: Case
+  workspace?: Workspace
 ) => {
   const markdownContent = `
 # Chat Session: ${session.title}

@@ -1,9 +1,9 @@
 import React from 'react';
 import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network, Sun, Moon, MessageSquare, Clock3 } from 'lucide-react';
-import type { InvestigationTask } from '../../types';
+import type { WorkspaceRun } from '../../types';
 import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import { getAllScopes, getScopeById } from '../../data/presets';
 import { getDomainPackForScope, getLabelProfileById } from '../../domain';
 
@@ -12,7 +12,7 @@ interface SidebarProps {
   onChangeView: (view: AppView) => void;
   isCollapsed: boolean;
   toggleCollapse: () => void;
-  tasks: InvestigationTask[];
+  workspaceRuns: WorkspaceRun[];
   activeTaskId: string | null;
   onSelectTask: (taskId: string) => void;
   onClearCompleted: () => void;
@@ -25,14 +25,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onChangeView,
   isCollapsed,
   toggleCollapse,
-  tasks,
+  workspaceRuns,
   activeTaskId,
   onSelectTask,
   onClearCompleted,
   themeMode,
   onToggleTheme
 }) => {
-  const { activeScope: activeScopeId, customScopes } = useCaseStore();
+  const { activeScope: activeScopeId, customScopes } = useWorkspaceStore();
   const activeScope =
     getScopeById(activeScopeId || '')
     || getAllScopes(customScopes).find((scope) => scope.id === activeScopeId)
@@ -143,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Task Manager - Now blends seamlessly as a bottom nav section */}
         <TaskManager
-          tasks={tasks}
+          workspaceRuns={workspaceRuns}
           activeTaskId={activeTaskId}
           onSelectTask={onSelectTask}
           onClearCompleted={onClearCompleted}

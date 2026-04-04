@@ -2,7 +2,7 @@ import { eq, desc } from 'drizzle-orm';
 import { getDB } from '../client';
 import { artifactSections, cases, reports, entities, sources, leads } from '../schema';
 import { buildArtifactSections, toLegacyReportArrays } from '../../../domain';
-import type { ArtifactSection, Case, InvestigationReport, Entity, Headline } from '@/types';
+import type { ArtifactSection, Workspace, Artifact, Entity, Headline } from '@/types';
 import { ChatRepository } from './ChatRepository';
 import { TaskRepository } from './TaskRepository';
 import { TemplateRepository } from './TemplateRepository';
@@ -68,7 +68,7 @@ const toStringList = (value: unknown): string[] => {
         .filter((item) => item.length > 0);
 };
 
-const toSourceList = (value: unknown): InvestigationReport['sources'] => {
+const toSourceList = (value: unknown): Artifact['sources'] => {
     if (!Array.isArray(value)) return [];
     return value
         .map((item): { title: string; url: string } | null => {
@@ -95,7 +95,7 @@ const deleteReportDependencies = async (reportIds: string[]) => {
 
 export class CaseRepository {
     // --- CASES ---
-    static async getAllCases(): Promise<Case[]> {
+    static async getAllCases(): Promise<Workspace[]> {
         const db = getDB();
         const rows = await db.select().from(cases).orderBy(desc(cases.updatedAt));
 
@@ -108,7 +108,7 @@ export class CaseRepository {
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
             description: row.description || undefined,
-            mode: (row.mode as Case['mode']) || undefined,
+            mode: (row.mode as Workspace['mode']) || undefined,
             packId: row.packId || undefined,
             purposeId: row.purposeId || undefined,
             labelProfileId: row.labelProfileId || undefined,
@@ -116,7 +116,7 @@ export class CaseRepository {
         }));
     }
 
-    static async getCaseById(id: string): Promise<Case | null> {
+    static async getCaseById(id: string): Promise<Workspace | null> {
         const db = getDB();
         const result = await db.select().from(cases).where(eq(cases.id, id));
 
@@ -131,7 +131,7 @@ export class CaseRepository {
             createdAt: result[0].createdAt,
             updatedAt: result[0].updatedAt,
             description: result[0].description || undefined,
-            mode: (result[0].mode as Case['mode']) || undefined,
+            mode: (result[0].mode as Workspace['mode']) || undefined,
             packId: result[0].packId || undefined,
             purposeId: result[0].purposeId || undefined,
             labelProfileId: result[0].labelProfileId || undefined,
@@ -139,7 +139,7 @@ export class CaseRepository {
         };
     }
 
-    static async createCase(caseData: Case): Promise<void> {
+    static async createCase(caseData: Workspace): Promise<void> {
         const db = getDB();
         const createdAt = caseData.createdAt ?? Date.now();
         const updatedAt = caseData.updatedAt ?? createdAt;
@@ -161,7 +161,7 @@ export class CaseRepository {
     }
 
     // --- REPORTS ---
-    static async getAllReports(): Promise<InvestigationReport[]> {
+    static async getAllReports(): Promise<Artifact[]> {
         const db = getDB();
         // Join reports with entities and sources would be ideal, but for now we fetch reports and hydrate
         // Drizzle's with query is powerful for this if relationships are defined, but here we'll keep it simple for now
@@ -198,7 +198,7 @@ export class CaseRepository {
                 .sort((a, b) => a.sortOrder - b.sortOrder)
                 .map(section => ({
                     id: section.id,
-                    kind: section.kind as NonNullable<InvestigationReport['sections']>[number]['kind'],
+                    kind: section.kind as NonNullable<Artifact['sections']>[number]['kind'],
                     title: section.title,
                     content: section.content || undefined,
                     items: section.itemsJson ? JSON.parse(section.itemsJson) : undefined,
@@ -209,7 +209,7 @@ export class CaseRepository {
                 summary: normalizeHumanText(row.summary, { includePriority: false }),
                 agendas: parsedAgendas,
                 leads: parsedLeads,
-                artifactType: (row.artifactType as InvestigationReport['artifactType']) || undefined,
+                artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
             });
 
             const legacyArrays = toLegacyReportArrays({
@@ -226,7 +226,7 @@ export class CaseRepository {
                 agendas: parsedAgendas,
                 leads: parsedLeads,
                 sections,
-                artifactType: (row.artifactType as InvestigationReport['artifactType']) || undefined,
+                artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
             });
 
             return {
@@ -238,7 +238,7 @@ export class CaseRepository {
                 summary: normalizeHumanText(row.summary, { includePriority: false }),
                 rawText: row.rawText || '',
                 config: row.configJson ? JSON.parse(row.configJson) : undefined,
-                artifactType: (row.artifactType as InvestigationReport['artifactType']) || undefined,
+                artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
                 packId: row.packId || undefined,
                 purposeId: row.purposeId || undefined,
                 labelProfileId: row.labelProfileId || undefined,
@@ -253,7 +253,7 @@ export class CaseRepository {
         });
     }
 
-    static async createReport(report: InvestigationReport): Promise<void> {
+    static async createReport(report: Artifact): Promise<void> {
         const db = getDB();
         const now = report.createdAt ?? Date.now();
         if (!report.id) {
@@ -436,7 +436,7 @@ export class CaseRepository {
         await db.delete(cases);
     }
 
-    static async importCasesAndReports(caseData: Case[], reportData: InvestigationReport[]): Promise<void> {
+    static async importCasesAndReports(caseData: Workspace[], reportData: Artifact[]): Promise<void> {
         await this.clearCaseData();
         for (const item of caseData) {
             await this.createCase(item);

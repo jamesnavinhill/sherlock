@@ -24,7 +24,7 @@ import {
   Shapes,
   Library,
 } from 'lucide-react';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import type {
   CaseTemplate,
   GraphNodeSubtype,
@@ -96,7 +96,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   onCancel,
   onStart,
 }) => {
-  const { templates, addTemplate, customScopes, defaultScopeId } = useCaseStore();
+  const { templates, addTemplate, customScopes, defaultScopeId } = useWorkspaceStore();
   const storedConfig = loadSystemConfig();
   const allScopes = getAllScopes(customScopes);
 

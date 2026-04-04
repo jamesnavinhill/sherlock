@@ -3,7 +3,7 @@ import {
     Compass, Check, Plus, Trash2, Edit2, X, Save,
     ChevronDown, ChevronUp, Star
 } from 'lucide-react';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import { BUILTIN_SCOPES, getAllScopes } from '../../data/presets';
 import type { InvestigationScope } from '../../types';
 
@@ -22,7 +22,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
         setDefaultScope,
         addScope,
         deleteScope
-    } = useCaseStore();
+    } = useWorkspaceStore();
 
     const allScopes = getAllScopes(customScopes);
     const [expandedScopeId, setExpandedScopeId] = useState<string | null>(null);

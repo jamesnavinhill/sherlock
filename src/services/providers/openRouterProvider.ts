@@ -1,4 +1,4 @@
-import type { FeedItem, InvestigationReport, MonitorEvent } from '../../types';
+import type { FeedItem, Artifact, MonitorEvent } from '../../types';
 import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
@@ -169,7 +169,7 @@ const streamOpenRouter = async (
     return accumulator.complete();
 };
 
-const investigate = async (request: InvestigationRequest): Promise<InvestigationReport> => {
+const investigate = async (request: InvestigationRequest): Promise<Artifact> => {
     const { topic, parentContext, config, scope, dateOverride } = request;
     const normalizedTopic = normalizeTopicText(topic);
     const normalizedParentTopic = parentContext?.topic

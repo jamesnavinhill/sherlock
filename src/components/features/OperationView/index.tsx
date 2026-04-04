@@ -2,17 +2,17 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type {
     ChatOpenRequest,
     InvestigationLaunchRequest,
-    InvestigationReport,
+    Artifact,
     InvestigationRunConfig,
     InvestigationScope,
-    InvestigationTask,
+    WorkspaceRun,
     Entity,
     Headline,
     Source,
     SystemConfig,
     CaseTemplate
 } from '../../../types';
-import { useCaseStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/caseStore';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
@@ -29,11 +29,11 @@ import { InspectorPanel } from './InspectorPanel';
 
 // --- PROPS ---
 interface OperationViewProps {
-    task: InvestigationTask | null;
-    reportOverride?: InvestigationReport | null;
+    task: WorkspaceRun | null;
+    reportOverride?: Artifact | null;
     onBack: () => void;
     onDeepDive: (request: InvestigationLaunchRequest) => void;
-    onBatchDeepDive: (leads: string[], currentReport: InvestigationReport) => void;
+    onBatchDeepDive: (leads: string[], currentReport: Artifact) => void;
     navStack: BreadcrumbItem[];
     onNavigate: (id: string) => void;
     onSelectCase?: (caseId: string) => void;
@@ -62,7 +62,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Accordion State for Case Dossier
+    // Accordion State for Workspace Dossier
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({
         caseInfo: false,
         reports: false,
@@ -95,16 +95,16 @@ export const OperationView: React.FC<OperationViewProps> = ({
     const [templateName, setTemplateName] = useState('');
 
     const {
-        cases: allCases,
-        archives,
+        workspaces: allCases,
+        artifacts,
         headlines: allHeadlines,
         addTemplate,
         updateReportTitle,
         renameEntityAcrossReports,
-        activeCaseId: selectedCaseId,
-        setActiveCaseId,
+        activeWorkspaceId: selectedCaseId,
+        setActiveWorkspaceId,
         customScopes
-    } = useCaseStore();
+    } = useWorkspaceStore();
 
     const report = task?.report ?? reportOverride;
     const status = task?.status ?? null;
@@ -115,8 +115,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
         , [allCases, effectiveCaseId]);
 
     const allCaseReports = useMemo(() =>
-        archives.filter(r => r.caseId === effectiveCaseId)
-        , [archives, effectiveCaseId]);
+        artifacts.filter(r => r.caseId === effectiveCaseId)
+        , [artifacts, effectiveCaseId]);
 
     const headlines = useMemo(() => {
         if (!effectiveCaseId) return [];
@@ -154,10 +154,10 @@ export const OperationView: React.FC<OperationViewProps> = ({
 
     // Handle case selection from dropdown
     const handleCaseSelect = (caseId: string) => {
-        setActiveCaseId(caseId);
+        setActiveWorkspaceId(caseId);
 
         if (caseId !== 'ALL' && caseId !== '') {
-            const caseReports = archives.filter(r => r.caseId === caseId);
+            const caseReports = artifacts.filter(r => r.caseId === caseId);
             if (caseReports.length > 0) {
                 const rootReport =
                     caseReports.find(r => !r.config?.parentArtifactId)
@@ -192,10 +192,10 @@ export const OperationView: React.FC<OperationViewProps> = ({
         addTemplate(newTemplate);
         setShowSaveTemplateModal(false);
         // Maybe add a toast here if available via store
-        useCaseStore.getState().addToast("Template saved successfully", "SUCCESS");
+        useWorkspaceStore.getState().addToast("Template saved successfully", "SUCCESS");
     };
 
-    // --- Case-wide Data Aggregation ---
+    // --- Workspace-wide Data Aggregation ---
     const casePanelData = useMemo(() => {
         if (!activeCase || allCaseReports.length === 0) {
             return {
@@ -342,9 +342,9 @@ export const OperationView: React.FC<OperationViewProps> = ({
         await renameEntityAcrossReports(oldName, newName);
 
         // Update flagged nodes if entity was flagged
-        if (useCaseStore.getState().flaggedNodeIds.includes(oldName)) {
-            useCaseStore.getState().toggleFlag(oldName);
-            useCaseStore.getState().toggleFlag(newName);
+        if (useWorkspaceStore.getState().flaggedNodeIds.includes(oldName)) {
+            useWorkspaceStore.getState().toggleFlag(oldName);
+            useWorkspaceStore.getState().toggleFlag(newName);
         }
 
         // Update selected entity state
@@ -352,7 +352,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     };
 
     const handleFlagEntity = (entityName: string) => {
-        useCaseStore.getState().toggleFlag(entityName);
+        useWorkspaceStore.getState().toggleFlag(entityName);
     };
 
     const handleInvestigateEntity = (entityName: string) => {
@@ -409,7 +409,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
                 />
             )}
 
-            {/* Start New Case Modal */}
+            {/* Start New Workspace Modal */}
             {isNewCaseModalOpen && (
                 <TaskSetupModal
                     initialTopic=""

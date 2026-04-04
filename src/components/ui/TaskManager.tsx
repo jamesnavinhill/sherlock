@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import type { InvestigationTask } from '../../types';
+import type { WorkspaceRun } from '../../types';
 import { Activity, ChevronUp, ChevronDown, CheckCircle2, AlertOctagon, Loader2, List, Trash2 } from 'lucide-react';
 
 interface TaskManagerProps {
-  tasks: InvestigationTask[];
+  workspaceRuns: WorkspaceRun[];
   activeTaskId: string | null;
   onSelectTask: (taskId: string) => void;
   onClearCompleted: () => void;
@@ -11,11 +11,11 @@ interface TaskManagerProps {
   onExpand: () => void;
 }
 
-export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, onSelectTask, onClearCompleted, isCollapsed, onExpand }) => {
+export const TaskManager: React.FC<TaskManagerProps> = ({ workspaceRuns, activeTaskId, onSelectTask, onClearCompleted, isCollapsed, onExpand }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const runningTasks = tasks.filter(t => t.status === 'RUNNING' || t.status === 'QUEUED');
-  const completedTasks = tasks.filter(t => t.status === 'COMPLETED' || t.status === 'FAILED');
+  const runningTasks = workspaceRuns.filter(t => t.status === 'RUNNING' || t.status === 'QUEUED');
+  const completedTasks = workspaceRuns.filter(t => t.status === 'COMPLETED' || t.status === 'FAILED');
 
   // Collapsed View: Just an icon in the sidebar flow
   if (isCollapsed) {
@@ -42,7 +42,7 @@ export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, o
     <div className="relative border-t border-zinc-800 bg-osint-dark flex-shrink-0">
 
       {/* Popup List - Anchored to the bottom of the previous element, growing upwards */}
-      {isExpanded && tasks.length > 0 && (
+      {isExpanded && workspaceRuns.length > 0 && (
         <div className="absolute bottom-full left-0 w-64 mb-1 z-50 px-2 pb-2">
           <div className="bg-osint-panel border border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.5)] flex flex-col max-h-[400px] w-full animate-in slide-in-from-bottom-2 fade-in duration-200">
             <div className="bg-black p-3 border-b border-zinc-800 flex justify-between items-center">
@@ -112,13 +112,13 @@ export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, o
 
       {/* Trigger Button - Blends with sidebar nav items */}
       <button
-        onClick={() => tasks.length > 0 ? setIsExpanded(!isExpanded) : null}
-        disabled={tasks.length === 0}
+        onClick={() => workspaceRuns.length > 0 ? setIsExpanded(!isExpanded) : null}
+        disabled={workspaceRuns.length === 0}
         aria-label={isExpanded ? "Collapse Operations Log" : "Expand Operations Log"}
         className={`w-full flex items-center justify-between px-3 py-4 group transition-all border-l outline-none focus-visible:bg-zinc-900 ${isExpanded
           ? 'bg-zinc-900 border-osint-primary'
           : 'border-transparent hover:bg-zinc-900 hover:border-zinc-700'
-          } ${tasks.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
+          } ${workspaceRuns.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
       >
         <div className="flex items-center space-x-3 overflow-hidden">
           <div className="relative flex-shrink-0">
@@ -142,7 +142,7 @@ export const TaskManager: React.FC<TaskManagerProps> = ({ tasks, activeTaskId, o
           </div>
         </div>
 
-        {tasks.length > 0 && (
+        {workspaceRuns.length > 0 && (
           <div className="text-zinc-600 group-hover:text-zinc-400">
             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </div>

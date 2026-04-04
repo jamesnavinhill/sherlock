@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import * as d3 from 'd3';
 import type {
-    InvestigationReport,
-    Case,
+    Artifact,
+    Workspace,
     EntityAliasMap,
     GraphNodeSubtype,
     ManualConnection,
@@ -17,7 +17,7 @@ export interface GraphNode extends d3.SimulationNodeDatum {
     type: 'CASE' | 'ENTITY';
     subtype?: GraphNodeSubtype;
     label: string;
-    data?: InvestigationReport;
+    data?: Artifact;
     connections: number;
     isManual?: boolean;
     x?: number;
@@ -34,10 +34,10 @@ export interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
 }
 
 interface GraphCanvasProps {
-    reports: InvestigationReport[];
+    reports: Artifact[];
     manualLinks: ManualConnection[];
     manualNodes: ManualNode[];
-    cases: Case[];
+    workspaces: Workspace[];
     aliases: EntityAliasMap;
     hiddenNodeIds: Set<string>;
     flaggedNodeIds: Set<string>;
@@ -56,7 +56,7 @@ interface GraphCanvasProps {
     onNodeClick: (node: GraphNode | null) => void;
     onSetLinkSource: (node: GraphNode | null) => void;
     onCreateManualLink: (source: GraphNode, target: GraphNode) => void;
-    onStatsUpdate: (stats: { cases: number, entities: number, links: number, hubs: number }) => void;
+    onStatsUpdate: (stats: { workspaces: number, entities: number, links: number, hubs: number }) => void;
     isLocked?: boolean;
 }
 
@@ -66,7 +66,7 @@ export interface GraphCanvasRef {
 }
 
 export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
-    reports, manualLinks, manualNodes, cases, aliases, hiddenNodeIds, flaggedNodeIds,
+    reports, manualLinks, manualNodes, workspaces, aliases, hiddenNodeIds, flaggedNodeIds,
     filterCaseId, showSingletons, showHiddenNodes, showFlaggedOnly,
     isLinkingMode, linkSourceNode,
     onNodeClick, onSetLinkSource, onCreateManualLink, onStatsUpdate,
@@ -132,7 +132,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         const rawLinks: GraphLink[] = [];
 
         // Helper to get/create node
-        const getOrCreateNode = (id: string, type: 'CASE' | 'ENTITY', label: string, reportData?: InvestigationReport, isManual: boolean = false, subtype?: GraphNodeSubtype) => {
+        const getOrCreateNode = (id: string, type: 'CASE' | 'ENTITY', label: string, reportData?: Artifact, isManual: boolean = false, subtype?: GraphNodeSubtype) => {
             if (isNodeDeleted(id, label) || (isNodeHidden(id, label) && !showHiddenNodes)) return null;
             if (!rawNodes.has(id)) {
                 // If it's a Manual "CASE" node but has no report data
@@ -255,7 +255,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
 
         // Update Stats to Parent
         onStatsUpdate({
-            cases: activeReports.length,
+            workspaces: activeReports.length,
             entities: filteredNodes.filter(n => n.type === 'ENTITY').length,
             links: filteredLinks.length,
             hubs: filteredNodes.filter(n => n.connections > 1).length
@@ -393,7 +393,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         });
 
         return () => { simulation.stop(); };
-    }, [reports, manualLinks, cases, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, isLocked, linkSourceNode, onCreateManualLink, onNodeClick, onSetLinkSource, onStatsUpdate]);
+    }, [reports, manualLinks, workspaces, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, isLocked, linkSourceNode, onCreateManualLink, onNodeClick, onSetLinkSource, onStatsUpdate]);
 
     return (
         <div ref={containerRef} className="flex-1 w-full h-full relative z-0 bg-black cursor-move">

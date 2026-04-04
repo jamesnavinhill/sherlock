@@ -1,35 +1,35 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useCaseStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/caseStore';
 import {
     Search, FileText, Target, User, Radio,
     ArrowRight, X, Command, Hash
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { InvestigationReport, Case, Headline, Entity, InvestigationTask } from '../../types';
+import type { Artifact, Workspace, Headline, Entity, WorkspaceRun } from '../../types';
 import { AppView } from '../../types';
 
 type SearchResult =
-    | { type: 'CASE'; title: string; data: Case; icon: LucideIcon }
-    | { type: 'REPORT'; title: string; data: InvestigationReport; icon: LucideIcon }
+    | { type: 'CASE'; title: string; data: Workspace; icon: LucideIcon }
+    | { type: 'REPORT'; title: string; data: Artifact; icon: LucideIcon }
     | { type: 'HEADLINE'; title: string; data: Headline; icon: LucideIcon }
     | { type: 'ENTITY'; title: string; icon: LucideIcon };
 
 interface GlobalSearchModalProps {
-    archives: InvestigationReport[];
-    cases: Case[];
+    artifacts: Artifact[];
+    workspaces: Workspace[];
     headlines: Headline[];
-    tasks: InvestigationTask[];
+    workspaceRuns: WorkspaceRun[];
     setCurrentView: (view: AppView) => void;
     setShowGlobalSearch: (show: boolean) => void;
     setActiveTaskId: (id: string | null) => void;
-    addTask: (task: InvestigationTask) => void;
+    addTask: (task: WorkspaceRun) => void;
 }
 
 const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
-    archives,
-    cases,
+    artifacts,
+    workspaces,
     headlines,
-    tasks,
+    workspaceRuns,
     setCurrentView,
     setShowGlobalSearch,
     setActiveTaskId,
@@ -51,14 +51,14 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         const output: SearchResult[] = [];
 
         // Search Cases
-        cases.forEach((c) => {
+        workspaces.forEach((c) => {
             if (c.title.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)) {
                 output.push({ type: 'CASE', title: c.title, data: c, icon: Target });
             }
         });
 
         // Search Reports
-        archives.forEach((r) => {
+        artifacts.forEach((r) => {
             if (r.topic.toLowerCase().includes(q) || r.summary.toLowerCase().includes(q)) {
                 output.push({ type: 'REPORT', title: r.topic, data: r, icon: FileText });
             }
@@ -73,7 +73,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
         // Search Entities (extracted from reports)
         const uniqueEntities = new Set<string>();
-        archives.forEach((r) => {
+        artifacts.forEach((r) => {
             const entities = (r.entities ?? []) as Array<Entity | string>;
             entities.forEach((entity) => {
                 const name = typeof entity === 'string' ? entity : entity.name;
@@ -85,14 +85,14 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         });
 
         return output.slice(0, 10); // Limit to 10 results
-    }, [query, archives, cases, headlines]);
+    }, [query, artifacts, workspaces, headlines]);
 
     const safeSelectedIndex = results.length === 0 ? 0 : Math.min(selectedIndex, results.length - 1);
 
     const handleSelectResult = (result: SearchResult) => {
         if (result.type === 'REPORT') {
             const report = result.data;
-            const existingTask = tasks.find((t) => t.report?.id === report.id);
+            const existingTask = workspaceRuns.find((t) => t.report?.id === report.id);
             if (existingTask) {
                 setActiveTaskId(existingTask.id);
             } else {
@@ -211,7 +211,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                 {/* Footer bar */}
                 <div className="p-3 border-t border-zinc-800 bg-zinc-950/50 flex items-center justify-between text-[10px] font-mono text-zinc-600">
                     <div className="flex items-center space-x-4">
-                        <span className="flex items-center"><Hash className="w-3 h-3 mr-1" /> {archives.length + cases.length} Indexed Nodes</span>
+                        <span className="flex items-center"><Hash className="w-3 h-3 mr-1" /> {artifacts.length + workspaces.length} Indexed Nodes</span>
                     </div>
                     <div className="flex items-center space-x-3">
                         <span className="flex items-center"><ArrowRight className="w-3 h-3 mr-1" rotate={90} /> Select</span>
@@ -225,25 +225,25 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
 export const GlobalSearch: React.FC = () => {
     const {
-        archives,
-        cases,
+        artifacts,
+        workspaces,
         headlines,
-        tasks,
+        workspaceRuns,
         setCurrentView,
         showGlobalSearch,
         setShowGlobalSearch,
         setActiveTaskId,
         addTask
-    } = useCaseStore();
+    } = useWorkspaceStore();
 
     if (!showGlobalSearch) return null;
 
     return (
         <GlobalSearchModal
-            archives={archives}
-            cases={cases}
+            artifacts={artifacts}
+            workspaces={workspaces}
             headlines={headlines}
-            tasks={tasks}
+            workspaceRuns={workspaceRuns}
             setCurrentView={setCurrentView}
             setShowGlobalSearch={setShowGlobalSearch}
             setActiveTaskId={setActiveTaskId}

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useCaseStore } from './caseStore';
-import type { InvestigationReport, CaseTemplate, WorkspaceDataBackup } from '../types';
+import { useWorkspaceStore } from './caseStore';
+import type { Artifact, CaseTemplate, WorkspaceDataBackup } from '../types';
 import { AppView } from '../types';
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
 import { TaskRepository } from '../services/db/repositories/TaskRepository';
@@ -42,20 +42,20 @@ describe('caseStore', () => {
         vi.spyOn(SettingsRepository, 'setSetting').mockResolvedValue();
 
         // Reset store before each test
-        const store = useCaseStore.getState();
-        store.setArchives([]);
-        store.setCases([]);
-        store.setTasks([]);
+        const store = useWorkspaceStore.getState();
+        store.setArtifacts([]);
+        store.setWorkspaces([]);
+        store.setWorkspaceRuns([]);
         store.setChatSessions([]);
         store.setChatMessagesBySessionId({});
-        useCaseStore.setState({
+        useWorkspaceStore.setState({
             chatActionsBySessionId: {},
             headlines: [],
             manualNodes: [],
             manualLinks: [],
             hiddenNodeIds: [],
             flaggedNodeIds: [],
-            activeCaseId: null,
+            activeWorkspaceId: null,
             activeTaskId: null,
             activeChatSessionId: null,
         });
@@ -64,9 +64,9 @@ describe('caseStore', () => {
     });
 
     it('should initialize with default state', () => {
-        const state = useCaseStore.getState();
-        expect(state.archives).toEqual([]);
-        expect(state.cases).toEqual([]);
+        const state = useWorkspaceStore.getState();
+        expect(state.artifacts).toEqual([]);
+        expect(state.workspaces).toEqual([]);
         expect(state.currentView).toBe(AppView.DASHBOARD);
     });
 
@@ -79,18 +79,18 @@ describe('caseStore', () => {
             createdAt: Date.now()
         };
 
-        const { addTemplate, deleteTemplate } = useCaseStore.getState();
+        const { addTemplate, deleteTemplate } = useWorkspaceStore.getState();
 
         await addTemplate(template);
-        expect(useCaseStore.getState().templates).toHaveLength(1);
-        expect(useCaseStore.getState().templates[0].name).toBe('Test Template');
+        expect(useWorkspaceStore.getState().templates).toHaveLength(1);
+        expect(useWorkspaceStore.getState().templates[0].name).toBe('Test Template');
 
         await deleteTemplate('tpl-1');
-        expect(useCaseStore.getState().templates).toHaveLength(0);
+        expect(useWorkspaceStore.getState().templates).toHaveLength(0);
     });
 
     it('should handle task lifecycle', async () => {
-        const { addTask, completeTask } = useCaseStore.getState();
+        const { addTask, completeTask } = useWorkspaceStore.getState();
         const taskId = 'task-1';
 
         await addTask({
@@ -101,10 +101,10 @@ describe('caseStore', () => {
             config: {},
         });
 
-        expect(useCaseStore.getState().tasks).toHaveLength(1);
-        expect(useCaseStore.getState().tasks[0].status).toBe('RUNNING');
+        expect(useWorkspaceStore.getState().workspaceRuns).toHaveLength(1);
+        expect(useWorkspaceStore.getState().workspaceRuns[0].status).toBe('RUNNING');
 
-        const report: InvestigationReport = {
+        const report: Artifact = {
             id: 'rep-1',
             topic: 'Lifecycle test',
             summary: 'Success',
@@ -116,16 +116,16 @@ describe('caseStore', () => {
         };
 
         await completeTask(taskId, report);
-        expect(useCaseStore.getState().tasks[0].status).toBe('COMPLETED');
-        expect(useCaseStore.getState().tasks[0].report?.id).toBe('rep-1');
+        expect(useWorkspaceStore.getState().workspaceRuns[0].status).toBe('COMPLETED');
+        expect(useWorkspaceStore.getState().workspaceRuns[0].report?.id).toBe('rep-1');
         expect(TaskRepository.updateConfig).toHaveBeenCalledWith(taskId, {
             producedArtifactId: 'rep-1',
         });
     });
 
     it('should link a signal to its saved artifact when archive lineage is present', async () => {
-        const store = useCaseStore.getState();
-        store.setCases([
+        const store = useWorkspaceStore.getState();
+        store.setWorkspaces([
             { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
         ]);
         store.setHeadlines([
@@ -165,15 +165,15 @@ describe('caseStore', () => {
                 linkedReportId: 'rep-1',
             })
         );
-        expect(useCaseStore.getState().headlines[0].linkedReportId).toBe('rep-1');
+        expect(useWorkspaceStore.getState().headlines[0].linkedReportId).toBe('rep-1');
     });
 
     it('should backfill artifact lineage from the source run when the report input is partial', async () => {
-        const store = useCaseStore.getState();
-        store.setCases([
+        const store = useWorkspaceStore.getState();
+        store.setWorkspaces([
             { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
         ]);
-        store.setArchives([
+        store.setArtifacts([
             {
                 id: 'rep-parent',
                 caseId: 'case-1',
@@ -199,7 +199,7 @@ describe('caseStore', () => {
                 threatLevel: 'INFO',
             },
         ]);
-        store.setTasks([
+        store.setWorkspaceRuns([
             {
                 id: 'run-1',
                 workspaceId: 'case-1',
@@ -240,17 +240,17 @@ describe('caseStore', () => {
     });
 
     it('should create and update chat sessions and messages', async () => {
-        const store = useCaseStore.getState();
-        store.setCases([
+        const store = useWorkspaceStore.getState();
+        store.setWorkspaces([
             { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
         ]);
 
         const session = await store.createChatSession({ workspaceId: 'case-1', title: 'Alpha Chat' });
-        expect(useCaseStore.getState().chatSessions).toHaveLength(1);
+        expect(useWorkspaceStore.getState().chatSessions).toHaveLength(1);
         expect(session.title).toBe('Alpha Chat');
 
         await store.renameChatSession(session.id, 'Renamed Alpha Chat');
-        expect(useCaseStore.getState().chatSessions[0].title).toBe('Renamed Alpha Chat');
+        expect(useWorkspaceStore.getState().chatSessions[0].title).toBe('Renamed Alpha Chat');
 
         await store.addChatMessage({
             id: 'msg-1',
@@ -261,37 +261,37 @@ describe('caseStore', () => {
             createdAt: 1,
             updatedAt: 1,
         });
-        expect(useCaseStore.getState().chatMessagesBySessionId[session.id]).toHaveLength(1);
+        expect(useWorkspaceStore.getState().chatMessagesBySessionId[session.id]).toHaveLength(1);
 
         await store.updateChatMessage('msg-1', session.id, {
             content: 'Updated workspace message',
             status: 'COMPLETED',
             updatedAt: 2,
         });
-        expect(useCaseStore.getState().chatMessagesBySessionId[session.id][0].content).toBe('Updated workspace message');
+        expect(useWorkspaceStore.getState().chatMessagesBySessionId[session.id][0].content).toBe('Updated workspace message');
     });
 
     it('should add toasts and remove them', () => {
         vi.useFakeTimers();
-        const { addToast } = useCaseStore.getState();
+        const { addToast } = useWorkspaceStore.getState();
 
         addToast('Test message', 'SUCCESS');
-        expect(useCaseStore.getState().toasts).toHaveLength(1);
-        expect(useCaseStore.getState().toasts[0].message).toBe('Test message');
+        expect(useWorkspaceStore.getState().toasts).toHaveLength(1);
+        expect(useWorkspaceStore.getState().toasts[0].message).toBe('Test message');
 
         // Should auto-remove after 5s
         vi.advanceTimersByTime(5001);
-        expect(useCaseStore.getState().toasts).toHaveLength(0);
+        expect(useWorkspaceStore.getState().toasts).toHaveLength(0);
         vi.useRealTimers();
     });
 
     it('should purge a case and remove related local state', async () => {
-        const store = useCaseStore.getState();
-        store.setCases([
+        const store = useWorkspaceStore.getState();
+        store.setWorkspaces([
             { id: 'case-1', title: 'Operation: Alpha', status: 'ACTIVE', dateOpened: '2026-02-07' },
             { id: 'case-2', title: 'Operation: Bravo', status: 'ACTIVE', dateOpened: '2026-02-07' },
         ]);
-        store.setArchives([
+        store.setArtifacts([
             { id: 'rep-1', caseId: 'case-1', topic: 'A1', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' },
             { id: 'rep-2', caseId: 'case-2', topic: 'B1', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' },
             { id: 'rep-3', topic: 'Loose', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' },
@@ -300,7 +300,7 @@ describe('caseStore', () => {
             { id: 'h-1', caseId: 'case-1', content: 'alpha', source: 'src', timestamp: 'now', type: 'NEWS', status: 'PENDING', threatLevel: 'INFO' },
             { id: 'h-2', caseId: 'case-2', content: 'bravo', source: 'src', timestamp: 'now', type: 'NEWS', status: 'PENDING', threatLevel: 'INFO' },
         ]);
-        store.setActiveCaseId('case-1');
+        store.setActiveWorkspaceId('case-1');
         store.setChatSessions([
             { id: 'chat-1', workspaceId: 'case-1', title: 'Alpha Chat', status: 'ACTIVE', createdAt: 1, updatedAt: 1 },
             { id: 'chat-2', workspaceId: 'case-2', title: 'Bravo Chat', status: 'ACTIVE', createdAt: 2, updatedAt: 2 },
@@ -309,7 +309,7 @@ describe('caseStore', () => {
             'chat-1': [{ id: 'msg-1', sessionId: 'chat-1', role: 'user', content: 'alpha', status: 'COMPLETED', createdAt: 1, updatedAt: 1 }],
             'chat-2': [{ id: 'msg-2', sessionId: 'chat-2', role: 'user', content: 'bravo', status: 'COMPLETED', createdAt: 2, updatedAt: 2 }],
         });
-        useCaseStore.setState({
+        useWorkspaceStore.setState({
             chatActionsBySessionId: {
                 'chat-1': [{ id: 'act-1', sessionId: 'chat-1', type: 'SEARCH_WORKSPACE', status: 'COMPLETED', createdAt: 1, updatedAt: 1 }],
                 'chat-2': [{ id: 'act-2', sessionId: 'chat-2', type: 'SEARCH_WORKSPACE', status: 'COMPLETED', createdAt: 2, updatedAt: 2 }],
@@ -330,22 +330,22 @@ describe('caseStore', () => {
         await store.purgeCase('case-1');
 
         expect(CaseRepository.purgeCase).toHaveBeenCalledWith('case-1');
-        expect(useCaseStore.getState().cases.map((c) => c.id)).toEqual(['case-2']);
-        expect(useCaseStore.getState().archives.map((r) => r.id)).toEqual(['rep-2', 'rep-3']);
-        expect(useCaseStore.getState().headlines.map((h) => h.id)).toEqual(['h-2']);
-        expect(useCaseStore.getState().chatSessions.map((session) => session.id)).toEqual(['chat-2']);
-        expect(Object.keys(useCaseStore.getState().chatMessagesBySessionId)).toEqual(['chat-2']);
-        expect(Object.keys(useCaseStore.getState().chatActionsBySessionId)).toEqual(['chat-2']);
-        expect(useCaseStore.getState().manualNodes.map((node) => node.id)).toEqual(['manual-keep']);
-        expect(useCaseStore.getState().manualLinks).toEqual([{ source: 'manual-keep', target: 'external', timestamp: 2 }]);
-        expect(useCaseStore.getState().hiddenNodeIds).toEqual(['manual-keep']);
-        expect(useCaseStore.getState().flaggedNodeIds).toEqual(['manual-keep']);
-        expect(useCaseStore.getState().activeChatSessionId).toBeNull();
-        expect(useCaseStore.getState().activeCaseId).toBeNull();
+        expect(useWorkspaceStore.getState().workspaces.map((c) => c.id)).toEqual(['case-2']);
+        expect(useWorkspaceStore.getState().artifacts.map((r) => r.id)).toEqual(['rep-2', 'rep-3']);
+        expect(useWorkspaceStore.getState().headlines.map((h) => h.id)).toEqual(['h-2']);
+        expect(useWorkspaceStore.getState().chatSessions.map((session) => session.id)).toEqual(['chat-2']);
+        expect(Object.keys(useWorkspaceStore.getState().chatMessagesBySessionId)).toEqual(['chat-2']);
+        expect(Object.keys(useWorkspaceStore.getState().chatActionsBySessionId)).toEqual(['chat-2']);
+        expect(useWorkspaceStore.getState().manualNodes.map((node) => node.id)).toEqual(['manual-keep']);
+        expect(useWorkspaceStore.getState().manualLinks).toEqual([{ source: 'manual-keep', target: 'external', timestamp: 2 }]);
+        expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual(['manual-keep']);
+        expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual(['manual-keep']);
+        expect(useWorkspaceStore.getState().activeChatSessionId).toBeNull();
+        expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull();
     });
 
     it('should import workspace data using the canonical backup payload', async () => {
-        const store = useCaseStore.getState();
+        const store = useWorkspaceStore.getState();
         const payload: WorkspaceDataBackup = {
             workspaces: [
                 { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
@@ -397,28 +397,28 @@ describe('caseStore', () => {
         expect(ChatRepository.createAction).toHaveBeenCalledWith(payload.chat.actions[0]);
         expect(ManualDataRepository.saveAllNodes).toHaveBeenCalledWith(payload.graph.manualNodes);
         expect(ManualDataRepository.saveAllLinks).toHaveBeenCalledWith(payload.graph.manualLinks);
-        expect(useCaseStore.getState().cases).toEqual(payload.workspaces);
-        expect(useCaseStore.getState().archives).toEqual(payload.artifacts);
-        expect(useCaseStore.getState().tasks).toEqual(payload.runs);
-        expect(useCaseStore.getState().chatSessions).toEqual(payload.chat.sessions);
-        expect(useCaseStore.getState().chatMessagesBySessionId).toEqual({ 'chat-1': payload.chat.messages });
-        expect(useCaseStore.getState().chatActionsBySessionId).toEqual({ 'chat-1': payload.chat.actions });
-        expect(useCaseStore.getState().hiddenNodeIds).toEqual([]);
-        expect(useCaseStore.getState().flaggedNodeIds).toEqual([]);
+        expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
+        expect(useWorkspaceStore.getState().artifacts).toEqual(payload.artifacts);
+        expect(useWorkspaceStore.getState().workspaceRuns).toEqual(payload.runs);
+        expect(useWorkspaceStore.getState().chatSessions).toEqual(payload.chat.sessions);
+        expect(useWorkspaceStore.getState().chatMessagesBySessionId).toEqual({ 'chat-1': payload.chat.messages });
+        expect(useWorkspaceStore.getState().chatActionsBySessionId).toEqual({ 'chat-1': payload.chat.actions });
+        expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual([]);
+        expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual([]);
     });
 
     it('should clear workspace data without touching app-level store config', async () => {
-        const store = useCaseStore.getState();
-        store.setCases([{ id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' }]);
-        store.setArchives([{ id: 'rep-1', caseId: 'case-1', topic: 'Alpha', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' }]);
-        store.setTasks([{ id: 'run-1', topic: 'Alpha', status: 'RUNNING', startTime: 1 }]);
+        const store = useWorkspaceStore.getState();
+        store.setWorkspaces([{ id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' }]);
+        store.setArtifacts([{ id: 'rep-1', caseId: 'case-1', topic: 'Alpha', summary: '', agendas: [], leads: [], entities: [], sources: [], rawText: '' }]);
+        store.setWorkspaceRuns([{ id: 'run-1', topic: 'Alpha', status: 'RUNNING', startTime: 1 }]);
         store.setChatSessions([{ id: 'chat-1', workspaceId: 'case-1', title: 'Alpha Chat', status: 'ACTIVE', createdAt: 1, updatedAt: 1 }]);
         store.setChatMessagesBySessionId({
             'chat-1': [{ id: 'msg-1', sessionId: 'chat-1', role: 'user', content: 'alpha', status: 'COMPLETED', createdAt: 1, updatedAt: 1 }],
         });
         store.setHeadlines([{ id: 'head-1', caseId: 'case-1', content: 'Signal', source: 'Desk', timestamp: '2026-04-03T00:00:00.000Z', type: 'NEWS', status: 'PENDING', threatLevel: 'INFO' }]);
         store.setTemplates([{ id: 'tpl-1', name: 'Template', topic: 'Topic', config: { modelId: 'x' }, createdAt: 1 }]);
-        useCaseStore.setState({
+        useWorkspaceStore.setState({
             chatActionsBySessionId: {
                 'chat-1': [{ id: 'act-1', sessionId: 'chat-1', type: 'SEARCH_WORKSPACE', status: 'COMPLETED', createdAt: 1, updatedAt: 1 }],
             },
@@ -426,7 +426,7 @@ describe('caseStore', () => {
             manualLinks: [{ source: 'manual-1', target: 'external', timestamp: 2 }],
             hiddenNodeIds: ['manual-1'],
             flaggedNodeIds: ['manual-1'],
-            activeCaseId: 'case-1',
+            activeWorkspaceId: 'case-1',
             activeTaskId: 'run-1',
             activeChatSessionId: 'chat-1',
         });
@@ -434,19 +434,19 @@ describe('caseStore', () => {
         await store.clearWorkspaceData();
 
         expect(CaseRepository.clearCaseData).toHaveBeenCalled();
-        expect(useCaseStore.getState().cases).toEqual([]);
-        expect(useCaseStore.getState().archives).toEqual([]);
-        expect(useCaseStore.getState().tasks).toEqual([]);
-        expect(useCaseStore.getState().chatSessions).toEqual([]);
-        expect(useCaseStore.getState().chatMessagesBySessionId).toEqual({});
-        expect(useCaseStore.getState().chatActionsBySessionId).toEqual({});
-        expect(useCaseStore.getState().templates).toEqual([]);
-        expect(useCaseStore.getState().manualNodes).toEqual([]);
-        expect(useCaseStore.getState().manualLinks).toEqual([]);
-        expect(useCaseStore.getState().hiddenNodeIds).toEqual([]);
-        expect(useCaseStore.getState().flaggedNodeIds).toEqual([]);
-        expect(useCaseStore.getState().activeCaseId).toBeNull();
-        expect(useCaseStore.getState().activeTaskId).toBeNull();
-        expect(useCaseStore.getState().activeChatSessionId).toBeNull();
+        expect(useWorkspaceStore.getState().workspaces).toEqual([]);
+        expect(useWorkspaceStore.getState().artifacts).toEqual([]);
+        expect(useWorkspaceStore.getState().workspaceRuns).toEqual([]);
+        expect(useWorkspaceStore.getState().chatSessions).toEqual([]);
+        expect(useWorkspaceStore.getState().chatMessagesBySessionId).toEqual({});
+        expect(useWorkspaceStore.getState().chatActionsBySessionId).toEqual({});
+        expect(useWorkspaceStore.getState().templates).toEqual([]);
+        expect(useWorkspaceStore.getState().manualNodes).toEqual([]);
+        expect(useWorkspaceStore.getState().manualLinks).toEqual([]);
+        expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual([]);
+        expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual([]);
+        expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull();
+        expect(useWorkspaceStore.getState().activeTaskId).toBeNull();
+        expect(useWorkspaceStore.getState().activeChatSessionId).toBeNull();
     });
 });

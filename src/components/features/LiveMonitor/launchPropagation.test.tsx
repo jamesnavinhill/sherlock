@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { useCaseStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/caseStore';
 
 vi.mock('./SettingsPanel', () => ({
     SettingsPanel: () => null,
@@ -60,10 +60,10 @@ describe('LiveMonitor launch propagation', () => {
         localStorage.clear();
         vi.restoreAllMocks();
 
-        useCaseStore.setState({
+        useWorkspaceStore.setState({
             activeScope: 'open-investigation',
-            activeCaseId: 'case-1',
-            cases: [
+            activeWorkspaceId: 'case-1',
+            workspaces: [
                 {
                     id: 'case-1',
                     title: 'Operation: Atlas',

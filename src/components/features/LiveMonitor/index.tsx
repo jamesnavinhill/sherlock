@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { useCaseStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/caseStore';
 import type { MonitorEvent, InvestigationLaunchRequest, Headline, SystemConfig } from '../../../types';
 import type { MonitorConfig } from '../../../services/runtime';
 import { getLiveWorkspaceIntel } from '../../../services/runtime';
@@ -32,12 +32,12 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
     const {
         headlines,
         addHeadline,
-        cases,
-        activeCaseId: selectedCaseId,
-        setActiveCaseId: setSelectedCaseId,
+        workspaces,
+        activeWorkspaceId: selectedCaseId,
+        setActiveWorkspaceId: setSelectedCaseId,
         activeScope: activeScopeId,
         customScopes,
-    } = useCaseStore();
+    } = useWorkspaceStore();
 
     type FilterType = 'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL';
     type ThreatFilter = 'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL';
@@ -74,7 +74,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
 
     // Task Selection State
     const [selectedEventForAnalysis, setSelectedEventForAnalysis] = useState<MonitorEvent | null>(null);
-    const selectedCase = useMemo(() => cases.find(c => c.id === selectedCaseId) ?? null, [cases, selectedCaseId]);
+    const selectedCase = useMemo(() => workspaces.find(c => c.id === selectedCaseId) ?? null, [workspaces, selectedCaseId]);
     const activeScope = useMemo(() => {
         return getScopeById(activeScopeId || '') || getAllScopes(customScopes).find((scope) => scope.id === activeScopeId);
     }, [activeScopeId, customScopes]);
@@ -99,7 +99,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
         isMonitoringRef.current = true;
         setStreamStatus('SCANNING');
 
-        const activeCase = cases.find(c => c.id === selectedCaseId);
+        const activeCase = workspaces.find(c => c.id === selectedCaseId);
         if (!activeCase) {
             resetState();
             return;
@@ -264,7 +264,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
 
                 {/* Left: Selectors */}
                 <div className="flex items-center space-x-6">
-                    {/* Case Selector */}
+                    {/* Workspace Selector */}
                     <div className="relative group hidden md:block">
                         <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
                         <select
@@ -276,7 +276,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                             className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[100px] max-w-[250px] truncate"
                         >
                             <option value="">{`${labelProfile.workspaceLabel.toUpperCase()}: NONE SELECTED`}</option>
-                            {cases.map(c => (
+                            {workspaces.map(c => (
                                 <option key={c.id} value={c.id} className="truncate">{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
                             ))}
                         </select>

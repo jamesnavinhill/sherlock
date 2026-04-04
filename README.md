@@ -99,7 +99,8 @@ npm run check
 
 ## Documentation Index
 
-- `docs/operations/CURRENT_STATUS.md`
+- `docs/reports/CURRENT_STATUS.md`
+- `docs/plans/01-canonical-runtime-cutover-plan.md`
 - `docs/operations/architecture.md`
 - `docs/operations/BROAD_SCOPE.md`
 - `docs/operations/SCOPES.md`

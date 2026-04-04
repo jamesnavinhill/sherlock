@@ -8,7 +8,7 @@ import type {
     ChatSession,
     Headline,
     InvestigationLaunchRequest,
-    InvestigationReport,
+    Artifact,
     WorkspaceContextBundle,
 } from '@/types';
 import type { ChatStreamEvent } from '../providers/types';
@@ -71,7 +71,7 @@ const buildAttachments = (
 
 const createReportAttachment = (
     messageId: string,
-    report: Pick<InvestigationReport, 'id' | 'topic' | 'summary' | 'artifactType'>
+    report: Pick<Artifact, 'id' | 'topic' | 'summary' | 'artifactType'>
 ): ChatAttachment => ({
     id: createLocalId('chat-attachment'),
     messageId,
@@ -111,7 +111,7 @@ const resolveRunProfile = (session: ChatSession, workspace: WorkspaceContextBund
     return { pack, purpose, labelProfile };
 };
 
-const buildArtifactSources = (message: ChatMessage): InvestigationReport['sources'] =>
+const buildArtifactSources = (message: ChatMessage): Artifact['sources'] =>
     (message.attachments || [])
         .filter((attachment) => attachment.kind === 'SOURCE')
         .map((attachment) => {
@@ -475,7 +475,7 @@ export const buildArtifactDraftFromChatMessage = (params: {
     message: ChatMessage;
     title?: string;
     artifactType?: ArtifactType;
-}): { draft: ChatDraftArtifact; report: InvestigationReport; action: AgentAction } => {
+}): { draft: ChatDraftArtifact; report: Artifact; action: AgentAction } => {
     const now = Date.now();
     const { purpose, labelProfile } = resolveRunProfile(params.session, params.workspace);
     const artifactType = params.artifactType || purpose.recommendedArtifactType;
@@ -500,7 +500,7 @@ export const buildArtifactDraftFromChatMessage = (params: {
         },
         createdAt: now,
     };
-    const report: InvestigationReport = {
+    const report: Artifact = {
         id: createLocalId('rep'),
         caseId: params.workspace.id,
         topic: draft.title,
@@ -568,7 +568,7 @@ export const buildArtifactDraftFromChatMessage = (params: {
 
 export const buildArtifactAppendFromChatMessage = (params: {
     session: ChatSession;
-    report: Pick<InvestigationReport, 'id' | 'topic'>;
+    report: Pick<Artifact, 'id' | 'topic'>;
     message: ChatMessage;
 }): { section: ArtifactSection; action: AgentAction } => {
     const now = Date.now();

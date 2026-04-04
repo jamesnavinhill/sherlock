@@ -1,5 +1,5 @@
 import { desc, eq, inArray } from 'drizzle-orm';
-import type { Headline, InvestigationReport, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
+import type { Headline, Artifact, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
 import { getDB } from '../client';
 import {
     artifactSections,
@@ -57,7 +57,7 @@ const scoreCandidate = (
     return score;
 };
 
-const toRecentArtifact = (row: typeof reports.$inferSelect): InvestigationReport => ({
+const toRecentArtifact = (row: typeof reports.$inferSelect): Artifact => ({
     id: row.id,
     caseId: row.caseId || undefined,
     topic: row.topic,
@@ -68,7 +68,7 @@ const toRecentArtifact = (row: typeof reports.$inferSelect): InvestigationReport
     entities: [],
     sources: [],
     rawText: row.rawText || '',
-    artifactType: (row.artifactType as InvestigationReport['artifactType']) || undefined,
+    artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
     packId: row.packId || undefined,
     purposeId: row.purposeId || undefined,
     labelProfileId: row.labelProfileId || undefined,
@@ -267,7 +267,7 @@ export class WorkspaceSearchRepository {
     static async getArtifactSummary(
         workspaceId: string,
         reportId: string
-    ): Promise<Pick<InvestigationReport, 'id' | 'topic' | 'summary' | 'dateStr' | 'artifactType'>> {
+    ): Promise<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr' | 'artifactType'>> {
         const report = await this.getWorkspaceReport(workspaceId, reportId);
         return {
             id: report.id,
@@ -281,7 +281,7 @@ export class WorkspaceSearchRepository {
     static async getFullArtifactText(
         workspaceId: string,
         reportId: string
-    ): Promise<InvestigationReport> {
+    ): Promise<Artifact> {
         return this.getWorkspaceReport(workspaceId, reportId);
     }
 
@@ -296,7 +296,7 @@ export class WorkspaceSearchRepository {
     private static async getWorkspaceReport(
         workspaceId: string,
         reportId: string
-    ): Promise<InvestigationReport> {
+    ): Promise<Artifact> {
         const reports = await CaseRepository.getAllReports();
         const report = reports.find((entry) => entry.id === reportId && entry.caseId === workspaceId);
 

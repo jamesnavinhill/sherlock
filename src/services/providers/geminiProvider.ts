@@ -5,7 +5,7 @@ import {
     Modality,
     Type,
 } from '@google/genai';
-import type { FeedItem, InvestigationReport, MonitorEvent, Source } from '../../types';
+import type { FeedItem, Artifact, MonitorEvent, Source } from '../../types';
 import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
@@ -77,7 +77,7 @@ const supportsStructuredOutput = (modelId: string): boolean => {
     return !modelId.includes('2.5') && !modelId.includes('2-5');
 };
 
-const investigate = async (request: InvestigationRequest): Promise<InvestigationReport> => {
+const investigate = async (request: InvestigationRequest): Promise<Artifact> => {
     const { topic, parentContext, config, scope, dateOverride } = request;
     const normalizedTopic = normalizeTopicText(topic);
     const normalizedParentTopic = parentContext?.topic

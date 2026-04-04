@@ -37,16 +37,6 @@ CREATE TABLE IF NOT EXISTS "entities" (
 	FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "feed_items" (
-	"id" text PRIMARY KEY NOT NULL,
-	"title" text NOT NULL,
-	"category" text NOT NULL,
-	"content" text,
-	"url" text,
-	"risk_level" text DEFAULT 'LOW',
-	"timestamp" text NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "leads" (
 	"id" text PRIMARY KEY NOT NULL,
 	"case_id" text,
@@ -68,7 +58,6 @@ CREATE TABLE IF NOT EXISTS "reports" (
 	"date_str" text,
 	"summary" text,
 	"raw_text" text,
-	"parent_topic" text,
 	"artifact_type" text,
 	"pack_id" text,
 	"purpose_id" text,

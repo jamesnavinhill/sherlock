@@ -3,7 +3,7 @@ import {
     User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink,
     Lightbulb, FolderOpen, EyeOff, Microscope, Link2, MessageSquare, Shapes, Trash2
 } from 'lucide-react';
-import type { Entity, Headline, InvestigationReport} from '../../../types';
+import type { Entity, Headline, Artifact} from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { cleanEntityName } from '../../../utils/text';
@@ -21,23 +21,23 @@ interface NodeInspectorProps {
     selectedNode: GraphNode | null;
     selectedEntity: string | null;
     selectedHeadline: Headline | null;
-    selectedReport: InvestigationReport | null;
+    selectedReport: Artifact | null;
 
     // Context
-    reports: InvestigationReport[];
+    reports: Artifact[];
     hiddenNodeIds: Set<string>;
     flaggedNodeIds: Set<string>;
 
     // Actions
     onEntitySave: (oldName: string, newName: string) => void;
-    onReportSave: (report: InvestigationReport, newTitle: string) => void;
+    onReportSave: (report: Artifact, newTitle: string) => void;
     onToggleFlag: () => void;
     onToggleHide: () => void;
     onDeleteNode: () => void;
     onInvestigate: (topic: string, context?: InvestigationContext) => void; // Trigger modal or immediate
-    onOpenReport: (report: InvestigationReport) => void;
+    onOpenReport: (report: Artifact) => void;
     onOpenEntityChat: (entityName: string) => void;
-    onOpenReportChat: (report: InvestigationReport) => void;
+    onOpenReportChat: (report: Artifact) => void;
     onOpenHeadlineChat: (headline: Headline) => void;
 }
 
@@ -78,7 +78,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         return null;
     };
 
-    const reportTextIncludes = (report: InvestigationReport, cleanName: string) => {
+    const reportTextIncludes = (report: Artifact, cleanName: string) => {
         const sectionText = (report.sections || [])
             .flatMap((section) => [section.title, section.content || '', ...(section.items || [])])
             .join(' ');

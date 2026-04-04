@@ -21,8 +21,8 @@ import {
     Trash2,
     Workflow,
 } from 'lucide-react';
-import type { AgentAction, ChatLaunchContext, ChatMessage, ChatSession, Headline, InvestigationLaunchRequest, InvestigationReport } from '@/types';
-import { useCaseStore } from '../../../store/caseStore';
+import type { AgentAction, ChatLaunchContext, ChatMessage, ChatSession, Headline, InvestigationLaunchRequest, Artifact } from '@/types';
+import { useWorkspaceStore } from '../../../store/caseStore';
 import {
     buildArtifactAppendFromChatMessage,
     buildArtifactDraftFromChatMessage,
@@ -81,7 +81,7 @@ const getSessionTitle = (session: ChatSession): string =>
 
 const getLaunchContextSummary = (params: {
     launchContext: ChatLaunchContext | null;
-    reports: InvestigationReport[];
+    reports: Artifact[];
     headlines: Headline[];
 }) => {
     if (!params.launchContext) return null;
@@ -171,15 +171,15 @@ interface ChatProps {
 
 export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const {
-        archives,
-        cases,
+        artifacts,
+        workspaces,
         chatActionsBySessionId,
         chatGenerationStatus,
         chatMessagesBySessionId,
         chatSessions,
         createChatSession,
         updateChatSession,
-        activeCaseId,
+        activeWorkspaceId,
         activeChatSessionId,
         addChatAction,
         addChatMessage,
@@ -191,12 +191,12 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         headlines,
         partialAssistantOutput,
         renameChatSession,
-        setActiveCaseId,
+        setActiveWorkspaceId,
         setActiveChatSessionId,
         setChatGenerationStatus,
         setPartialAssistantOutput,
         updateChatMessage,
-    } = useCaseStore();
+    } = useWorkspaceStore();
 
     const [draft, setDraft] = useState('');
     const [leftPanelOpen, setLeftPanelOpen] = useState(false);
@@ -226,10 +226,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     });
 
     useEffect(() => {
-        if (!activeCaseId && cases.length > 0) {
-            setActiveCaseId(cases[0].id);
+        if (!activeWorkspaceId && workspaces.length > 0) {
+            setActiveWorkspaceId(workspaces[0].id);
         }
-    }, [activeCaseId, cases, setActiveCaseId]);
+    }, [activeWorkspaceId, workspaces, setActiveWorkspaceId]);
 
     useEffect(() => {
         const handlePointerDown = (event: MouseEvent) => {
@@ -265,8 +265,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     }, []);
 
     const activeWorkspace = useMemo(
-        () => cases.find((workspace) => workspace.id === activeCaseId) || null,
-        [activeCaseId, cases]
+        () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
+        [activeWorkspaceId, workspaces]
     );
 
     useEffect(() => {
@@ -320,8 +320,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         [activeSession, chatActionsBySessionId]
     );
     const workspaceReports = useMemo(
-        () => archives.filter((artifact) => artifact.caseId === activeWorkspace?.id),
-        [activeWorkspace?.id, archives]
+        () => artifacts.filter((artifact) => artifact.caseId === activeWorkspace?.id),
+        [activeWorkspace?.id, artifacts]
     );
     const workspaceHeadlines = useMemo(
         () => headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
@@ -789,7 +789,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         setShowExportMenu(false);
     };
 
-    if (cases.length === 0) {
+    if (workspaces.length === 0) {
         return (
             <div className="flex h-full min-h-0 items-center justify-center bg-black px-6">
                 <div className="max-w-xl border border-zinc-800 bg-zinc-950/70 p-8 text-center">
@@ -851,10 +851,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                         <div className="relative hidden w-72 min-w-0 flex-1 md:block lg:max-w-md xl:max-w-xl">
                             <select
                                 value={activeWorkspace?.id || ''}
-                                onChange={(event) => setActiveCaseId(event.target.value || null)}
+                                onChange={(event) => setActiveWorkspaceId(event.target.value || null)}
                                 className="w-full appearance-none border border-zinc-700 bg-black py-1.5 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
                             >
-                                {cases.map((workspace) => (
+                                {workspaces.map((workspace) => (
                                     <option key={workspace.id} value={workspace.id}>
                                         {sanitizeDisplayTitle(workspace.title)}
                                     </option>

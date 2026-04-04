@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import type { InvestigationReport, InvestigationTask } from '../../../types';
-import { useCaseStore } from '../../../store/caseStore';
+import type { Artifact, WorkspaceRun } from '../../../types';
+import { useWorkspaceStore } from '../../../store/caseStore';
 
 vi.mock('./Toolbar', () => ({
     Toolbar: ({ onOpenChat }: { onOpenChat?: () => void }) => (
@@ -113,7 +113,7 @@ vi.mock('../../ui/BackgroundMatrixRain', () => ({
 
 import { OperationView } from './index';
 
-const reportFixture: InvestigationReport = {
+const reportFixture: Artifact = {
     id: 'report-1',
     caseId: 'case-1',
     topic: 'Atlas Contract Network',
@@ -134,7 +134,7 @@ const reportFixture: InvestigationReport = {
     },
 };
 
-const taskFixture: InvestigationTask = {
+const taskFixture: WorkspaceRun = {
     id: 'task-1',
     topic: reportFixture.topic,
     status: 'COMPLETED',
@@ -147,9 +147,9 @@ describe('OperationView launch propagation', () => {
         localStorage.clear();
         vi.restoreAllMocks();
 
-        useCaseStore.setState({
-            activeCaseId: 'case-1',
-            cases: [
+        useWorkspaceStore.setState({
+            activeWorkspaceId: 'case-1',
+            workspaces: [
                 {
                     id: 'case-1',
                     title: 'Operation: Atlas',
@@ -158,7 +158,7 @@ describe('OperationView launch propagation', () => {
                     description: 'Procurement case',
                 },
             ],
-            archives: [reportFixture],
+            artifacts: [reportFixture],
             headlines: [
                 {
                     id: 'headline-1',

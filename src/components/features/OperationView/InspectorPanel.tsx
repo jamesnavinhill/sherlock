@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
     User, Building2, Network, X, Star, Search, FileText, Newspaper, Globe, ExternalLink, MessageSquare, Shapes
 } from 'lucide-react';
-import type { Entity, Headline, InvestigationReport } from '../../../types';
+import type { Entity, Headline, Artifact } from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { getEntityToneClass } from '../../../utils/entityPalette';
@@ -13,7 +13,7 @@ interface InspectorPanelProps {
     mode: 'ENTITY' | 'HEADLINE' | null;
     entity: Entity | null;
     headline: Headline | null;
-    reports: InvestigationReport[]; // For mentions/connections
+    reports: Artifact[]; // For mentions/connections
     onEntitySave: (newName: string) => void;
     onFlagEntity: (entityName: string) => void;
     onInvestigateEntity: (entityName: string) => void;

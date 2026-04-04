@@ -146,7 +146,7 @@ describe('provider adapter contracts', () => {
 
         const report = await geminiProvider.investigate({
             topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
+            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
             pack: packFixture,
@@ -193,7 +193,7 @@ describe('provider adapter contracts', () => {
 
         const report = await openRouterProvider.investigate({
             topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
+            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
             pack: packFixture,
@@ -240,7 +240,7 @@ describe('provider adapter contracts', () => {
 
         const report = await openAIProvider.investigate({
             topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
+            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
             pack: packFixture,
@@ -287,7 +287,7 @@ describe('provider adapter contracts', () => {
 
         const report = await anthropicProvider.investigate({
             topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Case', summary: 'Prior signals' },
+            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
             config,
             scope: scopeFixture,
             pack: packFixture,

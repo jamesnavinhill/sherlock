@@ -25,7 +25,6 @@ Defined in `src/services/db/schema.ts`:
 - `chat_messages`
 - `chat_message_attachments`
 - `chat_actions`
-- `feed_items`
 - `settings`
 - `templates`
 - `manual_nodes`
@@ -53,6 +52,8 @@ Runtime code now treats persisted records as:
 - `WorkspaceRun` -> stored in `tasks`
 
 The table names remain for persistence continuity, but the primary runtime model is canonical workspace terminology.
+
+Finder/Feed discovery results are transient runtime state in the store and are not persisted as a separate SQLite table.
 
 `cases` can now store workspace-oriented metadata:
 

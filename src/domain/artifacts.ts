@@ -2,7 +2,7 @@ import type {
   ArtifactSection,
   ArtifactSectionKind,
   ArtifactType,
-  InvestigationReport,
+  Artifact,
   LabelProfile,
   PurposeProfile,
 } from '../types';
@@ -231,7 +231,7 @@ export const getSectionContentByKinds = (
   return section?.content?.trim() || '';
 };
 
-export const toLegacyReportArrays = (report: InvestigationReport): Pick<InvestigationReport, 'agendas' | 'leads' | 'followUps'> => {
+export const toLegacyReportArrays = (report: Artifact): Pick<Artifact, 'agendas' | 'leads' | 'followUps'> => {
   const leadItems = getSectionItemsByKinds(report.sections, ['LEADS', 'NEXT_STEPS']);
   const anomalyItems = getSectionItemsByKinds(report.sections, ['ANOMALIES', 'KEY_FINDINGS']);
 
