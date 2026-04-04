@@ -24,6 +24,14 @@ npm run build
 npm run check
 ```
 
+## Validation Expectations
+
+- Prefer targeted validation during normal development work.
+- Run the smallest relevant test command(s) that cover the changed files or feature area.
+- Run `npm run test` only when you need the full suite, the change is broad/high-risk, or a reviewer specifically wants it.
+- Run `npm run build` for shipped app changes, routing changes, shared UI/runtime changes, or other changes that could affect production bundling.
+- If you skip the full test suite, call that out clearly in PR notes or handoff notes.
+
 ## Pull Request Expectations
 
 1. Keep changes scoped and coherent.

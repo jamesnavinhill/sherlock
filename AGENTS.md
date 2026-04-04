@@ -32,13 +32,33 @@ When unsure, start from:
 
 ## 5. Validation Expectations
 
-Before finishing non-trivial changes, run:
+Before finishing non-trivial changes, run the narrowest validation that credibly covers the files and behavior touched in that session.
+
+Default expectation:
+
+- run `npm run lint`
+- run the most relevant targeted test command(s) for the changed files or feature area
+- run `npm run build` when the change affects shipped app code, bundling, routing, or shared UI/runtime behavior
+
+Do not default to the full Vitest suite if the change is well-scoped and the user did not ask for it.
+
+Run the full test suite (`npm run test`) when:
+
+- the user explicitly asks for the full suite
+- the change is cross-cutting or high-risk
+- shared infrastructure is touched and targeted coverage would be misleading
+- you are not confident the affected surface has adequate targeted coverage
+
+Examples of acceptable targeted validation:
 
 ```bash
 npm run lint
-npm run test
+npm run test -- src/components/features/Timeline/timelineEvents.test.ts
+npx eslint src/components/features/TimelineView.tsx src/components/features/Timeline/timelineEvents.ts
 npm run build
 ```
+
+If you do not run the full suite, say so explicitly in the handoff/final response.
 
 If any command fails, report exact failing areas.
 
