@@ -6,6 +6,7 @@ import {
     Settings as SettingsIcon, Info, Search, Cpu, Target, Lightbulb, Compass,
     Briefcase, Layout, Sparkles
 } from 'lucide-react';
+import { OsintSelect } from '../../ui/OsintSelect';
 import { BUILTIN_SCOPES, getAllScopes } from '../../../data/presets';
 import { AI_MODELS, DEFAULT_MODEL_ID, getModelDisplayName, getModelProvider } from '../../../config/aiModels';
 import { loadSystemConfig } from '../../../config/systemConfig';
@@ -476,17 +477,16 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                 <div className="space-y-5">
                                     <div>
                                         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Model</label>
-                                        <select
+                                        <OsintSelect
+                                            ariaLabel="Template model"
                                             value={selectedModel}
-                                            onChange={(event) => setSelectedModel(event.target.value)}
-                                            className="w-full bg-black border border-zinc-700 text-zinc-300 p-3 font-mono text-xs focus:border-osint-primary outline-none"
-                                        >
-                                            {selectableModels.map((model) => (
-                                                <option key={model.id} value={model.id}>
-                                                    {model.name} - {model.description}
-                                                </option>
-                                            ))}
-                                        </select>
+                                            onChange={setSelectedModel}
+                                            triggerClassName="p-3 pr-10 font-mono text-xs"
+                                            options={selectableModels.map((model) => ({
+                                                value: model.id,
+                                                label: `${model.name} - ${model.description}`,
+                                            }))}
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Persona</label>

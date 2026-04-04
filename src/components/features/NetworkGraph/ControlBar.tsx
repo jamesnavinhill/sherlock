@@ -1,10 +1,11 @@
 import React from 'react';
 import {
     ZoomOut, ZoomIn, Link as LinkIcon, PlusCircle, GitMerge,
-    Lock, Unlock, Briefcase, ChevronRight, ChevronDown, Box, Eye, EyeOff, Star
+    Lock, Unlock, Briefcase, ChevronRight, Box, Eye, EyeOff, Star
 } from 'lucide-react';
 import type { Workspace, LabelProfile } from '../../../types';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
+import { OsintSelect } from '../../ui/OsintSelect';
 
 interface ControlBarProps {
     workspaces: Workspace[];
@@ -62,19 +63,21 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                     <span className="text-xs font-mono uppercase font-bold hidden lg:inline">{`${labelProfile.workspaceLabel} Dossier`}</span>
                     <ChevronRight className={`w-3 h-3 transition-transform ${showLeftPanel ? 'rotate-180' : ''}`} />
                 </button>
-                <div className="relative group hidden md:block">
-                    <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-                    <select
+                <div className="hidden md:block min-w-[180px] max-w-[220px]">
+                    <OsintSelect
+                        ariaLabel={`Select ${labelProfile.workspaceLabel}`}
                         value={filterCaseId || ''}
-                        onChange={(e) => onCaseChange(e.target.value)}
-                        className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[180px] max-w-[220px] truncate"
-                    >
-                        <option value="">{`SELECT ${labelProfile.workspaceLabel.toUpperCase()}`}</option>
-                        {workspaces.map(c => (
-                            <option key={c.id} value={c.id}>{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
-                        ))}
-                        <option value="ALL" className="font-bold border-t border-zinc-700">{`ALL ${labelProfile.workspaceLabelPlural.toUpperCase()} (GLOBAL VIEW)`}</option>
-                    </select>
+                        onChange={onCaseChange}
+                        triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+                        options={[
+                            { value: '', label: `SELECT ${labelProfile.workspaceLabel.toUpperCase()}` },
+                            ...workspaces.map((workspace) => ({
+                                value: workspace.id,
+                                label: `${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                            })),
+                            { value: 'ALL', label: `ALL ${labelProfile.workspaceLabelPlural.toUpperCase()} (GLOBAL VIEW)` },
+                        ]}
+                    />
                 </div>
             </div>
 

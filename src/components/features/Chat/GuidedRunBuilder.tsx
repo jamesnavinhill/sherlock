@@ -26,6 +26,7 @@ import {
     type GuidedRunDraft,
     type GuidedSessionState,
 } from '../../../services/chat/guidedMode';
+import { OsintSelect } from '../../ui/OsintSelect';
 import { createLocalId } from '../../../utils/id';
 
 interface GuidedRunBuilderProps {
@@ -143,40 +144,38 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Pack
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Pack"
                         value={draft.scopeId}
-                        onChange={(event) => handleScopeChange(event.target.value)}
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        {allScopes.map((scope) => (
-                            <option key={scope.id} value={scope.id}>
-                                {scope.name}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={handleScopeChange}
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={allScopes.map((scope) => ({
+                            value: scope.id,
+                            label: scope.name,
+                        }))}
+                    />
                 </label>
                 <label className="block">
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Purpose
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Purpose"
                         value={draft.purposeId}
-                        onChange={(event) => {
-                            const nextPurpose = getPurposeProfileById(event.target.value);
+                        onChange={(value) => {
+                            const nextPurpose = getPurposeProfileById(value);
                             setDraft((current) => ({
                                 ...current,
                                 purposeId: nextPurpose.id,
                                 artifactType: nextPurpose.recommendedArtifactType,
                             }));
                         }}
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        {supportedPurposes.map((purpose) => (
-                            <option key={purpose.id} value={purpose.id}>
-                                {purpose.name}
-                            </option>
-                        ))}
-                    </select>
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={supportedPurposes.map((purpose) => ({
+                            value: purpose.id,
+                            label: purpose.name,
+                        }))}
+                    />
                 </label>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -184,42 +183,43 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Output Shape
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Output shape"
                         value={draft.artifactType}
-                        onChange={(event) =>
+                        onChange={(value) =>
                             setDraft((current) => ({
                                 ...current,
-                                artifactType: event.target.value as GuidedRunDraft['artifactType'],
+                                artifactType: value as GuidedRunDraft['artifactType'],
                             }))
                         }
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        {[selectedPurpose.recommendedArtifactType, 'REPORT', 'SYNTHESIS', 'BRIEF', 'DIGEST', 'COMPARISON', 'TIMELINE', 'MONITOR_SNAPSHOT', 'NOTE']
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={[selectedPurpose.recommendedArtifactType, 'REPORT', 'SYNTHESIS', 'BRIEF', 'DIGEST', 'COMPARISON', 'TIMELINE', 'MONITOR_SNAPSHOT', 'NOTE']
                             .filter((value, index, array) => array.indexOf(value) === index)
-                            .map((artifactType) => (
-                                <option key={artifactType} value={artifactType}>
-                                    {artifactType}
-                                </option>
-                            ))}
-                    </select>
+                            .map((artifactType) => ({
+                                value: artifactType,
+                                label: artifactType,
+                            }))}
+                    />
                 </label>
                 <label className="block">
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Workspace Intent
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Workspace intent"
                         value={draft.workspaceIntent}
-                        onChange={(event) =>
+                        onChange={(value) =>
                             setDraft((current) => ({
                                 ...current,
-                                workspaceIntent: event.target.value as GuidedRunDraft['workspaceIntent'],
+                                workspaceIntent: value as GuidedRunDraft['workspaceIntent'],
                             }))
                         }
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        <option value="CURRENT">{workspace?.title || 'Current workspace'}</option>
-                        <option value="NEW">New workspace</option>
-                    </select>
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={[
+                            { value: 'CURRENT', label: workspace?.title || 'Current workspace' },
+                            { value: 'NEW', label: 'New workspace' },
+                        ]}
+                    />
                 </label>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -292,17 +292,18 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     placeholder="Entity, source, or concept"
                     className="flex-1 border border-zinc-700 bg-black px-3 py-2 text-sm text-white outline-none focus:border-osint-primary"
                 />
-                <select
-                    value={newEntityType}
-                    onChange={(event) => setNewEntityType(event.target.value as GraphNodeSubtype)}
-                    className="border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                >
-                    {ENTITY_TYPES.map((entityType) => (
-                        <option key={entityType} value={entityType}>
-                            {entityType}
-                        </option>
-                    ))}
-                </select>
+                <div className="md:w-48">
+                    <OsintSelect
+                        ariaLabel="Entity type"
+                        value={newEntityType}
+                        onChange={(value) => setNewEntityType(value as GraphNodeSubtype)}
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={ENTITY_TYPES.map((entityType) => ({
+                            value: entityType,
+                            label: entityType,
+                        }))}
+                    />
+                </div>
                 <button
                     type="button"
                     onClick={handleAddEntity}
@@ -387,39 +388,37 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Persona
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Persona"
                         value={draft.persona}
-                        onChange={(event) =>
-                            setDraft((current) => ({ ...current, persona: event.target.value }))
+                        onChange={(value) =>
+                            setDraft((current) => ({ ...current, persona: value }))
                         }
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        {selectedScope.personas.map((persona) => (
-                            <option key={persona.id} value={persona.id}>
-                                {persona.label}
-                            </option>
-                        ))}
-                    </select>
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={selectedScope.personas.map((persona) => ({
+                            value: persona.id,
+                            label: persona.label,
+                        }))}
+                    />
                 </label>
                 <label className="block">
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Provider
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Provider"
                         value={draft.provider}
-                        onChange={(event) =>
-                            handleProviderChange(event.target.value as GuidedRunDraft['provider'])
+                        onChange={(value) =>
+                            handleProviderChange(value as GuidedRunDraft['provider'])
                         }
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        {AI_PROVIDERS.filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE').map(
-                            (provider) => (
-                                <option key={provider.id} value={provider.id}>
-                                    {provider.label}
-                                </option>
-                            )
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={AI_PROVIDERS.filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE').map(
+                            (provider) => ({
+                                value: provider.id,
+                                label: provider.label,
+                            })
                         )}
-                    </select>
+                    />
                 </label>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -427,37 +426,38 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Model
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Model"
                         value={draft.modelId}
-                        onChange={(event) =>
-                            setDraft((current) => ({ ...current, modelId: event.target.value }))
+                        onChange={(value) =>
+                            setDraft((current) => ({ ...current, modelId: value }))
                         }
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        {selectableModels.map((model) => (
-                            <option key={model.id} value={model.id}>
-                                {model.name}
-                            </option>
-                        ))}
-                    </select>
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={selectableModels.map((model) => ({
+                            value: model.id,
+                            label: model.name,
+                        }))}
+                    />
                 </label>
                 <label className="block">
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Scan Depth
                     </span>
-                    <select
+                    <OsintSelect
+                        ariaLabel="Scan depth"
                         value={draft.searchDepth}
-                        onChange={(event) =>
+                        onChange={(value) =>
                             setDraft((current) => ({
                                 ...current,
-                                searchDepth: event.target.value as GuidedRunDraft['searchDepth'],
+                                searchDepth: value as GuidedRunDraft['searchDepth'],
                             }))
                         }
-                        className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
-                    >
-                        <option value="STANDARD">Standard</option>
-                        <option value="DEEP">Deep</option>
-                    </select>
+                        triggerClassName="px-3 py-2 pr-8 text-sm"
+                        options={[
+                            { value: 'STANDARD', label: 'Standard' },
+                            { value: 'DEEP', label: 'Deep' },
+                        ]}
+                    />
                 </label>
             </div>
             <label className="block">

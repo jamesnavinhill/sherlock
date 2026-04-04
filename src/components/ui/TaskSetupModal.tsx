@@ -19,12 +19,12 @@ import {
   Compass,
   Calendar,
   Cpu,
-  ChevronDown,
   Sparkles,
   Shapes,
   Library,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/caseStore';
+import { OsintSelect } from './OsintSelect';
 import type {
   CaseTemplate,
   GraphNodeSubtype,
@@ -550,17 +550,21 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             className="flex-1 bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none placeholder-zinc-600"
             onKeyDown={(event) => event.key === 'Enter' && handleAddEntity()}
           />
-          <select
-            value={newEntityType}
-            onChange={(event) => setNewEntityType(event.target.value as GraphNodeSubtype)}
-            className="bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
-          >
-            <option value="PERSON">Person</option>
-            <option value="ORGANIZATION">Organization</option>
-            <option value="CONCEPT">Concept</option>
-            <option value="SOURCE">Source</option>
-            <option value="UNKNOWN">Unknown</option>
-          </select>
+          <div className="w-40">
+            <OsintSelect
+              ariaLabel="Seed entity type"
+              value={newEntityType}
+              onChange={(value) => setNewEntityType(value as GraphNodeSubtype)}
+              triggerClassName="p-2 pr-8 font-mono text-xs"
+              options={[
+                { value: 'PERSON', label: 'Person' },
+                { value: 'ORGANIZATION', label: 'Organization' },
+                { value: 'CONCEPT', label: 'Concept' },
+                { value: 'SOURCE', label: 'Source' },
+                { value: 'UNKNOWN', label: 'Unknown' },
+              ]}
+            />
+          </div>
           <button
             onClick={handleAddEntity}
             disabled={!newEntityName.trim()}
@@ -679,17 +683,16 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           <p className="text-[10px] text-zinc-600 mb-3 font-mono">
             Personas tailored for {selectedScope?.name || 'this pack'}
           </p>
-          <select
+          <OsintSelect
+            ariaLabel="Agent persona"
             value={effectivePersona}
-            onChange={(event) => setPersona(event.target.value)}
-            className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none mt-auto"
-          >
-            {selectedScope?.personas.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
+            onChange={setPersona}
+            triggerClassName="mt-auto p-2 pr-8 font-mono text-xs"
+            options={(selectedScope?.personas || []).map((item) => ({
+              value: item.id,
+              label: item.label,
+            }))}
+          />
         </section>
 
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
@@ -700,29 +703,25 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           <p className="text-[10px] text-zinc-600 mb-3 font-mono">
             Choose the AI backend for this run.
           </p>
-          <div className="relative mt-auto">
-            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <select
-              value={selectedProvider}
-              onChange={(event) => {
-                const provider = event.target.value as AIProvider;
-                setSelectedProvider(provider);
-                setSelectedModel(
-                  getRuntimeReadyModelsForProvider(provider)[0]?.id
-                  || getDefaultModelForProvider(provider)
-                );
-              }}
-              className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
-            >
-              {AI_PROVIDERS
-                .filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE')
-                .map((provider) => (
-                  <option key={provider.id} value={provider.id}>
-                    {provider.label}
-                  </option>
-                ))}
-            </select>
-          </div>
+          <OsintSelect
+            ariaLabel="Provider"
+            value={selectedProvider}
+            onChange={(value) => {
+              const provider = value as AIProvider;
+              setSelectedProvider(provider);
+              setSelectedModel(
+                getRuntimeReadyModelsForProvider(provider)[0]?.id
+                || getDefaultModelForProvider(provider)
+              );
+            }}
+            triggerClassName="mt-auto p-2 pr-8 font-mono text-xs"
+            options={AI_PROVIDERS
+              .filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE')
+              .map((provider) => ({
+                value: provider.id,
+                label: provider.label,
+              }))}
+          />
         </section>
 
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
@@ -733,20 +732,16 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           <p className="text-[10px] text-zinc-600 mb-2 font-mono">
             Selected provider: {selectedProviderMeta?.label || selectedProvider}
           </p>
-          <div className="relative">
-            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <select
-              value={effectiveSelectedModel}
-              onChange={(event) => setSelectedModel(event.target.value)}
-              className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 pr-8 font-mono text-xs focus:border-osint-primary outline-none appearance-none cursor-pointer"
-            >
-              {selectableModels.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.name} - {model.description}
-                </option>
-              ))}
-            </select>
-          </div>
+          <OsintSelect
+            ariaLabel="Model"
+            value={effectiveSelectedModel}
+            onChange={setSelectedModel}
+            triggerClassName="p-2 pr-8 font-mono text-xs"
+            options={selectableModels.map((model) => ({
+              value: model.id,
+              label: `${model.name} - ${model.description}`,
+            }))}
+          />
           <p className="text-[10px] text-zinc-600 mt-2 font-mono">
             Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'},
             web search {selectedProviderMeta?.capabilities.supportsWebSearch ? 'available' : 'not available'}.

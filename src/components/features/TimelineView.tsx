@@ -24,6 +24,7 @@ import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { Accordion } from '../ui/Accordion';
 import { EmptyState } from '../ui/EmptyState';
+import { OsintSelect } from '../ui/OsintSelect';
 import { getLabelProfileById, sanitizeDisplayTitle } from '../../domain';
 import { getChatLaunchContextFromSession } from '../../services/chat/launchContext';
 import {
@@ -544,18 +545,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                 </div>
                             </div>
 
-                            <div className="relative hidden w-60 min-w-0 md:block lg:w-72">
-                                <select
+                            <div className="hidden w-60 min-w-0 md:block lg:w-72">
+                                <OsintSelect
+                                    ariaLabel={`${labelProfile.workspaceLabel} timeline workspace`}
                                     value={activeWorkspace?.id || ''}
-                                    onChange={(event) => setActiveWorkspaceId(event.target.value || null)}
-                                    className="w-full appearance-none border border-zinc-700 bg-black py-1.5 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
-                                >
-                                    {workspaces.map((workspace) => (
-                                        <option key={workspace.id} value={workspace.id}>
-                                            {sanitizeDisplayTitle(workspace.title)}
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={(value) => setActiveWorkspaceId(value || null)}
+                                    triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
+                                    options={workspaces.map((workspace) => ({
+                                        value: workspace.id,
+                                        label: sanitizeDisplayTitle(workspace.title),
+                                    }))}
+                                />
                             </div>
                         </div>
 
@@ -615,21 +615,23 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                                 <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
                                                     Date Range
                                                 </label>
-                                                <select
+                                                <OsintSelect
+                                                    ariaLabel="Timeline date range"
                                                     value={filters.range}
-                                                    onChange={(event) =>
+                                                    onChange={(value) =>
                                                         setFilters((current) => ({
                                                             ...current,
-                                                            range: event.target.value as TimelineRange,
+                                                            range: value as TimelineRange,
                                                         }))
                                                     }
-                                                    className="w-full border border-zinc-700 bg-black px-3 py-2 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
-                                                >
-                                                    <option value="ALL">All Activity</option>
-                                                    <option value="7D">Last 7 Days</option>
-                                                    <option value="30D">Last 30 Days</option>
-                                                    <option value="90D">Last 90 Days</option>
-                                                </select>
+                                                    triggerClassName="px-3 py-2 pr-8 text-xs font-mono"
+                                                    options={[
+                                                        { value: 'ALL', label: 'All Activity' },
+                                                        { value: '7D', label: 'Last 7 Days' },
+                                                        { value: '30D', label: 'Last 30 Days' },
+                                                        { value: '90D', label: 'Last 90 Days' },
+                                                    ]}
+                                                />
                                             </div>
 
                                             <div>
@@ -692,18 +694,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)]">
-                        <div className="relative min-w-0 md:hidden">
-                            <select
+                        <div className="min-w-0 md:hidden">
+                            <OsintSelect
+                                ariaLabel={`${labelProfile.workspaceLabel} timeline workspace mobile`}
                                 value={activeWorkspace?.id || ''}
-                                onChange={(event) => setActiveWorkspaceId(event.target.value || null)}
-                                className="w-full appearance-none border border-zinc-700 bg-black py-2 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
-                            >
-                                {workspaces.map((workspace) => (
-                                    <option key={workspace.id} value={workspace.id}>
-                                        {sanitizeDisplayTitle(workspace.title)}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={(value) => setActiveWorkspaceId(value || null)}
+                                triggerClassName="py-2 pl-3 pr-8 text-xs font-mono"
+                                options={workspaces.map((workspace) => ({
+                                    value: workspace.id,
+                                    label: sanitizeDisplayTitle(workspace.title),
+                                }))}
+                            />
                         </div>
 
                         <div className="relative min-w-0">

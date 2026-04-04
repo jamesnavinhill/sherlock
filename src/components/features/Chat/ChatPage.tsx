@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import type { AgentAction, ChatLaunchContext, ChatMessage, ChatSession, Headline, InvestigationLaunchRequest, Artifact } from '@/types';
 import { useWorkspaceStore } from '../../../store/caseStore';
+import { OsintSelect } from '../../ui/OsintSelect';
 import {
     buildArtifactAppendFromChatMessage,
     buildArtifactDraftFromChatMessage,
@@ -844,18 +845,17 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                             Sessions
                         </button>
 
-                        <div className="relative hidden w-72 min-w-0 flex-1 md:block lg:max-w-md xl:max-w-xl">
-                            <select
+                        <div className="hidden w-72 min-w-0 flex-1 md:block lg:max-w-md xl:max-w-xl">
+                            <OsintSelect
+                                ariaLabel="Chat workspace"
                                 value={activeWorkspace?.id || ''}
-                                onChange={(event) => setActiveWorkspaceId(event.target.value || null)}
-                                className="w-full appearance-none border border-zinc-700 bg-black py-1.5 pl-3 pr-8 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
-                            >
-                                {workspaces.map((workspace) => (
-                                    <option key={workspace.id} value={workspace.id}>
-                                        {sanitizeDisplayTitle(workspace.title)}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={(value) => setActiveWorkspaceId(value || null)}
+                                triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
+                                options={workspaces.map((workspace) => ({
+                                    value: workspace.id,
+                                    label: sanitizeDisplayTitle(workspace.title),
+                                }))}
+                            />
                         </div>
                     </div>
 

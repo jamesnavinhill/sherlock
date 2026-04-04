@@ -5,6 +5,7 @@ import { RefreshCw, Search, ArrowRight, Filter, MapPin, Tag, Calendar, X, Layout
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { MatrixCardLoader } from '../ui/MatrixCardLoader';
+import { OsintSelect } from '../ui/OsintSelect';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 import { getDomainPackForScope, getLabelProfileById } from '../../domain';
@@ -169,15 +170,19 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           {feedConfig.autoRefresh && (
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-zinc-600 font-mono">Interval</span>
-              <select
-                value={feedConfig.refreshInterval}
-                onChange={(e) => setFeedConfig({ ...feedConfig, refreshInterval: parseInt(e.target.value) })}
-                className="bg-black border border-zinc-800 text-zinc-400 text-[10px] font-mono px-2 py-1 outline-none"
-              >
-                <option value={30000}>30 SECONDS</option>
-                <option value={60000}>1 MINUTE</option>
-                <option value={300000}>5 MINUTES</option>
-              </select>
+              <div className="w-28">
+                <OsintSelect
+                  ariaLabel="Auto-refresh interval"
+                  value={String(feedConfig.refreshInterval)}
+                  onChange={(value) => setFeedConfig({ ...feedConfig, refreshInterval: parseInt(value, 10) })}
+                  triggerClassName="px-2 py-1 pr-8 font-mono text-[10px] text-zinc-400"
+                  options={[
+                    { value: '30000', label: '30 SECONDS' },
+                    { value: '60000', label: '1 MINUTE' },
+                    { value: '300000', label: '5 MINUTES' },
+                  ]}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -233,13 +238,16 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           {/* Category Filter */}
           <div className="relative hidden md:block w-40">
             <Tag className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
-            <select
+            <OsintSelect
+              ariaLabel="Feed category"
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs pl-7 py-1.5 pr-2 font-mono focus:border-osint-primary outline-none appearance-none cursor-pointer hover:border-zinc-500"
-            >
-              {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
+              onChange={setFilterCategory}
+              triggerClassName="py-1.5 pl-7 pr-8 text-xs font-mono hover:border-zinc-500 focus-visible:border-osint-primary"
+              options={categories.map((category) => ({
+                value: category,
+                label: category,
+              }))}
+            />
           </div>
 
           {/* Region Filter */}
@@ -352,13 +360,16 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               {/* Mobile Category */}
               <div>
                 <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">Category</label>
-                <select
+                <OsintSelect
+                  ariaLabel="Feed category mobile"
                   value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs px-2 py-2 font-mono focus:border-osint-primary outline-none"
-                >
-                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                </select>
+                  onChange={setFilterCategory}
+                  triggerClassName="px-2 py-2 pr-8 text-xs font-mono"
+                  options={categories.map((category) => ({
+                    value: category,
+                    label: category,
+                  }))}
+                />
               </div>
 
               {/* Mobile Region */}

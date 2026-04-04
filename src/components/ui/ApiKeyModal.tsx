@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { setApiKey } from '../../services/runtime';
-import { Key, ShieldCheck, Lock, ArrowRight, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Key, ShieldCheck, Lock, ArrowRight, AlertTriangle } from 'lucide-react';
 import type { AIProvider } from '../../config/aiModels';
 import { AI_PROVIDERS } from '../../config/aiModels';
 import { loadSystemConfig } from '../../config/systemConfig';
 import { validateApiKey } from '../../services/providers/keys';
+import { OsintSelect } from './OsintSelect';
 
 interface ApiKeyModalProps {
    onKeySet: () => void;
@@ -73,23 +74,19 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet }) => {
 
                <div>
                   <label className="block text-xs font-mono text-zinc-500 uppercase mb-2">Provider</label>
-                  <div className="relative">
-                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-                     <select
-                        value={selectedProvider}
-                        onChange={(e) => {
-                           setSelectedProvider(e.target.value as AIProvider);
-                           setError('');
-                        }}
-                        className="w-full bg-black border border-zinc-700 text-white p-3 font-mono text-sm appearance-none focus:border-osint-primary outline-none"
-                     >
-                        {AI_PROVIDERS.map((provider) => (
-                           <option key={provider.id} value={provider.id}>
-                              {provider.label}
-                           </option>
-                        ))}
-                     </select>
-                  </div>
+                  <OsintSelect
+                     ariaLabel="Provider"
+                     value={selectedProvider}
+                     onChange={(value) => {
+                        setSelectedProvider(value as AIProvider);
+                        setError('');
+                     }}
+                     triggerClassName="p-3 pr-10 font-mono text-sm text-white"
+                     options={AI_PROVIDERS.map((provider) => ({
+                        value: provider.id,
+                        label: provider.label,
+                     }))}
+                  />
                </div>
 
                <div>

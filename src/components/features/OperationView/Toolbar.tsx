@@ -3,6 +3,7 @@ import { ChevronDown, Download, FileText, Plus, FileJson, Save, Layout, Briefcas
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import { exportCaseAsHtml, exportCaseAsJson, exportReportAsHtml, exportReportAsJson, exportCaseAsMarkdown, exportReportAsMarkdown } from '../../../utils/exportUtils';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
+import { OsintSelect } from '../../ui/OsintSelect';
 
 interface ToolbarProps {
     activeCase: Workspace | null;
@@ -59,18 +60,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 >
                     <Layout className="w-5 h-5 focus:outline-none" />
                 </button>
-                <div className="relative group hidden md:block">
-                    <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-                    <select
+                <div className="hidden md:block min-w-[180px] max-w-[220px]">
+                    <OsintSelect
+                        ariaLabel={`Select ${labelProfile.workspaceLabel}`}
                         value={selectedCaseId || 'ALL'}
-                        onChange={(e) => onSelectCase(e.target.value)}
-                        className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[180px] max-w-[220px] truncate"
-                    >
-                        <option value="ALL">{`SELECT ${labelProfile.workspaceLabel.toUpperCase()}`}</option>
-                        {allCases.map(c => (
-                            <option key={c.id} value={c.id}>{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
-                        ))}
-                    </select>
+                        onChange={onSelectCase}
+                        triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+                        options={[
+                            { value: 'ALL', label: `SELECT ${labelProfile.workspaceLabel.toUpperCase()}` },
+                            ...allCases.map((workspace) => ({
+                                value: workspace.id,
+                                label: `${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                            })),
+                        ]}
+                    />
                 </div>
 
             </div>

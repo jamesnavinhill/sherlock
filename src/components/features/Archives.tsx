@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact } from '../../types';
-import { FileText, Trash2, ArrowRight, FolderOpen, Folder, ChevronLeft, Plus, FolderClosed, Download, FileJson, ChevronDown, MessageSquare } from 'lucide-react';
+import { FileText, Trash2, ArrowRight, FolderOpen, Folder, Plus, FolderClosed, Download, FileJson, ChevronDown, MessageSquare } from 'lucide-react';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { EmptyState } from '../ui/EmptyState';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
+import { OsintSelect } from '../ui/OsintSelect';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
 import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../domain';
 import {
@@ -373,19 +374,23 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
       <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg">
         <div className="flex items-center space-x-6">
           {/* Workspace Selector */}
-          <div className="relative group hidden md:block">
-            <ChevronLeft className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none rotate-270" style={{ transform: 'translateY(-50%) rotate(-90deg)' }} />
-            <select
+          <div className="hidden md:block min-w-[200px] max-w-[300px]">
+            <OsintSelect
+              ariaLabel={`View ${archiveLabelProfile.workspaceLabel}`}
               value={effectiveSelectedCaseId || 'ALL'}
-              onChange={(e) => handleCaseSelect(e.target.value)}
-              className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary min-w-[200px] max-w-[300px] truncate"
-            >
-              <option value="ALL">{`VIEW ALL ${archiveLabelProfile.workspaceLabelPlural.toUpperCase()}`}</option>
-              {workspaces.map(c => (
-                <option key={c.id} value={c.id}>{`${archiveLabelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
-              ))}
-              {getUnassignedReports().length > 0 && <option value="unassigned">{`UNASSIGNED ${archiveLabelProfile.artifactLabelPlural.toUpperCase()}`}</option>}
-            </select>
+              onChange={handleCaseSelect}
+              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+              options={[
+                { value: 'ALL', label: `VIEW ALL ${archiveLabelProfile.workspaceLabelPlural.toUpperCase()}` },
+                ...workspaces.map((workspace) => ({
+                  value: workspace.id,
+                  label: `${archiveLabelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                })),
+                ...(getUnassignedReports().length > 0
+                  ? [{ value: 'unassigned', label: `UNASSIGNED ${archiveLabelProfile.artifactLabelPlural.toUpperCase()}` }]
+                  : []),
+              ]}
+            />
           </div>
         </div>
 

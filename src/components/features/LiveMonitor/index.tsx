@@ -5,11 +5,12 @@ import type { MonitorConfig } from '../../../services/runtime';
 import { getLiveWorkspaceIntel } from '../../../services/runtime';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import {
-    Radio, Play, Pause, ChevronDown, Activity, Settings2, Radar
+    Radio, Play, Pause, Activity, Settings2, Radar
 } from 'lucide-react';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { EmptyState } from '../../ui/EmptyState';
+import { OsintSelect } from '../../ui/OsintSelect';
 import { getDomainPackForScope, getLabelProfileById, stripLegacyWorkspacePrefix } from '../../../domain';
 
 // Sub-components
@@ -266,61 +267,61 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
                 {/* Left: Selectors */}
                 <div className="flex items-center space-x-6">
                     {/* Workspace Selector */}
-                    <div className="relative group hidden md:block">
-                        <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-                        <select
+                    <div className="hidden md:block min-w-[100px] max-w-[250px]">
+                        <OsintSelect
+                            ariaLabel={`${labelProfile.workspaceLabel} selector`}
                             value={selectedCaseId || ''}
-                            onChange={(e) => {
-                                setSelectedCaseId(e.target.value);
-                            }}
+                            onChange={setSelectedCaseId}
                             disabled={isMonitoring}
-                            className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[100px] max-w-[250px] truncate"
-                        >
-                            <option value="">{`${labelProfile.workspaceLabel.toUpperCase()}: NONE SELECTED`}</option>
-                            {workspaces.map(c => (
-                                <option key={c.id} value={c.id} className="truncate">{`${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(c.title)}`}</option>
-                            ))}
-                        </select>
+                            triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate hover:border-white focus-visible:border-white"
+                            options={[
+                                { value: '', label: `${labelProfile.workspaceLabel.toUpperCase()}: NONE SELECTED` },
+                                ...workspaces.map((workspace) => ({
+                                    value: workspace.id,
+                                    label: `${labelProfile.workspaceLabel.toUpperCase()}: ${stripLegacyWorkspacePrefix(workspace.title)}`,
+                                })),
+                            ]}
+                        />
                     </div>
 
                     {/* Filter Selector */}
-                    <div className="relative group">
-                        <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-                        <select
+                    <div className="min-w-[150px]">
+                        <OsintSelect
+                            ariaLabel="Signal filter"
                             value={filterType}
-                            onChange={(e) => {
-                                const value = e.target.value as FilterType;
+                            onChange={(value) => {
                                 if (value === 'ALL' || value === 'SOCIAL' || value === 'NEWS' || value === 'OFFICIAL') {
                                     setFilterType(value);
                                 }
                             }}
-                            className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[150px]"
-                        >
-                            <option value="ALL">FILTER: ALL SIGNALS</option>
-                            <option value="SOCIAL">FILTER: SOCIAL ONLY</option>
-                            <option value="NEWS">FILTER: NEWS ONLY</option>
-                            <option value="OFFICIAL">FILTER: OFFICIAL DOCS</option>
-                        </select>
+                            triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono hover:border-white focus-visible:border-white"
+                            options={[
+                                { value: 'ALL', label: 'FILTER: ALL SIGNALS' },
+                                { value: 'SOCIAL', label: 'FILTER: SOCIAL ONLY' },
+                                { value: 'NEWS', label: 'FILTER: NEWS ONLY' },
+                                { value: 'OFFICIAL', label: 'FILTER: OFFICIAL DOCS' },
+                            ]}
+                        />
                     </div>
 
                     {/* Threat Filter */}
-                    <div className="relative group">
-                        <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-                        <select
+                    <div className="min-w-[150px]">
+                        <OsintSelect
+                            ariaLabel="Threat filter"
                             value={filterThreat}
-                            onChange={(e) => {
-                                const value = e.target.value as ThreatFilter;
+                            onChange={(value) => {
                                 if (value === 'ALL' || value === 'INFO' || value === 'CAUTION' || value === 'CRITICAL') {
                                     setFilterThreat(value);
                                 }
                             }}
-                            className="bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-1.5 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-white min-w-[150px]"
-                        >
-                            <option value="ALL">THREAT: ALL LEVELS</option>
-                            <option value="INFO">THREAT: INFO ONLY</option>
-                            <option value="CAUTION">THREAT: CAUTION ONLY</option>
-                            <option value="CRITICAL">THREAT: CRITICAL ONLY</option>
-                        </select>
+                            triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono hover:border-white focus-visible:border-white"
+                            options={[
+                                { value: 'ALL', label: 'THREAT: ALL LEVELS' },
+                                { value: 'INFO', label: 'THREAT: INFO ONLY' },
+                                { value: 'CAUTION', label: 'THREAT: CAUTION ONLY' },
+                                { value: 'CRITICAL', label: 'THREAT: CRITICAL ONLY' },
+                            ]}
+                        />
                     </div>
                 </div>
 

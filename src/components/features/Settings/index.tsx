@@ -16,7 +16,6 @@ import {
     AlertTriangle,
     Compass,
     Cpu,
-    ChevronDown,
     X,
     Brain,
     Workflow
@@ -25,6 +24,7 @@ import { useWorkspaceStore } from '../../../store/caseStore';
 import { TemplateGallery } from './TemplateGallery';
 import { ScopeManager } from '../../ui/ScopeManager';
 import { Accordion } from '../../ui/Accordion';
+import { OsintSelect } from '../../ui/OsintSelect';
 import type { InvestigationLaunchRequest, SystemConfig } from '../../../types';
 import { AccentPicker } from '../../ui/AccentPicker';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../../../utils/accent';
@@ -579,45 +579,36 @@ export const Settings: React.FC<SettingsProps> = ({
                     <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
                         <div>
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-2">Active Provider</label>
-                            <div className="relative">
-                                <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-                                <select
-                                    value={selectedProvider}
-                                    onChange={(e) => {
-                                        const nextProvider = e.target.value as AIProvider;
-                                        setSelectedProvider(nextProvider);
-                                        const fallbackModel = getRuntimeReadyModelsForProvider(nextProvider)[0]?.id || getDefaultModelForProvider(nextProvider);
-                                        setSelectedModel(fallbackModel);
-                                    }}
-                                    className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-3 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary"
-                                >
-                                    {AI_PROVIDERS.map((provider) => (
-                                        <option
-                                            key={provider.id}
-                                            value={provider.id}
-                                            disabled={provider.capabilities.runtimeStatus !== 'ACTIVE'}
-                                        >
-                                            {provider.label} {provider.capabilities.runtimeStatus === 'PLANNED' ? '(Phase 3)' : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                            <OsintSelect
+                                ariaLabel="Active provider"
+                                value={selectedProvider}
+                                onChange={(value) => {
+                                    const nextProvider = value as AIProvider;
+                                    setSelectedProvider(nextProvider);
+                                    const fallbackModel = getRuntimeReadyModelsForProvider(nextProvider)[0]?.id || getDefaultModelForProvider(nextProvider);
+                                    setSelectedModel(fallbackModel);
+                                }}
+                                triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
+                                options={AI_PROVIDERS.map((provider) => ({
+                                    value: provider.id,
+                                    label: `${provider.label}${provider.capabilities.runtimeStatus === 'PLANNED' ? ' (Phase 3)' : ''}`,
+                                    disabled: provider.capabilities.runtimeStatus !== 'ACTIVE',
+                                }))}
+                            />
                         </div>
 
                         <div>
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-2">Active Model</label>
-                            <div className="relative">
-                                <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-                                <select
-                                    value={activeModelId}
-                                    onChange={(e) => setSelectedModel(e.target.value)}
-                                    className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs font-mono py-3 pl-3 pr-8 rounded-none outline-none appearance-none cursor-pointer hover:border-osint-primary"
-                                >
-                                    {selectableModels.map((model) => (
-                                        <option key={model.id} value={model.id}>{model.name} ({model.id})</option>
-                                    ))}
-                                </select>
-                            </div>
+                            <OsintSelect
+                                ariaLabel="Active model"
+                                value={activeModelId}
+                                onChange={setSelectedModel}
+                                triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
+                                options={selectableModels.map((model) => ({
+                                    value: model.id,
+                                    label: `${model.name} (${model.id})`,
+                                }))}
+                            />
                             <p className="text-[10px] text-zinc-500 font-mono mt-2">
                                 Provider: <span className="text-zinc-300">{selectedModelMeta?.provider || activeProvider}</span>
                             </p>
