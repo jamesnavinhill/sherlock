@@ -338,7 +338,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           Domain Pack
         </label>
         <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.scopeDescription}</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pr-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pr-1">
           {allScopes.map((scope) => (
             <button
               key={scope.id}
@@ -368,7 +368,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             {setupCopy.purposeLabel}
           </label>
           <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.purposeDescription}</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             {supportedPurposes.map((purpose) => (
               <button
                 key={purpose.id}
