@@ -361,7 +361,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-4 pt-3 border-t border-zinc-800">
+      <div className="pt-3 border-t border-zinc-800">
         <div>
           <label className="block text-xs font-mono text-zinc-400 uppercase mb-3 flex items-center">
             <Sparkles className="w-3 h-3 mr-2" />
@@ -389,38 +389,6 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="border border-zinc-800 bg-zinc-950/60 p-4 space-y-4">
-          <div>
-            <div className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Run Profile</div>
-            <div className="flex flex-wrap gap-2">
-              <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
-                {labelProfile.workspaceLabel}
-              </span>
-              <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-                {selectedPurpose.name}
-              </span>
-              <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-                {selectedArtifactType}
-              </span>
-            </div>
-          </div>
-          <div>
-            <div className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Pack Guidance</div>
-            <p className="text-xs text-zinc-400 leading-relaxed">{selectedPack.description}</p>
-          </div>
-          {selectedScope.suggestedSources.length > 0 && (
-            <div>
-              <div className="text-[10px] text-zinc-500 font-mono uppercase mb-2">Default Source Libraries</div>
-              <div className="text-[11px] text-zinc-400 leading-relaxed">
-                {selectedScope.suggestedSources
-                  .slice(0, 3)
-                  .map((category) => category.name)
-                  .join(' | ')}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

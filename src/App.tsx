@@ -480,7 +480,15 @@ function App() {
   return (
     <div className="flex min-h-screen bg-osint-dark text-osint-text font-sans selection:bg-osint-primary selection:text-black overflow-hidden">
 
-      {!isAuthenticated && <ApiKeyModal onKeySet={() => setIsAuthenticated(hasApiKey())} />}
+      {!isAuthenticated && (
+        <ApiKeyModal
+          onKeySet={() => setIsAuthenticated(hasApiKey())}
+          onBypass={() => {
+            setIsAuthenticated(true);
+            setView(AppView.DASHBOARD);
+          }}
+        />
+      )}
 
       <Sidebar
         currentView={currentView}

@@ -622,12 +622,27 @@ body,
 }
 
 /* Ensure date picker icon contrast follows active theme */
+:root[data-theme='dark'] input[type='date'] {
+  color-scheme: dark;
+}
+
 :root[data-theme='dark'] input[type='date']::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: invert(1) brightness(1.4) contrast(1.15);
+  opacity: 0.92;
   cursor: pointer;
+}
+
+:root[data-theme='dark'] input[type='date']:hover::-webkit-calendar-picker-indicator,
+:root[data-theme='dark'] input[type='date']:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+:root[data-theme='light'] input[type='date'] {
+  color-scheme: light;
 }
 
 :root[data-theme='light'] input[type='date']::-webkit-calendar-picker-indicator {
   filter: none;
+  opacity: 0.95;
   cursor: pointer;
 }
