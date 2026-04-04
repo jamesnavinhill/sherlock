@@ -232,19 +232,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                                 className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
                                 inputClassName="text-2xl font-bold uppercase tracking-tight"
                             />
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
-                                    {labelProfile.artifactLabel}
-                                </span>
-                                <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-                                    {purposeProfile.name}
-                                </span>
-                                {report.artifactType && (
-                                    <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-                                        {report.artifactType}
-                                    </span>
-                                )}
-                            </div>
                         </div>
                         <div className="flex items-center space-x-4 flex-shrink-0">
                             {report.dateStr && <p className="text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">LOG DATE: {report.dateStr}</p>}
@@ -344,14 +331,14 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                     isOpen={sidebarAccordions.anomalies}
                     onToggle={() => toggleSidebarAccordion('anomalies')}
                     className="mb-2"
-                    headerClassName="text-osint-danger"
+                    headerClassName="text-osint-primary"
                 >
                     <div className="space-y-2">
                         {visibleAnomalies.length === 0 ? (
                             <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
                         ) : (
                             visibleAnomalies.map((agenda, idx) => (
-                                <div key={idx} className="bg-zinc-900/80 p-3 border-l-2 border-osint-danger text-xs text-zinc-300">
+                                <div key={idx} className="bg-zinc-900/80 p-3 border-l-2 border-osint-primary text-xs text-zinc-300">
                                     <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
                                 </div>
                             ))
