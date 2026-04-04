@@ -99,6 +99,7 @@ npm run check
 
 ## Documentation Index
 
+- `docs/operations/CURRENT_STATUS.md`
 - `docs/operations/architecture.md`
 - `docs/operations/BROAD_SCOPE.md`
 - `docs/operations/SCOPES.md`
@@ -107,6 +108,8 @@ npm run check
 - `docs/operations/SOURCES.md`
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
+
+Historical plans and reports live under `docs/_legacy/`.
 
 ## License
 
