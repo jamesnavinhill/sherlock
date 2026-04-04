@@ -1198,7 +1198,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                                 icon={MessageSquare}
                                 title="Select An Event"
                                 description="Pick a signal, run, artifact, entity milestone, or chat event from the chronology to inspect its context and jump into related workspace views."
-                                className="py-20"
+                                className="px-0 py-10"
+                                panelClassName="max-w-none px-6 py-8"
                             />
                         ) : (
                             <>

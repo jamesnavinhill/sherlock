@@ -3,6 +3,7 @@ import {
     Settings as SettingsIcon,
     Shield,
     Palette,
+    Type,
     Database,
     Trash2,
     Download,
@@ -23,6 +24,7 @@ import {
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { TemplateGallery } from './TemplateGallery';
 import { ScopeManager } from '../../ui/ScopeManager';
+import { Accordion } from '../../ui/Accordion';
 import type { InvestigationLaunchRequest, SystemConfig } from '../../../types';
 import { AccentPicker } from '../../ui/AccentPicker';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../../../utils/accent';
@@ -73,7 +75,7 @@ const TABS = [
     { id: 'AI', label: 'AI', icon: Cpu },
     { id: 'SCOPES', label: 'Scopes', icon: Compass },
     { id: 'TEMPLATES', label: 'Templates', icon: Layout },
-    { id: 'MAINTENANCE', label: 'Maintenance', icon: Database }
+    { id: 'THEME', label: 'Theme', icon: Palette }
 ];
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -127,6 +129,12 @@ export const Settings: React.FC<SettingsProps> = ({
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [saveError, setSaveError] = useState('');
+    const [themeSections, setThemeSections] = useState({
+        accent: true,
+        fonts: true,
+        darkSurfaces: true,
+        lightSurfaces: true,
+    });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -138,6 +146,13 @@ export const Settings: React.FC<SettingsProps> = ({
     const selectedModelMeta = getModelOptionById(activeModelId);
     const activeProviderMeta = getProviderOptionById(activeProvider);
     const supportsThinkingBudget = !!selectedModelMeta?.capabilities.supportsThinkingBudget;
+
+    const toggleThemeSection = (section: keyof typeof themeSections) => {
+        setThemeSections((current) => ({
+            ...current,
+            [section]: !current[section],
+        }));
+    };
 
     const handleClearProviderKey = (provider: AIProvider) => {
         clearProviderApiKey(provider);
@@ -324,7 +339,7 @@ export const Settings: React.FC<SettingsProps> = ({
         };
     };
 
-    const renderThemeSurfaceSection = (mode: keyof ThemeSurfaceSettings, title: string) => {
+    const renderThemeSurfaceSection = (mode: keyof ThemeSurfaceSettings) => {
         const surfaceEntries: Array<{ key: keyof ThemeSurfaceScale; label: string }> = [
             { key: 'background', label: 'Workspace Background' },
             { key: 'panel', label: 'Panel Background' },
@@ -332,121 +347,87 @@ export const Settings: React.FC<SettingsProps> = ({
         ];
 
         return (
-            <section className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                    <Palette className="w-4 h-4 text-osint-primary" />
-                    <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">{title}</h3>
-                </div>
-                <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
-                    {surfaceEntries.map(({ key, label }) => {
-                        const current = themeSurfaceSettings[mode][key];
-                        const pickerBounds = getSurfacePickerBounds(mode, key);
-                        return (
-                            <div key={key} className="space-y-3 border-t border-zinc-800/80 pt-5 first:border-t-0 first:pt-0">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
-                                            style={{ background: buildAccentColor(current) }}
-                                        />
-                                        <label className="block text-[10px] text-zinc-500 font-mono uppercase">{label}</label>
-                                    </div>
-                                    <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(current)}</div>
-                                </div>
-                                <AccentPicker
-                                    hue={current.hue}
-                                    lightness={current.lightness}
-                                    chroma={current.chroma}
-                                    showPreview={false}
-                                    lightnessMin={pickerBounds.lightnessMin}
-                                    lightnessMax={pickerBounds.lightnessMax}
-                                    chromaMax={pickerBounds.chromaMax}
-                                    onChange={(settings) => handleThemeSurfaceChange(mode, key, settings)}
-                                />
-                            </div>
-                        );
-                    })}
-                </div>
-            </section>
-        );
-    };
-
-    const renderGeneral = () => (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12">
-                <section className="space-y-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Palette className="w-4 h-4 text-osint-primary" />
-                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Accent Color</h3>
-                    </div>
-                    <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
-                        <div className="space-y-3">
+            <div className="space-y-6 px-3 pb-3 pt-1">
+                {surfaceEntries.map(({ key, label }) => {
+                    const current = themeSurfaceSettings[mode][key];
+                    const pickerBounds = getSurfacePickerBounds(mode, key);
+                    return (
+                        <div key={key} className="space-y-3 border-t border-zinc-800/80 pt-5 first:border-t-0 first:pt-0">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div
                                         className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
-                                        style={{ background: buildAccentColor(accentSettings) }}
+                                        style={{ background: buildAccentColor(current) }}
                                     />
-                                    <label className="block text-[10px] text-zinc-500 font-mono uppercase">Custom Accent</label>
+                                    <label className="block text-[10px] text-zinc-500 font-mono uppercase">{label}</label>
                                 </div>
-                                <button
-                                    onClick={handleResetThemeSettings}
-                                    className="px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-[10px] uppercase transition-colors"
-                                >
-                                    Reset Theme
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(accentSettings)}</div>
+                                <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(current)}</div>
                             </div>
                             <AccentPicker
-                                hue={accentSettings.hue}
-                                lightness={accentSettings.lightness}
-                                chroma={accentSettings.chroma}
+                                hue={current.hue}
+                                lightness={current.lightness}
+                                chroma={current.chroma}
                                 showPreview={false}
-                                onChange={(settings) => onAccentChange(settings)}
+                                lightnessMin={pickerBounds.lightnessMin}
+                                lightnessMax={pickerBounds.lightnessMax}
+                                chromaMax={pickerBounds.chromaMax}
+                                onChange={(settings) => handleThemeSurfaceChange(mode, key, settings)}
                             />
                         </div>
-                    </div>
-                </section>
-
-                <section className="space-y-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Shield className="w-4 h-4 text-osint-primary" />
-                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Intelligence & Alerts</h3>
-                    </div>
-                    <div className="bg-zinc-900/40 border border-zinc-800 h-full">
-                        <div className="p-6 flex items-center justify-between gap-6 min-h-32">
-                            <div className="space-y-2">
-                                <h4 className="text-sm font-bold text-zinc-200 font-mono">Auto-Resolve Entities</h4>
-                                <p className="text-[10px] text-zinc-500 font-mono leading-relaxed">Automatically group variations of entity names.</p>
-                            </div>
-                            <button
-                                onClick={() => setAutoResolve(!autoResolve)}
-                                className={`w-12 h-6 rounded-full relative transition-colors flex-shrink-0 ${autoResolve ? 'bg-zinc-200' : 'bg-zinc-800'}`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoResolve ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-                        <div className="p-6 flex items-center justify-between gap-6 border-t border-zinc-800 min-h-32">
-                            <div className="space-y-2">
-                                <h4 className="text-sm font-bold text-zinc-200 font-mono">Quiet Mode</h4>
-                                <p className="text-[10px] text-zinc-500 font-mono leading-relaxed">Suppress non-critical system notifications.</p>
-                            </div>
-                            <button
-                                onClick={() => setQuietMode(!quietMode)}
-                                className={`w-12 h-6 rounded-full relative transition-colors flex-shrink-0 ${quietMode ? 'bg-zinc-200' : 'bg-zinc-800'}`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${quietMode ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
-                    </div>
-                </section>
+                    );
+                })}
             </div>
+        );
+    };
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12 pt-4">
-                {renderThemeSurfaceSection('dark', 'Dark Theme Surfaces')}
-                {renderThemeSurfaceSection('light', 'Light Theme Surfaces')}
+    const renderPreferenceCard = (
+        title: string,
+        description: string,
+        checked: boolean,
+        onToggle: () => void
+    ) => (
+        <div className="bg-zinc-900/40 border border-zinc-800 p-6 min-h-36 flex items-center justify-between gap-6">
+            <div className="space-y-2">
+                <h4 className="text-sm font-bold text-zinc-200 font-mono">{title}</h4>
+                <p className="text-[10px] text-zinc-500 font-mono leading-relaxed max-w-sm">{description}</p>
+            </div>
+            <button
+                type="button"
+                onClick={onToggle}
+                aria-pressed={checked}
+                data-state={checked ? 'on' : 'off'}
+                className="osint-toggle"
+            >
+                <span className="osint-toggle-thumb" />
+            </button>
+        </div>
+    );
+
+    const renderGeneral = () => (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-12">
+            <section className="space-y-4">
+                <div className="flex items-center space-x-2 mb-4">
+                    <Shield className="w-4 h-4 text-osint-primary" />
+                    <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">Operational Preferences</h3>
+                </div>
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    {renderPreferenceCard(
+                        'Auto-Resolve Entities',
+                        'Automatically group nearby variations of entity names during analysis and review.',
+                        autoResolve,
+                        () => setAutoResolve(!autoResolve)
+                    )}
+                    {renderPreferenceCard(
+                        'Quiet Mode',
+                        'Suppress non-critical system notifications while leaving core warnings and failures visible.',
+                        quietMode,
+                        () => setQuietMode(!quietMode)
+                    )}
+                </div>
+            </section>
+
+            <div className="space-y-8">
+                {renderMaintenance()}
             </div>
         </div>
     );
@@ -694,7 +675,7 @@ export const Settings: React.FC<SettingsProps> = ({
     );
 
     const renderMaintenance = () => (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="space-y-8">
             <section className="bg-zinc-900/40 border border-zinc-800 p-8 space-y-6">
                 <div className="flex items-center space-x-3 mb-2">
                     <Database className="w-5 h-5 text-osint-primary" />
@@ -749,6 +730,98 @@ export const Settings: React.FC<SettingsProps> = ({
         </div>
     );
 
+    const renderTheme = () => (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+                <Accordion
+                    title="Accent"
+                    icon={Palette}
+                    isOpen={themeSections.accent}
+                    onToggle={() => toggleThemeSection('accent')}
+                    className="mb-0"
+                >
+                    <div className="space-y-6 px-3 pb-3 pt-1">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                                    style={{ background: buildAccentColor(accentSettings) }}
+                                />
+                                <label className="block text-[10px] text-zinc-500 font-mono uppercase">Custom Accent</label>
+                            </div>
+                            <button
+                                onClick={handleResetThemeSettings}
+                                className="px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-[10px] uppercase transition-colors"
+                            >
+                                Reset Theme
+                            </button>
+                        </div>
+                        <div className="text-[10px] text-zinc-500 font-mono">{buildAccentColor(accentSettings)}</div>
+                        <AccentPicker
+                            hue={accentSettings.hue}
+                            lightness={accentSettings.lightness}
+                            chroma={accentSettings.chroma}
+                            showPreview={false}
+                            onChange={(settings) => onAccentChange(settings)}
+                        />
+                    </div>
+                </Accordion>
+
+                <Accordion
+                    title="Fonts"
+                    icon={Type}
+                    isOpen={themeSections.fonts}
+                    onToggle={() => toggleThemeSection('fonts')}
+                    className="mb-0"
+                >
+                    <div className="space-y-4 px-3 pb-3 pt-1">
+                        <div className="rounded border border-zinc-800 bg-zinc-900/40 p-4">
+                            <div className="text-[10px] font-mono uppercase tracking-[0.24em] text-zinc-500">Placeholder</div>
+                            <div className="mt-3 text-lg font-bold text-white">Font controls land here next</div>
+                            <p className="mt-2 max-w-md text-sm leading-6 text-zinc-400">
+                                This card is reserved for future font-family and typography presets so visual controls stay grouped under Theme.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div className="border border-zinc-800 bg-black px-4 py-3">
+                                <div className="text-[10px] font-mono uppercase text-zinc-500">UI Text</div>
+                                <div className="mt-2 text-sm text-zinc-300">System Sans</div>
+                            </div>
+                            <div className="border border-zinc-800 bg-black px-4 py-3">
+                                <div className="text-[10px] font-mono uppercase text-zinc-500">Data Text</div>
+                                <div className="mt-2 font-mono text-sm text-zinc-300">JetBrains Mono</div>
+                            </div>
+                            <div className="border border-dashed border-zinc-800 bg-black px-4 py-3">
+                                <div className="text-[10px] font-mono uppercase text-zinc-500">Status</div>
+                                <div className="mt-2 text-sm text-zinc-500">Coming Soon</div>
+                            </div>
+                        </div>
+                    </div>
+                </Accordion>
+            </div>
+
+            <Accordion
+                title="Dark Theme Surfaces"
+                icon={Palette}
+                isOpen={themeSections.darkSurfaces}
+                onToggle={() => toggleThemeSection('darkSurfaces')}
+                className="mb-0"
+            >
+                {renderThemeSurfaceSection('dark')}
+            </Accordion>
+
+            <Accordion
+                title="Light Theme Surfaces"
+                icon={Palette}
+                isOpen={themeSections.lightSurfaces}
+                onToggle={() => toggleThemeSection('lightSurfaces')}
+                className="mb-0"
+            >
+                {renderThemeSurfaceSection('light')}
+            </Accordion>
+        </div>
+    );
+
     return (
         <div className="h-full w-full bg-black relative flex flex-col overflow-hidden">
             <header className="h-20 px-8 bg-zinc-900/45 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0 shadow-[inset_0_-1px_0_rgba(39,39,42,0.8)]">
@@ -768,7 +841,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 <div className="h-full flex items-center gap-2">
                     <button
                         onClick={handleSaveConfiguration}
-                        disabled={isSaving || (activeTab !== 'GENERAL' && activeTab !== 'AI')}
+                        disabled={isSaving || (activeTab !== 'GENERAL' && activeTab !== 'AI' && activeTab !== 'THEME')}
                         className="osint-button-primary flex items-center px-4 py-2 font-mono text-xs font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         {isSaving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
@@ -817,7 +890,7 @@ export const Settings: React.FC<SettingsProps> = ({
                             }}
                         />
                     )}
-                    {activeTab === 'MAINTENANCE' && renderMaintenance()}
+                    {activeTab === 'THEME' && renderTheme()}
                 </div>
             </main>
         </div>

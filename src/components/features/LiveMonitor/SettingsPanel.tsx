@@ -160,12 +160,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             <Save className="w-3 h-3 mr-2" /> Auto-Save Headlines
           </label>
           <button
+            type="button"
             onClick={() => onAutoSaveChange(!autoSave)}
-            className={`w-8 h-4 rounded-full p-0.5 transition-colors ${autoSave ? 'bg-zinc-200' : 'bg-zinc-700'}`}
+            aria-pressed={autoSave}
+            data-state={autoSave ? 'on' : 'off'}
+            className="osint-toggle"
           >
-            <div
-              className={`w-3 h-3 bg-black rounded-full shadow-md transform transition-transform ${autoSave ? 'translate-x-4' : 'translate-x-0'}`}
-            />
+            <div className="osint-toggle-thumb" />
           </button>
         </div>
 

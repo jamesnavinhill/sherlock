@@ -51,6 +51,7 @@ import { getChatLaunchContextFromSession } from '../../../services/chat/launchCo
 import { GuidedRunBuilder } from './GuidedRunBuilder';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { Accordion } from '../../ui/Accordion';
+import { EmptyState } from '../../ui/EmptyState';
 import { sanitizeDisplayTitle } from '../../../domain';
 
 const formatTimestamp = (value: number): string =>
@@ -792,21 +793,16 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     if (workspaces.length === 0) {
         return (
             <div className="flex h-full min-h-0 items-center justify-center bg-black px-6">
-                <div className="max-w-xl border border-zinc-800 bg-zinc-950/70 p-8 text-center">
-                    <MessageSquare className="mx-auto mb-4 h-10 w-10 text-osint-primary" />
-                    <h2 className="mb-3 text-xl font-semibold text-white">Workspace Chat Needs A Workspace</h2>
-                    <p className="text-sm leading-6 text-zinc-400">
-                        Start or reopen a workspace first. Chat sessions are scoped to one workspace so every answer
-                        stays local, grounded, and auditable.
-                    </p>
-                    <button
-                        onClick={handleStartNewProject}
-                        className="osint-button-primary mt-6 inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Start New Project
-                    </button>
-                </div>
+                <EmptyState
+                    icon={MessageSquare}
+                    title="Workspace Chat Needs A Workspace"
+                    description="Start or reopen a workspace first. Chat sessions are scoped to one workspace so every answer stays local, grounded, and auditable."
+                    action={{
+                        label: 'Start New Project',
+                        onClick: handleStartNewProject,
+                    }}
+                    panelClassName="max-w-xl"
+                />
 
                 {showNewProjectModal && (
                     <TaskSetupModal
@@ -1088,9 +1084,27 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6">
                         <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 pb-4">
                             {messages.length === 0 && (
-                                <div className="border border-dashed border-zinc-800 bg-zinc-950/60 p-4 text-sm text-zinc-500">
-                                    Ask about this workspace to begin the transcript.
-                                </div>
+                                <EmptyState
+                                    icon={MessageSquare}
+                                    title={activeSession ? 'Session Ready' : 'No Chat Session'}
+                                    description={
+                                        activeSession
+                                            ? 'Ask about this workspace to begin the transcript.'
+                                            : 'Start a workspace chat session or use the composer below to begin a grounded transcript.'
+                                    }
+                                    action={
+                                        activeSession
+                                            ? undefined
+                                            : {
+                                                  label: 'Start New Session',
+                                                  onClick: () => {
+                                                      void handleCreateSession();
+                                                  },
+                                              }
+                                    }
+                                    className="px-0 py-6"
+                                    panelClassName="max-w-3xl px-6 py-8"
+                                />
                             )}
 
                             {messages.map((message) => {

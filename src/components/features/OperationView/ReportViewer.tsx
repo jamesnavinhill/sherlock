@@ -186,6 +186,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                         label: "Start New Run",
                         onClick: onStartNewCase
                     }}
+                    panelClassName="max-w-xl"
                 />
             </div>
         );

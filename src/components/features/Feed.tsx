@@ -157,10 +157,13 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           <div className="flex items-center justify-between mb-3">
             <label className="text-[10px] text-zinc-500 font-mono uppercase">Background Watch</label>
             <button
+              type="button"
               onClick={() => setFeedConfig({ ...feedConfig, autoRefresh: !feedConfig.autoRefresh })}
-              className={`w-12 h-6 rounded-full relative transition-colors ${feedConfig.autoRefresh ? 'bg-zinc-200' : 'bg-zinc-800'}`}
+              aria-pressed={feedConfig.autoRefresh}
+              data-state={feedConfig.autoRefresh ? 'on' : 'off'}
+              className="osint-toggle"
             >
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${feedConfig.autoRefresh ? 'left-7' : 'left-1'}`} />
+              <div className="osint-toggle-thumb" />
             </button>
           </div>
           {feedConfig.autoRefresh && (

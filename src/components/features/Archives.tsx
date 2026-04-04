@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact } from '../../types';
 import { FileText, Trash2, ArrowRight, FolderOpen, Folder, ChevronLeft, Plus, FolderClosed, Download, FileJson, ChevronDown, MessageSquare } from 'lucide-react';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
+import { EmptyState } from '../ui/EmptyState';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
@@ -125,21 +126,16 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   const renderCaseGrid = () => {
     if (workspaces.length === 0 && getUnassignedReports().length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-24 animate-in fade-in duration-700">
-          <div className="bg-zinc-900/50 p-8 border border-dashed border-zinc-800 flex flex-col items-center max-w-md text-center">
-            <FolderOpen className="w-16 h-16 text-zinc-700 mb-6" />
-            <h3 className="text-xl font-bold text-zinc-400 font-mono mb-2 uppercase tracking-tight">Archives Empty</h3>
-            <p className="text-zinc-500 text-sm font-mono mb-8 leading-relaxed">
-              {`No saved ${archiveLabelProfile.workspaceLabelPlural.toLowerCase()} or ${archiveLabelProfile.artifactLabelPlural.toLowerCase()} found yet. Start a new run to begin collecting work.`}
-            </p>
-            <button
-              onClick={() => setIsNewCaseModalOpen(true)}
-              className="osint-button-primary px-6 py-2 font-mono text-xs font-bold uppercase"
-            >
-              {`Start New ${archiveLabelProfile.workspaceLabel}`}
-            </button>
-          </div>
-        </div>
+        <EmptyState
+          icon={FolderOpen}
+          title="Archives Empty"
+          description={`No saved ${archiveLabelProfile.workspaceLabelPlural.toLowerCase()} or ${archiveLabelProfile.artifactLabelPlural.toLowerCase()} found yet. Start a new run to begin collecting work.`}
+          action={{
+            label: `Start New ${archiveLabelProfile.workspaceLabel}`,
+            onClick: () => setIsNewCaseModalOpen(true),
+          }}
+          className="animate-in fade-in duration-700"
+        />
       );
     }
 

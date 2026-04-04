@@ -1,6 +1,6 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { FolderOpen, Plus } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
 
 interface EmptyStateProps {
     icon?: LucideIcon;
@@ -12,39 +12,38 @@ interface EmptyStateProps {
         icon?: LucideIcon;
     };
     className?: string;
+    panelClassName?: string;
 }
 
-/**
- * Reusable empty state component for when no data is available
- * Used across Archives, Operation View, Network Graph, etc.
- */
 export const EmptyState: React.FC<EmptyStateProps> = ({
     icon: Icon = FolderOpen,
     title,
     description,
     action,
-    className = ''
+    className = '',
+    panelClassName = '',
 }) => {
-    const ActionIcon = action?.icon || Plus;
+    const ActionIcon = action?.icon;
 
     return (
-        <div className={`flex flex-col items-center justify-center py-16 px-8 ${className}`}>
-            <Icon className="w-16 h-16 text-zinc-700 mb-6" />
-            <h2 className="text-xl text-white font-bold mb-2 font-mono uppercase tracking-wider">
-                {title}
-            </h2>
-            <p className="text-zinc-500 font-mono text-sm mb-8 text-center max-w-md">
-                {description}
-            </p>
-            {action && (
-                <button
-                    onClick={action.onClick}
-                    className="osint-button-primary flex items-center px-6 py-3 font-bold font-mono text-sm uppercase"
-                >
-                    <ActionIcon className="w-5 h-5 mr-2" />
-                    {action.label}
-                </button>
-            )}
+        <div className={`osint-empty-state-shell ${className}`.trim()}>
+            <div className={`osint-empty-state-panel ${panelClassName}`.trim()}>
+                <Icon className="osint-empty-state-icon" />
+                <h2 className="osint-empty-state-title">{title}</h2>
+                <p className="osint-empty-state-description">{description}</p>
+                {action && (
+                    <div className="osint-empty-state-action">
+                        <button
+                            type="button"
+                            onClick={action.onClick}
+                            className="osint-button-primary inline-flex items-center"
+                        >
+                            {ActionIcon ? <ActionIcon className="h-4 w-4" /> : null}
+                            {action.label}
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
+import { EmptyState } from '../../ui/EmptyState';
 import { getDomainPackForScope, getLabelProfileById, stripLegacyWorkspacePrefix } from '../../../domain';
 
 // Sub-components
@@ -388,10 +389,25 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({ events = [], setEvents
 
                     {/* Empty State */}
                     {!selectedCaseId && (
-                        <div className="absolute inset-0 flex items-center justify-center flex-col text-zinc-500 pointer-events-none">
-                            <Radio className="w-16 h-16 mb-4 opacity-20" />
-                            <p className="font-mono text-lg uppercase tracking-widest text-zinc-400">Awaiting Target Selection</p>
-                            <p className="text-sm font-mono mt-2">Select an operation to begin surveillance.</p>
+                        <div className="absolute inset-0 z-20 flex items-center justify-center px-6">
+                            <EmptyState
+                                icon={Radio}
+                                title={workspaces.length === 0 ? 'Monitor Awaiting Workspace' : 'Awaiting Target Selection'}
+                                description={
+                                    workspaces.length === 0
+                                        ? 'Create or reopen a workspace first. Live Monitor needs an active workspace so incoming signals stay local, searchable, and auditable.'
+                                        : 'Select a workspace to begin surveillance and route incoming signals into the active operation.'
+                                }
+                                action={
+                                    workspaces.length > 0
+                                        ? {
+                                              label: 'Use First Workspace',
+                                              onClick: () => setSelectedCaseId(workspaces[0].id),
+                                          }
+                                        : undefined
+                                }
+                                panelClassName="max-w-xl"
+                            />
                         </div>
                     )}
 

@@ -812,13 +812,10 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         <label className="flex items-center space-x-3 cursor-pointer group">
           <div
             onClick={() => setSaveAsTemplate(!saveAsTemplate)}
-            className={`w-5 h-5 border flex items-center justify-center transition-all ${
-              saveAsTemplate
-                ? 'bg-osint-primary border-osint-primary'
-                : 'bg-black border-zinc-700 group-hover:border-zinc-500'
-            }`}
+            data-state={saveAsTemplate ? 'on' : 'off'}
+            className="osint-check-toggle w-5 h-5 group-hover:border-zinc-500"
           >
-            {saveAsTemplate && <Check className="w-3 h-3 text-black" />}
+            {saveAsTemplate && <Check className="w-3 h-3" />}
           </div>
           <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
             {setupCopy.templateLabel}
