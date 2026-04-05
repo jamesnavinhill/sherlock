@@ -18,7 +18,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet, onBypass }) 
   );
   const [inputKey, setInputKey] = useState('');
   const [error, setError] = useState('');
-  const [showBypassConfirm, setShowBypassConfirm] = useState(false);
 
   const handleSave = () => {
     const normalized = inputKey.trim();
@@ -139,7 +138,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet, onBypass }) 
 
             <button
               type="button"
-              onClick={() => setShowBypassConfirm(true)}
+              onClick={onBypass}
               className="w-full py-3 border border-zinc-700 bg-zinc-900/60 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-xs uppercase tracking-[0.28em]"
             >
               Browse Without Key
@@ -185,47 +184,6 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet, onBypass }) 
             Your key is stored locally in your browser and never sent to our servers.
           </p>
         </div>
-
-        {showBypassConfirm && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
-            <div className="w-full max-w-sm border border-zinc-700 bg-osint-panel p-5 shadow-2xl">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-osint-primary" />
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="text-sm font-mono font-bold uppercase tracking-[0.24em] text-white">
-                      Browse First
-                    </h3>
-                    <p className="mt-2 text-xs font-mono leading-relaxed text-zinc-400">
-                      You can enter the app now and add API keys later in Settings -&gt; AI.
-                      Launching runs or chat without a valid key will bring this clearance screen
-                      back.
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowBypassConfirm(false)}
-                      className="px-3 py-2 border border-zinc-700 bg-zinc-900/60 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors font-mono text-[11px] uppercase tracking-[0.18em]"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowBypassConfirm(false);
-                        onBypass();
-                      }}
-                      className="osint-button-primary px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em]"
-                    >
-                      OK
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
