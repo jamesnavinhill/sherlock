@@ -304,7 +304,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
       )}
 
       {/* Sticky Header */}
-      <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg flex-shrink-0 gap-4">
+      <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between flex-shrink-0 gap-4">
         {/* Search & Filters Group */}
         <div className="flex-1 flex items-center space-x-2 min-w-0">
           {/* Category Filter */}

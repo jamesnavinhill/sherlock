@@ -417,7 +417,7 @@ export const Archives: React.FC<ArchivesProps> = ({
       <BackgroundMatrixRain />
 
       {/* Sticky Header */}
-      <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg">
+      <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center space-x-6">
           <button
             onClick={() => setIsNewCaseModalOpen(true)}

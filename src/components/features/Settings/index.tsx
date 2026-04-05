@@ -1695,7 +1695,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
   return (
     <div className="h-full w-full bg-black relative flex flex-col overflow-hidden">
-      <header className="h-20 px-8 bg-zinc-900/45 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0 shadow-[inset_0_-1px_0_rgba(39,39,42,0.8)]">
+      <header className="h-20 px-8 bg-zinc-900/45 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-700/70 to-transparent pointer-events-none" />
         <div className="h-full flex items-center space-x-8">
           {TABS.map((tab) => (

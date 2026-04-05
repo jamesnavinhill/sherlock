@@ -668,7 +668,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
       <BackgroundMatrixRain />
 
-      <header className="sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md shadow-lg">
+      <header className="sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
         <div className="flex h-full min-w-0 items-center gap-3">
           <button
             onClick={() => setLeftPanelOpen((current) => !current)}

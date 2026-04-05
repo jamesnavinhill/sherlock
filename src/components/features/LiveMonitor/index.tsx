@@ -293,7 +293,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
   return (
     <div className="h-screen w-full flex flex-col bg-black text-zinc-200 overflow-hidden relative">
       {/* Unified Top Toolbar */}
-      <div className="h-20 px-6 bg-black/90 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg z-20 flex-shrink-0 relative">
+      <div className="h-20 px-6 bg-black/90 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between z-20 flex-shrink-0 relative">
         {/* Left: Selectors */}
         <div className="flex items-center space-x-6">
           {/* Workspace Selector */}
