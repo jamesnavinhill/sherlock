@@ -16,26 +16,39 @@ export interface InspectorActionItem {
 interface InspectorActionRowProps {
   actions: InspectorActionItem[];
   className?: string;
+  layout?: 'grid' | 'wrap';
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
 const baseActionClassName =
-  'inline-flex h-9 w-full items-center justify-center border border-zinc-700 bg-transparent text-zinc-400 transition-colors hover:border-white hover:text-white';
+  'inline-flex h-9 items-center justify-center border border-zinc-700 bg-transparent text-zinc-400 transition-colors hover:border-white hover:text-white';
 
-export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({ actions, className }) => {
+export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
+  actions,
+  className,
+  layout = 'grid',
+}) => {
   if (actions.length === 0) return null;
 
   return (
     <div
-      className={cx('grid gap-2', className)}
-      style={{ gridTemplateColumns: `repeat(${actions.length}, minmax(0, 1fr))` }}
+      className={cx(layout === 'wrap' ? 'flex flex-wrap justify-start gap-2' : 'grid gap-2', className)}
+      style={
+        layout === 'grid'
+          ? { gridTemplateColumns: `repeat(${actions.length}, minmax(0, 1fr))` }
+          : undefined
+      }
     >
       {actions.map((action) => {
         const Icon = action.icon;
         const sharedProps = {
-          className: cx(baseActionClassName, action.className),
+          className: cx(
+            baseActionClassName,
+            layout === 'wrap' ? 'w-9 shrink-0' : 'w-full',
+            action.className
+          ),
           title: action.label,
           'aria-label': action.label,
         };

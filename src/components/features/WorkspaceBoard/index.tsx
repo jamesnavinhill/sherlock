@@ -26,6 +26,7 @@ import {
   Tldraw,
   getSnapshot,
   type Editor,
+  type TLComponents,
   type TLEditorSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw';
@@ -61,6 +62,7 @@ import {
 import { deriveBoardAgentTodoItems, runBoardAgentSession } from '@/services/workspace/agent';
 import { createLocalId } from '@/utils/id';
 import { sanitizeDisplayTitle } from '@/domain';
+import { CompactStylePanel } from './CompactStylePanel';
 
 const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
 type RightPanelView = 'INSPECTOR' | 'AGENT';
@@ -79,6 +81,10 @@ const buildSingleWorkspaceItemEntry = (
     headlines: [],
     workspaceItems: [item],
   })[0] || null;
+
+const boardTldrawComponents: TLComponents = {
+  StylePanel: CompactStylePanel,
+};
 
 const placeEntryOnBoard = (
   editor: Editor,
@@ -164,7 +170,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     session: true,
     actions: false,
   });
-  const [rightPanelView, setRightPanelView] = useState<RightPanelView>('INSPECTOR');
+  const [rightPanelView, setRightPanelView] = useState<RightPanelView>('AGENT');
   const editorRef = useRef<Editor | null>(null);
   const boardAgentAbortRef = useRef<AbortController | null>(null);
   const saveTimeoutRef = useRef<number | null>(null);
@@ -211,7 +217,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     null;
   const activeBoardDocument = activeBoard ? workspaceBoardDocuments[activeBoard.id] : undefined;
   const rightPanelTabButtonClass = (view: RightPanelView) =>
-    `inline-flex items-center justify-center border px-3 py-2 text-xs font-mono uppercase transition ${
+    `inline-flex h-9 flex-1 items-center justify-center border px-4 text-xs font-mono uppercase transition ${
       rightPanelView === view
         ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
         : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
@@ -1003,7 +1009,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     <>
       {inspectorActions.length > 0 && (
         <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
-          <InspectorActionRow actions={inspectorActions} />
+          <InspectorActionRow actions={inspectorActions} layout="wrap" />
         </div>
       )}
 
@@ -1358,7 +1364,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
-      <header className="osint-header-shadow sticky top-0 z-40 flex h-20 items-center justify-between border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
+      <header className="osint-header-shadow sticky top-0 z-[12000] flex h-20 items-center justify-between border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
         <div className="flex min-w-0 items-center gap-3">
           <button
             onClick={() => setLeftPanelOpen((current) => !current)}
@@ -1377,24 +1383,26 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             <FolderPlus className="h-4 w-4" />
             New Board
           </button>
-          <div className="hidden min-w-[220px] max-w-[280px] md:block">
+          <div className="relative z-[12010] hidden min-w-[220px] max-w-[280px] md:block">
             <OsintSelect
               ariaLabel="Select workspace"
               value={activeWorkspace.id}
               onChange={handleWorkspaceChange}
               triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+              menuClassName="z-[12020]"
               options={workspaces.map((workspace) => ({
                 value: workspace.id,
                 label: sanitizeDisplayTitle(workspace.title),
               }))}
             />
           </div>
-          <div className="hidden min-w-[220px] max-w-[260px] md:block">
+          <div className="relative z-[12010] hidden min-w-[220px] max-w-[260px] md:block">
             <OsintSelect
               ariaLabel="Select board"
               value={activeBoard?.id || ''}
               onChange={(value) => setActiveWorkspaceBoardId(value || null)}
               triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+              menuClassName="z-[12020]"
               options={availableBoards.map((board) => ({
                 value: board.id,
                 label: board.name,
@@ -1605,6 +1613,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               <Tldraw
                 key={activeBoard.id}
                 className="h-full w-full"
+                components={boardTldrawComponents}
                 snapshot={hydratedSnapshotRef.current.snapshot}
                 onMount={handleEditorMount}
               />
@@ -1628,11 +1637,11 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           }`}
         >
           <div className="border-b border-zinc-800 bg-zinc-900/30 px-4 py-3">
-            <div className="flex justify-center gap-2">
+            <div className="flex w-full justify-start gap-2">
               {(
                 [
-                  ['INSPECTOR', 'Inspector'],
                   ['AGENT', 'Agent'],
+                  ['INSPECTOR', 'Inspector'],
                 ] as const
               ).map(([view, label]) => (
                 <button
