@@ -31,6 +31,8 @@ Defined in `src/services/db/schema.ts`:
 - `workspace_items`
 - `workspace_boards`
 - `workspace_board_documents`
+- `board_agent_sessions`
+- `board_agent_actions`
 - `manual_nodes`
 - `manual_links`
 
@@ -45,6 +47,7 @@ Persistence is routed through repository classes:
 - `ManualDataRepository`
 - `SettingsRepository`
 - `ChatRepository`
+- `BoardAgentRepository`
 - `WorkspaceSearchRepository`
 - `WorkspaceItemRepository`
 - `WorkspaceBoardRepository`
@@ -58,6 +61,7 @@ Runtime code now treats persisted records as:
 - `WorkspaceRun` -> stored in `tasks`
 - `WorkspaceItem` -> stored in `workspace_items`
 - `WorkspaceBoard` and `WorkspaceBoardDocument` -> stored in `workspace_boards` and `workspace_board_documents`
+- `BoardAgentSession` and `BoardAgentAction` -> stored in `board_agent_sessions` and `board_agent_actions`
 
 The table names remain for persistence continuity, but the primary runtime model is canonical workspace terminology.
 
@@ -116,6 +120,8 @@ The research workspace implementation adds:
 - `workspace_items` for canonical board-adjacent records such as notes, links, files/media, and promoted chat excerpts
 - `workspace_boards` for named board/page shells scoped to a workspace
 - `workspace_board_documents` for persisted `tldraw` snapshots kept separate from canonical research objects
+- `board_agent_sessions` for persisted board-task lifecycle state, request metadata, and provider/model snapshots
+- `board_agent_actions` for auditable board-agent action logs including normalized payloads and affected canonical/board ids
 
 Stream 3 and 4 behavior built on that model:
 
@@ -143,6 +149,8 @@ Existing local databases are upgraded additively in `src/services/db/client.ts`,
 
 Current additive upgrade logic also creates `artifact_evidence` for older local databases that predate the research-output expansion.
 
+Current additive upgrade logic also creates `board_agent_sessions` and `board_agent_actions` for older local databases that predate the board-agent groundwork.
+
 ## Remaining localStorage Usage
 
 Some non-tabular values are still stored directly in localStorage:
@@ -169,6 +177,7 @@ Canonical exported shape:
 - `artifacts`
 - `runs`
 - `chat`
+- `boardAgent`
 - `signals`
 - `graph`
 - `workspaceSurface`
@@ -181,6 +190,7 @@ Workspace-data backups include:
 - artifacts (`reports`, `artifact_sections`, `artifact_evidence`, `entities`, `sources`)
 - runs (`tasks`)
 - chat sessions, messages, attachments, and actions
+- board-agent sessions and action audit history
 - saved signals/headlines (`leads`)
 - workspace library items (`workspace_items`)
 - workspace boards and board documents (`workspace_boards`, `workspace_board_documents`)

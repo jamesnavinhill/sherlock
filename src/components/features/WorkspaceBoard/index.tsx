@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
 import {
+  Briefcase,
   Bot,
   Clock3,
   FilePlus2,
@@ -9,7 +10,6 @@ import {
   Link2,
   MessageSquare,
   Network,
-  PanelLeft,
   PanelRight,
   Presentation,
   Radio,
@@ -999,14 +999,20 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         <div className="flex min-w-0 items-center gap-3">
           <button
             onClick={() => setLeftPanelOpen((current) => !current)}
-            className={`hidden items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition md:inline-flex ${
+            className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition md:inline-flex ${
               leftPanelOpen
                 ? 'border-white bg-zinc-800 text-white'
                 : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
             }`}
           >
-            <PanelLeft className="h-4 w-4" />
-            Library
+            <Briefcase className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleCreateBoard}
+            className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
+          >
+            <FolderPlus className="h-4 w-4" />
+            New Board
           </button>
           <div className="hidden min-w-[220px] max-w-[280px] md:block">
             <OsintSelect
@@ -1035,13 +1041,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleCreateBoard}
-            className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
-          >
-            <FolderPlus className="h-4 w-4" />
-            New Board
-          </button>
           {activeBoard && (
             <>
               <button
@@ -1063,14 +1062,14 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           )}
           <button
             onClick={() => setRightPanelOpen((current) => !current)}
-            className={`hidden items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition xl:inline-flex ${
+            className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition xl:inline-flex ${
               rightPanelOpen
                 ? 'border-white bg-zinc-800 text-white'
                 : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
             }`}
+            title="Toggle Inspector Panel"
           >
             <PanelRight className="h-4 w-4" />
-            Inspector
           </button>
         </div>
       </header>

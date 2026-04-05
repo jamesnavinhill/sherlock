@@ -269,40 +269,19 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         <div className="sticky top-0 z-20 px-6 py-4 bg-black/90 backdrop-blur-md border-b border-zinc-800 osint-header-shadow">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
             <Breadcrumbs items={navStack} onNavigate={onNavigate} />
+            {report.dateStr && (
+              <p className="mt-2 md:mt-0 text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">
+                LOG DATE: {report.dateStr}
+              </p>
+            )}
           </div>
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <EditableTitle
-                value={report.topic}
-                onSave={onTitleSave}
-                className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
-                inputClassName="text-2xl font-bold uppercase tracking-tight"
-              />
-              <div className="mt-3 flex flex-wrap gap-2">
-                {report.artifactType && (
-                  <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
-                    {report.artifactType}
-                  </span>
-                )}
-                {report.provenance?.provider && (
-                  <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
-                    {report.provenance.provider} / {report.provenance.modelId}
-                  </span>
-                )}
-                {report.config?.generationMode && (
-                  <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-400">
-                    {report.config.generationMode.replace('_', ' ')}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 flex-shrink-0">
-              {report.dateStr && (
-                <p className="text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">
-                  LOG DATE: {report.dateStr}
-                </p>
-              )}
-            </div>
+          <div className="min-w-0">
+            <EditableTitle
+              value={report.topic}
+              onSave={onTitleSave}
+              className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
+              inputClassName="text-2xl font-bold uppercase tracking-tight"
+            />
           </div>
         </div>
 

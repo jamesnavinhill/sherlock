@@ -419,6 +419,13 @@ export const Archives: React.FC<ArchivesProps> = ({
       {/* Sticky Header */}
       <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between shadow-lg">
         <div className="flex items-center space-x-6">
+          <button
+            onClick={() => setIsNewCaseModalOpen(true)}
+            className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
+          >
+            <Plus className="w-4 h-4 mr-1" />{' '}
+            <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
+          </button>
           {/* Workspace Selector */}
           <div className="hidden md:block min-w-[200px] max-w-[300px]">
             <OsintSelect
@@ -496,13 +503,6 @@ export const Archives: React.FC<ArchivesProps> = ({
                 </div>
               ) : null;
             })()}
-          <button
-            onClick={() => setIsNewCaseModalOpen(true)}
-            className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
-          >
-            <Plus className="w-4 h-4 mr-1" />{' '}
-            <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
-          </button>
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (
             <button
               onClick={() => void handlePurgeCase(effectiveSelectedCaseId)}

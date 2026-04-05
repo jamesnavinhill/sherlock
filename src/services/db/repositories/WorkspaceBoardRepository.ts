@@ -2,6 +2,7 @@ import { asc, eq } from 'drizzle-orm';
 import type { WorkspaceBoard, WorkspaceBoardDocument } from '@/types';
 import { getDB } from '../client';
 import { workspaceBoardDocuments, workspaceBoards } from '../schema';
+import { BoardAgentRepository } from './BoardAgentRepository';
 
 const mapBoard = (row: typeof workspaceBoards.$inferSelect): WorkspaceBoard => ({
   id: row.id,
@@ -117,6 +118,7 @@ export class WorkspaceBoardRepository {
 
   static async deleteBoard(boardId: string): Promise<void> {
     const db = getDB();
+    await BoardAgentRepository.deleteSessionsForBoard(boardId);
     await db.delete(workspaceBoardDocuments).where(eq(workspaceBoardDocuments.boardId, boardId));
     await db.delete(workspaceBoards).where(eq(workspaceBoards.id, boardId));
   }

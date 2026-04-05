@@ -8,7 +8,6 @@ import {
   Lock,
   Unlock,
   Briefcase,
-  ChevronRight,
   Box,
   Eye,
   EyeOff,
@@ -68,13 +67,9 @@ export const ControlBar: React.FC<ControlBarProps> = ({
       <div className="flex items-center space-x-4 min-w-0 flex-1">
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:flex items-center space-x-2 px-3 py-1.5 border transition-all ${showLeftPanel ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
+          className={`hidden md:flex items-center justify-center p-2 border transition-all ${showLeftPanel ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
         >
           <Briefcase className="w-4 h-4" />
-          <span className="text-xs font-mono uppercase font-bold hidden lg:inline">Dossier</span>
-          <ChevronRight
-            className={`w-3 h-3 transition-transform ${showLeftPanel ? 'rotate-180' : ''}`}
-          />
         </button>
         <div className="hidden md:block min-w-[180px] max-w-[220px]">
           <OsintSelect

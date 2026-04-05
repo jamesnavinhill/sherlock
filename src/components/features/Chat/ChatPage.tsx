@@ -12,8 +12,8 @@ import {
   FileJson,
   FileSearch,
   FileText,
-  Layout,
   MessageSquare,
+  PanelRight,
   Pencil,
   PlayCircle,
   Plus,
@@ -904,7 +904,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <button
               onClick={() => setLeftPanelOpen((current) => !current)}
-              className={`hidden items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition md:flex ${
+              className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition md:flex ${
                 leftPanelOpen
                   ? 'border-white bg-zinc-800 text-white'
                   : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
@@ -912,25 +912,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
               title="Toggle Sessions Panel"
             >
               <Briefcase className="h-4 w-4" />
-              Sessions
             </button>
-
-            <div className="hidden w-72 min-w-0 flex-1 md:block lg:max-w-md xl:max-w-xl">
-              <OsintSelect
-                ariaLabel="Chat workspace"
-                value={activeWorkspace?.id || ''}
-                onChange={(value) => setActiveWorkspaceId(value || null)}
-                placeholder="Select workspace"
-                triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
-                options={workspaces.map((workspace) => ({
-                  value: workspace.id,
-                  label: sanitizeDisplayTitle(workspace.title),
-                }))}
-              />
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
             <div className="relative" ref={newMenuRef}>
               <button
                 onClick={() => {
@@ -945,7 +927,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                 <ChevronDown className="w-3 h-3 ml-1" />
               </button>
               {showNewMenu && (
-                <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                <div className="absolute left-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
                   <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
                     Chat
                   </div>
@@ -996,6 +978,22 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                 </div>
               )}
             </div>
+            <div className="hidden w-72 min-w-0 flex-1 md:block lg:max-w-md xl:max-w-xl">
+              <OsintSelect
+                ariaLabel="Chat workspace"
+                value={activeWorkspace?.id || ''}
+                onChange={(value) => setActiveWorkspaceId(value || null)}
+                placeholder="Select workspace"
+                triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
+                options={workspaces.map((workspace) => ({
+                  value: workspace.id,
+                  label: sanitizeDisplayTitle(workspace.title),
+                }))}
+              />
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
             {activeSession && (
               <div className="relative" ref={exportMenuRef}>
                 <button
@@ -1043,15 +1041,14 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             )}
             <button
               onClick={() => setRightPanelOpen((current) => !current)}
-              className={`hidden items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition xl:flex ${
+              className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition xl:flex ${
                 rightPanelOpen
                   ? 'border-white bg-zinc-800 text-white'
                   : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
               }`}
               title="Toggle Context Panel"
             >
-              <Layout className="h-4 w-4" />
-              Context
+              <PanelRight className="h-4 w-4" />
             </button>
           </div>
         </div>

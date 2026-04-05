@@ -7,7 +7,6 @@ import {
   FileJson,
   Layout,
   Briefcase,
-  ChevronRight,
   MessageSquare,
   Shapes,
 } from 'lucide-react';
@@ -56,12 +55,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onOpenBoard,
   onPlaceReportOnBoard,
 }) => {
+  const [showContextMenu, setShowContextMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close export menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setShowContextMenu(false);
+      }
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
         setShowExportMenu(false);
       }
@@ -70,20 +74,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const hasContextActions = Boolean(onOpenChat || onOpenBoard || (onPlaceReportOnBoard && report));
+
   return (
     <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 osint-header-shadow flex items-center justify-between flex-shrink-0">
       <div className="flex items-center space-x-4 min-w-0 flex-1">
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:flex items-center space-x-2 px-3 py-1.5 border transition-all outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
+          className={`hidden md:flex items-center justify-center p-2 border transition-all outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
           title="Toggle Dossier Panel (D)"
           aria-label="Toggle Dossier Panel"
         >
           <Briefcase className="w-4 h-4" />
-          <span className="text-xs font-mono uppercase font-bold hidden lg:inline">Dossier</span>
-          <ChevronRight
-            className={`w-3 h-3 transition-transform ${leftPanelOpen ? 'rotate-180' : ''}`}
-          />
         </button>
         <button
           onClick={onToggleLeftPanel}
@@ -91,7 +93,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           title="Toggle Dossier Panel (D)"
           aria-label="Toggle Dossier Panel"
         >
-          <Layout className="w-5 h-5 focus:outline-none" />
+          <Briefcase className="w-5 h-5 focus:outline-none" />
+        </button>
+        <button
+          onClick={onStartNewCase}
+          className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
+        >
+          <Plus className="w-4 h-4 mr-1" />{' '}
+          <span className="hidden lg:inline">{`New ${labelProfile.workspaceLabel}`}</span>
         </button>
         <div className="hidden md:block min-w-[180px] max-w-[220px]">
           <OsintSelect
@@ -114,46 +123,77 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {/* Export Dropdown - show when case or report is available */}
         {(activeCase || report) && (
           <div className="flex items-center space-x-2">
-            {onOpenChat && (
-              <button
-                onClick={onOpenChat}
-                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
-                title={
-                  report
-                    ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
-                    : `Open ${labelProfile.workspaceLabel.toLowerCase()} in workspace chat`
-                }
-                aria-label="Open Workspace Chat"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="ml-2 hidden lg:inline">OPEN CHAT</span>
-              </button>
-            )}
-            {onOpenBoard && (
-              <button
-                onClick={onOpenBoard}
-                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
-                title={`Open ${labelProfile.workspaceLabel.toLowerCase()} research board`}
-                aria-label="Open Research Board"
-              >
-                <Layout className="w-4 h-4" />
-                <span className="ml-2 hidden lg:inline">OPEN BOARD</span>
-              </button>
-            )}
-            {onPlaceReportOnBoard && report && (
-              <button
-                onClick={onPlaceReportOnBoard}
-                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
-                title={`Place this ${labelProfile.artifactLabel.toLowerCase()} on the research board`}
-                aria-label="Place Report On Board"
-              >
-                <Shapes className="w-4 h-4" />
-                <span className="ml-2 hidden lg:inline">PLACE ON BOARD</span>
-              </button>
+            {hasContextActions && (
+              <div className="relative" ref={contextMenuRef}>
+                <button
+                  onClick={() => {
+                    setShowExportMenu(false);
+                    setShowContextMenu((current) => !current);
+                  }}
+                  className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4 mr-1" />
+                  <span className="hidden lg:inline">Open</span>
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </button>
+                {showContextMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                    <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
+                      Workspace Actions
+                    </div>
+                    {onOpenChat && (
+                      <button
+                        onClick={() => {
+                          onOpenChat();
+                          setShowContextMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        title={
+                          report
+                            ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
+                            : `Open ${labelProfile.workspaceLabel.toLowerCase()} in workspace chat`
+                        }
+                      >
+                        <MessageSquare className="w-4 h-4 mr-3 text-zinc-500" />
+                        <span>{report ? 'Open Context Chat' : 'Open Workspace Chat'}</span>
+                      </button>
+                    )}
+                    {onOpenBoard && (
+                      <button
+                        onClick={() => {
+                          onOpenBoard();
+                          setShowContextMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        title={`Open ${labelProfile.workspaceLabel.toLowerCase()} research board`}
+                      >
+                        <Layout className="w-4 h-4 mr-3 text-zinc-500" />
+                        <span>Open Board</span>
+                      </button>
+                    )}
+                    {onPlaceReportOnBoard && report && (
+                      <button
+                        onClick={() => {
+                          onPlaceReportOnBoard();
+                          setShowContextMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-t border-zinc-800"
+                        title={`Place this ${labelProfile.artifactLabel.toLowerCase()} on the research board`}
+                      >
+                        <Shapes className="w-4 h-4 mr-3 text-zinc-500" />
+                        <span>{`Place ${labelProfile.artifactLabel} on Board`}</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             <div className="relative" ref={exportMenuRef}>
               <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
+                onClick={() => {
+                  setShowContextMenu(false);
+                  setShowExportMenu((current) => !current);
+                }}
                 className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
               >
                 <Download className="w-4 h-4 mr-1" />
@@ -256,13 +296,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             </div>
           </div>
         )}
-        <button
-          onClick={onStartNewCase}
-          className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
-        >
-          <Plus className="w-4 h-4 mr-1" />{' '}
-          <span className="hidden lg:inline">{`New ${labelProfile.workspaceLabel}`}</span>
-        </button>
       </div>
     </div>
   );

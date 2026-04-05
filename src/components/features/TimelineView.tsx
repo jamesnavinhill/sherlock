@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
+  Briefcase,
   ChevronDown,
   Clock3,
   Download,
@@ -10,6 +11,7 @@ import {
   Fingerprint,
   FolderOpen,
   MessageSquare,
+  PanelRight,
   Radio,
   Save,
   Search,
@@ -670,15 +672,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         <div className="flex h-full min-w-0 items-center gap-3">
           <button
             onClick={() => setLeftPanelOpen((current) => !current)}
-            className={`flex shrink-0 items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+            className={`flex shrink-0 items-center justify-center border p-2 text-xs font-mono uppercase transition ${
               leftPanelOpen
                 ? 'border-white bg-zinc-800 text-white'
                 : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
             }`}
             title="Toggle timeline dossier"
           >
-            <Workflow className="h-4 w-4" />
-            <span className="hidden lg:inline">Dossier</span>
+            <Briefcase className="h-4 w-4" />
           </button>
 
           <div className="w-full max-w-[320px] min-w-[220px] shrink-0">
@@ -855,15 +856,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
           <button
             onClick={() => setRightPanelOpen((current) => !current)}
-            className={`flex shrink-0 items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
+            className={`flex shrink-0 items-center justify-center border p-2 text-xs font-mono uppercase transition ${
               rightPanelOpen
                 ? 'border-white bg-zinc-800 text-white'
                 : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
             }`}
             title="Toggle event details"
           >
-            <MessageSquare className="h-4 w-4" />
-            <span className="hidden lg:inline">Details</span>
+            <PanelRight className="h-4 w-4" />
           </button>
         </div>
       </header>

@@ -12,6 +12,7 @@ import {
 import { buildArtifactSections, toLegacyReportArrays } from '../../../domain';
 import type { ArtifactSection, Workspace, Artifact, Entity, Headline } from '@/types';
 import { ChatRepository } from './ChatRepository';
+import { BoardAgentRepository } from './BoardAgentRepository';
 import { TaskRepository } from './TaskRepository';
 import { TemplateRepository } from './TemplateRepository';
 import { ManualDataRepository } from './ManualDataRepository';
@@ -489,6 +490,7 @@ export class CaseRepository {
   static async deleteCase(caseId: string): Promise<void> {
     const db = getDB();
     await ChatRepository.deleteSessionsForWorkspace(caseId);
+    await BoardAgentRepository.deleteSessionsForWorkspace(caseId);
     await TaskRepository.clearWorkspace(caseId);
     await WorkspaceBoardRepository.deleteByWorkspace(caseId);
     await WorkspaceItemRepository.deleteByWorkspace(caseId);
@@ -507,6 +509,7 @@ export class CaseRepository {
 
     await deleteReportDependencies(reportIds);
     await ChatRepository.deleteSessionsForWorkspace(caseId);
+    await BoardAgentRepository.deleteSessionsForWorkspace(caseId);
     await TaskRepository.deleteByWorkspace(caseId);
     await WorkspaceBoardRepository.deleteByWorkspace(caseId);
     await WorkspaceItemRepository.deleteByWorkspace(caseId);
@@ -519,6 +522,7 @@ export class CaseRepository {
   static async clearCaseData(): Promise<void> {
     const db = getDB();
     await ChatRepository.clearAll();
+    await BoardAgentRepository.clearAll();
     await TaskRepository.clearAll();
     await TemplateRepository.clearAll();
     await WorkspaceBoardRepository.clearAll();

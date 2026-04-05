@@ -1,7 +1,24 @@
 # Research Workspace Agent Plan
 
 Date: 2026-04-05
-Status: Proposed
+Status: In Progress
+
+## Implementation Update
+
+Completed on April 5, 2026 in the current codebase:
+
+- Stream 0 groundwork is now in place through Sherlock-owned board-agent domain and context modules under `src/services/workspace/agent/*`
+- Stream 1 foundations are now implemented with persisted `board_agent_sessions` and `board_agent_actions`, repository support, store integration, and workspace backup/restore coverage
+- initial Stream 2 read-only context assembly is now implemented with:
+  - board snapshot parsing independent of React editor bindings
+  - bounded prompt-part context assembly for request, viewport, selection, visible shapes, peripheral clusters, linked records, and recent board-agent history
+  - focused tests for repository, store/backup wiring, and context packing
+
+Remaining near-term work after this checkpoint:
+
+- Stream 3 provider-router board-agent streaming path
+- initial Stream 4 safe execution registry and sanitization layer
+- board-side task log and session UX
 
 ## Objective
 
@@ -333,6 +350,8 @@ This stream does not aim to:
 
 #### 1. Define Sherlock-owned board-agent types
 
+Status: Completed on April 5, 2026.
+
 Primary files:
 
 - `src/types/index.ts`
@@ -348,6 +367,8 @@ Add concepts for:
 
 #### 2. Separate version-agnostic logic from editor-specific bindings
 
+Status: Initial completion on April 5, 2026.
+
 Primary files:
 
 - new `src/services/workspace/agent/*`
@@ -360,6 +381,8 @@ Rules:
 - execution adapters can depend on the live editor
 
 #### 3. Inventory current board operations that already work on 3.x
+
+Status: Completed in implementation notes and local code review on April 5, 2026.
 
 Primary local anchors:
 
@@ -399,6 +422,8 @@ This stream does not aim to:
 
 #### 1. Extend types
 
+Status: Completed on April 5, 2026.
+
 Primary files:
 
 - `src/types/index.ts`
@@ -412,6 +437,8 @@ Recommended additions:
 - `BoardAgentContextSnapshot`
 
 #### 2. Extend SQLite schema
+
+Status: Completed on April 5, 2026.
 
 Primary files:
 
@@ -430,6 +457,8 @@ Potential later table:
 
 #### 3. Add repositories
 
+Status: Completed on April 5, 2026.
+
 Primary files:
 
 - new `src/services/db/repositories/BoardAgentRepository.ts`
@@ -442,6 +471,8 @@ Responsibilities:
 - resolve recent board-agent history for prompt context
 
 #### 4. Integrate into workspace backup model if needed
+
+Status: Completed on April 5, 2026.
 
 Primary files:
 
@@ -486,6 +517,8 @@ This stream does not aim to:
 
 #### 1. Add board prompt-part definitions
 
+Status: Initial read-only implementation completed on April 5, 2026.
+
 Primary files:
 
 - new `src/services/workspace/agent/context/*`
@@ -517,6 +550,8 @@ If not:
 
 #### 3. Build linked Sherlock context hydration
 
+Status: Initial read-only implementation completed on April 5, 2026.
+
 Primary files:
 
 - `src/services/workspace/library.ts`
@@ -533,6 +568,8 @@ The board agent should be able to see:
 - provenance and related links where useful
 
 #### 4. Bound context size explicitly
+
+Status: Initial read-only implementation completed on April 5, 2026.
 
 Rules:
 
@@ -808,6 +845,8 @@ Outcome:
 
 - persisted board-agent groundwork exists
 - context system exists in read-only form
+
+Status: Initial implementation completed on April 5, 2026.
 
 ### Slice B: First Executing Agent
 

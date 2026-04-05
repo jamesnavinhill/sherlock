@@ -6,6 +6,7 @@ import { TemplateRepository } from '../services/db/repositories/TemplateReposito
 import { TaskRepository } from '../services/db/repositories/TaskRepository';
 import { CaseRepository } from '../services/db/repositories/CaseRepository';
 import { ChatRepository } from '../services/db/repositories/ChatRepository';
+import { BoardAgentRepository } from '../services/db/repositories/BoardAgentRepository';
 import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
 import { SettingsRepository } from '../services/db/repositories/SettingsRepository';
 import { ScopeRepository } from '../services/db/repositories/ScopeRepository';
@@ -42,6 +43,14 @@ describe('caseStore', () => {
     vi.spyOn(ChatRepository, 'updateMessage').mockResolvedValue();
     vi.spyOn(ChatRepository, 'replaceAttachments').mockResolvedValue();
     vi.spyOn(ChatRepository, 'createAction').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'createSession').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'updateSession').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'deleteSession').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'deleteSessionsForWorkspace').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'clearAll').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'createAction').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
+    vi.spyOn(BoardAgentRepository, 'getActionsForSession').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'saveAllNodes').mockResolvedValue();
     vi.spyOn(ManualDataRepository, 'saveAllLinks').mockResolvedValue();
     vi.spyOn(ManualDataRepository, 'removeWorkspaceLinkedData').mockResolvedValue();
@@ -67,6 +76,8 @@ describe('caseStore', () => {
     store.setChatMessagesBySessionId({});
     useWorkspaceStore.setState({
       chatActionsBySessionId: {},
+      boardAgentSessions: [],
+      boardAgentActionsBySessionId: {},
       headlines: [],
       manualNodes: [],
       manualLinks: [],
@@ -163,6 +174,10 @@ describe('caseStore', () => {
         messages: [],
         actions: [],
       },
+      boardAgent: {
+        sessions: [],
+        actions: [],
+      },
       signals: {
         headlines: [],
       },
@@ -193,6 +208,7 @@ describe('caseStore', () => {
     vi.spyOn(TaskRepository, 'getAll').mockResolvedValue([]);
     vi.spyOn(ChatRepository, 'getAllSessions').mockResolvedValue([]);
     vi.spyOn(ChatRepository, 'getMessagesBySessionIds').mockResolvedValue({});
+    vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
     vi.spyOn(CaseRepository, 'getHeadlines').mockResolvedValue([]);
     vi.spyOn(TemplateRepository, 'getAll').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'getAllNodes').mockResolvedValue([]);
@@ -421,6 +437,75 @@ describe('caseStore', () => {
     );
   });
 
+  it('should persist board-agent sessions and audit actions', async () => {
+    const store = useWorkspaceStore.getState();
+    store.setWorkspaces([
+      { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
+    ]);
+    useWorkspaceStore.setState({
+      workspaceBoards: [
+        {
+          id: 'board-1',
+          workspaceId: 'case-1',
+          name: 'Primary Board',
+          sortOrder: 0,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+    });
+
+    const session = await store.createBoardAgentSession({
+      workspaceId: 'case-1',
+      boardId: 'board-1',
+      request: 'Cluster the visible evidence',
+      title: 'Clustering pass',
+    });
+
+    expect(BoardAgentRepository.createSession).toHaveBeenCalledTimes(1);
+    expect(session.requestState).toBe('QUEUED');
+    expect(useWorkspaceStore.getState().boardAgentSessions[0].id).toBe(session.id);
+
+    await store.updateBoardAgentSession(session.id, {
+      status: 'RUNNING',
+      requestState: 'EXECUTING_ACTIONS',
+      updatedAt: 2,
+    });
+
+    expect(useWorkspaceStore.getState().boardAgentSessions[0]).toEqual(
+      expect.objectContaining({
+        status: 'RUNNING',
+        requestState: 'EXECUTING_ACTIONS',
+      })
+    );
+
+    await store.addBoardAgentAction({
+      id: 'board-action-1',
+      sessionId: session.id,
+      workspaceId: 'case-1',
+      boardId: 'board-1',
+      type: 'PLACE_LINKED_CARD',
+      status: 'COMPLETED',
+      affectedCanonicalIds: ['rep-1'],
+      affectedBoardShapeIds: ['shape:1'],
+      createdAt: 3,
+      updatedAt: 4,
+    });
+
+    expect(BoardAgentRepository.createAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'board-action-1',
+        sessionId: session.id,
+      })
+    );
+    expect(useWorkspaceStore.getState().boardAgentActionsBySessionId[session.id]).toEqual([
+      expect.objectContaining({
+        type: 'PLACE_LINKED_CARD',
+        affectedBoardShapeIds: ['shape:1'],
+      }),
+    ]);
+  });
+
   it('should add toasts and remove them', () => {
     vi.useFakeTimers();
     const { addToast } = useWorkspaceStore.getState();
@@ -563,6 +648,56 @@ describe('caseStore', () => {
           },
         ],
       },
+      boardAgentSessions: [
+        {
+          id: 'board-agent-1',
+          workspaceId: 'case-1',
+          boardId: 'board-1',
+          title: 'Alpha board agent',
+          status: 'RUNNING',
+          request: 'Cluster alpha',
+          requestState: 'EXECUTING_ACTIONS',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+        {
+          id: 'board-agent-2',
+          workspaceId: 'case-2',
+          boardId: 'board-2',
+          title: 'Bravo board agent',
+          status: 'PENDING',
+          request: 'Cluster bravo',
+          requestState: 'QUEUED',
+          createdAt: 2,
+          updatedAt: 2,
+        },
+      ],
+      boardAgentActionsBySessionId: {
+        'board-agent-1': [
+          {
+            id: 'board-act-1',
+            sessionId: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            type: 'PLACE_LINKED_CARD',
+            status: 'COMPLETED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        'board-agent-2': [
+          {
+            id: 'board-act-2',
+            sessionId: 'board-agent-2',
+            workspaceId: 'case-2',
+            boardId: 'board-2',
+            type: 'MOVE_SHAPES',
+            status: 'COMPLETED',
+            createdAt: 2,
+            updatedAt: 2,
+          },
+        ],
+      },
       manualNodes: [
         { id: 'case-rep-1', label: 'Alpha Artifact', type: 'CASE', timestamp: 1 },
         { id: 'manual-keep', label: 'Keep Me', type: 'ENTITY', timestamp: 2 },
@@ -587,6 +722,12 @@ describe('caseStore', () => {
     ]);
     expect(Object.keys(useWorkspaceStore.getState().chatMessagesBySessionId)).toEqual(['chat-2']);
     expect(Object.keys(useWorkspaceStore.getState().chatActionsBySessionId)).toEqual(['chat-2']);
+    expect(useWorkspaceStore.getState().boardAgentSessions.map((session) => session.id)).toEqual([
+      'board-agent-2',
+    ]);
+    expect(Object.keys(useWorkspaceStore.getState().boardAgentActionsBySessionId)).toEqual([
+      'board-agent-2',
+    ]);
     expect(useWorkspaceStore.getState().manualNodes.map((node) => node.id)).toEqual([
       'manual-keep',
     ]);
@@ -661,6 +802,33 @@ describe('caseStore', () => {
           },
         ],
       },
+      boardAgent: {
+        sessions: [
+          {
+            id: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            title: 'Board agent',
+            status: 'PENDING',
+            request: 'Summarize the visible board',
+            requestState: 'QUEUED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        actions: [
+          {
+            id: 'board-act-1',
+            sessionId: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            type: 'PLACE_LINKED_CARD',
+            status: 'COMPLETED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      },
       signals: {
         headlines: [
           {
@@ -703,6 +871,8 @@ describe('caseStore', () => {
     expect(ChatRepository.createSession).toHaveBeenCalledWith(payload.chat.sessions[0]);
     expect(ChatRepository.createMessage).toHaveBeenCalledWith(payload.chat.messages[0]);
     expect(ChatRepository.createAction).toHaveBeenCalledWith(payload.chat.actions[0]);
+    expect(BoardAgentRepository.createSession).toHaveBeenCalledWith(payload.boardAgent.sessions[0]);
+    expect(BoardAgentRepository.createAction).toHaveBeenCalledWith(payload.boardAgent.actions[0]);
     expect(ManualDataRepository.saveAllNodes).toHaveBeenCalledWith(payload.graph.manualNodes);
     expect(ManualDataRepository.saveAllLinks).toHaveBeenCalledWith(payload.graph.manualLinks);
     expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
@@ -714,6 +884,10 @@ describe('caseStore', () => {
     });
     expect(useWorkspaceStore.getState().chatActionsBySessionId).toEqual({
       'chat-1': payload.chat.actions,
+    });
+    expect(useWorkspaceStore.getState().boardAgentSessions).toEqual(payload.boardAgent.sessions);
+    expect(useWorkspaceStore.getState().boardAgentActionsBySessionId).toEqual({
+      'board-agent-1': payload.boardAgent.actions,
     });
     expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual([]);
     expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual([]);
@@ -789,6 +963,33 @@ describe('caseStore', () => {
           },
         ],
       },
+      boardAgentSessions: [
+        {
+          id: 'board-agent-1',
+          workspaceId: 'case-1',
+          boardId: 'board-1',
+          title: 'Board agent',
+          status: 'RUNNING',
+          request: 'Summarize the board',
+          requestState: 'EXECUTING_ACTIONS',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+      boardAgentActionsBySessionId: {
+        'board-agent-1': [
+          {
+            id: 'board-act-1',
+            sessionId: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            type: 'MOVE_SHAPES',
+            status: 'COMPLETED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      },
       manualNodes: [{ id: 'manual-1', label: 'Entity', type: 'ENTITY', timestamp: 1 }],
       manualLinks: [{ source: 'manual-1', target: 'external', timestamp: 2 }],
       hiddenNodeIds: ['manual-1'],
@@ -807,6 +1008,8 @@ describe('caseStore', () => {
     expect(useWorkspaceStore.getState().chatSessions).toEqual([]);
     expect(useWorkspaceStore.getState().chatMessagesBySessionId).toEqual({});
     expect(useWorkspaceStore.getState().chatActionsBySessionId).toEqual({});
+    expect(useWorkspaceStore.getState().boardAgentSessions).toEqual([]);
+    expect(useWorkspaceStore.getState().boardAgentActionsBySessionId).toEqual({});
     expect(useWorkspaceStore.getState().templates).toEqual([]);
     expect(useWorkspaceStore.getState().manualNodes).toEqual([]);
     expect(useWorkspaceStore.getState().manualLinks).toEqual([]);

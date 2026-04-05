@@ -62,6 +62,33 @@ describe('workspaceData maintenance helpers', () => {
           },
         ],
       },
+      boardAgentSessions: [
+        {
+          id: 'board-agent-1',
+          workspaceId: 'case-1',
+          boardId: 'board-1',
+          title: 'Cluster pass',
+          status: 'PENDING',
+          request: 'Cluster the evidence',
+          requestState: 'QUEUED',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+      boardAgentActionsBySessionId: {
+        'board-agent-1': [
+          {
+            id: 'board-act-1',
+            sessionId: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            type: 'PLACE_LINKED_CARD',
+            status: 'COMPLETED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      },
       headlines: [
         {
           id: 'head-1',
@@ -132,6 +159,33 @@ describe('workspaceData maintenance helpers', () => {
             id: 'act-1',
             sessionId: 'chat-1',
             type: 'SEARCH_WORKSPACE',
+            status: 'COMPLETED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      },
+      boardAgent: {
+        sessions: [
+          {
+            id: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            title: 'Cluster pass',
+            status: 'PENDING',
+            request: 'Cluster the evidence',
+            requestState: 'QUEUED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        actions: [
+          {
+            id: 'board-act-1',
+            sessionId: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            type: 'PLACE_LINKED_CARD',
             status: 'COMPLETED',
             createdAt: 1,
             updatedAt: 1,
@@ -235,6 +289,33 @@ describe('workspaceData maintenance helpers', () => {
           },
         ],
       },
+      boardAgentSessions: [
+        {
+          id: 'board-agent-1',
+          workspaceId: 'case-1',
+          boardId: 'board-1',
+          title: 'Cluster pass',
+          status: 'PENDING',
+          request: 'Cluster the evidence',
+          requestState: 'QUEUED',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+      boardAgentActionsBySessionId: {
+        'board-agent-1': [
+          {
+            id: 'board-act-1',
+            sessionId: 'board-agent-1',
+            workspaceId: 'case-1',
+            boardId: 'board-1',
+            type: 'PLACE_LINKED_CARD',
+            status: 'COMPLETED',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      },
       headlines: [
         {
           id: 'head-1',
@@ -259,6 +340,8 @@ describe('workspaceData maintenance helpers', () => {
     expect(payload.runs[0].workspaceId).toBe('case-1');
     expect(payload.chat.messages).toHaveLength(1);
     expect(payload.chat.actions).toHaveLength(1);
+    expect(payload.boardAgent.sessions).toHaveLength(1);
+    expect(payload.boardAgent.actions).toHaveLength(1);
     expect(payload.metadata.exportedAt).toBe('2026-04-03T00:00:00.000Z');
     expect(payload.workspaceSurface).toEqual({
       items: [],
@@ -305,6 +388,8 @@ describe('workspaceData maintenance helpers', () => {
     ]);
     expect(payload.runs).toEqual([]);
     expect(payload.chat.sessions).toEqual([]);
+    expect(payload.boardAgent.sessions).toEqual([]);
+    expect(payload.boardAgent.actions).toEqual([]);
     expect(payload.workspaceSurface).toEqual({
       items: [],
       boards: [],

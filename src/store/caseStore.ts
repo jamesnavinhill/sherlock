@@ -3,6 +3,8 @@ import type {
   AgentAction,
   Artifact,
   ArtifactSection,
+  BoardAgentAction,
+  BoardAgentSession,
   ChatGenerationStatus,
   ChatLaunchContext,
   ChatMessage,
@@ -34,6 +36,7 @@ import { SettingsRepository } from '../services/db/repositories/SettingsReposito
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
 import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
 import { ChatRepository } from '../services/db/repositories/ChatRepository';
+import { BoardAgentRepository } from '../services/db/repositories/BoardAgentRepository';
 import { WorkspaceBoardRepository } from '../services/db/repositories/WorkspaceBoardRepository';
 import { WorkspaceItemRepository } from '../services/db/repositories/WorkspaceItemRepository';
 import { initDB } from '../services/db/client';
@@ -46,6 +49,7 @@ import {
 } from '../utils/themeSurfaces';
 import {
   filterManualGraphForWorkspaceRemoval,
+  groupBoardAgentActionsBySessionId,
   groupChatActionsBySessionId,
   groupChatMessagesBySessionId,
 } from '../services/maintenance/workspaceData';
@@ -74,6 +78,7 @@ const hasExistingWorkspaceData = (input: {
   artifacts: Artifact[];
   workspaceRuns: WorkspaceRun[];
   chatSessions: ChatSession[];
+  boardAgentSessions: BoardAgentSession[];
   headlines: Headline[];
   templates: CaseTemplate[];
   workspaceItems: WorkspaceItem[];
@@ -86,6 +91,7 @@ const hasExistingWorkspaceData = (input: {
   input.artifacts.length > 0 ||
   input.workspaceRuns.length > 0 ||
   input.chatSessions.length > 0 ||
+  input.boardAgentSessions.length > 0 ||
   input.headlines.length > 0 ||
   input.templates.length > 0 ||
   input.workspaceItems.length > 0 ||
@@ -114,6 +120,12 @@ const persistWorkspaceDataBackup = async (payload: WorkspaceDataBackup) => {
   }
   for (const action of payload.chat.actions) {
     await ChatRepository.createAction(action);
+  }
+  for (const session of payload.boardAgent.sessions) {
+    await BoardAgentRepository.createSession(session);
+  }
+  for (const action of payload.boardAgent.actions) {
+    await BoardAgentRepository.createAction(action);
   }
   for (const headline of payload.signals.headlines) {
     await CaseRepository.createHeadline(headline);
@@ -165,6 +177,8 @@ interface WorkspaceState {
   chatSessions: ChatSession[];
   chatMessagesBySessionId: Record<string, ChatMessage[]>;
   chatActionsBySessionId: Record<string, AgentAction[]>;
+  boardAgentSessions: BoardAgentSession[];
+  boardAgentActionsBySessionId: Record<string, BoardAgentAction[]>;
   activeChatSessionId: string | null;
   chatGenerationStatus: ChatGenerationStatus;
   partialAssistantOutput: string;
@@ -219,6 +233,8 @@ interface WorkspaceState {
   setWorkspaceRuns: (workspaceRuns: WorkspaceRun[]) => void;
   setChatSessions: (sessions: ChatSession[]) => void;
   setChatMessagesBySessionId: (messages: Record<string, ChatMessage[]>) => void;
+  setBoardAgentSessions: (sessions: BoardAgentSession[]) => void;
+  setBoardAgentActionsBySessionId: (actions: Record<string, BoardAgentAction[]>) => void;
   setActiveChatSessionId: (id: string | null) => void;
   setChatGenerationStatus: (status: ChatGenerationStatus) => void;
   setPartialAssistantOutput: (value: string) => void;
@@ -291,6 +307,20 @@ interface WorkspaceState {
     patch: Partial<ChatMessage>
   ) => Promise<void>;
   addChatAction: (action: AgentAction) => Promise<void>;
+  createBoardAgentSession: (input: {
+    workspaceId: string;
+    boardId: string;
+    title?: string;
+    request: string;
+    provider?: BoardAgentSession['provider'];
+    modelId?: string;
+    metadata?: Record<string, unknown>;
+  }) => Promise<BoardAgentSession>;
+  updateBoardAgentSession: (
+    sessionId: string,
+    patch: Partial<Omit<BoardAgentSession, 'id' | 'workspaceId' | 'boardId' | 'createdAt'>>
+  ) => Promise<void>;
+  addBoardAgentAction: (action: BoardAgentAction) => Promise<void>;
   appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
   completeWorkspaceRun: (id: string, artifact: Artifact) => Promise<void>;
   completeTask: (id: string, report: Artifact) => Promise<void>;
@@ -342,6 +372,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   chatSessions: [],
   chatMessagesBySessionId: {},
   chatActionsBySessionId: {},
+  boardAgentSessions: [],
+  boardAgentActionsBySessionId: {},
   activeChatSessionId: null,
   chatGenerationStatus: 'IDLE',
   partialAssistantOutput: '',
@@ -404,6 +436,15 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           chatSessions.map(async (session) => [
             session.id,
             await ChatRepository.getActionsForSession(session.id),
+          ])
+        )
+      );
+      let boardAgentSessions = await BoardAgentRepository.getAllSessions();
+      let boardAgentActionsBySessionId = Object.fromEntries(
+        await Promise.all(
+          boardAgentSessions.map(async (session) => [
+            session.id,
+            await BoardAgentRepository.getActionsForSession(session.id),
           ])
         )
       );
@@ -491,6 +532,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           artifacts,
           workspaceRuns,
           chatSessions,
+          boardAgentSessions,
           headlines,
           templates,
           workspaceItems,
@@ -512,6 +554,10 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           chatSessions = demoSeed.chat.sessions;
           chatMessagesBySessionId = groupChatMessagesBySessionId(demoSeed.chat.messages);
           chatActionsBySessionId = groupChatActionsBySessionId(demoSeed.chat.actions);
+          boardAgentSessions = demoSeed.boardAgent.sessions;
+          boardAgentActionsBySessionId = groupBoardAgentActionsBySessionId(
+            demoSeed.boardAgent.actions
+          );
           headlines = demoSeed.signals.headlines;
           templates = demoSeed.templates;
           workspaceItems = demoSeed.workspaceSurface.items;
@@ -548,6 +594,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         chatSessions,
         chatMessagesBySessionId,
         chatActionsBySessionId,
+        boardAgentSessions,
+        boardAgentActionsBySessionId,
         headlines,
         templates,
         workspaceItems,
@@ -580,6 +628,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   setWorkspaceRuns: (workspaceRuns) => set({ workspaceRuns }),
   setChatSessions: (chatSessions) => set({ chatSessions }),
   setChatMessagesBySessionId: (chatMessagesBySessionId) => set({ chatMessagesBySessionId }),
+  setBoardAgentSessions: (boardAgentSessions) => set({ boardAgentSessions }),
+  setBoardAgentActionsBySessionId: (boardAgentActionsBySessionId) =>
+    set({ boardAgentActionsBySessionId }),
   setActiveChatSessionId: (activeChatSessionId) => set({ activeChatSessionId }),
   setChatGenerationStatus: (chatGenerationStatus) => set({ chatGenerationStatus }),
   setPartialAssistantOutput: (partialAssistantOutput) => set({ partialAssistantOutput }),
@@ -871,6 +922,61 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         ...state.chatActionsBySessionId,
         [action.sessionId]: [...(state.chatActionsBySessionId[action.sessionId] || []), action],
       },
+    }));
+  },
+
+  createBoardAgentSession: async (input) => {
+    const now = Date.now();
+    const session: BoardAgentSession = {
+      id: createLocalId('board-agent-session'),
+      workspaceId: input.workspaceId,
+      boardId: input.boardId,
+      title: input.title?.trim() || 'Board Agent Session',
+      status: 'PENDING',
+      request: input.request,
+      requestState: 'QUEUED',
+      provider: input.provider,
+      modelId: input.modelId,
+      metadata: input.metadata,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await BoardAgentRepository.createSession(session);
+    set((state) => ({
+      boardAgentSessions: [session, ...state.boardAgentSessions],
+    }));
+    return session;
+  },
+
+  updateBoardAgentSession: async (sessionId, patch) => {
+    await BoardAgentRepository.updateSession(sessionId, patch);
+    set((state) => ({
+      boardAgentSessions: state.boardAgentSessions.map((session) =>
+        session.id === sessionId
+          ? {
+              ...session,
+              ...patch,
+              updatedAt: patch.updatedAt ?? Date.now(),
+            }
+          : session
+      ),
+    }));
+  },
+
+  addBoardAgentAction: async (action) => {
+    await BoardAgentRepository.createAction(action);
+    set((state) => ({
+      boardAgentActionsBySessionId: {
+        ...state.boardAgentActionsBySessionId,
+        [action.sessionId]: [
+          ...(state.boardAgentActionsBySessionId[action.sessionId] || []),
+          action,
+        ],
+      },
+      boardAgentSessions: state.boardAgentSessions.map((session) =>
+        session.id === action.sessionId ? { ...session, updatedAt: action.updatedAt } : session
+      ),
     }));
   },
 
@@ -1181,6 +1287,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     await CaseRepository.unassignReportsFromCase(workspaceId);
     await CaseRepository.deleteCase(workspaceId);
     set((state) => {
+      const boardAgentSessionIds = state.boardAgentSessions
+        .filter((session) => session.workspaceId === workspaceId)
+        .map((session) => session.id);
       const workspaces = state.workspaces.filter((item) => item.id !== workspaceId);
       const artifacts = state.artifacts.map((artifact) =>
         artifact.caseId === workspaceId ? { ...artifact, caseId: undefined } : artifact
@@ -1226,6 +1335,14 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
               )
           )
         ),
+        boardAgentSessions: state.boardAgentSessions.filter(
+          (session) => session.workspaceId !== workspaceId
+        ),
+        boardAgentActionsBySessionId: Object.fromEntries(
+          Object.entries(state.boardAgentActionsBySessionId).filter(
+            ([sessionId]) => !boardAgentSessionIds.includes(sessionId)
+          )
+        ),
         workspaces,
         artifacts,
         headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
@@ -1257,6 +1374,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         .filter((artifact) => artifact.caseId === workspaceId && !!artifact.id)
         .map((artifact) => artifact.id as string);
       const chatSessionIds = state.chatSessions
+        .filter((session) => session.workspaceId === workspaceId)
+        .map((session) => session.id);
+      const boardAgentSessionIds = state.boardAgentSessions
         .filter((session) => session.workspaceId === workspaceId)
         .map((session) => session.id);
       const nextWorkspaceRuns = state.workspaceRuns.filter(
@@ -1292,6 +1412,14 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         chatActionsBySessionId: Object.fromEntries(
           Object.entries(state.chatActionsBySessionId).filter(
             ([sessionId]) => !chatSessionIds.includes(sessionId)
+          )
+        ),
+        boardAgentSessions: state.boardAgentSessions.filter(
+          (session) => session.workspaceId !== workspaceId
+        ),
+        boardAgentActionsBySessionId: Object.fromEntries(
+          Object.entries(state.boardAgentActionsBySessionId).filter(
+            ([sessionId]) => !boardAgentSessionIds.includes(sessionId)
           )
         ),
         workspaces: state.workspaces.filter((item) => item.id !== workspaceId),
@@ -1384,6 +1512,19 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     set((state) => {
       const nextBoards = state.workspaceBoards.filter((board) => board.id !== boardId);
       const nextDocuments = { ...state.workspaceBoardDocuments };
+      const nextBoardAgentSessions = state.boardAgentSessions.filter(
+        (session) => session.boardId !== boardId
+      );
+      const removedSessionIds = new Set(
+        state.boardAgentSessions
+          .filter((session) => session.boardId === boardId)
+          .map((session) => session.id)
+      );
+      const nextBoardAgentActions = Object.fromEntries(
+        Object.entries(state.boardAgentActionsBySessionId).filter(
+          ([sessionId]) => !removedSessionIds.has(sessionId)
+        )
+      );
       delete nextDocuments[boardId];
       const nextActiveBoardId =
         state.activeWorkspaceBoardId === boardId
@@ -1393,6 +1534,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       return {
         workspaceBoards: nextBoards,
         workspaceBoardDocuments: nextDocuments,
+        boardAgentSessions: nextBoardAgentSessions,
+        boardAgentActionsBySessionId: nextBoardAgentActions,
         activeWorkspaceBoardId: nextActiveBoardId,
       };
     });
@@ -1450,6 +1593,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       chatSessions: payload.chat.sessions,
       chatMessagesBySessionId: groupChatMessagesBySessionId(payload.chat.messages),
       chatActionsBySessionId: groupChatActionsBySessionId(payload.chat.actions),
+      boardAgentSessions: payload.boardAgent.sessions,
+      boardAgentActionsBySessionId: groupBoardAgentActionsBySessionId(payload.boardAgent.actions),
       headlines: payload.signals.headlines,
       templates: payload.templates,
       workspaceItems: payload.workspaceSurface.items,
@@ -1481,6 +1626,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       chatSessions: [],
       chatMessagesBySessionId: {},
       chatActionsBySessionId: {},
+      boardAgentSessions: [],
+      boardAgentActionsBySessionId: {},
       headlines: [],
       templates: [],
       workspaceItems: [],

@@ -226,6 +226,45 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "updated_at" integer NOT NULL,
             FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
         );`,
+    `CREATE TABLE IF NOT EXISTS "board_agent_sessions" (
+            "id" text PRIMARY KEY NOT NULL,
+            "workspace_id" text NOT NULL,
+            "board_id" text NOT NULL,
+            "title" text NOT NULL,
+            "status" text NOT NULL,
+            "request" text NOT NULL,
+            "request_state" text NOT NULL,
+            "provider" text,
+            "model_id" text,
+            "context_snapshot_id" text,
+            "last_error" text,
+            "metadata_json" text,
+            "created_at" integer NOT NULL,
+            "updated_at" integer NOT NULL,
+            "started_at" integer,
+            "completed_at" integer,
+            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+            FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
+        );`,
+    `CREATE TABLE IF NOT EXISTS "board_agent_actions" (
+            "id" text PRIMARY KEY NOT NULL,
+            "session_id" text NOT NULL,
+            "workspace_id" text NOT NULL,
+            "board_id" text NOT NULL,
+            "type" text NOT NULL,
+            "status" text NOT NULL,
+            "input_json" text,
+            "normalized_input_json" text,
+            "result_json" text,
+            "affected_canonical_ids_json" text,
+            "affected_board_shape_ids_json" text,
+            "error" text,
+            "created_at" integer NOT NULL,
+            "updated_at" integer NOT NULL,
+            FOREIGN KEY ("session_id") REFERENCES "board_agent_sessions"("id") ON UPDATE no action ON DELETE no action,
+            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+            FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
+        );`,
   ];
 
   for (const sql of alterStatements) {

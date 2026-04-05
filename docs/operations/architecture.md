@@ -156,12 +156,13 @@ The schema still uses compatibility table names such as `cases`, `reports`, and 
 - `workspace_items` persist canonical workspace-native notes, links, files/media, and promoted excerpts with provenance
 - `workspace_boards` persist named board/page shells per workspace
 - `workspace_board_documents` persist tldraw board snapshots separately from canonical research records
+- `board_agent_sessions` and `board_agent_actions` persist board-agent task state plus action audit trails for workspace boards
 
 Artifact persistence still uses the existing `reports` table, while `artifact_sections` and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
 Maintenance flows now treat SQLite data as a workspace-data domain:
 
-- Settings export/import use a canonical backup payload with `workspaces`, `artifacts`, `runs`, `chat`, `signals`, `graph`, `workspaceSurface`, `templates`, and `metadata`
+- Settings export/import use a canonical backup payload with `workspaces`, `artifacts`, `runs`, `chat`, `boardAgent`, `signals`, `graph`, `workspaceSurface`, `templates`, and `metadata`
 - workspace-data restore clears the current workspace-data domain before replaying the backup
 - app-level settings such as theme, provider defaults, and API keys remain outside workspace backup/restore
 
@@ -181,6 +182,7 @@ State domains include:
 - workspaces, artifacts, workspace runs, headlines
 - workspace-native library items, board/page shells, and board documents
 - chat sessions, messages, generation state, and launch context
+- board-agent sessions and action audit history
 - pack-aware report config snapshots
 - typed artifact sections
 - manual graph nodes/links
@@ -215,6 +217,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - canonical library drawer for artifacts, entities, sources, signals, notes, links, files/media, and promoted excerpts
 - drag/drop or click-to-place flows from canonical library into the active board
 - presentation mode plus manual-first AI actions for selection summaries and drafted board notes
+- Sherlock-owned board-agent groundwork under `src/services/workspace/agent/*`, including pure snapshot parsing and prompt-part context assembly for selected, visible, and linked board state
 - cross-surface placement handoff respects presentation mode rather than mutating readonly boards
 - inspector actions back into reports, workspace chat, timeline, network graph, source links, and promoted-item provenance
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system

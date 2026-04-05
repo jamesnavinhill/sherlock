@@ -256,6 +256,52 @@ export const workspaceBoardDocuments = sqliteTable('workspace_board_documents', 
   updatedAt: integer('updated_at').notNull(),
 });
 
+export const boardAgentSessions = sqliteTable('board_agent_sessions', {
+  id: text('id').primaryKey(),
+  workspaceId: text('workspace_id')
+    .notNull()
+    .references(() => cases.id),
+  boardId: text('board_id')
+    .notNull()
+    .references(() => workspaceBoards.id),
+  title: text('title').notNull(),
+  status: text('status').notNull(),
+  request: text('request').notNull(),
+  requestState: text('request_state').notNull(),
+  provider: text('provider'),
+  modelId: text('model_id'),
+  contextSnapshotId: text('context_snapshot_id'),
+  lastError: text('last_error'),
+  metadataJson: text('metadata_json'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  startedAt: integer('started_at'),
+  completedAt: integer('completed_at'),
+});
+
+export const boardAgentActions = sqliteTable('board_agent_actions', {
+  id: text('id').primaryKey(),
+  sessionId: text('session_id')
+    .notNull()
+    .references(() => boardAgentSessions.id),
+  workspaceId: text('workspace_id')
+    .notNull()
+    .references(() => cases.id),
+  boardId: text('board_id')
+    .notNull()
+    .references(() => workspaceBoards.id),
+  type: text('type').notNull(),
+  status: text('status').notNull(),
+  inputJson: text('input_json'),
+  normalizedInputJson: text('normalized_input_json'),
+  resultJson: text('result_json'),
+  affectedCanonicalIdsJson: text('affected_canonical_ids_json'),
+  affectedBoardShapeIdsJson: text('affected_board_shape_ids_json'),
+  error: text('error'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
 // --- MANUAL DATA (Graph) ---
 export const manualNodes = sqliteTable('manual_nodes', {
   id: text('id').primaryKey(),

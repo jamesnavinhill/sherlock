@@ -1,6 +1,8 @@
 import type {
   AgentAction,
   Artifact,
+  BoardAgentAction,
+  BoardAgentSession,
   CaseTemplate,
   ChatMessage,
   ChatSession,
@@ -26,6 +28,8 @@ type LegacyWorkspaceDataBackup = Partial<{
   chatSessions: unknown;
   chatMessagesBySessionId: unknown;
   chatActionsBySessionId: unknown;
+  boardAgentSessions: unknown;
+  boardAgentActionsBySessionId: unknown;
   headlines: unknown;
   templates: unknown;
   manualNodes: unknown;
@@ -72,6 +76,16 @@ export const groupChatActionsBySessionId = (
     return acc;
   }, {});
 
+export const groupBoardAgentActionsBySessionId = (
+  actions: BoardAgentAction[]
+): Record<string, BoardAgentAction[]> =>
+  actions.reduce<Record<string, BoardAgentAction[]>>((acc, action) => {
+    const next = acc[action.sessionId] || [];
+    next.push(action);
+    acc[action.sessionId] = next;
+    return acc;
+  }, {});
+
 export const buildWorkspaceLinkedGraphReferenceIds = (
   workspaceId: string,
   artifactIds: string[]
@@ -110,6 +124,8 @@ export const buildWorkspaceDataBackup = (input: {
   chatSessions: ChatSession[];
   chatMessagesBySessionId: Record<string, ChatMessage[]>;
   chatActionsBySessionId: Record<string, AgentAction[]>;
+  boardAgentSessions: BoardAgentSession[];
+  boardAgentActionsBySessionId: Record<string, BoardAgentAction[]>;
   headlines: Headline[];
   manualNodes: ManualNode[];
   manualLinks: ManualConnection[];
@@ -126,6 +142,10 @@ export const buildWorkspaceDataBackup = (input: {
     sessions: input.chatSessions,
     messages: Object.values(input.chatMessagesBySessionId).flat(),
     actions: Object.values(input.chatActionsBySessionId).flat(),
+  },
+  boardAgent: {
+    sessions: input.boardAgentSessions,
+    actions: Object.values(input.boardAgentActionsBySessionId).flat(),
   },
   signals: {
     headlines: input.headlines,
@@ -194,6 +214,16 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
     : looksWorkspaceExport
       ? []
       : flattenSessionRecord<AgentAction>(payload.chatActionsBySessionId);
+  const boardAgentSessions = looksCanonical
+    ? asArray<BoardAgentSession>(payload.boardAgent?.sessions)
+    : looksWorkspaceExport
+      ? []
+      : asArray<BoardAgentSession>(payload.boardAgentSessions);
+  const boardAgentActions = looksCanonical
+    ? asArray<BoardAgentAction>(payload.boardAgent?.actions)
+    : looksWorkspaceExport
+      ? []
+      : flattenSessionRecord<BoardAgentAction>(payload.boardAgentActionsBySessionId);
   const headlines = looksCanonical
     ? asArray<Headline>(payload.signals?.headlines)
     : looksWorkspaceExport
@@ -236,6 +266,10 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
       sessions,
       messages,
       actions,
+    },
+    boardAgent: {
+      sessions: boardAgentSessions,
+      actions: boardAgentActions,
     },
     signals: {
       headlines,
