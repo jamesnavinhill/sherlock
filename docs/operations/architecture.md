@@ -166,10 +166,12 @@ The schema still uses compatibility table names such as `cases`, `reports`, and 
 
 Artifact persistence still uses the existing `reports` table, while `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
+Repository write paths that span multiple tables now use the shared `runWriteTransaction(...)` helper from `src/services/db/client.ts` so artifact saves, chat attachment saves, workspace deletes, and workspace-data restore flows commit atomically instead of relying on sequential best effort.
+
 Maintenance flows now treat SQLite data as a workspace-data domain:
 
 - Settings export/import use a canonical backup payload with `workspaces`, `artifacts`, `runs`, `chat`, `boardAgent`, `signals`, `graph`, `workspaceSurface`, `templates`, and `metadata`
-- workspace-data restore clears the current workspace-data domain before replaying the backup
+- workspace-data restore clears the current workspace-data domain and replays the backup inside one transaction
 - app-level settings such as theme, provider defaults, and API keys remain outside workspace backup/restore
 
 Migration:

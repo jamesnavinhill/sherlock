@@ -84,6 +84,9 @@ const TRACK_OPTIONS: Array<{ track: TimelineTrack; label: string; icon: typeof R
   { track: 'CHAT', label: 'Chats', icon: MessageSquare },
 ];
 
+const LEFT_PANEL_SECTION_SCROLL_CLASS =
+  'max-h-[min(20rem,calc(100svh-21rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+
 const formatEventTime = (value: number) =>
   value > 0
     ? new Date(value).toLocaleTimeString([], {
@@ -909,6 +912,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               onToggle={() =>
                 setDossierSections((current) => ({ ...current, events: !current.events }))
               }
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 <button
@@ -939,6 +943,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               onToggle={() =>
                 setDossierSections((current) => ({ ...current, runs: !current.runs }))
               }
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {runItems.length === 0 ? (
@@ -973,6 +978,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               onToggle={() =>
                 setDossierSections((current) => ({ ...current, artifacts: !current.artifacts }))
               }
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {artifactItems.length === 0 ? (
@@ -1007,6 +1013,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               onToggle={() =>
                 setDossierSections((current) => ({ ...current, signals: !current.signals }))
               }
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {signalItems.length === 0 ? (
@@ -1041,6 +1048,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               onToggle={() =>
                 setDossierSections((current) => ({ ...current, entities: !current.entities }))
               }
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {entityItems.length === 0 ? (
@@ -1072,6 +1080,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               onToggle={() =>
                 setDossierSections((current) => ({ ...current, chats: !current.chats }))
               }
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {chatSessionItems.length === 0 ? (

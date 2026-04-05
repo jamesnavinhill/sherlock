@@ -1,5 +1,5 @@
 import { eq, desc } from 'drizzle-orm';
-import { getDB } from '../client';
+import { getDB, type SherlockWriteExecutor } from '../client';
 import { templates } from '../schema';
 import type { CaseTemplate } from '@/types';
 
@@ -19,8 +19,10 @@ export class TemplateRepository {
     }));
   }
 
-  static async create(template: CaseTemplate): Promise<void> {
-    const db = getDB();
+  static async create(
+    template: CaseTemplate,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.insert(templates).values({
       id: template.id,
       name: template.name,
@@ -37,8 +39,7 @@ export class TemplateRepository {
     await db.delete(templates).where(eq(templates.id, id));
   }
 
-  static async clearAll(): Promise<void> {
-    const db = getDB();
+  static async clearAll(db: SherlockWriteExecutor = getDB()): Promise<void> {
     await db.delete(templates);
   }
 }

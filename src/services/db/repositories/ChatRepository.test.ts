@@ -2,18 +2,38 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatRepository } from './ChatRepository';
 import { chatMessageAttachments, chatMessages, chatSessions } from '../schema';
 
-const mockDb = {
-  select: vi.fn(),
-  insert: vi.fn(),
-};
+const { mockDb, transactionEvents, runWriteTransaction } = vi.hoisted(() => {
+  const mockDb = {
+    select: vi.fn(),
+    insert: vi.fn(),
+  };
+  const transactionEvents: string[] = [];
+  const runWriteTransaction = vi.fn(
+    async (operation: (tx: typeof mockDb) => Promise<unknown>) => {
+      transactionEvents.push('begin');
+      try {
+        const result = await operation(mockDb);
+        transactionEvents.push('commit');
+        return result;
+      } catch (error) {
+        transactionEvents.push('rollback');
+        throw error;
+      }
+    }
+  );
+
+  return { mockDb, transactionEvents, runWriteTransaction };
+});
 
 vi.mock('../client', () => ({
   getDB: () => mockDb,
+  runWriteTransaction,
 }));
 
 describe('ChatRepository', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    transactionEvents.length = 0;
   });
 
   it('hydrates messages grouped by session id and preserves attachments', async () => {
@@ -140,5 +160,69 @@ describe('ChatRepository', () => {
         metadataJson: JSON.stringify({ pinned: true }),
       })
     );
+  });
+
+  it('creates messages and attachments in one transaction', async () => {
+    const values = vi.fn().mockResolvedValue(undefined);
+    mockDb.insert.mockReturnValue({ values });
+
+    await ChatRepository.createMessage({
+      id: 'msg-2',
+      sessionId: 'chat-2',
+      role: 'assistant',
+      content: 'Saved answer',
+      status: 'COMPLETED',
+      attachments: [
+        {
+          id: 'att-2',
+          messageId: 'msg-2',
+          kind: 'REPORT',
+          title: 'Atlas Brief',
+          refId: 'rep-1',
+          createdAt: 3,
+        },
+      ],
+      createdAt: 1,
+      updatedAt: 2,
+    });
+
+    expect(runWriteTransaction).toHaveBeenCalledTimes(1);
+    expect(transactionEvents).toEqual(['begin', 'commit']);
+    expect(mockDb.insert).toHaveBeenCalledWith(chatMessages);
+    expect(mockDb.insert).toHaveBeenCalledWith(chatMessageAttachments);
+  });
+
+  it('propagates attachment failures so the outer transaction can roll back', async () => {
+    const failure = new Error('attachment insert failed');
+    const values = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(failure);
+    mockDb.insert.mockReturnValue({ values });
+
+    await expect(
+      ChatRepository.createMessage({
+        id: 'msg-3',
+        sessionId: 'chat-3',
+        role: 'assistant',
+        content: 'Saved answer',
+        status: 'COMPLETED',
+        attachments: [
+          {
+            id: 'att-3',
+            messageId: 'msg-3',
+            kind: 'REPORT',
+            title: 'Atlas Brief',
+            refId: 'rep-1',
+            createdAt: 3,
+          },
+        ],
+        createdAt: 1,
+        updatedAt: 2,
+      })
+    ).rejects.toThrow('attachment insert failed');
+
+    expect(runWriteTransaction).toHaveBeenCalledTimes(1);
+    expect(transactionEvents).toEqual(['begin', 'rollback']);
   });
 });

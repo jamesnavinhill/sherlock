@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { getDB } from '../client';
+import { getDB, type SherlockWriteExecutor } from '../client';
 import { settings } from '../schema';
 
 export class SettingsRepository {
@@ -16,8 +16,11 @@ export class SettingsRepository {
     }
   }
 
-  static async setSetting<T>(key: string, value: T): Promise<void> {
-    const db = getDB();
+  static async setSetting<T>(
+    key: string,
+    value: T,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     const payload = JSON.stringify(value);
 
     await db

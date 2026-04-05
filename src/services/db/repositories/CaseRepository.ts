@@ -1,5 +1,9 @@
 import { eq, desc } from 'drizzle-orm';
-import { getDB } from '../client';
+import {
+  getDB,
+  runWriteTransaction,
+  type SherlockWriteExecutor,
+} from '../client';
 import {
   artifactEvidence,
   artifactSections,
@@ -16,7 +20,15 @@ import {
   toFollowUpTexts,
   toLegacyReportArrays,
 } from '../../../domain';
-import type { ArtifactSection, Workspace, Artifact, Entity, Headline, FollowUp } from '@/types';
+import type {
+  ArtifactSection,
+  Workspace,
+  Artifact,
+  Entity,
+  Headline,
+  FollowUp,
+  WorkspaceDataBackup,
+} from '@/types';
 import { ChatRepository } from './ChatRepository';
 import { BoardAgentRepository } from './BoardAgentRepository';
 import { TaskRepository } from './TaskRepository';
@@ -24,6 +36,7 @@ import { TemplateRepository } from './TemplateRepository';
 import { ManualDataRepository } from './ManualDataRepository';
 import { WorkspaceBoardRepository } from './WorkspaceBoardRepository';
 import { WorkspaceItemRepository } from './WorkspaceItemRepository';
+import { SettingsRepository } from './SettingsRepository';
 import {
   normalizeHumanText,
   normalizeTopicText,
@@ -120,10 +133,11 @@ const toSourceList = (value: unknown): Artifact['sources'] => {
     .filter((item): item is { title: string; url: string } => !!item);
 };
 
-const deleteReportDependencies = async (reportIds: string[]) => {
+const deleteReportDependencies = async (
+  reportIds: string[],
+  db: SherlockWriteExecutor = getDB()
+) => {
   if (reportIds.length === 0) return;
-
-  const db = getDB();
   for (const reportId of reportIds) {
     await db.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
     await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
@@ -179,8 +193,10 @@ export class CaseRepository {
     };
   }
 
-  static async createCase(caseData: Workspace): Promise<void> {
-    const db = getDB();
+  static async createCase(
+    caseData: Workspace,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     const createdAt = caseData.createdAt ?? Date.now();
     const updatedAt = caseData.updatedAt ?? createdAt;
     await db.insert(cases).values({
@@ -363,8 +379,12 @@ export class CaseRepository {
     });
   }
 
-  static async createReport(report: Artifact): Promise<void> {
-    const db = getDB();
+  static async createReport(report: Artifact, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.createReport(report, tx));
+      return;
+    }
+
     const now = report.createdAt ?? Date.now();
     if (!report.id) {
       throw new Error('Report must have an id before persistence.');
@@ -392,7 +412,6 @@ export class CaseRepository {
           }
         : undefined;
 
-    // Insert Report (wa-sqlite handles its own transactions, explicit drizzle transactions conflict)
     await db.insert(reports).values({
       id: reportId,
       caseId: report.caseId,
@@ -494,6 +513,24 @@ export class CaseRepository {
       }
     }
 
+    if (report.config?.sourceSignalId) {
+      await db
+        .update(leads)
+        .set({ linkedReportId: reportId })
+        .where(eq(leads.id, report.config.sourceSignalId));
+    }
+
+    if (report.config?.sourceFollowUpId) {
+      await db
+        .update(followUpRows)
+        .set({
+          status: 'RESOLVED',
+          resolvedByArtifactId: reportId,
+          updatedAt: now,
+        })
+        .where(eq(followUpRows.id, report.config.sourceFollowUpId));
+    }
+
     // Update parent case timestamp
     if (report.caseId) {
       await db.update(cases).set({ updatedAt: now }).where(eq(cases.id, report.caseId));
@@ -546,9 +583,9 @@ export class CaseRepository {
 
   static async resolveFollowUp(
     followUpId: string,
-    patch: Pick<FollowUp, 'status' | 'resolvedByArtifactId'> & { updatedAt?: number }
+    patch: Pick<FollowUp, 'status' | 'resolvedByArtifactId'> & { updatedAt?: number },
+    db: SherlockWriteExecutor = getDB()
   ): Promise<void> {
-    const db = getDB();
     await db
       .update(followUpRows)
       .set({
@@ -559,8 +596,12 @@ export class CaseRepository {
       .where(eq(followUpRows.id, followUpId));
   }
 
-  static async deleteReport(reportId: string): Promise<void> {
-    const db = getDB();
+  static async deleteReport(reportId: string, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.deleteReport(reportId, tx));
+      return;
+    }
+
     await db.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
     await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
     await db.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
@@ -574,47 +615,59 @@ export class CaseRepository {
     await db.update(reports).set({ caseId: null }).where(eq(reports.caseId, caseId));
   }
 
-  static async deleteCase(caseId: string): Promise<void> {
-    const db = getDB();
-    await ChatRepository.deleteSessionsForWorkspace(caseId);
-    await BoardAgentRepository.deleteSessionsForWorkspace(caseId);
-    await TaskRepository.clearWorkspace(caseId);
-    await WorkspaceBoardRepository.deleteByWorkspace(caseId);
-    await WorkspaceItemRepository.deleteByWorkspace(caseId);
+  static async deleteCase(caseId: string, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.deleteCase(caseId, tx));
+      return;
+    }
+
+    await ChatRepository.deleteSessionsForWorkspace(caseId, db);
+    await BoardAgentRepository.deleteSessionsForWorkspace(caseId, db);
+    await TaskRepository.clearWorkspace(caseId, db);
+    await WorkspaceBoardRepository.deleteByWorkspace(caseId, db);
+    await WorkspaceItemRepository.deleteByWorkspace(caseId, db);
     await db.delete(leads).where(eq(leads.caseId, caseId));
-    await ManualDataRepository.removeWorkspaceLinkedData(caseId, []);
+    await ManualDataRepository.removeWorkspaceLinkedData(caseId, [], db);
     await db.delete(cases).where(eq(cases.id, caseId));
   }
 
-  static async purgeCase(caseId: string): Promise<void> {
-    const db = getDB();
+  static async purgeCase(caseId: string, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.purgeCase(caseId, tx));
+      return;
+    }
+
     const reportRows = await db
       .select({ id: reports.id })
       .from(reports)
       .where(eq(reports.caseId, caseId));
     const reportIds = reportRows.map((row) => row.id);
 
-    await deleteReportDependencies(reportIds);
-    await ChatRepository.deleteSessionsForWorkspace(caseId);
-    await BoardAgentRepository.deleteSessionsForWorkspace(caseId);
-    await TaskRepository.deleteByWorkspace(caseId);
-    await WorkspaceBoardRepository.deleteByWorkspace(caseId);
-    await WorkspaceItemRepository.deleteByWorkspace(caseId);
-    await ManualDataRepository.removeWorkspaceLinkedData(caseId, reportIds);
+    await deleteReportDependencies(reportIds, db);
+    await ChatRepository.deleteSessionsForWorkspace(caseId, db);
+    await BoardAgentRepository.deleteSessionsForWorkspace(caseId, db);
+    await TaskRepository.deleteByWorkspace(caseId, db);
+    await WorkspaceBoardRepository.deleteByWorkspace(caseId, db);
+    await WorkspaceItemRepository.deleteByWorkspace(caseId, db);
+    await ManualDataRepository.removeWorkspaceLinkedData(caseId, reportIds, db);
     await db.delete(reports).where(eq(reports.caseId, caseId));
     await db.delete(leads).where(eq(leads.caseId, caseId));
     await db.delete(cases).where(eq(cases.id, caseId));
   }
 
-  static async clearCaseData(): Promise<void> {
-    const db = getDB();
-    await ChatRepository.clearAll();
-    await BoardAgentRepository.clearAll();
-    await TaskRepository.clearAll();
-    await TemplateRepository.clearAll();
-    await WorkspaceBoardRepository.clearAll();
-    await WorkspaceItemRepository.clearAll();
-    await ManualDataRepository.clearAll();
+  static async clearCaseData(db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.clearCaseData(tx));
+      return;
+    }
+
+    await ChatRepository.clearAll(db);
+    await BoardAgentRepository.clearAll(db);
+    await TaskRepository.clearAll(db);
+    await TemplateRepository.clearAll(db);
+    await WorkspaceBoardRepository.clearAll(db);
+    await WorkspaceItemRepository.clearAll(db);
+    await ManualDataRepository.clearAll(db);
     await db.delete(followUpRows);
     await db.delete(artifactSections);
     await db.delete(artifactEvidence);
@@ -626,13 +679,66 @@ export class CaseRepository {
   }
 
   static async importCasesAndReports(caseData: Workspace[], reportData: Artifact[]): Promise<void> {
-    await this.clearCaseData();
-    for (const item of caseData) {
-      await this.createCase(item);
-    }
-    for (const report of reportData) {
-      await this.createReport(report);
-    }
+    await runWriteTransaction(async (tx) => {
+      await this.clearCaseData(tx);
+      for (const item of caseData) {
+        await this.createCase(item, tx);
+      }
+      for (const report of reportData) {
+        await this.createReport(report, tx);
+      }
+    });
+  }
+
+  static async replaceWorkspaceDataBackup(payload: WorkspaceDataBackup): Promise<void> {
+    await runWriteTransaction(async (tx) => {
+      await this.clearCaseData(tx);
+
+      for (const workspace of payload.workspaces) {
+        await this.createCase(workspace, tx);
+      }
+      for (const artifact of payload.artifacts) {
+        await this.createReport(artifact, tx);
+      }
+      for (const run of payload.runs) {
+        await TaskRepository.create(run, tx);
+      }
+      for (const session of payload.chat.sessions) {
+        await ChatRepository.createSession(session, tx);
+      }
+      for (const message of payload.chat.messages) {
+        await ChatRepository.createMessage(message, tx);
+      }
+      for (const action of payload.chat.actions) {
+        await ChatRepository.createAction(action, tx);
+      }
+      for (const session of payload.boardAgent.sessions) {
+        await BoardAgentRepository.createSession(session, tx);
+      }
+      for (const action of payload.boardAgent.actions) {
+        await BoardAgentRepository.createAction(action, tx);
+      }
+      for (const headline of payload.signals.headlines) {
+        await this.createHeadline(headline, tx);
+      }
+      for (const template of payload.templates) {
+        await TemplateRepository.create(template, tx);
+      }
+      for (const item of payload.workspaceSurface.items) {
+        await WorkspaceItemRepository.create(item, tx);
+      }
+      for (const board of payload.workspaceSurface.boards) {
+        await WorkspaceBoardRepository.createBoard(board, tx);
+      }
+      for (const document of payload.workspaceSurface.boardDocuments) {
+        await WorkspaceBoardRepository.upsertDocument(document, tx);
+      }
+
+      await ManualDataRepository.saveAllNodes(payload.graph.manualNodes, tx);
+      await ManualDataRepository.saveAllLinks(payload.graph.manualLinks, tx);
+      await SettingsRepository.setSetting('hidden_nodes', [], tx);
+      await SettingsRepository.setSetting('flagged_nodes', [], tx);
+    });
   }
 
   // --- LEADS ---
@@ -654,8 +760,10 @@ export class CaseRepository {
     }));
   }
 
-  static async createHeadline(headline: Headline): Promise<void> {
-    const db = getDB();
+  static async createHeadline(
+    headline: Headline,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db
       .insert(leads)
       .values({

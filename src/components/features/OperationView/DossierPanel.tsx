@@ -14,6 +14,9 @@ import { Accordion } from '../../ui/Accordion';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 
+const LEFT_PANEL_SECTION_SCROLL_CLASS =
+  'max-h-[min(20rem,calc(100svh-22rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+
 interface DossierPanelProps {
   isOpen: boolean;
   activeCase: Workspace | null;
@@ -89,6 +92,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
             icon={FileText}
             isOpen={openSections.reports}
             onToggle={() => toggleSection('reports')}
+            contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-1">
               {reports.map((r) => (
@@ -112,6 +116,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
             icon={User}
             isOpen={openSections.entities}
             onToggle={() => toggleSection('entities')}
+            contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
           >
             <div className="grid grid-cols-2 gap-1">
               {entities.map((e, idx) => (
@@ -149,6 +154,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           icon={Lightbulb}
           isOpen={openSections.leads}
           onToggle={() => toggleSection('leads')}
+          contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
         >
           <div className="space-y-1">
             {leads.length === 0 ? (
@@ -176,6 +182,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
             icon={Globe}
             isOpen={openSections.evidence}
             onToggle={() => toggleSection('evidence')}
+            contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-1">
               {reports
@@ -209,6 +216,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           icon={Globe}
           isOpen={openSections.sources}
           onToggle={() => toggleSection('sources')}
+          contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
         >
           <div className="space-y-1">
             {sources.length === 0 ? (
@@ -237,6 +245,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           icon={Newspaper}
           isOpen={openSections.headlines}
           onToggle={() => toggleSection('headlines')}
+          contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
         >
           <div className="space-y-1">
             {headlines.length === 0 ? (

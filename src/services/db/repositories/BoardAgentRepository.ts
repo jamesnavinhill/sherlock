@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
 import type { BoardAgentAction, BoardAgentSession } from '@/types';
-import { getDB } from '../client';
+import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { boardAgentActions, boardAgentSessions } from '../schema';
 
 const parseJson = <T>(value: string | null | undefined): T | undefined => {
@@ -66,8 +66,10 @@ export class BoardAgentRepository {
     return rows.map(mapAction);
   }
 
-  static async createSession(session: BoardAgentSession): Promise<void> {
-    const db = getDB();
+  static async createSession(
+    session: BoardAgentSession,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.insert(boardAgentSessions).values({
       id: session.id,
       workspaceId: session.workspaceId,
@@ -118,8 +120,10 @@ export class BoardAgentRepository {
       .where(eq(boardAgentSessions.id, id));
   }
 
-  static async createAction(action: BoardAgentAction): Promise<void> {
-    const db = getDB();
+  static async createAction(
+    action: BoardAgentAction,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.insert(boardAgentActions).values({
       id: action.id,
       sessionId: action.sessionId,
@@ -178,34 +182,45 @@ export class BoardAgentRepository {
       .where(eq(boardAgentActions.id, id));
   }
 
-  static async deleteSession(id: string): Promise<void> {
-    const db = getDB();
+  static async deleteSession(id: string, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.deleteSession(id, tx));
+      return;
+    }
+
     await db.delete(boardAgentActions).where(eq(boardAgentActions.sessionId, id));
     await db.delete(boardAgentSessions).where(eq(boardAgentSessions.id, id));
   }
 
-  static async deleteSessionsForWorkspace(workspaceId: string): Promise<void> {
-    const sessions = await this.getAllSessions();
-    const matchingIds = sessions
-      .filter((session) => session.workspaceId === workspaceId)
-      .map((session) => session.id);
+  static async deleteSessionsForWorkspace(
+    workspaceId: string,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
+    const sessions = await db
+      .select({ id: boardAgentSessions.id })
+      .from(boardAgentSessions)
+      .where(eq(boardAgentSessions.workspaceId, workspaceId));
 
-    for (const sessionId of matchingIds) {
-      await this.deleteSession(sessionId);
+    for (const session of sessions) {
+      await this.deleteSession(session.id, db);
     }
   }
 
-  static async deleteSessionsForBoard(boardId: string): Promise<void> {
-    const sessions = await this.getAllSessions();
-    const matchingIds = sessions.filter((session) => session.boardId === boardId).map((session) => session.id);
+  static async deleteSessionsForBoard(
+    boardId: string,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
+    const sessions = await db
+      .select({ id: boardAgentSessions.id })
+      .from(boardAgentSessions)
+      .where(eq(boardAgentSessions.boardId, boardId));
 
-    for (const sessionId of matchingIds) {
-      await this.deleteSession(sessionId);
+    for (const session of sessions) {
+      await this.deleteSession(session.id, db);
     }
   }
 
-  static async clearAll(): Promise<void> {
-    const db = getDB();
+  static async clearAll(db: SherlockWriteExecutor = getDB()): Promise<void> {
     await db.delete(boardAgentActions);
     await db.delete(boardAgentSessions);
   }

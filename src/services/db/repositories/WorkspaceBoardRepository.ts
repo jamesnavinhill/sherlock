@@ -1,6 +1,6 @@
 import { asc, eq } from 'drizzle-orm';
 import type { WorkspaceBoard, WorkspaceBoardDocument } from '@/types';
-import { getDB } from '../client';
+import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { workspaceBoardDocuments, workspaceBoards } from '../schema';
 import { BoardAgentRepository } from './BoardAgentRepository';
 
@@ -37,8 +37,10 @@ export class WorkspaceBoardRepository {
     return rows.map(mapBoardDocument);
   }
 
-  static async createBoard(board: WorkspaceBoard): Promise<void> {
-    const db = getDB();
+  static async createBoard(
+    board: WorkspaceBoard,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.insert(workspaceBoards).values({
       id: board.id,
       workspaceId: board.workspaceId,
@@ -98,8 +100,10 @@ export class WorkspaceBoardRepository {
       .where(eq(workspaceBoards.id, id));
   }
 
-  static async upsertDocument(document: WorkspaceBoardDocument): Promise<void> {
-    const db = getDB();
+  static async upsertDocument(
+    document: WorkspaceBoardDocument,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db
       .insert(workspaceBoardDocuments)
       .values({
@@ -116,24 +120,32 @@ export class WorkspaceBoardRepository {
       });
   }
 
-  static async deleteBoard(boardId: string): Promise<void> {
-    const db = getDB();
-    await BoardAgentRepository.deleteSessionsForBoard(boardId);
+  static async deleteBoard(boardId: string, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.deleteBoard(boardId, tx));
+      return;
+    }
+
+    await BoardAgentRepository.deleteSessionsForBoard(boardId, db);
     await db.delete(workspaceBoardDocuments).where(eq(workspaceBoardDocuments.boardId, boardId));
     await db.delete(workspaceBoards).where(eq(workspaceBoards.id, boardId));
   }
 
-  static async deleteByWorkspace(workspaceId: string): Promise<void> {
-    const boards = await this.getAllBoards();
-    const boardIds = boards.filter((board) => board.workspaceId === workspaceId).map((board) => board.id);
+  static async deleteByWorkspace(
+    workspaceId: string,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
+    const boardRows = await db
+      .select({ id: workspaceBoards.id })
+      .from(workspaceBoards)
+      .where(eq(workspaceBoards.workspaceId, workspaceId));
 
-    for (const boardId of boardIds) {
-      await this.deleteBoard(boardId);
+    for (const board of boardRows) {
+      await this.deleteBoard(board.id, db);
     }
   }
 
-  static async clearAll(): Promise<void> {
-    const db = getDB();
+  static async clearAll(db: SherlockWriteExecutor = getDB()): Promise<void> {
     await db.delete(workspaceBoardDocuments);
     await db.delete(workspaceBoards);
   }

@@ -65,6 +65,8 @@ import { sanitizeDisplayTitle } from '@/domain';
 import { CompactStylePanel } from './CompactStylePanel';
 
 const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
+const LEFT_PANEL_SECTION_SCROLL_CLASS =
+  'max-h-[min(19rem,calc(100svh-23rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
 type RightPanelView = 'INSPECTOR' | 'AGENT';
 type CreateModalState =
   | { type: 'NOTE'; title: string; content: string }
@@ -1533,6 +1535,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
                     [key]: !current[key],
                   }))
                 }
+                contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
               >
                 <div className="space-y-2">
                   {entries.length === 0 ? (

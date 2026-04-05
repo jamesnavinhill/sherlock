@@ -34,6 +34,7 @@ describe('caseStore', () => {
     vi.spyOn(CaseRepository, 'createCase').mockResolvedValue();
     vi.spyOn(CaseRepository, 'createReport').mockResolvedValue();
     vi.spyOn(CaseRepository, 'createHeadline').mockResolvedValue();
+    vi.spyOn(CaseRepository, 'replaceWorkspaceDataBackup').mockResolvedValue();
     vi.spyOn(ChatRepository, 'createSession').mockResolvedValue();
     vi.spyOn(ChatRepository, 'updateSession').mockResolvedValue();
     vi.spyOn(ChatRepository, 'deleteSession').mockResolvedValue();
@@ -225,9 +226,7 @@ describe('caseStore', () => {
     await useWorkspaceStore.getState().initializeStore();
 
     expect(fetchMock).toHaveBeenCalledWith('/seeds/demo-workspace.json', { cache: 'no-store' });
-    expect(CaseRepository.createCase).toHaveBeenCalledWith(payload.workspaces[0]);
-    expect(CaseRepository.createReport).toHaveBeenCalledWith(payload.artifacts[0]);
-    expect(TaskRepository.create).toHaveBeenCalledWith(payload.runs[0]);
+    expect(CaseRepository.replaceWorkspaceDataBackup).toHaveBeenCalledWith(payload);
     expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
     expect(useWorkspaceStore.getState().artifacts).toEqual(payload.artifacts);
     expect(useWorkspaceStore.getState().activeWorkspaceId).toBe('ws-seed');
@@ -324,10 +323,12 @@ describe('caseStore', () => {
     });
 
     expect(saved.id).toBe('rep-1');
-    expect(CaseRepository.createHeadline).toHaveBeenCalledWith(
+    expect(CaseRepository.createReport).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: 'head-1',
-        linkedReportId: 'rep-1',
+        id: 'rep-1',
+        config: expect.objectContaining({
+          sourceSignalId: 'head-1',
+        }),
       })
     );
     expect(useWorkspaceStore.getState().headlines[0].linkedReportId).toBe('rep-1');
@@ -884,17 +885,7 @@ describe('caseStore', () => {
 
     await store.importWorkspaceData(payload);
 
-    expect(CaseRepository.clearCaseData).toHaveBeenCalled();
-    expect(CaseRepository.createCase).toHaveBeenCalledWith(payload.workspaces[0]);
-    expect(CaseRepository.createReport).toHaveBeenCalledWith(payload.artifacts[0]);
-    expect(TaskRepository.create).toHaveBeenCalledWith(payload.runs[0]);
-    expect(ChatRepository.createSession).toHaveBeenCalledWith(payload.chat.sessions[0]);
-    expect(ChatRepository.createMessage).toHaveBeenCalledWith(payload.chat.messages[0]);
-    expect(ChatRepository.createAction).toHaveBeenCalledWith(payload.chat.actions[0]);
-    expect(BoardAgentRepository.createSession).toHaveBeenCalledWith(payload.boardAgent.sessions[0]);
-    expect(BoardAgentRepository.createAction).toHaveBeenCalledWith(payload.boardAgent.actions[0]);
-    expect(ManualDataRepository.saveAllNodes).toHaveBeenCalledWith(payload.graph.manualNodes);
-    expect(ManualDataRepository.saveAllLinks).toHaveBeenCalledWith(payload.graph.manualLinks);
+    expect(CaseRepository.replaceWorkspaceDataBackup).toHaveBeenCalledWith(payload);
     expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
     expect(useWorkspaceStore.getState().artifacts).toEqual(payload.artifacts);
     expect(useWorkspaceStore.getState().workspaceRuns).toEqual(payload.runs);

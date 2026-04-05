@@ -107,52 +107,7 @@ const hasExistingWorkspaceData = (input: {
   input.manualLinks.length > 0;
 
 const persistWorkspaceDataBackup = async (payload: WorkspaceDataBackup) => {
-  await CaseRepository.clearCaseData();
-
-  for (const workspace of payload.workspaces) {
-    await CaseRepository.createCase(workspace);
-  }
-  for (const artifact of payload.artifacts) {
-    await CaseRepository.createReport(artifact);
-  }
-  for (const run of payload.runs) {
-    await TaskRepository.create(run);
-  }
-  for (const session of payload.chat.sessions) {
-    await ChatRepository.createSession(session);
-  }
-  for (const message of payload.chat.messages) {
-    await ChatRepository.createMessage(message);
-  }
-  for (const action of payload.chat.actions) {
-    await ChatRepository.createAction(action);
-  }
-  for (const session of payload.boardAgent.sessions) {
-    await BoardAgentRepository.createSession(session);
-  }
-  for (const action of payload.boardAgent.actions) {
-    await BoardAgentRepository.createAction(action);
-  }
-  for (const headline of payload.signals.headlines) {
-    await CaseRepository.createHeadline(headline);
-  }
-  for (const template of payload.templates) {
-    await TemplateRepository.create(template);
-  }
-  for (const item of payload.workspaceSurface.items) {
-    await WorkspaceItemRepository.create(item);
-  }
-  for (const board of payload.workspaceSurface.boards) {
-    await WorkspaceBoardRepository.createBoard(board);
-  }
-  for (const document of payload.workspaceSurface.boardDocuments) {
-    await WorkspaceBoardRepository.upsertDocument(document);
-  }
-
-  await ManualDataRepository.saveAllNodes(payload.graph.manualNodes);
-  await ManualDataRepository.saveAllLinks(payload.graph.manualLinks);
-  await SettingsRepository.setSetting('hidden_nodes', []);
-  await SettingsRepository.setSetting('flagged_nodes', []);
+  await CaseRepository.replaceWorkspaceDataBackup(payload);
 };
 
 const loadDemoWorkspaceSeed = async () => {
@@ -1291,7 +1246,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           linkedReportId: savedArtifact.id,
         };
 
-        await CaseRepository.createHeadline(updatedHeadline);
         set((current) => ({
           headlines: current.headlines.map((headline) =>
             headline.id === sourceSignalId ? updatedHeadline : headline
@@ -1302,10 +1256,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
     const sourceFollowUpId = savedArtifact.config?.sourceFollowUpId;
     if (sourceFollowUpId && savedArtifact.id) {
-      await CaseRepository.resolveFollowUp(sourceFollowUpId, {
-        status: 'RESOLVED',
-        resolvedByArtifactId: savedArtifact.id,
-      });
       nextArtifacts = nextArtifacts.map((entry) => ({
         ...entry,
         followUps: (entry.followUps || []).map((followUp) =>

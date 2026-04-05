@@ -131,10 +131,10 @@ npm run check:full
 
 - `npm run lint`: passes clean
 - `npm run typecheck`: passes clean
-- targeted Vitest coverage passes for `src/store/caseStore.test.ts`, `src/services/lineage/relationships.test.ts`, `src/services/chat/launchContext.test.ts`, `src/services/chat/runtime.test.ts`, `src/services/db/repositories/WorkspaceSearchRepository.test.ts`, `src/components/features/Timeline/timelineEvents.test.ts`, and `src/components/features/OperationView/launchPropagation.test.tsx`
+- targeted Vitest coverage passes for `src/store/caseStore.test.ts`, `src/services/db/repositories/CaseRepository.test.ts`, `src/services/db/repositories/ChatRepository.test.ts`, `src/services/lineage/relationships.test.ts`, `src/services/chat/launchContext.test.ts`, `src/services/chat/runtime.test.ts`, `src/services/db/repositories/WorkspaceSearchRepository.test.ts`, `src/components/features/Timeline/timelineEvents.test.ts`, and `src/components/features/OperationView/launchPropagation.test.tsx`
+- `npm run test`: passes
 - `npm run build`: passes
 - Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; chunk splitting was improved, but that warning is not fully eliminated yet
-- `npm run test`: not run as a full suite in this validation pass
 
 ## Documentation Index
 

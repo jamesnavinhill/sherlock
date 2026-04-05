@@ -444,9 +444,25 @@ const doInitDB = async (): Promise<ReturnType<typeof drizzle>> => {
   }
 };
 
-export const getDB = () => {
+export const getDB = (): NonNullable<typeof dbInstance> => {
   if (!dbInstance) throw new Error('Database not initialized. Call initDB() first.');
   return dbInstance;
+};
+
+export type SherlockDb = ReturnType<typeof getDB>;
+export type SherlockTx = Parameters<SherlockDb['transaction']>[0] extends (
+  tx: infer T,
+  ...args: never[]
+) => unknown
+  ? T
+  : never;
+export type SherlockWriteExecutor = SherlockDb | SherlockTx;
+
+export const runWriteTransaction = async <T>(
+  operation: (tx: SherlockTx) => Promise<T>
+): Promise<T> => {
+  const db = getDB();
+  return db.transaction(async (tx) => operation(tx));
 };
 
 export const getRawDB = () => {

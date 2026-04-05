@@ -12,6 +12,7 @@ interface AccordionProps {
   className?: string;
   headerClassName?: string;
   chevronClassName?: string;
+  contentClassName?: string;
 }
 
 /**
@@ -28,10 +29,12 @@ export const Accordion: React.FC<AccordionProps> = ({
   className = '',
   headerClassName = '',
   chevronClassName = '',
+  contentClassName = '',
 }) => {
   return (
     <div className={`mb-2 border border-zinc-800 bg-black ${className}`}>
       <button
+        type="button"
         onClick={onToggle}
         className={`font-osint-label w-full flex items-center justify-between p-3 bg-zinc-900/50 hover:bg-zinc-800 text-xs uppercase font-bold text-zinc-300 transition-colors ${headerClassName}`}
       >
@@ -46,7 +49,7 @@ export const Accordion: React.FC<AccordionProps> = ({
           <ChevronRight className={`w-4 h-4 ${chevronClassName}`} />
         )}
       </button>
-      {isOpen && <div className="p-2">{children}</div>}
+      {isOpen && <div className={`p-2 ${contentClassName}`}>{children}</div>}
     </div>
   );
 };

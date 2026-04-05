@@ -670,18 +670,22 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                 value={newNodeLabel}
                 onChange={(e) => setNewNodeLabel(e.target.value)}
                 placeholder="Node Label..."
-                className="w-full bg-zinc-900 border border-zinc-700 text-white text-xs p-2 mb-2"
+                className="mb-2 w-full border border-zinc-700 bg-black px-3 py-2 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary placeholder:text-zinc-600"
               />
               <div className="flex gap-2 mb-3">
                 <button
                   onClick={() => setNewNodeType('ENTITY')}
-                  className={`flex-1 py-1 text-[10px] border ${newNodeType === 'ENTITY' ? 'bg-zinc-800 border-white text-white' : 'border-zinc-700 text-zinc-500'}`}
+                  className={`flex-1 px-3 py-1.5 text-[10px] font-mono font-bold uppercase transition-colors ${
+                    newNodeType === 'ENTITY' ? 'osint-button-chrome-active' : 'osint-button-chrome'
+                  }`}
                 >
                   ENTITY
                 </button>
                 <button
                   onClick={() => setNewNodeType('CASE')}
-                  className={`flex-1 py-1 text-[10px] border ${newNodeType === 'CASE' ? 'bg-zinc-800 border-white text-white' : 'border-zinc-700 text-zinc-500'}`}
+                  className={`flex-1 px-3 py-1.5 text-[10px] font-mono font-bold uppercase transition-colors ${
+                    newNodeType === 'CASE' ? 'osint-button-chrome-active' : 'osint-button-chrome'
+                  }`}
                 >
                   REPORT
                 </button>

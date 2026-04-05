@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
 import type { WorkspaceItem } from '@/types';
-import { getDB } from '../client';
+import { getDB, type SherlockWriteExecutor } from '../client';
 import { workspaceItems } from '../schema';
 
 const mapWorkspaceItem = (row: typeof workspaceItems.$inferSelect): WorkspaceItem => ({
@@ -29,8 +29,10 @@ export class WorkspaceItemRepository {
     return rows.map(mapWorkspaceItem);
   }
 
-  static async create(item: WorkspaceItem): Promise<void> {
-    const db = getDB();
+  static async create(
+    item: WorkspaceItem,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.insert(workspaceItems).values({
       id: item.id,
       workspaceId: item.workspaceId,
@@ -122,13 +124,14 @@ export class WorkspaceItemRepository {
     await db.delete(workspaceItems).where(eq(workspaceItems.id, id));
   }
 
-  static async deleteByWorkspace(workspaceId: string): Promise<void> {
-    const db = getDB();
+  static async deleteByWorkspace(
+    workspaceId: string,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.delete(workspaceItems).where(eq(workspaceItems.workspaceId, workspaceId));
   }
 
-  static async clearAll(): Promise<void> {
-    const db = getDB();
+  static async clearAll(db: SherlockWriteExecutor = getDB()): Promise<void> {
     await db.delete(workspaceItems);
   }
 }

@@ -1,6 +1,6 @@
 import { desc, eq, inArray } from 'drizzle-orm';
 import type { AgentAction, ChatAttachment, ChatMessage, ChatSession } from '@/types';
-import { getDB } from '../client';
+import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { chatActions, chatMessageAttachments, chatMessages, chatSessions } from '../schema';
 
 const parseJson = <T>(value: string | null | undefined): T | undefined => {
@@ -111,8 +111,10 @@ export class ChatRepository {
     }, {});
   }
 
-  static async createSession(session: ChatSession): Promise<void> {
-    const db = getDB();
+  static async createSession(
+    session: ChatSession,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.insert(chatSessions).values({
       id: session.id,
       workspaceId: session.workspaceId,
@@ -156,8 +158,12 @@ export class ChatRepository {
       .where(eq(chatSessions.id, id));
   }
 
-  static async deleteSession(id: string): Promise<void> {
-    const db = getDB();
+  static async deleteSession(id: string, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.deleteSession(id, tx));
+      return;
+    }
+
     const messages = await db
       .select({ id: chatMessages.id })
       .from(chatMessages)
@@ -175,28 +181,33 @@ export class ChatRepository {
     await db.delete(chatSessions).where(eq(chatSessions.id, id));
   }
 
-  static async deleteSessionsForWorkspace(workspaceId: string): Promise<void> {
-    const db = getDB();
+  static async deleteSessionsForWorkspace(
+    workspaceId: string,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     const sessions = await db
       .select({ id: chatSessions.id })
       .from(chatSessions)
       .where(eq(chatSessions.workspaceId, workspaceId));
 
     for (const session of sessions) {
-      await this.deleteSession(session.id);
+      await this.deleteSession(session.id, db);
     }
   }
 
-  static async clearAll(): Promise<void> {
-    const db = getDB();
+  static async clearAll(db: SherlockWriteExecutor = getDB()): Promise<void> {
     await db.delete(chatMessageAttachments);
     await db.delete(chatActions);
     await db.delete(chatMessages);
     await db.delete(chatSessions);
   }
 
-  static async createMessage(message: ChatMessage): Promise<void> {
-    const db = getDB();
+  static async createMessage(message: ChatMessage, db?: SherlockWriteExecutor): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) => this.createMessage(message, tx));
+      return;
+    }
+
     await db.insert(chatMessages).values({
       id: message.id,
       sessionId: message.sessionId,
@@ -255,8 +266,18 @@ export class ChatRepository {
       .where(eq(chatMessages.id, id));
   }
 
-  static async replaceAttachments(messageId: string, attachments: ChatAttachment[]): Promise<void> {
-    const db = getDB();
+  static async replaceAttachments(
+    messageId: string,
+    attachments: ChatAttachment[],
+    db?: SherlockWriteExecutor
+  ): Promise<void> {
+    if (!db) {
+      await runWriteTransaction(async (tx) =>
+        this.replaceAttachments(messageId, attachments, tx)
+      );
+      return;
+    }
+
     await db.delete(chatMessageAttachments).where(eq(chatMessageAttachments.messageId, messageId));
 
     for (const attachment of attachments) {
@@ -274,8 +295,10 @@ export class ChatRepository {
     }
   }
 
-  static async createAction(action: AgentAction): Promise<void> {
-    const db = getDB();
+  static async createAction(
+    action: AgentAction,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.insert(chatActions).values({
       id: action.id,
       sessionId: action.sessionId,

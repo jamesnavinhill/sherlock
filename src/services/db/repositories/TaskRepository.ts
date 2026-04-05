@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { getDB } from '../client';
+import { getDB, type SherlockWriteExecutor } from '../client';
 import { tasks } from '../schema';
 import type { WorkspaceRun } from '@/types';
 
@@ -27,8 +27,7 @@ export class TaskRepository {
     }));
   }
 
-  static async create(task: WorkspaceRun): Promise<void> {
-    const db = getDB();
+  static async create(task: WorkspaceRun, db: SherlockWriteExecutor = getDB()): Promise<void> {
     await db.insert(tasks).values({
       id: task.id,
       caseId: task.workspaceId || task.report?.caseId || null,
@@ -73,18 +72,21 @@ export class TaskRepository {
       .where(eq(tasks.id, id));
   }
 
-  static async clearWorkspace(workspaceId: string): Promise<void> {
-    const db = getDB();
+  static async clearWorkspace(
+    workspaceId: string,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.update(tasks).set({ caseId: null }).where(eq(tasks.caseId, workspaceId));
   }
 
-  static async deleteByWorkspace(workspaceId: string): Promise<void> {
-    const db = getDB();
+  static async deleteByWorkspace(
+    workspaceId: string,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
     await db.delete(tasks).where(eq(tasks.caseId, workspaceId));
   }
 
-  static async clearAll(): Promise<void> {
-    const db = getDB();
+  static async clearAll(db: SherlockWriteExecutor = getDB()): Promise<void> {
     await db.delete(tasks);
   }
 

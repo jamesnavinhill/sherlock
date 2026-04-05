@@ -135,6 +135,9 @@ const splitCollapsedFollowUpBlock = (body: string) => {
 const getSessionTitle = (session: ChatSession): string =>
   sanitizeDisplayTitle(session.title.trim() || 'Untitled Chat');
 
+const LEFT_PANEL_SECTION_SCROLL_CLASS =
+  'max-h-[min(20rem,calc(100svh-21rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+
 const getLaunchContextSummary = (params: {
   launchContext: ChatLaunchContext | null;
   reports: Artifact[];
@@ -1090,6 +1093,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
               icon={MessageSquare}
               isOpen={leftPanelSections.sessions}
               onToggle={() => toggleLeftPanelSection('sessions')}
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-1">
                 {workspaceSessions.length === 0 ? (
@@ -1156,6 +1160,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
               icon={FileText}
               isOpen={leftPanelSections.workspace}
               onToggle={() => toggleLeftPanelSection('workspace')}
+              contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <p className="px-2 py-1 text-xs leading-6 text-zinc-400">
                 {activeWorkspace?.description || 'No workspace summary saved yet.'}

@@ -53,6 +53,15 @@ Persistence is routed through repository classes:
 - `WorkspaceItemRepository`
 - `WorkspaceBoardRepository`
 
+Critical multi-table writes now use one shared transaction helper in `src/services/db/client.ts`: `runWriteTransaction(...)`.
+
+That helper is the canonical repository pattern for:
+
+- artifact/report saves plus dependent follow-ups, sections, evidence, entities, sources, and lineage updates
+- chat message saves plus attachment rows
+- workspace/board/session delete flows that span multiple tables
+- workspace-data restore flows that clear and replay the persisted workspace domain
+
 ## Current Runtime Model
 
 Runtime code now treats persisted records as:
@@ -121,6 +130,8 @@ The chat implementation adds:
 - `chat_actions` for auditable retrieval, save, append, and follow-up operations
 
 Artifact save/hydration behavior now treats `Artifact.followUps` as the canonical runtime field. Legacy flattened `leads` arrays are still written and reconstructed as a compatibility surface for readers that have not finished the cutover.
+
+Artifact saves are now atomic across the report row, dependent structured rows, source-signal linkage, and source-follow-up resolution so the database does not keep half-saved artifact bundles.
 
 The research workspace implementation adds:
 
@@ -207,6 +218,8 @@ Workspace-data backups include:
 - manual graph nodes and links
 - templates
 - Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `reports`/`artifact_sections`
+
+Workspace-data restore now replays that backup inside one SQLite transaction so a failed import does not leave a partially cleared or partially restored workspace domain behind.
 
 Workspace-data backups intentionally exclude:
 
