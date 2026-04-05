@@ -8,4 +8,6 @@ Active current-work docs:
 - `docs/reports/CURRENT_STATUS.md`
 - `docs/operations/architecture.md`
 
-Create new plan documents here for fresh work from the current baseline, not by reviving the retired April 3, 2026 planning stack in place.
+The active April 5 plan is the route-aware replacement for the earlier cleanup plan; the superseded version now lives in `docs/_legacy/plans/2026-04-05-canon-cleanup-and-systems-plan.md`.
+
+Create new plan documents here for fresh work from the current baseline, not by reviving retired planning stacks in place.

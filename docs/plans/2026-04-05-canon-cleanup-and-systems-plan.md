@@ -1,519 +1,627 @@
-# Canon Cleanup And Systems Plan
+# Route-Aware Canon Cleanup And Systems Plan
 
 Date: April 5, 2026
 
+Supersedes the earlier April 5 cleanup plan, which is now archived in `docs/_legacy/plans/2026-04-05-canon-cleanup-and-systems-plan.md`.
+
 ## Intent
 
-This plan turns the current audit into an execution plan for a balanced cleanup pass with a heavy canon bias.
+This plan reframes the cleanup/refactor effort around a route-backed application shape.
 
-The goal is not a cosmetic rename sweep. The goal is to:
+The previous plan correctly identified canon cleanup, persistence integrity, and decomposition needs, but it still treated the current enum-driven app shell as the stable container. After reviewing the current codebase, that is no longer the right assumption.
 
-- finish the move from investigation-first terminology to a clean general-purpose research model
-- keep parity across runtime, persistence, UI, and docs
-- reduce transitional compatibility debt quickly rather than preserving it indefinitely
-- improve safety and consistency while reorganizing the codebase into clearer systems
+Sherlock has outgrown view switching that lives primarily in `App.tsx` and Zustand state. The next major cleanup pass should move the app toward proper URL-backed navigation and organize the rest of the refactor around that target shape.
+
+This is not a call for a broad framework rewrite.
 
 This plan assumes:
 
-- there is no meaningful installed-base migration burden to preserve
-- we should optimize for the clean target model wherever that is practical
-- targeted validation is preferred during implementation
-- docs should be updated incrementally as work lands, followed by one final cleanup sweep
-- medium-to-large slices are acceptable when they improve parity and reduce drift
+- Sherlock should move to route-backed navigation with regular URLs
+- the app should remain client-rendered and local-first in this pass
+- we should not couple the cleanup to a Next.js or SSR migration
+- URL state should own durable navigation identity
+- Zustand/store state should own domain data and ephemeral UI state
+- medium-to-large parity slices are preferred over prolonged transitional increments
+- documentation should be updated as code lands, then finalized in one sweep
 
-## Canon Decisions
+## Core Decisions
 
-These are the planned canonical runtime concepts going forward.
+### 1. Adopt route-backed navigation now
 
-### Canonical nouns
+Sherlock should no longer treat `currentView` and related shell state as the primary navigation model.
 
-- `Workspace`: primary container
-- `Run`: execution/generation event
-- `Artifact`: generated or saved output
-- `Signal`: durable saved observation/event formerly surfaced as `Headline`
-- `FollowUp`: durable actionable next step formerly surfaced as generated `leads` and `followUps`
-- `Entity`: durable referenced actor/concept/place/org
-- `Source`: provenance/citation origin
-- `WorkspaceItem`: note, excerpt, link, file, media, or other manual/canonical workspace record
+The app should move to a client-side router with real URL paths, deep linking, back/forward behavior, and direct-entry support.
 
-### Explicit removals from the canon
+Recommended posture:
 
-- `Lead` is no longer a canonical domain root
-- `Headline` is no longer a canonical domain root
-- `Case` and `Report` should continue to shrink toward persistence-edge compatibility only, then be removed where practical
+- use a mature client-side router in the existing Vite app
+- prefer a low-friction route migration over a framework migration
+- treat route adoption as architecture work, not optional polish
 
-### Relationship model
+### 2. Do not turn this pass into an SSR/framework rewrite
 
-Recommended lineage shape:
-
-- `Signal -> sourceRunId? / sourceArtifactId?` when relevant
-- `Run -> sourceSignalId?`
-- `Run -> sourceFollowUpId?`
-- `Artifact -> sourceRunId`
-- `Artifact -> parentArtifactId?`
-- `Artifact -> sourceFollowUpId?`
-- `FollowUp -> originArtifactId`
-- `FollowUp -> resolvedByArtifactId?`
-- optional `FollowUp -> entityRefs[]`
-- optional `FollowUp -> sourceRefs[]`
-
-### Follow-up semantics
-
-`FollowUp` should become the single durable model for artifact-produced actionable next steps and questions.
-
-Recommended initial kinds:
-
-- `QUESTION`
-- `TASK`
-- `HYPOTHESIS`
-- `GAP`
-- `NEXT_STEP`
-
-Do not keep `LEAD` as a canonical kind unless a later product need clearly justifies it.
-
-## End State
-
-At the end of this plan, the codebase should read as a clean research workspace platform with investigation capabilities, not as an investigation app wrapped in compatibility aliases.
+Sherlock is still browser-local and IndexedDB/SQLite-backed.
 
 That means:
 
-- runtime language is canonical and consistent
-- persistence writes are safe and parity-preserving
-- follow-ups and signals are first-class durable records
-- the main store and feature monoliths are decomposed into organized systems
-- docs describe the real code, not the transitional story
+- SEO is not a primary driver
+- server data loaders are not the core problem
+- route identity matters more than server rendering in this phase
+
+If Sherlock later grows into collaborative, shared, or server-persisted workflows, a framework migration can be evaluated from a cleaner route-backed baseline.
+
+### 3. URL state should own durable location
+
+The browser URL should become the source of truth for:
+
+- active surface/page
+- active workspace
+- active artifact when directly inspected
+- active board
+- active chat session
+- timeline/network/workspace surface context
+
+The store should not remain responsible for durable page identity when the URL can carry it.
+
+### 4. Keep behavior conservative while refactoring structure aggressively
+
+This pass should improve architecture without casually redesigning product behavior.
+
+Recommended principle:
+
+- refactor navigation and structure aggressively
+- preserve current product behavior wherever practical
+
+### 5. Do not spend time polishing the legacy `AppView` shell beyond what is needed to migrate away from it
+
+Further investment in enum-driven view switching would create rework.
+
+That includes avoiding deep new dependencies on:
+
+- `AppView`
+- `setCurrentView(...)`
+- `lastNonSettingsView`
+- custom window navigation events where route navigation should be used instead
+
+## Why This Plan Changes The Refactor
+
+The current app is already a large single-page application, but it is not yet a route-backed one.
+
+Today:
+
+- top-level feature surfaces are lazy-loaded inside `src/App.tsx`
+- navigation is selected by `AppView`
+- a large amount of state is effectively acting as navigation state
+- view transitions are encoded in app logic rather than in URLs
+
+That made sense earlier, but it now creates architectural drag:
+
+- surfaces do not have stable addressable identities
+- direct linking is weak or absent
+- shell orchestration and feature orchestration are tangled
+- decomposition gets harder because the app shell is still acting like a switchboard for everything
+
+Because of that, route migration should happen before the deepest decomposition work. Otherwise we risk cleaning up the wrong shell and redoing the top layer shortly afterward.
+
+## End State
+
+At the end of this plan, Sherlock should read as a route-backed, local-first research workspace application with consistent canonical runtime language and clearer system boundaries.
+
+That means:
+
+- navigation is URL-backed and directly addressable
+- the app shell composes routes rather than owning every surface transition
+- workspaces, artifacts, boards, timelines, chats, and network views have stable route identities
+- canonical `Signal` and `FollowUp` models are first-class in runtime and persistence
+- critical multi-table writes are atomic
+- browser storage and runtime boundaries are centralized and documented
+- the giant orchestration files are decomposed around route/page and domain boundaries
+- docs describe the real route-aware architecture, not the transitional shell
+
+## Preferred Target Shape
+
+### Route model
+
+Recommended initial route family:
+
+- `/discover`
+- `/monitor`
+- `/files`
+- `/settings`
+- `/workspaces/:workspaceId`
+- `/workspaces/:workspaceId/artifacts/:artifactId`
+- `/workspaces/:workspaceId/chat`
+- `/workspaces/:workspaceId/chat/:sessionId`
+- `/workspaces/:workspaceId/board`
+- `/workspaces/:workspaceId/board/:boardId`
+- `/workspaces/:workspaceId/timeline`
+- `/workspaces/:workspaceId/network`
+
+Notes:
+
+- `OperationView` should converge toward artifact/workspace detail routing rather than remain a special shell-only mode
+- workspace-scoped surfaces should group under `/workspaces/:workspaceId/*`
+- route naming should favor workspace language rather than legacy case/report terminology
+
+### URL state vs store state
+
+URL should own:
+
+- current surface/page
+- primary selected workspace
+- primary selected artifact
+- selected chat session when deep-linked
+- selected board when deep-linked
+- shareable filters when they define the visible surface meaningfully
+
+Store should own:
+
+- workspaces, artifacts, runs, signals, follow-ups, chat data, board data
+- generation state
+- unsaved drafts
+- transient panel open/close state
+- local selection details that do not deserve URL permanence
+- theme/settings and browser-local preferences
+
+Avoid putting ephemeral panel toggles and temporary inspector state into the URL unless a later product need clearly calls for it.
+
+### Shell shape
+
+`App.tsx` should shrink toward:
+
+- bootstrapping
+- providers
+- router mounting
+- theme/bootstrap wiring
+- global overlays
+
+It should stop owning detailed page orchestration for every feature.
+
+### Page and feature shape
+
+Feature roots should become small route pages/controllers that compose:
+
+- route param parsing
+- feature hooks
+- selectors
+- command handlers
+- presentation panels/components
+
+Recommended high-level organization:
+
+```text
+src/
+  app/
+    router/
+    routes/
+    views/
+  store/
+    index.ts
+    types.ts
+    selectors/
+    actions/
+  components/
+    features/
+      Chat/
+        page/
+        components/
+        hooks/
+        commands/
+      Timeline/
+        page/
+        components/
+        hooks/
+        selectors/
+      WorkspaceBoard/
+        page/
+        components/
+        hooks/
+        commands/
+      Settings/
+        page/
+        sections/
+        forms/
+      Runs/
+        TaskSetupModal.tsx
+  services/
+    ...
+```
+
+This directory sketch is descriptive rather than mandatory, but the final shape should make page/controller/presentation boundaries obvious.
+
+### Store shape
+
+Keep one public store entry if convenient, but decompose its internals into modules such as:
+
+- store state and shared types
+- selectors
+- workspace actions
+- artifact and run actions
+- signal and follow-up actions
+- chat actions
+- board actions
+- import/export and maintenance actions
+- UI/settings actions
+
+The store should stop behaving like one long mixed responsibility script.
 
 ## Workstream Shape
 
-This work is best handled as four coordinated workstreams rather than three overloaded ones.
+This work is best handled as five coordinated workstreams plus a final parity sweep.
 
-Why four:
+The workstreams are:
 
-- canon/model work and storage-boundary work are related but not the same
-- safety/integrity work needs its own acceptance criteria
-- system decomposition needs room to be treated as architecture work, not "cleanup leftovers"
-
-The four workstreams are:
-
-1. Canonical model and lineage refactor
-2. Persistence integrity and safety
-3. Storage boundary and runtime hygiene
-4. System decomposition and organized refactor
+1. Route architecture and navigation contract
+2. Route cutover and app shell conversion
+3. Canonical model and persistence parity
+4. Integrity, storage boundary, and runtime safety
+5. System decomposition and organized refactor
+6. final parity sweep across docs, naming, validation, and route behavior
 
 ## Recommended Order
 
 Recommended execution order:
 
-1. Workstream 1 foundations
-2. Workstream 2 atomic write pattern
-3. Workstream 1 cutover through active runtime/persistence/doc surfaces
-4. Workstream 3 cleanup and unification pass
-5. Workstream 4 decomposition/refactor pass
-6. final parity sweep across docs, naming, and validation
+1. establish the route model and URL/state contract
+2. cut over the app shell to route-backed navigation
+3. complete canon/model parity on the route-backed surfaces
+4. finish integrity and boundary cleanup on the stabilized model
+5. decompose the major store and feature systems around the new page boundaries
+6. run the final parity/docs/validation sweep
 
 Reasoning:
 
-- the target domain model needs to be decided first
-- atomic persistence should be established early so the canon does not land on unsafe write paths
-- storage cleanup should follow once the new model is in place
-- decomposition is safer after the target nouns and boundaries are stable
+- route identity changes where page boundaries live
+- page boundaries should be settled before major shell decomposition
+- canon and persistence work still matter, but should land against the real target shell
+- decomposition is safer once route ownership and canonical nouns are both stable
 
-## Workstream 1: Canonical Model And Lineage Refactor
+## Workstream 1: Route Architecture And Navigation Contract
 
 ### Goal
 
-Replace transitional investigation-first terminology with the settled research-workspace canon while preserving behavioral parity.
+Define the route-backed architecture clearly before implementation churn begins.
 
 ### Primary outcomes
 
-- `Signal` replaces `Headline` as the canonical durable saved observation model
-- `FollowUp` replaces generated `leads` and `followUps` as the canonical actionable model
-- `Case` and `Report` stop being active mental-model terms outside compatibility edges
-- runtime lineage explicitly supports follow-up-driven artifact generation
+- one canonical route map exists
+- URL ownership vs store ownership is explicit
+- route naming uses workspace canon rather than legacy shell conventions
+- direct-entry, back/forward, and deep-link expectations are defined up front
 
 ### Scope
 
-Types, domain modeling, runtime/store surfaces, persistence contracts, and documentation.
+- route inventory
+- route naming
+- URL param/query ownership
+- surface identity rules
+- hosting fallback requirements for direct entry
+- navigation semantics for artifact, board, chat, and timeline surfaces
+
+Primary files/modules likely touched:
+
+- `src/App.tsx`
+- new router files under `src/app/*`
+- `src/components/ui/Sidebar.tsx`
+- route-aware feature entry points
+- `vercel.json`
+- `docs/operations/ARCHITECTURE.md`
+
+### Design decisions
+
+#### 1. Route-backed does not mean server-rendered
+
+This pass should keep the existing local-first client model.
+
+#### 2. Workspace-scoped features should nest under workspace routes
+
+That includes:
+
+- artifact inspection
+- chat
+- board
+- timeline
+- network
+
+#### 3. URL identity must be durable enough to bookmark
+
+The URL should open the same meaningful surface later, not just "roughly this area of the app."
+
+### Planned slices
+
+#### Slice 1A: Define canonical route map
+
+- choose the route tree
+- define route params and query conventions
+- define which existing shell states disappear, survive, or become derived
+
+Acceptance:
+
+- the route map is explicit in code and docs
+- no top-level surface is left without a clear URL identity
+
+#### Slice 1B: Define route/state ownership
+
+- document which state belongs in URL, store, or local component state
+- identify fields that can stop being durable shell state
+
+Acceptance:
+
+- route/state ownership is documented
+- shell-level ambiguity around active page identity is removed
+
+#### Slice 1C: Hosting/direct-entry requirements
+
+- add SPA rewrite handling if needed for direct route loads
+- document route deployment assumptions
+
+Acceptance:
+
+- direct loading of a non-root route is supported in deployed environments
+
+## Workstream 2: Route Cutover And App Shell Conversion
+
+### Goal
+
+Replace enum-driven app-shell navigation with route-backed composition while preserving feature parity.
+
+### Primary outcomes
+
+- `App.tsx` stops being the page switchboard
+- `AppView` stops being the primary navigation mechanism
+- sidebar navigation uses routes
+- browser back/forward behavior works naturally
+- feature surfaces remain available with current behavior
+
+### Scope
+
+- app shell conversion
+- sidebar and navigation actions
+- feature entry point routing
+- route wrappers for current feature roots
+- route-aware artifact/chat/board opening flows
+
+Primary files/modules likely touched:
+
+- `src/App.tsx`
+- `src/types/index.ts`
+- `src/components/ui/Sidebar.tsx`
+- feature entry points under `src/components/features/*`
+- store fields that currently persist shell navigation state
+
+### Planned slices
+
+#### Slice 2A: Introduce router and route pages
+
+- add router infrastructure
+- wrap current feature roots with route pages rather than rewriting all features immediately
+- keep lazy loading where it still helps
+
+Acceptance:
+
+- top-level surfaces render through routes instead of `currentView` branching
+
+#### Slice 2B: Convert navigation actions
+
+- move sidebar navigation to route links/navigation
+- replace custom shell transitions with route transitions where appropriate
+- remove dead or redundant shell-only back behavior
+
+Acceptance:
+
+- primary app navigation is route-driven
+- back/forward behavior is consistent with the current visible page
+
+#### Slice 2C: Convert open/report/chat/board handoff flows
+
+- `openChat`, artifact-open, board-open, and similar flows navigate by route
+- route params become the durable selection source where appropriate
+
+Acceptance:
+
+- opening a report, board, or chat session results in the expected URL and visible state
+
+### Risks
+
+- route cutover can expose hidden assumptions in feature surfaces
+- shell and feature state can drift if URL and store ownership are not cut over together
+
+### Mitigation
+
+- start with route wrappers over current feature roots
+- keep acceptance focused on parity, not redesign
+- cut over route ownership intentionally instead of layering routes on top of old shell state forever
+
+## Workstream 3: Canonical Model And Persistence Parity
+
+### Goal
+
+Finish the move from transitional investigation-first naming to the settled research workspace canon on the route-backed architecture.
+
+### Primary outcomes
+
+- `Signal` replaces `Headline` as the canonical durable observation model
+- `FollowUp` becomes the single durable actionable model
+- `Case` and `Report` continue shrinking toward persistence-edge compatibility only
+- lineage remains explicit and works cleanly across route surfaces
+
+### Scope
+
+- types and domain helpers
+- runtime/store surfaces
+- persistence contracts and repositories
+- route-driven surface integrations
+- docs
 
 Primary files/modules likely touched:
 
 - `src/types/index.ts`
 - `src/domain/*`
-- `src/store/caseStore.ts`
-- `src/App.tsx`
-- `src/components/features/Timeline/*`
-- `src/components/features/OperationView/*`
-- `src/components/features/Chat/*`
-- `src/components/features/WorkspaceBoard/*`
+- `src/store/*`
 - `src/services/runtime.ts`
 - `src/services/lineage/*`
 - `src/services/db/schema.ts`
 - `src/services/db/repositories/*`
-- `docs/operations/ARCHITECTURE.md`
-- `docs/operations/DATA_PERSISTENCE.md`
-- `docs/reports/CURRENT_STATUS.md`
-- `README.md`
-
-### Design decisions
-
-#### 1. `FollowUp` must be first-class and durable
-
-Do not leave follow-ups as compatibility arrays embedded in artifacts.
-
-They should support:
-
-- origin link to artifact
-- actionable launch into a new run
-- explicit status tracking
-- resolution link to a produced artifact
-- timeline/board/chat/archive visibility
-
-#### 2. `Signal` is the durable saved incoming observation model
-
-Do not keep `Headline` as a first-class system noun.
-
-Possible practical approach:
-
-- UI may still render some labels like "Saved Signal" or context-aware copy
-- but code, schema, docs, and selectors should use `Signal`
-
-#### 3. Compatibility names should collapse quickly
-
-Because there is no real migration burden, do not preserve old names broadly.
-
-Allowed compatibility zones:
-
-- temporary repository/table adapters during refactor
-- import/backup normalization if needed
-- short-lived bridging code during the implementation sequence
-
-### Proposed data model work
-
-#### `Signal`
-
-Introduce or rename toward a canonical `Signal` record with fields roughly like:
-
-- `id`
-- `workspaceId`
-- `content`
-- `source`
-- `url?`
-- `timestamp`
-- `kind`
-- `status`
-- `linkedArtifactId?`
-- `createdAt?`
-- `updatedAt?`
-- optional metadata/provenance
-
-#### `FollowUp`
-
-Introduce a first-class durable `FollowUp` record with fields roughly like:
-
-- `id`
-- `workspaceId`
-- `kind`
-- `title`
-- `actionText` or `prompt`
-- `status`
-- `originArtifactId`
-- `originSectionId?`
-- `sourceSignalId?`
-- `entityRefsJson?`
-- `sourceRefsJson?`
-- `resolvedByArtifactId?`
-- `createdAt`
-- `updatedAt`
-- optional metadata
+- `src/components/features/Timeline/*`
+- `src/components/features/OperationView/*`
+- `src/components/features/Chat/*`
+- `src/components/features/WorkspaceBoard/*`
+- docs under `README.md` and `docs/operations/*`
 
 ### Planned slices
 
-#### Slice 1A: Define the canonical model
+#### Slice 3A: Canonical model cutover
 
-- add/rename canonical types for `Signal` and `FollowUp`
-- define lineage fields and status enums
-- update domain helpers and artifact contracts so generated artifact output can normalize into first-class follow-ups
-
-Acceptance:
-
-- type layer compiles cleanly
-- one canonical noun exists for each concept
-- no new code depends on `Lead` or `Headline` as domain roots
-
-#### Slice 1B: Persistence and repository cutover for signals/follow-ups
-
-- add schema support for durable follow-ups
-- rename or adapt signal persistence surfaces
-- add repositories/selectors for follow-ups and signals
-- preserve artifact linkage
+- define settled `Signal` and `FollowUp` shapes
+- remove new dependencies on `Lead` and `Headline` as active roots
+- normalize artifact outputs into canonical follow-ups
 
 Acceptance:
 
-- follow-ups can be created, read, updated, resolved, and linked to artifacts
-- signals still support current monitor/discovery flows
+- one canonical noun exists for each active runtime concept
+- new runtime code no longer grows old roots
 
-#### Slice 1C: Runtime/UI cutover
+#### Slice 3B: Persistence and repository cutover
 
-- update Timeline, Operation View, Chat, Workspace Board, and launch flows to use follow-ups and signals
-- ensure follow-up launches write lineage fields directly instead of relying on inference where possible
-
-Acceptance:
-
-- artifact-generated follow-ups are actionable
-- launching a follow-up creates a linked run and linked artifact chain
-- Timeline can show the lineage cleanly
-
-#### Slice 1D: Remove broad compatibility names
-
-- reduce `lead`/`headline`/`case`/`report` naming in active runtime code
-- keep temporary compatibility only where still necessary at persistence boundaries
+- persist follow-ups as first-class durable records
+- keep signal persistence aligned with the canon
+- maintain explicit lineage refs
 
 Acceptance:
 
-- active runtime code reads in canonical terms
-- old nouns no longer dominate store/component/service code
+- follow-ups can be created, read, updated, resolved, and linked through lineage
+- signals continue to support monitor/discovery flows
 
-### Risks
+#### Slice 3C: Route-surface parity cutover
 
-- broad rename churn can obscure behavioral regressions
-- timeline/chat/board linkage can drift if not cut over together
+- update route-backed Timeline, artifact view, chat, and board surfaces to consume canonical models
+- ensure follow-up launches and artifact links work cleanly from route pages
 
-### Mitigation
+Acceptance:
 
-- land the canonical model before decomposition
-- keep explicit acceptance tests for follow-up lineage behavior
-- avoid half-cutover where UI terms and persistence terms diverge for long
+- canonical models are visible across the route-backed surfaces without transitional drift
 
-## Workstream 2: Persistence Integrity And Safety
+## Workstream 4: Integrity, Storage Boundary, And Runtime Safety
 
 ### Goal
 
-Make multi-table writes atomic and keep safety parity across all critical persistence flows.
-
-### Plain-language definition
-
-Atomic persistence means:
-
-- save all related rows together
-- if any part fails, save none of them
-
-This prevents partial durable state like:
-
-- report row saved without sections/evidence/entities
-- session saved without expected dependent records
-- follow-up resolution saved without matching artifact linkage
+Finish the safety and boundary work so the route-backed canonical model rests on consistent infrastructure.
 
 ### Primary outcomes
 
-- one reusable transaction/write-bundle pattern for multi-table writes
-- report/artifact persistence becomes atomic first
-- if the pattern works well, it is rolled through the other critical parity-sensitive write paths rather than left isolated
+- critical multi-table writes are atomic
+- storage behavior is centralized
+- provider/router capability checks remain real and documented
+- validation/status docs are trustworthy
 
 ### Scope
 
-- DB client transaction support or equivalent write-bundle helper
-- repository write paths that span multiple tables
-- failure-path testing
+- transaction/write-bundle infrastructure
+- repository multi-table writes
+- storage/settings boundary
+- router capability enforcement
+- cleanup of smaller correctness inconsistencies
 
 Primary files/modules likely touched:
 
 - `src/services/db/client.ts`
-- `src/services/db/repositories/CaseRepository.ts`
-- `src/services/db/repositories/ChatRepository.ts`
-- `src/services/db/repositories/BoardAgentRepository.ts`
-- `src/services/db/repositories/WorkspaceBoardRepository.ts`
-- `src/store/caseStore.ts`
-
-### Planned slices
-
-#### Slice 2A: Establish atomic-write infrastructure
-
-- determine whether wa-sqlite + drizzle can support transactions directly in this setup
-- if not, introduce a lower-level SQLite write helper for `BEGIN / COMMIT / ROLLBACK`
-- document the supported repository write pattern
-
-Acceptance:
-
-- one clear mechanism exists for atomic multi-table writes
-- repository authors have one canonical pattern to follow
-
-#### Slice 2B: Convert artifact persistence first
-
-- convert artifact/report creation and related inserts to atomic writes
-- include sections, evidence, entities, sources, and follow-ups if follow-up persistence lands in Workstream 1
-
-Acceptance:
-
-- artifact creation cannot leave partial dependent rows behind
-- failure-path tests confirm rollback behavior
-
-#### Slice 2C: Expand to other critical parity-sensitive write paths
-
-If the pattern is stable, immediately extend to the other critical paths instead of leaving two persistence styles in place.
-
-Priority candidates:
-
-- workspace-data import/restore
-- workspace purge/delete
-- board-agent session/action writes where coupled state changes matter
-- chat save/append actions where artifact writes and action logs must stay aligned
-
-Acceptance:
-
-- critical multi-table writes share one integrity pattern
-- safety behavior is uniform, not accidental
-
-### Risks
-
-- SQLite wrapper constraints may make transaction ergonomics awkward
-- medium-to-large conversion slices can hide subtle repository regressions
-
-### Mitigation
-
-- prove the pattern on artifacts first
-- keep the repository API stable where possible
-- add targeted tests for rollback and parity-sensitive writes
-
-## Workstream 3: Storage Boundary And Runtime Hygiene
-
-### Goal
-
-Centralize the remaining non-canonical storage behavior and close smaller correctness/uniformity gaps while the model refactor is fresh.
-
-### Primary outcomes
-
-- browser storage usage is intentionally centralized
-- provider capability enforcement matches the architecture claims
-- validation docs are trustworthy again
-- ID generation and smaller cleanup conventions are uniform
-
-### Scope
-
-- remaining direct `localStorage` access outside the approved boundary
-- provider-router capability checks
-- stale validation/status docs
-- smaller hygiene inconsistencies
-
-Primary files/modules likely touched:
-
+- `src/services/db/repositories/*`
+- `src/store/*`
+- `src/utils/localStorage.ts`
 - `src/config/systemConfig.ts`
 - `src/config/aiModels.ts`
-- `src/components/features/LiveMonitor/index.tsx`
-- `src/store/caseStore.ts`
 - `src/services/providers/index.ts`
-- `src/utils/localStorage.ts`
-- active docs under `README.md`, `docs/reports`, and `docs/operations`
-
-### Design decisions
-
-#### 1. Centralize storage with a strong bias toward the clean model
-
-Recommended target:
-
-- provider keys may remain special-cased if necessary
-- everything else should flow through one typed settings/storage boundary
-
-That includes:
-
-- active workspace selection
-- live-monitor autosave preference
-- OpenRouter catalog cache
-- recent model selections
-- any remaining non-provider browser-persisted settings
-
-#### 2. Router capability enforcement should become real, not documentary
-
-`assertCapability(...)` should enforce operation support for:
-
-- `INVESTIGATE`
-- `CHAT`
-- `BOARD_AGENT`
-- `SCAN_ANOMALIES`
-- `LIVE_INTEL`
-- `TTS`
-
-with one authoritative operation-to-capability map.
-
-#### 3. Small hygiene items should be cleaned in the same pass
-
-Examples:
-
-- unused variables
-- ad hoc `Date.now() + Math.random()` IDs where `createLocalId(...)` should be used
-- stale docs that still claim old validation state
+- `src/components/features/LiveMonitor/*`
+- docs under `docs/operations/*` and `README.md`
 
 ### Planned slices
 
-#### Slice 3A: Storage boundary cleanup
+#### Slice 4A: Atomic persistence pattern
 
-- introduce a single typed storage/settings facade
-- route remaining feature-level storage reads/writes through it
-- keep docs aligned with the actual boundary
-
-Acceptance:
-
-- no active feature component writes directly to `localStorage` unless explicitly approved as an exception
-
-#### Slice 3B: Router and state hygiene
-
-- finish capability enforcement
-- clean duplicated active-task state semantics if not fully resolved in Workstream 1
-- fix known lint issues and similar correctness noise
+- establish one canonical transaction/write-bundle pattern
+- convert artifact persistence first
+- extend immediately to other parity-sensitive write paths if the pattern holds
 
 Acceptance:
 
-- router rejects unsupported models/operations before runtime adapter calls
-- task selection semantics are explicit and non-duplicative
+- critical multi-table writes cannot leave partial durable state behind
 
-#### Slice 3C: Docs and status parity
+#### Slice 4B: Storage boundary completion
 
-- refresh validation/status docs
-- update architecture and persistence docs to match the new canon and storage boundary
+- route remaining approved browser storage usage through one typed boundary
+- keep provider keys as the only intentional special case if still needed
 
 Acceptance:
 
-- active docs reflect the actual runtime behavior at the end of the stream
+- active feature components do not write directly to `localStorage` except approved exceptions
 
-## Workstream 4: System Decomposition And Organized Refactor
+#### Slice 4C: Runtime hygiene and documentation parity
+
+- keep router capability enforcement aligned with model/runtime truth
+- clean smaller correctness issues
+- refresh docs to reflect the actual architecture and validation state
+
+Acceptance:
+
+- architecture docs and runtime behavior match
+
+## Workstream 5: System Decomposition And Organized Refactor
 
 ### Goal
 
-Turn the current large orchestration files into organized systems with clear ownership boundaries while preserving parity with the canonical model.
+Break the largest orchestration files into route-native, domain-aligned systems with clearer ownership boundaries.
 
 ### Primary outcomes
 
-- state, orchestration, selectors, persistence actions, and feature presentation are separated more cleanly
-- high-change surfaces become easier to extend without accidental cross-surface breakage
-- the codebase reads as intentional architecture rather than accumulated feature mass
+- app shell is small and compositional
+- store internals are modular
+- large feature roots become page/controller plus extracted hooks/components/commands
+- feature code reads as intentional architecture rather than accumulated feature mass
 
 ### Scope
 
 Main decomposition targets:
 
+- `src/App.tsx`
 - `src/store/caseStore.ts`
 - `src/components/features/WorkspaceBoard/index.tsx`
 - `src/components/features/TimelineView.tsx`
+- `src/components/features/Chat/ChatPage.tsx`
+- `src/components/features/Settings/index.tsx`
 - `src/components/ui/TaskSetupModal.tsx`
-- `src/App.tsx`
 
-### Refactor posture
+### Decomposition posture
 
-This is intentionally a full organized refactor, not just low-risk extraction.
-
-But it should still preserve parity and avoid redesigning behavior casually.
+This should be an organized refactor, not a cosmetic file split.
 
 Recommended principle:
 
-- refactor structure aggressively
-- refactor behavior conservatively
+- decompose around responsibilities, not arbitrary file size
+- create obvious homes for data derivation, orchestration, side effects, and presentation
+- preserve current behavior unless a route/canon decision requires a change
 
 ### Proposed target organization
 
+#### App shell decomposition
+
+Split toward:
+
+- app bootstrap
+- router mounting
+- shared providers
+- global overlays/modals
+- route-level composition
+
+Acceptance:
+
+- `App.tsx` owns composition, not feature-specific workflows
+
 #### Store decomposition
 
-Split the monolithic store into clearer modules such as:
+Split toward:
 
-- store state shape/types
+- public store entry
+- state/types
 - selectors
 - workspace actions
 - artifact/run actions
@@ -521,82 +629,37 @@ Split the monolithic store into clearer modules such as:
 - chat actions
 - board actions
 - maintenance/import/export actions
-- UI state actions
+- UI/settings actions
 
-Possible pattern:
+Acceptance:
 
-- keep one public store entry point if desired
-- move action logic into feature/domain-specific modules
-- keep shared selectors pure and testable
+- the store is materially smaller and more legible
+- feature/domain logic is grouped near its owning action set
 
 #### Feature decomposition
 
-For `WorkspaceBoard` and `TimelineView`, separate:
+For `WorkspaceBoard`, `Timeline`, `Chat`, `Settings`, and task setup:
 
-- data derivation/selectors
-- event handlers and command orchestration
-- view state hooks
-- presentation components/panels
-- side-effect and persistence coordination
-
-#### App shell decomposition
-
-For `App.tsx`, separate:
-
-- launch pipeline
-- chat-open pipeline
-- navigation/view orchestration
-- theme/bootstrap concerns
-
-### Planned slices
-
-#### Slice 4A: Store architecture split
-
-- introduce modular store action/selectors
-- cut `caseStore` into organized units without losing one-store behavior unless intentionally changed
+- separate page/controller concerns from presentation
+- separate data derivation/selectors from side-effect orchestration
+- move feature-specific workflow UI out of generic `components/ui` homes
+- create smaller reusable subpanels and hooks
 
 Acceptance:
 
-- the store is materially smaller and easier to reason about
-- feature actions live near their domain logic
-
-#### Slice 4B: Workspace board system refactor
-
-- split `WorkspaceBoard` into data/controller/presentation layers
-- ensure board-agent, library, placement, persistence, and side-panels each have clear homes
-
-Acceptance:
-
-- board feature is no longer dominated by one giant file
+- feature roots stop being giant mixed controller/view files
 - major subflows are independently understandable
-
-#### Slice 4C: Timeline and task setup refactor
-
-- split timeline derivation, filtering, selection, and panel rendering
-- split task setup modal domain logic from rendering
-
-Acceptance:
-
-- Timeline and task setup read as systems, not long mixed files
-
-#### Slice 4D: App shell cleanup
-
-- isolate launch and navigation orchestration
-- reduce `App.tsx` to shell-level coordination
-
-Acceptance:
-
-- app shell owns composition, not every detail
 
 ### Risks
 
-- large file decomposition can accidentally change behavior
-- naming and decomposition work can interfere with each other if sequenced poorly
+- decomposition can accidentally alter behavior
+- route migration can obscure whether a regression is architectural or behavioral
 
 ### Mitigation
 
-- do not start decomposition until the canonical nouns and atomic write pattern are stable
-- keep targeted behavior tests around launch propagation, timeline derivation, board flows, and chat flows
+- do not do decomposition before route ownership is stable
+- preserve focused behavior tests around launch flows, timeline derivation, board workflows, and chat flows
+- favor larger coherent slices over long-lived half-split systems
 
 ## Validation Strategy
 
@@ -609,8 +672,8 @@ Acceptance:
 Run `npm run build` when a slice affects:
 
 - shipped app code
+- route behavior
 - bundling
-- routing
 - shared UI/runtime behavior
 
 ### Full suite policy
@@ -619,66 +682,79 @@ Do not run the full suite on every slice by default.
 
 Run `npm run test` at:
 
-- workstream milestones
-- risky cross-cutting cutovers
+- route-cutover milestones
+- risky canon/persistence cutovers
 - before final merge of the broader refactor
 
 ### Suggested targeted coverage by area
 
+- route cutover: shell navigation, deep-link entry, route-backed feature handoffs
 - canon/lineage: timeline tests, launch propagation tests, store tests, repository tests
-- persistence safety: repository tests, DB client tests, workspace-data tests
-- storage/runtime hygiene: provider router tests, config tests, store tests
-- decomposition: targeted tests for the refactored surface plus `build` where shared app behavior changes
+- persistence/integrity: repository tests, DB client tests, workspace-data tests
+- decomposition: targeted tests for the refactored surface plus `build` where shared behavior changes
 
 ## Documentation Requirements
 
 Update docs incrementally as the work lands:
 
-- `README.md` when setup/validation/status shifts
-- `docs/operations/ARCHITECTURE.md` for structural changes
-- `docs/operations/DATA_PERSISTENCE.md` for follow-up/signal persistence and storage-boundary updates
-- `docs/operations/OPERATIONS_RUNBOOK.md` for provider capability/fallback behavior changes
+- `README.md` when setup, route behavior, validation, or status shifts
+- `docs/operations/ARCHITECTURE.md` for route and structural changes
+- `docs/operations/DATA_PERSISTENCE.md` for follow-up/signal persistence and storage-boundary changes
+- `docs/operations/OPERATIONS_RUNBOOK.md` for provider capability or runtime fallback behavior changes
+- `docs/operations/DEPLOYMENT.md` for route-entry/deployment assumptions
 - `docs/reports/CURRENT_STATUS.md` when the active implementation state materially changes
 
 Final pass:
 
-- one final documentation sweep after all workstreams land to remove lingering transitional language
+- one final documentation sweep after all workstreams land to remove lingering transitional shell language and stale status claims
 
 ## Delivery Style
 
 Recommended delivery style:
 
 - medium-to-large slices
-- each slice groups logically related parity work
-- avoid overly tiny incremental steps that leave two competing systems in place for long
+- each slice should land one coherent architectural boundary end to end
+- avoid long-lived compatibility layers that keep both the route shell and the legacy shell equally alive
+- avoid incremental cosmetic extractions that do not change ownership cleanly
 
 Good slice shape:
 
-- one coherent concept or boundary
-- full parity through runtime + persistence + tests + docs for that concept
+- route boundary plus navigation parity
+- canonical model plus persistence plus UI parity for one concept
+- one feature system reorganized fully enough that the old mixed responsibility file can shrink materially
 
 Bad slice shape:
 
-- name-only changes without behavior cutover
-- persistence changes without lineage/UI cutover
-- decomposition before the target canon is stable
+- adding routes while still treating `currentView` as the real source of truth
+- shell cleanup that assumes the enum view model will remain permanent
+- decomposition before route ownership is settled
+- name-only canon changes without behavior and persistence cutover
 
 ## Acceptance Criteria
 
 This plan is complete when:
 
+- Sherlock uses route-backed navigation with direct-entry support
+- top-level workspace surfaces have stable URL identities
+- URL state and store state have clear ownership boundaries
 - `Signal` and `FollowUp` are first-class canonical models
-- artifact-produced follow-ups are durable, actionable, and explicitly linked through lineage
-- old `lead` and `headline` roots are removed from active runtime thinking
+- artifact-produced follow-ups are durable and explicitly linked through lineage
+- old `lead` and `headline` roots no longer dominate active runtime thinking
 - critical multi-table persistence paths are atomic
 - storage behavior is centralized and documented consistently
-- provider capability checks are enforced at the router boundary
 - the largest orchestration files are decomposed into organized systems
-- active docs match the implemented architecture
-- targeted validation passes throughout, and final milestone validation includes full test coverage plus build
+- active docs match the implemented route-aware architecture
+- milestone validation passes throughout, and final validation includes full test coverage plus build
 
 ## Bottom Line
 
-The best next move is a coordinated canon-and-systems refactor, not a series of isolated cleanup chores.
+Sherlock should not keep optimizing the legacy enum-driven shell while simultaneously trying to clean up everything beneath it.
 
-Sherlock has enough capability now that the main risk is not missing features. The main risk is letting transitional naming, partial boundaries, and oversized orchestration files harden into the permanent architecture. This plan is designed to finish that transition cleanly and leave the codebase ready for the next major phase of development.
+The right next move is a route-aware canon-and-systems refactor:
+
+- adopt regular URLs now
+- keep the app client-rendered and local-first for this pass
+- finish canon and safety work against that target
+- then decompose the store and feature systems around the new page boundaries
+
+This plan is designed to get the codebase back under control without doing cleanup that immediately has to be redone.
