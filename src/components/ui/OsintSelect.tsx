@@ -131,8 +131,20 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
 
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      setIsOpen(true);
       const direction = event.key === 'ArrowDown' ? 1 : -1;
+
+      if (!isOpen) {
+        setIsOpen(true);
+        const initialIndex =
+          selectedIndex >= 0 && !options[selectedIndex]?.disabled
+            ? selectedIndex
+            : direction === 1
+              ? getFirstEnabledIndex(options)
+              : getNextEnabledIndex(options, 0, -1);
+        setActiveIndex(initialIndex);
+        return;
+      }
+
       const seedIndex = selectedIndex >= 0 ? selectedIndex : direction === 1 ? -1 : 0;
       setActiveIndex(getNextEnabledIndex(options, seedIndex, direction));
       return;
