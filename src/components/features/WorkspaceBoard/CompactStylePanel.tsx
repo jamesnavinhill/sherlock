@@ -1,14 +1,11 @@
 import React, { useCallback } from 'react';
 import {
-  DefaultColorStyle,
   DefaultStylePanel,
-  getDefaultColorTheme,
   TldrawUiButton,
   TldrawUiButtonIcon,
   TldrawUiPopover,
   TldrawUiPopoverContent,
   TldrawUiPopoverTrigger,
-  type TLDefaultColorStyle,
   type TLUiStylePanelProps,
   useEditor,
   useRelevantStyles,
@@ -17,11 +14,6 @@ import {
 export const CompactStylePanel: React.FC<TLUiStylePanelProps> = () => {
   const editor = useEditor();
   const relevantStyles = useRelevantStyles();
-  const color = relevantStyles?.get(DefaultColorStyle);
-  const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() });
-  const currentColor = (
-    color?.type === 'shared' ? theme[color.value as TLDefaultColorStyle] : theme.black
-  ).solid;
 
   const handleOpenChange = useCallback(
     (isOpen: boolean) => {
@@ -40,10 +32,10 @@ export const CompactStylePanel: React.FC<TLUiStylePanelProps> = () => {
             type="tool"
             aria-label="Board styles"
             data-testid="board-style-menu.button"
-            style={{ color: currentColor }}
+            style={{ color: 'var(--osint-primary)' }}
             title="Styles"
           >
-            <TldrawUiButtonIcon icon={color?.type === 'mixed' ? 'mixed' : 'blob'} />
+            <TldrawUiButtonIcon icon="blob" />
           </TldrawUiButton>
         </TldrawUiPopoverTrigger>
         <TldrawUiPopoverContent side="bottom" align="end">
