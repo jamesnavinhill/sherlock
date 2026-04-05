@@ -4,7 +4,7 @@ The previous implementation plan stack was retired to `docs/_legacy/plans/`.
 
 Active current-work docs:
 
-- `docs/plans/04-research-workspace-agent-plan.md`
+- `docs/plans/2026-04-05-canon-cleanup-and-systems-plan.md`
 - `docs/reports/CURRENT_STATUS.md`
 - `docs/operations/architecture.md`
 

@@ -1094,7 +1094,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
           </div>
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col overflow-hidden border-x border-zinc-800 bg-black/70">
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden border-r border-zinc-800 bg-black/70">
           <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
             {!activeWorkspace ? (
               <EmptyState

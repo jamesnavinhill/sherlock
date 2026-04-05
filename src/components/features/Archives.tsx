@@ -338,15 +338,8 @@ export const Archives: React.FC<ArchivesProps> = ({
                     <h3 className="text-base font-bold text-zinc-200 group-hover:text-white transition-colors font-mono">
                       {report.topic}
                     </h3>
-                    <div className="flex flex-wrap gap-4 text-xs text-zinc-500 font-mono mt-1 uppercase">
-                      <span>{report.dateStr || 'Unknown Date'}</span>
-                      {report.config?.parentArtifactId && (
-                        <span className="flex items-center text-zinc-400">
-                          <ArrowRight className="w-3 h-3 mr-1" /> Linked:{' '}
-                          {artifacts.find((entry) => entry.id === report.config?.parentArtifactId)
-                            ?.topic || artifactLabel}
-                        </span>
-                      )}
+                    <div className="mt-1 text-xs font-mono uppercase text-zinc-500">
+                      {report.dateStr || 'Unknown Date'}
                     </div>
                   </div>
                 </div>

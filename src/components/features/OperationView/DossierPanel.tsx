@@ -54,7 +54,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
 }) => {
   return (
     <div
-      className={`${isOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:-translate-x-0'} fixed inset-y-0 left-0 z-30 w-80 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-r border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-80' : 'lg:w-0'}`}
+      className={`${isOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:-translate-x-0 lg:border-r-0'} fixed inset-y-0 left-0 z-30 w-80 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-r border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-80' : 'lg:w-0'}`}
     >
       {activeCase && (
         <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
