@@ -138,8 +138,7 @@ npm run check:full
 ## Documentation Index
 
 - `docs/reports/CURRENT_STATUS.md`
-- `docs/plans/01-canonical-runtime-cutover-plan.md`
-- `docs/operations/architecture.md`
+- `docs/operations/ARCHITECTURE.md`
 - `docs/operations/BROAD_SCOPE.md`
 - `docs/operations/DEPLOYMENT.md`
 - `docs/operations/SCOPES.md`

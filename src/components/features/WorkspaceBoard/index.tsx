@@ -24,6 +24,7 @@ import {
   getSnapshot,
   toRichText,
   type Editor,
+  type TLGeoShape,
   type TLEditorSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw';
@@ -35,7 +36,7 @@ import type {
   WorkspaceItem,
 } from '@/types';
 import { AppView } from '@/types';
-import { useWorkspaceStore } from '@/store/caseStore';
+import { useWorkspaceStore, type ThemeMode } from '@/store/caseStore';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { Accordion } from '@/components/ui/Accordion';
@@ -144,18 +145,32 @@ const getShapeColor = (entry: WorkspaceLibraryEntry) => {
 };
 
 type BoardCardSpec = {
-  color:
-    | 'blue'
-    | 'green'
-    | 'grey'
-    | 'light-violet'
-    | 'orange'
-    | 'red'
-    | 'yellow';
+  color: BoardCardColor;
   content: string;
   h: number;
   w: number;
 };
+
+type BoardCardColor =
+  | 'black'
+  | 'blue'
+  | 'green'
+  | 'grey'
+  | 'light-blue'
+  | 'light-green'
+  | 'light-red'
+  | 'light-violet'
+  | 'orange'
+  | 'red'
+  | 'violet'
+  | 'white'
+  | 'yellow';
+
+const getBoardCardThemeProps = (themeMode: ThemeMode, color: BoardCardColor) => ({
+  color,
+  fill: themeMode === 'light' ? ('none' as const) : ('semi' as const),
+  labelColor: themeMode === 'light' ? ('black' as const) : ('white' as const),
+});
 
 const clipBoardCardText = (value: string | undefined, maxLength: number) => {
   if (!value) return '';
@@ -238,14 +253,21 @@ const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec => {
   }
 };
 
-const placeEntryOnBoard = (editor: Editor, entry: WorkspaceLibraryEntry, x: number, y: number) => {
+const placeEntryOnBoard = (
+  editor: Editor,
+  entry: WorkspaceLibraryEntry,
+  x: number,
+  y: number,
+  themeMode: ThemeMode
+) => {
   const shapeId = createShapeId();
   const card = buildBoardCardSpec(entry);
+  const shapeThemeProps = getBoardCardThemeProps(themeMode, card.color);
   const shapeMeta = {
     [BOARD_REF_META_KEY]: serializeBoardReference(entry),
   };
 
-  editor.createShape({
+  editor.createShape<TLGeoShape>({
     id: shapeId,
     type: 'geo',
     x,
@@ -259,9 +281,9 @@ const placeEntryOnBoard = (editor: Editor, entry: WorkspaceLibraryEntry, x: numb
       h: card.h,
       growY: 0,
       scale: 1,
-      labelColor: 'white',
-      color: card.color,
-      fill: 'semi',
+      labelColor: shapeThemeProps.labelColor,
+      color: shapeThemeProps.color,
+      fill: shapeThemeProps.fill,
       size: 's',
       font: 'sans',
       align: 'start',
@@ -304,6 +326,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     clearQueuedBoardPlacement,
     deleteWorkspaceBoard,
     addToast,
+    themeMode,
   } = useWorkspaceStore();
 
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
@@ -329,6 +352,13 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const editorRef = useRef<Editor | null>(null);
   const saveTimeoutRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const hydratedSnapshotRef = useRef<{
+    boardId: string | null;
+    snapshot: TLEditorSnapshot | TLStoreSnapshot | undefined;
+  }>({
+    boardId: null,
+    snapshot: undefined,
+  });
 
   const activeWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
@@ -357,6 +387,16 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const activeBoard =
     availableBoards.find((board) => board.id === activeWorkspaceBoardId) || availableBoards[0] || null;
   const activeBoardDocument = activeBoard ? workspaceBoardDocuments[activeBoard.id] : undefined;
+
+  if (activeBoard?.id !== hydratedSnapshotRef.current.boardId) {
+    hydratedSnapshotRef.current = {
+      boardId: activeBoard?.id || null,
+      snapshot: (activeBoardDocument?.snapshot || undefined) as
+        | TLEditorSnapshot
+        | TLStoreSnapshot
+        | undefined,
+    };
+  }
 
   const libraryEntries = useMemo(() => {
     if (!activeWorkspace) return [];
@@ -451,7 +491,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         editorRef.current,
         queuedEntry,
         viewport.x + viewport.w / 2 - card.w / 2,
-        viewport.y + viewport.h / 2 - card.h / 2
+        viewport.y + viewport.h / 2 - card.h / 2,
+        themeMode
       );
       if (queuedBoardPlacement.openInBoard && currentView !== AppView.WORKSPACE) {
         setCurrentView(AppView.WORKSPACE);
@@ -469,12 +510,18 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     queuedBoardPlacement,
     setActiveWorkspaceBoardId,
     setCurrentView,
+    themeMode,
   ]);
 
   useEffect(() => {
     if (!editorRef.current || !activeBoard) return;
     editorRef.current.updateInstanceState({ isReadonly: !!activeBoard.presentationMode });
   }, [activeBoard]);
+
+  useEffect(() => {
+    if (!editorRef.current) return;
+    editorRef.current.user.updateUserPreferences({ colorScheme: themeMode });
+  }, [themeMode]);
 
   useEffect(
     () => () => {
@@ -525,7 +572,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const handleEditorMount = useCallback(
     (editor: Editor) => {
       editorRef.current = editor;
-      editor.user.updateUserPreferences({ colorScheme: 'dark' });
+      editor.user.updateUserPreferences({ colorScheme: themeMode });
       editor.updateInstanceState({ isReadonly: !!activeBoard?.presentationMode });
       syncSelection(editor);
 
@@ -551,7 +598,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         editorRef.current = null;
       };
     },
-    [activeBoard?.presentationMode, scheduleSave, syncSelection]
+    [activeBoard?.presentationMode, scheduleSave, syncSelection, themeMode]
   );
 
   const handleCreateBoard = async () => {
@@ -591,10 +638,11 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         editorRef.current,
         entry,
         point?.x ?? viewport.x + viewport.w / 2 - card.w / 2,
-        point?.y ?? viewport.y + viewport.h / 2 - card.h / 2
+        point?.y ?? viewport.y + viewport.h / 2 - card.h / 2,
+        themeMode
       );
     },
-    [activeBoard, addToast]
+    [activeBoard, addToast, themeMode]
   );
 
   const handleCanvasDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -1096,7 +1144,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
                             <div
                               className={`text-xs leading-5 ${
                                 title === 'Created Items' ? 'text-current/80' : 'text-zinc-500'
-                              }`}
+                              } ${key === 'sources' ? 'line-clamp-2 break-all' : ''}`}
                             >
                               {entry.description ||
                                 'Open this item from the library to place it on the board.'}
@@ -1134,12 +1182,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               <Tldraw
                 key={activeBoard.id}
                 className="h-full w-full"
-                snapshot={
-                  (activeBoardDocument?.snapshot || undefined) as
-                    | TLEditorSnapshot
-                    | TLStoreSnapshot
-                    | undefined
-                }
+                snapshot={hydratedSnapshotRef.current.snapshot}
                 onMount={handleEditorMount}
               />
             ) : (
