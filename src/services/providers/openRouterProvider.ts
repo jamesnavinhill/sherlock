@@ -23,7 +23,7 @@ import {
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
 import {
-    buildWorkspaceChatSystemPrompt,
+    buildWorkspaceChatMessages,
     normalizeChatResponse,
 } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
@@ -217,7 +217,16 @@ const queryOpenRouter = async (
                 content?: unknown;
                 reasoning?: unknown;
                 refusal?: unknown;
-                annotations?: Array<unknown>;
+                annotations?: Array<{
+                    type?: unknown;
+                    url_citation?: {
+                        url?: unknown;
+                        title?: unknown;
+                        content?: unknown;
+                        start_index?: unknown;
+                        end_index?: unknown;
+                    };
+                }>;
             };
             text?: unknown;
             finish_reason?: string;
@@ -443,48 +452,6 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
     );
 };
 
-const buildOpenRouterChatMessages = (
-    request: ChatRequest,
-    format: 'json' | 'tagged'
-): ProviderMessage[] => {
-    const formatInstruction =
-        format === 'tagged'
-            ? `
-Return plain text using this exact structure and no markdown fences:
-<answer>
-markdown answer
-</answer>
-<citations>CTX-REPORT-abc,CTX-HEADLINE-def</citations>
-<title>optional concise session title</title>
-
-Rules:
-- Only cite ids that appear in Retrieved Workspace Context.
-- If you do not use any retrieved context, leave <citations></citations> empty.
-- Keep <title> empty if no better session title is obvious.
-`.trim()
-            : `
-Return valid JSON with this shape:
-{
-  "content": "markdown answer",
-  "citations": ["CTX-REPORT-abc", "CTX-HEADLINE-def"],
-  "suggestedTitle": "optional concise session title"
-}
-
-Rules:
-- Only cite ids that appear in Retrieved Workspace Context.
-- If you do not use any retrieved context, return an empty citations array.
-- Do not wrap the JSON in markdown fences.
-`.trim();
-
-    return [
-        {
-            role: 'system',
-            content: `${buildWorkspaceChatSystemPrompt(request)}\n\n${formatInstruction}`,
-        },
-        ...request.messages,
-    ];
-};
-
 const chat = async (request: ChatRequest) => {
     const { config } = request;
     const capabilities = getEffectiveModelCapabilities(config.modelId);
@@ -494,7 +461,7 @@ const chat = async (request: ChatRequest) => {
             const search = buildOpenRouterSearchTool(config);
             const completion = await queryOpenRouter(
                 config.modelId,
-                buildOpenRouterChatMessages(request, 'json'),
+                buildWorkspaceChatMessages(request, 'json'),
                 {
                     maxTokens: 2200,
                     expectJson: capabilities.supportsStructuredOutput,
@@ -517,7 +484,7 @@ const chat = async (request: ChatRequest) => {
                     usage: completion.usage,
                     search: {
                         enabled: !!config.openRouter?.webSearchEnabled,
-                        provider: 'OPENROUTER',
+                        provider: 'OPENROUTER' as const,
                         engine: config.openRouter?.engine,
                         webSearchRequests: completion.usage?.server_tool_use?.web_search_requests,
                         searchContextSize: config.openRouter?.searchContextSize,
@@ -543,7 +510,7 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
             const search = buildOpenRouterSearchTool(config);
             const completion = await streamOpenRouter(
                 config.modelId,
-                buildOpenRouterChatMessages(request, 'tagged'),
+                buildWorkspaceChatMessages(request, 'tagged'),
                 {
                     ...options,
                     maxTokens: 2200,
@@ -564,7 +531,7 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
                     usage: completion.usage,
                     search: {
                         enabled: !!config.openRouter?.webSearchEnabled,
-                        provider: 'OPENROUTER',
+                        provider: 'OPENROUTER' as const,
                         engine: config.openRouter?.engine,
                         webSearchRequests: completion.usage?.server_tool_use?.web_search_requests,
                         searchContextSize: config.openRouter?.searchContextSize,
@@ -630,21 +597,21 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
                 title: `Notable development in ${fallbackCategory}`,
                 category: fallbackCategory,
                 timestamp: '10:42 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
             {
                 id: '2',
                 title: 'Emerging pattern detected',
                 category: scope.categories[2] || 'Analysis',
                 timestamp: '09:15 AM',
-                riskLevel: 'MEDIUM',
+                riskLevel: 'MEDIUM' as const,
             },
             {
                 id: '3',
                 title: 'New information surfaced',
                 category: scope.categories[0] || 'General',
                 timestamp: '08:30 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
         ].slice(0, limit);
     });

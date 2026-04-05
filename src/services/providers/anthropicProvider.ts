@@ -6,7 +6,9 @@ import type {
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
+    ProviderMessage,
     ScanAnomaliesRequest,
+    StructuredArtifactPayload,
 } from './types';
 import { parseJsonWithFallback, toDisplayText } from './shared/jsonParsing';
 import {
@@ -21,7 +23,7 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
-import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalizeChatResponse } from './shared/chat';
+import { buildWorkspaceChatMessages, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
@@ -30,12 +32,31 @@ import { buildArtifactFromPayload } from './shared/artifactContract';
 const PROVIDER = 'ANTHROPIC' as const;
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
+const splitAnthropicMessages = (
+    messages: ProviderMessage[]
+): { system?: string; messages: Array<{ role: 'user' | 'assistant'; content: string }> } => {
+    const [first, ...rest] = messages;
+    const system = first?.role === 'system' ? first.content : undefined;
+    const body = (system ? rest : messages)
+        .filter(
+            (message): message is ProviderMessage & { role: 'user' | 'assistant' } =>
+                message.role === 'user' || message.role === 'assistant'
+        )
+        .map((message) => ({
+            role: message.role,
+            content: message.content,
+        }));
+
+    return { system, messages: body };
+};
+
 const queryAnthropic = async (
     modelId: string,
-    prompt: string,
+    providerMessages: ProviderMessage[],
     options?: { maxTokens?: number; signal?: AbortSignal }
 ): Promise<string> => {
     const key = getApiKeyOrThrow(PROVIDER);
+    const { system, messages } = splitAnthropicMessages(providerMessages);
 
     const response = await fetch(ANTHROPIC_API_URL, {
         method: 'POST',
@@ -49,7 +70,8 @@ const queryAnthropic = async (
             model: modelId,
             max_tokens: options?.maxTokens ?? 2048,
             temperature: 0.2,
-            messages: [{ role: 'user', content: prompt }],
+            ...(system ? { system } : {}),
+            messages,
         }),
     });
 
@@ -90,12 +112,13 @@ const queryAnthropic = async (
 
 const streamAnthropic = async (
     modelId: string,
-    prompt: string,
+    providerMessages: ProviderMessage[],
     options?: ChatStreamOptions & { maxTokens?: number }
 ): Promise<string> => {
     const key = getApiKeyOrThrow(PROVIDER);
     const accumulator = createChatStreamAccumulator(options);
     accumulator.start();
+    const { system, messages } = splitAnthropicMessages(providerMessages);
 
     const response = await fetch(ANTHROPIC_API_URL, {
         method: 'POST',
@@ -110,7 +133,8 @@ const streamAnthropic = async (
             max_tokens: options?.maxTokens ?? 2048,
             temperature: 0.2,
             stream: true,
-            messages: [{ role: 'user', content: prompt }],
+            ...(system ? { system } : {}),
+            messages,
         }),
     });
 
@@ -182,7 +206,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
                 request.generationMode || config.generationMode || 'STAGED'
             )}`;
 
-            const rawText = await queryAnthropic(config.modelId, prompt, {
+            const rawText = await queryAnthropic(config.modelId, [{ role: 'user', content: prompt }], {
                 maxTokens: 3200,
             });
             const parsedData = parseJsonWithFallback(rawText);
@@ -194,7 +218,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
 
             const modelSources = Array.isArray(data.sources)
                 ? dedupeSources(
-                      data.sources.map((source) => ({
+                      data.sources.map((source: { title?: unknown; url?: unknown; uri?: unknown }) => ({
                           title: source.title,
                           url: source.url,
                           uri: source.uri,
@@ -236,7 +260,7 @@ const chat = async (request: ChatRequest) => {
 
     return withProviderRetry(
         async () => {
-            const rawText = await queryAnthropic(config.modelId, buildWorkspaceChatPrompt(request), {
+            const rawText = await queryAnthropic(config.modelId, buildWorkspaceChatMessages(request, 'json'), {
                 maxTokens: 2200,
             });
 
@@ -257,7 +281,7 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
         async () => {
             const rawText = await streamAnthropic(
                 config.modelId,
-                buildWorkspaceChatPromptWithFormat(request, 'tagged'),
+                buildWorkspaceChatMessages(request, 'tagged'),
                 {
                     ...options,
                     maxTokens: 2200,
@@ -291,7 +315,7 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
                 dateRange,
             });
 
-            const rawText = await queryAnthropic(config.modelId, prompt, {
+            const rawText = await queryAnthropic(config.modelId, [{ role: 'user', content: prompt }], {
                 maxTokens: 1800,
             });
             const parsed = parseJsonWithFallback(rawText);
@@ -318,21 +342,21 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
                 title: `Notable development in ${fallbackCategory}`,
                 category: fallbackCategory,
                 timestamp: '10:42 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
             {
                 id: '2',
                 title: 'Emerging pattern detected',
                 category: scope.categories[2] || 'Analysis',
                 timestamp: '09:15 AM',
-                riskLevel: 'MEDIUM',
+                riskLevel: 'MEDIUM' as const,
             },
             {
                 id: '3',
                 title: 'New information surfaced',
                 category: scope.categories[0] || 'General',
                 timestamp: '08:30 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
         ].slice(0, limit);
     });
@@ -353,7 +377,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 existingContent,
             });
 
-            const rawText = await queryAnthropic(config.modelId, prompt, {
+            const rawText = await queryAnthropic(config.modelId, [{ role: 'user', content: prompt }], {
                 maxTokens: 2200,
             });
             const parsed = parseJsonWithFallback(rawText);

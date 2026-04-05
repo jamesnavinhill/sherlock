@@ -6,7 +6,9 @@ import type {
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
+    ProviderMessage,
     ScanAnomaliesRequest,
+    StructuredArtifactPayload,
 } from './types';
 import { parseJsonWithFallback, toDisplayText } from './shared/jsonParsing';
 import {
@@ -21,7 +23,7 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
-import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalizeChatResponse } from './shared/chat';
+import { buildWorkspaceChatMessages, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
@@ -32,7 +34,7 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 const queryOpenAI = async (
     modelId: string,
-    prompt: string,
+    messages: ProviderMessage[],
     options?: { maxTokens?: number; expectJson?: boolean; signal?: AbortSignal }
 ): Promise<string> => {
     const key = getApiKeyOrThrow(PROVIDER);
@@ -46,7 +48,7 @@ const queryOpenAI = async (
         },
         body: JSON.stringify({
             model: modelId,
-            messages: [{ role: 'user', content: prompt }],
+            messages,
             ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
             ...(options?.expectJson ? { response_format: { type: 'json_object' } } : {}),
             temperature: 0.2,
@@ -86,7 +88,7 @@ const queryOpenAI = async (
 
 const streamOpenAI = async (
     modelId: string,
-    prompt: string,
+    messages: ProviderMessage[],
     options?: ChatStreamOptions & { maxTokens?: number }
 ): Promise<string> => {
     const key = getApiKeyOrThrow(PROVIDER);
@@ -102,7 +104,7 @@ const streamOpenAI = async (
         },
         body: JSON.stringify({
             model: modelId,
-            messages: [{ role: 'user', content: prompt }],
+            messages,
             ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
             temperature: 0.2,
             stream: true,
@@ -174,7 +176,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
                 request.generationMode || config.generationMode || 'STAGED'
             )}`;
 
-            const rawText = await queryOpenAI(config.modelId, prompt, {
+            const rawText = await queryOpenAI(config.modelId, [{ role: 'user', content: prompt }], {
                 maxTokens: 3200,
                 expectJson: true,
             });
@@ -187,7 +189,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
 
             const modelSources = Array.isArray(data.sources)
                 ? dedupeSources(
-                      data.sources.map((source) => ({
+                      data.sources.map((source: { title?: unknown; url?: unknown; uri?: unknown }) => ({
                           title: source.title,
                           url: source.url,
                           uri: source.uri,
@@ -231,7 +233,7 @@ const chat = async (request: ChatRequest) => {
         async () => {
             const rawText = await queryOpenAI(
                 config.modelId,
-                buildWorkspaceChatPrompt(request),
+                buildWorkspaceChatMessages(request, 'json'),
                 {
                     maxTokens: 2200,
                     expectJson: true,
@@ -255,7 +257,7 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
         async () => {
             const rawText = await streamOpenAI(
                 config.modelId,
-                buildWorkspaceChatPromptWithFormat(request, 'tagged'),
+                buildWorkspaceChatMessages(request, 'tagged'),
                 {
                     ...options,
                     maxTokens: 2200,
@@ -289,7 +291,7 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
                 dateRange,
             });
 
-            const rawText = await queryOpenAI(config.modelId, prompt, {
+            const rawText = await queryOpenAI(config.modelId, [{ role: 'user', content: prompt }], {
                 maxTokens: 1800,
                 expectJson: false,
             });
@@ -317,21 +319,21 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
                 title: `Notable development in ${fallbackCategory}`,
                 category: fallbackCategory,
                 timestamp: '10:42 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
             {
                 id: '2',
                 title: 'Emerging pattern detected',
                 category: scope.categories[2] || 'Analysis',
                 timestamp: '09:15 AM',
-                riskLevel: 'MEDIUM',
+                riskLevel: 'MEDIUM' as const,
             },
             {
                 id: '3',
                 title: 'New information surfaced',
                 category: scope.categories[0] || 'General',
                 timestamp: '08:30 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
         ].slice(0, limit);
     });
@@ -352,7 +354,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 existingContent,
             });
 
-            const rawText = await queryOpenAI(config.modelId, prompt, {
+            const rawText = await queryOpenAI(config.modelId, [{ role: 'user', content: prompt }], {
                 maxTokens: 2200,
                 expectJson: false,
             });

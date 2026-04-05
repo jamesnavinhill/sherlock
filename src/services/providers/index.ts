@@ -9,8 +9,6 @@ import { loadSystemConfig, migrateSystemConfig } from '../../config/systemConfig
 import { BUILTIN_SCOPES, getScopeById } from '../../data/presets';
 import { getDomainPackById, getDomainPackForScope, getPurposeProfileById } from '../../domain';
 import type {
-    ChatResponse,
-    ChatStreamOptions,
     DomainPack,
     FeedItem,
     Artifact,
@@ -29,6 +27,8 @@ import type {
     RouterLiveIntelRequest,
     RouterScanRequest,
     RouterTtsRequest,
+    ChatResponse,
+    ChatStreamOptions,
 } from './types';
 
 const ADAPTER_LOADERS: Record<AIProvider, () => Promise<ProviderAdapter>> = {

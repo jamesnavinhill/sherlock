@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatResponse } from '../types';
+import type { ChatRequest, ChatResponse, ProviderMessage } from '../types';
 import { parseJsonWithFallback, toDisplayText } from './jsonParsing';
 
 const formatConversation = (messages: ChatRequest['messages']): string =>
@@ -68,14 +68,9 @@ ${buildWorkspaceContextBlock(request)}
 `.trim();
 };
 
-export const buildWorkspaceChatPromptWithFormat = (
-    request: ChatRequest,
-    format: 'json' | 'tagged'
-): string => {
-
-    const responseInstruction =
-        format === 'tagged'
-            ? `
+const buildWorkspaceChatFormatInstruction = (format: 'json' | 'tagged'): string =>
+    format === 'tagged'
+        ? `
 Return plain text using this exact structure and no markdown fences:
 <answer>
 markdown answer
@@ -89,7 +84,7 @@ Rules:
 - If you do not use any retrieved context, leave <citations></citations> empty.
 - Keep <title> empty if no better session title is obvious.
 `.trim()
-            : `
+        : `
 Return valid JSON with this shape:
 {
   "content": "markdown answer",
@@ -103,13 +98,31 @@ Rules:
 - Do not wrap the JSON in markdown fences.
 `.trim();
 
+export const buildWorkspaceChatMessages = (
+    request: ChatRequest,
+    format: 'json' | 'tagged'
+): ProviderMessage[] => [
+    {
+        role: 'system',
+        content: `${buildWorkspaceChatSystemPrompt(request)}\n\n${buildWorkspaceChatFormatInstruction(format)}`,
+    },
+    ...request.messages.map((message) => ({
+        role: message.role,
+        content: message.content.trim(),
+    })),
+];
+
+export const buildWorkspaceChatPromptWithFormat = (
+    request: ChatRequest,
+    format: 'json' | 'tagged'
+): string => {
     return `
 ${buildWorkspaceChatSystemPrompt(request)}
 
 Conversation
 ${formatConversation(request.messages)}
 
-${responseInstruction}
+${buildWorkspaceChatFormatInstruction(format)}
 `.trim();
 };
 

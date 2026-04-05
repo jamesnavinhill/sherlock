@@ -129,8 +129,8 @@ describe('caseStore', () => {
             },
         };
 
-        vi.spyOn(dbClient, 'initDB').mockResolvedValue();
-        vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue();
+        vi.spyOn(dbClient, 'initDB').mockResolvedValue({} as Awaited<ReturnType<typeof dbClient.initDB>>);
+        vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue(undefined);
         vi.spyOn(CaseRepository, 'getAllCases').mockResolvedValue([]);
         vi.spyOn(CaseRepository, 'getAllReports').mockResolvedValue([]);
         vi.spyOn(ScopeRepository, 'getAll').mockResolvedValue([]);

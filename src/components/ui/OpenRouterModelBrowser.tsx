@@ -42,6 +42,8 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
 
     useEffect(() => {
         if (!isOpen) return;
+        setQuery('');
+        setManualSlug('');
         setCatalog(getOpenRouterCatalogSnapshot());
         void (async () => {
             setIsRefreshing(true);
@@ -204,41 +206,50 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                         </div>
 
                         <div className="grid gap-3">
-                            {filteredCatalog.map((model) => {
-                                const capabilities = getEffectiveModelCapabilities(model.id);
+                            {filteredCatalog.length === 0 ? (
+                                <div className="border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center">
+                                    <div className="text-xs font-mono uppercase text-zinc-400">No models match this search</div>
+                                    <div className="mt-2 text-[10px] text-zinc-500">
+                                        Try a broader query or use a manual slug if you already know the model id.
+                                    </div>
+                                </div>
+                            ) : (
+                                filteredCatalog.map((model) => {
+                                    const capabilities = getEffectiveModelCapabilities(model.id);
 
-                                return (
-                                    <button
-                                        key={model.id}
-                                        onClick={() => {
-                                            recordRecentModelSelection(model.id);
-                                            onSelectModel(model.id);
-                                            onClose();
-                                        }}
-                                        className={`border p-4 text-left transition-colors ${
-                                            currentModelId === model.id
-                                                ? 'border-osint-primary bg-osint-primary/10'
-                                                : 'border-zinc-800 bg-zinc-950/70 hover:border-osint-primary'
-                                        }`}
-                                    >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div>
-                                                <div className="text-sm font-mono font-bold text-white">{model.name}</div>
-                                                <div className="mt-1 text-[10px] font-mono text-zinc-500">{model.id}</div>
+                                    return (
+                                        <button
+                                            key={model.id}
+                                            onClick={() => {
+                                                recordRecentModelSelection(model.id);
+                                                onSelectModel(model.id);
+                                                onClose();
+                                            }}
+                                            className={`border p-4 text-left transition-colors ${
+                                                currentModelId === model.id
+                                                    ? 'border-osint-primary bg-osint-primary/10'
+                                                    : 'border-zinc-800 bg-zinc-950/70 hover:border-osint-primary'
+                                            }`}
+                                        >
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <div className="text-sm font-mono font-bold text-white">{model.name}</div>
+                                                    <div className="mt-1 text-[10px] font-mono text-zinc-500">{model.id}</div>
+                                                </div>
+                                                {currentModelId === model.id ? <Check className="h-4 w-4 text-osint-primary" /> : null}
                                             </div>
-                                            {currentModelId === model.id ? <Check className="h-4 w-4 text-osint-primary" /> : null}
-                                        </div>
-                                        <p className="mt-3 text-xs leading-relaxed text-zinc-400">{model.description}</p>
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {capabilities.supportsThinkingBudget ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Reasoning</span> : null}
-                                            {capabilities.supportsStructuredOutput ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Structured</span> : null}
-                                            {capabilities.supportsWebSearch ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Web Search</span> : null}
-                                            {capabilities.supportsToolUse ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Tools</span> : null}
-                                            {model.contextLength ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">{Intl.NumberFormat().format(model.contextLength)} ctx</span> : null}
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                                            <p className="mt-3 text-xs leading-relaxed text-zinc-400">{model.description}</p>
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {capabilities.supportsThinkingBudget ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Reasoning</span> : null}
+                                                {capabilities.supportsStructuredOutput ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Structured</span> : null}
+                                                {capabilities.supportsWebSearch ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Web Search</span> : null}
+                                                {capabilities.supportsToolUse ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">Tools</span> : null}
+                                                {model.contextLength ? <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">{Intl.NumberFormat().format(model.contextLength)} ctx</span> : null}
+                                            </div>
+                                        </button>
+                                    );
+                                })
+                            )}
                         </div>
                     </section>
                 </div>

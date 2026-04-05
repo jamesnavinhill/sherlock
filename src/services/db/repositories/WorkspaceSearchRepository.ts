@@ -246,7 +246,7 @@ export class WorkspaceSearchRepository {
             .slice(0, options?.limit ?? 6);
 
         const recentArtifacts = reportRows.slice(0, 4).map(toRecentArtifact);
-        const recentHeadlines = headlineRows.slice(0, 5).map((row) => ({
+        const recentHeadlines: Headline[] = headlineRows.slice(0, 5).map((row) => ({
             id: row.id,
             caseId: row.caseId || workspaceId,
             content: row.content,

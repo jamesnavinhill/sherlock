@@ -39,6 +39,7 @@ describe('guidedMode', () => {
                 modelId: 'gpt-4.1-mini',
                 persona: 'general-investigator',
                 searchDepth: 'DEEP',
+                generationMode: 'STAGED',
                 thinkingBudget: 1024,
                 dateRange: {
                     start: '2025-01-01',

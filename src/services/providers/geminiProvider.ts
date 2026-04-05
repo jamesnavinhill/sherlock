@@ -14,6 +14,7 @@ import type {
     LiveIntelRequest,
     ProviderAdapter,
     ScanAnomaliesRequest,
+    StructuredArtifactPayload,
     TtsRequest,
 } from './types';
 import { parseJsonWithFallback, toDisplayText } from './shared/jsonParsing';
@@ -89,6 +90,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
           }
         : undefined;
     const useStructuredOutput = supportsStructuredOutput(config.modelId);
+    const generationMode = request.generationMode || config.generationMode || 'STAGED';
 
     return withProviderRetry(
         async () => {
@@ -103,21 +105,11 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
                 request.pack
             );
 
-            if (!useStructuredOutput) {
-                basePrompt += ` ${buildStructuredArtifactResponseInstruction(
-                    request.purpose,
-                    request.labelProfileId,
-                    request.generationMode || config.generationMode || 'STAGED'
-                )}`;
-            }
-
-            if (useStructuredOutput) {
-                basePrompt += ` ${buildStructuredArtifactResponseInstruction(
-                    request.purpose,
-                    request.labelProfileId,
-                    request.generationMode || config.generationMode || 'STAGED'
-                )}`;
-            }
+            basePrompt += ` ${buildStructuredArtifactResponseInstruction(
+                request.purpose,
+                request.labelProfileId,
+                generationMode
+            )}`;
 
             const response = await ai.models.generateContent({
                 model: config.modelId,
@@ -219,7 +211,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
                 purpose: request.purpose,
                 artifactType: request.artifactType,
                 labelProfileId: request.labelProfileId,
-                generationMode: request.generationMode || config.generationMode,
+                generationMode,
                 extraSources: sources,
                 extraMetadata: {
                     persona: config.persona,
@@ -294,7 +286,7 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
             const ai = getAI();
             const accumulator = createChatStreamAccumulator(options);
             accumulator.start();
-            const stream = await ai.models.generateContentStream({
+        const stream = await ai.models.generateContentStream({
                 model: config.modelId,
                 contents: buildWorkspaceChatPromptWithFormat(request, 'tagged'),
                 config: {
@@ -304,7 +296,6 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
                             : undefined,
                     safetySettings: SAFETY_SETTINGS,
                 },
-                abortSignal: options?.signal,
             });
 
             for await (const chunk of stream) {
@@ -405,21 +396,21 @@ Each item must have: id (string), title (string), category (string), riskLevel (
                 title: `Notable development in ${fallbackCategory}`,
                 category: fallbackCategory,
                 timestamp: '10:42 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
             {
                 id: '2',
                 title: 'Emerging pattern detected',
                 category: scope.categories[2] || 'Analysis',
                 timestamp: '09:15 AM',
-                riskLevel: 'MEDIUM',
+                riskLevel: 'MEDIUM' as const,
             },
             {
                 id: '3',
                 title: 'New information surfaced',
                 category: scope.categories[0] || 'General',
                 timestamp: '08:30 AM',
-                riskLevel: 'HIGH',
+                riskLevel: 'HIGH' as const,
             },
         ].slice(0, limit);
     });

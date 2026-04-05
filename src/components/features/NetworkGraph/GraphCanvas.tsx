@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useCallback, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import * as d3 from 'd3';
 import type {
     Artifact,
@@ -92,7 +92,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         stateRef.current = { isLinkingMode, linkSourceNode };
     }, [isLinkingMode, linkSourceNode]);
 
-    const applyLinkSourceStyling = () => {
+    const applyLinkSourceStyling = useCallback(() => {
         if (!svgRef.current) return;
 
         const selectedSourceId = linkSourceNode?.id || null;
@@ -120,7 +120,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
                         ? (isLinkSource ? '#f87171' : '#fff')
                         : (isLinkSource ? '#fff' : getEntityStrokeColor(d.subtype)));
             });
-    };
+    }, [linkSourceNode]);
 
     // Expose Zoom Methods
     useImperativeHandle(ref, () => ({
@@ -139,7 +139,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
     // --- D3 Simulation ---
     useEffect(() => {
         applyLinkSourceStyling();
-    }, [linkSourceNode]);
+    }, [applyLinkSourceStyling]);
 
     useEffect(() => {
         const simulation = simulationRef.current;
@@ -446,7 +446,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(({
         });
 
         return () => { simulation.stop(); };
-    }, [reports, manualLinks, workspaces, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, onCreateManualLink, onNodeClick, onSetLinkSource, onStatsUpdate]);
+    }, [reports, manualLinks, workspaces, aliases, manualNodes, hiddenNodeIds, filterCaseId, showSingletons, showHiddenNodes, flaggedNodeIds, showFlaggedOnly, isLocked, onCreateManualLink, onNodeClick, onSetLinkSource, onStatsUpdate, applyLinkSourceStyling]);
 
     return (
         <div ref={containerRef} className="flex-1 w-full h-full relative z-0 bg-black cursor-move">
