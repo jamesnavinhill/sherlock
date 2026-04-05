@@ -49,6 +49,7 @@ Adapters in scope:
 - Chat: all active providers support the persisted workspace chat contract for both non-streaming and streaming turns.
 - Chat stop/cancel: aborts the active provider request and persists the turn as cancelled if a final answer was not completed.
 - Chat actions: retrieval/save/follow-up operations are persisted in `chat_actions`; use them when confirming what the system actually did for a user.
+- Research Workspace AI actions: selection summaries and drafted board notes reuse the same provider router with explicit manual triggers only. Failures surface inline/toast-side and do not auto-reorganize the board or create silent persistence side effects. Presentation mode blocks board-mutating placement flows until the operator returns the board to edit mode.
 - Timeline audit: persisted chat sessions and high-signal `chat_actions` now surface in `Timeline`, so operator verification can cross-check Chat's action log against the workspace chronology.
 - Thinking budget: model-gated. Do not assume it is available just because the provider supports some reasoning-capable models.
 - Structured output: model-gated. Sherlock will request native structured output where available and fall back to prompt-shaped JSON when it is not.

@@ -177,6 +177,79 @@ export interface ManualNode {
   timestamp: number;
 }
 
+export type WorkspaceCanonicalRefKind =
+  | 'ARTIFACT'
+  | 'ENTITY'
+  | 'SOURCE'
+  | 'HEADLINE'
+  | 'WORKSPACE_ITEM';
+
+export type WorkspaceItemKind = 'NOTE' | 'LINK' | 'FILE' | 'MEDIA' | 'EXCERPT';
+
+export interface WorkspaceItemProvenance {
+  source: 'USER' | 'CHAT' | 'REPORT' | 'TIMELINE' | 'NETWORK' | 'INGESTION';
+  sourceMessageId?: string;
+  sourceSessionId?: string;
+  sourceReportId?: string;
+  sourceHeadlineId?: string;
+  sourceBoardId?: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface WorkspaceItem {
+  id: string;
+  workspaceId: string;
+  kind: WorkspaceItemKind;
+  title: string;
+  description?: string;
+  textContent?: string;
+  url?: string;
+  mimeType?: string;
+  fileName?: string;
+  sizeBytes?: number;
+  previewUrl?: string;
+  tags?: string[];
+  provenance?: WorkspaceItemProvenance;
+  metadata?: Record<string, unknown>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface WorkspaceBoard {
+  id: string;
+  workspaceId: string;
+  name: string;
+  description?: string;
+  sortOrder: number;
+  presentationMode?: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface WorkspaceBoardDocument {
+  boardId: string;
+  snapshot: unknown | null;
+  updatedAt: number;
+}
+
+export interface WorkspaceBoardItemReference {
+  workspaceId: string;
+  refKind: WorkspaceCanonicalRefKind;
+  refId: string;
+  title: string;
+  workspaceItemKind?: WorkspaceItemKind;
+  metadata?: Record<string, unknown>;
+}
+
+export interface WorkspaceBoardPlacementRequest {
+  workspaceId: string;
+  boardId?: string;
+  item: WorkspaceBoardItemReference;
+  openInBoard?: boolean;
+}
+
 export interface FeedItem {
   id: string;
   title: string;
@@ -207,6 +280,11 @@ export type ChatAttachmentKind =
   | 'ENTITY'
   | 'HEADLINE'
   | 'SOURCE'
+  | 'NOTE'
+  | 'LINK'
+  | 'FILE'
+  | 'MEDIA'
+  | 'EXCERPT'
   | 'CUSTOM';
 
 export type AgentActionType =
@@ -320,6 +398,7 @@ export interface WorkspaceContextBundle {
 export enum AppView {
   DASHBOARD = 'DASHBOARD',
   INVESTIGATION = 'INVESTIGATION',
+  WORKSPACE = 'WORKSPACE',
   CHAT = 'CHAT',
   ARCHIVES = 'ARCHIVES',
   NETWORK = 'NETWORK',
@@ -608,6 +687,12 @@ export interface WorkspaceDataGraphSnapshot {
   manualLinks: ManualConnection[];
 }
 
+export interface WorkspaceDataWorkspaceSurfaceSnapshot {
+  items: WorkspaceItem[];
+  boards: WorkspaceBoard[];
+  boardDocuments: WorkspaceBoardDocument[];
+}
+
 export interface WorkspaceDataBackupMetadata {
   kind: 'SHERLOCK_WORKSPACE_DATA';
   formatVersion: 1;
@@ -621,6 +706,7 @@ export interface WorkspaceDataBackup {
   chat: WorkspaceDataChatSnapshot;
   signals: WorkspaceDataSignalSnapshot;
   graph: WorkspaceDataGraphSnapshot;
+  workspaceSurface: WorkspaceDataWorkspaceSurfaceSnapshot;
   templates: CaseTemplate[];
   metadata: WorkspaceDataBackupMetadata;
 }

@@ -103,6 +103,9 @@ export const Settings: React.FC<SettingsProps> = ({
     templates,
     manualNodes,
     manualLinks,
+    workspaceItems,
+    workspaceBoards,
+    workspaceBoardDocuments,
     customScopes,
     importWorkspaceData,
     clearWorkspaceData,
@@ -308,6 +311,9 @@ export const Settings: React.FC<SettingsProps> = ({
       headlines,
       manualNodes,
       manualLinks,
+      workspaceItems,
+      workspaceBoards,
+      workspaceBoardDocuments: Object.values(workspaceBoardDocuments),
       templates,
     });
 
@@ -350,7 +356,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const handleClearData = async () => {
     if (
       confirm(
-        'CRITICAL WARNING: This will permanently delete all saved workspace data, including artifacts, runs, chat history, graph data, templates, and saved signals. Local theme settings, provider defaults, and API keys will stay untouched. Proceed?'
+        'CRITICAL WARNING: This will permanently delete all saved workspace data, including artifacts, runs, chat history, research boards, workspace library items, graph data, templates, and saved signals. Local theme settings, provider defaults, and API keys will stay untouched. Proceed?'
       )
     ) {
       await clearWorkspaceData();

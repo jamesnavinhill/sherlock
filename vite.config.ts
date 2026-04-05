@@ -37,6 +37,28 @@ export default defineConfig(({ mode }) => {
             if (normalizedId.includes('/node_modules/react-markdown/')) return 'vendor-markdown';
             if (normalizedId.includes('/node_modules/lucide-react/')) return 'vendor-icons';
             if (normalizedId.includes('/node_modules/d3')) return 'vendor-d3';
+            if (normalizedId.includes('/node_modules/tldraw/')) return 'vendor-tldraw-app';
+            if (normalizedId.includes('/node_modules/@tldraw/editor/'))
+              return 'vendor-tldraw-editor';
+            if (
+              normalizedId.includes('/node_modules/@tldraw/state/') ||
+              normalizedId.includes('/node_modules/@tldraw/state-react/') ||
+              normalizedId.includes('/node_modules/@tldraw/store/') ||
+              normalizedId.includes('/node_modules/@tldraw/tlschema/') ||
+              normalizedId.includes('/node_modules/@tldraw/utils/') ||
+              normalizedId.includes('/node_modules/@tldraw/validate/')
+            )
+              return 'vendor-tldraw-core';
+            if (
+              normalizedId.includes('/node_modules/@tiptap/') ||
+              normalizedId.includes('/node_modules/prosemirror-')
+            )
+              return 'vendor-tldraw-richtext';
+            if (
+              normalizedId.includes('/node_modules/radix-ui/') ||
+              normalizedId.includes('/node_modules/@radix-ui/')
+            )
+              return 'vendor-tldraw-ui';
             if (normalizedId.includes('/node_modules/@google/genai/')) return 'vendor-gemini';
             if (
               normalizedId.includes('/node_modules/wa-sqlite/') ||

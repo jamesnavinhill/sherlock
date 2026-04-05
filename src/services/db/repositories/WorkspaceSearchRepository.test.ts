@@ -8,6 +8,7 @@ import {
   leads,
   reports,
   sources,
+  workspaceItems,
 } from '../schema';
 
 const mockDb = {
@@ -109,6 +110,26 @@ describe('WorkspaceSearchRepository', () => {
         timestamp: '2026-04-03T09:00:00.000Z',
       },
     ];
+    const workspaceItemRows = [
+      {
+        id: 'item-1',
+        workspaceId: 'case-1',
+        kind: 'EXCERPT',
+        title: 'Atlas Registry Filing Excerpt',
+        description: 'Atlas ownership transfer language.',
+        textContent: 'The Atlas filing confirms an ownership transfer effective April 1.',
+        url: 'https://example.com/filing',
+        mimeType: null,
+        fileName: null,
+        sizeBytes: null,
+        previewUrl: null,
+        tagsJson: JSON.stringify(['filing']),
+        provenanceJson: null,
+        metadataJson: null,
+        createdAt: Date.parse('2026-04-03T08:00:00.000Z'),
+        updatedAt: Date.parse('2026-04-03T08:30:00.000Z'),
+      },
+    ];
 
     mockDb.select.mockImplementation(() => ({
       from: (table: unknown) => {
@@ -158,12 +179,20 @@ describe('WorkspaceSearchRepository', () => {
           };
         }
 
+        if (table === workspaceItems) {
+          return {
+            where: vi.fn(() => ({
+              orderBy: vi.fn().mockResolvedValue(workspaceItemRows),
+            })),
+          };
+        }
+
         throw new Error('Unexpected table access.');
       },
     }));
 
     const bundle = await WorkspaceSearchRepository.getWorkspaceContextBundle('case-1', 'atlas', {
-      limit: 4,
+      limit: 8,
     });
 
     expect(bundle.workspace).toEqual(
@@ -190,5 +219,15 @@ describe('WorkspaceSearchRepository', () => {
     );
     expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-REPORT-rep-1')).toBe(true);
     expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-EVIDENCE-ev-1')).toBe(true);
+    expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-WORKSPACE-ITEM-item-1')).toBe(
+      true
+    );
+    expect(bundle.snippets.find((snippet) => snippet.id === 'CTX-WORKSPACE-ITEM-item-1')).toEqual(
+      expect.objectContaining({
+        kind: 'EXCERPT',
+        refId: 'item-1',
+        refKind: 'EXCERPT',
+      })
+    );
   });
 });

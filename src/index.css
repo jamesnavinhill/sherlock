@@ -554,6 +554,62 @@ body,
   box-shadow: 0 22px 40px -34px rgba(0, 0, 0, 0.68);
 }
 
+.sherlock-board-canvas .tl-container {
+  --tl-font-sans: var(--font-mono);
+  --tl-font-mono: var(--font-mono);
+  --tl-color-background: var(--osint-dark);
+  --tl-color-grid: color-mix(in oklab, var(--osint-border) 84%, transparent);
+  --tl-color-panel: color-mix(in oklab, var(--osint-panel) 96%, var(--osint-dark));
+  --tl-color-panel-contrast: color-mix(in oklab, var(--osint-surface) 90%, var(--osint-panel));
+  --tl-color-panel-overlay: color-mix(in oklab, var(--osint-panel) 90%, transparent);
+  --tl-color-text: var(--osint-ink);
+  --tl-color-text-0: var(--osint-ink);
+  --tl-color-text-1: color-mix(in oklab, var(--osint-ink) 82%, var(--osint-text));
+  --tl-color-text-3: var(--osint-text);
+  --tl-color-low: color-mix(in oklab, var(--osint-surface) 82%, var(--osint-dark));
+  --tl-color-low-border: color-mix(in oklab, var(--osint-border) 88%, transparent);
+  --tl-color-divider: color-mix(in oklab, var(--osint-border) 94%, transparent);
+  --tl-color-selected: var(--osint-primary);
+  --tl-color-selection-stroke: var(--osint-primary);
+  --tl-color-selection-fill: color-mix(in oklab, var(--osint-primary) 16%, transparent);
+  --tl-color-focus: var(--osint-primary);
+  --tl-color-primary: var(--osint-primary);
+  --tl-color-tooltip: color-mix(in oklab, var(--osint-panel) 92%, black);
+  background:
+    radial-gradient(circle at top, color-mix(in oklab, var(--osint-primary) 10%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--osint-panel) 20%, transparent), transparent 30%);
+}
+
+.sherlock-board-canvas .tl-background {
+  background-color: transparent;
+}
+
+.sherlock-board-canvas .tlui-layout {
+  backdrop-filter: blur(10px);
+}
+
+.sherlock-board-canvas .tlui-button,
+.sherlock-board-canvas .tlui-menu__group,
+.sherlock-board-canvas .tlui-popover__content,
+.sherlock-board-canvas .tlui-toolbar,
+.sherlock-board-canvas .tlui-style-panel,
+.sherlock-board-canvas .tlui-help-menu {
+  border-radius: 0;
+}
+
+.sherlock-board-canvas .tlui-popover__content,
+.sherlock-board-canvas .tlui-menu__group,
+.sherlock-board-canvas .tlui-toolbar,
+.sherlock-board-canvas .tlui-style-panel,
+.sherlock-board-canvas .tlui-navigation-panel {
+  border: 1px solid color-mix(in oklab, var(--osint-border) 90%, transparent);
+  box-shadow: 0 16px 34px -28px rgba(0, 0, 0, 0.72);
+}
+
+.sherlock-board-canvas .tlui-button::after {
+  border-radius: 0;
+}
+
 :root[data-theme='light'] .osint-button-primary {
   background-color: var(--osint-panel);
   color: var(--osint-ink);

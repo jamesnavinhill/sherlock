@@ -15,6 +15,8 @@ import { ChatRepository } from './ChatRepository';
 import { TaskRepository } from './TaskRepository';
 import { TemplateRepository } from './TemplateRepository';
 import { ManualDataRepository } from './ManualDataRepository';
+import { WorkspaceBoardRepository } from './WorkspaceBoardRepository';
+import { WorkspaceItemRepository } from './WorkspaceItemRepository';
 import {
   normalizeHumanText,
   normalizeTopicText,
@@ -488,6 +490,8 @@ export class CaseRepository {
     const db = getDB();
     await ChatRepository.deleteSessionsForWorkspace(caseId);
     await TaskRepository.clearWorkspace(caseId);
+    await WorkspaceBoardRepository.deleteByWorkspace(caseId);
+    await WorkspaceItemRepository.deleteByWorkspace(caseId);
     await db.delete(leads).where(eq(leads.caseId, caseId));
     await ManualDataRepository.removeWorkspaceLinkedData(caseId, []);
     await db.delete(cases).where(eq(cases.id, caseId));
@@ -504,6 +508,8 @@ export class CaseRepository {
     await deleteReportDependencies(reportIds);
     await ChatRepository.deleteSessionsForWorkspace(caseId);
     await TaskRepository.deleteByWorkspace(caseId);
+    await WorkspaceBoardRepository.deleteByWorkspace(caseId);
+    await WorkspaceItemRepository.deleteByWorkspace(caseId);
     await ManualDataRepository.removeWorkspaceLinkedData(caseId, reportIds);
     await db.delete(reports).where(eq(reports.caseId, caseId));
     await db.delete(leads).where(eq(leads.caseId, caseId));
@@ -515,6 +521,8 @@ export class CaseRepository {
     await ChatRepository.clearAll();
     await TaskRepository.clearAll();
     await TemplateRepository.clearAll();
+    await WorkspaceBoardRepository.clearAll();
+    await WorkspaceItemRepository.clearAll();
     await ManualDataRepository.clearAll();
     await db.delete(artifactSections);
     await db.delete(artifactEvidence);

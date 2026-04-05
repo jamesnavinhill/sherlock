@@ -30,6 +30,7 @@ import type {
   InvestigationLaunchRequest,
   Artifact,
 } from '@/types';
+import { AppView } from '@/types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { OsintSelect } from '../../ui/OsintSelect';
 import {
@@ -62,6 +63,8 @@ import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { Accordion } from '../../ui/Accordion';
 import { EmptyState } from '../../ui/EmptyState';
 import { sanitizeDisplayTitle } from '../../../domain';
+import { buildWorkspaceItemReference } from '../../../services/workspace/library';
+import { buildWorkspaceExcerptItemFromAttachment } from '../../../services/workspace/promotions';
 
 const formatTimestamp = (value: number): string =>
   new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -239,6 +242,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     chatMessagesBySessionId,
     chatSessions,
     createChatSession,
+    createWorkspaceItem,
     updateChatSession,
     activeWorkspaceId,
     activeChatSessionId,
@@ -249,12 +253,15 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     appendSectionToReport,
     customScopes,
     deleteChatSession,
+    ensureWorkspaceBoard,
     headlines,
     partialAssistantOutput,
+    queueBoardPlacement,
     renameChatSession,
     setActiveWorkspaceId,
     setActiveChatSessionId,
     setChatGenerationStatus,
+    setCurrentView,
     setPartialAssistantOutput,
     updateChatMessage,
   } = useWorkspaceStore();
@@ -456,6 +463,40 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const result = await factory(session);
     await addChatMessage(result.message);
     await addChatAction(result.action);
+  };
+
+  const handlePromoteAttachment = async (
+    message: ChatMessage,
+    attachment: NonNullable<ChatMessage['attachments']>[number],
+    openInBoard = false
+  ) => {
+    if (!activeWorkspace || !activeSession) {
+      addToast('Open a workspace chat before promoting excerpts.', 'ERROR');
+      return;
+    }
+
+    const item = buildWorkspaceExcerptItemFromAttachment({
+      workspaceId: activeWorkspace.id,
+      sessionId: activeSession.id,
+      message,
+      attachment,
+    });
+    await createWorkspaceItem(item);
+
+    if (openInBoard) {
+      const board = await ensureWorkspaceBoard(activeWorkspace.id);
+      queueBoardPlacement({
+        workspaceId: activeWorkspace.id,
+        boardId: board.id,
+        item: buildWorkspaceItemReference(item),
+        openInBoard: true,
+      });
+      setCurrentView(AppView.WORKSPACE);
+      addToast('Promoted excerpt and placed it on the research board.', 'SUCCESS');
+      return;
+    }
+
+    addToast('Promoted excerpt to the workspace library.', 'SUCCESS');
   };
 
   const handleCreateSession = async () => {
@@ -1257,15 +1298,39 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                             {`Related Context (${message.attachments.length})`}
                             <ChevronDown className="h-4 w-4 shrink-0" />
                           </summary>
-                          <div className="mt-3 flex flex-wrap gap-2">
+                          <div className="mt-3 space-y-2">
                             {message.attachments.map((attachment) => (
-                              <span
+                              <div
                                 key={attachment.id}
-                                className="border border-zinc-700 bg-black px-2 py-1 text-[11px] text-zinc-300"
-                                title={attachment.snippet}
+                                className="border border-zinc-800 bg-zinc-900/20 p-3"
                               >
-                                {attachment.title}
-                              </span>
+                                <div className="text-sm text-zinc-200">{attachment.title}</div>
+                                {attachment.snippet && (
+                                  <p className="mt-1 text-xs leading-5 text-zinc-500">
+                                    {attachment.snippet}
+                                  </p>
+                                )}
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  <button
+                                    onClick={() =>
+                                      void handlePromoteAttachment(message, attachment)
+                                    }
+                                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                  >
+                                    <FilePlus2 className="h-3.5 w-3.5" />
+                                    Promote Excerpt
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      void handlePromoteAttachment(message, attachment, true)
+                                    }
+                                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                  >
+                                    <Layout className="h-3.5 w-3.5" />
+                                    Promote To Board
+                                  </button>
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </details>

@@ -11,6 +11,7 @@ import type {
   Headline,
   Source,
 } from '../../../types';
+import { AppView } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -27,6 +28,11 @@ import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { cleanEntityName } from '../../../utils/text';
 import { getLabelProfileById } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
+import {
+  buildWorkspaceArtifactReference,
+  buildWorkspaceEntityReference,
+  buildWorkspaceHeadlineReference,
+} from '../../../services/workspace/library';
 
 const normalizeGraphId = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -87,6 +93,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     setActiveWorkspaceId,
     setFlaggedNodeIds,
     setHiddenNodeIds,
+    ensureWorkspaceBoard,
+    queueBoardPlacement,
+    setCurrentView,
     addToast,
   } = useWorkspaceStore();
 
@@ -520,6 +529,48 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     });
   };
 
+  const handlePlaceEntityOnBoard = async (entityName: string) => {
+    if (!filterCaseId || filterCaseId === 'ALL') return;
+
+    const board = await ensureWorkspaceBoard(filterCaseId);
+    queueBoardPlacement({
+      workspaceId: filterCaseId,
+      boardId: board.id,
+      item: buildWorkspaceEntityReference(filterCaseId, {
+        name: entityName,
+        type: 'UNKNOWN',
+      }),
+      openInBoard: true,
+    });
+    setCurrentView(AppView.WORKSPACE);
+  };
+
+  const handlePlaceReportOnBoard = async (report: Artifact) => {
+    if (!report.caseId || !report.id) return;
+
+    const board = await ensureWorkspaceBoard(report.caseId);
+    queueBoardPlacement({
+      workspaceId: report.caseId,
+      boardId: board.id,
+      item: buildWorkspaceArtifactReference(report.caseId, { ...report, id: report.id }),
+      openInBoard: true,
+    });
+    setCurrentView(AppView.WORKSPACE);
+  };
+
+  const handlePlaceHeadlineOnBoard = async (headline: Headline) => {
+    if (!headline.caseId) return;
+
+    const board = await ensureWorkspaceBoard(headline.caseId);
+    queueBoardPlacement({
+      workspaceId: headline.caseId,
+      boardId: board.id,
+      item: buildWorkspaceHeadlineReference(headline.caseId, headline),
+      openInBoard: true,
+    });
+    setCurrentView(AppView.WORKSPACE);
+  };
+
   return (
     <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">
       <ControlBar
@@ -691,6 +742,15 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           onOpenEntityChat={handleOpenEntityChat}
           onOpenReportChat={handleOpenReportChat}
           onOpenHeadlineChat={handleOpenHeadlineChat}
+          onPlaceEntityOnBoard={(entityName) => {
+            void handlePlaceEntityOnBoard(entityName);
+          }}
+          onPlaceReportOnBoard={(report) => {
+            void handlePlaceReportOnBoard(report);
+          }}
+          onPlaceHeadlineOnBoard={(headline) => {
+            void handlePlaceHeadlineOnBoard(headline);
+          }}
         />
       </div>
 

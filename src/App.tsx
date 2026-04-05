@@ -46,6 +46,9 @@ const Settings = lazy(() =>
 const TimelineView = lazy(() =>
   import('./components/features/TimelineView').then((m) => ({ default: m.TimelineView }))
 );
+const WorkspaceBoard = lazy(() =>
+  import('./components/features/WorkspaceBoard').then((m) => ({ default: m.WorkspaceBoard }))
+);
 const OperationView = lazy(() =>
   import('./components/features/OperationView').then((m) => ({ default: m.OperationView }))
 );
@@ -671,6 +674,9 @@ function App() {
             )}
             {currentView === AppView.TIMELINE && (
               <TimelineView onOpenReport={handleSelectReport} onOpenChat={openChat} />
+            )}
+            {currentView === AppView.WORKSPACE && (
+              <WorkspaceBoard onOpenReport={handleSelectReport} onOpenChat={openChat} />
             )}
             {currentView === AppView.SETTINGS && (
               <Settings

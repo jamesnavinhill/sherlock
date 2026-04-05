@@ -9,6 +9,7 @@ import {
   Briefcase,
   ChevronRight,
   MessageSquare,
+  Shapes,
 } from 'lucide-react';
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import {
@@ -35,6 +36,8 @@ interface ToolbarProps {
   onStartNewCase: () => void;
   onSaveTemplate?: () => void;
   onOpenChat?: () => void;
+  onOpenBoard?: () => void;
+  onPlaceReportOnBoard?: () => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -50,6 +53,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onStartNewCase,
   onSaveTemplate,
   onOpenChat,
+  onOpenBoard,
+  onPlaceReportOnBoard,
 }) => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
@@ -122,6 +127,28 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               >
                 <MessageSquare className="w-4 h-4" />
                 <span className="ml-2 hidden lg:inline">OPEN CHAT</span>
+              </button>
+            )}
+            {onOpenBoard && (
+              <button
+                onClick={onOpenBoard}
+                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
+                title={`Open ${labelProfile.workspaceLabel.toLowerCase()} research board`}
+                aria-label="Open Research Board"
+              >
+                <Layout className="w-4 h-4" />
+                <span className="ml-2 hidden lg:inline">OPEN BOARD</span>
+              </button>
+            )}
+            {onPlaceReportOnBoard && report && (
+              <button
+                onClick={onPlaceReportOnBoard}
+                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors uppercase font-mono text-[10px] flex items-center outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
+                title={`Place this ${labelProfile.artifactLabel.toLowerCase()} on the research board`}
+                aria-label="Place Report On Board"
+              >
+                <Shapes className="w-4 h-4" />
+                <span className="ml-2 hidden lg:inline">PLACE ON BOARD</span>
               </button>
             )}
             <div className="relative" ref={exportMenuRef}>

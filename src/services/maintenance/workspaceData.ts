@@ -7,6 +7,9 @@ import type {
   Headline,
   ManualConnection,
   ManualNode,
+  WorkspaceBoard,
+  WorkspaceBoardDocument,
+  WorkspaceItem,
   WorkspaceDataBackup,
   WorkspaceRun,
 } from '@/types';
@@ -27,6 +30,9 @@ type LegacyWorkspaceDataBackup = Partial<{
   templates: unknown;
   manualNodes: unknown;
   manualLinks: unknown;
+  workspaceItems: unknown;
+  workspaceBoards: unknown;
+  workspaceBoardDocuments: unknown;
   timestamp: unknown;
   exportedAt: unknown;
 }>;
@@ -107,6 +113,9 @@ export const buildWorkspaceDataBackup = (input: {
   headlines: Headline[];
   manualNodes: ManualNode[];
   manualLinks: ManualConnection[];
+  workspaceItems: WorkspaceItem[];
+  workspaceBoards: WorkspaceBoard[];
+  workspaceBoardDocuments: WorkspaceBoardDocument[];
   templates: CaseTemplate[];
   exportedAt?: string;
 }): WorkspaceDataBackup => ({
@@ -124,6 +133,11 @@ export const buildWorkspaceDataBackup = (input: {
   graph: {
     manualNodes: input.manualNodes,
     manualLinks: input.manualLinks,
+  },
+  workspaceSurface: {
+    items: input.workspaceItems,
+    boards: input.workspaceBoards,
+    boardDocuments: input.workspaceBoardDocuments,
   },
   templates: input.templates,
   metadata: {
@@ -195,6 +209,15 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
     : looksWorkspaceExport
       ? []
       : asArray<ManualConnection>(payload.manualLinks);
+  const workspaceItems = looksCanonical
+    ? asArray<WorkspaceItem>(payload.workspaceSurface?.items)
+    : asArray<WorkspaceItem>(payload.workspaceItems);
+  const workspaceBoards = looksCanonical
+    ? asArray<WorkspaceBoard>(payload.workspaceSurface?.boards)
+    : asArray<WorkspaceBoard>(payload.workspaceBoards);
+  const workspaceBoardDocuments = looksCanonical
+    ? asArray<WorkspaceBoardDocument>(payload.workspaceSurface?.boardDocuments)
+    : asArray<WorkspaceBoardDocument>(payload.workspaceBoardDocuments);
   const templates = looksWorkspaceExport ? [] : asArray<CaseTemplate>(payload.templates);
   const exportedAt =
     typeof metadata?.exportedAt === 'string'
@@ -220,6 +243,11 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
     graph: {
       manualNodes,
       manualLinks,
+    },
+    workspaceSurface: {
+      items: workspaceItems,
+      boards: workspaceBoards,
+      boardDocuments: workspaceBoardDocuments,
     },
     templates,
     metadata: {

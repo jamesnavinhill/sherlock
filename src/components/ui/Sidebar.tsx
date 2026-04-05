@@ -11,6 +11,7 @@ import {
   Moon,
   MessageSquare,
   Clock3,
+  Shapes,
 } from 'lucide-react';
 import type { WorkspaceRun } from '../../types';
 import { AppView } from '../../types';
@@ -100,6 +101,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {!isCollapsed && (
               <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
                 {labelProfile.detailViewLabel}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => onChangeView(AppView.WORKSPACE)}
+            className={btnClass(currentView === AppView.WORKSPACE)}
+            title={isCollapsed ? 'Research Workspace' : undefined}
+            aria-label="Research Workspace"
+          >
+            <Shapes className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                Research Workspace
               </span>
             )}
           </button>

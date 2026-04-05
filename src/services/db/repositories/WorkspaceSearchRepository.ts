@@ -9,6 +9,7 @@ import {
   leads,
   reports,
   sources,
+  workspaceItems,
 } from '../schema';
 import { CaseRepository } from './CaseRepository';
 
@@ -115,6 +116,11 @@ export class WorkspaceSearchRepository {
       .from(leads)
       .where(eq(leads.caseId, workspaceId))
       .orderBy(desc(leads.timestamp));
+    const workspaceItemRows = await db
+      .select()
+      .from(workspaceItems)
+      .where(eq(workspaceItems.workspaceId, workspaceId))
+      .orderBy(desc(workspaceItems.updatedAt));
 
     const reportById = new Map(reportRows.map((row) => [row.id, row]));
     const candidates: WorkspaceContextSnippet[] = [];
@@ -262,6 +268,42 @@ export class WorkspaceSearchRepository {
           signalType: row.type || undefined,
           threatLevel: row.threatLevel || undefined,
           linkedReportId: row.linkedReportId || undefined,
+        },
+      });
+    });
+
+    workspaceItemRows.forEach((row) => {
+      const timestamp = row.updatedAt || row.createdAt;
+      const content = [row.description || '', row.textContent || '', row.url || '']
+        .filter(Boolean)
+        .join('\n');
+
+      candidates.push({
+        id: `CTX-WORKSPACE-ITEM-${row.id}`,
+        kind: row.kind as WorkspaceContextSnippet['kind'],
+        title: row.title,
+        snippet: toSnippet(content || row.title),
+        refId: row.id,
+        refKind: row.kind,
+        score: scoreCandidate(
+          query,
+          [
+            row.title,
+            row.description || '',
+            row.textContent || '',
+            row.url || '',
+            row.fileName || '',
+            row.tagsJson || '',
+          ],
+          timestamp,
+          row.title
+        ),
+        timestamp,
+        metadata: {
+          workspaceItemKind: row.kind,
+          mimeType: row.mimeType || undefined,
+          fileName: row.fileName || undefined,
+          url: row.url || undefined,
         },
       });
     });

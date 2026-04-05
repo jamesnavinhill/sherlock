@@ -23,6 +23,7 @@ import type {
   TimelineRange,
   TimelineTrack,
 } from '../../types';
+import { AppView } from '../../types';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { Accordion } from '../ui/Accordion';
@@ -31,6 +32,11 @@ import { InspectorActionRow, type InspectorActionItem } from '../ui/InspectorAct
 import { OsintSelect } from '../ui/OsintSelect';
 import { getLabelProfileById, sanitizeDisplayTitle } from '../../domain';
 import { getChatLaunchContextFromSession } from '../../services/chat/launchContext';
+import {
+  buildWorkspaceArtifactReference,
+  buildWorkspaceEntityReference,
+  buildWorkspaceHeadlineReference,
+} from '../../services/workspace/library';
 import {
   buildWorkspaceTimelineEvents,
   filterTimelineEvents,
@@ -169,8 +175,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     headlines,
     isLoading,
     addToast,
+    ensureWorkspaceBoard,
+    queueBoardPlacement,
     saveArtifact,
     setActiveWorkspaceId,
+    setCurrentView,
     workspaceRuns,
     workspaces,
   } = useWorkspaceStore();
@@ -514,6 +523,43 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     onOpenChat({ workspaceId: activeWorkspace.id });
   };
 
+  const openWorkspaceBoard = async () => {
+    if (!activeWorkspace) return;
+    await ensureWorkspaceBoard(activeWorkspace.id);
+    setCurrentView(AppView.WORKSPACE);
+  };
+
+  const placeReferenceOnBoard = async () => {
+    if (!activeWorkspace) return;
+
+    let reference = null;
+
+    if (selectedArtifact?.id) {
+      reference = buildWorkspaceArtifactReference(activeWorkspace.id, {
+        ...selectedArtifact,
+        id: selectedArtifact.id,
+      });
+    } else if (relatedSignal) {
+      reference = buildWorkspaceHeadlineReference(activeWorkspace.id, relatedSignal);
+    } else if (selectedEntityName) {
+      reference = buildWorkspaceEntityReference(activeWorkspace.id, {
+        name: selectedEntityName,
+        type: 'UNKNOWN',
+      });
+    }
+
+    if (!reference) return;
+
+    const board = await ensureWorkspaceBoard(activeWorkspace.id);
+    queueBoardPlacement({
+      workspaceId: activeWorkspace.id,
+      boardId: board.id,
+      item: reference,
+      openInBoard: true,
+    });
+    setCurrentView(AppView.WORKSPACE);
+  };
+
   const detailActions: InspectorActionItem[] = (() => {
     if (!selectedEvent) return [];
 
@@ -524,7 +570,22 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         icon: MessageSquare,
         onClick: () => openWorkspaceChat(selectedEvent),
       },
+      {
+        id: 'timeline-board-open',
+        label: 'Open Board',
+        icon: Workflow,
+        onClick: () => void openWorkspaceBoard(),
+      },
     ];
+
+    if (selectedArtifact?.id || relatedSignal || selectedEntityName) {
+      actions.push({
+        id: 'timeline-board-place',
+        label: 'Place On Board',
+        icon: Save,
+        onClick: () => void placeReferenceOnBoard(),
+      });
+    }
 
     if (selectedArtifact?.id) {
       actions.push({

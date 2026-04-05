@@ -33,6 +33,8 @@ interface InspectorPanelProps {
   onInvestigateHeadline: () => void;
   onOpenEntityChat: (entityName: string) => void;
   onOpenHeadlineChat: () => void;
+  onPlaceEntityOnBoard: (entityName: string) => void;
+  onPlaceHeadlineOnBoard: () => void;
   onNavigate: (reportId: string) => void;
 }
 
@@ -49,6 +51,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   onInvestigateHeadline,
   onOpenEntityChat,
   onOpenHeadlineChat,
+  onPlaceEntityOnBoard,
+  onPlaceHeadlineOnBoard,
   onNavigate,
 }) => {
   const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
@@ -79,6 +83,34 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           label: 'Flag Entity',
           icon: Star,
           onClick: () => onFlagEntity(entity.name),
+        },
+        {
+          id: 'entity-board',
+          label: 'Place On Board',
+          icon: Shapes,
+          onClick: () => onPlaceEntityOnBoard(entity.name),
+        },
+      ]
+    : [];
+  const headlineActions: InspectorActionItem[] = headline
+    ? [
+        {
+          id: 'headline-chat',
+          label: 'Open In Chat',
+          icon: MessageSquare,
+          onClick: onOpenHeadlineChat,
+        },
+        {
+          id: 'headline-board',
+          label: 'Place On Board',
+          icon: Shapes,
+          onClick: onPlaceHeadlineOnBoard,
+        },
+        {
+          id: 'headline-investigate',
+          label: 'Launch Investigation',
+          icon: Microscope,
+          onClick: onInvestigateHeadline,
         },
       ]
     : [];
@@ -305,6 +337,10 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </button>
           </div>
 
+          <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+            <InspectorActionRow actions={headlineActions} />
+          </div>
+
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <div className="bg-zinc-900/50 p-6 border border-zinc-800 relative group">
               <h4 className="text-[10px] text-zinc-500 font-mono uppercase mb-2">
@@ -337,12 +373,6 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </div>
 
           <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
-            <button
-              onClick={onOpenHeadlineChat}
-              className="w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
-            >
-              <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
-            </button>
             <button
               onClick={onInvestigateHeadline}
               className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center"

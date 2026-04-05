@@ -24,6 +24,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-markdown": "^10.1.0",
+    "tldraw": "^4.5.7",
     "wa-sqlite": "^1.0.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 # Current Status
 
-This is the active status checkpoint for Sherlock on April 3, 2026.
+This is the active status checkpoint for Sherlock on April 5, 2026.
 
 Historical implementation plans and reports have been retired to:
 
@@ -18,21 +18,23 @@ What is clearly live in the codebase now:
 - canonical workspace runtime behavior under `Workspace -> Artifact -> WorkspaceRun`
 - multi-provider investigate/chat support across Gemini, OpenRouter, OpenAI, and Anthropic
 - persisted workspace chat sessions, message history, action traces, transcript export, and guided run building
+- a first-class multi-board Research Workspace built on `tldraw`, with canonical workspace items plus separate board-document persistence
 - Timeline as a first-class routed feature with signal/run/artifact chronology, curated chat and entity tracks, and snapshot export/save flows
-- workspace-data export/import/clear behavior for workspaces, artifacts, runs, chat, graph data, templates, and saved signals
+- workspace-data export/import/clear behavior for workspaces, artifacts, runs, chat, research boards, canonical workspace items, graph data, templates, and saved signals
 - active runtime/store surfaces now use `useWorkspaceStore`, `workspaces`, `artifacts`, `workspaceRuns`, and `activeWorkspaceId`
 - unused `feed_items` and `parent_topic` schema/bootstrap definitions have been removed from the active schema files
 
 ## What Is Finished Enough To Treat As Settled
 
 - Timeline is no longer a parked or provisional surface.
+- Research Workspace is no longer a planned sidecar surface; it is a primary routed workspace view with cross-surface handoff from Chat, Timeline, Operation View, and Network Graph.
 - Timeline snapshot export/save is implemented through the normal artifact path.
 - workspace-data maintenance is no longer limited to cases and reports
 - the main architecture docs in `README.md`, `docs/operations/architecture.md`, and `docs/operations/DATA_PERSISTENCE.md` are directionally aligned with the current app
 
 ## Unfinished Business
 
-The remaining work is mostly cleanup and semantic cutover rather than missing product surface.
+The remaining work is now mostly additive refinement rather than missing core surface.
 
 ### 1. Canonical naming has landed in the active runtime surface, but persistence-edge cleanup still remains
 
@@ -101,17 +103,19 @@ If a future plan/report set is created, it should represent fresh work from the 
 ## Recommended Cleanup Order
 
 1. Continue reducing compatibility-oriented repository/storage naming where it no longer earns its keep.
-2. Remove no-longer-needed compatibility helpers from active runtime-adjacent code, especially where import/migration support is no longer needed.
-3. Keep broad documentation refreshes tied to actual code changes, not the retired historical plan set.
+2. Expand workspace-board polish and coverage incrementally instead of reopening the persistence foundation.
+3. Remove no-longer-needed compatibility helpers from active runtime-adjacent code where import/migration support no longer justifies them.
+4. Keep broad documentation refreshes tied to actual code changes, not retired historical plan sets.
 
 ## Validation Snapshot
 
-Validated on this checkout during the retirement pass:
+Validated on this checkout during the workspace-slice audit pass:
 
 - `npm run lint`
-- `npm run test -- src/components/features/Timeline/timelineEvents.test.ts src/components/features/Timeline/timelineSnapshot.test.ts src/services/maintenance/workspaceData.test.ts src/store/caseStore.test.ts`
+- `npm run typecheck`
+- `npm run test -- src/store/caseStore.test.ts src/services/maintenance/workspaceData.test.ts src/services/workspace/promotions.test.ts src/services/workspace/library.test.ts src/services/db/repositories/WorkspaceSearchRepository.test.ts`
 - `npm run build`
 
-All of the above passed.
+All of the above passed. `npm run build` still reports one remaining Vite large-chunk warning on the `tldraw` app bundle after chunk-splitting improvements.
 
-The full Vitest suite was not run for this docs/status cleanup pass.
+The full Vitest suite was not run for this workspace-slice audit pass.

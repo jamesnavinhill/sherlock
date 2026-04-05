@@ -76,6 +76,9 @@ describe('workspaceData maintenance helpers', () => {
       ],
       manualNodes: [{ id: 'manual-1', label: 'Entity', type: 'ENTITY', timestamp: 1 }],
       manualLinks: [{ source: 'manual-1', target: 'external', timestamp: 2 }],
+      workspaceItems: [],
+      workspaceBoards: [],
+      workspaceBoardDocuments: [],
       templates: [
         { id: 'tpl-1', name: 'Template', topic: 'Topic', config: { modelId: 'x' }, createdAt: 1 },
       ],
@@ -152,6 +155,11 @@ describe('workspaceData maintenance helpers', () => {
       graph: {
         manualNodes: [{ id: 'manual-1', label: 'Entity', type: 'ENTITY', timestamp: 1 }],
         manualLinks: [{ source: 'manual-1', target: 'external', timestamp: 2 }],
+      },
+      workspaceSurface: {
+        items: [],
+        boards: [],
+        boardDocuments: [],
       },
       templates: [
         { id: 'tpl-1', name: 'Template', topic: 'Topic', config: { modelId: 'x' }, createdAt: 1 },
@@ -252,6 +260,11 @@ describe('workspaceData maintenance helpers', () => {
     expect(payload.chat.messages).toHaveLength(1);
     expect(payload.chat.actions).toHaveLength(1);
     expect(payload.metadata.exportedAt).toBe('2026-04-03T00:00:00.000Z');
+    expect(payload.workspaceSurface).toEqual({
+      items: [],
+      boards: [],
+      boardDocuments: [],
+    });
     expect(payload).not.toHaveProperty('config');
   });
 
@@ -292,6 +305,11 @@ describe('workspaceData maintenance helpers', () => {
     ]);
     expect(payload.runs).toEqual([]);
     expect(payload.chat.sessions).toEqual([]);
+    expect(payload.workspaceSurface).toEqual({
+      items: [],
+      boards: [],
+      boardDocuments: [],
+    });
     expect(payload.metadata.exportedAt).toBe('2026-04-03T00:00:00.000Z');
   });
 

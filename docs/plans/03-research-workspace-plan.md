@@ -1,7 +1,7 @@
 # Research Workspace Plan
 
 Date: 2026-04-05
-Status: Active
+Status: Implemented
 
 ## Objective
 
@@ -13,6 +13,20 @@ Build Sherlock's dedicated research workspace as a primary product surface by:
 - preserving Timeline and NetworkGraph as specialized linked views rather than forcing them to become the board
 
 This plan assumes the runtime, OpenRouter, and artifact/output baseline from [02-runtime-openrouter-research-output-plan.md](/mnt/c/Users/james/projects/sherlock/docs/plans/02-runtime-openrouter-research-output-plan.md) is already in place or is being completed first.
+
+## Implementation Checkpoint
+
+This plan is now implemented in the active codebase.
+
+Shipped outcomes across the execution streams:
+
+- board-specific persistence landed through `workspace_items`, `workspace_boards`, and `workspace_board_documents`
+- the research workspace is a dedicated routed `tldraw` surface with multiple named boards per workspace
+- canonical library coverage includes artifacts, entities, sources, signals, notes, links, files/media, and promoted excerpts
+- chat excerpt promotion, link/file/media ingestion, and cross-surface handoff from Chat, Operation View, Timeline, and Network Graph are wired end to end
+- presentation mode and manual-first AI actions are implemented on the board surface
+
+The remaining work after this plan should be additive product expansion, not completion of the original slice.
 
 ## Dependency Boundary
 

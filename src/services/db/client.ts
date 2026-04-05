@@ -189,6 +189,43 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             PRIMARY KEY ("report_id", "id"),
             FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
         );`,
+    `CREATE TABLE IF NOT EXISTS "workspace_items" (
+            "id" text PRIMARY KEY NOT NULL,
+            "workspace_id" text NOT NULL,
+            "kind" text NOT NULL,
+            "title" text NOT NULL,
+            "description" text,
+            "text_content" text,
+            "url" text,
+            "mime_type" text,
+            "file_name" text,
+            "size_bytes" integer,
+            "preview_url" text,
+            "tags_json" text,
+            "provenance_json" text,
+            "metadata_json" text,
+            "created_at" integer NOT NULL,
+            "updated_at" integer NOT NULL,
+            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+        );`,
+    `CREATE TABLE IF NOT EXISTS "workspace_boards" (
+            "id" text PRIMARY KEY NOT NULL,
+            "workspace_id" text NOT NULL,
+            "name" text NOT NULL,
+            "description" text,
+            "sort_order" integer NOT NULL,
+            "presentation_mode" integer DEFAULT 0 NOT NULL,
+            "metadata_json" text,
+            "created_at" integer NOT NULL,
+            "updated_at" integer NOT NULL,
+            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+        );`,
+    `CREATE TABLE IF NOT EXISTS "workspace_board_documents" (
+            "board_id" text PRIMARY KEY NOT NULL,
+            "snapshot_json" text,
+            "updated_at" integer NOT NULL,
+            FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
+        );`,
   ];
 
   for (const sql of alterStatements) {

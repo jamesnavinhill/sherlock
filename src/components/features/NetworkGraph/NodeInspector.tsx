@@ -56,6 +56,9 @@ interface NodeInspectorProps {
   onOpenEntityChat: (entityName: string) => void;
   onOpenReportChat: (report: Artifact) => void;
   onOpenHeadlineChat: (headline: Headline) => void;
+  onPlaceEntityOnBoard: (entityName: string) => void;
+  onPlaceReportOnBoard: (report: Artifact) => void;
+  onPlaceHeadlineOnBoard: (headline: Headline) => void;
 }
 
 export const NodeInspector: React.FC<NodeInspectorProps> = ({
@@ -79,6 +82,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   onOpenEntityChat,
   onOpenReportChat,
   onOpenHeadlineChat,
+  onPlaceEntityOnBoard,
+  onPlaceReportOnBoard,
+  onPlaceHeadlineOnBoard,
 }) => {
   // Accordion Control
   const [inspectorAccordions, setInspectorAccordions] = useState<Record<string, boolean>>({
@@ -201,6 +207,12 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           onClick: () => onOpenReport(selectedReport),
         },
         {
+          id: 'report-board',
+          label: 'Place On Board',
+          icon: Shapes,
+          onClick: () => onPlaceReportOnBoard(selectedReport),
+        },
+        {
           id: 'report-search',
           label: 'Search Report Topic',
           icon: Search,
@@ -258,6 +270,12 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           href: `https://www.google.com/search?q=${encodeURIComponent(selectedEntity)}`,
           target: '_blank',
           rel: 'noopener noreferrer',
+        },
+        {
+          id: 'entity-board',
+          label: 'Place On Board',
+          icon: Shapes,
+          onClick: () => onPlaceEntityOnBoard(selectedEntity),
         },
         {
           id: 'entity-flag',
@@ -362,6 +380,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               className="w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
             >
               <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
+            </button>
+            <button
+              onClick={() => {
+                onPlaceHeadlineOnBoard(selectedHeadline);
+                onClose();
+              }}
+              className="w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
+            >
+              <Shapes className="w-4 h-4 mr-2" /> Place On Board
             </button>
             <button
               onClick={() => {

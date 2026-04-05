@@ -21,6 +21,7 @@ Primary views loaded from App:
 
 - `Feed` (`AppView.DASHBOARD`)
 - `OperationView` (`AppView.INVESTIGATION`)
+- `WorkspaceBoard` (`AppView.WORKSPACE`)
 - `Chat` (`AppView.CHAT`)
 - `NetworkGraph` (`AppView.NETWORK`)
 - `LiveMonitor` (`AppView.LIVE_MONITOR`)
@@ -152,12 +153,15 @@ The schema still uses compatibility table names such as `cases`, `reports`, and 
 - `artifact_evidence` persists first-class evidence rows for artifact claims, citations, quotes, and source hints
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
 - `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
+- `workspace_items` persist canonical workspace-native notes, links, files/media, and promoted excerpts with provenance
+- `workspace_boards` persist named board/page shells per workspace
+- `workspace_board_documents` persist tldraw board snapshots separately from canonical research records
 
 Artifact persistence still uses the existing `reports` table, while `artifact_sections` and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
 Maintenance flows now treat SQLite data as a workspace-data domain:
 
-- Settings export/import use a canonical backup payload with `workspaces`, `artifacts`, `runs`, `chat`, `signals`, `graph`, `templates`, and `metadata`
+- Settings export/import use a canonical backup payload with `workspaces`, `artifacts`, `runs`, `chat`, `signals`, `graph`, `workspaceSurface`, `templates`, and `metadata`
 - workspace-data restore clears the current workspace-data domain before replaying the backup
 - app-level settings such as theme, provider defaults, and API keys remain outside workspace backup/restore
 
@@ -175,6 +179,7 @@ Global store:
 State domains include:
 
 - workspaces, artifacts, workspace runs, headlines
+- workspace-native library items, board/page shells, and board documents
 - chat sessions, messages, generation state, and launch context
 - pack-aware report config snapshots
 - typed artifact sections
@@ -199,6 +204,21 @@ Persistence writes are handled through repository calls and settings KV writes r
 
 Supports deep dives, headline follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
+Operation View now also includes board handoff for the active artifact plus inspected entities and headlines, reusing canonical identifiers rather than creating board-only report copies.
+
+### Research Workspace
+
+`src/components/features/WorkspaceBoard/*`
+
+- dedicated canvas-first workspace surface built on `tldraw`
+- multiple named boards/pages per workspace with persisted board snapshots
+- canonical library drawer for artifacts, entities, sources, signals, notes, links, files/media, and promoted excerpts
+- drag/drop or click-to-place flows from canonical library into the active board
+- presentation mode plus manual-first AI actions for selection summaries and drafted board notes
+- cross-surface placement handoff respects presentation mode rather than mutating readonly boards
+- inspector actions back into reports, workspace chat, timeline, network graph, source links, and promoted-item provenance
+- Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system
+
 `ReportViewer` and `DossierPanel` now also surface:
 
 - evidence records as first-class report content
@@ -216,6 +236,7 @@ Supports deep dives, headline follow-through, launch-into-chat handoff for the a
 - stop/cancel handling for in-flight assistant turns
 - bounded retrieval actions for artifact summaries, full artifact text, and recent signals
 - save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
+- retrieval attachments can now be promoted into canonical workspace excerpts and optionally placed directly onto the research board
 - transcript copy plus Markdown/JSON export
 - guided conversational run builder that maps into the same launch request shape used by `TaskSetupModal`
 - context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
@@ -236,6 +257,7 @@ Supports deep dives, headline follow-through, launch-into-chat handoff for the a
 - D3 canvas rendering
 - case/report/entity node inspection
 - launch-into-chat handoff for inspected reports, entities, and headlines
+- board handoff for inspected reports, entities, and headlines
 - manual node/link creation
 - source nodes derived from artifact sources for non-investigation graph work
 - broader manual node semantics for concepts and sources alongside legacy people and organizations
@@ -266,6 +288,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - explicit lineage ids now drive timeline run/artifact derivation and nearby report-navigation helpers
 - smaller-breakpoint header controls now keep workspace switching and chronology search visible without opening the dossier first
 - click-through into saved artifacts and exact workspace chat sessions from timeline events
+- board handoff for timeline-selected artifacts, entities, and signals
 - timeline snapshot export in JSON/Markdown plus save-as-artifact support for `artifactType: TIMELINE`
 
 ### Feed

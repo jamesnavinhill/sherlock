@@ -28,6 +28,9 @@ Defined in `src/services/db/schema.ts`:
 - `chat_actions`
 - `settings`
 - `templates`
+- `workspace_items`
+- `workspace_boards`
+- `workspace_board_documents`
 - `manual_nodes`
 - `manual_links`
 
@@ -43,6 +46,8 @@ Persistence is routed through repository classes:
 - `SettingsRepository`
 - `ChatRepository`
 - `WorkspaceSearchRepository`
+- `WorkspaceItemRepository`
+- `WorkspaceBoardRepository`
 
 ## Current Runtime Model
 
@@ -51,6 +56,8 @@ Runtime code now treats persisted records as:
 - `Workspace` -> stored in `cases`
 - `Artifact` -> stored in `reports` plus `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
 - `WorkspaceRun` -> stored in `tasks`
+- `WorkspaceItem` -> stored in `workspace_items`
+- `WorkspaceBoard` and `WorkspaceBoardDocument` -> stored in `workspace_boards` and `workspace_board_documents`
 
 The table names remain for persistence continuity, but the primary runtime model is canonical workspace terminology.
 
@@ -103,6 +110,12 @@ The chat implementation adds:
 - `chat_messages` for persisted transcript turns and citation metadata
 - `chat_message_attachments` for retrieved context snippets attached to a turn
 - `chat_actions` for auditable retrieval, save, append, and follow-up operations
+
+The research workspace implementation adds:
+
+- `workspace_items` for canonical board-adjacent records such as notes, links, files/media, and promoted chat excerpts
+- `workspace_boards` for named board/page shells scoped to a workspace
+- `workspace_board_documents` for persisted `tldraw` snapshots kept separate from canonical research objects
 
 Stream 3 and 4 behavior built on that model:
 
@@ -158,6 +171,7 @@ Canonical exported shape:
 - `chat`
 - `signals`
 - `graph`
+- `workspaceSurface`
 - `templates`
 - `metadata`
 
@@ -168,6 +182,8 @@ Workspace-data backups include:
 - runs (`tasks`)
 - chat sessions, messages, attachments, and actions
 - saved signals/headlines (`leads`)
+- workspace library items (`workspace_items`)
+- workspace boards and board documents (`workspace_boards`, `workspace_board_documents`)
 - manual graph nodes and links
 - templates
 - Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `reports`/`artifact_sections`
@@ -193,7 +209,8 @@ Maintenance cleanup behavior:
 
 - importing workspace data clears the current workspace-data domain first, then restores the backup payload
 - deleting a workspace removes workspace-linked chat sessions and saved signals, while artifacts are unassigned rather than purged
-- purging a workspace removes the workspace, its artifacts, saved signals, linked chat history, linked run rows, and directly linked manual graph references
+- deleting a workspace also removes its canonical workspace items, boards, and board documents
+- purging a workspace removes the workspace, its artifacts, saved signals, linked chat history, linked run rows, canonical workspace items/boards, and directly linked manual graph references
 - clearing workspace data removes all persisted workspace-domain records and resets graph hide/flag filters that only reference workspace data
 
 See `src/components/features/Settings/index.tsx`, `src/store/caseStore.ts`, and `src/services/maintenance/workspaceData.ts` for the implemented flow.

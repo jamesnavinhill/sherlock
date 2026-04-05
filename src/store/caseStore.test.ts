@@ -9,6 +9,8 @@ import { ChatRepository } from '../services/db/repositories/ChatRepository';
 import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
 import { SettingsRepository } from '../services/db/repositories/SettingsRepository';
 import { ScopeRepository } from '../services/db/repositories/ScopeRepository';
+import { WorkspaceBoardRepository } from '../services/db/repositories/WorkspaceBoardRepository';
+import { WorkspaceItemRepository } from '../services/db/repositories/WorkspaceItemRepository';
 import * as dbClient from '../services/db/client';
 import * as dbMigrate from '../services/db/migrate';
 
@@ -44,6 +46,16 @@ describe('caseStore', () => {
     vi.spyOn(ManualDataRepository, 'saveAllLinks').mockResolvedValue();
     vi.spyOn(ManualDataRepository, 'removeWorkspaceLinkedData').mockResolvedValue();
     vi.spyOn(ManualDataRepository, 'clearAll').mockResolvedValue();
+    vi.spyOn(WorkspaceItemRepository, 'create').mockResolvedValue();
+    vi.spyOn(WorkspaceItemRepository, 'update').mockResolvedValue();
+    vi.spyOn(WorkspaceItemRepository, 'delete').mockResolvedValue();
+    vi.spyOn(WorkspaceItemRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(WorkspaceBoardRepository, 'createBoard').mockResolvedValue();
+    vi.spyOn(WorkspaceBoardRepository, 'updateBoard').mockResolvedValue();
+    vi.spyOn(WorkspaceBoardRepository, 'deleteBoard').mockResolvedValue();
+    vi.spyOn(WorkspaceBoardRepository, 'upsertDocument').mockResolvedValue();
+    vi.spyOn(WorkspaceBoardRepository, 'getAllBoards').mockResolvedValue([]);
+    vi.spyOn(WorkspaceBoardRepository, 'getAllDocuments').mockResolvedValue([]);
     vi.spyOn(SettingsRepository, 'setSetting').mockResolvedValue();
 
     // Reset store before each test
@@ -58,6 +70,9 @@ describe('caseStore', () => {
       headlines: [],
       manualNodes: [],
       manualLinks: [],
+      workspaceItems: [],
+      workspaceBoards: [],
+      workspaceBoardDocuments: {},
       hiddenNodeIds: [],
       flaggedNodeIds: [],
       activeWorkspaceId: null,
@@ -73,6 +88,40 @@ describe('caseStore', () => {
     expect(state.artifacts).toEqual([]);
     expect(state.workspaces).toEqual([]);
     expect(state.currentView).toBe(AppView.DASHBOARD);
+  });
+
+  it('creates and persists a primary workspace board document', async () => {
+    useWorkspaceStore.setState({
+      workspaces: [
+        { id: 'case-1', title: 'Workspace Alpha', status: 'ACTIVE', dateOpened: '2026-04-03' },
+      ],
+      activeWorkspaceId: 'case-1',
+    });
+
+    const store = useWorkspaceStore.getState();
+    const board = await store.ensureWorkspaceBoard('case-1');
+
+    expect(WorkspaceBoardRepository.createBoard).toHaveBeenCalledTimes(1);
+    expect(board.workspaceId).toBe('case-1');
+    expect(board.name).toBe('Primary Board');
+    expect(useWorkspaceStore.getState().activeWorkspaceBoardId).toBe(board.id);
+
+    await store.saveWorkspaceBoardDocument({
+      boardId: board.id,
+      snapshot: { store: {}, schema: {} },
+      updatedAt: 10,
+    });
+
+    expect(WorkspaceBoardRepository.upsertDocument).toHaveBeenCalledWith({
+      boardId: board.id,
+      snapshot: { store: {}, schema: {} },
+      updatedAt: 10,
+    });
+    expect(useWorkspaceStore.getState().workspaceBoardDocuments[board.id]).toEqual({
+      boardId: board.id,
+      snapshot: { store: {}, schema: {} },
+      updatedAt: 10,
+    });
   });
 
   it('bootstraps the demo workspace seed once when local workspace data is empty', async () => {
@@ -120,6 +169,11 @@ describe('caseStore', () => {
       graph: {
         manualNodes: [],
         manualLinks: [],
+      },
+      workspaceSurface: {
+        items: [],
+        boards: [],
+        boardDocuments: [],
       },
       templates: [],
       metadata: {
@@ -624,6 +678,11 @@ describe('caseStore', () => {
       graph: {
         manualNodes: [{ id: 'manual-1', label: 'Entity', type: 'ENTITY', timestamp: 1 }],
         manualLinks: [{ source: 'manual-1', target: 'external', timestamp: 2 }],
+      },
+      workspaceSurface: {
+        items: [],
+        boards: [],
+        boardDocuments: [],
       },
       templates: [
         { id: 'tpl-1', name: 'Template', topic: 'Topic', config: { modelId: 'x' }, createdAt: 1 },

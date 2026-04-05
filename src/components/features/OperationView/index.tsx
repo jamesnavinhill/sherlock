@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type {
   ChatOpenRequest,
-  InvestigationLaunchRequest,
   Artifact,
-  InvestigationRunConfig,
-  InvestigationScope,
-  WorkspaceRun,
+  CaseTemplate,
   Entity,
   Headline,
+  InvestigationLaunchRequest,
+  InvestigationRunConfig,
+  InvestigationScope,
   Source,
   SystemConfig,
-  CaseTemplate,
+  WorkspaceRun,
 } from '../../../types';
+import { AppView } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -20,6 +21,11 @@ import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { AlertOctagon, Layout } from 'lucide-react';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../../domain';
+import {
+  buildWorkspaceArtifactReference,
+  buildWorkspaceEntityReference,
+  buildWorkspaceHeadlineReference,
+} from '../../../services/workspace/library';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
@@ -114,6 +120,9 @@ export const OperationView: React.FC<OperationViewProps> = ({
     renameEntityAcrossReports,
     activeWorkspaceId: selectedCaseId,
     setActiveWorkspaceId,
+    ensureWorkspaceBoard,
+    queueBoardPlacement,
+    setCurrentView,
     customScopes,
   } = useWorkspaceStore();
 
@@ -331,6 +340,39 @@ export const OperationView: React.FC<OperationViewProps> = ({
     });
   };
 
+  const handleOpenWorkspaceBoard = async () => {
+    const workspaceId = effectiveCaseId || report?.caseId;
+    if (!workspaceId) return;
+
+    await ensureWorkspaceBoard(workspaceId);
+    setCurrentView(AppView.WORKSPACE);
+  };
+
+  const handlePlaceReferenceOnBoard = async (
+    reference:
+      | ReturnType<typeof buildWorkspaceArtifactReference>
+      | ReturnType<typeof buildWorkspaceEntityReference>
+      | ReturnType<typeof buildWorkspaceHeadlineReference>
+  ) => {
+    const board = await ensureWorkspaceBoard(reference.workspaceId);
+    queueBoardPlacement({
+      workspaceId: reference.workspaceId,
+      boardId: board.id,
+      item: reference,
+      openInBoard: true,
+    });
+    setCurrentView(AppView.WORKSPACE);
+  };
+
+  const handlePlaceReportOnBoard = async () => {
+    const workspaceId = effectiveCaseId || report?.caseId;
+    if (!workspaceId || !report?.id) return;
+
+    await handlePlaceReferenceOnBoard(
+      buildWorkspaceArtifactReference(workspaceId, { ...report, id: report.id })
+    );
+  };
+
   const handleOpenEntityChat = (entityName: string) => {
     const workspaceId = effectiveCaseId || report?.caseId;
     if (!workspaceId) return;
@@ -344,6 +386,19 @@ export const OperationView: React.FC<OperationViewProps> = ({
     setRightPanelOpen(false);
   };
 
+  const handlePlaceEntityOnBoard = async (entityName: string) => {
+    const workspaceId = effectiveCaseId || report?.caseId;
+    if (!workspaceId) return;
+
+    const entity =
+      selectedEntity && selectedEntity.name === entityName
+        ? selectedEntity
+        : ({ name: entityName, type: 'UNKNOWN' } satisfies Entity);
+
+    await handlePlaceReferenceOnBoard(buildWorkspaceEntityReference(workspaceId, entity));
+    setRightPanelOpen(false);
+  };
+
   const handleOpenHeadlineChat = () => {
     const workspaceId = effectiveCaseId || selectedHeadline?.caseId || report?.caseId;
     if (!workspaceId || !selectedHeadline) return;
@@ -354,6 +409,16 @@ export const OperationView: React.FC<OperationViewProps> = ({
         headlineId: selectedHeadline.id,
       },
     });
+    setRightPanelOpen(false);
+  };
+
+  const handlePlaceHeadlineOnBoard = async () => {
+    const workspaceId = effectiveCaseId || selectedHeadline?.caseId || report?.caseId;
+    if (!workspaceId || !selectedHeadline) return;
+
+    await handlePlaceReferenceOnBoard(
+      buildWorkspaceHeadlineReference(workspaceId, selectedHeadline)
+    );
     setRightPanelOpen(false);
   };
 
@@ -487,6 +552,16 @@ export const OperationView: React.FC<OperationViewProps> = ({
         onStartNewCase={() => setIsNewCaseModalOpen(true)}
         onSaveTemplate={handleSaveTemplate}
         onOpenChat={handleOpenReportChat}
+        onOpenBoard={() => {
+          void handleOpenWorkspaceBoard();
+        }}
+        onPlaceReportOnBoard={
+          report?.id
+            ? () => {
+                void handlePlaceReportOnBoard();
+              }
+            : undefined
+        }
       />
 
       {/* Save Template Modal */}
@@ -616,6 +691,12 @@ export const OperationView: React.FC<OperationViewProps> = ({
           onInvestigateHeadline={handleHeadlineInvestigate}
           onOpenEntityChat={handleOpenEntityChat}
           onOpenHeadlineChat={handleOpenHeadlineChat}
+          onPlaceEntityOnBoard={(entityName) => {
+            void handlePlaceEntityOnBoard(entityName);
+          }}
+          onPlaceHeadlineOnBoard={() => {
+            void handlePlaceHeadlineOnBoard();
+          }}
           onNavigate={onNavigate}
         />
       </div>

@@ -7,23 +7,25 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
 - Uses a capability-aware model registry with direct-provider defaults plus a dynamic OpenRouter catalog (bundled snapshot, local cache, live refresh, curated quick picks, and manual slug entry)
 - Runs workspace-grounded chat through the same provider router with persisted sessions, message history, streaming output, and stop support
+- Provides a dedicated multi-board research workspace built on `tldraw`, with a canonical library for artifacts, entities, sources, signals, notes, links, files/media, and promoted chat excerpts
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
 - Maintains a unified launch pipeline across Finder, Operation View, Live Monitor, Network Graph, and chat follow-up flows
 - Resolves built-in domain packs and purpose profiles into run metadata and prompt behavior
 - Stores workspace/artifact/workspace-run data in browser-persistent SQLite (wa-sqlite + IndexedDB)
-- Supports typed artifact sections, evidence records, provenance metadata, methodology blocks, deep dives, headline-to-analysis launches, entity graph workflows, chat transcript export, guided run building, and artifact/workspace export tooling (HTML/Markdown/JSON)
+- Supports typed artifact sections, evidence records, provenance metadata, methodology blocks, deep dives, headline-to-analysis launches, entity graph workflows, workspace board composition, chat transcript export, guided run building, and artifact/workspace export tooling (HTML/Markdown/JSON)
 - Provides scope-driven domain packs, purpose-aware launch setup, built-in starters, personas, and reusable templates
 - Adapts launch copy, labels, and output defaults by pack and purpose while using `Workspace`, `Artifact`, and `WorkspaceRun` as the primary runtime model
 - Supports hybrid artifact generation modes with a global default plus per-run overrides (`SINGLE_PASS` vs `STAGED`)
-- Exports and restores workspace-data backups for workspaces, artifacts, runs, chat history, templates, manual graph data, and saved signals without bundling device-local app preferences or API keys
+- Exports and restores workspace-data backups for workspaces, artifacts, runs, chat history, research boards, canonical workspace items, templates, manual graph data, and saved signals without bundling device-local app preferences or API keys
 
 ## UI Areas
 
 - `Operation View`: artifact reading, purpose-ordered typed-section rendering, dossier, inspector panel
 - `Task Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
+- `Research Workspace`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual-first AI actions, and cross-links back into reports, timeline, graph, and chat
 - `Timeline`: workspace chronology across saved signals, runs, artifacts, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, and Timeline snapshot export/save actions
-- `Workspace Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
-- `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution
+- `Workspace Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
+- `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, and board handoff for reports/entities/headlines
 - `Live Monitor`: live signal scans, filtering, and headline persistence
 - `Case Files`: workspace/archive browsing, deletion, and exports
 - `Finder`: discovery scanning and analysis launch
@@ -128,8 +130,9 @@ npm run check:full
 
 - `npm run lint`: passes clean
 - `npm run typecheck`: passes clean
-- targeted Vitest coverage passes for `router.test.ts`
+- targeted Vitest coverage passes for `src/store/caseStore.test.ts`, `src/services/maintenance/workspaceData.test.ts`, `src/services/workspace/promotions.test.ts`, `src/services/workspace/library.test.ts`, and `src/services/db/repositories/WorkspaceSearchRepository.test.ts`
 - `npm run build`: passes
+- Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; chunk splitting was improved, but that warning is not fully eliminated yet
 - `npm run test`: not run as a full suite in this validation pass
 
 ## Documentation Index

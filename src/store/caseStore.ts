@@ -16,6 +16,10 @@ import type {
   ManualNode,
   InvestigationScope,
   EntityAliasMap,
+  WorkspaceBoard,
+  WorkspaceBoardDocument,
+  WorkspaceBoardPlacementRequest,
+  WorkspaceItem,
   Workspace,
   WorkspaceDataBackup,
   WorkspaceRun,
@@ -30,6 +34,8 @@ import { SettingsRepository } from '../services/db/repositories/SettingsReposito
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
 import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
 import { ChatRepository } from '../services/db/repositories/ChatRepository';
+import { WorkspaceBoardRepository } from '../services/db/repositories/WorkspaceBoardRepository';
+import { WorkspaceItemRepository } from '../services/db/repositories/WorkspaceItemRepository';
 import { initDB } from '../services/db/client';
 import { migrateLocalStorageToSqlite } from '../services/db/migrate';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor, parseOklch } from '../utils/accent';
@@ -70,6 +76,9 @@ const hasExistingWorkspaceData = (input: {
   chatSessions: ChatSession[];
   headlines: Headline[];
   templates: CaseTemplate[];
+  workspaceItems: WorkspaceItem[];
+  workspaceBoards: WorkspaceBoard[];
+  workspaceBoardDocuments: WorkspaceBoardDocument[];
   manualNodes: ManualNode[];
   manualLinks: ManualConnection[];
 }) =>
@@ -79,6 +88,9 @@ const hasExistingWorkspaceData = (input: {
   input.chatSessions.length > 0 ||
   input.headlines.length > 0 ||
   input.templates.length > 0 ||
+  input.workspaceItems.length > 0 ||
+  input.workspaceBoards.length > 0 ||
+  input.workspaceBoardDocuments.length > 0 ||
   input.manualNodes.length > 0 ||
   input.manualLinks.length > 0;
 
@@ -108,6 +120,15 @@ const persistWorkspaceDataBackup = async (payload: WorkspaceDataBackup) => {
   }
   for (const template of payload.templates) {
     await TemplateRepository.create(template);
+  }
+  for (const item of payload.workspaceSurface.items) {
+    await WorkspaceItemRepository.create(item);
+  }
+  for (const board of payload.workspaceSurface.boards) {
+    await WorkspaceBoardRepository.createBoard(board);
+  }
+  for (const document of payload.workspaceSurface.boardDocuments) {
+    await WorkspaceBoardRepository.upsertDocument(document);
   }
 
   await ManualDataRepository.saveAllNodes(payload.graph.manualNodes);
@@ -153,6 +174,11 @@ interface WorkspaceState {
   liveEvents: MonitorEvent[];
   headlines: Headline[];
   templates: CaseTemplate[];
+  workspaceItems: WorkspaceItem[];
+  workspaceBoards: WorkspaceBoard[];
+  workspaceBoardDocuments: Record<string, WorkspaceBoardDocument>;
+  activeWorkspaceBoardId: string | null;
+  queuedBoardPlacement: WorkspaceBoardPlacementRequest | null;
   entityAliases: EntityAliasMap;
   toasts: Toast[];
   feedItems: FeedItem[];
@@ -210,6 +236,11 @@ interface WorkspaceState {
   setShowGlobalSearch: (show: boolean) => void;
   setTemplates: (templates: CaseTemplate[]) => void;
   setHeadlines: (headlines: Headline[]) => void;
+  setWorkspaceItems: (items: WorkspaceItem[]) => void;
+  setWorkspaceBoards: (boards: WorkspaceBoard[]) => void;
+  setActiveWorkspaceBoardId: (id: string | null) => void;
+  queueBoardPlacement: (request: WorkspaceBoardPlacementRequest | null) => void;
+  clearQueuedBoardPlacement: () => void;
   addHeadline: (headline: Headline) => Promise<void>;
   addTemplate: (template: CaseTemplate) => void;
   deleteTemplate: (id: string) => void;
@@ -283,6 +314,19 @@ interface WorkspaceState {
   deleteCase: (caseId: string) => Promise<void>;
   purgeWorkspace: (workspaceId: string) => Promise<void>;
   purgeCase: (caseId: string) => Promise<void>;
+  ensureWorkspaceBoard: (workspaceId: string) => Promise<WorkspaceBoard>;
+  createWorkspaceBoard: (input: {
+    workspaceId: string;
+    name?: string;
+    description?: string;
+    presentationMode?: boolean;
+  }) => Promise<WorkspaceBoard>;
+  updateWorkspaceBoard: (boardId: string, patch: Partial<WorkspaceBoard>) => Promise<void>;
+  deleteWorkspaceBoard: (boardId: string) => Promise<void>;
+  saveWorkspaceBoardDocument: (document: WorkspaceBoardDocument) => Promise<void>;
+  createWorkspaceItem: (item: WorkspaceItem) => Promise<void>;
+  updateWorkspaceItem: (itemId: string, patch: Partial<WorkspaceItem>) => Promise<void>;
+  deleteWorkspaceItem: (itemId: string) => Promise<void>;
   importWorkspaceData: (payload: WorkspaceDataBackup) => Promise<void>;
   clearWorkspaceData: () => Promise<void>;
 }
@@ -316,6 +360,11 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   showGlobalSearch: false,
   templates: [],
   headlines: [],
+  workspaceItems: [],
+  workspaceBoards: [],
+  workspaceBoardDocuments: {},
+  activeWorkspaceBoardId: null,
+  queuedBoardPlacement: null,
   entityAliases: {},
   feedItems: [],
   feedConfig: {
@@ -360,6 +409,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       );
       let headlines = await CaseRepository.getHeadlines();
       let templates = await TemplateRepository.getAll();
+      let workspaceItems = await WorkspaceItemRepository.getAll();
+      let workspaceBoards = await WorkspaceBoardRepository.getAllBoards();
+      let workspaceBoardDocuments = await WorkspaceBoardRepository.getAllDocuments();
       let manualNodes = await ManualDataRepository.getAllNodes();
       let manualLinks = await ManualDataRepository.getAllLinks();
       let hiddenNodeIds = (await SettingsRepository.getSetting<string[]>('hidden_nodes')) || [];
@@ -441,6 +493,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           chatSessions,
           headlines,
           templates,
+          workspaceItems,
+          workspaceBoards,
+          workspaceBoardDocuments,
           manualNodes,
           manualLinks,
         })
@@ -459,6 +514,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           chatActionsBySessionId = groupChatActionsBySessionId(demoSeed.chat.actions);
           headlines = demoSeed.signals.headlines;
           templates = demoSeed.templates;
+          workspaceItems = demoSeed.workspaceSurface.items;
+          workspaceBoards = demoSeed.workspaceSurface.boards;
+          workspaceBoardDocuments = demoSeed.workspaceSurface.boardDocuments;
           manualNodes = demoSeed.graph.manualNodes;
           manualLinks = demoSeed.graph.manualLinks;
           hiddenNodeIds = [];
@@ -472,6 +530,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       )
         ? storedActiveWorkspaceId
         : workspaces[0]?.id || null;
+      const resolvedActiveWorkspaceBoardId = workspaceBoards.find(
+        (board) => board.workspaceId === resolvedActiveWorkspaceId
+      )?.id;
 
       if (resolvedActiveWorkspaceId) {
         setStoredActiveWorkspaceId(resolvedActiveWorkspaceId);
@@ -489,6 +550,11 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         chatActionsBySessionId,
         headlines,
         templates,
+        workspaceItems,
+        workspaceBoards,
+        workspaceBoardDocuments: Object.fromEntries(
+          workspaceBoardDocuments.map((document) => [document.boardId, document])
+        ),
         manualNodes,
         manualLinks,
         hiddenNodeIds,
@@ -499,6 +565,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         themeColor: resolvedTheme,
         themeSurfaceSettings: resolvedThemeSurfaceSettings,
         activeWorkspaceId: resolvedActiveWorkspaceId,
+        activeWorkspaceBoardId: resolvedActiveWorkspaceBoardId || null,
         isLoading: false,
       });
     } catch (err) {
@@ -557,6 +624,11 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
   setTemplates: (templates) => set({ templates }),
   setHeadlines: (headlines) => set({ headlines }),
+  setWorkspaceItems: (workspaceItems) => set({ workspaceItems }),
+  setWorkspaceBoards: (workspaceBoards) => set({ workspaceBoards }),
+  setActiveWorkspaceBoardId: (activeWorkspaceBoardId) => set({ activeWorkspaceBoardId }),
+  queueBoardPlacement: (queuedBoardPlacement) => set({ queuedBoardPlacement }),
+  clearQueuedBoardPlacement: () => set({ queuedBoardPlacement: null }),
 
   addHeadline: async (headline) => {
     await CaseRepository.createHeadline(headline);
@@ -643,7 +715,10 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     } else {
       clearStoredActiveWorkspaceId();
     }
-    set({ activeWorkspaceId });
+    const nextBoardId = activeWorkspaceId
+      ? get().workspaceBoards.find((board) => board.workspaceId === activeWorkspaceId)?.id || null
+      : null;
+    set({ activeWorkspaceId, activeWorkspaceBoardId: nextBoardId });
   },
 
   toggleFlag: (id) => {
@@ -1126,6 +1201,12 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
             : workspaceRun.report,
         };
       });
+      const nextBoards = state.workspaceBoards.filter((board) => board.workspaceId !== workspaceId);
+      const nextBoardDocuments = Object.fromEntries(
+        Object.entries(state.workspaceBoardDocuments).filter(
+          ([boardId]) => !state.workspaceBoards.some((board) => board.id === boardId && board.workspaceId === workspaceId)
+        )
+      );
 
       return {
         chatSessions: state.chatSessions.filter((session) => session.workspaceId !== workspaceId),
@@ -1148,6 +1229,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         workspaces,
         artifacts,
         headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
+        workspaceItems: state.workspaceItems.filter((item) => item.workspaceId !== workspaceId),
+        workspaceBoards: nextBoards,
+        workspaceBoardDocuments: nextBoardDocuments,
         workspaceRuns,
         activeChatSessionId:
           state.activeChatSessionId &&
@@ -1158,6 +1242,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
             ? null
             : state.activeChatSessionId,
         activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
+        activeWorkspaceBoardId:
+          state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceBoardId,
       };
     });
   },
@@ -1190,6 +1276,11 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       });
       const activeChatSessionStillExists =
         !state.activeChatSessionId || !chatSessionIds.includes(state.activeChatSessionId);
+      const removedBoardIds = new Set(
+        state.workspaceBoards
+          .filter((board) => board.workspaceId === workspaceId)
+          .map((board) => board.id)
+      );
 
       return {
         chatSessions: state.chatSessions.filter((session) => session.workspaceId !== workspaceId),
@@ -1206,6 +1297,13 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         workspaces: state.workspaces.filter((item) => item.id !== workspaceId),
         artifacts: state.artifacts.filter((artifact) => artifact.caseId !== workspaceId),
         headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
+        workspaceItems: state.workspaceItems.filter((item) => item.workspaceId !== workspaceId),
+        workspaceBoards: state.workspaceBoards.filter((board) => board.workspaceId !== workspaceId),
+        workspaceBoardDocuments: Object.fromEntries(
+          Object.entries(state.workspaceBoardDocuments).filter(
+            ([boardId]) => !removedBoardIds.has(boardId)
+          )
+        ),
         workspaceRuns: nextWorkspaceRuns,
         manualNodes: nextGraph.manualNodes,
         manualLinks: nextGraph.manualLinks,
@@ -1215,11 +1313,132 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         activeTaskId: activeTaskStillExists ? state.activeWorkspaceRunId : null,
         activeChatSessionId: activeChatSessionStillExists ? state.activeChatSessionId : null,
         activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
+        activeWorkspaceBoardId:
+          state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceBoardId,
       };
     });
   },
 
   purgeCase: async (caseId) => get().purgeWorkspace(caseId),
+
+  ensureWorkspaceBoard: async (workspaceId) => {
+    const existing = get().workspaceBoards.find((board) => board.workspaceId === workspaceId);
+    if (existing) {
+      if (get().activeWorkspaceId !== workspaceId) {
+        get().setActiveWorkspaceId(workspaceId);
+      } else {
+        set({ activeWorkspaceBoardId: existing.id });
+      }
+      return existing;
+    }
+
+    return get().createWorkspaceBoard({
+      workspaceId,
+      name: 'Primary Board',
+    });
+  },
+
+  createWorkspaceBoard: async (input) => {
+    const existingBoards = get().workspaceBoards.filter(
+      (board) => board.workspaceId === input.workspaceId
+    );
+    const now = Date.now();
+    const board: WorkspaceBoard = {
+      id: createLocalId('workspace-board'),
+      workspaceId: input.workspaceId,
+      name: input.name?.trim() || `Board ${existingBoards.length + 1}`,
+      description: input.description?.trim() || undefined,
+      sortOrder: existingBoards.length,
+      presentationMode: input.presentationMode ?? false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await WorkspaceBoardRepository.createBoard(board);
+    set((state) => ({
+      workspaceBoards: [...state.workspaceBoards, board].sort((left, right) => left.sortOrder - right.sortOrder),
+      activeWorkspaceBoardId: board.id,
+      activeWorkspaceId: input.workspaceId,
+    }));
+    setStoredActiveWorkspaceId(input.workspaceId);
+    return board;
+  },
+
+  updateWorkspaceBoard: async (boardId, patch) => {
+    await WorkspaceBoardRepository.updateBoard(boardId, patch);
+    set((state) => ({
+      workspaceBoards: state.workspaceBoards.map((board) =>
+        board.id === boardId
+          ? {
+              ...board,
+              ...patch,
+              updatedAt: patch.updatedAt ?? Date.now(),
+            }
+          : board
+      ),
+    }));
+  },
+
+  deleteWorkspaceBoard: async (boardId) => {
+    await WorkspaceBoardRepository.deleteBoard(boardId);
+    set((state) => {
+      const nextBoards = state.workspaceBoards.filter((board) => board.id !== boardId);
+      const nextDocuments = { ...state.workspaceBoardDocuments };
+      delete nextDocuments[boardId];
+      const nextActiveBoardId =
+        state.activeWorkspaceBoardId === boardId
+          ? nextBoards.find((board) => board.workspaceId === state.activeWorkspaceId)?.id || null
+          : state.activeWorkspaceBoardId;
+
+      return {
+        workspaceBoards: nextBoards,
+        workspaceBoardDocuments: nextDocuments,
+        activeWorkspaceBoardId: nextActiveBoardId,
+      };
+    });
+  },
+
+  saveWorkspaceBoardDocument: async (document) => {
+    await WorkspaceBoardRepository.upsertDocument(document);
+    set((state) => ({
+      workspaceBoardDocuments: {
+        ...state.workspaceBoardDocuments,
+        [document.boardId]: document,
+      },
+      workspaceBoards: state.workspaceBoards.map((board) =>
+        board.id === document.boardId ? { ...board, updatedAt: document.updatedAt } : board
+      ),
+    }));
+  },
+
+  createWorkspaceItem: async (item) => {
+    await WorkspaceItemRepository.create(item);
+    set((state) => ({
+      workspaceItems: [item, ...state.workspaceItems],
+    }));
+  },
+
+  updateWorkspaceItem: async (itemId, patch) => {
+    await WorkspaceItemRepository.update(itemId, patch);
+    set((state) => ({
+      workspaceItems: state.workspaceItems.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              ...patch,
+              updatedAt: patch.updatedAt ?? Date.now(),
+            }
+          : item
+      ),
+    }));
+  },
+
+  deleteWorkspaceItem: async (itemId) => {
+    await WorkspaceItemRepository.delete(itemId);
+    set((state) => ({
+      workspaceItems: state.workspaceItems.filter((item) => item.id !== itemId),
+    }));
+  },
 
   importWorkspaceData: async (payload) => {
     await persistWorkspaceDataBackup(payload);
@@ -1233,6 +1452,11 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       chatActionsBySessionId: groupChatActionsBySessionId(payload.chat.actions),
       headlines: payload.signals.headlines,
       templates: payload.templates,
+      workspaceItems: payload.workspaceSurface.items,
+      workspaceBoards: payload.workspaceSurface.boards,
+      workspaceBoardDocuments: Object.fromEntries(
+        payload.workspaceSurface.boardDocuments.map((document) => [document.boardId, document])
+      ),
       manualNodes: payload.graph.manualNodes,
       manualLinks: payload.graph.manualLinks,
       hiddenNodeIds: [],
@@ -1241,6 +1465,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       activeTaskId: null,
       activeChatSessionId: null,
       activeWorkspaceId: null,
+      activeWorkspaceBoardId: null,
+      queuedBoardPlacement: null,
     });
   },
 
@@ -1257,6 +1483,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       chatActionsBySessionId: {},
       headlines: [],
       templates: [],
+      workspaceItems: [],
+      workspaceBoards: [],
+      workspaceBoardDocuments: {},
       manualNodes: [],
       manualLinks: [],
       hiddenNodeIds: [],
@@ -1265,6 +1494,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       activeTaskId: null,
       activeChatSessionId: null,
       activeWorkspaceId: null,
+      activeWorkspaceBoardId: null,
+      queuedBoardPlacement: null,
     });
   },
 }));

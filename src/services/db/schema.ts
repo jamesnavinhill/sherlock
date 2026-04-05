@@ -212,6 +212,50 @@ export const templates = sqliteTable('templates', {
   scopeId: text('scope_id'),
 });
 
+// --- WORKSPACE SURFACE ---
+export const workspaceItems = sqliteTable('workspace_items', {
+  id: text('id').primaryKey(),
+  workspaceId: text('workspace_id')
+    .notNull()
+    .references(() => cases.id),
+  kind: text('kind').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  textContent: text('text_content'),
+  url: text('url'),
+  mimeType: text('mime_type'),
+  fileName: text('file_name'),
+  sizeBytes: integer('size_bytes'),
+  previewUrl: text('preview_url'),
+  tagsJson: text('tags_json'),
+  provenanceJson: text('provenance_json'),
+  metadataJson: text('metadata_json'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export const workspaceBoards = sqliteTable('workspace_boards', {
+  id: text('id').primaryKey(),
+  workspaceId: text('workspace_id')
+    .notNull()
+    .references(() => cases.id),
+  name: text('name').notNull(),
+  description: text('description'),
+  sortOrder: integer('sort_order').notNull(),
+  presentationMode: integer('presentation_mode').notNull().default(0),
+  metadataJson: text('metadata_json'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export const workspaceBoardDocuments = sqliteTable('workspace_board_documents', {
+  boardId: text('board_id')
+    .primaryKey()
+    .references(() => workspaceBoards.id),
+  snapshotJson: text('snapshot_json'),
+  updatedAt: integer('updated_at').notNull(),
+});
+
 // --- MANUAL DATA (Graph) ---
 export const manualNodes = sqliteTable('manual_nodes', {
   id: text('id').primaryKey(),
