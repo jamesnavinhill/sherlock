@@ -401,7 +401,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   );
   const messageBodyClassName = useMemo(
     () =>
-      `prose max-w-none text-sm leading-7 prose-p:my-2 prose-ul:my-2 prose-headings:my-3 ${
+      `prose max-w-none text-sm leading-7 text-zinc-200 prose-p:my-2 prose-ul:my-2 prose-headings:my-3 [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_p]:text-inherit [&_li]:text-inherit [&_ol]:text-inherit [&_ul]:text-inherit [&_strong]:text-inherit [&_em]:text-inherit [&_code]:text-inherit [&_blockquote]:text-inherit ${
         themeMode === 'dark' ? 'prose-invert' : ''
       }`.trim(),
     [themeMode]

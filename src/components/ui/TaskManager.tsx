@@ -38,31 +38,11 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
     (t) => t.status === 'COMPLETED' || t.status === 'FAILED'
   );
 
-  // Collapsed View: Just an icon in the sidebar flow
-  if (isCollapsed) {
-    return (
-      <button
-        onClick={onExpand}
-        className="w-full py-4 flex justify-center items-center text-zinc-500 hover:bg-zinc-900 hover:text-white relative group border-t border-zinc-800 transition-colors flex-shrink-0 outline-none focus-visible:bg-zinc-900 focus-visible:text-white"
-        title="Ops"
-        aria-label="Expand Ops"
-      >
-        {runningTasks.length > 0 && (
-          <span className="absolute top-3 right-3 flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-osint-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-osint-primary"></span>
-          </span>
-        )}
-        <Activity className={`w-5 h-5 ${runningTasks.length > 0 ? 'text-osint-primary' : ''}`} />
-      </button>
-    );
-  }
-
   // Expanded View: Blended List Item
   return (
     <div className="relative border-t border-zinc-800 bg-osint-dark flex-shrink-0">
       {/* Popup List - Anchored to the bottom of the previous element, growing upwards */}
-      {isExpanded && workspaceRuns.length > 0 && (
+      {!isCollapsed && isExpanded && workspaceRuns.length > 0 && (
         <div className="absolute bottom-full left-0 w-64 mb-1 z-50 px-2 pb-2">
           <div className="bg-osint-panel border border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.5)] flex flex-col max-h-[400px] w-full animate-in slide-in-from-bottom-2 fade-in duration-200">
             <div className="bg-black p-3 border-b border-zinc-800 flex justify-between items-center">
@@ -158,14 +138,23 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
 
       {/* Trigger Button - Blends with sidebar nav items */}
       <button
-        onClick={() => (workspaceRuns.length > 0 ? setIsExpanded(!isExpanded) : null)}
-        disabled={workspaceRuns.length === 0}
-        aria-label={isExpanded ? 'Collapse Ops' : 'Expand Ops'}
-        className={`w-full grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center py-4 text-left group transition-all border-l outline-none focus-visible:bg-zinc-900 ${
+        onClick={() => {
+          if (isCollapsed) {
+            onExpand();
+            return;
+          }
+          if (workspaceRuns.length > 0) {
+            setIsExpanded(!isExpanded);
+          }
+        }}
+        disabled={!isCollapsed && workspaceRuns.length === 0}
+        title={isCollapsed ? 'Ops' : undefined}
+        aria-label={isCollapsed ? 'Expand Ops' : isExpanded ? 'Collapse Ops' : 'Expand Ops'}
+        className={`relative w-full grid grid-cols-[5rem_minmax(0,1fr)] items-center py-4 text-left group transition-all border-l outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${
           isExpanded
-            ? 'bg-zinc-900 border-osint-primary'
+            ? 'bg-zinc-900 border-osint-primary text-osint-primary'
             : 'border-transparent hover:bg-zinc-900 hover:border-zinc-700'
-        } ${workspaceRuns.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
+        } ${!isCollapsed && workspaceRuns.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
       >
         <div className="relative flex items-center justify-center">
           <div className="relative">
@@ -180,21 +169,25 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
             )}
           </div>
         </div>
-        <div
-          className={`flex min-w-0 flex-col items-start pr-2 text-left transition-all duration-200 ${expandedLabelClassName}`}
-        >
+        <div className={`min-w-0 pr-10 text-left transition-all duration-200 ${expandedLabelClassName}`}>
           <span
-            className={`text-sm font-medium font-mono uppercase tracking-wide truncate ${runningTasks.length > 0 ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}
+            className={`block truncate font-osint-label text-sm font-medium uppercase tracking-wide ${
+              runningTasks.length > 0 || isExpanded
+                ? 'text-osint-primary'
+                : 'text-zinc-500 group-hover:text-zinc-300'
+            }`}
           >
             Ops
           </span>
           {runningTasks.length > 0 && (
-            <span className="text-[10px] text-zinc-600 truncate">{runningTasks.length} Running</span>
+            <span className="block truncate font-mono text-[10px] text-zinc-600">
+              {runningTasks.length} Running
+            </span>
           )}
         </div>
 
-        {workspaceRuns.length > 0 && (
-          <div className="text-zinc-600 group-hover:text-zinc-400">
+        {!isCollapsed && workspaceRuns.length > 0 && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 group-hover:text-zinc-400">
             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </div>
         )}
