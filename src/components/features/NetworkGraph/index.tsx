@@ -114,7 +114,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   const [isLocked, setIsLocked] = useState(false);
 
   // UI/Panel State
-  const [showLeftPanel, setShowLeftPanel] = useState(false);
+  const [showLeftPanel, setShowLeftPanel] = useState(true);
   const [showRightPanel, setShowRightPanel] = useState(false);
 
   // Inspector Selection

@@ -239,7 +239,7 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
             activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
           }
           className={cx(
-            'absolute left-0 top-full z-50 mt-1 min-w-full overflow-hidden border border-zinc-700 bg-black/95 backdrop-blur-md shadow-lg',
+            'absolute left-0 top-full z-[60] mt-1 min-w-full overflow-hidden border border-zinc-700 bg-black/95 backdrop-blur-md shadow-lg',
             menuClassName
           )}
         >

@@ -584,8 +584,16 @@ body,
   background-color: transparent;
 }
 
+.sherlock-board-canvas {
+  --tl-text-outline: none;
+}
+
+.sherlock-board-canvas .tl-text__outline {
+  text-shadow: none;
+}
+
 .sherlock-board-canvas .tlui-layout {
-  backdrop-filter: blur(10px);
+  backdrop-filter: none;
 }
 
 .sherlock-board-canvas .tlui-button,

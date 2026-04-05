@@ -11,6 +11,7 @@ interface AccordionProps {
   children: React.ReactNode;
   className?: string;
   headerClassName?: string;
+  chevronClassName?: string;
 }
 
 /**
@@ -26,6 +27,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   children,
   className = '',
   headerClassName = '',
+  chevronClassName = '',
 }) => {
   return (
     <div className={`mb-2 border border-zinc-800 bg-black ${className}`}>
@@ -38,7 +40,11 @@ export const Accordion: React.FC<AccordionProps> = ({
           {title}
           {typeof count === 'number' && ` (${count})`}
         </span>
-        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        {isOpen ? (
+          <ChevronDown className={`w-4 h-4 ${chevronClassName}`} />
+        ) : (
+          <ChevronRight className={`w-4 h-4 ${chevronClassName}`} />
+        )}
       </button>
       {isOpen && <div className="p-2">{children}</div>}
     </div>

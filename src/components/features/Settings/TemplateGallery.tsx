@@ -9,14 +9,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
-  Settings as SettingsIcon,
   Info,
   Search,
   Cpu,
   Target,
   Lightbulb,
   Compass,
-  Briefcase,
   Layout,
   Sparkles,
 } from 'lucide-react';
@@ -336,69 +334,51 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {filteredTemplates.map((t) => (
             <div
               key={t.id}
-              className="group bg-osint-panel border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col relative overflow-hidden"
+              className="group bg-zinc-950/70 border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col"
             >
-              <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Briefcase className="w-16 h-16 text-white" />
-              </div>
-
-              <div className="p-5 flex-1 relative z-10">
-                <div className="flex items-center justify-between mb-3">
+              <div className="p-4 flex-1">
+                <div className="flex items-center justify-between mb-2 gap-3">
                   <span className="text-[10px] font-mono text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30 uppercase font-bold">
                     Protocol
                   </span>
                   <div className="flex items-center gap-2">
-                    {(t.config.purposeId || t.purposeId) && (
-                      <span className="text-[9px] font-mono text-zinc-500 uppercase">
-                        {t.config.purposeId || t.purposeId}
-                      </span>
-                    )}
-                    <span className="text-[9px] font-mono text-zinc-600">
-                      {new Date(t.createdAt).toLocaleDateString()}
+                    <span className="text-[9px] font-mono text-zinc-600 uppercase">
+                      {t.config.purposeId || t.purposeId || 'custom'}
                     </span>
+                    <button
+                      onClick={() => {
+                        void deleteTemplate(t.id);
+                      }}
+                      className="text-zinc-700 transition-colors hover:text-osint-danger"
+                      title="Delete Template"
+                      aria-label={`Delete template ${t.name}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
-                <h3 className="text-sm font-bold text-white mb-1 font-mono uppercase truncate group-hover:text-osint-primary transition-colors">
+                <h3 className="text-sm font-bold text-white mb-2 font-mono uppercase line-clamp-2">
                   {t.name}
                 </h3>
-                <p className="text-zinc-500 text-[10px] font-mono mb-4 line-clamp-2 italic">
-                  &quot;{t.topic}&quot;
+                <p className="text-zinc-500 text-[10px] leading-relaxed mb-4 line-clamp-3">
+                  {t.description || t.topic}
                 </p>
-
-                <div className="space-y-2 border-t border-zinc-800 pt-4">
-                  <div className="flex items-center text-[10px] font-mono text-zinc-400 capitalize">
-                    <SettingsIcon className="w-3 h-3 mr-2 text-zinc-600" />
-                    <span>Model: {getModelDisplayName(t.config.modelId || DEFAULT_MODEL_ID)}</span>
-                  </div>
-                  <div className="flex items-center text-[10px] font-mono text-zinc-400">
-                    <Info className="w-3 h-3 mr-2 text-zinc-600" />
-                    <span>Persona: {t.config.persona?.replace('_', ' ')}</span>
-                  </div>
+                <div className="text-[10px] font-mono text-zinc-600 border-t border-zinc-800 pt-3">
+                  Saved template
                 </div>
               </div>
 
-              <div className="flex border-t border-zinc-800 relative z-10">
-                <button
-                  onClick={() => onApply(t)}
-                  className="osint-button-primary flex-1 flex items-center justify-center p-3 font-mono text-[10px] font-bold uppercase"
-                >
-                  <Play className="w-3 h-3 mr-2" />
-                  Launch
-                </button>
-                <button
-                  onClick={() => {
-                    void deleteTemplate(t.id);
-                  }}
-                  className="flex-shrink-0 p-3 border-l border-zinc-800 bg-zinc-900 text-zinc-600 transition-all hover:bg-[color:var(--osint-danger-soft-bg)] hover:text-osint-danger"
-                  title="Delete Template"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={() => onApply(t)}
+                className="osint-button-primary flex items-center justify-center p-3 border-t border-zinc-800 font-mono text-[10px] font-bold uppercase"
+              >
+                <Play className="w-3 h-3 mr-2" />
+                Launch Template
+              </button>
             </div>
           ))}
         </div>

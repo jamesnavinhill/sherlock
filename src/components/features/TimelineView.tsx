@@ -212,12 +212,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
       if (window.innerWidth <= 1024) {
         setLeftPanelOpen(false);
         setRightPanelOpen(false);
-      } else if (window.innerWidth <= 1440) {
-        setLeftPanelOpen(true);
-        setRightPanelOpen(false);
       } else {
         setLeftPanelOpen(true);
-        setRightPanelOpen(true);
+        setRightPanelOpen(false);
       }
     };
 

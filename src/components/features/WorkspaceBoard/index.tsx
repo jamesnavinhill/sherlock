@@ -39,6 +39,7 @@ import { useWorkspaceStore } from '@/store/caseStore';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { Accordion } from '@/components/ui/Accordion';
+import { EditableTitle } from '@/components/ui/EditableTitle';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
 import {
   buildWorkspaceLibraryEntries,
@@ -125,7 +126,7 @@ const getShapeColor = (entry: WorkspaceLibraryEntry) => {
     case 'ARTIFACT':
       return 'blue';
     case 'ENTITY':
-      return 'violet';
+      return 'grey';
     case 'SOURCE':
     case 'LINK':
       return 'green';
@@ -142,62 +143,144 @@ const getShapeColor = (entry: WorkspaceLibraryEntry) => {
   }
 };
 
-const buildShapeTitle = (entry: WorkspaceLibraryEntry) =>
-  `${entry.title}${entry.description ? `\n\n${entry.description}` : ''}`;
+type BoardCardSpec = {
+  color:
+    | 'blue'
+    | 'green'
+    | 'grey'
+    | 'light-violet'
+    | 'orange'
+    | 'red'
+    | 'yellow';
+  content: string;
+  h: number;
+  w: number;
+};
+
+const clipBoardCardText = (value: string | undefined, maxLength: number) => {
+  if (!value) return '';
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
+};
+
+const getBoardCardUrlText = (value: string | undefined) => {
+  if (!value) return '';
+
+  try {
+    const parsed = new URL(value);
+    const path = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, '');
+    return `${parsed.hostname}${path}`;
+  } catch {
+    return clipBoardCardText(value, 120);
+  }
+};
+
+const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec => {
+  switch (entry.kind) {
+    case 'ARTIFACT':
+      return {
+        color: getShapeColor(entry),
+        w: 420,
+        h: 520,
+        content: `${entry.title}\n\n${clipBoardCardText(
+          entry.description || entry.contextText,
+          560
+        )}`,
+      };
+    case 'HEADLINE':
+      return {
+        color: getShapeColor(entry),
+        w: 300,
+        h: 420,
+        content: `${entry.title}\n\n${clipBoardCardText(
+          entry.description || entry.contextText,
+          360
+        )}`,
+      };
+    case 'ENTITY': {
+      const meta = [entry.subtitle, entry.description].filter(Boolean).join(' | ');
+      return {
+        color: getShapeColor(entry),
+        w: 300,
+        h: 220,
+        content: meta ? `${entry.title}\n\n${meta}` : entry.title,
+      };
+    }
+    case 'SOURCE':
+    case 'LINK':
+      return {
+        color: getShapeColor(entry),
+        w: 320,
+        h: 260,
+        content: entry.title,
+      };
+    case 'NOTE':
+    case 'EXCERPT':
+      return {
+        color: getShapeColor(entry),
+        w: 340,
+        h: 280,
+        content: `${entry.title}\n\n${clipBoardCardText(
+          entry.contextText || entry.description,
+          300
+        )}`,
+      };
+    case 'MEDIA':
+    case 'FILE':
+      return {
+        color: getShapeColor(entry),
+        w: 320,
+        h: 220,
+        content: `${entry.title}\n\n${clipBoardCardText(
+          entry.description || entry.subtitle,
+          180
+        )}`,
+      };
+    default:
+      return {
+        color: getShapeColor(entry),
+        w: 320,
+        h: 240,
+        content: `${entry.title}\n\n${clipBoardCardText(
+          entry.description || entry.contextText,
+          220
+        )}`,
+      };
+  }
+};
 
 const placeEntryOnBoard = (editor: Editor, entry: WorkspaceLibraryEntry, x: number, y: number) => {
   const shapeId = createShapeId();
+  const card = buildBoardCardSpec(entry);
   const shapeMeta = {
     [BOARD_REF_META_KEY]: serializeBoardReference(entry),
   };
 
-  if (entry.kind === 'NOTE' || entry.kind === 'EXCERPT') {
-    editor.createShape({
-      id: shapeId,
-      type: 'note',
-      x,
-      y,
-      meta: shapeMeta,
-      props: {
-        color: getShapeColor(entry),
-        labelColor: 'black',
-        size: 'm',
-        font: 'mono',
-        fontSizeAdjustment: 0,
-        align: 'start',
-        verticalAlign: 'start',
-        growY: 0,
-        url: entry.url || '',
-        richText: toRichText(buildShapeTitle(entry)),
-        scale: 1,
-      },
-    });
-  } else {
-    editor.createShape({
-      id: shapeId,
-      type: 'geo',
-      x,
-      y,
-      meta: shapeMeta,
-      props: {
-        geo: entry.kind === 'ENTITY' ? 'ellipse' : 'rectangle',
-        dash: 'solid',
-        url: entry.url || '',
-        w: 280,
-        h: 180,
-        growY: 0,
-        scale: 1,
-        labelColor: 'white',
-        color: getShapeColor(entry),
-        fill: 'semi',
-        size: 'm',
-        font: 'mono',
-        align: 'start',
-        verticalAlign: 'start',
-        richText: toRichText(buildShapeTitle(entry)),
-      },
-    });
-  }
+  editor.createShape({
+    id: shapeId,
+    type: 'geo',
+    x,
+    y,
+    meta: shapeMeta,
+    props: {
+      geo: 'rectangle',
+      dash: 'solid',
+      url: entry.url || '',
+      w: card.w,
+      h: card.h,
+      growY: 0,
+      scale: 1,
+      labelColor: 'white',
+      color: card.color,
+      fill: 'semi',
+      size: 's',
+      font: 'sans',
+      align: 'start',
+      verticalAlign: 'start',
+      richText: toRichText(card.content),
+    },
+  });
 
   editor.setSelectedShapes([shapeId]);
 };
@@ -236,21 +319,24 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   } = useWorkspaceStore();
 
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
-  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [kindFilter, setKindFilter] = useState<'ALL' | WorkspaceLibraryEntry['kind']>('ALL');
   const [createModal, setCreateModal] = useState<CreateModalState>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [selectedEntries, setSelectedEntries] = useState<WorkspaceLibraryEntry[]>([]);
-  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [librarySections, setLibrarySections] = useState({
-    created: true,
-    artifacts: true,
+    created: false,
+    artifacts: false,
     entities: false,
     sources: false,
     signals: false,
+  });
+  const [libraryItemSections, setLibraryItemSections] = useState<Record<string, boolean>>({});
+  const [inspectorSections, setInspectorSections] = useState({
+    selection: true,
+    aiActions: true,
+    provenance: true,
   });
   const editorRef = useRef<Editor | null>(null);
   const saveTimeoutRef = useRef<number | null>(null);
@@ -303,14 +389,13 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const filteredEntries = useMemo(() => {
     const lowerSearch = search.trim().toLowerCase();
     return libraryEntries.filter((entry) => {
-      if (kindFilter !== 'ALL' && entry.kind !== kindFilter) return false;
       if (!lowerSearch) return true;
       return (
         entry.title.toLowerCase().includes(lowerSearch) ||
         entry.searchText.toLowerCase().includes(lowerSearch)
       );
     });
-  }, [kindFilter, libraryEntries, search]);
+  }, [libraryEntries, search]);
 
   const groupedEntries = useMemo(
     () => ({
@@ -373,11 +458,12 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       }
 
       const viewport = editorRef.current.getViewportPageBounds();
+      const card = buildBoardCardSpec(queuedEntry);
       placeEntryOnBoard(
         editorRef.current,
         queuedEntry,
-        viewport.x + viewport.w / 2 - 140,
-        viewport.y + viewport.h / 2 - 90
+        viewport.x + viewport.w / 2 - card.w / 2,
+        viewport.y + viewport.h / 2 - card.h / 2
       );
       if (queuedBoardPlacement.openInBoard && currentView !== AppView.WORKSPACE) {
         setCurrentView(AppView.WORKSPACE);
@@ -415,20 +501,16 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     (editor: Editor) => {
       if (!activeBoard) return;
 
-      setIsSaving(true);
       if (saveTimeoutRef.current) {
         window.clearTimeout(saveTimeoutRef.current);
       }
 
       saveTimeoutRef.current = window.setTimeout(async () => {
-        const updatedAt = Date.now();
         await saveWorkspaceBoardDocument({
           boardId: activeBoard.id,
           snapshot: getSnapshot(editor.store) as unknown,
-          updatedAt,
+          updatedAt: Date.now(),
         });
-        setLastSavedAt(updatedAt);
-        setIsSaving(false);
       }, 550);
     },
     [activeBoard, saveWorkspaceBoardDocument]
@@ -455,6 +537,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const handleEditorMount = useCallback(
     (editor: Editor) => {
       editorRef.current = editor;
+      editor.user.updateUserPreferences({ colorScheme: 'dark' });
       editor.updateInstanceState({ isReadonly: !!activeBoard?.presentationMode });
       syncSelection(editor);
 
@@ -488,17 +571,15 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     await createWorkspaceBoard({ workspaceId: activeWorkspace.id });
   };
 
-  const handleRenameBoard = async () => {
-    if (!activeBoard) return;
-    const nextName = window.prompt('Rename board', activeBoard.name);
-    if (!nextName?.trim()) return;
-    await updateWorkspaceBoard(activeBoard.id, { name: nextName.trim() });
-  };
-
   const handleDeleteBoard = async () => {
     if (!activeBoard || availableBoards.length <= 1) return;
     if (!window.confirm(`Delete "${activeBoard.name}"?`)) return;
     await deleteWorkspaceBoard(activeBoard.id);
+  };
+
+  const handleBoardNameSave = async (nextName: string) => {
+    if (!activeBoard) return;
+    await updateWorkspaceBoard(activeBoard.id, { name: nextName });
   };
 
   const handleWorkspaceChange = (workspaceId: string) => {
@@ -514,14 +595,15 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         return;
       }
 
+      const card = buildBoardCardSpec(entry);
       const point =
         clientX && clientY ? editorRef.current.screenToPage({ x: clientX, y: clientY }) : null;
       const viewport = editorRef.current.getViewportPageBounds();
       placeEntryOnBoard(
         editorRef.current,
         entry,
-        point?.x ?? viewport.x + viewport.w / 2 - 140,
-        point?.y ?? viewport.y + viewport.h / 2 - 90
+        point?.x ?? viewport.x + viewport.w / 2 - card.w / 2,
+        point?.y ?? viewport.y + viewport.h / 2 - card.h / 2
       );
     },
     [activeBoard, addToast]
@@ -541,6 +623,20 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     } catch {
       // Ignore malformed drag payloads.
     }
+  };
+
+  const toggleLibraryEntrySection = (entryKey: string) => {
+    setLibraryItemSections((current) => ({
+      ...current,
+      [entryKey]: !current[entryKey],
+    }));
+  };
+
+  const toggleInspectorSection = (section: keyof typeof inspectorSections) => {
+    setInspectorSections((current) => ({
+      ...current,
+      [section]: !current[section],
+    }));
   };
 
   const handleSubmitCreateModal = async () => {
@@ -812,7 +908,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
-      <header className="osint-header-shadow sticky top-0 z-30 flex h-20 items-center justify-between border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
+      <header className="osint-header-shadow sticky top-0 z-40 flex h-20 items-center justify-between border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
         <div className="flex min-w-0 items-center gap-3">
           <button
             onClick={() => setLeftPanelOpen((current) => !current)}
@@ -849,9 +945,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               }))}
             />
           </div>
-          <div className="text-[11px] font-mono uppercase tracking-[0.24em] text-zinc-500">
-            {activeBoard ? activeBoard.name : 'Initializing Board'}
-          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -864,12 +957,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           </button>
           {activeBoard && (
             <>
-              <button
-                onClick={handleRenameBoard}
-                className="border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-              >
-                Rename
-              </button>
               <button
                 onClick={() =>
                   void updateWorkspaceBoard(activeBoard.id, {
@@ -884,14 +971,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               >
                 <Presentation className="h-4 w-4" />
                 {activeBoard.presentationMode ? 'Presentation' : 'Edit Mode'}
-              </button>
-              <button
-                onClick={handleDeleteBoard}
-                disabled={availableBoards.length <= 1}
-                className="osint-button-danger inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
               </button>
             </>
           )}
@@ -971,32 +1050,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
                 className="w-full border border-zinc-700 bg-black px-10 py-2 text-sm text-white outline-none transition focus:border-osint-primary"
               />
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {([
-                'ALL',
-                'ARTIFACT',
-                'ENTITY',
-                'SOURCE',
-                'HEADLINE',
-                'NOTE',
-                'LINK',
-                'FILE',
-                'MEDIA',
-                'EXCERPT',
-              ] as const).map((option) => (
-                <button
-                  key={option}
-                  onClick={() => setKindFilter(option)}
-                  className={`border px-2 py-1 text-[10px] font-mono uppercase transition ${
-                    kindFilter === option
-                      ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
@@ -1029,42 +1082,52 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
                     </p>
                   ) : (
                     entries.map((entry) => (
-                      <button
+                      <div
                         key={boardRefKey(entry)}
                         draggable
                         onDragStart={(event) =>
                           event.dataTransfer.setData(
                             'application/json+sherlock-entry',
-                            JSON.stringify({
-                              workspaceId: entry.workspaceId,
-                              refKind: entry.refKind,
-                              refId: entry.refId,
-                              title: entry.title,
-                              workspaceItemKind: entry.workspaceItemKind,
-                              metadata: entry.metadata,
-                            })
+                            serializeBoardReference(entry)
                           )
                         }
-                        onClick={() => handleDropEntry(entry)}
-                        className={`w-full border p-3 text-left transition hover:border-osint-primary hover:text-white ${
-                          title === 'Created Items'
-                            ? getEntryToneClass(entry)
-                            : 'border-zinc-800 bg-zinc-900/40 text-zinc-200 hover:bg-zinc-900'
-                        }`}
                       >
-                        <div className="text-xs font-bold uppercase tracking-wide">
-                          {entry.title}
-                        </div>
-                        {entry.description && (
-                          <div
-                            className={`mt-2 text-xs leading-5 ${
-                              title === 'Created Items' ? 'text-current/80' : 'text-zinc-500'
-                            }`}
-                          >
-                            {entry.description}
+                        <Accordion
+                          title={entry.title}
+                          isOpen={!!libraryItemSections[boardRefKey(entry)]}
+                          onToggle={() => toggleLibraryEntrySection(boardRefKey(entry))}
+                          className={
+                            title === 'Created Items'
+                              ? getEntryToneClass(entry)
+                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-200'
+                          }
+                          headerClassName="bg-black/10 px-2.5 py-2 text-left text-[10px] font-normal leading-5 tracking-[0.04em] text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-200"
+                          chevronClassName="h-[15px] w-[15px] shrink-0 text-zinc-500"
+                        >
+                          <div className="space-y-3">
+                            <div
+                              className={`text-xs leading-5 ${
+                                title === 'Created Items' ? 'text-current/80' : 'text-zinc-500'
+                              }`}
+                            >
+                              {entry.description ||
+                                'Open this item from the library to place it on the board.'}
+                            </div>
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                                {entry.kind}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDropEntry(entry)}
+                                className="osint-button-primary px-3 py-1.5 text-[10px] font-mono uppercase"
+                              >
+                                Add To Board
+                              </button>
+                            </div>
                           </div>
-                        )}
-                      </button>
+                        </Accordion>
+                      </div>
                     ))
                   )}
                 </div>
@@ -1074,18 +1137,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         </aside>
 
         <main className="relative flex-1 overflow-hidden bg-osint-dark">
-          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between border-b border-zinc-800 bg-black/60 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-            <div>{sanitizeDisplayTitle(activeWorkspace.title)}</div>
-            <div>
-              {isSaving
-                ? 'Saving board...'
-                : lastSavedAt
-                  ? `Saved ${new Date(lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                  : 'Canvas ready'}
-            </div>
-          </div>
           <div
-            className="sherlock-board-canvas absolute inset-0 pt-10"
+            className="sherlock-board-canvas absolute inset-0"
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleCanvasDrop}
           >
@@ -1120,15 +1173,24 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full xl:w-0 xl:border-l-0'
           }`}
         >
-          <div className="border-b border-zinc-800 px-4 py-3">
+          <div className="border-b border-zinc-800 bg-zinc-900/30 px-4 py-4">
             <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
               Board Inspector
             </div>
-            <div className="mt-1 text-sm font-bold uppercase tracking-widest text-white">
-              {selectedEntries.length > 0
-                ? `${selectedEntries.length} selected`
-                : activeBoard?.name || 'Workspace Board'}
-            </div>
+            {activeBoard ? (
+              <div className="mt-1 min-w-0">
+                <EditableTitle
+                  value={activeBoard.name}
+                  onSave={(nextName) => void handleBoardNameSave(nextName)}
+                  className="text-sm font-bold uppercase tracking-widest text-white"
+                  inputClassName="text-sm font-bold uppercase tracking-widest"
+                />
+              </div>
+            ) : (
+              <div className="mt-1 text-sm font-bold uppercase tracking-widest text-white">
+                Workspace Board
+              </div>
+            )}
           </div>
 
           {inspectorActions.length > 0 && (
@@ -1138,7 +1200,13 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           )}
 
           <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
-            <Accordion title="Selection" icon={Shapes} count={selectedEntries.length} isOpen onToggle={() => undefined}>
+            <Accordion
+              title="Selection"
+              icon={Shapes}
+              count={selectedEntries.length}
+              isOpen={inspectorSections.selection}
+              onToggle={() => toggleInspectorSection('selection')}
+            >
               <div className="space-y-2">
                 {selectedEntries.length === 0 ? (
                   <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
@@ -1159,7 +1227,12 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               </div>
             </Accordion>
 
-                <Accordion title="AI Actions" icon={Bot} isOpen onToggle={() => undefined}>
+            <Accordion
+              title="AI Actions"
+              icon={Bot}
+              isOpen={inspectorSections.aiActions}
+              onToggle={() => toggleInspectorSection('aiActions')}
+            >
               <div className="space-y-3">
                 <button
                   onClick={() => void handleGenerateSummary()}
@@ -1191,8 +1264,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             <Accordion
               title="Provenance"
               icon={Clock3}
-              isOpen
-              onToggle={() => undefined}
+              isOpen={inspectorSections.provenance}
+              onToggle={() => toggleInspectorSection('provenance')}
             >
               <div className="space-y-3 px-1 py-1 text-xs font-mono text-zinc-300">
                 {selectedWorkspaceItem ? (
@@ -1252,11 +1325,24 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               </div>
             </Accordion>
           </div>
+
+          {activeBoard && (
+            <div className="border-t border-zinc-800 bg-zinc-900/20 px-4 py-3">
+              <button
+                onClick={handleDeleteBoard}
+                disabled={availableBoards.length <= 1}
+                className="osint-button-danger inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Board
+              </button>
+            </div>
+          )}
         </aside>
       </div>
 
       {createModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <div className="w-full max-w-xl border border-zinc-700 bg-zinc-900 shadow-2xl">
             <div className="border-b border-zinc-800 px-6 py-4 text-sm font-bold uppercase tracking-widest text-white">
               {createModal.type === 'NOTE' ? 'Create Workspace Note' : 'Capture Workspace Link'}

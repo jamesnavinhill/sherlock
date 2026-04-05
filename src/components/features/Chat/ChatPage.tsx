@@ -225,9 +225,9 @@ const buildManualSetupSeed = (draft: GuidedRunDraft) => ({
 
 const sectionLabelClassName = 'text-[11px] font-mono uppercase tracking-[0.28em] text-zinc-500';
 const getDefaultLeftPanelOpen = () =>
-  typeof window !== 'undefined' ? window.innerWidth > 1024 : false;
+  false;
 const getDefaultRightPanelOpen = () =>
-  typeof window !== 'undefined' ? window.innerWidth >= 1280 : false;
+  typeof window !== 'undefined' ? window.innerWidth > 1024 : false;
 
 interface ChatProps {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -313,11 +313,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
       if (window.innerWidth <= 1024) {
         setLeftPanelOpen(false);
         setRightPanelOpen(false);
-      } else if (window.innerWidth < 1280) {
-        setLeftPanelOpen(true);
-        setRightPanelOpen(false);
       } else {
-        setLeftPanelOpen(true);
+        setLeftPanelOpen(false);
         setRightPanelOpen(true);
       }
     };
