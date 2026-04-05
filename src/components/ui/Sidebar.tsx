@@ -42,6 +42,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   themeMode,
   onToggleTheme,
 }) => {
+  const expandedLabelClassName = isCollapsed
+    ? 'opacity-0 translate-x-1'
+    : 'opacity-100 -translate-x-4';
+
   const btnClass = (isActive: boolean) =>
     `grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center rounded-none border-l py-3 text-left transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${
       isActive
@@ -84,9 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <div
-            className={`min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200 ${
-              isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
-            }`}
+            className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
           >
             <span className="font-osint-display text-xl font-bold tracking-widest text-zinc-400">
               SHER<span className="text-osint-primary">LOCK</span>
@@ -109,9 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Icon className="h-5 w-5 flex-shrink-0" />
                 </div>
                 <div
-                  className={`min-w-0 overflow-hidden whitespace-nowrap pl-1 transition-all duration-200 ${
-                    isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
-                  }`}
+                  className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
                 >
                   <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
                     {item.label}
@@ -147,9 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
             <div
-              className={`min-w-0 overflow-hidden whitespace-nowrap pl-1 transition-all duration-200 ${
-                isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
-              }`}
+              className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
             >
               <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
                 {themeMode === 'dark' ? 'Light' : 'Dark'}
@@ -166,9 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Settings className="h-5 w-5 flex-shrink-0" />
             </div>
             <div
-              className={`min-w-0 overflow-hidden whitespace-nowrap pl-1 transition-all duration-200 ${
-                isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
-              }`}
+              className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
             >
               <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
                 Settings

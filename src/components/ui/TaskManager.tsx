@@ -29,6 +29,9 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
   onExpand,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const expandedLabelClassName = isCollapsed
+    ? 'opacity-0 translate-x-1'
+    : 'opacity-100 -translate-x-4';
 
   const runningTasks = workspaceRuns.filter((t) => t.status === 'RUNNING' || t.status === 'QUEUED');
   const completedTasks = workspaceRuns.filter(
@@ -177,7 +180,9 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
             )}
           </div>
         </div>
-        <div className="flex min-w-0 flex-col items-start pl-1 text-left">
+        <div
+          className={`flex min-w-0 flex-col items-start pr-2 text-left transition-all duration-200 ${expandedLabelClassName}`}
+        >
           <span
             className={`text-sm font-medium font-mono uppercase tracking-wide truncate ${runningTasks.length > 0 ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}
           >
