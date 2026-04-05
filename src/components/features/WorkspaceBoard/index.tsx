@@ -27,7 +27,6 @@ import {
   Tldraw,
   getSnapshot,
   type Editor,
-  type TLComponents,
   type TLEditorSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw';
@@ -45,7 +44,7 @@ import {
   buildWorkspaceNetworkPath,
   buildWorkspaceTimelinePath,
 } from '@/app/routes';
-import { useWorkspaceStore, type ThemeMode } from '@/store/caseStore';
+import { useWorkspaceStore } from '@/store/caseStore';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { Accordion } from '@/components/ui/Accordion';
@@ -62,47 +61,20 @@ import {
   BOARD_REF_META_KEY,
   buildBoardCardSpec,
   parseBoardReference,
-  placeEntryOnBoard as placeWorkspaceEntryOnBoard,
   serializeBoardReference,
 } from '../../../services/workspace/boardShapes';
 import { deriveBoardAgentTodoItems, runBoardAgentSession } from '@/services/workspace/agent';
 import { createLocalId } from '@/utils/id';
 import { sanitizeDisplayTitle } from '@/domain';
-import { CompactStylePanel } from './CompactStylePanel';
-
-const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
-const LEFT_PANEL_SECTION_SCROLL_CLASS =
-  'max-h-[min(17rem,calc(100svh-25rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
-type RightPanelView = 'INSPECTOR' | 'AGENT';
-type CreateModalState =
-  | { type: 'NOTE'; title: string; content: string }
-  | { type: 'LINK'; title: string; url: string; description: string }
-  | null;
-
-const buildSingleWorkspaceItemEntry = (
-  workspaceId: string,
-  item: WorkspaceItem
-): WorkspaceLibraryEntry | null =>
-  buildWorkspaceLibraryEntries({
-    workspaceId,
-    artifacts: [],
-    headlines: [],
-    workspaceItems: [item],
-  })[0] || null;
-
-const boardTldrawComponents: TLComponents = {
-  StylePanel: CompactStylePanel,
-};
-
-const placeEntryOnBoard = (
-  editor: Editor,
-  entry: WorkspaceLibraryEntry,
-  x: number,
-  y: number,
-  themeMode: ThemeMode
-) => {
-  placeWorkspaceEntryOnBoard(editor, entry, x, y, themeMode);
-};
+import {
+  boardRefKey,
+  boardTldrawComponents,
+  buildSingleWorkspaceItemEntry,
+  LEFT_PANEL_SECTION_SCROLL_CLASS,
+  placeEntryOnBoard,
+  type CreateModalState,
+  type RightPanelView,
+} from './workspaceBoardUtils';
 
 interface WorkspaceBoardProps {
   onOpenReport: (report: Artifact) => void;

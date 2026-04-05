@@ -13,7 +13,7 @@ import {
   ChevronDown,
   MessageSquare,
 } from 'lucide-react';
-import { TaskSetupModal } from '../ui/TaskSetupModal';
+import { TaskSetupModal } from './Runs/TaskSetupModal';
 import { EmptyState } from '../ui/EmptyState';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';

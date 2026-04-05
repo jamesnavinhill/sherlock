@@ -22,7 +22,7 @@ vi.mock('./GuidedRunBuilder', () => ({
   GuidedRunBuilder: () => <div data-testid="guided-run-builder" />,
 }));
 
-vi.mock('../../ui/TaskSetupModal', () => ({
+vi.mock('../Runs/TaskSetupModal', () => ({
   TaskSetupModal: ({ onStart }: { onStart: (...args: unknown[]) => void }) => (
     <div data-testid="task-setup-modal">
       <button onClick={() => onStart('New project topic', {}, undefined, undefined, undefined)}>

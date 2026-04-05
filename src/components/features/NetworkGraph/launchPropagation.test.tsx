@@ -42,7 +42,7 @@ vi.mock('./NodeInspector', () => ({
   ),
 }));
 
-vi.mock('../../ui/TaskSetupModal', () => ({
+vi.mock('../Runs/TaskSetupModal', () => ({
   TaskSetupModal: ({
     onStart,
   }: {

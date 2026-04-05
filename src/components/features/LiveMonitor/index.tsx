@@ -10,7 +10,7 @@ import type { MonitorConfig } from '../../../services/runtime';
 import { getLiveWorkspaceIntel } from '../../../services/runtime';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import { Radio, Play, Pause, Activity, Settings2, Radar } from 'lucide-react';
-import { TaskSetupModal } from '../../ui/TaskSetupModal';
+import { TaskSetupModal } from '../Runs/TaskSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { EmptyState } from '../../ui/EmptyState';
 import { OsintSelect } from '../../ui/OsintSelect';

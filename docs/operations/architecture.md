@@ -36,6 +36,8 @@ Supporting shell files now include:
 - `src/app/navigation.ts`
 - `src/app/routeViews.tsx`
 - `src/app/AppShell.tsx`
+- `src/app/useAppShellController.ts`
+- `src/app/AppShellRoutes.tsx`
 
 Canonical path inventory:
 
@@ -68,7 +70,7 @@ The route contract is now active runtime behavior rather than future groundwork.
 
 ## 2. Launch Pipeline
 
-All launches still converge through `launchInvestigation` in `src/app/AppShell.tsx`.
+All launches still converge through `launchInvestigation` in `src/app/useAppShellController.ts`.
 
 Flow:
 
@@ -227,6 +229,11 @@ Canonical signal naming now leads the active runtime seams even where compatibil
 Global store:
 
 - `src/store/caseStore.ts`
+- `src/store/actions/bootstrapActions.ts`
+- `src/store/actions/simpleActions.ts`
+- `src/store/actions/conversationActions.ts`
+- `src/store/actions/artifactRunActions.ts`
+- `src/store/actions/workspaceActions.ts`
 
 State domains include:
 
@@ -242,6 +249,8 @@ State domains include:
 - theme mode, accent surfaces, and font-role selections
 - scopes and templates
 - feed config and UI state
+
+`src/store/caseStore.ts` is now primarily the public state contract plus initial state composition; grouped action modules own bootstrap, UI/settings, conversation, artifact/run, and workspace maintenance responsibilities behind that stable store entry.
 
 Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 
@@ -298,7 +307,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
 - retrieval attachments can now be promoted into canonical workspace excerpts and optionally placed directly onto the research board
 - transcript copy plus Markdown/JSON export
-- guided conversational run builder that maps into the same launch request shape used by `TaskSetupModal`
+- guided conversational run builder that maps into the same launch request shape used by `src/components/features/Runs/TaskSetupModal.tsx`
 - context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
 - contextual handoff from Operation View, Archives, and Network Graph into the same session backend, with report/entity/signal grounding persisted on the target chat session
 
@@ -372,6 +381,7 @@ Task setup and template flows now expose:
 - model-aware capability messaging instead of provider-wide assumptions
 - compact OpenRouter quick picks plus a dedicated browser modal for full catalog/manual slug entry
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
+- the task-setup implementation now lives with the run-launch feature under `src/components/features/Runs/TaskSetupModal.tsx`, while the old UI path remains a compatibility re-export only
 
 ### Archives
 

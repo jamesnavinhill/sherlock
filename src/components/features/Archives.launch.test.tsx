@@ -6,7 +6,7 @@ vi.mock('../ui/BackgroundMatrixRain', () => ({
   BackgroundMatrixRain: () => null,
 }));
 
-vi.mock('../ui/TaskSetupModal', () => ({
+vi.mock('./Runs/TaskSetupModal', () => ({
   TaskSetupModal: () => null,
 }));
 

@@ -14,7 +14,7 @@ import {
   Settings2,
 } from 'lucide-react';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
-import { TaskSetupModal } from '../ui/TaskSetupModal';
+import { TaskSetupModal } from './Runs/TaskSetupModal';
 import { MatrixCardLoader } from '../ui/MatrixCardLoader';
 import { OsintSelect } from '../ui/OsintSelect';
 import { useWorkspaceStore } from '../../store/caseStore';

@@ -19,7 +19,7 @@ import { buildWorkspaceBoardDocumentPath } from '../../../app/routes';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
-import { TaskSetupModal } from '../../ui/TaskSetupModal';
+import { TaskSetupModal } from '../Runs/TaskSetupModal';
 import { AlertOctagon, Layout } from 'lucide-react';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../../domain';

@@ -108,7 +108,7 @@ vi.mock('./InspectorPanel', () => ({
   ),
 }));
 
-vi.mock('../../ui/TaskSetupModal', () => ({
+vi.mock('../Runs/TaskSetupModal', () => ({
   TaskSetupModal: ({
     onStart,
   }: {

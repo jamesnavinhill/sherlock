@@ -14,7 +14,7 @@ import type {
 } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { buildWorkspaceBoardDocumentPath } from '../../../app/routes';
-import { TaskSetupModal } from '../../ui/TaskSetupModal';
+import { TaskSetupModal } from '../Runs/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EmptyState } from '../../ui/EmptyState';
 

@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
 import {
-  Settings as SettingsIcon,
   Shield,
   Palette,
   Type,
@@ -9,15 +8,13 @@ import {
   Download,
   Upload,
   Check,
-  Layout,
   Key,
   Save,
   RefreshCw,
   AlertTriangle,
-  Compass,
-  Cpu,
   X,
   Brain,
+  Cpu,
   Workflow,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/caseStore';
@@ -70,6 +67,14 @@ import {
 } from '../../../services/maintenance/workspaceData';
 import { clearStoredActiveWorkspaceId } from '../../../utils/localStorage';
 import { OpenRouterModelBrowser } from '../../ui/OpenRouterModelBrowser';
+import {
+  clamp,
+  cloneThemeSurfaceSettings,
+  FONT_ROLE_CARDS,
+  getSurfacePreviewTone,
+  SURFACE_LABELS,
+  TABS,
+} from './settingsUtils';
 
 interface SettingsProps {
   themeColor: string;
@@ -84,84 +89,6 @@ interface SettingsProps {
   onClose: () => void;
 }
 
-const TABS = [
-  { id: 'GENERAL', label: 'General', icon: SettingsIcon },
-  { id: 'AI', label: 'AI', icon: Cpu },
-  { id: 'SCOPES', label: 'Scopes', icon: Compass },
-  { id: 'TEMPLATES', label: 'Templates', icon: Layout },
-  { id: 'THEME', label: 'Theme', icon: Palette },
-];
-
-const SURFACE_LABELS: Record<keyof ThemeSurfaceScale, string> = {
-  background: 'Workspace Background',
-  panel: 'Panel Background',
-  surface: 'Raised Surface',
-};
-
-const FONT_ROLE_CARDS: Array<{
-  key: keyof ThemeFontSettings;
-  label: string;
-  description: string;
-  sample: string;
-}> = [
-  {
-    key: 'ui',
-    label: 'UI Text',
-    description: 'Default reading font for reports, forms, and body copy.',
-    sample: 'Signal review stays readable when the volume gets messy.',
-  },
-  {
-    key: 'display',
-    label: 'Display',
-    description: 'Large headings, report titles, and hero-level moments.',
-    sample: 'Operational Summary',
-  },
-  {
-    key: 'label',
-    label: 'Labels',
-    description: 'Navigation chrome, tabs, and uppercase interface metadata.',
-    sample: 'THEME CONTROL MATRIX',
-  },
-  {
-    key: 'mono',
-    label: 'Data Text',
-    description: 'Dense evidence, structured values, code, and logs.',
-    sample: 'oklch(0.21 0.01 286) :: artifact_id=ops-17',
-  },
-];
-
-const cloneThemeSurfaceSettings = (settings: ThemeSurfaceSettings): ThemeSurfaceSettings => ({
-  dark: {
-    background: { ...settings.dark.background },
-    panel: { ...settings.dark.panel },
-    surface: { ...settings.dark.surface },
-  },
-  light: {
-    background: { ...settings.light.background },
-    panel: { ...settings.light.panel },
-    surface: { ...settings.light.surface },
-  },
-});
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
-const getSurfacePreviewTone = (surface: ThemeSurfaceScale[keyof ThemeSurfaceScale]) => {
-  const usesDarkInk = surface.lightness >= 0.72;
-
-  return usesDarkInk
-    ? {
-        textColor: 'rgba(31, 22, 13, 0.92)',
-        labelColor: 'rgba(31, 22, 13, 0.62)',
-        borderColor: 'rgba(82, 63, 40, 0.26)',
-        overlayColor: 'rgba(255, 255, 255, 0.16)',
-      }
-    : {
-        textColor: 'rgba(255, 253, 248, 0.92)',
-        labelColor: 'rgba(255, 253, 248, 0.7)',
-        borderColor: 'rgba(255, 255, 255, 0.12)',
-        overlayColor: 'rgba(0, 0, 0, 0.12)',
-      };
-};
 
 export const Settings: React.FC<SettingsProps> = ({
   themeColor,

@@ -586,6 +586,15 @@ Acceptance:
 
 ## Workstream 5: System Decomposition And Organized Refactor
 
+Status: Complete on April 5, 2026.
+
+Landed outcomes:
+
+- `src/app/AppShell.tsx` now reads as a small composition shell backed by `src/app/useAppShellController.ts` and `src/app/AppShellRoutes.tsx`
+- `src/store/caseStore.ts` now composes grouped store modules under `src/store/actions/*` instead of keeping bootstrap, UI, conversation, artifact/run, and workspace maintenance logic in one file
+- `TaskSetupModal` now lives under `src/components/features/Runs/TaskSetupModal.tsx`, with the old `src/components/ui/TaskSetupModal.tsx` path reduced to a compatibility re-export
+- large feature roots now delegate shared helper/constants blocks into feature-local utility modules (`Chat`, `Timeline`, `WorkspaceBoard`, `Settings`, `Runs`) so the route/page files are closer to controller responsibilities
+
 ### Goal
 
 Break the largest orchestration files into route-native, domain-aligned systems with clearer ownership boundaries.
@@ -607,7 +616,7 @@ Main decomposition targets:
 - `src/components/features/TimelineView.tsx`
 - `src/components/features/Chat/ChatPage.tsx`
 - `src/components/features/Settings/index.tsx`
-- `src/components/ui/TaskSetupModal.tsx`
+- `src/components/features/Runs/TaskSetupModal.tsx`
 
 ### Decomposition posture
 
