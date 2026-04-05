@@ -135,14 +135,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="border-t border-zinc-800 flex-shrink-0">
           <button
             onClick={onToggleTheme}
-            className="grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center border-l border-transparent py-3 text-zinc-500 transition-all duration-200 outline-none hover:bg-zinc-900 hover:text-zinc-300 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary"
-            title={
-              isCollapsed
-                ? themeMode === 'dark'
-                  ? 'Light'
-                  : 'Dark'
-                : undefined
-            }
+            className="grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center border-l border-transparent py-4 text-left text-zinc-500 transition-all duration-200 outline-none hover:bg-zinc-900 hover:text-zinc-300 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary"
+            title={isCollapsed ? (themeMode === 'dark' ? 'Light' : 'Dark') : undefined}
             aria-label={themeMode === 'dark' ? 'Light' : 'Dark'}
           >
             <div className="flex items-center justify-center">

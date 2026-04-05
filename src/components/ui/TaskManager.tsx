@@ -158,7 +158,7 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
         onClick={() => (workspaceRuns.length > 0 ? setIsExpanded(!isExpanded) : null)}
         disabled={workspaceRuns.length === 0}
         aria-label={isExpanded ? 'Collapse Ops' : 'Expand Ops'}
-        className={`w-full grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center py-4 group transition-all border-l outline-none focus-visible:bg-zinc-900 ${
+        className={`w-full grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center py-4 text-left group transition-all border-l outline-none focus-visible:bg-zinc-900 ${
           isExpanded
             ? 'bg-zinc-900 border-osint-primary'
             : 'border-transparent hover:bg-zinc-900 hover:border-zinc-700'
@@ -177,17 +177,15 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
             )}
           </div>
         </div>
-        <div className="flex min-w-0 flex-col items-start text-left">
-            <span
-              className={`text-sm font-medium font-mono uppercase tracking-wide truncate ${runningTasks.length > 0 ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}
-            >
-              Ops
-            </span>
-            {runningTasks.length > 0 && (
-              <span className="text-[10px] text-zinc-600 truncate">
-                {runningTasks.length} Running
-              </span>
-            )}
+        <div className="flex min-w-0 flex-col items-start pl-1 text-left">
+          <span
+            className={`text-sm font-medium font-mono uppercase tracking-wide truncate ${runningTasks.length > 0 ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}
+          >
+            Ops
+          </span>
+          {runningTasks.length > 0 && (
+            <span className="text-[10px] text-zinc-600 truncate">{runningTasks.length} Running</span>
+          )}
         </div>
 
         {workspaceRuns.length > 0 && (
