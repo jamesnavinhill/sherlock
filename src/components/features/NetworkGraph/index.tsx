@@ -159,7 +159,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     sources: false,
   });
   const toggleDossierSection = (section: string) => {
-    setDossierSections((prev) => ({ ...prev, [section]: !prev[section] }));
+    setDossierSections((prev) =>
+      Object.fromEntries(
+        Object.keys(prev).map((key) => [key, key === section ? !prev[section] : false])
+      )
+    );
   };
 
   // Load Data - Migration logic for store initialization

@@ -200,7 +200,7 @@ State domains include:
 - scopes and templates
 - feed config and UI state
 
-Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use.
+Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through `src/utils/localStorage.ts`, while provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 
 ## 7. Feature Composition
 

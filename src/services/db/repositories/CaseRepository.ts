@@ -42,6 +42,7 @@ import {
   normalizeTopicText,
   unwrapArrayContainer,
 } from '../../../utils/textNormalization';
+import { createLocalId } from '../../../utils/id';
 
 interface RawReportPayload {
   summary?: string;
@@ -435,7 +436,7 @@ export class CaseRepository {
           typeof entity === 'string' ? { name: entity, type: 'UNKNOWN' as const } : entity;
 
         await db.insert(entities).values({
-          id: `ent-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          id: createLocalId('ent'),
           reportId,
           name: entityObj.name,
           type: entityObj.type,
@@ -449,7 +450,7 @@ export class CaseRepository {
     if (report.sources && report.sources.length > 0) {
       for (const source of report.sources) {
         await db.insert(sources).values({
-          id: `src-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          id: createLocalId('src'),
           reportId,
           title: source.title,
           url: source.url,

@@ -66,7 +66,7 @@ import { CompactStylePanel } from './CompactStylePanel';
 
 const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
 const LEFT_PANEL_SECTION_SCROLL_CLASS =
-  'max-h-[min(19rem,calc(100svh-23rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+  'max-h-[min(17rem,calc(100svh-25rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
 type RightPanelView = 'INSPECTOR' | 'AGENT';
 type CreateModalState =
   | { type: 'NOTE'; title: string; content: string }
@@ -570,6 +570,14 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       ...current,
       [entryKey]: !current[entryKey],
     }));
+  };
+
+  const toggleLibrarySection = (section: keyof typeof librarySections) => {
+    setLibrarySections((current) =>
+      Object.fromEntries(
+        Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
+      ) as typeof current
+    );
   };
 
   const toggleInspectorSection = (section: keyof typeof inspectorSections) => {
@@ -1513,7 +1521,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+          <div className="flex-1 min-h-0 overflow-hidden p-3">
             {(
               [
                 ['created', 'Created Items', groupedEntries.created, FilePlus2],
@@ -1529,12 +1537,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
                 count={entries.length}
                 icon={icon}
                 isOpen={librarySections[key]}
-                onToggle={() =>
-                  setLibrarySections((current) => ({
-                    ...current,
-                    [key]: !current[key],
-                  }))
-                }
+                onToggle={() => toggleLibrarySection(key)}
                 contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
               >
                 <div className="space-y-2">

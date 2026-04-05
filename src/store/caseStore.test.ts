@@ -603,6 +603,22 @@ describe('caseStore', () => {
         threatLevel: 'INFO',
       },
     ]);
+    store.setWorkspaceRuns([
+      {
+        id: 'run-1',
+        workspaceId: 'case-1',
+        topic: 'Alpha run',
+        status: 'COMPLETED',
+        startTime: 1,
+      },
+      {
+        id: 'run-2',
+        workspaceId: 'case-2',
+        topic: 'Bravo run',
+        status: 'RUNNING',
+        startTime: 2,
+      },
+    ]);
     store.setActiveWorkspaceId('case-1');
     store.setChatSessions([
       {
@@ -729,6 +745,8 @@ describe('caseStore', () => {
       ],
       hiddenNodeIds: ['case-rep-1', 'manual-keep'],
       flaggedNodeIds: ['case-rep-1', 'manual-keep'],
+      activeWorkspaceRunId: 'run-1',
+      activeTaskId: 'run-2',
       activeChatSessionId: 'chat-1',
     });
 
@@ -755,8 +773,11 @@ describe('caseStore', () => {
     expect(useWorkspaceStore.getState().manualLinks).toEqual([
       { source: 'manual-keep', target: 'external', timestamp: 2 },
     ]);
+    expect(useWorkspaceStore.getState().workspaceRuns.map((run) => run.id)).toEqual(['run-2']);
     expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual(['manual-keep']);
     expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual(['manual-keep']);
+    expect(useWorkspaceStore.getState().activeWorkspaceRunId).toBeNull();
+    expect(useWorkspaceStore.getState().activeTaskId).toBe('run-2');
     expect(useWorkspaceStore.getState().activeChatSessionId).toBeNull();
     expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull();
   });

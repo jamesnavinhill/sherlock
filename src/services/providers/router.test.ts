@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Artifact } from '../../types';
+import * as aiModels from '../../config/aiModels';
 
 const {
   mockGeminiInvestigate,
@@ -108,6 +109,7 @@ import {
   chatWithProviderRouter,
   boardAgentWithProviderRouter,
   generateAudioBriefingWithProviderRouter,
+  getLiveIntelWithProviderRouter,
   getRegisteredProviders,
   investigateWithProviderRouter,
   streamBoardAgentWithProviderRouter,
@@ -278,8 +280,72 @@ describe('provider router', () => {
     );
 
     await expect(generateAudioBriefingWithProviderRouter({ text: 'brief me' })).rejects.toThrow(
-      /does not support TTS/i
+      /TTS/i
     );
+  });
+
+  it('rejects chat when the selected model is not runtime-enabled', async () => {
+    const capabilitiesSpy = vi.spyOn(aiModels, 'getEffectiveModelCapabilities').mockReturnValue({
+      supportsThinkingBudget: false,
+      supportsStructuredOutput: true,
+      supportsWebSearch: false,
+      supportsToolUse: false,
+      runtimeStatus: 'PLANNED',
+    });
+
+    localStorage.setItem(
+      'sherlock_config',
+      JSON.stringify({
+        provider: 'OPENAI',
+        modelId: 'gpt-4.1-mini',
+        persona: 'general-investigator',
+        searchDepth: 'STANDARD',
+        thinkingBudget: 0,
+      })
+    );
+
+    try {
+      await expect(
+        chatWithProviderRouter({
+          workspace: {
+            id: 'case-1',
+            title: 'Workspace Alpha',
+            status: 'ACTIVE',
+            dateOpened: '2026-04-03',
+          },
+          messages: [{ role: 'user', content: 'Summarize the workspace.' }],
+          workspaceSummary: 'One workspace',
+          recentArtifacts: [],
+          recentHeadlines: [],
+          retrievedContext: [],
+        })
+      ).rejects.toThrow(/CHAT is unavailable/i);
+    } finally {
+      capabilitiesSpy.mockRestore();
+    }
+  });
+
+  it('rejects live intel when the provider is not runtime-enabled', async () => {
+    const providerSpy = vi.spyOn(aiModels, 'getProviderOptionById').mockReturnValue({
+      id: 'GEMINI',
+      label: 'Google Gemini',
+      description: 'Primary default provider',
+      defaultModelId: 'gemini-3-flash-preview',
+      capabilities: {
+        supportsThinkingBudget: true,
+        supportsTts: true,
+        supportsWebSearch: true,
+        runtimeStatus: 'PLANNED',
+      },
+    });
+
+    try {
+      await expect(getLiveIntelWithProviderRouter({ topic: 'watch this' })).rejects.toThrow(
+        /LIVE_INTEL is unavailable/i
+      );
+    } finally {
+      providerSpy.mockRestore();
+    }
   });
 
   it('dispatches chat to the selected provider adapter', async () => {

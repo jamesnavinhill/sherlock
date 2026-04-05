@@ -64,8 +64,12 @@ import { createLocalId } from '../utils/id';
 import { buildArtifactFollowUps, toFollowUpTexts } from '../domain';
 import {
   clearStoredActiveWorkspaceId,
+  getStringItem,
   getStoredActiveWorkspaceId,
+  hasAppliedDemoWorkspaceSeed,
+  markDemoWorkspaceSeedApplied,
   setStoredActiveWorkspaceId,
+  STORAGE_KEYS,
 } from '../utils/localStorage';
 
 export interface Toast {
@@ -77,7 +81,6 @@ export interface Toast {
 export type ThemeMode = 'dark' | 'light';
 
 const DEMO_WORKSPACE_SEED_PATH = '/seeds/demo-workspace.json';
-const DEMO_WORKSPACE_SEED_STORAGE_KEY = 'sherlock_demo_seed_v1_applied';
 
 const hasExistingWorkspaceData = (input: {
   workspaces: Workspace[];
@@ -112,7 +115,7 @@ const persistWorkspaceDataBackup = async (payload: WorkspaceDataBackup) => {
 
 const loadDemoWorkspaceSeed = async () => {
   if (typeof window === 'undefined') return null;
-  if (localStorage.getItem(DEMO_WORKSPACE_SEED_STORAGE_KEY) === 'true') return null;
+  if (hasAppliedDemoWorkspaceSeed()) return null;
 
   try {
     const response = await fetch(DEMO_WORKSPACE_SEED_PATH, { cache: 'no-store' });
@@ -440,8 +443,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       const storedThemeFontSettings =
         await SettingsRepository.getSetting<ThemeFontSettings>('theme_font_settings');
 
-      const legacyTheme = localStorage.getItem('sherlock_theme');
-      const legacyConfigRaw = localStorage.getItem('sherlock_config');
+      const legacyTheme = getStringItem(STORAGE_KEYS.THEME);
+      const legacyConfigRaw = getStringItem(STORAGE_KEYS.SYSTEM_CONFIG);
       const legacyConfigTheme = legacyConfigRaw
         ? (() => {
             try {
@@ -532,7 +535,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
 
         if (demoSeed) {
           await persistWorkspaceDataBackup(demoSeed);
-          localStorage.setItem(DEMO_WORKSPACE_SEED_STORAGE_KEY, 'true');
+          markDemoWorkspaceSeedApplied();
 
           workspaces = demoSeed.workspaces;
           artifacts = demoSeed.artifacts;
@@ -1426,9 +1429,12 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         (workspaceRun) =>
           workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.caseId !== workspaceId
       );
-      const activeTaskStillExists =
+      const activeWorkspaceRunStillExists =
         !state.activeWorkspaceRunId ||
         nextWorkspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeWorkspaceRunId);
+      const activeTaskStillExists =
+        !state.activeTaskId ||
+        nextWorkspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeTaskId);
       const nextGraph = filterManualGraphForWorkspaceRemoval({
         manualNodes: state.manualNodes,
         manualLinks: state.manualLinks,
@@ -1480,8 +1486,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         manualLinks: nextGraph.manualLinks,
         hiddenNodeIds: nextGraph.hiddenNodeIds,
         flaggedNodeIds: nextGraph.flaggedNodeIds,
-        activeWorkspaceRunId: activeTaskStillExists ? state.activeWorkspaceRunId : null,
-        activeTaskId: activeTaskStillExists ? state.activeWorkspaceRunId : null,
+        activeWorkspaceRunId: activeWorkspaceRunStillExists ? state.activeWorkspaceRunId : null,
+        activeTaskId: activeTaskStillExists ? state.activeTaskId : null,
         activeChatSessionId: activeChatSessionStillExists ? state.activeChatSessionId : null,
         activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
         activeWorkspaceBoardId:

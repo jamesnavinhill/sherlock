@@ -171,6 +171,11 @@ const getPrimaryRefId = (event: TimelineEvent | null, refKind: TimelineEvent['re
 const buildTimelineSearchPlaceholder = (artifactLabelPlural: string) =>
   `Search ${artifactLabelPlural.toLowerCase()}, runs, signals, entities, chats...`;
 
+const toggleExclusiveSection = <T extends Record<string, boolean>>(current: T, section: keyof T): T =>
+  Object.fromEntries(
+    Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
+  ) as T;
+
 export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpenChat }) => {
   const {
     activeWorkspaceId,
@@ -909,9 +914,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               icon={Clock3}
               count={allTimelineEvents.length}
               isOpen={dossierSections.events}
-              onToggle={() =>
-                setDossierSections((current) => ({ ...current, events: !current.events }))
-              }
+              onToggle={() => setDossierSections((current) => toggleExclusiveSection(current, 'events'))}
               contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
@@ -940,9 +943,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               icon={Activity}
               count={runItems.length}
               isOpen={dossierSections.runs}
-              onToggle={() =>
-                setDossierSections((current) => ({ ...current, runs: !current.runs }))
-              }
+              onToggle={() => setDossierSections((current) => toggleExclusiveSection(current, 'runs'))}
               contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
@@ -976,7 +977,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               count={artifactItems.length}
               isOpen={dossierSections.artifacts}
               onToggle={() =>
-                setDossierSections((current) => ({ ...current, artifacts: !current.artifacts }))
+                setDossierSections((current) => toggleExclusiveSection(current, 'artifacts'))
               }
               contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
@@ -1011,7 +1012,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               count={signalItems.length}
               isOpen={dossierSections.signals}
               onToggle={() =>
-                setDossierSections((current) => ({ ...current, signals: !current.signals }))
+                setDossierSections((current) => toggleExclusiveSection(current, 'signals'))
               }
               contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
@@ -1046,7 +1047,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               count={entityItems.length}
               isOpen={dossierSections.entities}
               onToggle={() =>
-                setDossierSections((current) => ({ ...current, entities: !current.entities }))
+                setDossierSections((current) => toggleExclusiveSection(current, 'entities'))
               }
               contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
@@ -1077,9 +1078,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               icon={MessageSquare}
               count={chatSessionItems.length}
               isOpen={dossierSections.chats}
-              onToggle={() =>
-                setDossierSections((current) => ({ ...current, chats: !current.chats }))
-              }
+              onToggle={() => setDossierSections((current) => toggleExclusiveSection(current, 'chats'))}
               contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">

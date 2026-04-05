@@ -1,51 +1,42 @@
 /**
- * Typed localStorage utilities for Sherlock AI
- * Provides safe JSON parsing with fallback values
+ * Typed browser-storage utilities for the small set of values that still live
+ * outside SQLite. Provider keys are intentionally handled elsewhere.
  */
 
-/**
- * Retrieves an item from localStorage with type safety and fallback
- */
-export function getItem<T>(key: string, fallback: T): T {
+const readString = (key: string): string | null => {
+  if (typeof localStorage === 'undefined') return null;
+
   try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : fallback;
-  } catch (e) {
-    console.warn(`Failed to parse ${key} from localStorage, using fallback.`, e);
-    return fallback;
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.error(`Failed to read ${key} from localStorage.`, error);
+    return null;
   }
-}
+};
 
-/**
- * Stores an item in localStorage as JSON
- */
-export function setItem<T>(key: string, value: T): void {
+const writeString = (key: string, value: string): void => {
+  if (typeof localStorage === 'undefined') return;
+
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (e) {
-    console.error(`Failed to save ${key} to localStorage.`, e);
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.error(`Failed to store ${key} in localStorage.`, error);
   }
-}
+};
 
 /**
- * Removes an item from localStorage
- */
-export function clearKey(key: string): void {
-  try {
-    localStorage.removeItem(key);
-  } catch (e) {
-    console.error(`Failed to remove ${key} from localStorage.`, e);
-  }
-}
-
-/**
- * Common storage keys used throughout the application
+ * Common storage keys used throughout the application.
  */
 export const STORAGE_KEYS = {
   ARCHIVES: 'sherlock_archives',
   CASES: 'sherlock_cases',
   HEADLINES: 'sherlock_headlines',
   ACTIVE_WORKSPACE_ID: 'sherlock_active_workspace_id',
+  DEMO_WORKSPACE_SEED_APPLIED: 'sherlock_demo_seed_v1_applied',
+  LIVE_MONITOR_AUTOSAVE: 'sherlock_livestream_autosave',
+  SYSTEM_CONFIG: 'sherlock_config',
+  OPENROUTER_MODEL_CATALOG: 'sherlock_openrouter_model_catalog_v1',
+  RECENT_MODEL_IDS: 'sherlock_recent_model_ids_v1',
   MANUAL_LINKS: 'sherlock_manual_links',
   MANUAL_NODES: 'sherlock_manual_nodes',
   HIDDEN_NODES: 'sherlock_hidden_nodes',
@@ -55,27 +46,86 @@ export const STORAGE_KEYS = {
   THEME: 'sherlock_theme',
 } as const;
 
-export const getStoredActiveWorkspaceId = (): string | null => {
+export function getStringItem(key: string): string | null {
+  return readString(key);
+}
+
+export function setStringItem(key: string, value: string): void {
+  writeString(key, value);
+}
+
+/**
+ * Retrieves a JSON item from localStorage with type safety and fallback.
+ */
+export function getItem<T>(key: string, fallback: T): T {
+  const data = readString(key);
+  if (!data) return fallback;
+
   try {
-    return localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
-  } catch (e) {
-    console.error('Failed to read active workspace selection from localStorage.', e);
+    return JSON.parse(data) as T;
+  } catch (error) {
+    console.warn(`Failed to parse ${key} from localStorage, using fallback.`, error);
+    return fallback;
+  }
+}
+
+export function getOptionalItem<T>(key: string): T | null {
+  const data = readString(key);
+  if (!data) return null;
+
+  try {
+    return JSON.parse(data) as T;
+  } catch (error) {
+    console.warn(`Failed to parse ${key} from localStorage.`, error);
     return null;
   }
-};
+}
+
+/**
+ * Stores an item in localStorage as JSON.
+ */
+export function setItem<T>(key: string, value: T): void {
+  try {
+    writeString(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Failed to save ${key} to localStorage.`, error);
+  }
+}
+
+/**
+ * Removes an item from localStorage.
+ */
+export function clearKey(key: string): void {
+  if (typeof localStorage === 'undefined') return;
+
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.error(`Failed to remove ${key} from localStorage.`, error);
+  }
+}
+
+export const getStoredActiveWorkspaceId = (): string | null =>
+  getStringItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
 
 export const setStoredActiveWorkspaceId = (value: string): void => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID, value);
-  } catch (e) {
-    console.error('Failed to store active workspace selection in localStorage.', e);
-  }
+  setStringItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID, value);
 };
 
 export const clearStoredActiveWorkspaceId = (): void => {
-  try {
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
-  } catch (e) {
-    console.error('Failed to clear active workspace selection from localStorage.', e);
-  }
+  clearKey(STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
+};
+
+export const getStoredLiveMonitorAutosave = (): boolean =>
+  getStringItem(STORAGE_KEYS.LIVE_MONITOR_AUTOSAVE) !== 'false';
+
+export const setStoredLiveMonitorAutosave = (value: boolean): void => {
+  setStringItem(STORAGE_KEYS.LIVE_MONITOR_AUTOSAVE, String(value));
+};
+
+export const hasAppliedDemoWorkspaceSeed = (): boolean =>
+  getStringItem(STORAGE_KEYS.DEMO_WORKSPACE_SEED_APPLIED) === 'true';
+
+export const markDemoWorkspaceSeedApplied = (): void => {
+  setStringItem(STORAGE_KEYS.DEMO_WORKSPACE_SEED_APPLIED, 'true');
 };

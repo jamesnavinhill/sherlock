@@ -24,6 +24,7 @@ import type {
   BoardAgentStreamOptions,
   LiveIntelConfig,
   ProviderAdapter,
+  ProviderOperation,
   RouterBoardAgentRequest,
   RouterChatRequest,
   RouterInvestigationRequest,
@@ -48,6 +49,41 @@ const DEFAULT_MONITOR_CONFIG: LiveIntelConfig = {
   newsCount: 2,
   officialCount: 2,
   prioritySources: '',
+};
+
+const OPERATION_CAPABILITY_REQUIREMENTS: Record<
+  ProviderOperation,
+  {
+    requiresProviderRuntime: boolean;
+    requiresModelRuntime: boolean;
+    requiresTts?: boolean;
+  }
+> = {
+  INVESTIGATE: {
+    requiresProviderRuntime: true,
+    requiresModelRuntime: true,
+  },
+  CHAT: {
+    requiresProviderRuntime: true,
+    requiresModelRuntime: true,
+  },
+  BOARD_AGENT: {
+    requiresProviderRuntime: true,
+    requiresModelRuntime: true,
+  },
+  SCAN_ANOMALIES: {
+    requiresProviderRuntime: true,
+    requiresModelRuntime: true,
+  },
+  LIVE_INTEL: {
+    requiresProviderRuntime: true,
+    requiresModelRuntime: true,
+  },
+  TTS: {
+    requiresProviderRuntime: true,
+    requiresModelRuntime: true,
+    requiresTts: true,
+  },
 };
 
 const resolveScope = (scope?: InvestigationScope): InvestigationScope => {
@@ -102,11 +138,12 @@ const resolveAdapter = async (config: SystemConfig): Promise<ProviderAdapter> =>
 
 const assertCapability = (
   adapter: ProviderAdapter,
-  operation: 'INVESTIGATE' | 'SCAN_ANOMALIES' | 'LIVE_INTEL' | 'TTS' | 'CHAT' | 'BOARD_AGENT',
+  operation: ProviderOperation,
   modelId: string
 ): void => {
   const providerMeta = getProviderOptionById(adapter.provider);
   const modelCapabilities = getEffectiveModelCapabilities(modelId);
+  const requirements = OPERATION_CAPABILITY_REQUIREMENTS[operation];
 
   if (!providerMeta) {
     throw new ProviderError({
@@ -117,15 +154,24 @@ const assertCapability = (
     });
   }
 
-  if (
-    operation === 'TTS' &&
-    (!providerMeta.capabilities.supportsTts || adapter.provider !== 'GEMINI' || !modelCapabilities)
-  ) {
+  const providerRuntimeSupported =
+    !requirements.requiresProviderRuntime || providerMeta.capabilities.runtimeStatus === 'ACTIVE';
+  const modelRuntimeSupported =
+    !requirements.requiresModelRuntime || modelCapabilities.runtimeStatus === 'ACTIVE';
+  const ttsSupported = !requirements.requiresTts || providerMeta.capabilities.supportsTts;
+
+  if (!providerRuntimeSupported || !modelRuntimeSupported || !ttsSupported) {
+    const reasons = [
+      !providerRuntimeSupported ? `${providerMeta.label} is not runtime-enabled` : null,
+      !modelRuntimeSupported ? `model ${modelId} is not runtime-enabled` : null,
+      !ttsSupported ? `${providerMeta.label} does not support TTS` : null,
+    ].filter((reason): reason is string => !!reason);
+
     throw new ProviderError({
       code: 'UNSUPPORTED_OPERATION',
       provider: adapter.provider,
       operation,
-      message: `${providerMeta.label} does not support TTS for model ${modelId}.`,
+      message: `${operation} is unavailable for ${modelId}: ${reasons.join('; ')}.`,
     });
   }
 };
@@ -349,10 +395,10 @@ export const generateAudioBriefingWithProviderRouter = async (
 
   if (!adapter.generateAudioBriefing) {
     throw new ProviderError({
-      code: 'UNSUPPORTED_OPERATION',
+      code: 'UPSTREAM_ERROR',
       provider: adapter.provider,
       operation: 'TTS',
-      message: `${adapter.provider} does not implement TTS yet.`,
+      message: `${adapter.provider} adapter is missing a TTS implementation.`,
     });
   }
 

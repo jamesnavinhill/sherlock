@@ -19,6 +19,10 @@ import {
   getLabelProfileById,
   stripLegacyWorkspacePrefix,
 } from '../../../domain';
+import {
+  getStoredLiveMonitorAutosave,
+  setStoredLiveMonitorAutosave,
+} from '../../../utils/localStorage';
 
 // Sub-components
 import { SettingsPanel } from './SettingsPanel';
@@ -75,9 +79,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
   });
 
   // Auto-Save State
-  const [autoSave, setAutoSave] = useState(() => {
-    return localStorage.getItem('sherlock_livestream_autosave') !== 'false';
-  });
+  const [autoSave, setAutoSave] = useState(() => getStoredLiveMonitorAutosave());
 
   // Event Expansion State
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
@@ -278,7 +280,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
 
   const handleAutoSaveChange = (value: boolean) => {
     setAutoSave(value);
-    localStorage.setItem('sherlock_livestream_autosave', String(value));
+    setStoredLiveMonitorAutosave(value);
   };
 
   const getFilteredEvents = () => {

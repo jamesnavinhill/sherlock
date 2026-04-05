@@ -8,8 +8,7 @@ import {
   getModelProvider,
   resolveModelSelection,
 } from './aiModels';
-
-const STORAGE_KEY = 'sherlock_config';
+import { getOptionalItem, setItem, STORAGE_KEYS } from '../utils/localStorage';
 
 const LEGACY_MODEL_IDS: Record<string, string> = {
   'gemini-2.5-flash-latest': 'gemini-2.5-flash',
@@ -38,15 +37,8 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
 };
 
 const readStoredConfigObject = (): Record<string, unknown> => {
-  if (typeof localStorage === 'undefined') return {};
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return {};
-    const parsed = JSON.parse(stored) as unknown;
-    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
-  } catch {
-    return {};
-  }
+  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.SYSTEM_CONFIG);
+  return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
 };
 
 const normalizeModelId = (modelId: unknown): string | undefined => {
@@ -140,16 +132,11 @@ export const saveSystemConfig = (
     ...partialConfig,
   });
 
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        ...existingRaw,
-        ...nextConfig,
-        ...(extraValues || {}),
-      })
-    );
-  }
+  setItem(STORAGE_KEYS.SYSTEM_CONFIG, {
+    ...existingRaw,
+    ...nextConfig,
+    ...(extraValues || {}),
+  });
 
   return nextConfig;
 };

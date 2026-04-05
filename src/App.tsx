@@ -22,6 +22,7 @@ import { buildAccentColor } from './utils/accent';
 import { buildEntityPaletteCssVars } from './utils/entityPalette';
 import { buildThemeSurfaceCssVars } from './utils/themeSurfaces';
 import { buildThemeFontCssVars } from './utils/themeFonts';
+import { createLocalId } from './utils/id';
 import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
 import { getAllScopes, getScopeById } from './data/presets';
@@ -364,7 +365,7 @@ function App() {
         parentRunId: launchRequest.parentRunId,
       };
 
-      const newTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newTaskId = createLocalId('task');
 
       const newTask: WorkspaceRun = {
         id: newTaskId,

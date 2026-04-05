@@ -92,7 +92,11 @@ export const OperationView: React.FC<OperationViewProps> = ({
   });
 
   const toggleDossierSection = (section: string) => {
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+    setOpenSections((prev) =>
+      Object.fromEntries(
+        Object.keys(prev).map((key) => [key, key === section ? !prev[section] : false])
+      )
+    );
   };
 
   // Selection State for Inspector

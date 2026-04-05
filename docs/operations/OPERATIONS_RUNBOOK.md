@@ -46,7 +46,9 @@ Adapters in scope:
 
 ## 3. Capability Constraints
 
+- Every router operation now performs the same early gate: the selected provider and model must both be runtime-enabled before the adapter call begins.
 - TTS: Gemini adapter only.
+- TTS is also provider-capability-gated at the router boundary before adapter execution.
 - Chat: all active providers support the persisted workspace chat contract for both non-streaming and streaming turns.
 - Board agent planning: all active providers now support the Sherlock board-agent planning contract for both non-streaming and streaming turns through the same BYOK provider/model selection path used by chat.
 - Chat stop/cancel: aborts the active provider request and persists the turn as cancelled if a final answer was not completed.

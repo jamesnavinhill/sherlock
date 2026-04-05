@@ -1,3 +1,5 @@
+import { getOptionalItem, setItem, STORAGE_KEYS } from '../utils/localStorage';
+
 export type AIProvider = 'GEMINI' | 'OPENROUTER' | 'OPENAI' | 'ANTHROPIC';
 export type ProviderRuntimeStatus = 'ACTIVE' | 'PLANNED';
 export type ModelCatalogSource =
@@ -70,8 +72,6 @@ interface StoredOpenRouterCatalog {
   source: Extract<ModelCatalogSource, 'OPENROUTER_CACHE' | 'OPENROUTER_LIVE'>;
 }
 
-const OPENROUTER_CATALOG_STORAGE_KEY = 'sherlock_openrouter_model_catalog_v1';
-const RECENT_MODELS_STORAGE_KEY = 'sherlock_recent_model_ids_v1';
 const OPENROUTER_CATALOG_TTL_MS = 1000 * 60 * 60 * 12;
 const OPENROUTER_MODELS_API_URL = 'https://openrouter.ai/api/v1/models';
 
@@ -468,15 +468,6 @@ const normalizeOpenRouterModel = (record: OpenRouterModelRecord): AIModelOption 
   };
 };
 
-const safeParseJson = <T>(value: string | null): T | null => {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-};
-
 const dedupeModels = (models: AIModelOption[]): AIModelOption[] => {
   const seen = new Map<string, AIModelOption>();
   for (const model of models) {
@@ -496,8 +487,7 @@ const isStoredCatalog = (value: unknown): value is StoredOpenRouterCatalog => {
 };
 
 const readCachedOpenRouterCatalog = (): StoredOpenRouterCatalog | null => {
-  if (typeof localStorage === 'undefined') return null;
-  const parsed = safeParseJson<unknown>(localStorage.getItem(OPENROUTER_CATALOG_STORAGE_KEY));
+  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.OPENROUTER_MODEL_CATALOG);
   if (!isStoredCatalog(parsed)) return null;
 
   return {
@@ -515,8 +505,7 @@ const readCachedOpenRouterCatalog = (): StoredOpenRouterCatalog | null => {
 };
 
 const writeCachedOpenRouterCatalog = (catalog: StoredOpenRouterCatalog): void => {
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(OPENROUTER_CATALOG_STORAGE_KEY, JSON.stringify(catalog));
+  setItem(STORAGE_KEYS.OPENROUTER_MODEL_CATALOG, catalog);
 };
 
 const isCatalogFresh = (catalog: StoredOpenRouterCatalog | null): boolean => {
@@ -525,8 +514,7 @@ const isCatalogFresh = (catalog: StoredOpenRouterCatalog | null): boolean => {
 };
 
 const getRecentModelIds = (): string[] => {
-  if (typeof localStorage === 'undefined') return [];
-  const parsed = safeParseJson<unknown>(localStorage.getItem(RECENT_MODELS_STORAGE_KEY));
+  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.RECENT_MODEL_IDS);
   return Array.isArray(parsed)
     ? parsed.filter(
         (entry): entry is string => typeof entry === 'string' && entry.trim().length > 0
@@ -535,8 +523,7 @@ const getRecentModelIds = (): string[] => {
 };
 
 const writeRecentModelIds = (modelIds: string[]): void => {
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(RECENT_MODELS_STORAGE_KEY, JSON.stringify(modelIds.slice(0, 8)));
+  setItem(STORAGE_KEYS.RECENT_MODEL_IDS, modelIds.slice(0, 8));
 };
 
 const getOpenRouterSnapshotCatalog = (): StoredOpenRouterCatalog => ({

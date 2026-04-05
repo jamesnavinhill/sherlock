@@ -28,6 +28,7 @@ import {
   getTemplateSelectableModels,
 } from '../../../config/aiModels';
 import { loadSystemConfig } from '../../../config/systemConfig';
+import { createLocalId } from '../../../utils/id';
 import {
   getDomainPackForScope,
   getLabelProfileById,
@@ -221,7 +222,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         : topic.trim();
 
       await addTemplate({
-        id: `tpl-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        id: createLocalId('tpl'),
         name: templateName.trim(),
         description: templateDescription.trim() || undefined,
         topic: combinedTopic,

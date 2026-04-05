@@ -138,6 +138,11 @@ const getSessionTitle = (session: ChatSession): string =>
 const LEFT_PANEL_SECTION_SCROLL_CLASS =
   'max-h-[min(20rem,calc(100svh-21rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
 
+const toggleExclusiveSection = <T extends Record<string, boolean>>(current: T, section: keyof T): T =>
+  Object.fromEntries(
+    Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
+  ) as T;
+
 const getLaunchContextSummary = (params: {
   launchContext: ChatLaunchContext | null;
   reports: Artifact[];
@@ -288,7 +293,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   const previousWorkspaceIdRef = useRef<string | null>(null);
   const [leftPanelSections, setLeftPanelSections] = useState({
     sessions: true,
-    workspace: true,
+    workspace: false,
   });
   const [rightPanelSections, setRightPanelSections] = useState({
     launchContext: true,
@@ -424,7 +429,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   }, [messages, partialAssistantOutput, guidedState]);
 
   const toggleLeftPanelSection = (section: keyof typeof leftPanelSections) => {
-    setLeftPanelSections((current) => ({ ...current, [section]: !current[section] }));
+    setLeftPanelSections((current) => toggleExclusiveSection(current, section));
   };
 
   const toggleRightPanelSection = (section: keyof typeof rightPanelSections) => {

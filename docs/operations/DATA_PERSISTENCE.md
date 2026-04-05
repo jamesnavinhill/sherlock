@@ -173,7 +173,9 @@ Current additive upgrade logic also creates `board_agent_sessions` and `board_ag
 
 ## Remaining localStorage Usage
 
-Some non-tabular values are still stored directly in localStorage:
+Some non-tabular values still live in browser storage, but runtime code now routes them through the typed helper in `src/utils/localStorage.ts` rather than feature-local `localStorage` calls.
+
+Values still kept there:
 
 - provider keys (for selected providers)
 - `sherlock_config` (system config object)
@@ -182,6 +184,11 @@ Some non-tabular values are still stored directly in localStorage:
 - `sherlock_livestream_autosave`
 - `sherlock_active_workspace_id` (archive selection hint)
 - `sherlock_demo_seed_v1_applied` (one-time demo workspace bootstrap marker)
+
+Intentional direct `localStorage` exceptions remain limited to:
+
+- provider key handling in `src/services/providers/keys.ts`
+- one-time legacy SQLite migration bootstrap in `src/services/db/migrate.ts`
 
 ## Backup/Restore
 

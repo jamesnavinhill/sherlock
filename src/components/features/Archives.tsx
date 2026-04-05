@@ -190,7 +190,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-zinc-300 truncate relative z-10 font-mono">
+                <h3 className="mb-1 truncate text-lg font-medium leading-snug text-white group-hover:text-zinc-300 relative z-10 font-sans tracking-normal">
                   {stripLegacyWorkspacePrefix(c.title)}
                 </h3>
                 <p className="text-zinc-600 text-sm font-mono mb-4">{c.dateOpened}</p>
@@ -265,7 +265,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                   <FolderOpen className="w-8 h-8" />
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-zinc-400 mb-1 group-hover:text-white font-mono uppercase">
+              <h3 className="mb-1 text-lg font-medium leading-snug text-zinc-400 group-hover:text-white font-sans tracking-normal">
                 Unassigned
               </h3>
               <p className="text-zinc-600 text-sm font-mono mb-4">{`Loose ${artifactLabelPlural}`}</p>
@@ -334,7 +334,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                     <FileText className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-zinc-200 group-hover:text-white transition-colors font-mono">
+                    <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 group-hover:text-white transition-colors">
                       {report.topic}
                     </h3>
                     <div className="mt-1 text-xs font-mono uppercase text-zinc-500">
