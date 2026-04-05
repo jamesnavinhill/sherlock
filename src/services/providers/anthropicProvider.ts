@@ -1,6 +1,8 @@
 import type { FeedItem, Artifact, MonitorEvent } from '../../types';
 import { getApiKeyOrThrow } from './keys';
 import type {
+  BoardAgentProviderRequest,
+  BoardAgentStreamOptions,
   ChatRequest,
   ChatStreamOptions,
   InvestigationRequest,
@@ -28,6 +30,11 @@ import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
 import { buildArtifactFromPayload } from './shared/artifactContract';
+import {
+  buildBoardAgentMessages,
+  createBoardAgentStreamAccumulator,
+  normalizeBoardAgentResponse,
+} from './shared/boardAgent';
 
 const PROVIDER = 'ANTHROPIC' as const;
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
@@ -302,6 +309,105 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
   );
 };
 
+const boardAgent = async (request: BoardAgentProviderRequest) => {
+  const { config } = request;
+
+  return withProviderRetry(
+    async () => {
+      const rawText = await queryAnthropic(
+        config.modelId,
+        buildBoardAgentMessages(request, 'json'),
+        {
+          maxTokens: 2200,
+        }
+      );
+
+      return normalizeBoardAgentResponse(rawText, PROVIDER, config.modelId);
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
+const streamBoardAgent = async (
+  request: BoardAgentProviderRequest,
+  options?: BoardAgentStreamOptions
+) => {
+  const { config } = request;
+
+  return withProviderRetry(
+    async () => {
+      const key = getApiKeyOrThrow(PROVIDER);
+      const accumulator = createBoardAgentStreamAccumulator(PROVIDER, config.modelId, options);
+      accumulator.start();
+      const { system, messages } = splitAnthropicMessages(buildBoardAgentMessages(request, 'tagged'));
+
+      const response = await fetch(ANTHROPIC_API_URL, {
+        method: 'POST',
+        signal: options?.signal,
+        headers: {
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: config.modelId,
+          max_tokens: 2200,
+          temperature: 0.2,
+          stream: true,
+          ...(system ? { system } : {}),
+          messages,
+        }),
+      });
+
+      if (!response.ok) {
+        const rawBody = await response.text();
+        let payload: { error?: { message?: string } } = {};
+
+        try {
+          payload = JSON.parse(rawBody) as typeof payload;
+        } catch {
+          // Fall through to generic error.
+        }
+
+        throw new Error(
+          payload.error?.message ||
+            `UPSTREAM_ERROR: Anthropic request failed with status ${response.status}`
+        );
+      }
+
+      await readSseStream(response, (event) => {
+        if (event.data === '[DONE]') return;
+
+        try {
+          const payload = JSON.parse(event.data) as {
+            type?: string;
+            delta?: { type?: string; text?: string };
+          };
+          const isDeltaEvent =
+            event.event === 'content_block_delta' || payload.type === 'content_block_delta';
+          if (!isDeltaEvent) return;
+
+          const delta = payload.delta?.type === 'text_delta' ? payload.delta.text || '' : '';
+          accumulator.push(delta);
+        } catch {
+          // Ignore malformed partial events and rely on the final response parse.
+        }
+      });
+
+      return accumulator.complete();
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
   const { region, category, dateRange, config, scope, options } = request;
   const limit = options?.limit || 8;
@@ -433,6 +539,8 @@ export const anthropicProvider: ProviderAdapter = {
   investigate,
   chat,
   streamChat,
+  boardAgent,
+  streamBoardAgent,
   scanAnomalies,
   getLiveIntel,
 };

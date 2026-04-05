@@ -8,6 +8,7 @@ import {
   Layout,
   Briefcase,
   MessageSquare,
+  PanelRight,
   Shapes,
 } from 'lucide-react';
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
@@ -31,6 +32,8 @@ interface ToolbarProps {
   labelProfile: LabelProfile;
   leftPanelOpen: boolean;
   onToggleLeftPanel: () => void;
+  rightPanelOpen?: boolean;
+  onToggleRightPanel?: () => void;
   onSelectCase: (caseId: string) => void;
   onStartNewCase: () => void;
   onSaveTemplate?: () => void;
@@ -48,6 +51,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   leftPanelOpen,
   labelProfile,
   onToggleLeftPanel,
+  rightPanelOpen = false,
+  onToggleRightPanel,
   onSelectCase,
   onStartNewCase,
   onSaveTemplate,
@@ -81,7 +86,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <div className="flex items-center space-x-4 min-w-0 flex-1">
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:flex items-center justify-center p-2 border transition-all outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
+          className={`hidden md:flex items-center justify-center border p-2 transition outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'}`}
           title="Toggle Dossier Panel (D)"
           aria-label="Toggle Dossier Panel"
         >
@@ -89,7 +94,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </button>
         <button
           onClick={onToggleLeftPanel}
-          className={`md:hidden p-2 border transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'bg-zinc-800 text-white border-white' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}
+          className={`md:hidden border p-2 transition duration-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'}`}
           title="Toggle Dossier Panel (D)"
           aria-label="Toggle Dossier Panel"
         >
@@ -97,9 +102,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </button>
         <button
           onClick={onStartNewCase}
-          className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
+          className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
         >
-          <Plus className="w-4 h-4 mr-1" />{' '}
+          <Plus className="w-4 h-4" />
           <span className="hidden lg:inline">{`New ${labelProfile.workspaceLabel}`}</span>
         </button>
         <div className="hidden md:block min-w-[180px] max-w-[220px]">
@@ -123,6 +128,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {/* Export Dropdown - show when case or report is available */}
         {(activeCase || report) && (
           <div className="flex items-center space-x-2">
+            {onToggleRightPanel && (
+              <button
+                onClick={onToggleRightPanel}
+                className={`hidden lg:flex items-center justify-center border p-2 text-xs font-mono uppercase transition ${
+                  rightPanelOpen
+                    ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+                    : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
+                }`}
+                title="Toggle Inspector Panel"
+                aria-label="Toggle Inspector Panel"
+              >
+                <PanelRight className="w-4 h-4" />
+              </button>
+            )}
             {hasContextActions && (
               <div className="relative" ref={contextMenuRef}>
                 <button

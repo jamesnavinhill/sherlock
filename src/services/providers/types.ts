@@ -2,6 +2,8 @@ import type { AIProvider } from '../../config/aiModels';
 import type {
   ArtifactEvidence,
   ArtifactProvenance,
+  BoardAgentActionType,
+  BoardAgentContextSnapshot,
   Workspace,
   ChatAttachmentKind,
   DateRangeConfig,
@@ -11,11 +13,18 @@ import type {
   InvestigationScope,
   MonitorEvent,
   PurposeProfile,
+  WorkspaceBoard,
   WorkspaceContextSnippet,
   SystemConfig,
 } from '../../types';
 
-export type ProviderOperation = 'INVESTIGATE' | 'SCAN_ANOMALIES' | 'LIVE_INTEL' | 'TTS' | 'CHAT';
+export type ProviderOperation =
+  | 'INVESTIGATE'
+  | 'SCAN_ANOMALIES'
+  | 'LIVE_INTEL'
+  | 'TTS'
+  | 'CHAT'
+  | 'BOARD_AGENT';
 
 export interface ProviderRequestContext {
   provider: AIProvider;
@@ -92,6 +101,22 @@ export interface ChatRequest {
   retrievedContext: WorkspaceContextSnippet[];
 }
 
+export interface BoardAgentStructuredAction {
+  type: BoardAgentActionType;
+  input?: Record<string, unknown>;
+  rationale?: string;
+}
+
+export interface BoardAgentProviderRequest {
+  workspace: Workspace;
+  board: Pick<WorkspaceBoard, 'id' | 'workspaceId' | 'name' | 'presentationMode'>;
+  config: SystemConfig;
+  pack: DomainPack;
+  purpose: PurposeProfile;
+  userRequest: string;
+  contextSnapshot: BoardAgentContextSnapshot;
+}
+
 export interface ChatResponse {
   content: string;
   citations: string[];
@@ -113,6 +138,16 @@ export interface ChatResponse {
   modelId: string;
 }
 
+export interface BoardAgentResponse {
+  message: string;
+  actions: BoardAgentStructuredAction[];
+  suggestedTitle?: string;
+  rawText: string;
+  provider: AIProvider;
+  modelId: string;
+  warnings?: string[];
+}
+
 export type ChatStreamEvent =
   | { type: 'START' }
   | { type: 'DELTA'; delta: string; snapshot: string }
@@ -121,6 +156,18 @@ export type ChatStreamEvent =
 export interface ChatStreamOptions {
   signal?: AbortSignal;
   onEvent?: (event: ChatStreamEvent) => void;
+}
+
+export type BoardAgentStreamEvent =
+  | { type: 'START' }
+  | { type: 'RAW_DELTA'; delta: string; snapshot: string }
+  | { type: 'MESSAGE_DELTA'; delta: string; snapshot: string }
+  | { type: 'ACTION'; action: BoardAgentStructuredAction; index: number; snapshot: string }
+  | { type: 'COMPLETE'; snapshot: string; response: BoardAgentResponse };
+
+export interface BoardAgentStreamOptions {
+  signal?: AbortSignal;
+  onEvent?: (event: BoardAgentStreamEvent) => void;
 }
 
 export interface ProviderMessage {
@@ -168,6 +215,11 @@ export interface ProviderAdapter {
   investigate: (request: InvestigationRequest) => Promise<Artifact>;
   chat: (request: ChatRequest) => Promise<ChatResponse>;
   streamChat: (request: ChatRequest, options?: ChatStreamOptions) => Promise<ChatResponse>;
+  boardAgent: (request: BoardAgentProviderRequest) => Promise<BoardAgentResponse>;
+  streamBoardAgent: (
+    request: BoardAgentProviderRequest,
+    options?: BoardAgentStreamOptions
+  ) => Promise<BoardAgentResponse>;
   scanAnomalies: (request: ScanAnomaliesRequest) => Promise<FeedItem[]>;
   getLiveIntel: (request: LiveIntelRequest) => Promise<MonitorEvent[]>;
   generateAudioBriefing?: (request: TtsRequest) => Promise<string>;
@@ -223,6 +275,16 @@ export interface RouterChatRequest {
   recentArtifacts: Array<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr'>>;
   recentHeadlines: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
   retrievedContext: WorkspaceContextSnippet[];
+}
+
+export interface RouterBoardAgentRequest {
+  workspace: Workspace;
+  board: Pick<WorkspaceBoard, 'id' | 'workspaceId' | 'name' | 'presentationMode'>;
+  configOverride?: Partial<SystemConfig>;
+  packId?: string;
+  purposeId?: string;
+  userRequest: string;
+  contextSnapshot: BoardAgentContextSnapshot;
 }
 
 export type NormalizedDateRangeConfig = DateRangeConfig | undefined;

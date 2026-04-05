@@ -548,6 +548,11 @@ export const OperationView: React.FC<OperationViewProps> = ({
           setLeftPanelOpen(!leftPanelOpen);
           if (window.innerWidth <= 1024) setRightPanelOpen(false);
         }}
+        rightPanelOpen={rightPanelOpen}
+        onToggleRightPanel={() => {
+          setRightPanelOpen((current) => !current);
+          if (window.innerWidth <= 1024) setLeftPanelOpen(false);
+        }}
         onSelectCase={handleCaseSelect}
         onStartNewCase={() => setIsNewCaseModalOpen(true)}
         onSaveTemplate={handleSaveTemplate}

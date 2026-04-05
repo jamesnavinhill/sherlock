@@ -13,6 +13,7 @@ import {
   Loader2,
   StopCircle,
   Link2,
+  PanelRight,
   ShieldAlert,
 } from 'lucide-react';
 import type { ComponentProps, ReactElement } from 'react';
@@ -58,6 +59,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   onEntityClick,
 }) => {
   // --- Right Column Accordions State ---
+  const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(true);
   const [sidebarAccordions, setSidebarAccordions] = useState({
     anomalies: true,
     entities: true,
@@ -260,20 +262,37 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       ((section.content && section.content.trim().length > 0) ||
         (section.items && section.items.length > 0))
   );
+  const mainColumnClassName = isDetailSidebarOpen
+    ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
+    : 'flex-1 h-full overflow-y-auto custom-scrollbar';
 
   return (
     <div className="flex-1 flex overflow-hidden bg-black relative animate-in fade-in duration-500">
       {/* MAIN COLUMN (Title, Exec Summary, Leads) - 3/4 Width */}
-      <div className="w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800">
+      <div className={mainColumnClassName}>
         {/* Sticky Header */}
         <div className="sticky top-0 z-20 px-6 py-4 bg-black/90 backdrop-blur-md border-b border-zinc-800 osint-header-shadow">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
             <Breadcrumbs items={navStack} onNavigate={onNavigate} />
-            {report.dateStr && (
-              <p className="mt-2 md:mt-0 text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">
-                LOG DATE: {report.dateStr}
-              </p>
-            )}
+            <div className="mt-2 md:mt-0 flex items-center gap-3">
+              {report.dateStr && (
+                <p className="text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">
+                  LOG DATE: {report.dateStr}
+                </p>
+              )}
+              <button
+                onClick={() => setIsDetailSidebarOpen((current) => !current)}
+                className={`hidden md:flex items-center justify-center border p-2 transition ${
+                  isDetailSidebarOpen
+                    ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+                    : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
+                }`}
+                title="Toggle Report Sidebar"
+                aria-label="Toggle Report Sidebar"
+              >
+                <PanelRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <div className="min-w-0">
             <EditableTitle
@@ -447,7 +466,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       </div>
 
       {/* RIGHT SIDE COLUMN (Anomalies, Entities, Resources) - 1/4 Width */}
-      <div className="w-1/4 h-full overflow-y-auto p-2 bg-zinc-900/10 custom-scrollbar">
+      {isDetailSidebarOpen && (
+        <div className="w-1/4 h-full overflow-y-auto p-2 bg-zinc-900/10 custom-scrollbar">
         {/* Anomalies */}
         <Accordion
           title={`${labelProfile.anomalyLabel} (${visibleAnomalies.length})`}
@@ -566,7 +586,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             )}
           </div>
         </Accordion>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

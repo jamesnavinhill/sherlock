@@ -1,6 +1,8 @@
 import type { FeedItem, Artifact, MonitorEvent } from '../../types';
 import { getApiKeyOrThrow } from './keys';
 import type {
+  BoardAgentProviderRequest,
+  BoardAgentStreamOptions,
   ChatRequest,
   ChatStreamOptions,
   InvestigationRequest,
@@ -28,6 +30,11 @@ import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
 import { buildArtifactFromPayload } from './shared/artifactContract';
+import {
+  buildBoardAgentMessages,
+  createBoardAgentStreamAccumulator,
+  normalizeBoardAgentResponse,
+} from './shared/boardAgent';
 
 const PROVIDER = 'OPENAI' as const;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -274,6 +281,100 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
   );
 };
 
+const boardAgent = async (request: BoardAgentProviderRequest) => {
+  const { config } = request;
+
+  return withProviderRetry(
+    async () => {
+      const rawText = await queryOpenAI(
+        config.modelId,
+        buildBoardAgentMessages(request, 'json'),
+        {
+          maxTokens: 2200,
+          expectJson: true,
+        }
+      );
+
+      return normalizeBoardAgentResponse(rawText, PROVIDER, config.modelId);
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
+const streamBoardAgent = async (
+  request: BoardAgentProviderRequest,
+  options?: BoardAgentStreamOptions
+) => {
+  const { config } = request;
+
+  return withProviderRetry(
+    async () => {
+      const key = getApiKeyOrThrow(PROVIDER);
+      const accumulator = createBoardAgentStreamAccumulator(PROVIDER, config.modelId, options);
+      accumulator.start();
+
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        signal: options?.signal,
+        headers: {
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: config.modelId,
+          messages: buildBoardAgentMessages(request, 'tagged'),
+          max_tokens: 2200,
+          temperature: 0.2,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const rawBody = await response.text();
+        let payload: { error?: { message?: string } } = {};
+
+        try {
+          payload = JSON.parse(rawBody) as typeof payload;
+        } catch {
+          // Fall through to generic error.
+        }
+
+        throw new Error(
+          payload.error?.message ||
+            `UPSTREAM_ERROR: OpenAI request failed with status ${response.status}`
+        );
+      }
+
+      await readSseStream(response, (event) => {
+        if (event.data === '[DONE]') return;
+
+        try {
+          const payload = JSON.parse(event.data) as {
+            choices?: Array<{ delta?: { content?: unknown }; text?: unknown }>;
+          };
+          const delta = toDisplayText(
+            payload.choices?.[0]?.delta?.content ?? payload.choices?.[0]?.text
+          );
+          accumulator.push(delta);
+        } catch {
+          // Ignore malformed partial events and rely on the final response parse.
+        }
+      });
+
+      return accumulator.complete();
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
   const { region, category, dateRange, config, scope, options } = request;
   const limit = options?.limit || 8;
@@ -407,6 +508,8 @@ export const openAIProvider: ProviderAdapter = {
   investigate,
   chat,
   streamChat,
+  boardAgent,
+  streamBoardAgent,
   scanAnomalies,
   getLiveIntel,
 };

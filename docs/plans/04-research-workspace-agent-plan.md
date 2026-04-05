@@ -9,15 +9,21 @@ Completed on April 5, 2026 in the current codebase:
 
 - Stream 0 groundwork is now in place through Sherlock-owned board-agent domain and context modules under `src/services/workspace/agent/*`
 - Stream 1 foundations are now implemented with persisted `board_agent_sessions` and `board_agent_actions`, repository support, store integration, and workspace backup/restore coverage
-- initial Stream 2 read-only context assembly is now implemented with:
+- Stream 2 is now implemented for the current planning slice with:
   - board snapshot parsing independent of React editor bindings
   - bounded prompt-part context assembly for request, viewport, selection, visible shapes, peripheral clusters, linked records, and recent board-agent history
+  - a reusable board-agent runtime wrapper that converts board state into provider-ready requests
   - focused tests for repository, store/backup wiring, and context packing
+- Stream 3 is now implemented for planning mode with:
+  - provider-router `BOARD_AGENT` request support
+  - provider adapter methods for Gemini, OpenRouter, OpenAI, and Anthropic
+  - explicit structured action normalization plus streaming action/message events via a Sherlock-owned tagged protocol
+  - reuse of the existing BYOK config, model routing, retry, and logging paths
 
 Remaining near-term work after this checkpoint:
 
-- Stream 3 provider-router board-agent streaming path
 - initial Stream 4 safe execution registry and sanitization layer
+- board-side integration that consumes the new runtime for visible user tasks
 - board-side task log and session UX
 
 ## Objective
@@ -517,7 +523,7 @@ This stream does not aim to:
 
 #### 1. Add board prompt-part definitions
 
-Status: Initial read-only implementation completed on April 5, 2026.
+Status: Completed for the current planning slice on April 5, 2026.
 
 Primary files:
 
@@ -550,7 +556,7 @@ If not:
 
 #### 3. Build linked Sherlock context hydration
 
-Status: Initial read-only implementation completed on April 5, 2026.
+Status: Completed for the current planning slice on April 5, 2026.
 
 Primary files:
 
@@ -569,7 +575,7 @@ The board agent should be able to see:
 
 #### 4. Bound context size explicitly
 
-Status: Initial read-only implementation completed on April 5, 2026.
+Status: Completed for the current planning slice on April 5, 2026.
 
 Rules:
 
@@ -609,6 +615,8 @@ This stream does not aim to:
 
 #### 1. Add a board-agent provider operation
 
+Status: Completed on April 5, 2026.
+
 Primary files:
 
 - `src/services/providers/types.ts`
@@ -621,6 +629,8 @@ Recommended additions:
 - response stream event type for structured actions
 
 #### 2. Add adapter methods
+
+Status: Completed on April 5, 2026.
 
 Primary files:
 
@@ -640,6 +650,8 @@ Important design point:
 
 #### 3. Reuse existing configuration and key handling
 
+Status: Completed on April 5, 2026.
+
 Rules:
 
 - no second settings UI for the board agent
@@ -647,6 +659,8 @@ Rules:
 - no separate model registry unless there is a clear technical need
 
 #### 4. Decide rollout order
+
+Status: Completed for the initial provider-agnostic planning pass on April 5, 2026.
 
 Recommendation:
 
@@ -856,6 +870,15 @@ Status: Initial implementation completed on April 5, 2026.
 Outcome:
 
 - board agent can stream and execute low-risk board actions on `main`
+
+Status: Partially complete on April 5, 2026.
+What landed:
+
+- Stream 3 provider-router planning and structured streaming
+
+What remains:
+
+- Stream 4 execution registry, sanitization, and editor bindings
 
 ### Slice C: Sherlock-Aware Value
 

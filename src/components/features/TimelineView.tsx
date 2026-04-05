@@ -674,8 +674,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             onClick={() => setLeftPanelOpen((current) => !current)}
             className={`flex shrink-0 items-center justify-center border p-2 text-xs font-mono uppercase transition ${
               leftPanelOpen
-                ? 'border-white bg-zinc-800 text-white'
-                : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+                : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
             }`}
             title="Toggle timeline dossier"
           >
@@ -858,8 +858,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             onClick={() => setRightPanelOpen((current) => !current)}
             className={`flex shrink-0 items-center justify-center border p-2 text-xs font-mono uppercase transition ${
               rightPanelOpen
-                ? 'border-white bg-zinc-800 text-white'
-                : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+                : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
             }`}
             title="Toggle event details"
           >

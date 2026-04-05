@@ -382,6 +382,36 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </div>
         </div>
       )}
+
+      {!mode && (
+        <div className="flex h-full flex-col">
+          <div className="flex items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4 flex-shrink-0">
+            <div className="min-w-0 pr-3">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 font-mono">
+                Inspector
+              </div>
+              <h3 className="text-base font-bold text-white font-mono">No Item Selected</h3>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-zinc-500 hover:text-white transition-colors flex-shrink-0"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="flex-1 p-6 flex items-center justify-center">
+            <div className="max-w-xs border border-zinc-800 bg-zinc-900/40 p-5 text-center">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-3">
+                Inspector Ready
+              </div>
+              <p className="text-sm leading-relaxed text-zinc-300">
+                Select an entity or saved signal to inspect details here.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

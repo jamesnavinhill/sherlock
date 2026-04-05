@@ -8,6 +8,8 @@ import type {
 import { getEffectiveModelCapabilities } from '../../config/aiModels';
 import { getApiKeyOrThrow } from './keys';
 import type {
+  BoardAgentProviderRequest,
+  BoardAgentStreamOptions,
   ChatRequest,
   ChatStreamOptions,
   InvestigationRequest,
@@ -30,6 +32,11 @@ import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
 import { buildArtifactFromPayload } from './shared/artifactContract';
+import {
+  buildBoardAgentMessages,
+  createBoardAgentStreamAccumulator,
+  normalizeBoardAgentResponse,
+} from './shared/boardAgent';
 
 const PROVIDER = 'OPENROUTER' as const;
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -559,6 +566,116 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
   );
 };
 
+const boardAgent = async (request: BoardAgentProviderRequest) => {
+  const { config } = request;
+  const capabilities = getEffectiveModelCapabilities(config.modelId);
+
+  return withProviderRetry(
+    async () => {
+      const completion = await queryOpenRouter(
+        config.modelId,
+        buildBoardAgentMessages(request, 'json'),
+        {
+          maxTokens: 2200,
+          expectJson: capabilities.supportsStructuredOutput,
+        }
+      );
+
+      return {
+        ...normalizeBoardAgentResponse(completion.rawText, PROVIDER, config.modelId),
+        warnings: completion.warnings,
+      };
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
+const streamBoardAgent = async (
+  request: BoardAgentProviderRequest,
+  options?: BoardAgentStreamOptions
+) => {
+  const { config } = request;
+
+  return withProviderRetry(
+    async () => {
+      const key = getApiKeyOrThrow(PROVIDER);
+      const accumulator = createBoardAgentStreamAccumulator(PROVIDER, config.modelId, options);
+      accumulator.start();
+
+      const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        signal: options?.signal,
+        headers: {
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
+          'X-OpenRouter-Title': 'Sherlock AI',
+        },
+        body: JSON.stringify({
+          model: config.modelId,
+          messages: buildBoardAgentMessages(request, 'tagged'),
+          max_tokens: 2200,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const rawBody = await response.text();
+        let payload: { error?: { message?: string } } = {};
+
+        try {
+          payload = JSON.parse(rawBody) as typeof payload;
+        } catch {
+          // Fall through to generic error.
+        }
+
+        throw new Error(
+          payload.error?.message ||
+            `UPSTREAM_ERROR: OpenRouter request failed with status ${response.status}`
+        );
+      }
+
+      await readSseStream(response, (event) => {
+        if (event.data === '[DONE]') return;
+
+        try {
+          const payload = JSON.parse(event.data) as {
+            choices?: Array<{
+              delta?: { content?: unknown };
+              message?: { content?: unknown };
+              text?: unknown;
+            }>;
+          };
+
+          const delta = toDisplayText(
+            payload.choices?.[0]?.delta?.content ??
+              payload.choices?.[0]?.message?.content ??
+              payload.choices?.[0]?.text
+          );
+          accumulator.push(delta);
+        } catch {
+          // Ignore malformed partial events and rely on the final response parse.
+        }
+      });
+
+      const normalized = accumulator.complete();
+      return {
+        ...normalized,
+        warnings: [],
+      };
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
   const { region, category, dateRange, config, scope, options } = request;
   const limit = options?.limit || 8;
@@ -699,6 +816,8 @@ export const openRouterProvider: ProviderAdapter = {
   investigate,
   chat,
   streamChat,
+  boardAgent,
+  streamBoardAgent,
   scanAnomalies,
   getLiveIntel,
 };

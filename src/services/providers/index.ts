@@ -20,8 +20,11 @@ import type {
 import { ProviderError } from './shared/errors';
 import { logProviderDebug } from './shared/logging';
 import type {
+  BoardAgentResponse,
+  BoardAgentStreamOptions,
   LiveIntelConfig,
   ProviderAdapter,
+  RouterBoardAgentRequest,
   RouterChatRequest,
   RouterInvestigationRequest,
   RouterLiveIntelRequest,
@@ -99,7 +102,7 @@ const resolveAdapter = async (config: SystemConfig): Promise<ProviderAdapter> =>
 
 const assertCapability = (
   adapter: ProviderAdapter,
-  operation: 'INVESTIGATE' | 'SCAN_ANOMALIES' | 'LIVE_INTEL' | 'TTS' | 'CHAT',
+  operation: 'INVESTIGATE' | 'SCAN_ANOMALIES' | 'LIVE_INTEL' | 'TTS' | 'CHAT' | 'BOARD_AGENT',
   modelId: string
 ): void => {
   const providerMeta = getProviderOptionById(adapter.provider);
@@ -215,6 +218,66 @@ export const streamChatWithProviderRouter = async (
       recentArtifacts: request.recentArtifacts,
       recentHeadlines: request.recentHeadlines,
       retrievedContext: request.retrievedContext,
+    },
+    options
+  );
+};
+
+export const boardAgentWithProviderRouter = async (
+  request: RouterBoardAgentRequest
+): Promise<BoardAgentResponse> => {
+  const config = resolveEffectiveConfig(request.configOverride);
+  const adapter = await resolveAdapter(config);
+  const scope = resolveWorkspaceScope(request.workspace.scopeId);
+  const pack = resolvePack(scope, request.packId || request.workspace.packId);
+  const purpose = resolvePurpose(pack, request.purposeId || request.workspace.purposeId);
+  assertCapability(adapter, 'BOARD_AGENT', config.modelId);
+
+  logProviderDebug({
+    provider: adapter.provider,
+    modelId: config.modelId,
+    operation: 'BOARD_AGENT',
+    retryCount: 0,
+  });
+
+  return adapter.boardAgent({
+    workspace: request.workspace,
+    board: request.board,
+    config,
+    pack,
+    purpose,
+    userRequest: request.userRequest,
+    contextSnapshot: request.contextSnapshot,
+  });
+};
+
+export const streamBoardAgentWithProviderRouter = async (
+  request: RouterBoardAgentRequest,
+  options?: BoardAgentStreamOptions
+): Promise<BoardAgentResponse> => {
+  const config = resolveEffectiveConfig(request.configOverride);
+  const adapter = await resolveAdapter(config);
+  const scope = resolveWorkspaceScope(request.workspace.scopeId);
+  const pack = resolvePack(scope, request.packId || request.workspace.packId);
+  const purpose = resolvePurpose(pack, request.purposeId || request.workspace.purposeId);
+  assertCapability(adapter, 'BOARD_AGENT', config.modelId);
+
+  logProviderDebug({
+    provider: adapter.provider,
+    modelId: config.modelId,
+    operation: 'BOARD_AGENT',
+    retryCount: 0,
+  });
+
+  return adapter.streamBoardAgent(
+    {
+      workspace: request.workspace,
+      board: request.board,
+      config,
+      pack,
+      purpose,
+      userRequest: request.userRequest,
+      contextSnapshot: request.contextSnapshot,
     },
     options
   );

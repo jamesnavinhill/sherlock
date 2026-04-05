@@ -17,8 +17,10 @@ What is clearly live in the codebase now:
 
 - canonical workspace runtime behavior under `Workspace -> Artifact -> WorkspaceRun`
 - multi-provider investigate/chat support across Gemini, OpenRouter, OpenAI, and Anthropic
+- multi-provider board-agent planning support across Gemini, OpenRouter, OpenAI, and Anthropic through the same BYOK router
 - persisted workspace chat sessions, message history, action traces, transcript export, and guided run building
 - a first-class multi-board Research Workspace built on `tldraw`, with canonical workspace items plus separate board-document persistence
+- Sherlock-owned board-agent groundwork with persisted board-agent sessions/actions, bounded board prompt-part assembly, and provider-router structured planning streams
 - Timeline as a first-class routed feature with signal/run/artifact chronology, curated chat and entity tracks, and snapshot export/save flows
 - workspace-data export/import/clear behavior for workspaces, artifacts, runs, chat, research boards, canonical workspace items, graph data, templates, and saved signals
 - active runtime/store surfaces now use `useWorkspaceStore`, `workspaces`, `artifacts`, `workspaceRuns`, and `activeWorkspaceId`

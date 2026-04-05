@@ -67,7 +67,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
       <div className="flex items-center space-x-4 min-w-0 flex-1">
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:flex items-center justify-center p-2 border transition-all ${showLeftPanel ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white'}`}
+          className={`hidden md:flex items-center justify-center border p-2 transition ${showLeftPanel ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'}`}
         >
           <Briefcase className="w-4 h-4" />
         </button>

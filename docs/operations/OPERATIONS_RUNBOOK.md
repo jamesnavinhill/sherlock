@@ -4,6 +4,7 @@ This runbook covers runtime incidents in the provider router pipeline as surface
 
 - `INVESTIGATE`
 - `CHAT`
+- `BOARD_AGENT`
 - `SCAN_ANOMALIES`
 - `LIVE_INTEL`
 - `TTS`
@@ -47,8 +48,11 @@ Adapters in scope:
 
 - TTS: Gemini adapter only.
 - Chat: all active providers support the persisted workspace chat contract for both non-streaming and streaming turns.
+- Board agent planning: all active providers now support the Sherlock board-agent planning contract for both non-streaming and streaming turns through the same BYOK provider/model selection path used by chat.
 - Chat stop/cancel: aborts the active provider request and persists the turn as cancelled if a final answer was not completed.
+- Board agent stop/cancel: aborts the active provider request before action execution. At this stage the runtime only returns planned actions; Stream 4 execution/sanitization still remains the next slice.
 - Chat actions: retrieval/save/follow-up operations are persisted in `chat_actions`; use them when confirming what the system actually did for a user.
+- Board agent actions: provider output is now normalized into explicit structured action proposals. When debugging planning issues, capture the streamed/provider-normalized action payload rather than only the rendered message text.
 - Research Workspace AI actions: selection summaries and drafted board notes reuse the same provider router with explicit manual triggers only. Failures surface inline/toast-side and do not auto-reorganize the board or create silent persistence side effects. Presentation mode blocks board-mutating placement flows until the operator returns the board to edit mode.
 - Timeline audit: persisted chat sessions and high-signal `chat_actions` now surface in `Timeline`, so operator verification can cross-check Chat's action log against the workspace chronology.
 - Thinking budget: model-gated. Do not assume it is available just because the provider supports some reasoning-capable models.
@@ -85,6 +89,7 @@ Current adapter behavior:
 
 - `INVESTIGATE`: fails hard on provider errors (no simulated artifact fallback).
 - `CHAT`: fails hard on provider or retrieval errors (no simulated transcript fallback). Streaming turns follow the same rule and only keep the partial text if the user explicitly stopped the run.
+- `BOARD_AGENT`: fails hard on provider or context-assembly errors (no simulated planning fallback). Streaming board-agent runs emit partial message/action events when available, but no action execution occurs yet in the provider layer.
 - `SCAN_ANOMALIES` and `LIVE_INTEL`: return simulated fallback items for non-key failures.
 - `MISSING_API_KEY`: does not fallback; error is surfaced.
 - invalid or unavailable saved model ids now fall back to the nearest runtime-valid selection, except OpenRouter manual slugs which are preserved intentionally.

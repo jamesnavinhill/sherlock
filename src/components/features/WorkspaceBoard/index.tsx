@@ -1001,8 +1001,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             onClick={() => setLeftPanelOpen((current) => !current)}
             className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition md:inline-flex ${
               leftPanelOpen
-                ? 'border-white bg-zinc-800 text-white'
-                : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+                : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
             }`}
           >
             <Briefcase className="h-4 w-4" />
@@ -1064,8 +1064,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             onClick={() => setRightPanelOpen((current) => !current)}
             className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition xl:inline-flex ${
               rightPanelOpen
-                ? 'border-white bg-zinc-800 text-white'
-                : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+                : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
             }`}
             title="Toggle Inspector Panel"
           >

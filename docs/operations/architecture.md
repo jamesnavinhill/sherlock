@@ -121,8 +121,11 @@ Key behavior:
 - router enforces provider/model alignment and capability checks
 - router resolves a pack and purpose profile for each run
 - router now exposes a sibling `CHAT` runtime path for workspace-grounded conversational turns
+- router now exposes a sibling `BOARD_AGENT` runtime path for workspace-board planning turns with structured action outputs
 - router now exposes both non-streaming and streaming chat paths with a provider-agnostic event envelope and abort support
+- router now exposes both non-streaming and streaming board-agent paths with structured action events parsed from a Sherlock-owned tagged protocol
 - adapters now share a stronger request/response shape for both chat and artifact generation, including model-aware capability handling and warning surfaces
+- adapters now share a board-agent planning contract that keeps BYOK/model selection aligned with the rest of the app instead of introducing a separate board-only provider stack
 - adapters return typed artifact sections plus compatibility `summary`, `agendas`, `leads`, and `followUps`
 - chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations/provenance
 - TTS is only implemented on Gemini adapter
@@ -218,6 +221,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - drag/drop or click-to-place flows from canonical library into the active board
 - presentation mode plus manual-first AI actions for selection summaries and drafted board notes
 - Sherlock-owned board-agent groundwork under `src/services/workspace/agent/*`, including pure snapshot parsing and prompt-part context assembly for selected, visible, and linked board state
+- a board-agent runtime wrapper that turns persisted board state plus bounded prompt parts into provider-router `BOARD_AGENT` requests
 - cross-surface placement handoff respects presentation mode rather than mutating readonly boards
 - inspector actions back into reports, workspace chat, timeline, network graph, source links, and promoted-item provenance
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system

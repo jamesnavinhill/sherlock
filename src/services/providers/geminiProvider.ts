@@ -2,6 +2,8 @@ import { GoogleGenAI, HarmBlockThreshold, HarmCategory, Modality, Type } from '@
 import type { FeedItem, Artifact, MonitorEvent, Source } from '../../types';
 import { getApiKeyOrThrow } from './keys';
 import type {
+  BoardAgentProviderRequest,
+  BoardAgentStreamOptions,
   ChatRequest,
   ChatStreamOptions,
   InvestigationRequest,
@@ -36,6 +38,11 @@ import { withProviderRetry } from './shared/retry';
 import { createChatStreamAccumulator } from './shared/streaming';
 import { getCachedGeminiClient, setCachedGeminiClient } from './geminiClientState';
 import { buildArtifactFromPayload } from './shared/artifactContract';
+import {
+  buildBoardAgentPromptWithFormat,
+  createBoardAgentStreamAccumulator,
+  normalizeBoardAgentResponse,
+} from './shared/boardAgent';
 
 const PROVIDER = 'GEMINI' as const;
 
@@ -299,6 +306,92 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
   );
 };
 
+const boardAgent = async (request: BoardAgentProviderRequest) => {
+  const { config } = request;
+  const useStructuredOutput = supportsStructuredOutput(config.modelId);
+
+  return withProviderRetry(
+    async () => {
+      const ai = getAI();
+      const response = await ai.models.generateContent({
+        model: config.modelId,
+        contents: buildBoardAgentPromptWithFormat(request, 'json'),
+        config: {
+          ...(useStructuredOutput
+            ? {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                    message: { type: Type.STRING },
+                    actions: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          type: { type: Type.STRING },
+                          rationale: { type: Type.STRING },
+                        },
+                        required: ['type'],
+                      },
+                    },
+                    suggestedTitle: { type: Type.STRING },
+                  },
+                  required: ['message', 'actions'],
+                },
+              }
+            : {}),
+          thinkingConfig:
+            config.thinkingBudget > 0 ? { thinkingBudget: config.thinkingBudget } : undefined,
+          safetySettings: SAFETY_SETTINGS,
+        },
+      });
+
+      return normalizeBoardAgentResponse(response.text || '', PROVIDER, config.modelId);
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
+const streamBoardAgent = async (
+  request: BoardAgentProviderRequest,
+  options?: BoardAgentStreamOptions
+) => {
+  const { config } = request;
+
+  return withProviderRetry(
+    async () => {
+      const ai = getAI();
+      const accumulator = createBoardAgentStreamAccumulator(PROVIDER, config.modelId, options);
+      accumulator.start();
+      const stream = await ai.models.generateContentStream({
+        model: config.modelId,
+        contents: buildBoardAgentPromptWithFormat(request, 'tagged'),
+        config: {
+          thinkingConfig:
+            config.thinkingBudget > 0 ? { thinkingBudget: config.thinkingBudget } : undefined,
+          safetySettings: SAFETY_SETTINGS,
+        },
+      });
+
+      for await (const chunk of stream) {
+        accumulator.push(chunk.text || '');
+      }
+
+      return accumulator.complete();
+    },
+    {
+      provider: PROVIDER,
+      modelId: config.modelId,
+      operation: 'BOARD_AGENT',
+    }
+  );
+};
+
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
   const { region, category, dateRange, config, scope, options } = request;
   const useStructuredOutput = supportsStructuredOutput(config.modelId);
@@ -552,6 +645,8 @@ export const geminiProvider: ProviderAdapter = {
   investigate,
   chat,
   streamChat,
+  boardAgent,
+  streamBoardAgent,
   scanAnomalies,
   getLiveIntel,
   generateAudioBriefing,
