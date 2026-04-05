@@ -164,18 +164,6 @@ const clipBoardCardText = (value: string | undefined, maxLength: number) => {
   return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
 };
 
-const getBoardCardUrlText = (value: string | undefined) => {
-  if (!value) return '';
-
-  try {
-    const parsed = new URL(value);
-    const path = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, '');
-    return `${parsed.hostname}${path}`;
-  } catch {
-    return clipBoardCardText(value, 120);
-  }
-};
-
 const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec => {
   switch (entry.kind) {
     case 'ARTIFACT':
