@@ -45,7 +45,10 @@ export const detectEntityClusters = (
       if (coreA === coreB && coreA.length > 0) isMatch = true;
 
       if (!isMatch && coreA.length > 3 && coreB.length > 3) {
-        if ((coreA.includes(coreB) || coreB.includes(coreA)) && Math.min(coreA.length, coreB.length) > 4) {
+        if (
+          (coreA.includes(coreB) || coreB.includes(coreA)) &&
+          Math.min(coreA.length, coreB.length) > 4
+        ) {
           isMatch = true;
         }
       }

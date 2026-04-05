@@ -24,22 +24,15 @@ const normalizeLabelToken = (label: string) =>
     .replace(/[^A-Z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
 
-const getWorkspaceLabelProfile = (
-  caseObj?: Workspace,
-  reports: Artifact[] = []
-): LabelProfile => {
+const getWorkspaceLabelProfile = (caseObj?: Workspace, reports: Artifact[] = []): LabelProfile => {
   return getLabelProfileById(
-    caseObj?.labelProfileId
-    || reports[0]?.labelProfileId
-    || reports[0]?.config?.labelProfileId
+    caseObj?.labelProfileId || reports[0]?.labelProfileId || reports[0]?.config?.labelProfileId
   );
 };
 
 const getArtifactLabelProfile = (report: Artifact, caseObj?: Workspace): LabelProfile => {
   return getLabelProfileById(
-    report.labelProfileId
-    || report.config?.labelProfileId
-    || caseObj?.labelProfileId
+    report.labelProfileId || report.config?.labelProfileId || caseObj?.labelProfileId
   );
 };
 
@@ -119,20 +112,24 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
 
   const allSources = reports.flatMap((report) => report.sources || []);
 
-  const entityTagsHtml = Array.from(allEntityNames).map((entityName) => {
-    let className = 'entity-tag';
-    let prefix = '';
-    if (people.has(entityName)) {
-      className += ' person';
-      prefix = '[P] ';
-    } else if (organizations.has(entityName)) {
-      className += ' org';
-      prefix = '[O] ';
-    }
-    return `<span class="${className}">${prefix}${entityName}</span>`;
-  }).join('');
+  const entityTagsHtml = Array.from(allEntityNames)
+    .map((entityName) => {
+      let className = 'entity-tag';
+      let prefix = '';
+      if (people.has(entityName)) {
+        className += ' person';
+        prefix = '[P] ';
+      } else if (organizations.has(entityName)) {
+        className += ' org';
+        prefix = '[O] ';
+      }
+      return `<span class="${className}">${prefix}${entityName}</span>`;
+    })
+    .join('');
 
-  const reportsHtml = reports.map((report, idx) => `
+  const reportsHtml = reports
+    .map(
+      (report, idx) => `
     <div class="page page-break">
       <div class="report-section">
         <h3>${labelProfile.artifactLabel.toUpperCase()} #${idx + 1}: ${report.topic}</h3>
@@ -143,30 +140,44 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
           ${report.summary}
         </div>
 
-        ${report.agendas && report.agendas.length > 0 ? `
+        ${
+          report.agendas && report.agendas.length > 0
+            ? `
         <div style="margin-bottom: 20px;">
           <strong>Key Findings:</strong>
           <ul>
             ${report.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
           </ul>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
 
-        ${report.leads && report.leads.length > 0 ? `
+        ${
+          report.leads && report.leads.length > 0
+            ? `
         <div style="margin-bottom: 20px;">
           <strong>${labelProfile.followUpLabel}:</strong>
           <ul>
             ${report.leads.map((lead) => `<li>${lead}</li>`).join('')}
           </ul>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
 
-        ${report.sources && report.sources.length > 0 ? `
+        ${
+          report.sources && report.sources.length > 0
+            ? `
         <div style="margin-top: 30px; padding-top: 10px; border-top: 1px dashed #ccc;">
           <strong>Source Evidence:</strong>
           ${report.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
-        </div>` : ''}
+        </div>`
+            : ''
+        }
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -228,20 +239,22 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
   const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
 
-  const entityTagsHtml = (report.entities || []).map((entity) => {
-    const name = typeof entity === 'string' ? entity : entity.name;
-    const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
-    let className = 'entity-tag';
-    let prefix = '';
-    if (type === 'PERSON') {
-      className += ' person';
-      prefix = '[P] ';
-    } else if (type === 'ORGANIZATION') {
-      className += ' org';
-      prefix = '[O] ';
-    }
-    return `<span class="${className}">${prefix}${name}</span>`;
-  }).join('');
+  const entityTagsHtml = (report.entities || [])
+    .map((entity) => {
+      const name = typeof entity === 'string' ? entity : entity.name;
+      const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
+      let className = 'entity-tag';
+      let prefix = '';
+      if (type === 'PERSON') {
+        className += ' person';
+        prefix = '[P] ';
+      } else if (type === 'ORGANIZATION') {
+        className += ' org';
+        prefix = '[O] ';
+      }
+      return `<span class="${className}">${prefix}${name}</span>`;
+    })
+    .join('');
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -267,26 +280,38 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
         <h2>Executive Summary</h2>
         <p>${report.summary}</p>
 
-        ${report.agendas && report.agendas.length > 0 ? `
+        ${
+          report.agendas && report.agendas.length > 0
+            ? `
         <h2>Key Findings</h2>
         <ul>
           ${report.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
-        </ul>` : ''}
+        </ul>`
+            : ''
+        }
 
-        ${report.leads && report.leads.length > 0 ? `
+        ${
+          report.leads && report.leads.length > 0
+            ? `
         <h2>${labelProfile.followUpLabel}</h2>
         <ul>
           ${report.leads.map((lead) => `<li>${lead}</li>`).join('')}
-        </ul>` : ''}
+        </ul>`
+            : ''
+        }
 
         <h2>Identified Entities</h2>
         <div>${entityTagsHtml || '<em>No entities detected.</em>'}</div>
 
-        ${report.sources && report.sources.length > 0 ? `
+        ${
+          report.sources && report.sources.length > 0
+            ? `
         <h2>Source Evidence</h2>
         <div>
           ${report.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
-        </div>` : ''}
+        </div>`
+            : ''
+        }
       </div>
 
       <div class="footer">
@@ -299,11 +324,7 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
   downloadFile(htmlContent, `${artifactToken}_${report.id || 'unknown'}_DOSSIER.html`, 'text/html');
 };
 
-const formatReportMarkdown = (
-  report: Artifact,
-  labelProfile: LabelProfile,
-  idx?: number
-) => {
+const formatReportMarkdown = (report: Artifact, labelProfile: LabelProfile, idx?: number) => {
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
 
   return `
@@ -313,17 +334,29 @@ const formatReportMarkdown = (
 #### Executive Summary
 ${report.summary}
 
-${report.agendas?.length ? `#### Key Findings
-${report.agendas.map((agenda) => `- ${agenda}`).join('\n')}` : ''}
+${
+  report.agendas?.length
+    ? `#### Key Findings
+${report.agendas.map((agenda) => `- ${agenda}`).join('\n')}`
+    : ''
+}
 
-${report.leads?.length ? `#### ${labelProfile.followUpLabel}
-${report.leads.map((lead) => `- ${lead}`).join('\n')}` : ''}
+${
+  report.leads?.length
+    ? `#### ${labelProfile.followUpLabel}
+${report.leads.map((lead) => `- ${lead}`).join('\n')}`
+    : ''
+}
 
 #### Entities Detected
 ${(report.entities || []).map((entity) => `\`${typeof entity === 'string' ? entity : entity.name}\` (${typeof entity === 'string' ? 'UNKNOWN' : entity.type})`).join(', ') || '*No entities detected.*'}
 
-${report.sources?.length ? `#### Sources
-${report.sources.map((source) => `- [${source.title}](${source.url})`).join('\n')}` : ''}
+${
+  report.sources?.length
+    ? `#### Sources
+${report.sources.map((source) => `- [${source.title}](${source.url})`).join('\n')}`
+    : ''
+}
 
 ---
 `;
@@ -348,7 +381,11 @@ ${reports.map((report, idx) => formatReportMarkdown(report, labelProfile, idx)).
 *Generated by Sherlock AI on ${new Date().toLocaleDateString()}*
 `;
 
-  downloadFile(markdownContent.trim(), `${workspaceToken}_${caseObj.id}_DOSSIER.md`, 'text/markdown');
+  downloadFile(
+    markdownContent.trim(),
+    `${workspaceToken}_${caseObj.id}_DOSSIER.md`,
+    'text/markdown'
+  );
 };
 
 export const exportReportAsMarkdown = (report: Artifact) => {
@@ -362,17 +399,22 @@ ${formatReportMarkdown(report, labelProfile)}
 *Generated by Sherlock AI on ${new Date().toLocaleDateString()}*
 `;
 
-  downloadFile(markdownContent.trim(), `${artifactToken}_${report.id || 'unknown'}_DOSSIER.md`, 'text/markdown');
+  downloadFile(
+    markdownContent.trim(),
+    `${artifactToken}_${report.id || 'unknown'}_DOSSIER.md`,
+    'text/markdown'
+  );
 };
 
 const formatChatMessageMarkdown = (message: ChatMessage) => {
-  const heading = message.role === 'assistant'
-    ? 'Assistant'
-    : message.role === 'user'
-      ? 'User'
-      : message.role === 'system'
-        ? 'System'
-        : 'Tool';
+  const heading =
+    message.role === 'assistant'
+      ? 'Assistant'
+      : message.role === 'user'
+        ? 'User'
+        : message.role === 'system'
+          ? 'System'
+          : 'Tool';
   const citations = message.citations?.length
     ? `\n\nCitations: ${message.citations.join(', ')}`
     : '';
@@ -416,9 +458,5 @@ ${messages.map((message) => formatChatMessageMarkdown(message)).join('\n\n---\n\
 *Generated by Sherlock AI on ${new Date().toLocaleDateString()}*
 `;
 
-  downloadFile(
-    markdownContent.trim(),
-    `CHAT_SESSION_${session.id}.md`,
-    'text/markdown'
-  );
+  downloadFile(markdownContent.trim(), `CHAT_SESSION_${session.id}.md`, 'text/markdown');
 };

@@ -33,7 +33,10 @@ export const getDomainPackForScope = (
   customScopes: InvestigationScope[] = []
 ): DomainPack => {
   if (!scope) {
-    return BUILTIN_DOMAIN_PACKS.find((pack) => pack.id === 'open-investigation') || BUILTIN_DOMAIN_PACKS[0];
+    return (
+      BUILTIN_DOMAIN_PACKS.find((pack) => pack.id === 'open-investigation') ||
+      BUILTIN_DOMAIN_PACKS[0]
+    );
   }
 
   return getDomainPackById(scope.id, customScopes) || toDomainPack(scope);

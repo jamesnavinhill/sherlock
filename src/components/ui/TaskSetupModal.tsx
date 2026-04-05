@@ -139,7 +139,9 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   const starterTemplates = getStarterTemplates(selectedPack, selectedPurpose);
 
   const [persona, setPersona] = useState<string>(() => {
-    return selectedScope?.defaultPersona || selectedScope?.personas[0]?.id || 'general-investigator';
+    return (
+      selectedScope?.defaultPersona || selectedScope?.personas[0]?.id || 'general-investigator'
+    );
   });
   const defaultPersona =
     selectedScope.defaultPersona || selectedScope.personas[0]?.id || 'general-investigator';
@@ -147,45 +149,51 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     ? persona
     : defaultPersona;
   const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(
-    (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP' ? 'DEEP' : 'STANDARD'
+    (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP'
+      ? 'DEEP'
+      : 'STANDARD'
   );
   const [generationMode, setGenerationMode] = useState<'SINGLE_PASS' | 'STAGED'>(
     initialConfigOverride?.generationMode === 'SINGLE_PASS'
       ? 'SINGLE_PASS'
-      : (storedConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED')
+      : storedConfig.generationMode === 'SINGLE_PASS'
+        ? 'SINGLE_PASS'
+        : 'STAGED'
   );
   const [thinkingBudget, setThinkingBudget] = useState(
     typeof initialConfigOverride?.thinkingBudget === 'number'
       ? initialConfigOverride.thinkingBudget
-      : storedConfig.thinkingBudget ?? 0
+      : (storedConfig.thinkingBudget ?? 0)
   );
 
   const initialModelId = initialConfigOverride?.modelId || storedConfig.modelId || DEFAULT_MODEL_ID;
-  const initialProvider = (
-    initialConfigOverride?.provider || getModelProvider(initialModelId)
-  ) as AIProvider;
+  const initialProvider = (initialConfigOverride?.provider ||
+    getModelProvider(initialModelId)) as AIProvider;
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(initialProvider);
   const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
   const [selectedModel, setSelectedModel] = useState(() => {
-    const providerModels = initialProvider === 'OPENROUTER'
-      ? getCompactModelChoicesForProvider(initialProvider, initialModelId)
-      : getRuntimeReadyModelsForProvider(initialProvider);
-    return providerModels.some((model) => model.id === initialModelId)
-      || (initialProvider === 'OPENROUTER' && getModelProvider(initialModelId) === 'OPENROUTER')
+    const providerModels =
+      initialProvider === 'OPENROUTER'
+        ? getCompactModelChoicesForProvider(initialProvider, initialModelId)
+        : getRuntimeReadyModelsForProvider(initialProvider);
+    return providerModels.some((model) => model.id === initialModelId) ||
+      (initialProvider === 'OPENROUTER' && getModelProvider(initialModelId) === 'OPENROUTER')
       ? initialModelId
       : providerModels[0]?.id || getDefaultModelForProvider(initialProvider);
   });
 
-  const selectableModels = selectedProvider === 'OPENROUTER'
-    ? getCompactModelChoicesForProvider(selectedProvider, selectedModel)
-    : getRuntimeReadyModelsForProvider(selectedProvider);
-  const effectiveSelectedModel = selectedProvider === 'OPENROUTER'
-    ? (getModelProvider(selectedModel) === 'OPENROUTER'
+  const selectableModels =
+    selectedProvider === 'OPENROUTER'
+      ? getCompactModelChoicesForProvider(selectedProvider, selectedModel)
+      : getRuntimeReadyModelsForProvider(selectedProvider);
+  const effectiveSelectedModel =
+    selectedProvider === 'OPENROUTER'
+      ? getModelProvider(selectedModel) === 'OPENROUTER'
         ? selectedModel
-        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider))
-    : (selectableModels.some((model) => model.id === selectedModel)
+        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider)
+      : selectableModels.some((model) => model.id === selectedModel)
         ? selectedModel
-        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider));
+        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider);
   const selectedProviderMeta = getProviderOptionById(selectedProvider);
   const selectedModelCapabilities = getEffectiveModelCapabilities(effectiveSelectedModel);
   const supportsThinkingBudget = selectedModelCapabilities.supportsThinkingBudget;
@@ -202,36 +210,36 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   const applyTemplate = (template: CaseTemplate) => {
     const nextScopeId = template.scopeId || selectedScopeId;
     const nextScope =
-      getScopeById(nextScopeId || '')
-      || allScopes.find((scope) => scope.id === nextScopeId)
-      || selectedScope;
+      getScopeById(nextScopeId || '') ||
+      allScopes.find((scope) => scope.id === nextScopeId) ||
+      selectedScope;
     const nextPack = getDomainPackForScope(nextScope, customScopes);
     const nextPurposeId =
       template.config.purposeId || template.purposeId || nextPack.defaultPurposeId;
-    const templateProvider = (
-      template.config.provider || getModelProvider(template.config.modelId || effectiveSelectedModel)
-    ) as AIProvider;
+    const templateProvider = (template.config.provider ||
+      getModelProvider(template.config.modelId || effectiveSelectedModel)) as AIProvider;
 
     setTopic(template.topic);
     setSelectedScopeId(nextScope.id);
     setSelectedPurposeId(nextPurposeId);
     setPersona(
-      template.config.persona
-      || nextScope.defaultPersona
-      || nextScope.personas[0]?.id
-      || 'general-investigator'
+      template.config.persona ||
+        nextScope.defaultPersona ||
+        nextScope.personas[0]?.id ||
+        'general-investigator'
     );
     setDepth(template.config.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD');
     setGenerationMode(template.config.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED');
     setThinkingBudget(template.config.thinkingBudget ?? 0);
     setSelectedProvider(templateProvider);
-    const templateProviderModels = templateProvider === 'OPENROUTER'
-      ? getCompactModelChoicesForProvider(templateProvider, template.config.modelId)
-      : getRuntimeReadyModelsForProvider(templateProvider);
+    const templateProviderModels =
+      templateProvider === 'OPENROUTER'
+        ? getCompactModelChoicesForProvider(templateProvider, template.config.modelId)
+        : getRuntimeReadyModelsForProvider(templateProvider);
     setSelectedModel(
-      template.config.modelId
-      || templateProviderModels[0]?.id
-      || getDefaultModelForProvider(templateProvider)
+      template.config.modelId ||
+        templateProviderModels[0]?.id ||
+        getDefaultModelForProvider(templateProvider)
     );
   };
 
@@ -478,8 +486,12 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
               className="p-3 text-left border border-zinc-800 bg-zinc-900/40 hover:border-osint-primary transition-all"
             >
               <div className="flex items-center justify-between gap-3 mb-1">
-                <span className="text-xs font-mono font-bold text-white uppercase">{template.name}</span>
-                <span className="text-[9px] font-mono text-zinc-500 uppercase">{template.purposeId}</span>
+                <span className="text-xs font-mono font-bold text-white uppercase">
+                  {template.name}
+                </span>
+                <span className="text-[9px] font-mono text-zinc-500 uppercase">
+                  {template.purposeId}
+                </span>
               </div>
               <p className="text-[10px] text-zinc-500 leading-relaxed">{template.description}</p>
             </button>
@@ -578,13 +590,21 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             >
               <div className="flex items-center space-x-2 min-w-0">
                 {entity.type === 'PERSON' ? (
-                  <User className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
+                  <User
+                    className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`}
+                  />
                 ) : entity.type === 'ORGANIZATION' ? (
-                  <Building2 className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
+                  <Building2
+                    className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`}
+                  />
                 ) : entity.type === 'SOURCE' ? (
-                  <Library className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
+                  <Library
+                    className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`}
+                  />
                 ) : (
-                  <Shapes className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`} />
+                  <Shapes
+                    className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`}
+                  />
                 )}
                 <span className="text-sm text-zinc-300 font-mono truncate">{entity.name}</span>
                 <span className="text-[10px] text-zinc-600 uppercase">{entity.type}</span>
@@ -704,22 +724,20 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             value={selectedProvider}
             onChange={(value) => {
               const provider = value as AIProvider;
-              const nextProviderModels = provider === 'OPENROUTER'
-                ? getCompactModelChoicesForProvider(provider)
-                : getRuntimeReadyModelsForProvider(provider);
+              const nextProviderModels =
+                provider === 'OPENROUTER'
+                  ? getCompactModelChoicesForProvider(provider)
+                  : getRuntimeReadyModelsForProvider(provider);
               setSelectedProvider(provider);
-              setSelectedModel(
-                nextProviderModels[0]?.id
-                || getDefaultModelForProvider(provider)
-              );
+              setSelectedModel(nextProviderModels[0]?.id || getDefaultModelForProvider(provider));
             }}
             triggerClassName="mt-auto p-2 pr-8 font-mono text-xs"
-            options={AI_PROVIDERS
-              .filter((provider) => provider.capabilities.runtimeStatus === 'ACTIVE')
-              .map((provider) => ({
-                value: provider.id,
-                label: provider.label,
-              }))}
+            options={AI_PROVIDERS.filter(
+              (provider) => provider.capabilities.runtimeStatus === 'ACTIVE'
+            ).map((provider) => ({
+              value: provider.id,
+              label: provider.label,
+            }))}
           />
         </section>
 
@@ -759,8 +777,10 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           </div>
           <p className="text-[10px] text-zinc-600 mt-2 font-mono">
             Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'},
-            structured output {selectedModelCapabilities.supportsStructuredOutput ? 'available' : 'not available'},
-            web search {selectedModelCapabilities.supportsWebSearch ? 'available' : 'not available'}.
+            structured output{' '}
+            {selectedModelCapabilities.supportsStructuredOutput ? 'available' : 'not available'},
+            web search {selectedModelCapabilities.supportsWebSearch ? 'available' : 'not available'}
+            .
           </p>
         </section>
 
@@ -810,9 +830,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             <button
               onClick={() => setGenerationMode('SINGLE_PASS')}
               className={`py-2 text-xs font-mono uppercase ${
-                generationMode === 'SINGLE_PASS'
-                  ? 'osint-button-soft'
-                  : 'osint-button-primary'
+                generationMode === 'SINGLE_PASS' ? 'osint-button-soft' : 'osint-button-primary'
               }`}
             >
               Single Pass
@@ -820,9 +838,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             <button
               onClick={() => setGenerationMode('STAGED')}
               className={`py-2 text-xs font-mono uppercase ${
-                generationMode === 'STAGED'
-                  ? 'osint-button-soft'
-                  : 'osint-button-primary'
+                generationMode === 'STAGED' ? 'osint-button-soft' : 'osint-button-primary'
               }`}
             >
               Staged
@@ -886,116 +902,118 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     <>
       <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
         <div className="bg-osint-panel w-full max-w-5xl h-full sm:h-auto max-h-[95vh] border border-zinc-600 shadow-2xl flex flex-col relative overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
-          <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
-            <Target className="w-5 h-5 text-osint-primary" />
-            <span>{setupCopy.title}</span>
+          <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
+            <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
+              <Target className="w-5 h-5 text-osint-primary" />
+              <span>{setupCopy.title}</span>
+            </div>
+            <button onClick={onCancel} className="text-zinc-500 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button onClick={onCancel} className="text-zinc-500 hover:text-white transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        <div className="px-6 pt-4 pb-2">
-          <div className="flex items-center justify-between gap-2">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.id}>
-                <button
-                  onClick={() => step.id < currentStep && setCurrentStep(step.id)}
-                  className={`flex flex-col items-center space-y-1 transition-all ${
-                    step.id === currentStep
-                      ? 'text-osint-primary'
-                      : step.id < currentStep
-                        ? 'text-green-500 cursor-pointer hover:text-green-400'
-                        : 'text-zinc-600'
-                  }`}
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+          <div className="px-6 pt-4 pb-2">
+            <div className="flex items-center justify-between gap-2">
+              {steps.map((step, index) => (
+                <React.Fragment key={step.id}>
+                  <button
+                    onClick={() => step.id < currentStep && setCurrentStep(step.id)}
+                    className={`flex flex-col items-center space-y-1 transition-all ${
                       step.id === currentStep
-                        ? 'border-osint-primary bg-osint-primary/20'
+                        ? 'text-osint-primary'
                         : step.id < currentStep
-                          ? 'border-green-500 bg-green-500/20'
-                          : 'border-zinc-700'
+                          ? 'text-green-500 cursor-pointer hover:text-green-400'
+                          : 'text-zinc-600'
                     }`}
                   >
-                    {step.id < currentStep ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      <step.icon className="w-4 h-4" />
-                    )}
-                  </div>
-                  <span className="text-[10px] font-mono uppercase hidden sm:block max-w-24 text-center">
-                    {step.label}
-                  </span>
-                </button>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`flex-1 h-px mx-2 ${
-                      step.id < currentStep ? 'bg-green-500' : 'bg-zinc-700'
-                    }`}
-                  />
-                )}
-              </React.Fragment>
-            ))}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                        step.id === currentStep
+                          ? 'border-osint-primary bg-osint-primary/20'
+                          : step.id < currentStep
+                            ? 'border-green-500 bg-green-500/20'
+                            : 'border-zinc-700'
+                      }`}
+                    >
+                      {step.id < currentStep ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <step.icon className="w-4 h-4" />
+                      )}
+                    </div>
+                    <span className="text-[10px] font-mono uppercase hidden sm:block max-w-24 text-center">
+                      {step.label}
+                    </span>
+                  </button>
+                  {index < steps.length - 1 && (
+                    <div
+                      className={`flex-1 h-px mx-2 ${
+                        step.id < currentStep ? 'bg-green-500' : 'bg-zinc-700'
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {initialContext && (
-          <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
-            <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Parent Context</div>
-            <div className="text-xs text-zinc-300 font-mono">{initialContext.topic}</div>
+          {initialContext && (
+            <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
+              <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">
+                Parent Context
+              </div>
+              <div className="text-xs text-zinc-300 font-mono">{initialContext.topic}</div>
+            </div>
+          )}
+
+          <div className="p-6 min-h-[240px] flex-1 overflow-y-auto custom-scrollbar">
+            {currentStep === 0 && renderStep0()}
+            {currentStep === 1 && renderStep1()}
+            {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
+            {currentStep === 5 && renderStep5()}
           </div>
-        )}
 
-        <div className="p-6 min-h-[240px] flex-1 overflow-y-auto custom-scrollbar">
-          {currentStep === 0 && renderStep0()}
-          {currentStep === 1 && renderStep1()}
-          {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
-          {currentStep === 4 && renderStep4()}
-          {currentStep === 5 && renderStep5()}
-        </div>
-
-        <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Back
-          </button>
-
-          <div className="flex space-x-3">
+          <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
             <button
-              onClick={onCancel}
-              className="px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors"
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              Cancel
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Back
             </button>
 
-            {currentStep < steps.length - 1 ? (
+            <div className="flex space-x-3">
               <button
-                onClick={nextStep}
-                disabled={!canProceed()}
-                className="osint-button-primary flex items-center px-6 py-2 font-bold font-mono text-xs uppercase disabled:opacity-50"
+                onClick={onCancel}
+                className="px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors"
               >
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
+                Cancel
               </button>
-            ) : (
-              <button
-                onClick={handleStart}
-                className="osint-button-primary px-6 py-2 font-bold font-mono text-xs uppercase flex items-center"
-              >
-                <PlayCircle className="w-4 h-4 mr-2" />
-                {setupCopy.executeLabel}
-              </button>
-            )}
+
+              {currentStep < steps.length - 1 ? (
+                <button
+                  onClick={nextStep}
+                  disabled={!canProceed()}
+                  className="osint-button-primary flex items-center px-6 py-2 font-bold font-mono text-xs uppercase disabled:opacity-50"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleStart}
+                  className="osint-button-primary px-6 py-2 font-bold font-mono text-xs uppercase flex items-center"
+                >
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  {setupCopy.executeLabel}
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       <OpenRouterModelBrowser

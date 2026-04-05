@@ -23,7 +23,11 @@
   --osint-danger-soft-bg: color-mix(in oklab, var(--color-osint-danger) 14%, transparent);
   --osint-danger-soft-bg-strong: color-mix(in oklab, var(--color-osint-danger) 20%, transparent);
   --osint-danger-soft-border: color-mix(in oklab, var(--color-osint-danger) 42%, transparent);
-  --color-zinc-950: color-mix(in oklab, var(--osint-panel-darkmode) 42%, var(--osint-dark-darkmode));
+  --color-zinc-950: color-mix(
+    in oklab,
+    var(--osint-panel-darkmode) 42%,
+    var(--osint-dark-darkmode)
+  );
   --color-zinc-900: var(--osint-panel-darkmode);
   --color-zinc-800: var(--osint-surface-darkmode);
 }
@@ -37,7 +41,11 @@
   --osint-ink: #1f160d;
 
   /* Light mode remap for existing dark-first utility usage */
-  --color-zinc-950: color-mix(in oklab, var(--osint-surface-lightmode) 44%, var(--osint-dark-lightmode));
+  --color-zinc-950: color-mix(
+    in oklab,
+    var(--osint-surface-lightmode) 44%,
+    var(--osint-dark-lightmode)
+  );
   --color-zinc-900: var(--osint-dark-lightmode);
   --color-zinc-800: var(--osint-surface-lightmode);
   --color-zinc-700: #eadfc9;
@@ -309,8 +317,11 @@ body,
   width: 100%;
   max-width: 42rem;
   border: 1px dashed color-mix(in oklab, var(--osint-border) 94%, transparent);
-  background:
-    linear-gradient(180deg, color-mix(in oklab, var(--osint-panel) 70%, transparent), color-mix(in oklab, var(--osint-dark) 52%, transparent));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--osint-panel) 70%, transparent),
+    color-mix(in oklab, var(--osint-dark) 52%, transparent)
+  );
   padding: 2.75rem 2rem;
   text-align: center;
   backdrop-filter: blur(4px);

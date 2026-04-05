@@ -46,11 +46,11 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
     const el = hueRef.current;
     if (!el) return;
 
-      const handleMove = (event: PointerEvent) => {
-        const rect = el.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const pct = Math.max(0, Math.min(1, x / rect.width));
-        const newHue = Math.round(pct * 360);
+    const handleMove = (event: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, x / rect.width));
+      const newHue = Math.round(pct * 360);
       onChange({ hue: newHue, lightness: clampedLightness, chroma: clampedChroma });
     };
 
@@ -81,14 +81,23 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
           <span>Hue</span>
           <span className="font-mono text-zinc-300">{hue}°</span>
         </div>
-        <div ref={hueRef} className="relative h-8 rounded-full overflow-hidden border border-zinc-700">
+        <div
+          ref={hueRef}
+          className="relative h-8 rounded-full overflow-hidden border border-zinc-700"
+        >
           <div className="absolute inset-0 rounded-full" style={{ background: hueTrackGradient }} />
           <input
             type="range"
             min={0}
             max={360}
             value={hue}
-            onChange={(event) => onChange({ hue: parseInt(event.target.value, 10), lightness: clampedLightness, chroma: clampedChroma })}
+            onChange={(event) =>
+              onChange({
+                hue: parseInt(event.target.value, 10),
+                lightness: clampedLightness,
+                chroma: clampedChroma,
+              })
+            }
             title="Adjust hue"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
@@ -100,10 +109,18 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
             }}
             onKeyDown={(event) => {
               if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
-                onChange({ hue: (hue + 1) % 360, lightness: clampedLightness, chroma: clampedChroma });
+                onChange({
+                  hue: (hue + 1) % 360,
+                  lightness: clampedLightness,
+                  chroma: clampedChroma,
+                });
               }
               if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
-                onChange({ hue: (hue - 1 + 360) % 360, lightness: clampedLightness, chroma: clampedChroma });
+                onChange({
+                  hue: (hue - 1 + 360) % 360,
+                  lightness: clampedLightness,
+                  chroma: clampedChroma,
+                });
               }
             }}
             className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 border-white shadow-lg transition-transform duration-150 focus:outline-none ${
@@ -132,7 +149,9 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
             max={lightnessMax}
             step={0.01}
             value={clampedLightness}
-            onChange={(event) => onChange({ hue, lightness: parseFloat(event.target.value), chroma: clampedChroma })}
+            onChange={(event) =>
+              onChange({ hue, lightness: parseFloat(event.target.value), chroma: clampedChroma })
+            }
             title="Adjust lightness"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
@@ -161,7 +180,9 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
             max={chromaMax}
             step={0.01}
             value={clampedChroma}
-            onChange={(event) => onChange({ hue, lightness: clampedLightness, chroma: parseFloat(event.target.value) })}
+            onChange={(event) =>
+              onChange({ hue, lightness: clampedLightness, chroma: parseFloat(event.target.value) })
+            }
             title="Adjust chroma"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
@@ -174,10 +195,15 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
 
       {showPreview && (
         <div className="flex items-center gap-3 pt-3 border-t border-zinc-800">
-          <div className="w-10 h-10 rounded-xl border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]" style={{ background: oklchColor }} />
+          <div
+            className="w-10 h-10 rounded-xl border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]"
+            style={{ background: oklchColor }}
+          />
           <div className="flex-1">
             <div className="text-sm font-bold text-white font-mono uppercase">{previewLabel}</div>
-            <div className="text-[10px] text-zinc-500 font-mono">oklch({clampedLightness.toFixed(2)} {clampedChroma.toFixed(2)} {hue})</div>
+            <div className="text-[10px] text-zinc-500 font-mono">
+              oklch({clampedLightness.toFixed(2)} {clampedChroma.toFixed(2)} {hue})
+            </div>
           </div>
         </div>
       )}

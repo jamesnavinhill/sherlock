@@ -1,37 +1,37 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DomainPack, InvestigationScope, PurposeProfile, SystemConfig } from '../../types';
 import {
-    ANTHROPIC_FIXTURES,
-    GEMINI_FIXTURES,
-    OPENAI_FIXTURES,
-    OPENROUTER_FIXTURES,
+  ANTHROPIC_FIXTURES,
+  GEMINI_FIXTURES,
+  OPENAI_FIXTURES,
+  OPENROUTER_FIXTURES,
 } from './__fixtures__/adapterPayloads';
 
 const { mockGeminiGenerateContent, mockGeminiGenerateContentStream } = vi.hoisted(() => ({
-    mockGeminiGenerateContent: vi.fn(),
-    mockGeminiGenerateContentStream: vi.fn(),
+  mockGeminiGenerateContent: vi.fn(),
+  mockGeminiGenerateContentStream: vi.fn(),
 }));
 
 vi.mock('@google/genai', () => ({
-    GoogleGenAI: class GoogleGenAIMock {
-        models = {
-            generateContent: mockGeminiGenerateContent,
-            generateContentStream: mockGeminiGenerateContentStream,
-        };
-    },
-    HarmBlockThreshold: { BLOCK_ONLY_HIGH: 'BLOCK_ONLY_HIGH' },
-    HarmCategory: {
-        HARM_CATEGORY_HARASSMENT: 'HARM_CATEGORY_HARASSMENT',
-        HARM_CATEGORY_HATE_SPEECH: 'HARM_CATEGORY_HATE_SPEECH',
-        HARM_CATEGORY_SEXUALLY_EXPLICIT: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        HARM_CATEGORY_DANGEROUS_CONTENT: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-    },
-    Modality: { AUDIO: 'AUDIO' },
-    Type: {
-        OBJECT: 'OBJECT',
-        ARRAY: 'ARRAY',
-        STRING: 'STRING',
-    },
+  GoogleGenAI: class GoogleGenAIMock {
+    models = {
+      generateContent: mockGeminiGenerateContent,
+      generateContentStream: mockGeminiGenerateContentStream,
+    };
+  },
+  HarmBlockThreshold: { BLOCK_ONLY_HIGH: 'BLOCK_ONLY_HIGH' },
+  HarmCategory: {
+    HARM_CATEGORY_HARASSMENT: 'HARM_CATEGORY_HARASSMENT',
+    HARM_CATEGORY_HATE_SPEECH: 'HARM_CATEGORY_HATE_SPEECH',
+    HARM_CATEGORY_SEXUALLY_EXPLICIT: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+    HARM_CATEGORY_DANGEROUS_CONTENT: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+  },
+  Modality: { AUDIO: 'AUDIO' },
+  Type: {
+    OBJECT: 'OBJECT',
+    ARRAY: 'ARRAY',
+    STRING: 'STRING',
+  },
 }));
 
 import { anthropicProvider } from './anthropicProvider';
@@ -40,286 +40,286 @@ import { openAIProvider } from './openAIProvider';
 import { openRouterProvider } from './openRouterProvider';
 
 const scopeFixture: InvestigationScope = {
-    id: 'open-investigation',
-    name: 'Open Investigation',
-    description: 'Fixture scope',
-    domainContext: 'General OSINT',
-    investigationObjective: 'Find risks',
-    categories: ['Finance', 'Procurement'],
-    personas: [
-        {
-            id: 'general-investigator',
-            label: 'General Investigator',
-            instruction: 'Investigate comprehensively.',
-        },
-    ],
-    suggestedSources: [],
-    labelProfileId: 'investigation',
-    supportedPurposeIds: ['deep-dive'],
-    defaultPurposeId: 'deep-dive',
-    defaultArtifactType: 'REPORT',
+  id: 'open-investigation',
+  name: 'Open Investigation',
+  description: 'Fixture scope',
+  domainContext: 'General OSINT',
+  investigationObjective: 'Find risks',
+  categories: ['Finance', 'Procurement'],
+  personas: [
+    {
+      id: 'general-investigator',
+      label: 'General Investigator',
+      instruction: 'Investigate comprehensively.',
+    },
+  ],
+  suggestedSources: [],
+  labelProfileId: 'investigation',
+  supportedPurposeIds: ['deep-dive'],
+  defaultPurposeId: 'deep-dive',
+  defaultArtifactType: 'REPORT',
 };
 
 const purposeFixture: PurposeProfile = {
-    id: 'deep-dive',
-    name: 'Deep Dive',
-    description: 'Fixture purpose',
-    promptDirective: 'Investigate comprehensively.',
-    recommendedArtifactType: 'REPORT',
-    defaultSectionKinds: ['EXECUTIVE_SUMMARY', 'ANOMALIES', 'LEADS'],
+  id: 'deep-dive',
+  name: 'Deep Dive',
+  description: 'Fixture purpose',
+  promptDirective: 'Investigate comprehensively.',
+  recommendedArtifactType: 'REPORT',
+  defaultSectionKinds: ['EXECUTIVE_SUMMARY', 'ANOMALIES', 'LEADS'],
 };
 
 const packFixture: DomainPack = {
-    ...scopeFixture,
-    workspaceMode: 'INVESTIGATION',
-    labelProfileId: 'investigation',
-    supportedPurposeIds: ['deep-dive'],
-    defaultPurposeId: 'deep-dive',
-    defaultArtifactType: 'REPORT',
+  ...scopeFixture,
+  workspaceMode: 'INVESTIGATION',
+  labelProfileId: 'investigation',
+  supportedPurposeIds: ['deep-dive'],
+  defaultPurposeId: 'deep-dive',
+  defaultArtifactType: 'REPORT',
 };
 
 const makeConfig = (provider: SystemConfig['provider'], modelId: string): SystemConfig => ({
-    provider,
-    modelId,
-    persona: 'general-investigator',
-    searchDepth: 'STANDARD',
-    thinkingBudget: provider === 'GEMINI' ? 1024 : 0,
-    autoNormalizeEntities: true,
-    quietMode: false,
+  provider,
+  modelId,
+  persona: 'general-investigator',
+  searchDepth: 'STANDARD',
+  thinkingBudget: provider === 'GEMINI' ? 1024 : 0,
+  autoNormalizeEntities: true,
+  quietMode: false,
 });
 
 const makeFetchResponse = (body: string, status = 200): Response =>
-    ({
-        ok: status >= 200 && status < 300,
-        status,
-        text: async () => body,
-    } as Response);
+  ({
+    ok: status >= 200 && status < 300,
+    status,
+    text: async () => body,
+  }) as Response;
 
 const assertRenderSafeReport = (report: Awaited<ReturnType<typeof openAIProvider.investigate>>) => {
-    expect(typeof report.summary).toBe('string');
-    expect(Array.isArray(report.agendas)).toBe(true);
-    expect(Array.isArray(report.leads)).toBe(true);
-    expect(report.agendas.every((entry) => typeof entry === 'string')).toBe(true);
-    expect(report.leads.every((entry) => typeof entry === 'string')).toBe(true);
-    expect(report.entities.length).toBeGreaterThan(0);
-    expect(report.sources.length).toBeGreaterThan(0);
+  expect(typeof report.summary).toBe('string');
+  expect(Array.isArray(report.agendas)).toBe(true);
+  expect(Array.isArray(report.leads)).toBe(true);
+  expect(report.agendas.every((entry) => typeof entry === 'string')).toBe(true);
+  expect(report.leads.every((entry) => typeof entry === 'string')).toBe(true);
+  expect(report.entities.length).toBeGreaterThan(0);
+  expect(report.sources.length).toBeGreaterThan(0);
 };
 
 const assertNormalizedFeedAndLive = (
-    feed: Awaited<ReturnType<typeof openAIProvider.scanAnomalies>>,
-    live: Awaited<ReturnType<typeof openAIProvider.getLiveIntel>>
+  feed: Awaited<ReturnType<typeof openAIProvider.scanAnomalies>>,
+  live: Awaited<ReturnType<typeof openAIProvider.getLiveIntel>>
 ) => {
-    expect(feed.length).toBeGreaterThan(0);
-    expect(feed.every((item) => typeof item.title === 'string')).toBe(true);
-    expect(feed.every((item) => ['LOW', 'MEDIUM', 'HIGH'].includes(item.riskLevel))).toBe(true);
+  expect(feed.length).toBeGreaterThan(0);
+  expect(feed.every((item) => typeof item.title === 'string')).toBe(true);
+  expect(feed.every((item) => ['LOW', 'MEDIUM', 'HIGH'].includes(item.riskLevel))).toBe(true);
 
-    expect(live.length).toBeGreaterThan(0);
-    expect(live.every((item) => typeof item.content === 'string')).toBe(true);
-    expect(live.every((item) => ['SOCIAL', 'NEWS', 'OFFICIAL'].includes(item.type))).toBe(true);
-    expect(live.every((item) => ['INFO', 'CAUTION', 'CRITICAL'].includes(item.threatLevel))).toBe(
-        true
-    );
+  expect(live.length).toBeGreaterThan(0);
+  expect(live.every((item) => typeof item.content === 'string')).toBe(true);
+  expect(live.every((item) => ['SOCIAL', 'NEWS', 'OFFICIAL'].includes(item.type))).toBe(true);
+  expect(live.every((item) => ['INFO', 'CAUTION', 'CRITICAL'].includes(item.threatLevel))).toBe(
+    true
+  );
 };
 
 describe('provider adapter contracts', () => {
-    beforeEach(() => {
-        localStorage.clear();
-        vi.restoreAllMocks();
-        vi.stubGlobal('fetch', vi.fn());
-        resetGeminiProviderClient();
-        mockGeminiGenerateContent.mockReset();
-        mockGeminiGenerateContentStream.mockReset();
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+    vi.stubGlobal('fetch', vi.fn());
+    resetGeminiProviderClient();
+    mockGeminiGenerateContent.mockReset();
+    mockGeminiGenerateContentStream.mockReset();
 
-        localStorage.setItem('GEMINI_API_KEY', 'AIza-test');
-        localStorage.setItem('OPENROUTER_API_KEY', 'sk-or-test');
-        localStorage.setItem('OPENAI_API_KEY', 'sk-test');
-        localStorage.setItem('ANTHROPIC_API_KEY', 'sk-ant-test');
+    localStorage.setItem('GEMINI_API_KEY', 'AIza-test');
+    localStorage.setItem('OPENROUTER_API_KEY', 'sk-or-test');
+    localStorage.setItem('OPENAI_API_KEY', 'sk-test');
+    localStorage.setItem('ANTHROPIC_API_KEY', 'sk-ant-test');
+  });
+
+  it('validates Gemini investigate/scan/live contracts with fixture payloads', async () => {
+    mockGeminiGenerateContent
+      .mockResolvedValueOnce(GEMINI_FIXTURES.investigate)
+      .mockResolvedValueOnce(GEMINI_FIXTURES.scan)
+      .mockResolvedValueOnce(GEMINI_FIXTURES.live);
+
+    const config = makeConfig('GEMINI', 'gemini-3-flash-preview');
+
+    const report = await geminiProvider.investigate({
+      topic: 'Atlas Holdings',
+      parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      artifactType: 'REPORT',
+      labelProfileId: 'investigation',
+    });
+    const feed = await geminiProvider.scanAnomalies({
+      region: 'US',
+      category: 'Finance',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      options: { limit: 8, prioritySources: '' },
+    });
+    const live = await geminiProvider.getLiveIntel({
+      topic: 'Atlas Holdings',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      monitorConfig: {
+        socialCount: 2,
+        newsCount: 2,
+        officialCount: 1,
+        prioritySources: '',
+      },
+      existingContent: [],
     });
 
-    it('validates Gemini investigate/scan/live contracts with fixture payloads', async () => {
-        mockGeminiGenerateContent
-            .mockResolvedValueOnce(GEMINI_FIXTURES.investigate)
-            .mockResolvedValueOnce(GEMINI_FIXTURES.scan)
-            .mockResolvedValueOnce(GEMINI_FIXTURES.live);
+    assertRenderSafeReport(report);
+    assertNormalizedFeedAndLive(feed, live);
+  });
 
-        const config = makeConfig('GEMINI', 'gemini-3-flash-preview');
+  it('validates OpenRouter investigate/scan/live contracts with fixture payloads', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(makeFetchResponse(OPENROUTER_FIXTURES.investigate))
+      .mockResolvedValueOnce(makeFetchResponse(OPENROUTER_FIXTURES.scan))
+      .mockResolvedValueOnce(makeFetchResponse(OPENROUTER_FIXTURES.live));
 
-        const report = await geminiProvider.investigate({
-            topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            artifactType: 'REPORT',
-            labelProfileId: 'investigation',
-        });
-        const feed = await geminiProvider.scanAnomalies({
-            region: 'US',
-            category: 'Finance',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            options: { limit: 8, prioritySources: '' },
-        });
-        const live = await geminiProvider.getLiveIntel({
-            topic: 'Atlas Holdings',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            monitorConfig: {
-                socialCount: 2,
-                newsCount: 2,
-                officialCount: 1,
-                prioritySources: '',
-            },
-            existingContent: [],
-        });
+    const config = makeConfig('OPENROUTER', 'stepfun/step-3.5-flash:free');
 
-        assertRenderSafeReport(report);
-        assertNormalizedFeedAndLive(feed, live);
+    const report = await openRouterProvider.investigate({
+      topic: 'Atlas Holdings',
+      parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      artifactType: 'REPORT',
+      labelProfileId: 'investigation',
+    });
+    const feed = await openRouterProvider.scanAnomalies({
+      region: 'US',
+      category: 'Finance',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      options: { limit: 8, prioritySources: '' },
+    });
+    const live = await openRouterProvider.getLiveIntel({
+      topic: 'Atlas Holdings',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      monitorConfig: {
+        socialCount: 2,
+        newsCount: 2,
+        officialCount: 1,
+        prioritySources: '',
+      },
+      existingContent: [],
     });
 
-    it('validates OpenRouter investigate/scan/live contracts with fixture payloads', async () => {
-        const fetchMock = vi.mocked(fetch);
-        fetchMock
-            .mockResolvedValueOnce(makeFetchResponse(OPENROUTER_FIXTURES.investigate))
-            .mockResolvedValueOnce(makeFetchResponse(OPENROUTER_FIXTURES.scan))
-            .mockResolvedValueOnce(makeFetchResponse(OPENROUTER_FIXTURES.live));
+    assertRenderSafeReport(report);
+    assertNormalizedFeedAndLive(feed, live);
+  });
 
-        const config = makeConfig('OPENROUTER', 'stepfun/step-3.5-flash:free');
+  it('validates OpenAI investigate/scan/live contracts with fixture payloads', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.investigate))
+      .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.scan))
+      .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.live));
 
-        const report = await openRouterProvider.investigate({
-            topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            artifactType: 'REPORT',
-            labelProfileId: 'investigation',
-        });
-        const feed = await openRouterProvider.scanAnomalies({
-            region: 'US',
-            category: 'Finance',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            options: { limit: 8, prioritySources: '' },
-        });
-        const live = await openRouterProvider.getLiveIntel({
-            topic: 'Atlas Holdings',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            monitorConfig: {
-                socialCount: 2,
-                newsCount: 2,
-                officialCount: 1,
-                prioritySources: '',
-            },
-            existingContent: [],
-        });
+    const config = makeConfig('OPENAI', 'gpt-4.1-mini');
 
-        assertRenderSafeReport(report);
-        assertNormalizedFeedAndLive(feed, live);
+    const report = await openAIProvider.investigate({
+      topic: 'Atlas Holdings',
+      parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      artifactType: 'REPORT',
+      labelProfileId: 'investigation',
+    });
+    const feed = await openAIProvider.scanAnomalies({
+      region: 'US',
+      category: 'Finance',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      options: { limit: 8, prioritySources: '' },
+    });
+    const live = await openAIProvider.getLiveIntel({
+      topic: 'Atlas Holdings',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      monitorConfig: {
+        socialCount: 2,
+        newsCount: 2,
+        officialCount: 1,
+        prioritySources: '',
+      },
+      existingContent: [],
     });
 
-    it('validates OpenAI investigate/scan/live contracts with fixture payloads', async () => {
-        const fetchMock = vi.mocked(fetch);
-        fetchMock
-            .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.investigate))
-            .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.scan))
-            .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.live));
+    assertRenderSafeReport(report);
+    assertNormalizedFeedAndLive(feed, live);
+  });
 
-        const config = makeConfig('OPENAI', 'gpt-4.1-mini');
+  it('validates Anthropic investigate/scan/live contracts with fixture payloads', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.investigate))
+      .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.scan))
+      .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.live));
 
-        const report = await openAIProvider.investigate({
-            topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            artifactType: 'REPORT',
-            labelProfileId: 'investigation',
-        });
-        const feed = await openAIProvider.scanAnomalies({
-            region: 'US',
-            category: 'Finance',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            options: { limit: 8, prioritySources: '' },
-        });
-        const live = await openAIProvider.getLiveIntel({
-            topic: 'Atlas Holdings',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            monitorConfig: {
-                socialCount: 2,
-                newsCount: 2,
-                officialCount: 1,
-                prioritySources: '',
-            },
-            existingContent: [],
-        });
+    const config = makeConfig('ANTHROPIC', 'claude-3-5-haiku-latest');
 
-        assertRenderSafeReport(report);
-        assertNormalizedFeedAndLive(feed, live);
+    const report = await anthropicProvider.investigate({
+      topic: 'Atlas Holdings',
+      parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      artifactType: 'REPORT',
+      labelProfileId: 'investigation',
+    });
+    const feed = await anthropicProvider.scanAnomalies({
+      region: 'US',
+      category: 'Finance',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      options: { limit: 8, prioritySources: '' },
+    });
+    const live = await anthropicProvider.getLiveIntel({
+      topic: 'Atlas Holdings',
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      monitorConfig: {
+        socialCount: 2,
+        newsCount: 2,
+        officialCount: 1,
+        prioritySources: '',
+      },
+      existingContent: [],
     });
 
-    it('validates Anthropic investigate/scan/live contracts with fixture payloads', async () => {
-        const fetchMock = vi.mocked(fetch);
-        fetchMock
-            .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.investigate))
-            .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.scan))
-            .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.live));
-
-        const config = makeConfig('ANTHROPIC', 'claude-3-5-haiku-latest');
-
-        const report = await anthropicProvider.investigate({
-            topic: 'Atlas Holdings',
-            parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            artifactType: 'REPORT',
-            labelProfileId: 'investigation',
-        });
-        const feed = await anthropicProvider.scanAnomalies({
-            region: 'US',
-            category: 'Finance',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            options: { limit: 8, prioritySources: '' },
-        });
-        const live = await anthropicProvider.getLiveIntel({
-            topic: 'Atlas Holdings',
-            config,
-            scope: scopeFixture,
-            pack: packFixture,
-            purpose: purposeFixture,
-            monitorConfig: {
-                socialCount: 2,
-                newsCount: 2,
-                officialCount: 1,
-                prioritySources: '',
-            },
-            existingContent: [],
-        });
-
-        assertRenderSafeReport(report);
-        assertNormalizedFeedAndLive(feed, live);
-    });
+    assertRenderSafeReport(report);
+    assertNormalizedFeedAndLive(feed, live);
+  });
 });

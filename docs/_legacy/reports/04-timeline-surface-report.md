@@ -103,18 +103,18 @@ That makes Timeline additive instead of redundant.
 
 ### Canonical Terms To Prefer In New Timeline Work
 
-| Preferred term | Current dominant runtime term | Notes |
-| --- | --- | --- |
-| `Workspace` | `Case` | Preferred product/canonical concept. Current runtime/store still mostly says `Case`. |
-| `Artifact` | `InvestigationReport` | Preferred umbrella for reports, briefs, syntheses, comparisons, timelines, notes. |
-| `WorkspaceRun` | `InvestigationTask` | Preferred name for launched runs and their lifecycle. |
-| `Signal` | `Headline` | Preferred product term for saved workspace-linked monitor/discovery items. |
-| `Live Signal Event` | `MonitorEvent` | Ephemeral live-monitor item before it is saved into the workspace as a signal. |
-| `ArtifactSection` | `ArtifactSection` | Already canonical. |
-| `ChatSession` | `ChatSession` | Already clear and stable. |
-| `AgentAction` | `AgentAction` | Good technical name for retrieval/save/append/follow-up audit events. |
-| `Entity` | `Entity` | Stable. |
-| `ManualNode` / `ManualConnection` | `ManualNode` / `ManualConnection` | Stable graph-edit vocabulary. |
+| Preferred term                    | Current dominant runtime term     | Notes                                                                                |
+| --------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| `Workspace`                       | `Case`                            | Preferred product/canonical concept. Current runtime/store still mostly says `Case`. |
+| `Artifact`                        | `InvestigationReport`             | Preferred umbrella for reports, briefs, syntheses, comparisons, timelines, notes.    |
+| `WorkspaceRun`                    | `InvestigationTask`               | Preferred name for launched runs and their lifecycle.                                |
+| `Signal`                          | `Headline`                        | Preferred product term for saved workspace-linked monitor/discovery items.           |
+| `Live Signal Event`               | `MonitorEvent`                    | Ephemeral live-monitor item before it is saved into the workspace as a signal.       |
+| `ArtifactSection`                 | `ArtifactSection`                 | Already canonical.                                                                   |
+| `ChatSession`                     | `ChatSession`                     | Already clear and stable.                                                            |
+| `AgentAction`                     | `AgentAction`                     | Good technical name for retrieval/save/append/follow-up audit events.                |
+| `Entity`                          | `Entity`                          | Stable.                                                                              |
+| `ManualNode` / `ManualConnection` | `ManualNode` / `ManualConnection` | Stable graph-edit vocabulary.                                                        |
 
 ### Important Naming Hazard In The Current Codebase
 
@@ -481,15 +481,15 @@ That gives chronology plus causality without turning Timeline into a second grap
 
 ## Recommended Track Mapping To Current Data
 
-| Timeline track | Backing data now | Default? | Notes |
-| --- | --- | --- | --- |
-| Signals | `Headline` records, optionally saved from `MonitorEvent` | Yes | Best canonical label is `Signal`, even though the runtime type is `Headline`. |
-| Runs | `InvestigationTask` / `WorkspaceRun` | Yes | Use `startTime` and `endTime`. |
-| Artifacts | `InvestigationReport` / `Artifact` | Yes | Needs surfaced creation timestamp in the public type for clean ordering. |
-| Chat Sessions | `ChatSession` | Secondary | Good for "session created", "guided session created", or "chat revived from artifact". |
-| Chat Actions | `AgentAction` | Secondary | Show only high-signal action types, not every retrieval detail by default. |
-| Entity Milestones | derived from `InvestigationReport.entities` | Secondary | Good as computed milestones, not raw mentions. |
-| Graph Edits | `ManualNode`, `ManualConnection` | Advanced only | Useful for power users, too noisy for default stream. |
+| Timeline track    | Backing data now                                         | Default?      | Notes                                                                                  |
+| ----------------- | -------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------- |
+| Signals           | `Headline` records, optionally saved from `MonitorEvent` | Yes           | Best canonical label is `Signal`, even though the runtime type is `Headline`.          |
+| Runs              | `InvestigationTask` / `WorkspaceRun`                     | Yes           | Use `startTime` and `endTime`.                                                         |
+| Artifacts         | `InvestigationReport` / `Artifact`                       | Yes           | Needs surfaced creation timestamp in the public type for clean ordering.               |
+| Chat Sessions     | `ChatSession`                                            | Secondary     | Good for "session created", "guided session created", or "chat revived from artifact". |
+| Chat Actions      | `AgentAction`                                            | Secondary     | Show only high-signal action types, not every retrieval detail by default.             |
+| Entity Milestones | derived from `InvestigationReport.entities`              | Secondary     | Good as computed milestones, not raw mentions.                                         |
+| Graph Edits       | `ManualNode`, `ManualConnection`                         | Advanced only | Useful for power users, too noisy for default stream.                                  |
 
 ## Recommended Default Flow
 

@@ -24,10 +24,7 @@ const cx = (...classes: Array<string | false | null | undefined>) =>
 const baseActionClassName =
   'inline-flex h-9 w-full items-center justify-center border border-zinc-700 bg-transparent text-zinc-400 transition-colors hover:border-white hover:text-white';
 
-export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
-  actions,
-  className,
-}) => {
+export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({ actions, className }) => {
   if (actions.length === 0) return null;
 
   return (
@@ -58,12 +55,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
         }
 
         return (
-          <button
-            key={action.id}
-            type="button"
-            onClick={action.onClick}
-            {...sharedProps}
-          >
+          <button key={action.id} type="button" onClick={action.onClick} {...sharedProps}>
             <Icon className={cx('h-4 w-4', action.iconClassName)} />
           </button>
         );

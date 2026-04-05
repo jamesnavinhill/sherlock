@@ -19,17 +19,21 @@ npm run dev
 
 ```bash
 npm run lint
+npm run typecheck
 npm run test
 npm run build
 npm run check
+npm run check:full
 ```
 
 ## Validation Expectations
 
 - Prefer targeted validation during normal development work.
+- Run `npm run typecheck` whenever you touch TypeScript source or shared contracts.
 - Run the smallest relevant test command(s) that cover the changed files or feature area.
 - Run `npm run test` only when you need the full suite, the change is broad/high-risk, or a reviewer specifically wants it.
 - Run `npm run build` for shipped app changes, routing changes, shared UI/runtime changes, or other changes that could affect production bundling.
+- Use `npm run check:full` when you explicitly want the repo-wide Prettier verification pass in addition to the normal static gate.
 - If you skip the full test suite, call that out clearly in PR notes or handoff notes.
 
 ## Pull Request Expectations

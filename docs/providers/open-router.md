@@ -1,14 +1,14 @@
 # Configurations for OpenRouter Models
 
-## Web Search: 
+## Web Search:
 
-***
+---
 
 title: Web Search
 subtitle: Model-agnostic grounding
 headline: Web Search | Add Real-time Web Data to AI Model Responses
 canonical-url: '[https://openrouter.ai/docs/guides/features/plugins/web-search](https://openrouter.ai/docs/guides/features/plugins/web-search)'
-'og:site\_name': OpenRouter Documentation
+'og:site_name': OpenRouter Documentation
 'og:title': Web Search - Real-time Web Grounding for AI Models
 'og:description': >-
 Enable real-time web search capabilities in your AI model responses. Add
@@ -17,16 +17,17 @@ search feature.
 'og:image':
 type: url
 value: >-
-[https://openrouter.ai/dynamic-og?pathname=features/web-search\&title=Web%20Search\&description=Add%20real-time%20web%20data%20to%20any%20AI%20model%20response](https://openrouter.ai/dynamic-og?pathname=features/web-search\&title=Web%20Search\&description=Add%20real-time%20web%20data%20to%20any%20AI%20model%20response)
+[https://openrouter.ai/dynamic-og?pathname=features/web-search\&title=Web%20Search\&description=Add%20real-time%20web%20data%20to%20any%20AI%20model%20response](https://openrouter.ai/dynamic-og?pathname=features/web-search&title=Web%20Search&description=Add%20real-time%20web%20data%20to%20any%20AI%20model%20response)
 'og:image:width': 1200
 'og:image:height': 630
-'twitter:card': summary\_large\_image
+'twitter:card': summary_large_image
 'twitter:site': '@OpenRouterAI'
 noindex: false
 nofollow: false
----------------
 
-You can incorporate relevant web search results for *any* model on OpenRouter by activating and customizing the `web` plugin, or by appending `:online` to the model slug:
+---
+
+You can incorporate relevant web search results for _any_ model on OpenRouter by activating and customizing the `web` plugin, or by appending `:online` to the model slug:
 
 ```json
 {
@@ -119,16 +120,16 @@ Example: [nytimes.com](https://nytimes.com/some-page).
 
 The web search plugin supports the following options for the `engine` parameter:
 
-* **`native`**: Always uses the model provider's built-in web search capabilities
-* **`exa`**: Uses Exa's search API for web results
-* **`undefined` (not specified)**: Uses native search if available for the provider, otherwise falls back to Exa
+- **`native`**: Always uses the model provider's built-in web search capabilities
+- **`exa`**: Uses Exa's search API for web results
+- **`undefined` (not specified)**: Uses native search if available for the provider, otherwise falls back to Exa
 
 ### Default Behavior
 
 When the `engine` parameter is not specified:
 
-* **Native search is used by default** for OpenAI, Anthropic, Perplexity, and xAI models that support it
-* **Exa search is used** for all other models or when native search is not supported
+- **Native search is used by default** for OpenAI, Anthropic, Perplexity, and xAI models that support it
+- **Exa search is used** for all other models or when native search is not supported
 
 When you explicitly specify `"engine": "native"`, it will always attempt to use the provider's native search, even if the model doesn't support it (which may result in an error).
 
@@ -165,14 +166,14 @@ Or force Exa search even for models that support native search:
 
 ### Engine-Specific Pricing
 
-* **Native search**: Pricing is passed through directly from the provider (see provider-specific pricing info below)
-* **Exa search**: Uses OpenRouter credits at \$4 per 1000 results (default 5 results = \$0.02 per request)
+- **Native search**: Pricing is passed through directly from the provider (see provider-specific pricing info below)
+- **Exa search**: Uses OpenRouter credits at \$4 per 1000 results (default 5 results = \$0.02 per request)
 
 ## Pricing
 
 ### Exa Search Pricing
 
-When using Exa search (either explicitly via `"engine": "exa"` or as fallback), the web plugin uses your OpenRouter credits and charges *\$4 per 1000 results*. By default, `max_results` set to 5, this comes out to a maximum of \$0.02 per request, in addition to the LLM usage for the search result prompt tokens.
+When using Exa search (either explicitly via `"engine": "exa"` or as fallback), the web plugin uses your OpenRouter credits and charges _\$4 per 1000 results_. By default, `max_results` set to 5, this comes out to a maximum of \$0.02 per request, in addition to the LLM usage for the search result prompt tokens.
 
 ### Native Search Pricing (Provider Passthrough)
 
@@ -182,9 +183,9 @@ Some models have built-in web search. These models charge a fee based on the sea
 
 Search context can be 'low', 'medium', or 'high' and determines how much search context is retrieved for a query:
 
-* **Low**: Minimal search context, suitable for basic queries
-* **Medium**: Moderate search context, good for general queries
-* **High**: Extensive search context, ideal for detailed research
+- **Low**: Minimal search context, suitable for basic queries
+- **Medium**: Moderate search context, good for general queries
+- **High**: Extensive search context, ideal for detailed research
 
 ### Specifying Search Context Size
 
@@ -208,24 +209,23 @@ You can specify the search context size in your API request using the `web_searc
 <Note title="Native Web Search Pricing">
   Refer to each provider's documentation for their native web search pricing info:
 
-  * [OpenAI Pricing](https://platform.openai.com/docs/pricing#built-in-tools)
-  * [Anthropic Pricing](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool#usage-and-pricing)
-  * [Perplexity Pricing](https://docs.perplexity.ai/getting-started/pricing)
-  * [xAI Pricing](https://docs.x.ai/docs/models#tool-invocation-costs)
+- [OpenAI Pricing](https://platform.openai.com/docs/pricing#built-in-tools)
+- [Anthropic Pricing](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool#usage-and-pricing)
+- [Perplexity Pricing](https://docs.perplexity.ai/getting-started/pricing)
+- [xAI Pricing](https://docs.x.ai/docs/models#tool-invocation-costs)
 
-  Native web search pricing only applies when using `"engine": "native"` or when native search is used by default for supported models. When using `"engine": "exa"`, the Exa search pricing applies instead.
+Native web search pricing only applies when using `"engine": "native"` or when native search is used by default for supported models. When using `"engine": "exa"`, the Exa search pricing applies instead.
 </Note>
-
 
 ## Free Router
 
-***
+---
 
 title: Free Models Router
 subtitle: Get started with free AI inference using the OpenRouter Chat Playground
 headline: Free Models Router | OpenRouter
 canonical-url: '[https://openrouter.ai/docs/guides/guides/free-models-router-playground](https://openrouter.ai/docs/guides/guides/free-models-router-playground)'
-'og:site\_name': OpenRouter Documentation
+'og:site_name': OpenRouter Documentation
 'og:title': Free Models Router
 'og:description': >-
 Learn how to use the Free Models Router in the OpenRouter Chat Playground for
@@ -233,14 +233,15 @@ zero-cost inference.
 'og:image':
 type: url
 value: >-
-[https://openrouter.ai/dynamic-og?title=Free%20Models%20Router%20in%20Chat%20Playground\&description=Get%20started%20with%20free%20AI%20inference](https://openrouter.ai/dynamic-og?title=Free%20Models%20Router%20in%20Chat%20Playground\&description=Get%20started%20with%20free%20AI%20inference)
+[https://openrouter.ai/dynamic-og?title=Free%20Models%20Router%20in%20Chat%20Playground\&description=Get%20started%20with%20free%20AI%20inference](https://openrouter.ai/dynamic-og?title=Free%20Models%20Router%20in%20Chat%20Playground&description=Get%20started%20with%20free%20AI%20inference)
 'og:image:width': 1200
 'og:image:height': 630
-'twitter:card': summary\_large\_image
+'twitter:card': summary_large_image
 'twitter:site': '@OpenRouterAI'
 noindex: false
 nofollow: false
----------------
+
+---
 
 OpenRouter offers free models that let you experiment with AI without any cost. The easiest way to try these models is through the [Chat Playground](https://openrouter.ai/chat), where you can start chatting immediately.
 
@@ -278,10 +279,10 @@ In this example, the Free Models Router selected Solar Pro 3 (free) to respond t
 
 If you prefer to use a specific free model rather than the Free Models Router, you can select any model with "(free)" in its name from the model selector. Some popular free models include:
 
-* **Trinity Large Preview (free)** - A frontier-scale open-weight model from Arcee
-* **Trinity Mini (free)** - A smaller, faster variant
-* **DeepSeek R1 (free)** - DeepSeek's reasoning model
-* **Llama models (free)** - Various Meta Llama models
+- **Trinity Large Preview (free)** - A frontier-scale open-weight model from Arcee
+- **Trinity Mini (free)** - A smaller, faster variant
+- **DeepSeek R1 (free)** - DeepSeek's reasoning model
+- **Llama models (free)** - Various Meta Llama models
 
 ## Using Free Models via API
 
@@ -305,20 +306,19 @@ Free models may have different rate limits and availability compared to paid mod
 
 ## Related Resources
 
-* [Free Variant Documentation](/docs/guides/routing/model-variants/free) - Learn about the `:free` variant suffix
-* [Models Page](https://openrouter.ai/models) - Browse all available models
-* [Free Models Router API](https://openrouter.ai/openrouter/free/api) - API quickstart for the Free Models Router
-
+- [Free Variant Documentation](/docs/guides/routing/model-variants/free) - Learn about the `:free` variant suffix
+- [Models Page](https://openrouter.ai/models) - Browse all available models
+- [Free Models Router API](https://openrouter.ai/openrouter/free/api) - API quickstart for the Free Models Router
 
 ## Tool Calling
 
-***
+---
 
 title: Tool & Function Calling
 subtitle: Use tools in your prompts
 headline: Tool & Function Calling | Use Tools with OpenRouter
 canonical-url: '[https://openrouter.ai/docs/guides/features/tool-calling](https://openrouter.ai/docs/guides/features/tool-calling)'
-'og:site\_name': OpenRouter Documentation
+'og:site_name': OpenRouter Documentation
 'og:title': Tool & Function Calling - Use Tools with OpenRouter
 'og:description': >-
 Use tools (or functions) in your prompts with OpenRouter. Learn how to use
@@ -326,20 +326,21 @@ tools with OpenAI, Anthropic, and other models that support tool calling.
 'og:image':
 type: url
 value: >-
-[https://openrouter.ai/dynamic-og?title=Tool%20&%20Function%20Calling\&description=Use%20tools%20with%20OpenRouter](https://openrouter.ai/dynamic-og?title=Tool%20&%20Function%20Calling\&description=Use%20tools%20with%20OpenRouter)
+[https://openrouter.ai/dynamic-og?title=Tool%20&%20Function%20Calling\&description=Use%20tools%20with%20OpenRouter](https://openrouter.ai/dynamic-og?title=Tool%20&%20Function%20Calling&description=Use%20tools%20with%20OpenRouter)
 'og:image:width': 1200
 'og:image:height': 630
-'twitter:card': summary\_large\_image
+'twitter:card': summary_large_image
 'twitter:site': '@OpenRouterAI'
 noindex: false
 nofollow: false
----------------
+
+---
 
 Tool calls (also known as function calls) give an LLM access to external tools. The LLM does not call the tools directly. Instead, it suggests the tool to call. The user then calls the tool separately and provides the results back to the LLM. Finally, the LLM formats the response into an answer to the user's original question.
 
 OpenRouter standardizes the tool calling interface across models and providers, making it easy to integrate external tools with any supported model.
 
-**Supported Models**: You can find models that support tool calling by filtering on [openrouter.ai/models?supported\_parameters=tools](https://openrouter.ai/models?supported_parameters=tools).
+**Supported Models**: You can find models that support tool calling by filtering on [openrouter.ai/models?supported_parameters=tools](https://openrouter.ai/models?supported_parameters=tools).
 
 If you prefer to learn from a full end-to-end example, keep reading.
 
@@ -369,7 +370,7 @@ Tool calling with OpenRouter involves three key steps. Here are the essential re
           "properties": {
             "search_terms": {
               "type": "array",
-              "items": {"type": "string"},
+              "items": { "type": "string" },
               "description": "List of search terms to find books"
             }
           },
@@ -387,7 +388,7 @@ After receiving the model's response with `tool_calls`, execute the requested to
 
 ```javascript
 // Model responds with tool_calls, you execute the tool locally
-const toolResult = await searchGutenbergBooks(["James", "Joyce"]);
+const toolResult = await searchGutenbergBooks(['James', 'Joyce']);
 ```
 
 ### Step 3: Inference Request with Tool Results
@@ -431,7 +432,7 @@ const toolResult = await searchGutenbergBooks(["James", "Joyce"]);
           "properties": {
             "search_terms": {
               "type": "array",
-              "items": {"type": "string"},
+              "items": { "type": "string" },
               "description": "List of search terms to find books"
             }
           },
@@ -452,12 +453,13 @@ Here is Python code that gives LLMs the ability to call an external API -- in th
 First, let's do some basic setup:
 
 <Template
-  data={{
+data={{
   API_KEY_REF,
   MODEL: 'google/gemini-3-flash-preview'
 }}
->
-  <CodeGroup>
+
+>   <CodeGroup>
+
     ```typescript title="TypeScript SDK"
     import { OpenRouter } from '@openrouter/sdk';
 
@@ -532,20 +534,22 @@ First, let's do some basic setup:
       }),
     });
     ```
+
   </CodeGroup>
 </Template>
 
 ### Define the Tool
 
-Next, we define the tool that we want to call. Remember, the tool is going to get *requested* by the LLM, but the code we are writing here is ultimately responsible for executing the call and returning the results to the LLM.
+Next, we define the tool that we want to call. Remember, the tool is going to get _requested_ by the LLM, but the code we are writing here is ultimately responsible for executing the call and returning the results to the LLM.
 
 <Template
-  data={{
+data={{
   API_KEY_REF,
   MODEL: 'google/gemini-3-flash-preview'
 }}
->
-  <CodeGroup>
+
+>   <CodeGroup>
+
     ```typescript title="TypeScript SDK"
     async function searchGutenbergBooks(searchTerms: string[]): Promise<Book[]> {
       const searchQuery = searchTerms.join(' ');
@@ -634,6 +638,7 @@ Next, we define the tool that we want to call. Remember, the tool is going to ge
     }
 
     ```
+
   </CodeGroup>
 </Template>
 
@@ -644,12 +649,13 @@ Note that the "tool" is just a normal function. We then write a JSON "spec" comp
 Let's make the first OpenRouter API call to the model:
 
 <Template
-  data={{
+data={{
   API_KEY_REF,
   MODEL: 'google/gemini-3-flash-preview'
 }}
->
-  <CodeGroup>
+
+>   <CodeGroup>
+
     ```typescript title="TypeScript SDK"
     const result = await openRouter.chat.send({
       model: '{{MODEL}}',
@@ -688,18 +694,20 @@ Let's make the first OpenRouter API call to the model:
     const data = await request_1.json();
     const response_1 = data.choices[0].message;
     ```
+
   </CodeGroup>
 </Template>
 
 The LLM responds with a finish reason of `tool_calls`, and a `tool_calls` array. In a generic LLM response-handler, you would want to check the `finish_reason` before processing tool calls, but here we will assume it's the case. Let's keep going, by processing the tool call:
 
 <Template
-  data={{
+data={{
   API_KEY_REF,
   MODEL: 'google/gemini-3-flash-preview'
 }}
->
-  <CodeGroup>
+
+>   <CodeGroup>
+
     ```typescript title="TypeScript SDK"
     // Append the response to the messages array so the LLM has the full context
     // It's easy to forget this step!
@@ -740,6 +748,7 @@ The LLM responds with a finish reason of `tool_calls`, and a `tool_calls` array.
           "content": json.dumps(tool_response),
         })
     ```
+
   </CodeGroup>
 </Template>
 
@@ -752,12 +761,13 @@ The messages array now has:
 Now, we can make a second OpenRouter API call, and hopefully get our result!
 
 <Template
-  data={{
+data={{
   API_KEY_REF,
   MODEL: 'google/gemini-3-flash-preview'
 }}
->
-  <CodeGroup>
+
+>   <CodeGroup>
+
     ```typescript title="TypeScript SDK"
     const response_2 = await openRouter.chat.send({
       model: '{{MODEL}}',
@@ -798,6 +808,7 @@ Now, we can make a second OpenRouter API call, and hopefully get our result!
     const data = await response.json();
     console.log(data.choices[0].message.content);
     ```
+
   </CodeGroup>
 </Template>
 
@@ -825,10 +836,10 @@ Interleaved thinking allows models to reason between tool calls, enabling more s
 
 With interleaved thinking, the model can:
 
-* Reason about the results of a tool call before deciding what to do next
-* Chain multiple tool calls with reasoning steps in between
-* Make more nuanced decisions based on intermediate results
-* Provide transparent reasoning for its tool selection process
+- Reason about the results of a tool call before deciding what to do next
+- Chain multiple tool calls with reasoning steps in between
+- Make more nuanced decisions based on intermediate results
+- Provide transparent reasoning for its tool selection process
 
 ### Example: Multi-Step Research with Reasoning
 
@@ -854,8 +865,8 @@ Here's an example showing how a model might use interleaved thinking to research
         "parameters": {
           "type": "object",
           "properties": {
-            "query": {"type": "string"},
-            "field": {"type": "string"}
+            "query": { "type": "string" },
+            "field": { "type": "string" }
           },
           "required": ["query"]
         }
@@ -869,8 +880,8 @@ Here's an example showing how a model might use interleaved thinking to research
         "parameters": {
           "type": "object",
           "properties": {
-            "topic": {"type": "string"},
-            "year": {"type": "integer"}
+            "topic": { "type": "string" },
+            "year": { "type": "integer" }
           },
           "required": ["topic"]
         }
@@ -898,19 +909,19 @@ Here's an example showing how a model might use interleaved thinking to research
 
 ### Best Practices for Interleaved Thinking
 
-* **Clear Tool Descriptions**: Provide detailed descriptions so the model can reason about when to use each tool
-* **Structured Parameters**: Use well-defined parameter schemas to help the model make precise tool calls
-* **Context Preservation**: Maintain conversation context across multiple tool interactions
-* **Error Handling**: Design tools to provide meaningful error messages that help the model adjust its approach
+- **Clear Tool Descriptions**: Provide detailed descriptions so the model can reason about when to use each tool
+- **Structured Parameters**: Use well-defined parameter schemas to help the model make precise tool calls
+- **Context Preservation**: Maintain conversation context across multiple tool interactions
+- **Error Handling**: Design tools to provide meaningful error messages that help the model adjust its approach
 
 ### Implementation Considerations
 
 When implementing interleaved thinking:
 
-* Models may take longer to respond due to additional reasoning steps
-* Token usage will be higher due to the reasoning process
-* The quality of reasoning depends on the model's capabilities
-* Some models may be better suited for this approach than others
+- Models may take longer to respond due to additional reasoning steps
+- Token usage will be higher due to the reasoning process
+- The quality of reasoning depends on the model's capabilities
+- Some models may be better suited for this approach than others
 
 ## A Simple Agentic Loop
 
@@ -919,12 +930,13 @@ In the example above, the calls are made explicitly and sequentially. To handle 
 Here's an example of a simple agentic loop (using the same `tools` and initial `messages` as above):
 
 <Template
-  data={{
+data={{
   API_KEY_REF,
   MODEL: 'google/gemini-3-flash-preview'
 }}
->
-  <CodeGroup>
+
+>   <CodeGroup>
+
     ```typescript title="TypeScript SDK"
     async function callLLM(messages: Message[]): Promise<ChatResponse> {
       const result = await openRouter.chat.send({
@@ -1019,6 +1031,7 @@ Here's an example of a simple agentic loop (using the same `tools` and initial `
     print(messages[-1]['content'])
 
     ```
+
   </CodeGroup>
 </Template>
 
@@ -1076,8 +1089,8 @@ const stream = await fetch('/api/chat/completions', {
     model: 'anthropic/claude-sonnet-4.5',
     messages: messages,
     tools: tools,
-    stream: true
-  })
+    stream: true,
+  }),
 });
 
 const reader = stream.body.getReader();
@@ -1090,7 +1103,7 @@ while (true) {
   }
 
   const chunk = new TextDecoder().decode(value);
-  const lines = chunk.split('\n').filter(line => line.trim());
+  const lines = chunk.split('\n').filter((line) => line.trim());
 
   for (const line of lines) {
     if (line.startsWith('data: ')) {
@@ -1130,7 +1143,7 @@ Control tool usage with the `tool_choice` parameter:
 {
   "tool_choice": {
     "type": "function",
-    "function": {"name": "search_database"}
+    "function": { "name": "search_database" }
   }
 }
 ```

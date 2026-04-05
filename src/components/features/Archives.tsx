@@ -1,6 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact } from '../../types';
-import { FileText, Trash2, ArrowRight, FolderOpen, Folder, Plus, FolderClosed, Download, FileJson, ChevronDown, MessageSquare } from 'lucide-react';
+import {
+  FileText,
+  Trash2,
+  ArrowRight,
+  FolderOpen,
+  Folder,
+  Plus,
+  FolderClosed,
+  Download,
+  FileJson,
+  ChevronDown,
+  MessageSquare,
+} from 'lucide-react';
 import { TaskSetupModal } from '../ui/TaskSetupModal';
 import { EmptyState } from '../ui/EmptyState';
 import { useWorkspaceStore } from '../../store/caseStore';
@@ -20,7 +32,11 @@ interface ArchivesProps {
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 
-export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCase, onOpenChat }) => {
+export const Archives: React.FC<ArchivesProps> = ({
+  onSelectReport,
+  onStartNewCase,
+  onOpenChat,
+}) => {
   const { artifacts, workspaces, deleteReport, purgeCase } = useWorkspaceStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
     const activeWorkspaceId = getStoredActiveWorkspaceId();
@@ -33,8 +49,8 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const archiveLabelProfile = getLabelProfileById(
-    workspaces.find((entry) => entry.id === selectedCaseId)?.labelProfileId
-    || artifacts.find((entry) => entry.caseId === selectedCaseId)?.labelProfileId
+    workspaces.find((entry) => entry.id === selectedCaseId)?.labelProfileId ||
+      artifacts.find((entry) => entry.caseId === selectedCaseId)?.labelProfileId
   );
   const workspaceLabel = archiveLabelProfile.workspaceLabel;
   const workspaceLabelLower = workspaceLabel.toLowerCase();
@@ -61,12 +77,16 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   useEffect(() => {
     const handleOpenNewWorkspaceModal = () => setIsNewCaseModalOpen(true);
     window.addEventListener('OPEN_NEW_WORKSPACE_MODAL', handleOpenNewWorkspaceModal);
-    return () => window.removeEventListener('OPEN_NEW_WORKSPACE_MODAL', handleOpenNewWorkspaceModal);
+    return () =>
+      window.removeEventListener('OPEN_NEW_WORKSPACE_MODAL', handleOpenNewWorkspaceModal);
   }, []);
 
-  const effectiveSelectedCaseId = selectedCaseId && selectedCaseId !== 'unassigned' && !workspaces.some((c) => c.id === selectedCaseId)
-    ? null
-    : selectedCaseId;
+  const effectiveSelectedCaseId =
+    selectedCaseId &&
+    selectedCaseId !== 'unassigned' &&
+    !workspaces.some((c) => c.id === selectedCaseId)
+      ? null
+      : selectedCaseId;
 
   useEffect(() => {
     if (!selectedCaseId || selectedCaseId === 'unassigned') return;
@@ -77,11 +97,11 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   }, [workspaces, selectedCaseId]);
 
   const getCaseReports = (caseId: string) => {
-    return artifacts.filter(r => r.caseId === caseId);
+    return artifacts.filter((r) => r.caseId === caseId);
   };
 
   const getUnassignedReports = () => {
-    return artifacts.filter(r => !r.caseId);
+    return artifacts.filter((r) => !r.caseId);
   };
 
   const handleDeleteReport = async (e: React.MouseEvent, id?: string) => {
@@ -93,7 +113,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
   const handlePurgeCase = async (caseId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
 
-    const targetCase = workspaces.find(c => c.id === caseId);
+    const targetCase = workspaces.find((c) => c.id === caseId);
     const reportCount = getCaseReports(caseId).length;
     const caseName = targetCase?.title || `this ${workspaceLabelLower}`;
     const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} ${artifactLabelLower}(s), saved signals, workspace chat sessions, linked run history, and directly linked manual graph references for this ${workspaceLabelLower}.\n\nThis cannot be undone.`;
@@ -149,7 +169,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
           {/* Active Cases */}
           {paginatedCases.map((c) => {
-            const fileCount = artifacts.filter(r => r.caseId === c.id).length;
+            const fileCount = artifacts.filter((r) => r.caseId === c.id).length;
             return (
               <div
                 key={c.id}
@@ -164,7 +184,9 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                   <div className="bg-zinc-900 p-3 text-white border border-zinc-700">
                     <FolderClosed className="w-8 h-8" />
                   </div>
-                  <span className={`text-[10px] font-mono px-2 py-1 border uppercase ${c.status === 'ACTIVE' ? 'border-osint-primary/50 text-osint-primary bg-osint-primary/10' : 'border-zinc-700 text-zinc-500'}`}>
+                  <span
+                    className={`text-[10px] font-mono px-2 py-1 border uppercase ${c.status === 'ACTIVE' ? 'border-osint-primary/50 text-osint-primary bg-osint-primary/10' : 'border-zinc-700 text-zinc-500'}`}
+                  >
                     {c.status}
                   </span>
                 </div>
@@ -181,28 +203,40 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                   </span>
                   <div className="flex space-x-1">
                     <button
-                      onClick={(e) => { e.stopPropagation(); onOpenChat({ workspaceId: c.id }); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenChat({ workspaceId: c.id });
+                      }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                       title={`Open ${workspaceLabelLower} in workspace chat`}
                     >
                       <MessageSquare className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); exportCaseAsHtml(c, getCaseReports(c.id)); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportCaseAsHtml(c, getCaseReports(c.id));
+                      }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                       title={`Export formatted printable ${workspaceLabelLower} (HTML)`}
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); exportCaseAsJson(c, getCaseReports(c.id)); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportCaseAsJson(c, getCaseReports(c.id));
+                      }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                       title={`Export raw ${workspaceLabelLower} data for backup (JSON)`}
                     >
                       <FileJson className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); exportCaseAsMarkdown(c, getCaseReports(c.id)); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportCaseAsMarkdown(c, getCaseReports(c.id));
+                      }}
                       className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                       title={`Export ${workspaceLabelLower} as Markdown (.md)`}
                     >
@@ -232,7 +266,9 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                   <FolderOpen className="w-8 h-8" />
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-zinc-400 mb-1 group-hover:text-white font-mono uppercase">Unassigned</h3>
+              <h3 className="text-lg font-bold text-zinc-400 mb-1 group-hover:text-white font-mono uppercase">
+                Unassigned
+              </h3>
               <p className="text-zinc-600 text-sm font-mono mb-4">{`Loose ${artifactLabelPlural}`}</p>
               <div className="flex items-center text-sm text-zinc-500 border-t border-zinc-800 pt-4 font-mono uppercase">
                 <FileText className="w-4 h-4 mr-2" />
@@ -245,15 +281,17 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
           {totalPages > 1 && (
             <div className="flex justify-center items-center space-x-4 pt-8">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
                 className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
               >
                 Prev
               </button>
-              <span className="text-xs font-mono text-zinc-500 uppercase">Page {currentPage} of {totalPages}</span>
+              <span className="text-xs font-mono text-zinc-500 uppercase">
+                Page {currentPage} of {totalPages}
+              </span>
               <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
                 className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
               >
@@ -268,7 +306,7 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
 
   const renderReportList = (caseId: string) => {
     const isUnassigned = caseId === 'unassigned';
-    const _currentCase = workspaces.find(c => c.id === caseId);
+    const _currentCase = workspaces.find((c) => c.id === caseId);
     const caseReports = isUnassigned ? getUnassignedReports() : getCaseReports(caseId);
 
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -281,7 +319,9 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
           {caseReports.length === 0 ? (
             <div className="col-span-full py-20 bg-zinc-900/20 border border-dashed border-zinc-800 flex flex-col items-center justify-center animate-in fade-in">
               <FileText className="w-12 h-12 text-zinc-800 mb-4" />
-              <div className="text-zinc-600 italic font-mono uppercase text-xs tracking-widest">NO_REPORTS_FILED_IN_DATABASE</div>
+              <div className="text-zinc-600 italic font-mono uppercase text-xs tracking-widest">
+                NO_REPORTS_FILED_IN_DATABASE
+              </div>
             </div>
           ) : (
             paginatedReports.map((report, idx) => (
@@ -295,12 +335,16 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                     <FileText className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-zinc-200 group-hover:text-white transition-colors font-mono">{report.topic}</h3>
+                    <h3 className="text-base font-bold text-zinc-200 group-hover:text-white transition-colors font-mono">
+                      {report.topic}
+                    </h3>
                     <div className="flex flex-wrap gap-4 text-xs text-zinc-500 font-mono mt-1 uppercase">
                       <span>{report.dateStr || 'Unknown Date'}</span>
                       {report.config?.parentArtifactId && (
                         <span className="flex items-center text-zinc-400">
-                          <ArrowRight className="w-3 h-3 mr-1" /> Linked: {artifacts.find((entry) => entry.id === report.config?.parentArtifactId)?.topic || artifactLabel}
+                          <ArrowRight className="w-3 h-3 mr-1" /> Linked:{' '}
+                          {artifacts.find((entry) => entry.id === report.config?.parentArtifactId)
+                            ?.topic || artifactLabel}
                         </span>
                       )}
                     </div>
@@ -346,15 +390,17 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
         {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-4 pt-8">
             <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
               className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
             >
               Prev
             </button>
-            <span className="text-xs font-mono text-zinc-500 uppercase">Page {currentPage} of {totalPages}</span>
+            <span className="text-xs font-mono text-zinc-500 uppercase">
+              Page {currentPage} of {totalPages}
+            </span>
             <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
               className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
             >
@@ -387,7 +433,12 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
                   label: stripLegacyWorkspacePrefix(workspace.title),
                 })),
                 ...(getUnassignedReports().length > 0
-                  ? [{ value: 'unassigned', label: `Unassigned ${archiveLabelProfile.artifactLabelPlural}` }]
+                  ? [
+                      {
+                        value: 'unassigned',
+                        label: `Unassigned ${archiveLabelProfile.artifactLabelPlural}`,
+                      },
+                    ]
                   : []),
               ]}
             />
@@ -396,55 +447,61 @@ export const Archives: React.FC<ArchivesProps> = ({ onSelectReport, onStartNewCa
 
         <div className="flex items-center space-x-3">
           {/* Export Dropdown - only show when case is selected */}
-          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (() => {
-            const currentCase = workspaces.find(c => c.id === effectiveSelectedCaseId);
-            return currentCase ? (
-              <div className="relative" ref={exportMenuRef}>
-                <button
-                  onClick={() => setShowExportMenu(!showExportMenu)}
-                  className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
-                >
-                  <Download className="w-4 h-4 mr-1" />
-                  <span className="hidden lg:inline">Export</span>
-                  <ChevronDown className="w-3 h-3 ml-1" />
-                </button>
-                {showExportMenu && (
-                  <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[200px]">
-                    <button
-                      onClick={() => {
-                        exportCaseAsHtml(currentCase, getCaseReports(currentCase.id));
-                        setShowExportMenu(false);
-                      }}
-                      className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
-                      title={`Exports a formatted printable ${workspaceLabelLower}`}
-                    >
-                      <Download className="w-4 h-4 mr-3 text-zinc-500" />
-                      <div>
-                        <div className="font-bold">{`${workspaceLabel} HTML`}</div>
-                        <div className="text-[10px] text-zinc-500">{`Formatted printable ${workspaceLabelLower}`}</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        exportCaseAsJson(currentCase, getCaseReports(currentCase.id));
-                        setShowExportMenu(false);
-                      }}
-                      className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
-                      title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
-                    >
-                      <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
-                      <div>
-                        <div className="font-bold">{`${workspaceLabel} JSON`}</div>
-                        <div className="text-[10px] text-zinc-500">{`Raw ${workspaceLabelLower} data for backup`}</div>
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : null;
-          })()}
-          <button onClick={() => setIsNewCaseModalOpen(true)} className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase">
-            <Plus className="w-4 h-4 mr-1" /> <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
+          {effectiveSelectedCaseId &&
+            effectiveSelectedCaseId !== 'unassigned' &&
+            (() => {
+              const currentCase = workspaces.find((c) => c.id === effectiveSelectedCaseId);
+              return currentCase ? (
+                <div className="relative" ref={exportMenuRef}>
+                  <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    <span className="hidden lg:inline">Export</span>
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  </button>
+                  {showExportMenu && (
+                    <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[200px]">
+                      <button
+                        onClick={() => {
+                          exportCaseAsHtml(currentCase, getCaseReports(currentCase.id));
+                          setShowExportMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                        title={`Exports a formatted printable ${workspaceLabelLower}`}
+                      >
+                        <Download className="w-4 h-4 mr-3 text-zinc-500" />
+                        <div>
+                          <div className="font-bold">{`${workspaceLabel} HTML`}</div>
+                          <div className="text-[10px] text-zinc-500">{`Formatted printable ${workspaceLabelLower}`}</div>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => {
+                          exportCaseAsJson(currentCase, getCaseReports(currentCase.id));
+                          setShowExportMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
+                      >
+                        <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                        <div>
+                          <div className="font-bold">{`${workspaceLabel} JSON`}</div>
+                          <div className="text-[10px] text-zinc-500">{`Raw ${workspaceLabelLower} data for backup`}</div>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : null;
+            })()}
+          <button
+            onClick={() => setIsNewCaseModalOpen(true)}
+            className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
+          >
+            <Plus className="w-4 h-4 mr-1" />{' '}
+            <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
           </button>
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (
             <button

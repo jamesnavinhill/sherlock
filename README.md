@@ -115,15 +115,20 @@ npm run preview
 npm run test
 npm run lint
 npm run lint:fix
+npm run typecheck
 npm run format
 npm run format:check
 npm run check
+npm run check:full
 ```
+
+`npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
 ## Current Validation Snapshot (April 5, 2026)
 
-- `npm run lint`: passes with 2 existing `GraphCanvas.tsx` hook-dependency warnings
-- targeted Vitest coverage passes for `systemConfig`, artifact shaping, guided mode, chat runtime, provider router dispatch, DB upgrades, workspace search context bundling, and Operation View launch propagation
+- `npm run lint`: passes clean
+- `npm run typecheck`: passes clean
+- targeted Vitest coverage passes for `router.test.ts`
 - `npm run build`: passes
 - `npm run test`: not run as a full suite in this validation pass
 

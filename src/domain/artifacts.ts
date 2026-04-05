@@ -62,7 +62,8 @@ const ensureUniqueSectionIds = (sections: ArtifactSection[]): ArtifactSection[] 
 
   return sections.map((section, index) => {
     const baseId =
-      normalizeText(section.id) || `section-${section.kind.toLowerCase()}-${section.order ?? index}`;
+      normalizeText(section.id) ||
+      `section-${section.kind.toLowerCase()}-${section.order ?? index}`;
     const duplicateCount = seenIds.get(baseId) ?? 0;
     seenIds.set(baseId, duplicateCount + 1);
 
@@ -74,7 +75,9 @@ const ensureUniqueSectionIds = (sections: ArtifactSection[]): ArtifactSection[] 
 };
 
 export const normalizeArtifactSectionKind = (value: unknown): ArtifactSectionKind => {
-  const raw = normalizeText(value).replace(/[\s-]+/g, '_').toUpperCase();
+  const raw = normalizeText(value)
+    .replace(/[\s-]+/g, '_')
+    .toUpperCase();
   if (
     raw === 'EXECUTIVE_SUMMARY' ||
     raw === 'KEY_FINDINGS' ||
@@ -103,7 +106,8 @@ const normalizeSectionRecord = (value: unknown, index: number): ArtifactSection 
   );
   const items = normalizeItems(record.items ?? record.bullets ?? record.points);
   const content =
-    normalizeText(record.content ?? record.text ?? record.summary ?? record.description) || undefined;
+    normalizeText(record.content ?? record.text ?? record.summary ?? record.description) ||
+    undefined;
   const title =
     normalizeText(record.title ?? record.label ?? record.heading) || SECTION_TITLES[kind];
 
@@ -122,10 +126,12 @@ const normalizeSectionRecord = (value: unknown, index: number): ArtifactSection 
 export const normalizeArtifactSections = (value: unknown): ArtifactSection[] => {
   if (!Array.isArray(value)) return [];
 
-  return ensureUniqueSectionIds(value
-    .map((entry, index) => normalizeSectionRecord(entry, index))
-    .filter((section): section is ArtifactSection => !!section)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
+  return ensureUniqueSectionIds(
+    value
+      .map((entry, index) => normalizeSectionRecord(entry, index))
+      .filter((section): section is ArtifactSection => !!section)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  );
 };
 
 const createSection = (
@@ -216,17 +222,19 @@ export const buildArtifactSections = (options: {
 
   if (derivedSections.length > 0) return ensureUniqueSectionIds(derivedSections);
 
-  return ensureUniqueSectionIds(options.summary
-    ? [
-        {
-          id: 'section-executive_summary-0',
-          kind: 'EXECUTIVE_SUMMARY',
-          title: SECTION_TITLES.EXECUTIVE_SUMMARY,
-          content: options.summary,
-          order: 0,
-        },
-      ]
-    : []);
+  return ensureUniqueSectionIds(
+    options.summary
+      ? [
+          {
+            id: 'section-executive_summary-0',
+            kind: 'EXECUTIVE_SUMMARY',
+            title: SECTION_TITLES.EXECUTIVE_SUMMARY,
+            content: options.summary,
+            order: 0,
+          },
+        ]
+      : []
+  );
 };
 
 export const getArtifactSectionTitle = (
@@ -295,7 +303,9 @@ export const getSectionContentByKinds = (
   return section?.content?.trim() || '';
 };
 
-export const toLegacyReportArrays = (report: Artifact): Pick<Artifact, 'agendas' | 'leads' | 'followUps'> => {
+export const toLegacyReportArrays = (
+  report: Artifact
+): Pick<Artifact, 'agendas' | 'leads' | 'followUps'> => {
   const leadItems = getSectionItemsByKinds(report.sections, ['LEADS', 'NEXT_STEPS']);
   const anomalyItems = getSectionItemsByKinds(report.sections, ['ANOMALIES', 'KEY_FINDINGS']);
 

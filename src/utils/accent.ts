@@ -14,7 +14,9 @@ export const buildAccentColor = ({ hue, lightness, chroma }: AccentSettings): st
   `oklch(${lightness} ${chroma} ${hue})`;
 
 export const parseOklch = (value: string): AccentSettings | null => {
-  const match = value.match(/oklch\(\s*([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s*\)/i);
+  const match = value.match(
+    /oklch\(\s*([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s+([0-9]*\.?[0-9]+)\s*\)/i
+  );
   if (!match) return null;
 
   const lightness = Number(match[1]);

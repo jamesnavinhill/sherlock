@@ -10,19 +10,22 @@
 ```bash
 npm run lint
 npm run lint:fix
+npm run typecheck
 npm run format
 npm run format:check
 npm run check
+npm run check:full
 ```
 
 ## Scope
 
-Current scripts target `src/`:
+Current scripts are repo-wide:
 
 - `lint`: `eslint src/`
-- `format`: `prettier --write src/`
-
-If you need repo-wide lint/format behavior, update scripts intentionally in `package.json`.
+- `typecheck`: `tsc --noEmit`
+- `format`: `prettier --write .`
+- `check`: static validation (`lint` + `typecheck`)
+- `check:full`: static validation plus `format:check`
 
 ## Rule Highlights
 
@@ -35,20 +38,23 @@ From `eslint.config.js`:
 - `no-console`: warning (`warn` + `error` allowed)
 - `prefer-const`, `no-var`, `eqeqeq`, `curly`: error
 
-## Current Status (April 3, 2026)
+## Current Status (April 5, 2026)
 
 - `npm run lint`: passes
-- targeted Vitest coverage for Timeline/store/maintenance/repository changes: passes
+- `npm run typecheck`: passes
 - `npm run build`: passes
-- `npm run test`: attempted for the full suite, but timed out in this environment after partial progress
+- targeted Vitest coverage for provider router dispatch: passes
+- `npm run test`: not run as a full suite in this validation pass
 
 ## Suggested Lint Workflow
 
 1. Run `npm run lint`.
-2. Apply safe autofixes with `npm run lint:fix`.
-3. Resolve remaining errors manually.
-4. Re-run `npm run lint` until clean.
-5. Run `npm run test` and `npm run build` before merging.
+2. Run `npm run typecheck`.
+3. Apply safe autofixes with `npm run lint:fix`.
+4. Resolve remaining errors manually.
+5. Re-run `npm run lint` and `npm run typecheck` until clean.
+6. Run `npm run test` and `npm run build` before merging.
+7. Run `npm run check:full` when you specifically want repo-wide Prettier verification too.
 
 ## Install Troubleshooting
 

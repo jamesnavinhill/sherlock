@@ -1,6 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import type { EntityAliasMap } from '../../../types';
-import { GitMerge, X, Check, AlertCircle, ArrowRight, Trash2, Split, Wand2, Layers, CheckSquare, Square } from 'lucide-react';
+import {
+  GitMerge,
+  X,
+  Check,
+  AlertCircle,
+  ArrowRight,
+  Trash2,
+  Split,
+  Wand2,
+  Layers,
+  CheckSquare,
+  Square,
+} from 'lucide-react';
 import { detectEntityClusters } from './entityResolutionUtils';
 
 interface EntityResolutionProps {
@@ -14,7 +26,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
   allEntities,
   currentAliases,
   onSaveAliases,
-  onClose
+  onClose,
 }) => {
   // Instead of pairs, we now track Clusters (groups of variants)
   const [selectedCanonicals, setSelectedCanonicals] = useState<Record<number, string>>({}); // Map cluster index to selected canonical
@@ -34,19 +46,22 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
   const defaultCanonicals = useMemo(() => {
     const defaults: Record<number, string> = {};
     clusters.forEach((cluster, idx) => {
-      defaults[idx] = cluster.reduce((a, b) => a.length >= b.length ? a : b);
+      defaults[idx] = cluster.reduce((a, b) => (a.length >= b.length ? a : b));
     });
     return defaults;
   }, [clusters]);
 
-  const canonicalSelections = useMemo(() => ({
-    ...defaultCanonicals,
-    ...selectedCanonicals
-  }), [defaultCanonicals, selectedCanonicals]);
+  const canonicalSelections = useMemo(
+    () => ({
+      ...defaultCanonicals,
+      ...selectedCanonicals,
+    }),
+    [defaultCanonicals, selectedCanonicals]
+  );
 
   const toggleVariantExclusion = (clusterIdx: number, variant: string) => {
     const key = `${clusterIdx}::${variant}`;
-    setExcludedVariants(prev => {
+    setExcludedVariants((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
@@ -62,7 +77,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
     const newAliases = { ...currentAliases };
 
-    cluster.forEach(variant => {
+    cluster.forEach((variant) => {
       // Skip if it's the target OR if user explicitly excluded it
       const isExcluded = excludedVariants.has(`${clusterIdx}::${variant}`);
 
@@ -71,7 +86,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
         newAliases[variant] = target;
 
         // Re-map recursively
-        Object.keys(newAliases).forEach(key => {
+        Object.keys(newAliases).forEach((key) => {
           if (newAliases[key] === variant) {
             newAliases[key] = target;
           }
@@ -89,11 +104,11 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
       const target = canonicalSelections[idx];
       if (!target) return;
 
-      cluster.forEach(variant => {
+      cluster.forEach((variant) => {
         const isExcluded = excludedVariants.has(`${idx}::${variant}`);
         if (variant !== target && !isExcluded) {
           newAliases[variant] = target;
-          Object.keys(newAliases).forEach(key => {
+          Object.keys(newAliases).forEach((key) => {
             if (newAliases[key] === variant) {
               newAliases[key] = target;
             }
@@ -108,7 +123,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
   const handleIgnoreCluster = (clusterIdx: number) => {
     const cluster = clusters[clusterIdx];
     const key = cluster.sort().join('::');
-    setIgnoredClusters(prev => new Set(prev).add(key));
+    setIgnoredClusters((prev) => new Set(prev).add(key));
   };
 
   const handleUnmerge = (aliasKey: string) => {
@@ -120,7 +135,6 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
   return (
     <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
       <div className="bg-osint-panel w-[95vw] h-[90vh] border border-zinc-700 shadow-2xl flex flex-col relative overflow-hidden rounded-sm">
-
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-black flex-shrink-0">
           <div className="flex items-center space-x-4">
@@ -128,8 +142,12 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
               <Layers className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold font-mono text-white uppercase tracking-wider">Entity Clustering</h2>
-              <p className="text-xs text-zinc-500 font-mono">Multi-node identity consolidation protocol.</p>
+              <h2 className="text-xl font-bold font-mono text-white uppercase tracking-wider">
+                Entity Clustering
+              </h2>
+              <p className="text-xs text-zinc-500 font-mono">
+                Multi-node identity consolidation protocol.
+              </p>
             </div>
           </div>
 
@@ -143,7 +161,10 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                 Merge All Clusters ({clusters.length})
               </button>
             )}
-            <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors bg-zinc-900 hover:bg-zinc-800 p-2">
+            <button
+              onClick={onClose}
+              className="text-zinc-500 hover:text-white transition-colors bg-zinc-900 hover:bg-zinc-800 p-2"
+            >
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -167,7 +188,6 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-black/50">
-
           {activeTab === 'CLUSTERS' && (
             <div className="space-y-6">
               {clusters.length === 0 ? (
@@ -175,13 +195,17 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                   <div className="bg-zinc-900/50 p-6 rounded-full border border-zinc-800 mb-6">
                     <Check className="w-16 h-16 opacity-50" />
                   </div>
-                  <p className="font-mono text-xl uppercase tracking-widest text-zinc-400 mb-2">Network Harmonized</p>
+                  <p className="font-mono text-xl uppercase tracking-widest text-zinc-400 mb-2">
+                    Network Harmonized
+                  </p>
                   <p className="text-sm font-mono">No identity clusters detected.</p>
                 </div>
               ) : (
                 clusters.map((cluster, idx) => (
-                  <div key={idx} className="bg-osint-panel border border-zinc-800 p-6 flex flex-col md:flex-row gap-6 relative group hover:border-osint-primary/50 transition-colors">
-
+                  <div
+                    key={idx}
+                    className="bg-osint-panel border border-zinc-800 p-6 flex flex-col md:flex-row gap-6 relative group hover:border-osint-primary/50 transition-colors"
+                  >
                     {/* Left: Cluster List */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-4">
@@ -189,7 +213,9 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                         <h3 className="text-sm font-mono font-bold text-white uppercase">
                           Identity Cluster #{idx + 1}
                         </h3>
-                        <span className="text-xs text-zinc-500 font-mono">({cluster.length} variations)</span>
+                        <span className="text-xs text-zinc-500 font-mono">
+                          ({cluster.length} variations)
+                        </span>
                       </div>
 
                       <div className="space-y-1 bg-zinc-900/50 p-4 border border-zinc-800">
@@ -203,41 +229,63 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                           const isIncluded = !isExcluded;
 
                           return (
-                            <div key={variant} className={`flex items-start justify-between p-3 rounded transition-colors ${isSelected ? 'bg-osint-primary/10 border border-osint-primary/30' : 'hover:bg-zinc-800 border border-transparent'}`}>
-
+                            <div
+                              key={variant}
+                              className={`flex items-start justify-between p-3 rounded transition-colors ${isSelected ? 'bg-osint-primary/10 border border-osint-primary/30' : 'hover:bg-zinc-800 border border-transparent'}`}
+                            >
                               {/* Target Selection (Radio) */}
-                              <div className="flex items-start flex-1 cursor-pointer pt-0.5" onClick={() => setSelectedCanonicals({ ...selectedCanonicals, [idx]: variant })}>
+                              <div
+                                className="flex items-start flex-1 cursor-pointer pt-0.5"
+                                onClick={() =>
+                                  setSelectedCanonicals({ ...selectedCanonicals, [idx]: variant })
+                                }
+                              >
                                 <input
                                   type="radio"
                                   name={`cluster-${idx}`}
                                   checked={isSelected}
-                                  onChange={() => { }} // Handled by div click
+                                  onChange={() => {}} // Handled by div click
                                   className="form-radio text-osint-primary bg-black border-zinc-600 focus:ring-osint-primary focus:ring-offset-black mt-1"
                                 />
-                                <span className={`ml-3 font-mono text-sm break-words leading-relaxed ${isSelected ? 'text-white font-bold' : 'text-zinc-400'}`}>
+                                <span
+                                  className={`ml-3 font-mono text-sm break-words leading-relaxed ${isSelected ? 'text-white font-bold' : 'text-zinc-400'}`}
+                                >
                                   {variant}
                                 </span>
                                 {isSelected && (
-                                  <span className="ml-2 text-[10px] text-osint-primary font-bold uppercase tracking-wider bg-black px-1 rounded whitespace-nowrap mt-0.5">MASTER</span>
+                                  <span className="ml-2 text-[10px] text-osint-primary font-bold uppercase tracking-wider bg-black px-1 rounded whitespace-nowrap mt-0.5">
+                                    MASTER
+                                  </span>
                                 )}
                               </div>
 
                               {/* Inclusion Toggle (Checkbox) */}
-                              <div className="ml-4 border-l border-zinc-800 pl-4 pt-0.5" title={isSelected ? "Target node is always included" : "Check to merge this entity"}>
+                              <div
+                                className="ml-4 border-l border-zinc-800 pl-4 pt-0.5"
+                                title={
+                                  isSelected
+                                    ? 'Target node is always included'
+                                    : 'Check to merge this entity'
+                                }
+                              >
                                 <button
-                                  onClick={() => !isSelected && toggleVariantExclusion(idx, variant)}
+                                  onClick={() =>
+                                    !isSelected && toggleVariantExclusion(idx, variant)
+                                  }
                                   disabled={isSelected}
                                   className={`p-1 rounded transition-colors ${isSelected ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'}`}
                                 >
                                   {isSelected || isIncluded ? (
-                                    <CheckSquare className={`w-5 h-5 ${isSelected ? 'text-osint-primary' : 'text-zinc-400'}`} />
+                                    <CheckSquare
+                                      className={`w-5 h-5 ${isSelected ? 'text-osint-primary' : 'text-zinc-400'}`}
+                                    />
                                   ) : (
                                     <Square className="w-5 h-5 text-zinc-600" />
                                   )}
                                 </button>
                               </div>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -265,10 +313,11 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                       </button>
 
                       <div className="mt-4 p-3 bg-osint-primary/10 border border-osint-primary/30 text-[10px] text-osint-primary font-mono leading-tight">
-                        <span className="font-bold">NOTE:</span> Selected nodes will merge into &quot;{canonicalSelections[idx]?.substring(0, 15)}...&quot;. Unchecked nodes remain distinct.
+                        <span className="font-bold">NOTE:</span> Selected nodes will merge into
+                        &quot;{canonicalSelections[idx]?.substring(0, 15)}...&quot;. Unchecked nodes
+                        remain distinct.
                       </div>
                     </div>
-
                   </div>
                 ))
               )}
@@ -284,18 +333,29 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                 </div>
               ) : (
                 Object.entries(currentAliases).map(([alias, canonical]) => (
-                  <div key={alias} className="bg-zinc-900/30 border border-zinc-800 p-4 flex flex-col md:flex-row items-center justify-between group hover:border-zinc-600 transition-colors">
+                  <div
+                    key={alias}
+                    className="bg-zinc-900/30 border border-zinc-800 p-4 flex flex-col md:flex-row items-center justify-between group hover:border-zinc-600 transition-colors"
+                  >
                     <div className="flex flex-1 items-center justify-center md:justify-start w-full md:w-auto mb-4 md:mb-0 space-x-4">
                       <div className="flex-1 text-right md:text-left">
-                        <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">Alias (Hidden)</div>
-                        <div className="text-zinc-300 font-mono text-sm break-all line-through decoration-red-500/50 decoration-2">{alias}</div>
+                        <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">
+                          Alias (Hidden)
+                        </div>
+                        <div className="text-zinc-300 font-mono text-sm break-all line-through decoration-red-500/50 decoration-2">
+                          {alias}
+                        </div>
                       </div>
 
                       <ArrowRight className="w-5 h-5 text-zinc-600 flex-shrink-0" />
 
                       <div className="flex-1 text-left">
-                        <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">Canonical (Shown)</div>
-                        <div className="text-white font-mono font-bold text-sm break-all">{canonical}</div>
+                        <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">
+                          Canonical (Shown)
+                        </div>
+                        <div className="text-white font-mono font-bold text-sm break-all">
+                          {canonical}
+                        </div>
                       </div>
                     </div>
 
@@ -311,9 +371,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
               )}
             </div>
           )}
-
         </div>
-
       </div>
     </div>
   );

@@ -35,13 +35,13 @@ Adapters in scope:
 
 ## 2. Error Class Reference
 
-| Error | Meaning | Primary Action |
-| --- | --- | --- |
-| `MISSING_API_KEY` | No usable key for provider | Add key or switch provider |
-| `RATE_LIMITED` | Upstream quota/throttle | Retry later, change model/provider |
-| `PARSE_ERROR` | Model payload failed normalization | Retry with simpler topic, collect payload |
-| `UPSTREAM_ERROR` | Endpoint/network/provider failure | Validate account/status, retry/switch |
-| `UNSUPPORTED_OPERATION` | Capability mismatch (commonly TTS) | Use supported provider/model |
+| Error                   | Meaning                            | Primary Action                            |
+| ----------------------- | ---------------------------------- | ----------------------------------------- |
+| `MISSING_API_KEY`       | No usable key for provider         | Add key or switch provider                |
+| `RATE_LIMITED`          | Upstream quota/throttle            | Retry later, change model/provider        |
+| `PARSE_ERROR`           | Model payload failed normalization | Retry with simpler topic, collect payload |
+| `UPSTREAM_ERROR`        | Endpoint/network/provider failure  | Validate account/status, retry/switch     |
+| `UNSUPPORTED_OPERATION` | Capability mismatch (commonly TTS) | Use supported provider/model              |
 
 ## 3. Capability Constraints
 

@@ -5,99 +5,102 @@ import type { ManualNode, ManualConnection } from '@/types';
 import { buildWorkspaceLinkedGraphReferenceIds } from '../../maintenance/workspaceData';
 
 export class ManualDataRepository {
-    // --- NODES ---
-    static async getAllNodes(): Promise<ManualNode[]> {
-        const db = getDB();
-        const rows = await db.select().from(manualNodes);
-        return rows.map(row => ({
-            id: row.id,
-            label: row.label,
-            type: row.type as 'CASE' | 'ENTITY',
-            subtype: row.subtype as ManualNode['subtype'],
-            timestamp: row.timestamp
-        }));
-    }
+  // --- NODES ---
+  static async getAllNodes(): Promise<ManualNode[]> {
+    const db = getDB();
+    const rows = await db.select().from(manualNodes);
+    return rows.map((row) => ({
+      id: row.id,
+      label: row.label,
+      type: row.type as 'CASE' | 'ENTITY',
+      subtype: row.subtype as ManualNode['subtype'],
+      timestamp: row.timestamp,
+    }));
+  }
 
-    static async saveAllNodes(nodes: ManualNode[]): Promise<void> {
-        const db = getDB();
-        await db.transaction(async (tx) => {
-            await tx.delete(manualNodes);
-            if (nodes.length > 0) {
-                for (const node of nodes) {
-                    await tx.insert(manualNodes).values({
-                        id: node.id,
-                        label: node.label,
-                        type: node.type,
-                        subtype: node.subtype,
-                        timestamp: node.timestamp
-                    });
-                }
-            }
-        });
-    }
-
-    static async addNode(node: ManualNode): Promise<void> {
-        const db = getDB();
-        await db.insert(manualNodes).values({
+  static async saveAllNodes(nodes: ManualNode[]): Promise<void> {
+    const db = getDB();
+    await db.transaction(async (tx) => {
+      await tx.delete(manualNodes);
+      if (nodes.length > 0) {
+        for (const node of nodes) {
+          await tx.insert(manualNodes).values({
             id: node.id,
             label: node.label,
             type: node.type,
             subtype: node.subtype,
-            timestamp: node.timestamp
-        });
-    }
-
-    static async removeNode(id: string): Promise<void> {
-        const db = getDB();
-        await db.delete(manualNodes).where(eq(manualNodes.id, id));
-    }
-
-    // --- LINKS ---
-    static async getAllLinks(): Promise<ManualConnection[]> {
-        const db = getDB();
-        const rows = await db.select().from(manualLinks);
-        return rows.map(row => ({
-            source: row.source,
-            target: row.target,
-            timestamp: row.timestamp
-        }));
-    }
-
-    static async saveAllLinks(links: ManualConnection[]): Promise<void> {
-        const db = getDB();
-        await db.transaction(async (tx) => {
-            await tx.delete(manualLinks);
-            if (links.length > 0) {
-                for (const link of links) {
-                    await tx.insert(manualLinks).values({
-                        source: link.source,
-                        target: link.target,
-                        timestamp: link.timestamp
-                    });
-                }
-            }
-        });
-    }
-
-    static async removeWorkspaceLinkedData(workspaceId: string, artifactIds: string[]): Promise<void> {
-        const removableIds = buildWorkspaceLinkedGraphReferenceIds(workspaceId, artifactIds);
-        const [nodes, links] = await Promise.all([this.getAllNodes(), this.getAllLinks()]);
-        const nextNodes = nodes.filter((node) => !removableIds.has(node.id));
-        const nextLinks = links.filter(
-            (link) => !removableIds.has(link.source) && !removableIds.has(link.target)
-        );
-
-        if (nextNodes.length !== nodes.length) {
-            await this.saveAllNodes(nextNodes);
+            timestamp: node.timestamp,
+          });
         }
-        if (nextLinks.length !== links.length) {
-            await this.saveAllLinks(nextLinks);
-        }
-    }
+      }
+    });
+  }
 
-    static async clearAll(): Promise<void> {
-        const db = getDB();
-        await db.delete(manualLinks);
-        await db.delete(manualNodes);
+  static async addNode(node: ManualNode): Promise<void> {
+    const db = getDB();
+    await db.insert(manualNodes).values({
+      id: node.id,
+      label: node.label,
+      type: node.type,
+      subtype: node.subtype,
+      timestamp: node.timestamp,
+    });
+  }
+
+  static async removeNode(id: string): Promise<void> {
+    const db = getDB();
+    await db.delete(manualNodes).where(eq(manualNodes.id, id));
+  }
+
+  // --- LINKS ---
+  static async getAllLinks(): Promise<ManualConnection[]> {
+    const db = getDB();
+    const rows = await db.select().from(manualLinks);
+    return rows.map((row) => ({
+      source: row.source,
+      target: row.target,
+      timestamp: row.timestamp,
+    }));
+  }
+
+  static async saveAllLinks(links: ManualConnection[]): Promise<void> {
+    const db = getDB();
+    await db.transaction(async (tx) => {
+      await tx.delete(manualLinks);
+      if (links.length > 0) {
+        for (const link of links) {
+          await tx.insert(manualLinks).values({
+            source: link.source,
+            target: link.target,
+            timestamp: link.timestamp,
+          });
+        }
+      }
+    });
+  }
+
+  static async removeWorkspaceLinkedData(
+    workspaceId: string,
+    artifactIds: string[]
+  ): Promise<void> {
+    const removableIds = buildWorkspaceLinkedGraphReferenceIds(workspaceId, artifactIds);
+    const [nodes, links] = await Promise.all([this.getAllNodes(), this.getAllLinks()]);
+    const nextNodes = nodes.filter((node) => !removableIds.has(node.id));
+    const nextLinks = links.filter(
+      (link) => !removableIds.has(link.source) && !removableIds.has(link.target)
+    );
+
+    if (nextNodes.length !== nodes.length) {
+      await this.saveAllNodes(nextNodes);
     }
+    if (nextLinks.length !== links.length) {
+      await this.saveAllLinks(nextLinks);
+    }
+  }
+
+  static async clearAll(): Promise<void> {
+    const db = getDB();
+    await db.delete(manualLinks);
+    await db.delete(manualNodes);
+  }
 }

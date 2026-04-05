@@ -167,12 +167,7 @@ export interface ManualConnection {
   timestamp: number;
 }
 
-export type GraphNodeSubtype =
-  | 'PERSON'
-  | 'ORGANIZATION'
-  | 'UNKNOWN'
-  | 'CONCEPT'
-  | 'SOURCE';
+export type GraphNodeSubtype = 'PERSON' | 'ORGANIZATION' | 'UNKNOWN' | 'CONCEPT' | 'SOURCE';
 
 export interface ManualNode {
   id: string;

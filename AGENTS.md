@@ -40,6 +40,7 @@ Before finishing non-trivial changes, run the narrowest validation that credibly
 Default expectation:
 
 - run `npm run lint`
+- run `npm run typecheck`
 - run the most relevant targeted test command(s) for the changed files or feature area
 - run `npm run build` when the change affects shipped app code, bundling, routing, or shared UI/runtime behavior
 
@@ -56,6 +57,7 @@ Examples of acceptable targeted validation:
 
 ```bash
 npm run lint
+npm run typecheck
 npm run test -- src/components/features/Timeline/timelineEvents.test.ts
 npx eslint src/components/features/TimelineView.tsx src/components/features/Timeline/timelineEvents.ts
 npm run build

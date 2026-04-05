@@ -31,19 +31,33 @@ import {
   hasLaunchContextPrimer,
 } from './services/chat/launchContext';
 import { resolveLaunchLineage } from './services/lineage/relationships';
-const Archives = lazy(() => import('./components/features/Archives').then(m => ({ default: m.Archives })));
-const NetworkGraph = lazy(() => import('./components/features/NetworkGraph').then(m => ({ default: m.NetworkGraph })));
-const LiveMonitor = lazy(() => import('./components/features/LiveMonitor').then(m => ({ default: m.LiveMonitor })));
-const Settings = lazy(() => import('./components/features/Settings').then(m => ({ default: m.Settings })));
-const TimelineView = lazy(() => import('./components/features/TimelineView').then(m => ({ default: m.TimelineView })));
-const OperationView = lazy(() => import('./components/features/OperationView').then(m => ({ default: m.OperationView })));
-const Feed = lazy(() => import('./components/features/Feed').then(m => ({ default: m.Feed })));
-const Chat = lazy(() => import('./components/features/Chat').then(m => ({ default: m.Chat })));
+const Archives = lazy(() =>
+  import('./components/features/Archives').then((m) => ({ default: m.Archives }))
+);
+const NetworkGraph = lazy(() =>
+  import('./components/features/NetworkGraph').then((m) => ({ default: m.NetworkGraph }))
+);
+const LiveMonitor = lazy(() =>
+  import('./components/features/LiveMonitor').then((m) => ({ default: m.LiveMonitor }))
+);
+const Settings = lazy(() =>
+  import('./components/features/Settings').then((m) => ({ default: m.Settings }))
+);
+const TimelineView = lazy(() =>
+  import('./components/features/TimelineView').then((m) => ({ default: m.TimelineView }))
+);
+const OperationView = lazy(() =>
+  import('./components/features/OperationView').then((m) => ({ default: m.OperationView }))
+);
+const Feed = lazy(() => import('./components/features/Feed').then((m) => ({ default: m.Feed })));
+const Chat = lazy(() => import('./components/features/Chat').then((m) => ({ default: m.Chat })));
 import { Sidebar } from './components/ui/Sidebar';
 import { ToastContainer } from './components/ui/Toast';
 import { GlobalSearch } from './components/ui/GlobalSearch';
 
-const toSystemConfigOverride = (config?: InvestigationRunConfig): Partial<SystemConfig> | undefined => {
+const toSystemConfigOverride = (
+  config?: InvestigationRunConfig
+): Partial<SystemConfig> | undefined => {
   if (!config) return undefined;
 
   return {
@@ -57,18 +71,34 @@ const toSystemConfigOverride = (config?: InvestigationRunConfig): Partial<System
 
 function App() {
   const {
-    currentView, setCurrentView,
-    workspaceRuns, addTask, completeTask, failTask, clearCompletedTasks,
-    activeTaskId, setActiveTaskId,
-    liveEvents: _liveEvents, setLiveEvents: _setLiveEvents,
-    navStack, setNavStack,
-    isSidebarCollapsed, setIsSidebarCollapsed,
-    themeMode, setThemeMode,
-    themeColor, setThemeColor,
-    accentSettings, setAccentSettings,
-    themeSurfaceSettings, setThemeSurfaceSettings,
-    showGlobalSearch, setShowGlobalSearch,
-    archiveReport, artifacts, workspaces,
+    currentView,
+    setCurrentView,
+    workspaceRuns,
+    addTask,
+    completeTask,
+    failTask,
+    clearCompletedTasks,
+    activeTaskId,
+    setActiveTaskId,
+    liveEvents: _liveEvents,
+    setLiveEvents: _setLiveEvents,
+    navStack,
+    setNavStack,
+    isSidebarCollapsed,
+    setIsSidebarCollapsed,
+    themeMode,
+    setThemeMode,
+    themeColor,
+    setThemeColor,
+    accentSettings,
+    setAccentSettings,
+    themeSurfaceSettings,
+    setThemeSurfaceSettings,
+    showGlobalSearch,
+    setShowGlobalSearch,
+    archiveReport,
+    artifacts,
+    workspaces,
     chatMessagesBySessionId,
     chatSessions,
     createChatSession,
@@ -76,7 +106,8 @@ function App() {
     setActiveWorkspaceId,
     setActiveChatSessionId,
     addToast,
-    initializeStore, isLoading,
+    initializeStore,
+    isLoading,
     customScopes,
   } = useWorkspaceStore();
 
@@ -89,12 +120,15 @@ function App() {
   const [focusedReportId, setFocusedReportId] = useState<string | null>(null);
   const [lastNonSettingsView, setLastNonSettingsView] = useState<AppView>(AppView.INVESTIGATION);
 
-  const setView = useCallback((view: AppView) => {
-    if (view !== AppView.SETTINGS) {
-      setLastNonSettingsView(view);
-    }
-    setCurrentView(view);
-  }, [setCurrentView]);
+  const setView = useCallback(
+    (view: AppView) => {
+      if (view !== AppView.SETTINGS) {
+        setLastNonSettingsView(view);
+      }
+      setCurrentView(view);
+    },
+    [setCurrentView]
+  );
 
   const shortcuts = createAppShortcuts({
     onNewInvestigation: () => {
@@ -109,7 +143,7 @@ function App() {
     onShowHelp: () => setShowHelpModal(true),
     onGlobalSearch: () => {
       setShowGlobalSearch(!showGlobalSearch);
-    }
+    },
   });
 
   useKeyboardShortcuts(shortcuts);
@@ -155,211 +189,255 @@ function App() {
     return !config.quietMode;
   };
 
-  const resolveScopeById = useCallback((scopeId?: string): InvestigationScope | undefined => {
-    if (!scopeId) return undefined;
+  const resolveScopeById = useCallback(
+    (scopeId?: string): InvestigationScope | undefined => {
+      if (!scopeId) return undefined;
 
-    return getScopeById(scopeId)
-      || getAllScopes(customScopes).find((scope) => scope.id === scopeId);
-  }, [customScopes]);
-
-  const addPreseededEntitiesToGraph = useCallback((taskId: string, preseededEntities?: ManualNode[]) => {
-    if (!preseededEntities || preseededEntities.length === 0) return;
-
-    const state = useWorkspaceStore.getState();
-    const existingNodes = state.manualNodes;
-    const nextNodes = [...existingNodes];
-
-    preseededEntities.forEach((entity, index) => {
-      const nodeId = `seed-${taskId}-${index}`;
-      if (nextNodes.some((node) => node.id === nodeId)) return;
-      nextNodes.push({
-        ...entity,
-        id: nodeId,
-        timestamp: Date.now(),
-      });
-    });
-
-    if (nextNodes.length !== existingNodes.length) {
-      void state.setManualNodes(nextNodes);
-    }
-  }, []);
-
-  const runInvestigationTask = useCallback(async (
-    taskId: string,
-    launchRequest: InvestigationLaunchRequest,
-    runConfig: InvestigationRunConfig
-  ) => {
-    try {
-      let report = await runWorkspaceInvestigation(
-        launchRequest.topic,
-        launchRequest.parentContext,
-        launchRequest.configOverride,
-        launchRequest.scope,
-        launchRequest.dateRangeOverride,
-        runConfig
+      return (
+        getScopeById(scopeId) || getAllScopes(customScopes).find((scope) => scope.id === scopeId)
       );
+    },
+    [customScopes]
+  );
 
-      report = { ...report, config: { ...(report.config || {}), ...runConfig } };
-      report = {
-        ...report,
-        config: {
-          ...(report.config || {}),
-          ...runConfig,
-          sourceRunId: taskId,
-        },
-      };
-      report = await archiveReport(report, launchRequest.parentContext);
+  const addPreseededEntitiesToGraph = useCallback(
+    (taskId: string, preseededEntities?: ManualNode[]) => {
+      if (!preseededEntities || preseededEntities.length === 0) return;
 
-      if (launchRequest.preseededEntities?.length) {
-        addPreseededEntitiesToGraph(taskId, launchRequest.preseededEntities);
-      }
+      const state = useWorkspaceStore.getState();
+      const existingNodes = state.manualNodes;
+      const nextNodes = [...existingNodes];
 
-      completeTask(taskId, report);
-      if (useWorkspaceStore.getState().activeTaskId === taskId) {
-        setFocusedReportId(report.id || null);
-      }
-      if (shouldNotify()) addToast(`Run complete: ${launchRequest.topic}`, 'SUCCESS');
-    } catch (error: unknown) {
-      console.error(`Task ${taskId} failed`, error);
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      failTask(taskId, message);
-      addToast(`Run failed: ${launchRequest.topic}`, 'ERROR');
-    }
-  }, [archiveReport, completeTask, failTask, addToast, addPreseededEntitiesToGraph]);
-
-  const launchInvestigation = useCallback((request: InvestigationLaunchRequest) => {
-    const switchToView = request.switchToView ?? true;
-    const effectiveConfig = migrateSystemConfig({ ...loadSystemConfig(), ...(request.configOverride || {}) });
-    const normalizedTopic = normalizeTopicText(request.topic);
-
-    if (!hasApiKey(effectiveConfig.provider)) {
-      setIsAuthenticated(false);
-      addToast(`Missing ${effectiveConfig.provider} API key. Add it to continue.`, 'ERROR');
-      return;
-    }
-
-    const scopeFromConfig = resolveScopeById((request.configOverride as InvestigationRunConfig | undefined)?.scopeId);
-    const effectiveScope = request.scope || scopeFromConfig;
-    const effectivePack = getDomainPackForScope(effectiveScope);
-    const effectivePurpose = getPurposeProfileById(
-      request.purposeId
-      || (request.configOverride as InvestigationRunConfig | undefined)?.purposeId
-      || effectivePack.defaultPurposeId
-    );
-    const artifactType = request.artifactType
-      || (request.configOverride as InvestigationRunConfig | undefined)?.artifactType
-      || effectivePurpose.recommendedArtifactType;
-    const labelProfileId = request.labelProfileId
-      || (request.configOverride as InvestigationRunConfig | undefined)?.labelProfileId
-      || effectivePack.labelProfileId;
-    const derivedLineage = resolveLaunchLineage({
-      request,
-      artifacts: artifacts,
-      runs: workspaceRuns,
-    });
-
-    const launchRequest: InvestigationLaunchRequest = {
-      ...request,
-      topic: normalizedTopic,
-      switchToView,
-      scope: effectiveScope,
-      packId: effectivePack.id,
-      purposeId: effectivePurpose.id,
-      artifactType,
-      labelProfileId,
-      sourceSignalId: derivedLineage.sourceSignalId,
-      parentArtifactId: derivedLineage.parentArtifactId,
-      parentRunId: derivedLineage.parentRunId,
-    };
-
-    const runConfig: InvestigationRunConfig = {
-      provider: effectiveConfig.provider,
-      modelId: effectiveConfig.modelId,
-      persona: effectiveConfig.persona,
-      searchDepth: effectiveConfig.searchDepth,
-      thinkingBudget: effectiveConfig.thinkingBudget,
-      scopeId: effectiveScope?.id,
-      scopeName: effectiveScope?.name,
-      packId: effectivePack.id,
-      packName: effectivePack.name,
-      purposeId: effectivePurpose.id,
-      purposeName: effectivePurpose.name,
-      artifactType,
-      labelProfileId,
-      dateRangeOverride: launchRequest.dateRangeOverride,
-      preseededEntities: launchRequest.preseededEntities,
-      launchSource: launchRequest.launchSource,
-      sourceSignalId: launchRequest.sourceSignalId,
-      parentArtifactId: launchRequest.parentArtifactId,
-      parentRunId: launchRequest.parentRunId,
-    };
-
-    const newTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    const newTask: WorkspaceRun = {
-      id: newTaskId,
-      topic: launchRequest.topic,
-      status: 'RUNNING',
-      startTime: Date.now(),
-      parentContext: launchRequest.parentContext,
-      config: runConfig,
-      launchRequest,
-    };
-
-    addTask(newTask);
-    if (shouldNotify()) addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
-
-    if (switchToView) {
-      setFocusedReportId(null);
-      setActiveTaskId(newTaskId);
-      setView(AppView.INVESTIGATION);
-    }
-
-    void runInvestigationTask(newTaskId, launchRequest, runConfig);
-  }, [addTask, addToast, artifacts, resolveScopeById, runInvestigationTask, setActiveTaskId, setView, workspaceRuns]);
-
-  const openChat = useCallback(async (request: ChatOpenRequest) => {
-    const workspace = workspaces.find((entry) => entry.id === request.workspaceId);
-    if (!workspace) {
-      addToast('Unable to open chat because the target workspace was not found.', 'ERROR');
-      return;
-    }
-
-    setActiveWorkspaceId(workspace.id);
-
-    let session = findReusableChatSession(chatSessions, request);
-    if (!session) {
-      session = await createChatSession({
-        workspaceId: workspace.id,
-        title: request.launchContext?.sourceReportId
-          ? artifacts.find((entry) => entry.id === request.launchContext?.sourceReportId)?.topic
-          : request.launchContext?.entityName || undefined,
-        sourceReportId: request.launchContext?.sourceReportId,
-        packId: workspace.packId,
-        purposeId: workspace.purposeId,
-        metadata: buildChatSessionMetadata(undefined, request.launchContext),
-      });
-    }
-
-    if (request.launchContext) {
-      const existingMessages = chatMessagesBySessionId[session.id] || [];
-      if (!hasLaunchContextPrimer(existingMessages, request.launchContext)) {
-        const primer = buildLaunchContextPrimer({
-          session,
-          launchContext: request.launchContext,
-          reports: artifacts.filter((entry) => entry.caseId === workspace.id),
-          headlines: useWorkspaceStore.getState().headlines.filter((entry) => entry.caseId === workspace.id),
+      preseededEntities.forEach((entity, index) => {
+        const nodeId = `seed-${taskId}-${index}`;
+        if (nextNodes.some((node) => node.id === nodeId)) return;
+        nextNodes.push({
+          ...entity,
+          id: nodeId,
+          timestamp: Date.now(),
         });
+      });
 
-        if (primer) {
-          await useWorkspaceStore.getState().addChatMessage(primer);
+      if (nextNodes.length !== existingNodes.length) {
+        void state.setManualNodes(nextNodes);
+      }
+    },
+    []
+  );
+
+  const runInvestigationTask = useCallback(
+    async (
+      taskId: string,
+      launchRequest: InvestigationLaunchRequest,
+      runConfig: InvestigationRunConfig
+    ) => {
+      try {
+        let report = await runWorkspaceInvestigation(
+          launchRequest.topic,
+          launchRequest.parentContext,
+          launchRequest.configOverride,
+          launchRequest.scope,
+          launchRequest.dateRangeOverride,
+          runConfig
+        );
+
+        report = { ...report, config: { ...(report.config || {}), ...runConfig } };
+        report = {
+          ...report,
+          config: {
+            ...(report.config || {}),
+            ...runConfig,
+            sourceRunId: taskId,
+          },
+        };
+        report = await archiveReport(report, launchRequest.parentContext);
+
+        if (launchRequest.preseededEntities?.length) {
+          addPreseededEntitiesToGraph(taskId, launchRequest.preseededEntities);
+        }
+
+        completeTask(taskId, report);
+        if (useWorkspaceStore.getState().activeTaskId === taskId) {
+          setFocusedReportId(report.id || null);
+        }
+        if (shouldNotify()) addToast(`Run complete: ${launchRequest.topic}`, 'SUCCESS');
+      } catch (error: unknown) {
+        console.error(`Task ${taskId} failed`, error);
+        const message = error instanceof Error ? error.message : 'Unknown error occurred';
+        failTask(taskId, message);
+        addToast(`Run failed: ${launchRequest.topic}`, 'ERROR');
+      }
+    },
+    [archiveReport, completeTask, failTask, addToast, addPreseededEntitiesToGraph]
+  );
+
+  const launchInvestigation = useCallback(
+    (request: InvestigationLaunchRequest) => {
+      const switchToView = request.switchToView ?? true;
+      const effectiveConfig = migrateSystemConfig({
+        ...loadSystemConfig(),
+        ...(request.configOverride || {}),
+      });
+      const normalizedTopic = normalizeTopicText(request.topic);
+
+      if (!hasApiKey(effectiveConfig.provider)) {
+        setIsAuthenticated(false);
+        addToast(`Missing ${effectiveConfig.provider} API key. Add it to continue.`, 'ERROR');
+        return;
+      }
+
+      const scopeFromConfig = resolveScopeById(
+        (request.configOverride as InvestigationRunConfig | undefined)?.scopeId
+      );
+      const effectiveScope = request.scope || scopeFromConfig;
+      const effectivePack = getDomainPackForScope(effectiveScope);
+      const effectivePurpose = getPurposeProfileById(
+        request.purposeId ||
+          (request.configOverride as InvestigationRunConfig | undefined)?.purposeId ||
+          effectivePack.defaultPurposeId
+      );
+      const artifactType =
+        request.artifactType ||
+        (request.configOverride as InvestigationRunConfig | undefined)?.artifactType ||
+        effectivePurpose.recommendedArtifactType;
+      const labelProfileId =
+        request.labelProfileId ||
+        (request.configOverride as InvestigationRunConfig | undefined)?.labelProfileId ||
+        effectivePack.labelProfileId;
+      const derivedLineage = resolveLaunchLineage({
+        request,
+        artifacts: artifacts,
+        runs: workspaceRuns,
+      });
+
+      const launchRequest: InvestigationLaunchRequest = {
+        ...request,
+        topic: normalizedTopic,
+        switchToView,
+        scope: effectiveScope,
+        packId: effectivePack.id,
+        purposeId: effectivePurpose.id,
+        artifactType,
+        labelProfileId,
+        sourceSignalId: derivedLineage.sourceSignalId,
+        parentArtifactId: derivedLineage.parentArtifactId,
+        parentRunId: derivedLineage.parentRunId,
+      };
+
+      const runConfig: InvestigationRunConfig = {
+        provider: effectiveConfig.provider,
+        modelId: effectiveConfig.modelId,
+        persona: effectiveConfig.persona,
+        searchDepth: effectiveConfig.searchDepth,
+        thinkingBudget: effectiveConfig.thinkingBudget,
+        scopeId: effectiveScope?.id,
+        scopeName: effectiveScope?.name,
+        packId: effectivePack.id,
+        packName: effectivePack.name,
+        purposeId: effectivePurpose.id,
+        purposeName: effectivePurpose.name,
+        artifactType,
+        labelProfileId,
+        dateRangeOverride: launchRequest.dateRangeOverride,
+        preseededEntities: launchRequest.preseededEntities,
+        launchSource: launchRequest.launchSource,
+        sourceSignalId: launchRequest.sourceSignalId,
+        parentArtifactId: launchRequest.parentArtifactId,
+        parentRunId: launchRequest.parentRunId,
+      };
+
+      const newTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      const newTask: WorkspaceRun = {
+        id: newTaskId,
+        topic: launchRequest.topic,
+        status: 'RUNNING',
+        startTime: Date.now(),
+        parentContext: launchRequest.parentContext,
+        config: runConfig,
+        launchRequest,
+      };
+
+      addTask(newTask);
+      if (shouldNotify()) addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
+
+      if (switchToView) {
+        setFocusedReportId(null);
+        setActiveTaskId(newTaskId);
+        setView(AppView.INVESTIGATION);
+      }
+
+      void runInvestigationTask(newTaskId, launchRequest, runConfig);
+    },
+    [
+      addTask,
+      addToast,
+      artifacts,
+      resolveScopeById,
+      runInvestigationTask,
+      setActiveTaskId,
+      setView,
+      workspaceRuns,
+    ]
+  );
+
+  const openChat = useCallback(
+    async (request: ChatOpenRequest) => {
+      const workspace = workspaces.find((entry) => entry.id === request.workspaceId);
+      if (!workspace) {
+        addToast('Unable to open chat because the target workspace was not found.', 'ERROR');
+        return;
+      }
+
+      setActiveWorkspaceId(workspace.id);
+
+      let session = findReusableChatSession(chatSessions, request);
+      if (!session) {
+        session = await createChatSession({
+          workspaceId: workspace.id,
+          title: request.launchContext?.sourceReportId
+            ? artifacts.find((entry) => entry.id === request.launchContext?.sourceReportId)?.topic
+            : request.launchContext?.entityName || undefined,
+          sourceReportId: request.launchContext?.sourceReportId,
+          packId: workspace.packId,
+          purposeId: workspace.purposeId,
+          metadata: buildChatSessionMetadata(undefined, request.launchContext),
+        });
+      }
+
+      if (request.launchContext) {
+        const existingMessages = chatMessagesBySessionId[session.id] || [];
+        if (!hasLaunchContextPrimer(existingMessages, request.launchContext)) {
+          const primer = buildLaunchContextPrimer({
+            session,
+            launchContext: request.launchContext,
+            reports: artifacts.filter((entry) => entry.caseId === workspace.id),
+            headlines: useWorkspaceStore
+              .getState()
+              .headlines.filter((entry) => entry.caseId === workspace.id),
+          });
+
+          if (primer) {
+            await useWorkspaceStore.getState().addChatMessage(primer);
+          }
         }
       }
-    }
 
-    setActiveChatSessionId(session.id);
-    setView(AppView.CHAT);
-  }, [addToast, artifacts, workspaces, chatMessagesBySessionId, chatSessions, createChatSession, setActiveWorkspaceId, setActiveChatSessionId, setView]);
+      setActiveChatSessionId(session.id);
+      setView(AppView.CHAT);
+    },
+    [
+      addToast,
+      artifacts,
+      workspaces,
+      chatMessagesBySessionId,
+      chatSessions,
+      createChatSession,
+      setActiveWorkspaceId,
+      setActiveChatSessionId,
+      setView,
+    ]
+  );
 
   const handleBatchInvestigate = (leads: string[], parentReport: Artifact) => {
     const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
@@ -387,10 +465,10 @@ function App() {
     setActiveWorkspaceId(report.caseId || null);
 
     const existingTask = workspaceRuns.find(
-      t =>
-        t.report?.id === report.id
-        || t.id === report.config?.sourceRunId
-        || t.report?.topic === report.topic
+      (t) =>
+        t.report?.id === report.id ||
+        t.id === report.config?.sourceRunId ||
+        t.report?.topic === report.topic
     );
 
     if (existingTask) {
@@ -407,14 +485,17 @@ function App() {
   };
 
   const handleClearCompleted = async () => {
-    const activeBeforeClear = workspaceRuns.find(t => t.id === activeTaskId);
+    const activeBeforeClear = workspaceRuns.find((t) => t.id === activeTaskId);
     await clearCompletedTasks();
-    if (activeBeforeClear && (activeBeforeClear.status === 'COMPLETED' || activeBeforeClear.status === 'FAILED')) {
+    if (
+      activeBeforeClear &&
+      (activeBeforeClear.status === 'COMPLETED' || activeBeforeClear.status === 'FAILED')
+    ) {
       setActiveTaskId(null);
     }
   };
 
-  const activeTask = workspaceRuns.find(t => t.id === activeTaskId);
+  const activeTask = workspaceRuns.find((t) => t.id === activeTaskId);
   const defaultFocusedReportId = useMemo(() => {
     if (currentView !== AppView.INVESTIGATION) return null;
     if (activeTaskId || focusedReportId || !activeWorkspaceId) return null;
@@ -423,14 +504,15 @@ function App() {
     if (caseReports.length === 0) return null;
 
     return (
-      caseReports.find((report) => !report.config?.parentArtifactId)?.id
-      || caseReports[0]?.id
-      || null
+      caseReports.find((report) => !report.config?.parentArtifactId)?.id ||
+      caseReports[0]?.id ||
+      null
     );
   }, [activeTaskId, activeWorkspaceId, artifacts, currentView, focusedReportId]);
-  const focusedReport = (focusedReportId || defaultFocusedReportId)
-    ? artifacts.find(r => r.id === (focusedReportId || defaultFocusedReportId)) || null
-    : null;
+  const focusedReport =
+    focusedReportId || defaultFocusedReportId
+      ? artifacts.find((r) => r.id === (focusedReportId || defaultFocusedReportId)) || null
+      : null;
   const activeReport = activeTask?.report || focusedReport || null;
 
   useEffect(() => {
@@ -439,25 +521,31 @@ function App() {
       const newStack: BreadcrumbItem[] = [];
 
       if (report.caseId) {
-        const foundCase = workspaces.find(c => c.id === report.caseId);
+        const foundCase = workspaces.find((c) => c.id === report.caseId);
         if (foundCase) {
-          newStack.push({ type: 'CASE', id: foundCase.id, label: stripLegacyWorkspacePrefix(foundCase.title) });
+          newStack.push({
+            type: 'CASE',
+            id: foundCase.id,
+            label: stripLegacyWorkspacePrefix(foundCase.title),
+          });
         }
       }
 
-      newStack.push({ type: 'REPORT', id: report.id || activeTaskId || 'report', label: report.topic });
+      newStack.push({
+        type: 'REPORT',
+        id: report.id || activeTaskId || 'report',
+        label: report.topic,
+      });
       setNavStack(newStack);
     }
   }, [activeReport, workspaces, setNavStack, activeTaskId]);
 
   const handleBreadcrumbNavigate = (id: string) => {
-    const caseItem = navStack.find(item => item.id === id && item.type === 'CASE');
+    const caseItem = navStack.find((item) => item.id === id && item.type === 'CASE');
     if (caseItem) {
-        const caseReports = artifacts.filter(r => r.caseId === id);
-        if (caseReports.length > 0) {
-          const root =
-          caseReports.find(r => !r.config?.parentArtifactId)
-          || caseReports[0];
+      const caseReports = artifacts.filter((r) => r.caseId === id);
+      if (caseReports.length > 0) {
+        const root = caseReports.find((r) => !r.config?.parentArtifactId) || caseReports[0];
         handleViewReport(root);
         return;
       }
@@ -466,13 +554,13 @@ function App() {
       return;
     }
 
-    const task = workspaceRuns.find(t => t.id === id || t.report?.id === id);
+    const task = workspaceRuns.find((t) => t.id === id || t.report?.id === id);
     if (task) {
       handleSelectTask(task.id);
       return;
     }
 
-    const archiveReport = artifacts.find(r => r.id === id);
+    const archiveReport = artifacts.find((r) => r.id === id);
     if (archiveReport) {
       handleViewReport(archiveReport);
     }
@@ -495,7 +583,6 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-osint-dark text-osint-text font-sans selection:bg-osint-primary selection:text-black overflow-hidden">
-
       {!isAuthenticated && (
         <ApiKeyModal
           onKeySet={() => setIsAuthenticated(hasApiKey())}
@@ -532,14 +619,19 @@ function App() {
         onToggleTheme={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
       />
 
-      <main className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}>
-
+      <main
+        className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}
+      >
         <div className="flex-1 overflow-hidden relative w-full">
-          <Suspense fallback={
-            <div className="flex items-center justify-center h-full bg-black">
-              <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">LOADING_PROTOCOL...</div>
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-full bg-black">
+                <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
+                  LOADING_PROTOCOL...
+                </div>
+              </div>
+            }
+          >
             {currentView === AppView.DASHBOARD && (
               <Feed
                 onInvestigate={(request) => launchInvestigation({ ...request, switchToView: true })}
@@ -548,17 +640,25 @@ function App() {
             {currentView === AppView.ARCHIVES && (
               <Archives
                 onSelectReport={handleSelectReport}
-                onStartNewCase={(request) => launchInvestigation({ ...request, switchToView: true })}
+                onStartNewCase={(request) =>
+                  launchInvestigation({ ...request, switchToView: true })
+                }
                 onOpenChat={openChat}
               />
             )}
             {currentView === AppView.CHAT && (
-              <Chat onLaunchInvestigation={(request) => launchInvestigation({ ...request, switchToView: true })} />
+              <Chat
+                onLaunchInvestigation={(request) =>
+                  launchInvestigation({ ...request, switchToView: true })
+                }
+              />
             )}
             {currentView === AppView.NETWORK && (
               <NetworkGraph
                 onOpenReport={handleSelectReport}
-                onInvestigateEntity={(request) => launchInvestigation({ ...request, switchToView: true })}
+                onInvestigateEntity={(request) =>
+                  launchInvestigation({ ...request, switchToView: true })
+                }
                 onOpenChat={openChat}
               />
             )}
@@ -570,10 +670,7 @@ function App() {
               />
             )}
             {currentView === AppView.TIMELINE && (
-              <TimelineView
-                onOpenReport={handleSelectReport}
-                onOpenChat={openChat}
-              />
+              <TimelineView onOpenReport={handleSelectReport} onOpenChat={openChat} />
             )}
             {currentView === AppView.SETTINGS && (
               <Settings
@@ -587,11 +684,13 @@ function App() {
                 }}
                 themeSurfaceSettings={themeSurfaceSettings}
                 onThemeSurfaceSettingsChange={setThemeSurfaceSettings}
-                onStartCase={(request) => launchInvestigation({
-                  ...request,
-                  switchToView: true,
-                  launchSource: 'SETTINGS_TEMPLATE',
-                })}
+                onStartCase={(request) =>
+                  launchInvestigation({
+                    ...request,
+                    switchToView: true,
+                    launchSource: 'SETTINGS_TEMPLATE',
+                  })
+                }
                 onClose={() => setView(lastNonSettingsView)}
               />
             )}
@@ -609,13 +708,15 @@ function App() {
               navStack={navStack}
               onNavigate={handleBreadcrumbNavigate}
               onSelectCase={(reportId) => {
-                const foundReport = artifacts.find(r => r.id === reportId);
+                const foundReport = artifacts.find((r) => r.id === reportId);
                 if (foundReport) {
                   handleViewReport(foundReport);
                 }
               }}
               onStartNewCase={(request) => launchInvestigation({ ...request, switchToView: true })}
-              onInvestigateHeadline={(request) => launchInvestigation({ ...request, switchToView: true })}
+              onInvestigateHeadline={(request) =>
+                launchInvestigation({ ...request, switchToView: true })
+              }
               onOpenChat={openChat}
             />
           )}

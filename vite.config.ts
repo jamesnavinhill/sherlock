@@ -19,12 +19,12 @@ export default defineConfig(({ mode }) => {
     define: {
       // Backwards compatibility shim for process.env access
       'process.env.API_KEY': JSON.stringify(apiKey),
-      'process.env.GEMINI_API_KEY': JSON.stringify(apiKey)
+      'process.env.GEMINI_API_KEY': JSON.stringify(apiKey),
     },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-      }
+      },
     },
     build: {
       chunkSizeWarningLimit: 500,
@@ -39,19 +39,21 @@ export default defineConfig(({ mode }) => {
             if (normalizedId.includes('/node_modules/d3')) return 'vendor-d3';
             if (normalizedId.includes('/node_modules/@google/genai/')) return 'vendor-gemini';
             if (
-              normalizedId.includes('/node_modules/wa-sqlite/')
-              || normalizedId.includes('/node_modules/drizzle-orm/')
-            ) return 'vendor-db';
+              normalizedId.includes('/node_modules/wa-sqlite/') ||
+              normalizedId.includes('/node_modules/drizzle-orm/')
+            )
+              return 'vendor-db';
             if (
-              normalizedId.includes('/node_modules/react/')
-              || normalizedId.includes('/node_modules/react-dom/')
-              || normalizedId.includes('/node_modules/scheduler/')
-            ) return 'vendor-react';
+              normalizedId.includes('/node_modules/react/') ||
+              normalizedId.includes('/node_modules/react-dom/') ||
+              normalizedId.includes('/node_modules/scheduler/')
+            )
+              return 'vendor-react';
 
             return 'vendor';
           },
-        }
-      }
-    }
+        },
+      },
+    },
   };
 });

@@ -1,5 +1,17 @@
 import React from 'react';
-import { LayoutDashboard, Radio, FileText, Settings, ShieldAlert, FolderClosed, Network, Sun, Moon, MessageSquare, Clock3 } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Radio,
+  FileText,
+  Settings,
+  ShieldAlert,
+  FolderClosed,
+  Network,
+  Sun,
+  Moon,
+  MessageSquare,
+  Clock3,
+} from 'lucide-react';
 import type { WorkspaceRun } from '../../types';
 import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
@@ -30,21 +42,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTask,
   onClearCompleted,
   themeMode,
-  onToggleTheme
+  onToggleTheme,
 }) => {
   const { activeScope: activeScopeId, customScopes } = useWorkspaceStore();
   const activeScope =
-    getScopeById(activeScopeId || '')
-    || getAllScopes(customScopes).find((scope) => scope.id === activeScopeId)
-    || getAllScopes(customScopes)[0];
+    getScopeById(activeScopeId || '') ||
+    getAllScopes(customScopes).find((scope) => scope.id === activeScopeId) ||
+    getAllScopes(customScopes)[0];
   const activePack = getDomainPackForScope(activeScope, customScopes);
   const labelProfile = getLabelProfileById(activePack.labelProfileId);
-  const monitorLabel = activePack.workspaceMode === 'MONITORING' ? 'Signal Monitor' : 'Live Monitor';
+  const monitorLabel =
+    activePack.workspaceMode === 'MONITORING' ? 'Signal Monitor' : 'Live Monitor';
 
   const btnClass = (isActive: boolean) =>
-    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${isActive
-      ? 'bg-zinc-900 text-osint-primary border-osint-primary shadow-[inset_10px_0_20px_-10px_rgba(0,0,0,0.5)]'
-      : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 border-transparent'
+    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${
+      isActive
+        ? 'bg-zinc-900 text-osint-primary border-osint-primary shadow-[inset_10px_0_20px_-10px_rgba(0,0,0,0.5)]'
+        : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 border-transparent'
     }`;
 
   return (
@@ -57,15 +71,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      <aside className={`${isCollapsed ? 'w-0 md:w-20 -translate-x-full md:translate-x-0' : 'w-64 translate-x-0'} bg-osint-dark border-r border-zinc-800 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}>
+      <aside
+        className={`${isCollapsed ? 'w-0 md:w-20 -translate-x-full md:translate-x-0' : 'w-64 translate-x-0'} bg-osint-dark border-r border-zinc-800 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}
+      >
         <div
           onClick={toggleCollapse}
           className={`h-20 flex items-center ${isCollapsed ? 'justify-center' : 'px-6 space-x-3'} border-b border-zinc-800 bg-osint-dark cursor-pointer hover:bg-zinc-900 transition-colors group flex-shrink-0`}
           title="Toggle Sidebar"
         >
-          <ShieldAlert className={`w-8 h-8 text-osint-primary transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`} />
+          <ShieldAlert
+            className={`w-8 h-8 text-osint-primary transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
+          />
           {!isCollapsed && (
-            <span className="text-xl font-bold font-mono tracking-widest text-zinc-400 animate-in fade-in duration-200 whitespace-nowrap">SHER<span className="text-osint-primary">LOCK</span></span>
+            <span className="text-xl font-bold font-mono tracking-widest text-zinc-400 animate-in fade-in duration-200 whitespace-nowrap">
+              SHER<span className="text-osint-primary">LOCK</span>
+            </span>
           )}
         </div>
 
@@ -77,17 +97,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label={labelProfile.detailViewLabel}
           >
             <FileText className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">{labelProfile.detailViewLabel}</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                {labelProfile.detailViewLabel}
+              </span>
+            )}
           </button>
 
           <button
             onClick={() => onChangeView(AppView.CHAT)}
             className={btnClass(currentView === AppView.CHAT)}
-            title={isCollapsed ? "Workspace Chat" : undefined}
+            title={isCollapsed ? 'Workspace Chat' : undefined}
             aria-label="Workspace Chat"
           >
             <MessageSquare className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Workspace Chat</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                Workspace Chat
+              </span>
+            )}
           </button>
 
           <button
@@ -97,17 +125,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label="Timeline"
           >
             <Clock3 className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Timeline</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                Timeline
+              </span>
+            )}
           </button>
 
           <button
             onClick={() => onChangeView(AppView.NETWORK)}
             className={btnClass(currentView === AppView.NETWORK)}
-            title={isCollapsed ? "Network Graph" : undefined}
+            title={isCollapsed ? 'Network Graph' : undefined}
             aria-label="Network Graph"
           >
             <Network className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Network Graph</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                Network Graph
+              </span>
+            )}
           </button>
 
           <button
@@ -117,7 +153,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label={monitorLabel}
           >
             <Radio className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">{monitorLabel}</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                {monitorLabel}
+              </span>
+            )}
           </button>
 
           <button
@@ -127,17 +167,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label={labelProfile.archiveLabel}
           >
             <FolderClosed className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">{labelProfile.archiveLabel}</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                {labelProfile.archiveLabel}
+              </span>
+            )}
           </button>
 
           <button
             onClick={() => onChangeView(AppView.DASHBOARD)}
             className={btnClass(currentView === AppView.DASHBOARD)}
-            title={isCollapsed ? "Discovery Feed" : undefined}
+            title={isCollapsed ? 'Discovery Feed' : undefined}
             aria-label="Discovery Feed"
           >
             <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">Discovery Feed</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                Discovery Feed
+              </span>
+            )}
           </button>
         </nav>
 
@@ -155,20 +203,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => onChangeView(AppView.SETTINGS)}
             className={`${btnClass(currentView === AppView.SETTINGS)} py-4`}
-            title={isCollapsed ? "System Config" : undefined}
+            title={isCollapsed ? 'System Config' : undefined}
           >
             <Settings className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">System Config</span>}
+            {!isCollapsed && (
+              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
+                System Config
+              </span>
+            )}
           </button>
           <button
             onClick={onToggleTheme}
             className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 border-l border-transparent text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary`}
-            title={isCollapsed ? (themeMode === 'dark' ? 'Enable Light Mode' : 'Enable Dark Mode') : undefined}
+            title={
+              isCollapsed
+                ? themeMode === 'dark'
+                  ? 'Enable Light Mode'
+                  : 'Enable Dark Mode'
+                : undefined
+            }
             aria-label={themeMode === 'dark' ? 'Enable Light Mode' : 'Enable Dark Mode'}
           >
-            {themeMode === 'dark'
-              ? <Sun className="w-5 h-5 flex-shrink-0 text-osint-primary" />
-              : <Moon className="w-5 h-5 flex-shrink-0 text-osint-primary" />}
+            {themeMode === 'dark' ? (
+              <Sun className="w-5 h-5 flex-shrink-0 text-osint-primary" />
+            ) : (
+              <Moon className="w-5 h-5 flex-shrink-0 text-osint-primary" />
+            )}
             {!isCollapsed && (
               <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
                 {themeMode === 'dark' ? 'Light Mode' : 'Dark Mode'}
@@ -182,7 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <button
         onClick={toggleCollapse}
         className={`osint-button-primary md:hidden fixed bottom-6 right-6 z-50 p-4 rounded-full transition-transform focus:ring-4 focus:ring-white/20 outline-none ${!isCollapsed ? 'scale-0' : 'scale-100'}`}
-        aria-label={isCollapsed ? "Open Sidebar" : "Close Sidebar"}
+        aria-label={isCollapsed ? 'Open Sidebar' : 'Close Sidebar'}
       >
         <ShieldAlert className="w-6 h-6" />
       </button>

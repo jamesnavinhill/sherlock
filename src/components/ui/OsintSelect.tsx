@@ -176,7 +176,11 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       setActiveIndex((current) =>
-        getNextEnabledIndex(options, current < 0 ? selectedIndex : current, event.key === 'ArrowDown' ? 1 : -1)
+        getNextEnabledIndex(
+          options,
+          current < 0 ? selectedIndex : current,
+          event.key === 'ArrowDown' ? 1 : -1
+        )
       );
       return;
     }
@@ -219,7 +223,9 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
         <div
           id={listboxId}
           role="listbox"
-          aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
+          aria-activedescendant={
+            activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
+          }
           className={cx(
             'absolute left-0 top-full z-50 mt-1 min-w-full overflow-hidden border border-zinc-700 bg-black/95 backdrop-blur-md shadow-lg',
             menuClassName
@@ -247,8 +253,11 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
                   'flex w-full items-center justify-between gap-3 border-b border-zinc-800 px-3 py-2 text-left font-mono text-xs text-zinc-300 outline-none transition last:border-b-0',
                   !option.disabled &&
                     'hover:bg-[var(--osint-primary-soft-bg)] hover:text-[var(--osint-ink)] focus-visible:bg-[var(--osint-primary-soft-bg)] focus-visible:text-[var(--osint-ink)]',
-                  isSelected && 'bg-[var(--osint-primary-soft-bg-strong)] text-[var(--osint-primary)]',
-                  isActive && !option.disabled && 'bg-[var(--osint-primary-soft-bg)] text-[var(--osint-ink)]',
+                  isSelected &&
+                    'bg-[var(--osint-primary-soft-bg-strong)] text-[var(--osint-primary)]',
+                  isActive &&
+                    !option.disabled &&
+                    'bg-[var(--osint-primary-soft-bg)] text-[var(--osint-ink)]',
                   option.disabled && 'cursor-not-allowed opacity-40',
                   optionClassName
                 )}

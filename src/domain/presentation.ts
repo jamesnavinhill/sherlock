@@ -50,13 +50,13 @@ export const sanitizeDisplayTitle = (title: string): string => {
   const withoutLegacyPrefix = title.replace(/^Operation:\s*/i, '').trim();
   const withoutControlTags = withoutLegacyPrefix.replace(CONTROL_TAG_PATTERN, '').trim();
   const singleLineTitle = withoutControlTags.replace(/\s+/g, ' ').trim();
-  const unwrappedTitle = singleLineTitle.match(WRAPPED_TOPIC_PATTERN)?.[1]?.trim() || singleLineTitle;
+  const unwrappedTitle =
+    singleLineTitle.match(WRAPPED_TOPIC_PATTERN)?.[1]?.trim() || singleLineTitle;
 
   return unwrappedTitle || withoutLegacyPrefix || title;
 };
 
-export const stripLegacyWorkspacePrefix = (title: string): string =>
-  sanitizeDisplayTitle(title);
+export const stripLegacyWorkspacePrefix = (title: string): string => sanitizeDisplayTitle(title);
 
 export const resolveDomainPresentation = (options: {
   scope?: InvestigationScope;
@@ -65,19 +65,16 @@ export const resolveDomainPresentation = (options: {
   labelProfileId?: string;
 }) => {
   const scope = options.scope;
-  const pack =
-    scope
-      ? getDomainPackForScope(scope)
-      : getDomainPackForScope(undefined);
+  const pack = scope ? getDomainPackForScope(scope) : getDomainPackForScope(undefined);
   const report = options.report;
   const purpose = getPurposeProfileById(
     options.purposeId || report?.purposeId || report?.config?.purposeId || pack.defaultPurposeId
   );
   const labelProfile = getLabelProfileById(
-    options.labelProfileId
-      || report?.labelProfileId
-      || report?.config?.labelProfileId
-      || pack.labelProfileId
+    options.labelProfileId ||
+      report?.labelProfileId ||
+      report?.config?.labelProfileId ||
+      pack.labelProfileId
   );
 
   return { pack, purpose, labelProfile };
@@ -102,7 +99,8 @@ export const getTaskSetupCopy = (
     entityLabel: 'Key Entities',
     entityDescription: 'Seed people, organizations, concepts, or sources worth tracking early.',
     sourceLabel: 'Priority Sources',
-    sourceDescription: 'List domains, publications, authors, handles, or repositories to prioritize.',
+    sourceDescription:
+      'List domains, publications, authors, handles, or repositories to prioritize.',
     sourcePlaceholder: 'openai.com, sec.gov, arxiv.org, @agency_handle',
     configHint: 'This run inherits your global defaults. Values below only override this run.',
     executeLabel: 'Launch Run',
@@ -118,7 +116,8 @@ export const getTaskSetupCopy = (
         targetPlaceholder: 'What topic, company, field, or policy area needs a current update?',
         angleLabel: 'What Changed',
         angleDescription: 'Call out the angle, timeframe, or stakeholder you care about most.',
-        anglePlaceholder: 'Focus on changes since the last quarter, newest studies, or recent releases.',
+        anglePlaceholder:
+          'Focus on changes since the last quarter, newest studies, or recent releases.',
         executeLabel: 'Generate Update',
       };
     case 'monitor':
@@ -141,7 +140,8 @@ export const getTaskSetupCopy = (
         targetLabel: 'Synthesis Topic',
         targetPlaceholder: 'What question or domain needs a structured synthesis?',
         angleLabel: 'Synthesis Goal',
-        angleDescription: 'Explain the comparison, frame, or decision this synthesis should support.',
+        angleDescription:
+          'Explain the comparison, frame, or decision this synthesis should support.',
         anglePlaceholder: 'Compare approaches, summarize consensus, or reconcile competing claims.',
         entityLabel: 'Core Concepts',
         executeLabel: 'Build Synthesis',
@@ -188,7 +188,8 @@ const STARTER_LIBRARY: Record<string, StarterPromptTemplate[]> = {
     {
       id: 'starter-open-update',
       name: 'Latest Developments',
-      description: 'Summarize the newest developments around a topic without assuming fraud or wrongdoing.',
+      description:
+        'Summarize the newest developments around a topic without assuming fraud or wrongdoing.',
       topic: '[Topic or event]',
       hypothesis: 'Focus on what changed recently, who is involved, and what deserves follow-up.',
       purposeId: 'latest-findings',
@@ -199,7 +200,8 @@ const STARTER_LIBRARY: Record<string, StarterPromptTemplate[]> = {
     {
       id: 'starter-gov-contract',
       name: 'Contract Review',
-      description: 'Review a contract, grant, or vendor for red flags and unusual spending patterns.',
+      description:
+        'Review a contract, grant, or vendor for red flags and unusual spending patterns.',
       topic: '[Agency, program, vendor, or contract vehicle]',
       hypothesis: 'Test for concentrated awards, conflicts, shell entities, or weak oversight.',
       prioritySources: 'usaspending.gov, sam.gov, gao.gov, justice.gov',
@@ -314,7 +316,10 @@ export const getStarterTemplates = (
 
   const purposeMatches = packTemplates.filter((template) => template.purposeId === purpose.id);
   if (purposeMatches.length > 0) {
-    return [...purposeMatches, ...packTemplates.filter((template) => template.purposeId !== purpose.id)];
+    return [
+      ...purposeMatches,
+      ...packTemplates.filter((template) => template.purposeId !== purpose.id),
+    ];
   }
 
   return packTemplates;
@@ -336,8 +341,8 @@ export const buildLaunchRequestFromTemplate = (
     scope,
     packId: template.config.packId || template.packId || pack.id,
     purposeId: template.config.purposeId || template.purposeId || purpose.id,
-    artifactType: template.config.artifactType || template.artifactType || purpose.recommendedArtifactType,
-    labelProfileId:
-      template.config.labelProfileId || template.labelProfileId || labelProfile.id,
+    artifactType:
+      template.config.artifactType || template.artifactType || purpose.recommendedArtifactType,
+    labelProfileId: template.config.labelProfileId || template.labelProfileId || labelProfile.id,
   };
 };

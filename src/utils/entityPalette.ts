@@ -37,17 +37,21 @@ export const getEntityTone = (type?: string | null): EntityTone => {
   }
 };
 
-export const getEntityToneClass = (type?: string | null): string => `entity-tone-${getEntityTone(type)}`;
+export const getEntityToneClass = (type?: string | null): string =>
+  `entity-tone-${getEntityTone(type)}`;
 
-export const getEntityToneCssVar = (type?: string | null): string => `var(--entity-${getEntityTone(type)})`;
+export const getEntityToneCssVar = (type?: string | null): string =>
+  `var(--entity-${getEntityTone(type)})`;
 
 export const buildEntityPaletteCssVars = (accent: AccentSettings): Record<string, string> => ({
   '--entity-person': buildAccentColor(createShiftedAccent(accent, -28)),
   '--entity-organization': buildAccentColor(createShiftedAccent(accent, 36)),
   '--entity-concept': buildAccentColor(createShiftedAccent(accent, 84)),
   '--entity-source': buildAccentColor(createShiftedAccent(accent, 156)),
-  '--entity-unknown': buildAccentColor(createShiftedAccent(accent, 0, {
-    lightness: clamp(accent.lightness + 0.04, 0.62, 0.78),
-    chroma: clamp(accent.chroma * 0.18, 0.01, 0.03),
-  })),
+  '--entity-unknown': buildAccentColor(
+    createShiftedAccent(accent, 0, {
+      lightness: clamp(accent.lightness + 0.04, 0.62, 0.78),
+      chroma: clamp(accent.chroma * 0.18, 0.01, 0.03),
+    })
+  ),
 });

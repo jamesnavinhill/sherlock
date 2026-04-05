@@ -30,12 +30,12 @@ const isAccentSettings = (value: unknown): value is AccentSettings => {
   const candidate = value as Partial<AccentSettings>;
 
   return (
-    typeof candidate.hue === 'number'
-    && Number.isFinite(candidate.hue)
-    && typeof candidate.lightness === 'number'
-    && Number.isFinite(candidate.lightness)
-    && typeof candidate.chroma === 'number'
-    && Number.isFinite(candidate.chroma)
+    typeof candidate.hue === 'number' &&
+    Number.isFinite(candidate.hue) &&
+    typeof candidate.lightness === 'number' &&
+    Number.isFinite(candidate.lightness) &&
+    typeof candidate.chroma === 'number' &&
+    Number.isFinite(candidate.chroma)
   );
 };
 
@@ -44,9 +44,9 @@ const isThemeSurfaceScale = (value: unknown): value is ThemeSurfaceScale => {
   const candidate = value as Partial<ThemeSurfaceScale>;
 
   return (
-    isAccentSettings(candidate.background)
-    && isAccentSettings(candidate.panel)
-    && isAccentSettings(candidate.surface)
+    isAccentSettings(candidate.background) &&
+    isAccentSettings(candidate.panel) &&
+    isAccentSettings(candidate.surface)
   );
 };
 
@@ -64,7 +64,9 @@ export const parseThemeSurfaceSettings = (value: unknown): ThemeSurfaceSettings 
   };
 };
 
-export const buildThemeSurfaceCssVars = (settings: ThemeSurfaceSettings): Record<string, string> => ({
+export const buildThemeSurfaceCssVars = (
+  settings: ThemeSurfaceSettings
+): Record<string, string> => ({
   '--osint-dark-darkmode': buildAccentColor(settings.dark.background),
   '--osint-panel-darkmode': buildAccentColor(settings.dark.panel),
   '--osint-surface-darkmode': buildAccentColor(settings.dark.surface),
