@@ -314,7 +314,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               ariaLabel="Feed category"
               value={filterCategory}
               onChange={setFilterCategory}
-              triggerClassName="py-1.5 pl-7 pr-8 text-xs font-mono hover:border-zinc-500 focus-visible:border-osint-primary"
+              triggerClassName="py-1.5 pl-7 pr-8 text-xs font-mono"
               options={categories.map((category) => ({
                 value: category,
                 label: category,
@@ -330,7 +330,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               value={filterRegion}
               onChange={(e) => setFilterRegion(e.target.value)}
               placeholder="Region"
-              className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs pl-7 py-1.5 font-mono focus:border-osint-primary outline-none hover:border-zinc-500"
+              className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs pl-7 py-1.5 font-mono focus:border-osint-primary outline-none hover:border-osint-primary"
             />
           </div>
 
@@ -339,7 +339,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             <button
               type="button"
               onClick={() => setShowDatePicker(!showDatePicker)}
-              className="w-full flex items-center bg-black border border-zinc-700 text-zinc-300 text-xs px-2 py-1.5 font-mono focus:border-osint-primary outline-none hover:border-zinc-500 truncate"
+              className="osint-button-chrome w-full flex items-center text-xs px-2 py-1.5 font-mono truncate"
             >
               <Calendar className="w-3 h-3 mr-2 text-zinc-300" />
               <span className="truncate">
@@ -351,7 +351,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
             {/* Date Picker Popover */}
             {showDatePicker && (
-              <div className="absolute top-full left-0 mt-2 w-64 bg-black border border-zinc-600 p-4 shadow-2xl z-50 animate-in fade-in zoom-in duration-200">
+              <div className="osint-menu-panel absolute top-full left-0 mt-2 w-64 bg-black border border-zinc-600 p-4 z-50 animate-in fade-in zoom-in duration-200">
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">
@@ -413,7 +413,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           {/* Settings Toggle */}
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-1.5 border transition-all ${showSettings ? 'bg-zinc-800 border-white text-white' : 'bg-black border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'}`}
+            className={`p-1.5 border transition-all ${showSettings ? 'osint-button-chrome-active' : 'osint-button-chrome bg-black'}`}
             title="Configure Scanner"
           >
             <Settings2 className="w-4 h-4" />
@@ -422,7 +422,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           <button
             onClick={loadFeed}
             disabled={loading}
-            className="flex items-center px-4 py-1.5 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-xs font-mono font-bold uppercase transition-all disabled:opacity-50"
+            className="osint-button-chrome flex items-center px-4 py-1.5 text-xs font-mono font-bold uppercase"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -536,7 +536,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
-              className="bg-zinc-800 text-white px-4 border border-zinc-700"
+              className={`px-4 border ${showFilters ? 'osint-button-chrome-active' : 'osint-button-chrome bg-zinc-800 text-white'}`}
             >
               <Filter className="w-5 h-5" />
             </button>

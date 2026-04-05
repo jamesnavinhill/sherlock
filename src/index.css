@@ -287,6 +287,62 @@ body,
   box-shadow: 0 0 8px -8px color-mix(in oklab, var(--osint-primary) 18%, transparent);
 }
 
+.osint-button-chrome {
+  background-color: transparent;
+  color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
+  border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-button-chrome:hover,
+.osint-button-chrome:focus-visible {
+  background-color: transparent;
+  color: var(--osint-ink);
+  border-color: var(--osint-primary-soft-border);
+  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
+}
+
+.osint-button-chrome-active {
+  background-color: var(--osint-primary-soft-bg);
+  color: var(--osint-primary);
+  border-color: var(--osint-primary-soft-border);
+  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
+}
+
+.osint-button-chrome:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.osint-menu-panel {
+  box-shadow:
+    0 0 14px -10px color-mix(in oklab, var(--osint-primary) 46%, transparent),
+    0 18px 40px -28px rgba(0, 0, 0, 0.72);
+}
+
+.osint-menu-item {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.osint-menu-item:hover,
+.osint-menu-item:focus-visible {
+  background-color: var(--osint-primary-soft-bg);
+  color: var(--osint-ink);
+}
+
+.osint-menu-item:hover .osint-menu-item-icon,
+.osint-menu-item:focus-visible .osint-menu-item-icon {
+  color: var(--osint-primary) !important;
+}
+
 .osint-button-danger {
   background-color: var(--osint-danger-soft-bg);
   color: var(--color-osint-danger);

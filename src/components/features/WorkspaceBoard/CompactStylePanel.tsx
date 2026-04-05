@@ -8,12 +8,10 @@ import {
   TldrawUiPopoverTrigger,
   type TLUiStylePanelProps,
   useEditor,
-  useRelevantStyles,
 } from 'tldraw';
 
 export const CompactStylePanel: React.FC<TLUiStylePanelProps> = () => {
   const editor = useEditor();
-  const relevantStyles = useRelevantStyles();
 
   const handleOpenChange = useCallback(
     (isOpen: boolean) => {

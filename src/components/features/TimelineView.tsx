@@ -713,7 +713,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 setShowFilters(false);
               }}
               disabled={!timelineSnapshot}
-              className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
+                showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
+              }`}
               title="Export or save the current timeline snapshot"
             >
               <Download className="w-4 h-4 mr-1" />
@@ -721,13 +723,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               <ChevronDown className="w-3 h-3 ml-1" />
             </button>
             {showExportMenu && timelineSnapshot && (
-              <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+              <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
                 <button
                   onClick={handleExportTimelineMarkdown}
-                  className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                  className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
                   title="Export the visible timeline snapshot as Markdown"
                 >
-                  <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                  <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                   <div>
                     <div className="font-bold">Timeline Markdown</div>
                     <div className="text-[10px] text-zinc-500">
@@ -737,10 +739,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 </button>
                 <button
                   onClick={handleExportTimelineJson}
-                  className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                  className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
                   title="Export the visible timeline snapshot as JSON"
                 >
-                  <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                  <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                   <div>
                     <div className="font-bold">Timeline JSON</div>
                     <div className="text-[10px] text-zinc-500">
@@ -750,10 +752,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                 </button>
                 <button
                   onClick={() => void handleSaveTimelineArtifact()}
-                  className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                  className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center"
                   title="Save the current timeline snapshot as a TIMELINE artifact"
                 >
-                  <Save className="w-4 h-4 mr-3 text-zinc-500" />
+                  <Save className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                   <div>
                     <div className="font-bold">Save Snapshot</div>
                     <div className="text-[10px] text-zinc-500">Store this view in the dossier</div>
@@ -771,8 +773,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
               }}
               className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
                 showFilters
-                  ? 'border-white bg-zinc-800 text-white'
-                  : 'border-zinc-700 bg-black text-zinc-400 hover:border-zinc-500 hover:text-white'
+                  ? 'osint-button-chrome-active'
+                  : 'osint-button-chrome'
               }`}
             >
               <Filter className="h-4 w-4" />

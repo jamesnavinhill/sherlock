@@ -239,7 +239,7 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
             activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
           }
           className={cx(
-            'absolute left-0 top-full z-[60] mt-1 min-w-full overflow-hidden border border-zinc-700 bg-black/95 backdrop-blur-md shadow-lg',
+            'osint-menu-panel absolute left-0 top-full z-[60] mt-1 min-w-full overflow-hidden border border-zinc-700 bg-black/95 backdrop-blur-md',
             menuClassName
           )}
         >
@@ -262,7 +262,7 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
                 onMouseEnter={() => !option.disabled && setActiveIndex(index)}
                 onKeyDown={handleOptionKeyDown}
                 className={cx(
-                  'flex w-full items-center justify-between gap-3 border-b border-zinc-800 px-3 py-2 text-left font-mono text-xs text-zinc-300 outline-none transition last:border-b-0',
+                  'osint-menu-item flex w-full items-center justify-between gap-3 border-b border-zinc-800 px-3 py-2 text-left font-mono text-xs text-zinc-300 outline-none last:border-b-0',
                   !option.disabled &&
                     'hover:bg-[var(--osint-primary-soft-bg)] hover:text-[var(--osint-ink)] focus-visible:bg-[var(--osint-primary-soft-bg)] focus-visible:text-[var(--osint-ink)]',
                   isSelected &&

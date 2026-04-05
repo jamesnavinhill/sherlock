@@ -928,7 +928,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                   setShowNewMenu((current) => !current);
                   setShowExportMenu(false);
                 }}
-                className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
+                className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
                 title="Create a new chat item"
               >
                 <Plus className="w-4 h-4 mr-1" />
@@ -936,17 +936,17 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                 <ChevronDown className="w-3 h-3 ml-1" />
               </button>
               {showNewMenu && (
-                <div className="absolute left-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                <div className="osint-menu-panel absolute left-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
                   <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
                     Chat
                   </div>
                   <button
                     onClick={() => void handleCreateSession()}
                     disabled={!activeWorkspace}
-                    className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                    className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
                     title="Start a fresh chat session in the selected workspace"
                   >
-                    <MessageSquare className="w-4 h-4 mr-3 text-zinc-500" />
+                    <MessageSquare className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                     <div>
                       <div className="font-bold">New Session</div>
                       <div className="text-[10px] text-zinc-500">
@@ -957,10 +957,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                   <button
                     onClick={() => void handleCreateGuidedSession()}
                     disabled={!activeWorkspace}
-                    className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                    className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
                     title="Open a guided run builder in the selected workspace"
                   >
-                    <PlayCircle className="w-4 h-4 mr-3 text-zinc-500" />
+                    <PlayCircle className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                     <div>
                       <div className="font-bold">Guided Run</div>
                       <div className="text-[10px] text-zinc-500">
@@ -973,10 +973,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                   </div>
                   <button
                     onClick={handleStartNewProject}
-                    className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                    className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center"
                     title="Create a new workspace"
                   >
-                    <FilePlus2 className="w-4 h-4 mr-3 text-zinc-500" />
+                    <FilePlus2 className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                     <div>
                       <div className="font-bold">New Project</div>
                       <div className="text-[10px] text-zinc-500">
@@ -1010,7 +1010,9 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     setShowExportMenu((current) => !current);
                     setShowNewMenu(false);
                   }}
-                  className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
+                  className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
+                    showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
+                  }`}
                   title="Export current chat session"
                 >
                   <Download className="w-4 h-4 mr-1" />
@@ -1018,16 +1020,16 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                   <ChevronDown className="w-3 h-3 ml-1" />
                 </button>
                 {showExportMenu && (
-                  <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                  <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
                     <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
                       Current Session
                     </div>
                     <button
                       onClick={handleExportSessionMarkdown}
-                      className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                      className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
                       title="Export the current chat session as Markdown"
                     >
-                      <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                      <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                       <div>
                         <div className="font-bold">Session Markdown</div>
                         <div className="text-[10px] text-zinc-500">Readable transcript export</div>
@@ -1035,10 +1037,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     </button>
                     <button
                       onClick={handleExportSessionJson}
-                      className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                      className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center"
                       title="Export the current chat session as JSON"
                     >
-                      <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                      <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                       <div>
                         <div className="font-bold">Session JSON</div>
                         <div className="text-[10px] text-zinc-500">Raw session data for backup</div>
@@ -1516,7 +1518,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                 onClick={() =>
                                   artifact.id && void handleFetchArtifactSummary(artifact.id)
                                 }
-                                className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-white"
+                                className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-osint-primary"
                               >
                                 <FileText className="h-3 w-3" />
                                 Summary
@@ -1525,7 +1527,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                 onClick={() =>
                                   artifact.id && void handleFetchFullArtifact(artifact.id)
                                 }
-                                className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-white"
+                                className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-osint-primary"
                               >
                                 <FileSearch className="h-3 w-3" />
                                 Full Text
@@ -1551,7 +1553,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                 <div className="flex justify-end">
                   <button
                     onClick={() => void handleFetchRecentSignals()}
-                    className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-white"
+                    className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-osint-primary"
                   >
                     <FileSearch className="h-3 w-3" />
                     Pin To Chat

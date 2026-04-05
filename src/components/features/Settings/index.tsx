@@ -1728,7 +1728,7 @@ export const Settings: React.FC<SettingsProps> = ({
           </button>
           <button
             onClick={onClose}
-            className="p-2 border border-zinc-700 bg-zinc-900/60 text-zinc-500 hover:text-white hover:border-zinc-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
+            className="osint-button-danger p-2 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
             title="Close Settings"
             aria-label="Close Settings"
           >

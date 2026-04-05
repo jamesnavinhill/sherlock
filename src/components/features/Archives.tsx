@@ -462,23 +462,25 @@ export const Archives: React.FC<ArchivesProps> = ({
                 <div className="relative" ref={exportMenuRef}>
                   <button
                     onClick={() => setShowExportMenu(!showExportMenu)}
-                    className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
+                    className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
+                      showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
+                    }`}
                   >
                     <Download className="w-4 h-4 mr-1" />
                     <span className="hidden lg:inline">Export</span>
                     <ChevronDown className="w-3 h-3 ml-1" />
                   </button>
                   {showExportMenu && (
-                    <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[200px]">
+                    <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[200px]">
                       <button
                         onClick={() => {
                           exportCaseAsHtml(currentCase, getCaseReports(currentCase.id));
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                        className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
                         title={`Exports a formatted printable ${workspaceLabelLower}`}
                       >
-                        <Download className="w-4 h-4 mr-3 text-zinc-500" />
+                        <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <div>
                           <div className="font-bold">{`${workspaceLabel} HTML`}</div>
                           <div className="text-[10px] text-zinc-500">{`Formatted printable ${workspaceLabelLower}`}</div>
@@ -489,10 +491,10 @@ export const Archives: React.FC<ArchivesProps> = ({
                           exportCaseAsJson(currentCase, getCaseReports(currentCase.id));
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center"
                         title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
                       >
-                        <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                        <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <div>
                           <div className="font-bold">{`${workspaceLabel} JSON`}</div>
                           <div className="text-[10px] text-zinc-500">{`Raw ${workspaceLabelLower} data for backup`}</div>
@@ -503,16 +505,6 @@ export const Archives: React.FC<ArchivesProps> = ({
                 </div>
               ) : null;
             })()}
-          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' && (
-            <button
-              onClick={() => void handlePurgeCase(effectiveSelectedCaseId)}
-              className="osint-button-danger flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
-              title={`Permanently purge selected ${workspaceLabelLower} and all ${artifactLabelPluralLower}`}
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              <span className="hidden lg:inline">{`Delete ${workspaceLabel}`}</span>
-            </button>
-          )}
         </div>
       </div>
 

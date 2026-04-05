@@ -135,14 +135,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     setShowExportMenu(false);
                     setShowContextMenu((current) => !current);
                   }}
-                  className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
+                  className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
+                    showContextMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
+                  }`}
                 >
                   <MessageSquare className="w-4 h-4 mr-1" />
                   <span className="hidden lg:inline">Open</span>
                   <ChevronDown className="w-3 h-3 ml-1" />
                 </button>
                 {showContextMenu && (
-                  <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                  <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
                     <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
                       Workspace Actions
                     </div>
@@ -152,14 +154,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           onOpenChat();
                           setShowContextMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
                         title={
                           report
                             ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
                             : `Open ${labelProfile.workspaceLabel.toLowerCase()} in workspace chat`
                         }
                       >
-                        <MessageSquare className="w-4 h-4 mr-3 text-zinc-500" />
+                        <MessageSquare className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{report ? 'Open Context Chat' : 'Open Workspace Chat'}</span>
                       </button>
                     )}
@@ -169,10 +171,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           onOpenBoard();
                           setShowContextMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
                         title={`Open ${labelProfile.workspaceLabel.toLowerCase()} research board`}
                       >
-                        <Layout className="w-4 h-4 mr-3 text-zinc-500" />
+                        <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>Open Board</span>
                       </button>
                     )}
@@ -182,10 +184,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           onPlaceReportOnBoard();
                           setShowContextMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-t border-zinc-800"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center border-t border-zinc-800"
                         title={`Place this ${labelProfile.artifactLabel.toLowerCase()} on the research board`}
                       >
-                        <Shapes className="w-4 h-4 mr-3 text-zinc-500" />
+                        <Shapes className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{`Place ${labelProfile.artifactLabel} on Board`}</span>
                       </button>
                     )}
@@ -194,19 +196,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               </div>
             )}
             <div className="relative" ref={exportMenuRef}>
-              <button
-                onClick={() => {
-                  setShowContextMenu(false);
-                  setShowExportMenu((current) => !current);
-                }}
-                className="flex items-center px-3 py-1.5 bg-black border border-zinc-700 text-zinc-400 font-mono text-xs font-bold uppercase hover:border-zinc-500 hover:text-white transition-colors"
-              >
+                <button
+                  onClick={() => {
+                    setShowContextMenu(false);
+                    setShowExportMenu((current) => !current);
+                  }}
+                  className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
+                    showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
+                  }`}
+                >
                 <Download className="w-4 h-4 mr-1" />
                 <span className="hidden lg:inline">Export</span>
                 <ChevronDown className="w-3 h-3 ml-1" />
               </button>
               {showExportMenu && (
-                <div className="absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 shadow-xl z-50 min-w-[220px]">
+                <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
                   {activeCase && (
                     <>
                       <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">{`Full ${labelProfile.workspaceLabel}`}</div>
@@ -215,10 +219,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           exportCaseAsHtml(activeCase, allCaseReports);
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
                         title={`Exports a formatted printable dossier of the entire ${labelProfile.workspaceLabel.toLowerCase()}`}
                       >
-                        <Download className="w-4 h-4 mr-3 text-zinc-500" />
+                        <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{`${labelProfile.workspaceLabel} as HTML Dossier`}</span>
                       </button>
                       <button
@@ -226,10 +230,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           exportCaseAsMarkdown(activeCase, allCaseReports);
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
                         title={`Exports a full Markdown package of the ${labelProfile.workspaceLabel.toLowerCase()}`}
                       >
-                        <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                        <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{`${labelProfile.workspaceLabel} as Markdown (.md)`}</span>
                       </button>
                       <button
@@ -237,10 +241,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           exportCaseAsJson(activeCase, allCaseReports);
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center border-b border-zinc-800"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
                         title={`Exports raw ${labelProfile.workspaceLabel.toLowerCase()} data for backup/integration`}
                       >
-                        <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                        <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{`${labelProfile.workspaceLabel} as JSON Data`}</span>
                       </button>
                     </>
@@ -253,10 +257,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           exportReportAsHtml(report, activeCase || undefined);
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
                         title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a formatted printable document`}
                       >
-                        <Download className="w-4 h-4 mr-3 text-zinc-500" />
+                        <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{`${labelProfile.artifactLabel} as HTML`}</span>
                       </button>
                       <button
@@ -264,10 +268,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           exportReportAsMarkdown(report);
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
                         title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a Markdown file`}
                       >
-                        <FileText className="w-4 h-4 mr-3 text-zinc-500" />
+                        <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{`${labelProfile.artifactLabel} as Markdown`}</span>
                       </button>
                       <button
@@ -275,10 +279,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           exportReportAsJson(report);
                           setShowExportMenu(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 hover:bg-zinc-800 hover:text-white flex items-center"
+                        className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
                         title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as raw JSON data`}
                       >
-                        <FileJson className="w-4 h-4 mr-3 text-zinc-500" />
+                        <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>{`${labelProfile.artifactLabel} as JSON`}</span>
                       </button>
                       {onSaveTemplate && (
@@ -287,10 +291,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onSaveTemplate();
                             setShowExportMenu(false);
                           }}
-                          className="w-full text-left px-4 py-2.5 text-xs font-mono text-osint-primary hover:bg-zinc-800 hover:text-white flex items-center border-t border-zinc-800"
+                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-osint-primary flex items-center border-t border-zinc-800"
                           title="Saves this run configuration as a template"
                         >
-                          <Layout className="w-4 h-4 mr-3 text-osint-primary" />
+                          <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-osint-primary" />
                           <span>Save as Protocol Template</span>
                         </button>
                       )}

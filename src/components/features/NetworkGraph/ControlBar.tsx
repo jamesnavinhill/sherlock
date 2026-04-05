@@ -93,7 +93,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
       <div className="hidden lg:flex items-center bg-zinc-900 border border-zinc-700/50 rounded-sm p-0.5 mx-4">
         <button
           onClick={onToggleSingletons}
-          className={`p-1.5 ${showSingletons ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-zinc-500'} transition-colors relative group`}
+          className={`p-1.5 ${showSingletons ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors relative group`}
           title={showSingletons ? 'Hide Singletons' : 'Show Singletons'}
         >
           <Box className="w-3.5 h-3.5" />
@@ -106,7 +106,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleHiddenNodes}
-          className={`p-1.5 ${showHiddenNodes ? 'text-osint-warn' : 'text-zinc-500 hover:text-white'} transition-colors`}
+          className={`p-1.5 ${showHiddenNodes ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors`}
           title={showHiddenNodes ? 'Hide Deleted' : 'Show Deleted'}
         >
           {showHiddenNodes ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -114,7 +114,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleFlaggedOnly}
-          className={`p-1.5 ${showFlaggedOnly ? 'text-yellow-500' : 'text-zinc-500 hover:text-white'} transition-colors`}
+          className={`p-1.5 ${showFlaggedOnly ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors`}
           title="Show Flagged Only"
         >
           <Star className={`w-3.5 h-3.5 ${showFlaggedOnly ? 'fill-current' : ''}`} />
@@ -122,14 +122,14 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={() => onZoom('OUT')}
-          className="p-1.5 text-zinc-500 hover:text-white transition-colors"
+          className="p-1.5 text-zinc-500 hover:text-osint-primary transition-colors"
           title="Zoom Out"
         >
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => onZoom('IN')}
-          className="p-1.5 text-zinc-500 hover:text-white transition-colors"
+          className="p-1.5 text-zinc-500 hover:text-osint-primary transition-colors"
           title="Zoom In"
         >
           <ZoomIn className="w-3.5 h-3.5" />
@@ -137,7 +137,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleLock}
-          className={`p-1.5 ${isLocked ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'} transition-colors`}
+          className={`p-1.5 ${isLocked ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors`}
           title={isLocked ? 'Unlock Simulation' : 'Lock Layout (Performance)'}
         >
           {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -148,14 +148,14 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="h-6 w-px bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleLinkingMode}
-          className={`p-2 border transition-colors ${isLinkingMode ? 'osint-button-soft' : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-white'}`}
+          className={`p-2 border transition-colors ${isLinkingMode ? 'osint-button-soft' : 'osint-button-chrome'}`}
           title="Manual Link Mode"
         >
           <LinkIcon className="w-4 h-4" />
         </button>
         <button
           onClick={onShowAddNode}
-          className="p-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white transition-colors"
+          className="osint-button-chrome p-2 transition-colors"
           title="Add Manual Node"
         >
           <PlusCircle className="w-4 h-4" />
@@ -164,8 +164,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           onClick={onShowResolution}
           className={`p-2 border transition-colors relative ${
             pendingClusterCount > 0
-              ? 'border-osint-primary text-osint-primary hover:text-white hover:border-white'
-              : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-white'
+              ? 'osint-button-chrome-active text-osint-primary'
+              : 'osint-button-chrome'
           }`}
           title={
             pendingClusterCount > 0

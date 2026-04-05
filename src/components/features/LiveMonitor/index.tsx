@@ -303,7 +303,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
               value={selectedCaseId || ''}
               onChange={setSelectedCaseId}
               disabled={isMonitoring}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate hover:border-white focus-visible:border-white"
+              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
               options={[
                 { value: '', label: 'None Selected' },
                 ...workspaces.map((workspace) => ({
@@ -329,7 +329,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
                   setFilterType(value);
                 }
               }}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono hover:border-white focus-visible:border-white"
+              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
               options={[
                 { value: 'ALL', label: 'All Signals' },
                 { value: 'SOCIAL', label: 'Social Only' },
@@ -354,7 +354,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
                   setFilterThreat(value);
                 }
               }}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono hover:border-white focus-visible:border-white"
+              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
               options={[
                 { value: 'ALL', label: 'All Levels' },
                 { value: 'INFO', label: 'Info Only' },
@@ -391,7 +391,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
           {/* Settings Toggle */}
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-1.5 border transition-all ${showSettings ? 'bg-zinc-800 border-white text-white' : 'border-zinc-700 text-zinc-400 hover:text-white'}`}
+            className={`p-1.5 border transition-all ${showSettings ? 'osint-button-chrome-active' : 'osint-button-chrome'}`}
             title="Configure Feed Parameters"
           >
             <Settings2 className="w-4 h-4" />
