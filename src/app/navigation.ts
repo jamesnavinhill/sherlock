@@ -23,6 +23,7 @@ interface AppViewNavigationContext {
   activeTaskId?: string | null;
   artifacts?: Artifact[];
   pathname?: string;
+  search?: string;
 }
 
 const WORKSPACE_ARTIFACT_ROUTE = /^\/workspaces\/[^/]+\/artifacts\/[^/]+$/;
@@ -76,10 +77,11 @@ export const buildPathForAppView = (
     activeTaskId,
     artifacts,
     pathname,
+    search,
   }: AppViewNavigationContext
 ): string => {
   if (pathname && getAppViewForPath(pathname) === view && pathname !== '/') {
-    return pathname;
+    return `${pathname}${search || ''}`;
   }
 
   switch (view) {

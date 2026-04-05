@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { AppView } from '@/types';
+import { buildPathForAppView } from './navigation';
 import {
   DEFAULT_APP_PATH,
   buildRunPath,
@@ -54,5 +56,15 @@ describe('route contract', () => {
     expect(getWorkspaceRouteDefinitions().every((route) => route.path.startsWith('/workspaces/'))).toBe(
       true
     );
+  });
+
+  it('preserves URL-owned query state when re-targeting the active route view', () => {
+    expect(
+      buildPathForAppView(AppView.TIMELINE, {
+        activeWorkspaceId: 'ws-1',
+        pathname: '/workspaces/ws-1/timeline',
+        search: '?search=apollo&tracks=CHAT',
+      })
+    ).toBe('/workspaces/ws-1/timeline?search=apollo&tracks=CHAT');
   });
 });

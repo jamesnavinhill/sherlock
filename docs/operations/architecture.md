@@ -66,7 +66,7 @@ Examples captured directly in `src/app/routes.ts`:
 - artifact inspector panel visibility and temporary selection state remain store/component-owned
 - board agent drafts, chat composer drafts, and other transient workflow state remain store/component-owned
 
-The route contract is now active runtime behavior rather than future groundwork. `AppView` still exists in the store and sidebar layer as a compatibility-oriented view label, but URL-backed routing is the primary navigation mechanism.
+The route contract is now active runtime behavior rather than future groundwork. `AppView` still exists only as a coarse navigation label for the sidebar and route-targeting helpers, while URL-backed routing is the primary navigation mechanism.
 
 ## 2. Launch Pipeline
 
@@ -254,7 +254,7 @@ State domains include:
 
 Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 
-`currentView` remains in the store as a compatibility mirror for components that still want a coarse active-surface label, but the browser location is now the durable source of truth for active page identity.
+The browser location is now the durable source of truth for active page identity. Store state keeps route-adjacent convenience selection such as the active workspace, board, chat session, and task ids, but it no longer mirrors top-level surface identity through a stored `currentView` field.
 
 ## 7. Feature Composition
 

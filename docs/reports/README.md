@@ -1,11 +1,13 @@
-# Reports Retired
+# Reports
 
-The previous audit and handoff reports have been retired to `docs/_legacy/reports/`.
-
-Use these active docs for current truth instead:
+Current onboarding and durable architecture truth live in:
 
 - `README.md`
-- `docs/reports/CURRENT_STATUS.md`
-- `docs/operations/architecture.md`
+- `docs/operations/ARCHITECTURE.md`
 
-Create new reports here only when they describe new work from the post-retirement baseline.
+Point-in-time findings and audits live here:
+
+- `docs/reports/2026-04-05-codebase-audit-v2.md`
+- `docs/reports/2026-04-05-codebase-audit.md`
+
+Older report stacks remain archived under `docs/_legacy/reports/`.

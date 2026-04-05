@@ -26,7 +26,6 @@ import type {
   WorkspaceItem,
   WorkspaceRun,
 } from '../types';
-import { AppView } from '../types';
 import type { BreadcrumbItem } from '../components/ui/Breadcrumbs';
 import { CaseRepository } from '../services/db/repositories/CaseRepository';
 import { normalizeWorkspaceDataBackup } from '../services/maintenance/workspaceData';
@@ -119,7 +118,6 @@ export interface WorkspaceState {
   chatGenerationStatus: ChatGenerationStatus;
   partialAssistantOutput: string;
   selectedChatLaunchContext: ChatLaunchContext | null;
-  activeWorkspaceRunId: string | null;
   activeTaskId: string | null;
   liveEvents: MonitorEvent[];
   headlines: Headline[];
@@ -148,7 +146,6 @@ export interface WorkspaceState {
   activeScope: string | null;
   defaultScopeId: string;
 
-  currentView: AppView;
   navStack: BreadcrumbItem[];
   isSidebarCollapsed: boolean;
   themeMode: ThemeMode;
@@ -173,10 +170,8 @@ export interface WorkspaceState {
   setChatGenerationStatus: (status: ChatGenerationStatus) => void;
   setPartialAssistantOutput: (value: string) => void;
   setSelectedChatLaunchContext: (context: ChatLaunchContext | null) => void;
-  setActiveWorkspaceRunId: (id: string | null) => void;
   setActiveTaskId: (id: string | null) => void;
   setLiveEvents: (events: MonitorEvent[] | ((prev: MonitorEvent[]) => MonitorEvent[])) => void;
-  setCurrentView: (view: AppView) => void;
   setNavStack: (stack: BreadcrumbItem[]) => void;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   setThemeMode: (mode: ThemeMode) => void;
@@ -317,11 +312,9 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   chatGenerationStatus: 'IDLE',
   partialAssistantOutput: '',
   selectedChatLaunchContext: null,
-  activeWorkspaceRunId: null,
   activeTaskId: null,
   liveEvents: [],
   toasts: [],
-  currentView: AppView.INVESTIGATION,
   navStack: [],
   isSidebarCollapsed: true,
   themeMode: 'dark',

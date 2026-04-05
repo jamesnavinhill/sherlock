@@ -25,10 +25,8 @@ export const createSimpleActions = ({
   | 'setChatGenerationStatus'
   | 'setPartialAssistantOutput'
   | 'setSelectedChatLaunchContext'
-  | 'setActiveWorkspaceRunId'
   | 'setActiveTaskId'
   | 'setLiveEvents'
-  | 'setCurrentView'
   | 'setNavStack'
   | 'setIsSidebarCollapsed'
   | 'setThemeMode'
@@ -78,9 +76,7 @@ export const createSimpleActions = ({
   setChatGenerationStatus: (chatGenerationStatus) => set({ chatGenerationStatus }),
   setPartialAssistantOutput: (partialAssistantOutput) => set({ partialAssistantOutput }),
   setSelectedChatLaunchContext: (selectedChatLaunchContext) => set({ selectedChatLaunchContext }),
-  setActiveWorkspaceRunId: (activeWorkspaceRunId) =>
-    set({ activeWorkspaceRunId, activeTaskId: activeWorkspaceRunId }),
-  setActiveTaskId: (activeTaskId) => set({ activeWorkspaceRunId: activeTaskId, activeTaskId }),
+  setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
   setLiveEvents: (eventsOrUpdater) => {
     if (typeof eventsOrUpdater === 'function') {
       set((state) => ({ liveEvents: eventsOrUpdater(state.liveEvents) }));
@@ -89,7 +85,6 @@ export const createSimpleActions = ({
 
     set({ liveEvents: eventsOrUpdater });
   },
-  setCurrentView: (currentView) => set({ currentView }),
   setNavStack: (navStack) => set({ navStack }),
   setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
   setThemeMode: (themeMode) => {

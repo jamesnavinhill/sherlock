@@ -124,7 +124,6 @@ export function useAppShellController(): AppShellController {
   const lastNonSettingsPathRef = useRef(buildDiscoverPath());
 
   const {
-    setCurrentView,
     workspaceRuns,
     addTask,
     completeTask,
@@ -180,11 +179,10 @@ export function useAppShellController(): AppShellController {
   const [showHelpModal, setShowHelpModal] = useState(false);
 
   useEffect(() => {
-    setCurrentView(routeCurrentView);
     if (routeCurrentView !== AppView.SETTINGS) {
       lastNonSettingsPathRef.current = location.pathname + location.search;
     }
-  }, [location.pathname, location.search, routeCurrentView, setCurrentView]);
+  }, [location.pathname, location.search, routeCurrentView]);
 
   const handleNavigateToView = useCallback(
     (view: AppView) => {
@@ -203,6 +201,7 @@ export function useAppShellController(): AppShellController {
             activeTaskId,
             artifacts,
             pathname: location.pathname,
+            search: location.search,
           })
         );
       }
@@ -218,6 +217,7 @@ export function useAppShellController(): AppShellController {
       activeWorkspaceId,
       artifacts,
       location.pathname,
+      location.search,
       navigate,
       routeCurrentView,
       setIsSidebarCollapsed,

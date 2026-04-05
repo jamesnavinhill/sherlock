@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useWorkspaceStore } from './caseStore';
 import type { Artifact, CaseTemplate, WorkspaceDataBackup } from '../types';
-import { AppView } from '../types';
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
 import { TaskRepository } from '../services/db/repositories/TaskRepository';
 import { CaseRepository } from '../services/db/repositories/CaseRepository';
@@ -92,7 +91,6 @@ describe('caseStore', () => {
       activeTaskId: null,
       activeChatSessionId: null,
     });
-    store.setCurrentView(AppView.DASHBOARD);
     store.setTemplates([]);
   });
 
@@ -100,7 +98,7 @@ describe('caseStore', () => {
     const state = useWorkspaceStore.getState();
     expect(state.artifacts).toEqual([]);
     expect(state.workspaces).toEqual([]);
-    expect(state.currentView).toBe(AppView.DASHBOARD);
+    expect(state.activeTaskId).toBeNull();
   });
 
   it('creates and persists a primary workspace board document', async () => {
@@ -745,7 +743,6 @@ describe('caseStore', () => {
       ],
       hiddenNodeIds: ['case-rep-1', 'manual-keep'],
       flaggedNodeIds: ['case-rep-1', 'manual-keep'],
-      activeWorkspaceRunId: 'run-1',
       activeTaskId: 'run-2',
       activeChatSessionId: 'chat-1',
     });
@@ -776,7 +773,6 @@ describe('caseStore', () => {
     expect(useWorkspaceStore.getState().workspaceRuns.map((run) => run.id)).toEqual(['run-2']);
     expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual(['manual-keep']);
     expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual(['manual-keep']);
-    expect(useWorkspaceStore.getState().activeWorkspaceRunId).toBeNull();
     expect(useWorkspaceStore.getState().activeTaskId).toBe('run-2');
     expect(useWorkspaceStore.getState().activeChatSessionId).toBeNull();
     expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull();

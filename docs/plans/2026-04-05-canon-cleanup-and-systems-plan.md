@@ -730,7 +730,7 @@ Update docs incrementally as the work lands:
 - `docs/operations/DATA_PERSISTENCE.md` for follow-up/signal persistence and storage-boundary changes
 - `docs/operations/OPERATIONS_RUNBOOK.md` for provider capability or runtime fallback behavior changes
 - `docs/operations/DEPLOYMENT.md` for route-entry/deployment assumptions
-- `docs/reports/CURRENT_STATUS.md` when the active implementation state materially changes
+- `docs/reports/README.md` when the active dated report set materially changes
 
 Final pass:
 

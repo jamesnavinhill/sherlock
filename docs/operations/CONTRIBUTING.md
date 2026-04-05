@@ -55,9 +55,9 @@ npm run check:full
 ## Documentation Conventions
 
 - Treat `README.md` as onboarding and truth source for setup/runtime status.
-- Keep the active implementation checkpoint in `docs/reports/CURRENT_STATUS.md`.
-- Keep architecture details in `docs/operations/architecture.md`.
+- Keep architecture details in `docs/operations/ARCHITECTURE.md`.
 - Keep operational incident procedures in `docs/operations/OPERATIONS_RUNBOOK.md`.
 - Keep source catalogs in `docs/operations/SOURCES.md` and scope metadata in `docs/operations/SCOPES.md`.
 - Keep `docs/operations/DATA_PERSISTENCE.md` aligned with actual backup/restore and cleanup behavior whenever workspace-data scope changes.
+- Use `docs/plans/README.md` and `docs/reports/README.md` as the active indexes for dated plans and reports.
 - Treat `docs/_legacy/*` as historical context only.

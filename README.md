@@ -138,7 +138,6 @@ npm run check:full
 
 ## Documentation Index
 
-- `docs/reports/CURRENT_STATUS.md`
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/BROAD_SCOPE.md`
 - `docs/operations/DEPLOYMENT.md`
@@ -148,6 +147,8 @@ npm run check:full
 - `docs/operations/SOURCES.md`
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
+- `docs/plans/README.md`
+- `docs/reports/README.md`
 
 Historical plans and reports live under `docs/_legacy/`.
 

@@ -143,11 +143,6 @@ export const createWorkspaceActions = (
         (workspaceRun) =>
           workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.caseId !== workspaceId
       );
-      const activeWorkspaceRunId =
-        !state.activeWorkspaceRunId ||
-        workspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeWorkspaceRunId)
-          ? state.activeWorkspaceRunId
-          : null;
       const activeTaskId =
         !state.activeTaskId ||
         workspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeTaskId)
@@ -206,7 +201,6 @@ export const createWorkspaceActions = (
         manualLinks: nextGraph.manualLinks,
         hiddenNodeIds: nextGraph.hiddenNodeIds,
         flaggedNodeIds: nextGraph.flaggedNodeIds,
-        activeWorkspaceRunId,
         activeTaskId,
         activeChatSessionId,
         activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
@@ -364,7 +358,6 @@ export const createWorkspaceActions = (
       manualLinks: payload.graph.manualLinks,
       hiddenNodeIds: [],
       flaggedNodeIds: [],
-      activeWorkspaceRunId: null,
       activeTaskId: null,
       activeChatSessionId: null,
       activeWorkspaceId: null,
@@ -394,7 +387,6 @@ export const createWorkspaceActions = (
       manualLinks: [],
       hiddenNodeIds: [],
       flaggedNodeIds: [],
-      activeWorkspaceRunId: null,
       activeTaskId: null,
       activeChatSessionId: null,
       activeWorkspaceId: null,

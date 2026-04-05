@@ -263,7 +263,6 @@ describe('Chat page', () => {
       setActiveWorkspaceId: vi.fn(),
       setActiveChatSessionId: vi.fn(),
       setChatGenerationStatus: vi.fn(),
-      setCurrentView: vi.fn(),
       setPartialAssistantOutput: vi.fn(),
       updateChatMessage: vi.fn(async () => undefined),
     });
