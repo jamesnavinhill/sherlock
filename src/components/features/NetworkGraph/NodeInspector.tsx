@@ -311,6 +311,30 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     <div
       className={`${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl z-20`}
     >
+      {!mode && (
+        <div className="flex h-full flex-col">
+          <div className="flex flex-shrink-0 items-start border-b border-zinc-800 bg-zinc-900/30 p-4">
+            <div className="min-w-0">
+              <div className="mb-1 text-[10px] font-bold font-mono uppercase tracking-widest text-zinc-500">
+                Inspector
+              </div>
+              <h3 className="font-mono text-base font-bold text-white">No Item Selected</h3>
+            </div>
+          </div>
+
+          <div className="flex flex-1 items-center justify-center p-6">
+            <div className="max-w-xs border border-zinc-800 bg-zinc-900/40 p-5 text-center">
+              <div className="mb-3 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                Inspector Ready
+              </div>
+              <p className="text-sm leading-relaxed text-zinc-300">
+                Select a node, report, or saved signal to inspect details here.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- HEADLINE MODE --- */}
       {mode === 'HEADLINE' && selectedHeadline && (
         <div className="flex flex-col h-full">

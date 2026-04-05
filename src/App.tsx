@@ -3,6 +3,7 @@ import { ApiKeyModal } from './components/ui/ApiKeyModal';
 import type { BreadcrumbItem } from './components/ui/Breadcrumbs';
 import type {
   ChatOpenRequest,
+  FollowUp,
   InvestigationLaunchRequest,
   Artifact,
   InvestigationRunConfig,
@@ -335,6 +336,7 @@ function App() {
         artifactType,
         labelProfileId,
         sourceSignalId: derivedLineage.sourceSignalId,
+        sourceFollowUpId: derivedLineage.sourceFollowUpId,
         parentArtifactId: derivedLineage.parentArtifactId,
         parentRunId: derivedLineage.parentRunId,
       };
@@ -357,6 +359,7 @@ function App() {
         preseededEntities: launchRequest.preseededEntities,
         launchSource: launchRequest.launchSource,
         sourceSignalId: launchRequest.sourceSignalId,
+        sourceFollowUpId: launchRequest.sourceFollowUpId,
         parentArtifactId: launchRequest.parentArtifactId,
         parentRunId: launchRequest.parentRunId,
       };
@@ -454,21 +457,22 @@ function App() {
     ]
   );
 
-  const handleBatchInvestigate = (leads: string[], parentReport: Artifact) => {
+  const handleBatchInvestigate = (followUps: FollowUp[], parentReport: Artifact) => {
     const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
     const inheritedConfig = toSystemConfigOverride(parentReport.config);
     const inheritedScope = resolveScopeById(parentReport.config?.scopeId);
 
-    leads.forEach((lead, index) => {
+    followUps.forEach((followUp, index) => {
       setTimeout(() => {
         launchInvestigation({
-          topic: lead,
+          topic: followUp.actionText,
           parentContext,
           configOverride: inheritedConfig,
           scope: inheritedScope,
           dateRangeOverride: parentReport.config?.dateRangeOverride,
           switchToView: false,
           launchSource: 'FULL_SPECTRUM',
+          sourceFollowUpId: followUp.id,
           parentArtifactId: parentReport.id,
         });
       }, index * 200);

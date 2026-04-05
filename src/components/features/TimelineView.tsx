@@ -500,7 +500,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     if (getPrimaryRefId(event || null, 'SIGNAL')) {
       onOpenChat({
         workspaceId: activeWorkspace.id,
-        launchContext: { headlineId: getPrimaryRefId(event || null, 'SIGNAL') },
+        launchContext: {
+          signalId: getPrimaryRefId(event || null, 'SIGNAL'),
+          headlineId: getPrimaryRefId(event || null, 'SIGNAL'),
+        },
       });
       return;
     }

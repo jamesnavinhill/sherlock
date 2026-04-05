@@ -45,6 +45,27 @@ export const reports = sqliteTable('reports', {
   createdAt: integer('created_at').notNull(),
 });
 
+export const followUps = sqliteTable('follow_ups', {
+  id: text('id').primaryKey(),
+  workspaceId: text('workspace_id').references(() => cases.id),
+  artifactId: text('artifact_id')
+    .notNull()
+    .references(() => reports.id),
+  sectionId: text('section_id'),
+  sourceSignalId: text('source_signal_id'),
+  kind: text('kind').notNull(),
+  title: text('title').notNull(),
+  actionText: text('action_text').notNull(),
+  status: text('status').notNull(),
+  entityRefsJson: text('entity_refs_json'),
+  sourceRefsJson: text('source_refs_json'),
+  resolvedByArtifactId: text('resolved_by_artifact_id'),
+  metadataJson: text('metadata_json'),
+  sortOrder: integer('sort_order').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
 export const artifactSections = sqliteTable(
   'artifact_sections',
   {

@@ -9,7 +9,7 @@ import type {
   TimelineTrack,
   WorkspaceRun,
 } from '@/types';
-import { sanitizeDisplayTitle } from '../../../domain';
+import { getArtifactFollowUps, sanitizeDisplayTitle } from '../../../domain';
 import {
   getChatLaunchContextFromSession,
   isGuidedChatSession,
@@ -91,7 +91,7 @@ const buildChatSessionSearchText = (session: ChatSession): string => {
     session.purposeId,
     session.sourceReportId,
     launchContext?.sourceReportId,
-    launchContext?.headlineId,
+    launchContext?.signalId || launchContext?.headlineId,
     launchContext?.entityName,
     isGuidedChatSession(session) ? 'guided session' : 'workspace chat',
   ]
@@ -297,7 +297,7 @@ export const buildWorkspaceTimelineEvents = (input: {
         metadata: {
           sourceCount: artifact.sources.length,
           entityCount: artifact.entities.length,
-          followUpCount: artifact.followUps?.length || artifact.leads.length,
+          followUpCount: getArtifactFollowUps(artifact).length,
           sourceSignalId: artifact.config?.sourceSignalId,
           parentArtifactId: artifact.config?.parentArtifactId,
           sourceRunId: artifact.config?.sourceRunId,
@@ -447,7 +447,7 @@ export const buildWorkspaceTimelineEvents = (input: {
         ? 'Guided run builder started for this workspace.'
         : launchContext?.sourceReportId
           ? 'Chat opened from a saved workspace artifact.'
-          : launchContext?.headlineId
+          : launchContext?.signalId || launchContext?.headlineId
             ? 'Chat opened from a saved workspace signal.'
             : launchContext?.entityName
               ? 'Chat opened with a pinned workspace entity.'
@@ -470,7 +470,7 @@ export const buildWorkspaceTimelineEvents = (input: {
         metadata: {
           sessionId: session.id,
           sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
-          sourceSignalId: launchContext?.headlineId,
+          sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
           entityName: launchContext?.entityName,
           sessionMode: guided ? 'GUIDED' : 'STANDARD',
           packId: session.packId,
@@ -522,7 +522,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                 query,
                 citedSnippetCount: citedSnippetIds.length,
                 sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
-                sourceSignalId: launchContext?.headlineId,
+                sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
               },
             };
           }
@@ -557,7 +557,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                 sessionId: session.id,
                 relatedArtifactId,
                 sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
-                sourceSignalId: launchContext?.headlineId,
+                sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
               },
             };
           case 'APPEND_NOTE_TO_ARTIFACT':
@@ -582,7 +582,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                 sessionId: session.id,
                 relatedArtifactId,
                 sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
-                sourceSignalId: launchContext?.headlineId,
+                sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
               },
             };
           case 'CREATE_FOLLOW_UP_RUN':
@@ -612,7 +612,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                 sessionId: session.id,
                 relatedArtifactId: session.sourceReportId || launchContext?.sourceReportId,
                 sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
-                sourceSignalId: launchContext?.headlineId,
+                sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
                 launchSource:
                   typeof action.result?.launchSource === 'string'
                     ? action.result.launchSource

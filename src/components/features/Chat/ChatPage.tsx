@@ -27,9 +27,9 @@ import type {
   ChatLaunchContext,
   ChatMessage,
   ChatSession,
-  Headline,
   InvestigationLaunchRequest,
   Artifact,
+  Signal,
 } from '@/types';
 import { AppView } from '@/types';
 import { useWorkspaceStore } from '../../../store/caseStore';
@@ -138,7 +138,7 @@ const getSessionTitle = (session: ChatSession): string =>
 const getLaunchContextSummary = (params: {
   launchContext: ChatLaunchContext | null;
   reports: Artifact[];
-  headlines: Headline[];
+  signals: Signal[];
 }) => {
   if (!params.launchContext) return null;
 
@@ -173,16 +173,15 @@ const getLaunchContextSummary = (params: {
     };
   }
 
-  if (params.launchContext.headlineId) {
-    const headline = params.headlines.find(
-      (entry) => entry.id === params.launchContext?.headlineId
-    );
-    if (!headline) return null;
+  const signalId = params.launchContext.signalId || params.launchContext.headlineId;
+  if (signalId) {
+    const signal = params.signals.find((entry) => entry.id === signalId);
+    if (!signal) return null;
 
     return {
       label: 'Pinned Signal',
-      title: headline.source || headline.type,
-      body: headline.content,
+      title: signal.source || signal.type,
+      body: signal.content,
     };
   }
 
@@ -386,7 +385,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     () => artifacts.filter((artifact) => artifact.caseId === activeWorkspace?.id),
     [activeWorkspace?.id, artifacts]
   );
-  const workspaceHeadlines = useMemo(
+  const workspaceSignals = useMemo(
     () => headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
     [activeWorkspace?.id, headlines]
   );
@@ -395,9 +394,9 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
       getLaunchContextSummary({
         launchContext,
         reports: workspaceReports,
-        headlines: workspaceHeadlines,
+        signals: workspaceSignals,
       }),
-    [launchContext, workspaceHeadlines, workspaceReports]
+    [launchContext, workspaceReports, workspaceSignals]
   );
   const messageBodyClassName = useMemo(
     () =>
@@ -1542,12 +1541,12 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
               </div>
             </Accordion>
 
-            <Accordion
-              title="Recent Signals"
-              count={Math.min(workspaceHeadlines.length, 4)}
-              icon={FileSearch}
-              isOpen={rightPanelSections.recentSignals}
-              onToggle={() => toggleRightPanelSection('recentSignals')}
+              <Accordion
+                title="Recent Signals"
+                count={Math.min(workspaceSignals.length, 4)}
+                icon={FileSearch}
+                isOpen={rightPanelSections.recentSignals}
+                onToggle={() => toggleRightPanelSection('recentSignals')}
             >
               <div className="space-y-2">
                 <div className="flex justify-end">
@@ -1559,17 +1558,17 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                     Pin To Chat
                   </button>
                 </div>
-                {workspaceHeadlines.slice(0, 4).length === 0 ? (
+                {workspaceSignals.slice(0, 4).length === 0 ? (
                   <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
                     No saved signals linked to this workspace.
                   </p>
                 ) : (
-                  workspaceHeadlines.slice(0, 4).map((headline) => (
-                    <div key={headline.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
+                  workspaceSignals.slice(0, 4).map((signal) => (
+                    <div key={signal.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
                       <div className="text-sm text-zinc-200">
-                        {headline.source || headline.type}
+                        {signal.source || signal.type}
                       </div>
-                      <p className="mt-1 text-xs leading-5 text-zinc-500">{headline.content}</p>
+                      <p className="mt-1 text-xs leading-5 text-zinc-500">{signal.content}</p>
                     </div>
                   ))
                 )}

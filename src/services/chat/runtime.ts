@@ -6,6 +6,7 @@ import type {
   ChatDraftArtifact,
   ChatMessage,
   ChatSession,
+  FollowUp,
   Headline,
   InvestigationLaunchRequest,
   Artifact,
@@ -13,6 +14,7 @@ import type {
 } from '@/types';
 import type { ChatStreamEvent } from '../providers/types';
 import {
+  buildArtifactFollowUps,
   buildArtifactSections,
   getDomainPackById,
   getDomainPackForScope,
@@ -237,7 +239,7 @@ export const runWorkspaceChatTurn = async (
       summary: artifact.summary,
       dateStr: artifact.dateStr,
     })),
-    recentHeadlines: contextBundle.recentHeadlines.map((headline) => ({
+    recentHeadlines: contextBundle.recentSignals.map((headline) => ({
       content: headline.content,
       sourceName: headline.source,
       timestamp: headline.timestamp,
@@ -315,7 +317,7 @@ export const streamWorkspaceChatTurn = async (
         summary: artifact.summary,
         dateStr: artifact.dateStr,
       })),
-      recentHeadlines: contextBundle.recentHeadlines.map((headline) => ({
+      recentHeadlines: contextBundle.recentSignals.map((headline) => ({
         content: headline.content,
         sourceName: headline.source,
         timestamp: headline.timestamp,
@@ -517,7 +519,7 @@ export const fetchRecentSignalsForChat = async (params: {
         limit: params.limit || 5,
       },
       result: {
-        headlineIds: headlines.map((headline) => headline.id),
+        signalIds: headlines.map((headline) => headline.id),
       },
       createdAt: now,
       updatedAt: now,
@@ -556,6 +558,9 @@ export const buildArtifactDraftFromChatMessage = (params: {
     },
     createdAt: now,
   };
+  const reportFollowUps: FollowUp[] = buildArtifactFollowUps({
+    followUps: [],
+  });
   const report: Artifact = {
     id: createLocalId('rep'),
     caseId: params.workspace.id,
@@ -564,7 +569,7 @@ export const buildArtifactDraftFromChatMessage = (params: {
     summary: summarizeText(params.message.content, 320),
     agendas: [],
     leads: [],
-    followUps: [],
+    followUps: reportFollowUps,
     sections: buildDraftSectionsFromMessage(params.message),
     artifactType,
     entities: [],
@@ -696,7 +701,7 @@ export const buildFollowUpRunFromChatMessage = (params: {
     artifactType: purpose.recommendedArtifactType,
     labelProfileId: params.workspace.labelProfileId || pack.labelProfileId,
     launchSource: 'CHAT_FOLLOW_UP',
-    sourceSignalId: launchContext?.headlineId,
+    sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
     parentArtifactId: params.session.sourceReportId || launchContext?.sourceReportId,
     switchToView: true,
   };

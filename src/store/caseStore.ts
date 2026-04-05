@@ -61,6 +61,7 @@ import {
 import { normalizeWorkspaceDataBackup } from '../services/maintenance/workspaceData';
 import { loadSystemConfig } from '../config/systemConfig';
 import { createLocalId } from '../utils/id';
+import { buildArtifactFollowUps, toFollowUpTexts } from '../domain';
 import {
   clearStoredActiveWorkspaceId,
   getStoredActiveWorkspaceId,
@@ -1182,7 +1183,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     // 3. Create a new workspace when the artifact starts a new thread.
     if (!targetWorkspaceId) {
       const now = Date.now();
-      const newWorkspaceId = `case-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      const newWorkspaceId = createLocalId('workspace');
       const newWorkspace: Workspace = {
         id: newWorkspaceId,
         scopeId: artifact.config?.scopeId,
@@ -1236,19 +1237,30 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
     const savedArtifact: Artifact = {
       ...artifact,
       entities: processedEntities,
-      id: artifact.id || `rep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      id: artifact.id || createLocalId('rep'),
       createdAt: artifact.createdAt ?? Date.now(),
       config: artifact.config
         ? {
             ...artifact.config,
             sourceRunId: artifact.config.sourceRunId || sourceRun?.id,
             sourceSignalId,
+            sourceFollowUpId:
+              artifact.config.sourceFollowUpId || sourceRun?.config?.sourceFollowUpId,
             parentArtifactId,
             parentRunId,
           }
         : undefined,
       caseId: targetWorkspaceId,
     };
+    savedArtifact.followUps = buildArtifactFollowUps({
+      existing: savedArtifact.followUps,
+      leads: savedArtifact.leads,
+      artifactId: savedArtifact.id,
+      workspaceId: targetWorkspaceId,
+      sourceSignalId,
+      createdAt: savedArtifact.createdAt,
+    });
+    savedArtifact.leads = toFollowUpTexts(savedArtifact.followUps);
 
     // 6. Persistence
     if (isNewWorkspace) {
@@ -1269,11 +1281,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       artifacts.push(savedArtifact);
     }
 
-    set({
-      workspaces,
-      artifacts,
-      activeWorkspaceId: targetWorkspaceId,
-    });
+    let nextArtifacts = artifacts;
 
     if (sourceSignalId && savedArtifact.id) {
       const matchingHeadline = state.headlines.find((headline) => headline.id === sourceSignalId);
@@ -1291,6 +1299,33 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         }));
       }
     }
+
+    const sourceFollowUpId = savedArtifact.config?.sourceFollowUpId;
+    if (sourceFollowUpId && savedArtifact.id) {
+      await CaseRepository.resolveFollowUp(sourceFollowUpId, {
+        status: 'RESOLVED',
+        resolvedByArtifactId: savedArtifact.id,
+      });
+      nextArtifacts = nextArtifacts.map((entry) => ({
+        ...entry,
+        followUps: (entry.followUps || []).map((followUp) =>
+          followUp.id === sourceFollowUpId
+            ? {
+                ...followUp,
+                status: 'RESOLVED',
+                resolvedByArtifactId: savedArtifact.id,
+                updatedAt: Date.now(),
+              }
+            : followUp
+        ),
+      }));
+    }
+
+    set({
+      workspaces,
+      artifacts: nextArtifacts,
+      activeWorkspaceId: targetWorkspaceId,
+    });
 
     return savedArtifact;
   },

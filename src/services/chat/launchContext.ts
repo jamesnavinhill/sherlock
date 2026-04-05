@@ -55,6 +55,7 @@ export const isChatLaunchContext = (value: unknown): value is ChatLaunchContext 
   return (
     (candidate.sourceReportId === undefined || typeof candidate.sourceReportId === 'string') &&
     (candidate.entityName === undefined || typeof candidate.entityName === 'string') &&
+    (candidate.signalId === undefined || typeof candidate.signalId === 'string') &&
     (candidate.headlineId === undefined || typeof candidate.headlineId === 'string')
   );
 };
@@ -65,6 +66,7 @@ export const areChatLaunchContextsEqual = (
 ): boolean =>
   (left?.sourceReportId || '') === (right?.sourceReportId || '') &&
   (left?.entityName || '') === (right?.entityName || '') &&
+  (left?.signalId || '') === (right?.signalId || '') &&
   (left?.headlineId || '') === (right?.headlineId || '');
 
 export const getChatLaunchContextFromSession = (
@@ -222,8 +224,9 @@ export const buildLaunchContextPrimer = (params: {
     };
   }
 
-  if (params.launchContext.headlineId) {
-    const headline = params.headlines.find((entry) => entry.id === params.launchContext.headlineId);
+  const signalId = params.launchContext.signalId || params.launchContext.headlineId;
+  if (signalId) {
+    const headline = params.headlines.find((entry) => entry.id === signalId);
     if (!headline) return null;
 
     return {

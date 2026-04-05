@@ -47,8 +47,29 @@ vi.mock('./DossierPanel', () => ({
 }));
 
 vi.mock('./ReportViewer', () => ({
-  ReportViewer: ({ onDeepDive }: { onDeepDive: (lead: string) => void }) => (
-    <button data-testid="report-deep-dive" onClick={() => onDeepDive('Trace vendor ownership')}>
+  ReportViewer: ({
+    onDeepDive,
+  }: {
+    onDeepDive: (followUp: {
+      id: string;
+      kind: 'TASK';
+      title: string;
+      actionText: string;
+      status: 'OPEN';
+    }) => void;
+  }) => (
+    <button
+      data-testid="report-deep-dive"
+      onClick={() =>
+        onDeepDive({
+          id: 'follow-up-1',
+          kind: 'TASK',
+          title: 'Trace vendor ownership',
+          actionText: 'Trace vendor ownership',
+          status: 'OPEN',
+        })
+      }
+    >
       Deep Dive
     </button>
   ),
@@ -132,6 +153,16 @@ const reportFixture: Artifact = {
   summary: 'Initial summary',
   agendas: ['Agenda 1'],
   leads: ['Lead 1'],
+  followUps: [
+    {
+      id: 'follow-up-1',
+      originArtifactId: 'report-1',
+      kind: 'TASK',
+      title: 'Trace vendor ownership',
+      actionText: 'Trace vendor ownership',
+      status: 'OPEN',
+    },
+  ],
   entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
   sources: [{ title: 'Registry', url: 'https://example.com/registry' }],
   rawText: '{}',
@@ -211,6 +242,8 @@ describe('OperationView launch propagation', () => {
       expect.objectContaining({
         topic: 'Trace vendor ownership',
         launchSource: 'OPERATION_DEEP_DIVE',
+        parentArtifactId: 'report-1',
+        sourceFollowUpId: 'follow-up-1',
         parentContext: {
           topic: reportFixture.topic,
           summary: reportFixture.summary,
@@ -327,9 +360,10 @@ describe('OperationView launch propagation', () => {
       2,
       expect.objectContaining({
         workspaceId: 'case-1',
-        launchContext: {
+        launchContext: expect.objectContaining({
           headlineId: 'headline-1',
-        },
+          signalId: 'headline-1',
+        }),
       })
     );
     expect(onOpenChat).toHaveBeenNthCalledWith(

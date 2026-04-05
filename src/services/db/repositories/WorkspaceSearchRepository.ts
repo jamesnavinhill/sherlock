@@ -1,5 +1,5 @@
 import { desc, eq, inArray } from 'drizzle-orm';
-import type { Headline, Artifact, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
+import type { Signal, Artifact, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
 import { getDB } from '../client';
 import {
   artifactEvidence,
@@ -314,7 +314,7 @@ export class WorkspaceSearchRepository {
       .slice(0, options?.limit ?? 6);
 
     const recentArtifacts = reportRows.slice(0, 4).map(toRecentArtifact);
-    const recentHeadlines: Headline[] = headlineRows.slice(0, 5).map((row) => ({
+    const recentSignals: Signal[] = headlineRows.slice(0, 5).map((row) => ({
       id: row.id,
       caseId: row.caseId || workspaceId,
       content: row.content,
@@ -349,7 +349,7 @@ export class WorkspaceSearchRepository {
       },
       summary: summaryParts.join(' | '),
       recentArtifacts,
-      recentHeadlines,
+      recentSignals,
       snippets,
     };
   }
@@ -381,7 +381,7 @@ export class WorkspaceSearchRepository {
     return this.getWorkspaceReport(workspaceId, reportId);
   }
 
-  static async getRecentSignals(workspaceId: string, limit = 5): Promise<Headline[]> {
+  static async getRecentSignals(workspaceId: string, limit = 5): Promise<Signal[]> {
     const headlines = await CaseRepository.getHeadlines();
     return headlines
       .filter((headline) => headline.caseId === workspaceId)

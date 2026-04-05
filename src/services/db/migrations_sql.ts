@@ -86,6 +86,27 @@ CREATE TABLE IF NOT EXISTS "reports" (
 	FOREIGN KEY ("case_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "follow_ups" (
+	"id" text PRIMARY KEY NOT NULL,
+	"workspace_id" text,
+	"artifact_id" text NOT NULL,
+	"section_id" text,
+	"source_signal_id" text,
+	"kind" text NOT NULL,
+	"title" text NOT NULL,
+	"action_text" text NOT NULL,
+	"status" text NOT NULL,
+	"entity_refs_json" text,
+	"source_refs_json" text,
+	"resolved_by_artifact_id" text,
+	"metadata_json" text,
+	"sort_order" integer NOT NULL,
+	"created_at" integer NOT NULL,
+	"updated_at" integer NOT NULL,
+	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("artifact_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "scopes" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,

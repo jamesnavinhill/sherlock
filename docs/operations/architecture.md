@@ -52,7 +52,7 @@ Run config snapshots now include:
 - `artifactType`
 - `labelProfileId`
 - date-range, launch source, and provider/model snapshots
-- lineage refs such as `sourceSignalId`, `parentArtifactId`, `parentRunId`, `sourceRunId`, and `producedArtifactId` when available
+- lineage refs such as `sourceSignalId`, `sourceFollowUpId`, `parentArtifactId`, `parentRunId`, `sourceRunId`, and `producedArtifactId` when available
 
 Launch handling now derives missing lineage refs from already-known parent artifacts and runs before task persistence so downstream chronology surfaces do not have to rely on topic inference as often.
 
@@ -81,6 +81,7 @@ Key responsibilities:
 - derive first-party domain packs from scopes
 - resolve purpose profiles for each run
 - resolve label profiles for compatibility rendering
+- normalize canonical `Signal` and `FollowUp` runtime records alongside persistence compatibility aliases
 - build typed artifact sections alongside legacy flattened fields
 - provide pack-aware launch copy, purpose-aware setup labels, starter templates, export naming, and legacy title cleanup helpers
 
@@ -127,7 +128,7 @@ Key behavior:
 - adapters now share a stronger request/response shape for both chat and artifact generation, including model-aware capability handling and warning surfaces
 - adapters now share a board-agent planning contract that keeps BYOK/model selection aligned with the rest of the app instead of introducing a separate board-only provider stack
 - the board-agent runtime now layers a Sherlock-owned session runner plus action registry on top of the provider router so streamed planning actions can be sanitized, executed, audited, and continued without introducing a second provider subsystem
-- adapters return typed artifact sections plus compatibility `summary`, `agendas`, `leads`, and `followUps`
+- adapters return typed artifact sections plus canonical `followUps`; legacy `summary`, `agendas`, and `leads` compatibility fields are still populated for transitional readers
 - chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations/provenance
 - TTS is only implemented on Gemini adapter
 - OpenRouter uses native message arrays, requests native structured output when available, and enables `openrouter:web_search` by default when the active configuration allows it
@@ -153,6 +154,7 @@ The schema still uses compatibility table names such as `cases`, `reports`, and 
 
 - `cases` can now hold workspace-oriented metadata such as `mode`, `packId`, `purposeId`, and `labelProfileId`
 - `reports` now store `artifactType`, pack/purpose references, label profiles, config snapshots, and metadata JSON including provider provenance
+- `follow_ups` now persist first-class actionable follow-up records linked to artifacts and lineage refs such as `sourceSignalId` and `resolvedByArtifactId`
 - `artifact_sections` persists typed section rows separately from the legacy flattened report fields, with section ids scoped per report rather than globally across the table
 - `artifact_evidence` persists first-class evidence rows for artifact claims, citations, quotes, and source hints
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
@@ -162,7 +164,7 @@ The schema still uses compatibility table names such as `cases`, `reports`, and 
 - `workspace_board_documents` persist tldraw board snapshots separately from canonical research records
 - `board_agent_sessions` and `board_agent_actions` persist board-agent task state plus action audit trails for workspace boards
 
-Artifact persistence still uses the existing `reports` table, while `artifact_sections` and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
+Artifact persistence still uses the existing `reports` table, while `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
 Maintenance flows now treat SQLite data as a workspace-data domain:
 
@@ -183,11 +185,12 @@ Global store:
 
 State domains include:
 
-- workspaces, artifacts, workspace runs, headlines
+- workspaces, artifacts, workspace runs, and saved signals
 - workspace-native library items, board/page shells, and board documents
 - chat sessions, messages, generation state, and launch context
 - board-agent sessions and action audit history
 - pack-aware report config snapshots
+- canonical follow-up lineage on artifacts
 - typed artifact sections
 - manual graph nodes/links
 - entity aliases and hide/flag sets
@@ -208,7 +211,7 @@ Persistence writes are handled through repository calls and settings KV writes r
 - ReportViewer
 - InspectorPanel
 
-Supports deep dives, headline follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
+Supports deep dives, follow-up execution, signal follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
 Operation View now also includes board handoff for the active artifact plus inspected entities and headlines, reusing canonical identifiers rather than creating board-only report copies.
 
@@ -250,7 +253,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - transcript copy plus Markdown/JSON export
 - guided conversational run builder that maps into the same launch request shape used by `TaskSetupModal`
 - context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
-- contextual handoff from Operation View, Archives, and Network Graph into the same session backend, with report/entity/headline grounding persisted on the target chat session
+- contextual handoff from Operation View, Archives, and Network Graph into the same session backend, with report/entity/signal grounding persisted on the target chat session
 
 `ReportViewer` now renders:
 

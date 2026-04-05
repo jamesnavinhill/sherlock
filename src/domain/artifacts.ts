@@ -4,9 +4,11 @@ import type {
   ArtifactSectionKind,
   ArtifactType,
   Artifact,
+  FollowUp,
   LabelProfile,
   PurposeProfile,
 } from '../types';
+import { createLocalId } from '../utils/id';
 
 const SECTION_TITLES: Record<ArtifactSectionKind, string> = {
   EXECUTIVE_SUMMARY: 'Executive Summary',
@@ -55,6 +57,99 @@ const normalizeText = (value: unknown): string => {
 const normalizeItems = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
   return value.map(normalizeText).filter((entry) => entry.length > 0);
+};
+
+const inferFollowUpKind = (value: string): FollowUp['kind'] => {
+  const normalized = value.trim();
+  if (!normalized) return 'NEXT_STEP';
+  if (normalized.endsWith('?')) return 'QUESTION';
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith('investigate ') || lower.startsWith('review ') || lower.startsWith('check ')) {
+    return 'TASK';
+  }
+  if (lower.startsWith('determine ') || lower.startsWith('whether ')) {
+    return 'QUESTION';
+  }
+  if (lower.includes('hypothesis')) return 'HYPOTHESIS';
+  if (lower.includes('gap') || lower.includes('missing')) return 'GAP';
+  return 'NEXT_STEP';
+};
+
+export const getFollowUpText = (followUp: FollowUp): string => followUp.actionText || followUp.title;
+
+export const getArtifactFollowUps = (artifact: Pick<Artifact, 'followUps' | 'leads'>): FollowUp[] => {
+  if (artifact.followUps && artifact.followUps.length > 0) {
+    return artifact.followUps;
+  }
+
+  return (artifact.leads || []).map((lead, index) => ({
+    id: `follow-up-legacy-${index}`,
+    kind: inferFollowUpKind(lead),
+    title: lead.slice(0, 96),
+    actionText: lead,
+    status: 'OPEN',
+  }));
+};
+
+export const toFollowUpTexts = (followUps: FollowUp[] | undefined): string[] =>
+  (followUps || []).map(getFollowUpText).filter((entry) => entry.trim().length > 0);
+
+export const buildArtifactFollowUps = (options: {
+  leads?: string[];
+  followUps?: string[];
+  existing?: FollowUp[] | string[];
+  artifactId?: string;
+  workspaceId?: string;
+  sourceSignalId?: string;
+  createdAt?: number;
+}): FollowUp[] => {
+  const existingFollowUps =
+    options.existing?.filter(
+      (followUp): followUp is FollowUp =>
+        !!followUp && typeof followUp === 'object' && !Array.isArray(followUp)
+    ) || [];
+
+  if (existingFollowUps.length > 0) {
+    return existingFollowUps.map((followUp, index) => ({
+      ...followUp,
+      id:
+        followUp.id ||
+        (options.artifactId
+          ? `${options.artifactId}-follow-up-${index}`
+          : createLocalId('follow-up')),
+      workspaceId: followUp.workspaceId || options.workspaceId,
+      originArtifactId: followUp.originArtifactId || options.artifactId,
+      sourceSignalId: followUp.sourceSignalId || options.sourceSignalId,
+      status: followUp.status || 'OPEN',
+      createdAt: followUp.createdAt ?? options.createdAt,
+      updatedAt: followUp.updatedAt ?? options.createdAt,
+      title: followUp.title || getFollowUpText(followUp).slice(0, 96),
+      actionText: getFollowUpText(followUp),
+    }));
+  }
+
+  const textItems = [
+    ...(options.followUps || []),
+    ...(options.followUps?.length ? [] : options.leads || []),
+  ]
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  return textItems.map((text, index) => ({
+    id:
+      options.artifactId
+        ? `${options.artifactId}-follow-up-${index}`
+        : createLocalId('follow-up'),
+    workspaceId: options.workspaceId,
+    originArtifactId: options.artifactId,
+    sourceSignalId: options.sourceSignalId,
+    kind: inferFollowUpKind(text),
+    title: text.slice(0, 96),
+    actionText: text,
+    status: 'OPEN',
+    createdAt: options.createdAt,
+    updatedAt: options.createdAt,
+  }));
 };
 
 const ensureUniqueSectionIds = (sections: ArtifactSection[]): ArtifactSection[] => {
@@ -158,12 +253,17 @@ export const buildArtifactSections = (options: {
   summary?: string;
   agendas?: string[];
   leads?: string[];
-  followUps?: string[];
+  followUps?: string[] | FollowUp[];
   methodology?: string;
   evidence?: ArtifactEvidence[];
   findings?: string[];
   artifactType?: ArtifactType;
 }): ArtifactSection[] => {
+  const followUpTexts = Array.isArray(options.followUps)
+    ? typeof options.followUps[0] === 'string'
+      ? (options.followUps as string[])
+      : toFollowUpTexts(options.followUps as FollowUp[])
+    : [];
   const normalizedSections = normalizeArtifactSections(options.sections);
   if (normalizedSections.length > 0) {
     const existingKinds = new Set(normalizedSections.map((section) => section.kind));
@@ -194,9 +294,9 @@ export const buildArtifactSections = (options: {
       if (section) augmentedSections.push(section);
     }
 
-    if (!existingKinds.has('NEXT_STEPS') && (options.followUps?.length || options.leads?.length)) {
+    if (!existingKinds.has('NEXT_STEPS') && (followUpTexts.length || options.leads?.length)) {
       const section = createSection('NEXT_STEPS', augmentedSections.length, {
-        items: options.followUps?.length ? options.followUps : options.leads,
+        items: followUpTexts.length ? followUpTexts : options.leads,
       });
       if (section) augmentedSections.push(section);
     }
@@ -217,7 +317,7 @@ export const buildArtifactSections = (options: {
       ),
     }),
     createSection('METHODOLOGY', 5, { content: options.methodology }),
-    createSection('NEXT_STEPS', 6, { items: options.followUps }),
+    createSection('NEXT_STEPS', 6, { items: followUpTexts }),
   ].filter((section): section is ArtifactSection => !!section);
 
   if (derivedSections.length > 0) return ensureUniqueSectionIds(derivedSections);
@@ -308,10 +408,12 @@ export const toLegacyReportArrays = (
 ): Pick<Artifact, 'agendas' | 'leads' | 'followUps'> => {
   const leadItems = getSectionItemsByKinds(report.sections, ['LEADS', 'NEXT_STEPS']);
   const anomalyItems = getSectionItemsByKinds(report.sections, ['ANOMALIES', 'KEY_FINDINGS']);
+  const canonicalFollowUps = getArtifactFollowUps(report);
+  const followUpTexts = toFollowUpTexts(canonicalFollowUps);
 
   return {
     agendas: report.agendas?.length ? report.agendas : anomalyItems,
-    leads: report.leads?.length ? report.leads : leadItems,
-    followUps: report.followUps?.length ? report.followUps : leadItems,
+    leads: report.leads?.length ? report.leads : followUpTexts.length ? followUpTexts : leadItems,
+    followUps: canonicalFollowUps.length ? canonicalFollowUps : buildArtifactFollowUps({ leads: leadItems }),
   };
 };

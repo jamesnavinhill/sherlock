@@ -6,7 +6,7 @@ import type {
   TimelineTrack,
   Workspace,
 } from '@/types';
-import { sanitizeDisplayTitle } from '../../../domain';
+import { buildArtifactFollowUps, sanitizeDisplayTitle } from '../../../domain';
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
   const blob = new Blob([content], { type: mimeType });
@@ -161,7 +161,9 @@ export const buildTimelineSnapshotArtifact = (snapshot: TimelineSnapshot): Artif
         order: 2,
       },
     ],
-    followUps: snapshot.events.slice(0, 3).map((event) => event.title),
+    followUps: buildArtifactFollowUps({
+      followUps: snapshot.events.slice(0, 3).map((event) => event.title),
+    }),
     artifactType: 'TIMELINE',
     entities: [],
     sources: [],

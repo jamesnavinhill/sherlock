@@ -50,5 +50,9 @@ export const resolveLaunchLineage = (input: {
       input.request.sourceSignalId ||
       parentArtifact?.config?.sourceSignalId ||
       parentRun?.config?.sourceSignalId,
+    sourceFollowUpId:
+      input.request.sourceFollowUpId ||
+      parentArtifact?.config?.sourceFollowUpId ||
+      parentRun?.config?.sourceFollowUpId,
   };
 };

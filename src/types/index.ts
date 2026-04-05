@@ -118,11 +118,13 @@ export interface PurposeProfile {
   defaultSectionKinds: ArtifactSectionKind[];
 }
 
-// --- LEAD & HEADLINE TYPES ---
+// --- SIGNAL & FOLLOW-UP TYPES ---
 
-export type LeadStatus = 'PENDING' | 'INVESTIGATED' | 'FLAGGED';
+export type SignalStatus = 'PENDING' | 'INVESTIGATED' | 'FLAGGED';
+export type FollowUpKind = 'QUESTION' | 'TASK' | 'HYPOTHESIS' | 'GAP' | 'NEXT_STEP';
+export type FollowUpStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'DISMISSED';
 
-export interface Headline {
+export interface Signal {
   id: string;
   caseId: string;
   content: string;
@@ -130,10 +132,31 @@ export interface Headline {
   url?: string;
   timestamp: string;
   type: 'SOCIAL' | 'NEWS' | 'OFFICIAL';
-  status: LeadStatus;
+  status: SignalStatus;
   threatLevel: 'INFO' | 'CAUTION' | 'CRITICAL';
   linkedReportId?: string;
 }
+
+export interface FollowUp {
+  id: string;
+  workspaceId?: string;
+  originArtifactId?: string;
+  originSectionId?: string;
+  sourceSignalId?: string;
+  kind: FollowUpKind;
+  title: string;
+  actionText: string;
+  status: FollowUpStatus;
+  entityRefs?: string[];
+  sourceRefs?: string[];
+  resolvedByArtifactId?: string;
+  createdAt?: number;
+  updatedAt?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export type Headline = Signal;
+export type LeadStatus = SignalStatus;
 
 export interface Workspace {
   id: string;
@@ -181,6 +204,7 @@ export type WorkspaceCanonicalRefKind =
   | 'ARTIFACT'
   | 'ENTITY'
   | 'SOURCE'
+  | 'SIGNAL'
   | 'HEADLINE'
   | 'WORKSPACE_ITEM';
 
@@ -191,6 +215,7 @@ export interface WorkspaceItemProvenance {
   sourceMessageId?: string;
   sourceSessionId?: string;
   sourceReportId?: string;
+  sourceSignalId?: string;
   sourceHeadlineId?: string;
   sourceBoardId?: string;
   description?: string;
@@ -419,6 +444,7 @@ export type ChatAttachmentKind =
   | 'REPORT'
   | 'SECTION'
   | 'ENTITY'
+  | 'SIGNAL'
   | 'HEADLINE'
   | 'SOURCE'
   | 'NOTE'
@@ -507,6 +533,7 @@ export interface ChatDraftArtifact {
 export interface ChatLaunchContext {
   sourceReportId?: string;
   entityName?: string;
+  signalId?: string;
   headlineId?: string;
 }
 
@@ -532,7 +559,7 @@ export interface WorkspaceContextBundle {
   workspace: Workspace;
   summary: string;
   recentArtifacts: Artifact[];
-  recentHeadlines: Headline[];
+  recentSignals: Signal[];
   snippets: WorkspaceContextSnippet[];
 }
 
@@ -648,6 +675,7 @@ export interface InvestigationRunConfig extends Partial<SystemConfig> {
   preseededEntities?: ManualNode[];
   launchSource?: string;
   sourceSignalId?: string;
+  sourceFollowUpId?: string;
   parentArtifactId?: string;
   parentRunId?: string;
   sourceRunId?: string;
@@ -668,6 +696,7 @@ export interface InvestigationLaunchRequest {
   switchToView?: boolean;
   launchSource?: string;
   sourceSignalId?: string;
+  sourceFollowUpId?: string;
   parentArtifactId?: string;
   parentRunId?: string;
 }
@@ -682,7 +711,7 @@ export interface Artifact {
   agendas: string[];
   leads: string[];
   sections?: ArtifactSection[];
-  followUps?: string[];
+  followUps?: FollowUp[];
   artifactType?: ArtifactType;
   entities: Entity[];
   sources: Source[];
@@ -772,7 +801,14 @@ export interface TimelineEvent {
   title: string;
   summary?: string;
   refId?: string;
-  refKind?: 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT_SESSION' | 'CHAT_ACTION' | 'ENTITY';
+  refKind?:
+    | 'SIGNAL'
+    | 'HEADLINE'
+    | 'RUN'
+    | 'ARTIFACT'
+    | 'CHAT_SESSION'
+    | 'CHAT_ACTION'
+    | 'ENTITY';
   parentRefId?: string;
   badges?: string[];
   searchText?: string;
@@ -798,21 +834,6 @@ export interface TimelineSelectionState {
   selectedEventId: string | null;
 }
 
-export interface Signal {
-  id: string;
-  title: string;
-  content: string;
-  timestamp: string;
-  category?: string;
-  signalType?: string;
-  sourceName?: string;
-  severity?: string;
-  url?: string;
-  workspaceId?: string;
-  artifactId?: string;
-  metadata?: Record<string, unknown>;
-}
-
 export interface WorkspaceDataChatSnapshot {
   sessions: ChatSession[];
   messages: ChatMessage[];
@@ -820,7 +841,7 @@ export interface WorkspaceDataChatSnapshot {
 }
 
 export interface WorkspaceDataSignalSnapshot {
-  headlines: Headline[];
+  headlines: Signal[];
 }
 
 export interface WorkspaceDataBoardAgentSnapshot {

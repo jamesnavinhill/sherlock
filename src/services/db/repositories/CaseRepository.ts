@@ -5,12 +5,18 @@ import {
   artifactSections,
   cases,
   reports,
+  followUps as followUpRows,
   entities,
   sources,
   leads,
 } from '../schema';
-import { buildArtifactSections, toLegacyReportArrays } from '../../../domain';
-import type { ArtifactSection, Workspace, Artifact, Entity, Headline } from '@/types';
+import {
+  buildArtifactFollowUps,
+  buildArtifactSections,
+  toFollowUpTexts,
+  toLegacyReportArrays,
+} from '../../../domain';
+import type { ArtifactSection, Workspace, Artifact, Entity, Headline, FollowUp } from '@/types';
 import { ChatRepository } from './ChatRepository';
 import { BoardAgentRepository } from './BoardAgentRepository';
 import { TaskRepository } from './TaskRepository';
@@ -119,6 +125,7 @@ const deleteReportDependencies = async (reportIds: string[]) => {
 
   const db = getDB();
   for (const reportId of reportIds) {
+    await db.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
     await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
     await db.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
     await db.delete(entities).where(eq(entities.reportId, reportId));
@@ -206,6 +213,7 @@ export class CaseRepository {
     // Optimization: Use separate queries to fetch all entities/sources and map them in memory
     const allEntities = await db.select().from(entities);
     const allSources = await db.select().from(sources);
+    const allFollowUps = await db.select().from(followUpRows);
     const allSections = await db.select().from(artifactSections);
     const allEvidence = await db.select().from(artifactEvidence);
 
@@ -228,9 +236,40 @@ export class CaseRepository {
           title: s.title,
           url: s.url,
         }));
+      const reportFollowUps = allFollowUps
+        .filter((followUp) => followUp.artifactId === row.id)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map(
+          (followUp): FollowUp => ({
+            id: followUp.id,
+            workspaceId: followUp.workspaceId || undefined,
+            originArtifactId: followUp.artifactId,
+            originSectionId: followUp.sectionId || undefined,
+            sourceSignalId: followUp.sourceSignalId || undefined,
+            kind: followUp.kind as FollowUp['kind'],
+            title: followUp.title,
+            actionText: followUp.actionText,
+            status: followUp.status as FollowUp['status'],
+            entityRefs: followUp.entityRefsJson ? JSON.parse(followUp.entityRefsJson) : undefined,
+            sourceRefs: followUp.sourceRefsJson ? JSON.parse(followUp.sourceRefsJson) : undefined,
+            resolvedByArtifactId: followUp.resolvedByArtifactId || undefined,
+            metadata: followUp.metadataJson ? JSON.parse(followUp.metadataJson) : undefined,
+            createdAt: followUp.createdAt,
+            updatedAt: followUp.updatedAt,
+          })
+        );
       const parsedSources = toSourceList(rawPayload.sources);
       const parsedAgendas = toStringList(rawPayload.agendas);
       const parsedLeads = toStringList(rawPayload.leads);
+      const canonicalFollowUps =
+        reportFollowUps.length > 0
+          ? reportFollowUps
+          : buildArtifactFollowUps({
+              leads: parsedLeads,
+              followUps: toStringList((rawPayload as { followUps?: unknown }).followUps),
+              artifactId: row.id,
+              workspaceId: row.caseId || undefined,
+            });
       const reportSections = allSections
         .filter((section) => section.reportId === row.id)
         .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -267,7 +306,7 @@ export class CaseRepository {
         summary: normalizeHumanText(row.summary, { includePriority: false }),
         agendas: parsedAgendas,
         leads: parsedLeads,
-        followUps: toStringList((rawPayload as { followUps?: unknown }).followUps),
+        followUps: canonicalFollowUps,
         methodology:
           typeof (rawPayload as { methodology?: unknown }).methodology === 'string'
             ? (rawPayload as { methodology?: string }).methodology
@@ -288,8 +327,9 @@ export class CaseRepository {
         entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
         sources: reportSources.length > 0 ? reportSources : parsedSources,
         agendas: parsedAgendas,
-        leads: parsedLeads,
+        leads: toFollowUpTexts(canonicalFollowUps),
         sections,
+        followUps: canonicalFollowUps,
         artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
       });
 
@@ -334,6 +374,14 @@ export class CaseRepository {
     const normalizedSummary = normalizeHumanText(report.summary, {
       includePriority: false,
       fallback: 'Analysis pending...',
+    });
+    const canonicalFollowUps = buildArtifactFollowUps({
+      existing: report.followUps,
+      leads: report.leads,
+      artifactId: reportId,
+      workspaceId: report.caseId,
+      sourceSignalId: report.config?.sourceSignalId,
+      createdAt: now,
     });
 
     const metadataPayload: ReportMetadataPayload | undefined =
@@ -386,6 +434,29 @@ export class CaseRepository {
           reportId,
           title: source.title,
           url: source.url,
+        });
+      }
+    }
+
+    if (canonicalFollowUps.length > 0) {
+      for (const [index, followUp] of canonicalFollowUps.entries()) {
+        await db.insert(followUpRows).values({
+          id: followUp.id,
+          workspaceId: followUp.workspaceId || report.caseId,
+          artifactId: reportId,
+          sectionId: followUp.originSectionId,
+          sourceSignalId: followUp.sourceSignalId || report.config?.sourceSignalId,
+          kind: followUp.kind,
+          title: followUp.title,
+          actionText: followUp.actionText,
+          status: followUp.status,
+          entityRefsJson: followUp.entityRefs ? JSON.stringify(followUp.entityRefs) : null,
+          sourceRefsJson: followUp.sourceRefs ? JSON.stringify(followUp.sourceRefs) : null,
+          resolvedByArtifactId: followUp.resolvedByArtifactId,
+          metadataJson: followUp.metadata ? JSON.stringify(followUp.metadata) : null,
+          sortOrder: index,
+          createdAt: followUp.createdAt ?? now,
+          updatedAt: followUp.updatedAt ?? now,
         });
       }
     }
@@ -473,8 +544,24 @@ export class CaseRepository {
     await db.update(entities).set({ name: newName }).where(eq(entities.name, oldName));
   }
 
+  static async resolveFollowUp(
+    followUpId: string,
+    patch: Pick<FollowUp, 'status' | 'resolvedByArtifactId'> & { updatedAt?: number }
+  ): Promise<void> {
+    const db = getDB();
+    await db
+      .update(followUpRows)
+      .set({
+        status: patch.status,
+        resolvedByArtifactId: patch.resolvedByArtifactId || null,
+        updatedAt: patch.updatedAt ?? Date.now(),
+      })
+      .where(eq(followUpRows.id, followUpId));
+  }
+
   static async deleteReport(reportId: string): Promise<void> {
     const db = getDB();
+    await db.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
     await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
     await db.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
     await db.delete(entities).where(eq(entities.reportId, reportId));
@@ -528,6 +615,7 @@ export class CaseRepository {
     await WorkspaceBoardRepository.clearAll();
     await WorkspaceItemRepository.clearAll();
     await ManualDataRepository.clearAll();
+    await db.delete(followUpRows);
     await db.delete(artifactSections);
     await db.delete(artifactEvidence);
     await db.delete(entities);

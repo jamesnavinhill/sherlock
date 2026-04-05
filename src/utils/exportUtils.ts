@@ -4,7 +4,7 @@
  */
 
 import type { Workspace, ChatMessage, ChatSession, Artifact, LabelProfile } from '../types';
-import { getLabelProfileById } from '../domain';
+import { getArtifactFollowUps, getFollowUpText, getLabelProfileById } from '../domain';
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
   const blob = new Blob([content], { type: mimeType });
@@ -35,6 +35,8 @@ const getArtifactLabelProfile = (report: Artifact, caseObj?: Workspace): LabelPr
     report.labelProfileId || report.config?.labelProfileId || caseObj?.labelProfileId
   );
 };
+
+const getExportFollowUps = (report: Artifact) => getArtifactFollowUps(report).map(getFollowUpText);
 
 const HTML_STYLES = `
 body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px; color: #1a1a1a; background: #f4f4f5; line-height: 1.6; }
@@ -153,12 +155,12 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
         }
 
         ${
-          report.leads && report.leads.length > 0
+          getExportFollowUps(report).length > 0
             ? `
         <div style="margin-bottom: 20px;">
           <strong>${labelProfile.followUpLabel}:</strong>
           <ul>
-            ${report.leads.map((lead) => `<li>${lead}</li>`).join('')}
+            ${getExportFollowUps(report).map((lead) => `<li>${lead}</li>`).join('')}
           </ul>
         </div>`
             : ''
@@ -291,11 +293,11 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
         }
 
         ${
-          report.leads && report.leads.length > 0
+          getExportFollowUps(report).length > 0
             ? `
         <h2>${labelProfile.followUpLabel}</h2>
         <ul>
-          ${report.leads.map((lead) => `<li>${lead}</li>`).join('')}
+          ${getExportFollowUps(report).map((lead) => `<li>${lead}</li>`).join('')}
         </ul>`
             : ''
         }
@@ -342,9 +344,9 @@ ${report.agendas.map((agenda) => `- ${agenda}`).join('\n')}`
 }
 
 ${
-  report.leads?.length
+  getExportFollowUps(report).length
     ? `#### ${labelProfile.followUpLabel}
-${report.leads.map((lead) => `- ${lead}`).join('\n')}`
+${getExportFollowUps(report).map((lead) => `- ${lead}`).join('\n')}`
     : ''
 }
 

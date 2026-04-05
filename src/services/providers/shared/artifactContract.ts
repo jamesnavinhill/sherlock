@@ -1,4 +1,4 @@
-import { buildArtifactSections } from '../../../domain';
+import { buildArtifactFollowUps, buildArtifactSections, toFollowUpTexts } from '../../../domain';
 import type { Artifact, ArtifactEvidence, ArtifactProvenance } from '../../../types';
 import type { ArtifactNormalizationOptions, StructuredArtifactPayload } from '../types';
 import { toDisplayText } from './jsonParsing';
@@ -74,7 +74,7 @@ export const buildArtifactFromPayload = (
 ): Artifact => {
   const agendas = normalizeStringList(payload.agendas);
   const leads = normalizeStringList(payload.leads);
-  const followUps = normalizeStringList(payload.followUps);
+  const followUpTexts = normalizeStringList(payload.followUps);
   const summary = toDisplayText(payload.summary).trim() || 'Analysis pending...';
   const methodology = toDisplayText(payload.methodology).trim() || undefined;
   const payloadEvidence = normalizeEvidence(payload.evidence);
@@ -100,8 +100,14 @@ export const buildArtifactFromPayload = (
   );
 
   const textFallbackSources = extractSourcesFromText(
-    [rawText, summary, methodology || '', ...leads, ...followUps].join('\n')
+    [rawText, summary, methodology || '', ...leads, ...followUpTexts].join('\n')
   );
+
+  const canonicalFollowUps = buildArtifactFollowUps({
+    leads,
+    followUps: followUpTexts,
+  });
+  const legacyFollowUpTexts = toFollowUpTexts(canonicalFollowUps);
 
   const sources = dedupeSources([
     ...(options.extraSources || []),
@@ -115,7 +121,7 @@ export const buildArtifactFromPayload = (
     summary,
     agendas,
     leads,
-    followUps,
+    followUps: canonicalFollowUps,
     evidence,
     methodology,
     artifactType: options.artifactType,
@@ -139,8 +145,8 @@ export const buildArtifactFromPayload = (
     summary,
     entities: normalizeEntities(payload.entities),
     agendas,
-    leads,
-    followUps: followUps.length > 0 ? followUps : leads,
+    leads: legacyFollowUpTexts.length > 0 ? legacyFollowUpTexts : leads,
+    followUps: canonicalFollowUps,
     sections,
     evidence,
     artifactType: options.artifactType,

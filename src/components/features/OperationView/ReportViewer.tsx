@@ -17,9 +17,11 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import type { ComponentProps, ReactElement } from 'react';
-import type { Artifact, Entity } from '../../../types';
+import type { Artifact, Entity, FollowUp } from '../../../types';
 import {
+  getArtifactFollowUps,
   getArtifactSectionTitle,
+  getFollowUpText,
   getLabelProfileById,
   getPurposeProfileById,
   getSectionByKinds,
@@ -42,8 +44,8 @@ interface ReportViewerProps {
   showPlaceholder: boolean;
   onStartNewCase: () => void;
   onTitleSave: (newTitle: string) => void;
-  onDeepDive: (lead: string) => void;
-  onBatchDeepDive: (leads: string[]) => void;
+  onDeepDive: (followUp: FollowUp) => void;
+  onBatchDeepDive: (followUps: FollowUp[]) => void;
   onEntityClick: (entity: Entity) => void;
 }
 
@@ -236,10 +238,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   ]);
   const methodologySection = getSectionByKinds(orderedSections, ['METHODOLOGY']);
   const visibleSummary = primarySummarySection?.content || report.summary;
-  const visibleLeads =
-    report.leads.length > 0
-      ? report.leads
-      : getSectionItemsByKinds(orderedSections, ['LEADS', 'NEXT_STEPS']);
+  const visibleFollowUps = (() => {
+    const canonical = getArtifactFollowUps(report);
+    if (canonical.length > 0) return canonical;
+
+    return getSectionItemsByKinds(orderedSections, ['LEADS', 'NEXT_STEPS']).map((item, index) => ({
+      id: `report-follow-up-${index}`,
+      kind: 'NEXT_STEP' as const,
+      title: item.slice(0, 96),
+      actionText: item,
+      status: 'OPEN' as const,
+    }));
+  })();
   const visibleAnomalies =
     report.agendas.length > 0
       ? report.agendas
@@ -418,9 +428,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
                 <Target className="w-4 h-4 mr-2 text-osint-primary" /> {labelProfile.followUpLabel}
               </h2>
-              {visibleLeads.length > 0 && (
+              {visibleFollowUps.length > 0 && (
                 <button
-                  onClick={() => onBatchDeepDive(visibleLeads)}
+                  onClick={() => onBatchDeepDive(visibleFollowUps)}
                   className="osint-button-primary flex items-center text-xs font-mono font-bold px-3 py-1.5 uppercase"
                   aria-label={`Investigate all ${labelProfile.followUpLabel.toLowerCase()}`}
                 >
@@ -428,15 +438,15 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 </button>
               )}
             </div>
-            {visibleLeads.length === 0 ? (
+            {visibleFollowUps.length === 0 ? (
               <div className="p-4 border border-zinc-800 bg-zinc-900/30 text-[11px] font-mono text-zinc-500 italic">
                 {`No ${labelProfile.followUpLabel.toLowerCase()} were extracted for this artifact.`}
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
-                {visibleLeads.map((lead, idx) => (
+                {visibleFollowUps.map((followUp, idx) => (
                   <div
-                    key={idx}
+                    key={followUp.id}
                     className="bg-osint-surface/80 backdrop-blur-sm border border-zinc-700/60 p-5 hover:border-osint-primary/50 transition-colors relative group flex flex-col justify-between"
                   >
                     <div>
@@ -444,14 +454,19 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                         {String(idx + 1).padStart(2, '0')}
                       </div>
                       <Lightbulb className="w-6 h-6 text-osint-primary mb-3 opacity-80" />
+                      <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                        {followUp.kind.replace(/_/g, ' ')}
+                      </div>
                       <div className="text-zinc-300 font-medium text-sm leading-relaxed pr-6 prose prose-invert max-w-none prose-p:my-0 mb-4">
-                        <ReactMarkdown components={markdownComponents}>{lead}</ReactMarkdown>
+                        <ReactMarkdown components={markdownComponents}>
+                          {getFollowUpText(followUp)}
+                        </ReactMarkdown>
                       </div>
                     </div>
                     <button
-                      onClick={() => onDeepDive(lead)}
+                      onClick={() => onDeepDive(followUp)}
                       className="osint-button-primary mt-2 w-full flex items-center justify-center py-3 text-xs font-mono font-bold uppercase tracking-wider"
-                      aria-label={`Deep dive into lead ${idx + 1}`}
+                      aria-label={`Deep dive into follow up ${idx + 1}`}
                     >
                       <Microscope className="w-3 h-3 mr-2" /> DEEP DIVE
                     </button>

@@ -16,11 +16,12 @@ Defined in `src/services/db/schema.ts`:
 - `scopes`
 - `cases`
 - `reports`
+- `follow_ups`
 - `artifact_sections`
 - `artifact_evidence`
 - `entities`
 - `sources`
-- `leads` (headline storage)
+- `leads` (legacy table name for saved signal storage)
 - `tasks`
 - `chat_sessions`
 - `chat_messages`
@@ -57,8 +58,10 @@ Persistence is routed through repository classes:
 Runtime code now treats persisted records as:
 
 - `Workspace` -> stored in `cases`
-- `Artifact` -> stored in `reports` plus `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
+- `Artifact` -> stored in `reports` plus `follow_ups`, `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
 - `WorkspaceRun` -> stored in `tasks`
+- `Signal` -> stored in `leads`
+- `FollowUp` -> stored in `follow_ups`
 - `WorkspaceItem` -> stored in `workspace_items`
 - `WorkspaceBoard` and `WorkspaceBoardDocument` -> stored in `workspace_boards` and `workspace_board_documents`
 - `BoardAgentSession` and `BoardAgentAction` -> stored in `board_agent_sessions` and `board_agent_actions`
@@ -93,6 +96,8 @@ Finder/Feed discovery results are transient runtime state in the store and are n
 - `artifact_type`
 - `label_profile_id`
 
+`follow_ups` persists first-class actionable records linked to their origin artifact, optional originating section, optional source signal, entity/source references, and resolution metadata. Follow-up lineage can now connect `Signal -> Run -> Artifact -> FollowUp -> Run -> Artifact` without relying only on compatibility arrays.
+
 `artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility. Section ids are unique within a report, and the table uses a composite primary key of `report_id + id` so repeated section labels from different artifacts do not collide.
 
 `artifact_evidence` persists first-class evidence rows with:
@@ -114,6 +119,8 @@ The chat implementation adds:
 - `chat_messages` for persisted transcript turns and citation metadata
 - `chat_message_attachments` for retrieved context snippets attached to a turn
 - `chat_actions` for auditable retrieval, save, append, and follow-up operations
+
+Artifact save/hydration behavior now treats `Artifact.followUps` as the canonical runtime field. Legacy flattened `leads` arrays are still written and reconstructed as a compatibility surface for readers that have not finished the cutover.
 
 The research workspace implementation adds:
 
@@ -148,6 +155,8 @@ Migration completion marker:
 Existing local databases are upgraded additively in `src/services/db/client.ts`, including an in-place rebuild of legacy `artifact_sections` tables that still enforce a global primary key on `id`.
 
 Current additive upgrade logic also creates `artifact_evidence` for older local databases that predate the research-output expansion.
+
+Current additive upgrade logic also creates `follow_ups` for older local databases that predate canonical follow-up persistence.
 
 Current additive upgrade logic also creates `board_agent_sessions` and `board_agent_actions` for older local databases that predate the board-agent groundwork.
 
@@ -188,10 +197,11 @@ Workspace-data backups include:
 
 - workspaces (`cases`)
 - artifacts (`reports`, `artifact_sections`, `artifact_evidence`, `entities`, `sources`)
+- artifact follow-ups (`follow_ups`, also reflected canonically on artifact payloads)
 - runs (`tasks`)
 - chat sessions, messages, attachments, and actions
 - board-agent sessions and action audit history
-- saved signals/headlines (`leads`)
+- saved signals (`leads`)
 - workspace library items (`workspace_items`)
 - workspace boards and board documents (`workspace_boards`, `workspace_board_documents`)
 - manual graph nodes and links

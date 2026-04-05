@@ -919,7 +919,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     if (selectedHeadline) {
       onOpenChat({
         workspaceId: activeWorkspace.id,
-        launchContext: { headlineId: selectedHeadline.id },
+        launchContext: { signalId: selectedHeadline.id, headlineId: selectedHeadline.id },
       });
       return;
     }
@@ -1150,7 +1150,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   );
 
   const agentPanelBody = (
-    <div className="flex min-h-0 flex-1 flex-col bg-black/70">
+    <div className="flex min-h-0 flex-1 flex-col bg-black">
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         <div className="space-y-4">
           <Accordion
@@ -1160,7 +1160,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             isOpen={agentSections.context}
             onToggle={() => toggleAgentSection('context')}
           >
-            <div className="space-y-3 bg-zinc-950/85 p-3 text-sm text-zinc-100">
+            <div className="space-y-3 bg-black/20 p-3 text-sm text-zinc-300">
               <div>
                 {selectedEntries.length > 0
                   ? `${selectedEntries.length} selected item${selectedEntries.length === 1 ? '' : 's'}`
@@ -1184,7 +1184,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
                 </div>
               )}
               {aiSummary && (
-                <div className="border border-zinc-800 bg-black/70 p-3 text-xs leading-6 text-zinc-300">
+                <div className="border border-zinc-800 bg-black/30 p-3 text-xs leading-6 text-zinc-300">
                   {aiSummary}
                 </div>
               )}
@@ -1192,12 +1192,12 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           </Accordion>
 
           {boardAgentMessage ? (
-            <div className="border border-zinc-800 bg-zinc-950/85 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.24)]">
+            <div className="border border-zinc-800 bg-black/30 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.24)]">
               <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
                 <Bot className="h-3.5 w-3.5 text-osint-primary" />
                 Agent Response
               </div>
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-100">
+              <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-300">
                 {boardAgentMessage}
               </div>
             </div>
@@ -1210,9 +1210,9 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               isOpen={agentSections.session}
               onToggle={() => toggleAgentSection('session')}
             >
-              <div className="space-y-3 border border-t-0 border-zinc-800 bg-zinc-950/70 p-4">
+              <div className="space-y-3 border border-t-0 border-zinc-800 bg-black/20 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm text-zinc-100">
+                  <div className="text-sm text-zinc-300">
                     {visibleBoardAgentSession?.title || 'Board agent'}
                   </div>
                   {visibleBoardAgentSession && (
@@ -1267,7 +1267,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               isOpen={agentSections.actions}
               onToggle={() => toggleAgentSection('actions')}
             >
-              <div className="space-y-2 border border-t-0 border-zinc-800 bg-zinc-950/70 p-4">
+              <div className="space-y-2 border border-t-0 border-zinc-800 bg-black/20 p-4">
                 {visibleBoardAgentActions.slice(0, 8).map((action) => (
                   <div
                     key={action.id}
@@ -1297,14 +1297,14 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         </div>
       </div>
 
-      <div className="bg-zinc-950/90 p-4">
-        <div className="border border-zinc-800 bg-black/90 shadow-[0_24px_64px_rgba(0,0,0,0.32)]">
+      <div className="p-4">
+        <div className="border border-zinc-800 bg-black/20">
           <textarea
             value={boardAgentPrompt}
             onChange={(event) => setBoardAgentPrompt(event.target.value)}
             onKeyDown={handleBoardAgentComposerKeyDown}
             placeholder="Ask the board agent to organize evidence, flag contradictions, or draft a note."
-            className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-zinc-100 outline-none placeholder:text-zinc-600"
+            className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-zinc-300 outline-none placeholder:text-zinc-600"
           />
           <div className="flex items-center justify-between border-t border-zinc-800/80 px-3 py-3">
             <div className="flex items-center gap-2">
@@ -1630,7 +1630,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         </main>
 
         <aside
-          className={`absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-black/95 transition-all duration-200 xl:relative xl:translate-x-0 ${
+          className={`absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-black transition-all duration-200 xl:relative xl:translate-x-0 ${
             rightPanelOpen
               ? 'w-[min(24rem,calc(100vw-1rem))] translate-x-0'
               : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full xl:w-0 xl:border-l-0'

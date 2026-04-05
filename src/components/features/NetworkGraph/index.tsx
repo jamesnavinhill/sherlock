@@ -524,6 +524,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     onOpenChat({
       workspaceId: headline.caseId,
       launchContext: {
+        signalId: headline.id,
         headlineId: headline.id,
       },
     });
@@ -580,6 +581,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         onCaseChange={handleCaseChange}
         showLeftPanel={showLeftPanel}
         onToggleLeftPanel={() => setShowLeftPanel(!showLeftPanel)}
+        showRightPanel={showRightPanel}
+        onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
         showSingletons={showSingletons}
         onToggleSingletons={() => setShowSingletons(!showSingletons)}
         showHiddenNodes={showHiddenNodes}

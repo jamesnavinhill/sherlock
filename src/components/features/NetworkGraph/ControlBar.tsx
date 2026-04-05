@@ -8,6 +8,7 @@ import {
   Lock,
   Unlock,
   Briefcase,
+  PanelRight,
   Box,
   Eye,
   EyeOff,
@@ -24,6 +25,8 @@ interface ControlBarProps {
   onCaseChange: (caseId: string) => void;
   showLeftPanel: boolean;
   onToggleLeftPanel: () => void;
+  showRightPanel: boolean;
+  onToggleRightPanel: () => void;
   showSingletons: boolean;
   onToggleSingletons: () => void;
   showHiddenNodes: boolean;
@@ -47,6 +50,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onCaseChange,
   showLeftPanel,
   onToggleLeftPanel,
+  showRightPanel,
+  onToggleRightPanel,
   showSingletons,
   onToggleSingletons,
   showHiddenNodes,
@@ -179,6 +184,16 @@ export const ControlBar: React.FC<ControlBarProps> = ({
               {pendingClusterCount}
             </span>
           )}
+        </button>
+        <button
+          onClick={onToggleRightPanel}
+          className={`p-2 border transition-colors ${
+            showRightPanel ? 'osint-button-chrome-active text-osint-primary' : 'osint-button-chrome'
+          }`}
+          title="Toggle Inspector Panel"
+          aria-label="Toggle Inspector Panel"
+        >
+          <PanelRight className="w-4 h-4" />
         </button>
       </div>
     </div>

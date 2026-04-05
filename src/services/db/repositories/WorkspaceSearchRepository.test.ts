@@ -210,7 +210,7 @@ describe('WorkspaceSearchRepository', () => {
         artifactType: 'BRIEF',
       })
     );
-    expect(bundle.recentHeadlines[0]).toEqual(
+    expect(bundle.recentSignals[0]).toEqual(
       expect.objectContaining({
         id: 'head-1',
         type: 'NEWS',

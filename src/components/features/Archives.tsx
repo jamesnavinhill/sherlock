@@ -57,7 +57,6 @@ export const Archives: React.FC<ArchivesProps> = ({
   const artifactLabel = archiveLabelProfile.artifactLabel;
   const artifactLabelLower = artifactLabel.toLowerCase();
   const artifactLabelPlural = archiveLabelProfile.artifactLabelPlural;
-  const artifactLabelPluralLower = artifactLabelPlural.toLowerCase();
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);

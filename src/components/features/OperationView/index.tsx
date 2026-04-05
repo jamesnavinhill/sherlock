@@ -4,6 +4,7 @@ import type {
   Artifact,
   CaseTemplate,
   Entity,
+  FollowUp,
   Headline,
   InvestigationLaunchRequest,
   InvestigationRunConfig,
@@ -21,6 +22,7 @@ import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import { AlertOctagon, Layout } from 'lucide-react';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../../domain';
+import { getArtifactFollowUps, getFollowUpText } from '../../../domain';
 import {
   buildWorkspaceArtifactReference,
   buildWorkspaceEntityReference,
@@ -39,7 +41,7 @@ interface OperationViewProps {
   reportOverride?: Artifact | null;
   onBack: () => void;
   onDeepDive: (request: InvestigationLaunchRequest) => void;
-  onBatchDeepDive: (leads: string[], currentReport: Artifact) => void;
+  onBatchDeepDive: (followUps: FollowUp[], currentReport: Artifact) => void;
   navStack: BreadcrumbItem[];
   onNavigate: (id: string) => void;
   onSelectCase?: (caseId: string) => void;
@@ -101,6 +103,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
   // Pre-Investigation Modal State
   const [leadToAnalyze, setLeadToAnalyze] = useState<{
     text: string;
+    sourceFollowUpId?: string;
     context?: { topic: string; summary: string };
     inheritedConfig?: Partial<SystemConfig>;
     inheritedScopeId?: string;
@@ -248,7 +251,13 @@ export const OperationView: React.FC<OperationViewProps> = ({
         }
       });
     const allEntities = Array.from(entityMap.values());
-    const allLeads = Array.from(new Set(allCaseReports.flatMap((r) => r.leads || [])));
+    const allLeads = Array.from(
+      new Set(
+        allCaseReports.flatMap((artifact) =>
+          getArtifactFollowUps(artifact).map((followUp) => getFollowUpText(followUp))
+        )
+      )
+    );
     const sourceMap = new Map<string, Source>();
     allCaseReports
       .flatMap((r) => r.sources || [])
@@ -288,7 +297,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     }
   };
 
-  const handleLeadClick = (lead: string) => {
+  const handleLeadClick = (lead: string | FollowUp) => {
     const parentContext = report
       ? { topic: report.topic, summary: report.summary }
       : activeCase
@@ -299,7 +308,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
         : undefined;
 
     setLeadToAnalyze({
-      text: lead,
+      text: typeof lead === 'string' ? lead : getFollowUpText(lead),
+      sourceFollowUpId: typeof lead === 'string' ? undefined : lead.id,
       context: parentContext,
       inheritedConfig: toConfigOverride(report?.config),
       inheritedScopeId: report?.config?.scopeId,
@@ -406,6 +416,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     onOpenChat({
       workspaceId,
       launchContext: {
+        signalId: selectedHeadline.id,
         headlineId: selectedHeadline.id,
       },
     });
@@ -509,6 +520,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
               scope: scope || resolveScope(leadToAnalyze.inheritedScopeId),
               dateRangeOverride: dateRange || leadToAnalyze.inheritedDateRange,
               launchSource: 'OPERATION_LEAD_MODAL',
+              sourceFollowUpId: leadToAnalyze.sourceFollowUpId,
               parentArtifactId: leadToAnalyze.parentArtifactId,
             });
             setLeadToAnalyze(null);
@@ -661,22 +673,23 @@ export const OperationView: React.FC<OperationViewProps> = ({
           showPlaceholder={showPlaceholder}
           onStartNewCase={() => setIsNewCaseModalOpen(true)}
           onTitleSave={handleTitleSave}
-          onDeepDive={(lead) => {
+          onDeepDive={(followUp) => {
             if (report) {
               onDeepDive({
-                topic: lead,
+                topic: getFollowUpText(followUp),
                 parentContext: { topic: report.topic, summary: report.summary },
                 configOverride: toConfigOverride(report.config),
                 scope: resolveScope(report.config?.scopeId),
                 dateRangeOverride: report.config?.dateRangeOverride,
                 launchSource: 'OPERATION_DEEP_DIVE',
+                sourceFollowUpId: followUp.id,
                 parentArtifactId: report.id,
               });
             }
           }}
-          onBatchDeepDive={(leads) => {
+          onBatchDeepDive={(followUps) => {
             if (report) {
-              onBatchDeepDive(leads, report);
+              onBatchDeepDive(followUps, report);
             }
           }}
           onEntityClick={handleEntityClick}
