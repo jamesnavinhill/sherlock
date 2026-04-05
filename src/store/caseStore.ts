@@ -48,6 +48,11 @@ import {
   type ThemeSurfaceSettings,
 } from '../utils/themeSurfaces';
 import {
+  DEFAULT_THEME_FONT_SETTINGS,
+  parseThemeFontSettings,
+  type ThemeFontSettings,
+} from '../utils/themeFonts';
+import {
   filterManualGraphForWorkspaceRemoval,
   groupBoardAgentActionsBySessionId,
   groupChatActionsBySessionId,
@@ -225,6 +230,7 @@ interface WorkspaceState {
     chroma: number;
   };
   themeSurfaceSettings: ThemeSurfaceSettings;
+  themeFontSettings: ThemeFontSettings;
   showGlobalSearch: boolean;
 
   // --- ACTIONS ---
@@ -249,6 +255,7 @@ interface WorkspaceState {
   setThemeColor: (color: string) => void;
   setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
   setThemeSurfaceSettings: (settings: ThemeSurfaceSettings) => void;
+  setThemeFontSettings: (settings: ThemeFontSettings) => void;
   setShowGlobalSearch: (show: boolean) => void;
   setTemplates: (templates: CaseTemplate[]) => void;
   setHeadlines: (headlines: Headline[]) => void;
@@ -321,6 +328,11 @@ interface WorkspaceState {
     patch: Partial<Omit<BoardAgentSession, 'id' | 'workspaceId' | 'boardId' | 'createdAt'>>
   ) => Promise<void>;
   addBoardAgentAction: (action: BoardAgentAction) => Promise<void>;
+  updateBoardAgentAction: (
+    actionId: string,
+    sessionId: string,
+    patch: Partial<Omit<BoardAgentAction, 'id' | 'sessionId' | 'workspaceId' | 'boardId' | 'createdAt'>>
+  ) => Promise<void>;
   appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
   completeWorkspaceRun: (id: string, artifact: Artifact) => Promise<void>;
   completeTask: (id: string, report: Artifact) => Promise<void>;
@@ -389,6 +401,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   themeColor: buildAccentColor(DEFAULT_ACCENT_SETTINGS),
   accentSettings: DEFAULT_ACCENT_SETTINGS,
   themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,
+  themeFontSettings: DEFAULT_THEME_FONT_SETTINGS,
   showGlobalSearch: false,
   templates: [],
   headlines: [],
@@ -468,6 +481,8 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       const storedTheme = await SettingsRepository.getSetting<string>('theme_color');
       const storedThemeSurfaceSettings =
         await SettingsRepository.getSetting<ThemeSurfaceSettings>('theme_surface_settings');
+      const storedThemeFontSettings =
+        await SettingsRepository.getSetting<ThemeFontSettings>('theme_font_settings');
 
       const legacyTheme = localStorage.getItem('sherlock_theme');
       const legacyConfigRaw = localStorage.getItem('sherlock_config');
@@ -503,6 +518,16 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
             }
           })()
         : null;
+      const legacyThemeFontSettings = legacyConfigRaw
+        ? (() => {
+            try {
+              const parsed = JSON.parse(legacyConfigRaw);
+              return parseThemeFontSettings(parsed?.themeFontSettings);
+            } catch {
+              return null;
+            }
+          })()
+        : null;
 
       const resolvedAccent =
         storedAccent ||
@@ -520,11 +545,16 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         parseThemeSurfaceSettings(storedThemeSurfaceSettings) ||
         legacyThemeSurfaceSettings ||
         DEFAULT_THEME_SURFACE_SETTINGS;
+      const resolvedThemeFontSettings =
+        parseThemeFontSettings(storedThemeFontSettings) ||
+        legacyThemeFontSettings ||
+        DEFAULT_THEME_FONT_SETTINGS;
 
       await SettingsRepository.setSetting('theme_mode', resolvedThemeMode);
       await SettingsRepository.setSetting('accent_settings', resolvedAccent);
       await SettingsRepository.setSetting('theme_color', resolvedTheme);
       await SettingsRepository.setSetting('theme_surface_settings', resolvedThemeSurfaceSettings);
+      await SettingsRepository.setSetting('theme_font_settings', resolvedThemeFontSettings);
 
       if (
         !hasExistingWorkspaceData({
@@ -612,6 +642,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
         accentSettings: resolvedAccent,
         themeColor: resolvedTheme,
         themeSurfaceSettings: resolvedThemeSurfaceSettings,
+        themeFontSettings: resolvedThemeFontSettings,
         activeWorkspaceId: resolvedActiveWorkspaceId,
         activeWorkspaceBoardId: resolvedActiveWorkspaceBoardId || null,
         isLoading: false,
@@ -671,6 +702,10 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   setThemeSurfaceSettings: (themeSurfaceSettings) => {
     set({ themeSurfaceSettings });
     void SettingsRepository.setSetting('theme_surface_settings', themeSurfaceSettings);
+  },
+  setThemeFontSettings: (themeFontSettings) => {
+    set({ themeFontSettings });
+    void SettingsRepository.setSetting('theme_font_settings', themeFontSettings);
   },
   setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
   setTemplates: (templates) => set({ templates }),
@@ -976,6 +1011,29 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       },
       boardAgentSessions: state.boardAgentSessions.map((session) =>
         session.id === action.sessionId ? { ...session, updatedAt: action.updatedAt } : session
+      ),
+    }));
+  },
+
+  updateBoardAgentAction: async (actionId, sessionId, patch) => {
+    await BoardAgentRepository.updateAction(actionId, patch);
+    set((state) => ({
+      boardAgentActionsBySessionId: {
+        ...state.boardAgentActionsBySessionId,
+        [sessionId]: (state.boardAgentActionsBySessionId[sessionId] || []).map((action) =>
+          action.id === actionId
+            ? {
+                ...action,
+                ...patch,
+                updatedAt: patch.updatedAt ?? Date.now(),
+              }
+            : action
+        ),
+      },
+      boardAgentSessions: state.boardAgentSessions.map((session) =>
+        session.id === sessionId
+          ? { ...session, updatedAt: patch.updatedAt ?? Date.now() }
+          : session
       ),
     }));
   },

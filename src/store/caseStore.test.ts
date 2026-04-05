@@ -49,6 +49,7 @@ describe('caseStore', () => {
     vi.spyOn(BoardAgentRepository, 'deleteSessionsForWorkspace').mockResolvedValue();
     vi.spyOn(BoardAgentRepository, 'clearAll').mockResolvedValue();
     vi.spyOn(BoardAgentRepository, 'createAction').mockResolvedValue();
+    vi.spyOn(BoardAgentRepository, 'updateAction').mockResolvedValue();
     vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
     vi.spyOn(BoardAgentRepository, 'getActionsForSession').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'saveAllNodes').mockResolvedValue();
@@ -504,6 +505,25 @@ describe('caseStore', () => {
         affectedBoardShapeIds: ['shape:1'],
       }),
     ]);
+
+    await store.updateBoardAgentAction('board-action-1', session.id, {
+      status: 'FAILED',
+      error: 'Missing board shape.',
+      updatedAt: 5,
+    });
+
+    expect(BoardAgentRepository.updateAction).toHaveBeenCalledWith('board-action-1', {
+      status: 'FAILED',
+      error: 'Missing board shape.',
+      updatedAt: 5,
+    });
+    expect(useWorkspaceStore.getState().boardAgentActionsBySessionId[session.id][0]).toEqual(
+      expect.objectContaining({
+        id: 'board-action-1',
+        status: 'FAILED',
+        error: 'Missing board shape.',
+      })
+    );
   });
 
   it('should add toasts and remove them', () => {

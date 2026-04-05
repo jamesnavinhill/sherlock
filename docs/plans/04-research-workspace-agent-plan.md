@@ -19,12 +19,18 @@ Completed on April 5, 2026 in the current codebase:
   - provider adapter methods for Gemini, OpenRouter, OpenAI, and Anthropic
   - explicit structured action normalization plus streaming action/message events via a Sherlock-owned tagged protocol
   - reuse of the existing BYOK config, model routing, retry, and logging paths
+- Streams 4 through 6 are now implemented for the first executing/autonomous pass with:
+  - a Sherlock-owned board-agent action registry plus sanitization/execution layer under `src/services/workspace/agent/actions/*`
+  - safe board execution bindings for viewport changes, linked-card placement, movement, alignment, grouping, connectors, and board-note creation
+  - Sherlock-aware canonical actions for workspace notes, promoted excerpts, artifact drafts, artifact append flows, and follow-up investigation launches
+  - multi-step board-agent session runtime with persisted action status updates, todo lifecycle, explicit follow-up/review scheduling, and cancellation support
+  - board-side inspector UX for request entry, live status/message streaming, todo display, and recent action audit history in `src/components/features/WorkspaceBoard/index.tsx`
 
 Remaining near-term work after this checkpoint:
 
-- initial Stream 4 safe execution registry and sanitization layer
-- board-side integration that consumes the new runtime for visible user tasks
-- board-side task log and session UX
+- richer board-agent UI polish and session browsing beyond the latest-session inspector surface
+- broader action coverage and deeper repair loops beyond the initial safe/canonical set
+- follow-up heuristics and recovery refinements beyond the explicit schedule/review actions now implemented
 
 ## Objective
 
@@ -697,6 +703,8 @@ This stream does not aim to:
 
 #### 1. Add the action registry
 
+Status: Completed on April 5, 2026.
+
 Primary files:
 
 - new `src/services/workspace/agent/actions/*`
@@ -717,6 +725,8 @@ Recommended first action set:
 
 #### 2. Add action execution bindings against current 3.x editor APIs
 
+Status: Completed on April 5, 2026.
+
 Primary files:
 
 - `src/components/features/WorkspaceBoard/index.tsx`
@@ -728,6 +738,8 @@ Important rule:
 - keep higher-level decision logic out of the React component
 
 #### 3. Add board-agent inspection affordances
+
+Status: Completed on April 5, 2026.
 
 Possible UI:
 
@@ -763,6 +775,8 @@ This stream includes:
 
 #### 1. Add canonical write actions
 
+Status: Completed on April 5, 2026 for the initial Sherlock-aware action set.
+
 Recommended actions:
 
 - `CREATE_WORKSPACE_NOTE`
@@ -773,6 +787,8 @@ Recommended actions:
 - `CREATE_FOLLOW_UP_RUN`
 
 #### 2. Reuse existing chat/runtime patterns where possible
+
+Status: Completed on April 5, 2026 for the initial workspace-note, artifact, and follow-up paths.
 
 Primary local anchors:
 
@@ -786,6 +802,8 @@ Recommendation:
 - extract shared primitives where appropriate
 
 #### 3. Preserve provenance rigor
+
+Status: Initial completion on April 5, 2026 through persisted board-agent sessions/actions plus board-agent metadata on created records.
 
 Every canonical write should capture:
 
@@ -821,6 +839,8 @@ This stream includes:
 
 #### 1. Add scheduling and continuation support
 
+Status: Completed on April 5, 2026 for explicit schedule/review driven continuation loops.
+
 Capabilities:
 
 - continue the current task without a new manual prompt
@@ -830,6 +850,8 @@ Capabilities:
 
 #### 2. Add review and repair loops
 
+Status: Initial completion on April 5, 2026 through `REVIEW_REGION` follow-up passes and board-side review messaging.
+
 Examples:
 
 - "review the cluster you just made for missing evidence"
@@ -837,6 +859,8 @@ Examples:
 - "tighten spacing and annotate contradictions"
 
 #### 3. Add robust interruption and failure handling
+
+Status: Completed on April 5, 2026 for cancellation, terminal action-failure stopping, and persisted partial-completion audit traces.
 
 Required behaviors:
 
@@ -875,10 +899,11 @@ Status: Partially complete on April 5, 2026.
 What landed:
 
 - Stream 3 provider-router planning and structured streaming
+- Stream 4 execution registry, sanitization, editor bindings, and inspector task log/session UX
 
 What remains:
 
-- Stream 4 execution registry, sanitization, and editor bindings
+- additional board-agent polish beyond the first safe/canonical action set
 
 ### Slice C: Sherlock-Aware Value
 
@@ -888,6 +913,8 @@ Outcome:
 
 - board agent becomes product-meaningful, not just layout-capable
 
+Status: Initial implementation completed on April 5, 2026.
+
 ### Slice D: Full Autonomy
 
 - Stream 6
@@ -896,6 +923,8 @@ Outcome:
 Outcome:
 
 - multi-step autonomous board operator
+
+Status: Initial implementation completed on April 5, 2026.
 
 ## Recommended File And Module Direction
 

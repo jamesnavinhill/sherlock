@@ -187,7 +187,7 @@ export type WorkspaceCanonicalRefKind =
 export type WorkspaceItemKind = 'NOTE' | 'LINK' | 'FILE' | 'MEDIA' | 'EXCERPT';
 
 export interface WorkspaceItemProvenance {
-  source: 'USER' | 'CHAT' | 'REPORT' | 'TIMELINE' | 'NETWORK' | 'INGESTION';
+  source: 'USER' | 'CHAT' | 'REPORT' | 'TIMELINE' | 'NETWORK' | 'INGESTION' | 'BOARD_AGENT';
   sourceMessageId?: string;
   sourceSessionId?: string;
   sourceReportId?: string;

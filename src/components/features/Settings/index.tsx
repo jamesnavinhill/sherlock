@@ -30,9 +30,17 @@ import { AccentPicker } from '../../ui/AccentPicker';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../../../utils/accent';
 import {
   DEFAULT_THEME_SURFACE_SETTINGS,
+  THEME_SURFACE_PRESETS,
   type ThemeSurfaceScale,
   type ThemeSurfaceSettings,
 } from '../../../utils/themeSurfaces';
+import {
+  DEFAULT_THEME_FONT_SETTINGS,
+  THEME_FONT_OPTIONS,
+  getThemeFontOption,
+  getThemeFontOptionsForRole,
+  type ThemeFontSettings,
+} from '../../../utils/themeFonts';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import type { AIProvider } from '../../../config/aiModels';
 import {
@@ -70,6 +78,8 @@ interface SettingsProps {
   accentSettings: { hue: number; lightness: number; chroma: number };
   themeSurfaceSettings: ThemeSurfaceSettings;
   onThemeSurfaceSettingsChange: (settings: ThemeSurfaceSettings) => void;
+  themeFontSettings: ThemeFontSettings;
+  onThemeFontSettingsChange: (settings: ThemeFontSettings) => void;
   onStartCase: (request: InvestigationLaunchRequest) => void;
   onClose: () => void;
 }
@@ -82,6 +92,77 @@ const TABS = [
   { id: 'THEME', label: 'Theme', icon: Palette },
 ];
 
+const SURFACE_LABELS: Record<keyof ThemeSurfaceScale, string> = {
+  background: 'Workspace Background',
+  panel: 'Panel Background',
+  surface: 'Raised Surface',
+};
+
+const FONT_ROLE_CARDS: Array<{
+  key: keyof ThemeFontSettings;
+  label: string;
+  description: string;
+  sample: string;
+}> = [
+  {
+    key: 'ui',
+    label: 'UI Text',
+    description: 'Default reading font for reports, forms, and body copy.',
+    sample: 'Signal review stays readable when the volume gets messy.',
+  },
+  {
+    key: 'display',
+    label: 'Display',
+    description: 'Large headings, report titles, and hero-level moments.',
+    sample: 'Operational Summary',
+  },
+  {
+    key: 'label',
+    label: 'Labels',
+    description: 'Navigation chrome, tabs, and uppercase interface metadata.',
+    sample: 'THEME CONTROL MATRIX',
+  },
+  {
+    key: 'mono',
+    label: 'Data Text',
+    description: 'Dense evidence, structured values, code, and logs.',
+    sample: 'oklch(0.21 0.01 286) :: artifact_id=ops-17',
+  },
+];
+
+const cloneThemeSurfaceSettings = (settings: ThemeSurfaceSettings): ThemeSurfaceSettings => ({
+  dark: {
+    background: { ...settings.dark.background },
+    panel: { ...settings.dark.panel },
+    surface: { ...settings.dark.surface },
+  },
+  light: {
+    background: { ...settings.light.background },
+    panel: { ...settings.light.panel },
+    surface: { ...settings.light.surface },
+  },
+});
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const getSurfacePreviewTone = (surface: ThemeSurfaceScale[keyof ThemeSurfaceScale]) => {
+  const usesDarkInk = surface.lightness >= 0.72;
+
+  return usesDarkInk
+    ? {
+        textColor: 'rgba(31, 22, 13, 0.92)',
+        labelColor: 'rgba(31, 22, 13, 0.62)',
+        borderColor: 'rgba(82, 63, 40, 0.26)',
+        overlayColor: 'rgba(255, 255, 255, 0.16)',
+      }
+    : {
+        textColor: 'rgba(255, 253, 248, 0.92)',
+        labelColor: 'rgba(255, 253, 248, 0.7)',
+        borderColor: 'rgba(255, 255, 255, 0.12)',
+        overlayColor: 'rgba(0, 0, 0, 0.12)',
+      };
+};
+
 export const Settings: React.FC<SettingsProps> = ({
   themeColor,
   themeMode,
@@ -89,6 +170,8 @@ export const Settings: React.FC<SettingsProps> = ({
   accentSettings,
   themeSurfaceSettings,
   onThemeSurfaceSettingsChange,
+  themeFontSettings,
+  onThemeFontSettingsChange,
   onStartCase,
   onClose,
 }) => {
@@ -170,9 +253,12 @@ export const Settings: React.FC<SettingsProps> = ({
   const [themeSections, setThemeSections] = useState({
     accent: true,
     fonts: true,
-    darkSurfaces: true,
-    lightSurfaces: true,
+    surfaces: true,
   });
+  const [activeSurfaceMode, setActiveSurfaceMode] =
+    useState<keyof ThemeSurfaceSettings>(themeMode);
+  const [selectedSurfaceKey, setSelectedSurfaceKey] =
+    useState<keyof ThemeSurfaceScale>('panel');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -292,7 +378,12 @@ export const Settings: React.FC<SettingsProps> = ({
       quietMode,
     };
 
-    saveSystemConfig(config, { theme: themeColor, themeMode, themeSurfaceSettings });
+    saveSystemConfig(config, {
+      theme: themeColor,
+      themeMode,
+      themeSurfaceSettings,
+      themeFontSettings,
+    });
     recordRecentModelSelection(activeModelId);
 
     setTimeout(() => {
@@ -369,26 +460,16 @@ export const Settings: React.FC<SettingsProps> = ({
     }
   };
 
-  const handleThemeSurfaceChange = (
-    mode: keyof ThemeSurfaceSettings,
-    surfaceKey: keyof ThemeSurfaceScale,
-    settings: ThemeSurfaceScale[keyof ThemeSurfaceScale]
-  ) => {
-    onThemeSurfaceSettingsChange({
-      ...themeSurfaceSettings,
-      [mode]: {
-        ...themeSurfaceSettings[mode],
-        [surfaceKey]: settings,
-      },
-    });
-  };
-
   const handleResetThemeSettings = () => {
     onAccentChange(DEFAULT_ACCENT_SETTINGS);
     onThemeSurfaceSettingsChange(DEFAULT_THEME_SURFACE_SETTINGS);
   };
 
-  const getSurfacePickerBounds = (
+  const handleResetFonts = () => {
+    onThemeFontSettingsChange(DEFAULT_THEME_FONT_SETTINGS);
+  };
+
+  const getSurfaceBounds = (
     mode: keyof ThemeSurfaceSettings,
     surfaceKey: keyof ThemeSurfaceScale
   ) => {
@@ -419,50 +500,583 @@ export const Settings: React.FC<SettingsProps> = ({
     };
   };
 
-  const renderThemeSurfaceSection = (mode: keyof ThemeSurfaceSettings) => {
-    const surfaceEntries: Array<{ key: keyof ThemeSurfaceScale; label: string }> = [
-      { key: 'background', label: 'Workspace Background' },
-      { key: 'panel', label: 'Panel Background' },
-      { key: 'surface', label: 'Raised Surface' },
-    ];
+  const clampSurfaceSettings = (
+    mode: keyof ThemeSurfaceSettings,
+    surfaceKey: keyof ThemeSurfaceScale,
+    settings: ThemeSurfaceScale[keyof ThemeSurfaceScale]
+  ) => {
+    const bounds = getSurfaceBounds(mode, surfaceKey);
+
+    return {
+      hue: ((Math.round(settings.hue) % 360) + 360) % 360,
+      lightness: clamp(Number(settings.lightness.toFixed(3)), bounds.lightnessMin, bounds.lightnessMax),
+      chroma: clamp(Number(settings.chroma.toFixed(3)), 0, bounds.chromaMax),
+    };
+  };
+
+  const handleThemeSurfaceChange = (
+    mode: keyof ThemeSurfaceSettings,
+    surfaceKey: keyof ThemeSurfaceScale,
+    settings: ThemeSurfaceScale[keyof ThemeSurfaceScale]
+  ) => {
+    onThemeSurfaceSettingsChange({
+      ...themeSurfaceSettings,
+      [mode]: {
+        ...themeSurfaceSettings[mode],
+        [surfaceKey]: clampSurfaceSettings(mode, surfaceKey, settings),
+      },
+    });
+  };
+
+  const updateModeSurfaces = (
+    mode: keyof ThemeSurfaceSettings,
+    updater: (scale: ThemeSurfaceScale) => ThemeSurfaceScale
+  ) => {
+    const nextScale = updater(themeSurfaceSettings[mode]);
+
+    onThemeSurfaceSettingsChange({
+      ...themeSurfaceSettings,
+      [mode]: {
+        background: clampSurfaceSettings(mode, 'background', nextScale.background),
+        panel: clampSurfaceSettings(mode, 'panel', nextScale.panel),
+        surface: clampSurfaceSettings(mode, 'surface', nextScale.surface),
+      },
+    });
+  };
+
+  const updateSelectedSurfaceField = (
+    field: keyof ThemeSurfaceScale[keyof ThemeSurfaceScale],
+    rawValue: number
+  ) => {
+    const current = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
+    handleThemeSurfaceChange(activeSurfaceMode, selectedSurfaceKey, {
+      ...current,
+      [field]: rawValue,
+    });
+  };
+
+  const handleApplySurfacePreset = (preset: ThemeSurfaceSettings) => {
+    onThemeSurfaceSettingsChange(cloneThemeSurfaceSettings(preset));
+  };
+
+  const handleResetSurfaceMode = (mode: keyof ThemeSurfaceSettings) => {
+    onThemeSurfaceSettingsChange({
+      ...themeSurfaceSettings,
+      [mode]: cloneThemeSurfaceSettings(DEFAULT_THEME_SURFACE_SETTINGS)[mode],
+    });
+  };
+
+  const handleMatchAccentHue = (mode: keyof ThemeSurfaceSettings) => {
+    updateModeSurfaces(mode, (scale) => ({
+      background: { ...scale.background, hue: accentSettings.hue },
+      panel: { ...scale.panel, hue: accentSettings.hue },
+      surface: { ...scale.surface, hue: accentSettings.hue },
+    }));
+  };
+
+  const handleAdjustModeChroma = (mode: keyof ThemeSurfaceSettings, delta: number) => {
+    updateModeSurfaces(mode, (scale) => ({
+      background: {
+        ...scale.background,
+        chroma: scale.background.chroma + delta * 0.6,
+      },
+      panel: {
+        ...scale.panel,
+        chroma: scale.panel.chroma + delta,
+      },
+      surface: {
+        ...scale.surface,
+        chroma: scale.surface.chroma + delta,
+      },
+    }));
+  };
+
+  const handleAdjustModeSeparation = (mode: keyof ThemeSurfaceSettings, direction: 1 | -1) => {
+    if (mode === 'dark') {
+      updateModeSurfaces(mode, (scale) => ({
+        background: {
+          ...scale.background,
+          lightness: scale.background.lightness - direction * 0.006,
+        },
+        panel: {
+          ...scale.panel,
+          lightness: scale.panel.lightness + direction * 0.012,
+        },
+        surface: {
+          ...scale.surface,
+          lightness: scale.surface.lightness + direction * 0.02,
+        },
+      }));
+      return;
+    }
+
+    updateModeSurfaces(mode, (scale) => ({
+      background: {
+        ...scale.background,
+        lightness: scale.background.lightness + direction * 0.008,
+      },
+      panel: {
+        ...scale.panel,
+        lightness: scale.panel.lightness + direction * 0.012,
+      },
+      surface: {
+        ...scale.surface,
+        lightness: scale.surface.lightness - direction * 0.015,
+      },
+    }));
+  };
+
+  const renderThemeSurfaceEditor = () => {
+    const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
+    const bounds = getSurfaceBounds(activeSurfaceMode, selectedSurfaceKey);
+    const backgroundTone = getSurfacePreviewTone(themeSurfaceSettings[activeSurfaceMode].background);
+    const panelTone = getSurfacePreviewTone(themeSurfaceSettings[activeSurfaceMode].panel);
+    const surfaceTone = getSurfacePreviewTone(themeSurfaceSettings[activeSurfaceMode].surface);
 
     return (
       <div className="space-y-6 px-3 pb-3 pt-1">
-        {surfaceEntries.map(({ key, label }) => {
-          const current = themeSurfaceSettings[mode][key];
-          const pickerBounds = getSurfacePickerBounds(mode, key);
-          return (
-            <div
-              key={key}
-              className="space-y-3 border-t border-zinc-800/80 pt-5 first:border-t-0 first:pt-0"
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="font-osint-label text-[10px] uppercase tracking-[0.24em] text-zinc-500">
+                Theme Presets
+              </div>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+                Start from a whole-system palette, then tune only the one surface that needs it.
+                Full OKLCH values stay available without keeping eighteen sliders on screen.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleResetThemeSettings}
+              className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
             >
-              <div className="flex items-center justify-between">
+              Reset Theme
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {THEME_SURFACE_PRESETS.map((preset) => {
+              const isActive =
+                JSON.stringify(themeSurfaceSettings) === JSON.stringify(preset.settings);
+
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleApplySurfacePreset(preset.settings)}
+                  className={`rounded border p-4 text-left transition-colors ${
+                    isActive
+                      ? 'border-osint-primary bg-osint-primary/8'
+                      : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-osint-label text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+                      {preset.label}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded-sm border border-zinc-700"
+                        style={{ background: buildAccentColor(preset.settings.dark.panel) }}
+                      />
+                      <div
+                        className="h-3 w-3 rounded-sm border border-zinc-700"
+                        style={{ background: buildAccentColor(preset.settings.light.panel) }}
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-zinc-300">{preset.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="font-osint-label text-[10px] uppercase tracking-[0.24em] text-zinc-500">
+                Surface Workbench
+              </div>
+              <div className="mt-2 font-osint-display text-lg font-bold text-white">
+                {activeSurfaceMode === 'dark' ? 'Dark' : 'Light'} mode
+              </div>
+            </div>
+            <div className="inline-flex border border-zinc-800 bg-black">
+              {(['dark', 'light'] as Array<keyof ThemeSurfaceSettings>).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setActiveSurfaceMode(mode)}
+                  className={`font-osint-label px-4 py-2 text-xs uppercase tracking-[0.2em] transition-colors ${
+                    activeSurfaceMode === mode
+                      ? 'bg-osint-primary/12 text-osint-primary'
+                      : 'text-zinc-500 hover:text-zinc-200'
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+            <div className="space-y-4">
+              <div
+                className="rounded border border-zinc-800 p-5"
+                style={{ background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].background) }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSelectedSurfaceKey('background')}
+                  className={`w-full rounded border p-4 text-left transition-colors ${
+                    selectedSurfaceKey === 'background'
+                      ? 'border-osint-primary bg-black/10'
+                      : 'border-transparent bg-transparent hover:border-white/20'
+                  }`}
+                  style={{
+                    color: backgroundTone.textColor,
+                    borderColor:
+                      selectedSurfaceKey === 'background'
+                        ? undefined
+                        : backgroundTone.borderColor,
+                    backgroundColor:
+                      selectedSurfaceKey === 'background'
+                        ? backgroundTone.overlayColor
+                        : 'transparent',
+                  }}
+                >
+                  <div
+                    className="font-osint-label text-[10px] uppercase tracking-[0.22em]"
+                    style={{ color: backgroundTone.labelColor }}
+                  >
+                    {SURFACE_LABELS.background}
+                  </div>
+                  <div className="mt-2 text-sm" style={{ color: backgroundTone.textColor }}>
+                    {buildAccentColor(themeSurfaceSettings[activeSurfaceMode].background)}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedSurfaceKey('panel')}
+                  className={`mt-4 block w-[92%] rounded border p-4 text-left transition-colors ${
+                    selectedSurfaceKey === 'panel'
+                      ? 'border-osint-primary'
+                      : 'border-zinc-700/60 hover:border-zinc-500'
+                  }`}
+                  style={{
+                    background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].panel),
+                    color: panelTone.textColor,
+                    borderColor:
+                      selectedSurfaceKey === 'panel' ? undefined : panelTone.borderColor,
+                  }}
+                >
+                  <div
+                    className="font-osint-label text-[10px] uppercase tracking-[0.22em]"
+                    style={{ color: panelTone.labelColor }}
+                  >
+                    {SURFACE_LABELS.panel}
+                  </div>
+                  <div className="mt-2 text-sm" style={{ color: panelTone.textColor }}>
+                    {buildAccentColor(themeSurfaceSettings[activeSurfaceMode].panel)}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedSurfaceKey('surface')}
+                  className={`mt-4 ml-auto block w-[84%] rounded border p-4 text-left transition-colors ${
+                    selectedSurfaceKey === 'surface'
+                      ? 'border-osint-primary'
+                      : 'border-zinc-700/60 hover:border-zinc-500'
+                  }`}
+                  style={{
+                    background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].surface),
+                    color: surfaceTone.textColor,
+                    borderColor:
+                      selectedSurfaceKey === 'surface' ? undefined : surfaceTone.borderColor,
+                  }}
+                >
+                  <div
+                    className="font-osint-label text-[10px] uppercase tracking-[0.22em]"
+                    style={{ color: surfaceTone.labelColor }}
+                  >
+                    {SURFACE_LABELS.surface}
+                  </div>
+                  <div className="mt-2 text-sm" style={{ color: surfaceTone.textColor }}>
+                    {buildAccentColor(themeSurfaceSettings[activeSurfaceMode].surface)}
+                  </div>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => handleMatchAccentHue(activeSurfaceMode)}
+                  className="font-osint-label border border-zinc-800 bg-black px-3 py-2 text-[10px] uppercase text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                >
+                  Accent Hue
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAdjustModeSeparation(activeSurfaceMode, 1)}
+                  className="font-osint-label border border-zinc-800 bg-black px-3 py-2 text-[10px] uppercase text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                >
+                  More Contrast
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAdjustModeSeparation(activeSurfaceMode, -1)}
+                  className="font-osint-label border border-zinc-800 bg-black px-3 py-2 text-[10px] uppercase text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                >
+                  Softer Stack
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAdjustModeChroma(activeSurfaceMode, 0.01)}
+                  className="font-osint-label border border-zinc-800 bg-black px-3 py-2 text-[10px] uppercase text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                >
+                  Richer Tone
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAdjustModeChroma(activeSurfaceMode, -0.01)}
+                  className="font-osint-label border border-zinc-800 bg-black px-3 py-2 text-[10px] uppercase text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                >
+                  Mute Tone
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleResetSurfaceMode(activeSurfaceMode)}
+                  className="font-osint-label border border-zinc-800 bg-black px-3 py-2 text-[10px] uppercase text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                >
+                  Reset Mode
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded border border-zinc-800 bg-black p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="font-osint-label text-[10px] uppercase tracking-[0.24em] text-zinc-500">
+                    Active Surface
+                  </div>
+                  <div className="mt-2 font-osint-display text-lg font-bold text-white">
+                    {SURFACE_LABELS[selectedSurfaceKey]}
+                  </div>
+                </div>
                 <div className="flex items-center gap-3">
                   <div
-                    className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
-                    style={{ background: buildAccentColor(current) }}
+                    className="h-10 w-10 rounded border border-zinc-700"
+                    style={{ background: buildAccentColor(selectedSurface) }}
                   />
-                  <label className="block text-[10px] text-zinc-500 font-mono uppercase">
-                    {label}
-                  </label>
-                </div>
-                <div className="text-[10px] text-zinc-500 font-mono">
-                  {buildAccentColor(current)}
+                  <div className="text-right">
+                    <div className="text-xs text-zinc-300">{buildAccentColor(selectedSurface)}</div>
+                    <div className="font-osint-label text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                      Raw OKLCH
+                    </div>
+                  </div>
                 </div>
               </div>
-              <AccentPicker
-                hue={current.hue}
-                lightness={current.lightness}
-                chroma={current.chroma}
-                showPreview={false}
-                lightnessMin={pickerBounds.lightnessMin}
-                lightnessMax={pickerBounds.lightnessMax}
-                chromaMax={pickerBounds.chromaMax}
-                onChange={(settings) => handleThemeSurfaceChange(mode, key, settings)}
-              />
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <label className="block">
+                  <span className="font-osint-label text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                    Hue
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={360}
+                    step={1}
+                    value={selectedSurface.hue}
+                    onChange={(event) =>
+                      updateSelectedSurfaceField('hue', Number(event.target.value))
+                    }
+                    className="mt-2 w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+                  />
+                  <span className="mt-2 block text-[10px] text-zinc-600">0-360 degrees</span>
+                </label>
+
+                <label className="block">
+                  <span className="font-osint-label text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                    Lightness
+                  </span>
+                  <input
+                    type="number"
+                    min={bounds.lightnessMin}
+                    max={bounds.lightnessMax}
+                    step={0.01}
+                    value={selectedSurface.lightness}
+                    onChange={(event) =>
+                      updateSelectedSurfaceField('lightness', Number(event.target.value))
+                    }
+                    className="mt-2 w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+                  />
+                  <span className="mt-2 block text-[10px] text-zinc-600">
+                    {bounds.lightnessMin.toFixed(2)}-{bounds.lightnessMax.toFixed(2)}
+                  </span>
+                </label>
+
+                <label className="block">
+                  <span className="font-osint-label text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                    Chroma
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={bounds.chromaMax}
+                    step={0.01}
+                    value={selectedSurface.chroma}
+                    onChange={(event) =>
+                      updateSelectedSurfaceField('chroma', Number(event.target.value))
+                    }
+                    className="mt-2 w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+                  />
+                  <span className="mt-2 block text-[10px] text-zinc-600">
+                    0-{bounds.chromaMax.toFixed(2)}
+                  </span>
+                </label>
+              </div>
+
+              <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
+                <div className="font-osint-label text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+                  Why This View Is Smaller
+                </div>
+                <p className="mt-3 text-sm leading-6 text-zinc-400">
+                  Surface tuning is now one target at a time. That keeps the page readable while
+                  preserving direct OKLCH control for any individual surface.
+                </p>
+              </div>
             </div>
-          );
-        })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderFontSection = () => {
+    const roleLabels: Record<keyof ThemeFontSettings, string> = {
+      ui: 'UI',
+      display: 'Display',
+      label: 'Labels',
+      mono: 'Data',
+    };
+
+    return (
+      <div className="space-y-6 px-3 pb-3 pt-1">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="font-osint-label text-[10px] uppercase tracking-[0.24em] text-zinc-500">
+              Typography System
+            </div>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+              This first pass wires four font roles into the live app so we can tune character
+              without scattering one-off font choices across the codebase.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleResetFonts}
+            className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+          >
+            Reset Fonts
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          {FONT_ROLE_CARDS.map((role) => {
+            const selected = getThemeFontOption(themeFontSettings[role.key]);
+            return (
+              <div key={role.key} className="border border-zinc-800 bg-zinc-900/40 p-4">
+                <div className="font-osint-label text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+                  {role.label}
+                </div>
+                <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-base font-semibold text-white">{selected.label}</div>
+                    <p className="mt-1 max-w-md text-sm leading-6 text-zinc-400">
+                      {role.description}
+                    </p>
+                  </div>
+                  <div className="min-w-[15rem] flex-1">
+                    <OsintSelect
+                      value={themeFontSettings[role.key]}
+                      options={getThemeFontOptionsForRole(role.key).map((option) => ({
+                        value: option.id,
+                        label: option.label,
+                      }))}
+                      onChange={(value) =>
+                        onThemeFontSettingsChange({
+                          ...themeFontSettings,
+                          [role.key]: value,
+                        })
+                      }
+                      triggerClassName="p-2.5 pr-8 text-sm"
+                      ariaLabel={`${role.label} font`}
+                    />
+                  </div>
+                </div>
+                <div
+                  className={`mt-4 rounded border border-zinc-800 bg-black px-4 py-4 text-zinc-200 ${
+                    role.key === 'label' ? 'uppercase tracking-[0.18em]' : ''
+                  } ${role.key === 'mono' ? 'text-sm' : 'text-lg'}`}
+                  style={{ fontFamily: selected.cssValue }}
+                >
+                  {role.sample}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="space-y-3">
+          <div className="font-osint-label text-[10px] uppercase tracking-[0.24em] text-zinc-500">
+            Available Fonts
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {THEME_FONT_OPTIONS.map((option) => {
+              const selectedRoles = Object.entries(themeFontSettings)
+                .filter(([, value]) => value === option.id)
+                .map(([key]) => roleLabels[key as keyof ThemeFontSettings]);
+
+              return (
+                <div key={option.id} className="border border-zinc-800 bg-black p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm font-semibold text-white">{option.label}</div>
+                    <div className="font-osint-label text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+                      {option.category}
+                    </div>
+                  </div>
+                  <div className="mt-4 text-lg text-zinc-200" style={{ fontFamily: option.cssValue }}>
+                    AaBb 314
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-zinc-400" style={{ fontFamily: option.cssValue }}>
+                    {option.preview}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {selectedRoles.length > 0 ? (
+                      selectedRoles.map((roleLabel) => (
+                        <span
+                          key={`${option.id}-${roleLabel}`}
+                          className="font-osint-label border border-osint-primary/40 bg-osint-primary/10 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-osint-primary"
+                        >
+                          {roleLabel}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="font-osint-label border border-zinc-800 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-zinc-600">
+                        Available
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   };
@@ -1019,102 +1633,63 @@ export const Settings: React.FC<SettingsProps> = ({
 
   const renderTheme = () => (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-6">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-        <Accordion
-          title="Accent"
-          icon={Palette}
-          isOpen={themeSections.accent}
-          onToggle={() => toggleThemeSection('accent')}
-          className="mb-0"
-        >
-          <div className="space-y-6 px-3 pb-3 pt-1">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
-                  style={{ background: buildAccentColor(accentSettings) }}
-                />
-                <label className="block text-[10px] text-zinc-500 font-mono uppercase">
-                  Custom Accent
-                </label>
-              </div>
-              <button
-                onClick={handleResetThemeSettings}
-                className="px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-[10px] uppercase transition-colors"
-              >
-                Reset Theme
-              </button>
+      <Accordion
+        title="Accent"
+        icon={Palette}
+        isOpen={themeSections.accent}
+        onToggle={() => toggleThemeSection('accent')}
+        className="mb-0"
+      >
+        <div className="space-y-6 px-3 pb-3 pt-1">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div
+                className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                style={{ background: buildAccentColor(accentSettings) }}
+              />
+              <label className="font-osint-label block text-[10px] text-zinc-500 uppercase">
+                Custom Accent
+              </label>
             </div>
-            <div className="text-[10px] text-zinc-500 font-mono">
-              {buildAccentColor(accentSettings)}
-            </div>
-            <AccentPicker
-              hue={accentSettings.hue}
-              lightness={accentSettings.lightness}
-              chroma={accentSettings.chroma}
-              showPreview={false}
-              onChange={(settings) => onAccentChange(settings)}
-            />
+            <button
+              onClick={handleResetThemeSettings}
+              className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+            >
+              Reset Theme
+            </button>
           </div>
-        </Accordion>
-
-        <Accordion
-          title="Fonts"
-          icon={Type}
-          isOpen={themeSections.fonts}
-          onToggle={() => toggleThemeSection('fonts')}
-          className="mb-0"
-        >
-          <div className="space-y-4 px-3 pb-3 pt-1">
-            <div className="rounded border border-zinc-800 bg-zinc-900/40 p-4">
-              <div className="text-[10px] font-mono uppercase tracking-[0.24em] text-zinc-500">
-                Placeholder
-              </div>
-              <div className="mt-3 text-lg font-bold text-white">Font controls land here next</div>
-              <p className="mt-2 max-w-md text-sm leading-6 text-zinc-400">
-                This card is reserved for future font-family and typography presets so visual
-                controls stay grouped under Theme.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="border border-zinc-800 bg-black px-4 py-3">
-                <div className="text-[10px] font-mono uppercase text-zinc-500">UI Text</div>
-                <div className="mt-2 text-sm text-zinc-300">System Sans</div>
-              </div>
-              <div className="border border-zinc-800 bg-black px-4 py-3">
-                <div className="text-[10px] font-mono uppercase text-zinc-500">Data Text</div>
-                <div className="mt-2 font-mono text-sm text-zinc-300">JetBrains Mono</div>
-              </div>
-              <div className="border border-dashed border-zinc-800 bg-black px-4 py-3">
-                <div className="text-[10px] font-mono uppercase text-zinc-500">Status</div>
-                <div className="mt-2 text-sm text-zinc-500">Coming Soon</div>
-              </div>
-            </div>
+          <div className="font-osint-label text-[10px] text-zinc-500">
+            {buildAccentColor(accentSettings)}
           </div>
-        </Accordion>
-      </div>
+          <AccentPicker
+            hue={accentSettings.hue}
+            lightness={accentSettings.lightness}
+            chroma={accentSettings.chroma}
+            showPreview={false}
+            onChange={(settings) => onAccentChange(settings)}
+          />
+        </div>
+      </Accordion>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-        <Accordion
-          title="Dark Theme Surfaces"
-          icon={Palette}
-          isOpen={themeSections.darkSurfaces}
-          onToggle={() => toggleThemeSection('darkSurfaces')}
-          className="mb-0"
-        >
-          {renderThemeSurfaceSection('dark')}
-        </Accordion>
+      <Accordion
+        title="Surface System"
+        icon={Palette}
+        isOpen={themeSections.surfaces}
+        onToggle={() => toggleThemeSection('surfaces')}
+        className="mb-0"
+      >
+        {renderThemeSurfaceEditor()}
+      </Accordion>
 
-        <Accordion
-          title="Light Theme Surfaces"
-          icon={Palette}
-          isOpen={themeSections.lightSurfaces}
-          onToggle={() => toggleThemeSection('lightSurfaces')}
-          className="mb-0"
-        >
-          {renderThemeSurfaceSection('light')}
-        </Accordion>
-      </div>
+      <Accordion
+        title="Fonts"
+        icon={Type}
+        isOpen={themeSections.fonts}
+        onToggle={() => toggleThemeSection('fonts')}
+        className="mb-0"
+      >
+        {renderFontSection()}
+      </Accordion>
     </div>
   );
 
@@ -1127,7 +1702,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`h-full px-2 font-mono text-xs uppercase tracking-widest font-bold transition-all border-b-2 flex items-center space-x-2 ${activeTab === tab.id ? 'border-osint-primary text-osint-primary' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+              className={`font-osint-label h-full px-2 text-xs uppercase tracking-widest font-bold transition-all border-b-2 flex items-center space-x-2 ${activeTab === tab.id ? 'border-osint-primary text-osint-primary' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
             >
               <tab.icon className="w-3 h-3" />
               <span>{tab.label}</span>
@@ -1140,7 +1715,7 @@ export const Settings: React.FC<SettingsProps> = ({
             disabled={
               isSaving || (activeTab !== 'GENERAL' && activeTab !== 'AI' && activeTab !== 'THEME')
             }
-            className="osint-button-primary flex items-center px-4 py-2 font-mono text-xs font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed"
+            className="font-osint-label osint-button-primary flex items-center px-4 py-2 text-xs font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />

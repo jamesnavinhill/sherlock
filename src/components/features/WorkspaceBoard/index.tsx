@@ -20,11 +20,8 @@ import {
 } from 'lucide-react';
 import {
   Tldraw,
-  createShapeId,
   getSnapshot,
-  toRichText,
   type Editor,
-  type TLGeoShape,
   type TLEditorSnapshot,
   type TLStoreSnapshot,
 } from 'tldraw';
@@ -32,6 +29,7 @@ import 'tldraw/tldraw.css';
 import type {
   Artifact,
   ChatOpenRequest,
+  InvestigationLaunchRequest,
   WorkspaceBoardItemReference,
   WorkspaceItem,
 } from '@/types';
@@ -50,184 +48,25 @@ import {
   buildWorkspaceItemFromBoardDraft,
   generateBoardSelectionDraft,
 } from '@/services/workspace/boardAi';
+import {
+  BOARD_REF_META_KEY,
+  buildBoardCardSpec,
+  parseBoardReference,
+  placeEntryOnBoard as placeWorkspaceEntryOnBoard,
+  serializeBoardReference,
+} from '../../../services/workspace/boardShapes';
+import {
+  deriveBoardAgentTodoItems,
+  runBoardAgentSession,
+} from '@/services/workspace/agent';
 import { createLocalId } from '@/utils/id';
 import { sanitizeDisplayTitle } from '@/domain';
 
 const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
-const BOARD_REF_META_KEY = 'sherlockRefJson';
-
 type CreateModalState =
   | { type: 'NOTE'; title: string; content: string }
   | { type: 'LINK'; title: string; url: string; description: string }
   | null;
-
-const serializeBoardReference = (entry: WorkspaceLibraryEntry) =>
-  JSON.stringify({
-    workspaceId: entry.workspaceId,
-    refKind: entry.refKind,
-    refId: entry.refId,
-    title: entry.title,
-    workspaceItemKind: entry.workspaceItemKind,
-    metadata: entry.metadata,
-  } satisfies WorkspaceBoardItemReference);
-
-const parseBoardReference = (value: unknown): WorkspaceBoardItemReference | null => {
-  if (typeof value !== 'string' || value.trim().length === 0) return null;
-
-  try {
-    const parsed = JSON.parse(value) as Partial<WorkspaceBoardItemReference>;
-    if (
-      typeof parsed.workspaceId !== 'string' ||
-      typeof parsed.refKind !== 'string' ||
-      typeof parsed.refId !== 'string' ||
-      typeof parsed.title !== 'string'
-    ) {
-      return null;
-    }
-
-    return {
-      workspaceId: parsed.workspaceId,
-      refKind: parsed.refKind,
-      refId: parsed.refId,
-      title: parsed.title,
-      workspaceItemKind: parsed.workspaceItemKind,
-      metadata: parsed.metadata,
-    };
-  } catch {
-    return null;
-  }
-};
-
-const getShapeColor = (entry: WorkspaceLibraryEntry) => {
-  switch (entry.kind) {
-    case 'ARTIFACT':
-      return 'blue';
-    case 'ENTITY':
-      return 'grey';
-    case 'SOURCE':
-    case 'LINK':
-      return 'green';
-    case 'HEADLINE':
-      return 'orange';
-    case 'MEDIA':
-      return 'light-violet';
-    case 'EXCERPT':
-      return 'red';
-    case 'NOTE':
-      return 'yellow';
-    default:
-      return 'grey';
-  }
-};
-
-type BoardCardSpec = {
-  color: BoardCardColor;
-  content: string;
-  h: number;
-  w: number;
-};
-
-type BoardCardColor =
-  | 'black'
-  | 'blue'
-  | 'green'
-  | 'grey'
-  | 'light-blue'
-  | 'light-green'
-  | 'light-red'
-  | 'light-violet'
-  | 'orange'
-  | 'red'
-  | 'violet'
-  | 'white'
-  | 'yellow';
-
-const getBoardCardThemeProps = (themeMode: ThemeMode, color: BoardCardColor) => ({
-  color,
-  fill: themeMode === 'light' ? ('none' as const) : ('semi' as const),
-  labelColor: themeMode === 'light' ? ('black' as const) : ('white' as const),
-});
-
-const clipBoardCardText = (value: string | undefined, maxLength: number) => {
-  if (!value) return '';
-  const normalized = value.replace(/\s+/g, ' ').trim();
-  if (normalized.length <= maxLength) return normalized;
-  return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
-};
-
-const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec => {
-  switch (entry.kind) {
-    case 'ARTIFACT':
-      return {
-        color: getShapeColor(entry),
-        w: 420,
-        h: 520,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.description || entry.contextText,
-          560
-        )}`,
-      };
-    case 'HEADLINE':
-      return {
-        color: getShapeColor(entry),
-        w: 300,
-        h: 420,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.description || entry.contextText,
-          360
-        )}`,
-      };
-    case 'ENTITY': {
-      const meta = [entry.subtitle, entry.description].filter(Boolean).join(' | ');
-      return {
-        color: getShapeColor(entry),
-        w: 300,
-        h: 220,
-        content: meta ? `${entry.title}\n\n${meta}` : entry.title,
-      };
-    }
-    case 'SOURCE':
-    case 'LINK':
-      return {
-        color: getShapeColor(entry),
-        w: 320,
-        h: 260,
-        content: entry.title,
-      };
-    case 'NOTE':
-    case 'EXCERPT':
-      return {
-        color: getShapeColor(entry),
-        w: 340,
-        h: 280,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.contextText || entry.description,
-          300
-        )}`,
-      };
-    case 'MEDIA':
-    case 'FILE':
-      return {
-        color: getShapeColor(entry),
-        w: 320,
-        h: 220,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.description || entry.subtitle,
-          180
-        )}`,
-      };
-    default:
-      return {
-        color: getShapeColor(entry),
-        w: 320,
-        h: 240,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.description || entry.contextText,
-          220
-        )}`,
-      };
-  }
-};
 
 const buildSingleWorkspaceItemEntry = (
   workspaceId: string,
@@ -247,54 +86,27 @@ const placeEntryOnBoard = (
   y: number,
   themeMode: ThemeMode
 ) => {
-  const shapeId = createShapeId();
-  const card = buildBoardCardSpec(entry);
-  const shapeThemeProps = getBoardCardThemeProps(themeMode, card.color);
-  const shapeMeta = {
-    [BOARD_REF_META_KEY]: serializeBoardReference(entry),
-  };
-
-  editor.createShape<TLGeoShape>({
-    id: shapeId,
-    type: 'geo',
-    x,
-    y,
-    meta: shapeMeta,
-    props: {
-      geo: 'rectangle',
-      dash: 'solid',
-      url: entry.url || '',
-      w: card.w,
-      h: card.h,
-      growY: 0,
-      scale: 1,
-      labelColor: shapeThemeProps.labelColor,
-      color: shapeThemeProps.color,
-      fill: shapeThemeProps.fill,
-      size: 's',
-      font: 'sans',
-      align: 'start',
-      verticalAlign: 'start',
-      richText: toRichText(card.content),
-    },
-  });
-
-  editor.setSelectedShapes([shapeId]);
+  placeWorkspaceEntryOnBoard(editor, entry, x, y, themeMode);
 };
 
 interface WorkspaceBoardProps {
   onOpenReport: (report: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
+  onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
 }
 
 export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   onOpenReport,
   onOpenChat,
+  onLaunchInvestigation,
 }) => {
   const {
     activeWorkspaceBoardId,
     activeWorkspaceId,
     artifacts,
+    boardAgentActionsBySessionId,
+    boardAgentSessions,
+    createBoardAgentSession,
     createWorkspaceBoard,
     createWorkspaceItem,
     currentView,
@@ -302,11 +114,16 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     ensureWorkspaceBoard,
     headlines,
     queuedBoardPlacement,
+    saveArtifact,
     saveWorkspaceBoardDocument,
     setActiveWorkspaceBoardId,
     setActiveWorkspaceId,
     setCurrentView,
+    appendSectionToReport,
+    addBoardAgentAction,
     updateWorkspaceBoard,
+    updateBoardAgentAction,
+    updateBoardAgentSession,
     workspaceBoardDocuments,
     workspaceBoards,
     workspaceItems,
@@ -323,6 +140,10 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const [createModal, setCreateModal] = useState<CreateModalState>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [boardAgentBusy, setBoardAgentBusy] = useState(false);
+  const [boardAgentPrompt, setBoardAgentPrompt] = useState('');
+  const [boardAgentMessage, setBoardAgentMessage] = useState<string | null>(null);
+  const [boardAgentActiveSessionId, setBoardAgentActiveSessionId] = useState<string | null>(null);
   const [selectedEntries, setSelectedEntries] = useState<WorkspaceLibraryEntry[]>([]);
   const [librarySections, setLibrarySections] = useState({
     created: false,
@@ -338,6 +159,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     provenance: true,
   });
   const editorRef = useRef<Editor | null>(null);
+  const boardAgentAbortRef = useRef<AbortController | null>(null);
   const saveTimeoutRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const autoPlacementRef = useRef<{ boardId: string | null; index: number }>({
@@ -379,6 +201,33 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const activeBoard =
     availableBoards.find((board) => board.id === activeWorkspaceBoardId) || availableBoards[0] || null;
   const activeBoardDocument = activeBoard ? workspaceBoardDocuments[activeBoard.id] : undefined;
+  const boardSessionsForBoard = useMemo(
+    () =>
+      boardAgentSessions
+        .filter(
+          (session) =>
+            session.workspaceId === activeWorkspace?.id && session.boardId === activeBoard?.id
+        )
+        .sort((left, right) => right.updatedAt - left.updatedAt),
+    [activeBoard?.id, activeWorkspace?.id, boardAgentSessions]
+  );
+  const visibleBoardAgentSession =
+    boardSessionsForBoard.find((session) => session.id === boardAgentActiveSessionId) ||
+    boardSessionsForBoard[0] ||
+    null;
+  const visibleBoardAgentActions = useMemo(
+    () =>
+      visibleBoardAgentSession
+        ? [...(boardAgentActionsBySessionId[visibleBoardAgentSession.id] || [])].sort(
+            (left, right) => right.createdAt - left.createdAt
+          )
+        : [],
+    [boardAgentActionsBySessionId, visibleBoardAgentSession]
+  );
+  const boardAgentTodoItems = useMemo(
+    () => deriveBoardAgentTodoItems(visibleBoardAgentActions),
+    [visibleBoardAgentActions]
+  );
 
   if (activeBoard?.id !== hydratedSnapshotRef.current.boardId) {
     hydratedSnapshotRef.current = {
@@ -518,18 +367,33 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   }, [activeBoard]);
 
   useEffect(() => {
+    setBoardAgentActiveSessionId(null);
+    setBoardAgentMessage(null);
+  }, [activeBoard?.id, activeWorkspace?.id]);
+
+  useEffect(() => {
     if (!editorRef.current) return;
     editorRef.current.user.updateUserPreferences({ colorScheme: themeMode });
   }, [themeMode]);
 
   useEffect(
     () => () => {
+      boardAgentAbortRef.current?.abort();
       if (saveTimeoutRef.current) {
         window.clearTimeout(saveTimeoutRef.current);
       }
     },
     []
   );
+
+  useEffect(() => {
+    if (boardAgentBusy) return;
+    const latestSessionMessage =
+      typeof visibleBoardAgentSession?.metadata?.latestMessage === 'string'
+        ? visibleBoardAgentSession.metadata.latestMessage
+        : null;
+    setBoardAgentMessage(latestSessionMessage);
+  }, [boardAgentBusy, visibleBoardAgentSession]);
 
   const scheduleSave = useCallback(
     (editor: Editor) => {
@@ -842,6 +706,128 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       setAiBusy(false);
     }
   };
+
+  const persistCurrentBoardDocument = useCallback(async () => {
+    if (!editorRef.current || !activeBoard) return;
+    await saveWorkspaceBoardDocument({
+      boardId: activeBoard.id,
+      snapshot: getSnapshot(editorRef.current.store) as unknown,
+      updatedAt: Date.now(),
+    });
+  }, [activeBoard, saveWorkspaceBoardDocument]);
+
+  const handleCancelBoardAgent = useCallback(() => {
+    boardAgentAbortRef.current?.abort();
+    boardAgentAbortRef.current = null;
+  }, []);
+
+  const handleRunBoardAgent = useCallback(async () => {
+    if (!activeWorkspace || !activeBoard || !editorRef.current) return;
+
+    const request = boardAgentPrompt.trim();
+    if (!request) {
+      addToast('Enter a board-agent request first.', 'INFO');
+      return;
+    }
+    if (activeBoard.presentationMode) {
+      addToast('Disable presentation mode before running the board agent.', 'INFO');
+      return;
+    }
+
+    const abortController = new AbortController();
+    boardAgentAbortRef.current = abortController;
+    setBoardAgentBusy(true);
+    setBoardAgentMessage(null);
+
+    try {
+      const recentBoardActions = boardSessionsForBoard
+        .flatMap((session) => boardAgentActionsBySessionId[session.id] || [])
+        .sort((left, right) => right.createdAt - left.createdAt)
+        .slice(0, 24);
+
+      const result = await runBoardAgentSession({
+        workspace: activeWorkspace,
+        board: activeBoard,
+        boardDocument: activeBoardDocument,
+        editor: editorRef.current,
+        themeMode,
+        artifacts: [...workspaceArtifacts],
+        headlines: [...workspaceHeadlines],
+        workspaceItems: [...createdWorkspaceItems],
+        userRequest: request,
+        selectedShapeIds: editorRef.current.getSelectedShapeIds().map((id) => id as string),
+        viewportBounds: editorRef.current.getViewportPageBounds(),
+        configOverride: undefined,
+        packId: activeWorkspace.packId,
+        purposeId: activeWorkspace.purposeId,
+        recentSessions: boardSessionsForBoard.slice(0, 6),
+        recentActions: recentBoardActions,
+        signal: abortController.signal,
+        createBoardAgentSession,
+        updateBoardAgentSession,
+        addBoardAgentAction,
+        updateBoardAgentAction,
+        persistBoardDocument: persistCurrentBoardDocument,
+        createWorkspaceItem,
+        saveArtifact,
+        appendSectionToReport,
+        launchInvestigation: async (launchRequest) => {
+          onLaunchInvestigation({
+            ...launchRequest,
+            switchToView: true,
+          });
+        },
+        onEvent: (event) => {
+          if (event.type === 'SESSION_CREATED') {
+            setBoardAgentActiveSessionId(event.session.id);
+          }
+          if (event.type === 'MESSAGE' && event.message) {
+            setBoardAgentMessage(event.message);
+          }
+        },
+      });
+
+      setBoardAgentActiveSessionId(result.session.id);
+      setBoardAgentMessage(result.message || null);
+
+      if (result.session.status === 'FAILED') {
+        addToast(result.session.lastError || 'Board-agent run failed.', 'ERROR');
+      } else if (result.session.status === 'CANCELLED') {
+        addToast('Board-agent run cancelled.', 'INFO');
+      } else {
+        addToast('Board-agent run complete.', 'SUCCESS');
+      }
+    } catch (error) {
+      addToast(
+        error instanceof Error ? error.message : 'Board-agent run failed unexpectedly.',
+        'ERROR'
+      );
+    } finally {
+      boardAgentAbortRef.current = null;
+      setBoardAgentBusy(false);
+    }
+  }, [
+    activeBoard,
+    activeBoardDocument,
+    activeWorkspace,
+    addBoardAgentAction,
+    addToast,
+    appendSectionToReport,
+    boardAgentActionsBySessionId,
+    boardAgentPrompt,
+    boardSessionsForBoard,
+    createBoardAgentSession,
+    createWorkspaceItem,
+    createdWorkspaceItems,
+    onLaunchInvestigation,
+    persistCurrentBoardDocument,
+    saveArtifact,
+    themeMode,
+    updateBoardAgentAction,
+    updateBoardAgentSession,
+    workspaceArtifacts,
+    workspaceHeadlines,
+  ]);
 
   const handleDeleteCreatedItem = useCallback(
     async (entry: WorkspaceLibraryEntry) => {
@@ -1328,29 +1314,154 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               onToggle={() => toggleInspectorSection('aiActions')}
             >
               <div className="space-y-3">
-                <button
-                  onClick={() => void handleGenerateSummary()}
-                  disabled={selectedEntries.length === 0 || aiBusy}
-                  className="osint-button-primary inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Summarize Selection
-                </button>
-                <button
-                  onClick={() => void handleGenerateNote()}
-                  disabled={selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode}
-                  className="osint-button-primary inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Bot className="h-4 w-4" />
-                  Draft Note Card
-                </button>
-                {aiSummary && (
-                  <div className="border border-zinc-800 bg-zinc-900/40 p-3 text-xs leading-6 text-zinc-300">
-                    {aiSummary}
+                <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    Board Agent
                   </div>
-                )}
+                  <textarea
+                    value={boardAgentPrompt}
+                    onChange={(event) => setBoardAgentPrompt(event.target.value)}
+                    placeholder="Organize the visible cluster, add a note for the contradiction, and review the region for missing evidence."
+                    className="mt-3 min-h-28 w-full resize-y border border-zinc-700 bg-black px-3 py-2 text-sm leading-6 text-zinc-100 outline-none transition focus:border-osint-primary"
+                  />
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => void handleRunBoardAgent()}
+                      disabled={boardAgentBusy || !boardAgentPrompt.trim()}
+                      className="osint-button-primary inline-flex flex-1 items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Bot className="h-4 w-4" />
+                      {boardAgentBusy ? 'Running Agent' : 'Run Board Agent'}
+                    </button>
+                    <button
+                      onClick={handleCancelBoardAgent}
+                      disabled={!boardAgentBusy}
+                      className="inline-flex items-center justify-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-red-400/60 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {visibleBoardAgentSession && (
+                    <div className="mt-3 border border-zinc-800 bg-black/40 p-3 text-[11px] font-mono text-zinc-400">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="truncate text-zinc-200">
+                          {visibleBoardAgentSession.title}
+                        </div>
+                        <div className="uppercase tracking-[0.16em] text-zinc-500">
+                          {visibleBoardAgentSession.status}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                        {visibleBoardAgentSession.provider || 'Provider pending'}
+                        {visibleBoardAgentSession.modelId
+                          ? ` • ${visibleBoardAgentSession.modelId}`
+                          : ''}
+                      </div>
+                    </div>
+                  )}
+                  {boardAgentMessage && (
+                    <div className="mt-3 border border-zinc-800 bg-black/40 p-3 text-xs leading-6 text-zinc-300">
+                      {boardAgentMessage}
+                    </div>
+                  )}
+                  {boardAgentTodoItems.length > 0 && (
+                    <div className="mt-3 border border-zinc-800 bg-black/40 p-3">
+                      <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                        Current Todo
+                      </div>
+                      <div className="mt-2 space-y-2">
+                        {boardAgentTodoItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-start justify-between gap-3 text-xs text-zinc-300"
+                          >
+                            <div>{item.text}</div>
+                            <div className="shrink-0 text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+                              {item.status}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {visibleBoardAgentActions.length > 0 && (
+                    <div className="mt-3 border border-zinc-800 bg-black/40 p-3">
+                      <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                        Recent Actions
+                      </div>
+                      <div className="mt-2 space-y-2">
+                        {visibleBoardAgentActions.slice(0, 8).map((action) => (
+                          <div
+                            key={action.id}
+                            className="border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs text-zinc-300"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="font-mono uppercase tracking-[0.14em] text-zinc-200">
+                                {action.type}
+                              </div>
+                              <div className="font-mono uppercase tracking-[0.14em] text-zinc-500">
+                                {action.status}
+                              </div>
+                            </div>
+                            {action.error && (
+                              <div className="mt-2 text-[11px] leading-5 text-red-300">
+                                {action.error}
+                              </div>
+                            )}
+                            {!action.error && action.result && (
+                              <div className="mt-2 text-[11px] leading-5 text-zinc-500">
+                                {JSON.stringify(action.result)}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border border-zinc-800 bg-zinc-900/20 p-3">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    Manual Helpers
+                  </div>
+                  <div className="mt-3 space-y-3">
+                    <button
+                      onClick={() => void handleGenerateSummary()}
+                      disabled={selectedEntries.length === 0 || aiBusy}
+                      className="osint-button-primary inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Summarize Selection
+                    </button>
+                    <button
+                      onClick={() => void handleGenerateNote()}
+                      disabled={
+                        selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode
+                      }
+                      className="osint-button-primary inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Bot className="h-4 w-4" />
+                      Draft Note Card
+                    </button>
+                  </div>
+                  {aiSummary && (
+                    <div className="mt-3 border border-zinc-800 bg-black/40 p-3 text-xs leading-6 text-zinc-300">
+                      {aiSummary}
+                    </div>
+                  )}
+                </div>
                 <p className="text-[10px] font-mono leading-5 text-zinc-500">
-                  AI actions stay manual-first. Sherlock only uses the items you selected and never reorganizes the board without an explicit command.
+                  Board-agent runs are logged per board session, and autonomous continuation only
+                  happens when the model emits an explicit follow-up or review action.
+                </p>
+                <p className="text-[10px] font-mono leading-5 text-zinc-500">
+                  Manual helpers remain available for fast note drafting when you do not want a
+                  multi-step board pass.
+                </p>
+                <p className="text-[10px] font-mono leading-5 text-zinc-500">
+                  AI changes stay inspectable. Sherlock records the requested action, normalized
+                  payload, result, and any failure instead of hiding board writes behind a single
+                  summary.
                 </p>
               </div>
             </Accordion>

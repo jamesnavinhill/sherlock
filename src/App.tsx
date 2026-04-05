@@ -20,6 +20,7 @@ import { HelpModal } from './components/ui/HelpModal';
 import { buildAccentColor } from './utils/accent';
 import { buildEntityPaletteCssVars } from './utils/entityPalette';
 import { buildThemeSurfaceCssVars } from './utils/themeSurfaces';
+import { buildThemeFontCssVars } from './utils/themeFonts';
 import { normalizeTopicText } from './utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from './config/systemConfig';
 import { getAllScopes, getScopeById } from './data/presets';
@@ -97,6 +98,8 @@ function App() {
     setAccentSettings,
     themeSurfaceSettings,
     setThemeSurfaceSettings,
+    themeFontSettings,
+    setThemeFontSettings,
     showGlobalSearch,
     setShowGlobalSearch,
     archiveReport,
@@ -181,6 +184,15 @@ function App() {
       root.style.setProperty(name, value);
     });
   }, [themeSurfaceSettings]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const fontVars = buildThemeFontCssVars(themeFontSettings);
+
+    Object.entries(fontVars).forEach(([name, value]) => {
+      root.style.setProperty(name, value);
+    });
+  }, [themeFontSettings]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeMode);
@@ -676,7 +688,11 @@ function App() {
               <TimelineView onOpenReport={handleSelectReport} onOpenChat={openChat} />
             )}
             {currentView === AppView.WORKSPACE && (
-              <WorkspaceBoard onOpenReport={handleSelectReport} onOpenChat={openChat} />
+              <WorkspaceBoard
+                onOpenReport={handleSelectReport}
+                onOpenChat={openChat}
+                onLaunchInvestigation={launchInvestigation}
+              />
             )}
             {currentView === AppView.SETTINGS && (
               <Settings
@@ -690,6 +706,8 @@ function App() {
                 }}
                 themeSurfaceSettings={themeSurfaceSettings}
                 onThemeSurfaceSettingsChange={setThemeSurfaceSettings}
+                themeFontSettings={themeFontSettings}
+                onThemeFontSettingsChange={setThemeFontSettings}
                 onStartCase={(request) =>
                   launchInvestigation({
                     ...request,

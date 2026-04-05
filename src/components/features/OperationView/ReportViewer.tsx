@@ -296,8 +296,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             <EditableTitle
               value={report.topic}
               onSave={onTitleSave}
-              className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
-              inputClassName="text-2xl font-bold uppercase tracking-tight"
+              className="font-osint-display text-2xl font-bold text-white uppercase tracking-tight truncate"
+              inputClassName="font-osint-display text-2xl font-bold uppercase tracking-tight"
             />
           </div>
         </div>
@@ -307,7 +307,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 osint-section-shadow relative overflow-hidden group mb-8">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
             <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
-              <h2 className="text-xl font-bold text-white flex items-center font-mono tracking-wide">
+              <h2 className="font-osint-display text-xl font-bold text-white flex items-center tracking-wide">
                 <FileText className="w-5 h-5 mr-3 text-osint-primary" />{' '}
                 {getArtifactSectionTitle(
                   primarySummarySection?.kind || 'EXECUTIVE_SUMMARY',

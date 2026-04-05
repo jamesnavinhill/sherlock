@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
             }`}
           >
-            <span className="text-xl font-bold font-mono tracking-widest text-zinc-400">
+            <span className="font-osint-display text-xl font-bold tracking-widest text-zinc-400">
               SHER<span className="text-osint-primary">LOCK</span>
             </span>
           </div>
@@ -113,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
                   }`}
                 >
-                  <span className="font-medium font-mono text-sm uppercase tracking-wide">
+                  <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
                     {item.label}
                   </span>
                 </div>
@@ -151,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
               }`}
             >
-              <span className="font-medium font-mono text-sm uppercase tracking-wide">
+              <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
                 {themeMode === 'dark' ? 'Light' : 'Dark'}
               </span>
             </div>
@@ -170,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
               }`}
             >
-              <span className="font-medium font-mono text-sm uppercase tracking-wide">
+              <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
                 Settings
               </span>
             </div>

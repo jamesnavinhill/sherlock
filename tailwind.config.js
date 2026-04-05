@@ -4,8 +4,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ['"JetBrains Mono"', 'monospace'],
-        sans: ['Inter', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
+        sans: ['var(--font-sans)', 'sans-serif'],
+        display: ['var(--font-display)', 'sans-serif'],
+        label: ['var(--font-label)', 'sans-serif'],
       },
       colors: {
         'osint-dark': '#000000',

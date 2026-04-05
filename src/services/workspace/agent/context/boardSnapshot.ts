@@ -1,7 +1,10 @@
-import type { WorkspaceBoardItemReference } from '@/types';
 import type { BoardAgentBoardShapeSummary, BoardAgentViewportBounds } from '../types';
+import {
+  BOARD_REF_META_KEY as BOARD_AGENT_REF_META_KEY,
+  parseBoardReference as parseBoardAgentReference,
+} from '../../boardShapes';
 
-export const BOARD_AGENT_REF_META_KEY = 'sherlockRefJson';
+export { BOARD_AGENT_REF_META_KEY };
 
 const asRecord = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === 'object' && !Array.isArray(value)
@@ -66,33 +69,6 @@ const extractStoreRecords = (snapshot: unknown): Record<string, unknown>[] => {
   }
 
   return [];
-};
-
-export const parseBoardAgentReference = (value: unknown): WorkspaceBoardItemReference | null => {
-  if (typeof value !== 'string' || !value.trim()) return null;
-
-  try {
-    const parsed = JSON.parse(value) as Partial<WorkspaceBoardItemReference>;
-    if (
-      typeof parsed.workspaceId !== 'string' ||
-      typeof parsed.refKind !== 'string' ||
-      typeof parsed.refId !== 'string' ||
-      typeof parsed.title !== 'string'
-    ) {
-      return null;
-    }
-
-    return {
-      workspaceId: parsed.workspaceId,
-      refKind: parsed.refKind,
-      refId: parsed.refId,
-      title: parsed.title,
-      workspaceItemKind: parsed.workspaceItemKind,
-      metadata: parsed.metadata,
-    };
-  } catch {
-    return null;
-  }
 };
 
 export const extractBoardShapeSummaries = (snapshot: unknown): BoardAgentBoardShapeSummary[] =>

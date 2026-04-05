@@ -20,6 +20,10 @@
   --osint-border: #27272a;
   --osint-text: #a1a1aa;
   --osint-ink: #f4f4f5;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-label: 'IBM Plex Mono', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
   --osint-danger-soft-bg: color-mix(in oklab, var(--color-osint-danger) 14%, transparent);
   --osint-danger-soft-bg-strong: color-mix(in oklab, var(--color-osint-danger) 20%, transparent);
   --osint-danger-soft-border: color-mix(in oklab, var(--color-osint-danger) 42%, transparent);
@@ -59,9 +63,6 @@
 }
 
 @theme {
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-sans: Inter, sans-serif;
-
   --color-osint-dark: var(--osint-dark);
   --color-osint-panel: var(--osint-panel);
   --color-osint-surface: var(--osint-surface);
@@ -77,6 +78,7 @@
 body {
   background-color: var(--osint-dark);
   color: var(--osint-text);
+  font-family: var(--font-sans);
 }
 
 #root {
@@ -552,6 +554,14 @@ body,
 
 .osint-section-shadow {
   box-shadow: 0 22px 40px -34px rgba(0, 0, 0, 0.68);
+}
+
+.font-osint-display {
+  font-family: var(--font-display);
+}
+
+.font-osint-label {
+  font-family: var(--font-label);
 }
 
 .sherlock-board-canvas .tl-container {

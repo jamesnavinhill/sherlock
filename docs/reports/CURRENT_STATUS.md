@@ -18,6 +18,7 @@ What is clearly live in the codebase now:
 - canonical workspace runtime behavior under `Workspace -> Artifact -> WorkspaceRun`
 - multi-provider investigate/chat support across Gemini, OpenRouter, OpenAI, and Anthropic
 - multi-provider board-agent planning support across Gemini, OpenRouter, OpenAI, and Anthropic through the same BYOK router
+- executing/autonomous board-agent sessions with safe board actions, canonical workspace writes, persisted action status updates, todo tracking, cancellation, and explicit follow-up/review loops
 - persisted workspace chat sessions, message history, action traces, transcript export, and guided run building
 - a first-class multi-board Research Workspace built on `tldraw`, with canonical workspace items plus separate board-document persistence
 - Sherlock-owned board-agent groundwork with persisted board-agent sessions/actions, bounded board prompt-part assembly, and provider-router structured planning streams
@@ -96,7 +97,24 @@ What landed in this pass:
 - keep Feed transient
 - keep `Headline` records as the persisted signal layer
 
-### 5. Historical docs should stay archived, not half-active
+### 5. Board-agent breadth is now mostly a polish/coverage problem, not a missing-runtime problem
+
+The board-agent runtime now has the main architectural pieces in place:
+
+- persisted sessions and action audit trails
+- bounded board context assembly
+- provider-router streaming support
+- safe board execution bindings
+- Sherlock-aware canonical note/excerpt/artifact/follow-up actions
+- explicit multi-pass continuation and review loops
+
+What remains is mostly expansion and refinement:
+
+- broader action coverage
+- richer board-agent session browsing and review UX
+- deeper repair heuristics and autonomy policies
+
+### 6. Historical docs should stay archived, not half-active
 
 The retired plans and reports remain useful as decision history, but they should not be treated as live implementation guidance.
 
@@ -115,7 +133,7 @@ Validated on this checkout during the workspace-slice audit pass:
 
 - `npm run lint`
 - `npm run typecheck`
-- `npm run test -- src/store/caseStore.test.ts src/services/maintenance/workspaceData.test.ts src/services/workspace/promotions.test.ts src/services/workspace/library.test.ts src/services/db/repositories/WorkspaceSearchRepository.test.ts`
+- `npm run test -- src/services/workspace/agent/actions/registry.test.ts src/services/db/repositories/BoardAgentRepository.test.ts src/store/caseStore.test.ts`
 - `npm run build`
 
 All of the above passed. `npm run build` still reports one remaining Vite large-chunk warning on the `tldraw` app bundle after chunk-splitting improvements.

@@ -50,9 +50,9 @@ Adapters in scope:
 - Chat: all active providers support the persisted workspace chat contract for both non-streaming and streaming turns.
 - Board agent planning: all active providers now support the Sherlock board-agent planning contract for both non-streaming and streaming turns through the same BYOK provider/model selection path used by chat.
 - Chat stop/cancel: aborts the active provider request and persists the turn as cancelled if a final answer was not completed.
-- Board agent stop/cancel: aborts the active provider request before action execution. At this stage the runtime only returns planned actions; Stream 4 execution/sanitization still remains the next slice.
+- Board agent stop/cancel: aborts the active provider request and marks the active board-agent session as `CANCELLED`. Completed actions remain in the audit trail; future passes are not scheduled after cancellation.
 - Chat actions: retrieval/save/follow-up operations are persisted in `chat_actions`; use them when confirming what the system actually did for a user.
-- Board agent actions: provider output is now normalized into explicit structured action proposals. When debugging planning issues, capture the streamed/provider-normalized action payload rather than only the rendered message text.
+- Board agent actions: provider output is normalized into explicit structured actions, persisted as `board_agent_actions`, and now executed through a Sherlock-owned sanitization/registry layer. When debugging board-agent incidents, capture both the provider-normalized action payload and the persisted `status`, `normalizedInput`, `result`, and `error` fields.
 - Research Workspace AI actions: selection summaries and drafted board notes reuse the same provider router with explicit manual triggers only. Failures surface inline/toast-side and do not auto-reorganize the board or create silent persistence side effects. Presentation mode blocks board-mutating placement flows until the operator returns the board to edit mode.
 - Timeline audit: persisted chat sessions and high-signal `chat_actions` now surface in `Timeline`, so operator verification can cross-check Chat's action log against the workspace chronology.
 - Thinking budget: model-gated. Do not assume it is available just because the provider supports some reasoning-capable models.
@@ -89,7 +89,8 @@ Current adapter behavior:
 
 - `INVESTIGATE`: fails hard on provider errors (no simulated artifact fallback).
 - `CHAT`: fails hard on provider or retrieval errors (no simulated transcript fallback). Streaming turns follow the same rule and only keep the partial text if the user explicitly stopped the run.
-- `BOARD_AGENT`: fails hard on provider or context-assembly errors (no simulated planning fallback). Streaming board-agent runs emit partial message/action events when available, but no action execution occurs yet in the provider layer.
+- `BOARD_AGENT`: fails hard on provider or context-assembly errors (no simulated planning fallback). Streaming board-agent runs emit partial message/action events when available, and the board-side session runner only executes actions after they pass local sanitization.
+- board-agent execution failures now stop the current session after the failing action, preserve completed earlier actions, and surface the failure in both the session status and the action audit record.
 - `SCAN_ANOMALIES` and `LIVE_INTEL`: return simulated fallback items for non-key failures.
 - `MISSING_API_KEY`: does not fallback; error is surfaced.
 - invalid or unavailable saved model ids now fall back to the nearest runtime-valid selection, except OpenRouter manual slugs which are preserved intentionally.

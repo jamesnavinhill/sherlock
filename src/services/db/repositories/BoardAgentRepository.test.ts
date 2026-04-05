@@ -5,6 +5,7 @@ import { boardAgentActions, boardAgentSessions } from '../schema';
 const mockDb = {
   select: vi.fn(),
   insert: vi.fn(),
+  update: vi.fn(),
 };
 
 vi.mock('../client', () => ({
@@ -146,5 +147,29 @@ describe('BoardAgentRepository', () => {
         affectedCanonicalIdsJson: JSON.stringify(['rep-1']),
       })
     );
+  });
+
+  it('updates persisted action audit fields', async () => {
+    const where = vi.fn().mockResolvedValue(undefined);
+    const set = vi.fn(() => ({ where }));
+    mockDb.update.mockReturnValue({ set });
+
+    await BoardAgentRepository.updateAction('board-action-3', {
+      status: 'FAILED',
+      normalizedInput: { shapeIds: ['shape:1'] },
+      error: 'Shape no longer exists.',
+      updatedAt: 9,
+    });
+
+    expect(mockDb.update).toHaveBeenCalledWith(boardAgentActions);
+    expect(set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'FAILED',
+        normalizedInputJson: JSON.stringify({ shapeIds: ['shape:1'] }),
+        error: 'Shape no longer exists.',
+        updatedAt: 9,
+      })
+    );
+    expect(where).toHaveBeenCalled();
   });
 });

@@ -264,6 +264,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     setChatGenerationStatus,
     setCurrentView,
     setPartialAssistantOutput,
+    themeMode,
     updateChatMessage,
   } = useWorkspaceStore();
 
@@ -397,6 +398,13 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         headlines: workspaceHeadlines,
       }),
     [launchContext, workspaceHeadlines, workspaceReports]
+  );
+  const messageBodyClassName = useMemo(
+    () =>
+      `prose max-w-none text-sm leading-7 prose-p:my-2 prose-ul:my-2 prose-headings:my-3 ${
+        themeMode === 'dark' ? 'prose-invert' : ''
+      }`.trim(),
+    [themeMode]
   );
 
   useEffect(() => {
@@ -1267,7 +1275,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                       <div className="text-sm text-zinc-500">Generating response...</div>
                     ) : (
                       <>
-                        <div className="prose prose-invert max-w-none text-sm leading-7 prose-p:my-2 prose-ul:my-2 prose-headings:my-3">
+                        <div className={messageBodyClassName}>
                           <ReactMarkdown>{primaryBody}</ReactMarkdown>
                         </div>
                         {collapsedBody && (
@@ -1277,7 +1285,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                                 Suggested Topics
                                 <ChevronDown className="h-4 w-4 shrink-0" />
                               </summary>
-                              <div className="mt-3 prose prose-invert max-w-none text-sm leading-7 prose-p:my-2 prose-ul:my-2 prose-headings:my-3">
+                              <div className={`mt-3 ${messageBodyClassName}`}>
                                 <ReactMarkdown>{collapsedBody}</ReactMarkdown>
                               </div>
                             </details>

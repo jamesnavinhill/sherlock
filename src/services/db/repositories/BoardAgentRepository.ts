@@ -142,6 +142,42 @@ export class BoardAgentRepository {
     });
   }
 
+  static async updateAction(
+    id: string,
+    patch: Partial<Omit<BoardAgentAction, 'id' | 'sessionId' | 'workspaceId' | 'boardId' | 'createdAt'>>
+  ): Promise<void> {
+    const db = getDB();
+    await db
+      .update(boardAgentActions)
+      .set({
+        type: patch.type,
+        status: patch.status,
+        inputJson: patch.input === undefined ? undefined : patch.input ? JSON.stringify(patch.input) : null,
+        normalizedInputJson:
+          patch.normalizedInput === undefined
+            ? undefined
+            : patch.normalizedInput
+              ? JSON.stringify(patch.normalizedInput)
+              : null,
+        resultJson: patch.result === undefined ? undefined : patch.result ? JSON.stringify(patch.result) : null,
+        affectedCanonicalIdsJson:
+          patch.affectedCanonicalIds === undefined
+            ? undefined
+            : patch.affectedCanonicalIds
+              ? JSON.stringify(patch.affectedCanonicalIds)
+              : null,
+        affectedBoardShapeIdsJson:
+          patch.affectedBoardShapeIds === undefined
+            ? undefined
+            : patch.affectedBoardShapeIds
+              ? JSON.stringify(patch.affectedBoardShapeIds)
+              : null,
+        error: patch.error === undefined ? undefined : patch.error || null,
+        updatedAt: patch.updatedAt ?? Date.now(),
+      })
+      .where(eq(boardAgentActions.id, id));
+  }
+
   static async deleteSession(id: string): Promise<void> {
     const db = getDB();
     await db.delete(boardAgentActions).where(eq(boardAgentActions.sessionId, id));

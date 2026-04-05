@@ -180,4 +180,89 @@ describe('Chat page', () => {
     expect(renameChatSession).toHaveBeenCalledWith(session.id, 'Atlas Chat');
     expect(onLaunchInvestigation).not.toHaveBeenCalled();
   });
+
+  it('uses non-inverted markdown prose in light mode', () => {
+    useWorkspaceStore.setState({
+      workspaces: [
+        {
+          id: 'case-1',
+          title: 'Atlas Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-03',
+          description: 'Procurement activity',
+        },
+      ],
+      activeWorkspaceId: 'case-1',
+      activeChatSessionId: 'chat-session-1',
+      chatSessions: [
+        {
+          id: 'chat-session-1',
+          workspaceId: 'case-1',
+          title: 'Atlas Chat',
+          status: 'ACTIVE',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+      chatMessagesBySessionId: {
+        'chat-session-1': [
+          {
+            id: 'tool-1',
+            sessionId: 'chat-session-1',
+            role: 'tool',
+            content: 'Fetched saved artifact summary.',
+            status: 'COMPLETED',
+            createdAt: 2,
+            updatedAt: 2,
+          },
+        ],
+      },
+      themeMode: 'light',
+      createChatSession: vi.fn(async () => {
+        throw new Error('not used');
+      }),
+      createWorkspaceItem: vi.fn(async () => undefined),
+      updateChatSession: vi.fn(async () => undefined),
+      addChatAction: vi.fn(async () => undefined),
+      addChatMessage: vi.fn(async () => undefined),
+      addToast: vi.fn(),
+      archiveReport: vi.fn(async () => ({
+        id: 'report-1',
+        topic: 'Draft',
+        summary: 'Draft summary',
+        agendas: [],
+        leads: [],
+        entities: [],
+        sources: [],
+        rawText: 'draft',
+      })),
+      appendSectionToReport: vi.fn(async () => undefined),
+      customScopes: [],
+      deleteChatSession: vi.fn(async () => undefined),
+      ensureWorkspaceBoard: vi.fn(async () => ({
+        id: 'board-1',
+        workspaceId: 'case-1',
+        name: 'Atlas Board',
+        sortOrder: 0,
+        createdAt: 1,
+        updatedAt: 1,
+      })),
+      headlines: [],
+      partialAssistantOutput: '',
+      queueBoardPlacement: vi.fn(),
+      renameChatSession: vi.fn(async () => undefined),
+      setActiveWorkspaceId: vi.fn(),
+      setActiveChatSessionId: vi.fn(),
+      setChatGenerationStatus: vi.fn(),
+      setCurrentView: vi.fn(),
+      setPartialAssistantOutput: vi.fn(),
+      updateChatMessage: vi.fn(async () => undefined),
+    });
+
+    const { container } = render(<Chat onLaunchInvestigation={vi.fn()} />);
+
+    const proseBlock = container.querySelector('.prose');
+    expect(proseBlock).toBeTruthy();
+    expect(proseBlock?.className).not.toContain('prose-invert');
+  });
 });
