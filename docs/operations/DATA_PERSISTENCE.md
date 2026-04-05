@@ -17,6 +17,7 @@ Defined in `src/services/db/schema.ts`:
 - `cases`
 - `reports`
 - `artifact_sections`
+- `artifact_evidence`
 - `entities`
 - `sources`
 - `leads` (headline storage)
@@ -48,7 +49,7 @@ Persistence is routed through repository classes:
 Runtime code now treats persisted records as:
 
 - `Workspace` -> stored in `cases`
-- `Artifact` -> stored in `reports` plus `artifact_sections`, `entities`, and `sources`
+- `Artifact` -> stored in `reports` plus `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
 - `WorkspaceRun` -> stored in `tasks`
 
 The table names remain for persistence continuity, but the primary runtime model is canonical workspace terminology.
@@ -70,6 +71,9 @@ Finder/Feed discovery results are transient runtime state in the store and are n
 - `purpose_id`
 - `label_profile_id`
 - `metadata_json`
+- `config_json`
+
+`reports.metadata_json` may now include persisted artifact provenance metadata, while `Artifact.metadata` in runtime code remains reserved for non-provenance metadata.
 
 `tasks` can now store:
 
@@ -79,6 +83,19 @@ Finder/Feed discovery results are transient runtime state in the store and are n
 - `label_profile_id`
 
 `artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility. Section ids are unique within a report, and the table uses a composite primary key of `report_id + id` so repeated section labels from different artifacts do not collide.
+
+`artifact_evidence` persists first-class evidence rows with:
+
+- `report_id`
+- `id`
+- `kind`
+- `title`
+- `summary`
+- `quote`
+- `source_title`
+- `source_url`
+
+These evidence rows are also indexed into workspace search context bundles so chat and retrieval flows can surface evidence-native snippets instead of relying only on section text.
 
 The chat implementation adds:
 
@@ -111,12 +128,16 @@ Migration completion marker:
 
 Existing local databases are upgraded additively in `src/services/db/client.ts`, including an in-place rebuild of legacy `artifact_sections` tables that still enforce a global primary key on `id`.
 
+Current additive upgrade logic also creates `artifact_evidence` for older local databases that predate the research-output expansion.
+
 ## Remaining localStorage Usage
 
 Some non-tabular values are still stored directly in localStorage:
 
 - provider keys (for selected providers)
 - `sherlock_config` (system config object)
+- `sherlock_openrouter_model_catalog_v1` (cached OpenRouter catalog snapshot/live refresh payload)
+- `sherlock_recent_model_ids_v1` (recent model selections for compact selectors and browser defaults)
 - `sherlock_livestream_autosave`
 - `sherlock_active_workspace_id` (archive selection hint)
 - `sherlock_demo_seed_v1_applied` (one-time demo workspace bootstrap marker)
@@ -143,7 +164,7 @@ Canonical exported shape:
 Workspace-data backups include:
 
 - workspaces (`cases`)
-- artifacts (`reports`, `artifact_sections`, `entities`, `sources`)
+- artifacts (`reports`, `artifact_sections`, `artifact_evidence`, `entities`, `sources`)
 - runs (`tasks`)
 - chat sessions, messages, attachments, and actions
 - saved signals/headlines (`leads`)

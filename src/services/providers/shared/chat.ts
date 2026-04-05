@@ -10,10 +10,7 @@ export const buildWorkspaceChatPrompt = (request: ChatRequest): string => {
     return buildWorkspaceChatPromptWithFormat(request, 'json');
 };
 
-export const buildWorkspaceChatPromptWithFormat = (
-    request: ChatRequest,
-    format: 'json' | 'tagged'
-): string => {
+const buildWorkspaceContextBlock = (request: ChatRequest): string => {
     const artifactLines = request.recentArtifacts.length
         ? request.recentArtifacts
               .map(
@@ -40,6 +37,41 @@ export const buildWorkspaceChatPromptWithFormat = (
               )
               .join('\n\n')
         : 'No high-confidence workspace snippets were retrieved for this turn.';
+
+    return `
+Workspace
+- Title: ${request.workspace.title}
+- Summary: ${request.workspaceSummary}
+- Pack: ${request.pack.name}
+- Purpose: ${request.purpose.name}
+
+Recent Artifacts
+${artifactLines}
+
+Recent Signals
+${headlineLines}
+
+Retrieved Workspace Context
+${contextLines}
+`.trim();
+};
+
+export const buildWorkspaceChatSystemPrompt = (request: ChatRequest): string => {
+    return `
+You are Sherlock's workspace chat assistant.
+
+Stay grounded in the current workspace. Prefer the provided workspace materials over general knowledge.
+If the answer is not supported by the workspace context, say so clearly and note what is missing.
+Keep the answer concise, practical, and easy to scan.
+
+${buildWorkspaceContextBlock(request)}
+`.trim();
+};
+
+export const buildWorkspaceChatPromptWithFormat = (
+    request: ChatRequest,
+    format: 'json' | 'tagged'
+): string => {
 
     const responseInstruction =
         format === 'tagged'
@@ -72,26 +104,7 @@ Rules:
 `.trim();
 
     return `
-You are Sherlock's workspace chat assistant.
-
-Stay grounded in the current workspace. Prefer the provided workspace materials over general knowledge.
-If the answer is not supported by the workspace context, say so clearly and note what is missing.
-Keep the answer concise, practical, and easy to scan.
-
-Workspace
-- Title: ${request.workspace.title}
-- Summary: ${request.workspaceSummary}
-- Pack: ${request.pack.name}
-- Purpose: ${request.purpose.name}
-
-Recent Artifacts
-${artifactLines}
-
-Recent Signals
-${headlineLines}
-
-Retrieved Workspace Context
-${contextLines}
+${buildWorkspaceChatSystemPrompt(request)}
 
 Conversation
 ${formatConversation(request.messages)}

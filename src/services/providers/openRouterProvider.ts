@@ -1,5 +1,5 @@
-import type { FeedItem, Artifact, MonitorEvent } from '../../types';
-import { buildArtifactSections } from '../../domain';
+import type { FeedItem, Artifact, MonitorEvent, ArtifactEvidence, ArtifactProvenance } from '../../types';
+import { getEffectiveModelCapabilities } from '../../config/aiModels';
 import { getApiKeyOrThrow } from './keys';
 import type {
     ChatRequest,
@@ -7,16 +7,14 @@ import type {
     InvestigationRequest,
     LiveIntelRequest,
     ProviderAdapter,
+    ProviderMessage,
     ScanAnomaliesRequest,
+    StructuredArtifactPayload,
 } from './types';
 import { parseJsonWithFallback, toDisplayText } from './shared/jsonParsing';
 import {
-    dedupeSources,
-    extractSourcesFromText,
-    normalizeEntities,
     normalizeFeedItems,
     normalizeLiveEvents,
-    normalizeStringList,
 } from './shared/normalizers';
 import {
     buildAnomalyPrompt,
@@ -24,23 +22,172 @@ import {
     buildLiveIntelPrompt,
     buildStructuredArtifactResponseInstruction,
 } from './shared/prompts';
-import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalizeChatResponse } from './shared/chat';
+import {
+    buildWorkspaceChatSystemPrompt,
+    normalizeChatResponse,
+} from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
+import { buildArtifactFromPayload } from './shared/artifactContract';
 
 const PROVIDER = 'OPENROUTER' as const;
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-const normalizeOpenRouterContent = (content: unknown): string => toDisplayText(content).trim();
+interface OpenRouterToolDefinition {
+    type: 'openrouter:web_search';
+    parameters?: Record<string, unknown>;
+}
+
+interface OpenRouterUsage {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    server_tool_use?: {
+        web_search_requests?: number;
+    };
+    [key: string]: unknown;
+}
+
+interface OpenRouterCompletionResult {
+    rawText: string;
+    requestId?: string;
+    citations: ArtifactProvenance['citations'];
+    usage?: OpenRouterUsage;
+    warnings: string[];
+}
+
+const buildSystemPrompt = (task: string): string => {
+    return `You are Sherlock's runtime research engine.\n\n${task}`;
+};
+
+const toMessageContent = (content: unknown): string => toDisplayText(content).trim();
+
+const normalizeOpenRouterMessages = (messages: ProviderMessage[]): ProviderMessage[] => {
+    return messages
+        .map((message) => ({
+            ...message,
+            content: message.content.trim(),
+        }))
+        .filter((message) => message.content.length > 0);
+};
+
+const toSearchEvidence = (citations: ArtifactProvenance['citations']): ArtifactEvidence[] =>
+    (citations || []).map((citation, index) => ({
+        id: `openrouter-citation-${index}`,
+        kind: citation.content ? 'QUOTE' : 'SOURCE',
+        title: citation.title || citation.url,
+        summary: citation.content || citation.title || citation.url,
+        quote: citation.content,
+        sourceTitle: citation.title,
+        sourceUrl: citation.url,
+        order: index,
+    }));
+
+const extractAnnotations = (message: {
+    annotations?: Array<{
+        type?: unknown;
+        url_citation?: {
+            url?: unknown;
+            title?: unknown;
+            content?: unknown;
+            start_index?: unknown;
+            end_index?: unknown;
+        };
+    }>;
+}): ArtifactProvenance['citations'] => {
+    if (!Array.isArray(message.annotations)) return [];
+
+    return message.annotations
+        .map((annotation) => {
+            if (annotation?.type !== 'url_citation' || !annotation.url_citation) return null;
+            const url = toDisplayText(annotation.url_citation.url).trim();
+            if (!url) return null;
+
+            return {
+                url,
+                title: toDisplayText(annotation.url_citation.title).trim() || undefined,
+                content: toDisplayText(annotation.url_citation.content).trim() || undefined,
+                startIndex:
+                    typeof annotation.url_citation.start_index === 'number'
+                        ? annotation.url_citation.start_index
+                        : undefined,
+                endIndex:
+                    typeof annotation.url_citation.end_index === 'number'
+                        ? annotation.url_citation.end_index
+                        : undefined,
+            };
+        })
+        .filter((citation): citation is NonNullable<typeof citation> => !!citation);
+};
+
+const buildOpenRouterSearchTool = (
+    requestConfig: InvestigationRequest['config']
+): { tool?: OpenRouterToolDefinition; warnings: string[] } => {
+    const settings = requestConfig.openRouter;
+    if (!settings?.webSearchEnabled) {
+        return { warnings: [] };
+    }
+
+    const warnings: string[] = [];
+    let allowedDomains = settings.allowedDomains.filter((entry) => entry.trim().length > 0);
+    let excludedDomains = settings.excludedDomains.filter((entry) => entry.trim().length > 0);
+
+    if (settings.engine === 'firecrawl' && (allowedDomains.length > 0 || excludedDomains.length > 0)) {
+        warnings.push('Firecrawl search does not support domain filters, so Sherlock dropped those filters for this request.');
+        allowedDomains = [];
+        excludedDomains = [];
+    }
+
+    if (
+        (settings.engine === 'parallel' || settings.engine === 'native') &&
+        allowedDomains.length > 0 &&
+        excludedDomains.length > 0
+    ) {
+        warnings.push('The selected OpenRouter search engine cannot use allowed and excluded domains together, so Sherlock kept allowed domains and dropped excluded domains.');
+        excludedDomains = [];
+    }
+
+    const parameters: Record<string, unknown> = {
+        engine: settings.engine,
+        max_results: settings.maxResults,
+        max_total_results: settings.maxTotalResults,
+        search_context_size: settings.searchContextSize,
+        user_location: {
+            type: 'approximate',
+            country: 'US',
+            timezone: 'America/New_York',
+        },
+    };
+
+    if (allowedDomains.length > 0) {
+        parameters.allowed_domains = allowedDomains;
+    }
+    if (excludedDomains.length > 0) {
+        parameters.excluded_domains = excludedDomains;
+    }
+
+    return {
+        tool: {
+            type: 'openrouter:web_search',
+            parameters,
+        },
+        warnings,
+    };
+};
 
 const queryOpenRouter = async (
     modelId: string,
-    prompt: string,
-    options?: { expectJson?: boolean; maxTokens?: number; signal?: AbortSignal }
-): Promise<string> => {
+    messages: ProviderMessage[],
+    options?: {
+        expectJson?: boolean;
+        maxTokens?: number;
+        signal?: AbortSignal;
+        tools?: OpenRouterToolDefinition[];
+        warnings?: string[];
+    }
+): Promise<OpenRouterCompletionResult> => {
     const key = getApiKeyOrThrow(PROVIDER);
-
     const response = await fetch(OPENROUTER_API_URL, {
         method: 'POST',
         signal: options?.signal,
@@ -49,21 +196,29 @@ const queryOpenRouter = async (
             'Content-Type': 'application/json',
             'HTTP-Referer':
                 typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-            'X-Title': 'Sherlock AI',
+            'X-OpenRouter-Title': 'Sherlock AI',
         },
         body: JSON.stringify({
             model: modelId,
-            messages: [{ role: 'user', content: prompt }],
+            messages: normalizeOpenRouterMessages(messages),
             ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
             ...(options?.expectJson ? { response_format: { type: 'json_object' } } : {}),
+            ...(options?.tools?.length ? { tools: options.tools } : {}),
         }),
     });
 
     const rawBody = await response.text();
     let payload: {
+        id?: string;
         error?: { message?: string };
+        usage?: OpenRouterUsage;
         choices?: Array<{
-            message?: { content?: unknown; reasoning?: unknown; refusal?: unknown };
+            message?: {
+                content?: unknown;
+                reasoning?: unknown;
+                refusal?: unknown;
+                annotations?: Array<unknown>;
+            };
             text?: unknown;
             finish_reason?: string;
         }>;
@@ -85,30 +240,43 @@ const queryOpenRouter = async (
     }
 
     const firstChoice = payload.choices?.[0];
-    const content =
-        normalizeOpenRouterContent(firstChoice?.message?.content) ||
-        normalizeOpenRouterContent(firstChoice?.message?.reasoning) ||
-        normalizeOpenRouterContent(firstChoice?.message?.refusal) ||
-        normalizeOpenRouterContent(firstChoice?.text) ||
-        normalizeOpenRouterContent(payload);
+    const message = firstChoice?.message || {};
+    const rawText =
+        toMessageContent(message.content) ||
+        toMessageContent(message.reasoning) ||
+        toMessageContent(message.refusal) ||
+        toMessageContent(firstChoice?.text);
 
-    if (!content) {
+    if (!rawText) {
         throw new Error(
             `UPSTREAM_ERROR: OpenRouter returned an empty response (finish_reason: ${firstChoice?.finish_reason || 'unknown'})`
         );
     }
 
-    return content;
+    return {
+        rawText,
+        requestId: payload.id,
+        citations: extractAnnotations(message),
+        usage: payload.usage,
+        warnings: options?.warnings || [],
+    };
 };
 
 const streamOpenRouter = async (
     modelId: string,
-    prompt: string,
-    options?: ChatStreamOptions & { maxTokens?: number }
-): Promise<string> => {
+    messages: ProviderMessage[],
+    options?: ChatStreamOptions & {
+        maxTokens?: number;
+        tools?: OpenRouterToolDefinition[];
+        warnings?: string[];
+    }
+): Promise<OpenRouterCompletionResult> => {
     const key = getApiKeyOrThrow(PROVIDER);
     const accumulator = createChatStreamAccumulator(options);
     accumulator.start();
+    const warnings = options?.warnings || [];
+    let requestId: string | undefined;
+    let usage: OpenRouterUsage | undefined;
 
     const response = await fetch(OPENROUTER_API_URL, {
         method: 'POST',
@@ -118,12 +286,13 @@ const streamOpenRouter = async (
             'Content-Type': 'application/json',
             'HTTP-Referer':
                 typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-            'X-Title': 'Sherlock AI',
+            'X-OpenRouter-Title': 'Sherlock AI',
         },
         body: JSON.stringify({
             model: modelId,
-            messages: [{ role: 'user', content: prompt }],
+            messages: normalizeOpenRouterMessages(messages),
             ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
+            ...(options?.tools?.length ? { tools: options.tools } : {}),
             stream: true,
         }),
     });
@@ -149,12 +318,20 @@ const streamOpenRouter = async (
 
         try {
             const payload = JSON.parse(event.data) as {
+                id?: string;
+                usage?: OpenRouterUsage;
                 choices?: Array<{
                     delta?: { content?: unknown };
                     message?: { content?: unknown };
                     text?: unknown;
                 }>;
             };
+
+            requestId = payload.id || requestId;
+            if (payload.usage) {
+                usage = payload.usage;
+            }
+
             const delta = toDisplayText(
                 payload.choices?.[0]?.delta?.content ??
                     payload.choices?.[0]?.message?.content ??
@@ -166,8 +343,19 @@ const streamOpenRouter = async (
         }
     });
 
-    return accumulator.complete();
+    return {
+        rawText: accumulator.complete(),
+        requestId,
+        citations: [],
+        usage,
+        warnings,
+    };
 };
+
+const buildArtifactMessages = (prompt: string): ProviderMessage[] => [
+    { role: 'system', content: buildSystemPrompt('Follow the user task exactly and return valid JSON when instructed.') },
+    { role: 'user', content: prompt },
+];
 
 const investigate = async (request: InvestigationRequest): Promise<Artifact> => {
     const { topic, parentContext, config, scope, dateOverride } = request;
@@ -181,6 +369,8 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
               topic: normalizedParentTopic || parentContext.topic,
           }
         : undefined;
+    const capabilities = getEffectiveModelCapabilities(config.modelId);
+    const generationMode = request.generationMode || config.generationMode || 'STAGED';
 
     return withProviderRetry(
         async () => {
@@ -195,87 +385,55 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
             );
             prompt += `\n${buildStructuredArtifactResponseInstruction(
                 request.purpose,
-                request.labelProfileId
+                request.labelProfileId,
+                generationMode
             )}`;
 
-            const rawText = await queryOpenRouter(config.modelId, prompt, {
-                maxTokens: 3200,
+            const search = buildOpenRouterSearchTool(config);
+            const completion = await queryOpenRouter(config.modelId, buildArtifactMessages(prompt), {
+                maxTokens: generationMode === 'STAGED' ? 5200 : 3600,
+                expectJson: capabilities.supportsStructuredOutput,
+                tools: search.tool ? [search.tool] : undefined,
+                warnings: search.warnings,
             });
-            const parsedData = parseJsonWithFallback(rawText);
-            const data =
+
+            const parsedData = parseJsonWithFallback(completion.rawText);
+            const payload =
                 parsedData && typeof parsedData === 'object'
-                    ? (parsedData as {
-                          summary?: unknown;
-                          entities?: unknown;
-                          agendas?: unknown;
-                          leads?: unknown;
-                          sources?: Array<{ title?: unknown; url?: unknown; uri?: unknown }>;
-                          sections?: unknown;
-                      })
+                    ? (parsedData as StructuredArtifactPayload)
                     : {};
 
-            const agendas = normalizeStringList(data.agendas);
-            const leads = normalizeStringList(data.leads);
-            const summary = toDisplayText(data.summary).trim() || 'Analysis pending...';
-            const sections = buildArtifactSections({
-                sections: data.sections,
-                summary,
-                agendas,
-                leads,
-                artifactType: request.artifactType,
-            });
-
-            const modelSources = Array.isArray(data.sources)
-                ? dedupeSources(
-                      data.sources.map((source) => ({
-                          title: source.title,
-                          url: source.url,
-                          uri: source.uri,
-                      }))
-                  )
-                : [];
-
-            const textFallbackSources = extractSourcesFromText([rawText, summary, ...leads].join('\n'));
-
-            const sources = dedupeSources([...modelSources, ...textFallbackSources]);
-
-            return {
+            return buildArtifactFromPayload(payload, JSON.stringify(payload, null, 2), {
+                provider: PROVIDER,
+                modelId: config.modelId,
                 topic: normalizedTopic,
-                dateStr: new Date().toLocaleDateString(),
-                summary,
-                entities: normalizeEntities(data.entities),
-                agendas,
-                leads,
-                followUps: leads,
-                sections,
+                scopeId: scope.id,
+                scopeName: scope.name,
+                pack: request.pack,
+                purpose: request.purpose,
                 artifactType: request.artifactType,
-                sources,
-                rawText: JSON.stringify(data, null, 2),
-                packId: request.pack.id,
-                purposeId: request.purpose.id,
                 labelProfileId: request.labelProfileId,
-                metadata: {
-                    packName: request.pack.name,
-                    purposeName: request.purpose.name,
-                    scopeId: scope.id,
-                    workspaceMode: request.pack.workspaceMode,
+                generationMode,
+                citations: completion.citations,
+                extraEvidence: toSearchEvidence(completion.citations),
+                usage: completion.usage,
+                requestId: completion.requestId,
+                warnings: completion.warnings,
+                searchMetadata: {
+                    enabled: !!config.openRouter?.webSearchEnabled,
+                    provider: 'OPENROUTER',
+                    engine: config.openRouter?.engine,
+                    webSearchRequests: completion.usage?.server_tool_use?.web_search_requests,
+                    searchContextSize: config.openRouter?.searchContextSize,
+                    allowedDomains: config.openRouter?.allowedDomains,
+                    excludedDomains: config.openRouter?.excludedDomains,
                 },
-                config: {
-                    provider: config.provider,
-                    modelId: config.modelId,
+                extraMetadata: {
                     persona: config.persona,
                     searchDepth: config.searchDepth,
                     thinkingBudget: config.thinkingBudget,
-                    scopeId: scope.id,
-                    scopeName: scope.name,
-                    packId: request.pack.id,
-                    packName: request.pack.name,
-                    purposeId: request.purpose.id,
-                    purposeName: request.purpose.name,
-                    artifactType: request.artifactType,
-                    labelProfileId: request.labelProfileId,
                 },
-            };
+            });
         },
         {
             provider: PROVIDER,
@@ -285,16 +443,89 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
     );
 };
 
+const buildOpenRouterChatMessages = (
+    request: ChatRequest,
+    format: 'json' | 'tagged'
+): ProviderMessage[] => {
+    const formatInstruction =
+        format === 'tagged'
+            ? `
+Return plain text using this exact structure and no markdown fences:
+<answer>
+markdown answer
+</answer>
+<citations>CTX-REPORT-abc,CTX-HEADLINE-def</citations>
+<title>optional concise session title</title>
+
+Rules:
+- Only cite ids that appear in Retrieved Workspace Context.
+- If you do not use any retrieved context, leave <citations></citations> empty.
+- Keep <title> empty if no better session title is obvious.
+`.trim()
+            : `
+Return valid JSON with this shape:
+{
+  "content": "markdown answer",
+  "citations": ["CTX-REPORT-abc", "CTX-HEADLINE-def"],
+  "suggestedTitle": "optional concise session title"
+}
+
+Rules:
+- Only cite ids that appear in Retrieved Workspace Context.
+- If you do not use any retrieved context, return an empty citations array.
+- Do not wrap the JSON in markdown fences.
+`.trim();
+
+    return [
+        {
+            role: 'system',
+            content: `${buildWorkspaceChatSystemPrompt(request)}\n\n${formatInstruction}`,
+        },
+        ...request.messages,
+    ];
+};
+
 const chat = async (request: ChatRequest) => {
     const { config } = request;
+    const capabilities = getEffectiveModelCapabilities(config.modelId);
 
     return withProviderRetry(
         async () => {
-            const rawText = await queryOpenRouter(config.modelId, buildWorkspaceChatPrompt(request), {
-                maxTokens: 2200,
-            });
+            const search = buildOpenRouterSearchTool(config);
+            const completion = await queryOpenRouter(
+                config.modelId,
+                buildOpenRouterChatMessages(request, 'json'),
+                {
+                    maxTokens: 2200,
+                    expectJson: capabilities.supportsStructuredOutput,
+                    tools: search.tool ? [search.tool] : undefined,
+                    warnings: search.warnings,
+                }
+            );
 
-            return normalizeChatResponse(rawText, PROVIDER, config.modelId);
+            return {
+                ...normalizeChatResponse(completion.rawText, PROVIDER, config.modelId),
+                sourceCitations: completion.citations,
+                warnings: completion.warnings,
+                provenance: {
+                    provider: PROVIDER,
+                    modelId: config.modelId,
+                    generatedAt: new Date().toISOString(),
+                    requestId: completion.requestId,
+                    warnings: completion.warnings,
+                    citations: completion.citations,
+                    usage: completion.usage,
+                    search: {
+                        enabled: !!config.openRouter?.webSearchEnabled,
+                        provider: 'OPENROUTER',
+                        engine: config.openRouter?.engine,
+                        webSearchRequests: completion.usage?.server_tool_use?.web_search_requests,
+                        searchContextSize: config.openRouter?.searchContextSize,
+                        allowedDomains: config.openRouter?.allowedDomains,
+                        excludedDomains: config.openRouter?.excludedDomains,
+                    },
+                },
+            };
         },
         {
             provider: PROVIDER,
@@ -309,16 +540,39 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
 
     return withProviderRetry(
         async () => {
-            const rawText = await streamOpenRouter(
+            const search = buildOpenRouterSearchTool(config);
+            const completion = await streamOpenRouter(
                 config.modelId,
-                buildWorkspaceChatPromptWithFormat(request, 'tagged'),
+                buildOpenRouterChatMessages(request, 'tagged'),
                 {
                     ...options,
                     maxTokens: 2200,
+                    tools: search.tool ? [search.tool] : undefined,
+                    warnings: search.warnings,
                 }
             );
 
-            return normalizeChatResponse(rawText, PROVIDER, config.modelId);
+            return {
+                ...normalizeChatResponse(completion.rawText, PROVIDER, config.modelId),
+                warnings: completion.warnings,
+                provenance: {
+                    provider: PROVIDER,
+                    modelId: config.modelId,
+                    generatedAt: new Date().toISOString(),
+                    requestId: completion.requestId,
+                    warnings: completion.warnings,
+                    usage: completion.usage,
+                    search: {
+                        enabled: !!config.openRouter?.webSearchEnabled,
+                        provider: 'OPENROUTER',
+                        engine: config.openRouter?.engine,
+                        webSearchRequests: completion.usage?.server_tool_use?.web_search_requests,
+                        searchContextSize: config.openRouter?.searchContextSize,
+                        allowedDomains: config.openRouter?.allowedDomains,
+                        excludedDomains: config.openRouter?.excludedDomains,
+                    },
+                },
+            };
         },
         {
             provider: PROVIDER,
@@ -331,6 +585,7 @@ const streamChat = async (request: ChatRequest, options?: ChatStreamOptions) => 
 const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]> => {
     const { region, category, dateRange, config, scope, options } = request;
     const limit = options?.limit || 8;
+    const capabilities = getEffectiveModelCapabilities(config.modelId);
 
     return withProviderRetry(
         async () => {
@@ -344,11 +599,15 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
                 purpose: request.purpose,
                 dateRange,
             });
+            const search = buildOpenRouterSearchTool(config);
 
-            const rawText = await queryOpenRouter(config.modelId, basePrompt, {
+            const completion = await queryOpenRouter(config.modelId, buildArtifactMessages(basePrompt), {
                 maxTokens: 1800,
+                expectJson: capabilities.supportsStructuredOutput,
+                tools: search.tool ? [search.tool] : undefined,
+                warnings: search.warnings,
             });
-            const parsed = parseJsonWithFallback(rawText);
+            const parsed = parseJsonWithFallback(completion.rawText);
             return normalizeFeedItems(
                 parsed,
                 scope.categories[0] || 'General',
@@ -394,6 +653,7 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
 const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> => {
     const { topic, config, scope, monitorConfig, existingContent } = request;
     const normalizedTopic = normalizeTopicText(topic);
+    const capabilities = getEffectiveModelCapabilities(config.modelId);
 
     return withProviderRetry(
         async () => {
@@ -405,11 +665,15 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
                 monitorConfig,
                 existingContent,
             });
+            const search = buildOpenRouterSearchTool(config);
 
-            const rawText = await queryOpenRouter(config.modelId, basePrompt, {
-                maxTokens: 2200,
+            const completion = await queryOpenRouter(config.modelId, buildArtifactMessages(basePrompt), {
+                maxTokens: 2400,
+                expectJson: capabilities.supportsStructuredOutput,
+                tools: search.tool ? [search.tool] : undefined,
+                warnings: search.warnings,
             });
-            const parsed = parseJsonWithFallback(rawText);
+            const parsed = parseJsonWithFallback(completion.rawText);
             return normalizeLiveEvents(parsed, 'sim');
         },
         {

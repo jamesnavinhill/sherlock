@@ -129,9 +129,40 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                     </div>
                 </Accordion>
 
-                {/* Sources */}
+                {reports.some((report) => (report.evidence || []).length > 0) && (
                     <Accordion
-                    title={labelProfile.signalLabel}
+                        title="Evidence"
+                        count={reports.reduce((total, report) => total + (report.evidence?.length || 0), 0)}
+                        icon={Globe}
+                        isOpen={openSections.evidence}
+                        onToggle={() => toggleSection('evidence')}
+                    >
+                        <div className="space-y-1">
+                            {reports
+                                .flatMap((report) =>
+                                    (report.evidence || []).slice(0, 2).map((evidence) => ({
+                                        report,
+                                        evidence,
+                                    }))
+                                )
+                                .slice(0, 8)
+                                .map(({ report, evidence }) => (
+                                    <button
+                                        key={`${report.id}-${evidence.id}`}
+                                        onClick={() => report.id && onNavigate(report.id)}
+                                        className="w-full border border-zinc-800 bg-zinc-900/30 p-2 text-left hover:border-osint-primary"
+                                    >
+                                        <div className="text-[10px] font-mono uppercase text-zinc-500">{evidence.kind}</div>
+                                        <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
+                                    </button>
+                                ))}
+                        </div>
+                    </Accordion>
+                )}
+
+                {/* Sources */}
+                <Accordion
+                    title="Sources"
                     count={sources.length}
                     icon={Globe}
                     isOpen={openSections.sources}

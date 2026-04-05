@@ -1,5 +1,7 @@
 import type { AIProvider } from '../../config/aiModels';
 import type {
+    ArtifactEvidence,
+    ArtifactProvenance,
     Workspace,
     ChatAttachmentKind,
     DateRangeConfig,
@@ -31,6 +33,7 @@ export interface InvestigationRequest {
     artifactType: NonNullable<Artifact['artifactType']>;
     labelProfileId: string;
     dateOverride?: { start?: string; end?: string };
+    generationMode?: 'SINGLE_PASS' | 'STAGED';
 }
 
 export interface ScanAnomaliesOptions {
@@ -92,6 +95,9 @@ export interface ChatRequest {
 export interface ChatResponse {
     content: string;
     citations: string[];
+    sourceCitations?: ArtifactProvenance['citations'];
+    warnings?: string[];
+    provenance?: ArtifactProvenance;
     suggestedTitle?: string;
     attachments?: Array<{
         citationId: string;
@@ -115,6 +121,46 @@ export type ChatStreamEvent =
 export interface ChatStreamOptions {
     signal?: AbortSignal;
     onEvent?: (event: ChatStreamEvent) => void;
+}
+
+export interface ProviderMessage {
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content: string;
+    toolCallId?: string;
+    name?: string;
+}
+
+export interface StructuredArtifactPayload {
+    summary?: unknown;
+    entities?: unknown;
+    agendas?: unknown;
+    leads?: unknown;
+    followUps?: unknown;
+    sources?: Array<{ title?: unknown; url?: unknown; uri?: unknown }>;
+    sections?: unknown;
+    evidence?: unknown;
+    methodology?: unknown;
+}
+
+export interface ArtifactNormalizationOptions {
+    provider: AIProvider;
+    modelId: string;
+    topic: string;
+    scopeId: string;
+    scopeName: string;
+    pack: DomainPack;
+    purpose: PurposeProfile;
+    artifactType: NonNullable<Artifact['artifactType']>;
+    labelProfileId: string;
+    searchMetadata?: ArtifactProvenance['search'];
+    citations?: ArtifactProvenance['citations'];
+    warnings?: string[];
+    usage?: Record<string, unknown>;
+    requestId?: string;
+    extraMetadata?: Record<string, unknown>;
+    extraEvidence?: ArtifactEvidence[];
+    extraSources?: Artifact['sources'];
+    generationMode?: 'SINGLE_PASS' | 'STAGED';
 }
 
 export interface ProviderAdapter {

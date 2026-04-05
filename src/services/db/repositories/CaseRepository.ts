@@ -1,6 +1,6 @@
 import { eq, desc } from 'drizzle-orm';
 import { getDB } from '../client';
-import { artifactSections, cases, reports, entities, sources, leads } from '../schema';
+import { artifactEvidence, artifactSections, cases, reports, entities, sources, leads } from '../schema';
 import { buildArtifactSections, toLegacyReportArrays } from '../../../domain';
 import type { ArtifactSection, Workspace, Artifact, Entity, Headline } from '@/types';
 import { ChatRepository } from './ChatRepository';
@@ -20,6 +20,11 @@ interface RawReportPayload {
     agendas?: unknown;
     leads?: unknown;
     sections?: unknown;
+}
+
+interface ReportMetadataPayload {
+    provenance?: Artifact['provenance'];
+    [key: string]: unknown;
 }
 
 const parseRawReportPayload = (rawText: string | null): RawReportPayload => {
@@ -88,6 +93,7 @@ const deleteReportDependencies = async (reportIds: string[]) => {
     const db = getDB();
     for (const reportId of reportIds) {
         await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
+        await db.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
         await db.delete(entities).where(eq(entities.reportId, reportId));
         await db.delete(sources).where(eq(sources.reportId, reportId));
     }
@@ -174,6 +180,7 @@ export class CaseRepository {
         const allEntities = await db.select().from(entities);
         const allSources = await db.select().from(sources);
         const allSections = await db.select().from(artifactSections);
+        const allEvidence = await db.select().from(artifactEvidence);
 
         return reportRows.map(row => {
             const rawPayload = parseRawReportPayload(row.rawText);
@@ -204,11 +211,37 @@ export class CaseRepository {
                     items: section.itemsJson ? JSON.parse(section.itemsJson) : undefined,
                     order: section.sortOrder,
                 }));
+            const metadataPayload = row.metadataJson
+                ? (JSON.parse(row.metadataJson) as ReportMetadataPayload)
+                : undefined;
+            const evidenceRows = allEvidence
+                .filter((evidence) => evidence.reportId === row.id)
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((evidence) => ({
+                    id: evidence.id,
+                    kind: evidence.kind as NonNullable<Artifact['evidence']>[number]['kind'],
+                    title: evidence.title,
+                    summary: evidence.summary,
+                    quote: evidence.quote || undefined,
+                    sourceTitle: evidence.sourceTitle || undefined,
+                    sourceUrl: evidence.sourceUrl || undefined,
+                    sectionId: evidence.sectionId || undefined,
+                    tags: evidence.tagsJson ? JSON.parse(evidence.tagsJson) : undefined,
+                    metadata: evidence.metadataJson ? JSON.parse(evidence.metadataJson) : undefined,
+                    order: evidence.sortOrder,
+                }));
+
             const sections = buildArtifactSections({
                 sections: reportSections.length > 0 ? reportSections : rawPayload.sections,
                 summary: normalizeHumanText(row.summary, { includePriority: false }),
                 agendas: parsedAgendas,
                 leads: parsedLeads,
+                followUps: toStringList((rawPayload as { followUps?: unknown }).followUps),
+                methodology:
+                    typeof (rawPayload as { methodology?: unknown }).methodology === 'string'
+                        ? (rawPayload as { methodology?: string }).methodology
+                        : undefined,
+                evidence: evidenceRows,
                 artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
             });
 
@@ -242,13 +275,19 @@ export class CaseRepository {
                 packId: row.packId || undefined,
                 purposeId: row.purposeId || undefined,
                 labelProfileId: row.labelProfileId || undefined,
-                metadata: row.metadataJson ? JSON.parse(row.metadataJson) : undefined,
+                metadata: metadataPayload
+                    ? Object.fromEntries(
+                          Object.entries(metadataPayload).filter(([key]) => key !== 'provenance')
+                      )
+                    : undefined,
                 entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
                 sources: reportSources.length > 0 ? reportSources : parsedSources,
                 agendas: legacyArrays.agendas,
                 leads: legacyArrays.leads,
                 followUps: legacyArrays.followUps,
                 sections,
+                evidence: evidenceRows,
+                provenance: metadataPayload?.provenance,
             };
         });
     }
@@ -266,6 +305,14 @@ export class CaseRepository {
             fallback: 'Analysis pending...',
         });
 
+        const metadataPayload: ReportMetadataPayload | undefined =
+            report.metadata || report.provenance
+                ? {
+                      ...(report.metadata || {}),
+                      ...(report.provenance ? { provenance: report.provenance } : {}),
+                  }
+                : undefined;
+
         // Insert Report (wa-sqlite handles its own transactions, explicit drizzle transactions conflict)
         await db.insert(reports).values({
             id: reportId,
@@ -278,7 +325,7 @@ export class CaseRepository {
             packId: report.packId || report.config?.packId,
             purposeId: report.purposeId || report.config?.purposeId,
             labelProfileId: report.labelProfileId || report.config?.labelProfileId,
-            metadataJson: report.metadata ? JSON.stringify(report.metadata) : null,
+            metadataJson: metadataPayload ? JSON.stringify(metadataPayload) : null,
             configJson: report.config ? JSON.stringify(report.config) : null,
             createdAt: now
         });
@@ -323,6 +370,25 @@ export class CaseRepository {
                     content: section.content,
                     itemsJson: section.items ? JSON.stringify(section.items) : null,
                     sortOrder: typeof section.order === 'number' ? section.order : index,
+                });
+            }
+        }
+
+        if (report.evidence && report.evidence.length > 0) {
+            for (const [index, evidence] of report.evidence.entries()) {
+                await db.insert(artifactEvidence).values({
+                    id: evidence.id || `evidence-${reportId}-${index}`,
+                    reportId,
+                    kind: evidence.kind,
+                    title: evidence.title,
+                    summary: evidence.summary,
+                    quote: evidence.quote,
+                    sourceTitle: evidence.sourceTitle,
+                    sourceUrl: evidence.sourceUrl,
+                    sectionId: evidence.sectionId,
+                    tagsJson: evidence.tags ? JSON.stringify(evidence.tags) : null,
+                    metadataJson: evidence.metadata ? JSON.stringify(evidence.metadata) : null,
+                    sortOrder: typeof evidence.order === 'number' ? evidence.order : index,
                 });
             }
         }
@@ -384,6 +450,7 @@ export class CaseRepository {
     static async deleteReport(reportId: string): Promise<void> {
         const db = getDB();
         await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
+        await db.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
         await db.delete(entities).where(eq(entities.reportId, reportId));
         await db.delete(sources).where(eq(sources.reportId, reportId));
         await db.delete(reports).where(eq(reports.id, reportId));
@@ -429,6 +496,7 @@ export class CaseRepository {
         await TemplateRepository.clearAll();
         await ManualDataRepository.clearAll();
         await db.delete(artifactSections);
+        await db.delete(artifactEvidence);
         await db.delete(entities);
         await db.delete(sources);
         await db.delete(reports);

@@ -167,6 +167,22 @@ const runSchemaUpgrades = async (api: SQLite.SQLiteAPI, db: number): Promise<voi
             FOREIGN KEY ("session_id") REFERENCES "chat_sessions"("id") ON UPDATE no action ON DELETE no action,
             FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON UPDATE no action ON DELETE no action
         );`,
+        `CREATE TABLE IF NOT EXISTS "artifact_evidence" (
+            "id" text NOT NULL,
+            "report_id" text NOT NULL,
+            "kind" text NOT NULL,
+            "title" text NOT NULL,
+            "summary" text NOT NULL,
+            "quote" text,
+            "source_title" text,
+            "source_url" text,
+            "section_id" text,
+            "tags_json" text,
+            "metadata_json" text,
+            "sort_order" integer NOT NULL,
+            PRIMARY KEY ("report_id", "id"),
+            FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+        );`,
     ];
 
     for (const sql of alterStatements) {

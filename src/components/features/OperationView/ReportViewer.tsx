@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
     FileText, Lightbulb, Microscope, Layers, AlertTriangle, Users,
-    Globe, Target, Volume2, Loader2, StopCircle, Link2
+    Globe, Target, Volume2, Loader2, StopCircle, Link2, ShieldAlert
 } from 'lucide-react';
 import type { ComponentProps, ReactElement } from 'react';
 import type { Artifact, Entity } from '../../../types';
@@ -197,6 +197,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     const purposeProfile = getPurposeProfileById(report.purposeId || report.config?.purposeId);
     const orderedSections = orderArtifactSections(report.sections, purposeProfile);
     const primarySummarySection = getSectionByKinds(orderedSections, ['EXECUTIVE_SUMMARY', 'KEY_FINDINGS']);
+    const methodologySection = getSectionByKinds(orderedSections, ['METHODOLOGY']);
     const visibleSummary = primarySummarySection?.content || report.summary;
     const visibleLeads = report.leads.length > 0
         ? report.leads
@@ -204,10 +205,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     const visibleAnomalies = report.agendas.length > 0
         ? report.agendas
         : getSectionItemsByKinds(orderedSections, ['ANOMALIES', 'KEY_FINDINGS']);
+    const visibleEvidence = (report.evidence || []).filter((entry) => entry.summary.trim().length > 0);
     const hiddenSectionKinds = new Set([
         primarySummarySection?.kind,
         'ANOMALIES',
         'LEADS',
+        methodologySection?.kind,
+        visibleEvidence.length > 0 ? 'EVIDENCE' : null,
     ].filter(Boolean));
     const supplementalSections = orderedSections.filter(section =>
         !hiddenSectionKinds.has(section.kind)
@@ -224,15 +228,32 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                     <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
                         <Breadcrumbs items={navStack} onNavigate={onNavigate} />
                     </div>
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                            <EditableTitle
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                                <EditableTitle
                                 value={report.topic}
                                 onSave={onTitleSave}
                                 className="text-2xl font-bold text-white uppercase tracking-tight font-mono truncate"
                                 inputClassName="text-2xl font-bold uppercase tracking-tight"
-                            />
-                        </div>
+                                />
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {report.artifactType && (
+                                        <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
+                                            {report.artifactType}
+                                        </span>
+                                    )}
+                                    {report.provenance?.provider && (
+                                        <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
+                                            {report.provenance.provider} / {report.provenance.modelId}
+                                        </span>
+                                    )}
+                                    {report.config?.generationMode && (
+                                        <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-400">
+                                            {report.config.generationMode.replace('_', ' ')}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                         <div className="flex items-center space-x-4 flex-shrink-0">
                             {report.dateStr && <p className="text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">LOG DATE: {report.dateStr}</p>}
                         </div>
@@ -261,6 +282,65 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                             <ReactMarkdown components={markdownComponents}>{visibleSummary}</ReactMarkdown>
                         </div>
                     </div>
+
+                    {methodologySection?.content && (
+                        <div className="mb-8 border border-zinc-800 bg-zinc-950/70 p-5">
+                            <h3 className="mb-3 text-sm font-mono font-bold uppercase tracking-widest text-white">
+                                {getArtifactSectionTitle(methodologySection.kind, labelProfile, methodologySection.title)}
+                            </h3>
+                            {renderSectionBody(methodologySection)}
+                        </div>
+                    )}
+
+                    {visibleEvidence.length > 0 && (
+                        <div className="mb-8 space-y-4">
+                            <div className="flex items-center justify-between border-b border-zinc-700 pb-2">
+                                <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
+                                    <Globe className="w-4 h-4 mr-2 text-osint-primary" /> Evidence Log
+                                </h2>
+                                <span className="text-[10px] font-mono uppercase text-zinc-500">
+                                    {visibleEvidence.length} items
+                                </span>
+                            </div>
+                            <div className="grid gap-4 lg:grid-cols-2">
+                                {visibleEvidence.map((evidence) => (
+                                    <div key={evidence.id} className="border border-zinc-800 bg-zinc-950/70 p-4">
+                                        <div className="flex items-center justify-between gap-3 mb-2">
+                                            <div className="text-xs font-mono font-bold uppercase text-white">
+                                                {evidence.title}
+                                            </div>
+                                            <div className="text-[10px] font-mono uppercase text-zinc-500">
+                                                {evidence.kind}
+                                            </div>
+                                        </div>
+                                        <p className="text-sm leading-relaxed text-zinc-300">{evidence.summary}</p>
+                                        {evidence.quote && (
+                                            <blockquote className="mt-3 border-l-2 border-osint-primary/40 pl-3 text-sm italic text-zinc-400">
+                                                {evidence.quote}
+                                            </blockquote>
+                                        )}
+                                        {(evidence.sourceTitle || evidence.sourceUrl) && (
+                                            <div className="mt-3 text-[10px] font-mono uppercase text-zinc-500">
+                                                {evidence.sourceUrl ? (
+                                                    <a
+                                                        href={evidence.sourceUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="osint-link-list-item inline-flex items-center border-b-0 p-0 text-[10px]"
+                                                    >
+                                                        <Link2 className="w-3 h-3 mr-1" />
+                                                        {evidence.sourceTitle || evidence.sourceUrl}
+                                                    </a>
+                                                ) : (
+                                                    evidence.sourceTitle
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {supplementalSections.length > 0 && (
                         <div className="space-y-4 mb-8">
@@ -374,15 +454,38 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
                 {/* Resources */}
                 <Accordion
-                    title={`${labelProfile.signalLabel} (${reportSources.length})`}
+                    title={`Provenance (${reportSources.length + visibleEvidence.length})`}
                     icon={Globe}
                     isOpen={sidebarAccordions.resources}
                     onToggle={() => toggleSidebarAccordion('resources')}
                     className="mb-2"
                 >
                     <div className="space-y-1">
+                        {report.provenance?.warnings?.length ? (
+                            <div className="mb-2 space-y-2">
+                                {report.provenance.warnings.map((warning, index) => (
+                                    <div key={`${warning}-${index}`} className="flex gap-2 border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-2 text-[10px] font-mono">
+                                        <ShieldAlert className="mt-0.5 h-3 w-3 flex-shrink-0 osint-danger-text" />
+                                        <span className="osint-danger-text">{warning}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null}
+                        {report.provenance?.search?.webSearchRequests ? (
+                            <div className="px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">
+                                Web search calls: {report.provenance.search.webSearchRequests}
+                            </div>
+                        ) : null}
+                        {visibleEvidence.slice(0, 4).map((evidence) => (
+                            <div key={evidence.id} className="border border-zinc-800 bg-zinc-900/70 p-2">
+                                <div className="text-[10px] font-mono uppercase text-zinc-500">{evidence.kind}</div>
+                                <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
+                            </div>
+                        ))}
                         {reportSources.length === 0 ? (
-                            <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No sources captured for this report.</p>
+                            visibleEvidence.length === 0 ? (
+                                <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">No sources captured for this report.</p>
+                            ) : null
                         ) : (
                             reportSources.map((source, idx) => (
                                 <a key={idx} href={source.url} target="_blank" rel="noopener noreferrer" className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0">

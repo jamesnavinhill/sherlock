@@ -44,6 +44,58 @@ export interface ArtifactSection {
   order?: number;
 }
 
+export type ArtifactEvidenceKind =
+  | 'SOURCE'
+  | 'QUOTE'
+  | 'FINDING'
+  | 'DATA_POINT'
+  | 'TIMELINE_EVENT'
+  | 'METHOD';
+
+export interface ArtifactEvidence {
+  id: string;
+  kind: ArtifactEvidenceKind;
+  title: string;
+  summary: string;
+  quote?: string;
+  sourceTitle?: string;
+  sourceUrl?: string;
+  sectionId?: string;
+  tags?: string[];
+  metadata?: Record<string, unknown>;
+  order?: number;
+}
+
+export interface ProvenanceCitation {
+  url: string;
+  title?: string;
+  content?: string;
+  startIndex?: number;
+  endIndex?: number;
+}
+
+export interface ArtifactProvenance {
+  provider: AIProvider;
+  modelId: string;
+  generatedAt: string;
+  requestId?: string;
+  warnings?: string[];
+  citations?: ProvenanceCitation[];
+  usage?: Record<string, unknown>;
+  search?: {
+    enabled: boolean;
+    provider?: 'GOOGLE' | 'OPENROUTER';
+    engine?: string;
+    webSearchRequests?: number;
+    searchContextSize?: string;
+    allowedDomains?: string[];
+    excludedDomains?: string[];
+  };
+  metadata?: Record<string, unknown>;
+}
+
+export type ArtifactGenerationMode = 'SINGLE_PASS' | 'STAGED';
+
 export interface LabelProfile {
   id: string;
   workspaceLabel: string;
@@ -293,6 +345,16 @@ export interface SystemConfig {
   thinkingBudget: number;
   persona: string;
   searchDepth: 'STANDARD' | 'DEEP';
+  generationMode?: ArtifactGenerationMode;
+  openRouter?: {
+    webSearchEnabled: boolean;
+    engine: 'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel';
+    maxResults: number;
+    maxTotalResults: number;
+    searchContextSize: 'low' | 'medium' | 'high';
+    allowedDomains: string[];
+    excludedDomains: string[];
+  };
   autoNormalizeEntities?: boolean;
   quietMode?: boolean;
 }
@@ -365,6 +427,7 @@ export interface InvestigationRunConfig extends Partial<SystemConfig> {
   purposeName?: string;
   artifactType?: ArtifactType;
   labelProfileId?: string;
+  generationMode?: ArtifactGenerationMode;
   outputProfileId?: string;
   dateRangeOverride?: DateRangeOverride;
   preseededEntities?: ManualNode[];
@@ -408,6 +471,8 @@ export interface Artifact {
   artifactType?: ArtifactType;
   entities: Entity[];
   sources: Source[];
+  evidence?: ArtifactEvidence[];
+  provenance?: ArtifactProvenance;
   rawText: string;
   packId?: string;
   purposeId?: string;

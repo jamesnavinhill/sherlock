@@ -43,6 +43,7 @@ export interface GuidedRunDraft {
     modelId: string;
     persona: string;
     searchDepth: SystemConfig['searchDepth'];
+    generationMode: 'SINGLE_PASS' | 'STAGED';
     thinkingBudget: number;
     dateRange?: { start?: string; end?: string };
 }
@@ -113,6 +114,7 @@ export const createDefaultGuidedSessionState = (
             persona:
                 scope.defaultPersona || scope.personas[0]?.id || systemConfig.persona || 'general-investigator',
             searchDepth: systemConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD',
+            generationMode: systemConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED',
             thinkingBudget: systemConfig.thinkingBudget ?? 0,
             dateRange: undefined,
         },
@@ -187,7 +189,7 @@ export const summarizeGuidedStep = (
                 ? `Priority sources: ${draft.prioritySources.trim()}`
                 : 'No explicit source priorities were added.';
         case 'CONFIG':
-            return `Provider: **${draft.provider}**\nModel: **${draft.modelId}**\nPersona: **${draft.persona}**\nDepth: **${draft.searchDepth}**`;
+            return `Provider: **${draft.provider}**\nModel: **${draft.modelId}**\nPersona: **${draft.persona}**\nDepth: **${draft.searchDepth}**\nGeneration: **${draft.generationMode}**`;
         case 'REVIEW':
             return buildGuidedReviewMarkdown(draft, customScopes);
         default:
@@ -230,6 +232,7 @@ export const buildLaunchRequestFromGuidedDraft = (
         modelId: draft.modelId,
         persona: draft.persona,
         searchDepth: draft.searchDepth,
+        generationMode: draft.generationMode,
         thinkingBudget: draft.thinkingBudget,
         scopeId: scope.id,
         scopeName: scope.name,
@@ -295,7 +298,7 @@ export const buildGuidedReviewMarkdown = (
         `- Entities: ${entityLine}`,
         `- Sources: ${sourceLine}`,
         `- Dates: ${dateLine}`,
-        `- Runtime: **${draft.provider} / ${draft.modelId} / ${draft.searchDepth}**`,
+        `- Runtime: **${draft.provider} / ${draft.modelId} / ${draft.searchDepth} / ${draft.generationMode}**`,
         `- Persona: **${draft.persona}**`,
         `- Label profile: **${labelProfile.workspaceLabel} / ${labelProfile.artifactLabel}**`,
     ].join('\n');

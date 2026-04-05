@@ -2,6 +2,7 @@ import { desc, eq, inArray } from 'drizzle-orm';
 import type { Headline, Artifact, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
 import { getDB } from '../client';
 import {
+    artifactEvidence,
     artifactSections,
     cases,
     entities,
@@ -99,6 +100,9 @@ export class WorkspaceSearchRepository {
         const sectionRows = reportIds.length
             ? await db.select().from(artifactSections).where(inArray(artifactSections.reportId, reportIds))
             : [];
+        const evidenceRows = reportIds.length
+            ? await db.select().from(artifactEvidence).where(inArray(artifactEvidence.reportId, reportIds))
+            : [];
         const entityRows = reportIds.length
             ? await db.select().from(entities).where(inArray(entities.reportId, reportIds))
             : [];
@@ -150,6 +154,33 @@ export class WorkspaceSearchRepository {
                 metadata: {
                     sectionId: row.id,
                     sectionKind: row.kind,
+                },
+            });
+        });
+
+        evidenceRows.forEach((row) => {
+            const parent = row.reportId ? reportById.get(row.reportId) : undefined;
+            const content = [row.summary, row.quote || '', row.sourceTitle || '', row.sourceUrl || '']
+                .filter(Boolean)
+                .join('\n');
+            candidates.push({
+                id: `CTX-EVIDENCE-${row.id}`,
+                kind: 'SECTION',
+                title: `${parent?.topic || 'Artifact'}: ${row.title}`,
+                snippet: toSnippet(content || row.title),
+                refId: row.reportId || undefined,
+                refKind: 'REPORT',
+                score: scoreCandidate(
+                    query,
+                    [row.title, row.summary, row.quote || '', row.sourceTitle || '', parent?.topic || ''],
+                    parent?.createdAt || 0,
+                    row.title
+                ),
+                timestamp: parent?.createdAt,
+                metadata: {
+                    evidenceId: row.id,
+                    evidenceKind: row.kind,
+                    sourceUrl: row.sourceUrl || undefined,
                 },
             });
         });

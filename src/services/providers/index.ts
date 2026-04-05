@@ -1,5 +1,6 @@
 import {
     AI_PROVIDERS,
+    getEffectiveModelCapabilities,
     getModelProvider,
     getProviderOptionById,
     type AIProvider,
@@ -102,6 +103,7 @@ const assertCapability = (
     modelId: string
 ): void => {
     const providerMeta = getProviderOptionById(adapter.provider);
+    const modelCapabilities = getEffectiveModelCapabilities(modelId);
 
     if (!providerMeta) {
         throw new ProviderError({
@@ -112,7 +114,10 @@ const assertCapability = (
         });
     }
 
-    if (operation === 'TTS' && !providerMeta.capabilities.supportsTts) {
+    if (
+        operation === 'TTS' &&
+        (!providerMeta.capabilities.supportsTts || adapter.provider !== 'GEMINI' || !modelCapabilities)
+    ) {
         throw new ProviderError({
             code: 'UNSUPPORTED_OPERATION',
             provider: adapter.provider,
@@ -149,6 +154,7 @@ export const investigateWithProviderRouter = async (
         artifactType: request.artifactType || purpose.recommendedArtifactType,
         labelProfileId: request.labelProfileId || pack.labelProfileId,
         dateOverride: request.dateOverride,
+        generationMode: request.configOverride?.generationMode || config.generationMode,
     });
 };
 

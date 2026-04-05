@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WorkspaceSearchRepository } from './WorkspaceSearchRepository';
 import {
+    artifactEvidence,
     artifactSections,
     cases,
     entities,
@@ -65,6 +66,18 @@ describe('WorkspaceSearchRepository', () => {
                 itemsJson: JSON.stringify(['Supplier concentration increased']),
             },
         ];
+        const evidenceRows = [
+            {
+                id: 'ev-1',
+                reportId: 'rep-1',
+                kind: 'CLAIM',
+                title: 'Supplier concentration evidence',
+                summary: 'Atlas exposure increased through a smaller vendor pool.',
+                quote: 'Supplier concentration increased',
+                sourceTitle: 'Registry filing',
+                sourceUrl: 'https://example.com/filing',
+            },
+        ];
         const entityRows = [
             {
                 id: 'ent-1',
@@ -119,6 +132,12 @@ describe('WorkspaceSearchRepository', () => {
                     };
                 }
 
+                if (table === artifactEvidence) {
+                    return {
+                        where: vi.fn().mockResolvedValue(evidenceRows),
+                    };
+                }
+
                 if (table === entities) {
                     return {
                         where: vi.fn().mockResolvedValue(entityRows),
@@ -168,5 +187,6 @@ describe('WorkspaceSearchRepository', () => {
             })
         );
         expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-REPORT-rep-1')).toBe(true);
+        expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-EVIDENCE-ev-1')).toBe(true);
     });
 });

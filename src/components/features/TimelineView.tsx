@@ -287,10 +287,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             ),
         [artifacts]
     );
-    const runTitleById = useMemo(
-        () => new Map(workspaceRuns.map((workspaceRun) => [workspaceRun.id, sanitizeDisplayTitle(workspaceRun.topic)])),
-        [workspaceRuns]
-    );
     const signalTitleById = useMemo(
         () => new Map(headlines.map((headline) => [headline.id, headline.source || headline.type])),
         [headlines]

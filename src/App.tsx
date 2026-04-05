@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
 import { ApiKeyModal } from './components/ui/ApiKeyModal';
 import type { BreadcrumbItem } from './components/ui/Breadcrumbs';
 import type {
@@ -415,24 +415,23 @@ function App() {
   };
 
   const activeTask = workspaceRuns.find(t => t.id === activeTaskId);
-  const focusedReport = focusedReportId ? artifacts.find(r => r.id === focusedReportId) || null : null;
-  const activeReport = activeTask?.report || focusedReport || null;
-
-  useEffect(() => {
-    if (currentView !== AppView.INVESTIGATION) return;
-    if (activeTaskId || focusedReportId || !activeWorkspaceId) return;
+  const defaultFocusedReportId = useMemo(() => {
+    if (currentView !== AppView.INVESTIGATION) return null;
+    if (activeTaskId || focusedReportId || !activeWorkspaceId) return null;
 
     const caseReports = artifacts.filter((report) => report.caseId === activeWorkspaceId);
-    if (caseReports.length === 0) return;
+    if (caseReports.length === 0) return null;
 
-    const rootReport =
-      caseReports.find((report) => !report.config?.parentArtifactId)
-      || caseReports[0];
-
-    if (rootReport?.id) {
-      setFocusedReportId(rootReport.id);
-    }
+    return (
+      caseReports.find((report) => !report.config?.parentArtifactId)?.id
+      || caseReports[0]?.id
+      || null
+    );
   }, [activeTaskId, activeWorkspaceId, artifacts, currentView, focusedReportId]);
+  const focusedReport = (focusedReportId || defaultFocusedReportId)
+    ? artifacts.find(r => r.id === (focusedReportId || defaultFocusedReportId)) || null
+    : null;
+  const activeReport = activeTask?.report || focusedReport || null;
 
   useEffect(() => {
     if (activeReport) {

@@ -186,26 +186,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         [dossierData.entities, aliases]
     );
 
-    // Handlers
-    const handleNodeClick = useCallback((node: GraphNode | null) => {
-        if (!node) {
-            // Background click
-            setShowRightPanel(false);
-            setInspectorMode(null);
-            setSelectedEntityName(null);
-            setSelectedHeadline(null);
-            setSelectedReport(null);
-            setSelectedNode(null);
-            return;
-        }
-
-        if (node.type === 'CASE' && node.data) {
-            handleOpenReportInspector(node.data, node);
-        } else if (node.type === 'ENTITY') {
-            handleOpenEntityInspector(node.label, node);
-        }
-    }, []);
-
     const handleCreateManualLink = useCallback((source: GraphNode, target: GraphNode) => {
         const newLink: ManualConnection = {
             source: source.id,
@@ -249,14 +229,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
     };
 
     // Inspector Handlers
-    const handleOpenHeadlineInspector = (headline: Headline) => {
+    function handleOpenHeadlineInspector(headline: Headline) {
         setSelectedHeadline(headline);
         setSelectedNode(null);
         setInspectorMode('HEADLINE');
         setShowRightPanel(true);
-    };
+    }
 
-    const handleOpenEntityInspector = (entityName: string, node: GraphNode | null = null) => {
+    function handleOpenEntityInspector(entityName: string, node: GraphNode | null = null) {
         setSelectedEntityName(entityName);
         setSelectedNode(
             node || {
@@ -271,9 +251,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setSelectedReport(null);
         setInspectorMode('ENTITY');
         setShowRightPanel(true);
-    };
+    }
 
-    const handleOpenReportInspector = (report: Artifact, node: GraphNode | null = null) => {
+    function handleOpenReportInspector(report: Artifact, node: GraphNode | null = null) {
         setSelectedReport(report);
         setSelectedNode(
             node ||
@@ -291,7 +271,27 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ onOpenReport, onInve
         setSelectedEntityName(null);
         setInspectorMode('REPORT');
         setShowRightPanel(true);
-    };
+    }
+
+    // Handlers
+    const handleNodeClick = useCallback((node: GraphNode | null) => {
+        if (!node) {
+            // Background click
+            setShowRightPanel(false);
+            setInspectorMode(null);
+            setSelectedEntityName(null);
+            setSelectedHeadline(null);
+            setSelectedReport(null);
+            setSelectedNode(null);
+            return;
+        }
+
+        if (node.type === 'CASE' && node.data) {
+            handleOpenReportInspector(node.data, node);
+        } else if (node.type === 'ENTITY') {
+            handleOpenEntityInspector(node.label, node);
+        }
+    }, []);
 
     const handleLeadInvestigate = (lead: string) => {
         const activeCase = workspaces.find(c => c.id === filterCaseId);

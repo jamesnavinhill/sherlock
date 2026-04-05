@@ -1,4 +1,5 @@
 import type {
+  ArtifactEvidence,
   ArtifactSection,
   ArtifactSectionKind,
   ArtifactType,
@@ -151,12 +152,50 @@ export const buildArtifactSections = (options: {
   summary?: string;
   agendas?: string[];
   leads?: string[];
+  followUps?: string[];
+  methodology?: string;
+  evidence?: ArtifactEvidence[];
   findings?: string[];
   artifactType?: ArtifactType;
 }): ArtifactSection[] => {
   const normalizedSections = normalizeArtifactSections(options.sections);
   if (normalizedSections.length > 0) {
-    return normalizedSections;
+    const existingKinds = new Set(normalizedSections.map((section) => section.kind));
+    const augmentedSections = [...normalizedSections];
+
+    if (!existingKinds.has('EXECUTIVE_SUMMARY') && options.summary?.trim()) {
+      const section = createSection('EXECUTIVE_SUMMARY', augmentedSections.length, {
+        content: options.summary,
+      });
+      if (section) augmentedSections.push(section);
+    }
+
+    if (!existingKinds.has('METHODOLOGY') && options.methodology?.trim()) {
+      const section = createSection('METHODOLOGY', augmentedSections.length, {
+        content: options.methodology,
+      });
+      if (section) augmentedSections.push(section);
+    }
+
+    if (!existingKinds.has('EVIDENCE') && options.evidence?.length) {
+      const section = createSection('EVIDENCE', augmentedSections.length, {
+        items: options.evidence.map((entry) =>
+          entry.sourceTitle
+            ? `${entry.title}: ${entry.summary} (${entry.sourceTitle})`
+            : `${entry.title}: ${entry.summary}`
+        ),
+      });
+      if (section) augmentedSections.push(section);
+    }
+
+    if (!existingKinds.has('NEXT_STEPS') && (options.followUps?.length || options.leads?.length)) {
+      const section = createSection('NEXT_STEPS', augmentedSections.length, {
+        items: options.followUps?.length ? options.followUps : options.leads,
+      });
+      if (section) augmentedSections.push(section);
+    }
+
+    return ensureUniqueSectionIds(augmentedSections);
   }
 
   const derivedSections = [
@@ -164,6 +203,15 @@ export const buildArtifactSections = (options: {
     createSection('KEY_FINDINGS', 1, { items: options.findings }),
     createSection('ANOMALIES', 2, { items: options.agendas }),
     createSection('LEADS', 3, { items: options.leads }),
+    createSection('EVIDENCE', 4, {
+      items: options.evidence?.map((entry) =>
+        entry.sourceTitle
+          ? `${entry.title}: ${entry.summary} (${entry.sourceTitle})`
+          : `${entry.title}: ${entry.summary}`
+      ),
+    }),
+    createSection('METHODOLOGY', 5, { content: options.methodology }),
+    createSection('NEXT_STEPS', 6, { items: options.followUps }),
   ].filter((section): section is ArtifactSection => !!section);
 
   if (derivedSections.length > 0) return ensureUniqueSectionIds(derivedSections);

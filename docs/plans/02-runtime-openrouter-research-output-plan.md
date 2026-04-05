@@ -1,7 +1,7 @@
 # Runtime, OpenRouter, And Research Output Expansion Plan
 
 Date: 2026-04-05
-Status: Active
+Status: Completed
 
 ## Objective
 
@@ -29,6 +29,25 @@ It owns the shared foundations that should not be redesigned inside the board pl
 - minimal report/dossier refresh for the new artifact shape
 
 The board plan should consume these outputs, not redefine them.
+
+## Implementation Summary
+
+This plan is now implemented in the runtime baseline.
+
+Delivered outcomes:
+
+- capability-aware provider/model registry with OpenRouter live catalog refresh, local cache, quick picks, recent selections, and manual slug support
+- stronger shared provider request/response types for chat and artifact generation
+- OpenRouter modernization around `openrouter:web_search`, native message arrays, structured-output preference, and richer provenance capture
+- research-grade artifact contract with section-first outputs, first-class evidence records, methodology blocks, compatibility arrays, and generation-mode snapshots
+- minimal report/dossier refresh that surfaces evidence, provenance warnings, provider/model context, and generation mode honestly
+- settings, task setup, guided mode, and template flows updated to use the new model/runtime contract
+
+Validation completed for this plan:
+
+- `npm run lint`
+- targeted tests for config, artifact shaping, guided mode, chat runtime, provider routing, DB upgrades, workspace search bundling, and Operation View launch propagation
+- `npm run build`
 
 ## Decisions Locked In
 

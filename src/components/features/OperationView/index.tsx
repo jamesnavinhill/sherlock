@@ -68,6 +68,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
         reports: false,
         entities: false,
         leads: false,
+        evidence: false,
         sources: false,
         headlines: false // Default closed
     });
@@ -140,6 +141,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
             modelId: config.modelId,
             persona: config.persona,
             searchDepth: config.searchDepth,
+            generationMode: config.generationMode,
             thinkingBudget: config.thinkingBudget,
         };
     };

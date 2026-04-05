@@ -149,7 +149,8 @@ const getPurposePromptAddendum = (purpose: PurposeProfile): string => {
 
 export const buildStructuredArtifactResponseInstruction = (
     purpose: PurposeProfile,
-    labelProfileId: string
+    labelProfileId: string,
+    generationMode: 'SINGLE_PASS' | 'STAGED' = 'STAGED'
 ): string => {
     const labelProfile = getLabelProfileById(labelProfileId);
     const followUpCount =
@@ -159,7 +160,19 @@ export const buildStructuredArtifactResponseInstruction = (
               ? '3-5'
               : '3-4';
 
-    return `CRITICAL: Respond with JSON only containing summary (string), entities (array), agendas (array), leads (array), sources (array of {title, url}), and optional sections (array). Use agendas for ${labelProfile.anomalyLabel.toLowerCase()}. Use leads for ${labelProfile.followUpLabel.toLowerCase()} even when they are questions, comparisons, monitoring actions, or recommendations. Include ${followUpCount} lead items when possible. For each entity, specify name, type (PERSON/ORGANIZATION/UNKNOWN), role, and sentiment. Include 3-8 unique sources and provide each source as { "title": "...", "url": "https://..." }. When useful, return sections as an array of { kind, title, content, items } aligned with the purpose.`;
+    return `CRITICAL: Respond with JSON only using this shape:
+{
+  "summary": "string",
+  "entities": [{ "name": "string", "type": "PERSON|ORGANIZATION|UNKNOWN", "role": "string", "sentiment": "POSITIVE|NEGATIVE|NEUTRAL" }],
+  "agendas": ["string"],
+  "leads": ["string"],
+  "followUps": ["string"],
+  "methodology": "string",
+  "sources": [{ "title": "string", "url": "https://..." }],
+  "evidence": [{ "kind": "SOURCE|QUOTE|FINDING|DATA_POINT|TIMELINE_EVENT|METHOD", "title": "string", "summary": "string", "quote": "optional string", "sourceTitle": "optional string", "sourceUrl": "optional https://..." }],
+  "sections": [{ "kind": "EXECUTIVE_SUMMARY|KEY_FINDINGS|ANOMALIES|LEADS|EVIDENCE|TIMELINE|METHODOLOGY|LITERATURE_REVIEW|IMPLICATIONS|NEXT_STEPS|CUSTOM", "title": "string", "content": "optional string", "items": ["optional strings"] }]
+}
+Use agendas for ${labelProfile.anomalyLabel.toLowerCase()} and leads/followUps for ${labelProfile.followUpLabel.toLowerCase()} even when they are questions, comparisons, monitoring actions, or recommendations. Include ${followUpCount} follow-up items when possible. Include 3-8 unique sources. Include 3-8 evidence records tied to specific claims or observations whenever possible. ${generationMode === 'STAGED' ? 'Assume this output is part of a deeper research workflow, so emphasize evidence quality, methodology transparency, and reusable sections.' : 'Keep the output decisive but still evidence-backed and structured.'}`;
 };
 
 export const buildAnomalyPrompt = (params: {

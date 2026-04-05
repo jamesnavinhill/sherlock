@@ -22,6 +22,7 @@ import {
   Sparkles,
   Shapes,
   Library,
+  Workflow,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { OsintSelect } from './OsintSelect';
@@ -38,9 +39,12 @@ import type { AIProvider } from '../../config/aiModels';
 import {
   AI_PROVIDERS,
   DEFAULT_MODEL_ID,
+  getCompactModelChoicesForProvider,
   getDefaultModelForProvider,
+  getEffectiveModelCapabilities,
   getModelProvider,
   getProviderOptionById,
+  recordRecentModelSelection,
   getRuntimeReadyModelsForProvider,
 } from '../../config/aiModels';
 import { loadSystemConfig } from '../../config/systemConfig';
@@ -52,6 +56,7 @@ import {
   getTaskSetupCopy,
 } from '../../domain';
 import { getEntityToneClass } from '../../utils/entityPalette';
+import { OpenRouterModelBrowser } from './OpenRouterModelBrowser';
 
 type TaskSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
 
@@ -144,6 +149,11 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(
     (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP' ? 'DEEP' : 'STANDARD'
   );
+  const [generationMode, setGenerationMode] = useState<'SINGLE_PASS' | 'STAGED'>(
+    initialConfigOverride?.generationMode === 'SINGLE_PASS'
+      ? 'SINGLE_PASS'
+      : (storedConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED')
+  );
   const [thinkingBudget, setThinkingBudget] = useState(
     typeof initialConfigOverride?.thinkingBudget === 'number'
       ? initialConfigOverride.thinkingBudget
@@ -155,19 +165,30 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     initialConfigOverride?.provider || getModelProvider(initialModelId)
   ) as AIProvider;
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(initialProvider);
+  const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
   const [selectedModel, setSelectedModel] = useState(() => {
-    const providerModels = getRuntimeReadyModelsForProvider(initialProvider);
+    const providerModels = initialProvider === 'OPENROUTER'
+      ? getCompactModelChoicesForProvider(initialProvider, initialModelId)
+      : getRuntimeReadyModelsForProvider(initialProvider);
     return providerModels.some((model) => model.id === initialModelId)
+      || (initialProvider === 'OPENROUTER' && getModelProvider(initialModelId) === 'OPENROUTER')
       ? initialModelId
       : providerModels[0]?.id || getDefaultModelForProvider(initialProvider);
   });
 
-  const selectableModels = getRuntimeReadyModelsForProvider(selectedProvider);
-  const effectiveSelectedModel = selectableModels.some((model) => model.id === selectedModel)
-    ? selectedModel
-    : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider);
+  const selectableModels = selectedProvider === 'OPENROUTER'
+    ? getCompactModelChoicesForProvider(selectedProvider, selectedModel)
+    : getRuntimeReadyModelsForProvider(selectedProvider);
+  const effectiveSelectedModel = selectedProvider === 'OPENROUTER'
+    ? (getModelProvider(selectedModel) === 'OPENROUTER'
+        ? selectedModel
+        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider))
+    : (selectableModels.some((model) => model.id === selectedModel)
+        ? selectedModel
+        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider));
   const selectedProviderMeta = getProviderOptionById(selectedProvider);
-  const supportsThinkingBudget = selectedProviderMeta?.capabilities.supportsThinkingBudget ?? false;
+  const selectedModelCapabilities = getEffectiveModelCapabilities(effectiveSelectedModel);
+  const supportsThinkingBudget = selectedModelCapabilities.supportsThinkingBudget;
 
   const steps = [
     { id: 0, label: 'Pack', icon: Compass },
@@ -201,11 +222,15 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
       || 'general-investigator'
     );
     setDepth(template.config.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD');
+    setGenerationMode(template.config.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED');
     setThinkingBudget(template.config.thinkingBudget ?? 0);
     setSelectedProvider(templateProvider);
+    const templateProviderModels = templateProvider === 'OPENROUTER'
+      ? getCompactModelChoicesForProvider(templateProvider, template.config.modelId)
+      : getRuntimeReadyModelsForProvider(templateProvider);
     setSelectedModel(
       template.config.modelId
-      || getRuntimeReadyModelsForProvider(templateProvider)[0]?.id
+      || templateProviderModels[0]?.id
       || getDefaultModelForProvider(templateProvider)
     );
   };
@@ -273,6 +298,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         provider: selectedProvider,
         persona: effectivePersona,
         searchDepth: depth,
+        generationMode,
         thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
         modelId: effectiveSelectedModel,
         scopeId: selectedScope.id,
@@ -288,6 +314,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
       selectedScope,
       dateRange
     );
+    recordRecentModelSelection(effectiveSelectedModel);
 
     if (saveAsTemplate && templateName.trim()) {
       const templateMetadata = createTemplateMetadata();
@@ -299,6 +326,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           provider: selectedProvider,
           persona: effectivePersona,
           searchDepth: depth,
+          generationMode,
           thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
           modelId: effectiveSelectedModel,
           packId: selectedPack.id,
@@ -676,9 +704,12 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             value={selectedProvider}
             onChange={(value) => {
               const provider = value as AIProvider;
+              const nextProviderModels = provider === 'OPENROUTER'
+                ? getCompactModelChoicesForProvider(provider)
+                : getRuntimeReadyModelsForProvider(provider);
               setSelectedProvider(provider);
               setSelectedModel(
-                getRuntimeReadyModelsForProvider(provider)[0]?.id
+                nextProviderModels[0]?.id
                 || getDefaultModelForProvider(provider)
               );
             }}
@@ -700,19 +731,36 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           <p className="text-[10px] text-zinc-600 mb-2 font-mono">
             Selected provider: {selectedProviderMeta?.label || selectedProvider}
           </p>
-          <OsintSelect
-            ariaLabel="Model"
-            value={effectiveSelectedModel}
-            onChange={setSelectedModel}
-            triggerClassName="p-2 pr-8 font-mono text-xs"
-            options={selectableModels.map((model) => ({
-              value: model.id,
-              label: `${model.name} - ${model.description}`,
-            }))}
-          />
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <OsintSelect
+                ariaLabel="Model"
+                value={effectiveSelectedModel}
+                onChange={(value) => {
+                  setSelectedModel(value);
+                  recordRecentModelSelection(value);
+                }}
+                triggerClassName="p-2 pr-8 font-mono text-xs"
+                options={selectableModels.map((model) => ({
+                  value: model.id,
+                  label: `${model.name} - ${model.description}`,
+                }))}
+              />
+            </div>
+            {selectedProvider === 'OPENROUTER' && (
+              <button
+                type="button"
+                onClick={() => setShowOpenRouterBrowser(true)}
+                className="border border-zinc-700 px-3 py-2 text-[10px] font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white"
+              >
+                Browse
+              </button>
+            )}
+          </div>
           <p className="text-[10px] text-zinc-600 mt-2 font-mono">
             Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'},
-            web search {selectedProviderMeta?.capabilities.supportsWebSearch ? 'available' : 'not available'}.
+            structured output {selectedModelCapabilities.supportsStructuredOutput ? 'available' : 'not available'},
+            web search {selectedModelCapabilities.supportsWebSearch ? 'available' : 'not available'}.
           </p>
         </section>
 
@@ -744,6 +792,40 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
               }`}
             >
               Deep
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <section className="border border-zinc-800 bg-zinc-900/30 p-4">
+          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+            <Workflow className="w-3 h-3 mr-2" />
+            Generation Mode
+          </label>
+          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
+            Single pass is lighter. Staged favors stronger evidence and reusable sections.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setGenerationMode('SINGLE_PASS')}
+              className={`py-2 text-xs font-mono uppercase ${
+                generationMode === 'SINGLE_PASS'
+                  ? 'osint-button-soft'
+                  : 'osint-button-primary'
+              }`}
+            >
+              Single Pass
+            </button>
+            <button
+              onClick={() => setGenerationMode('STAGED')}
+              className={`py-2 text-xs font-mono uppercase ${
+                generationMode === 'STAGED'
+                  ? 'osint-button-soft'
+                  : 'osint-button-primary'
+              }`}
+            >
+              Staged
             </button>
           </div>
         </section>
@@ -801,8 +883,9 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-osint-panel w-full max-w-5xl h-full sm:h-auto max-h-[95vh] border border-zinc-600 shadow-2xl flex flex-col relative overflow-hidden">
+    <>
+      <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="bg-osint-panel w-full max-w-5xl h-full sm:h-auto max-h-[95vh] border border-zinc-600 shadow-2xl flex flex-col relative overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
           <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
             <Target className="w-5 h-5 text-osint-primary" />
@@ -913,6 +996,14 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      <OpenRouterModelBrowser
+        isOpen={showOpenRouterBrowser}
+        currentModelId={selectedProvider === 'OPENROUTER' ? effectiveSelectedModel : undefined}
+        onClose={() => setShowOpenRouterBrowser(false)}
+        onSelectModel={(modelId) => setSelectedModel(modelId)}
+      />
+    </>
   );
 };

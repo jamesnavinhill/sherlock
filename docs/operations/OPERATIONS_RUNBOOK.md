@@ -27,6 +27,11 @@ Adapters in scope:
    - `operation`
    - `retryCount`
    - `errorClass`
+6. If the run used OpenRouter, also capture:
+   - `generationMode`
+   - whether OpenRouter web search was enabled
+   - search engine and domain filters from `System Config -> AI`
+   - any provenance warnings shown in the artifact or chat response
 
 ## 2. Error Class Reference
 
@@ -45,8 +50,16 @@ Adapters in scope:
 - Chat stop/cancel: aborts the active provider request and persists the turn as cancelled if a final answer was not completed.
 - Chat actions: retrieval/save/follow-up operations are persisted in `chat_actions`; use them when confirming what the system actually did for a user.
 - Timeline audit: persisted chat sessions and high-signal `chat_actions` now surface in `Timeline`, so operator verification can cross-check Chat's action log against the workspace chronology.
-- Thinking budget: model-gated, mainly relevant to Gemini models.
-- Web search: capability varies by provider/model metadata.
+- Thinking budget: model-gated. Do not assume it is available just because the provider supports some reasoning-capable models.
+- Structured output: model-gated. Sherlock will request native structured output where available and fall back to prompt-shaped JSON when it is not.
+- Web search: capability varies by selected model metadata.
+- OpenRouter web search defaults on, but can be disabled globally in `System Config -> AI`.
+
+OpenRouter-specific search notes:
+
+- Sherlock uses `openrouter:web_search` as the primary search path.
+- Operator-tunable settings are `enabled`, `engine`, `maxResults`, `maxTotalResults`, `searchContextSize`, `allowedDomains`, and `excludedDomains`.
+- Some engines do not honor every filter combination. Sherlock records warnings in artifact/chat provenance when a requested filter set is likely to be ignored.
 
 ## 4. Launch Propagation Checks
 
@@ -62,7 +75,8 @@ If users report wrong provider/model context:
 2. Validate persisted config snapshots on task/artifact (`provider`, `modelId`, `scopeId`, `dateRangeOverride`, `launchSource`).
 3. Confirm pack/purpose snapshots (`packId`, `purposeId`, `artifactType`, `labelProfileId`) match the selected launch setup.
 4. Confirm inherited context from parent artifact/workspace where expected.
-5. If the launch used a starter or template, verify the resolved purpose and artifact type still match the prefilled copy shown in `TaskSetupModal`.
+5. Confirm `generationMode` propagated correctly when the launch came from Settings defaults, a saved template, guided mode, or a parent artifact follow-up.
+6. If the launch used a starter or template, verify the resolved purpose and artifact type still match the prefilled copy shown in `TaskSetupModal`.
 
 ## 5. Fallback Behavior Notes
 
@@ -72,6 +86,7 @@ Current adapter behavior:
 - `CHAT`: fails hard on provider or retrieval errors (no simulated transcript fallback). Streaming turns follow the same rule and only keep the partial text if the user explicitly stopped the run.
 - `SCAN_ANOMALIES` and `LIVE_INTEL`: return simulated fallback items for non-key failures.
 - `MISSING_API_KEY`: does not fallback; error is surfaced.
+- invalid or unavailable saved model ids now fall back to the nearest runtime-valid selection, except OpenRouter manual slugs which are preserved intentionally.
 
 This distinction is important when diagnosing "why data still appeared" in feed/live flows.
 
@@ -80,14 +95,18 @@ This distinction is important when diagnosing "why data still appeared" in feed/
 1. Switch to a known-good provider/model with valid key.
 2. Retry with narrower scope/topic/date range.
 3. Disable or simplify optional overrides.
-4. Capture logs and failing input for escalation.
+4. For OpenRouter incidents, retry with web search disabled once to separate provider/model issues from search-tool issues.
+5. If the artifact shows provenance warnings, capture them before retrying because they often explain unsupported engine/filter combinations.
+6. Capture logs and failing input for escalation.
 
 ## 7. Escalation Artifact Checklist
 
 - Timestamp + timezone
 - Browser and app context
 - Provider/model and operation
+- Generation mode and OpenRouter search settings if relevant
 - Launch source
 - Error class + message
 - Minimal reproducible prompt/topic
 - Whether fallback data appeared
+- Any artifact/chat provenance warnings or missing-citation symptoms

@@ -38,10 +38,13 @@ import type { AIProvider } from '../../../config/aiModels';
 import {
     AI_PROVIDERS,
     DEFAULT_MODEL_ID,
+    getCompactModelChoicesForProvider,
     getDefaultModelForProvider,
+    getEffectiveModelCapabilities,
     getModelProvider,
     getProviderOptionById,
     getModelOptionById,
+    recordRecentModelSelection,
     getRuntimeReadyModelsForProvider,
     isProviderRuntimeReady
 } from '../../../config/aiModels';
@@ -58,6 +61,7 @@ import {
     normalizeWorkspaceDataBackup,
 } from '../../../services/maintenance/workspaceData';
 import { clearStoredActiveWorkspaceId } from '../../../utils/localStorage';
+import { OpenRouterModelBrowser } from '../../ui/OpenRouterModelBrowser';
 
 interface SettingsProps {
     themeColor: string;
@@ -125,6 +129,31 @@ export const Settings: React.FC<SettingsProps> = ({
     const [selectedModel, setSelectedModel] = useState(initialConfig.modelId ?? DEFAULT_MODEL_ID);
     const [searchDepth, setSearchDepth] = useState<'STANDARD' | 'DEEP'>(initialConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD');
     const [thinkingBudget, setThinkingBudget] = useState(typeof initialConfig.thinkingBudget === 'number' ? initialConfig.thinkingBudget : 0);
+    const [generationMode, setGenerationMode] = useState<'SINGLE_PASS' | 'STAGED'>(
+        initialConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED'
+    );
+    const [openRouterWebSearchEnabled, setOpenRouterWebSearchEnabled] = useState(
+        initialConfig.openRouter?.webSearchEnabled !== false
+    );
+    const [openRouterEngine, setOpenRouterEngine] = useState<
+        'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel'
+    >(initialConfig.openRouter?.engine || 'auto');
+    const [openRouterMaxResults, setOpenRouterMaxResults] = useState(
+        initialConfig.openRouter?.maxResults || 5
+    );
+    const [openRouterMaxTotalResults, setOpenRouterMaxTotalResults] = useState(
+        initialConfig.openRouter?.maxTotalResults || 15
+    );
+    const [openRouterSearchContextSize, setOpenRouterSearchContextSize] = useState<
+        'low' | 'medium' | 'high'
+    >(initialConfig.openRouter?.searchContextSize || 'medium');
+    const [openRouterAllowedDomains, setOpenRouterAllowedDomains] = useState(
+        (initialConfig.openRouter?.allowedDomains || []).join(', ')
+    );
+    const [openRouterExcludedDomains, setOpenRouterExcludedDomains] = useState(
+        (initialConfig.openRouter?.excludedDomains || []).join(', ')
+    );
+    const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
 
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -139,13 +168,20 @@ export const Settings: React.FC<SettingsProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const activeProvider = isProviderRuntimeReady(selectedProvider) ? selectedProvider : 'GEMINI';
-    const selectableModels = getRuntimeReadyModelsForProvider(activeProvider);
-    const activeModelId = selectableModels.some((model) => model.id === selectedModel)
-        ? selectedModel
-        : (selectableModels[0]?.id ?? getDefaultModelForProvider(activeProvider));
+    const selectableModels = activeProvider === 'OPENROUTER'
+        ? getCompactModelChoicesForProvider(activeProvider, selectedModel)
+        : getRuntimeReadyModelsForProvider(activeProvider);
+    const activeModelId = activeProvider === 'OPENROUTER'
+        ? (getModelProvider(selectedModel) === 'OPENROUTER'
+            ? selectedModel
+            : (selectableModels[0]?.id ?? getDefaultModelForProvider(activeProvider)))
+        : (selectableModels.some((model) => model.id === selectedModel)
+            ? selectedModel
+            : (selectableModels[0]?.id ?? getDefaultModelForProvider(activeProvider)));
     const selectedModelMeta = getModelOptionById(activeModelId);
     const activeProviderMeta = getProviderOptionById(activeProvider);
-    const supportsThinkingBudget = !!selectedModelMeta?.capabilities.supportsThinkingBudget;
+    const selectedModelCapabilities = getEffectiveModelCapabilities(activeModelId);
+    const supportsThinkingBudget = !!selectedModelCapabilities.supportsThinkingBudget;
 
     const toggleThemeSection = (section: keyof typeof themeSections) => {
         setThemeSections((current) => ({
@@ -224,12 +260,29 @@ export const Settings: React.FC<SettingsProps> = ({
             modelId: activeModelId,
             searchDepth,
             thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
+            generationMode,
+            openRouter: {
+                webSearchEnabled: openRouterWebSearchEnabled,
+                engine: openRouterEngine,
+                maxResults: openRouterMaxResults,
+                maxTotalResults: openRouterMaxTotalResults,
+                searchContextSize: openRouterSearchContextSize,
+                allowedDomains: openRouterAllowedDomains
+                    .split(/[\n,]/)
+                    .map((entry) => entry.trim())
+                    .filter(Boolean),
+                excludedDomains: openRouterExcludedDomains
+                    .split(/[\n,]/)
+                    .map((entry) => entry.trim())
+                    .filter(Boolean),
+            },
             persona: existingConfig.persona || 'general-investigator',
             autoNormalizeEntities: autoResolve,
             quietMode
         };
 
         saveSystemConfig(config, { theme: themeColor, themeMode, themeSurfaceSettings });
+        recordRecentModelSelection(activeModelId);
 
         setTimeout(() => {
             setIsSaving(false);
@@ -585,7 +638,11 @@ export const Settings: React.FC<SettingsProps> = ({
                                 onChange={(value) => {
                                     const nextProvider = value as AIProvider;
                                     setSelectedProvider(nextProvider);
-                                    const fallbackModel = getRuntimeReadyModelsForProvider(nextProvider)[0]?.id || getDefaultModelForProvider(nextProvider);
+                                    const fallbackModel = (
+                                        nextProvider === 'OPENROUTER'
+                                            ? getCompactModelChoicesForProvider(nextProvider)
+                                            : getRuntimeReadyModelsForProvider(nextProvider)
+                                    )[0]?.id || getDefaultModelForProvider(nextProvider);
                                     setSelectedModel(fallbackModel);
                                 }}
                                 triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
@@ -599,21 +656,37 @@ export const Settings: React.FC<SettingsProps> = ({
 
                         <div>
                             <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-2">Active Model</label>
-                            <OsintSelect
-                                ariaLabel="Active model"
-                                value={activeModelId}
-                                onChange={setSelectedModel}
-                                triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
-                                options={selectableModels.map((model) => ({
-                                    value: model.id,
-                                    label: `${model.name} (${model.id})`,
-                                }))}
-                            />
+                            <div className="flex gap-2">
+                                <div className="flex-1">
+                                    <OsintSelect
+                                        ariaLabel="Active model"
+                                        value={activeModelId}
+                                        onChange={(value) => {
+                                            setSelectedModel(value);
+                                            recordRecentModelSelection(value);
+                                        }}
+                                        triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
+                                        options={selectableModels.map((model) => ({
+                                            value: model.id,
+                                            label: `${model.name} (${model.id})`,
+                                        }))}
+                                    />
+                                </div>
+                                {activeProvider === 'OPENROUTER' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowOpenRouterBrowser(true)}
+                                        className="border border-zinc-700 px-3 py-2 text-[10px] font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white"
+                                    >
+                                        Browse
+                                    </button>
+                                )}
+                            </div>
                             <p className="text-[10px] text-zinc-500 font-mono mt-2">
                                 Provider: <span className="text-zinc-300">{selectedModelMeta?.provider || activeProvider}</span>
                             </p>
                             <p className="text-[10px] text-zinc-500 font-mono mt-1">
-                                Capabilities: thinking {supportsThinkingBudget ? 'enabled' : 'not available'}, web search {activeProviderMeta?.capabilities.supportsWebSearch ? 'enabled' : 'not available'}, TTS {activeProviderMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
+                                Capabilities: thinking {selectedModelCapabilities.supportsThinkingBudget ? 'enabled' : 'not available'}, structured output {selectedModelCapabilities.supportsStructuredOutput ? 'enabled' : 'not available'}, web search {selectedModelCapabilities.supportsWebSearch ? 'enabled' : 'not available'}, TTS {activeProviderMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
                             </p>
                         </div>
 
@@ -637,6 +710,124 @@ export const Settings: React.FC<SettingsProps> = ({
                                 </button>
                             </div>
                         </div>
+
+                        <div className="pt-4 border-t border-zinc-800 space-y-4">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Workflow className="w-3 h-3 text-osint-primary" />
+                                <label className="text-[10px] text-zinc-500 font-mono uppercase">Generation Mode</label>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => setGenerationMode('SINGLE_PASS')}
+                                    className={`py-2 font-mono text-xs uppercase ${generationMode === 'SINGLE_PASS' ? 'osint-button-soft' : 'osint-button-primary'}`}
+                                >
+                                    Single Pass
+                                </button>
+                                <button
+                                    onClick={() => setGenerationMode('STAGED')}
+                                    className={`py-2 font-mono text-xs uppercase ${generationMode === 'STAGED' ? 'osint-button-soft' : 'osint-button-primary'}`}
+                                >
+                                    Staged
+                                </button>
+                            </div>
+                        </div>
+
+                        {activeProvider === 'OPENROUTER' && (
+                            <div className="pt-4 border-t border-zinc-800 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] text-zinc-500 font-mono uppercase">OpenRouter Web Search</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenRouterWebSearchEnabled(!openRouterWebSearchEnabled)}
+                                        aria-pressed={openRouterWebSearchEnabled}
+                                        data-state={openRouterWebSearchEnabled ? 'on' : 'off'}
+                                        className="osint-toggle"
+                                    >
+                                        <span className="osint-toggle-thumb" />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <label className="block">
+                                        <span className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">Engine</span>
+                                        <OsintSelect
+                                            ariaLabel="OpenRouter search engine"
+                                            value={openRouterEngine}
+                                            onChange={(value) => setOpenRouterEngine(value as typeof openRouterEngine)}
+                                            triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
+                                            options={[
+                                                { value: 'auto', label: 'Auto' },
+                                                { value: 'native', label: 'Native' },
+                                                { value: 'exa', label: 'Exa' },
+                                                { value: 'parallel', label: 'Parallel' },
+                                                { value: 'firecrawl', label: 'Firecrawl' },
+                                            ]}
+                                        />
+                                    </label>
+                                    <label className="block">
+                                        <span className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">Context Size</span>
+                                        <OsintSelect
+                                            ariaLabel="OpenRouter search context size"
+                                            value={openRouterSearchContextSize}
+                                            onChange={(value) =>
+                                                setOpenRouterSearchContextSize(value as typeof openRouterSearchContextSize)
+                                            }
+                                            triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
+                                            options={[
+                                                { value: 'low', label: 'Low' },
+                                                { value: 'medium', label: 'Medium' },
+                                                { value: 'high', label: 'High' },
+                                            ]}
+                                        />
+                                    </label>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <label className="block">
+                                        <span className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">Max Results</span>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={25}
+                                            value={openRouterMaxResults}
+                                            onChange={(event) => setOpenRouterMaxResults(Number(event.target.value) || 1)}
+                                            className="w-full border border-zinc-700 bg-black px-3 py-3 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                                        />
+                                    </label>
+                                    <label className="block">
+                                        <span className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">Max Total Results</span>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={50}
+                                            value={openRouterMaxTotalResults}
+                                            onChange={(event) => setOpenRouterMaxTotalResults(Number(event.target.value) || 1)}
+                                            className="w-full border border-zinc-700 bg-black px-3 py-3 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                                        />
+                                    </label>
+                                </div>
+
+                                <label className="block">
+                                    <span className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">Allowed Domains</span>
+                                    <textarea
+                                        value={openRouterAllowedDomains}
+                                        onChange={(event) => setOpenRouterAllowedDomains(event.target.value)}
+                                        placeholder="arxiv.org, sec.gov"
+                                        className="h-20 w-full resize-none border border-zinc-700 bg-black px-3 py-3 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                                    />
+                                </label>
+
+                                <label className="block">
+                                    <span className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">Excluded Domains</span>
+                                    <textarea
+                                        value={openRouterExcludedDomains}
+                                        onChange={(event) => setOpenRouterExcludedDomains(event.target.value)}
+                                        placeholder="reddit.com"
+                                        className="h-20 w-full resize-none border border-zinc-700 bg-black px-3 py-3 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                                    />
+                                </label>
+                            </div>
+                        )}
 
                         <div className="pt-2 space-y-2">
                             <div className="flex items-center space-x-2">
@@ -886,6 +1077,13 @@ export const Settings: React.FC<SettingsProps> = ({
                     {activeTab === 'THEME' && renderTheme()}
                 </div>
             </main>
+
+            <OpenRouterModelBrowser
+                isOpen={showOpenRouterBrowser}
+                currentModelId={activeProvider === 'OPENROUTER' ? activeModelId : undefined}
+                onClose={() => setShowOpenRouterBrowser(false)}
+                onSelectModel={(modelId) => setSelectedModel(modelId)}
+            />
         </div>
     );
 };

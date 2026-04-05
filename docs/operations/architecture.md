@@ -105,16 +105,27 @@ Shared provider utilities:
   - JSON parsing fallbacks
   - output normalization
   - prompt builders
+  - shared chat message shaping
+  - artifact contract normalization
+
+Model registry and provider defaults:
+
+- `src/config/aiModels.ts`
+- `src/config/systemConfig.ts`
 
 Key behavior:
 
+- model selection is now capability-aware at the selected-model level rather than only the provider level
+- `aiModels.ts` exposes static direct-provider models plus a dynamic OpenRouter catalog backed by bundled snapshot, local cache, live refresh, curated quick picks, recent selections, and manual slug support
 - router enforces provider/model alignment and capability checks
 - router resolves a pack and purpose profile for each run
 - router now exposes a sibling `CHAT` runtime path for workspace-grounded conversational turns
 - router now exposes both non-streaming and streaming chat paths with a provider-agnostic event envelope and abort support
-- adapters return typed artifact sections in addition to legacy `summary`, `agendas`, and `leads`
-- chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations
+- adapters now share a stronger request/response shape for both chat and artifact generation, including model-aware capability handling and warning surfaces
+- adapters return typed artifact sections plus compatibility `summary`, `agendas`, `leads`, and `followUps`
+- chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations/provenance
 - TTS is only implemented on Gemini adapter
+- OpenRouter uses native message arrays, requests native structured output when available, and enables `openrouter:web_search` by default when the active configuration allows it
 - provider debug logs use `[provider-router]` metadata
 
 ## 5. Persistence Model
@@ -136,12 +147,13 @@ Entry points:
 The schema still uses compatibility table names such as `cases`, `reports`, and `tasks`, while runtime code treats them as workspaces, artifacts, and workspace runs:
 
 - `cases` can now hold workspace-oriented metadata such as `mode`, `packId`, `purposeId`, and `labelProfileId`
-- `reports` now store `artifactType`, pack/purpose references, label profiles, and metadata JSON
+- `reports` now store `artifactType`, pack/purpose references, label profiles, config snapshots, and metadata JSON including provider provenance
 - `artifact_sections` persists typed section rows separately from the legacy flattened report fields, with section ids scoped per report rather than globally across the table
+- `artifact_evidence` persists first-class evidence rows for artifact claims, citations, quotes, and source hints
 - `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
 - `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
 
-Artifact persistence still uses the existing `reports` table, and `configJson` now carries the explicit lineage refs that Timeline and other runtime surfaces use directly.
+Artifact persistence still uses the existing `reports` table, while `artifact_sections` and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
 Maintenance flows now treat SQLite data as a workspace-data domain:
 
@@ -186,6 +198,13 @@ Persistence writes are handled through repository calls and settings KV writes r
 - InspectorPanel
 
 Supports deep dives, headline follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
+
+`ReportViewer` and `DossierPanel` now also surface:
+
+- evidence records as first-class report content
+- methodology sections when present
+- provider/model/generation-mode badges
+- provenance warnings and web-search usage hints
 
 ### Chat
 
@@ -266,6 +285,9 @@ Task setup and template flows now expose:
 - purpose selection
 - pack-specific starter prompts
 - purpose-aware copy and output defaults
+- generation-mode selection (`SINGLE_PASS` vs `STAGED`)
+- model-aware capability messaging instead of provider-wide assumptions
+- compact OpenRouter quick picks plus a dedicated browser modal for full catalog/manual slug entry
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
 
 ### Archives

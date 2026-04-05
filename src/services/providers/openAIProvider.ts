@@ -1,5 +1,4 @@
 import type { FeedItem, Artifact, MonitorEvent } from '../../types';
-import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
     ChatRequest,
@@ -13,10 +12,8 @@ import { parseJsonWithFallback, toDisplayText } from './shared/jsonParsing';
 import {
     dedupeSources,
     extractSourcesFromText,
-    normalizeEntities,
     normalizeFeedItems,
     normalizeLiveEvents,
-    normalizeStringList,
 } from './shared/normalizers';
 import {
     buildAnomalyPrompt,
@@ -28,6 +25,7 @@ import { buildWorkspaceChatPrompt, buildWorkspaceChatPromptWithFormat, normalize
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
 import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
+import { buildArtifactFromPayload } from './shared/artifactContract';
 
 const PROVIDER = 'OPENAI' as const;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -172,7 +170,8 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
             );
             prompt += `\n${buildStructuredArtifactResponseInstruction(
                 request.purpose,
-                request.labelProfileId
+                request.labelProfileId,
+                request.generationMode || config.generationMode || 'STAGED'
             )}`;
 
             const rawText = await queryOpenAI(config.modelId, prompt, {
@@ -183,26 +182,8 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
 
             const data =
                 parsedData && typeof parsedData === 'object'
-                    ? (parsedData as {
-                          summary?: unknown;
-                          entities?: unknown;
-                          agendas?: unknown;
-                          leads?: unknown;
-                          sources?: Array<{ title?: unknown; url?: unknown; uri?: unknown }>;
-                          sections?: unknown;
-                      })
+                    ? (parsedData as StructuredArtifactPayload)
                     : {};
-
-            const agendas = normalizeStringList(data.agendas);
-            const leads = normalizeStringList(data.leads);
-            const summary = toDisplayText(data.summary).trim() || 'Analysis pending...';
-            const sections = buildArtifactSections({
-                sections: data.sections,
-                summary,
-                agendas,
-                leads,
-                artifactType: request.artifactType,
-            });
 
             const modelSources = Array.isArray(data.sources)
                 ? dedupeSources(
@@ -214,49 +195,26 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
                   )
                 : [];
 
-            const textFallbackSources = extractSourcesFromText(
-                [rawText, summary, ...leads].join('\n')
-            );
+            const textFallbackSources = extractSourcesFromText(rawText);
 
-            const sources = dedupeSources([...modelSources, ...textFallbackSources]);
-
-            return {
+            return buildArtifactFromPayload(data, JSON.stringify(data, null, 2), {
+                provider: PROVIDER,
+                modelId: config.modelId,
                 topic: normalizedTopic,
-                dateStr: new Date().toLocaleDateString(),
-                summary,
-                entities: normalizeEntities(data.entities),
-                agendas,
-                leads,
-                followUps: leads,
-                sections,
+                scopeId: scope.id,
+                scopeName: scope.name,
+                pack: request.pack,
+                purpose: request.purpose,
                 artifactType: request.artifactType,
-                sources,
-                rawText: JSON.stringify(data, null, 2),
-                packId: request.pack.id,
-                purposeId: request.purpose.id,
                 labelProfileId: request.labelProfileId,
-                metadata: {
-                    packName: request.pack.name,
-                    purposeName: request.purpose.name,
-                    scopeId: scope.id,
-                    workspaceMode: request.pack.workspaceMode,
-                },
-                config: {
-                    provider: config.provider,
-                    modelId: config.modelId,
+                generationMode: request.generationMode || config.generationMode,
+                extraSources: dedupeSources([...modelSources, ...textFallbackSources]),
+                extraMetadata: {
                     persona: config.persona,
                     searchDepth: config.searchDepth,
                     thinkingBudget: config.thinkingBudget,
-                    scopeId: scope.id,
-                    scopeName: scope.name,
-                    packId: request.pack.id,
-                    packName: request.pack.name,
-                    purposeId: request.purpose.id,
-                    purposeName: request.purpose.name,
-                    artifactType: request.artifactType,
-                    labelProfileId: request.labelProfileId,
                 },
-            };
+            });
         },
         {
             provider: PROVIDER,

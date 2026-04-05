@@ -50,13 +50,14 @@ const deriveTitleFromContent = (value: string, fallback: string): string => {
 const buildAttachments = (
     messageId: string,
     contextBundle: WorkspaceContextBundle,
-    citations: string[]
+    citations: string[],
+    sourceCitations?: Array<{ url: string; title?: string; content?: string }>
 ): ChatAttachment[] => {
     const referenced = citations.length
         ? contextBundle.snippets.filter((snippet) => citations.includes(snippet.id))
         : contextBundle.snippets.slice(0, Math.min(3, contextBundle.snippets.length));
 
-    return referenced.map((snippet) => ({
+    const workspaceAttachments = referenced.map((snippet) => ({
         id: createLocalId('chat-attachment'),
         messageId,
         kind: snippet.kind,
@@ -67,6 +68,21 @@ const buildAttachments = (
         metadata: snippet.metadata,
         createdAt: Date.now(),
     }));
+
+    const sourceAttachments = (sourceCitations || []).map((citation) => ({
+        id: createLocalId('chat-attachment'),
+        messageId,
+        kind: 'SOURCE' as const,
+        title: citation.title || citation.url,
+        refKind: 'SOURCE',
+        snippet: citation.content,
+        metadata: {
+            url: citation.url,
+        },
+        createdAt: Date.now(),
+    }));
+
+    return [...workspaceAttachments, ...sourceAttachments];
 };
 
 const createReportAttachment = (
@@ -124,6 +140,18 @@ const buildArtifactSources = (message: ChatMessage): Artifact['sources'] =>
                 : null;
         })
         .filter((entry): entry is { title: string; url: string } => !!entry);
+
+const buildArtifactEvidenceFromMessage = (message: ChatMessage): NonNullable<Artifact['evidence']> =>
+    (message.attachments || []).map((attachment, index) => ({
+        id: createLocalId('chat-evidence'),
+        kind: attachment.kind === 'SOURCE' ? 'SOURCE' : 'FINDING',
+        title: attachment.title,
+        summary: attachment.snippet || attachment.title,
+        sourceTitle: attachment.title,
+        sourceUrl: typeof attachment.metadata?.url === 'string' ? attachment.metadata.url : undefined,
+        metadata: attachment.metadata,
+        order: index,
+    }));
 
 const buildDraftSectionsFromMessage = (message: ChatMessage): ArtifactSection[] => {
     const citationItems = (message.attachments || []).map((attachment) =>
@@ -204,7 +232,12 @@ export const runWorkspaceChatTurn = async (
         retrievedContext: contextBundle.snippets,
     });
 
-    const attachments = buildAttachments(params.assistantMessageId, contextBundle, response.citations);
+    const attachments = buildAttachments(
+        params.assistantMessageId,
+        contextBundle,
+        response.citations,
+        response.sourceCitations
+    );
     const now = Date.now();
 
     return {
@@ -217,6 +250,8 @@ export const runWorkspaceChatTurn = async (
                 modelId: response.modelId,
                 rawText: response.rawText,
                 suggestedTitle: response.suggestedTitle,
+                warnings: response.warnings,
+                provenance: response.provenance,
             },
         },
         attachments,
@@ -280,7 +315,12 @@ export const streamWorkspaceChatTurn = async (
         }
     );
 
-    const attachments = buildAttachments(params.assistantMessageId, contextBundle, response.citations);
+    const attachments = buildAttachments(
+        params.assistantMessageId,
+        contextBundle,
+        response.citations,
+        response.sourceCitations
+    );
     const now = Date.now();
 
     return {
@@ -293,6 +333,8 @@ export const streamWorkspaceChatTurn = async (
                 modelId: response.modelId,
                 rawText: response.rawText,
                 suggestedTitle: response.suggestedTitle,
+                warnings: response.warnings,
+                provenance: response.provenance,
             },
         },
         attachments,
@@ -513,6 +555,8 @@ export const buildArtifactDraftFromChatMessage = (params: {
         artifactType,
         entities: [],
         sources: buildArtifactSources(params.message),
+        evidence: buildArtifactEvidenceFromMessage(params.message),
+        provenance: params.message.metadata?.provenance as Artifact['provenance'],
         rawText: JSON.stringify(
             {
                 sourceMessageId: params.message.id,

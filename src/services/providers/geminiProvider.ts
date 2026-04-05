@@ -6,7 +6,6 @@ import {
     Type,
 } from '@google/genai';
 import type { FeedItem, Artifact, MonitorEvent, Source } from '../../types';
-import { buildArtifactSections } from '../../domain';
 import { getApiKeyOrThrow } from './keys';
 import type {
     ChatRequest,
@@ -22,7 +21,6 @@ import {
     dedupeSources,
     extractSourcesFromGrounding,
     extractSourcesFromText,
-    normalizeEntities,
     normalizeFeedItems,
     normalizeLiveEvents,
     normalizeStringList,
@@ -41,6 +39,7 @@ import {
     getCachedGeminiClient,
     setCachedGeminiClient,
 } from './geminiClientState';
+import { buildArtifactFromPayload } from './shared/artifactContract';
 
 const PROVIDER = 'GEMINI' as const;
 
@@ -107,14 +106,16 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
             if (!useStructuredOutput) {
                 basePrompt += ` ${buildStructuredArtifactResponseInstruction(
                     request.purpose,
-                    request.labelProfileId
+                    request.labelProfileId,
+                    request.generationMode || config.generationMode || 'STAGED'
                 )}`;
             }
 
             if (useStructuredOutput) {
                 basePrompt += ` ${buildStructuredArtifactResponseInstruction(
                     request.purpose,
-                    request.labelProfileId
+                    request.labelProfileId,
+                    request.generationMode || config.generationMode || 'STAGED'
                 )}`;
             }
 
@@ -204,84 +205,32 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
 
             const data =
                 parsedData && typeof parsedData === 'object'
-                    ? (parsedData as {
-                          summary?: unknown;
-                          entities?: unknown;
-                          agendas?: unknown;
-                          leads?: unknown;
-                          sources?: Array<{ title?: unknown; url?: unknown; uri?: unknown }>;
-                          sections?: unknown;
-                      })
+                    ? (parsedData as StructuredArtifactPayload)
                     : {};
+            const sources = collectSourcesFromGeminiResponse(response, rawText, data);
 
-            const agendas = normalizeStringList(data.agendas);
-            const leads = normalizeStringList(data.leads);
-            const summary = toDisplayText(data.summary).trim() || 'Analysis pending...';
-            const sections = buildArtifactSections({
-                sections: data.sections,
-                summary,
-                agendas,
-                leads,
-                artifactType: request.artifactType,
-            });
-
-            const modelSources = Array.isArray(data.sources)
-                ? dedupeSources(
-                      data.sources.map((source) => ({
-                          title: source.title,
-                          url: source.url,
-                          uri: source.uri,
-                      }))
-                  )
-                : [];
-
-            const textFallbackSources = extractSourcesFromText(
-                [rawText, summary, ...leads].join('\n')
-            );
-
-            const sources = dedupeSources([
-                ...extractSourcesFromGrounding(response),
-                ...modelSources,
-                ...textFallbackSources,
-            ]);
-
-            return {
+            return buildArtifactFromPayload(data, JSON.stringify(data, null, 2), {
+                provider: PROVIDER,
+                modelId: config.modelId,
                 topic: normalizedTopic,
-                dateStr: new Date().toLocaleDateString(),
-                summary,
-                entities: normalizeEntities(data.entities),
-                agendas,
-                leads,
-                followUps: leads,
-                sections,
+                scopeId: scope.id,
+                scopeName: scope.name,
+                pack: request.pack,
+                purpose: request.purpose,
                 artifactType: request.artifactType,
-                sources,
-                rawText: JSON.stringify(data, null, 2),
-                packId: request.pack.id,
-                purposeId: request.purpose.id,
                 labelProfileId: request.labelProfileId,
-                metadata: {
-                    packName: request.pack.name,
-                    purposeName: request.purpose.name,
-                    scopeId: scope.id,
-                    workspaceMode: request.pack.workspaceMode,
-                },
-                config: {
-                    provider: config.provider,
-                    modelId: config.modelId,
+                generationMode: request.generationMode || config.generationMode,
+                extraSources: sources,
+                extraMetadata: {
                     persona: config.persona,
                     searchDepth: config.searchDepth,
                     thinkingBudget: config.thinkingBudget,
-                    scopeId: scope.id,
-                    scopeName: scope.name,
-                    packId: request.pack.id,
-                    packName: request.pack.name,
-                    purposeId: request.purpose.id,
-                    purposeName: request.purpose.name,
-                    artifactType: request.artifactType,
-                    labelProfileId: request.labelProfileId,
                 },
-            };
+                searchMetadata: {
+                    enabled: true,
+                    provider: 'GOOGLE',
+                },
+            });
         },
         {
             provider: PROVIDER,

@@ -8,7 +8,13 @@ import {
 } from 'lucide-react';
 import { OsintSelect } from '../../ui/OsintSelect';
 import { BUILTIN_SCOPES, getAllScopes } from '../../../data/presets';
-import { AI_MODELS, DEFAULT_MODEL_ID, getModelDisplayName, getModelProvider } from '../../../config/aiModels';
+import {
+    DEFAULT_MODEL_ID,
+    getEffectiveModelCapabilities,
+    getModelDisplayName,
+    getModelProvider,
+    getTemplateSelectableModels,
+} from '../../../config/aiModels';
 import { loadSystemConfig } from '../../../config/systemConfig';
 import {
     getDomainPackForScope,
@@ -44,8 +50,16 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     const [persona, setPersona] = useState('');
     const [selectedPurposeId, setSelectedPurposeId] = useState('');
     const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>('STANDARD');
+    const [generationMode, setGenerationMode] = useState<'SINGLE_PASS' | 'STAGED'>('STAGED');
     const [thinkingBudget, setThinkingBudget] = useState(0);
-    const selectableModels = AI_MODELS.filter((model) => model.capabilities.runtimeStatus === 'ACTIVE');
+    const selectableModels = useMemo(
+        () => getTemplateSelectableModels(selectedModel),
+        [selectedModel]
+    );
+    const selectedModelCapabilities = useMemo(
+        () => getEffectiveModelCapabilities(selectedModel),
+        [selectedModel]
+    );
 
     const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
     const resolvedDefaultScopeId = allScopes.find((scope) => scope.id === defaultScopeId)?.id || allScopes[0]?.id || 'open-investigation';
@@ -91,7 +105,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 modelId: baseModel,
                 persona: starterScope.defaultPersona || starterScope.personas[0]?.id,
                 searchDepth: baseConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD',
-                thinkingBudget: typeof baseConfig.thinkingBudget === 'number' ? baseConfig.thinkingBudget : 0,
+                generationMode: baseConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED',
+                thinkingBudget: getEffectiveModelCapabilities(baseModel).supportsThinkingBudget
+                    && typeof baseConfig.thinkingBudget === 'number'
+                    ? baseConfig.thinkingBudget
+                    : 0,
                 packId: starterPack.id,
                 purposeId: starter.purposeId,
                 artifactType: starter.artifactType,
@@ -129,6 +147,8 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         const nextModel = parsed.modelId || DEFAULT_MODEL_ID;
         const nextDepth: 'STANDARD' | 'DEEP' = parsed.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD';
         const nextThinking = typeof parsed.thinkingBudget === 'number' ? parsed.thinkingBudget : 0;
+        const nextGenerationMode: 'SINGLE_PASS' | 'STAGED' =
+            parsed.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED';
         const nextPersona = parsed.persona && defaultScope?.personas.some((item) => item.id === parsed.persona)
             ? parsed.persona
             : defaultPersona;
@@ -142,6 +162,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         setSelectedPurposeId(getDomainPackForScope(defaultScope || allScopes[0], customScopes).defaultPurposeId);
         setSelectedModel(nextModel);
         setDepth(nextDepth);
+        setGenerationMode(nextGenerationMode);
         setThinkingBudget(nextThinking);
         setPersona(nextPersona);
         setShowCreateModal(true);
@@ -178,7 +199,8 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                     modelId: selectedModel,
                     persona,
                     searchDepth: depth,
-                    thinkingBudget,
+                    generationMode,
+                    thinkingBudget: selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0,
                     packId: selectedPack.id,
                     purposeId: selectedPurpose.id,
                     artifactType: selectedPurpose.recommendedArtifactType,
@@ -487,6 +509,9 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                                 label: `${model.name} - ${model.description}`,
                                             }))}
                                         />
+                                        <p className="mt-2 text-[10px] font-mono text-zinc-500">
+                                            {getModelDisplayName(selectedModel)} via {getModelProvider(selectedModel)}. Thinking {selectedModelCapabilities.supportsThinkingBudget ? 'enabled' : 'off'}, web search {selectedModelCapabilities.supportsWebSearch ? 'enabled' : 'off'}.
+                                        </p>
                                     </div>
                                     <div>
                                         <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Persona</label>
@@ -536,17 +561,35 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                                             </div>
                                         </div>
                                         <div>
+                                            <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">Generation Mode</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button
+                                                    onClick={() => setGenerationMode('SINGLE_PASS')}
+                                                    className={`py-2 border font-mono text-xs uppercase ${generationMode === 'SINGLE_PASS' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
+                                                >
+                                                    Single Pass
+                                                </button>
+                                                <button
+                                                    onClick={() => setGenerationMode('STAGED')}
+                                                    className={`py-2 border font-mono text-xs uppercase ${generationMode === 'STAGED' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
+                                                >
+                                                    Staged
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
                                             <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
-                                                Thinking Budget ({thinkingBudget})
+                                                Thinking Budget ({selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0})
                                             </label>
                                             <input
                                                 type="range"
                                                 min={0}
                                                 max={8192}
                                                 step={512}
-                                                value={thinkingBudget}
+                                                disabled={!selectedModelCapabilities.supportsThinkingBudget}
+                                                value={selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0}
                                                 onChange={(event) => setThinkingBudget(Number(event.target.value))}
-                                                className="w-full accent-[var(--osint-primary)]"
+                                                className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
                                             />
                                         </div>
                                     </div>

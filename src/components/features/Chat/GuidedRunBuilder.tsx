@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+    Brain,
     ChevronLeft,
     ChevronRight,
     Cpu,
@@ -10,13 +11,18 @@ import {
     Sparkles,
     Target,
     Trash2,
+    Workflow,
 } from 'lucide-react';
 import type { Workspace, GraphNodeSubtype, InvestigationScope } from '@/types';
 import {
     AI_PROVIDERS,
+    getCompactModelChoicesForProvider,
     getDefaultModelForProvider,
+    getEffectiveModelCapabilities,
+    getModelProvider,
     getProviderOptionById,
     getRuntimeReadyModelsForProvider,
+    recordRecentModelSelection,
 } from '../../../config/aiModels';
 import { getAllScopes } from '../../../data/presets';
 import { getDomainPackForScope, getPurposeProfileById } from '../../../domain';
@@ -28,6 +34,7 @@ import {
 } from '../../../services/chat/guidedMode';
 import { OsintSelect } from '../../ui/OsintSelect';
 import { createLocalId } from '../../../utils/id';
+import { OpenRouterModelBrowser } from '../../ui/OpenRouterModelBrowser';
 
 interface GuidedRunBuilderProps {
     state: GuidedSessionState;
@@ -54,9 +61,13 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
     onSaveDraft,
     onOpenManualSetup,
 }) => {
-    const [draft, setDraft] = useState<GuidedRunDraft>(state.draft);
+    const [draft, setDraft] = useState<GuidedRunDraft>({
+        ...state.draft,
+        generationMode: state.draft.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED',
+    });
     const [newEntityName, setNewEntityName] = useState('');
     const [newEntityType, setNewEntityType] = useState<GraphNodeSubtype>('PERSON');
+    const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
 
     const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
     const selectedScope = useMemo(
@@ -78,10 +89,25 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
         [draft.purposeId, selectedPack.defaultPurposeId, supportedPurposes]
     );
     const selectableModels = useMemo(
-        () => getRuntimeReadyModelsForProvider(draft.provider),
-        [draft.provider]
+        () =>
+            draft.provider === 'OPENROUTER'
+                ? getCompactModelChoicesForProvider(draft.provider, draft.modelId)
+                : getRuntimeReadyModelsForProvider(draft.provider),
+        [draft.modelId, draft.provider]
     );
     const providerMeta = getProviderOptionById(draft.provider);
+    const activeModelId = useMemo(() => {
+        if (draft.provider === 'OPENROUTER') {
+            return getModelProvider(draft.modelId) === 'OPENROUTER'
+                ? draft.modelId
+                : selectableModels[0]?.id || getDefaultModelForProvider(draft.provider);
+        }
+
+        return selectableModels.some((model) => model.id === draft.modelId)
+            ? draft.modelId
+            : selectableModels[0]?.id || getDefaultModelForProvider(draft.provider);
+    }, [draft.modelId, draft.provider, selectableModels]);
+    const selectedModelCapabilities = getEffectiveModelCapabilities(activeModelId);
     const currentStepIndex = GUIDED_STEP_ORDER.indexOf(state.step);
 
     const canAdvance = useMemo(() => {
@@ -105,11 +131,13 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
     };
 
     const handleProviderChange = (provider: GuidedRunDraft['provider']) => {
+        const nextModelChoices = provider === 'OPENROUTER'
+            ? getCompactModelChoicesForProvider(provider)
+            : getRuntimeReadyModelsForProvider(provider);
         setDraft((current) => ({
             ...current,
             provider,
-            modelId:
-                getRuntimeReadyModelsForProvider(provider)[0]?.id || getDefaultModelForProvider(provider),
+            modelId: nextModelChoices[0]?.id || getDefaultModelForProvider(provider),
         }));
     };
 
@@ -426,18 +454,37 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
                         Model
                     </span>
-                    <OsintSelect
-                        ariaLabel="Model"
-                        value={draft.modelId}
-                        onChange={(value) =>
-                            setDraft((current) => ({ ...current, modelId: value }))
-                        }
-                        triggerClassName="px-3 py-2 pr-8 text-sm"
-                        options={selectableModels.map((model) => ({
-                            value: model.id,
-                            label: model.name,
-                        }))}
-                    />
+                    <div className="space-y-2">
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <OsintSelect
+                                    ariaLabel="Model"
+                                    value={activeModelId}
+                                    onChange={(value) => {
+                                        recordRecentModelSelection(value);
+                                        setDraft((current) => ({ ...current, modelId: value }));
+                                    }}
+                                    triggerClassName="px-3 py-2 pr-8 text-sm"
+                                    options={selectableModels.map((model) => ({
+                                        value: model.id,
+                                        label: model.name,
+                                    }))}
+                                />
+                            </div>
+                            {draft.provider === 'OPENROUTER' ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowOpenRouterBrowser(true)}
+                                    className="border border-zinc-700 px-3 py-2 text-[10px] font-mono uppercase text-zinc-300 transition hover:border-white hover:text-white"
+                                >
+                                    Browse
+                                </button>
+                            ) : null}
+                        </div>
+                        <p className="text-[11px] text-zinc-500">
+                            Capabilities: thinking {selectedModelCapabilities.supportsThinkingBudget ? 'enabled' : 'off'}, structured output {selectedModelCapabilities.supportsStructuredOutput ? 'enabled' : 'off'}, web search {selectedModelCapabilities.supportsWebSearch ? 'enabled' : 'off'}.
+                        </p>
+                    </div>
                 </label>
                 <label className="block">
                     <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
@@ -460,26 +507,68 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     />
                 </label>
             </div>
-            <label className="block">
-                <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-                    Thinking Budget
-                </span>
-                <input
-                    type="range"
-                    min={0}
-                    max={8192}
-                    step={512}
-                    disabled={!(providerMeta?.capabilities.supportsThinkingBudget ?? false)}
-                    value={providerMeta?.capabilities.supportsThinkingBudget ? draft.thinkingBudget : 0}
-                    onChange={(event) =>
-                        setDraft((current) => ({
-                            ...current,
-                            thinkingBudget: Number(event.target.value),
-                        }))
-                    }
-                    className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
-                />
-            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+                <div className="block">
+                    <span className="mb-2 flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+                        <Workflow className="h-4 w-4" />
+                        Generation Mode
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setDraft((current) => ({ ...current, generationMode: 'SINGLE_PASS' }))
+                            }
+                            className={`py-2 text-xs font-mono uppercase ${
+                                draft.generationMode === 'SINGLE_PASS'
+                                    ? 'osint-button-soft'
+                                    : 'osint-button-primary'
+                            }`}
+                        >
+                            Single Pass
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setDraft((current) => ({ ...current, generationMode: 'STAGED' }))
+                            }
+                            className={`py-2 text-xs font-mono uppercase ${
+                                draft.generationMode === 'STAGED'
+                                    ? 'osint-button-soft'
+                                    : 'osint-button-primary'
+                            }`}
+                        >
+                            Staged
+                        </button>
+                    </div>
+                </div>
+                <label className="block">
+                    <span className="mb-2 flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+                        <Brain className={`h-4 w-4 ${selectedModelCapabilities.supportsThinkingBudget ? 'text-osint-primary' : 'text-zinc-600'}`} />
+                        Thinking Budget ({selectedModelCapabilities.supportsThinkingBudget ? draft.thinkingBudget : 0})
+                    </span>
+                    <input
+                        type="range"
+                        min={0}
+                        max={8192}
+                        step={512}
+                        disabled={!selectedModelCapabilities.supportsThinkingBudget}
+                        value={selectedModelCapabilities.supportsThinkingBudget ? draft.thinkingBudget : 0}
+                        onChange={(event) =>
+                            setDraft((current) => ({
+                                ...current,
+                                thinkingBudget: Number(event.target.value),
+                            }))
+                        }
+                        className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
+                    />
+                    <p className="mt-2 text-[11px] text-zinc-500">
+                        {selectedModelCapabilities.supportsThinkingBudget
+                            ? 'Applied by the selected model.'
+                            : `${providerMeta?.label || draft.provider} ignores this setting.`}
+                    </p>
+                </label>
+            </div>
         </div>
     );
 
@@ -587,6 +676,18 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                     ) : null}
                 </div>
             </div>
+
+            <OpenRouterModelBrowser
+                isOpen={showOpenRouterBrowser}
+                currentModelId={draft.provider === 'OPENROUTER' ? activeModelId : undefined}
+                onClose={() => setShowOpenRouterBrowser(false)}
+                onSelectModel={(modelId) =>
+                    setDraft((current) => ({
+                        ...current,
+                        modelId,
+                    }))
+                }
+            />
         </section>
     );
 };
