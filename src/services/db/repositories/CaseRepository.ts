@@ -25,8 +25,8 @@ import type {
   Workspace,
   Artifact,
   Entity,
-  Headline,
   FollowUp,
+  Signal,
   WorkspaceDataBackup,
 } from '@/types';
 import { ChatRepository } from './ChatRepository';
@@ -43,6 +43,7 @@ import {
   unwrapArrayContainer,
 } from '../../../utils/textNormalization';
 import { createLocalId } from '../../../utils/id';
+import { getWorkspaceDataSignals } from '../../maintenance/workspaceData';
 
 interface RawReportPayload {
   summary?: string;
@@ -719,8 +720,8 @@ export class CaseRepository {
       for (const action of payload.boardAgent.actions) {
         await BoardAgentRepository.createAction(action, tx);
       }
-      for (const headline of payload.signals.headlines) {
-        await this.createHeadline(headline, tx);
+      for (const signal of getWorkspaceDataSignals(payload.signals)) {
+        await this.createSignal(signal, tx);
       }
       for (const template of payload.templates) {
         await TemplateRepository.create(template, tx);
@@ -743,7 +744,7 @@ export class CaseRepository {
   }
 
   // --- LEADS ---
-  static async getHeadlines(): Promise<Headline[]> {
+  static async getSignals(): Promise<Signal[]> {
     const db = getDB();
     const rows = await db.select().from(leads);
 
@@ -755,43 +756,54 @@ export class CaseRepository {
       url: row.url || undefined,
       timestamp: row.timestamp || new Date().toISOString(),
       type: row.type === 'SOCIAL' || row.type === 'OFFICIAL' ? row.type : 'NEWS',
-      status: row.status as Headline['status'],
-      threatLevel: (row.threatLevel as Headline['threatLevel']) || 'INFO',
+      status: row.status as Signal['status'],
+      threatLevel: (row.threatLevel as Signal['threatLevel']) || 'INFO',
       linkedReportId: row.linkedReportId || undefined,
     }));
   }
 
-  static async createHeadline(
-    headline: Headline,
+  static async createSignal(
+    signal: Signal,
     db: SherlockWriteExecutor = getDB()
   ): Promise<void> {
     await db
       .insert(leads)
       .values({
-        id: headline.id,
-        caseId: headline.caseId,
-        content: headline.content,
-        source: headline.source,
-        type: headline.type,
-        url: headline.url,
-        status: headline.status,
-        threatLevel: headline.threatLevel,
-        linkedReportId: headline.linkedReportId,
-        timestamp: headline.timestamp,
+        id: signal.id,
+        caseId: signal.caseId,
+        content: signal.content,
+        source: signal.source,
+        type: signal.type,
+        url: signal.url,
+        status: signal.status,
+        threatLevel: signal.threatLevel,
+        linkedReportId: signal.linkedReportId,
+        timestamp: signal.timestamp,
       })
       .onConflictDoUpdate({
         target: leads.id,
         set: {
-          caseId: headline.caseId,
-          content: headline.content,
-          source: headline.source,
-          type: headline.type,
-          url: headline.url,
-          status: headline.status,
-          threatLevel: headline.threatLevel,
-          linkedReportId: headline.linkedReportId,
-          timestamp: headline.timestamp,
+          caseId: signal.caseId,
+          content: signal.content,
+          source: signal.source,
+          type: signal.type,
+          url: signal.url,
+          status: signal.status,
+          threatLevel: signal.threatLevel,
+          linkedReportId: signal.linkedReportId,
+          timestamp: signal.timestamp,
         },
       });
+  }
+
+  static async getHeadlines(): Promise<Signal[]> {
+    return this.getSignals();
+  }
+
+  static async createHeadline(
+    headline: Signal,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
+    await this.createSignal(headline, db);
   }
 }

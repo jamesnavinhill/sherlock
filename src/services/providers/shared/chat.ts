@@ -20,11 +20,11 @@ const buildWorkspaceContextBlock = (request: ChatRequest): string => {
         .join('\n')
     : '- No saved artifacts yet.';
 
-  const headlineLines = request.recentHeadlines.length
-    ? request.recentHeadlines
+  const signalLines = request.recentSignals.length
+    ? request.recentSignals
         .map(
-          (headline) =>
-            `- [${headline.type}] ${headline.sourceName}: ${headline.content} (${headline.timestamp})`
+          (signal) =>
+            `- [${signal.type}] ${signal.sourceName}: ${signal.content} (${signal.timestamp})`
         )
         .join('\n')
     : '- No saved signals yet.';
@@ -46,7 +46,7 @@ Recent Artifacts
 ${artifactLines}
 
 Recent Signals
-${headlineLines}
+${signalLines}
 
 Retrieved Workspace Context
 ${contextLines}
@@ -72,7 +72,7 @@ Return plain text using this exact structure and no markdown fences:
 <answer>
 markdown answer
 </answer>
-<citations>CTX-REPORT-abc,CTX-HEADLINE-def</citations>
+<citations>CTX-REPORT-abc,CTX-SIGNAL-def</citations>
 <title>optional concise session title</title>
 
 Rules:
@@ -85,7 +85,7 @@ Rules:
 Return valid JSON with this shape:
 {
   "content": "markdown answer",
-  "citations": ["CTX-REPORT-abc", "CTX-HEADLINE-def"],
+  "citations": ["CTX-REPORT-abc", "CTX-SIGNAL-def"],
   "suggestedTitle": "optional concise session title"
 }
 

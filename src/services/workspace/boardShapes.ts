@@ -71,6 +71,7 @@ const getShapeColor = (entry: WorkspaceLibraryEntry): BoardCardColor => {
     case 'SOURCE':
     case 'LINK':
       return 'green';
+    case 'SIGNAL':
     case 'HEADLINE':
       return 'orange';
     case 'MEDIA':
@@ -109,6 +110,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
           560
         )}`,
       };
+    case 'SIGNAL':
     case 'HEADLINE':
       return {
         color: getShapeColor(entry),

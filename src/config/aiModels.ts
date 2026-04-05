@@ -1,4 +1,9 @@
-import { getOptionalItem, setItem, STORAGE_KEYS } from '../utils/localStorage';
+import {
+  getStoredOpenRouterModelCatalog,
+  getStoredRecentModelIds,
+  setStoredOpenRouterModelCatalog,
+  setStoredRecentModelIds,
+} from '../utils/localStorage';
 
 export type AIProvider = 'GEMINI' | 'OPENROUTER' | 'OPENAI' | 'ANTHROPIC';
 export type ProviderRuntimeStatus = 'ACTIVE' | 'PLANNED';
@@ -487,7 +492,7 @@ const isStoredCatalog = (value: unknown): value is StoredOpenRouterCatalog => {
 };
 
 const readCachedOpenRouterCatalog = (): StoredOpenRouterCatalog | null => {
-  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.OPENROUTER_MODEL_CATALOG);
+  const parsed = getStoredOpenRouterModelCatalog<unknown>();
   if (!isStoredCatalog(parsed)) return null;
 
   return {
@@ -505,7 +510,7 @@ const readCachedOpenRouterCatalog = (): StoredOpenRouterCatalog | null => {
 };
 
 const writeCachedOpenRouterCatalog = (catalog: StoredOpenRouterCatalog): void => {
-  setItem(STORAGE_KEYS.OPENROUTER_MODEL_CATALOG, catalog);
+  setStoredOpenRouterModelCatalog(catalog);
 };
 
 const isCatalogFresh = (catalog: StoredOpenRouterCatalog | null): boolean => {
@@ -513,17 +518,10 @@ const isCatalogFresh = (catalog: StoredOpenRouterCatalog | null): boolean => {
   return Date.now() - catalog.fetchedAt < OPENROUTER_CATALOG_TTL_MS;
 };
 
-const getRecentModelIds = (): string[] => {
-  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.RECENT_MODEL_IDS);
-  return Array.isArray(parsed)
-    ? parsed.filter(
-        (entry): entry is string => typeof entry === 'string' && entry.trim().length > 0
-      )
-    : [];
-};
+const getRecentModelIds = (): string[] => getStoredRecentModelIds();
 
 const writeRecentModelIds = (modelIds: string[]): void => {
-  setItem(STORAGE_KEYS.RECENT_MODEL_IDS, modelIds.slice(0, 8));
+  setStoredRecentModelIds(modelIds);
 };
 
 const getOpenRouterSnapshotCatalog = (): StoredOpenRouterCatalog => ({

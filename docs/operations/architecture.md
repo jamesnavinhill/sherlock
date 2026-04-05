@@ -216,6 +216,12 @@ Migration:
 - `src/services/db/migrate.ts` migrates prior `localStorage` Zustand payload (`sherlock-storage`) into SQLite one time
 - `src/services/db/client.ts` applies additive schema upgrades for existing local databases, including rebuilding `artifact_sections` when older installs still use the legacy global section-id primary key
 
+Canonical signal naming now leads the active runtime seams even where compatibility aliases remain:
+
+- repositories expose `getSignals(...)` / `createSignal(...)` as the primary saved-signal API, while `getHeadlines(...)` / `createHeadline(...)` remain compatibility wrappers
+- chat retrieval attachments, workspace-search snippets, and board/library refs now prefer `SIGNAL` as the ref/attachment kind
+- backup payloads now write canonical signal snapshots under `signals.signals`, while legacy `signals.headlines` snapshots are still accepted during restore/import
+
 ## 6. State Layer
 
 Global store:
@@ -237,7 +243,7 @@ State domains include:
 - scopes and templates
 - feed config and UI state
 
-Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through `src/utils/localStorage.ts`, while provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
+Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 
 `currentView` remains in the store as a compatibility mirror for components that still want a coarse active-surface label, but the browser location is now the durable source of truth for active page identity.
 

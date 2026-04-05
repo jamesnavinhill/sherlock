@@ -7,9 +7,9 @@ import type {
   ChatMessage,
   ChatSession,
   FollowUp,
-  Headline,
   InvestigationLaunchRequest,
   Artifact,
+  Signal,
   WorkspaceContextBundle,
 } from '@/types';
 import type { ChatStreamEvent } from '../providers/types';
@@ -110,17 +110,17 @@ const createReportAttachment = (
   createdAt: Date.now(),
 });
 
-const createHeadlineAttachment = (messageId: string, headline: Headline): ChatAttachment => ({
+const createSignalAttachment = (messageId: string, signal: Signal): ChatAttachment => ({
   id: createLocalId('chat-attachment'),
   messageId,
-  kind: 'HEADLINE',
-  title: headline.source || headline.type,
-  refId: headline.id,
-  refKind: 'HEADLINE',
-  snippet: headline.content,
+  kind: 'SIGNAL',
+  title: signal.source || signal.type,
+  refId: signal.id,
+  refKind: 'SIGNAL',
+  snippet: signal.content,
   metadata: {
-    url: headline.url,
-    threatLevel: headline.threatLevel,
+    url: signal.url,
+    threatLevel: signal.threatLevel,
   },
   createdAt: Date.now(),
 });
@@ -239,11 +239,11 @@ export const runWorkspaceChatTurn = async (
       summary: artifact.summary,
       dateStr: artifact.dateStr,
     })),
-    recentHeadlines: contextBundle.recentSignals.map((headline) => ({
-      content: headline.content,
-      sourceName: headline.source,
-      timestamp: headline.timestamp,
-      type: headline.type,
+    recentSignals: contextBundle.recentSignals.map((signal) => ({
+      content: signal.content,
+      sourceName: signal.source,
+      timestamp: signal.timestamp,
+      type: signal.type,
     })),
     retrievedContext: contextBundle.snippets,
   });
@@ -317,11 +317,11 @@ export const streamWorkspaceChatTurn = async (
         summary: artifact.summary,
         dateStr: artifact.dateStr,
       })),
-      recentHeadlines: contextBundle.recentSignals.map((headline) => ({
-        content: headline.content,
-        sourceName: headline.source,
-        timestamp: headline.timestamp,
-        type: headline.type,
+      recentSignals: contextBundle.recentSignals.map((signal) => ({
+        content: signal.content,
+        sourceName: signal.source,
+        timestamp: signal.timestamp,
+        type: signal.type,
       })),
       retrievedContext: contextBundle.snippets,
     },
@@ -480,7 +480,7 @@ export const fetchRecentSignalsForChat = async (params: {
   session: ChatSession;
   limit?: number;
 }): Promise<{ message: ChatMessage; action: AgentAction }> => {
-  const headlines = await WorkspaceSearchRepository.getRecentSignals(
+  const signals = await WorkspaceSearchRepository.getRecentSignals(
     params.session.workspaceId,
     params.limit || 5
   );
@@ -492,19 +492,19 @@ export const fetchRecentSignalsForChat = async (params: {
       id: messageId,
       sessionId: params.session.id,
       role: 'tool',
-      content: headlines.length
-        ? `Fetched recent workspace signals.\n\n${headlines
+      content: signals.length
+        ? `Fetched recent workspace signals.\n\n${signals
             .map(
-              (headline) =>
-                `- [${headline.type}] **${headline.source || headline.type}**: ${headline.content}`
+              (signal) =>
+                `- [${signal.type}] **${signal.source || signal.type}**: ${signal.content}`
             )
             .join('\n')}`
         : 'Fetched recent workspace signals.\n\nNo saved signals are available yet.',
       status: 'COMPLETED',
-      attachments: headlines.map((headline) => createHeadlineAttachment(messageId, headline)),
+      attachments: signals.map((signal) => createSignalAttachment(messageId, signal)),
       metadata: {
         actionType: 'FETCH_RECENT_SIGNALS',
-        count: headlines.length,
+        count: signals.length,
       },
       createdAt: now,
       updatedAt: now,
@@ -519,7 +519,7 @@ export const fetchRecentSignalsForChat = async (params: {
         limit: params.limit || 5,
       },
       result: {
-        signalIds: headlines.map((headline) => headline.id),
+        signalIds: signals.map((signal) => signal.id),
       },
       createdAt: now,
       updatedAt: now,

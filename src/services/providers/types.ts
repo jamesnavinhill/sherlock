@@ -97,7 +97,7 @@ export interface ChatRequest {
   messages: ChatTurn[];
   workspaceSummary: string;
   recentArtifacts: Array<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr'>>;
-  recentHeadlines: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
+  recentSignals: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
   retrievedContext: WorkspaceContextSnippet[];
 }
 
@@ -273,7 +273,7 @@ export interface RouterChatRequest {
   messages: ChatTurn[];
   workspaceSummary: string;
   recentArtifacts: Array<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr'>>;
-  recentHeadlines: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
+  recentSignals: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
   retrievedContext: WorkspaceContextSnippet[];
 }
 

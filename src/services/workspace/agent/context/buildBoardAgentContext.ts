@@ -150,6 +150,7 @@ const buildLinkedRecordSummary = (input: {
         case 'ARTIFACT':
           details = buildArtifactHydration(artifactById.get(ref.refId));
           break;
+        case 'SIGNAL':
         case 'HEADLINE':
           details = buildHeadlineHydration(headlineById.get(ref.refId));
           break;

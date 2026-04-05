@@ -4,8 +4,8 @@ import type {
   ChatMessage,
   ChatOpenRequest,
   ChatSession,
-  Headline,
   Artifact,
+  Signal,
 } from '@/types';
 import { createLocalId } from '../../utils/id';
 import { cleanEntityName } from '../../utils/text';
@@ -33,17 +33,17 @@ const createReportAttachment = (messageId: string, report: Artifact): ChatAttach
   };
 };
 
-const createHeadlineAttachment = (messageId: string, headline: Headline): ChatAttachment => ({
+const createSignalAttachment = (messageId: string, signal: Signal): ChatAttachment => ({
   id: createLocalId('chat-attachment'),
   messageId,
-  kind: 'HEADLINE',
-  title: headline.source || headline.type,
-  refId: headline.id,
-  refKind: 'HEADLINE',
-  snippet: headline.content,
+  kind: 'SIGNAL',
+  title: signal.source || signal.type,
+  refId: signal.id,
+  refKind: 'SIGNAL',
+  snippet: signal.content,
   metadata: {
-    url: headline.url,
-    threatLevel: headline.threatLevel,
+    url: signal.url,
+    threatLevel: signal.threatLevel,
   },
   createdAt: Date.now(),
 });
@@ -134,7 +134,7 @@ export const buildLaunchContextPrimer = (params: {
   session: ChatSession;
   launchContext: ChatLaunchContext;
   reports: Artifact[];
-  headlines: Headline[];
+  headlines: Signal[];
 }): ChatMessage | null => {
   const now = Date.now();
   const messageId = createLocalId('chat-message');
@@ -226,16 +226,16 @@ export const buildLaunchContextPrimer = (params: {
 
   const signalId = params.launchContext.signalId || params.launchContext.headlineId;
   if (signalId) {
-    const headline = params.headlines.find((entry) => entry.id === signalId);
-    if (!headline) return null;
+    const signal = params.headlines.find((entry) => entry.id === signalId);
+    if (!signal) return null;
 
     return {
       id: messageId,
       sessionId: params.session.id,
       role: 'tool',
-      content: `Pinned signal context from **${headline.source || headline.type}**.\n\n${headline.content}`,
+      content: `Pinned signal context from **${signal.source || signal.type}**.\n\n${signal.content}`,
       status: 'COMPLETED',
-      attachments: [createHeadlineAttachment(messageId, headline)],
+      attachments: [createSignalAttachment(messageId, signal)],
       metadata: {
         actionType: 'PIN_LAUNCH_CONTEXT',
         launchContext: params.launchContext,

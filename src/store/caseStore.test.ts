@@ -33,7 +33,7 @@ describe('caseStore', () => {
     vi.spyOn(CaseRepository, 'clearCaseData').mockResolvedValue();
     vi.spyOn(CaseRepository, 'createCase').mockResolvedValue();
     vi.spyOn(CaseRepository, 'createReport').mockResolvedValue();
-    vi.spyOn(CaseRepository, 'createHeadline').mockResolvedValue();
+    vi.spyOn(CaseRepository, 'createSignal').mockResolvedValue();
     vi.spyOn(CaseRepository, 'replaceWorkspaceDataBackup').mockResolvedValue();
     vi.spyOn(ChatRepository, 'createSession').mockResolvedValue();
     vi.spyOn(ChatRepository, 'updateSession').mockResolvedValue();
@@ -181,7 +181,7 @@ describe('caseStore', () => {
         actions: [],
       },
       signals: {
-        headlines: [],
+        signals: [],
       },
       graph: {
         manualNodes: [],
@@ -211,7 +211,7 @@ describe('caseStore', () => {
     vi.spyOn(ChatRepository, 'getAllSessions').mockResolvedValue([]);
     vi.spyOn(ChatRepository, 'getMessagesBySessionIds').mockResolvedValue({});
     vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
-    vi.spyOn(CaseRepository, 'getHeadlines').mockResolvedValue([]);
+    vi.spyOn(CaseRepository, 'getSignals').mockResolvedValue([]);
     vi.spyOn(TemplateRepository, 'getAll').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'getAllNodes').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'getAllLinks').mockResolvedValue([]);
@@ -872,7 +872,7 @@ describe('caseStore', () => {
         ],
       },
       signals: {
-        headlines: [
+        signals: [
           {
             id: 'head-1',
             caseId: 'case-1',

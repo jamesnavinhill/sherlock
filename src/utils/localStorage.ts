@@ -81,6 +81,33 @@ export function getOptionalItem<T>(key: string): T | null {
   }
 }
 
+export const getStoredSystemConfigRecord = (): Record<string, unknown> =>
+  getOptionalItem<Record<string, unknown>>(STORAGE_KEYS.SYSTEM_CONFIG) || {};
+
+export const setStoredSystemConfigRecord = (value: Record<string, unknown>): void => {
+  setItem(STORAGE_KEYS.SYSTEM_CONFIG, value);
+};
+
+export const getStoredOpenRouterModelCatalog = <T>(): T | null =>
+  getOptionalItem<T>(STORAGE_KEYS.OPENROUTER_MODEL_CATALOG);
+
+export const setStoredOpenRouterModelCatalog = <T>(value: T): void => {
+  setItem(STORAGE_KEYS.OPENROUTER_MODEL_CATALOG, value);
+};
+
+export const getStoredRecentModelIds = (): string[] => {
+  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.RECENT_MODEL_IDS);
+  return Array.isArray(parsed)
+    ? parsed.filter(
+        (entry): entry is string => typeof entry === 'string' && entry.trim().length > 0
+      )
+    : [];
+};
+
+export const setStoredRecentModelIds = (modelIds: string[]): void => {
+  setItem(STORAGE_KEYS.RECENT_MODEL_IDS, modelIds.slice(0, 8));
+};
+
 /**
  * Stores an item in localStorage as JSON.
  */

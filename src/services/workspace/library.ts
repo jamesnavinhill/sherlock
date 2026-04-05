@@ -1,7 +1,7 @@
 import type {
   Artifact,
   Entity,
-  Headline,
+  Signal,
   Source,
   WorkspaceBoardItemReference,
   WorkspaceItem,
@@ -9,7 +9,7 @@ import type {
 import { cleanEntityName } from '../../utils/text';
 
 export interface WorkspaceLibraryEntry extends WorkspaceBoardItemReference {
-  kind: 'ARTIFACT' | 'ENTITY' | 'SOURCE' | 'HEADLINE' | WorkspaceItem['kind'];
+  kind: 'ARTIFACT' | 'ENTITY' | 'SOURCE' | 'SIGNAL' | 'HEADLINE' | WorkspaceItem['kind'];
   description?: string;
   subtitle?: string;
   searchText: string;
@@ -38,18 +38,20 @@ export const buildWorkspaceArtifactReference = (
   },
 });
 
-export const buildWorkspaceHeadlineReference = (
+export const buildWorkspaceSignalReference = (
   workspaceId: string,
-  headline: Headline
+  signal: Signal
 ): WorkspaceBoardItemReference => ({
   workspaceId,
-  refKind: 'HEADLINE',
-  refId: headline.id,
-  title: headline.source || headline.type,
+  refKind: 'SIGNAL',
+  refId: signal.id,
+  title: signal.source || signal.type,
   metadata: {
-    threatLevel: headline.threatLevel,
+    threatLevel: signal.threatLevel,
   },
 });
+
+export const buildWorkspaceHeadlineReference = buildWorkspaceSignalReference;
 
 export const buildWorkspaceEntityReference = (
   workspaceId: string,
@@ -94,7 +96,8 @@ export const buildWorkspaceItemReference = (item: WorkspaceItem): WorkspaceBoard
 export const buildWorkspaceLibraryEntries = (input: {
   workspaceId: string;
   artifacts: Artifact[];
-  headlines: Headline[];
+  headlines?: Signal[];
+  signals?: Signal[];
   workspaceItems: WorkspaceItem[];
 }): WorkspaceLibraryEntry[] => {
   const artifactEntries = input.artifacts
@@ -156,14 +159,14 @@ export const buildWorkspaceLibraryEntries = (input: {
     url: source.url,
   }));
 
-  const headlineEntries = input.headlines.map((headline) => ({
-    ...buildWorkspaceHeadlineReference(input.workspaceId, headline),
-    kind: 'HEADLINE' as const,
-    description: headline.content,
-    subtitle: headline.type,
-    contextText: [headline.content, headline.source, headline.url || ''].filter(Boolean).join('\n'),
-    searchText: [headline.source, headline.content, headline.type].filter(Boolean).join(' '),
-    url: headline.url,
+  const signalEntries = (input.signals || input.headlines || []).map((signal) => ({
+    ...buildWorkspaceSignalReference(input.workspaceId, signal),
+    kind: 'SIGNAL' as const,
+    description: signal.content,
+    subtitle: signal.type,
+    contextText: [signal.content, signal.source, signal.url || ''].filter(Boolean).join('\n'),
+    searchText: [signal.source, signal.content, signal.type].filter(Boolean).join(' '),
+    url: signal.url,
   }));
 
   const workspaceItemEntries = input.workspaceItems.map((item) => ({
@@ -200,6 +203,6 @@ export const buildWorkspaceLibraryEntries = (input: {
     ...artifactEntries,
     ...entityEntries,
     ...sourceEntries,
-    ...headlineEntries,
+    ...signalEntries,
   ];
 };

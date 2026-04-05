@@ -2,7 +2,7 @@ import { chatWithProviderRouter } from '@/services/providers';
 import type {
   Artifact,
   ChatAttachmentKind,
-  Headline,
+  Signal,
   Workspace,
   WorkspaceContextSnippet,
   WorkspaceItem,
@@ -18,6 +18,7 @@ const toAttachmentKind = (kind: WorkspaceLibraryEntry['kind']): ChatAttachmentKi
       return 'REPORT';
     case 'ENTITY':
     case 'SOURCE':
+    case 'SIGNAL':
     case 'HEADLINE':
     case 'NOTE':
     case 'LINK':
@@ -52,7 +53,7 @@ const buildSelectionDigest = (entries: WorkspaceLibraryEntry[]) =>
 export const generateBoardSelectionDraft = async (input: {
   workspace: Workspace;
   artifacts: Artifact[];
-  headlines: Headline[];
+  headlines: Signal[];
   selectedEntries: WorkspaceLibraryEntry[];
   mode: 'SUMMARY' | 'NOTE';
 }): Promise<{ content: string; title: string }> => {
@@ -83,11 +84,11 @@ export const generateBoardSelectionDraft = async (input: {
       summary: artifact.summary,
       dateStr: artifact.dateStr,
     })),
-    recentHeadlines: input.headlines.slice(0, 4).map((headline) => ({
-      content: headline.content,
-      sourceName: headline.source,
-      timestamp: headline.timestamp,
-      type: headline.type,
+    recentSignals: input.headlines.slice(0, 4).map((signal) => ({
+      content: signal.content,
+      sourceName: signal.source,
+      timestamp: signal.timestamp,
+      type: signal.type,
     })),
     retrievedContext: snippets,
   });

@@ -841,7 +841,8 @@ export interface WorkspaceDataChatSnapshot {
 }
 
 export interface WorkspaceDataSignalSnapshot {
-  headlines: Signal[];
+  signals: Signal[];
+  headlines?: Signal[];
 }
 
 export interface WorkspaceDataBoardAgentSnapshot {

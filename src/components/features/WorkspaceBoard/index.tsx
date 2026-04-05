@@ -280,7 +280,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     return buildWorkspaceLibraryEntries({
       workspaceId: activeWorkspace.id,
       artifacts: workspaceArtifacts,
-      headlines: workspaceHeadlines,
+      signals: workspaceHeadlines,
       workspaceItems: createdWorkspaceItems,
     });
   }, [activeWorkspace, createdWorkspaceItems, workspaceArtifacts, workspaceHeadlines]);
@@ -309,7 +309,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       artifacts: filteredEntries.filter((entry) => entry.kind === 'ARTIFACT'),
       entities: filteredEntries.filter((entry) => entry.kind === 'ENTITY'),
       sources: filteredEntries.filter((entry) => entry.kind === 'SOURCE'),
-      signals: filteredEntries.filter((entry) => entry.kind === 'HEADLINE'),
+      signals: filteredEntries.filter((entry) => entry.kind === 'SIGNAL' || entry.kind === 'HEADLINE'),
     }),
     [filteredEntries]
   );
@@ -322,7 +322,9 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   }, [selectedEntries, workspaceArtifacts]);
 
   const selectedHeadline = useMemo(() => {
-    const first = selectedEntries.find((entry) => entry.refKind === 'HEADLINE');
+    const first = selectedEntries.find(
+      (entry) => entry.refKind === 'SIGNAL' || entry.refKind === 'HEADLINE'
+    );
     return first
       ? workspaceHeadlines.find((headline) => headline.id === first.refId) || null
       : null;

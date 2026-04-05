@@ -435,6 +435,15 @@ Acceptance:
 
 ## Workstream 3: Canonical Model And Persistence Parity
 
+Status: Complete on April 5, 2026.
+
+Landed outcomes:
+
+- canonical `Signal` / `FollowUp` runtime language now leads the persistence edge and active retrieval surfaces
+- saved-signal repositories now expose canonical `getSignals(...)` / `createSignal(...)` APIs with compatibility wrappers kept at the edge
+- workspace-data backups now emit canonical signal snapshots as `signals.signals` while continuing to accept legacy `signals.headlines`
+- chat retrieval, workspace search, and workspace-board reference flows now prefer `SIGNAL` refs/attachments rather than growing new `HEADLINE`-named roots
+
 ### Goal
 
 Finish the move from transitional investigation-first naming to the settled research workspace canon on the route-backed architecture.
@@ -503,6 +512,15 @@ Acceptance:
 - canonical models are visible across the route-backed surfaces without transitional drift
 
 ## Workstream 4: Integrity, Storage Boundary, And Runtime Safety
+
+Status: Complete on April 5, 2026.
+
+Landed outcomes:
+
+- critical artifact persistence remains transaction-backed through `runWriteTransaction(...)`
+- app-owned browser storage now routes through typed helpers for config, model-catalog cache, recent model history, active workspace selection, and monitor autosave
+- provider/router capability enforcement remains active and covered by targeted router tests
+- active docs and validation notes now reflect the current route-backed canonical model and this slice's actual validation scope
 
 ### Goal
 

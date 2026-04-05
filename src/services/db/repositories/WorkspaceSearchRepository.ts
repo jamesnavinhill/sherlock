@@ -111,7 +111,7 @@ export class WorkspaceSearchRepository {
     const sourceRows = reportIds.length
       ? await db.select().from(sources).where(inArray(sources.reportId, reportIds))
       : [];
-    const headlineRows = await db
+    const signalRows = await db
       .select()
       .from(leads)
       .where(eq(leads.caseId, workspaceId))
@@ -248,15 +248,15 @@ export class WorkspaceSearchRepository {
       });
     });
 
-    headlineRows.forEach((row) => {
+    signalRows.forEach((row) => {
       const parsedTimestamp = row.timestamp ? Date.parse(row.timestamp) : 0;
       candidates.push({
-        id: `CTX-HEADLINE-${row.id}`,
-        kind: 'HEADLINE',
+        id: `CTX-SIGNAL-${row.id}`,
+        kind: 'SIGNAL',
         title: row.source || row.type || 'Signal',
         snippet: toSnippet(row.content),
         refId: row.id,
-        refKind: 'HEADLINE',
+        refKind: 'SIGNAL',
         score: scoreCandidate(
           query,
           [row.content, row.source || '', row.type || ''],
@@ -314,7 +314,7 @@ export class WorkspaceSearchRepository {
       .slice(0, options?.limit ?? 6);
 
     const recentArtifacts = reportRows.slice(0, 4).map(toRecentArtifact);
-    const recentSignals: Signal[] = headlineRows.slice(0, 5).map((row) => ({
+    const recentSignals: Signal[] = signalRows.slice(0, 5).map((row) => ({
       id: row.id,
       caseId: row.caseId || workspaceId,
       content: row.content,
@@ -330,7 +330,7 @@ export class WorkspaceSearchRepository {
     const summaryParts = [
       workspace.description || `${workspace.title} workspace`,
       reportRows.length ? `${reportRows.length} saved artifacts` : 'No saved artifacts yet',
-      headlineRows.length ? `${headlineRows.length} saved signals` : 'No saved signals yet',
+      signalRows.length ? `${signalRows.length} saved signals` : 'No saved signals yet',
     ];
 
     return {
@@ -382,9 +382,9 @@ export class WorkspaceSearchRepository {
   }
 
   static async getRecentSignals(workspaceId: string, limit = 5): Promise<Signal[]> {
-    const headlines = await CaseRepository.getHeadlines();
-    return headlines
-      .filter((headline) => headline.caseId === workspaceId)
+    const signals = await CaseRepository.getSignals();
+    return signals
+      .filter((signal) => signal.caseId === workspaceId)
       .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp))
       .slice(0, limit);
   }

@@ -6,9 +6,9 @@ import type {
   CaseTemplate,
   ChatMessage,
   ChatSession,
-  Headline,
   ManualConnection,
   ManualNode,
+  Signal,
   WorkspaceBoard,
   WorkspaceBoardDocument,
   WorkspaceItem,
@@ -86,6 +86,20 @@ export const groupBoardAgentActionsBySessionId = (
     return acc;
   }, {});
 
+export const getWorkspaceDataSignals = (
+  snapshot: WorkspaceDataBackup['signals'] | null | undefined
+): Signal[] => {
+  if (!snapshot) return [];
+  const canonicalSignals = Array.isArray((snapshot as { signals?: unknown }).signals)
+    ? snapshot.signals
+    : [];
+  return canonicalSignals.length > 0
+    ? canonicalSignals
+    : Array.isArray(snapshot.headlines)
+      ? snapshot.headlines
+      : [];
+};
+
 export const buildWorkspaceLinkedGraphReferenceIds = (
   workspaceId: string,
   artifactIds: string[]
@@ -126,7 +140,7 @@ export const buildWorkspaceDataBackup = (input: {
   chatActionsBySessionId: Record<string, AgentAction[]>;
   boardAgentSessions: BoardAgentSession[];
   boardAgentActionsBySessionId: Record<string, BoardAgentAction[]>;
-  headlines: Headline[];
+  signals: Signal[];
   manualNodes: ManualNode[];
   manualLinks: ManualConnection[];
   workspaceItems: WorkspaceItem[];
@@ -148,7 +162,7 @@ export const buildWorkspaceDataBackup = (input: {
     actions: Object.values(input.boardAgentActionsBySessionId).flat(),
   },
   signals: {
-    headlines: input.headlines,
+    signals: input.signals,
   },
   graph: {
     manualNodes: input.manualNodes,
@@ -224,11 +238,11 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
     : looksWorkspaceExport
       ? []
       : flattenSessionRecord<BoardAgentAction>(payload.boardAgentActionsBySessionId);
-  const headlines = looksCanonical
-    ? asArray<Headline>(payload.signals?.headlines)
+  const signals = looksCanonical
+    ? getWorkspaceDataSignals(payload.signals)
     : looksWorkspaceExport
       ? []
-      : asArray<Headline>(payload.headlines);
+      : asArray<Signal>(payload.headlines);
   const manualNodes = looksCanonical
     ? asArray<ManualNode>(payload.graph?.manualNodes)
     : looksWorkspaceExport
@@ -272,7 +286,7 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
       actions: boardAgentActions,
     },
     signals: {
-      headlines,
+      signals,
     },
     graph: {
       manualNodes,

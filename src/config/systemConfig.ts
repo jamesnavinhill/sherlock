@@ -8,7 +8,10 @@ import {
   getModelProvider,
   resolveModelSelection,
 } from './aiModels';
-import { getOptionalItem, setItem, STORAGE_KEYS } from '../utils/localStorage';
+import {
+  getStoredSystemConfigRecord,
+  setStoredSystemConfigRecord,
+} from '../utils/localStorage';
 
 const LEGACY_MODEL_IDS: Record<string, string> = {
   'gemini-2.5-flash-latest': 'gemini-2.5-flash',
@@ -36,10 +39,7 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   quietMode: false,
 };
 
-const readStoredConfigObject = (): Record<string, unknown> => {
-  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.SYSTEM_CONFIG);
-  return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
-};
+const readStoredConfigObject = (): Record<string, unknown> => getStoredSystemConfigRecord();
 
 const normalizeModelId = (modelId: unknown): string | undefined => {
   if (typeof modelId !== 'string' || modelId.trim().length === 0) return undefined;
@@ -132,7 +132,7 @@ export const saveSystemConfig = (
     ...partialConfig,
   });
 
-  setItem(STORAGE_KEYS.SYSTEM_CONFIG, {
+  setStoredSystemConfigRecord({
     ...existingRaw,
     ...nextConfig,
     ...(extraValues || {}),

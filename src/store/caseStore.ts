@@ -54,6 +54,7 @@ import {
 } from '../utils/themeFonts';
 import {
   filterManualGraphForWorkspaceRemoval,
+  getWorkspaceDataSignals,
   groupBoardAgentActionsBySessionId,
   groupChatActionsBySessionId,
   groupChatMessagesBySessionId,
@@ -420,7 +421,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           ])
         )
       );
-      let headlines = await CaseRepository.getHeadlines();
+      let headlines = await CaseRepository.getSignals();
       let templates = await TemplateRepository.getAll();
       let workspaceItems = await WorkspaceItemRepository.getAll();
       let workspaceBoards = await WorkspaceBoardRepository.getAllBoards();
@@ -547,7 +548,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
           boardAgentActionsBySessionId = groupBoardAgentActionsBySessionId(
             demoSeed.boardAgent.actions
           );
-          headlines = demoSeed.signals.headlines;
+          headlines = getWorkspaceDataSignals(demoSeed.signals);
           templates = demoSeed.templates;
           workspaceItems = demoSeed.workspaceSurface.items;
           workspaceBoards = demoSeed.workspaceSurface.boards;
@@ -676,7 +677,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   clearQueuedBoardPlacement: () => set({ queuedBoardPlacement: null }),
 
   addHeadline: async (headline) => {
-    await CaseRepository.createHeadline(headline);
+    await CaseRepository.createSignal(headline);
     set((state) => {
       const existingIndex = state.headlines.findIndex((h) => h.id === headline.id);
       if (existingIndex >= 0) {
@@ -1644,7 +1645,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
       chatActionsBySessionId: groupChatActionsBySessionId(payload.chat.actions),
       boardAgentSessions: payload.boardAgent.sessions,
       boardAgentActionsBySessionId: groupBoardAgentActionsBySessionId(payload.boardAgent.actions),
-      headlines: payload.signals.headlines,
+      headlines: getWorkspaceDataSignals(payload.signals),
       templates: payload.templates,
       workspaceItems: payload.workspaceSurface.items,
       workspaceBoards: payload.workspaceSurface.boards,

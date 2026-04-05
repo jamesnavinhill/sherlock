@@ -175,6 +175,15 @@ Current additive upgrade logic also creates `board_agent_sessions` and `board_ag
 
 Some non-tabular values still live in browser storage, but runtime code now routes them through the typed helper in `src/utils/localStorage.ts` rather than feature-local `localStorage` calls.
 
+The storage helper now exposes dedicated typed accessors for:
+
+- system config persistence
+- cached OpenRouter model-catalog payloads
+- recent model selections
+- active workspace selection
+- Live Monitor autosave preference
+- one-time demo bootstrap marker
+
 Values still kept there:
 
 - provider keys (for selected providers)
@@ -219,7 +228,7 @@ Workspace-data backups include:
 - runs (`tasks`)
 - chat sessions, messages, attachments, and actions
 - board-agent sessions and action audit history
-- saved signals (`leads`)
+- saved signals (`leads`), exported canonically as `signals.signals`
 - workspace library items (`workspace_items`)
 - workspace boards and board documents (`workspace_boards`, `workspace_board_documents`)
 - manual graph nodes and links
@@ -227,6 +236,8 @@ Workspace-data backups include:
 - Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `reports`/`artifact_sections`
 
 Workspace-data restore now replays that backup inside one SQLite transaction so a failed import does not leave a partially cleared or partially restored workspace domain behind.
+
+Restore/import still accepts older canonical payloads that stored saved signals under `signals.headlines`, plus pre-canonical legacy payloads with top-level `headlines`.
 
 Workspace-data backups intentionally exclude:
 

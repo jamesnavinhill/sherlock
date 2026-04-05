@@ -403,7 +403,7 @@ export const Settings: React.FC<SettingsProps> = ({
       chatActionsBySessionId,
       boardAgentSessions,
       boardAgentActionsBySessionId,
-      headlines,
+      signals: headlines,
       manualNodes,
       manualLinks,
       workspaceItems,

@@ -316,7 +316,7 @@ describe('provider router', () => {
           messages: [{ role: 'user', content: 'Summarize the workspace.' }],
           workspaceSummary: 'One workspace',
           recentArtifacts: [],
-          recentHeadlines: [],
+          recentSignals: [],
           retrievedContext: [],
         })
       ).rejects.toThrow(/CHAT is unavailable/i);
@@ -370,7 +370,7 @@ describe('provider router', () => {
       messages: [{ role: 'user', content: 'Summarize the workspace.' }],
       workspaceSummary: 'One workspace',
       recentArtifacts: [],
-      recentHeadlines: [],
+      recentSignals: [],
       retrievedContext: [],
     });
 
@@ -401,7 +401,7 @@ describe('provider router', () => {
         messages: [{ role: 'user', content: 'Stream the workspace summary.' }],
         workspaceSummary: 'One workspace',
         recentArtifacts: [],
-        recentHeadlines: [],
+        recentSignals: [],
         retrievedContext: [],
       },
       {

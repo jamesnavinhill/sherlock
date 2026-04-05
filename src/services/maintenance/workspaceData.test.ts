@@ -89,7 +89,7 @@ describe('workspaceData maintenance helpers', () => {
           },
         ],
       },
-      headlines: [
+      signals: [
         {
           id: 'head-1',
           caseId: 'case-1',
@@ -193,7 +193,7 @@ describe('workspaceData maintenance helpers', () => {
         ],
       },
       signals: {
-        headlines: [
+        signals: [
           {
             id: 'head-1',
             caseId: 'case-1',

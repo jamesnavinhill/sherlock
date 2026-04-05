@@ -230,7 +230,7 @@ export const chatWithProviderRouter = async (request: RouterChatRequest): Promis
     messages: request.messages,
     workspaceSummary: request.workspaceSummary,
     recentArtifacts: request.recentArtifacts,
-    recentHeadlines: request.recentHeadlines,
+    recentSignals: request.recentSignals,
     retrievedContext: request.retrievedContext,
   });
 };
@@ -262,7 +262,7 @@ export const streamChatWithProviderRouter = async (
       messages: request.messages,
       workspaceSummary: request.workspaceSummary,
       recentArtifacts: request.recentArtifacts,
-      recentHeadlines: request.recentHeadlines,
+      recentSignals: request.recentSignals,
       retrievedContext: request.retrievedContext,
     },
     options
