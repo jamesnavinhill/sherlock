@@ -16,9 +16,6 @@ import {
 import type { WorkspaceRun } from '../../types';
 import { AppView } from '../../types';
 import { TaskManager } from './TaskManager';
-import { useWorkspaceStore } from '../../store/caseStore';
-import { getAllScopes, getScopeById } from '../../data/presets';
-import { getDomainPackForScope, getLabelProfileById } from '../../domain';
 
 interface SidebarProps {
   currentView: AppView;
@@ -45,22 +42,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   themeMode,
   onToggleTheme,
 }) => {
-  const { activeScope: activeScopeId, customScopes } = useWorkspaceStore();
-  const activeScope =
-    getScopeById(activeScopeId || '') ||
-    getAllScopes(customScopes).find((scope) => scope.id === activeScopeId) ||
-    getAllScopes(customScopes)[0];
-  const activePack = getDomainPackForScope(activeScope, customScopes);
-  const labelProfile = getLabelProfileById(activePack.labelProfileId);
-  const monitorLabel =
-    activePack.workspaceMode === 'MONITORING' ? 'Signal Monitor' : 'Live Monitor';
-
   const btnClass = (isActive: boolean) =>
-    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 rounded-none border-l transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${
+    `grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center rounded-none border-l py-3 text-left transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${
       isActive
         ? 'bg-zinc-900 text-osint-primary border-osint-primary shadow-[inset_10px_0_20px_-10px_rgba(0,0,0,0.5)]'
         : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 border-transparent'
     }`;
+
+  const navItems = [
+    { view: AppView.INVESTIGATION, label: 'Viewer', icon: FileText },
+    { view: AppView.WORKSPACE, label: 'Canvas', icon: Shapes },
+    { view: AppView.CHAT, label: 'Chat', icon: MessageSquare },
+    { view: AppView.NETWORK, label: 'Network', icon: Network },
+    { view: AppView.TIMELINE, label: 'Timeline', icon: Clock3 },
+    { view: AppView.LIVE_MONITOR, label: 'Monitor', icon: Radio },
+    { view: AppView.DASHBOARD, label: 'Discovery', icon: LayoutDashboard },
+    { view: AppView.ARCHIVES, label: 'Files', icon: FolderClosed },
+  ] as const;
 
   return (
     <>
@@ -77,131 +75,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         <div
           onClick={toggleCollapse}
-          className={`h-20 flex items-center ${isCollapsed ? 'justify-center' : 'px-6 space-x-3'} border-b border-zinc-800 bg-osint-dark cursor-pointer hover:bg-zinc-900 transition-colors group flex-shrink-0`}
+          className="grid h-20 grid-cols-[5rem_minmax(0,1fr)] items-center border-b border-zinc-800 bg-osint-dark transition-colors group flex-shrink-0 cursor-pointer hover:bg-zinc-900"
           title="Toggle Sidebar"
         >
-          <ShieldAlert
-            className={`w-8 h-8 text-osint-primary transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
-          />
-          {!isCollapsed && (
-            <span className="text-xl font-bold font-mono tracking-widest text-zinc-400 animate-in fade-in duration-200 whitespace-nowrap">
+          <div className="flex items-center justify-center">
+            <ShieldAlert
+              className={`h-8 w-8 text-osint-primary transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
+            />
+          </div>
+          <div
+            className={`min-w-0 overflow-hidden whitespace-nowrap transition-all duration-200 ${
+              isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
+            }`}
+          >
+            <span className="text-xl font-bold font-mono tracking-widest text-zinc-400">
               SHER<span className="text-osint-primary">LOCK</span>
             </span>
-          )}
+          </div>
         </div>
 
         <nav className="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          <button
-            onClick={() => onChangeView(AppView.INVESTIGATION)}
-            className={btnClass(currentView === AppView.INVESTIGATION)}
-            title={isCollapsed ? labelProfile.detailViewLabel : undefined}
-            aria-label={labelProfile.detailViewLabel}
-          >
-            <FileText className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                {labelProfile.detailViewLabel}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onChangeView(AppView.WORKSPACE)}
-            className={btnClass(currentView === AppView.WORKSPACE)}
-            title={isCollapsed ? 'Research Workspace' : undefined}
-            aria-label="Research Workspace"
-          >
-            <Shapes className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                Research Workspace
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onChangeView(AppView.CHAT)}
-            className={btnClass(currentView === AppView.CHAT)}
-            title={isCollapsed ? 'Workspace Chat' : undefined}
-            aria-label="Workspace Chat"
-          >
-            <MessageSquare className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                Workspace Chat
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onChangeView(AppView.TIMELINE)}
-            className={btnClass(currentView === AppView.TIMELINE)}
-            title={isCollapsed ? 'Timeline' : undefined}
-            aria-label="Timeline"
-          >
-            <Clock3 className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                Timeline
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onChangeView(AppView.NETWORK)}
-            className={btnClass(currentView === AppView.NETWORK)}
-            title={isCollapsed ? 'Network Graph' : undefined}
-            aria-label="Network Graph"
-          >
-            <Network className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                Network Graph
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onChangeView(AppView.LIVE_MONITOR)}
-            className={btnClass(currentView === AppView.LIVE_MONITOR)}
-            title={isCollapsed ? monitorLabel : undefined}
-            aria-label={monitorLabel}
-          >
-            <Radio className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                {monitorLabel}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onChangeView(AppView.ARCHIVES)}
-            className={btnClass(currentView === AppView.ARCHIVES)}
-            title={isCollapsed ? labelProfile.archiveLabel : undefined}
-            aria-label={labelProfile.archiveLabel}
-          >
-            <FolderClosed className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                {labelProfile.archiveLabel}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => onChangeView(AppView.DASHBOARD)}
-            className={btnClass(currentView === AppView.DASHBOARD)}
-            title={isCollapsed ? 'Discovery Feed' : undefined}
-            aria-label="Discovery Feed"
-          >
-            <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                Discovery Feed
-              </span>
-            )}
-          </button>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.view}
+                onClick={() => onChangeView(item.view)}
+                className={btnClass(currentView === item.view)}
+                title={isCollapsed ? item.label : undefined}
+                aria-label={item.label}
+              >
+                <div className="flex items-center justify-center">
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                </div>
+                <div
+                  className={`min-w-0 overflow-hidden whitespace-nowrap pl-1 transition-all duration-200 ${
+                    isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
+                  }`}
+                >
+                  <span className="font-medium font-mono text-sm uppercase tracking-wide">
+                    {item.label}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </nav>
 
         {/* Task Manager - Now blends seamlessly as a bottom nav section */}
@@ -216,39 +134,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="border-t border-zinc-800 flex-shrink-0">
           <button
-            onClick={() => onChangeView(AppView.SETTINGS)}
-            className={`${btnClass(currentView === AppView.SETTINGS)} py-4`}
-            title={isCollapsed ? 'System Config' : undefined}
-          >
-            <Settings className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                System Config
-              </span>
-            )}
-          </button>
-          <button
             onClick={onToggleTheme}
-            className={`flex items-center ${isCollapsed ? 'justify-center px-2' : 'space-x-3 px-3'} w-full py-3 border-l border-transparent text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary`}
+            className="grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center border-l border-transparent py-3 text-zinc-500 transition-all duration-200 outline-none hover:bg-zinc-900 hover:text-zinc-300 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary"
             title={
               isCollapsed
                 ? themeMode === 'dark'
-                  ? 'Enable Light Mode'
-                  : 'Enable Dark Mode'
+                  ? 'Light'
+                  : 'Dark'
                 : undefined
             }
-            aria-label={themeMode === 'dark' ? 'Enable Light Mode' : 'Enable Dark Mode'}
+            aria-label={themeMode === 'dark' ? 'Light' : 'Dark'}
           >
-            {themeMode === 'dark' ? (
-              <Sun className="w-5 h-5 flex-shrink-0 text-osint-primary" />
-            ) : (
-              <Moon className="w-5 h-5 flex-shrink-0 text-osint-primary" />
-            )}
-            {!isCollapsed && (
-              <span className="font-medium font-mono text-sm uppercase tracking-wide animate-in fade-in duration-200">
-                {themeMode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            <div className="flex items-center justify-center">
+              {themeMode === 'dark' ? (
+                <Sun className="h-5 w-5 flex-shrink-0 text-osint-primary" />
+              ) : (
+                <Moon className="h-5 w-5 flex-shrink-0 text-osint-primary" />
+              )}
+            </div>
+            <div
+              className={`min-w-0 overflow-hidden whitespace-nowrap pl-1 transition-all duration-200 ${
+                isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
+              }`}
+            >
+              <span className="font-medium font-mono text-sm uppercase tracking-wide">
+                {themeMode === 'dark' ? 'Light' : 'Dark'}
               </span>
-            )}
+            </div>
+          </button>
+          <button
+            onClick={() => onChangeView(AppView.SETTINGS)}
+            className={`${btnClass(currentView === AppView.SETTINGS)} py-4`}
+            title={isCollapsed ? 'Settings' : undefined}
+            aria-label="Settings"
+          >
+            <div className="flex items-center justify-center">
+              <Settings className="h-5 w-5 flex-shrink-0" />
+            </div>
+            <div
+              className={`min-w-0 overflow-hidden whitespace-nowrap pl-1 transition-all duration-200 ${
+                isCollapsed ? 'opacity-0 translate-x-1' : 'opacity-100 translate-x-0'
+              }`}
+            >
+              <span className="font-medium font-mono text-sm uppercase tracking-wide">
+                Settings
+              </span>
+            </div>
           </button>
         </div>
       </aside>

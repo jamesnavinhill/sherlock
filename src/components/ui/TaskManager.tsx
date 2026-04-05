@@ -41,8 +41,8 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
       <button
         onClick={onExpand}
         className="w-full py-4 flex justify-center items-center text-zinc-500 hover:bg-zinc-900 hover:text-white relative group border-t border-zinc-800 transition-colors flex-shrink-0 outline-none focus-visible:bg-zinc-900 focus-visible:text-white"
-        title="Active Operations"
-        aria-label="Expand Operations Log"
+        title="Ops"
+        aria-label="Expand Ops"
       >
         {runningTasks.length > 0 && (
           <span className="absolute top-3 right-3 flex h-2 w-2">
@@ -157,15 +157,15 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
       <button
         onClick={() => (workspaceRuns.length > 0 ? setIsExpanded(!isExpanded) : null)}
         disabled={workspaceRuns.length === 0}
-        aria-label={isExpanded ? 'Collapse Operations Log' : 'Expand Operations Log'}
-        className={`w-full flex items-center justify-between px-3 py-4 group transition-all border-l outline-none focus-visible:bg-zinc-900 ${
+        aria-label={isExpanded ? 'Collapse Ops' : 'Expand Ops'}
+        className={`w-full grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center py-4 group transition-all border-l outline-none focus-visible:bg-zinc-900 ${
           isExpanded
             ? 'bg-zinc-900 border-osint-primary'
             : 'border-transparent hover:bg-zinc-900 hover:border-zinc-700'
         } ${workspaceRuns.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
       >
-        <div className="flex items-center space-x-3 overflow-hidden">
-          <div className="relative flex-shrink-0">
+        <div className="relative flex items-center justify-center">
+          <div className="relative">
             <Activity
               className={`w-5 h-5 ${runningTasks.length > 0 ? 'text-osint-primary' : 'text-zinc-500 group-hover:text-zinc-300'}`}
             />
@@ -176,18 +176,18 @@ export const TaskManager: React.FC<TaskManagerProps> = ({
               </span>
             )}
           </div>
-          <div className="flex flex-col items-start text-left min-w-0">
+        </div>
+        <div className="flex min-w-0 flex-col items-start text-left">
             <span
               className={`text-sm font-medium font-mono uppercase tracking-wide truncate ${runningTasks.length > 0 ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'}`}
             >
-              {runningTasks.length > 0 ? 'Systems Active' : 'Ops Idle'}
+              Ops
             </span>
             {runningTasks.length > 0 && (
               <span className="text-[10px] text-zinc-600 truncate">
                 {runningTasks.length} Running
               </span>
             )}
-          </div>
         </div>
 
         {workspaceRuns.length > 0 && (
