@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Network } from 'lucide-react';
 import type {
   ChatOpenRequest,
@@ -11,8 +12,8 @@ import type {
   Headline,
   Source,
 } from '../../../types';
-import { AppView } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
+import { buildWorkspaceBoardDocumentPath } from '../../../app/routes';
 import { TaskSetupModal } from '../../ui/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EmptyState } from '../../ui/EmptyState';
@@ -70,6 +71,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   navStack: _navStack,
   onNavigate: _onNavigate,
 }) => {
+  const navigate = useNavigate();
   // Refs
   const graphRef = useRef<GraphCanvasRef>(null);
 
@@ -95,7 +97,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     setHiddenNodeIds,
     ensureWorkspaceBoard,
     queueBoardPlacement,
-    setCurrentView,
     addToast,
   } = useWorkspaceStore();
 
@@ -547,7 +548,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       }),
       openInBoard: true,
     });
-    setCurrentView(AppView.WORKSPACE);
+    navigate(buildWorkspaceBoardDocumentPath(filterCaseId, board.id));
   };
 
   const handlePlaceReportOnBoard = async (report: Artifact) => {
@@ -560,7 +561,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       item: buildWorkspaceArtifactReference(report.caseId, { ...report, id: report.id }),
       openInBoard: true,
     });
-    setCurrentView(AppView.WORKSPACE);
+    navigate(buildWorkspaceBoardDocumentPath(report.caseId, board.id));
   };
 
   const handlePlaceHeadlineOnBoard = async (headline: Headline) => {
@@ -573,7 +574,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       item: buildWorkspaceHeadlineReference(headline.caseId, headline),
       openInBoard: true,
     });
-    setCurrentView(AppView.WORKSPACE);
+    navigate(buildWorkspaceBoardDocumentPath(headline.caseId, board.id));
   };
 
   return (

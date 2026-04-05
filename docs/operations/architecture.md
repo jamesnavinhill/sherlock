@@ -6,32 +6,69 @@ Sherlock now runs on a canonical workspace architecture. The domain-pack shell r
 
 ## 1. Application Shell
 
-`src/App.tsx` is the root orchestrator.
+`src/App.tsx` is now a thin entry export over the route-backed shell in `src/app/AppShell.tsx`.
 
 Responsibilities:
 
 - initializes persistence/state (`useWorkspaceStore().initializeStore()`, re-exported from `src/store/caseStore.ts`)
-- owns active view routing (`AppView`)
+- mounts the browser router and route-backed page composition
 - owns the unified launch pipeline
 - resolves domain-pack and purpose metadata into run config
-- wires lazy-loaded feature modules
+- wires lazy-loaded route pages and route wrappers
 - applies theme/accent/font runtime CSS variables
 
-Primary views loaded from App:
+Primary route-backed surfaces:
 
-- `Feed` (`AppView.DASHBOARD`)
-- `OperationView` (`AppView.INVESTIGATION`)
-- `WorkspaceBoard` (`AppView.WORKSPACE`)
-- `Chat` (`AppView.CHAT`)
-- `NetworkGraph` (`AppView.NETWORK`)
-- `LiveMonitor` (`AppView.LIVE_MONITOR`)
-- `Archives` (`AppView.ARCHIVES`)
-- `Settings` (`AppView.SETTINGS`)
-- `TimelineView` (`AppView.TIMELINE`, exposed in sidebar navigation as the workspace chronology surface)
+- `Feed` at `/discover`
+- `Archives` at `/files`
+- `LiveMonitor` at `/monitor`
+- `OperationView` for transient execution state at `/runs/:runId`
+- `OperationView` for saved artifact detail at `/workspaces/:workspaceId/artifacts/:artifactId`
+- `Chat` at `/workspaces/:workspaceId/chat` and `/workspaces/:workspaceId/chat/:sessionId`
+- `WorkspaceBoard` at `/workspaces/:workspaceId/board` and `/workspaces/:workspaceId/board/:boardId`
+- `TimelineView` at `/workspaces/:workspaceId/timeline`
+- `NetworkGraph` at `/workspaces/:workspaceId/network`
+- `Settings` at `/settings`
+
+Supporting shell files now include:
+
+- `src/app/routes.ts`
+- `src/app/navigation.ts`
+- `src/app/routeViews.tsx`
+- `src/app/AppShell.tsx`
+
+Canonical path inventory:
+
+- `/discover`
+- `/monitor`
+- `/files`
+- `/runs/:runId`
+- `/settings`
+- `/workspaces/:workspaceId`
+- `/workspaces/:workspaceId/artifacts/:artifactId`
+- `/workspaces/:workspaceId/chat`
+- `/workspaces/:workspaceId/chat/:sessionId`
+- `/workspaces/:workspaceId/board`
+- `/workspaces/:workspaceId/board/:boardId`
+- `/workspaces/:workspaceId/timeline`
+- `/workspaces/:workspaceId/network`
+
+Route/state ownership is intentionally split this way:
+
+- URL state should own durable location such as the active workspace, artifact, board, chat session, and timeline filter/search context
+- store state should continue to own domain records, generation state, drafts, panel visibility, and other transient UI details that do not need bookmarkable permanence
+
+Examples captured directly in `src/app/routes.ts`:
+
+- timeline query state (`search`, `range`, `tracks`, `focusTrack`, `focusRefId`) is designated URL-owned
+- artifact inspector panel visibility and temporary selection state remain store/component-owned
+- board agent drafts, chat composer drafts, and other transient workflow state remain store/component-owned
+
+The route contract is now active runtime behavior rather than future groundwork. `AppView` still exists in the store and sidebar layer as a compatibility-oriented view label, but URL-backed routing is the primary navigation mechanism.
 
 ## 2. Launch Pipeline
 
-All launches still converge through `launchInvestigation` in `src/App.tsx`.
+All launches still converge through `launchInvestigation` in `src/app/AppShell.tsx`.
 
 Flow:
 
@@ -202,6 +239,8 @@ State domains include:
 
 Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through `src/utils/localStorage.ts`, while provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 
+`currentView` remains in the store as a compatibility mirror for components that still want a coarse active-surface label, but the browser location is now the durable source of truth for active page identity.
+
 ## 7. Feature Composition
 
 ### Operation View
@@ -359,6 +398,6 @@ See:
 - Timeline is now a live feature surface with exportable timeline snapshots, while secondary chronology remains intentionally curated and lower-signal graph/chat audit traces stay out of the main stream.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
 - Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
-- `Ctrl+N` now routes through Archives and opens the active new-workspace modal rather than relying on dead shell state.
+- `Ctrl+N` now navigates to `/files` and opens the new-workspace modal rather than relying on old shell state.
 - Current lint/test status is tracked in `README.md` and `docs/operations/LINTING.md`.
 - Static hosting on Vercel is supported because runtime state, provider access, and persistence are browser-local; each origin keeps its own IndexedDB SQLite database and local BYOK settings, so preview URLs and the production domain do not share persisted data.

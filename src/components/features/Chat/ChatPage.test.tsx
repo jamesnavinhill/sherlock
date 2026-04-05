@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type { ChatMessage, ChatSession } from '@/types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { Chat } from './ChatPage';
@@ -53,7 +54,11 @@ describe('Chat page', () => {
   });
 
   it('opens the project setup flow from the empty workspace state', () => {
-    render(<Chat onLaunchInvestigation={vi.fn()} />);
+    render(
+      <MemoryRouter>
+        <Chat onLaunchInvestigation={vi.fn()} />
+      </MemoryRouter>
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /start new project/i }));
 
@@ -136,7 +141,11 @@ describe('Chat page', () => {
       setPartialAssistantOutput: vi.fn(),
     });
 
-    render(<Chat onLaunchInvestigation={onLaunchInvestigation} />);
+    render(
+      <MemoryRouter>
+        <Chat onLaunchInvestigation={onLaunchInvestigation} />
+      </MemoryRouter>
+    );
 
     fireEvent.change(screen.getByPlaceholderText(/ask about atlas workspace/i), {
       target: { value: 'What changed this week?' },
@@ -259,7 +268,11 @@ describe('Chat page', () => {
       updateChatMessage: vi.fn(async () => undefined),
     });
 
-    const { container } = render(<Chat onLaunchInvestigation={vi.fn()} />);
+    const { container } = render(
+      <MemoryRouter>
+        <Chat onLaunchInvestigation={vi.fn()} />
+      </MemoryRouter>
+    );
 
     const proseBlock = container.querySelector('.prose');
     expect(proseBlock).toBeTruthy();

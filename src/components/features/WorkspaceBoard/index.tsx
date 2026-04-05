@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Briefcase,
   Bot,
@@ -38,7 +39,12 @@ import type {
   WorkspaceBoardItemReference,
   WorkspaceItem,
 } from '@/types';
-import { AppView } from '@/types';
+import {
+  buildFilesPath,
+  buildWorkspaceBoardPath,
+  buildWorkspaceNetworkPath,
+  buildWorkspaceTimelinePath,
+} from '@/app/routes';
 import { useWorkspaceStore, type ThemeMode } from '@/store/caseStore';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OsintSelect } from '@/components/ui/OsintSelect';
@@ -109,6 +115,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   onOpenChat,
   onLaunchInvestigation,
 }) => {
+  const navigate = useNavigate();
   const {
     activeWorkspaceBoardId,
     activeWorkspaceId,
@@ -118,7 +125,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     createBoardAgentSession,
     createWorkspaceBoard,
     createWorkspaceItem,
-    currentView,
     deleteWorkspaceItem,
     ensureWorkspaceBoard,
     headlines,
@@ -127,7 +133,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     saveWorkspaceBoardDocument,
     setActiveWorkspaceBoardId,
     setActiveWorkspaceId,
-    setCurrentView,
     appendSectionToReport,
     addBoardAgentAction,
     updateWorkspaceBoard,
@@ -352,9 +357,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     const queuedEntry = libraryMap.get(boardRefKey(queuedBoardPlacement.item));
     if (queuedEntry) {
       if (activeBoard.presentationMode) {
-        if (queuedBoardPlacement.openInBoard && currentView !== AppView.WORKSPACE) {
-          setCurrentView(AppView.WORKSPACE);
-        }
         addToast('Board is in presentation mode. Disable it before placing new items.', 'INFO');
         clearQueuedBoardPlacement();
         return;
@@ -369,9 +371,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         viewport.y + viewport.h / 2 - card.h / 2,
         themeMode
       );
-      if (queuedBoardPlacement.openInBoard && currentView !== AppView.WORKSPACE) {
-        setCurrentView(AppView.WORKSPACE);
-      }
     }
 
     clearQueuedBoardPlacement();
@@ -380,11 +379,9 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     activeBoard,
     activeWorkspace,
     clearQueuedBoardPlacement,
-    currentView,
     libraryMap,
     queuedBoardPlacement,
     setActiveWorkspaceBoardId,
-    setCurrentView,
     themeMode,
   ]);
 
@@ -504,7 +501,11 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
 
   const handleWorkspaceChange = (workspaceId: string) => {
     setActiveWorkspaceId(workspaceId || null);
-    setCurrentView(AppView.WORKSPACE);
+    if (workspaceId) {
+      navigate(buildWorkspaceBoardPath(workspaceId));
+    } else {
+      navigate(buildFilesPath());
+    }
   };
 
   const handleDropEntry = useCallback(
@@ -1002,18 +1003,20 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       rel: 'noopener noreferrer',
     });
   }
-  inspectorActions.push({
-    id: 'board-open-timeline',
-    label: 'Timeline',
-    icon: Clock3,
-    onClick: () => setCurrentView(AppView.TIMELINE),
-  });
-  inspectorActions.push({
-    id: 'board-open-network',
-    label: 'Network Graph',
-    icon: Network,
-    onClick: () => setCurrentView(AppView.NETWORK),
-  });
+  if (activeWorkspace) {
+    inspectorActions.push({
+      id: 'board-open-timeline',
+      label: 'Timeline',
+      icon: Clock3,
+      onClick: () => navigate(buildWorkspaceTimelinePath(activeWorkspace.id)),
+    });
+    inspectorActions.push({
+      id: 'board-open-network',
+      label: 'Network Graph',
+      icon: Network,
+      onClick: () => navigate(buildWorkspaceNetworkPath(activeWorkspace.id)),
+    });
+  }
 
   const inspectorPanelBody = (
     <>
@@ -1365,7 +1368,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           description="Open or create a workspace first. The research board mirrors the active workspace and keeps board composition tied to canonical Sherlock records."
           action={{
             label: 'Open Case Files',
-            onClick: () => setCurrentView(AppView.ARCHIVES),
+            onClick: () => navigate(buildFilesPath()),
           }}
         />
       </div>

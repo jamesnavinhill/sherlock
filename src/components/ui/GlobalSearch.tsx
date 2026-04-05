@@ -1,9 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { Search, FileText, Target, User, Radio, ArrowRight, X, Command, Hash } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { Artifact, Workspace, Headline, Entity, WorkspaceRun } from '../../types';
-import { AppView } from '../../types';
+import { findWorkspaceLandingArtifact } from '../../app/navigation';
+import {
+  buildFilesPath,
+  buildMonitorPath,
+  buildWorkspaceArtifactPath,
+  buildWorkspaceHomePath,
+  buildWorkspaceNetworkPath,
+} from '../../app/routes';
 
 type SearchResult =
   | { type: 'CASE'; title: string; data: Workspace; icon: LucideIcon }
@@ -16,10 +24,10 @@ interface GlobalSearchModalProps {
   workspaces: Workspace[];
   headlines: Headline[];
   workspaceRuns: WorkspaceRun[];
-  setCurrentView: (view: AppView) => void;
   setShowGlobalSearch: (show: boolean) => void;
   setActiveTaskId: (id: string | null) => void;
-  addTask: (task: WorkspaceRun) => void;
+  setActiveWorkspaceId: (id: string | null) => void;
+  activeWorkspaceId: string | null;
 }
 
 const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
@@ -27,11 +35,12 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   workspaces,
   headlines,
   workspaceRuns,
-  setCurrentView,
   setShowGlobalSearch,
   setActiveTaskId,
-  addTask,
+  setActiveWorkspaceId,
+  activeWorkspaceId,
 }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,28 +99,37 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     if (result.type === 'REPORT') {
       const report = result.data;
       const existingTask = workspaceRuns.find((t) => t.report?.id === report.id);
-      if (existingTask) {
-        setActiveTaskId(existingTask.id);
+      setActiveTaskId(existingTask?.id || null);
+      if (report.caseId && report.id) {
+        setActiveWorkspaceId(report.caseId);
+        navigate(buildWorkspaceArtifactPath(report.caseId, report.id));
       } else {
-        const virtualTaskId = `virtual-${Date.now()}`;
-        addTask({
-          id: virtualTaskId,
-          topic: report.topic,
-          status: 'COMPLETED',
-          startTime: Date.now(),
-          report,
-        });
-        setActiveTaskId(virtualTaskId);
+        navigate(buildFilesPath());
       }
-      setCurrentView(AppView.INVESTIGATION);
     } else if (result.type === 'CASE') {
-      setCurrentView(AppView.ARCHIVES);
-      // In a better implementation, we'd navigate to the specific case
+      setActiveWorkspaceId(result.data.id);
+      const landingArtifact = findWorkspaceLandingArtifact(result.data.id, artifacts);
+      navigate(
+        landingArtifact?.id
+          ? buildWorkspaceArtifactPath(result.data.id, landingArtifact.id)
+          : buildWorkspaceHomePath(result.data.id)
+      );
     } else if (result.type === 'HEADLINE') {
-      setCurrentView(AppView.LIVE_MONITOR);
+      navigate(buildMonitorPath());
     } else if (result.type === 'ENTITY') {
-      // Navigate to Network Graph and focus entity maybe?
-      setCurrentView(AppView.NETWORK);
+      const matchingReport = artifacts.find((report) =>
+        (report.entities ?? []).some((entity) => {
+          const name = typeof entity === 'string' ? entity : entity.name;
+          return name.trim().toLowerCase() === result.title.trim().toLowerCase();
+        })
+      );
+      const workspaceId = matchingReport?.caseId || activeWorkspaceId;
+      if (workspaceId) {
+        setActiveWorkspaceId(workspaceId);
+        navigate(buildWorkspaceNetworkPath(workspaceId));
+      } else {
+        navigate(buildFilesPath());
+      }
     }
     setShowGlobalSearch(false);
   };
@@ -251,11 +269,11 @@ export const GlobalSearch: React.FC = () => {
     workspaces,
     headlines,
     workspaceRuns,
-    setCurrentView,
     showGlobalSearch,
     setShowGlobalSearch,
     setActiveTaskId,
-    addTask,
+    activeWorkspaceId,
+    setActiveWorkspaceId,
   } = useWorkspaceStore();
 
   if (!showGlobalSearch) return null;
@@ -266,10 +284,10 @@ export const GlobalSearch: React.FC = () => {
       workspaces={workspaces}
       headlines={headlines}
       workspaceRuns={workspaceRuns}
-      setCurrentView={setCurrentView}
       setShowGlobalSearch={setShowGlobalSearch}
       setActiveTaskId={setActiveTaskId}
-      addTask={addTask}
+      setActiveWorkspaceId={setActiveWorkspaceId}
+      activeWorkspaceId={activeWorkspaceId}
     />
   );
 };

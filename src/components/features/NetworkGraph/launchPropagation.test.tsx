@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { useWorkspaceStore } from '../../../store/caseStore';
 
 vi.mock('./ControlBar', () => ({
@@ -121,11 +122,13 @@ describe('NetworkGraph launch propagation', () => {
     const onInvestigateEntity = vi.fn();
 
     render(
-      <NetworkGraph
-        onOpenReport={vi.fn()}
-        onInvestigateEntity={onInvestigateEntity}
-        onOpenChat={vi.fn()}
-      />
+      <MemoryRouter>
+        <NetworkGraph
+          onOpenReport={vi.fn()}
+          onInvestigateEntity={onInvestigateEntity}
+          onOpenChat={vi.fn()}
+        />
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId('network-investigate-entity'));
@@ -156,7 +159,13 @@ describe('NetworkGraph launch propagation', () => {
     const onOpenChat = vi.fn();
 
     render(
-      <NetworkGraph onOpenReport={vi.fn()} onInvestigateEntity={vi.fn()} onOpenChat={onOpenChat} />
+      <MemoryRouter>
+        <NetworkGraph
+          onOpenReport={vi.fn()}
+          onInvestigateEntity={vi.fn()}
+          onOpenChat={onOpenChat}
+        />
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId('network-open-chat'));

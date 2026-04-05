@@ -9,6 +9,22 @@ Sherlock currently deploys as a static Vite application. The shipped app does no
 - Provider API keys persist locally in the browser when entered through `System Config -> AI`.
 - Provider requests are sent from the browser directly to the configured AI provider.
 
+## Route Entry And SPA Rewrites
+
+Sherlock is now route-backed and still client-rendered.
+
+To support direct entry for deep-linked client routes on Vercel, `vercel.json` now includes a same-app rewrite:
+
+- `/(.*)` -> `/index.html`
+
+This ensures Vercel serves the SPA entry document for non-root client routes so the browser app can take over routing after load.
+
+Notes:
+
+- this rewrite is needed because Vercel otherwise treats path-based requests as server-resolved paths and can return a 404 before the client router boots
+- client routes such as `/runs/:runId`, `/workspaces/:workspaceId/artifacts/:artifactId`, `/workspaces/:workspaceId/chat/:sessionId`, and `/workspaces/:workspaceId/board/:boardId` now resolve through the browser router after load
+- if Sherlock later adds first-party server endpoints or other path-based server concerns, the rewrite rules should be revisited so client-route fallback does not mask those paths
+
 ## Public Repo Checklist
 
 - Keep `.env`, `.env.local`, and other local env files untracked.

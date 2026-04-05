@@ -127,6 +127,7 @@ Recommended initial route family:
 - `/discover`
 - `/monitor`
 - `/files`
+- `/runs/:runId`
 - `/settings`
 - `/workspaces/:workspaceId`
 - `/workspaces/:workspaceId/artifacts/:artifactId`

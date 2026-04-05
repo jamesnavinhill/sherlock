@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type { Artifact, WorkspaceRun } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 
@@ -222,17 +223,19 @@ describe('OperationView launch propagation', () => {
     const onDeepDive = vi.fn();
 
     render(
-      <OperationView
-        task={taskFixture}
-        onBack={vi.fn()}
-        onDeepDive={onDeepDive}
-        onBatchDeepDive={vi.fn()}
-        navStack={[]}
-        onNavigate={vi.fn()}
-        onStartNewCase={vi.fn()}
-        onInvestigateHeadline={vi.fn()}
-        onOpenChat={vi.fn()}
-      />
+      <MemoryRouter>
+        <OperationView
+          task={taskFixture}
+          onBack={vi.fn()}
+          onDeepDive={onDeepDive}
+          onBatchDeepDive={vi.fn()}
+          navStack={[]}
+          onNavigate={vi.fn()}
+          onStartNewCase={vi.fn()}
+          onInvestigateHeadline={vi.fn()}
+          onOpenChat={vi.fn()}
+        />
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId('report-deep-dive'));
@@ -263,17 +266,19 @@ describe('OperationView launch propagation', () => {
     const onInvestigateHeadline = vi.fn();
 
     render(
-      <OperationView
-        task={taskFixture}
-        onBack={vi.fn()}
-        onDeepDive={vi.fn()}
-        onBatchDeepDive={vi.fn()}
-        navStack={[]}
-        onNavigate={vi.fn()}
-        onStartNewCase={vi.fn()}
-        onInvestigateHeadline={onInvestigateHeadline}
-        onOpenChat={vi.fn()}
-      />
+      <MemoryRouter>
+        <OperationView
+          task={taskFixture}
+          onBack={vi.fn()}
+          onDeepDive={vi.fn()}
+          onBatchDeepDive={vi.fn()}
+          navStack={[]}
+          onNavigate={vi.fn()}
+          onStartNewCase={vi.fn()}
+          onInvestigateHeadline={onInvestigateHeadline}
+          onOpenChat={vi.fn()}
+        />
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId('select-headline'));
@@ -293,17 +298,19 @@ describe('OperationView launch propagation', () => {
     const onDeepDive = vi.fn();
 
     render(
-      <OperationView
-        task={taskFixture}
-        onBack={vi.fn()}
-        onDeepDive={onDeepDive}
-        onBatchDeepDive={vi.fn()}
-        navStack={[]}
-        onNavigate={vi.fn()}
-        onStartNewCase={vi.fn()}
-        onInvestigateHeadline={vi.fn()}
-        onOpenChat={vi.fn()}
-      />
+      <MemoryRouter>
+        <OperationView
+          task={taskFixture}
+          onBack={vi.fn()}
+          onDeepDive={onDeepDive}
+          onBatchDeepDive={vi.fn()}
+          navStack={[]}
+          onNavigate={vi.fn()}
+          onStartNewCase={vi.fn()}
+          onInvestigateHeadline={vi.fn()}
+          onOpenChat={vi.fn()}
+        />
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId('inspect-entity'));
@@ -329,17 +336,19 @@ describe('OperationView launch propagation', () => {
     const onOpenChat = vi.fn();
 
     render(
-      <OperationView
-        task={taskFixture}
-        onBack={vi.fn()}
-        onDeepDive={vi.fn()}
-        onBatchDeepDive={vi.fn()}
-        navStack={[]}
-        onNavigate={vi.fn()}
-        onStartNewCase={vi.fn()}
-        onInvestigateHeadline={vi.fn()}
-        onOpenChat={onOpenChat}
-      />
+      <MemoryRouter>
+        <OperationView
+          task={taskFixture}
+          onBack={vi.fn()}
+          onDeepDive={vi.fn()}
+          onBatchDeepDive={vi.fn()}
+          navStack={[]}
+          onNavigate={vi.fn()}
+          onStartNewCase={vi.fn()}
+          onInvestigateHeadline={vi.fn()}
+          onOpenChat={onOpenChat}
+        />
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId('operation-open-chat'));

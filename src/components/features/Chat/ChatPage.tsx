@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import {
   Briefcase,
@@ -31,7 +32,11 @@ import type {
   Artifact,
   Signal,
 } from '@/types';
-import { AppView } from '@/types';
+import {
+  buildWorkspaceBoardDocumentPath,
+  buildWorkspaceChatPath,
+  buildWorkspaceChatSessionPath,
+} from '@/app/routes';
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { OsintSelect } from '../../ui/OsintSelect';
 import {
@@ -242,6 +247,7 @@ interface ChatProps {
 }
 
 export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
+  const navigate = useNavigate();
   const {
     artifacts,
     workspaces,
@@ -269,7 +275,6 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     setActiveWorkspaceId,
     setActiveChatSessionId,
     setChatGenerationStatus,
-    setCurrentView,
     setPartialAssistantOutput,
     themeMode,
     updateChatMessage,
@@ -302,6 +307,10 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     latestRetrieval: false,
     actionLog: false,
   });
+
+  const navigateToSession = (workspaceId: string, sessionId: string) => {
+    navigate(buildWorkspaceChatSessionPath(workspaceId, sessionId));
+  };
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -464,6 +473,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
       metadata: options?.metadata,
     });
     setActiveChatSessionId(session.id);
+    navigateToSession(activeWorkspace.id, session.id);
     return session;
   };
 
@@ -504,7 +514,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         item: buildWorkspaceItemReference(item),
         openInBoard: true,
       });
-      setCurrentView(AppView.WORKSPACE);
+      navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
       addToast('Promoted excerpt and placed it on the research board.', 'SUCCESS');
       return;
     }
@@ -525,6 +535,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
       purposeId: activeWorkspace.purposeId,
     });
     setActiveChatSessionId(session.id);
+    navigateToSession(activeWorkspace.id, session.id);
   };
 
   const handleCreateGuidedSession = async () => {
@@ -556,6 +567,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
       updatedAt: now,
     });
     setActiveChatSessionId(session.id);
+    navigateToSession(activeWorkspace.id, session.id);
   };
 
   const handleRenameSession = async (session: ChatSession) => {
@@ -568,6 +580,9 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     const confirmed = window.confirm(`Delete "${getSessionTitle(session)}"?`);
     if (!confirmed) return;
     await deleteChatSession(session.id);
+    if (activeWorkspace && session.id === activeSession?.id) {
+      navigate(buildWorkspaceChatPath(activeWorkspace.id));
+    }
   };
 
   const handleStopGeneration = () => {
@@ -1122,6 +1137,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
                         <button
                           onClick={() => {
                             setActiveChatSessionId(session.id);
+                            navigateToSession(session.workspaceId, session.id);
                             if (window.innerWidth <= 1024) setLeftPanelOpen(false);
                           }}
                           className="w-full px-2 py-2 text-left"

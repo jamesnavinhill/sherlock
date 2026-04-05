@@ -32,8 +32,6 @@ export const MatrixLoader: React.FC<MatrixLoaderProps> = ({ statusText, onRunInB
   const handleRunInBackground = () => {
     if (onRunInBackground) {
       onRunInBackground();
-    } else {
-      window.dispatchEvent(new CustomEvent('NAVIGATE_BACK'));
     }
   };
 

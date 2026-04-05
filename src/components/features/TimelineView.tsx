@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Activity,
   Briefcase,
@@ -25,8 +26,8 @@ import type {
   TimelineRange,
   TimelineTrack,
 } from '../../types';
-import { AppView } from '../../types';
 import { useWorkspaceStore } from '../../store/caseStore';
+import { buildWorkspaceBoardDocumentPath } from '../../app/routes';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { Accordion } from '../ui/Accordion';
 import { EmptyState } from '../ui/EmptyState';
@@ -177,6 +178,7 @@ const toggleExclusiveSection = <T extends Record<string, boolean>>(current: T, s
   ) as T;
 
 export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpenChat }) => {
+  const navigate = useNavigate();
   const {
     activeWorkspaceId,
     artifacts,
@@ -189,7 +191,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     queueBoardPlacement,
     saveArtifact,
     setActiveWorkspaceId,
-    setCurrentView,
     workspaceRuns,
     workspaces,
   } = useWorkspaceStore();
@@ -535,8 +536,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
   const openWorkspaceBoard = async () => {
     if (!activeWorkspace) return;
-    await ensureWorkspaceBoard(activeWorkspace.id);
-    setCurrentView(AppView.WORKSPACE);
+    const board = await ensureWorkspaceBoard(activeWorkspace.id);
+    navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
   };
 
   const placeReferenceOnBoard = async () => {
@@ -567,7 +568,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
       item: reference,
       openInBoard: true,
     });
-    setCurrentView(AppView.WORKSPACE);
+    navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
   };
 
   const detailActions: InspectorActionItem[] = (() => {

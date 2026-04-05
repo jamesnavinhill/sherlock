@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type {
   ChatOpenRequest,
   Artifact,
@@ -13,8 +14,8 @@ import type {
   SystemConfig,
   WorkspaceRun,
 } from '../../../types';
-import { AppView } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
+import { buildWorkspaceBoardDocumentPath } from '../../../app/routes';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
@@ -63,6 +64,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
   onInvestigateHeadline,
   onOpenChat,
 }) => {
+  const navigate = useNavigate();
   // Panel visibility
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
@@ -129,7 +131,6 @@ export const OperationView: React.FC<OperationViewProps> = ({
     setActiveWorkspaceId,
     ensureWorkspaceBoard,
     queueBoardPlacement,
-    setCurrentView,
     customScopes,
   } = useWorkspaceStore();
 
@@ -358,8 +359,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
     const workspaceId = effectiveCaseId || report?.caseId;
     if (!workspaceId) return;
 
-    await ensureWorkspaceBoard(workspaceId);
-    setCurrentView(AppView.WORKSPACE);
+    const board = await ensureWorkspaceBoard(workspaceId);
+    navigate(buildWorkspaceBoardDocumentPath(workspaceId, board.id));
   };
 
   const handlePlaceReferenceOnBoard = async (
@@ -375,7 +376,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
       item: reference,
       openInBoard: true,
     });
-    setCurrentView(AppView.WORKSPACE);
+    navigate(buildWorkspaceBoardDocumentPath(reference.workspaceId, board.id));
   };
 
   const handlePlaceReportOnBoard = async () => {
@@ -475,7 +476,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     const statusText = task.parentContext
       ? `SUB-NETWORK: "${task.topic}"`
       : `TARGET: "${task.topic}"`;
-    return <MatrixLoader statusText={statusText} />;
+    return <MatrixLoader statusText={statusText} onRunInBackground={onBack} />;
   }
 
   if (task && status === 'FAILED') {
