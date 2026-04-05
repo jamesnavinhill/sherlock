@@ -263,7 +263,7 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
     id: 'corporate-due-diligence',
     name: 'Corporate Due Diligence',
     description:
-      'Research companies for M&A, investment, or compliance purposes. Uncover risks, litigation, and leadership issues.',
+      'Research companies for M&A, investment, or compliance. Uncover risks, litigation, and leadership issues.',
     domainContext:
       'You are conducting corporate due diligence research. Focus on company financials, regulatory filings, litigation history, executive backgrounds, beneficial ownership, and potential compliance or reputational risks.',
     investigationObjective:
@@ -507,7 +507,7 @@ export const BUILTIN_SCOPES: InvestigationScope[] = [
     id: 'scientific-research',
     name: 'Scientific Research',
     description:
-      'Research the latest scientific findings, compare studies, and surface the strongest evidence and open questions.',
+      'Research the latest scientific findings, compare studies, and surface evidence and open questions.',
     domainContext:
       'You are conducting cross-domain scientific research. Focus on recent papers, review articles, preprints, reputable institutions, and evidence quality. Compare findings carefully and preserve uncertainty where appropriate.',
     investigationObjective:

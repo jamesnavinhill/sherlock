@@ -19,8 +19,6 @@ interface ScopeManagerProps {
   onClose?: () => void;
 }
 
-const DEFAULT_SCOPE_ICON = '*';
-
 export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose }) => {
   const {
     customScopes,
@@ -42,14 +40,12 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
 
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formIcon, setFormIcon] = useState(DEFAULT_SCOPE_ICON);
   const [formCategories, setFormCategories] = useState('');
   const [formDomainContext, setFormDomainContext] = useState('');
 
   const resetForm = () => {
     setFormName('');
     setFormDescription('');
-    setFormIcon(DEFAULT_SCOPE_ICON);
     setFormCategories('');
     setFormDomainContext('');
     setEditingScope(null);
@@ -59,7 +55,6 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
   const startEdit = (scope: InvestigationScope) => {
     setFormName(scope.name);
     setFormDescription(scope.description || '');
-    setFormIcon(scope.icon || DEFAULT_SCOPE_ICON);
     setFormCategories(scope.categories?.join(', ') || '');
     setFormDomainContext(scope.domainContext || '');
     setEditingScope(scope);
@@ -78,7 +73,6 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
       id: editingScope?.id || `custom-${Date.now()}`,
       name: formName.trim(),
       description: formDescription.trim(),
-      icon: formIcon || DEFAULT_SCOPE_ICON,
       categories,
       domainContext: formDomainContext.trim(),
       investigationObjective: editingScope?.investigationObjective || formDescription.trim(),
@@ -145,14 +139,9 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
       <div className="bg-zinc-900/50 border border-zinc-800 p-3">
         <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Active Scope</div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">
-              {allScopes.find((scope) => scope.id === activeScopeId)?.icon || DEFAULT_SCOPE_ICON}
-            </span>
-            <span className="text-white font-mono">
-              {allScopes.find((scope) => scope.id === activeScopeId)?.name || 'None'}
-            </span>
-          </div>
+          <span className="text-white font-mono">
+            {allScopes.find((scope) => scope.id === activeScopeId)?.name || 'None'}
+          </span>
           {defaultScopeId === activeScopeId && (
             <span className="flex items-center text-[10px] text-osint-primary font-mono">
               <Star className="w-3 h-3 mr-1 fill-current" />
@@ -173,31 +162,17 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
             </button>
           </div>
 
-          <div className="grid grid-cols-6 gap-3">
-            <div className="col-span-1">
-              <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">
-                Icon
-              </label>
-              <input
-                type="text"
-                value={formIcon}
-                onChange={(event) => setFormIcon(event.target.value.slice(0, 2))}
-                className="w-full bg-zinc-900 border border-zinc-700 text-white p-2 text-center text-lg focus:border-osint-primary outline-none"
-                maxLength={2}
-              />
-            </div>
-            <div className="col-span-5">
-              <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                value={formName}
-                onChange={(event) => setFormName(event.target.value)}
-                placeholder="e.g., Supply Chain Analysis"
-                className="w-full bg-zinc-900 border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
-              />
-            </div>
+          <div>
+            <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-1">
+              Name
+            </label>
+            <input
+              type="text"
+              value={formName}
+              onChange={(event) => setFormName(event.target.value)}
+              placeholder="e.g., Supply Chain Analysis"
+              className="w-full bg-zinc-900 border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
+            />
           </div>
 
           <div>
@@ -282,37 +257,26 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                   }
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div
-                        className={`flex h-11 w-11 flex-shrink-0 items-center justify-center border text-lg ${
-                          activeScopeId === scope.id
-                            ? 'border-osint-primary/40 bg-osint-primary/10'
-                            : 'border-zinc-800 bg-black/60'
-                        }`}
-                      >
-                        {scope.icon || DEFAULT_SCOPE_ICON}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-white font-mono text-lg leading-none">
-                            {scope.name}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-white font-mono text-lg leading-none">
+                          {scope.name}
+                        </span>
+                        {activeScopeId === scope.id && (
+                          <span className="text-[9px] text-osint-primary font-mono uppercase px-1.5 py-0.5 border border-osint-primary/40 bg-osint-primary/10">
+                            Active
                           </span>
-                          {activeScopeId === scope.id && (
-                            <span className="text-[9px] text-osint-primary font-mono uppercase px-1.5 py-0.5 border border-osint-primary/40 bg-osint-primary/10">
-                              Active
-                            </span>
-                          )}
-                          {defaultScopeId === scope.id && (
-                            <span className="inline-flex items-center gap-1 text-[9px] text-osint-primary font-mono uppercase px-1.5 py-0.5 border border-osint-primary/30">
-                              <Star className="w-3 h-3 fill-current" />
-                              Default
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-2 text-xs text-zinc-500 line-clamp-3">
-                          {scope.description}
-                        </p>
+                        )}
+                        {defaultScopeId === scope.id && (
+                          <span className="inline-flex items-center gap-1 text-[9px] text-osint-primary font-mono uppercase px-1.5 py-0.5 border border-osint-primary/30">
+                            <Star className="w-3 h-3 fill-current" />
+                            Default
+                          </span>
+                        )}
                       </div>
+                      <p className="mt-2 text-xs text-zinc-500 line-clamp-3">
+                        {scope.description}
+                      </p>
                     </div>
 
                     {expanded ? (
@@ -324,7 +288,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                 </button>
 
                 {expanded && (
-                  <div className="px-5 pb-4 pt-0 border-t border-zinc-800 space-y-3 animate-in slide-in-from-top-1 duration-150">
+                  <div className="border-t border-zinc-800 px-5 pb-3 pt-4 space-y-4 animate-in slide-in-from-top-1 duration-150">
                     {scope.categories && scope.categories.length > 0 && (
                       <div>
                         <div className="text-[10px] text-zinc-600 font-mono uppercase mb-1">
@@ -365,7 +329,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+                    <div className="flex items-center justify-between border-t border-zinc-800 pt-3">
                       <div className="flex flex-wrap gap-2">
                         {activeScopeId !== scope.id && (
                           <button

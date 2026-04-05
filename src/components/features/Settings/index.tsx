@@ -1728,7 +1728,7 @@ export const Settings: React.FC<SettingsProps> = ({
           </button>
           <button
             onClick={onClose}
-            className="osint-button-danger p-2 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary"
+            className="osint-button-chrome p-2 text-zinc-500 hover:border-[color:var(--osint-danger-soft-border)] hover:text-[color:var(--color-osint-danger)] focus-visible:border-[color:var(--osint-danger-soft-border)] focus-visible:text-[color:var(--color-osint-danger)] focus-visible:ring-2 focus-visible:ring-osint-primary"
             title="Close Settings"
             aria-label="Close Settings"
           >
