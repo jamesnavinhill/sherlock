@@ -128,20 +128,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {/* Export Dropdown - show when case or report is available */}
         {(activeCase || report) && (
           <div className="flex items-center space-x-2">
-            {onToggleRightPanel && (
-              <button
-                onClick={onToggleRightPanel}
-                className={`hidden lg:flex items-center justify-center border p-2 text-xs font-mono uppercase transition ${
-                  rightPanelOpen
-                    ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-                    : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-                }`}
-                title="Toggle Inspector Panel"
-                aria-label="Toggle Inspector Panel"
-              >
-                <PanelRight className="w-4 h-4" />
-              </button>
-            )}
             {hasContextActions && (
               <div className="relative" ref={contextMenuRef}>
                 <button
@@ -313,6 +299,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 </div>
               )}
             </div>
+            {onToggleRightPanel && (
+              <button
+                onClick={onToggleRightPanel}
+                className={`hidden lg:flex items-center justify-center border p-2 text-xs font-mono uppercase transition ${
+                  rightPanelOpen
+                    ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+                    : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
+                }`}
+                title="Toggle Inspector Panel"
+                aria-label="Toggle Inspector Panel"
+              >
+                <PanelRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </div>

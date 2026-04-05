@@ -282,10 +282,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               )}
               <button
                 onClick={() => setIsDetailSidebarOpen((current) => !current)}
-                className={`hidden md:flex items-center justify-center border p-2 transition ${
-                  isDetailSidebarOpen
-                    ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-                    : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
+                className={`flex items-center justify-center p-2 transition-colors ${
+                  isDetailSidebarOpen ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'
                 }`}
                 title="Toggle Report Sidebar"
                 aria-label="Toggle Report Sidebar"
@@ -468,124 +466,126 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       {/* RIGHT SIDE COLUMN (Anomalies, Entities, Resources) - 1/4 Width */}
       {isDetailSidebarOpen && (
         <div className="w-1/4 h-full overflow-y-auto p-2 bg-zinc-900/10 custom-scrollbar">
-        {/* Anomalies */}
-        <Accordion
-          title={`${labelProfile.anomalyLabel} (${visibleAnomalies.length})`}
-          icon={AlertTriangle}
-          isOpen={sidebarAccordions.anomalies}
-          onToggle={() => toggleSidebarAccordion('anomalies')}
-          className="mb-2"
-          headerClassName="text-osint-primary"
-        >
-          <div className="space-y-2">
-            {visibleAnomalies.length === 0 ? (
-              <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
-            ) : (
-              visibleAnomalies.map((agenda, idx) => (
-                <div
-                  key={idx}
-                  className="bg-zinc-900/80 p-3 border-l-2 border-osint-primary text-xs text-zinc-300"
-                >
-                  <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
-                </div>
-              ))
-            )}
-          </div>
-        </Accordion>
-
-        {/* Entities List */}
-        <Accordion
-          title={`Entities (${(report.entities || []).length})`}
-          icon={Users}
-          isOpen={sidebarAccordions.entities}
-          onToggle={() => toggleSidebarAccordion('entities')}
-          className="mb-2"
-        >
-          <div className="space-y-1">
-            {(report.entities || []).length === 0 ? (
-              <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
-                No entities detected.
-              </p>
-            ) : (
-              (report.entities || []).map((e, idx) => {
-                const name = typeof e === 'string' ? e : e.name;
-                const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() =>
-                      onEntityClick(typeof e === 'string' ? { name, type: 'UNKNOWN' } : e)
-                    }
-                    className="w-full text-left p-2 bg-zinc-900/50 hover:bg-zinc-800 border border-transparent hover:border-osint-primary transition-all rounded flex items-center group"
-                  >
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${getEntityToneClass(type)} entity-tone-dot`}
-                    ></div>
-                    <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white truncate">
-                      {name}
-                    </span>
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </Accordion>
-
-        {/* Resources */}
-        <Accordion
-          title={`Provenance (${reportSources.length + visibleEvidence.length})`}
-          icon={Globe}
-          isOpen={sidebarAccordions.resources}
-          onToggle={() => toggleSidebarAccordion('resources')}
-          className="mb-2"
-        >
-          <div className="space-y-1">
-            {report.provenance?.warnings?.length ? (
-              <div className="mb-2 space-y-2">
-                {report.provenance.warnings.map((warning, index) => (
+          {/* Anomalies */}
+          <Accordion
+            title={`${labelProfile.anomalyLabel} (${visibleAnomalies.length})`}
+            icon={AlertTriangle}
+            isOpen={sidebarAccordions.anomalies}
+            onToggle={() => toggleSidebarAccordion('anomalies')}
+            className="mb-2"
+            headerClassName="text-osint-primary"
+          >
+            <div className="space-y-2">
+              {visibleAnomalies.length === 0 ? (
+                <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
+              ) : (
+                visibleAnomalies.map((agenda, idx) => (
                   <div
-                    key={`${warning}-${index}`}
-                    className="flex gap-2 border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-2 text-[10px] font-mono"
+                    key={idx}
+                    className="bg-zinc-900/80 p-3 border-l-2 border-osint-primary text-xs text-zinc-300"
                   >
-                    <ShieldAlert className="mt-0.5 h-3 w-3 flex-shrink-0 osint-danger-text" />
-                    <span className="osint-danger-text">{warning}</span>
+                    <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
                   </div>
-                ))}
-              </div>
-            ) : null}
-            {report.provenance?.search?.webSearchRequests ? (
-              <div className="px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">
-                Web search calls: {report.provenance.search.webSearchRequests}
-              </div>
-            ) : null}
-            {visibleEvidence.slice(0, 4).map((evidence) => (
-              <div key={evidence.id} className="border border-zinc-800 bg-zinc-900/70 p-2">
-                <div className="text-[10px] font-mono uppercase text-zinc-500">{evidence.kind}</div>
-                <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
-              </div>
-            ))}
-            {reportSources.length === 0 ? (
-              visibleEvidence.length === 0 ? (
+                ))
+              )}
+            </div>
+          </Accordion>
+
+          {/* Entities List */}
+          <Accordion
+            title={`Entities (${(report.entities || []).length})`}
+            icon={Users}
+            isOpen={sidebarAccordions.entities}
+            onToggle={() => toggleSidebarAccordion('entities')}
+            className="mb-2"
+          >
+            <div className="space-y-1">
+              {(report.entities || []).length === 0 ? (
                 <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
-                  No sources captured for this report.
+                  No entities detected.
                 </p>
-              ) : null
-            ) : (
-              reportSources.map((source, idx) => (
-                <a
-                  key={idx}
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0"
-                >
-                  <Link2 className="w-3 h-3 inline mr-1" />
-                  {source.title}
-                </a>
-              ))
-            )}
-          </div>
-        </Accordion>
+              ) : (
+                (report.entities || []).map((e, idx) => {
+                  const name = typeof e === 'string' ? e : e.name;
+                  const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() =>
+                        onEntityClick(typeof e === 'string' ? { name, type: 'UNKNOWN' } : e)
+                      }
+                      className="w-full text-left p-2 bg-zinc-900/50 hover:bg-zinc-800 border border-transparent hover:border-osint-primary transition-all rounded flex items-center group"
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${getEntityToneClass(type)} entity-tone-dot`}
+                      ></div>
+                      <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white truncate">
+                        {name}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </Accordion>
+
+          {/* Resources */}
+          <Accordion
+            title={`Provenance (${reportSources.length + visibleEvidence.length})`}
+            icon={Globe}
+            isOpen={sidebarAccordions.resources}
+            onToggle={() => toggleSidebarAccordion('resources')}
+            className="mb-2"
+          >
+            <div className="space-y-1">
+              {report.provenance?.warnings?.length ? (
+                <div className="mb-2 space-y-2">
+                  {report.provenance.warnings.map((warning, index) => (
+                    <div
+                      key={`${warning}-${index}`}
+                      className="flex gap-2 border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-2 text-[10px] font-mono"
+                    >
+                      <ShieldAlert className="mt-0.5 h-3 w-3 flex-shrink-0 osint-danger-text" />
+                      <span className="osint-danger-text">{warning}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {report.provenance?.search?.webSearchRequests ? (
+                <div className="px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">
+                  Web search calls: {report.provenance.search.webSearchRequests}
+                </div>
+              ) : null}
+              {visibleEvidence.slice(0, 4).map((evidence) => (
+                <div key={evidence.id} className="border border-zinc-800 bg-zinc-900/70 p-2">
+                  <div className="text-[10px] font-mono uppercase text-zinc-500">
+                    {evidence.kind}
+                  </div>
+                  <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
+                </div>
+              ))}
+              {reportSources.length === 0 ? (
+                visibleEvidence.length === 0 ? (
+                  <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
+                    No sources captured for this report.
+                  </p>
+                ) : null
+              ) : (
+                reportSources.map((source, idx) => (
+                  <a
+                    key={idx}
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0"
+                  >
+                    <Link2 className="w-3 h-3 inline mr-1" />
+                    {source.title}
+                  </a>
+                ))
+              )}
+            </div>
+          </Accordion>
         </div>
       )}
     </div>
