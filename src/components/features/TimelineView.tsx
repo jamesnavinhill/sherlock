@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Activity,
   Briefcase,
@@ -22,12 +22,11 @@ import type {
   Artifact,
   ChatOpenRequest,
   TimelineEvent,
-  TimelineFilters,
   TimelineRange,
   TimelineTrack,
 } from '../../types';
 import { useWorkspaceStore } from '../../store/caseStore';
-import { buildWorkspaceBoardDocumentPath } from '../../app/routes';
+import { buildWorkspaceBoardDocumentPath, buildWorkspaceTimelinePath } from '../../app/routes';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { Accordion } from '../ui/Accordion';
 import { EmptyState } from '../ui/EmptyState';
@@ -68,6 +67,11 @@ import {
   type DetailSections,
   type DossierSections,
 } from './Timeline/timelineViewUtils';
+import {
+  buildTimelineRouteQuery,
+  parseTimelineRouteQuery,
+  type TimelineRouteQueryState,
+} from './Timeline/timelineRouteState';
 
 interface TimelineViewProps {
   onOpenReport: (report: Artifact) => void;
@@ -77,6 +81,7 @@ interface TimelineViewProps {
 
 export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpenChat }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     activeWorkspaceId,
     artifacts,
@@ -96,10 +101,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<TimelineFilters>(DEFAULT_FILTERS);
-  const [focusedTrack, setFocusedTrack] = useState<TimelineTrack | 'ALL'>('ALL');
-  const [focusedRefId, setFocusedRefId] = useState<string | undefined>();
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [dossierSections, setDossierSections] = useState<DossierSections>({
     events: true,
@@ -115,6 +116,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
   });
   const exportMenuRef = useRef<HTMLDivElement | null>(null);
   const filterMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const timelineQuery = useMemo(() => parseTimelineRouteQuery(searchParams), [searchParams]);
+  const { search, filters, focusedTrack, focusedRefId } = timelineQuery;
+
+  const updateTimelineQuery = useCallback(
+    (updater: (current: TimelineRouteQueryState) => TimelineRouteQueryState) => {
+      setSearchParams(buildTimelineRouteQuery(updater(timelineQuery)), { replace: true });
+    },
+    [setSearchParams, timelineQuery]
+  );
 
   useEffect(() => {
     const handleResize = () => {
@@ -310,45 +321,59 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
   }, [activeWorkspace, filters, focusedRefId, focusedTrack, search, visibleEvents]);
 
   const ensureTrackVisible = (track: TimelineTrack) => {
-    setFilters((current) =>
-      current.tracks.includes(track)
+    updateTimelineQuery((current) =>
+      current.filters.tracks.includes(track)
         ? current
         : {
             ...current,
-            tracks: [...current.tracks, track],
+            filters: {
+              ...current.filters,
+              tracks: [...current.filters.tracks, track],
+            },
           }
     );
   };
 
   const setTrackFocus = (track: TimelineTrack | 'ALL') => {
     if (track !== 'ALL') ensureTrackVisible(track);
-    setFocusedTrack(track);
-    setFocusedRefId(undefined);
+    updateTimelineQuery((current) => ({
+      ...current,
+      focusedTrack: track,
+      focusedRefId: undefined,
+    }));
   };
 
   const clearFilters = () => {
-    setSearch('');
-    setFilters(DEFAULT_FILTERS);
-    setFocusedTrack('ALL');
-    setFocusedRefId(undefined);
+    updateTimelineQuery(() => ({
+      search: '',
+      filters: DEFAULT_FILTERS,
+      focusedTrack: 'ALL',
+      focusedRefId: undefined,
+    }));
   };
 
   const focusReference = (track: TimelineTrack, refId?: string) => {
     if (!refId) return;
     ensureTrackVisible(track);
-    setFocusedTrack(track);
-    setFocusedRefId(refId);
+    updateTimelineQuery((current) => ({
+      ...current,
+      focusedTrack: track,
+      focusedRefId: refId,
+    }));
   };
 
   const toggleTrackFilter = (track: TimelineTrack) => {
-    setFilters((current) => {
-      const nextTracks = current.tracks.includes(track)
-        ? current.tracks.filter((item) => item !== track)
-        : [...current.tracks, track];
+    updateTimelineQuery((current) => {
+      const nextTracks = current.filters.tracks.includes(track)
+        ? current.filters.tracks.filter((item) => item !== track)
+        : [...current.filters.tracks, track];
 
       return {
         ...current,
-        tracks: nextTracks,
+        filters: {
+          ...current.filters,
+          tracks: nextTracks,
+        },
       };
     });
   };
@@ -596,7 +621,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             <OsintSelect
               ariaLabel={`${labelProfile.workspaceLabel} timeline workspace`}
               value={activeWorkspace?.id || ''}
-              onChange={(value) => setActiveWorkspaceId(value || null)}
+              onChange={(value) => {
+                if (value) {
+                  const nextSearch = searchParams.toString();
+                  navigate({
+                    pathname: buildWorkspaceTimelinePath(value),
+                    search: nextSearch ? `?${nextSearch}` : '',
+                  });
+                } else {
+                  setActiveWorkspaceId(null);
+                }
+              }}
               placeholder={`Select ${labelProfile.workspaceLabel.toLowerCase()}`}
               triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
               options={workspaces.map((workspace) => ({
@@ -610,7 +645,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) =>
+                updateTimelineQuery((current) => ({
+                  ...current,
+                  search: event.target.value,
+                }))
+              }
               placeholder={buildTimelineSearchPlaceholder(labelProfile.artifactLabelPlural)}
               className="w-full border border-zinc-700 bg-black py-1.5 pl-9 pr-3 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
             />
@@ -707,9 +747,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                       ariaLabel="Timeline date range"
                       value={filters.range}
                       onChange={(value) =>
-                        setFilters((current) => ({
+                        updateTimelineQuery((current) => ({
                           ...current,
-                          range: value as TimelineRange,
+                          filters: {
+                            ...current.filters,
+                            range: value as TimelineRange,
+                          },
                         }))
                       }
                       triggerClassName="px-3 py-2 pr-8 text-xs font-mono"
@@ -854,10 +897,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                   runItems.map((item) => (
                     <button
                       key={item.refId}
-                      onClick={() => {
-                        setFocusedTrack('RUN');
-                        setFocusedRefId(item.refId);
-                      }}
+                      onClick={() => focusReference('RUN', item.refId)}
                       className={getFocusedButtonClass(focusedRefId === item.refId)}
                     >
                       <div className="truncate font-bold text-zinc-200">{item.title}</div>
@@ -889,10 +929,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                   artifactItems.map((item) => (
                     <button
                       key={item.refId}
-                      onClick={() => {
-                        setFocusedTrack('ARTIFACT');
-                        setFocusedRefId(item.refId);
-                      }}
+                      onClick={() => focusReference('ARTIFACT', item.refId)}
                       className={getFocusedButtonClass(focusedRefId === item.refId)}
                     >
                       <div className="truncate font-bold text-zinc-200">{item.title}</div>
@@ -924,10 +961,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
                   signalItems.map((item) => (
                     <button
                       key={item.refId}
-                      onClick={() => {
-                        setFocusedTrack('SIGNAL');
-                        setFocusedRefId(item.refId);
-                      }}
+                      onClick={() => focusReference('SIGNAL', item.refId)}
                       className={getFocusedButtonClass(focusedRefId === item.refId)}
                     >
                       <div className="truncate font-bold text-zinc-200">{item.title}</div>

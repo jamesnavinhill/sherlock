@@ -122,6 +122,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           <ChatRouteView
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             setActiveChatSessionId={controller.setActiveChatSessionId}
+            chatSessions={controller.chatSessions}
             onLaunchInvestigation={controller.launchInvestigation}
           />
         }
@@ -132,6 +133,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           <ChatRouteView
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             setActiveChatSessionId={controller.setActiveChatSessionId}
+            chatSessions={controller.chatSessions}
             onLaunchInvestigation={controller.launchInvestigation}
           />
         }
@@ -142,6 +144,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           <BoardRouteView
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             setActiveWorkspaceBoardId={controller.setActiveWorkspaceBoardId}
+            workspaceBoards={controller.workspaceBoards}
             onViewReport={controller.handleViewReport}
             onOpenChat={controller.openChat}
             onLaunchInvestigation={controller.launchInvestigation}
@@ -154,6 +157,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           <BoardRouteView
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             setActiveWorkspaceBoardId={controller.setActiveWorkspaceBoardId}
+            workspaceBoards={controller.workspaceBoards}
             onViewReport={controller.handleViewReport}
             onOpenChat={controller.openChat}
             onLaunchInvestigation={controller.launchInvestigation}

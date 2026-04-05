@@ -205,12 +205,11 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
       return;
     }
 
-    const isCurrentSessionInWorkspace = workspaceSessions.some(
-      (session) => session.id === activeChatSessionId
-    );
-
-    if (!isCurrentSessionInWorkspace) {
-      setActiveChatSessionId(workspaceSessions[0]?.id || null);
+    if (
+      activeChatSessionId &&
+      !workspaceSessions.some((session) => session.id === activeChatSessionId)
+    ) {
+      setActiveChatSessionId(null);
     }
   }, [activeWorkspace, activeChatSessionId, setActiveChatSessionId, workspaceSessions]);
 

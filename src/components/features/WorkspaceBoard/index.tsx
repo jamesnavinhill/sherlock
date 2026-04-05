@@ -40,6 +40,7 @@ import type {
 } from '@/types';
 import {
   buildFilesPath,
+  buildWorkspaceBoardDocumentPath,
   buildWorkspaceBoardPath,
   buildWorkspaceNetworkPath,
   buildWorkspaceTimelinePath,
@@ -103,7 +104,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     queuedBoardPlacement,
     saveArtifact,
     saveWorkspaceBoardDocument,
-    setActiveWorkspaceBoardId,
     setActiveWorkspaceId,
     appendSectionToReport,
     addBoardAgentAction,
@@ -314,17 +314,11 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   }, [activeWorkspace, availableBoards.length, ensureWorkspaceBoard]);
 
   useEffect(() => {
-    if (!activeWorkspace || !availableBoards.length) return;
-    if (activeBoard) return;
-    setActiveWorkspaceBoardId(availableBoards[0].id);
-  }, [activeBoard, activeWorkspace, availableBoards, setActiveWorkspaceBoardId]);
-
-  useEffect(() => {
     if (!activeWorkspace || !activeBoard) return;
     if (!editorRef.current || !queuedBoardPlacement) return;
     if (queuedBoardPlacement.workspaceId !== activeWorkspace.id) return;
     if (queuedBoardPlacement.boardId && queuedBoardPlacement.boardId !== activeBoard.id) {
-      setActiveWorkspaceBoardId(queuedBoardPlacement.boardId);
+      navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, queuedBoardPlacement.boardId));
       return;
     }
 
@@ -354,8 +348,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     activeWorkspace,
     clearQueuedBoardPlacement,
     libraryMap,
+    navigate,
     queuedBoardPlacement,
-    setActiveWorkspaceBoardId,
     themeMode,
   ]);
 
@@ -464,7 +458,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
 
   const handleCreateBoard = async () => {
     if (!activeWorkspace) return;
-    await createWorkspaceBoard({ workspaceId: activeWorkspace.id });
+    const board = await createWorkspaceBoard({ workspaceId: activeWorkspace.id });
+    navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
   };
 
   const handleDeleteBoard = async () => {
@@ -1387,7 +1382,10 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             <OsintSelect
               ariaLabel="Select board"
               value={activeBoard?.id || ''}
-              onChange={(value) => setActiveWorkspaceBoardId(value || null)}
+              onChange={(value) => {
+                if (!activeWorkspace || !value) return;
+                navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, value));
+              }}
               triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
               menuClassName="z-[12020]"
               options={availableBoards.map((board) => ({

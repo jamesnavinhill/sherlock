@@ -13,10 +13,12 @@ import {
   buildWorkspaceArtifactPath,
   buildWorkspaceBoardDocumentPath,
   buildWorkspaceBoardPath,
+  buildWorkspaceChatPath,
 } from '@/app/routes';
 import type {
   Artifact,
   ChatOpenRequest,
+  ChatSession,
   FollowUp,
   InvestigationLaunchRequest,
   Workspace,
@@ -70,12 +72,14 @@ interface InvestigationRouteViewProps {
 interface ChatRouteViewProps {
   setActiveWorkspaceId: (id: string | null) => void;
   setActiveChatSessionId: (id: string | null) => void;
+  chatSessions: ChatSession[];
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
 }
 
 interface BoardRouteViewProps {
   setActiveWorkspaceId: (id: string | null) => void;
   setActiveWorkspaceBoardId: (id: string | null) => void;
+  workspaceBoards: WorkspaceBoardRecord[];
   onViewReport: (report: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -254,19 +258,28 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
 export const ChatRouteView: React.FC<ChatRouteViewProps> = ({
   setActiveWorkspaceId,
   setActiveChatSessionId,
+  chatSessions,
   onLaunchInvestigation,
 }) => {
   const { workspaceId, sessionId } = useParams();
   const nextWorkspaceId = workspaceId || '';
+  const matchedSession =
+    sessionId && nextWorkspaceId
+      ? chatSessions.find(
+          (session) => session.id === sessionId && session.workspaceId === nextWorkspaceId
+        ) || null
+      : null;
 
   useEffect(() => {
     if (nextWorkspaceId) {
       setActiveWorkspaceId(nextWorkspaceId);
     }
-    if (sessionId) {
-      setActiveChatSessionId(sessionId);
-    }
-  }, [nextWorkspaceId, sessionId, setActiveChatSessionId, setActiveWorkspaceId]);
+    setActiveChatSessionId(matchedSession?.id || null);
+  }, [matchedSession?.id, nextWorkspaceId, setActiveChatSessionId, setActiveWorkspaceId]);
+
+  if (sessionId && !matchedSession) {
+    return <Navigate to={buildWorkspaceChatPath(nextWorkspaceId)} replace />;
+  }
 
   return (
     <Chat onLaunchInvestigation={(request) => onLaunchInvestigation({ ...request, switchToView: true })} />
@@ -276,21 +289,44 @@ export const ChatRouteView: React.FC<ChatRouteViewProps> = ({
 export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
   setActiveWorkspaceId,
   setActiveWorkspaceBoardId,
+  workspaceBoards,
   onViewReport,
   onOpenChat,
   onLaunchInvestigation,
 }) => {
   const { workspaceId, boardId } = useParams();
   const nextWorkspaceId = workspaceId || '';
+  const workspaceScopedBoards = workspaceBoards
+    .filter((board) => board.workspaceId === nextWorkspaceId)
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+  const matchedBoard = boardId
+    ? workspaceScopedBoards.find((board) => board.id === boardId) || null
+    : null;
 
   useEffect(() => {
     if (nextWorkspaceId) {
       setActiveWorkspaceId(nextWorkspaceId);
     }
-    if (boardId) {
-      setActiveWorkspaceBoardId(boardId);
-    }
-  }, [boardId, nextWorkspaceId, setActiveWorkspaceBoardId, setActiveWorkspaceId]);
+    setActiveWorkspaceBoardId(matchedBoard?.id || null);
+  }, [matchedBoard?.id, nextWorkspaceId, setActiveWorkspaceBoardId, setActiveWorkspaceId]);
+
+  if (!boardId && workspaceScopedBoards[0]) {
+    return (
+      <Navigate
+        to={buildWorkspaceBoardDocumentPath(nextWorkspaceId, workspaceScopedBoards[0].id)}
+        replace
+      />
+    );
+  }
+
+  if (boardId && !matchedBoard && workspaceScopedBoards[0]) {
+    return (
+      <Navigate
+        to={buildWorkspaceBoardDocumentPath(nextWorkspaceId, workspaceScopedBoards[0].id)}
+        replace
+      />
+    );
+  }
 
   return (
     <WorkspaceBoard
