@@ -245,7 +245,14 @@ Workspace-data backups include:
 
 Workspace-data restore now replays that backup inside one SQLite transaction so a failed import does not leave a partially cleared or partially restored workspace domain behind.
 
-Store bootstrap now follows the same degraded-read posture. If one repository/settings read fails during `initializeStore`, Sherlock logs a labeled `[bootstrap]` warning and falls back to the empty/default value for that resource so one corrupted persisted surface does not necessarily block the rest of the workspace domain from loading.
+Store bootstrap now follows an explicit read-failure policy in `src/store/actions/bootstrapResourceLoader.ts`:
+
+- recoverable resource reads log `[bootstrap][skip]` and fall back to an explicit empty/default value
+- fail-fast reads can throw `[bootstrap][fail]` and stop initialization when fallback would hide a critical failure
+
+`initializeStore` still treats DB initialization/migration and post-read theme-setting writes as hard-fail boundaries, while repository/settings hydration reads remain recoverable-by-resource.
+
+Legacy `sherlock_config` parsing during bootstrap now uses the shared JSON helper path (`parseStoredJson`) instead of ad hoc `JSON.parse` blocks so malformed payload warnings and fallbacks are consistent with repository hydration.
 
 Restore/import still accepts older canonical payloads that stored saved signals under `signals.headlines`, plus pre-canonical legacy payloads with top-level `headlines`.
 

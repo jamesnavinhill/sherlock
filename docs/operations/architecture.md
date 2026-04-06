@@ -42,6 +42,12 @@ Supporting shell files now include:
 
 `src/app/useAppShellController.ts` now delegates initialization, location tracking, and theme-application effects to `src/app/useAppShellEffects.ts`, keeping the controller focused on launch orchestration and surface commands.
 
+The app-shell controller now also relies on dedicated helper seams:
+
+- `src/app/appShellLaunchHelpers.ts` for launch/run config shaping and preseeded-entity merge behavior
+- `src/app/appShellOpenChatHelpers.ts` for launch-context chat title/primer decisions
+- `src/app/appShellNavigationHelpers.ts` for record-id to route-target resolution
+
 Canonical path inventory:
 
 - `/discover`
@@ -299,6 +305,19 @@ State domains include:
 `src/store/caseStore.ts` is now primarily the public state contract plus initial state composition; grouped action modules own bootstrap, UI/settings, conversation, artifact/run, and workspace maintenance responsibilities behind that stable store entry.
 
 Feature-level subscriptions now route through selector hooks in `src/store/selectors/featureSelectors.ts` for the largest routed surfaces and controllers. That keeps `useAppShellController`, chat, board, timeline, network graph, operation, settings, and runtime-config flows subscribed to their own state slices without changing the underlying Zustand architecture or introducing a second state system.
+
+App-shell subscriptions are explicitly split by responsibility instead of one broad selector:
+
+- `useAppShellLaunchTaskState`
+- `useAppShellRouteState`
+- `useAppShellThemeUiState`
+- `useAppShellLookupState`
+- `useAppShellBootstrapState`
+
+Settings selectors are also split so persistence-maintenance reads and scope tab reads do not share one broad subscription:
+
+- `useSettingsDataMaintenanceState`
+- `useSettingsScopeState`
 
 Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 

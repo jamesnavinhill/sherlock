@@ -2,7 +2,7 @@
 
 Date: April 6, 2026
 
-Status: In Progress
+Status: Completed
 
 Related inputs:
 
@@ -49,7 +49,7 @@ This refactor is not complete until all of the following are true:
    - `npm run build`
 6. Only after that final gate passes should this plan status change from `In Progress` to `Completed`.
 
-## Current Remaining Hotspots
+## Hotspot Snapshot (Before Slices 5-7)
 
 Current line counts after the April 6 slices 1-4 pass:
 
@@ -64,7 +64,7 @@ Current line counts after the April 6 slices 1-4 pass:
 - `src/components/features/Timeline/useTimelineViewController.ts` - 433
 - `src/components/features/Settings/useSettingsController.ts` - 123
 
-These remain the main controller/runtime hotspots for slices 5 through 7.
+These were the main controller/runtime hotspots at the start of slices 5 through 7.
 
 ## Progress Snapshot
 
@@ -75,13 +75,17 @@ Completed on April 6, 2026:
 - Slice 2
 - Slice 3
 - Slice 4
-
-Remaining before this plan can close:
-
 - Slice 5
 - Slice 6
 - Slice 7
-- the final full-repo validation gate in the completion standard
+
+Final gate completed on April 6, 2026:
+
+- `npm run lint`
+- `npm run typecheck`
+- targeted tests for touched slice 5-7 seams
+- `npm run test`
+- `npm run build`
 
 ## Global Rules
 
@@ -566,6 +570,10 @@ Done when:
 
 ## Slice 5. Store Selector And Action Boundary Cleanup
 
+Current state:
+
+- Completed on April 6, 2026
+
 Purpose:
 
 - narrow feature subscriptions and make ownership easier to trace without rewriting the store
@@ -614,6 +622,10 @@ Done when:
 
 ## Slice 6. Persistence And Repository Adapter Cleanup
 
+Current state:
+
+- Completed on April 6, 2026
+
 Purpose:
 
 - finish repository and bootstrap hardening in one consistent pass
@@ -655,6 +667,10 @@ Done when:
 - persistence behavior is easier to audit and extend
 
 ## Slice 7. Tests, Docs, And Bundle Budget Closeout
+
+Current state:
+
+- Completed on April 6, 2026
 
 Purpose:
 

@@ -129,14 +129,14 @@ npm run check:full
 
 ## Current Validation Snapshot (April 6, 2026)
 
-The cross-feature refactor completion plan remains in progress. Slice 0 validation on this checkout:
+The cross-feature refactor completion plan closeout validation passed on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- `npm run test -- src/components/features/WorkspaceBoard/workspaceBoardViewModel.test.ts`: passes
-- most recent April 6 audit targeted passes also include `src/app/routeViews.test.tsx`, `src/components/features/Timeline/timelineViewModel.test.ts`, and `src/components/features/Chat/chatPageUtils.test.ts`
-- `npm run build`: last recorded pass during the April 6 audit
-- Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; this remains a documented review checkpoint rather than silent noise
+- targeted slice tests for app-shell helpers, controller seams, route coverage, and pure helpers: pass
+- `npm run test`: passes (`55` files, `173` tests)
+- `npm run build`: passes
+- Vite still emits one large-chunk warning for `vendor-tldraw-app` (`521.76 kB` minified); this remains a documented exception and review checkpoint
 
 ## Documentation Index
 
@@ -151,6 +151,7 @@ The cross-feature refactor completion plan remains in progress. Slice 0 validati
 - `docs/operations/CONTRIBUTING.md`
 - `docs/plans/08-cross-feature-refactor-slice-plan.md`
 - `docs/reports/2026-04-06-cross-feature-refactor-audit.md`
+- `docs/reports/2026-04-06-cross-feature-refactor-closeout.md`
 - `docs/plans/2026-04-05-post-refactor-completion-plan.md`
 
 Historical plans and reports live under `docs/_legacy/`.
