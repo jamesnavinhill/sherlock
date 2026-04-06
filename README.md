@@ -71,14 +71,14 @@ For this checkout, keep installs and script runs in the same environment. If you
 
 Configure keys in either:
 
-1. UI: `System Config -> AI`
+1. UI: `System Config -> Runtime`
 2. Env file: copy `.env.example` to `.env.local`
 
 For public or shared-hosting deployments, keep Sherlock in strict BYOK mode:
 
 - do not set shared provider API keys in Vercel
 - do not rely on `VITE_*` provider env vars for a public site
-- have each user enter their own key in `System Config -> AI`
+- have each user enter their own key in `System Config -> Runtime`
 
 Supported env vars:
 
@@ -95,9 +95,9 @@ Sherlock deploys cleanly to Vercel as a static Vite app.
 
 - No server database is required for the current runtime model.
 - Workspace and artifact data stay in the browser via SQLite over IndexedDB.
-- API keys stay browser-local when users add them through `System Config -> AI`.
+- API keys stay browser-local when users add them through `System Config -> Runtime`.
 - Each origin has its own local data, so Vercel preview URLs do not share storage with production.
-- If `public/seeds/demo-workspace.json` exists, an empty browser profile will import it once on first load for demo browsing. The seed file can be either a full workspace-data backup from `Settings -> Data` or a workspace export JSON produced from archive export actions.
+- If `public/seeds/demo-workspace.json` exists, an empty browser profile will import it once on first load for demo browsing. The seed file can be either a full workspace-data backup from `System Config -> Data` or a workspace export JSON produced from archive export actions.
 
 Recommended flow:
 
@@ -105,7 +105,7 @@ Recommended flow:
 2. Let Vercel use the repo `vercel.json` or set `npm ci --include=optional`, `npm run build`, and `dist` manually.
 3. Optionally place either a canonical workspace-data backup or a workspace export JSON at `public/seeds/demo-workspace.json` if you want first-time visitors to land in a pre-seeded demo workspace.
 4. Leave provider env vars unset in Vercel for public BYOK hosting.
-5. Deploy and have each user add their own provider key in-app if they want to run new analysis or chat.
+5. Deploy and have each user add their own provider key in-app under `System Config -> Runtime` if they want to run new analysis or chat.
 
 See `docs/operations/DEPLOYMENT.md` for the full checklist.
 

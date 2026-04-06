@@ -1,11 +1,11 @@
-import { Compass, Cpu, Layout, Palette, Settings as SettingsIcon } from 'lucide-react';
+import { Compass, Cpu, Database, Layout, Palette } from 'lucide-react';
 
 import type { ThemeSurfaceScale, ThemeSurfaceSettings } from '@/utils/themeSurfaces';
 import type { ThemeFontSettings } from '@/utils/themeFonts';
 
 export const TABS = [
-  { id: 'GENERAL', label: 'General', icon: SettingsIcon },
-  { id: 'AI', label: 'AI', icon: Cpu },
+  { id: 'DATA', label: 'Data', icon: Database },
+  { id: 'RUNTIME', label: 'Runtime', icon: Cpu },
   { id: 'SCOPES', label: 'Scopes', icon: Compass },
   { id: 'TEMPLATES', label: 'Templates', icon: Layout },
   { id: 'THEME', label: 'Theme', icon: Palette },

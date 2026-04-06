@@ -10,13 +10,8 @@ import {
   Sparkles,
   Target,
   Trash2,
-  Workflow,
 } from 'lucide-react';
 import type { Workspace, GraphNodeSubtype, InvestigationScope } from '@/types';
-import {
-  AI_PROVIDERS,
-  recordRecentModelSelection,
-} from '../../../config/aiModels';
 import { getAllScopes } from '../../../data/presets';
 import { getDomainPackForScope, getPurposeProfileById } from '../../../domain';
 import {
@@ -27,12 +22,9 @@ import {
 } from '../../../services/chat/guidedMode';
 import { OsintSelect } from '../../ui/OsintSelect';
 import { createLocalId } from '../../../utils/id';
-import { OpenRouterModelBrowser } from '../../ui/OpenRouterModelBrowser';
-import { ThinkingBudgetControl } from '../Runs/ThinkingBudgetControl';
-import {
-  getFallbackRuntimeModel,
-  getRuntimeConfigModelState,
-} from '../Runs/runtimeConfigOptions';
+import { ProviderModelSelector } from '../Runs/ProviderModelSelector';
+import { RuntimeConfigBehaviorControls } from '../Runs/RuntimeConfigBehaviorControls';
+import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
 
 interface GuidedRunBuilderProps {
   state: GuidedSessionState;
@@ -65,7 +57,6 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
   });
   const [newEntityName, setNewEntityName] = useState('');
   const [newEntityType, setNewEntityType] = useState<GraphNodeSubtype>('PERSON');
-  const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
 
   const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
   const selectedScope = useMemo(
@@ -86,15 +77,20 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       getPurposeProfileById(selectedPack.defaultPurposeId),
     [draft.purposeId, selectedPack.defaultPurposeId, supportedPurposes]
   );
-  const {
-    activeModelId,
-    providerMeta,
-    selectableModels,
-    selectedModelCapabilities,
-  } = useMemo(
-    () => getRuntimeConfigModelState(draft.provider, draft.modelId),
-    [draft.modelId, draft.provider]
-  );
+  const runtimeConfigForm = useRuntimeConfigForm({
+    value: {
+      provider: draft.provider,
+      modelId: draft.modelId,
+      searchDepth: draft.searchDepth,
+      generationMode: draft.generationMode,
+      thinkingBudget: draft.thinkingBudget,
+    },
+    onChange: (nextValue) =>
+      setDraft((current) => ({
+        ...current,
+        ...nextValue,
+      })),
+  });
   const currentStepIndex = GUIDED_STEP_ORDER.indexOf(state.step);
 
   const canAdvance = useMemo(() => {
@@ -114,14 +110,6 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       purposeId: nextPurpose.id,
       artifactType: nextPurpose.recommendedArtifactType,
       persona: nextScope.defaultPersona || nextScope.personas[0]?.id || current.persona,
-    }));
-  };
-
-  const handleProviderChange = (provider: GuidedRunDraft['provider']) => {
-    setDraft((current) => ({
-      ...current,
-      provider,
-      modelId: getFallbackRuntimeModel(provider),
     }));
   };
 
@@ -421,130 +409,12 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
             }))}
           />
         </label>
-        <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-            Provider
-          </span>
-          <OsintSelect
-            ariaLabel="Provider"
-            value={draft.provider}
-            onChange={(value) => handleProviderChange(value as GuidedRunDraft['provider'])}
-            triggerClassName="px-3 py-2 pr-8 text-sm"
-            options={AI_PROVIDERS.filter(
-              (provider) => provider.capabilities.runtimeStatus === 'ACTIVE'
-            ).map((provider) => ({
-              value: provider.id,
-              label: provider.label,
-            }))}
-          />
-        </label>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-            Model
-          </span>
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <OsintSelect
-                  ariaLabel="Model"
-                  value={activeModelId}
-                  onChange={(value) => {
-                    recordRecentModelSelection(value);
-                    setDraft((current) => ({ ...current, modelId: value }));
-                  }}
-                  triggerClassName="px-3 py-2 pr-8 text-sm"
-                  options={selectableModels.map((model) => ({
-                    value: model.id,
-                    label: model.name,
-                  }))}
-                />
-              </div>
-              {draft.provider === 'OPENROUTER' ? (
-                <button
-                  type="button"
-                  onClick={() => setShowOpenRouterBrowser(true)}
-                  className="border border-zinc-700 px-3 py-2 text-[10px] font-mono uppercase text-zinc-300 transition hover:border-white hover:text-white"
-                >
-                  Browse
-                </button>
-              ) : null}
-            </div>
-            <p className="text-[11px] text-zinc-500">
-              Capabilities: thinking{' '}
-              {selectedModelCapabilities.supportsThinkingBudget ? 'enabled' : 'off'}, structured
-              output {selectedModelCapabilities.supportsStructuredOutput ? 'enabled' : 'off'}, web
-              search {selectedModelCapabilities.supportsWebSearch ? 'enabled' : 'off'}.
-            </p>
-          </div>
-        </label>
-        <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-            Scan Depth
-          </span>
-          <OsintSelect
-            ariaLabel="Scan depth"
-            value={draft.searchDepth}
-            onChange={(value) =>
-              setDraft((current) => ({
-                ...current,
-                searchDepth: value as GuidedRunDraft['searchDepth'],
-              }))
-            }
-            triggerClassName="px-3 py-2 pr-8 text-sm"
-            options={[
-              { value: 'STANDARD', label: 'Standard' },
-              { value: 'DEEP', label: 'Deep' },
-            ]}
-          />
-        </label>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="block">
-          <span className="mb-2 flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-            <Workflow className="h-4 w-4" />
-            Generation Mode
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setDraft((current) => ({ ...current, generationMode: 'SINGLE_PASS' }))}
-              className={`py-2 text-xs font-mono uppercase ${
-                draft.generationMode === 'SINGLE_PASS'
-                  ? 'osint-button-soft'
-                  : 'osint-button-primary'
-              }`}
-            >
-              Single Pass
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraft((current) => ({ ...current, generationMode: 'STAGED' }))}
-              className={`py-2 text-xs font-mono uppercase ${
-                draft.generationMode === 'STAGED' ? 'osint-button-soft' : 'osint-button-primary'
-              }`}
-            >
-              Staged
-            </button>
-          </div>
-        </div>
-        <ThinkingBudgetControl
-          providerLabel={providerMeta?.label || draft.provider}
-          supportsThinkingBudget={selectedModelCapabilities.supportsThinkingBudget}
-          value={draft.thinkingBudget}
-          onChange={(nextValue) =>
-            setDraft((current) => ({
-              ...current,
-              thinkingBudget: nextValue,
-            }))
-          }
-          className="block"
-          labelClassName="mb-2 flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500"
-          helpClassName="mt-2 text-[11px] text-zinc-500"
-          supportedHint="Applied by the selected model."
-        />
-      </div>
+      <ProviderModelSelector form={runtimeConfigForm} />
+      <RuntimeConfigBehaviorControls
+        form={runtimeConfigForm}
+        thinkingBudgetClassName="border border-zinc-800 bg-zinc-900/30 p-4 md:col-span-2"
+      />
     </div>
   );
 
@@ -652,18 +522,6 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           ) : null}
         </div>
       </div>
-
-      <OpenRouterModelBrowser
-        isOpen={showOpenRouterBrowser}
-        currentModelId={draft.provider === 'OPENROUTER' ? activeModelId : undefined}
-        onClose={() => setShowOpenRouterBrowser(false)}
-        onSelectModel={(modelId) =>
-          setDraft((current) => ({
-            ...current,
-            modelId,
-          }))
-        }
-      />
     </section>
   );
 };

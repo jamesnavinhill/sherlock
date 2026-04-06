@@ -1,20 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  getSnapshot,
-  type Editor,
-  type TLEditorSnapshot,
-  type TLStoreSnapshot,
-} from 'tldraw';
-import { Clock3, FileText, Link2, MessageSquare, Network } from 'lucide-react';
 
 import type {
   Artifact,
   ChatOpenRequest,
   InvestigationLaunchRequest,
   WorkspaceBoardItemReference,
-  WorkspaceItem,
 } from '@/types';
 import {
   buildFilesPath,
@@ -24,23 +16,16 @@ import {
   buildWorkspaceTimelinePath,
 } from '@/app/routes';
 import { useWorkspaceBoardFeatureState } from '@/store/selectors/featureSelectors';
-import { type InspectorActionItem } from '@/components/ui/InspectorActionRow';
 import {
   boardRefKey,
   buildSingleWorkspaceItemEntry,
   type WorkspaceLibraryEntry,
 } from '@/services/workspace/library';
 import {
-  buildWorkspaceItemFromBoardDraft,
-  generateBoardSelectionDraft,
-} from '@/services/workspace/boardAi';
-import {
   BOARD_REF_META_KEY,
   buildBoardCardSpec,
   parseBoardReference,
 } from '../../../services/workspace/boardShapes';
-import { runBoardAgentSession } from '@/services/workspace/agent';
-import { createLocalId } from '@/utils/id';
 import {
   LEFT_PANEL_SECTION_SCROLL_CLASS,
   placeEntryOnBoard,
@@ -48,6 +33,15 @@ import {
   type RightPanelView,
 } from './workspaceBoardUtils';
 import { buildWorkspaceBoardViewModel } from './workspaceBoardViewModel';
+import { buildBoardInspectorActions } from './boardInspectorActions';
+import { useBoardCanvasPersistence } from './useBoardCanvasPersistence';
+import {
+  buildWorkspaceItemFromCreateModal,
+  createWorkspaceSelectionNote,
+  generateWorkspaceSelectionSummary,
+  ingestWorkspaceFiles,
+} from './workspaceBoardItemActions';
+import { runWorkspaceBoardAgentTurn } from './workspaceBoardAgent';
 
 interface UseWorkspaceBoardControllerInput {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -128,9 +122,7 @@ export const useWorkspaceBoardController = ({
     actions: false,
   });
   const [rightPanelView, setRightPanelView] = useState<RightPanelView>('AGENT');
-  const editorRef = useRef<Editor | null>(null);
   const boardAgentAbortRef = useRef<AbortController | null>(null);
-  const saveTimeoutRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const autoPlacementRef = useRef<{ boardId: string | null; index: number }>({
     boardId: null,
@@ -195,10 +187,17 @@ export const useWorkspaceBoardController = ({
         : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
     }`;
 
-  const hydratedSnapshot = useMemo(
-    () => (activeBoardDocument?.snapshot || undefined) as TLEditorSnapshot | TLStoreSnapshot | undefined,
-    [activeBoardDocument?.snapshot]
-  );
+  const { editorRef, handleEditorMount, hydratedSnapshot, persistCurrentBoardDocument } =
+    useBoardCanvasPersistence({
+      activeBoard,
+      activeBoardDocument,
+      addToast,
+      libraryMap,
+      saveWorkspaceBoardDocument,
+      setAiSummary,
+      setSelectedEntries,
+      themeMode,
+    });
 
   if (activeBoard?.id !== autoPlacementRef.current.boardId) {
     autoPlacementRef.current = {
@@ -247,6 +246,7 @@ export const useWorkspaceBoardController = ({
     activeBoard,
     activeWorkspace,
     clearQueuedBoardPlacement,
+    editorRef,
     libraryMap,
     navigate,
     queuedBoardPlacement,
@@ -254,65 +254,9 @@ export const useWorkspaceBoardController = ({
   ]);
 
   useEffect(() => {
-    if (!editorRef.current || !activeBoard) return;
-    editorRef.current.updateInstanceState({ isReadonly: !!activeBoard.presentationMode });
-  }, [activeBoard]);
-
-  useEffect(() => {
     setBoardAgentActiveSessionId(null);
     setBoardAgentMessage(null);
   }, [activeBoard?.id, activeWorkspace?.id]);
-
-  useEffect(() => {
-    if (!editorRef.current) return;
-    editorRef.current.user.updateUserPreferences({ colorScheme: themeMode });
-  }, [themeMode]);
-
-  const clearPendingSaveTimeout = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      window.clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-  }, []);
-
-  const persistBoardSnapshot = useCallback(
-    async (editor: Editor, boardId: string) => {
-      try {
-        await saveWorkspaceBoardDocument({
-          boardId,
-          snapshot: getSnapshot(editor.store) as unknown,
-          updatedAt: Date.now(),
-        });
-      } catch (error) {
-        console.error(`Failed to save board ${boardId}`, error);
-        addToast('Unable to save the latest board changes.', 'ERROR');
-      }
-    },
-    [addToast, saveWorkspaceBoardDocument]
-  );
-
-  const persistCurrentBoardDocument = useCallback(async () => {
-    if (!editorRef.current || !activeBoard) return;
-    clearPendingSaveTimeout();
-    await persistBoardSnapshot(editorRef.current, activeBoard.id);
-  }, [activeBoard, clearPendingSaveTimeout, persistBoardSnapshot]);
-
-  useEffect(
-    () => () => {
-      boardAgentAbortRef.current?.abort();
-      void persistCurrentBoardDocument();
-    },
-    [persistCurrentBoardDocument]
-  );
-
-  useEffect(() => {
-    const handlePageHide = () => {
-      void persistCurrentBoardDocument();
-    };
-
-    window.addEventListener('pagehide', handlePageHide);
-    return () => window.removeEventListener('pagehide', handlePageHide);
-  }, [persistCurrentBoardDocument]);
 
   useEffect(() => {
     if (boardAgentBusy) return;
@@ -323,79 +267,12 @@ export const useWorkspaceBoardController = ({
     setBoardAgentMessage(latestSessionMessage);
   }, [boardAgentBusy, visibleBoardAgentSession]);
 
-  const scheduleSave = useCallback(
-    (editor: Editor) => {
-      if (!activeBoard) return;
-
-      clearPendingSaveTimeout();
-
-      saveTimeoutRef.current = window.setTimeout(async () => {
-        saveTimeoutRef.current = null;
-        await persistBoardSnapshot(editor, activeBoard.id);
-      }, 550);
+  useEffect(
+    () => () => {
+      boardAgentAbortRef.current?.abort();
+      void persistCurrentBoardDocument();
     },
-    [activeBoard, clearPendingSaveTimeout, persistBoardSnapshot]
-  );
-
-  const syncSelection = useCallback(
-    (editor: Editor) => {
-      const nextEntries = editor
-        .getSelectedShapes()
-        .map((shape) => {
-          const meta = shape.meta as Record<string, unknown> | undefined;
-          const ref = parseBoardReference(meta?.[BOARD_REF_META_KEY]);
-          return ref ? libraryMap.get(boardRefKey(ref)) || null : null;
-        })
-        .filter((entry): entry is WorkspaceLibraryEntry => !!entry);
-
-      const deduped = new Map(nextEntries.map((entry) => [boardRefKey(entry), entry]));
-      setSelectedEntries(Array.from(deduped.values()));
-      setAiSummary(null);
-    },
-    [libraryMap]
-  );
-
-  const handleEditorMount = useCallback(
-    (editor: Editor) => {
-      const mountedBoardId = activeBoard?.id || null;
-      editorRef.current = editor;
-      editor.user.updateUserPreferences({ colorScheme: themeMode });
-      editor.updateInstanceState({ isReadonly: !!activeBoard?.presentationMode });
-      syncSelection(editor);
-
-      const removeSelectionListener = editor.store.listen(() => {
-        syncSelection(editor);
-      });
-      const removeDocumentListener = editor.store.listen(
-        () => {
-          scheduleSave(editor);
-        },
-        {
-          scope: 'document',
-          source: 'user',
-        }
-      );
-
-      return () => {
-        removeSelectionListener();
-        removeDocumentListener();
-        if (mountedBoardId) {
-          void persistBoardSnapshot(editor, mountedBoardId);
-        } else {
-          clearPendingSaveTimeout();
-        }
-        editorRef.current = null;
-      };
-    },
-    [
-      activeBoard?.id,
-      activeBoard?.presentationMode,
-      clearPendingSaveTimeout,
-      persistBoardSnapshot,
-      scheduleSave,
-      syncSelection,
-      themeMode,
-    ]
+    [persistCurrentBoardDocument]
   );
 
   const handleCreateBoard = async () => {
@@ -459,7 +336,7 @@ export const useWorkspaceBoardController = ({
         themeMode
       );
     },
-    [activeBoard, addToast, themeMode]
+    [activeBoard, addToast, editorRef, themeMode]
   );
 
   const handleCanvasDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -510,42 +387,10 @@ export const useWorkspaceBoardController = ({
   const handleSubmitCreateModal = useCallback(async () => {
     if (!activeWorkspace || !createModal) return;
 
-    const now = Date.now();
-    let nextItem: WorkspaceItem | null = null;
-
-    if (createModal.type === 'NOTE' && createModal.title.trim() && createModal.content.trim()) {
-      nextItem = {
-        id: createLocalId('workspace-item'),
-        workspaceId: activeWorkspace.id,
-        kind: 'NOTE',
-        title: createModal.title.trim(),
-        description: createModal.content.trim().slice(0, 240),
-        textContent: createModal.content.trim(),
-        provenance: {
-          source: 'USER',
-          description: 'Created manually inside the research workspace.',
-        },
-        createdAt: now,
-        updatedAt: now,
-      };
-    }
-
-    if (createModal.type === 'LINK' && createModal.title.trim() && createModal.url.trim()) {
-      nextItem = {
-        id: createLocalId('workspace-item'),
-        workspaceId: activeWorkspace.id,
-        kind: 'LINK',
-        title: createModal.title.trim(),
-        description: createModal.description.trim() || createModal.url.trim(),
-        url: createModal.url.trim(),
-        provenance: {
-          source: 'INGESTION',
-          description: 'Captured from a manual workspace link ingestion.',
-        },
-        createdAt: now,
-        updatedAt: now,
-      };
-    }
+    const nextItem = buildWorkspaceItemFromCreateModal({
+      createModal,
+      workspaceId: activeWorkspace.id,
+    });
 
     if (!nextItem) return;
     await createWorkspaceItem(nextItem);
@@ -561,35 +406,11 @@ export const useWorkspaceBoardController = ({
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
-    for (const file of files) {
-      const previewUrl =
-        file.type.startsWith('image/') || file.type.startsWith('video/')
-          ? await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-              reader.onerror = () => reject(reader.error);
-              reader.readAsDataURL(file);
-            })
-          : undefined;
-
-      await createWorkspaceItem({
-        id: createLocalId('workspace-item'),
-        workspaceId: activeWorkspace.id,
-        kind: file.type.startsWith('image/') || file.type.startsWith('video/') ? 'MEDIA' : 'FILE',
-        title: file.name,
-        description: `${file.name} - ${Math.max(1, Math.round(file.size / 1024))} KB`,
-        mimeType: file.type || undefined,
-        fileName: file.name,
-        sizeBytes: file.size,
-        previewUrl: previewUrl || undefined,
-        provenance: {
-          source: 'INGESTION',
-          description: 'Captured from a local file upload.',
-        },
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-    }
+    await ingestWorkspaceFiles({
+      createWorkspaceItem,
+      files,
+      workspaceId: activeWorkspace.id,
+    });
 
     addToast(
       files.length === 1
@@ -605,12 +426,11 @@ export const useWorkspaceBoardController = ({
     setAiBusy(true);
 
     try {
-      const result = await generateBoardSelectionDraft({
+      const result = await generateWorkspaceSelectionSummary({
         workspace: activeWorkspace,
         artifacts: workspaceArtifacts,
         headlines: workspaceHeadlines,
         selectedEntries,
-        mode: 'SUMMARY',
       });
       setAiSummary(result.content);
     } catch (error) {
@@ -632,21 +452,14 @@ export const useWorkspaceBoardController = ({
     setAiBusy(true);
 
     try {
-      const result = await generateBoardSelectionDraft({
-        workspace: activeWorkspace,
-        artifacts: workspaceArtifacts,
-        headlines: workspaceHeadlines,
+      const noteItem = await createWorkspaceSelectionNote({
+        activeBoard,
+        createWorkspaceItem,
         selectedEntries,
-        mode: 'NOTE',
+        workspace: activeWorkspace,
+        workspaceArtifacts,
+        workspaceHeadlines,
       });
-      const noteItem = buildWorkspaceItemFromBoardDraft({
-        workspaceId: activeWorkspace.id,
-        title: result.title,
-        content: result.content,
-        sourceBoardId: activeBoard.id,
-      });
-
-      await createWorkspaceItem(noteItem);
       const entry = buildSingleWorkspaceItemEntry(activeWorkspace.id, noteItem);
       if (entry) {
         handleDropEntry(entry);
@@ -685,12 +498,7 @@ export const useWorkspaceBoardController = ({
     setBoardAgentMessage(null);
 
     try {
-      const recentBoardActions = boardSessionsForBoard
-        .flatMap((session) => boardAgentActionsBySessionId[session.id] || [])
-        .sort((left, right) => right.createdAt - left.createdAt)
-        .slice(0, 24);
-
-      const result = await runBoardAgentSession({
+      const result = await runWorkspaceBoardAgentTurn({
         workspace: activeWorkspace,
         board: activeBoard,
         boardDocument: activeBoardDocument,
@@ -706,7 +514,10 @@ export const useWorkspaceBoardController = ({
         packId: activeWorkspace.packId,
         purposeId: activeWorkspace.purposeId,
         recentSessions: boardSessionsForBoard.slice(0, 6),
-        recentActions: recentBoardActions,
+        recentActions: boardSessionsForBoard
+          .flatMap((session) => boardAgentActionsBySessionId[session.id] || [])
+          .sort((left, right) => right.createdAt - left.createdAt)
+          .slice(0, 24),
         signal: abortController.signal,
         createBoardAgentSession,
         updateBoardAgentSession,
@@ -732,12 +543,17 @@ export const useWorkspaceBoardController = ({
         },
       });
 
+      if (result.status === 'BLOCKED') {
+        addToast(result.message, 'INFO');
+        return;
+      }
+
       setBoardAgentActiveSessionId(result.session.id);
       setBoardAgentMessage(result.message || null);
 
-      if (result.session.status === 'FAILED') {
+      if (result.status === 'FAILED') {
         addToast(result.session.lastError || 'Board-agent run failed.', 'ERROR');
-      } else if (result.session.status === 'CANCELLED') {
+      } else if (result.status === 'CANCELLED') {
         addToast('Board-agent run cancelled.', 'INFO');
       } else {
         addToast('Board-agent run complete.', 'SUCCESS');
@@ -772,6 +588,7 @@ export const useWorkspaceBoardController = ({
     updateBoardAgentSession,
     workspaceArtifacts,
     workspaceHeadlines,
+    editorRef,
   ]);
 
   const handleBoardAgentComposerKeyDown = useCallback(
@@ -813,7 +630,7 @@ export const useWorkspaceBoardController = ({
       });
       addToast('Removed item from the library.', 'SUCCESS');
     },
-    [addToast, deleteWorkspaceItem]
+    [addToast, deleteWorkspaceItem, editorRef]
   );
 
   const handleDeleteCreatedItem = useCallback((entry: WorkspaceLibraryEntry) => {
@@ -821,7 +638,7 @@ export const useWorkspaceBoardController = ({
     setLibraryItemPendingDeletion(entry);
   }, []);
 
-  const handleOpenSelectedChat = () => {
+  const handleOpenSelectedChat = useCallback(() => {
     if (!activeWorkspace) return;
 
     if (selectedArtifact?.id) {
@@ -850,88 +667,45 @@ export const useWorkspaceBoardController = ({
     }
 
     onOpenChat({ workspaceId: activeWorkspace.id });
-  };
+  }, [activeWorkspace, onOpenChat, selectedArtifact, selectedEntries, selectedHeadline]);
 
-  const inspectorActions: InspectorActionItem[] = [];
-  if (selectedArtifact) {
-    inspectorActions.push({
-      id: 'board-open-report',
-      label: 'Open Artifact',
-      icon: FileText,
-      onClick: () => onOpenReport(selectedArtifact),
-    });
-  }
-  if (selectedEntries.length > 0) {
-    inspectorActions.push({
-      id: 'board-open-chat',
-      label: 'Open In Chat',
-      icon: MessageSquare,
-      onClick: handleOpenSelectedChat,
-    });
-  }
-  if (selectedWorkspaceItem?.provenance?.sourceSessionId) {
-    inspectorActions.push({
-      id: 'board-open-chat-session',
-      label: 'Source Chat',
-      icon: MessageSquare,
-      onClick: () =>
-        onOpenChat({
-          workspaceId: selectedWorkspaceItem.workspaceId,
-          sessionId: selectedWorkspaceItem.provenance?.sourceSessionId,
-        }),
-    });
-  }
-  if (selectedWorkspaceItem?.provenance?.sourceReportId) {
-    const sourceReport = workspaceArtifacts.find(
-      (artifact) => artifact.id === selectedWorkspaceItem.provenance?.sourceReportId
-    );
-    if (sourceReport) {
-      inspectorActions.push({
-        id: 'board-open-source-report',
-        label: 'Source Report',
-        icon: FileText,
-        onClick: () => onOpenReport(sourceReport),
-      });
-    }
-  }
-  if (selectedPrimaryEntry?.url || typeof selectedPrimaryEntry?.metadata?.url === 'string') {
-    inspectorActions.push({
-      id: 'board-open-link',
-      label: 'Open Link',
-      icon: Link2,
-      href:
-        selectedPrimaryEntry?.url ||
-        (typeof selectedPrimaryEntry?.metadata?.url === 'string'
-          ? selectedPrimaryEntry.metadata.url
-          : undefined),
-      target: '_blank',
-      rel: 'noopener noreferrer',
-    });
-  }
-  if (activeWorkspace) {
-    inspectorActions.push({
-      id: 'board-open-timeline',
-      label: 'Timeline',
-      icon: Clock3,
-      onClick: () => {
-        void (async () => {
-          await persistCurrentBoardDocument();
-          navigate(buildWorkspaceTimelinePath(activeWorkspace.id));
-        })();
-      },
-    });
-    inspectorActions.push({
-      id: 'board-open-network',
-      label: 'Network Graph',
-      icon: Network,
-      onClick: () => {
-        void (async () => {
+  const inspectorActions = useMemo(
+    () =>
+      buildBoardInspectorActions({
+        activeWorkspaceId: activeWorkspace?.id,
+        onNavigateNetwork: async () => {
+          if (!activeWorkspace) return;
           await persistCurrentBoardDocument();
           navigate(buildWorkspaceNetworkPath(activeWorkspace.id));
-        })();
-      },
-    });
-  }
+        },
+        onNavigateTimeline: async () => {
+          if (!activeWorkspace) return;
+          await persistCurrentBoardDocument();
+          navigate(buildWorkspaceTimelinePath(activeWorkspace.id));
+        },
+        onOpenChat,
+        onOpenReport,
+        onOpenSelectedChat: handleOpenSelectedChat,
+        selectedArtifact,
+        selectedEntries,
+        selectedPrimaryEntry,
+        selectedWorkspaceItem,
+        workspaceArtifacts,
+      }),
+    [
+      activeWorkspace,
+      handleOpenSelectedChat,
+      navigate,
+      onOpenChat,
+      onOpenReport,
+      persistCurrentBoardDocument,
+      selectedArtifact,
+      selectedEntries,
+      selectedPrimaryEntry,
+      selectedWorkspaceItem,
+      workspaceArtifacts,
+    ]
+  );
 
   return {
     activeBoard,

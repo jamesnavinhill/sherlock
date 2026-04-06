@@ -9,41 +9,17 @@ import type {
   ChatSession,
   InvestigationLaunchRequest,
 } from '@/types';
-import {
-  buildWorkspaceBoardDocumentPath,
-  buildWorkspaceChatPath,
-  buildWorkspaceChatSessionPath,
-} from '@/app/routes';
 import { useChatFeatureState } from '@/store/selectors/featureSelectors';
 import {
-  buildArtifactAppendFromChatMessage,
-  buildArtifactDraftFromChatMessage,
-  buildFollowUpRunFromChatMessage,
   fetchArtifactSummaryForChat,
   fetchFullArtifactTextForChat,
   fetchRecentSignalsForChat,
-  streamWorkspaceChatTurn,
 } from '../../../services/chat/runtime';
-import {
-  buildArtifactDraftFromGuidedDraft,
-  buildLaunchRequestFromGuidedDraft,
-  createDefaultGuidedSessionState,
-  getGuidedAssistantPrompt,
-  getNextGuidedStep,
-  getPreviousGuidedStep,
-  summarizeGuidedStep,
-  type GuidedRunDraft,
-  type GuidedSessionState,
-} from '../../../services/chat/guidedMode';
+import type { GuidedRunDraft } from '../../../services/chat/guidedMode';
 import { exportChatSessionAsJson, exportChatSessionAsMarkdown } from '../../../utils/exportUtils';
-import { createLocalId } from '../../../utils/id';
-import { extractStreamingAnswerText } from '../../../services/providers/shared/chat';
 import { getChatLaunchContextFromSession } from '../../../services/chat/launchContext';
 import { sanitizeDisplayTitle } from '../../../domain';
-import { buildWorkspaceItemReference } from '../../../services/workspace/library';
-import { buildWorkspaceExcerptItemFromAttachment } from '../../../services/workspace/promotions';
 import {
-  buildGuidedSessionMetadata,
   buildManualSetupSeed,
   formatDateTime,
   formatMessageWithCitations,
@@ -58,6 +34,29 @@ import {
   splitCollapsedFollowUpBlock,
   toggleExclusiveSection,
 } from './chatPageUtils';
+import {
+  advanceGuidedChatSession,
+  launchGuidedChatRun,
+  rewindGuidedChatSession,
+  saveGuidedChatDraft,
+} from './chatGuidedActions';
+import {
+  confirmDeleteChatSession,
+  confirmRenameChatSession,
+  createGuidedChatSession,
+  createStandardChatSession,
+  ensureChatSession,
+  navigateToChatSession,
+} from './chatSessionLifecycle';
+import { sendChatTurn, stopChatGeneration } from './chatStreaming';
+import {
+  appendChatMessageToArtifact,
+  buildAppendArtifactDialogState,
+  buildFollowUpDialogState,
+  launchChatFollowUp,
+  promoteChatAttachmentToWorkspace,
+  saveChatMessageAsArtifact,
+} from './chatTranscriptActions';
 
 export interface RenameSessionDialogState {
   session: ChatSession;
@@ -130,13 +129,18 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     null
   );
   const [followUpDialog, setFollowUpDialog] = useState<FollowUpDialogState | null>(null);
-  const [expandedArtifactIds, setExpandedArtifactIds] = useState<Record<string, boolean>>({});
+  const [artifactCardState, setArtifactCardState] = useState<{
+    expanded: Record<string, boolean>;
+    workspaceId: string | null;
+  }>({
+    expanded: {},
+    workspaceId: null,
+  });
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamedAnswerRef = useRef('');
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
   const newMenuRef = useRef<HTMLDivElement | null>(null);
   const exportMenuRef = useRef<HTMLDivElement | null>(null);
-  const previousWorkspaceIdRef = useRef<string | null>(null);
   const [leftPanelSections, setLeftPanelSections] = useState({
     sessions: true,
     workspace: false,
@@ -150,7 +154,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   });
 
   const navigateToSession = (workspaceId: string, sessionId: string) => {
-    navigate(buildWorkspaceChatSessionPath(workspaceId, sessionId));
+    navigateToChatSession(navigate, workspaceId, sessionId);
   };
 
   useEffect(() => {
@@ -268,15 +272,18 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     [themeMode]
   );
 
-  useEffect(() => {
-    if (previousWorkspaceIdRef.current === activeWorkspace?.id) return;
-    previousWorkspaceIdRef.current = activeWorkspace?.id || null;
-    setExpandedArtifactIds(
+  const defaultExpandedArtifactIds = useMemo(
+    () =>
       Object.fromEntries(
         workspaceReports.slice(0, 4).map((artifact) => [artifact.id || artifact.topic, true])
-      )
-    );
-  }, [activeWorkspace?.id, workspaceReports]);
+      ),
+    [workspaceReports]
+  );
+
+  const expandedArtifactIds =
+    artifactCardState.workspaceId === activeWorkspace?.id
+      ? artifactCardState.expanded
+      : defaultExpandedArtifactIds;
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ block: 'end' });
@@ -291,7 +298,18 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   };
 
   const toggleArtifactCard = (artifactId: string) => {
-    setExpandedArtifactIds((current) => ({ ...current, [artifactId]: !current[artifactId] }));
+    setArtifactCardState((current) => {
+      const baseExpanded =
+        current.workspaceId === activeWorkspace?.id ? current.expanded : defaultExpandedArtifactIds;
+
+      return {
+        expanded: {
+          ...baseExpanded,
+          [artifactId]: !baseExpanded[artifactId],
+        },
+        workspaceId: activeWorkspace?.id || null,
+      };
+    });
   };
 
   const copyToClipboard = async (value: string, successMessage: string) => {
@@ -302,25 +320,16 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   const ensureSession = async (options?: {
     metadata?: Record<string, unknown>;
     title?: string;
-  }): Promise<ChatSession | null> => {
-    if (!activeWorkspace) {
-      addToast('Select or create a workspace before chatting.', 'ERROR');
-      return null;
-    }
-
-    if (activeSession) return activeSession;
-
-    const session = await createChatSession({
-      workspaceId: activeWorkspace.id,
-      title: options?.title,
-      packId: activeWorkspace.packId,
-      purposeId: activeWorkspace.purposeId,
-      metadata: options?.metadata,
+  }): Promise<ChatSession | null> =>
+    ensureChatSession({
+      activeSession,
+      activeWorkspace,
+      addToast,
+      createChatSession,
+      navigate,
+      options,
+      setActiveChatSessionId,
     });
-    setActiveChatSessionId(session.id);
-    navigateToSession(activeWorkspace.id, session.id);
-    return session;
-  };
 
   const addToolMessageResult = async (
     factory: (session: ChatSession) => Promise<{ action: AgentAction; message: ChatMessage }>
@@ -337,83 +346,41 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     message: ChatMessage,
     attachment: NonNullable<ChatMessage['attachments']>[number],
     openInBoard = false
-  ) => {
-    if (!activeWorkspace || !activeSession) {
-      addToast('Open a workspace chat before promoting excerpts.', 'ERROR');
-      return;
-    }
-
-    const item = buildWorkspaceExcerptItemFromAttachment({
-      workspaceId: activeWorkspace.id,
-      sessionId: activeSession.id,
-      message,
+  ) =>
+    promoteChatAttachmentToWorkspace({
+      activeSession,
+      activeWorkspace,
+      addToast,
       attachment,
+      createWorkspaceItem,
+      ensureWorkspaceBoard,
+      message,
+      navigate,
+      openInBoard,
+      queueBoardPlacement,
     });
-    await createWorkspaceItem(item);
 
-    if (openInBoard) {
-      const board = await ensureWorkspaceBoard(activeWorkspace.id);
-      queueBoardPlacement({
-        workspaceId: activeWorkspace.id,
-        boardId: board.id,
-        item: buildWorkspaceItemReference(item),
-        openInBoard: true,
-      });
-      navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
-      addToast('Promoted excerpt and placed it on the research board.', 'SUCCESS');
-      return;
-    }
-
-    addToast('Promoted excerpt to the workspace library.', 'SUCCESS');
-  };
-
-  const handleCreateSession = async () => {
-    setShowNewMenu(false);
-    if (!activeWorkspace) {
-      addToast('Select or create a workspace before starting chat.', 'ERROR');
-      return;
-    }
-
-    const session = await createChatSession({
-      workspaceId: activeWorkspace.id,
-      packId: activeWorkspace.packId,
-      purposeId: activeWorkspace.purposeId,
+  const handleCreateSession = async () =>
+    createStandardChatSession({
+      activeWorkspace,
+      addToast,
+      createChatSession,
+      navigate,
+      setActiveChatSessionId,
+      setShowNewMenu,
     });
-    setActiveChatSessionId(session.id);
-    navigateToSession(activeWorkspace.id, session.id);
-  };
 
-  const handleCreateGuidedSession = async () => {
-    setShowNewMenu(false);
-    if (!activeWorkspace) {
-      addToast('Select or create a workspace before starting guided mode.', 'ERROR');
-      return;
-    }
-
-    const guidedSessionState = createDefaultGuidedSessionState(activeWorkspace, customScopes);
-    const session = await createChatSession({
-      workspaceId: activeWorkspace.id,
-      title: 'Guided Run Builder',
-      packId: activeWorkspace.packId,
-      purposeId: activeWorkspace.purposeId,
-      metadata: {
-        sessionMode: 'GUIDED',
-        guidedState: guidedSessionState,
-      },
+  const handleCreateGuidedSession = async () =>
+    createGuidedChatSession({
+      activeWorkspace,
+      addChatMessage,
+      addToast,
+      createChatSession,
+      customScopes,
+      navigate,
+      setActiveChatSessionId,
+      setShowNewMenu,
     });
-    const now = Date.now();
-    await addChatMessage({
-      id: createLocalId('chat-message'),
-      sessionId: session.id,
-      role: 'assistant',
-      content: getGuidedAssistantPrompt(guidedSessionState, customScopes, activeWorkspace),
-      status: 'COMPLETED',
-      createdAt: now,
-      updatedAt: now,
-    });
-    setActiveChatSessionId(session.id);
-    navigateToSession(activeWorkspace.id, session.id);
-  };
 
   const handleRenameSession = async (session: ChatSession) => {
     setRenameSessionDialog({ session, title: session.title });
@@ -423,39 +390,30 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     setDeleteSessionDialog(session);
   };
 
-  const handleConfirmRenameSession = async () => {
-    if (!renameSessionDialog) return;
+  const handleConfirmRenameSession = async () =>
+    confirmRenameChatSession({
+      addToast,
+      renameChatSession,
+      renameSessionDialog,
+      setRenameSessionDialog,
+    });
 
-    const nextTitle = renameSessionDialog.title.trim();
-    if (!nextTitle) {
-      addToast('Enter a session title before saving.', 'ERROR');
-      return;
-    }
+  const handleConfirmDeleteSession = async () =>
+    confirmDeleteChatSession({
+      activeChatSessionId,
+      activeWorkspace,
+      addToast,
+      deleteChatSession,
+      deleteSessionDialog,
+      navigate,
+      setDeleteSessionDialog,
+    });
 
-    await renameChatSession(renameSessionDialog.session.id, nextTitle);
-    setRenameSessionDialog(null);
-    addToast('Renamed chat session.', 'SUCCESS');
-  };
-
-  const handleConfirmDeleteSession = async () => {
-    if (!deleteSessionDialog) return;
-
-    const deletedSession = deleteSessionDialog;
-    await deleteChatSession(deletedSession.id);
-    setDeleteSessionDialog(null);
-
-    if (activeWorkspace?.id && activeChatSessionId === deletedSession.id) {
-      navigate(buildWorkspaceChatPath(activeWorkspace.id));
-    }
-
-    addToast('Deleted chat session.', 'SUCCESS');
-  };
-
-  const handleStopGeneration = () => {
-    if (!abortControllerRef.current) return;
-    setChatGenerationStatus('CANCELLING');
-    abortControllerRef.current.abort();
-  };
+  const handleStopGeneration = () =>
+    stopChatGeneration({
+      abortControllerRef,
+      setChatGenerationStatus,
+    });
 
   const handleSend = async (event: FormEvent) => {
     event.preventDefault();
@@ -467,310 +425,113 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     const session = await ensureSession();
     if (!session) return;
 
-    const now = Date.now();
-    const userMessage: ChatMessage = {
-      id: createLocalId('chat-message'),
-      sessionId: session.id,
-      role: 'user',
-      content: query,
-      status: 'COMPLETED',
-      createdAt: now,
-      updatedAt: now,
-    };
-    const assistantMessageId = createLocalId('chat-message');
-    const pendingAssistant: ChatMessage = {
-      id: assistantMessageId,
-      sessionId: session.id,
-      role: 'assistant',
-      content: '',
-      status: 'PENDING',
-      createdAt: now + 1,
-      updatedAt: now + 1,
-      metadata: {
-        provider: session.provider,
-        modelId: session.modelId,
-      },
-    };
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    streamedAnswerRef.current = '';
-    setDraft('');
-    setWorkingSessionId(session.id);
-    setWorkingAssistantMessageId(assistantMessageId);
-    setChatGenerationStatus('GENERATING');
-    setPartialAssistantOutput('');
-
-    await addChatMessage(userMessage);
-    await addChatMessage(pendingAssistant);
-
-    try {
-      const result = await streamWorkspaceChatTurn({
-        session,
-        messages: [...messages, userMessage],
-        query,
-        assistantMessageId,
-        signal: controller.signal,
-        onStreamEvent: (streamEvent) => {
-          if (streamEvent.type !== 'DELTA') return;
-          const answerText = extractStreamingAnswerText(streamEvent.snapshot);
-          streamedAnswerRef.current = answerText;
-          setPartialAssistantOutput(answerText);
-        },
-      });
-
-      await updateChatMessage(assistantMessageId, session.id, {
-        content: result.assistantMessage.content,
-        citations: result.assistantMessage.citations,
-        attachments: result.attachments,
-        metadata: result.assistantMessage.metadata,
-        status: 'COMPLETED',
-        updatedAt: Date.now(),
-      });
-      await addChatAction({ ...result.action, messageId: assistantMessageId });
-
-      if (session.title === 'Untitled Chat' && result.suggestedTitle) {
-        await renameChatSession(session.id, result.suggestedTitle);
-      }
-
-      setChatGenerationStatus('IDLE');
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        await updateChatMessage(assistantMessageId, session.id, {
-          content:
-            streamedAnswerRef.current || 'Generation stopped before a full answer was produced.',
-          status: 'CANCELLED',
-          updatedAt: Date.now(),
-        });
-        addToast('Generation stopped.', 'INFO');
-        setChatGenerationStatus('IDLE');
-      } else {
-        const message = error instanceof Error ? error.message : 'Chat failed.';
-        await updateChatMessage(assistantMessageId, session.id, {
-          content: 'Unable to generate a response for this workspace query.',
-          error: message,
-          status: 'FAILED',
-          updatedAt: Date.now(),
-        });
-        setChatGenerationStatus('FAILED');
-        addToast(message, 'ERROR');
-      }
-    } finally {
-      abortControllerRef.current = null;
-      streamedAnswerRef.current = '';
-      setWorkingSessionId(null);
-      setWorkingAssistantMessageId(null);
-      setPartialAssistantOutput('');
-    }
+    await sendChatTurn({
+      draft: query,
+      messages,
+      session,
+      abortControllerRef,
+      streamedAnswerRef,
+      addChatAction,
+      addChatMessage,
+      addToast,
+      onDraftSubmitted: () => setDraft(''),
+      renameChatSession,
+      setChatGenerationStatus,
+      setPartialAssistantOutput,
+      setWorkingAssistantMessageId,
+      setWorkingSessionId,
+      updateChatMessage,
+    });
   };
 
-  const handleSaveMessageAsArtifact = async (message: ChatMessage) => {
-    if (!activeSession || !activeWorkspace) return;
-    const { report, action } = buildArtifactDraftFromChatMessage({
-      session: activeSession,
-      workspace: activeWorkspace,
+  const handleSaveMessageAsArtifact = async (message: ChatMessage) =>
+    saveChatMessageAsArtifact({
+      activeSession,
+      activeWorkspace,
+      addChatAction,
+      addToast,
+      archiveReport,
       message,
     });
-    const saved = await archiveReport(report, {
-      topic: activeWorkspace.title,
-      summary: activeWorkspace.description || `${activeWorkspace.title} workspace`,
-    });
-    await addChatAction({
-      ...action,
-      result: {
-        ...(action.result || {}),
-        artifactId: saved.id,
-      },
-    });
-    addToast(`Saved chat draft to ${saved.topic}.`, 'SUCCESS');
-  };
 
-  const handleAppendMessageToArtifact = async (message: ChatMessage) => {
-    if (!activeSession || appendableWorkspaceReports.length === 0) {
-      addToast('Save an artifact in this workspace before appending chat notes.', 'ERROR');
-      return;
-    }
-
-    setAppendArtifactDialog({
-      message,
-      selectedReportId: appendableWorkspaceReports[0]?.id || '',
-    });
-  };
-
-  const handleConfirmAppendMessageToArtifact = async () => {
-    if (!appendArtifactDialog || !activeSession) return;
-
-    const targetReport = appendableWorkspaceReports.find(
-      (artifact) => artifact.id === appendArtifactDialog.selectedReportId
+  const handleAppendMessageToArtifact = async (message: ChatMessage) =>
+    setAppendArtifactDialog(
+      buildAppendArtifactDialogState({
+        activeSession,
+        addToast,
+        appendableWorkspaceReports,
+        message,
+      })
     );
-    if (!targetReport) {
-      addToast('Select a valid artifact before appending this note.', 'ERROR');
-      return;
-    }
 
-    const { section, action } = buildArtifactAppendFromChatMessage({
-      session: activeSession,
-      report: targetReport,
-      message: appendArtifactDialog.message,
+  const handleConfirmAppendMessageToArtifact = async () =>
+    appendChatMessageToArtifact({
+      activeSession,
+      addChatAction,
+      addToast,
+      appendArtifactDialog,
+      appendSectionToReport,
+      appendableWorkspaceReports,
+      setAppendArtifactDialog,
     });
-
-    await appendSectionToReport(targetReport.id, section);
-    await addChatAction(action);
-    setAppendArtifactDialog(null);
-    addToast(`Added this chat note to ${targetReport.topic}.`, 'SUCCESS');
-  };
 
   const handleLaunchFollowUp = async (message: ChatMessage) => {
-    if (!activeSession || !activeWorkspace) return;
-    const { request, action, suggestedTopic } = buildFollowUpRunFromChatMessage({
-      session: activeSession,
-      workspace: activeWorkspace,
-      message,
-      workspaceIntent: 'CURRENT',
-    });
-    setFollowUpDialog({
-      request,
-      action,
-      topic: suggestedTopic,
-    });
-  };
-
-  const handleConfirmLaunchFollowUp = async () => {
-    if (!followUpDialog) return;
-
-    const nextTopic = followUpDialog.topic.trim();
-    if (!nextTopic) {
-      addToast('Enter a follow-up topic before launching the run.', 'ERROR');
-      return;
-    }
-
-    onLaunchInvestigation({
-      ...followUpDialog.request,
-      topic: nextTopic,
-    });
-    await addChatAction({
-      ...followUpDialog.action,
-      input: {
-        ...(followUpDialog.action.input || {}),
-        topic: nextTopic,
-      },
-    });
-    setFollowUpDialog(null);
-  };
-
-  const handleAdvanceGuided = async (nextDraft: GuidedRunDraft) => {
-    if (!activeSession || !guidedState || !activeWorkspace) return;
-    const completedStep = guidedState.step;
-    const nextStep = getNextGuidedStep(completedStep);
-    const nextState: GuidedSessionState = {
-      mode: 'GUIDED',
-      step: nextStep,
-      draft: nextDraft,
-      completedAt: nextStep === 'REVIEW' ? Date.now() : undefined,
-    };
-    const now = Date.now();
-
-    await addChatMessage({
-      id: createLocalId('chat-message'),
-      sessionId: activeSession.id,
-      role: 'user',
-      content: summarizeGuidedStep(completedStep, nextDraft, customScopes),
-      status: 'COMPLETED',
-      createdAt: now,
-      updatedAt: now,
-    });
-    await updateChatSession(activeSession.id, {
-      metadata: buildGuidedSessionMetadata(activeSession, nextState),
-    });
-    await addChatMessage({
-      id: createLocalId('chat-message'),
-      sessionId: activeSession.id,
-      role: 'assistant',
-      content: getGuidedAssistantPrompt(nextState, customScopes, activeWorkspace),
-      status: 'COMPLETED',
-      createdAt: now + 1,
-      updatedAt: now + 1,
-    });
-  };
-
-  const handleGuidedBack = async () => {
-    if (!activeSession || !guidedState) return;
-    const previousStep = getPreviousGuidedStep(guidedState.step);
-    await updateChatSession(activeSession.id, {
-      metadata: buildGuidedSessionMetadata(activeSession, {
-        ...guidedState,
-        step: previousStep,
-        completedAt: undefined,
-      }),
-    });
-  };
-
-  const handleGuidedLaunch = async () => {
-    if (!guidedState) return;
-    onLaunchInvestigation(
-      buildLaunchRequestFromGuidedDraft(guidedState.draft, customScopes, activeWorkspace)
+    setFollowUpDialog(
+      buildFollowUpDialogState({
+        activeSession,
+        activeWorkspace,
+        message,
+      })
     );
-    if (activeSession) {
-      await addChatAction({
-        id: createLocalId('chat-action'),
-        sessionId: activeSession.id,
-        type: 'CREATE_FOLLOW_UP_RUN',
-        status: 'COMPLETED',
-        input: {
-          topic: guidedState.draft.topic,
-          mode: 'GUIDED',
-        },
-        result: {
-          launchSource: 'CHAT_GUIDED_RUN',
-        },
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-    }
   };
 
-  const handleGuidedSaveDraft = async () => {
-    if (!guidedState) return;
-    const { report } = buildArtifactDraftFromGuidedDraft(
-      guidedState.draft,
+  const handleConfirmLaunchFollowUp = async () =>
+    launchChatFollowUp({
+      addChatAction,
+      addToast,
+      followUpDialog,
+      onLaunchInvestigation,
+      setFollowUpDialog,
+    });
+
+  const handleAdvanceGuided = async (nextDraft: GuidedRunDraft) =>
+    advanceGuidedChatSession({
+      activeSession,
+      activeWorkspace,
+      addChatMessage,
       customScopes,
-      activeWorkspace
-    );
-    const saved = await archiveReport(
-      guidedState.draft.workspaceIntent === 'CURRENT'
-        ? report
-        : {
-            ...report,
-            caseId: undefined,
-          },
-      guidedState.draft.workspaceIntent === 'CURRENT' && activeWorkspace
-        ? {
-            topic: activeWorkspace.title,
-            summary: activeWorkspace.description || `${activeWorkspace.title} workspace`,
-          }
-        : undefined
-    );
+      guidedState,
+      nextDraft,
+      updateChatSession,
+    });
 
-    if (activeSession) {
-      await addChatAction({
-        id: createLocalId('chat-action'),
-        sessionId: activeSession.id,
-        type: 'CREATE_ARTIFACT_DRAFT',
-        status: 'COMPLETED',
-        input: {
-          topic: guidedState.draft.topic,
-          mode: 'GUIDED',
-        },
-        result: {
-          artifactId: saved.id,
-        },
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-    }
+  const handleGuidedBack = async () =>
+    rewindGuidedChatSession({
+      activeSession,
+      guidedState,
+      updateChatSession,
+    });
 
-    addToast(`Saved guided brief to ${saved.topic}.`, 'SUCCESS');
-  };
+  const handleGuidedLaunch = async () =>
+    launchGuidedChatRun({
+      activeSession,
+      activeWorkspace,
+      addChatAction,
+      customScopes,
+      guidedState,
+      onLaunchInvestigation,
+    });
+
+  const handleGuidedSaveDraft = async () =>
+    saveGuidedChatDraft({
+      activeSession,
+      activeWorkspace,
+      addChatAction,
+      addToast,
+      archiveReport,
+      customScopes,
+      guidedState,
+    });
 
   const handleOpenManualSetup = () => {
     if (!guidedState) return;

@@ -1,0 +1,90 @@
+import React from 'react';
+import { Microscope, Workflow } from 'lucide-react';
+
+import { ThinkingBudgetControl } from './ThinkingBudgetControl';
+import type { RuntimeConfigFormController } from './useRuntimeConfigForm';
+
+interface RuntimeConfigBehaviorControlsProps {
+  form: RuntimeConfigFormController;
+  className?: string;
+  generationHint?: string;
+  searchDepthHint?: string;
+  thinkingBudgetClassName?: string;
+}
+
+export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorControlsProps> = ({
+  form,
+  className = 'grid gap-4 md:grid-cols-2',
+  generationHint = 'Single pass is lighter. Staged favors stronger evidence and reusable sections.',
+  searchDepthHint = 'Controls breadth, synthesis depth, and investigative rigor.',
+  thinkingBudgetClassName = 'border border-zinc-800 bg-zinc-900/30 p-4 md:col-span-2',
+}) => (
+  <div className={className}>
+    <section className="border border-zinc-800 bg-zinc-900/30 p-4">
+      <label className="mb-2 flex items-center text-xs font-mono uppercase text-zinc-400">
+        <Microscope className="mr-2 h-3 w-3 text-osint-primary" />
+        Search Depth
+      </label>
+      <p className="mb-3 text-[10px] font-mono text-zinc-600">{searchDepthHint}</p>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => form.setSearchDepth('STANDARD')}
+          className={`py-2 text-xs font-mono uppercase ${
+            form.value.searchDepth === 'STANDARD' ? 'osint-button-soft' : 'osint-button-primary'
+          }`}
+        >
+          Standard
+        </button>
+        <button
+          type="button"
+          onClick={() => form.setSearchDepth('DEEP')}
+          className={`py-2 text-xs font-mono uppercase ${
+            form.value.searchDepth === 'DEEP' ? 'osint-button-soft' : 'osint-button-primary'
+          }`}
+        >
+          Deep
+        </button>
+      </div>
+    </section>
+
+    <section className="border border-zinc-800 bg-zinc-900/30 p-4">
+      <label className="mb-2 flex items-center text-xs font-mono uppercase text-zinc-400">
+        <Workflow className="mr-2 h-3 w-3 text-osint-primary" />
+        Generation Mode
+      </label>
+      <p className="mb-3 text-[10px] font-mono text-zinc-600">{generationHint}</p>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => form.setGenerationMode('SINGLE_PASS')}
+          className={`py-2 text-xs font-mono uppercase ${
+            form.value.generationMode === 'SINGLE_PASS'
+              ? 'osint-button-soft'
+              : 'osint-button-primary'
+          }`}
+        >
+          Single Pass
+        </button>
+        <button
+          type="button"
+          onClick={() => form.setGenerationMode('STAGED')}
+          className={`py-2 text-xs font-mono uppercase ${
+            form.value.generationMode === 'STAGED' ? 'osint-button-soft' : 'osint-button-primary'
+          }`}
+        >
+          Staged
+        </button>
+      </div>
+    </section>
+
+    <ThinkingBudgetControl
+      providerLabel={form.providerMeta?.label || form.value.provider}
+      supportsThinkingBudget={form.supportsThinkingBudget}
+      value={form.value.thinkingBudget}
+      onChange={form.setThinkingBudget}
+      className={thinkingBudgetClassName}
+      supportedHint="Applied by the selected model."
+    />
+  </div>
+);

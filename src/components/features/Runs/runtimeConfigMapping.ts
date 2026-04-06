@@ -42,6 +42,21 @@ export const resolveRuntimeScope = (
   );
 };
 
+export const toRuntimeConfigOverride = (
+  config?: InvestigationRunConfig
+): Partial<SystemConfig> | undefined => {
+  if (!config) return undefined;
+
+  return {
+    provider: config.provider,
+    modelId: config.modelId,
+    persona: config.persona,
+    searchDepth: config.searchDepth,
+    generationMode: config.generationMode,
+    thinkingBudget: config.thinkingBudget,
+  };
+};
+
 export const resolveRuntimeLaunchFields = ({
   artifactType,
   baseConfig,

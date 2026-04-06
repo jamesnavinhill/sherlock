@@ -5,7 +5,6 @@ import {
   User,
   Globe,
   UserCog,
-  Microscope,
   ChevronLeft,
   ChevronRight,
   PlayCircle,
@@ -18,19 +17,16 @@ import {
   Layout,
   Compass,
   Calendar,
-  Cpu,
   Sparkles,
   Shapes,
   Library,
-  Workflow,
 } from 'lucide-react';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import type { GraphNodeSubtype, InvestigationScope, ManualNode } from '@/types';
-import type { AIProvider } from '@/config/aiModels';
-import { AI_PROVIDERS } from '@/config/aiModels';
 import { getEntityToneClass } from '@/utils/entityPalette';
-import { OpenRouterModelBrowser } from '@/components/ui/OpenRouterModelBrowser';
-import { ThinkingBudgetControl } from './ThinkingBudgetControl';
+import { ProviderModelSelector } from './ProviderModelSelector';
+import { RuntimeConfigBehaviorControls } from './RuntimeConfigBehaviorControls';
+import { RuntimeConfigSummary } from './RuntimeConfigSummary';
 import {
   type TaskSetupConfigOverride,
   useTaskSetupState,
@@ -77,13 +73,8 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     currentStep,
     dateRangeEnd,
     dateRangeStart,
-    depth,
     effectivePersona,
-    effectiveSelectedModel,
-    generationMode,
     handleAddEntity,
-    handleModelChange,
-    handleProviderChange,
     handleRemoveEntity,
     handleStart,
     newEntityName,
@@ -92,23 +83,18 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     prevStep,
     prioritySources,
     resolvedPurposeId,
+    runtimeConfigForm,
     saveAsTemplate,
     seedEntities,
     selectedArtifactType,
-    selectedModelCapabilities,
     selectedPack,
-    selectedProvider,
-    selectedProviderMeta,
     selectedPurpose,
     selectedScope,
     selectedScopeId,
-    selectableModels,
     setAngle,
     setCurrentStep,
     setDateRangeEnd,
     setDateRangeStart,
-    setDepth,
-    setGenerationMode,
     setNewEntityName,
     setNewEntityType,
     setPersona,
@@ -116,19 +102,14 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     setSaveAsTemplate,
     setSelectedPurposeId,
     setSelectedScopeId,
-    setShowOpenRouterBrowser,
     setTemplateName,
-    setThinkingBudget,
     setTopic,
     setupCopy,
-    showOpenRouterBrowser,
     starterTemplates,
     steps,
     supportedPurposes,
-    supportsThinkingBudget,
     templateName,
     templates,
-    thinkingBudget,
     topic,
   } = useTaskSetupState({
     initialTopic,
@@ -445,22 +426,12 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
 
   const renderStep5 = () => (
     <div className="space-y-6">
-      <div className="border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
-            {selectedPack.name}
-          </span>
-          <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-            {selectedPurpose.name}
-          </span>
-          <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-            {selectedArtifactType}
-          </span>
-        </div>
-        <p className="text-[10px] text-zinc-500 font-mono uppercase">
-          {inheritanceHint || setupCopy.configHint}
-        </p>
-      </div>
+      <RuntimeConfigSummary
+        packName={selectedPack.name}
+        purposeName={selectedPurpose.name}
+        artifactType={selectedArtifactType}
+        hint={inheritanceHint || setupCopy.configHint}
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 auto-rows-fr">
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
@@ -482,139 +453,14 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
             }))}
           />
         </section>
-
-        <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
-          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-            <Cpu className="w-3 h-3 mr-2" />
-            Provider
-          </label>
-          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
-            Choose the AI backend for this run.
-          </p>
-          <OsintSelect
-            ariaLabel="Provider"
-            value={selectedProvider}
-            onChange={(value) => handleProviderChange(value as AIProvider)}
-            triggerClassName="mt-auto p-2 pr-8 font-mono text-xs"
-            options={AI_PROVIDERS.filter(
-              (provider) => provider.capabilities.runtimeStatus === 'ACTIVE'
-            ).map((provider) => ({
-              value: provider.id,
-              label: provider.label,
-            }))}
-          />
-        </section>
-
-        <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
-          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-            <Cpu className="w-3 h-3 mr-2" />
-            Model
-          </label>
-          <p className="text-[10px] text-zinc-600 mb-2 font-mono">
-            Selected provider: {selectedProviderMeta?.label || selectedProvider}
-          </p>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <OsintSelect
-                ariaLabel="Model"
-                value={effectiveSelectedModel}
-                onChange={handleModelChange}
-                triggerClassName="p-2 pr-8 font-mono text-xs"
-                options={selectableModels.map((model) => ({
-                  value: model.id,
-                  label: `${model.name} - ${model.description}`,
-                }))}
-              />
-            </div>
-            {selectedProvider === 'OPENROUTER' && (
-              <button
-                type="button"
-                onClick={() => setShowOpenRouterBrowser(true)}
-                className="border border-zinc-700 px-3 py-2 text-[10px] font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white"
-              >
-                Browse
-              </button>
-            )}
-          </div>
-          <p className="text-[10px] text-zinc-600 mt-2 font-mono">
-            Capabilities: thinking budget {supportsThinkingBudget ? 'available' : 'not available'},
-            structured output{' '}
-            {selectedModelCapabilities.supportsStructuredOutput ? 'available' : 'not available'},
-            web search {selectedModelCapabilities.supportsWebSearch ? 'available' : 'not available'}
-            .
-          </p>
-        </section>
-
-        <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
-          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-            <Microscope className="w-3 h-3 mr-2" />
-            Scan Depth
-          </label>
-          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
-            Controls breadth, synthesis depth, and investigative rigor.
-          </p>
-          <div className="flex border border-zinc-700 mt-auto">
-            <button
-              onClick={() => setDepth('STANDARD')}
-              className={`flex-1 py-2 text-xs font-mono uppercase ${
-                depth === 'STANDARD'
-                  ? 'bg-zinc-800 text-white font-bold'
-                  : 'bg-black text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              Standard
-            </button>
-            <button
-              onClick={() => setDepth('DEEP')}
-              className={`flex-1 py-2 text-xs font-mono uppercase ${
-                depth === 'DEEP'
-                  ? 'bg-osint-primary/20 text-osint-primary font-bold border-l border-zinc-700'
-                  : 'bg-black text-zinc-500 hover:text-zinc-300 border-l border-zinc-700'
-              }`}
-            >
-              Deep
-            </button>
-          </div>
-        </section>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <section className="border border-zinc-800 bg-zinc-900/30 p-4">
-          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-            <Workflow className="w-3 h-3 mr-2" />
-            Generation Mode
-          </label>
-          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
-            Single pass is lighter. Staged favors stronger evidence and reusable sections.
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setGenerationMode('SINGLE_PASS')}
-              className={`py-2 text-xs font-mono uppercase ${
-                generationMode === 'SINGLE_PASS' ? 'osint-button-soft' : 'osint-button-primary'
-              }`}
-            >
-              Single Pass
-            </button>
-            <button
-              onClick={() => setGenerationMode('STAGED')}
-              className={`py-2 text-xs font-mono uppercase ${
-                generationMode === 'STAGED' ? 'osint-button-soft' : 'osint-button-primary'
-              }`}
-            >
-              Staged
-            </button>
-          </div>
-        </section>
-      </div>
-
-      <ThinkingBudgetControl
-        providerLabel={selectedProviderMeta?.label || selectedProvider}
-        supportsThinkingBudget={supportsThinkingBudget}
-        value={thinkingBudget}
-        onChange={setThinkingBudget}
-        className="border border-zinc-800 bg-zinc-900/30 p-4"
+      <ProviderModelSelector
+        form={runtimeConfigForm}
+        providerHint="Choose the AI backend for this run."
       />
+
+      <RuntimeConfigBehaviorControls form={runtimeConfigForm} />
 
       <div className="pt-6 border-t border-zinc-800">
         <label className="flex items-center space-x-3 cursor-pointer group">
@@ -766,12 +612,6 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         </div>
       </div>
 
-      <OpenRouterModelBrowser
-        isOpen={showOpenRouterBrowser}
-        currentModelId={selectedProvider === 'OPENROUTER' ? effectiveSelectedModel : undefined}
-        onClose={() => setShowOpenRouterBrowser(false)}
-        onSelectModel={handleModelChange}
-      />
     </>
   );
 };

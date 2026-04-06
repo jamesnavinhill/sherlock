@@ -51,21 +51,8 @@ import {
 import {
   resolveRuntimeLaunchFields,
   resolveRuntimeScope,
+  toRuntimeConfigOverride,
 } from '@/components/features/Runs/runtimeConfigMapping';
-
-const toSystemConfigOverride = (
-  config?: InvestigationRunConfig
-): Partial<SystemConfig> | undefined => {
-  if (!config) return undefined;
-
-  return {
-    provider: config.provider,
-    modelId: config.modelId,
-    persona: config.persona,
-    searchDepth: config.searchDepth,
-    thinkingBudget: config.thinkingBudget,
-  };
-};
 
 export interface AppShellController {
   activeChatSessionId: string | null;
@@ -516,7 +503,7 @@ export function useAppShellController(): AppShellController {
   const handleBatchInvestigate = useCallback(
     (followUps: FollowUp[], parentReport: Artifact) => {
       const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
-      const inheritedConfig = toSystemConfigOverride(parentReport.config);
+      const inheritedConfig = toRuntimeConfigOverride(parentReport.config);
       const inheritedScope = resolveScopeById(parentReport.config?.scopeId);
 
       followUps.forEach((followUp, index) => {

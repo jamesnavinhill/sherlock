@@ -3,18 +3,17 @@ import {
   Briefcase,
   ChevronDown,
   Download,
-  FileJson,
-  FileText,
   Filter,
   PanelRight,
-  Save,
   Search,
 } from 'lucide-react';
 
-import type { LabelProfile, TimelineRange, Workspace } from '@/types';
+import type { LabelProfile, TimelineRange, TimelineTrack, Workspace } from '@/types';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { sanitizeDisplayTitle } from '@/domain';
-import { buildTimelineSearchPlaceholder, TRACK_OPTIONS } from './timelineViewUtils';
+import { buildTimelineSearchPlaceholder } from './timelineViewUtils';
+import { TimelineExportMenu } from './TimelineExportMenu';
+import { TimelineFiltersPanel } from './TimelineFiltersPanel';
 
 interface TimelineFiltersState {
   range: TimelineRange;
@@ -43,7 +42,7 @@ interface TimelineToolbarProps {
   onCloseFilters: () => void;
   onClearFilters: () => void;
   onRangeChange: (range: TimelineRange) => void;
-  onToggleTrackFilter: (track: typeof TRACK_OPTIONS[number]['track']) => void;
+  onToggleTrackFilter: (track: TimelineTrack) => void;
   onExportTimelineMarkdown: () => void;
   onExportTimelineJson: () => void;
   onSaveTimelineArtifact: () => void;
@@ -128,41 +127,11 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
           <ChevronDown className="ml-1 h-3 w-3" />
         </button>
         {showExportMenu && timelineSnapshotAvailable ? (
-          <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[220px] border border-zinc-700 bg-zinc-900">
-            <button
-              onClick={onExportTimelineMarkdown}
-              className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
-              title="Export the visible timeline snapshot as Markdown"
-            >
-              <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-              <div>
-                <div className="font-bold">Timeline Markdown</div>
-                <div className="text-[10px] text-zinc-500">Readable visible timeline export</div>
-              </div>
-            </button>
-            <button
-              onClick={onExportTimelineJson}
-              className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
-              title="Export the visible timeline snapshot as JSON"
-            >
-              <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-              <div>
-                <div className="font-bold">Timeline JSON</div>
-                <div className="text-[10px] text-zinc-500">Raw visible timeline data for backup</div>
-              </div>
-            </button>
-            <button
-              onClick={onSaveTimelineArtifact}
-              className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
-              title="Save the current timeline snapshot as a TIMELINE artifact"
-            >
-              <Save className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-              <div>
-                <div className="font-bold">Save Snapshot</div>
-                <div className="text-[10px] text-zinc-500">Store this view in the dossier</div>
-              </div>
-            </button>
-          </div>
+          <TimelineExportMenu
+            onExportMarkdown={onExportTimelineMarkdown}
+            onExportJson={onExportTimelineJson}
+            onSaveSnapshot={onSaveTimelineArtifact}
+          />
         ) : null}
       </div>
 
@@ -178,72 +147,13 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
         </button>
 
         {showFilters ? (
-          <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
-            <div className="border-b border-zinc-800 bg-black px-4 py-3">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-white">
-                Timeline Filters
-              </h3>
-            </div>
-            <div className="space-y-5 p-4">
-              <div>
-                <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                  Date Range
-                </label>
-                <OsintSelect
-                  ariaLabel="Timeline date range"
-                  value={filters.range}
-                  onChange={(value) => onRangeChange(value as TimelineRange)}
-                  triggerClassName="px-3 py-2 pr-8 text-xs font-mono"
-                  options={[
-                    { value: 'ALL', label: 'All Activity' },
-                    { value: '7D', label: 'Last 7 Days' },
-                    { value: '30D', label: 'Last 30 Days' },
-                    { value: '90D', label: 'Last 90 Days' },
-                  ]}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                  Visible Tracks
-                </label>
-                <div className="space-y-2">
-                  {TRACK_OPTIONS.map((option) => (
-                    <label
-                      key={option.track}
-                      className="flex items-center justify-between border border-zinc-800 bg-black px-3 py-2 text-xs font-mono text-zinc-300"
-                    >
-                      <span className="flex items-center gap-2">
-                        <option.icon className="h-4 w-4 text-zinc-500" />
-                        {option.label}
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={filters.tracks.includes(option.track)}
-                        onChange={() => onToggleTrackFilter(option.track)}
-                        className="h-4 w-4 accent-[var(--osint-primary)]"
-                      />
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-                <button
-                  onClick={onClearFilters}
-                  className="text-xs font-mono uppercase text-zinc-500 hover:text-white"
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={onCloseFilters}
-                  className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
-          </div>
+          <TimelineFiltersPanel
+            filters={filters}
+            onClose={onCloseFilters}
+            onClearFilters={onClearFilters}
+            onRangeChange={onRangeChange}
+            onToggleTrackFilter={onToggleTrackFilter}
+          />
         ) : null}
       </div>
 

@@ -86,6 +86,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     selectedCaseId,
     selectedEntity,
     selectedHeadline,
+    addToast,
     setIsNewCaseModalOpen,
     setLeadToAnalyze,
     setLeftPanelOpen,
@@ -243,6 +244,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
             }
           }}
           onEntityClick={handleEntityClick}
+          onNotify={addToast}
         />
 
         {/* Right Panel: Inspector */}

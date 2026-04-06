@@ -18,6 +18,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { OsintSelect } from '../ui/OsintSelect';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
 import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../domain';
 import {
@@ -47,6 +48,11 @@ export const Archives: React.FC<ArchivesProps> = ({
   });
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [workspacePendingPurge, setWorkspacePendingPurge] = useState<{
+    id: string;
+    name: string;
+    reportCount: number;
+  } | null>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const archiveLabelProfile = getLabelProfileById(
     workspaces.find((entry) => entry.id === selectedCaseId)?.labelProfileId ||
@@ -109,23 +115,30 @@ export const Archives: React.FC<ArchivesProps> = ({
     await deleteReport(id);
   };
 
-  const handlePurgeCase = async (caseId: string, e?: React.MouseEvent) => {
+  const handlePurgeCase = (caseId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
 
     const targetCase = workspaces.find((c) => c.id === caseId);
     const reportCount = getCaseReports(caseId).length;
-    const caseName = targetCase?.title || `this ${workspaceLabelLower}`;
-    const warning = `Permanently purge ${caseName}?\n\nThis will delete ${reportCount} ${artifactLabelLower}(s), saved signals, workspace chat sessions, linked run history, and directly linked manual graph references for this ${workspaceLabelLower}.\n\nThis cannot be undone.`;
-    if (!confirm(warning)) return;
+    setWorkspacePendingPurge({
+      id: caseId,
+      name: targetCase?.title || `this ${workspaceLabelLower}`,
+      reportCount,
+    });
+  };
 
-    await purgeCase(caseId);
+  const confirmPurgeCase = async () => {
+    if (!workspacePendingPurge) return;
 
-    if (effectiveSelectedCaseId === caseId) {
+    await purgeCase(workspacePendingPurge.id);
+
+    if (effectiveSelectedCaseId === workspacePendingPurge.id) {
       setSelectedCaseId(null);
     }
-    if (getStoredActiveWorkspaceId() === caseId) {
+    if (getStoredActiveWorkspaceId() === workspacePendingPurge.id) {
       clearStoredActiveWorkspaceId();
     }
+    setWorkspacePendingPurge(null);
     setShowExportMenu(false);
     setCurrentPage(1);
   };
@@ -518,6 +531,17 @@ export const Archives: React.FC<ArchivesProps> = ({
           }}
         />
       )}
+
+      {workspacePendingPurge ? (
+        <ConfirmDialog
+          title={`Purge ${workspacePendingPurge.name}?`}
+          description={`This will delete ${workspacePendingPurge.reportCount} ${artifactLabelLower}(s), saved signals, workspace chat sessions, linked run history, and directly linked manual graph references for this ${workspaceLabelLower}. This cannot be undone.`}
+          confirmLabel="Purge Workspace"
+          tone="danger"
+          onClose={() => setWorkspacePendingPurge(null)}
+          onConfirm={() => void confirmPurgeCase()}
+        />
+      ) : null}
 
       <div className="relative z-10 p-6 w-full h-full overflow-y-auto">
         {effectiveSelectedCaseId ? renderReportList(effectiveSelectedCaseId) : renderCaseGrid()}

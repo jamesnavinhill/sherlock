@@ -51,20 +51,37 @@ This refactor is not complete until all of the following are true:
 
 ## Current Remaining Hotspots
 
-Current line counts on April 6, 2026:
+Current line counts after the April 6 slices 1-4 pass:
 
-- `src/components/features/Settings/index.tsx` - 1295
-- `src/components/features/WorkspaceBoard/useWorkspaceBoardController.ts` - 1009
-- `src/components/features/Chat/useChatController.ts` - 910
-- `src/components/features/Runs/TaskSetupModal.tsx` - 777
-- `src/app/useAppShellController.ts` - 676
-- `src/components/features/Chat/GuidedRunBuilder.tsx` - 669
-- `src/components/features/NetworkGraph/useNetworkGraphController.ts` - 617
-- `src/components/features/Settings/useSettingsController.ts` - 589
-- `src/components/features/Timeline/useTimelineViewController.ts` - 545
-- `src/components/features/OperationView/useOperationViewController.ts` - 503
+- `src/components/features/Settings/index.tsx` - 175
+- `src/components/features/WorkspaceBoard/useWorkspaceBoardController.ts` - 786
+- `src/components/features/Chat/useChatController.ts` - 671
+- `src/components/features/Runs/TaskSetupModal.tsx` - 618
+- `src/app/useAppShellController.ts` - 663
+- `src/components/features/Chat/GuidedRunBuilder.tsx` - 528
+- `src/components/features/NetworkGraph/useNetworkGraphController.ts` - 484
+- `src/components/features/OperationView/useOperationViewController.ts` - 451
+- `src/components/features/Timeline/useTimelineViewController.ts` - 433
+- `src/components/features/Settings/useSettingsController.ts` - 123
 
-These are the main files this plan must shrink, split, or otherwise stabilize.
+These remain the main controller/runtime hotspots for slices 5 through 7.
+
+## Progress Snapshot
+
+Completed on April 6, 2026:
+
+- Slice 0
+- Slice 1
+- Slice 2
+- Slice 3
+- Slice 4
+
+Remaining before this plan can close:
+
+- Slice 5
+- Slice 6
+- Slice 7
+- the final full-repo validation gate in the completion standard
 
 ## Global Rules
 
@@ -227,6 +244,10 @@ Done when:
 
 ## Slice 1. Page / Controller Decomposition Across Feature Roots
 
+Current state:
+
+- Completed on April 6, 2026
+
 Purpose:
 
 - finish the large feature-root refactor rather than stopping after first-pass extraction
@@ -379,6 +400,10 @@ Done when:
 
 ## Slice 2. Shared Runtime-Config And Launch Surface Consolidation
 
+Current state:
+
+- Completed on April 6, 2026
+
 Purpose:
 
 - finish the part that only half-landed: shared runtime-config behavior exists, but shared runtime-config UI/state does not
@@ -448,6 +473,10 @@ Done when:
 
 ## Slice 3. Panel / Rail / Section Extraction
 
+Current state:
+
+- Completed on April 6, 2026
+
 Purpose:
 
 - finish the render-tree extraction pass after the controller seams are stable
@@ -485,6 +514,10 @@ Done when:
 - page roots stop carrying whole-tab or whole-panel render trees
 
 ## Slice 4. Dialog, Overlay, And Menu Normalization
+
+Current state:
+
+- Completed on April 6, 2026
 
 Purpose:
 

@@ -15,7 +15,7 @@ import { GraphCanvas } from './GraphCanvas';
 import { NodeInspector } from './NodeInspector';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { useNetworkGraphController } from './useNetworkGraphController';
-import { NetworkGraphOverlays } from './NetworkGraphOverlays';
+import { NetworkGraphDialogs } from './NetworkGraphDialogs';
 
 interface NetworkGraphProps {
   onOpenReport: (report: Artifact) => void;
@@ -238,7 +238,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         />
       </div>
 
-      <NetworkGraphOverlays
+      <NetworkGraphDialogs
         selectedLeadForAnalysis={selectedLeadForAnalysis}
         activeScopeId={activeScopeId}
         showAddNodeUI={showAddNodeUI}

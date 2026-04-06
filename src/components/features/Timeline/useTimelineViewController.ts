@@ -1,15 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  Activity,
-  FileText,
-  Fingerprint,
-  MessageSquare,
-  Radio,
-  Save,
-  Workflow,
-} from 'lucide-react';
-
 import type {
   Artifact,
   ChatOpenRequest,
@@ -27,10 +17,25 @@ import {
 } from '@/services/workspace/library';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
 
-import { buildTimelineSnapshotArtifact, downloadTimelineSnapshotJson, downloadTimelineSnapshotMarkdown } from './timelineSnapshot';
-import { buildTimelineRouteQuery, parseTimelineRouteQuery, type TimelineRouteQueryState } from './timelineRouteState';
+import {
+  buildTimelineSnapshotArtifact,
+  downloadTimelineSnapshotJson,
+  downloadTimelineSnapshotMarkdown,
+} from './timelineSnapshot';
+import {
+  buildTimelineRouteQuery,
+  parseTimelineRouteQuery,
+  type TimelineRouteQueryState,
+} from './timelineRouteState';
 import { buildTimelineViewModel } from './timelineViewModel';
-import { DEFAULT_FILTERS, getMetadataValue, getPrimaryRefId, type DetailSections, type DossierSections } from './timelineViewUtils';
+import { getMetadataValue, getPrimaryRefId, type DetailSections, type DossierSections } from './timelineViewUtils';
+import {
+  clearTimelineQuery,
+  focusTimelineReference,
+  setTimelineTrackFocus,
+  toggleTimelineTrack,
+} from './timelineQueryHelpers';
+import { buildTimelineDetailActions } from './timelineDetailActions';
 
 interface TimelineViewControllerOptions {
   onOpenChat: (request: ChatOpenRequest) => void;
@@ -170,72 +175,27 @@ export function useTimelineViewController({
     ]
   );
 
-  const ensureTrackVisible = useCallback(
-    (track: TimelineTrack) => {
-      updateTimelineQuery((current) =>
-        current.filters.tracks.includes(track)
-          ? current
-          : {
-              ...current,
-              filters: {
-                ...current.filters,
-                tracks: [...current.filters.tracks, track],
-              },
-            }
-      );
+  const setTrackFocus = useCallback(
+    (track: TimelineTrack | 'ALL') => {
+      updateTimelineQuery((current) => setTimelineTrackFocus(current, track));
     },
     [updateTimelineQuery]
   );
 
-  const setTrackFocus = useCallback(
-    (track: TimelineTrack | 'ALL') => {
-      if (track !== 'ALL') ensureTrackVisible(track);
-      updateTimelineQuery((current) => ({
-        ...current,
-        focusedTrack: track,
-        focusedRefId: undefined,
-      }));
-    },
-    [ensureTrackVisible, updateTimelineQuery]
-  );
-
   const clearFilters = useCallback(() => {
-    updateTimelineQuery(() => ({
-      search: '',
-      filters: DEFAULT_FILTERS,
-      focusedTrack: 'ALL',
-      focusedRefId: undefined,
-    }));
+    updateTimelineQuery(() => clearTimelineQuery());
   }, [updateTimelineQuery]);
 
   const focusReference = useCallback(
     (track: TimelineTrack, refId?: string) => {
-      if (!refId) return;
-      ensureTrackVisible(track);
-      updateTimelineQuery((current) => ({
-        ...current,
-        focusedTrack: track,
-        focusedRefId: refId,
-      }));
+      updateTimelineQuery((current) => focusTimelineReference(current, track, refId));
     },
-    [ensureTrackVisible, updateTimelineQuery]
+    [updateTimelineQuery]
   );
 
   const toggleTrackFilter = useCallback(
     (track: TimelineTrack) => {
-      updateTimelineQuery((current) => {
-        const nextTracks = current.filters.tracks.includes(track)
-          ? current.filters.tracks.filter((item) => item !== track)
-          : [...current.filters.tracks, track];
-
-        return {
-          ...current,
-          filters: {
-            ...current.filters,
-            tracks: nextTracks,
-          },
-        };
-      });
+      updateTimelineQuery((current) => toggleTimelineTrack(current, track));
     },
     [updateTimelineQuery]
   );
@@ -370,113 +330,41 @@ export function useTimelineViewController({
     selectedEntityName,
   ]);
 
-  const detailActions: InspectorActionItem[] = useMemo(() => {
-    if (!selectedEvent) return [];
-
-    const actions: InspectorActionItem[] = [
-      {
-        id: 'timeline-chat',
-        label: selectedChatSession ? 'Open Chat Session' : 'Open Workspace Chat',
-        icon: MessageSquare,
-        onClick: () => openWorkspaceChat(selectedEvent),
-      },
-      {
-        id: 'timeline-board-open',
-        label: 'Open Board',
-        icon: Workflow,
-        onClick: () => void openWorkspaceBoard(),
-      },
-    ];
-
-    if (selectedArtifact?.id || relatedSignal || selectedEntityName) {
-      actions.push({
-        id: 'timeline-board-place',
-        label: 'Place On Board',
-        icon: Save,
-        onClick: () => void placeReferenceOnBoard(),
-      });
-    }
-
-    if (selectedArtifact?.id) {
-      actions.push({
-        id: 'timeline-report',
-        label: `Open ${labelProfile.artifactLabel}`,
-        icon: FileText,
-        onClick: () => openArtifact(selectedArtifact.id),
-      });
-    }
-
-    if (selectedRun) {
-      actions.push({
-        id: 'timeline-run',
-        label: 'Focus Source Run',
-        icon: Activity,
-        onClick: () => focusReference('RUN', selectedRun.id),
-      });
-    }
-
-    if (relatedSignal) {
-      actions.push({
-        id: 'timeline-signal',
-        label: 'Focus Origin Signal',
-        icon: Radio,
-        onClick: () => focusReference('SIGNAL', relatedSignal.id),
-      });
-    }
-
-    if (selectedEntityName && selectedEvent.refKind !== 'ENTITY') {
-      actions.push({
-        id: 'timeline-entity',
-        label: 'Focus Entity Milestones',
-        icon: Fingerprint,
-        onClick: () => focusReference('ENTITY', selectedEntityName),
-      });
-    }
-
-    if (selectedChatSession && selectedEvent.refKind !== 'CHAT_SESSION') {
-      actions.push({
-        id: 'timeline-chat-focus',
-        label: 'Focus Chat Session',
-        icon: MessageSquare,
-        onClick: () => focusReference('CHAT', selectedChatSession.id),
-      });
-    }
-
-    if (parentArtifact?.id) {
-      actions.push({
-        id: 'timeline-parent',
-        label: `Focus Parent ${labelProfile.artifactLabel}`,
-        icon: FileText,
-        onClick: () => focusReference('ARTIFACT', parentArtifact.id),
-      });
-    }
-
-    if (previousArtifactId) {
-      actions.push({
-        id: 'timeline-previous',
-        label: `Focus Previous ${labelProfile.artifactLabel}`,
-        icon: FileText,
-        onClick: () => focusReference('ARTIFACT', previousArtifactId),
-      });
-    }
-
-    return actions.slice(0, 6);
-  }, [
-    focusReference,
-    labelProfile.artifactLabel,
-    openArtifact,
-    openWorkspaceBoard,
-    openWorkspaceChat,
-    parentArtifact,
-    placeReferenceOnBoard,
-    previousArtifactId,
-    relatedSignal,
-    selectedArtifact,
-    selectedChatSession,
-    selectedEntityName,
-    selectedEvent,
-    selectedRun,
-  ]);
+  const detailActions: InspectorActionItem[] = useMemo(
+    () =>
+      buildTimelineDetailActions({
+        focusReference,
+        labelArtifactLabel: labelProfile.artifactLabel,
+        onOpenArtifact: openArtifact,
+        onOpenWorkspaceBoard: openWorkspaceBoard,
+        onOpenWorkspaceChat: openWorkspaceChat,
+        onPlaceReferenceOnBoard: placeReferenceOnBoard,
+        parentArtifactId: parentArtifact?.id,
+        previousArtifactId,
+        relatedSignalId: relatedSignal?.id,
+        selectedArtifact,
+        selectedChatSessionId: selectedChatSession?.id,
+        selectedEntityName,
+        selectedEvent,
+        selectedRunId: selectedRun?.id,
+      }),
+    [
+      focusReference,
+      labelProfile.artifactLabel,
+      openArtifact,
+      openWorkspaceBoard,
+      openWorkspaceChat,
+      parentArtifact?.id,
+      placeReferenceOnBoard,
+      previousArtifactId,
+      relatedSignal?.id,
+      selectedArtifact,
+      selectedChatSession?.id,
+      selectedEntityName,
+      selectedEvent,
+      selectedRun?.id,
+    ]
+  );
 
   return {
     activeWorkspace,

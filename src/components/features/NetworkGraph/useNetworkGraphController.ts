@@ -1,48 +1,36 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type {
   Artifact,
   ChatOpenRequest,
-  Entity,
-  GraphNodeSubtype,
-  Headline,
   InvestigationLaunchRequest,
   ManualConnection,
   ManualNode,
-  Source,
+  Headline,
 } from '@/types';
 import { useNetworkGraphFeatureState } from '@/store/selectors/featureSelectors';
-import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
 import { getLabelProfileById } from '@/domain';
-import { cleanEntityName } from '@/utils/text';
-import {
-  buildWorkspaceArtifactReference,
-  buildWorkspaceEntityReference,
-  buildWorkspaceHeadlineReference,
-} from '@/services/workspace/library';
 
 import { detectEntityClusters } from './entityResolutionUtils';
 import type { GraphNode } from './GraphCanvas';
-
-const normalizeGraphId = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-const getEntityGraphNodeId = (entityName: string) =>
-  `entity-${normalizeGraphId(cleanEntityName(entityName))}`;
-
-const getDeletedNodeToken = (nodeId: string) => `deleted:${nodeId}`;
-
-const replaceNodeReference = (values: string[], references: string[], nextValue: string) => {
-  const shouldReplace = values.some((value) => references.includes(value));
-  if (!shouldReplace) return values;
-
-  const next = new Set(values.filter((value) => !references.includes(value)));
-  next.add(nextValue);
-  return Array.from(next);
-};
-
-const removeNodeReferences = (values: string[], references: string[]) =>
-  values.filter((value) => !references.includes(value));
+import { buildNetworkGraphDossierData } from './networkGraphDossierData';
+import {
+  getDeletedNodeToken,
+  getEntityGraphNodeId,
+  removeNodeReferences,
+  replaceNodeReference,
+} from './networkGraphNodeIds';
+import {
+  openEntityGraphChat,
+  openHeadlineGraphChat,
+  openReportGraphChat,
+  placeEntityOnWorkspaceBoard,
+  placeHeadlineOnWorkspaceBoard,
+  placeReportOnWorkspaceBoard,
+} from './networkGraphWorkspaceHandoffs';
+import { useNetworkGraphUiState } from './useNetworkGraphUiState';
+import { useNetworkGraphInspectorState } from './useNetworkGraphInspectorState';
 
 interface NetworkGraphControllerOptions {
   onInvestigateEntity?: (request: InvestigationLaunchRequest) => void;
@@ -85,97 +73,70 @@ export function useNetworkGraphController({
     return getLabelProfileById(activeCase?.labelProfileId || activeReport?.labelProfileId);
   }, [workspaces, filterCaseId, reports]);
 
-  const [showSingletons, setShowSingletons] = useState(true);
-  const [showHiddenNodes, setShowHiddenNodes] = useState(false);
-  const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
-  const [showLeftPanel, setShowLeftPanel] = useState(true);
-  const [showRightPanel, setShowRightPanel] = useState(false);
-  const [inspectorMode, setInspectorMode] = useState<'ENTITY' | 'HEADLINE' | 'REPORT' | null>(null);
-  const [selectedEntityName, setSelectedEntityName] = useState<string | null>(null);
-  const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
-  const [selectedReport, setSelectedReport] = useState<Artifact | null>(null);
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [isLinkingMode, setIsLinkingMode] = useState(false);
-  const [linkSourceNode, setLinkSourceNode] = useState<GraphNode | null>(null);
-  const [showAddNodeUI, setShowAddNodeUI] = useState(false);
-  const [newNodeLabel, setNewNodeLabel] = useState('');
-  const [newNodeType, setNewNodeType] = useState<'ENTITY' | 'CASE'>('ENTITY');
-  const [newNodeSubtype, setNewNodeSubtype] = useState<GraphNodeSubtype>('PERSON');
-  const [showResolutionModal, setShowResolutionModal] = useState(false);
-  const [nodePendingDeletion, setNodePendingDeletion] = useState<GraphNode | null>(null);
-  const [selectedLeadForAnalysis, setSelectedLeadForAnalysis] = useState<{
-    text: string;
-    context?: { topic: string; summary: string };
-  } | null>(null);
-  const subtypeOptions: Array<{ value: GraphNodeSubtype; label: string; className?: string }> = [
-    { value: 'PERSON', label: 'PERSON' },
-    { value: 'ORGANIZATION', label: 'ORG' },
-    { value: 'CONCEPT', label: 'CONCEPT' },
-    { value: 'SOURCE', label: 'SOURCE', className: 'col-start-1 sm:col-start-2' },
-    { value: 'UNKNOWN', label: 'UNKNOWN' },
-  ];
-  const [dossierSections, setDossierSections] = useState<Record<string, boolean>>({
-    reports: false,
-    entities: false,
-    headlines: false,
-    leads: false,
-    sources: false,
-  });
-
-  const toggleDossierSection = (section: string) => {
-    setDossierSections((prev) =>
-      Object.fromEntries(
-        Object.keys(prev).map((key) => [key, key === section ? !prev[section] : false])
-      )
-    );
-  };
+  const {
+    dossierSections,
+    isLinkingMode,
+    isLocked,
+    linkSourceNode,
+    newNodeLabel,
+    newNodeSubtype,
+    newNodeType,
+    nodePendingDeletion,
+    selectedLeadForAnalysis,
+    setIsLinkingMode,
+    setIsLocked,
+    setLinkSourceNode,
+    setNewNodeLabel,
+    setNewNodeSubtype,
+    setNewNodeType,
+    setNodePendingDeletion,
+    setSelectedLeadForAnalysis,
+    setShowAddNodeUI,
+    setShowFlaggedOnly,
+    setShowHiddenNodes,
+    setShowLeftPanel,
+    setShowResolutionModal,
+    setShowSingletons,
+    showAddNodeUI,
+    showFlaggedOnly,
+    showHiddenNodes,
+    showLeftPanel,
+    showResolutionModal,
+    showSingletons,
+    subtypeOptions,
+    toggleDossierSection,
+  } = useNetworkGraphUiState();
+  const {
+    clearInspectorSelection,
+    handleNodeClick,
+    handleOpenEntityInspector,
+    handleOpenHeadlineInspector,
+    handleOpenReportInspector,
+    inspectorMode,
+    selectedEntityName,
+    selectedHeadline,
+    selectedNode,
+    selectedReport,
+    setSelectedEntityName,
+    setSelectedNode,
+    setSelectedReport,
+    setShowRightPanel,
+    showRightPanel,
+  } = useNetworkGraphInspectorState();
 
   const handleCaseChange = (id: string) => {
     setActiveWorkspaceId(id);
   };
 
-  const dossierData = useMemo(() => {
-    if (!filterCaseId) return { reports: [], headlines: [], leads: [], sources: [], entities: [] };
-
-    const activeReports =
-      filterCaseId === 'ALL' ? reports : reports.filter((r) => r.caseId === filterCaseId);
-    const activeHeadlines =
-      filterCaseId === 'ALL' ? headlines : headlines.filter((h) => h.caseId === filterCaseId);
-
-    const allLeads = Array.from(new Set(activeReports.flatMap((r) => r.leads || [])));
-
-    const sourceMap = new Map<string, Source>();
-    activeReports
-      .flatMap((r) => r.sources || [])
-      .forEach((s) => {
-        if (!sourceMap.has(s.url)) sourceMap.set(s.url, s);
-      });
-    const allSources = Array.from(sourceMap.values());
-
-    const entityMap = new Map<string, Entity>();
-    activeReports
-      .flatMap((r) => r.entities || [])
-      .forEach((e) => {
-        const name = typeof e === 'string' ? e : e.name;
-        const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
-        if (
-          !entityMap.has(name) ||
-          (entityMap.get(name)?.type === 'UNKNOWN' && type !== 'UNKNOWN')
-        ) {
-          entityMap.set(name, typeof e === 'string' ? { name, type: 'UNKNOWN' } : e);
-        }
-      });
-    const allEntities = Array.from(entityMap.values());
-
-    return {
-      reports: activeReports,
-      headlines: activeHeadlines,
-      leads: allLeads,
-      sources: allSources,
-      entities: allEntities,
-    };
-  }, [reports, headlines, filterCaseId]);
+  const dossierData = useMemo(
+    () =>
+      buildNetworkGraphDossierData({
+        filterCaseId,
+        headlines,
+        reports,
+      }),
+    [filterCaseId, headlines, reports]
+  );
 
   const isEmpty = reports.length === 0 && manualNodes.length === 0;
   const pendingClusterCount = useMemo(
@@ -199,7 +160,7 @@ export function useNetworkGraphController({
       setLinkSourceNode(null);
       setIsLinkingMode(false);
     },
-    [manualLinks, setManualLinks]
+    [manualLinks, setIsLinkingMode, setLinkSourceNode, setManualLinks]
   );
 
   const handleGraphStatsUpdate = useCallback(() => {}, []);
@@ -221,68 +182,6 @@ export function useNetworkGraphController({
     setShowAddNodeUI(false);
     setNewNodeLabel('');
   };
-
-  function handleOpenHeadlineInspector(headline: Headline) {
-    setSelectedHeadline(headline);
-    setSelectedNode(null);
-    setInspectorMode('HEADLINE');
-    setShowRightPanel(true);
-  }
-
-  function handleOpenEntityInspector(entityName: string, node: GraphNode | null = null) {
-    setSelectedEntityName(entityName);
-    setSelectedNode(
-      node || {
-        id: getEntityGraphNodeId(entityName),
-        type: 'ENTITY',
-        label: entityName,
-        connections: 0,
-        subtype: 'UNKNOWN',
-      }
-    );
-    setSelectedHeadline(null);
-    setSelectedReport(null);
-    setInspectorMode('ENTITY');
-    setShowRightPanel(true);
-  }
-
-  function handleOpenReportInspector(report: Artifact, node: GraphNode | null = null) {
-    setSelectedReport(report);
-    setSelectedNode(
-      node ||
-        (report.id
-          ? {
-              id: `case-${report.id}`,
-              type: 'CASE',
-              label: report.topic,
-              data: report,
-              connections: 0,
-            }
-          : null)
-    );
-    setSelectedHeadline(null);
-    setSelectedEntityName(null);
-    setInspectorMode('REPORT');
-    setShowRightPanel(true);
-  }
-
-  const handleNodeClick = useCallback((node: GraphNode | null) => {
-    if (!node) {
-      setShowRightPanel(false);
-      setInspectorMode(null);
-      setSelectedEntityName(null);
-      setSelectedHeadline(null);
-      setSelectedReport(null);
-      setSelectedNode(null);
-      return;
-    }
-
-    if (node.type === 'CASE' && node.data) {
-      handleOpenReportInspector(node.data, node);
-    } else if (node.type === 'ENTITY') {
-      handleOpenEntityInspector(node.label, node);
-    }
-  }, []);
 
   const handleLeadInvestigate = (lead: string) => {
     const activeCase = workspaces.find((c) => c.id === filterCaseId);
@@ -439,15 +338,11 @@ export function useNetworkGraphController({
         setLinkSourceNode(null);
       }
 
-      setShowRightPanel(false);
-      setInspectorMode(null);
-      setSelectedNode(null);
-      setSelectedEntityName(null);
-      setSelectedHeadline(null);
-      setSelectedReport(null);
+      clearInspectorSelection();
     },
     [
       addToast,
+      clearInspectorSelection,
       flaggedNodeIdsArray,
       hiddenNodeIdsArray,
       linkSourceNode?.id,
@@ -457,6 +352,7 @@ export function useNetworkGraphController({
       setHiddenNodeIds,
       setManualLinks,
       setManualNodes,
+      setLinkSourceNode,
     ]
   );
 
@@ -465,78 +361,49 @@ export function useNetworkGraphController({
     setNodePendingDeletion(selectedNode);
   };
 
-  const handleOpenEntityChat = (entityName: string) => {
-    if (!filterCaseId || filterCaseId === 'ALL') return;
-    onOpenChat({
+  const handleOpenEntityChat = (entityName: string) =>
+    openEntityGraphChat({
+      entityName,
+      onOpenChat,
       workspaceId: filterCaseId,
-      launchContext: {
-        entityName,
-      },
     });
-  };
 
-  const handleOpenReportChat = (report: Artifact) => {
-    if (!report.caseId || !report.id) return;
-    onOpenChat({
-      workspaceId: report.caseId,
-      launchContext: {
-        sourceReportId: report.id,
-      },
+  const handleOpenReportChat = (report: Artifact) =>
+    openReportGraphChat({
+      onOpenChat,
+      report,
     });
-  };
 
-  const handleOpenHeadlineChat = (headline: Headline) => {
-    if (!headline.caseId) return;
-    onOpenChat({
-      workspaceId: headline.caseId,
-      launchContext: {
-        signalId: headline.id,
-        headlineId: headline.id,
-      },
+  const handleOpenHeadlineChat = (headline: Headline) =>
+    openHeadlineGraphChat({
+      headline,
+      onOpenChat,
     });
-  };
 
-  const handlePlaceEntityOnBoard = async (entityName: string) => {
-    if (!filterCaseId || filterCaseId === 'ALL') return;
-
-    const board = await ensureWorkspaceBoard(filterCaseId);
-    queueBoardPlacement({
+  const handlePlaceEntityOnBoard = async (entityName: string) =>
+    placeEntityOnWorkspaceBoard({
+      ensureWorkspaceBoard,
+      entityName,
+      navigate,
+      queueBoardPlacement,
       workspaceId: filterCaseId,
-      boardId: board.id,
-      item: buildWorkspaceEntityReference(filterCaseId, {
-        name: entityName,
-        type: 'UNKNOWN',
-      }),
-      openInBoard: true,
     });
-    navigate(buildWorkspaceBoardDocumentPath(filterCaseId, board.id));
-  };
 
-  const handlePlaceReportOnBoard = async (report: Artifact) => {
-    if (!report.caseId || !report.id) return;
-
-    const board = await ensureWorkspaceBoard(report.caseId);
-    queueBoardPlacement({
-      workspaceId: report.caseId,
-      boardId: board.id,
-      item: buildWorkspaceArtifactReference(report.caseId, { ...report, id: report.id }),
-      openInBoard: true,
+  const handlePlaceReportOnBoard = async (report: Artifact) =>
+    placeReportOnWorkspaceBoard({
+      ensureWorkspaceBoard,
+      navigate,
+      queueBoardPlacement,
+      report,
     });
-    navigate(buildWorkspaceBoardDocumentPath(report.caseId, board.id));
-  };
 
-  const handlePlaceHeadlineOnBoard = async (headline: Headline) => {
-    if (!headline.caseId) return;
-
-    const board = await ensureWorkspaceBoard(headline.caseId);
-    queueBoardPlacement({
-      workspaceId: headline.caseId,
-      boardId: board.id,
-      item: buildWorkspaceHeadlineReference(headline.caseId, headline),
-      openInBoard: true,
+  const handlePlaceHeadlineOnBoard = async (headline: Headline) =>
+    placeHeadlineOnWorkspaceBoard({
+      ensureWorkspaceBoard,
+      headline,
+      navigate,
+      queueBoardPlacement,
     });
-    navigate(buildWorkspaceBoardDocumentPath(headline.caseId, board.id));
-  };
 
   return {
     activeScopeId,

@@ -6,7 +6,6 @@ import type { AIProvider } from '@/config/aiModels';
 import {
   DEFAULT_MODEL_ID,
   getModelProvider,
-  recordRecentModelSelection,
 } from '@/config/aiModels';
 import { loadSystemConfig } from '@/config/systemConfig';
 import {
@@ -27,11 +26,8 @@ import type {
 } from '@/types';
 
 import { createTemplateMetadata } from './taskSetupUtils';
-import {
-  getFallbackRuntimeModel,
-  getRuntimeConfigModelState,
-  resolveRuntimeModelId,
-} from './runtimeConfigOptions';
+import { getFallbackRuntimeModel } from './runtimeConfigOptions';
+import { useRuntimeConfigForm } from './useRuntimeConfigForm';
 
 export type TaskSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
 
@@ -109,40 +105,29 @@ export const useTaskSetupState = ({
   const effectivePersona = selectedScope.personas.some((candidate) => candidate.id === persona)
     ? persona
     : defaultPersona;
-  const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>(
-    (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP'
-      ? 'DEEP'
-      : 'STANDARD'
-  );
-  const [generationMode, setGenerationMode] = useState<'SINGLE_PASS' | 'STAGED'>(
-    initialConfigOverride?.generationMode === 'SINGLE_PASS'
-      ? 'SINGLE_PASS'
-      : storedConfig.generationMode === 'SINGLE_PASS'
-        ? 'SINGLE_PASS'
-        : 'STAGED'
-  );
-  const [thinkingBudget, setThinkingBudget] = useState(
-    typeof initialConfigOverride?.thinkingBudget === 'number'
-      ? initialConfigOverride.thinkingBudget
-      : (storedConfig.thinkingBudget ?? 0)
-  );
-
   const initialModelId = initialConfigOverride?.modelId || storedConfig.modelId || DEFAULT_MODEL_ID;
   const initialProvider = (initialConfigOverride?.provider ||
     getModelProvider(initialModelId)) as AIProvider;
-  const [selectedProvider, setSelectedProvider] = useState<AIProvider>(initialProvider);
-  const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(() =>
-    resolveRuntimeModelId(initialProvider, initialModelId)
-  );
-
-  const {
-    selectableModels,
-    activeModelId: effectiveSelectedModel,
-    providerMeta: selectedProviderMeta,
-    selectedModelCapabilities,
-    supportsThinkingBudget,
-  } = getRuntimeConfigModelState(selectedProvider, selectedModel);
+  const runtimeConfigForm = useRuntimeConfigForm({
+    initialValue: {
+      provider: initialProvider,
+      modelId: initialModelId,
+      searchDepth:
+        (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP'
+          ? 'DEEP'
+          : 'STANDARD',
+      generationMode:
+        initialConfigOverride?.generationMode === 'SINGLE_PASS'
+          ? 'SINGLE_PASS'
+          : storedConfig.generationMode === 'SINGLE_PASS'
+            ? 'SINGLE_PASS'
+            : 'STAGED',
+      thinkingBudget:
+        typeof initialConfigOverride?.thinkingBudget === 'number'
+          ? initialConfigOverride.thinkingBudget
+          : (storedConfig.thinkingBudget ?? 0),
+    },
+  });
 
   const steps = [
     { id: 0, label: 'Pack' },
@@ -163,7 +148,7 @@ export const useTaskSetupState = ({
     const nextPurposeId =
       template.config.purposeId || template.purposeId || nextPack.defaultPurposeId;
     const templateProvider = (template.config.provider ||
-      getModelProvider(template.config.modelId || effectiveSelectedModel)) as AIProvider;
+      getModelProvider(template.config.modelId || runtimeConfigForm.activeModelId)) as AIProvider;
 
     setTopic(template.topic);
     setSelectedScopeId(nextScope.id);
@@ -174,16 +159,13 @@ export const useTaskSetupState = ({
         nextScope.personas[0]?.id ||
         'general-investigator'
     );
-    setDepth(template.config.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD');
-    setGenerationMode(template.config.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED');
-    setThinkingBudget(template.config.thinkingBudget ?? 0);
-    setSelectedProvider(templateProvider);
-    setSelectedModel(
-      resolveRuntimeModelId(
-        templateProvider,
-        template.config.modelId || getFallbackRuntimeModel(templateProvider)
-      )
-    );
+    runtimeConfigForm.reset({
+      provider: templateProvider,
+      modelId: template.config.modelId || getFallbackRuntimeModel(templateProvider),
+      searchDepth: template.config.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD',
+      generationMode: template.config.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED',
+      thinkingBudget: template.config.thinkingBudget ?? 0,
+    });
   };
 
   const applyStarter = (starter: StarterPromptTemplate) => {
@@ -221,16 +203,6 @@ export const useTaskSetupState = ({
     setPrioritySources(merged.join(', '));
   };
 
-  const handleProviderChange = (provider: AIProvider) => {
-    setSelectedProvider(provider);
-    setSelectedModel(getFallbackRuntimeModel(provider));
-  };
-
-  const handleModelChange = (modelId: string) => {
-    setSelectedModel(modelId);
-    recordRecentModelSelection(modelId);
-  };
-
   const handleStart = () => {
     const preseededEntities: ManualNode[] = seedEntities.map((entity) => ({
       id: entity.id,
@@ -256,12 +228,12 @@ export const useTaskSetupState = ({
     onStart(
       fullTopic,
       {
-        provider: selectedProvider,
+        provider: runtimeConfigForm.effectiveValue.provider,
         persona: effectivePersona,
-        searchDepth: depth,
-        generationMode,
-        thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
-        modelId: effectiveSelectedModel,
+        searchDepth: runtimeConfigForm.effectiveValue.searchDepth,
+        generationMode: runtimeConfigForm.effectiveValue.generationMode,
+        thinkingBudget: runtimeConfigForm.effectiveValue.thinkingBudget,
+        modelId: runtimeConfigForm.effectiveValue.modelId,
         scopeId: selectedScope.id,
         scopeName: selectedScope.name,
         packId: selectedPack.id,
@@ -275,7 +247,6 @@ export const useTaskSetupState = ({
       selectedScope,
       dateRange
     );
-    recordRecentModelSelection(effectiveSelectedModel);
 
     if (saveAsTemplate && templateName.trim()) {
       const templateMetadata = createTemplateMetadata();
@@ -284,12 +255,12 @@ export const useTaskSetupState = ({
         name: templateName.trim(),
         topic,
         config: {
-          provider: selectedProvider,
+          provider: runtimeConfigForm.effectiveValue.provider,
           persona: effectivePersona,
-          searchDepth: depth,
-          generationMode,
-          thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
-          modelId: effectiveSelectedModel,
+          searchDepth: runtimeConfigForm.effectiveValue.searchDepth,
+          generationMode: runtimeConfigForm.effectiveValue.generationMode,
+          thinkingBudget: runtimeConfigForm.effectiveValue.thinkingBudget,
+          modelId: runtimeConfigForm.effectiveValue.modelId,
           packId: selectedPack.id,
           purposeId: selectedPurpose.id,
           artifactType: selectedArtifactType,
@@ -329,13 +300,8 @@ export const useTaskSetupState = ({
     currentStep,
     dateRangeEnd,
     dateRangeStart,
-    depth,
     effectivePersona,
-    effectiveSelectedModel,
-    generationMode,
     handleAddEntity,
-    handleModelChange,
-    handleProviderChange,
     handleRemoveEntity,
     handleStart,
     labelProfile,
@@ -346,46 +312,34 @@ export const useTaskSetupState = ({
     prevStep,
     prioritySources,
     resolvedPurposeId,
+    runtimeConfigForm,
     saveAsTemplate,
     seedEntities,
     selectedArtifactType,
-    selectedModel,
-    selectedModelCapabilities,
     selectedPack,
-    selectedProvider,
-    selectedProviderMeta,
     selectedPurpose,
     selectedPurposeId,
     selectedScope,
     selectedScopeId,
-    selectableModels,
     setAngle,
     setCurrentStep,
     setDateRangeEnd,
     setDateRangeStart,
-    setDepth,
-    setGenerationMode,
     setNewEntityName,
     setNewEntityType,
     setPersona,
     setPrioritySources,
     setSaveAsTemplate,
-    setSelectedModel,
     setSelectedPurposeId,
     setSelectedScopeId,
-    setShowOpenRouterBrowser,
     setTemplateName,
-    setThinkingBudget,
     setTopic,
     setupCopy,
-    showOpenRouterBrowser,
     starterTemplates,
     steps,
     supportedPurposes,
-    supportsThinkingBudget,
     templateName,
     templates,
-    thinkingBudget,
     topic,
   };
 };

@@ -10,16 +10,13 @@ import type {
   InvestigationLaunchRequest,
   InvestigationRunConfig,
   InvestigationScope,
-  Source,
   SystemConfig,
   WorkspaceRun,
 } from '@/types';
 import { useWorkspaceStore } from '@/store/caseStore';
 import { useOperationFeatureState } from '@/store/selectors/featureSelectors';
 import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
-import { getAllScopes, getScopeById } from '@/data/presets';
 import {
-  getArtifactFollowUps,
   getFollowUpText,
   getLabelProfileById,
   stripLegacyWorkspacePrefix,
@@ -29,6 +26,11 @@ import {
   buildWorkspaceEntityReference,
   buildWorkspaceHeadlineReference,
 } from '@/services/workspace/library';
+import {
+  resolveRuntimeScope,
+  toRuntimeConfigOverride,
+} from '@/components/features/Runs/runtimeConfigMapping';
+import { buildOperationCasePanelData } from './operationCasePanelData';
 
 interface OperationViewControllerOptions {
   onNavigate: (id: string) => void;
@@ -79,6 +81,7 @@ export function useOperationViewController({
     workspaces: allCases,
     artifacts,
     headlines: allHeadlines,
+    addToast,
     addTemplate,
     updateReportTitle,
     renameEntityAcrossReports,
@@ -135,24 +138,10 @@ export function useOperationViewController({
     [activeCase?.labelProfileId, report?.config?.labelProfileId, report?.labelProfileId]
   );
 
-  const resolveScope = (scopeId?: string): InvestigationScope | undefined => {
-    if (!scopeId) return undefined;
-    return (
-      getScopeById(scopeId) || getAllScopes(customScopes).find((scope) => scope.id === scopeId)
-    );
-  };
+  const resolveScope = (scopeId?: string): InvestigationScope | undefined =>
+    resolveRuntimeScope(scopeId, customScopes);
 
-  const toConfigOverride = (config?: InvestigationRunConfig): Partial<SystemConfig> | undefined => {
-    if (!config) return undefined;
-    return {
-      provider: config.provider,
-      modelId: config.modelId,
-      persona: config.persona,
-      searchDepth: config.searchDepth,
-      generationMode: config.generationMode,
-      thinkingBudget: config.thinkingBudget,
-    };
-  };
+  const toConfigOverride = (config?: InvestigationRunConfig) => toRuntimeConfigOverride(config);
 
   const toggleDossierSection = (section: string) => {
     setOpenSections((prev) =>
@@ -203,56 +192,14 @@ export function useOperationViewController({
     useWorkspaceStore.getState().addToast('Template saved successfully', 'SUCCESS');
   };
 
-  const casePanelData = useMemo(() => {
-    if (!activeCase || allCaseReports.length === 0) {
-      return {
-        caseInfo: activeCase,
-        reports: [],
-        entities: [],
-        leads: [],
-        sources: [],
-      };
-    }
-
-    const entityMap = new Map<string, Entity>();
-    allCaseReports
-      .flatMap((r) => r.entities || [])
-      .forEach((e) => {
-        const name = typeof e === 'string' ? e : e.name;
-        const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
-        if (
-          !entityMap.has(name) ||
-          (entityMap.get(name)?.type === 'UNKNOWN' && type !== 'UNKNOWN')
-        ) {
-          entityMap.set(name, typeof e === 'string' ? { name, type: 'UNKNOWN' } : e);
-        }
-      });
-    const allEntities = Array.from(entityMap.values());
-    const allLeads = Array.from(
-      new Set(
-        allCaseReports.flatMap((artifact) =>
-          getArtifactFollowUps(artifact).map((followUp) => getFollowUpText(followUp))
-        )
-      )
-    );
-    const sourceMap = new Map<string, Source>();
-    allCaseReports
-      .flatMap((r) => r.sources || [])
-      .forEach((s) => {
-        if (!sourceMap.has(s.url)) {
-          sourceMap.set(s.url, s);
-        }
-      });
-    const allSources = Array.from(sourceMap.values());
-
-    return {
-      caseInfo: activeCase,
-      reports: allCaseReports,
-      entities: allEntities,
-      leads: allLeads,
-      sources: allSources,
-    };
-  }, [activeCase, allCaseReports]);
+  const casePanelData = useMemo(
+    () =>
+      buildOperationCasePanelData({
+        activeCase,
+        reports: allCaseReports,
+      }),
+    [activeCase, allCaseReports]
+  );
 
   const handleEntityClick = (entity: Entity) => {
     setSelectedEntity(entity);
@@ -486,6 +433,7 @@ export function useOperationViewController({
     selectedCaseId,
     selectedEntity,
     selectedHeadline,
+    addToast,
     setIsNewCaseModalOpen,
     setLeadToAnalyze,
     setLeftPanelOpen,

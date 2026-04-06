@@ -41,6 +41,7 @@ interface ReportViewerProps {
   report: Artifact | null;
   navStack: BreadcrumbItem[];
   onNavigate: (id: string) => void;
+  onNotify: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
   showPlaceholder: boolean;
   onStartNewCase: () => void;
   onTitleSave: (newTitle: string) => void;
@@ -53,6 +54,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   report,
   navStack,
   onNavigate,
+  onNotify,
   showPlaceholder,
   onStartNewCase,
   onTitleSave,
@@ -113,7 +115,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         window.AudioContext ||
         (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!WebkitAudioContext) {
-        alert('Audio playback is not supported in this browser.');
+        onNotify('Audio playback is not supported in this browser.', 'INFO');
         return;
       }
       const ctx = new WebkitAudioContext({ sampleRate: 24000 });
@@ -128,7 +130,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       setIsPlaying(true);
     } catch (e) {
       console.error('Audio playback failed', e);
-      alert('Failed to generate audio briefing.');
+      onNotify('Failed to generate audio briefing.', 'ERROR');
     } finally {
       setIsAudioLoading(false);
     }

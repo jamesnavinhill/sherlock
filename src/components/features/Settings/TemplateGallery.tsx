@@ -18,13 +18,10 @@ import {
   Layout,
   Sparkles,
 } from 'lucide-react';
-import { OsintSelect } from '../../ui/OsintSelect';
 import { BUILTIN_SCOPES, getAllScopes } from '../../../data/presets';
 import {
   DEFAULT_MODEL_ID,
-  getModelDisplayName,
   getModelProvider,
-  getTemplateSelectableModels,
 } from '../../../config/aiModels';
 import { loadSystemConfig } from '../../../config/systemConfig';
 import { createLocalId } from '../../../utils/id';
@@ -34,9 +31,11 @@ import {
   getPurposeProfileById,
   getStarterTemplates,
 } from '../../../domain';
-import { ThinkingBudgetControl } from '../Runs/ThinkingBudgetControl';
-import { getRuntimeConfigModelState } from '../Runs/runtimeConfigOptions';
 import { buildTemplateRuntimeConfig } from '../Runs/runtimeConfigMapping';
+import { ProviderModelSelector } from '../Runs/ProviderModelSelector';
+import { RuntimeConfigBehaviorControls } from '../Runs/RuntimeConfigBehaviorControls';
+import { RuntimeConfigSummary } from '../Runs/RuntimeConfigSummary';
+import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
 
 interface TemplateGalleryProps {
   onApply: (template: CaseTemplate) => void;
@@ -62,24 +61,17 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
   const [selectedScopeId, setSelectedScopeId] = useState('');
   const [topic, setTopic] = useState('');
   const [hypothesis, setHypothesis] = useState('');
-  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
   const [persona, setPersona] = useState('');
   const [selectedPurposeId, setSelectedPurposeId] = useState('');
-  const [depth, setDepth] = useState<'STANDARD' | 'DEEP'>('STANDARD');
-  const [generationMode, setGenerationMode] = useState<'SINGLE_PASS' | 'STAGED'>('STAGED');
-  const [thinkingBudget, setThinkingBudget] = useState(0);
-  const selectableModels = useMemo(
-    () => getTemplateSelectableModels(selectedModel),
-    [selectedModel]
-  );
-  const selectedProvider = useMemo(() => getModelProvider(selectedModel), [selectedModel]);
-  const {
-    activeModelId,
-    selectedModelCapabilities,
-  } = useMemo(
-    () => getRuntimeConfigModelState(selectedProvider, selectedModel),
-    [selectedModel, selectedProvider]
-  );
+  const runtimeConfigForm = useRuntimeConfigForm({
+    initialValue: {
+      provider: getModelProvider(DEFAULT_MODEL_ID),
+      modelId: DEFAULT_MODEL_ID,
+      searchDepth: 'STANDARD',
+      generationMode: 'STAGED',
+      thinkingBudget: 0,
+    },
+  });
 
   const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
   const resolvedDefaultScopeId =
@@ -199,10 +191,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     setSelectedPurposeId(
       getDomainPackForScope(defaultScope || allScopes[0], customScopes).defaultPurposeId
     );
-    setSelectedModel(nextModel);
-    setDepth(nextDepth);
-    setGenerationMode(nextGenerationMode);
-    setThinkingBudget(nextThinking);
+    runtimeConfigForm.reset({
+      provider: getModelProvider(nextModel),
+      modelId: nextModel,
+      searchDepth: nextDepth,
+      generationMode: nextGenerationMode,
+      thinkingBudget: nextThinking,
+    });
     setPersona(nextPersona);
     setShowCreateModal(true);
   };
@@ -233,14 +228,15 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         name: templateName.trim(),
         description: templateDescription.trim() || undefined,
         topic: combinedTopic,
-        config: buildTemplateRuntimeConfig({
-          baseConfig: loadSystemConfig(),
-          configOverride: {
-            modelId: activeModelId,
+          config: buildTemplateRuntimeConfig({
+            baseConfig: loadSystemConfig(),
+            configOverride: {
+            provider: runtimeConfigForm.effectiveValue.provider,
+            modelId: runtimeConfigForm.effectiveValue.modelId,
             persona,
-            searchDepth: depth,
-            generationMode,
-            thinkingBudget: selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0,
+            searchDepth: runtimeConfigForm.effectiveValue.searchDepth,
+            generationMode: runtimeConfigForm.effectiveValue.generationMode,
+            thinkingBudget: runtimeConfigForm.effectiveValue.thinkingBudget,
           },
           customScopes,
           scope: selectedScope,
@@ -559,27 +555,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
               {createStep === 3 && (
                 <div className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
-                      Model
-                    </label>
-                    <OsintSelect
-                      ariaLabel="Template model"
-                      value={selectedModel}
-                      onChange={setSelectedModel}
-                      triggerClassName="p-3 pr-10 font-mono text-xs"
-                      options={selectableModels.map((model) => ({
-                        value: model.id,
-                        label: `${model.name} - ${model.description}`,
-                      }))}
-                    />
-                    <p className="mt-2 text-[10px] font-mono text-zinc-500">
-                      {getModelDisplayName(activeModelId)} via {getModelProvider(activeModelId)}.
-                      Thinking{' '}
-                      {selectedModelCapabilities.supportsThinkingBudget ? 'enabled' : 'off'}, web
-                      search {selectedModelCapabilities.supportsWebSearch ? 'enabled' : 'off'}.
-                    </p>
-                  </div>
+                  <ProviderModelSelector form={runtimeConfigForm} />
                   <div>
                     <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
                       Persona
@@ -599,68 +575,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       ))}
                     </div>
                   </div>
-                  <div className="border border-zinc-800 bg-zinc-900/30 p-3">
-                    <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2">
-                      Output Profile
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-white">
-                        {selectedPack.name}
-                      </span>
-                      <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-                        {selectedPurpose.name}
-                      </span>
-                      <span className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300">
-                        {selectedPurpose.recommendedArtifactType}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
-                        Search Depth
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => setDepth('STANDARD')}
-                          className={`py-2 border font-mono text-xs uppercase ${depth === 'STANDARD' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
-                        >
-                          Standard
-                        </button>
-                        <button
-                          onClick={() => setDepth('DEEP')}
-                          className={`py-2 border font-mono text-xs uppercase ${depth === 'DEEP' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
-                        >
-                          Deep
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
-                        Generation Mode
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => setGenerationMode('SINGLE_PASS')}
-                          className={`py-2 border font-mono text-xs uppercase ${generationMode === 'SINGLE_PASS' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
-                        >
-                          Single Pass
-                        </button>
-                        <button
-                          onClick={() => setGenerationMode('STAGED')}
-                          className={`py-2 border font-mono text-xs uppercase ${generationMode === 'STAGED' ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
-                        >
-                          Staged
-                        </button>
-                      </div>
-                    </div>
-                    <ThinkingBudgetControl
-                      providerLabel={getModelProvider(activeModelId)}
-                      supportsThinkingBudget={selectedModelCapabilities.supportsThinkingBudget}
-                      value={thinkingBudget}
-                      onChange={setThinkingBudget}
-                    />
-                  </div>
+                  <RuntimeConfigSummary
+                    packName={selectedPack.name}
+                    purposeName={selectedPurpose.name}
+                    artifactType={selectedPurpose.recommendedArtifactType}
+                    hint="Templates save the same runtime profile used by manual and guided launches."
+                  />
+                  <RuntimeConfigBehaviorControls form={runtimeConfigForm} />
                 </div>
               )}
             </div>
