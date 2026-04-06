@@ -305,6 +305,7 @@ The browser location is now the durable source of truth for active page identity
 - ReportViewer
 - InspectorPanel
 - `useOperationViewController.ts` now owns route-level selection state, handoff commands, template-save flow, and board/chat orchestration while `index.tsx` stays focused on layout and modal composition
+- `OperationViewDialogs.tsx` now holds the lead follow-through modal, new-workspace modal, and protocol-template save dialog so workflow copy and launch boundaries live outside the page shell
 
 Supports deep dives, follow-up execution, signal follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
@@ -327,6 +328,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - cross-surface placement handoff respects presentation mode rather than mutating readonly boards
 - inspector actions back into reports, workspace chat, timeline, network graph, source links, and promoted-item provenance
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system
+- `BoardLibraryRail.tsx`, `BoardInspectorRail.tsx`, `BoardAgentRail.tsx`, and `BoardDialogs.tsx` now isolate the major rails and workflow dialogs from the board route shell
 
 `ReportViewer` and `DossierPanel` now also surface:
 
@@ -350,6 +352,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - guided conversational run builder that maps into the same launch request shape used by `src/components/features/Runs/TaskSetupModal.tsx`
 - context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
 - contextual handoff from Operation View, Archives, and Network Graph into the same session backend, with report/entity/signal grounding persisted on the target chat session
+- `ChatSessionRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatContextRail.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
 
 `ReportViewer` now renders:
 
@@ -373,6 +376,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - broader manual node semantics for concepts and sources alongside legacy people and organizations
 - hidden/flagged filters
 - entity resolution workflow
+- `NetworkGraphOverlays.tsx` now collects add-node UI, investigation launch setup, alias resolution, and delete-confirm flows in one feature-local workflow module
 
 ### Live Monitor
 
@@ -403,6 +407,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - click-through into saved artifacts and exact workspace chat sessions from timeline events
 - board handoff for timeline-selected artifacts, entities, and signals
 - timeline snapshot export in JSON/Markdown plus save-as-artifact support for `artifactType: TIMELINE`
+- `TimelineToolbar.tsx`, `TimelineDossierPanel.tsx`, `TimelineEventList.tsx`, and `TimelineDetailRail.tsx` now own the major timeline sections so the route shell mainly coordinates route state and layout
 
 ### Feed
 

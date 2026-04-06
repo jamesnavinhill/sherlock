@@ -9,8 +9,7 @@ import type {
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
-import { TaskSetupModal } from '../Runs/TaskSetupModal';
-import { AlertOctagon, Layout } from 'lucide-react';
+import { AlertOctagon } from 'lucide-react';
 import { getFollowUpText } from '../../../domain';
 
 // Sub-components
@@ -19,6 +18,7 @@ import { DossierPanel } from './DossierPanel';
 import { ReportViewer } from './ReportViewer';
 import { InspectorPanel } from './InspectorPanel';
 import { useOperationViewController } from './useOperationViewController';
+import { OperationViewDialogs } from './OperationViewDialogs';
 
 // --- PROPS ---
 interface OperationViewProps {
@@ -133,54 +133,21 @@ export const OperationView: React.FC<OperationViewProps> = ({
     <div className="w-full h-screen bg-black relative flex flex-col overflow-hidden">
       <BackgroundMatrixRain />
 
-      {/* Pre-Investigation Modal */}
-      {leadToAnalyze && report && (
-        <TaskSetupModal
-          initialTopic={leadToAnalyze.text}
-          initialContext={leadToAnalyze.context}
-          initialScopeId={leadToAnalyze.inheritedScopeId}
-          initialConfigOverride={leadToAnalyze.inheritedConfig}
-          initialDateRangeOverride={leadToAnalyze.inheritedDateRange}
-          inheritanceHint="Inherited from parent report. Change settings below to override this run."
-          onCancel={() => setLeadToAnalyze(null)}
-          onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
-            onDeepDive({
-              topic,
-              parentContext: leadToAnalyze.context,
-              configOverride: {
-                ...(leadToAnalyze.inheritedConfig || {}),
-                ...(configOverride || {}),
-              },
-              preseededEntities,
-              scope: scope || resolveScope(leadToAnalyze.inheritedScopeId),
-              dateRangeOverride: dateRange || leadToAnalyze.inheritedDateRange,
-              launchSource: 'OPERATION_LEAD_MODAL',
-              sourceFollowUpId: leadToAnalyze.sourceFollowUpId,
-              parentArtifactId: leadToAnalyze.parentArtifactId,
-            });
-            setLeadToAnalyze(null);
-          }}
-        />
-      )}
-
-      {/* Start New Workspace Modal */}
-      {isNewCaseModalOpen && (
-        <TaskSetupModal
-          initialTopic=""
-          onCancel={() => setIsNewCaseModalOpen(false)}
-          onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
-            onStartNewCase({
-              topic,
-              configOverride,
-              preseededEntities,
-              scope,
-              dateRangeOverride: dateRange,
-              launchSource: 'OPERATION_NEW_CASE',
-            });
-            setIsNewCaseModalOpen(false);
-          }}
-        />
-      )}
+      <OperationViewDialogs
+        leadToAnalyze={leadToAnalyze}
+        report={report}
+        isNewCaseModalOpen={isNewCaseModalOpen}
+        showSaveTemplateModal={showSaveTemplateModal}
+        templateName={templateName}
+        onTemplateNameChange={setTemplateName}
+        onCloseLeadDialog={() => setLeadToAnalyze(null)}
+        onCloseNewCaseDialog={() => setIsNewCaseModalOpen(false)}
+        onCloseSaveTemplateDialog={() => setShowSaveTemplateModal(false)}
+        onDeepDive={onDeepDive}
+        onStartNewCase={onStartNewCase}
+        onExecuteSaveTemplate={executeSaveTemplate}
+        resolveScope={resolveScope}
+      />
 
       {/* Toolbar */}
       <Toolbar
@@ -215,58 +182,6 @@ export const OperationView: React.FC<OperationViewProps> = ({
             : undefined
         }
       />
-
-      {/* Save Template Modal */}
-      {showSaveTemplateModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-zinc-900 border border-zinc-700 w-full max-w-md shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-osint-primary"></div>
-            <div className="p-6">
-              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-widest mb-4 flex items-center">
-                <Layout className="w-4 h-4 mr-2 text-osint-primary" />
-                Save as Protocol Template
-              </h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] text-zinc-500 font-mono uppercase">
-                    Protocol Name
-                  </label>
-                  <input
-                    type="text"
-                    value={templateName}
-                    onChange={(e) => setTemplateName(e.target.value)}
-                    placeholder="e.g., Financial Audit Protocol"
-                    className="w-full bg-black border border-zinc-800 p-3 text-xs font-mono text-white focus:border-osint-primary outline-none transition-colors"
-                    autoFocus
-                  />
-                </div>
-                <div className="p-3 bg-zinc-800/50 border border-zinc-800">
-                  <div className="text-[9px] text-zinc-500 font-mono uppercase mb-1">
-                    Investigation Target
-                  </div>
-                  <div className="text-xs text-zinc-300 font-mono truncate">
-                    &quot;{report?.topic}&quot;
-                  </div>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => setShowSaveTemplateModal(false)}
-                    className="flex-1 py-2 text-xs font-mono text-zinc-500 hover:text-white transition-colors uppercase border border-zinc-800 hover:border-zinc-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={executeSaveTemplate}
-                    className="osint-button-primary flex-1 py-2 text-xs font-mono font-bold uppercase"
-                  >
-                    Save Protocol
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Mobile Backdrop for Panels */}
       {(leftPanelOpen || rightPanelOpen) && (

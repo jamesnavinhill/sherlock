@@ -59,17 +59,17 @@ import {
   toggleExclusiveSection,
 } from './chatPageUtils';
 
-interface RenameSessionDialogState {
+export interface RenameSessionDialogState {
   session: ChatSession;
   title: string;
 }
 
-interface AppendArtifactDialogState {
+export interface AppendArtifactDialogState {
   message: ChatMessage;
   selectedReportId: string;
 }
 
-interface FollowUpDialogState {
+export interface FollowUpDialogState {
   action: AgentAction;
   request: InvestigationLaunchRequest;
   topic: string;

@@ -5,20 +5,17 @@ import type {
   InvestigationLaunchRequest,
   Artifact,
 } from '../../../types';
-import { TaskSetupModal } from '../Runs/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EmptyState } from '../../ui/EmptyState';
-import { ConfirmDialog } from '../../ui/ConfirmDialog';
 
 // Components
 import { ControlBar } from './ControlBar';
 import type { GraphCanvasRef } from './GraphCanvas';
 import { GraphCanvas } from './GraphCanvas';
 import { NodeInspector } from './NodeInspector';
-import { EntityResolution } from './EntityResolution';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
-import { getEntityToneClass } from '../../../utils/entityPalette';
 import { useNetworkGraphController } from './useNetworkGraphController';
+import { NetworkGraphOverlays } from './NetworkGraphOverlays';
 
 interface NetworkGraphProps {
   onOpenReport: (report: Artifact) => void;
@@ -205,71 +202,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               onStatsUpdate={handleGraphStatsUpdate}
             />
           )}
-
-          {/* Add Node Overlay */}
-          {showAddNodeUI && (
-            <div className="absolute top-4 right-4 bg-black/90 border border-zinc-700 p-4 shadow-xl z-50 w-64">
-              <h3 className="text-xs font-bold text-white mb-3">ADD MANUAL NODE</h3>
-              <input
-                autoFocus
-                value={newNodeLabel}
-                onChange={(e) => setNewNodeLabel(e.target.value)}
-                placeholder="Node Label..."
-                className="mb-2 w-full border border-zinc-700 bg-black px-3 py-2 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary placeholder:text-zinc-600"
-              />
-              <div className="flex gap-2 mb-3">
-                <button
-                  onClick={() => setNewNodeType('ENTITY')}
-                  className={`flex-1 px-3 py-1.5 text-[10px] font-mono font-bold uppercase transition-colors ${
-                    newNodeType === 'ENTITY' ? 'osint-button-chrome-active' : 'osint-button-chrome'
-                  }`}
-                >
-                  ENTITY
-                </button>
-                <button
-                  onClick={() => setNewNodeType('CASE')}
-                  className={`flex-1 px-3 py-1.5 text-[10px] font-mono font-bold uppercase transition-colors ${
-                    newNodeType === 'CASE' ? 'osint-button-chrome-active' : 'osint-button-chrome'
-                  }`}
-                >
-                  REPORT
-                </button>
-              </div>
-
-              {/* Subtype Selection */}
-              {newNodeType === 'ENTITY' && (
-                <div className="grid grid-cols-3 gap-1.5 mb-3">
-                  {subtypeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setNewNodeSubtype(option.value)}
-                      className={`min-w-0 px-1.5 py-1.5 text-[9px] leading-none border text-center whitespace-nowrap ${
-                        newNodeSubtype === option.value
-                          ? `${getEntityToneClass(option.value)} entity-tone-toggle-active`
-                          : 'border-zinc-800 text-zinc-600 hover:border-zinc-600'
-                      } ${option.className || ''}`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="flex justify-between">
-                <button
-                  onClick={() => setShowAddNodeUI(false)}
-                  className="text-xs text-zinc-500 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateNode}
-                  className="osint-button-primary px-3 py-1 text-xs font-bold"
-                >
-                  ADD
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Panel: Inspector */}
@@ -306,57 +238,39 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         />
       </div>
 
-      {/* Modal */}
-      {selectedLeadForAnalysis && (
-        <TaskSetupModal
-          initialTopic={selectedLeadForAnalysis.text}
-          initialContext={selectedLeadForAnalysis.context}
-          initialScopeId={activeScopeId || undefined}
-          onCancel={() => setSelectedLeadForAnalysis(null)}
-          onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
-            onInvestigateEntity({
-              topic,
-              parentContext: selectedLeadForAnalysis.context,
-              configOverride,
-              preseededEntities,
-              scope,
-              dateRangeOverride: dateRange,
-              launchSource: 'NETWORK_GRAPH',
-            });
-            setSelectedLeadForAnalysis(null);
-          }}
-        />
-      )}
-      {showResolutionModal && (
-        <EntityResolution
-          allEntities={dossierData.entities?.map((e) => e.name) || []}
-          currentAliases={aliases}
-          onSaveAliases={(newAliases) => {
-            void setAliases(newAliases);
-          }}
-          onClose={() => setShowResolutionModal(false)}
-        />
-      )}
-
-      {nodePendingDeletion && (
-        <ConfirmDialog
-          title={nodePendingDeletion.isManual ? 'Delete Manual Node' : 'Remove Graph Node'}
-          description={
-            nodePendingDeletion.isManual
-              ? `Delete "${nodePendingDeletion.label}" and its manual links from the graph?`
-              : `Remove "${nodePendingDeletion.label}" from the graph and hide it from this workspace view?`
+      <NetworkGraphOverlays
+        selectedLeadForAnalysis={selectedLeadForAnalysis}
+        activeScopeId={activeScopeId}
+        showAddNodeUI={showAddNodeUI}
+        newNodeLabel={newNodeLabel}
+        newNodeType={newNodeType}
+        newNodeSubtype={newNodeSubtype}
+        subtypeOptions={subtypeOptions}
+        showResolutionModal={showResolutionModal}
+        aliases={aliases}
+        allEntityNames={dossierData.entities?.map((entity) => entity.name) || []}
+        nodePendingDeletion={nodePendingDeletion}
+        onInvestigateEntity={onInvestigateEntity}
+        onCloseLeadModal={() => setSelectedLeadForAnalysis(null)}
+        onCloseAddNode={() => setShowAddNodeUI(false)}
+        onCreateNode={handleCreateNode}
+        onNodeLabelChange={setNewNodeLabel}
+        onNodeTypeChange={setNewNodeType}
+        onNodeSubtypeChange={setNewNodeSubtype}
+        onCloseResolution={() => setShowResolutionModal(false)}
+        onSaveAliases={(newAliases) => {
+          void setAliases(newAliases);
+        }}
+        onCloseNodeDeletion={() => setNodePendingDeletion(null)}
+        onConfirmDeleteNode={async () => {
+          if (!nodePendingDeletion) {
+            return;
           }
-          confirmLabel={nodePendingDeletion.isManual ? 'Delete Node' : 'Remove Node'}
-          tone="danger"
-          onClose={() => setNodePendingDeletion(null)}
-          onConfirm={() => {
-            void (async () => {
-              await confirmDeleteNode(nodePendingDeletion);
-              setNodePendingDeletion(null);
-            })();
-          }}
-        />
-      )}
+
+          await confirmDeleteNode(nodePendingDeletion);
+          setNodePendingDeletion(null);
+        }}
+      />
     </div>
   );
 };
