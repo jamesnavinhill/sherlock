@@ -167,6 +167,10 @@ Slices 1 through 4 can overlap only after Slice 0 freezes the contracts.
 
 ## Slice 0. Contract Reset And Audit Corrections
 
+Current state:
+
+- Completed on April 6, 2026
+
 Purpose:
 
 - reset the plan from "finished" to a real completion baseline
