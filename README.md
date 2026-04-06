@@ -129,16 +129,14 @@ npm run check:full
 
 ## Current Validation Snapshot (April 6, 2026)
 
-Slice-7 closeout sweep on this checkout:
+The cross-feature refactor completion plan remains in progress. Slice 0 validation on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- `npm run test`: passes
-- `npm run build`: passes
-- route wrappers now have direct regression coverage for workspace-home, chat, and board canonicalization
-- extracted pure seams now have focused tests for Timeline and Workspace Board view-models plus Chat helper state shaping
-- provider-router contract tests still emit expected `[provider-router]` debug logs during coverage
-- Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; slice 7 now treats that as a documented review checkpoint rather than silent noise
+- `npm run test -- src/components/features/WorkspaceBoard/workspaceBoardViewModel.test.ts`: passes
+- most recent April 6 audit targeted passes also include `src/app/routeViews.test.tsx`, `src/components/features/Timeline/timelineViewModel.test.ts`, and `src/components/features/Chat/chatPageUtils.test.ts`
+- `npm run build`: last recorded pass during the April 6 audit
+- Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; this remains a documented review checkpoint rather than silent noise
 
 ## Documentation Index
 
@@ -152,6 +150,7 @@ Slice-7 closeout sweep on this checkout:
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
 - `docs/plans/08-cross-feature-refactor-slice-plan.md`
+- `docs/reports/2026-04-06-cross-feature-refactor-audit.md`
 - `docs/plans/2026-04-05-post-refactor-completion-plan.md`
 
 Historical plans and reports live under `docs/_legacy/`.

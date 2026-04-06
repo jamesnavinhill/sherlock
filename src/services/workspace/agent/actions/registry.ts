@@ -17,6 +17,7 @@ import {
   placeEntryOnBoard,
 } from '../../boardShapes';
 import {
+  boardRefKey,
   buildWorkspaceArtifactReference,
   buildWorkspaceLibraryEntries,
 } from '../../library';
@@ -61,8 +62,6 @@ const toNumber = (value: unknown): number | null => {
   }
   return null;
 };
-
-const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
 
 const buildLibraryMap = (context: BoardAgentExecutionContext) =>
   new Map(

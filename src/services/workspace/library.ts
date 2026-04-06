@@ -25,6 +25,8 @@ export const buildWorkspaceEntityRefId = (name: string) => `entity:${slugify(cle
 export const buildWorkspaceSourceRefId = (source: Pick<Source, 'title' | 'url'>) =>
   `source:${slugify(source.url || source.title)}`;
 
+export const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
+
 export const buildWorkspaceArtifactReference = (
   workspaceId: string,
   artifact: Artifact & { id: string }
@@ -206,3 +208,14 @@ export const buildWorkspaceLibraryEntries = (input: {
     ...signalEntries,
   ];
 };
+
+export const buildSingleWorkspaceItemEntry = (
+  workspaceId: string,
+  item: WorkspaceItem
+): WorkspaceLibraryEntry | null =>
+  buildWorkspaceLibraryEntries({
+    workspaceId,
+    artifacts: [],
+    headlines: [],
+    workspaceItems: [item],
+  })[0] || null;

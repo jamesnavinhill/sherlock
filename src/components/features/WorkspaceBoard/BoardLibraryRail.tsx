@@ -11,9 +11,8 @@ import {
 } from 'lucide-react';
 
 import { Accordion } from '@/components/ui/Accordion';
-import type { WorkspaceLibraryEntry } from '@/services/workspace/library';
+import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
 import { serializeBoardReference } from '@/services/workspace/boardShapes';
-import { boardRefKey } from './workspaceBoardUtils';
 
 interface GroupedEntries {
   created: WorkspaceLibraryEntry[];

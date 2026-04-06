@@ -7,6 +7,7 @@ import type {
   WorkspaceItem,
 } from '@/types';
 import {
+  boardRefKey,
   buildWorkspaceEntityRefId,
   buildWorkspaceLibraryEntries,
   buildWorkspaceSourceRefId,
@@ -26,8 +27,6 @@ const clipText = (value: string | undefined, maxLength: number) => {
     ? normalized
     : `${normalized.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
 };
-
-const boardRefKey = (ref: WorkspaceBoardItemReference) => `${ref.refKind}:${ref.refId}`;
 
 const summarizeShape = (shape: BoardAgentBoardShapeSummary) => {
   const linked = shape.linkedRef

@@ -4,8 +4,7 @@ import { Bot, Clock3, Shapes, Sparkles, Trash2 } from 'lucide-react';
 import type { WorkspaceBoard, WorkspaceItem } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
-import type { WorkspaceLibraryEntry } from '@/services/workspace/library';
-import { boardRefKey } from './workspaceBoardUtils';
+import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
 
 interface BoardInspectorRailProps {
   inspectorActions: InspectorActionItem[];

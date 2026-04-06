@@ -25,7 +25,11 @@ import {
 } from '@/app/routes';
 import { useWorkspaceBoardFeatureState } from '@/store/selectors/featureSelectors';
 import { type InspectorActionItem } from '@/components/ui/InspectorActionRow';
-import { type WorkspaceLibraryEntry } from '@/services/workspace/library';
+import {
+  boardRefKey,
+  buildSingleWorkspaceItemEntry,
+  type WorkspaceLibraryEntry,
+} from '@/services/workspace/library';
 import {
   buildWorkspaceItemFromBoardDraft,
   generateBoardSelectionDraft,
@@ -38,8 +42,6 @@ import {
 import { runBoardAgentSession } from '@/services/workspace/agent';
 import { createLocalId } from '@/utils/id';
 import {
-  boardRefKey,
-  buildSingleWorkspaceItemEntry,
   LEFT_PANEL_SECTION_SCROLL_CLASS,
   placeEntryOnBoard,
   type CreateModalState,

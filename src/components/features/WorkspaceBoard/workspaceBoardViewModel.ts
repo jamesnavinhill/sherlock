@@ -1,9 +1,10 @@
 import { sanitizeDisplayTitle } from '@/domain';
-import { deriveBoardAgentTodoItems } from '@/services/workspace/agent';
 import {
+  boardRefKey,
   buildWorkspaceLibraryEntries,
   type WorkspaceLibraryEntry,
 } from '@/services/workspace/library';
+import { deriveBoardAgentTodoItems } from '@/services/workspace/agent/actions/todos';
 import type {
   Artifact,
   BoardAgentAction,
@@ -14,8 +15,6 @@ import type {
   WorkspaceBoardDocument,
   WorkspaceItem,
 } from '@/types';
-
-import { boardRefKey } from './workspaceBoardUtils';
 
 interface WorkspaceBoardViewModelInput {
   activeWorkspaceBoardId: string | null;

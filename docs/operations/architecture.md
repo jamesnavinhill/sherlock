@@ -79,13 +79,14 @@ The route contract is now active runtime behavior rather than future groundwork.
 
 ### Feature extraction contract
 
-Cross-feature refactors now follow one shared extraction pattern for routed feature surfaces:
+The active cross-feature refactor uses one shared extraction pattern for routed feature surfaces. Some features are already aligned to it, and the remaining slice work should continue following the same contract:
 
 - route/page files stay responsible for route params, layout composition, and wiring feature sections together
 - `useXxxController` hooks own feature-local state, effects, command handlers, navigation handoff, and store/runtime orchestration
 - `buildXxxViewModel` modules stay pure and derive display-ready state from already-fetched inputs
 - feature section components receive narrow props and avoid reaching back into the global store unless the section is the store boundary on purpose
 - feature-local workflow UI such as dialogs, overlays, and export menus should move toward `XxxDialogs`, `XxxMenu`, or similarly named modules once the controller seam exists
+- feature selector hooks should stay store-only and expose narrower slices to controllers rather than mirroring whole-store access patterns
 
 Use these seams deliberately:
 
@@ -93,6 +94,12 @@ Use these seams deliberately:
 - extract to a view-model/util module when the logic is pure derivation, filtering, grouping, or label shaping
 - extract to a section component when the main page is carrying a large render subtree that can take data-in and callbacks-out
 - extract to a shared UI/runtime module only when multiple features already share the same behavior without feature-specific branching
+
+Additional constraints for the remaining slice work:
+
+- pure view-model/util modules must not import React components, router hooks, browser-dialog APIs, `tldraw`, or mixed UI helper modules
+- controller hooks should shed pure derivation and repetitive action-shaping once those seams become obvious
+- shared runtime-config modules should centralize overlapping field state, mapping, and capability behavior without feature-specific branching
 
 Naming is intentionally literal rather than clever:
 
@@ -434,7 +441,7 @@ Task setup and template flows now expose:
 - compact OpenRouter quick picks plus a dedicated browser modal for full catalog/manual slug entry
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
 - wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useTaskSetupState.ts`
-- runtime-config provider/model derivation now shares `src/components/features/Runs/runtimeConfigOptions.ts`, `src/components/features/Runs/runtimeConfigMapping.ts`, and `src/components/features/Runs/ThinkingBudgetControl.tsx` so Settings, templates, task setup, guided run flows, and app-shell launch shaping apply the same model fallback, provider/model alignment, artifact inheritance, and thinking-budget rules
+- runtime-config provider/model helper behavior currently shares `src/components/features/Runs/runtimeConfigOptions.ts`, `src/components/features/Runs/runtimeConfigMapping.ts`, and `src/components/features/Runs/ThinkingBudgetControl.tsx`, which centralizes the model-resolution, launch-mapping, and thinking-budget helper layer even though the shared form/component extraction is still being completed
 - the task-setup implementation now lives with the run-launch feature under `src/components/features/Runs/TaskSetupModal.tsx`, while the old UI path remains a compatibility re-export only
 
 ### Archives
