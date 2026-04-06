@@ -264,27 +264,30 @@ export function useAppShellController(): AppShellController {
     [customScopes]
   );
 
-  const addPreseededEntitiesToGraph = useCallback((taskId: string, preseededEntities?: ManualNode[]) => {
-    if (!preseededEntities || preseededEntities.length === 0) return;
+  const addPreseededEntitiesToGraph = useCallback(
+    async (taskId: string, preseededEntities?: ManualNode[]) => {
+      if (!preseededEntities || preseededEntities.length === 0) return;
 
-    const state = useWorkspaceStore.getState();
-    const existingNodes = state.manualNodes;
-    const nextNodes = [...existingNodes];
+      const state = useWorkspaceStore.getState();
+      const existingNodes = state.manualNodes;
+      const nextNodes = [...existingNodes];
 
-    preseededEntities.forEach((entity, index) => {
-      const nodeId = `seed-${taskId}-${index}`;
-      if (nextNodes.some((node) => node.id === nodeId)) return;
-      nextNodes.push({
-        ...entity,
-        id: nodeId,
-        timestamp: Date.now(),
+      preseededEntities.forEach((entity, index) => {
+        const nodeId = `seed-${taskId}-${index}`;
+        if (nextNodes.some((node) => node.id === nodeId)) return;
+        nextNodes.push({
+          ...entity,
+          id: nodeId,
+          timestamp: Date.now(),
+        });
       });
-    });
 
-    if (nextNodes.length !== existingNodes.length) {
-      void state.setManualNodes(nextNodes);
-    }
-  }, []);
+      if (nextNodes.length !== existingNodes.length) {
+        await state.setManualNodes(nextNodes);
+      }
+    },
+    []
+  );
 
   const runInvestigationTask = useCallback(
     async (
@@ -314,10 +317,10 @@ export function useAppShellController(): AppShellController {
         report = await archiveReport(report, launchRequest.parentContext);
 
         if (launchRequest.preseededEntities?.length) {
-          addPreseededEntitiesToGraph(taskId, launchRequest.preseededEntities);
+          await addPreseededEntitiesToGraph(taskId, launchRequest.preseededEntities);
         }
 
-        completeTask(taskId, report);
+        await completeTask(taskId, report);
 
         if (report.id && report.caseId && locationPathRef.current === buildRunPath(taskId)) {
           navigate(buildWorkspaceArtifactPath(report.caseId, report.id), { replace: true });
@@ -329,7 +332,7 @@ export function useAppShellController(): AppShellController {
       } catch (error: unknown) {
         console.error(`Task ${taskId} failed`, error);
         const message = error instanceof Error ? error.message : 'Unknown error occurred';
-        failTask(taskId, message);
+        await failTask(taskId, message);
         addToast(`Run failed: ${launchRequest.topic}`, 'ERROR');
       }
     },
@@ -338,103 +341,112 @@ export function useAppShellController(): AppShellController {
 
   const launchInvestigation = useCallback(
     (request: InvestigationLaunchRequest) => {
-      const switchToView = request.switchToView ?? true;
-      const effectiveConfig = migrateSystemConfig({
-        ...loadSystemConfig(),
-        ...(request.configOverride || {}),
-      });
-      const normalizedTopic = normalizeTopicText(request.topic);
+      void (async () => {
+        const switchToView = request.switchToView ?? true;
+        const effectiveConfig = migrateSystemConfig({
+          ...loadSystemConfig(),
+          ...(request.configOverride || {}),
+        });
+        const normalizedTopic = normalizeTopicText(request.topic);
 
-      if (!hasApiKey(effectiveConfig.provider)) {
-        setIsAuthenticated(false);
-        addToast(`Missing ${effectiveConfig.provider} API key. Add it to continue.`, 'ERROR');
-        return;
-      }
+        if (!hasApiKey(effectiveConfig.provider)) {
+          setIsAuthenticated(false);
+          addToast(`Missing ${effectiveConfig.provider} API key. Add it to continue.`, 'ERROR');
+          return;
+        }
 
-      const scopeFromConfig = resolveScopeById(
-        (request.configOverride as InvestigationRunConfig | undefined)?.scopeId
-      );
-      const effectiveScope = request.scope || scopeFromConfig;
-      const effectivePack = getDomainPackForScope(effectiveScope);
-      const effectivePurpose = getPurposeProfileById(
-        request.purposeId ||
-          (request.configOverride as InvestigationRunConfig | undefined)?.purposeId ||
-          effectivePack.defaultPurposeId
-      );
-      const artifactType =
-        request.artifactType ||
-        (request.configOverride as InvestigationRunConfig | undefined)?.artifactType ||
-        effectivePurpose.recommendedArtifactType;
-      const labelProfileId =
-        request.labelProfileId ||
-        (request.configOverride as InvestigationRunConfig | undefined)?.labelProfileId ||
-        effectivePack.labelProfileId;
-      const derivedLineage = resolveLaunchLineage({
-        request,
-        artifacts,
-        runs: workspaceRuns,
-      });
+        const scopeFromConfig = resolveScopeById(
+          (request.configOverride as InvestigationRunConfig | undefined)?.scopeId
+        );
+        const effectiveScope = request.scope || scopeFromConfig;
+        const effectivePack = getDomainPackForScope(effectiveScope);
+        const effectivePurpose = getPurposeProfileById(
+          request.purposeId ||
+            (request.configOverride as InvestigationRunConfig | undefined)?.purposeId ||
+            effectivePack.defaultPurposeId
+        );
+        const artifactType =
+          request.artifactType ||
+          (request.configOverride as InvestigationRunConfig | undefined)?.artifactType ||
+          effectivePurpose.recommendedArtifactType;
+        const labelProfileId =
+          request.labelProfileId ||
+          (request.configOverride as InvestigationRunConfig | undefined)?.labelProfileId ||
+          effectivePack.labelProfileId;
+        const derivedLineage = resolveLaunchLineage({
+          request,
+          artifacts,
+          runs: workspaceRuns,
+        });
 
-      const launchRequest: InvestigationLaunchRequest = {
-        ...request,
-        topic: normalizedTopic,
-        switchToView,
-        scope: effectiveScope,
-        packId: effectivePack.id,
-        purposeId: effectivePurpose.id,
-        artifactType,
-        labelProfileId,
-        sourceSignalId: derivedLineage.sourceSignalId,
-        sourceFollowUpId: derivedLineage.sourceFollowUpId,
-        parentArtifactId: derivedLineage.parentArtifactId,
-        parentRunId: derivedLineage.parentRunId,
-      };
+        const launchRequest: InvestigationLaunchRequest = {
+          ...request,
+          topic: normalizedTopic,
+          switchToView,
+          scope: effectiveScope,
+          packId: effectivePack.id,
+          purposeId: effectivePurpose.id,
+          artifactType,
+          labelProfileId,
+          sourceSignalId: derivedLineage.sourceSignalId,
+          sourceFollowUpId: derivedLineage.sourceFollowUpId,
+          parentArtifactId: derivedLineage.parentArtifactId,
+          parentRunId: derivedLineage.parentRunId,
+        };
 
-      const runConfig: InvestigationRunConfig = {
-        provider: effectiveConfig.provider,
-        modelId: effectiveConfig.modelId,
-        persona: effectiveConfig.persona,
-        searchDepth: effectiveConfig.searchDepth,
-        thinkingBudget: effectiveConfig.thinkingBudget,
-        scopeId: effectiveScope?.id,
-        scopeName: effectiveScope?.name,
-        packId: effectivePack.id,
-        packName: effectivePack.name,
-        purposeId: effectivePurpose.id,
-        purposeName: effectivePurpose.name,
-        artifactType,
-        labelProfileId,
-        dateRangeOverride: launchRequest.dateRangeOverride,
-        preseededEntities: launchRequest.preseededEntities,
-        launchSource: launchRequest.launchSource,
-        sourceSignalId: launchRequest.sourceSignalId,
-        sourceFollowUpId: launchRequest.sourceFollowUpId,
-        parentArtifactId: launchRequest.parentArtifactId,
-        parentRunId: launchRequest.parentRunId,
-      };
+        const runConfig: InvestigationRunConfig = {
+          provider: effectiveConfig.provider,
+          modelId: effectiveConfig.modelId,
+          persona: effectiveConfig.persona,
+          searchDepth: effectiveConfig.searchDepth,
+          thinkingBudget: effectiveConfig.thinkingBudget,
+          scopeId: effectiveScope?.id,
+          scopeName: effectiveScope?.name,
+          packId: effectivePack.id,
+          packName: effectivePack.name,
+          purposeId: effectivePurpose.id,
+          purposeName: effectivePurpose.name,
+          artifactType,
+          labelProfileId,
+          dateRangeOverride: launchRequest.dateRangeOverride,
+          preseededEntities: launchRequest.preseededEntities,
+          launchSource: launchRequest.launchSource,
+          sourceSignalId: launchRequest.sourceSignalId,
+          sourceFollowUpId: launchRequest.sourceFollowUpId,
+          parentArtifactId: launchRequest.parentArtifactId,
+          parentRunId: launchRequest.parentRunId,
+        };
 
-      const newTaskId = createLocalId('task');
-      const newTask: WorkspaceRun = {
-        id: newTaskId,
-        topic: launchRequest.topic,
-        status: 'RUNNING',
-        startTime: Date.now(),
-        parentContext: launchRequest.parentContext,
-        config: runConfig,
-        launchRequest,
-      };
+        const newTaskId = createLocalId('task');
+        const newTask: WorkspaceRun = {
+          id: newTaskId,
+          topic: launchRequest.topic,
+          status: 'RUNNING',
+          startTime: Date.now(),
+          parentContext: launchRequest.parentContext,
+          config: runConfig,
+          launchRequest,
+        };
 
-      addTask(newTask);
-      if (!loadSystemConfig().quietMode) {
-        addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
-      }
+        try {
+          const addTaskPromise = addTask(newTask);
+          if (!loadSystemConfig().quietMode) {
+            addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
+          }
 
-      if (switchToView) {
-        setActiveTaskId(newTaskId);
-        navigate(buildRunPath(newTaskId));
-      }
+          if (switchToView) {
+            setActiveTaskId(newTaskId);
+            navigate(buildRunPath(newTaskId));
+          }
 
-      void runInvestigationTask(newTaskId, launchRequest, runConfig);
+          await addTaskPromise;
+          void runInvestigationTask(newTaskId, launchRequest, runConfig);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unable to launch run.';
+          addToast(message, 'ERROR');
+          setActiveTaskId(null);
+        }
+      })();
     },
     [
       addTask,

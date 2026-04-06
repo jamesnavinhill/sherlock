@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router-dom';
 import type { Artifact, WorkspaceRun } from '../../../types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+
 vi.mock('./Toolbar', () => ({
   Toolbar: ({ onOpenChat }: { onOpenChat?: () => void }) => (
     <button data-testid="operation-open-chat" onClick={() => onOpenChat?.()}>
@@ -223,7 +225,7 @@ describe('OperationView launch propagation', () => {
     const onDeepDive = vi.fn();
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <OperationView
           task={taskFixture}
           onBack={vi.fn()}
@@ -266,7 +268,7 @@ describe('OperationView launch propagation', () => {
     const onInvestigateHeadline = vi.fn();
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <OperationView
           task={taskFixture}
           onBack={vi.fn()}
@@ -298,7 +300,7 @@ describe('OperationView launch propagation', () => {
     const onDeepDive = vi.fn();
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <OperationView
           task={taskFixture}
           onBack={vi.fn()}
@@ -336,7 +338,7 @@ describe('OperationView launch propagation', () => {
     const onOpenChat = vi.fn();
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <OperationView
           task={taskFixture}
           onBack={vi.fn()}

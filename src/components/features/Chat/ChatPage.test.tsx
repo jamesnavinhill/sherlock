@@ -5,6 +5,8 @@ import type { ChatMessage, ChatSession } from '@/types';
 import { useWorkspaceStore } from '../../../store/caseStore';
 import { Chat } from './ChatPage';
 
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+
 const { streamWorkspaceChatTurn } = vi.hoisted(() => ({
   streamWorkspaceChatTurn: vi.fn(),
 }));
@@ -55,7 +57,7 @@ describe('Chat page', () => {
 
   it('opens the project setup flow from the empty workspace state', () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <Chat onLaunchInvestigation={vi.fn()} />
       </MemoryRouter>
     );
@@ -142,7 +144,7 @@ describe('Chat page', () => {
     });
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <Chat onLaunchInvestigation={onLaunchInvestigation} />
       </MemoryRouter>
     );
@@ -268,7 +270,7 @@ describe('Chat page', () => {
     });
 
     const { container } = render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <Chat onLaunchInvestigation={vi.fn()} />
       </MemoryRouter>
     );

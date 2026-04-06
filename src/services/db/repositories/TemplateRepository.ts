@@ -2,6 +2,7 @@ import { eq, desc } from 'drizzle-orm';
 import { getDB, type SherlockWriteExecutor } from '../client';
 import { templates } from '../schema';
 import type { CaseTemplate } from '@/types';
+import { parseStoredJson } from './json';
 
 export class TemplateRepository {
   static async getAll(): Promise<CaseTemplate[]> {
@@ -13,7 +14,7 @@ export class TemplateRepository {
       name: row.name,
       description: row.description || undefined,
       topic: row.topic,
-      config: JSON.parse(row.configJson),
+      config: parseStoredJson<CaseTemplate['config']>(row.configJson, {} as CaseTemplate['config'], `template config ${row.id}`),
       createdAt: row.createdAt,
       scopeId: row.scopeId || undefined,
     }));

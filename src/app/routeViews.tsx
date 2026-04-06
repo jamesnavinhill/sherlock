@@ -1,12 +1,7 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 
 import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
-import { OperationView } from '@/components/features/OperationView';
-import { Chat } from '@/components/features/Chat';
-import { NetworkGraph } from '@/components/features/NetworkGraph';
-import { TimelineView } from '@/components/features/TimelineView';
-import { WorkspaceBoard } from '@/components/features/WorkspaceBoard';
 import { findWorkspaceLandingArtifact } from '@/app/navigation';
 import {
   buildFilesPath,
@@ -25,6 +20,42 @@ import type {
   WorkspaceBoard as WorkspaceBoardRecord,
   WorkspaceRun,
 } from '@/types';
+
+const OperationView = lazy(() =>
+  import('@/components/features/OperationView').then((module) => ({
+    default: module.OperationView,
+  }))
+);
+const Chat = lazy(() =>
+  import('@/components/features/Chat').then((module) => ({
+    default: module.Chat,
+  }))
+);
+const NetworkGraph = lazy(() =>
+  import('@/components/features/NetworkGraph').then((module) => ({
+    default: module.NetworkGraph,
+  }))
+);
+const TimelineView = lazy(() =>
+  import('@/components/features/TimelineView').then((module) => ({
+    default: module.TimelineView,
+  }))
+);
+const WorkspaceBoard = lazy(() =>
+  import('@/components/features/WorkspaceBoard').then((module) => ({
+    default: module.WorkspaceBoard,
+  }))
+);
+
+const RouteViewFallback = () => (
+  <div className="flex h-full min-h-[50vh] items-center justify-center bg-osint-dark px-6">
+    <div className="text-center">
+      <div className="text-xs font-mono uppercase tracking-[0.18em] text-zinc-500">
+        Loading workspace view
+      </div>
+    </div>
+  </div>
+);
 
 const buildBreadcrumbs = (
   report: Artifact | null,
@@ -177,24 +208,28 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   }
 
   return (
-    <OperationView
-      task={relatedTask}
-      reportOverride={report}
-      onBack={onBack}
-      onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-      onBatchDeepDive={onBatchInvestigate}
-      navStack={buildBreadcrumbs(report, workspaces, relatedTask?.id || null)}
-      onNavigate={onNavigateRecord}
-      onSelectCase={(reportId) => {
-        const foundReport = artifacts.find((artifact) => artifact.id === reportId);
-        if (foundReport) {
-          onViewReport(foundReport);
+    <Suspense fallback={<RouteViewFallback />}>
+      <OperationView
+        task={relatedTask}
+        reportOverride={report}
+        onBack={onBack}
+        onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
+        onBatchDeepDive={onBatchInvestigate}
+        navStack={buildBreadcrumbs(report, workspaces, relatedTask?.id || null)}
+        onNavigate={onNavigateRecord}
+        onSelectCase={(reportId) => {
+          const foundReport = artifacts.find((artifact) => artifact.id === reportId);
+          if (foundReport) {
+            onViewReport(foundReport);
+          }
+        }}
+        onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
+        onInvestigateHeadline={(request) =>
+          onLaunchInvestigation({ ...request, switchToView: true })
         }
-      }}
-      onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-      onInvestigateHeadline={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-      onOpenChat={onOpenChat}
-    />
+        onOpenChat={onOpenChat}
+      />
+    </Suspense>
   );
 };
 
@@ -234,24 +269,28 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   }
 
   return (
-    <OperationView
-      task={task}
-      reportOverride={report}
-      onBack={onBack}
-      onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-      onBatchDeepDive={onBatchInvestigate}
-      navStack={buildBreadcrumbs(report, workspaces, task.id)}
-      onNavigate={onNavigateRecord}
-      onSelectCase={(reportId) => {
-        const foundReport = artifacts.find((artifact) => artifact.id === reportId);
-        if (foundReport) {
-          onViewReport(foundReport);
+    <Suspense fallback={<RouteViewFallback />}>
+      <OperationView
+        task={task}
+        reportOverride={report}
+        onBack={onBack}
+        onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
+        onBatchDeepDive={onBatchInvestigate}
+        navStack={buildBreadcrumbs(report, workspaces, task.id)}
+        onNavigate={onNavigateRecord}
+        onSelectCase={(reportId) => {
+          const foundReport = artifacts.find((artifact) => artifact.id === reportId);
+          if (foundReport) {
+            onViewReport(foundReport);
+          }
+        }}
+        onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
+        onInvestigateHeadline={(request) =>
+          onLaunchInvestigation({ ...request, switchToView: true })
         }
-      }}
-      onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-      onInvestigateHeadline={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-      onOpenChat={onOpenChat}
-    />
+        onOpenChat={onOpenChat}
+      />
+    </Suspense>
   );
 };
 
@@ -282,7 +321,13 @@ export const ChatRouteView: React.FC<ChatRouteViewProps> = ({
   }
 
   return (
-    <Chat onLaunchInvestigation={(request) => onLaunchInvestigation({ ...request, switchToView: true })} />
+    <Suspense fallback={<RouteViewFallback />}>
+      <Chat
+        onLaunchInvestigation={(request) =>
+          onLaunchInvestigation({ ...request, switchToView: true })
+        }
+      />
+    </Suspense>
   );
 };
 
@@ -329,11 +374,13 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
   }
 
   return (
-    <WorkspaceBoard
-      onOpenReport={onViewReport}
-      onOpenChat={onOpenChat}
-      onLaunchInvestigation={onLaunchInvestigation}
-    />
+    <Suspense fallback={<RouteViewFallback />}>
+      <WorkspaceBoard
+        onOpenReport={onViewReport}
+        onOpenChat={onOpenChat}
+        onLaunchInvestigation={onLaunchInvestigation}
+      />
+    </Suspense>
   );
 };
 
@@ -351,7 +398,11 @@ export const TimelineRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
     }
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
-  return <TimelineView onOpenReport={onViewReport} onOpenChat={onOpenChat} />;
+  return (
+    <Suspense fallback={<RouteViewFallback />}>
+      <TimelineView onOpenReport={onViewReport} onOpenChat={onOpenChat} />
+    </Suspense>
+  );
 };
 
 export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
@@ -370,10 +421,14 @@ export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
   return (
-    <NetworkGraph
-      onOpenReport={onViewReport}
-      onInvestigateEntity={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-      onOpenChat={onOpenChat}
-    />
+    <Suspense fallback={<RouteViewFallback />}>
+      <NetworkGraph
+        onOpenReport={onViewReport}
+        onInvestigateEntity={(request) =>
+          onLaunchInvestigation({ ...request, switchToView: true })
+        }
+        onOpenChat={onOpenChat}
+      />
+    </Suspense>
   );
 };

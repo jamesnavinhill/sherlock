@@ -14,6 +14,8 @@ const LocationProbe = () => {
   return <div data-testid="location">{location.pathname}{location.search}</div>;
 };
 
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+
 describe('TimelineView route state', () => {
   beforeEach(() => {
     useWorkspaceStore.setState({
@@ -58,7 +60,10 @@ describe('TimelineView route state', () => {
 
   it('hydrates the search input from URL state and writes updates back to the URL', async () => {
     render(
-      <MemoryRouter initialEntries={['/workspaces/case-1/timeline?search=alpha+signal']}>
+      <MemoryRouter
+        future={routerFuture}
+        initialEntries={['/workspaces/case-1/timeline?search=alpha+signal']}
+      >
         <Routes>
           <Route
             path="/workspaces/:workspaceId/timeline"
@@ -87,7 +92,7 @@ describe('TimelineView route state', () => {
 
   it('navigates to the selected workspace timeline route from the workspace selector', async () => {
     render(
-      <MemoryRouter initialEntries={['/workspaces/case-1/timeline']}>
+      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/case-1/timeline']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/timeline"

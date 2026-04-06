@@ -285,6 +285,22 @@ describe('caseStore', () => {
     });
   });
 
+  it('rolls back optimistic task state when task persistence fails', async () => {
+    vi.mocked(TaskRepository.create).mockRejectedValueOnce(new Error('sqlite unavailable'));
+
+    await expect(
+      useWorkspaceStore.getState().addTask({
+        id: 'task-fail',
+        topic: 'Rollback test',
+        status: 'RUNNING',
+        startTime: Date.now(),
+        config: {},
+      })
+    ).rejects.toThrow('sqlite unavailable');
+
+    expect(useWorkspaceStore.getState().workspaceRuns).toEqual([]);
+  });
+
   it('should link a signal to its saved artifact when archive lineage is present', async () => {
     const store = useWorkspaceStore.getState();
     store.setWorkspaces([

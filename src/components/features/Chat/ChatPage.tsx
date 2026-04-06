@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import type {
   AgentAction,
+  Artifact,
   ChatMessage,
   ChatSession,
   InvestigationLaunchRequest,
@@ -64,6 +65,9 @@ import { GuidedRunBuilder } from './GuidedRunBuilder';
 import { TaskSetupModal } from '../Runs/TaskSetupModal';
 import { Accordion } from '../../ui/Accordion';
 import { EmptyState } from '../../ui/EmptyState';
+import { ConfirmDialog } from '../../ui/ConfirmDialog';
+import { ModalShell } from '../../ui/ModalShell';
+import { TextPromptDialog } from '../../ui/TextPromptDialog';
 import { sanitizeDisplayTitle } from '../../../domain';
 import { buildWorkspaceItemReference } from '../../../services/workspace/library';
 import { buildWorkspaceExcerptItemFromAttachment } from '../../../services/workspace/promotions';
@@ -86,6 +90,22 @@ import {
 
 interface ChatProps {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
+}
+
+interface RenameSessionDialogState {
+  session: ChatSession;
+  title: string;
+}
+
+interface AppendArtifactDialogState {
+  message: ChatMessage;
+  selectedReportId: string;
+}
+
+interface FollowUpDialogState {
+  request: InvestigationLaunchRequest;
+  action: AgentAction;
+  topic: string;
 }
 
 export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
@@ -131,6 +151,14 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [renameSessionDialog, setRenameSessionDialog] = useState<RenameSessionDialogState | null>(
+    null
+  );
+  const [deleteSessionDialog, setDeleteSessionDialog] = useState<ChatSession | null>(null);
+  const [appendArtifactDialog, setAppendArtifactDialog] = useState<AppendArtifactDialogState | null>(
+    null
+  );
+  const [followUpDialog, setFollowUpDialog] = useState<FollowUpDialogState | null>(null);
   const [expandedArtifactIds, setExpandedArtifactIds] = useState<Record<string, boolean>>({});
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamedAnswerRef = useRef('');
@@ -242,6 +270,14 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   const workspaceReports = useMemo(
     () => artifacts.filter((artifact) => artifact.caseId === activeWorkspace?.id),
     [activeWorkspace?.id, artifacts]
+  );
+  const appendableWorkspaceReports = useMemo(
+    () =>
+      workspaceReports.filter(
+        (artifact): artifact is Artifact & { id: string } =>
+          typeof artifact.id === 'string' && artifact.id.length > 0
+      ),
+    [workspaceReports]
   );
   const workspaceSignals = useMemo(
     () => headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
@@ -412,18 +448,39 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   };
 
   const handleRenameSession = async (session: ChatSession) => {
-    const nextTitle = window.prompt('Rename chat session', session.title);
-    if (!nextTitle) return;
-    await renameChatSession(session.id, nextTitle);
+    setRenameSessionDialog({ session, title: session.title });
   };
 
   const handleDeleteSession = async (session: ChatSession) => {
-    const confirmed = window.confirm(`Delete "${getSessionTitle(session)}"?`);
-    if (!confirmed) return;
-    await deleteChatSession(session.id);
-    if (activeWorkspace && session.id === activeSession?.id) {
+    setDeleteSessionDialog(session);
+  };
+
+  const handleConfirmRenameSession = async () => {
+    if (!renameSessionDialog) return;
+
+    const nextTitle = renameSessionDialog.title.trim();
+    if (!nextTitle) {
+      addToast('Enter a session title before saving.', 'ERROR');
+      return;
+    }
+
+    await renameChatSession(renameSessionDialog.session.id, nextTitle);
+    setRenameSessionDialog(null);
+    addToast('Renamed chat session.', 'SUCCESS');
+  };
+
+  const handleConfirmDeleteSession = async () => {
+    if (!deleteSessionDialog) return;
+
+    const deletedSession = deleteSessionDialog;
+    await deleteChatSession(deletedSession.id);
+    setDeleteSessionDialog(null);
+
+    if (activeWorkspace?.id && activeChatSessionId === deletedSession.id) {
       navigate(buildWorkspaceChatPath(activeWorkspace.id));
     }
+
+    addToast('Deleted chat session.', 'SUCCESS');
   };
 
   const handleStopGeneration = () => {
@@ -561,32 +618,38 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   };
 
   const handleAppendMessageToArtifact = async (message: ChatMessage) => {
-    if (!activeSession || workspaceReports.length === 0) {
+    if (!activeSession || appendableWorkspaceReports.length === 0) {
       addToast('Save an artifact in this workspace before appending chat notes.', 'ERROR');
       return;
     }
 
-    const prompt = workspaceReports
-      .map((report, index) => `${index + 1}. ${report.topic}`)
-      .join('\n');
-    const rawSelection = window.prompt(`Append this note to which artifact?\n\n${prompt}`, '1');
-    const index = Number(rawSelection || '0') - 1;
-    const selectedReport = workspaceReports[index];
+    setAppendArtifactDialog({
+      message,
+      selectedReportId: appendableWorkspaceReports[0]?.id || '',
+    });
+  };
 
-    if (!selectedReport?.id) return;
+  const handleConfirmAppendMessageToArtifact = async () => {
+    if (!appendArtifactDialog || !activeSession) return;
+
+    const targetReport = appendableWorkspaceReports.find(
+      (artifact) => artifact.id === appendArtifactDialog.selectedReportId
+    );
+    if (!targetReport) {
+      addToast('Select a valid artifact before appending this note.', 'ERROR');
+      return;
+    }
 
     const { section, action } = buildArtifactAppendFromChatMessage({
       session: activeSession,
-      report: {
-        id: selectedReport.id,
-        topic: selectedReport.topic,
-      },
-      message,
+      report: targetReport,
+      message: appendArtifactDialog.message,
     });
 
-    await appendSectionToReport(selectedReport.id, section);
+    await appendSectionToReport(targetReport.id, section);
     await addChatAction(action);
-    addToast(`Appended a chat note to ${selectedReport.topic}.`, 'SUCCESS');
+    setAppendArtifactDialog(null);
+    addToast(`Added this chat note to ${targetReport.topic}.`, 'SUCCESS');
   };
 
   const handleLaunchFollowUp = async (message: ChatMessage) => {
@@ -597,21 +660,34 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
       message,
       workspaceIntent: 'CURRENT',
     });
-    const nextTopic = window.prompt('Follow-up run topic', suggestedTopic);
-    if (!nextTopic?.trim()) return;
+    setFollowUpDialog({
+      request,
+      action,
+      topic: suggestedTopic,
+    });
+  };
+
+  const handleConfirmLaunchFollowUp = async () => {
+    if (!followUpDialog) return;
+
+    const nextTopic = followUpDialog.topic.trim();
+    if (!nextTopic) {
+      addToast('Enter a follow-up topic before launching the run.', 'ERROR');
+      return;
+    }
 
     onLaunchInvestigation({
-      ...request,
-      topic: nextTopic.trim(),
+      ...followUpDialog.request,
+      topic: nextTopic,
     });
     await addChatAction({
-      ...action,
+      ...followUpDialog.action,
       input: {
-        ...(action.input || {}),
-        topic: nextTopic.trim(),
+        ...(followUpDialog.action.input || {}),
+        topic: nextTopic,
       },
     });
-    addToast(`Launching follow-up run: ${nextTopic.trim()}`, 'INFO');
+    setFollowUpDialog(null);
   };
 
   const handleAdvanceGuided = async (nextDraft: GuidedRunDraft) => {
@@ -1538,6 +1614,108 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             });
             setShowNewProjectModal(false);
           }}
+        />
+      )}
+
+      {renameSessionDialog && (
+        <TextPromptDialog
+          title="Rename Chat Session"
+          description="Choose a clearer session title for this workspace thread."
+          label="Session Title"
+          value={renameSessionDialog.title}
+          onChange={(value) =>
+            setRenameSessionDialog((current) => (current ? { ...current, title: value } : current))
+          }
+          onClose={() => setRenameSessionDialog(null)}
+          onConfirm={() => void handleConfirmRenameSession()}
+          confirmLabel="Save Title"
+          placeholder="Session title"
+        />
+      )}
+
+      {deleteSessionDialog && (
+        <ConfirmDialog
+          title="Delete Chat Session"
+          description={`Delete "${deleteSessionDialog.title}" and its message history from this workspace?`}
+          confirmLabel="Delete Session"
+          tone="danger"
+          onClose={() => setDeleteSessionDialog(null)}
+          onConfirm={() => void handleConfirmDeleteSession()}
+        />
+      )}
+
+      {appendArtifactDialog && (
+        <ModalShell
+          title="Append Chat Note"
+          description="Choose which saved artifact should receive this chat note as a new custom section."
+          onClose={() => setAppendArtifactDialog(null)}
+          widthClassName="max-w-lg"
+          footer={
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setAppendArtifactDialog(null)}
+                className="border border-zinc-700 px-4 py-2 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void handleConfirmAppendMessageToArtifact()}
+                className="osint-button-primary px-4 py-2 text-xs font-mono uppercase"
+              >
+                Append Note
+              </button>
+            </div>
+          }
+        >
+          <label
+            htmlFor="append-artifact-select"
+            className="block text-xs font-mono uppercase text-zinc-400"
+          >
+            Target Artifact
+          </label>
+          <select
+            id="append-artifact-select"
+            value={appendArtifactDialog.selectedReportId}
+            onChange={(event) =>
+              setAppendArtifactDialog((current) =>
+                current ? { ...current, selectedReportId: event.target.value } : current
+              )
+            }
+            className="mt-3 w-full border border-zinc-700 bg-black px-3 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
+          >
+            {appendableWorkspaceReports.map((artifact) => (
+              <option key={artifact.id} value={artifact.id}>
+                {artifact.topic}
+              </option>
+            ))}
+          </select>
+          {appendableWorkspaceReports.find(
+            (artifact) => artifact.id === appendArtifactDialog.selectedReportId
+          )?.summary ? (
+            <p className="mt-4 text-xs leading-5 text-zinc-500">
+              {
+                appendableWorkspaceReports.find(
+                  (artifact) => artifact.id === appendArtifactDialog.selectedReportId
+                )?.summary
+              }
+            </p>
+          ) : null}
+        </ModalShell>
+      )}
+
+      {followUpDialog && (
+        <TextPromptDialog
+          title="Launch Follow-Up Run"
+          description="Adjust the investigation topic before launching this follow-up from chat."
+          label="Run Topic"
+          value={followUpDialog.topic}
+          onChange={(value) =>
+            setFollowUpDialog((current) => (current ? { ...current, topic: value } : current))
+          }
+          onClose={() => setFollowUpDialog(null)}
+          onConfirm={() => void handleConfirmLaunchFollowUp()}
+          confirmLabel="Launch Run"
+          placeholder="Follow-up topic"
         />
       )}
     </div>

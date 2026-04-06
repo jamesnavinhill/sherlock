@@ -2,16 +2,7 @@ import { desc, eq } from 'drizzle-orm';
 import type { BoardAgentAction, BoardAgentSession } from '@/types';
 import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { boardAgentActions, boardAgentSessions } from '../schema';
-
-const parseJson = <T>(value: string | null | undefined): T | undefined => {
-  if (!value) return undefined;
-
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return undefined;
-  }
-};
+import { parseStoredJsonOrUndefined } from './json';
 
 const mapSession = (row: typeof boardAgentSessions.$inferSelect): BoardAgentSession => ({
   id: row.id,
@@ -25,7 +16,7 @@ const mapSession = (row: typeof boardAgentSessions.$inferSelect): BoardAgentSess
   modelId: row.modelId || undefined,
   contextSnapshotId: row.contextSnapshotId || undefined,
   lastError: row.lastError || undefined,
-  metadata: parseJson<Record<string, unknown>>(row.metadataJson),
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(row.metadataJson),
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
   startedAt: row.startedAt || undefined,
@@ -39,11 +30,11 @@ const mapAction = (row: typeof boardAgentActions.$inferSelect): BoardAgentAction
   boardId: row.boardId,
   type: row.type as BoardAgentAction['type'],
   status: row.status as BoardAgentAction['status'],
-  input: parseJson<Record<string, unknown>>(row.inputJson),
-  normalizedInput: parseJson<Record<string, unknown>>(row.normalizedInputJson),
-  result: parseJson<Record<string, unknown>>(row.resultJson),
-  affectedCanonicalIds: parseJson<string[]>(row.affectedCanonicalIdsJson),
-  affectedBoardShapeIds: parseJson<string[]>(row.affectedBoardShapeIdsJson),
+  input: parseStoredJsonOrUndefined<Record<string, unknown>>(row.inputJson),
+  normalizedInput: parseStoredJsonOrUndefined<Record<string, unknown>>(row.normalizedInputJson),
+  result: parseStoredJsonOrUndefined<Record<string, unknown>>(row.resultJson),
+  affectedCanonicalIds: parseStoredJsonOrUndefined<string[]>(row.affectedCanonicalIdsJson),
+  affectedBoardShapeIds: parseStoredJsonOrUndefined<string[]>(row.affectedBoardShapeIdsJson),
   error: row.error || undefined,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,

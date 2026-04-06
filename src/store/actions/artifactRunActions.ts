@@ -44,10 +44,21 @@ export const createArtifactRunActions = ({
     }));
   },
   addWorkspaceRun: async (workspaceRun) => {
-    await TaskRepository.create(workspaceRun);
     set((state) => ({
-      workspaceRuns: [...state.workspaceRuns, workspaceRun],
+      workspaceRuns: [
+        ...state.workspaceRuns.filter((existingRun) => existingRun.id !== workspaceRun.id),
+        workspaceRun,
+      ],
     }));
+
+    try {
+      await TaskRepository.create(workspaceRun);
+    } catch (error) {
+      set((state) => ({
+        workspaceRuns: state.workspaceRuns.filter((existingRun) => existingRun.id !== workspaceRun.id),
+      }));
+      throw error;
+    }
   },
   addTask: async (task) => get().addWorkspaceRun(task),
   completeWorkspaceRun: async (id, artifact) => {

@@ -135,7 +135,7 @@ Final post-refactor parity sweep on this checkout:
 - `npm run typecheck`: passes
 - `npm run test`: passes
 - `npm run build`: passes
-- Vitest still emits React Router v7 future-flag warnings in several route-aware tests
+- Route-aware app entrypoints and tests now opt into the React Router v7 future flags, so the prior warning noise is gone
 - provider-router contract tests still emit expected `[provider-router]` debug logs during coverage
 - Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; chunk splitting was improved, but that warning is not fully eliminated yet
 

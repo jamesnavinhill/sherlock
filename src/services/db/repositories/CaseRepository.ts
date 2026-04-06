@@ -44,6 +44,7 @@ import {
 } from '../../../utils/textNormalization';
 import { createLocalId } from '../../../utils/id';
 import { getWorkspaceDataSignals } from '../../maintenance/workspaceData';
+import { parseStoredJson, parseStoredJsonOrUndefined } from './json';
 
 interface RawReportPayload {
   summary?: string;
@@ -168,7 +169,10 @@ export class CaseRepository {
       packId: row.packId || undefined,
       purposeId: row.purposeId || undefined,
       labelProfileId: row.labelProfileId || undefined,
-      metadata: row.metadataJson ? JSON.parse(row.metadataJson) : undefined,
+      metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+        row.metadataJson,
+        `workspace metadata ${row.id}`
+      ),
     }));
   }
 
@@ -191,7 +195,10 @@ export class CaseRepository {
       packId: result[0].packId || undefined,
       purposeId: result[0].purposeId || undefined,
       labelProfileId: result[0].labelProfileId || undefined,
-      metadata: result[0].metadataJson ? JSON.parse(result[0].metadataJson) : undefined,
+      metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+        result[0].metadataJson,
+        `workspace metadata ${result[0].id}`
+      ),
     };
   }
 
@@ -268,10 +275,19 @@ export class CaseRepository {
             title: followUp.title,
             actionText: followUp.actionText,
             status: followUp.status as FollowUp['status'],
-            entityRefs: followUp.entityRefsJson ? JSON.parse(followUp.entityRefsJson) : undefined,
-            sourceRefs: followUp.sourceRefsJson ? JSON.parse(followUp.sourceRefsJson) : undefined,
+            entityRefs: parseStoredJsonOrUndefined<string[]>(
+              followUp.entityRefsJson,
+              `follow-up entity refs ${followUp.id}`
+            ),
+            sourceRefs: parseStoredJsonOrUndefined<string[]>(
+              followUp.sourceRefsJson,
+              `follow-up source refs ${followUp.id}`
+            ),
             resolvedByArtifactId: followUp.resolvedByArtifactId || undefined,
-            metadata: followUp.metadataJson ? JSON.parse(followUp.metadataJson) : undefined,
+            metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+              followUp.metadataJson,
+              `follow-up metadata ${followUp.id}`
+            ),
             createdAt: followUp.createdAt,
             updatedAt: followUp.updatedAt,
           })
@@ -296,11 +312,18 @@ export class CaseRepository {
           kind: section.kind as NonNullable<Artifact['sections']>[number]['kind'],
           title: section.title,
           content: section.content || undefined,
-          items: section.itemsJson ? JSON.parse(section.itemsJson) : undefined,
+          items: parseStoredJsonOrUndefined<string[]>(
+            section.itemsJson,
+            `artifact section items ${row.id}:${section.id}`
+          ),
           order: section.sortOrder,
         }));
       const metadataPayload = row.metadataJson
-        ? (JSON.parse(row.metadataJson) as ReportMetadataPayload)
+        ? parseStoredJson<ReportMetadataPayload>(
+            row.metadataJson,
+            {},
+            `artifact metadata ${row.id}`
+          )
         : undefined;
       const evidenceRows = allEvidence
         .filter((evidence) => evidence.reportId === row.id)
@@ -314,8 +337,14 @@ export class CaseRepository {
           sourceTitle: evidence.sourceTitle || undefined,
           sourceUrl: evidence.sourceUrl || undefined,
           sectionId: evidence.sectionId || undefined,
-          tags: evidence.tagsJson ? JSON.parse(evidence.tagsJson) : undefined,
-          metadata: evidence.metadataJson ? JSON.parse(evidence.metadataJson) : undefined,
+          tags: parseStoredJsonOrUndefined<string[]>(
+            evidence.tagsJson,
+            `artifact evidence tags ${evidence.id}`
+          ),
+          metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+            evidence.metadataJson,
+            `artifact evidence metadata ${evidence.id}`
+          ),
           order: evidence.sortOrder,
         }));
 
@@ -341,7 +370,10 @@ export class CaseRepository {
         createdAt: row.createdAt,
         summary: normalizeHumanText(row.summary, { includePriority: false }),
         rawText: row.rawText || '',
-        config: row.configJson ? JSON.parse(row.configJson) : undefined,
+        config: parseStoredJsonOrUndefined<Artifact['config']>(
+          row.configJson,
+          `artifact config ${row.id}`
+        ),
         entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
         sources: reportSources.length > 0 ? reportSources : parsedSources,
         agendas: parsedAgendas,
@@ -359,7 +391,10 @@ export class CaseRepository {
         createdAt: row.createdAt,
         summary: normalizeHumanText(row.summary, { includePriority: false }),
         rawText: row.rawText || '',
-        config: row.configJson ? JSON.parse(row.configJson) : undefined,
+        config: parseStoredJsonOrUndefined<Artifact['config']>(
+          row.configJson,
+          `artifact config ${row.id}`
+        ),
         artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
         packId: row.packId || undefined,
         purposeId: row.purposeId || undefined,

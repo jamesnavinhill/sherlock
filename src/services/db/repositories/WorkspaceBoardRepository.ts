@@ -3,6 +3,7 @@ import type { WorkspaceBoard, WorkspaceBoardDocument } from '@/types';
 import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { workspaceBoardDocuments, workspaceBoards } from '../schema';
 import { BoardAgentRepository } from './BoardAgentRepository';
+import { parseStoredJson, parseStoredJsonOrUndefined } from './json';
 
 const mapBoard = (row: typeof workspaceBoards.$inferSelect): WorkspaceBoard => ({
   id: row.id,
@@ -11,7 +12,10 @@ const mapBoard = (row: typeof workspaceBoards.$inferSelect): WorkspaceBoard => (
   description: row.description || undefined,
   sortOrder: row.sortOrder,
   presentationMode: !!row.presentationMode,
-  metadata: row.metadataJson ? JSON.parse(row.metadataJson) : undefined,
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.metadataJson,
+    `workspace board metadata ${row.id}`
+  ),
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });
@@ -20,7 +24,11 @@ const mapBoardDocument = (
   row: typeof workspaceBoardDocuments.$inferSelect
 ): WorkspaceBoardDocument => ({
   boardId: row.boardId,
-  snapshot: row.snapshotJson ? JSON.parse(row.snapshotJson) : null,
+  snapshot: parseStoredJson<WorkspaceBoardDocument['snapshot']>(
+    row.snapshotJson,
+    null,
+    `workspace board snapshot ${row.boardId}`
+  ),
   updatedAt: row.updatedAt,
 });
 

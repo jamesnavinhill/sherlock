@@ -1,30 +1,39 @@
 import { eq } from 'drizzle-orm';
 import { getDB, type SherlockWriteExecutor } from '../client';
 import { tasks } from '../schema';
-import type { WorkspaceRun } from '@/types';
+import type { ArtifactType, WorkspaceRun } from '@/types';
+import { parseStoredJson } from './json';
 
 export class TaskRepository {
   static async getAll(): Promise<WorkspaceRun[]> {
     const db = getDB();
     const rows = await db.select().from(tasks);
 
-    return rows.map((row) => ({
-      id: row.id,
-      topic: row.topic,
-      status: row.status as WorkspaceRun['status'],
-      startTime: row.startTime || 0,
-      endTime: row.endTime || undefined,
-      workspaceId: row.caseId || undefined,
-      error: row.error || undefined,
-      config: row.configJson
-        ? JSON.parse(row.configJson)
-        : {
-            packId: row.packId || undefined,
-            purposeId: row.purposeId || undefined,
-            artifactType: row.artifactType || undefined,
-            labelProfileId: row.labelProfileId || undefined,
-          },
-    }));
+    return rows.map((row) => {
+      const legacyConfig: WorkspaceRun['config'] = {
+        packId: row.packId || undefined,
+        purposeId: row.purposeId || undefined,
+        artifactType: (row.artifactType as ArtifactType | null) || undefined,
+        labelProfileId: row.labelProfileId || undefined,
+      };
+
+      return {
+        id: row.id,
+        topic: row.topic,
+        status: row.status as WorkspaceRun['status'],
+        startTime: row.startTime || 0,
+        endTime: row.endTime || undefined,
+        workspaceId: row.caseId || undefined,
+        error: row.error || undefined,
+        config: row.configJson
+          ? parseStoredJson<WorkspaceRun['config']>(
+              row.configJson,
+              legacyConfig,
+              `task config ${row.id}`
+            )
+          : legacyConfig,
+      };
+    });
   }
 
   static async create(task: WorkspaceRun, db: SherlockWriteExecutor = getDB()): Promise<void> {

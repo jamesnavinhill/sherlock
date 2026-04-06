@@ -12,6 +12,7 @@ import {
   workspaceItems,
 } from '../schema';
 import { CaseRepository } from './CaseRepository';
+import { parseStoredJson, parseStoredJsonOrUndefined } from './json';
 
 const tokenize = (value: string): string[] =>
   value
@@ -69,8 +70,14 @@ const toRecentArtifact = (row: typeof reports.$inferSelect): Artifact => ({
   packId: row.packId || undefined,
   purposeId: row.purposeId || undefined,
   labelProfileId: row.labelProfileId || undefined,
-  metadata: row.metadataJson ? JSON.parse(row.metadataJson) : undefined,
-  config: row.configJson ? JSON.parse(row.configJson) : undefined,
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.metadataJson,
+    `workspace search artifact metadata ${row.id}`
+  ),
+  config: parseStoredJsonOrUndefined<Artifact['config']>(
+    row.configJson,
+    `workspace search artifact config ${row.id}`
+  ),
 });
 
 export class WorkspaceSearchRepository {
@@ -152,7 +159,11 @@ export class WorkspaceSearchRepository {
 
     sectionRows.forEach((row) => {
       const parent = row.reportId ? reportById.get(row.reportId) : undefined;
-      const items = row.itemsJson ? (JSON.parse(row.itemsJson) as string[]) : [];
+      const items = parseStoredJson<string[]>(
+        row.itemsJson,
+        [],
+        `workspace search section items ${row.reportId || 'unknown'}:${row.id}`
+      );
       const content = [row.content || '', ...items].join('\n');
       candidates.push({
         id: `CTX-SECTION-${row.id}`,
@@ -345,7 +356,10 @@ export class WorkspaceSearchRepository {
         packId: workspace.packId || undefined,
         purposeId: workspace.purposeId || undefined,
         labelProfileId: workspace.labelProfileId || undefined,
-        metadata: workspace.metadataJson ? JSON.parse(workspace.metadataJson) : undefined,
+        metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+          workspace.metadataJson,
+          `workspace search metadata ${workspace.id}`
+        ),
       },
       summary: summaryParts.join(' | '),
       recentArtifacts,

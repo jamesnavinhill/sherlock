@@ -2,6 +2,17 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../client';
 import { scopes } from '../schema';
 import type { InvestigationScope } from '@/types';
+import { parseStoredJson } from './json';
+
+type StoredScopeConfig = Omit<InvestigationScope, 'id' | 'name' | 'description' | 'isBuiltIn'>;
+
+const emptyScopeConfig: StoredScopeConfig = {
+  domainContext: '',
+  investigationObjective: '',
+  suggestedSources: [],
+  categories: [],
+  personas: [],
+};
 
 export class ScopeRepository {
   static async getAll(): Promise<InvestigationScope[]> {
@@ -12,7 +23,11 @@ export class ScopeRepository {
       id: row.id,
       name: row.name,
       description: row.description || '',
-      ...JSON.parse(row.configJson),
+      ...parseStoredJson<StoredScopeConfig>(
+        row.configJson,
+        emptyScopeConfig,
+        `scope config ${row.id}`
+      ),
       isBuiltIn: row.type === 'built-in',
     }));
   }
@@ -28,7 +43,11 @@ export class ScopeRepository {
       id: row.id,
       name: row.name,
       description: row.description || '',
-      ...JSON.parse(row.configJson),
+      ...parseStoredJson<StoredScopeConfig>(
+        row.configJson,
+        emptyScopeConfig,
+        `scope config ${row.id}`
+      ),
       isBuiltIn: row.type === 'built-in',
     };
   }

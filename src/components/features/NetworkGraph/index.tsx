@@ -17,6 +17,7 @@ import { buildWorkspaceBoardDocumentPath } from '../../../app/routes';
 import { TaskSetupModal } from '../Runs/TaskSetupModal';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EmptyState } from '../../ui/EmptyState';
+import { ConfirmDialog } from '../../ui/ConfirmDialog';
 
 // Components
 import { ControlBar } from './ControlBar';
@@ -139,6 +140,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
   // Modals
   const [showResolutionModal, setShowResolutionModal] = useState(false);
+  const [nodePendingDeletion, setNodePendingDeletion] = useState<GraphNode | null>(null);
   const [selectedLeadForAnalysis, setSelectedLeadForAnalysis] = useState<{
     text: string;
     context?: { topic: string; summary: string };
@@ -450,58 +452,70 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     setShowRightPanel(false);
   };
 
-  const handleDeleteNode = async () => {
-    if (!selectedNode) return;
-
-    const deleteMessage = selectedNode.isManual
-      ? `Delete "${selectedNode.label}" and its manual links from the graph?`
-      : `Remove "${selectedNode.label}" from the graph?`;
-    if (!window.confirm(deleteMessage)) return;
-
-    const nextManualLinks = manualLinks.filter(
-      (link) => link.source !== selectedNode.id && link.target !== selectedNode.id
-    );
-    if (nextManualLinks.length !== manualLinks.length) {
-      await setManualLinks(nextManualLinks);
-    }
-
-    if (selectedNode.isManual) {
-      await setManualNodes(manualNodes.filter((node) => node.id !== selectedNode.id));
-      const cleanupReferences = [
-        selectedNode.id,
-        selectedNode.label,
-        getDeletedNodeToken(selectedNode.id),
-        getDeletedNodeToken(selectedNode.label),
-      ];
-      await setFlaggedNodeIds(removeNodeReferences(flaggedNodeIdsArray, cleanupReferences));
-      await setHiddenNodeIds(removeNodeReferences(hiddenNodeIdsArray, cleanupReferences));
-      addToast(`Deleted ${selectedNode.label} from the graph.`, 'SUCCESS');
-    } else {
-      const nextHiddenNodeIds = Array.from(
-        new Set([
-          ...hiddenNodeIdsArray.filter(
-            (value) =>
-              value !== selectedNode.id &&
-              value !== selectedNode.label &&
-              value !== getDeletedNodeToken(selectedNode.label)
-          ),
-          getDeletedNodeToken(selectedNode.id),
-        ])
+  const confirmDeleteNode = useCallback(
+    async (node: GraphNode) => {
+      const nextManualLinks = manualLinks.filter(
+        (link) => link.source !== node.id && link.target !== node.id
       );
-      await setHiddenNodeIds(nextHiddenNodeIds);
-      addToast(`Removed ${selectedNode.label} from the graph.`, 'SUCCESS');
-    }
+      if (nextManualLinks.length !== manualLinks.length) {
+        await setManualLinks(nextManualLinks);
+      }
 
-    if (linkSourceNode?.id === selectedNode.id) {
-      setLinkSourceNode(null);
-    }
+      if (node.isManual) {
+        await setManualNodes(manualNodes.filter((manualNode) => manualNode.id !== node.id));
+        const cleanupReferences = [
+          node.id,
+          node.label,
+          getDeletedNodeToken(node.id),
+          getDeletedNodeToken(node.label),
+        ];
+        await setFlaggedNodeIds(removeNodeReferences(flaggedNodeIdsArray, cleanupReferences));
+        await setHiddenNodeIds(removeNodeReferences(hiddenNodeIdsArray, cleanupReferences));
+        addToast(`Deleted ${node.label} from the graph.`, 'SUCCESS');
+      } else {
+        const nextHiddenNodeIds = Array.from(
+          new Set([
+            ...hiddenNodeIdsArray.filter(
+              (value) =>
+                value !== node.id &&
+                value !== node.label &&
+                value !== getDeletedNodeToken(node.label)
+            ),
+            getDeletedNodeToken(node.id),
+          ])
+        );
+        await setHiddenNodeIds(nextHiddenNodeIds);
+        addToast(`Removed ${node.label} from the graph.`, 'SUCCESS');
+      }
 
-    setShowRightPanel(false);
-    setInspectorMode(null);
-    setSelectedNode(null);
-    setSelectedEntityName(null);
-    setSelectedHeadline(null);
-    setSelectedReport(null);
+      if (linkSourceNode?.id === node.id) {
+        setLinkSourceNode(null);
+      }
+
+      setShowRightPanel(false);
+      setInspectorMode(null);
+      setSelectedNode(null);
+      setSelectedEntityName(null);
+      setSelectedHeadline(null);
+      setSelectedReport(null);
+    },
+    [
+      addToast,
+      flaggedNodeIdsArray,
+      hiddenNodeIdsArray,
+      linkSourceNode?.id,
+      manualLinks,
+      manualNodes,
+      setFlaggedNodeIds,
+      setHiddenNodeIds,
+      setManualLinks,
+      setManualNodes,
+    ]
+  );
+
+  const handleDeleteNode = () => {
+    if (!selectedNode) return;
+    setNodePendingDeletion(selectedNode);
   };
 
   const handleOpenEntityChat = (entityName: string) => {
@@ -795,6 +809,26 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             void setAliases(newAliases);
           }}
           onClose={() => setShowResolutionModal(false)}
+        />
+      )}
+
+      {nodePendingDeletion && (
+        <ConfirmDialog
+          title={nodePendingDeletion.isManual ? 'Delete Manual Node' : 'Remove Graph Node'}
+          description={
+            nodePendingDeletion.isManual
+              ? `Delete "${nodePendingDeletion.label}" and its manual links from the graph?`
+              : `Remove "${nodePendingDeletion.label}" from the graph and hide it from this workspace view?`
+          }
+          confirmLabel={nodePendingDeletion.isManual ? 'Delete Node' : 'Remove Node'}
+          tone="danger"
+          onClose={() => setNodePendingDeletion(null)}
+          onConfirm={() => {
+            void (async () => {
+              await confirmDeleteNode(nodePendingDeletion);
+              setNodePendingDeletion(null);
+            })();
+          }}
         />
       )}
     </div>

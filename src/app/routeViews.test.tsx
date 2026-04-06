@@ -26,6 +26,8 @@ vi.mock('@/components/features/WorkspaceBoard', () => ({
 
 import { BoardRouteView, ChatRouteView } from './routeViews';
 
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+
 const LocationProbe = () => {
   const location = useLocation();
   return <div data-testid="location">{location.pathname}{location.search}</div>;
@@ -56,7 +58,7 @@ describe('route views', () => {
     const setActiveChatSessionId = vi.fn();
 
     render(
-      <MemoryRouter initialEntries={['/workspaces/ws-1/chat']}>
+      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/chat']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/chat"
@@ -86,7 +88,7 @@ describe('route views', () => {
 
   it('redirects invalid chat session routes back to the workspace chat landing route', async () => {
     render(
-      <MemoryRouter initialEntries={['/workspaces/ws-1/chat/missing']}>
+      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/chat/missing']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/chat/:sessionId"
@@ -114,7 +116,7 @@ describe('route views', () => {
 
   it('redirects the board landing route to the first workspace board document', async () => {
     render(
-      <MemoryRouter initialEntries={['/workspaces/ws-1/board']}>
+      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/board']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/board"
@@ -144,7 +146,7 @@ describe('route views', () => {
 
   it('redirects invalid board routes to the first valid workspace board document', async () => {
     render(
-      <MemoryRouter initialEntries={['/workspaces/ws-1/board/missing']}>
+      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/board/missing']}>
         <Routes>
           <Route
             path="/workspaces/:workspaceId/board/:boardId"

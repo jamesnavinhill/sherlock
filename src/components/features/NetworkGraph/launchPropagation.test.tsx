@@ -3,6 +3,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useWorkspaceStore } from '../../../store/caseStore';
 
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+
 vi.mock('./ControlBar', () => ({
   ControlBar: () => null,
 }));
@@ -122,7 +124,7 @@ describe('NetworkGraph launch propagation', () => {
     const onInvestigateEntity = vi.fn();
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <NetworkGraph
           onOpenReport={vi.fn()}
           onInvestigateEntity={onInvestigateEntity}
@@ -159,7 +161,7 @@ describe('NetworkGraph launch propagation', () => {
     const onOpenChat = vi.fn();
 
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <NetworkGraph
           onOpenReport={vi.fn()}
           onInvestigateEntity={vi.fn()}

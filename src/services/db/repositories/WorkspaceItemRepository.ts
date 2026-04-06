@@ -2,6 +2,7 @@ import { desc, eq } from 'drizzle-orm';
 import type { WorkspaceItem } from '@/types';
 import { getDB, type SherlockWriteExecutor } from '../client';
 import { workspaceItems } from '../schema';
+import { parseStoredJsonOrUndefined } from './json';
 
 const mapWorkspaceItem = (row: typeof workspaceItems.$inferSelect): WorkspaceItem => ({
   id: row.id,
@@ -15,9 +16,15 @@ const mapWorkspaceItem = (row: typeof workspaceItems.$inferSelect): WorkspaceIte
   fileName: row.fileName || undefined,
   sizeBytes: row.sizeBytes ?? undefined,
   previewUrl: row.previewUrl || undefined,
-  tags: row.tagsJson ? JSON.parse(row.tagsJson) : undefined,
-  provenance: row.provenanceJson ? JSON.parse(row.provenanceJson) : undefined,
-  metadata: row.metadataJson ? JSON.parse(row.metadataJson) : undefined,
+  tags: parseStoredJsonOrUndefined<string[]>(row.tagsJson, `workspace item tags ${row.id}`),
+  provenance: parseStoredJsonOrUndefined<WorkspaceItem['provenance']>(
+    row.provenanceJson,
+    `workspace item provenance ${row.id}`
+  ),
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.metadataJson,
+    `workspace item metadata ${row.id}`
+  ),
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });

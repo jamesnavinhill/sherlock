@@ -49,6 +49,7 @@ import { useWorkspaceStore } from '@/store/caseStore';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { Accordion } from '@/components/ui/Accordion';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
 import { type WorkspaceLibraryEntry } from '@/services/workspace/library';
 import {
@@ -128,6 +129,12 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   const [boardAgentPrompt, setBoardAgentPrompt] = useState('');
   const [boardAgentMessage, setBoardAgentMessage] = useState<string | null>(null);
   const [boardAgentActiveSessionId, setBoardAgentActiveSessionId] = useState<string | null>(null);
+  const [boardPendingDeletion, setBoardPendingDeletion] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [libraryItemPendingDeletion, setLibraryItemPendingDeletion] =
+    useState<WorkspaceLibraryEntry | null>(null);
   const [selectedEntries, setSelectedEntries] = useState<WorkspaceLibraryEntry[]>([]);
   const [librarySections, setLibrarySections] = useState({
     created: false,
@@ -300,15 +307,51 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     editorRef.current.user.updateUserPreferences({ colorScheme: themeMode });
   }, [themeMode]);
 
+  const clearPendingSaveTimeout = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+  }, []);
+
+  const persistBoardSnapshot = useCallback(
+    async (editor: Editor, boardId: string) => {
+      try {
+        await saveWorkspaceBoardDocument({
+          boardId,
+          snapshot: getSnapshot(editor.store) as unknown,
+          updatedAt: Date.now(),
+        });
+      } catch (error) {
+        console.error(`Failed to save board ${boardId}`, error);
+        addToast('Unable to save the latest board changes.', 'ERROR');
+      }
+    },
+    [addToast, saveWorkspaceBoardDocument]
+  );
+
+  const persistCurrentBoardDocument = useCallback(async () => {
+    if (!editorRef.current || !activeBoard) return;
+    clearPendingSaveTimeout();
+    await persistBoardSnapshot(editorRef.current, activeBoard.id);
+  }, [activeBoard, clearPendingSaveTimeout, persistBoardSnapshot]);
+
   useEffect(
     () => () => {
       boardAgentAbortRef.current?.abort();
-      if (saveTimeoutRef.current) {
-        window.clearTimeout(saveTimeoutRef.current);
-      }
+      void persistCurrentBoardDocument();
     },
-    []
+    [persistCurrentBoardDocument]
   );
+
+  useEffect(() => {
+    const handlePageHide = () => {
+      void persistCurrentBoardDocument();
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    return () => window.removeEventListener('pagehide', handlePageHide);
+  }, [persistCurrentBoardDocument]);
 
   useEffect(() => {
     if (boardAgentBusy) return;
@@ -323,19 +366,14 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     (editor: Editor) => {
       if (!activeBoard) return;
 
-      if (saveTimeoutRef.current) {
-        window.clearTimeout(saveTimeoutRef.current);
-      }
+      clearPendingSaveTimeout();
 
       saveTimeoutRef.current = window.setTimeout(async () => {
-        await saveWorkspaceBoardDocument({
-          boardId: activeBoard.id,
-          snapshot: getSnapshot(editor.store) as unknown,
-          updatedAt: Date.now(),
-        });
+        saveTimeoutRef.current = null;
+        await persistBoardSnapshot(editor, activeBoard.id);
       }, 550);
     },
-    [activeBoard, saveWorkspaceBoardDocument]
+    [activeBoard, clearPendingSaveTimeout, persistBoardSnapshot]
   );
 
   const syncSelection = useCallback(
@@ -358,6 +396,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
 
   const handleEditorMount = useCallback(
     (editor: Editor) => {
+      const mountedBoardId = activeBoard?.id || null;
       editorRef.current = editor;
       editor.user.updateUserPreferences({ colorScheme: themeMode });
       editor.updateInstanceState({ isReadonly: !!activeBoard?.presentationMode });
@@ -379,28 +418,39 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       return () => {
         removeSelectionListener();
         removeDocumentListener();
-        if (saveTimeoutRef.current) {
-          window.clearTimeout(saveTimeoutRef.current);
+        if (mountedBoardId) {
+          void persistBoardSnapshot(editor, mountedBoardId);
+        } else {
+          clearPendingSaveTimeout();
         }
         editorRef.current = null;
       };
     },
-    [activeBoard?.presentationMode, scheduleSave, syncSelection, themeMode]
+    [
+      activeBoard?.id,
+      activeBoard?.presentationMode,
+      clearPendingSaveTimeout,
+      persistBoardSnapshot,
+      scheduleSave,
+      syncSelection,
+      themeMode,
+    ]
   );
 
   const handleCreateBoard = async () => {
     if (!activeWorkspace) return;
+    await persistCurrentBoardDocument();
     const board = await createWorkspaceBoard({ workspaceId: activeWorkspace.id });
     navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
   };
 
   const handleDeleteBoard = async () => {
     if (!activeBoard || availableBoards.length <= 1) return;
-    if (!window.confirm(`Delete "${activeBoard.name}"?`)) return;
-    await deleteWorkspaceBoard(activeBoard.id);
+    setBoardPendingDeletion({ id: activeBoard.id, name: activeBoard.name });
   };
 
-  const handleWorkspaceChange = (workspaceId: string) => {
+  const handleWorkspaceChange = async (workspaceId: string) => {
+    await persistCurrentBoardDocument();
     setActiveWorkspaceId(workspaceId || null);
     if (workspaceId) {
       navigate(buildWorkspaceBoardPath(workspaceId));
@@ -648,15 +698,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     }
   };
 
-  const persistCurrentBoardDocument = useCallback(async () => {
-    if (!editorRef.current || !activeBoard) return;
-    await saveWorkspaceBoardDocument({
-      boardId: activeBoard.id,
-      snapshot: getSnapshot(editorRef.current.store) as unknown,
-      updatedAt: Date.now(),
-    });
-  }, [activeBoard, saveWorkspaceBoardDocument]);
-
   const handleCancelBoardAgent = useCallback(() => {
     boardAgentAbortRef.current?.abort();
     boardAgentAbortRef.current = null;
@@ -783,11 +824,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     [boardAgentBusy, boardAgentPrompt, handleRunBoardAgent]
   );
 
-  const handleDeleteCreatedItem = useCallback(
+  const confirmDeleteCreatedItem = useCallback(
     async (entry: WorkspaceLibraryEntry) => {
-      if (entry.refKind !== 'WORKSPACE_ITEM') return;
-      if (!window.confirm(`Delete "${entry.title}" from the library?`)) return;
-
       if (editorRef.current) {
         const shapeIds = editorRef.current.store.allRecords().flatMap((record) => {
           if (record.typeName !== 'shape') return [];
@@ -816,6 +854,11 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     },
     [addToast, deleteWorkspaceItem]
   );
+
+  const handleDeleteCreatedItem = useCallback((entry: WorkspaceLibraryEntry) => {
+    if (entry.refKind !== 'WORKSPACE_ITEM') return;
+    setLibraryItemPendingDeletion(entry);
+  }, []);
 
   const handleOpenSelectedChat = () => {
     if (!activeWorkspace) return;
@@ -909,13 +952,23 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       id: 'board-open-timeline',
       label: 'Timeline',
       icon: Clock3,
-      onClick: () => navigate(buildWorkspaceTimelinePath(activeWorkspace.id)),
+      onClick: () => {
+        void (async () => {
+          await persistCurrentBoardDocument();
+          navigate(buildWorkspaceTimelinePath(activeWorkspace.id));
+        })();
+      },
     });
     inspectorActions.push({
       id: 'board-open-network',
       label: 'Network Graph',
       icon: Network,
-      onClick: () => navigate(buildWorkspaceNetworkPath(activeWorkspace.id)),
+      onClick: () => {
+        void (async () => {
+          await persistCurrentBoardDocument();
+          navigate(buildWorkspaceNetworkPath(activeWorkspace.id));
+        })();
+      },
     });
   }
 
@@ -1316,7 +1369,10 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               value={activeBoard?.id || ''}
               onChange={(value) => {
                 if (!activeWorkspace || !value) return;
-                navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, value));
+                void (async () => {
+                  await persistCurrentBoardDocument();
+                  navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, value));
+                })();
               }}
               triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
               menuClassName="z-[12020]"
@@ -1648,6 +1704,38 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {boardPendingDeletion && (
+        <ConfirmDialog
+          title="Delete Board"
+          description={`Delete "${boardPendingDeletion.name}" and its saved board document? This removes this board and its board-agent session history, but keeps the rest of the workspace intact.`}
+          confirmLabel="Delete Board"
+          tone="danger"
+          onClose={() => setBoardPendingDeletion(null)}
+          onConfirm={() => {
+            void (async () => {
+              await deleteWorkspaceBoard(boardPendingDeletion.id);
+              setBoardPendingDeletion(null);
+            })();
+          }}
+        />
+      )}
+
+      {libraryItemPendingDeletion && (
+        <ConfirmDialog
+          title="Delete Library Item"
+          description={`Delete "${libraryItemPendingDeletion.title}" from the workspace library and remove matching cards from the active board?`}
+          confirmLabel="Delete Item"
+          tone="danger"
+          onClose={() => setLibraryItemPendingDeletion(null)}
+          onConfirm={() => {
+            void (async () => {
+              await confirmDeleteCreatedItem(libraryItemPendingDeletion);
+              setLibraryItemPendingDeletion(null);
+            })();
+          }}
+        />
       )}
     </div>
   );
