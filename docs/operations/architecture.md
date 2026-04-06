@@ -452,8 +452,10 @@ Task setup and template flows now expose:
 Tests are currently concentrated in:
 
 - route contract and route-wrapper canonicalization tests
+- workspace-home landing canonicalization tests for artifact, board, and `/files` fallbacks
 - timeline route-state and view-model seams
 - workspace-board view-model seams
+- extracted chat helper seams for launch-context summaries, guided-session metadata, and manual setup seeds
 - provider parsing/contract tests
 - provider router chat dispatch tests
 - launch propagation tests across feature entry points
@@ -463,6 +465,7 @@ See:
 
 - `src/app/routes.test.ts`
 - `src/app/routeViews.test.tsx`
+- `src/components/features/Chat/chatPageUtils.test.ts`
 - `src/components/features/Timeline/timelineRouteState.test.ts`
 - `src/components/features/Timeline/timelineViewModel.test.ts`
 - `src/components/features/TimelineView.test.tsx`
@@ -472,7 +475,16 @@ See:
 - `src/store/caseStore.test.ts`
 - `src/config/systemConfig.test.ts`
 
-## 9. Notable Constraints
+## 9. Bundle Review Checkpoint
+
+Slice 7 closes with a documented bundle-review checkpoint instead of relying on build warnings as incidental output:
+
+- run `npm run build` for shipped app changes, route changes, shared runtime changes, or shared UI changes
+- treat any new Vite chunk warning as a regression until it is explained or reduced
+- the currently known warning is the remaining `vendor-tldraw-app` chunk crossing Vite's `500 kB` warning threshold from `vite.config.ts`
+- if that known warning changes materially or any additional chunk starts warning, call it out in the handoff/PR notes with the exact chunk name
+
+## 10. Notable Constraints
 
 - Timeline is now a live feature surface with exportable timeline snapshots, while secondary chronology remains intentionally curated and lower-signal graph/chat audit traces stay out of the main stream.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.

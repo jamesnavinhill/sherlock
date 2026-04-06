@@ -127,17 +127,18 @@ npm run check:full
 
 `npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
-## Current Validation Snapshot (April 5, 2026)
+## Current Validation Snapshot (April 6, 2026)
 
-Final post-refactor parity sweep on this checkout:
+Slice-7 closeout sweep on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run test`: passes
 - `npm run build`: passes
-- Route-aware app entrypoints and tests now opt into the React Router v7 future flags, so the prior warning noise is gone
+- route wrappers now have direct regression coverage for workspace-home, chat, and board canonicalization
+- extracted pure seams now have focused tests for Timeline and Workspace Board view-models plus Chat helper state shaping
 - provider-router contract tests still emit expected `[provider-router]` debug logs during coverage
-- Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; chunk splitting was improved, but that warning is not fully eliminated yet
+- Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; slice 7 now treats that as a documented review checkpoint rather than silent noise
 
 ## Documentation Index
 
@@ -150,6 +151,7 @@ Final post-refactor parity sweep on this checkout:
 - `docs/operations/SOURCES.md`
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
+- `docs/plans/08-cross-feature-refactor-slice-plan.md`
 - `docs/plans/2026-04-05-post-refactor-completion-plan.md`
 
 Historical plans and reports live under `docs/_legacy/`.
