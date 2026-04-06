@@ -30,6 +30,7 @@ import type { AIProvider } from '@/config/aiModels';
 import { AI_PROVIDERS } from '@/config/aiModels';
 import { getEntityToneClass } from '@/utils/entityPalette';
 import { OpenRouterModelBrowser } from '@/components/ui/OpenRouterModelBrowser';
+import { ThinkingBudgetControl } from './ThinkingBudgetControl';
 import {
   type TaskSetupConfigOverride,
   useTaskSetupState,
@@ -607,27 +608,13 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
         </section>
       </div>
 
-      <div className="border border-zinc-800 bg-zinc-900/30 p-4">
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
-          <Cpu className="w-3 h-3 mr-2" />
-          Thinking Budget ({supportsThinkingBudget ? thinkingBudget : 0})
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={8192}
-          step={512}
-          value={supportsThinkingBudget ? thinkingBudget : 0}
-          onChange={(event) => setThinkingBudget(Number(event.target.value))}
-          disabled={!supportsThinkingBudget}
-          className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
-        />
-        <p className="text-[10px] text-zinc-600 mt-2 font-mono">
-          {supportsThinkingBudget
-            ? 'Controls reasoning budget for compatible models.'
-            : `${selectedProviderMeta?.label || selectedProvider} ignores this setting.`}
-        </p>
-      </div>
+      <ThinkingBudgetControl
+        providerLabel={selectedProviderMeta?.label || selectedProvider}
+        supportsThinkingBudget={supportsThinkingBudget}
+        value={thinkingBudget}
+        onChange={setThinkingBudget}
+        className="border border-zinc-800 bg-zinc-900/30 p-4"
+      />
 
       <div className="pt-6 border-t border-zinc-800">
         <label className="flex items-center space-x-3 cursor-pointer group">

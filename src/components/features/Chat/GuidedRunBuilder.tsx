@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import {
-  Brain,
   ChevronLeft,
   ChevronRight,
   Cpu,
@@ -16,12 +15,6 @@ import {
 import type { Workspace, GraphNodeSubtype, InvestigationScope } from '@/types';
 import {
   AI_PROVIDERS,
-  getCompactModelChoicesForProvider,
-  getDefaultModelForProvider,
-  getEffectiveModelCapabilities,
-  getModelProvider,
-  getProviderOptionById,
-  getRuntimeReadyModelsForProvider,
   recordRecentModelSelection,
 } from '../../../config/aiModels';
 import { getAllScopes } from '../../../data/presets';
@@ -35,6 +28,11 @@ import {
 import { OsintSelect } from '../../ui/OsintSelect';
 import { createLocalId } from '../../../utils/id';
 import { OpenRouterModelBrowser } from '../../ui/OpenRouterModelBrowser';
+import { ThinkingBudgetControl } from '../Runs/ThinkingBudgetControl';
+import {
+  getFallbackRuntimeModel,
+  getRuntimeConfigModelState,
+} from '../Runs/runtimeConfigOptions';
 
 interface GuidedRunBuilderProps {
   state: GuidedSessionState;
@@ -88,26 +86,15 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       getPurposeProfileById(selectedPack.defaultPurposeId),
     [draft.purposeId, selectedPack.defaultPurposeId, supportedPurposes]
   );
-  const selectableModels = useMemo(
-    () =>
-      draft.provider === 'OPENROUTER'
-        ? getCompactModelChoicesForProvider(draft.provider, draft.modelId)
-        : getRuntimeReadyModelsForProvider(draft.provider),
+  const {
+    activeModelId,
+    providerMeta,
+    selectableModels,
+    selectedModelCapabilities,
+  } = useMemo(
+    () => getRuntimeConfigModelState(draft.provider, draft.modelId),
     [draft.modelId, draft.provider]
   );
-  const providerMeta = getProviderOptionById(draft.provider);
-  const activeModelId = useMemo(() => {
-    if (draft.provider === 'OPENROUTER') {
-      return getModelProvider(draft.modelId) === 'OPENROUTER'
-        ? draft.modelId
-        : selectableModels[0]?.id || getDefaultModelForProvider(draft.provider);
-    }
-
-    return selectableModels.some((model) => model.id === draft.modelId)
-      ? draft.modelId
-      : selectableModels[0]?.id || getDefaultModelForProvider(draft.provider);
-  }, [draft.modelId, draft.provider, selectableModels]);
-  const selectedModelCapabilities = getEffectiveModelCapabilities(activeModelId);
   const currentStepIndex = GUIDED_STEP_ORDER.indexOf(state.step);
 
   const canAdvance = useMemo(() => {
@@ -131,14 +118,10 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
   };
 
   const handleProviderChange = (provider: GuidedRunDraft['provider']) => {
-    const nextModelChoices =
-      provider === 'OPENROUTER'
-        ? getCompactModelChoicesForProvider(provider)
-        : getRuntimeReadyModelsForProvider(provider);
     setDraft((current) => ({
       ...current,
       provider,
-      modelId: nextModelChoices[0]?.id || getDefaultModelForProvider(provider),
+      modelId: getFallbackRuntimeModel(provider),
     }));
   };
 
@@ -546,35 +529,21 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
             </button>
           </div>
         </div>
-        <label className="block">
-          <span className="mb-2 flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-            <Brain
-              className={`h-4 w-4 ${selectedModelCapabilities.supportsThinkingBudget ? 'text-osint-primary' : 'text-zinc-600'}`}
-            />
-            Thinking Budget (
-            {selectedModelCapabilities.supportsThinkingBudget ? draft.thinkingBudget : 0})
-          </span>
-          <input
-            type="range"
-            min={0}
-            max={8192}
-            step={512}
-            disabled={!selectedModelCapabilities.supportsThinkingBudget}
-            value={selectedModelCapabilities.supportsThinkingBudget ? draft.thinkingBudget : 0}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                thinkingBudget: Number(event.target.value),
-              }))
-            }
-            className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
-          />
-          <p className="mt-2 text-[11px] text-zinc-500">
-            {selectedModelCapabilities.supportsThinkingBudget
-              ? 'Applied by the selected model.'
-              : `${providerMeta?.label || draft.provider} ignores this setting.`}
-          </p>
-        </label>
+        <ThinkingBudgetControl
+          providerLabel={providerMeta?.label || draft.provider}
+          supportsThinkingBudget={selectedModelCapabilities.supportsThinkingBudget}
+          value={draft.thinkingBudget}
+          onChange={(nextValue) =>
+            setDraft((current) => ({
+              ...current,
+              thinkingBudget: nextValue,
+            }))
+          }
+          className="block"
+          labelClassName="mb-2 flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500"
+          helpClassName="mt-2 text-[11px] text-zinc-500"
+          supportedHint="Applied by the selected model."
+        />
       </div>
     </div>
   );

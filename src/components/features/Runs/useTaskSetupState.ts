@@ -5,12 +5,7 @@ import { BUILTIN_SCOPES, getAllScopes, getScopeById } from '@/data/presets';
 import type { AIProvider } from '@/config/aiModels';
 import {
   DEFAULT_MODEL_ID,
-  getCompactModelChoicesForProvider,
-  getDefaultModelForProvider,
-  getEffectiveModelCapabilities,
   getModelProvider,
-  getProviderOptionById,
-  getRuntimeReadyModelsForProvider,
   recordRecentModelSelection,
 } from '@/config/aiModels';
 import { loadSystemConfig } from '@/config/systemConfig';
@@ -32,6 +27,11 @@ import type {
 } from '@/types';
 
 import { createTemplateMetadata } from './taskSetupUtils';
+import {
+  getFallbackRuntimeModel,
+  getRuntimeConfigModelState,
+  resolveRuntimeModelId,
+} from './runtimeConfigOptions';
 
 export type TaskSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
 
@@ -132,32 +132,17 @@ export const useTaskSetupState = ({
     getModelProvider(initialModelId)) as AIProvider;
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(initialProvider);
   const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(() => {
-    const providerModels =
-      initialProvider === 'OPENROUTER'
-        ? getCompactModelChoicesForProvider(initialProvider, initialModelId)
-        : getRuntimeReadyModelsForProvider(initialProvider);
-    return providerModels.some((model) => model.id === initialModelId) ||
-      (initialProvider === 'OPENROUTER' && getModelProvider(initialModelId) === 'OPENROUTER')
-      ? initialModelId
-      : providerModels[0]?.id || getDefaultModelForProvider(initialProvider);
-  });
+  const [selectedModel, setSelectedModel] = useState(() =>
+    resolveRuntimeModelId(initialProvider, initialModelId)
+  );
 
-  const selectableModels =
-    selectedProvider === 'OPENROUTER'
-      ? getCompactModelChoicesForProvider(selectedProvider, selectedModel)
-      : getRuntimeReadyModelsForProvider(selectedProvider);
-  const effectiveSelectedModel =
-    selectedProvider === 'OPENROUTER'
-      ? getModelProvider(selectedModel) === 'OPENROUTER'
-        ? selectedModel
-        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider)
-      : selectableModels.some((model) => model.id === selectedModel)
-        ? selectedModel
-        : selectableModels[0]?.id || getDefaultModelForProvider(selectedProvider);
-  const selectedProviderMeta = getProviderOptionById(selectedProvider);
-  const selectedModelCapabilities = getEffectiveModelCapabilities(effectiveSelectedModel);
-  const supportsThinkingBudget = selectedModelCapabilities.supportsThinkingBudget;
+  const {
+    selectableModels,
+    activeModelId: effectiveSelectedModel,
+    providerMeta: selectedProviderMeta,
+    selectedModelCapabilities,
+    supportsThinkingBudget,
+  } = getRuntimeConfigModelState(selectedProvider, selectedModel);
 
   const steps = [
     { id: 0, label: 'Pack' },
@@ -193,14 +178,11 @@ export const useTaskSetupState = ({
     setGenerationMode(template.config.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED');
     setThinkingBudget(template.config.thinkingBudget ?? 0);
     setSelectedProvider(templateProvider);
-    const templateProviderModels =
-      templateProvider === 'OPENROUTER'
-        ? getCompactModelChoicesForProvider(templateProvider, template.config.modelId)
-        : getRuntimeReadyModelsForProvider(templateProvider);
     setSelectedModel(
-      template.config.modelId ||
-        templateProviderModels[0]?.id ||
-        getDefaultModelForProvider(templateProvider)
+      resolveRuntimeModelId(
+        templateProvider,
+        template.config.modelId || getFallbackRuntimeModel(templateProvider)
+      )
     );
   };
 
@@ -240,12 +222,8 @@ export const useTaskSetupState = ({
   };
 
   const handleProviderChange = (provider: AIProvider) => {
-    const nextProviderModels =
-      provider === 'OPENROUTER'
-        ? getCompactModelChoicesForProvider(provider)
-        : getRuntimeReadyModelsForProvider(provider);
     setSelectedProvider(provider);
-    setSelectedModel(nextProviderModels[0]?.id || getDefaultModelForProvider(provider));
+    setSelectedModel(getFallbackRuntimeModel(provider));
   };
 
   const handleModelChange = (modelId: string) => {

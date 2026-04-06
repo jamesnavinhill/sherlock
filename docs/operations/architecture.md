@@ -77,6 +77,33 @@ Route wrappers now enforce the same contract at runtime:
 
 The route contract is now active runtime behavior rather than future groundwork. `AppView` still exists only as a coarse navigation label for the sidebar and route-targeting helpers, while URL-backed routing is the primary navigation mechanism.
 
+### Feature extraction contract
+
+Cross-feature refactors now follow one shared extraction pattern for routed feature surfaces:
+
+- route/page files stay responsible for route params, layout composition, and wiring feature sections together
+- `useXxxController` hooks own feature-local state, effects, command handlers, navigation handoff, and store/runtime orchestration
+- `buildXxxViewModel` modules stay pure and derive display-ready state from already-fetched inputs
+- feature section components receive narrow props and avoid reaching back into the global store unless the section is the store boundary on purpose
+- feature-local workflow UI such as dialogs, overlays, and export menus should move toward `XxxDialogs`, `XxxMenu`, or similarly named modules once the controller seam exists
+
+Use these seams deliberately:
+
+- extract to a controller hook when the code owns async flows, side effects, modal state, or cross-surface commands
+- extract to a view-model/util module when the logic is pure derivation, filtering, grouping, or label shaping
+- extract to a section component when the main page is carrying a large render subtree that can take data-in and callbacks-out
+- extract to a shared UI/runtime module only when multiple features already share the same behavior without feature-specific branching
+
+Naming is intentionally literal rather than clever:
+
+- `useChatController`
+- `useNetworkGraphController`
+- `buildTimelineViewModel`
+- `TimelineDetailRail`
+- `WorkspaceBoardDialogs`
+
+This contract is meant to keep future slice work consistent: controller for orchestration, view-model for pure derivation, sections for presentation, and shared modules only where overlap is already real.
+
 ## 2. Launch Pipeline
 
 All launches still converge through `launchInvestigation` in `src/app/useAppShellController.ts`.
@@ -275,6 +302,7 @@ The browser location is now the durable source of truth for active page identity
 - DossierPanel
 - ReportViewer
 - InspectorPanel
+- `useOperationViewController.ts` now owns route-level selection state, handoff commands, template-save flow, and board/chat orchestration while `index.tsx` stays focused on layout and modal composition
 
 Supports deep dives, follow-up execution, signal follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
@@ -334,6 +362,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 `src/components/features/NetworkGraph/*`
 
 - D3 canvas rendering
+- `src/components/features/NetworkGraph/useNetworkGraphController.ts` now owns inspector selection, graph mutations, board/chat handoffs, and modal state while `index.tsx` stays focused on composing the control bar, canvas, dossier, and inspector surfaces
 - case/report/entity node inspection
 - launch-into-chat handoff for inspected reports, entities, and headlines
 - board handoff for inspected reports, entities, and headlines
@@ -359,6 +388,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 `src/components/features/TimelineView.tsx`
 
 - routed chronology page with header search, filters popout, dossier, central event stream, and details drawer
+- `src/components/features/Timeline/useTimelineViewController.ts` now owns route-query wiring, export/save commands, board/chat handoffs, and detail action composition while `TimelineView.tsx` stays focused on route shell layout
 - timeline query parsing/serialization lives in `src/components/features/Timeline/timelineRouteState.ts`
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
 - route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
@@ -394,6 +424,7 @@ Task setup and template flows now expose:
 - compact OpenRouter quick picks plus a dedicated browser modal for full catalog/manual slug entry
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
 - wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useTaskSetupState.ts`
+- runtime-config provider/model derivation now shares `src/components/features/Runs/runtimeConfigOptions.ts` and `src/components/features/Runs/ThinkingBudgetControl.tsx` so Settings, task setup, and guided run flows apply the same model fallback and thinking-budget rules
 - the task-setup implementation now lives with the run-launch feature under `src/components/features/Runs/TaskSetupModal.tsx`, while the old UI path remains a compatibility re-export only
 
 ### Archives

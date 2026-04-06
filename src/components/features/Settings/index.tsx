@@ -13,7 +13,6 @@ import {
   RefreshCw,
   AlertTriangle,
   X,
-  Brain,
   Cpu,
   Workflow,
 } from 'lucide-react';
@@ -43,14 +42,9 @@ import type { AIProvider } from '../../../config/aiModels';
 import {
   AI_PROVIDERS,
   DEFAULT_MODEL_ID,
-  getCompactModelChoicesForProvider,
-  getDefaultModelForProvider,
-  getEffectiveModelCapabilities,
   getModelProvider,
-  getProviderOptionById,
   getModelOptionById,
   recordRecentModelSelection,
-  getRuntimeReadyModelsForProvider,
   isProviderRuntimeReady,
 } from '../../../config/aiModels';
 import { loadSystemConfig, saveSystemConfig } from '../../../config/systemConfig';
@@ -67,6 +61,11 @@ import {
 } from '../../../services/maintenance/workspaceData';
 import { clearStoredActiveWorkspaceId } from '../../../utils/localStorage';
 import { OpenRouterModelBrowser } from '../../ui/OpenRouterModelBrowser';
+import { ThinkingBudgetControl } from '../Runs/ThinkingBudgetControl';
+import {
+  getFallbackRuntimeModel,
+  getRuntimeConfigModelState,
+} from '../Runs/runtimeConfigOptions';
 import {
   clamp,
   cloneThemeSurfaceSettings,
@@ -190,22 +189,14 @@ export const Settings: React.FC<SettingsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeProvider = isProviderRuntimeReady(selectedProvider) ? selectedProvider : 'GEMINI';
-  const selectableModels =
-    activeProvider === 'OPENROUTER'
-      ? getCompactModelChoicesForProvider(activeProvider, selectedModel)
-      : getRuntimeReadyModelsForProvider(activeProvider);
-  const activeModelId =
-    activeProvider === 'OPENROUTER'
-      ? getModelProvider(selectedModel) === 'OPENROUTER'
-        ? selectedModel
-        : (selectableModels[0]?.id ?? getDefaultModelForProvider(activeProvider))
-      : selectableModels.some((model) => model.id === selectedModel)
-        ? selectedModel
-        : (selectableModels[0]?.id ?? getDefaultModelForProvider(activeProvider));
+  const {
+    activeModelId,
+    providerMeta: activeProviderMeta,
+    selectableModels,
+    selectedModelCapabilities,
+    supportsThinkingBudget,
+  } = getRuntimeConfigModelState(activeProvider, selectedModel);
   const selectedModelMeta = getModelOptionById(activeModelId);
-  const activeProviderMeta = getProviderOptionById(activeProvider);
-  const selectedModelCapabilities = getEffectiveModelCapabilities(activeModelId);
-  const supportsThinkingBudget = !!selectedModelCapabilities.supportsThinkingBudget;
 
   const toggleThemeSection = (section: keyof typeof themeSections) => {
     setThemeSections((current) => ({
@@ -1231,12 +1222,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 onChange={(value) => {
                   const nextProvider = value as AIProvider;
                   setSelectedProvider(nextProvider);
-                  const fallbackModel =
-                    (nextProvider === 'OPENROUTER'
-                      ? getCompactModelChoicesForProvider(nextProvider)
-                      : getRuntimeReadyModelsForProvider(nextProvider))[0]?.id ||
-                    getDefaultModelForProvider(nextProvider);
-                  setSelectedModel(fallbackModel);
+                  setSelectedModel(getFallbackRuntimeModel(nextProvider));
                 }}
                 triggerClassName="rounded-none py-3 pl-3 pr-8 text-xs font-mono"
                 options={AI_PROVIDERS.map((provider) => ({
@@ -1453,31 +1439,19 @@ export const Settings: React.FC<SettingsProps> = ({
               </div>
             )}
 
-            <div className="pt-2 space-y-2">
-              <div className="flex items-center space-x-2">
-                <Brain
-                  className={`w-3 h-3 ${supportsThinkingBudget ? 'text-osint-primary' : 'text-zinc-600'}`}
-                />
-                <label className="text-[10px] text-zinc-500 font-mono uppercase">
-                  Thinking Budget ({supportsThinkingBudget ? thinkingBudget : 0})
-                </label>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={8192}
-                step={512}
-                value={supportsThinkingBudget ? thinkingBudget : 0}
-                onChange={(event) => setThinkingBudget(Number(event.target.value))}
-                disabled={!supportsThinkingBudget}
-                className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
-              />
-              <p className="text-[9px] text-zinc-600 font-mono italic">
-                {supportsThinkingBudget
-                  ? 'Applied by selected model.'
-                  : `${activeProviderMeta?.label || activeProvider} does not support thinking budgets.`}
-              </p>
-            </div>
+            <ThinkingBudgetControl
+              providerLabel={activeProviderMeta?.label || activeProvider}
+              supportsThinkingBudget={supportsThinkingBudget}
+              value={thinkingBudget}
+              onChange={setThinkingBudget}
+              className="pt-2 space-y-2"
+              labelClassName="text-[10px] text-zinc-500 font-mono uppercase mb-0 flex items-center"
+              helpClassName="text-[9px] text-zinc-600 font-mono italic mt-2"
+              supportedHint="Applied by selected model."
+              unsupportedHint={`${
+                activeProviderMeta?.label || activeProvider
+              } does not support thinking budgets.`}
+            />
           </div>
         </section>
       </div>
