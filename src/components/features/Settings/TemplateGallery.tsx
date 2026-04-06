@@ -22,7 +22,6 @@ import { OsintSelect } from '../../ui/OsintSelect';
 import { BUILTIN_SCOPES, getAllScopes } from '../../../data/presets';
 import {
   DEFAULT_MODEL_ID,
-  getEffectiveModelCapabilities,
   getModelDisplayName,
   getModelProvider,
   getTemplateSelectableModels,
@@ -35,6 +34,9 @@ import {
   getPurposeProfileById,
   getStarterTemplates,
 } from '../../../domain';
+import { ThinkingBudgetControl } from '../Runs/ThinkingBudgetControl';
+import { getRuntimeConfigModelState } from '../Runs/runtimeConfigOptions';
+import { buildTemplateRuntimeConfig } from '../Runs/runtimeConfigMapping';
 
 interface TemplateGalleryProps {
   onApply: (template: CaseTemplate) => void;
@@ -70,9 +72,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     () => getTemplateSelectableModels(selectedModel),
     [selectedModel]
   );
-  const selectedModelCapabilities = useMemo(
-    () => getEffectiveModelCapabilities(selectedModel),
-    [selectedModel]
+  const selectedProvider = useMemo(() => getModelProvider(selectedModel), [selectedModel]);
+  const {
+    activeModelId,
+    selectedModelCapabilities,
+  } = useMemo(
+    () => getRuntimeConfigModelState(selectedProvider, selectedModel),
+    [selectedModel, selectedProvider]
   );
 
   const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
@@ -123,27 +129,28 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
           topic: starter.hypothesis
             ? `${starter.topic}\n\n[RUN_ANGLE]: ${starter.hypothesis}`
             : starter.topic,
-          config: {
-            provider: baseConfig.provider || getModelProvider(baseModel),
-            modelId: baseModel,
-            persona: starterScope.defaultPersona || starterScope.personas[0]?.id,
-            searchDepth: baseConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD',
-            generationMode: baseConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED',
-            thinkingBudget:
-              getEffectiveModelCapabilities(baseModel).supportsThinkingBudget &&
-              typeof baseConfig.thinkingBudget === 'number'
+          config: buildTemplateRuntimeConfig({
+            baseConfig,
+            configOverride: {
+              modelId: baseModel,
+              persona: starterScope.defaultPersona || starterScope.personas[0]?.id,
+              searchDepth: baseConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD',
+              generationMode:
+                baseConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED',
+              thinkingBudget: typeof baseConfig.thinkingBudget === 'number'
                 ? baseConfig.thinkingBudget
                 : 0,
-            packId: starterPack.id,
+            },
+            customScopes,
+            scope: starterScope,
             purposeId: starter.purposeId,
             artifactType: starter.artifactType,
-            labelProfileId: starterPack.labelProfileId,
-          },
+          }),
           scopeId: starterScope.id,
           createdAt: 0,
         }) satisfies CaseTemplate
     );
-  }, [starterPack, starterPurpose, starterScope]);
+  }, [customScopes, starterPack, starterPurpose, starterScope]);
 
   const filteredTemplates = templates.filter(
     (t) =>
@@ -226,18 +233,20 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         name: templateName.trim(),
         description: templateDescription.trim() || undefined,
         topic: combinedTopic,
-        config: {
-          provider: getModelProvider(selectedModel),
-          modelId: selectedModel,
-          persona,
-          searchDepth: depth,
-          generationMode,
-          thinkingBudget: selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0,
-          packId: selectedPack.id,
+        config: buildTemplateRuntimeConfig({
+          baseConfig: loadSystemConfig(),
+          configOverride: {
+            modelId: activeModelId,
+            persona,
+            searchDepth: depth,
+            generationMode,
+            thinkingBudget: selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0,
+          },
+          customScopes,
+          scope: selectedScope,
           purposeId: selectedPurpose.id,
           artifactType: selectedPurpose.recommendedArtifactType,
-          labelProfileId: selectedPack.labelProfileId,
-        },
+        }),
         scopeId: selectedScope.id,
         packId: selectedPack.id,
         purposeId: selectedPurpose.id,
@@ -565,7 +574,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       }))}
                     />
                     <p className="mt-2 text-[10px] font-mono text-zinc-500">
-                      {getModelDisplayName(selectedModel)} via {getModelProvider(selectedModel)}.
+                      {getModelDisplayName(activeModelId)} via {getModelProvider(activeModelId)}.
                       Thinking{' '}
                       {selectedModelCapabilities.supportsThinkingBudget ? 'enabled' : 'off'}, web
                       search {selectedModelCapabilities.supportsWebSearch ? 'enabled' : 'off'}.
@@ -645,24 +654,12 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         </button>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
-                        Thinking Budget (
-                        {selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0})
-                      </label>
-                      <input
-                        type="range"
-                        min={0}
-                        max={8192}
-                        step={512}
-                        disabled={!selectedModelCapabilities.supportsThinkingBudget}
-                        value={
-                          selectedModelCapabilities.supportsThinkingBudget ? thinkingBudget : 0
-                        }
-                        onChange={(event) => setThinkingBudget(Number(event.target.value))}
-                        className="w-full accent-[var(--osint-primary)] disabled:opacity-40"
-                      />
-                    </div>
+                    <ThinkingBudgetControl
+                      providerLabel={getModelProvider(activeModelId)}
+                      supportsThinkingBudget={selectedModelCapabilities.supportsThinkingBudget}
+                      value={thinkingBudget}
+                      onChange={setThinkingBudget}
+                    />
                   </div>
                 </div>
               )}

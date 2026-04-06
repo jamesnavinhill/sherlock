@@ -7,6 +7,7 @@ import type {
   Entity,
   GraphNodeSubtype,
   Headline,
+  InvestigationLaunchRequest,
   ManualConnection,
   ManualNode,
   Source,
@@ -44,6 +45,7 @@ const removeNodeReferences = (values: string[], references: string[]) =>
   values.filter((value) => !references.includes(value));
 
 interface NetworkGraphControllerOptions {
+  onInvestigateEntity?: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 

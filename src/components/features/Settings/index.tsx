@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import {
   Shield,
   Palette,
@@ -16,64 +16,40 @@ import {
   Cpu,
   Workflow,
 } from 'lucide-react';
-import { useWorkspaceStore } from '../../../store/caseStore';
 import { TemplateGallery } from './TemplateGallery';
 import { ScopeManager } from '../../ui/ScopeManager';
 import { Accordion } from '../../ui/Accordion';
 import { OsintSelect } from '../../ui/OsintSelect';
-import type { InvestigationLaunchRequest, SystemConfig } from '../../../types';
+import type { InvestigationLaunchRequest } from '../../../types';
 import { AccentPicker } from '../../ui/AccentPicker';
-import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../../../utils/accent';
+import { buildAccentColor } from '../../../utils/accent';
 import {
-  DEFAULT_THEME_SURFACE_SETTINGS,
   THEME_SURFACE_PRESETS,
-  type ThemeSurfaceScale,
   type ThemeSurfaceSettings,
 } from '../../../utils/themeSurfaces';
 import {
-  DEFAULT_THEME_FONT_SETTINGS,
   THEME_FONT_OPTIONS,
   getThemeFontOption,
   getThemeFontOptionsForRole,
   type ThemeFontSettings,
 } from '../../../utils/themeFonts';
-import { getAllScopes, getScopeById } from '../../../data/presets';
 import type { AIProvider } from '../../../config/aiModels';
 import {
   AI_PROVIDERS,
-  DEFAULT_MODEL_ID,
-  getModelProvider,
-  getModelOptionById,
   recordRecentModelSelection,
-  isProviderRuntimeReady,
 } from '../../../config/aiModels';
-import { loadSystemConfig, saveSystemConfig } from '../../../config/systemConfig';
-import {
-  clearApiKey as clearProviderApiKey,
-  getStoredApiKey,
-  hasApiKey as hasProviderApiKey,
-  setApiKey as setProviderApiKey,
-  validateApiKey,
-} from '../../../services/providers/keys';
-import {
-  buildWorkspaceDataBackup,
-  normalizeWorkspaceDataBackup,
-} from '../../../services/maintenance/workspaceData';
-import { clearStoredActiveWorkspaceId } from '../../../utils/localStorage';
+import { loadSystemConfig } from '../../../config/systemConfig';
 import { OpenRouterModelBrowser } from '../../ui/OpenRouterModelBrowser';
 import { ThinkingBudgetControl } from '../Runs/ThinkingBudgetControl';
+import { getFallbackRuntimeModel } from '../Runs/runtimeConfigOptions';
+import { buildLaunchRequestFromTemplate } from '../Runs/runtimeConfigMapping';
 import {
-  getFallbackRuntimeModel,
-  getRuntimeConfigModelState,
-} from '../Runs/runtimeConfigOptions';
-import {
-  clamp,
-  cloneThemeSurfaceSettings,
   FONT_ROLE_CARDS,
   getSurfacePreviewTone,
   SURFACE_LABELS,
   TABS,
 } from './settingsUtils';
+import { useSettingsController } from './useSettingsController';
 
 interface SettingsProps {
   themeColor: string;
@@ -102,447 +78,95 @@ export const Settings: React.FC<SettingsProps> = ({
   onClose,
 }) => {
   const {
-    artifacts,
-    workspaces,
-    workspaceRuns,
-    chatSessions,
-    chatMessagesBySessionId,
-    chatActionsBySessionId,
-    boardAgentSessions,
-    boardAgentActionsBySessionId,
-    headlines,
-    templates,
-    manualNodes,
-    manualLinks,
-    workspaceItems,
-    workspaceBoards,
-    workspaceBoardDocuments,
-    customScopes,
-    importWorkspaceData,
-    clearWorkspaceData,
-  } = useWorkspaceStore();
-
-  const initialConfig = loadSystemConfig();
-
-  const [activeTab, setActiveTab] = useState('GENERAL');
-  const [geminiKey, setGeminiKey] = useState(() => getStoredApiKey('GEMINI') ?? '');
-  const [openRouterKey, setOpenRouterKey] = useState(() => getStoredApiKey('OPENROUTER') ?? '');
-  const [openAIKey, setOpenAIKey] = useState(() => getStoredApiKey('OPENAI') ?? '');
-  const [anthropicKey, setAnthropicKey] = useState(() => getStoredApiKey('ANTHROPIC') ?? '');
-
-  const [showGeminiKey, setShowGeminiKey] = useState(false);
-  const [showOpenRouterKey, setShowOpenRouterKey] = useState(false);
-  const [showOpenAIKey, setShowOpenAIKey] = useState(false);
-  const [showAnthropicKey, setShowAnthropicKey] = useState(false);
-
-  const [autoResolve, setAutoResolve] = useState(initialConfig.autoNormalizeEntities ?? true);
-  const [quietMode, setQuietMode] = useState(initialConfig.quietMode ?? false);
-  const [selectedProvider, setSelectedProvider] = useState<AIProvider>(
-    isProviderRuntimeReady(initialConfig.provider) ? initialConfig.provider : 'GEMINI'
-  );
-  const [selectedModel, setSelectedModel] = useState(initialConfig.modelId ?? DEFAULT_MODEL_ID);
-  const [searchDepth, setSearchDepth] = useState<'STANDARD' | 'DEEP'>(
-    initialConfig.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD'
-  );
-  const [thinkingBudget, setThinkingBudget] = useState(
-    typeof initialConfig.thinkingBudget === 'number' ? initialConfig.thinkingBudget : 0
-  );
-  const [generationMode, setGenerationMode] = useState<'SINGLE_PASS' | 'STAGED'>(
-    initialConfig.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED'
-  );
-  const [openRouterWebSearchEnabled, setOpenRouterWebSearchEnabled] = useState(
-    initialConfig.openRouter?.webSearchEnabled !== false
-  );
-  const [openRouterEngine, setOpenRouterEngine] = useState<
-    'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel'
-  >(initialConfig.openRouter?.engine || 'auto');
-  const [openRouterMaxResults, setOpenRouterMaxResults] = useState(
-    initialConfig.openRouter?.maxResults || 5
-  );
-  const [openRouterMaxTotalResults, setOpenRouterMaxTotalResults] = useState(
-    initialConfig.openRouter?.maxTotalResults || 15
-  );
-  const [openRouterSearchContextSize, setOpenRouterSearchContextSize] = useState<
-    'low' | 'medium' | 'high'
-  >(initialConfig.openRouter?.searchContextSize || 'medium');
-  const [openRouterAllowedDomains, setOpenRouterAllowedDomains] = useState(
-    (initialConfig.openRouter?.allowedDomains || []).join(', ')
-  );
-  const [openRouterExcludedDomains, setOpenRouterExcludedDomains] = useState(
-    (initialConfig.openRouter?.excludedDomains || []).join(', ')
-  );
-  const [showOpenRouterBrowser, setShowOpenRouterBrowser] = useState(false);
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState('');
-  const [themeSections, setThemeSections] = useState({
-    accent: true,
-    fonts: true,
-    surfaces: true,
-  });
-  const [activeSurfaceMode, setActiveSurfaceMode] =
-    useState<keyof ThemeSurfaceSettings>(themeMode);
-  const [selectedSurfaceKey, setSelectedSurfaceKey] =
-    useState<keyof ThemeSurfaceScale>('panel');
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const activeProvider = isProviderRuntimeReady(selectedProvider) ? selectedProvider : 'GEMINI';
-  const {
     activeModelId,
-    providerMeta: activeProviderMeta,
+    activeProvider,
+    activeProviderMeta,
+    activeSurfaceMode,
+    activeTab,
+    anthropicKey,
+    autoResolve,
+    customScopes,
+    fileInputRef,
+    geminiKey,
+    generationMode,
+    getSurfaceBounds,
+    handleAdjustModeChroma,
+    handleAdjustModeSeparation,
+    handleApplySurfacePreset,
+    handleClearData,
+    handleClearProviderKey,
+    handleExportData,
+    handleImportJSON,
+    handleMatchAccentHue,
+    handleResetFonts,
+    handleResetSurfaceMode,
+    handleResetThemeSettings,
+    handleSaveConfiguration,
+    isSaving,
+    openAIKey,
+    openRouterAllowedDomains,
+    openRouterEngine,
+    openRouterExcludedDomains,
+    openRouterKey,
+    openRouterMaxResults,
+    openRouterMaxTotalResults,
+    openRouterSearchContextSize,
+    openRouterWebSearchEnabled,
+    quietMode,
+    saveError,
+    saveSuccess,
+    searchDepth,
     selectableModels,
     selectedModelCapabilities,
+    selectedModelMeta,
+    selectedProvider,
+    selectedSurfaceKey,
+    setActiveSurfaceMode,
+    setActiveTab,
+    setAnthropicKey,
+    setAutoResolve,
+    setGeminiKey,
+    setGenerationMode,
+    setOpenAIKey,
+    setOpenRouterAllowedDomains,
+    setOpenRouterBrowser,
+    setOpenRouterEngine,
+    setOpenRouterExcludedDomains,
+    setOpenRouterKey,
+    setOpenRouterMaxResults,
+    setOpenRouterMaxTotalResults,
+    setOpenRouterSearchContextSize,
+    setOpenRouterWebSearchEnabled,
+    setQuietMode,
+    setSearchDepth,
+    setSelectedModel,
+    setSelectedProvider,
+    setSelectedSurfaceKey,
+    setShowAnthropicKey,
+    setShowGeminiKey,
+    setShowOpenAIKey,
+    setShowOpenRouterKey,
+    setThinkingBudget,
+    showAnthropicKey,
+    showGeminiKey,
+    showOpenAIKey,
+    showOpenRouterBrowser,
+    showOpenRouterKey,
     supportsThinkingBudget,
-  } = getRuntimeConfigModelState(activeProvider, selectedModel);
-  const selectedModelMeta = getModelOptionById(activeModelId);
-
-  const toggleThemeSection = (section: keyof typeof themeSections) => {
-    setThemeSections((current) => ({
-      ...current,
-      [section]: !current[section],
-    }));
-  };
-
-  const handleClearProviderKey = (provider: AIProvider) => {
-    clearProviderApiKey(provider);
-    setSaveError('');
-    setSaveSuccess(false);
-
-    if (provider === 'GEMINI') setGeminiKey('');
-    if (provider === 'OPENROUTER') setOpenRouterKey('');
-    if (provider === 'OPENAI') setOpenAIKey('');
-    if (provider === 'ANTHROPIC') setAnthropicKey('');
-  };
-
-  const handleSaveConfiguration = () => {
-    setIsSaving(true);
-    setSaveError('');
-
-    const gemini = geminiKey.trim();
-    const openRouter = openRouterKey.trim();
-    const openAI = openAIKey.trim();
-    const anthropic = anthropicKey.trim();
-
-    const candidateKeys: Array<{ provider: AIProvider; key: string }> = [
-      { provider: 'GEMINI', key: gemini },
-      { provider: 'OPENROUTER', key: openRouter },
-      { provider: 'OPENAI', key: openAI },
-      { provider: 'ANTHROPIC', key: anthropic },
-    ];
-
-    for (const candidate of candidateKeys) {
-      if (!candidate.key) continue;
-      const validation = validateApiKey(candidate.provider, candidate.key);
-      if (!validation.isValid) {
-        setSaveError(validation.message || `Invalid ${candidate.provider} API key.`);
-        setIsSaving(false);
-        return;
-      }
-    }
-
-    for (const candidate of candidateKeys) {
-      // Ensure overwrite behavior by clearing previous provider keys first.
-      clearProviderApiKey(candidate.provider);
-
-      if (!candidate.key) continue;
-
-      const saveResult = setProviderApiKey(candidate.provider, candidate.key);
-      if (!saveResult.isValid) {
-        setSaveError(saveResult.message || `Failed to store ${candidate.provider} API key.`);
-        setIsSaving(false);
-        return;
-      }
-
-      const persistedKey = getStoredApiKey(candidate.provider);
-      if (persistedKey !== candidate.key) {
-        setSaveError(`Failed to persist ${candidate.provider} API key. Please try again.`);
-        setIsSaving(false);
-        return;
-      }
-    }
-
-    if (!hasProviderApiKey(activeProvider)) {
-      setSaveError(`Missing ${activeProvider} API key. Add one or switch active provider.`);
-      setIsSaving(false);
-      return;
-    }
-
-    const existingConfig = loadSystemConfig();
-    const config: SystemConfig = {
-      provider: activeProvider,
-      modelId: activeModelId,
-      searchDepth,
-      thinkingBudget: supportsThinkingBudget ? thinkingBudget : 0,
-      generationMode,
-      openRouter: {
-        webSearchEnabled: openRouterWebSearchEnabled,
-        engine: openRouterEngine,
-        maxResults: openRouterMaxResults,
-        maxTotalResults: openRouterMaxTotalResults,
-        searchContextSize: openRouterSearchContextSize,
-        allowedDomains: openRouterAllowedDomains
-          .split(/[\n,]/)
-          .map((entry) => entry.trim())
-          .filter(Boolean),
-        excludedDomains: openRouterExcludedDomains
-          .split(/[\n,]/)
-          .map((entry) => entry.trim())
-          .filter(Boolean),
-      },
-      persona: existingConfig.persona || 'general-investigator',
-      autoNormalizeEntities: autoResolve,
-      quietMode,
-    };
-
-    saveSystemConfig(config, {
-      theme: themeColor,
-      themeMode,
-      themeSurfaceSettings,
-      themeFontSettings,
-    });
-    recordRecentModelSelection(activeModelId);
-
-    setTimeout(() => {
-      setIsSaving(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
-    }, 800);
-  };
-
-  const handleExportData = () => {
-    const data = buildWorkspaceDataBackup({
-      workspaces: workspaces,
-      artifacts: artifacts,
-      runs: workspaceRuns,
-      chatSessions,
-      chatMessagesBySessionId,
-      chatActionsBySessionId,
-      boardAgentSessions,
-      boardAgentActionsBySessionId,
-      signals: headlines,
-      manualNodes,
-      manualLinks,
-      workspaceItems,
-      workspaceBoards,
-      workspaceBoardDocuments: Object.values(workspaceBoardDocuments),
-      templates,
-    });
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sherlock-workspace-data-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const data = normalizeWorkspaceDataBackup(JSON.parse(event.target?.result as string));
-        if (
-          confirm(
-            'This will overwrite your current workspace data. Provider keys, theme settings, and other local app preferences will stay as-is. Continue?'
-          )
-        ) {
-          await importWorkspaceData(data);
-          clearStoredActiveWorkspaceId();
-          alert('Workspace data imported successfully.');
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to parse JSON file.';
-        alert(message);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleClearData = async () => {
-    if (
-      confirm(
-        'CRITICAL WARNING: This will permanently delete all saved workspace data, including artifacts, runs, chat history, research boards, workspace library items, graph data, templates, and saved signals. Local theme settings, provider defaults, and API keys will stay untouched. Proceed?'
-      )
-    ) {
-      await clearWorkspaceData();
-      clearStoredActiveWorkspaceId();
-      alert('Workspace data purged.');
-    }
-  };
-
-  const handleResetThemeSettings = () => {
-    onAccentChange(DEFAULT_ACCENT_SETTINGS);
-    onThemeSurfaceSettingsChange(DEFAULT_THEME_SURFACE_SETTINGS);
-  };
-
-  const handleResetFonts = () => {
-    onThemeFontSettingsChange(DEFAULT_THEME_FONT_SETTINGS);
-  };
-
-  const getSurfaceBounds = (
-    mode: keyof ThemeSurfaceSettings,
-    surfaceKey: keyof ThemeSurfaceScale
-  ) => {
-    if (mode === 'dark') {
-      const lightnessRanges: Record<keyof ThemeSurfaceScale, { min: number; max: number }> = {
-        background: { min: 0, max: 0.14 },
-        panel: { min: 0, max: 0.22 },
-        surface: { min: 0, max: 0.32 },
-      };
-
-      return {
-        lightnessMin: lightnessRanges[surfaceKey].min,
-        lightnessMax: lightnessRanges[surfaceKey].max,
-        chromaMax: 0.06,
-      };
-    }
-
-    const lightnessRanges: Record<keyof ThemeSurfaceScale, { min: number; max: number }> = {
-      background: { min: 0.88, max: 1 },
-      panel: { min: 0.9, max: 1 },
-      surface: { min: 0.82, max: 0.98 },
-    };
-
-    return {
-      lightnessMin: lightnessRanges[surfaceKey].min,
-      lightnessMax: lightnessRanges[surfaceKey].max,
-      chromaMax: 0.08,
-    };
-  };
-
-  const clampSurfaceSettings = (
-    mode: keyof ThemeSurfaceSettings,
-    surfaceKey: keyof ThemeSurfaceScale,
-    settings: ThemeSurfaceScale[keyof ThemeSurfaceScale]
-  ) => {
-    const bounds = getSurfaceBounds(mode, surfaceKey);
-
-    return {
-      hue: ((Math.round(settings.hue) % 360) + 360) % 360,
-      lightness: clamp(Number(settings.lightness.toFixed(3)), bounds.lightnessMin, bounds.lightnessMax),
-      chroma: clamp(Number(settings.chroma.toFixed(3)), 0, bounds.chromaMax),
-    };
-  };
-
-  const handleThemeSurfaceChange = (
-    mode: keyof ThemeSurfaceSettings,
-    surfaceKey: keyof ThemeSurfaceScale,
-    settings: ThemeSurfaceScale[keyof ThemeSurfaceScale]
-  ) => {
-    onThemeSurfaceSettingsChange({
-      ...themeSurfaceSettings,
-      [mode]: {
-        ...themeSurfaceSettings[mode],
-        [surfaceKey]: clampSurfaceSettings(mode, surfaceKey, settings),
-      },
-    });
-  };
-
-  const updateModeSurfaces = (
-    mode: keyof ThemeSurfaceSettings,
-    updater: (scale: ThemeSurfaceScale) => ThemeSurfaceScale
-  ) => {
-    const nextScale = updater(themeSurfaceSettings[mode]);
-
-    onThemeSurfaceSettingsChange({
-      ...themeSurfaceSettings,
-      [mode]: {
-        background: clampSurfaceSettings(mode, 'background', nextScale.background),
-        panel: clampSurfaceSettings(mode, 'panel', nextScale.panel),
-        surface: clampSurfaceSettings(mode, 'surface', nextScale.surface),
-      },
-    });
-  };
-
-  const updateSelectedSurfaceField = (
-    field: keyof ThemeSurfaceScale[keyof ThemeSurfaceScale],
-    rawValue: number
-  ) => {
-    const current = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
-    handleThemeSurfaceChange(activeSurfaceMode, selectedSurfaceKey, {
-      ...current,
-      [field]: rawValue,
-    });
-  };
-
-  const handleApplySurfacePreset = (preset: ThemeSurfaceSettings) => {
-    onThemeSurfaceSettingsChange(cloneThemeSurfaceSettings(preset));
-  };
-
-  const handleResetSurfaceMode = (mode: keyof ThemeSurfaceSettings) => {
-    onThemeSurfaceSettingsChange({
-      ...themeSurfaceSettings,
-      [mode]: cloneThemeSurfaceSettings(DEFAULT_THEME_SURFACE_SETTINGS)[mode],
-    });
-  };
-
-  const handleMatchAccentHue = (mode: keyof ThemeSurfaceSettings) => {
-    updateModeSurfaces(mode, (scale) => ({
-      background: { ...scale.background, hue: accentSettings.hue },
-      panel: { ...scale.panel, hue: accentSettings.hue },
-      surface: { ...scale.surface, hue: accentSettings.hue },
-    }));
-  };
-
-  const handleAdjustModeChroma = (mode: keyof ThemeSurfaceSettings, delta: number) => {
-    updateModeSurfaces(mode, (scale) => ({
-      background: {
-        ...scale.background,
-        chroma: scale.background.chroma + delta * 0.6,
-      },
-      panel: {
-        ...scale.panel,
-        chroma: scale.panel.chroma + delta,
-      },
-      surface: {
-        ...scale.surface,
-        chroma: scale.surface.chroma + delta,
-      },
-    }));
-  };
-
-  const handleAdjustModeSeparation = (mode: keyof ThemeSurfaceSettings, direction: 1 | -1) => {
-    if (mode === 'dark') {
-      updateModeSurfaces(mode, (scale) => ({
-        background: {
-          ...scale.background,
-          lightness: scale.background.lightness - direction * 0.006,
-        },
-        panel: {
-          ...scale.panel,
-          lightness: scale.panel.lightness + direction * 0.012,
-        },
-        surface: {
-          ...scale.surface,
-          lightness: scale.surface.lightness + direction * 0.02,
-        },
-      }));
-      return;
-    }
-
-    updateModeSurfaces(mode, (scale) => ({
-      background: {
-        ...scale.background,
-        lightness: scale.background.lightness + direction * 0.008,
-      },
-      panel: {
-        ...scale.panel,
-        lightness: scale.panel.lightness + direction * 0.012,
-      },
-      surface: {
-        ...scale.surface,
-        lightness: scale.surface.lightness - direction * 0.015,
-      },
-    }));
-  };
+    themeSections,
+    thinkingBudget,
+    toggleThemeSection,
+    updateSelectedSurfaceField,
+  } = useSettingsController({
+    accentSettings,
+    onAccentChange,
+    onThemeFontSettingsChange,
+    onThemeSurfaceSettingsChange,
+    themeColor,
+    themeFontSettings,
+    themeMode,
+    themeSurfaceSettings,
+  });
 
   const renderThemeSurfaceEditor = () => {
     const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
@@ -1256,7 +880,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 {activeProvider === 'OPENROUTER' && (
                   <button
                     type="button"
-                    onClick={() => setShowOpenRouterBrowser(true)}
+                    onClick={() => setOpenRouterBrowser(true)}
                     className="border border-zinc-700 px-3 py-2 text-[10px] font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white"
                   >
                     Browse
@@ -1646,27 +1270,13 @@ export const Settings: React.FC<SettingsProps> = ({
           {activeTab === 'TEMPLATES' && (
             <TemplateGallery
               onApply={(t) => {
-                const fallbackConfig = loadSystemConfig();
-                const templateModel = t.config.modelId || fallbackConfig.modelId;
-                const resolvedScope = t.scopeId
-                  ? getScopeById(t.scopeId) ||
-                    getAllScopes(customScopes).find((scope) => scope.id === t.scopeId)
-                  : undefined;
-
-                onStartCase({
-                  topic: t.topic,
-                  configOverride: {
-                    ...fallbackConfig,
-                    ...t.config,
-                    modelId: templateModel,
-                    provider: t.config.provider || getModelProvider(templateModel),
-                  },
-                  scope: resolvedScope,
-                  packId: t.config.packId || t.packId,
-                  purposeId: t.config.purposeId || t.purposeId,
-                  artifactType: t.config.artifactType || t.artifactType,
-                  labelProfileId: t.config.labelProfileId || t.labelProfileId,
-                });
+                onStartCase(
+                  buildLaunchRequestFromTemplate({
+                    template: t,
+                    customScopes,
+                    fallbackConfig: loadSystemConfig(),
+                  })
+                );
               }}
             />
           )}
@@ -1677,7 +1287,7 @@ export const Settings: React.FC<SettingsProps> = ({
       <OpenRouterModelBrowser
         isOpen={showOpenRouterBrowser}
         currentModelId={activeProvider === 'OPENROUTER' ? activeModelId : undefined}
-        onClose={() => setShowOpenRouterBrowser(false)}
+        onClose={() => setOpenRouterBrowser(false)}
         onSelectModel={(modelId) => setSelectedModel(modelId)}
       />
     </div>

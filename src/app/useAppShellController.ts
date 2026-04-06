@@ -19,9 +19,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createLocalId } from '@/utils/id';
 import { normalizeTopicText } from '@/utils/textNormalization';
-import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
-import { getAllScopes, getScopeById } from '@/data/presets';
-import { getDomainPackForScope, getPurposeProfileById } from '@/domain';
+import { loadSystemConfig } from '@/config/systemConfig';
 import {
   buildChatSessionMetadata,
   buildLaunchContextPrimer,
@@ -49,6 +47,10 @@ import {
   useInitializeAppShell,
   useTrackAppShellLocation,
 } from '@/app/useAppShellEffects';
+import {
+  resolveRuntimeLaunchFields,
+  resolveRuntimeScope,
+} from '@/components/features/Runs/runtimeConfigMapping';
 
 const toSystemConfigOverride = (
   config?: InvestigationRunConfig
@@ -254,13 +256,8 @@ export function useAppShellController(): AppShellController {
   });
 
   const resolveScopeById = useCallback(
-    (scopeId?: string): InvestigationScope | undefined => {
-      if (!scopeId) return undefined;
-
-      return (
-        getScopeById(scopeId) || getAllScopes(customScopes).find((scope) => scope.id === scopeId)
-      );
-    },
+    (scopeId?: string): InvestigationScope | undefined =>
+      resolveRuntimeScope(scopeId, customScopes),
     [customScopes]
   );
 
@@ -343,9 +340,24 @@ export function useAppShellController(): AppShellController {
     (request: InvestigationLaunchRequest) => {
       void (async () => {
         const switchToView = request.switchToView ?? true;
-        const effectiveConfig = migrateSystemConfig({
-          ...loadSystemConfig(),
-          ...(request.configOverride || {}),
+        const storedConfig = loadSystemConfig();
+        const {
+          artifactType,
+          effectiveConfig,
+          labelProfileId,
+          pack: effectivePack,
+          purpose: effectivePurpose,
+          scope: effectiveScope,
+        } = resolveRuntimeLaunchFields({
+          baseConfig: storedConfig,
+          configOverride: request.configOverride as
+            | (Partial<SystemConfig> & Partial<InvestigationRunConfig>)
+            | undefined,
+          customScopes,
+          scope: request.scope,
+          artifactType: request.artifactType,
+          labelProfileId: request.labelProfileId,
+          purposeId: request.purposeId,
         });
         const normalizedTopic = normalizeTopicText(request.topic);
 
@@ -355,24 +367,6 @@ export function useAppShellController(): AppShellController {
           return;
         }
 
-        const scopeFromConfig = resolveScopeById(
-          (request.configOverride as InvestigationRunConfig | undefined)?.scopeId
-        );
-        const effectiveScope = request.scope || scopeFromConfig;
-        const effectivePack = getDomainPackForScope(effectiveScope);
-        const effectivePurpose = getPurposeProfileById(
-          request.purposeId ||
-            (request.configOverride as InvestigationRunConfig | undefined)?.purposeId ||
-            effectivePack.defaultPurposeId
-        );
-        const artifactType =
-          request.artifactType ||
-          (request.configOverride as InvestigationRunConfig | undefined)?.artifactType ||
-          effectivePurpose.recommendedArtifactType;
-        const labelProfileId =
-          request.labelProfileId ||
-          (request.configOverride as InvestigationRunConfig | undefined)?.labelProfileId ||
-          effectivePack.labelProfileId;
         const derivedLineage = resolveLaunchLineage({
           request,
           artifacts,
@@ -430,7 +424,7 @@ export function useAppShellController(): AppShellController {
 
         try {
           const addTaskPromise = addTask(newTask);
-          if (!loadSystemConfig().quietMode) {
+          if (!storedConfig.quietMode) {
             addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
           }
 
@@ -452,8 +446,8 @@ export function useAppShellController(): AppShellController {
       addTask,
       addToast,
       artifacts,
+      customScopes,
       navigate,
-      resolveScopeById,
       runInvestigationTask,
       setActiveTaskId,
       workspaceRuns,

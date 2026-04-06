@@ -97,6 +97,8 @@ Use these seams deliberately:
 Naming is intentionally literal rather than clever:
 
 - `useChatController`
+- `useWorkspaceBoardController`
+- `useSettingsController`
 - `useNetworkGraphController`
 - `buildTimelineViewModel`
 - `TimelineDetailRail`
@@ -110,7 +112,7 @@ All launches still converge through `launchInvestigation` in `src/app/useAppShel
 
 Flow:
 
-1. Merge `configOverride` with persisted `SystemConfig`
+1. Resolve runtime-config fields through `src/components/features/Runs/runtimeConfigMapping.ts`
 2. Enforce provider API key presence before task creation
 3. Resolve effective scope, domain pack, purpose profile, artifact type, and label profile
 4. Create and persist a workspace run (`TaskRepository`)
@@ -424,7 +426,7 @@ Task setup and template flows now expose:
 - compact OpenRouter quick picks plus a dedicated browser modal for full catalog/manual slug entry
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
 - wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useTaskSetupState.ts`
-- runtime-config provider/model derivation now shares `src/components/features/Runs/runtimeConfigOptions.ts` and `src/components/features/Runs/ThinkingBudgetControl.tsx` so Settings, task setup, and guided run flows apply the same model fallback and thinking-budget rules
+- runtime-config provider/model derivation now shares `src/components/features/Runs/runtimeConfigOptions.ts`, `src/components/features/Runs/runtimeConfigMapping.ts`, and `src/components/features/Runs/ThinkingBudgetControl.tsx` so Settings, templates, task setup, guided run flows, and app-shell launch shaping apply the same model fallback, provider/model alignment, artifact inheritance, and thinking-budget rules
 - the task-setup implementation now lives with the run-launch feature under `src/components/features/Runs/TaskSetupModal.tsx`, while the old UI path remains a compatibility re-export only
 
 ### Archives
