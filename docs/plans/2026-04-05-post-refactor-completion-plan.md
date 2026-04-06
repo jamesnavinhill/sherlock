@@ -214,6 +214,16 @@ Validation:
 
 ## Workstream 4. Feature-Root Decomposition
 
+Status: Complete on April 5, 2026.
+
+Landed outcomes:
+
+- `TimelineView.tsx` now delegates route-backed chronology derivation and selection logic to `src/components/features/Timeline/timelineViewModel.ts`
+- `WorkspaceBoard/index.tsx` now delegates workspace/board/library/session derivation to `src/components/features/WorkspaceBoard/workspaceBoardViewModel.ts`
+- `TaskSetupModal.tsx` now delegates wizard state, pack/model derivation, and launch/template handlers to `src/components/features/Runs/useTaskSetupState.ts`
+- `useAppShellController.ts` now delegates initialization, location tracking, and theme-application effects to `src/app/useAppShellEffects.ts`
+- targeted helper coverage now exists for the new Timeline and WorkspaceBoard view-model seams
+
 Purpose:
 
 - reduce the next real maintenance bottlenecks now that shell and store architecture are stable

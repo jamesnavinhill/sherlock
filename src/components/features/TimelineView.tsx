@@ -32,21 +32,16 @@ import { Accordion } from '../ui/Accordion';
 import { EmptyState } from '../ui/EmptyState';
 import { InspectorActionRow, type InspectorActionItem } from '../ui/InspectorActionRow';
 import { OsintSelect } from '../ui/OsintSelect';
-import { getLabelProfileById, sanitizeDisplayTitle } from '../../domain';
-import { getChatLaunchContextFromSession } from '../../services/chat/launchContext';
+import { sanitizeDisplayTitle } from '../../domain';
 import {
   buildWorkspaceArtifactReference,
   buildWorkspaceEntityReference,
   buildWorkspaceHeadlineReference,
 } from '../../services/workspace/library';
 import {
-  buildWorkspaceTimelineEvents,
-  filterTimelineEvents,
   getTrackCount,
-  groupTimelineEventsByDay,
 } from './Timeline/timelineEvents';
 import {
-  buildTimelineSnapshot,
   buildTimelineSnapshotArtifact,
   downloadTimelineSnapshotJson,
   downloadTimelineSnapshotMarkdown,
@@ -61,7 +56,6 @@ import {
   getMetadataValue,
   getPrimaryRefId,
   LEFT_PANEL_SECTION_SCROLL_CLASS,
-  toUniqueItems,
   toggleExclusiveSection,
   TRACK_OPTIONS,
   type DetailSections,
@@ -72,6 +66,7 @@ import {
   parseTimelineRouteQuery,
   type TimelineRouteQueryState,
 } from './Timeline/timelineRouteState';
+import { buildTimelineViewModel } from './Timeline/timelineViewModel';
 
 interface TimelineViewProps {
   onOpenReport: (report: Artifact) => void;
@@ -157,168 +152,57 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     return () => document.removeEventListener('mousedown', handlePointerDown);
   }, []);
 
-  const activeWorkspace = useMemo(
-    () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
-    [activeWorkspaceId, workspaces]
-  );
-
-  const labelProfile = useMemo(
+  const {
+    activeWorkspace,
+    allTimelineEvents,
+    artifactItems,
+    artifactTitleById,
+    chatSessionItems,
+    chatTitleById,
+    effectiveSelectedEventId,
+    entityItems,
+    groupedEvents,
+    labelProfile,
+    parentArtifact,
+    previousArtifactId,
+    relatedSignal,
+    runItems,
+    selectedArtifact,
+    selectedChatAction,
+    selectedChatLaunchContext,
+    selectedChatSession,
+    selectedEntityName,
+    selectedEvent,
+    selectedRun,
+    signalItems,
+    signalTitleById,
+    timelineSnapshot,
+    visibleEvents,
+  } = useMemo(
     () =>
-      getLabelProfileById(
-        activeWorkspace?.labelProfileId ||
-          artifacts.find((artifact) => artifact.caseId === activeWorkspace?.id)?.labelProfileId
-      ),
-    [activeWorkspace?.id, activeWorkspace?.labelProfileId, artifacts]
-  );
-
-  const allTimelineEvents = useMemo(() => {
-    if (!activeWorkspace) return [];
-
-    return buildWorkspaceTimelineEvents({
-      workspaceId: activeWorkspace.id,
-      artifacts,
-      runs: workspaceRuns,
-      signals: headlines,
-      chatSessions,
-      chatActionsBySessionId,
-    });
-  }, [activeWorkspace, artifacts, chatActionsBySessionId, chatSessions, headlines, workspaceRuns]);
-
-  const visibleEvents = useMemo(
-    () =>
-      filterTimelineEvents(allTimelineEvents, {
-        workspaceId: activeWorkspace?.id,
-        search,
-        filters,
-        focusedTrack,
-        focusedRefId,
+      buildTimelineViewModel({
+        activeWorkspaceId,
+        artifacts,
+        chatActionsBySessionId,
+        chatSessions,
+        headlines,
+        selectedEventId,
+        timelineQuery,
+        workspaceRuns,
+        workspaces,
       }),
-    [activeWorkspace?.id, allTimelineEvents, filters, focusedRefId, focusedTrack, search]
+    [
+      activeWorkspaceId,
+      artifacts,
+      chatActionsBySessionId,
+      chatSessions,
+      headlines,
+      selectedEventId,
+      timelineQuery,
+      workspaceRuns,
+      workspaces,
+    ]
   );
-
-  const groupedEvents = useMemo(() => groupTimelineEventsByDay(visibleEvents), [visibleEvents]);
-  const runItems = useMemo(() => toUniqueItems(allTimelineEvents, 'RUN'), [allTimelineEvents]);
-  const artifactItems = useMemo(
-    () => toUniqueItems(allTimelineEvents, 'ARTIFACT'),
-    [allTimelineEvents]
-  );
-  const signalItems = useMemo(
-    () => toUniqueItems(allTimelineEvents, 'SIGNAL'),
-    [allTimelineEvents]
-  );
-  const entityItems = useMemo(
-    () => toUniqueItems(allTimelineEvents, 'ENTITY'),
-    [allTimelineEvents]
-  );
-  const chatSessionItems = useMemo(
-    () => allTimelineEvents.filter((event) => event.type === 'CHAT_SESSION_STARTED'),
-    [allTimelineEvents]
-  );
-  const artifactTitleById = useMemo(
-    () =>
-      new Map(
-        artifacts
-          .filter((artifact): artifact is Artifact & { id: string } => !!artifact.id)
-          .map((artifact) => [artifact.id, sanitizeDisplayTitle(artifact.topic)])
-      ),
-    [artifacts]
-  );
-  const signalTitleById = useMemo(
-    () => new Map(headlines.map((headline) => [headline.id, headline.source || headline.type])),
-    [headlines]
-  );
-  const chatTitleById = useMemo(
-    () => new Map(chatSessions.map((session) => [session.id, session.title || 'Workspace Chat'])),
-    [chatSessions]
-  );
-  const effectiveSelectedEventId = useMemo(
-    () =>
-      selectedEventId && visibleEvents.some((event) => event.id === selectedEventId)
-        ? selectedEventId
-        : null,
-    [selectedEventId, visibleEvents]
-  );
-  const selectedEvent = useMemo(
-    () => visibleEvents.find((event) => event.id === effectiveSelectedEventId) || null,
-    [effectiveSelectedEventId, visibleEvents]
-  );
-  const selectedArtifact = useMemo(() => {
-    if (!selectedEvent) return null;
-
-    const artifactId =
-      getPrimaryRefId(selectedEvent, 'ARTIFACT') ||
-      getMetadataValue<string>(selectedEvent, 'relatedArtifactId') ||
-      getMetadataValue<string>(selectedEvent, 'linkedArtifactId');
-
-    return artifacts.find((artifact) => artifact.id === artifactId) || null;
-  }, [artifacts, selectedEvent]);
-  const selectedRun = useMemo(() => {
-    if (!selectedEvent) return null;
-
-    const runId =
-      getPrimaryRefId(selectedEvent, 'RUN') ||
-      getMetadataValue<string>(selectedEvent, 'sourceRunId');
-    return workspaceRuns.find((workspaceRun) => workspaceRun.id === runId) || null;
-  }, [selectedEvent, workspaceRuns]);
-  const relatedSignal = useMemo(() => {
-    if (!selectedEvent) return null;
-
-    const signalId =
-      getPrimaryRefId(selectedEvent, 'SIGNAL') ||
-      getMetadataValue<string>(selectedEvent, 'sourceSignalId');
-    return headlines.find((headline) => headline.id === signalId) || null;
-  }, [headlines, selectedEvent]);
-  const parentArtifact = useMemo(() => {
-    const parentArtifactId =
-      getMetadataValue<string>(selectedEvent, 'parentArtifactId') || selectedEvent?.parentRefId;
-    return artifacts.find((artifact) => artifact.id === parentArtifactId) || null;
-  }, [artifacts, selectedEvent]);
-  const selectedChatSession = useMemo(() => {
-    if (!selectedEvent) return null;
-
-    const sessionId =
-      getPrimaryRefId(selectedEvent, 'CHAT_SESSION') ||
-      getMetadataValue<string>(selectedEvent, 'sessionId');
-    return chatSessions.find((session) => session.id === sessionId) || null;
-  }, [chatSessions, selectedEvent]);
-  const selectedChatAction = useMemo(() => {
-    const actionId = getPrimaryRefId(selectedEvent, 'CHAT_ACTION');
-    if (!actionId) return null;
-
-    return (
-      Object.values(chatActionsBySessionId)
-        .flat()
-        .find((action) => action.id === actionId) || null
-    );
-  }, [chatActionsBySessionId, selectedEvent]);
-  const selectedChatLaunchContext = useMemo(
-    () => getChatLaunchContextFromSession(selectedChatSession),
-    [selectedChatSession]
-  );
-  const selectedEntityName = useMemo(
-    () =>
-      getPrimaryRefId(selectedEvent, 'ENTITY') ||
-      getMetadataValue<string>(selectedEvent, 'entityName') ||
-      null,
-    [selectedEvent]
-  );
-  const previousArtifactId = useMemo(
-    () => getMetadataValue<string>(selectedEvent, 'previousArtifactId'),
-    [selectedEvent]
-  );
-
-  const timelineSnapshot = useMemo(() => {
-    if (!activeWorkspace) return null;
-
-    return buildTimelineSnapshot({
-      workspace: activeWorkspace,
-      events: visibleEvents,
-      filters,
-      search,
-      focusedTrack,
-      focusedRefId,
-    });
-  }, [activeWorkspace, filters, focusedRefId, focusedTrack, search, visibleEvents]);
 
   const ensureTrackVisible = (track: TimelineTrack) => {
     updateTimelineQuery((current) =>

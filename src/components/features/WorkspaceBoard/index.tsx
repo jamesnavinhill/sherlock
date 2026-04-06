@@ -50,10 +50,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { Accordion } from '@/components/ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
-import {
-  buildWorkspaceLibraryEntries,
-  type WorkspaceLibraryEntry,
-} from '@/services/workspace/library';
+import { type WorkspaceLibraryEntry } from '@/services/workspace/library';
 import {
   buildWorkspaceItemFromBoardDraft,
   generateBoardSelectionDraft,
@@ -64,7 +61,7 @@ import {
   parseBoardReference,
   serializeBoardReference,
 } from '../../../services/workspace/boardShapes';
-import { deriveBoardAgentTodoItems, runBoardAgentSession } from '@/services/workspace/agent';
+import { runBoardAgentSession } from '@/services/workspace/agent';
 import { createLocalId } from '@/utils/id';
 import { sanitizeDisplayTitle } from '@/domain';
 import {
@@ -76,6 +73,7 @@ import {
   type CreateModalState,
   type RightPanelView,
 } from './workspaceBoardUtils';
+import { buildWorkspaceBoardViewModel } from './workspaceBoardViewModel';
 
 interface WorkspaceBoardProps {
   onOpenReport: (report: Artifact) => void;
@@ -166,68 +164,63 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     snapshot: undefined,
   });
 
-  const activeWorkspace = useMemo(
-    () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
-    [activeWorkspaceId, workspaces]
-  );
-
-  const workspaceArtifacts = useMemo(
-    () => artifacts.filter((artifact) => artifact.caseId === activeWorkspace?.id),
-    [activeWorkspace?.id, artifacts]
-  );
-  const workspaceHeadlines = useMemo(
-    () => headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
-    [activeWorkspace?.id, headlines]
-  );
-  const createdWorkspaceItems = useMemo(
-    () => workspaceItems.filter((item) => item.workspaceId === activeWorkspace?.id),
-    [activeWorkspace?.id, workspaceItems]
-  );
-  const availableBoards = useMemo(
+  const {
+    activeBoard,
+    activeBoardDocument,
+    activeWorkspace,
+    availableBoards,
+    boardAgentTodoItems,
+    boardSessionsForBoard,
+    createdWorkspaceItems,
+    groupedEntries,
+    libraryMap,
+    selectedArtifact,
+    selectedHeadline,
+    selectedPrimaryEntry,
+    selectedWorkspaceItem,
+    visibleBoardAgentActions,
+    visibleBoardAgentSession,
+    workspaceArtifacts,
+    workspaceHeadlines,
+  } = useMemo(
     () =>
-      workspaceBoards
-        .filter((board) => board.workspaceId === activeWorkspace?.id)
-        .sort((left, right) => left.sortOrder - right.sortOrder),
-    [activeWorkspace?.id, workspaceBoards]
+      buildWorkspaceBoardViewModel({
+        activeWorkspaceBoardId,
+        activeWorkspaceId,
+        artifacts,
+        boardAgentActionsBySessionId,
+        boardAgentActiveSessionId,
+        boardAgentSessions,
+        headlines,
+        search,
+        selectedEntries,
+        workspaceBoardDocuments,
+        workspaceBoards,
+        workspaceItems,
+        workspaces,
+      }),
+    [
+      activeWorkspaceBoardId,
+      activeWorkspaceId,
+      artifacts,
+      boardAgentActionsBySessionId,
+      boardAgentActiveSessionId,
+      boardAgentSessions,
+      headlines,
+      search,
+      selectedEntries,
+      workspaceBoardDocuments,
+      workspaceBoards,
+      workspaceItems,
+      workspaces,
+    ]
   );
-  const activeBoard =
-    availableBoards.find((board) => board.id === activeWorkspaceBoardId) ||
-    availableBoards[0] ||
-    null;
-  const activeBoardDocument = activeBoard ? workspaceBoardDocuments[activeBoard.id] : undefined;
   const rightPanelTabButtonClass = (view: RightPanelView) =>
     `inline-flex h-9 flex-1 items-center justify-center border px-4 text-xs font-mono uppercase transition ${
       rightPanelView === view
         ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
         : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
     }`;
-  const boardSessionsForBoard = useMemo(
-    () =>
-      boardAgentSessions
-        .filter(
-          (session) =>
-            session.workspaceId === activeWorkspace?.id && session.boardId === activeBoard?.id
-        )
-        .sort((left, right) => right.updatedAt - left.updatedAt),
-    [activeBoard?.id, activeWorkspace?.id, boardAgentSessions]
-  );
-  const visibleBoardAgentSession =
-    boardSessionsForBoard.find((session) => session.id === boardAgentActiveSessionId) ||
-    boardSessionsForBoard[0] ||
-    null;
-  const visibleBoardAgentActions = useMemo(
-    () =>
-      visibleBoardAgentSession
-        ? [...(boardAgentActionsBySessionId[visibleBoardAgentSession.id] || [])].sort(
-            (left, right) => right.createdAt - left.createdAt
-          )
-        : [],
-    [boardAgentActionsBySessionId, visibleBoardAgentSession]
-  );
-  const boardAgentTodoItems = useMemo(
-    () => deriveBoardAgentTodoItems(visibleBoardAgentActions),
-    [visibleBoardAgentActions]
-  );
 
   if (activeBoard?.id !== hydratedSnapshotRef.current.boardId) {
     hydratedSnapshotRef.current = {
@@ -245,67 +238,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       index: 0,
     };
   }
-
-  const libraryEntries = useMemo(() => {
-    if (!activeWorkspace) return [];
-
-    return buildWorkspaceLibraryEntries({
-      workspaceId: activeWorkspace.id,
-      artifacts: workspaceArtifacts,
-      signals: workspaceHeadlines,
-      workspaceItems: createdWorkspaceItems,
-    });
-  }, [activeWorkspace, createdWorkspaceItems, workspaceArtifacts, workspaceHeadlines]);
-
-  const libraryMap = useMemo(
-    () => new Map(libraryEntries.map((entry) => [boardRefKey(entry), entry])),
-    [libraryEntries]
-  );
-
-  const filteredEntries = useMemo(() => {
-    const lowerSearch = search.trim().toLowerCase();
-    return libraryEntries.filter((entry) => {
-      if (!lowerSearch) return true;
-      return (
-        entry.title.toLowerCase().includes(lowerSearch) ||
-        entry.searchText.toLowerCase().includes(lowerSearch)
-      );
-    });
-  }, [libraryEntries, search]);
-
-  const groupedEntries = useMemo(
-    () => ({
-      created: filteredEntries.filter((entry) =>
-        ['NOTE', 'LINK', 'FILE', 'MEDIA', 'EXCERPT'].includes(entry.kind)
-      ),
-      artifacts: filteredEntries.filter((entry) => entry.kind === 'ARTIFACT'),
-      entities: filteredEntries.filter((entry) => entry.kind === 'ENTITY'),
-      sources: filteredEntries.filter((entry) => entry.kind === 'SOURCE'),
-      signals: filteredEntries.filter((entry) => entry.kind === 'SIGNAL' || entry.kind === 'HEADLINE'),
-    }),
-    [filteredEntries]
-  );
-
-  const selectedArtifact = useMemo(() => {
-    const first = selectedEntries.find((entry) => entry.refKind === 'ARTIFACT');
-    return first
-      ? workspaceArtifacts.find((artifact) => artifact.id === first.refId) || null
-      : null;
-  }, [selectedEntries, workspaceArtifacts]);
-
-  const selectedHeadline = useMemo(() => {
-    const first = selectedEntries.find(
-      (entry) => entry.refKind === 'SIGNAL' || entry.refKind === 'HEADLINE'
-    );
-    return first
-      ? workspaceHeadlines.find((headline) => headline.id === first.refId) || null
-      : null;
-  }, [selectedEntries, workspaceHeadlines]);
-  const selectedWorkspaceItem = useMemo(() => {
-    const first = selectedEntries.find((entry) => entry.refKind === 'WORKSPACE_ITEM');
-    return first ? createdWorkspaceItems.find((item) => item.id === first.refId) || null : null;
-  }, [createdWorkspaceItems, selectedEntries]);
-  const selectedPrimaryEntry = selectedEntries[0] || null;
 
   useEffect(() => {
     if (!activeWorkspace) return;

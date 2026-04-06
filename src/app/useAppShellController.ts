@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import type {
@@ -17,9 +17,6 @@ import { useWorkspaceStore } from '@/store/caseStore';
 import { hasApiKey, runWorkspaceInvestigation } from '@/services/runtime';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { buildEntityPaletteCssVars } from '@/utils/entityPalette';
-import { buildThemeSurfaceCssVars } from '@/utils/themeSurfaces';
-import { buildThemeFontCssVars } from '@/utils/themeFonts';
 import { createLocalId } from '@/utils/id';
 import { normalizeTopicText } from '@/utils/textNormalization';
 import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
@@ -47,6 +44,11 @@ import {
   buildWorkspaceBoardPath,
   buildWorkspaceChatSessionPath,
 } from '@/app/routes';
+import {
+  useApplyAppShellTheme,
+  useInitializeAppShell,
+  useTrackAppShellLocation,
+} from '@/app/useAppShellEffects';
 
 const toSystemConfigOverride = (
   config?: InvestigationRunConfig
@@ -166,23 +168,19 @@ export function useAppShellController(): AppShellController {
     customScopes,
   } = useWorkspaceStore();
 
-  useEffect(() => {
-    void initializeStore();
-  }, [initializeStore]);
-
-  useEffect(() => {
-    locationPathRef.current = location.pathname;
-  }, [location.pathname]);
+  useInitializeAppShell(initializeStore);
 
   const routeCurrentView = useMemo(() => getAppViewForPath(location.pathname), [location.pathname]);
   const [isAuthenticated, setIsAuthenticated] = useState(() => hasApiKey());
   const [showHelpModal, setShowHelpModal] = useState(false);
 
-  useEffect(() => {
-    if (routeCurrentView !== AppView.SETTINGS) {
-      lastNonSettingsPathRef.current = location.pathname + location.search;
-    }
-  }, [location.pathname, location.search, routeCurrentView]);
+  useTrackAppShellLocation({
+    pathname: location.pathname,
+    search: location.search,
+    routeCurrentView,
+    locationPathRef,
+    lastNonSettingsPathRef,
+  });
 
   const handleNavigateToView = useCallback(
     (view: AppView) => {
@@ -247,32 +245,13 @@ export function useAppShellController(): AppShellController {
     navigate(lastNonSettingsPathRef.current);
   }, [navigate]);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty('--osint-primary', themeColor);
-    Object.entries(buildEntityPaletteCssVars(accentSettings)).forEach(([name, value]) => {
-      root.style.setProperty(name, value);
-    });
-  }, [accentSettings, themeColor]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    Object.entries(buildThemeSurfaceCssVars(themeSurfaceSettings)).forEach(([name, value]) => {
-      root.style.setProperty(name, value);
-    });
-  }, [themeSurfaceSettings]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    Object.entries(buildThemeFontCssVars(themeFontSettings)).forEach(([name, value]) => {
-      root.style.setProperty(name, value);
-    });
-  }, [themeFontSettings]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', themeMode);
-    document.documentElement.style.colorScheme = themeMode;
-  }, [themeMode]);
+  useApplyAppShellTheme({
+    accentSettings,
+    themeColor,
+    themeFontSettings,
+    themeMode,
+    themeSurfaceSettings,
+  });
 
   const resolveScopeById = useCallback(
     (scopeId?: string): InvestigationScope | undefined => {
