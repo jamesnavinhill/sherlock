@@ -9,12 +9,17 @@ import type {
   InvestigationRunConfig,
   InvestigationScope,
   WorkspaceRun,
-  ManualNode,
   SystemConfig,
 } from '@/types';
 import { AppView } from '@/types';
-import { useWorkspaceStore } from '@/store/caseStore';
-import { useAppShellFeatureState } from '@/store/selectors/featureSelectors';
+import type { useWorkspaceStore } from '@/store/caseStore';
+import {
+  useAppShellBootstrapState,
+  useAppShellLaunchTaskState,
+  useAppShellLookupState,
+  useAppShellRouteState,
+  useAppShellThemeUiState,
+} from '@/store/selectors/featureSelectors';
 import { hasApiKey, runWorkspaceInvestigation } from '@/services/runtime';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -25,7 +30,6 @@ import {
   buildChatSessionMetadata,
   buildLaunchContextPrimer,
   findReusableChatSession,
-  hasLaunchContextPrimer,
 } from '@/services/chat/launchContext';
 import { resolveLaunchLineage } from '@/services/lineage/relationships';
 import {
@@ -53,6 +57,17 @@ import {
   resolveRuntimeScope,
   toRuntimeConfigOverride,
 } from '@/components/features/Runs/runtimeConfigMapping';
+import {
+  buildLaunchRunConfig,
+  buildWorkspaceRun,
+  mergeArchivedReportRunConfig,
+  mergePreseededEntities,
+} from '@/app/appShellLaunchHelpers';
+import {
+  resolveLaunchContextSessionTitle,
+  shouldAppendLaunchPrimer,
+} from '@/app/appShellOpenChatHelpers';
+import { resolveNavigationRecord } from '@/app/appShellNavigationHelpers';
 
 export interface AppShellController {
   activeChatSessionId: string | null;
@@ -116,47 +131,59 @@ export function useAppShellController(): AppShellController {
   const lastNonSettingsPathRef = useRef(buildDiscoverPath());
 
   const {
-    workspaceRuns,
-    addTask,
-    completeTask,
-    failTask,
-    clearCompletedTasks,
     activeTaskId,
-    setActiveTaskId,
-    liveEvents,
-    setLiveEvents,
-    isSidebarCollapsed,
-    setIsSidebarCollapsed,
-    themeMode,
-    setThemeMode,
-    themeColor,
-    setThemeColor,
-    accentSettings,
-    setAccentSettings,
-    themeSurfaceSettings,
-    setThemeSurfaceSettings,
-    themeFontSettings,
-    setThemeFontSettings,
-    showGlobalSearch,
-    setShowGlobalSearch,
+    addTask,
+    addToast,
     archiveReport,
     artifacts,
-    workspaces,
-    workspaceBoards,
+    clearCompletedTasks,
+    completeTask,
+    customScopes,
+    failTask,
+    manualNodes,
+    setActiveTaskId,
+    setManualNodes,
+    workspaceRuns,
+  } = useAppShellLaunchTaskState();
+  const {
+    activeChatSessionId,
+    activeWorkspaceBoardId,
+    activeWorkspaceId,
+    setActiveChatSessionId,
+    setActiveWorkspaceBoardId,
+    setActiveWorkspaceId,
+  } = useAppShellRouteState();
+  const {
+    accentSettings,
+    isSidebarCollapsed,
+    liveEvents,
+    setAccentSettings,
+    setIsSidebarCollapsed,
+    setLiveEvents,
+    setShowGlobalSearch,
+    setThemeColor,
+    themeFontSettings,
+    setThemeFontSettings,
+    setThemeMode,
+    setThemeSurfaceSettings,
+    showGlobalSearch,
+    themeColor,
+    themeMode,
+    themeSurfaceSettings,
+  } = useAppShellThemeUiState();
+  const {
+    addChatMessage,
     chatMessagesBySessionId,
     chatSessions,
     createChatSession,
-    activeWorkspaceId,
-    activeWorkspaceBoardId,
-    setActiveWorkspaceId,
-    setActiveWorkspaceBoardId,
-    activeChatSessionId,
-    setActiveChatSessionId,
-    addToast,
+    headlines,
+    workspaceBoards,
+    workspaces,
+  } = useAppShellLookupState();
+  const {
     initializeStore,
     isLoading,
-    customScopes,
-  } = useAppShellFeatureState();
+  } = useAppShellBootstrapState();
 
   useInitializeAppShell(initializeStore);
 
@@ -250,28 +277,17 @@ export function useAppShellController(): AppShellController {
   );
 
   const addPreseededEntitiesToGraph = useCallback(
-    async (taskId: string, preseededEntities?: ManualNode[]) => {
-      if (!preseededEntities || preseededEntities.length === 0) return;
-
-      const state = useWorkspaceStore.getState();
-      const existingNodes = state.manualNodes;
-      const nextNodes = [...existingNodes];
-
-      preseededEntities.forEach((entity, index) => {
-        const nodeId = `seed-${taskId}-${index}`;
-        if (nextNodes.some((node) => node.id === nodeId)) return;
-        nextNodes.push({
-          ...entity,
-          id: nodeId,
-          timestamp: Date.now(),
-        });
+    async (taskId: string, preseededEntities?: InvestigationRunConfig['preseededEntities']) => {
+      const nextNodes = mergePreseededEntities({
+        existingNodes: manualNodes,
+        preseededEntities,
+        taskId,
       });
-
-      if (nextNodes.length !== existingNodes.length) {
-        await state.setManualNodes(nextNodes);
+      if (nextNodes.length !== manualNodes.length) {
+        await setManualNodes(nextNodes);
       }
     },
-    []
+    [manualNodes, setManualNodes]
   );
 
   const runInvestigationTask = useCallback(
@@ -290,15 +306,7 @@ export function useAppShellController(): AppShellController {
           runConfig
         );
 
-        report = { ...report, config: { ...(report.config || {}), ...runConfig } };
-        report = {
-          ...report,
-          config: {
-            ...(report.config || {}),
-            ...runConfig,
-            sourceRunId: taskId,
-          },
-        };
+        report = mergeArchivedReportRunConfig(report, runConfig, taskId);
         report = await archiveReport(report, launchRequest.parentContext);
 
         if (launchRequest.preseededEntities?.length) {
@@ -376,39 +384,22 @@ export function useAppShellController(): AppShellController {
           parentRunId: derivedLineage.parentRunId,
         };
 
-        const runConfig: InvestigationRunConfig = {
-          provider: effectiveConfig.provider,
-          modelId: effectiveConfig.modelId,
-          persona: effectiveConfig.persona,
-          searchDepth: effectiveConfig.searchDepth,
-          thinkingBudget: effectiveConfig.thinkingBudget,
-          scopeId: effectiveScope?.id,
-          scopeName: effectiveScope?.name,
-          packId: effectivePack.id,
-          packName: effectivePack.name,
-          purposeId: effectivePurpose.id,
-          purposeName: effectivePurpose.name,
+        const runConfig = buildLaunchRunConfig({
           artifactType,
+          effectiveConfig,
+          effectivePack,
+          effectivePurpose,
+          effectiveScope,
           labelProfileId,
-          dateRangeOverride: launchRequest.dateRangeOverride,
-          preseededEntities: launchRequest.preseededEntities,
-          launchSource: launchRequest.launchSource,
-          sourceSignalId: launchRequest.sourceSignalId,
-          sourceFollowUpId: launchRequest.sourceFollowUpId,
-          parentArtifactId: launchRequest.parentArtifactId,
-          parentRunId: launchRequest.parentRunId,
-        };
+          launchRequest,
+        });
 
         const newTaskId = createLocalId('task');
-        const newTask: WorkspaceRun = {
-          id: newTaskId,
-          topic: launchRequest.topic,
-          status: 'RUNNING',
-          startTime: Date.now(),
-          parentContext: launchRequest.parentContext,
-          config: runConfig,
+        const newTask = buildWorkspaceRun({
           launchRequest,
-        };
+          runConfig,
+          taskId: newTaskId,
+        });
 
         try {
           const addTaskPromise = addTask(newTask);
@@ -456,9 +447,7 @@ export function useAppShellController(): AppShellController {
       if (!session) {
         session = await createChatSession({
           workspaceId: workspace.id,
-          title: request.launchContext?.sourceReportId
-            ? artifacts.find((entry) => entry.id === request.launchContext?.sourceReportId)?.topic
-            : request.launchContext?.entityName || undefined,
+          title: resolveLaunchContextSessionTitle(artifacts, request.launchContext),
           sourceReportId: request.launchContext?.sourceReportId,
           packId: workspace.packId,
           purposeId: workspace.purposeId,
@@ -468,18 +457,16 @@ export function useAppShellController(): AppShellController {
 
       if (request.launchContext) {
         const existingMessages = chatMessagesBySessionId[session.id] || [];
-        if (!hasLaunchContextPrimer(existingMessages, request.launchContext)) {
+        if (shouldAppendLaunchPrimer(existingMessages, request.launchContext)) {
           const primer = buildLaunchContextPrimer({
             session,
             launchContext: request.launchContext,
             reports: artifacts.filter((entry) => entry.caseId === workspace.id),
-            headlines: useWorkspaceStore
-              .getState()
-              .headlines.filter((entry) => entry.caseId === workspace.id),
+            headlines: headlines.filter((entry) => entry.caseId === workspace.id),
           });
 
           if (primer) {
-            await useWorkspaceStore.getState().addChatMessage(primer);
+            await addChatMessage(primer);
           }
         }
       }
@@ -489,10 +476,12 @@ export function useAppShellController(): AppShellController {
     },
     [
       addToast,
+      addChatMessage,
       artifacts,
       chatMessagesBySessionId,
       chatSessions,
       createChatSession,
+      headlines,
       navigate,
       setActiveChatSessionId,
       setActiveWorkspaceId,
@@ -559,29 +548,38 @@ export function useAppShellController(): AppShellController {
 
   const handleNavigateRecord = useCallback(
     (id: string) => {
-      const workspace = workspaces.find((entry) => entry.id === id);
-      if (workspace) {
-        const landingArtifact = findWorkspaceLandingArtifact(id, artifacts);
+      const matchedRecord = resolveNavigationRecord({
+        artifacts,
+        id,
+        workspaceRuns,
+        workspaces,
+      });
+      if (!matchedRecord) return;
+
+      if (matchedRecord.kind === 'WORKSPACE') {
+        const landingArtifact = findWorkspaceLandingArtifact(matchedRecord.workspace.id, artifacts);
         if (landingArtifact?.id) {
-          navigate(buildWorkspaceArtifactPath(id, landingArtifact.id));
+          navigate(buildWorkspaceArtifactPath(matchedRecord.workspace.id, landingArtifact.id));
         } else {
-          const boardId = workspaceBoards.find((board) => board.workspaceId === id)?.id;
+          const boardId = workspaceBoards.find(
+            (board) => board.workspaceId === matchedRecord.workspace.id
+          )?.id;
           navigate(
-            boardId ? buildWorkspaceBoardDocumentPath(id, boardId) : buildWorkspaceBoardPath(id)
+            boardId
+              ? buildWorkspaceBoardDocumentPath(matchedRecord.workspace.id, boardId)
+              : buildWorkspaceBoardPath(matchedRecord.workspace.id)
           );
         }
         return;
       }
 
-      const task = workspaceRuns.find((entry) => entry.id === id || entry.report?.id === id);
-      if (task) {
-        handleSelectTask(task.id);
+      if (matchedRecord.kind === 'TASK') {
+        handleSelectTask(matchedRecord.task.id);
         return;
       }
 
-      const report = artifacts.find((entry) => entry.id === id);
-      if (report) {
-        handleViewReport(report);
+      if (matchedRecord.kind === 'ARTIFACT') {
+        handleViewReport(matchedRecord.artifact);
       }
     },
     [

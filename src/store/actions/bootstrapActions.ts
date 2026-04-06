@@ -23,6 +23,7 @@ import { ChatRepository } from '@/services/db/repositories/ChatRepository';
 import { BoardAgentRepository } from '@/services/db/repositories/BoardAgentRepository';
 import { WorkspaceBoardRepository } from '@/services/db/repositories/WorkspaceBoardRepository';
 import { WorkspaceItemRepository } from '@/services/db/repositories/WorkspaceItemRepository';
+import { parseStoredJson } from '@/services/db/repositories/json';
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import {
   getWorkspaceDataSignals,
@@ -34,6 +35,7 @@ import {
 import type { ThemeMode, WorkspaceState } from '../caseStore';
 import type { WorkspaceDataBackup } from '@/types';
 import type { WorkspaceStoreApi } from './shared';
+import { loadBootstrapResource } from './bootstrapResourceLoader';
 
 interface BootstrapDependencies {
   hasExistingWorkspaceData: (input: {
@@ -59,24 +61,13 @@ export const createBootstrapActions = (
   { hasExistingWorkspaceData, loadDemoWorkspaceSeed, persistWorkspaceDataBackup }: BootstrapDependencies
 ): Pick<WorkspaceState, 'initializeStore'> => ({
   initializeStore: async () => {
-    const loadBootstrapResource = async <T>(
-      label: string,
-      loader: () => Promise<T>,
-      fallback: T
-    ): Promise<T> => {
-      try {
-        return await loader();
-      } catch (error) {
-        console.warn(`[bootstrap] Failed to load ${label}. Using fallback.`, error);
-        return fallback;
-      }
-    };
-
     try {
       set({ isLoading: true });
+      // Initialization and migration are bootstrap hard failures.
       await initDB();
       await migrateLocalStorageToSqlite();
 
+      // Repository/settings reads are recoverable per-resource reads.
       const [
         workspacesResult,
         artifactsResult,
@@ -208,48 +199,19 @@ export const createBootstrapActions = (
 
       const legacyTheme = getStringItem(STORAGE_KEYS.THEME);
       const legacyConfigRaw = getStringItem(STORAGE_KEYS.SYSTEM_CONFIG);
-      const legacyConfigTheme = legacyConfigRaw
-        ? (() => {
-            try {
-              const parsed = JSON.parse(legacyConfigRaw);
-              return typeof parsed?.theme === 'string' ? parsed.theme : null;
-            } catch {
-              return null;
-            }
-          })()
-        : null;
-      const legacyThemeMode = legacyConfigRaw
-        ? (() => {
-            try {
-              const parsed = JSON.parse(legacyConfigRaw);
-              return parsed?.themeMode === 'light' || parsed?.themeMode === 'dark'
-                ? (parsed.themeMode as ThemeMode)
-                : null;
-            } catch {
-              return null;
-            }
-          })()
-        : null;
-      const legacyThemeSurfaceSettings = legacyConfigRaw
-        ? (() => {
-            try {
-              const parsed = JSON.parse(legacyConfigRaw);
-              return parseThemeSurfaceSettings(parsed?.themeSurfaceSettings);
-            } catch {
-              return null;
-            }
-          })()
-        : null;
-      const legacyThemeFontSettings = legacyConfigRaw
-        ? (() => {
-            try {
-              const parsed = JSON.parse(legacyConfigRaw);
-              return parseThemeFontSettings(parsed?.themeFontSettings);
-            } catch {
-              return null;
-            }
-          })()
-        : null;
+      const legacyConfig = legacyConfigRaw
+        ? parseStoredJson<Record<string, unknown>>(legacyConfigRaw, {}, 'legacy system config')
+        : {};
+      const legacyConfigTheme =
+        typeof legacyConfig['theme'] === 'string' ? legacyConfig['theme'] : null;
+      const legacyThemeMode =
+        legacyConfig['themeMode'] === 'light' || legacyConfig['themeMode'] === 'dark'
+          ? (legacyConfig['themeMode'] as ThemeMode)
+          : null;
+      const legacyThemeSurfaceSettings = parseThemeSurfaceSettings(
+        legacyConfig['themeSurfaceSettings']
+      );
+      const legacyThemeFontSettings = parseThemeFontSettings(legacyConfig['themeFontSettings']);
 
       const resolvedAccent =
         storedAccent ||

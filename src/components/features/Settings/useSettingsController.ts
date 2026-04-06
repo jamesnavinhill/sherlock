@@ -5,7 +5,7 @@ import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
 import { saveSystemConfig } from '@/config/systemConfig';
 import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
 import type { ThemeFontSettings } from '@/utils/themeFonts';
-import { useSettingsPersistenceState } from '@/store/selectors/featureSelectors';
+import { useSettingsScopeState } from '@/store/selectors/featureSelectors';
 import { useSettingsDataState } from './useSettingsDataState';
 import { useSettingsRuntimeState } from './useSettingsRuntimeState';
 import { useSettingsThemeState } from './useSettingsThemeState';
@@ -31,7 +31,7 @@ export const useSettingsController = ({
   themeMode,
   themeSurfaceSettings,
 }: SettingsControllerInput) => {
-  const { customScopes } = useSettingsPersistenceState();
+  const { customScopes } = useSettingsScopeState();
   const initialConfig = migrateSystemConfig(loadSystemConfig());
   const runtime = useSettingsRuntimeState();
   const data = useSettingsDataState({

@@ -2,51 +2,79 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { useWorkspaceStore, type WorkspaceState } from '../caseStore';
 
-export const selectAppShellFeatureState = (state: WorkspaceState) => ({
-  workspaceRuns: state.workspaceRuns,
-  addTask: state.addTask,
-  completeTask: state.completeTask,
-  failTask: state.failTask,
-  clearCompletedTasks: state.clearCompletedTasks,
+export const selectAppShellLaunchTaskState = (state: WorkspaceState) => ({
   activeTaskId: state.activeTaskId,
-  setActiveTaskId: state.setActiveTaskId,
-  liveEvents: state.liveEvents,
-  setLiveEvents: state.setLiveEvents,
-  isSidebarCollapsed: state.isSidebarCollapsed,
-  setIsSidebarCollapsed: state.setIsSidebarCollapsed,
-  themeMode: state.themeMode,
-  setThemeMode: state.setThemeMode,
-  themeColor: state.themeColor,
-  setThemeColor: state.setThemeColor,
-  accentSettings: state.accentSettings,
-  setAccentSettings: state.setAccentSettings,
-  themeSurfaceSettings: state.themeSurfaceSettings,
-  setThemeSurfaceSettings: state.setThemeSurfaceSettings,
-  themeFontSettings: state.themeFontSettings,
-  setThemeFontSettings: state.setThemeFontSettings,
-  showGlobalSearch: state.showGlobalSearch,
-  setShowGlobalSearch: state.setShowGlobalSearch,
+  addTask: state.addTask,
+  addToast: state.addToast,
   archiveReport: state.archiveReport,
   artifacts: state.artifacts,
-  workspaces: state.workspaces,
-  workspaceBoards: state.workspaceBoards,
+  clearCompletedTasks: state.clearCompletedTasks,
+  completeTask: state.completeTask,
+  customScopes: state.customScopes,
+  failTask: state.failTask,
+  manualNodes: state.manualNodes,
+  setActiveTaskId: state.setActiveTaskId,
+  setManualNodes: state.setManualNodes,
+  workspaceRuns: state.workspaceRuns,
+});
+
+export const useAppShellLaunchTaskState = () =>
+  useWorkspaceStore(useShallow(selectAppShellLaunchTaskState));
+
+export const selectAppShellRouteState = (state: WorkspaceState) => ({
+  activeChatSessionId: state.activeChatSessionId,
+  activeWorkspaceBoardId: state.activeWorkspaceBoardId,
+  activeWorkspaceId: state.activeWorkspaceId,
+  setActiveChatSessionId: state.setActiveChatSessionId,
+  setActiveWorkspaceBoardId: state.setActiveWorkspaceBoardId,
+  setActiveWorkspaceId: state.setActiveWorkspaceId,
+});
+
+export const useAppShellRouteState = () =>
+  useWorkspaceStore(useShallow(selectAppShellRouteState));
+
+export const selectAppShellThemeUiState = (state: WorkspaceState) => ({
+  accentSettings: state.accentSettings,
+  isSidebarCollapsed: state.isSidebarCollapsed,
+  liveEvents: state.liveEvents,
+  setAccentSettings: state.setAccentSettings,
+  setIsSidebarCollapsed: state.setIsSidebarCollapsed,
+  setLiveEvents: state.setLiveEvents,
+  setShowGlobalSearch: state.setShowGlobalSearch,
+  setThemeColor: state.setThemeColor,
+  setThemeFontSettings: state.setThemeFontSettings,
+  setThemeMode: state.setThemeMode,
+  setThemeSurfaceSettings: state.setThemeSurfaceSettings,
+  showGlobalSearch: state.showGlobalSearch,
+  themeColor: state.themeColor,
+  themeFontSettings: state.themeFontSettings,
+  themeMode: state.themeMode,
+  themeSurfaceSettings: state.themeSurfaceSettings,
+});
+
+export const useAppShellThemeUiState = () =>
+  useWorkspaceStore(useShallow(selectAppShellThemeUiState));
+
+export const selectAppShellLookupState = (state: WorkspaceState) => ({
+  addChatMessage: state.addChatMessage,
   chatMessagesBySessionId: state.chatMessagesBySessionId,
   chatSessions: state.chatSessions,
   createChatSession: state.createChatSession,
-  activeWorkspaceId: state.activeWorkspaceId,
-  activeWorkspaceBoardId: state.activeWorkspaceBoardId,
-  setActiveWorkspaceId: state.setActiveWorkspaceId,
-  setActiveWorkspaceBoardId: state.setActiveWorkspaceBoardId,
-  activeChatSessionId: state.activeChatSessionId,
-  setActiveChatSessionId: state.setActiveChatSessionId,
-  addToast: state.addToast,
-  initializeStore: state.initializeStore,
-  isLoading: state.isLoading,
-  customScopes: state.customScopes,
+  headlines: state.headlines,
+  workspaceBoards: state.workspaceBoards,
+  workspaces: state.workspaces,
 });
 
-export const useAppShellFeatureState = () =>
-  useWorkspaceStore(useShallow(selectAppShellFeatureState));
+export const useAppShellLookupState = () =>
+  useWorkspaceStore(useShallow(selectAppShellLookupState));
+
+export const selectAppShellBootstrapState = (state: WorkspaceState) => ({
+  initializeStore: state.initializeStore,
+  isLoading: state.isLoading,
+});
+
+export const useAppShellBootstrapState = () =>
+  useWorkspaceStore(useShallow(selectAppShellBootstrapState));
 
 export const selectChatFeatureState = (state: WorkspaceState) => ({
   artifacts: state.artifacts,
@@ -176,12 +204,14 @@ export const selectOperationFeatureState = (state: WorkspaceState) => ({
   ensureWorkspaceBoard: state.ensureWorkspaceBoard,
   queueBoardPlacement: state.queueBoardPlacement,
   customScopes: state.customScopes,
+  flaggedNodeIds: state.flaggedNodeIds,
+  toggleFlag: state.toggleFlag,
 });
 
 export const useOperationFeatureState = () =>
   useWorkspaceStore(useShallow(selectOperationFeatureState));
 
-export const selectSettingsPersistenceState = (state: WorkspaceState) => ({
+export const selectSettingsDataMaintenanceState = (state: WorkspaceState) => ({
   artifacts: state.artifacts,
   workspaces: state.workspaces,
   workspaceRuns: state.workspaceRuns,
@@ -197,13 +227,19 @@ export const selectSettingsPersistenceState = (state: WorkspaceState) => ({
   workspaceItems: state.workspaceItems,
   workspaceBoards: state.workspaceBoards,
   workspaceBoardDocuments: state.workspaceBoardDocuments,
-  customScopes: state.customScopes,
   importWorkspaceData: state.importWorkspaceData,
   clearWorkspaceData: state.clearWorkspaceData,
 });
 
-export const useSettingsPersistenceState = () =>
-  useWorkspaceStore(useShallow(selectSettingsPersistenceState));
+export const useSettingsDataMaintenanceState = () =>
+  useWorkspaceStore(useShallow(selectSettingsDataMaintenanceState));
+
+export const selectSettingsScopeState = (state: WorkspaceState) => ({
+  customScopes: state.customScopes,
+});
+
+export const useSettingsScopeState = () =>
+  useWorkspaceStore(useShallow(selectSettingsScopeState));
 
 export const selectTaskSetupFeatureState = (state: WorkspaceState) => ({
   templates: state.templates,

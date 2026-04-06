@@ -6,7 +6,7 @@ import {
   buildWorkspaceDataBackup,
   normalizeWorkspaceDataBackup,
 } from '@/services/maintenance/workspaceData';
-import { useSettingsPersistenceState } from '@/store/selectors/featureSelectors';
+import { useSettingsDataMaintenanceState } from '@/store/selectors/featureSelectors';
 
 interface FeedbackDialogState {
   description: string;
@@ -60,7 +60,7 @@ export const useSettingsDataState = ({
     workspaceBoardDocuments,
     importWorkspaceData,
     clearWorkspaceData,
-  } = useSettingsPersistenceState();
+  } = useSettingsDataMaintenanceState();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [autoResolve, setAutoResolve] = useState(initialAutoResolve);

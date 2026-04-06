@@ -13,7 +13,6 @@ import type {
   SystemConfig,
   WorkspaceRun,
 } from '@/types';
-import { useWorkspaceStore } from '@/store/caseStore';
 import { useOperationFeatureState } from '@/store/selectors/featureSelectors';
 import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
 import {
@@ -88,7 +87,9 @@ export function useOperationViewController({
     activeWorkspaceId: selectedCaseId,
     setActiveWorkspaceId,
     ensureWorkspaceBoard,
+    flaggedNodeIds,
     queueBoardPlacement,
+    toggleFlag,
     customScopes,
   } = useOperationFeatureState();
 
@@ -189,7 +190,7 @@ export function useOperationViewController({
 
     addTemplate(newTemplate);
     setShowSaveTemplateModal(false);
-    useWorkspaceStore.getState().addToast('Template saved successfully', 'SUCCESS');
+    addToast('Template saved successfully', 'SUCCESS');
   };
 
   const casePanelData = useMemo(
@@ -368,16 +369,16 @@ export function useOperationViewController({
     const oldName = selectedEntity.name;
     await renameEntityAcrossReports(oldName, newName);
 
-    if (useWorkspaceStore.getState().flaggedNodeIds.includes(oldName)) {
-      useWorkspaceStore.getState().toggleFlag(oldName);
-      useWorkspaceStore.getState().toggleFlag(newName);
+    if (flaggedNodeIds.includes(oldName)) {
+      toggleFlag(oldName);
+      toggleFlag(newName);
     }
 
     setSelectedEntity({ ...selectedEntity, name: newName });
   };
 
   const handleFlagEntity = (entityName: string) => {
-    useWorkspaceStore.getState().toggleFlag(entityName);
+    toggleFlag(entityName);
   };
 
   const handleInvestigateEntity = (entityName: string) => {

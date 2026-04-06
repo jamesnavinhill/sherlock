@@ -279,7 +279,7 @@ describe('caseStore', () => {
     expect(useWorkspaceStore.getState().artifacts).toEqual([]);
     expect(useWorkspaceStore.getState().error).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      '[bootstrap] Failed to load artifacts. Using fallback.',
+      '[bootstrap][skip] Failed to load artifacts. Using fallback.',
       expect.any(Error)
     );
   });

@@ -1,0 +1,83 @@
+import { act, renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const navigateMock = vi.fn();
+const { useChatFeatureState } = vi.hoisted(() => ({
+  useChatFeatureState: vi.fn(),
+}));
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
+
+vi.mock('@/store/selectors/featureSelectors', () => ({
+  useChatFeatureState,
+}));
+
+import { useChatController } from './useChatController';
+
+describe('useChatController', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (window as Window & { innerWidth: number }).innerWidth = 1280;
+
+    useChatFeatureState.mockReturnValue({
+      artifacts: [],
+      workspaces: [
+        {
+          id: 'ws-1',
+          title: 'Atlas Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-06',
+        },
+      ],
+      chatActionsBySessionId: {},
+      chatGenerationStatus: 'IDLE',
+      chatMessagesBySessionId: {},
+      chatSessions: [],
+      createChatSession: vi.fn(),
+      createWorkspaceItem: vi.fn(),
+      updateChatSession: vi.fn(),
+      activeWorkspaceId: 'ws-1',
+      activeChatSessionId: null,
+      addChatAction: vi.fn(),
+      addChatMessage: vi.fn(),
+      addToast: vi.fn(),
+      archiveReport: vi.fn(),
+      appendSectionToReport: vi.fn(),
+      customScopes: [],
+      deleteChatSession: vi.fn(),
+      ensureWorkspaceBoard: vi.fn(),
+      headlines: [],
+      partialAssistantOutput: '',
+      queueBoardPlacement: vi.fn(),
+      renameChatSession: vi.fn(),
+      setActiveWorkspaceId: vi.fn(),
+      setActiveChatSessionId: vi.fn(),
+      setChatGenerationStatus: vi.fn(),
+      setPartialAssistantOutput: vi.fn(),
+      themeMode: 'dark',
+      updateChatMessage: vi.fn(),
+    });
+  });
+
+  it('controls new-project modal state through controller menu handlers', () => {
+    const { result } = renderHook(() =>
+      useChatController({
+        onLaunchInvestigation: vi.fn(),
+      })
+    );
+
+    act(() => {
+      result.current.setShowNewMenu(true);
+      result.current.handleStartNewProject();
+    });
+
+    expect(result.current.showNewMenu).toBe(false);
+    expect(result.current.showNewProjectModal).toBe(true);
+  });
+});
