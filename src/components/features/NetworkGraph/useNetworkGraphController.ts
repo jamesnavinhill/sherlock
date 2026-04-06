@@ -12,7 +12,7 @@ import type {
   ManualNode,
   Source,
 } from '@/types';
-import { useWorkspaceStore } from '@/store/caseStore';
+import { useNetworkGraphFeatureState } from '@/store/selectors/featureSelectors';
 import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
 import { getLabelProfileById } from '@/domain';
 import { cleanEntityName } from '@/utils/text';
@@ -75,7 +75,7 @@ export function useNetworkGraphController({
     ensureWorkspaceBoard,
     queueBoardPlacement,
     addToast,
-  } = useWorkspaceStore();
+  } = useNetworkGraphFeatureState();
 
   const hiddenNodeIds = useMemo(() => new Set(hiddenNodeIdsArray), [hiddenNodeIdsArray]);
   const flaggedNodeIds = useMemo(() => new Set(flaggedNodeIdsArray), [flaggedNodeIdsArray]);

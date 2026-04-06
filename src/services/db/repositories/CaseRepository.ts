@@ -44,7 +44,12 @@ import {
 } from '../../../utils/textNormalization';
 import { createLocalId } from '../../../utils/id';
 import { getWorkspaceDataSignals } from '../../maintenance/workspaceData';
-import { parseStoredJson, parseStoredJsonOrUndefined } from './json';
+import {
+  mapRowsSafely,
+  parseStoredJson,
+  parseStoredJsonOrUndefined,
+  serializeStoredJsonOrNull,
+} from './json';
 
 interface RawReportPayload {
   summary?: string;
@@ -62,12 +67,8 @@ interface ReportMetadataPayload {
 
 const parseRawReportPayload = (rawText: string | null): RawReportPayload => {
   if (!rawText) return {};
-  try {
-    const parsed = JSON.parse(rawText) as RawReportPayload;
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
+  const parsed = parseStoredJson<RawReportPayload | null>(rawText, null, 'artifact raw payload');
+  return parsed && typeof parsed === 'object' ? parsed : {};
 };
 
 const toEntityList = (value: unknown): Entity[] => {
@@ -156,24 +157,28 @@ export class CaseRepository {
     const db = getDB();
     const rows = await db.select().from(cases).orderBy(desc(cases.updatedAt));
 
-    return rows.map((row) => ({
-      id: row.id,
-      scopeId: row.scopeId || undefined,
-      title: row.title,
-      status: row.status as 'ACTIVE' | 'CLOSED',
-      dateOpened: row.dateOpened,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      description: row.description || undefined,
-      mode: (row.mode as Workspace['mode']) || undefined,
-      packId: row.packId || undefined,
-      purposeId: row.purposeId || undefined,
-      labelProfileId: row.labelProfileId || undefined,
-      metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
-        row.metadataJson,
-        `workspace metadata ${row.id}`
-      ),
-    }));
+    return mapRowsSafely(rows, {
+      label: 'workspace row',
+      getRowId: (row) => row.id,
+      mapRow: (row) => ({
+        id: row.id,
+        scopeId: row.scopeId || undefined,
+        title: row.title,
+        status: row.status as 'ACTIVE' | 'CLOSED',
+        dateOpened: row.dateOpened,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        description: row.description || undefined,
+        mode: (row.mode as Workspace['mode']) || undefined,
+        packId: row.packId || undefined,
+        purposeId: row.purposeId || undefined,
+        labelProfileId: row.labelProfileId || undefined,
+        metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+          row.metadataJson,
+          `workspace metadata ${row.id}`
+        ),
+      }),
+    });
   }
 
   static async getCaseById(id: string): Promise<Workspace | null> {
@@ -219,7 +224,7 @@ export class CaseRepository {
       packId: caseData.packId,
       purposeId: caseData.purposeId,
       labelProfileId: caseData.labelProfileId,
-      metadataJson: caseData.metadata ? JSON.stringify(caseData.metadata) : null,
+      metadataJson: serializeStoredJsonOrNull(caseData.metadata),
       createdAt,
       updatedAt,
     });
@@ -242,7 +247,10 @@ export class CaseRepository {
     const allSections = await db.select().from(artifactSections);
     const allEvidence = await db.select().from(artifactEvidence);
 
-    return reportRows.map((row) => {
+    return mapRowsSafely(reportRows, {
+      label: 'artifact row',
+      getRowId: (row) => row.id,
+      mapRow: (row) => {
       const rawPayload = parseRawReportPayload(row.rawText);
 
       const reportEntities = allEntities
@@ -413,6 +421,7 @@ export class CaseRepository {
         evidence: evidenceRows,
         provenance: metadataPayload?.provenance,
       };
+      },
     });
   }
 
@@ -460,8 +469,8 @@ export class CaseRepository {
       packId: report.packId || report.config?.packId,
       purposeId: report.purposeId || report.config?.purposeId,
       labelProfileId: report.labelProfileId || report.config?.labelProfileId,
-      metadataJson: metadataPayload ? JSON.stringify(metadataPayload) : null,
-      configJson: report.config ? JSON.stringify(report.config) : null,
+      metadataJson: serializeStoredJsonOrNull(metadataPayload),
+      configJson: serializeStoredJsonOrNull(report.config),
       createdAt: now,
     });
 
@@ -506,10 +515,10 @@ export class CaseRepository {
           title: followUp.title,
           actionText: followUp.actionText,
           status: followUp.status,
-          entityRefsJson: followUp.entityRefs ? JSON.stringify(followUp.entityRefs) : null,
-          sourceRefsJson: followUp.sourceRefs ? JSON.stringify(followUp.sourceRefs) : null,
+          entityRefsJson: serializeStoredJsonOrNull(followUp.entityRefs),
+          sourceRefsJson: serializeStoredJsonOrNull(followUp.sourceRefs),
           resolvedByArtifactId: followUp.resolvedByArtifactId,
-          metadataJson: followUp.metadata ? JSON.stringify(followUp.metadata) : null,
+          metadataJson: serializeStoredJsonOrNull(followUp.metadata),
           sortOrder: index,
           createdAt: followUp.createdAt ?? now,
           updatedAt: followUp.updatedAt ?? now,
@@ -525,7 +534,7 @@ export class CaseRepository {
           kind: section.kind,
           title: section.title,
           content: section.content,
-          itemsJson: section.items ? JSON.stringify(section.items) : null,
+          itemsJson: serializeStoredJsonOrNull(section.items),
           sortOrder: typeof section.order === 'number' ? section.order : index,
         });
       }
@@ -543,8 +552,8 @@ export class CaseRepository {
           sourceTitle: evidence.sourceTitle,
           sourceUrl: evidence.sourceUrl,
           sectionId: evidence.sectionId,
-          tagsJson: evidence.tags ? JSON.stringify(evidence.tags) : null,
-          metadataJson: evidence.metadata ? JSON.stringify(evidence.metadata) : null,
+          tagsJson: serializeStoredJsonOrNull(evidence.tags),
+          metadataJson: serializeStoredJsonOrNull(evidence.metadata),
           sortOrder: typeof evidence.order === 'number' ? evidence.order : index,
         });
       }
@@ -603,7 +612,7 @@ export class CaseRepository {
       kind: section.kind,
       title: section.title,
       content: section.content,
-      itemsJson: section.items ? JSON.stringify(section.items) : null,
+      itemsJson: serializeStoredJsonOrNull(section.items),
       sortOrder: typeof section.order === 'number' ? section.order : nextSortOrder,
     });
 
@@ -783,18 +792,22 @@ export class CaseRepository {
     const db = getDB();
     const rows = await db.select().from(leads);
 
-    return rows.map((row) => ({
-      id: row.id,
-      caseId: row.caseId || '',
-      content: row.content,
-      source: row.source || '',
-      url: row.url || undefined,
-      timestamp: row.timestamp || new Date().toISOString(),
-      type: row.type === 'SOCIAL' || row.type === 'OFFICIAL' ? row.type : 'NEWS',
-      status: row.status as Signal['status'],
-      threatLevel: (row.threatLevel as Signal['threatLevel']) || 'INFO',
-      linkedReportId: row.linkedReportId || undefined,
-    }));
+    return mapRowsSafely(rows, {
+      label: 'signal row',
+      getRowId: (row) => row.id,
+      mapRow: (row) => ({
+        id: row.id,
+        caseId: row.caseId || '',
+        content: row.content,
+        source: row.source || '',
+        url: row.url || undefined,
+        timestamp: row.timestamp || new Date().toISOString(),
+        type: row.type === 'SOCIAL' || row.type === 'OFFICIAL' ? row.type : 'NEWS',
+        status: row.status as Signal['status'],
+        threatLevel: (row.threatLevel as Signal['threatLevel']) || 'INFO',
+        linkedReportId: row.linkedReportId || undefined,
+      }),
+    });
   }
 
   static async createSignal(

@@ -23,7 +23,7 @@ import {
   buildWorkspaceNetworkPath,
   buildWorkspaceTimelinePath,
 } from '@/app/routes';
-import { useWorkspaceStore } from '@/store/caseStore';
+import { useWorkspaceBoardFeatureState } from '@/store/selectors/featureSelectors';
 import { type InspectorActionItem } from '@/components/ui/InspectorActionRow';
 import { type WorkspaceLibraryEntry } from '@/services/workspace/library';
 import {
@@ -88,7 +88,7 @@ export const useWorkspaceBoardController = ({
     deleteWorkspaceBoard,
     addToast,
     themeMode,
-  } = useWorkspaceStore();
+  } = useWorkspaceBoardFeatureState();
 
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);

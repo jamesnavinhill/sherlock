@@ -272,6 +272,7 @@ Global store:
 - `src/store/actions/conversationActions.ts`
 - `src/store/actions/artifactRunActions.ts`
 - `src/store/actions/workspaceActions.ts`
+- `src/store/selectors/featureSelectors.ts`
 
 State domains include:
 
@@ -289,6 +290,8 @@ State domains include:
 - feed config and UI state
 
 `src/store/caseStore.ts` is now primarily the public state contract plus initial state composition; grouped action modules own bootstrap, UI/settings, conversation, artifact/run, and workspace maintenance responsibilities behind that stable store entry.
+
+Feature-level subscriptions now route through selector hooks in `src/store/selectors/featureSelectors.ts` for the largest routed surfaces and controllers. That keeps `useAppShellController`, chat, board, timeline, network graph, operation, settings, and runtime-config flows subscribed to their own state slices without changing the underlying Zustand architecture or introducing a second state system.
 
 Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 

@@ -55,6 +55,12 @@ Persistence is routed through repository classes:
 
 Critical multi-table writes now use one shared transaction helper in `src/services/db/client.ts`: `runWriteTransaction(...)`.
 
+Repository hydration and serialization now follow a shared helper contract in `src/services/db/repositories/json.ts`:
+
+- JSON parsing should use labeled helpers so malformed persisted payloads warn consistently and fall back predictably
+- row hydration should prefer the shared row-mapping guard so a corrupted row can be skipped with a labeled warning instead of aborting the full repository read
+- JSON serialization for nullable/update fields should use the same helper module so `null` vs `undefined` behavior stays consistent across create/update paths
+
 That helper is the canonical repository pattern for:
 
 - artifact/report saves plus dependent follow-ups, sections, evidence, entities, sources, and lineage updates
@@ -199,6 +205,8 @@ Intentional direct `localStorage` exceptions remain limited to:
 - provider key handling in `src/services/providers/keys.ts`
 - one-time legacy SQLite migration bootstrap in `src/services/db/migrate.ts`
 
+Provider keys are an explicit persistence invariant rather than an accidental implementation detail: they stay device-local, remain outside SQLite, and are excluded from workspace backup/restore on purpose. New persistence work should keep provider-key handling confined to `src/services/providers/keys.ts` rather than introducing a second storage path.
+
 ## Backup/Restore
 
 User-facing maintenance tools in Settings:
@@ -236,6 +244,8 @@ Workspace-data backups include:
 - Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `reports`/`artifact_sections`
 
 Workspace-data restore now replays that backup inside one SQLite transaction so a failed import does not leave a partially cleared or partially restored workspace domain behind.
+
+Store bootstrap now follows the same degraded-read posture. If one repository/settings read fails during `initializeStore`, Sherlock logs a labeled `[bootstrap]` warning and falls back to the empty/default value for that resource so one corrupted persisted surface does not necessarily block the rest of the workspace domain from loading.
 
 Restore/import still accepts older canonical payloads that stored saved signals under `signals.headlines`, plus pre-canonical legacy payloads with top-level `headlines`.
 

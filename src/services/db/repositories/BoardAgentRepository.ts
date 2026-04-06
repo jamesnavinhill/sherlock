@@ -2,7 +2,12 @@ import { desc, eq } from 'drizzle-orm';
 import type { BoardAgentAction, BoardAgentSession } from '@/types';
 import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { boardAgentActions, boardAgentSessions } from '../schema';
-import { parseStoredJsonOrUndefined } from './json';
+import {
+  mapRowsSafely,
+  parseStoredJsonOrUndefined,
+  serializeStoredJsonOrNull,
+  serializeStoredJsonOrUndefined,
+} from './json';
 
 const mapSession = (row: typeof boardAgentSessions.$inferSelect): BoardAgentSession => ({
   id: row.id,
@@ -44,7 +49,11 @@ export class BoardAgentRepository {
   static async getAllSessions(): Promise<BoardAgentSession[]> {
     const db = getDB();
     const rows = await db.select().from(boardAgentSessions).orderBy(desc(boardAgentSessions.updatedAt));
-    return rows.map(mapSession);
+    return mapRowsSafely(rows, {
+      label: 'board-agent session',
+      getRowId: (row) => row.id,
+      mapRow: mapSession,
+    });
   }
 
   static async getActionsForSession(sessionId: string): Promise<BoardAgentAction[]> {
@@ -54,7 +63,11 @@ export class BoardAgentRepository {
       .from(boardAgentActions)
       .where(eq(boardAgentActions.sessionId, sessionId))
       .orderBy(desc(boardAgentActions.createdAt));
-    return rows.map(mapAction);
+    return mapRowsSafely(rows, {
+      label: 'board-agent action',
+      getRowId: (row) => row.id,
+      mapRow: mapAction,
+    });
   }
 
   static async createSession(
@@ -73,7 +86,7 @@ export class BoardAgentRepository {
       modelId: session.modelId || null,
       contextSnapshotId: session.contextSnapshotId || null,
       lastError: session.lastError || null,
-      metadataJson: session.metadata ? JSON.stringify(session.metadata) : null,
+      metadataJson: serializeStoredJsonOrNull(session.metadata),
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
       startedAt: session.startedAt || null,
@@ -99,11 +112,7 @@ export class BoardAgentRepository {
           patch.contextSnapshotId === undefined ? undefined : patch.contextSnapshotId || null,
         lastError: patch.lastError === undefined ? undefined : patch.lastError || null,
         metadataJson:
-          patch.metadata === undefined
-            ? undefined
-            : patch.metadata
-              ? JSON.stringify(patch.metadata)
-              : null,
+          serializeStoredJsonOrUndefined(patch.metadata),
         updatedAt: patch.updatedAt ?? Date.now(),
         startedAt: patch.startedAt === undefined ? undefined : patch.startedAt || null,
         completedAt: patch.completedAt === undefined ? undefined : patch.completedAt || null,
@@ -122,15 +131,11 @@ export class BoardAgentRepository {
       boardId: action.boardId,
       type: action.type,
       status: action.status,
-      inputJson: action.input ? JSON.stringify(action.input) : null,
-      normalizedInputJson: action.normalizedInput ? JSON.stringify(action.normalizedInput) : null,
-      resultJson: action.result ? JSON.stringify(action.result) : null,
-      affectedCanonicalIdsJson: action.affectedCanonicalIds
-        ? JSON.stringify(action.affectedCanonicalIds)
-        : null,
-      affectedBoardShapeIdsJson: action.affectedBoardShapeIds
-        ? JSON.stringify(action.affectedBoardShapeIds)
-        : null,
+      inputJson: serializeStoredJsonOrNull(action.input),
+      normalizedInputJson: serializeStoredJsonOrNull(action.normalizedInput),
+      resultJson: serializeStoredJsonOrNull(action.result),
+      affectedCanonicalIdsJson: serializeStoredJsonOrNull(action.affectedCanonicalIds),
+      affectedBoardShapeIdsJson: serializeStoredJsonOrNull(action.affectedBoardShapeIds),
       error: action.error || null,
       createdAt: action.createdAt,
       updatedAt: action.updatedAt,
@@ -147,26 +152,11 @@ export class BoardAgentRepository {
       .set({
         type: patch.type,
         status: patch.status,
-        inputJson: patch.input === undefined ? undefined : patch.input ? JSON.stringify(patch.input) : null,
-        normalizedInputJson:
-          patch.normalizedInput === undefined
-            ? undefined
-            : patch.normalizedInput
-              ? JSON.stringify(patch.normalizedInput)
-              : null,
-        resultJson: patch.result === undefined ? undefined : patch.result ? JSON.stringify(patch.result) : null,
-        affectedCanonicalIdsJson:
-          patch.affectedCanonicalIds === undefined
-            ? undefined
-            : patch.affectedCanonicalIds
-              ? JSON.stringify(patch.affectedCanonicalIds)
-              : null,
-        affectedBoardShapeIdsJson:
-          patch.affectedBoardShapeIds === undefined
-            ? undefined
-            : patch.affectedBoardShapeIds
-              ? JSON.stringify(patch.affectedBoardShapeIds)
-              : null,
+        inputJson: serializeStoredJsonOrUndefined(patch.input),
+        normalizedInputJson: serializeStoredJsonOrUndefined(patch.normalizedInput),
+        resultJson: serializeStoredJsonOrUndefined(patch.result),
+        affectedCanonicalIdsJson: serializeStoredJsonOrUndefined(patch.affectedCanonicalIds),
+        affectedBoardShapeIdsJson: serializeStoredJsonOrUndefined(patch.affectedBoardShapeIds),
         error: patch.error === undefined ? undefined : patch.error || null,
         updatedAt: patch.updatedAt ?? Date.now(),
       })

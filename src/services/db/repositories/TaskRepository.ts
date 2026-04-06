@@ -2,14 +2,17 @@ import { eq } from 'drizzle-orm';
 import { getDB, type SherlockWriteExecutor } from '../client';
 import { tasks } from '../schema';
 import type { ArtifactType, WorkspaceRun } from '@/types';
-import { parseStoredJson } from './json';
+import { mapRowsSafely, parseStoredJson, serializeStoredJsonOrNull } from './json';
 
 export class TaskRepository {
   static async getAll(): Promise<WorkspaceRun[]> {
     const db = getDB();
     const rows = await db.select().from(tasks);
 
-    return rows.map((row) => {
+    return mapRowsSafely(rows, {
+      label: 'task row',
+      getRowId: (row) => row.id,
+      mapRow: (row) => {
       const legacyConfig: WorkspaceRun['config'] = {
         packId: row.packId || undefined,
         purposeId: row.purposeId || undefined,
@@ -33,6 +36,7 @@ export class TaskRepository {
             )
           : legacyConfig,
       };
+      },
     });
   }
 
@@ -49,7 +53,7 @@ export class TaskRepository {
       startTime: task.startTime,
       endTime: task.endTime,
       error: task.error,
-      configJson: task.config ? JSON.stringify(task.config) : null,
+      configJson: serializeStoredJsonOrNull(task.config),
     });
   }
 
@@ -77,7 +81,7 @@ export class TaskRepository {
     const db = getDB();
     await db
       .update(tasks)
-      .set({ configJson: config ? JSON.stringify(config) : null })
+      .set({ configJson: serializeStoredJsonOrNull(config) })
       .where(eq(tasks.id, id));
   }
 

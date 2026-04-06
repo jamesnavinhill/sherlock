@@ -15,6 +15,7 @@ import type {
   WorkspaceRun,
 } from '@/types';
 import { useWorkspaceStore } from '@/store/caseStore';
+import { useOperationFeatureState } from '@/store/selectors/featureSelectors';
 import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
 import { getAllScopes, getScopeById } from '@/data/presets';
 import {
@@ -86,7 +87,7 @@ export function useOperationViewController({
     ensureWorkspaceBoard,
     queueBoardPlacement,
     customScopes,
-  } = useWorkspaceStore();
+  } = useOperationFeatureState();
 
   const report = task?.report ?? reportOverride;
   const status = task?.status ?? null;

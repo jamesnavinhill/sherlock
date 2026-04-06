@@ -192,11 +192,11 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                 <div className="mt-4 border-t border-zinc-800 pt-3">
                   <details className="group">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500 transition hover:text-white [&::-webkit-details-marker]:hidden">
-                      {`Related Context (${message.attachments.length})`}
+                      {`Related Context (${message.attachments?.length ?? 0})`}
                       <ChevronDown className="h-4 w-4 shrink-0" />
                     </summary>
                     <div className="mt-3 space-y-2">
-                      {message.attachments.map((attachment) => (
+                      {(message.attachments || []).map((attachment) => (
                         <div key={attachment.id} className="border border-zinc-800 bg-zinc-900/20 p-3">
                           <div className="text-sm text-zinc-200">{attachment.title}</div>
                           {attachment.snippet ? (

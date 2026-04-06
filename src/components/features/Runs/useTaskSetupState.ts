@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useWorkspaceStore } from '@/store/caseStore';
+import { useTaskSetupFeatureState } from '@/store/selectors/featureSelectors';
 import { BUILTIN_SCOPES, getAllScopes, getScopeById } from '@/data/presets';
 import type { AIProvider } from '@/config/aiModels';
 import {
@@ -62,7 +62,7 @@ export const useTaskSetupState = ({
   initialDateRangeOverride,
   onStart,
 }: UseTaskSetupStateInput) => {
-  const { templates, addTemplate, customScopes, defaultScopeId } = useWorkspaceStore();
+  const { templates, addTemplate, customScopes, defaultScopeId } = useTaskSetupFeatureState();
   const storedConfig = loadSystemConfig();
   const allScopes = getAllScopes(customScopes);
 

@@ -3,7 +3,13 @@ import type { WorkspaceBoard, WorkspaceBoardDocument } from '@/types';
 import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { workspaceBoardDocuments, workspaceBoards } from '../schema';
 import { BoardAgentRepository } from './BoardAgentRepository';
-import { parseStoredJson, parseStoredJsonOrUndefined } from './json';
+import {
+  mapRowsSafely,
+  parseStoredJson,
+  parseStoredJsonOrUndefined,
+  serializeStoredJsonOrNull,
+  serializeStoredJsonOrUndefined,
+} from './json';
 
 const mapBoard = (row: typeof workspaceBoards.$inferSelect): WorkspaceBoard => ({
   id: row.id,
@@ -36,13 +42,21 @@ export class WorkspaceBoardRepository {
   static async getAllBoards(): Promise<WorkspaceBoard[]> {
     const db = getDB();
     const rows = await db.select().from(workspaceBoards).orderBy(asc(workspaceBoards.sortOrder));
-    return rows.map(mapBoard);
+    return mapRowsSafely(rows, {
+      label: 'workspace board',
+      getRowId: (row) => row.id,
+      mapRow: mapBoard,
+    });
   }
 
   static async getAllDocuments(): Promise<WorkspaceBoardDocument[]> {
     const db = getDB();
     const rows = await db.select().from(workspaceBoardDocuments);
-    return rows.map(mapBoardDocument);
+    return mapRowsSafely(rows, {
+      label: 'workspace board document',
+      getRowId: (row) => row.boardId,
+      mapRow: mapBoardDocument,
+    });
   }
 
   static async createBoard(
@@ -56,7 +70,7 @@ export class WorkspaceBoardRepository {
       description: board.description,
       sortOrder: board.sortOrder,
       presentationMode: board.presentationMode ? 1 : 0,
-      metadataJson: board.metadata ? JSON.stringify(board.metadata) : null,
+      metadataJson: serializeStoredJsonOrNull(board.metadata),
       createdAt: board.createdAt,
       updatedAt: board.updatedAt,
     });
@@ -73,7 +87,7 @@ export class WorkspaceBoardRepository {
         description: board.description,
         sortOrder: board.sortOrder,
         presentationMode: board.presentationMode ? 1 : 0,
-        metadataJson: board.metadata ? JSON.stringify(board.metadata) : null,
+        metadataJson: serializeStoredJsonOrNull(board.metadata),
         createdAt: board.createdAt,
         updatedAt: board.updatedAt,
       })
@@ -85,7 +99,7 @@ export class WorkspaceBoardRepository {
           description: board.description,
           sortOrder: board.sortOrder,
           presentationMode: board.presentationMode ? 1 : 0,
-          metadataJson: board.metadata ? JSON.stringify(board.metadata) : null,
+          metadataJson: serializeStoredJsonOrNull(board.metadata),
           updatedAt: board.updatedAt,
         },
       });
@@ -102,7 +116,7 @@ export class WorkspaceBoardRepository {
         sortOrder: patch.sortOrder,
         presentationMode:
           typeof patch.presentationMode === 'boolean' ? (patch.presentationMode ? 1 : 0) : undefined,
-        metadataJson: patch.metadata ? JSON.stringify(patch.metadata) : undefined,
+        metadataJson: serializeStoredJsonOrUndefined(patch.metadata),
         updatedAt: patch.updatedAt ?? Date.now(),
       })
       .where(eq(workspaceBoards.id, id));
@@ -116,13 +130,13 @@ export class WorkspaceBoardRepository {
       .insert(workspaceBoardDocuments)
       .values({
         boardId: document.boardId,
-        snapshotJson: document.snapshot ? JSON.stringify(document.snapshot) : null,
+        snapshotJson: serializeStoredJsonOrNull(document.snapshot),
         updatedAt: document.updatedAt,
       })
       .onConflictDoUpdate({
         target: workspaceBoardDocuments.boardId,
         set: {
-          snapshotJson: document.snapshot ? JSON.stringify(document.snapshot) : null,
+          snapshotJson: serializeStoredJsonOrNull(document.snapshot),
           updatedAt: document.updatedAt,
         },
       });

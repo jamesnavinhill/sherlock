@@ -14,7 +14,7 @@ import {
   buildWorkspaceChatPath,
   buildWorkspaceChatSessionPath,
 } from '@/app/routes';
-import { useWorkspaceStore } from '../../../store/caseStore';
+import { useChatFeatureState } from '@/store/selectors/featureSelectors';
 import {
   buildArtifactAppendFromChatMessage,
   buildArtifactDraftFromChatMessage,
@@ -111,7 +111,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     setPartialAssistantOutput,
     themeMode,
     updateChatMessage,
-  } = useWorkspaceStore();
+  } = useChatFeatureState();
 
   const [draft, setDraft] = useState('');
   const [leftPanelOpen, setLeftPanelOpen] = useState(getDefaultLeftPanelOpen);

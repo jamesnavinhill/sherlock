@@ -2,7 +2,12 @@ import { desc, eq } from 'drizzle-orm';
 import type { WorkspaceItem } from '@/types';
 import { getDB, type SherlockWriteExecutor } from '../client';
 import { workspaceItems } from '../schema';
-import { parseStoredJsonOrUndefined } from './json';
+import {
+  mapRowsSafely,
+  parseStoredJsonOrUndefined,
+  serializeStoredJsonOrNull,
+  serializeStoredJsonOrUndefined,
+} from './json';
 
 const mapWorkspaceItem = (row: typeof workspaceItems.$inferSelect): WorkspaceItem => ({
   id: row.id,
@@ -33,7 +38,11 @@ export class WorkspaceItemRepository {
   static async getAll(): Promise<WorkspaceItem[]> {
     const db = getDB();
     const rows = await db.select().from(workspaceItems).orderBy(desc(workspaceItems.updatedAt));
-    return rows.map(mapWorkspaceItem);
+    return mapRowsSafely(rows, {
+      label: 'workspace item',
+      getRowId: (row) => row.id,
+      mapRow: mapWorkspaceItem,
+    });
   }
 
   static async create(
@@ -52,9 +61,9 @@ export class WorkspaceItemRepository {
       fileName: item.fileName,
       sizeBytes: item.sizeBytes,
       previewUrl: item.previewUrl,
-      tagsJson: item.tags ? JSON.stringify(item.tags) : null,
-      provenanceJson: item.provenance ? JSON.stringify(item.provenance) : null,
-      metadataJson: item.metadata ? JSON.stringify(item.metadata) : null,
+      tagsJson: serializeStoredJsonOrNull(item.tags),
+      provenanceJson: serializeStoredJsonOrNull(item.provenance),
+      metadataJson: serializeStoredJsonOrNull(item.metadata),
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     });
@@ -75,9 +84,9 @@ export class WorkspaceItemRepository {
         fileName: patch.fileName,
         sizeBytes: patch.sizeBytes,
         previewUrl: patch.previewUrl,
-        tagsJson: patch.tags ? JSON.stringify(patch.tags) : undefined,
-        provenanceJson: patch.provenance ? JSON.stringify(patch.provenance) : undefined,
-        metadataJson: patch.metadata ? JSON.stringify(patch.metadata) : undefined,
+        tagsJson: serializeStoredJsonOrUndefined(patch.tags),
+        provenanceJson: serializeStoredJsonOrUndefined(patch.provenance),
+        metadataJson: serializeStoredJsonOrUndefined(patch.metadata),
         updatedAt: patch.updatedAt ?? Date.now(),
       })
       .where(eq(workspaceItems.id, id));
@@ -99,9 +108,9 @@ export class WorkspaceItemRepository {
         fileName: item.fileName,
         sizeBytes: item.sizeBytes,
         previewUrl: item.previewUrl,
-        tagsJson: item.tags ? JSON.stringify(item.tags) : null,
-        provenanceJson: item.provenance ? JSON.stringify(item.provenance) : null,
-        metadataJson: item.metadata ? JSON.stringify(item.metadata) : null,
+        tagsJson: serializeStoredJsonOrNull(item.tags),
+        provenanceJson: serializeStoredJsonOrNull(item.provenance),
+        metadataJson: serializeStoredJsonOrNull(item.metadata),
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       })
@@ -118,9 +127,9 @@ export class WorkspaceItemRepository {
           fileName: item.fileName,
           sizeBytes: item.sizeBytes,
           previewUrl: item.previewUrl,
-          tagsJson: item.tags ? JSON.stringify(item.tags) : null,
-          provenanceJson: item.provenance ? JSON.stringify(item.provenance) : null,
-          metadataJson: item.metadata ? JSON.stringify(item.metadata) : null,
+          tagsJson: serializeStoredJsonOrNull(item.tags),
+          provenanceJson: serializeStoredJsonOrNull(item.provenance),
+          metadataJson: serializeStoredJsonOrNull(item.metadata),
           updatedAt: item.updatedAt,
         },
       });

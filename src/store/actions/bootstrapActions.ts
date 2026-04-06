@@ -59,56 +59,152 @@ export const createBootstrapActions = (
   { hasExistingWorkspaceData, loadDemoWorkspaceSeed, persistWorkspaceDataBackup }: BootstrapDependencies
 ): Pick<WorkspaceState, 'initializeStore'> => ({
   initializeStore: async () => {
+    const loadBootstrapResource = async <T>(
+      label: string,
+      loader: () => Promise<T>,
+      fallback: T
+    ): Promise<T> => {
+      try {
+        return await loader();
+      } catch (error) {
+        console.warn(`[bootstrap] Failed to load ${label}. Using fallback.`, error);
+        return fallback;
+      }
+    };
+
     try {
       set({ isLoading: true });
       await initDB();
       await migrateLocalStorageToSqlite();
 
-      let workspaces = await CaseRepository.getAllCases();
-      let artifacts = await CaseRepository.getAllReports();
-      const scopes = await ScopeRepository.getAll();
-      let workspaceRuns = await TaskRepository.getAll();
-      let chatSessions = await ChatRepository.getAllSessions();
-      let chatMessagesBySessionId = await ChatRepository.getMessagesBySessionIds(
-        chatSessions.map((session) => session.id)
+      const [
+        workspacesResult,
+        artifactsResult,
+        scopes,
+        workspaceRunsResult,
+        chatSessionsResult,
+        boardAgentSessionsResult,
+        headlinesResult,
+        templatesResult,
+        workspaceItemsResult,
+        workspaceBoardsResult,
+        workspaceBoardDocumentsResult,
+        manualNodesResult,
+        manualLinksResult,
+        hiddenNodeIdsResult,
+        flaggedNodeIdsResult,
+        entityAliasesResult,
+        storedThemeMode,
+        storedAccent,
+        storedTheme,
+        storedThemeSurfaceSettings,
+        storedThemeFontSettings,
+      ] = await Promise.all([
+        loadBootstrapResource('workspaces', () => CaseRepository.getAllCases(), []),
+        loadBootstrapResource('artifacts', () => CaseRepository.getAllReports(), []),
+        loadBootstrapResource('scopes', () => ScopeRepository.getAll(), []),
+        loadBootstrapResource('workspace runs', () => TaskRepository.getAll(), []),
+        loadBootstrapResource('chat sessions', () => ChatRepository.getAllSessions(), []),
+        loadBootstrapResource('board-agent sessions', () => BoardAgentRepository.getAllSessions(), []),
+        loadBootstrapResource('saved signals', () => CaseRepository.getSignals(), []),
+        loadBootstrapResource('templates', () => TemplateRepository.getAll(), []),
+        loadBootstrapResource('workspace items', () => WorkspaceItemRepository.getAll(), []),
+        loadBootstrapResource('workspace boards', () => WorkspaceBoardRepository.getAllBoards(), []),
+        loadBootstrapResource(
+          'workspace board documents',
+          () => WorkspaceBoardRepository.getAllDocuments(),
+          []
+        ),
+        loadBootstrapResource('manual graph nodes', () => ManualDataRepository.getAllNodes(), []),
+        loadBootstrapResource('manual graph links', () => ManualDataRepository.getAllLinks(), []),
+        loadBootstrapResource(
+          'hidden graph nodes',
+          () => SettingsRepository.getSetting<string[]>('hidden_nodes'),
+          []
+        ),
+        loadBootstrapResource(
+          'flagged graph nodes',
+          () => SettingsRepository.getSetting<string[]>('flagged_nodes'),
+          []
+        ),
+        loadBootstrapResource(
+          'entity aliases',
+          () => SettingsRepository.getSetting<Record<string, string>>('entity_aliases'),
+          {}
+        ),
+        loadBootstrapResource(
+          'theme mode',
+          () => SettingsRepository.getSetting<ThemeMode>('theme_mode'),
+          null
+        ),
+        loadBootstrapResource(
+          'accent settings',
+          () =>
+            SettingsRepository.getSetting<{
+              hue: number;
+              lightness: number;
+              chroma: number;
+            }>('accent_settings'),
+          null
+        ),
+        loadBootstrapResource('theme color', () => SettingsRepository.getSetting<string>('theme_color'), null),
+        loadBootstrapResource(
+          'theme surface settings',
+          () => SettingsRepository.getSetting('theme_surface_settings'),
+          null
+        ),
+        loadBootstrapResource(
+          'theme font settings',
+          () => SettingsRepository.getSetting('theme_font_settings'),
+          null
+        ),
+      ]);
+
+      let workspaces = workspacesResult;
+      let artifacts = artifactsResult;
+      let workspaceRunsState = workspaceRunsResult;
+      let chatSessions = chatSessionsResult;
+      let chatMessagesBySessionId = await loadBootstrapResource(
+        'chat messages',
+        () =>
+          ChatRepository.getMessagesBySessionIds(chatSessions.map((session) => session.id)),
+        {}
       );
       let chatActionsBySessionId = Object.fromEntries(
         await Promise.all(
           chatSessions.map(async (session) => [
             session.id,
-            await ChatRepository.getActionsForSession(session.id),
+            await loadBootstrapResource(
+              `chat actions for session ${session.id}`,
+              () => ChatRepository.getActionsForSession(session.id),
+              []
+            ),
           ])
         )
       );
-      let boardAgentSessions = await BoardAgentRepository.getAllSessions();
+      let boardAgentSessions = boardAgentSessionsResult;
       let boardAgentActionsBySessionId = Object.fromEntries(
         await Promise.all(
           boardAgentSessions.map(async (session) => [
             session.id,
-            await BoardAgentRepository.getActionsForSession(session.id),
+            await loadBootstrapResource(
+              `board-agent actions for session ${session.id}`,
+              () => BoardAgentRepository.getActionsForSession(session.id),
+              []
+            ),
           ])
         )
       );
-      let headlines = await CaseRepository.getSignals();
-      let templates = await TemplateRepository.getAll();
-      let workspaceItems = await WorkspaceItemRepository.getAll();
-      let workspaceBoards = await WorkspaceBoardRepository.getAllBoards();
-      let workspaceBoardDocuments = await WorkspaceBoardRepository.getAllDocuments();
-      let manualNodes = await ManualDataRepository.getAllNodes();
-      let manualLinks = await ManualDataRepository.getAllLinks();
-      let hiddenNodeIds = (await SettingsRepository.getSetting<string[]>('hidden_nodes')) || [];
-      let flaggedNodeIds = (await SettingsRepository.getSetting<string[]>('flagged_nodes')) || [];
-      const entityAliases =
-        (await SettingsRepository.getSetting<Record<string, string>>('entity_aliases')) || {};
-      const storedThemeMode = await SettingsRepository.getSetting<ThemeMode>('theme_mode');
-      const storedAccent = await SettingsRepository.getSetting<{
-        hue: number;
-        lightness: number;
-        chroma: number;
-      }>('accent_settings');
-      const storedTheme = await SettingsRepository.getSetting<string>('theme_color');
-      const storedThemeSurfaceSettings = await SettingsRepository.getSetting('theme_surface_settings');
-      const storedThemeFontSettings = await SettingsRepository.getSetting('theme_font_settings');
+      let headlines = headlinesResult;
+      let templates = templatesResult;
+      let workspaceItems = workspaceItemsResult;
+      let workspaceBoards = workspaceBoardsResult;
+      let workspaceBoardDocuments = workspaceBoardDocumentsResult;
+      let manualNodes = manualNodesResult;
+      let manualLinks = manualLinksResult;
+      let hiddenNodeIds = hiddenNodeIdsResult || [];
+      let flaggedNodeIds = flaggedNodeIdsResult || [];
+      const entityAliases = entityAliasesResult || {};
 
       const legacyTheme = getStringItem(STORAGE_KEYS.THEME);
       const legacyConfigRaw = getStringItem(STORAGE_KEYS.SYSTEM_CONFIG);
@@ -185,7 +281,7 @@ export const createBootstrapActions = (
         !hasExistingWorkspaceData({
           workspaces,
           artifacts,
-          workspaceRuns,
+          workspaceRuns: workspaceRunsState,
           chatSessions,
           boardAgentSessions,
           headlines,
@@ -204,7 +300,7 @@ export const createBootstrapActions = (
 
           workspaces = demoSeed.workspaces;
           artifacts = demoSeed.artifacts;
-          workspaceRuns = demoSeed.runs;
+          workspaceRunsState = demoSeed.runs;
           chatSessions = demoSeed.chat.sessions;
           chatMessagesBySessionId = groupChatMessagesBySessionId(demoSeed.chat.messages);
           chatActionsBySessionId = groupChatActionsBySessionId(demoSeed.chat.actions);
@@ -240,7 +336,7 @@ export const createBootstrapActions = (
       set({
         workspaces,
         artifacts,
-        workspaceRuns,
+        workspaceRuns: workspaceRunsState,
         customScopes: scopes,
         chatSessions,
         chatMessagesBySessionId,
@@ -267,6 +363,7 @@ export const createBootstrapActions = (
         activeWorkspaceId,
         activeWorkspaceBoardId,
         isLoading: false,
+        error: null,
       });
     } catch (error) {
       console.error('Store initialization failed:', error);

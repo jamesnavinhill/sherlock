@@ -2,7 +2,12 @@ import { desc, eq, inArray } from 'drizzle-orm';
 import type { AgentAction, ChatAttachment, ChatMessage, ChatSession } from '@/types';
 import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../client';
 import { chatActions, chatMessageAttachments, chatMessages, chatSessions } from '../schema';
-import { parseStoredJsonOrUndefined } from './json';
+import {
+  mapRowsSafely,
+  parseStoredJsonOrUndefined,
+  serializeStoredJsonOrNull,
+  serializeStoredJsonOrUndefined,
+} from './json';
 
 const mapAttachment = (row: typeof chatMessageAttachments.$inferSelect): ChatAttachment => ({
   id: row.id,
@@ -64,7 +69,11 @@ export class ChatRepository {
   static async getAllSessions(): Promise<ChatSession[]> {
     const db = getDB();
     const rows = await db.select().from(chatSessions).orderBy(desc(chatSessions.updatedAt));
-    return rows.map(mapSession);
+    return mapRowsSafely(rows, {
+      label: 'chat session',
+      getRowId: (row) => row.id,
+      mapRow: mapSession,
+    });
   }
 
   static async getMessagesBySessionIds(
@@ -88,13 +97,22 @@ export class ChatRepository {
       : [];
 
     const attachmentsByMessageId = new Map<string, ChatAttachment[]>();
-    attachmentRows.forEach((row) => {
-      const existing = attachmentsByMessageId.get(row.messageId) || [];
-      existing.push(mapAttachment(row));
-      attachmentsByMessageId.set(row.messageId, existing);
+    mapRowsSafely(attachmentRows, {
+      label: 'chat attachment',
+      getRowId: (row) => row.id,
+      mapRow: (row) => {
+        const existing = attachmentsByMessageId.get(row.messageId) || [];
+        existing.push(mapAttachment(row));
+        attachmentsByMessageId.set(row.messageId, existing);
+        return row.id;
+      },
     });
 
-    return messageRows.reduce<Record<string, ChatMessage[]>>((acc, row) => {
+    return mapRowsSafely(messageRows, {
+      label: 'chat message',
+      getRowId: (row) => row.id,
+      mapRow: (row) => row,
+    }).reduce<Record<string, ChatMessage[]>>((acc, row) => {
       const next = acc[row.sessionId] || [];
       next.push(mapMessage(row, attachmentsByMessageId.get(row.id) || []));
       acc[row.sessionId] = next;
@@ -116,7 +134,7 @@ export class ChatRepository {
       purposeId: session.purposeId || null,
       provider: session.provider || null,
       modelId: session.modelId || null,
-      metadataJson: session.metadata ? JSON.stringify(session.metadata) : null,
+      metadataJson: serializeStoredJsonOrNull(session.metadata),
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
     });
@@ -139,11 +157,7 @@ export class ChatRepository {
         provider: patch.provider === undefined ? undefined : patch.provider || null,
         modelId: patch.modelId === undefined ? undefined : patch.modelId || null,
         metadataJson:
-          patch.metadata === undefined
-            ? undefined
-            : patch.metadata
-              ? JSON.stringify(patch.metadata)
-              : null,
+          serializeStoredJsonOrUndefined(patch.metadata),
         updatedAt: patch.updatedAt ?? Date.now(),
       })
       .where(eq(chatSessions.id, id));
@@ -205,8 +219,8 @@ export class ChatRepository {
       role: message.role,
       content: message.content,
       status: message.status,
-      citationsJson: message.citations ? JSON.stringify(message.citations) : null,
-      metadataJson: message.metadata ? JSON.stringify(message.metadata) : null,
+      citationsJson: serializeStoredJsonOrNull(message.citations),
+      metadataJson: serializeStoredJsonOrNull(message.metadata),
       error: message.error || null,
       createdAt: message.createdAt,
       updatedAt: message.updatedAt,
@@ -222,7 +236,7 @@ export class ChatRepository {
           refId: attachment.refId || null,
           refKind: attachment.refKind || null,
           snippet: attachment.snippet || null,
-          metadataJson: attachment.metadata ? JSON.stringify(attachment.metadata) : null,
+          metadataJson: serializeStoredJsonOrNull(attachment.metadata),
           createdAt: attachment.createdAt,
         });
       }
@@ -239,18 +253,8 @@ export class ChatRepository {
       .set({
         content: patch.content,
         status: patch.status,
-        citationsJson:
-          patch.citations === undefined
-            ? undefined
-            : patch.citations
-              ? JSON.stringify(patch.citations)
-              : null,
-        metadataJson:
-          patch.metadata === undefined
-            ? undefined
-            : patch.metadata
-              ? JSON.stringify(patch.metadata)
-              : null,
+        citationsJson: serializeStoredJsonOrUndefined(patch.citations),
+        metadataJson: serializeStoredJsonOrUndefined(patch.metadata),
         error: patch.error === undefined ? undefined : patch.error || null,
         updatedAt: patch.updatedAt ?? Date.now(),
       })
@@ -280,7 +284,7 @@ export class ChatRepository {
         refId: attachment.refId || null,
         refKind: attachment.refKind || null,
         snippet: attachment.snippet || null,
-        metadataJson: attachment.metadata ? JSON.stringify(attachment.metadata) : null,
+        metadataJson: serializeStoredJsonOrNull(attachment.metadata),
         createdAt: attachment.createdAt,
       });
     }
@@ -296,8 +300,8 @@ export class ChatRepository {
       messageId: action.messageId || null,
       type: action.type,
       status: action.status,
-      inputJson: action.input ? JSON.stringify(action.input) : null,
-      resultJson: action.result ? JSON.stringify(action.result) : null,
+      inputJson: serializeStoredJsonOrNull(action.input),
+      resultJson: serializeStoredJsonOrNull(action.result),
       createdAt: action.createdAt,
       updatedAt: action.updatedAt,
     });
@@ -311,6 +315,10 @@ export class ChatRepository {
       .where(eq(chatActions.sessionId, sessionId))
       .orderBy(desc(chatActions.createdAt));
 
-    return rows.map(mapAction);
+    return mapRowsSafely(rows, {
+      label: 'chat action',
+      getRowId: (row) => row.id,
+      mapRow: mapAction,
+    });
   }
 }

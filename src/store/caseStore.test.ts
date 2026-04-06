@@ -232,6 +232,58 @@ describe('caseStore', () => {
     expect(localStorage.getItem('sherlock_demo_seed_v1_applied')).toBe('true');
   });
 
+  it('keeps bootstrapping when one repository read fails and falls back to empty data', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    vi.spyOn(dbClient, 'initDB').mockResolvedValue(
+      {} as Awaited<ReturnType<typeof dbClient.initDB>>
+    );
+    vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue(undefined);
+    vi.spyOn(CaseRepository, 'getAllCases').mockResolvedValue([
+      {
+        id: 'ws-1',
+        title: 'Workspace One',
+        status: 'ACTIVE',
+        dateOpened: '2026-04-04',
+      },
+    ]);
+    vi.spyOn(CaseRepository, 'getAllReports').mockRejectedValue(new Error('corrupted report row'));
+    vi.spyOn(ScopeRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(TaskRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(ChatRepository, 'getAllSessions').mockResolvedValue([]);
+    vi.spyOn(ChatRepository, 'getMessagesBySessionIds').mockResolvedValue({});
+    vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
+    vi.spyOn(CaseRepository, 'getSignals').mockResolvedValue([]);
+    vi.spyOn(TemplateRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(ManualDataRepository, 'getAllNodes').mockResolvedValue([]);
+    vi.spyOn(ManualDataRepository, 'getAllLinks').mockResolvedValue([]);
+    vi.spyOn(SettingsRepository, 'getSetting').mockResolvedValue(undefined);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+      })
+    );
+
+    await useWorkspaceStore.getState().initializeStore();
+
+    expect(useWorkspaceStore.getState().workspaces).toEqual([
+      {
+        id: 'ws-1',
+        title: 'Workspace One',
+        status: 'ACTIVE',
+        dateOpened: '2026-04-04',
+      },
+    ]);
+    expect(useWorkspaceStore.getState().artifacts).toEqual([]);
+    expect(useWorkspaceStore.getState().error).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[bootstrap] Failed to load artifacts. Using fallback.',
+      expect.any(Error)
+    );
+  });
+
   it('should add and delete templates', async () => {
     const template: CaseTemplate = {
       id: 'tpl-1',

@@ -14,6 +14,7 @@ import type {
 } from '@/types';
 import { AppView } from '@/types';
 import { useWorkspaceStore } from '@/store/caseStore';
+import { useAppShellFeatureState } from '@/store/selectors/featureSelectors';
 import { hasApiKey, runWorkspaceInvestigation } from '@/services/runtime';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -168,7 +169,7 @@ export function useAppShellController(): AppShellController {
     initializeStore,
     isLoading,
     customScopes,
-  } = useWorkspaceStore();
+  } = useAppShellFeatureState();
 
   useInitializeAppShell(initializeStore);
 

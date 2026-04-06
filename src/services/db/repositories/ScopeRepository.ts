@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../client';
 import { scopes } from '../schema';
 import type { InvestigationScope } from '@/types';
-import { parseStoredJson } from './json';
+import { mapRowsSafely, parseStoredJson, serializeStoredJson } from './json';
 
 type StoredScopeConfig = Omit<InvestigationScope, 'id' | 'name' | 'description' | 'isBuiltIn'>;
 
@@ -19,17 +19,21 @@ export class ScopeRepository {
     const db = getDB();
     const rows = await db.select().from(scopes);
 
-    return rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      description: row.description || '',
-      ...parseStoredJson<StoredScopeConfig>(
-        row.configJson,
-        emptyScopeConfig,
-        `scope config ${row.id}`
-      ),
-      isBuiltIn: row.type === 'built-in',
-    }));
+    return mapRowsSafely(rows, {
+      label: 'scope row',
+      getRowId: (row) => row.id,
+      mapRow: (row) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description || '',
+        ...parseStoredJson<StoredScopeConfig>(
+          row.configJson,
+          emptyScopeConfig,
+          `scope config ${row.id}`
+        ),
+        isBuiltIn: row.type === 'built-in',
+      }),
+    });
   }
 
   static async getById(id: string): Promise<InvestigationScope | null> {
@@ -61,7 +65,7 @@ export class ScopeRepository {
       name,
       description,
       type: isBuiltIn ? 'built-in' : 'custom',
-      configJson: JSON.stringify(config),
+      configJson: serializeStoredJson(config),
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -77,7 +81,7 @@ export class ScopeRepository {
         name,
         description,
         type: isBuiltIn ? 'built-in' : 'custom',
-        configJson: JSON.stringify(config),
+        configJson: serializeStoredJson(config),
         updatedAt: Date.now(),
       })
       .where(eq(scopes.id, id));

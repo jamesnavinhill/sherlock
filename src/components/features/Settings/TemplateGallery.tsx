@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { CaseTemplate } from '../../../types';
-import { useWorkspaceStore } from '../../../store/caseStore';
+import { useTemplateGalleryFeatureState } from '@/store/selectors/featureSelectors';
 import {
   Trash2,
   Play,
@@ -51,7 +51,7 @@ const CREATE_STEPS = [
 
 export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => {
   const { templates, deleteTemplate, addTemplate, customScopes, defaultScopeId, addToast } =
-    useWorkspaceStore();
+    useTemplateGalleryFeatureState();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createStep, setCreateStep] = useState(0);

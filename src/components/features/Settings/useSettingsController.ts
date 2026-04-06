@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 
-import { useWorkspaceStore } from '../../../store/caseStore';
 import type { SystemConfig } from '../../../types';
 import { DEFAULT_ACCENT_SETTINGS } from '../../../utils/accent';
 import {
@@ -32,6 +31,7 @@ import {
   buildWorkspaceDataBackup,
   normalizeWorkspaceDataBackup,
 } from '../../../services/maintenance/workspaceData';
+import { useSettingsPersistenceState } from '@/store/selectors/featureSelectors';
 import { clearStoredActiveWorkspaceId } from '../../../utils/localStorage';
 import { getRuntimeConfigModelState } from '../Runs/runtimeConfigOptions';
 import { clamp, cloneThemeSurfaceSettings } from './settingsUtils';
@@ -76,7 +76,7 @@ export const useSettingsController = ({
     customScopes,
     importWorkspaceData,
     clearWorkspaceData,
-  } = useWorkspaceStore();
+  } = useSettingsPersistenceState();
 
   const initialConfig = loadSystemConfig();
 

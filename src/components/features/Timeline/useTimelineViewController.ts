@@ -16,7 +16,7 @@ import type {
   TimelineEvent,
   TimelineTrack,
 } from '@/types';
-import { useWorkspaceStore } from '@/store/caseStore';
+import { useTimelineFeatureState } from '@/store/selectors/featureSelectors';
 import {
   buildWorkspaceBoardDocumentPath,
 } from '@/app/routes';
@@ -57,7 +57,7 @@ export function useTimelineViewController({
     setActiveWorkspaceId,
     workspaceRuns,
     workspaces,
-  } = useWorkspaceStore();
+  } = useTimelineFeatureState();
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);

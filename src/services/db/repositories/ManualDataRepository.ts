@@ -3,19 +3,24 @@ import { getDB, runWriteTransaction, type SherlockWriteExecutor } from '../clien
 import { manualNodes, manualLinks } from '../schema';
 import type { ManualNode, ManualConnection } from '@/types';
 import { buildWorkspaceLinkedGraphReferenceIds } from '../../maintenance/workspaceData';
+import { mapRowsSafely } from './json';
 
 export class ManualDataRepository {
   // --- NODES ---
   static async getAllNodes(): Promise<ManualNode[]> {
     const db = getDB();
     const rows = await db.select().from(manualNodes);
-    return rows.map((row) => ({
-      id: row.id,
-      label: row.label,
-      type: row.type as 'CASE' | 'ENTITY',
-      subtype: row.subtype as ManualNode['subtype'],
-      timestamp: row.timestamp,
-    }));
+    return mapRowsSafely(rows, {
+      label: 'manual graph node',
+      getRowId: (row) => row.id,
+      mapRow: (row) => ({
+        id: row.id,
+        label: row.label,
+        type: row.type as 'CASE' | 'ENTITY',
+        subtype: row.subtype as ManualNode['subtype'],
+        timestamp: row.timestamp,
+      }),
+    });
   }
 
   static async saveAllNodes(
@@ -61,11 +66,15 @@ export class ManualDataRepository {
   static async getAllLinks(): Promise<ManualConnection[]> {
     const db = getDB();
     const rows = await db.select().from(manualLinks);
-    return rows.map((row) => ({
-      source: row.source,
-      target: row.target,
-      timestamp: row.timestamp,
-    }));
+    return mapRowsSafely(rows, {
+      label: 'manual graph link',
+      getRowId: (row) => `${row.source}->${row.target}`,
+      mapRow: (row) => ({
+        source: row.source,
+        target: row.target,
+        timestamp: row.timestamp,
+      }),
+    });
   }
 
   static async saveAllLinks(
