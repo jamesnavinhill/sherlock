@@ -29,7 +29,7 @@ When unsure, start from:
 
 - Keep docs in sync with actual code behavior, not intended roadmap.
 - Update `README.md` when setup/validation/status changes.
-- Update `docs/operations/architecture.md` for structural changes.
+- Update `docs/operations/ARCHITECTURE.md` for structural changes.
 - Update `docs/operations/OPERATIONS_RUNBOOK.md` for provider error/fallback changes.
 - Update `docs/operations/SCOPES.md` and `docs/operations/SOURCES.md` when scope presets change.
 

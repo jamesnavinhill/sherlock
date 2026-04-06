@@ -2,7 +2,9 @@
 
 Date: April 5, 2026
 
-This plan follows the landed route-aware refactor and the findings in `docs/reports/2026-04-05-codebase-audit-v2.md`.
+Status: Complete on April 5, 2026.
+
+This plan follows the landed route-aware refactor and the findings in `docs/_legacy/reports/2026-04-05-codebase-audit-v2.md`.
 
 It is not a new architecture reset.
 
@@ -138,11 +140,10 @@ Purpose:
 Primary targets:
 
 - `README.md`
-- `docs/plans/README.md`
-- `docs/reports/README.md`
 - `docs/operations/CONTRIBUTING.md`
 - `docs/operations/ARCHITECTURE.md`
-- any active doc index pages that still mention retired checkpoints
+- the active dated plan doc set
+- any active doc entry points that still mention retired checkpoints
 
 Scope:
 
@@ -159,7 +160,7 @@ Key principle:
 Done when:
 
 - no active doc points at the missing `CURRENT_STATUS.md`
-- active doc indexes agree on the same set of current references
+- active doc entry points agree on the same set of current references
 - architecture and persistence docs still match runtime after Workstream 1 lands
 
 Validation:
@@ -304,6 +305,22 @@ After the four workstreams land, do one final sweep for:
 - board/chat/timeline state restoration
 - validation snapshot updates where they still exist in active docs
 - remaining obvious transition comments that no longer match the code
+
+Status: Complete on April 5, 2026.
+
+Landed outcomes:
+
+- active doc references and file casing were rechecked so the active doc layer points at current files rather than retired checkpoints
+- direct-entry and landing-route behavior for chat, board, and timeline surfaces were re-verified through the route and feature test surface
+- validation snapshots in `README.md` and `docs/operations/LINTING.md` were refreshed to the final parity-sweep baseline
+- active docs now treat the root `README.md` plus operations docs as the current entry points, while dated plans and reports remain bounded records under `docs/plans/` and `docs/_legacy/`
+
+Final validation for the completed pass:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
 
 ## Success Criteria
 

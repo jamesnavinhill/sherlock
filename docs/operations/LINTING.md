@@ -40,11 +40,14 @@ From `eslint.config.js`:
 
 ## Current Status (April 5, 2026)
 
+Final post-refactor parity sweep on this checkout:
+
 - `npm run lint`: passes
 - `npm run typecheck`: passes
+- `npm run test`: passes
 - `npm run build`: passes
-- targeted Vitest coverage for provider router dispatch: passes
-- `npm run test`: not run as a full suite in this validation pass
+- Vitest still emits React Router v7 future-flag warnings in several route-aware tests
+- provider-router contract tests still emit expected `[provider-router]` debug logs during coverage
 
 ## Suggested Lint Workflow
 

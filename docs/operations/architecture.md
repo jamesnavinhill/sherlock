@@ -37,7 +37,10 @@ Supporting shell files now include:
 - `src/app/routeViews.tsx`
 - `src/app/AppShell.tsx`
 - `src/app/useAppShellController.ts`
+- `src/app/useAppShellEffects.ts`
 - `src/app/AppShellRoutes.tsx`
+
+`src/app/useAppShellController.ts` now delegates initialization, location tracking, and theme-application effects to `src/app/useAppShellEffects.ts`, keeping the controller focused on launch orchestration and surface commands.
 
 Canonical path inventory:
 
@@ -65,6 +68,12 @@ Examples captured directly in `src/app/routes.ts`:
 - timeline query state (`search`, `range`, `tracks`, `focusTrack`, `focusRefId`) is designated URL-owned
 - artifact inspector panel visibility and temporary selection state remain store/component-owned
 - board agent drafts, chat composer drafts, and other transient workflow state remain store/component-owned
+
+Route wrappers now enforce the same contract at runtime:
+
+- `TimelineView` round-trips chronology query state through `useSearchParams` with parsing/serialization centralized in `src/components/features/Timeline/timelineRouteState.ts`
+- the bare workspace chat route (`/workspaces/:workspaceId/chat`) clears stale deep-linked session selection when no `sessionId` is present
+- the bare workspace board route (`/workspaces/:workspaceId/board`) redirects to the first valid board document when one exists, and invalid board ids fall back to that same canonical board route
 
 The route contract is now active runtime behavior rather than future groundwork. `AppView` still exists only as a coarse navigation label for the sidebar and route-targeting helpers, while URL-backed routing is the primary navigation mechanism.
 
@@ -276,6 +285,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 `src/components/features/WorkspaceBoard/*`
 
 - dedicated canvas-first workspace surface built on `tldraw`
+- route-backed workspace/board/library/session derivation centralized in `src/components/features/WorkspaceBoard/workspaceBoardViewModel.ts`
 - multiple named boards/pages per workspace with persisted board snapshots
 - canonical library drawer for artifacts, entities, sources, signals, notes, links, files/media, and promoted excerpts
 - drag/drop or click-to-place flows from canonical library into the active board
@@ -349,7 +359,9 @@ Live monitor requests now resolve through the active scope's derived pack and de
 `src/components/features/TimelineView.tsx`
 
 - routed chronology page with header search, filters popout, dossier, central event stream, and details drawer
+- timeline query parsing/serialization lives in `src/components/features/Timeline/timelineRouteState.ts`
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
+- route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
 - default-on chronology for saved signals, runs, and artifacts
 - opt-in secondary `ENTITY` track for first-seen moments, repeated-mention thresholds, and artifact-backed reappearance milestones
 - opt-in secondary `CHAT` track for chat session starts plus high-signal chat actions (`SEARCH_WORKSPACE`, saved artifact drafts, append-note actions, and follow-up launches)
@@ -381,6 +393,7 @@ Task setup and template flows now expose:
 - model-aware capability messaging instead of provider-wide assumptions
 - compact OpenRouter quick picks plus a dedicated browser modal for full catalog/manual slug entry
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
+- wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useTaskSetupState.ts`
 - the task-setup implementation now lives with the run-launch feature under `src/components/features/Runs/TaskSetupModal.tsx`, while the old UI path remains a compatibility re-export only
 
 ### Archives
@@ -397,6 +410,9 @@ Task setup and template flows now expose:
 
 Tests are currently concentrated in:
 
+- route contract and route-wrapper canonicalization tests
+- timeline route-state and view-model seams
+- workspace-board view-model seams
 - provider parsing/contract tests
 - provider router chat dispatch tests
 - launch propagation tests across feature entry points
@@ -404,6 +420,12 @@ Tests are currently concentrated in:
 
 See:
 
+- `src/app/routes.test.ts`
+- `src/app/routeViews.test.tsx`
+- `src/components/features/Timeline/timelineRouteState.test.ts`
+- `src/components/features/Timeline/timelineViewModel.test.ts`
+- `src/components/features/TimelineView.test.tsx`
+- `src/components/features/WorkspaceBoard/workspaceBoardViewModel.test.ts`
 - `src/services/providers/*.test.ts`
 - `src/components/features/*/launchPropagation.test.tsx`
 - `src/store/caseStore.test.ts`

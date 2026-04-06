@@ -22,7 +22,8 @@ This ensures Vercel serves the SPA entry document for non-root client routes so 
 Notes:
 
 - this rewrite is needed because Vercel otherwise treats path-based requests as server-resolved paths and can return a 404 before the client router boots
-- client routes such as `/runs/:runId`, `/workspaces/:workspaceId/artifacts/:artifactId`, `/workspaces/:workspaceId/chat/:sessionId`, and `/workspaces/:workspaceId/board/:boardId` now resolve through the browser router after load
+- client routes such as `/runs/:runId`, `/workspaces/:workspaceId/artifacts/:artifactId`, `/workspaces/:workspaceId/chat`, `/workspaces/:workspaceId/chat/:sessionId`, `/workspaces/:workspaceId/board`, `/workspaces/:workspaceId/board/:boardId`, `/workspaces/:workspaceId/timeline`, and `/workspaces/:workspaceId/network` now resolve through the browser router after load
+- once loaded, route wrappers canonicalize landing behavior in-app: the bare workspace chat route clears stale session selection, while the bare workspace board route redirects to the first valid board document when one exists
 - if Sherlock later adds first-party server endpoints or other path-based server concerns, the rewrite rules should be revisited so client-route fallback does not mask those paths
 
 ## Public Repo Checklist

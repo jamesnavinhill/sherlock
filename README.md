@@ -129,11 +129,14 @@ npm run check:full
 
 ## Current Validation Snapshot (April 5, 2026)
 
-- `npm run lint`: passes clean
-- `npm run typecheck`: passes clean
-- targeted Vitest coverage passes for `src/store/caseStore.test.ts`, `src/app/routes.test.ts`, `src/components/features/Chat/ChatPage.test.tsx`, `src/components/features/Archives.launch.test.tsx`, `src/components/features/LiveMonitor/launchPropagation.test.tsx`, `src/components/features/NetworkGraph/launchPropagation.test.tsx`, and `src/components/features/OperationView/launchPropagation.test.tsx`
+Final post-refactor parity sweep on this checkout:
+
+- `npm run lint`: passes
+- `npm run typecheck`: passes
 - `npm run test`: passes
 - `npm run build`: passes
+- Vitest still emits React Router v7 future-flag warnings in several route-aware tests
+- provider-router contract tests still emit expected `[provider-router]` debug logs during coverage
 - Vite still emits one large-chunk warning for the remaining `vendor-tldraw-app` bundle; chunk splitting was improved, but that warning is not fully eliminated yet
 
 ## Documentation Index
@@ -147,8 +150,7 @@ npm run check:full
 - `docs/operations/SOURCES.md`
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
-- `docs/plans/README.md`
-- `docs/reports/README.md`
+- `docs/plans/2026-04-05-post-refactor-completion-plan.md`
 
 Historical plans and reports live under `docs/_legacy/`.
 
