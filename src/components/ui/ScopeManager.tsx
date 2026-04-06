@@ -14,6 +14,7 @@ import {
 import { useWorkspaceStore } from '../../store/caseStore';
 import { BUILTIN_SCOPES, getAllScopes } from '../../data/presets';
 import type { InvestigationScope } from '../../types';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface ScopeManagerProps {
   onClose?: () => void;
@@ -37,6 +38,10 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
   const [editingScope, setEditingScope] = useState<InvestigationScope | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [scopePendingDeletion, setScopePendingDeletion] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
@@ -88,14 +93,20 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
     resetForm();
   };
 
-  const handleDelete = (scopeId: string) => {
-    if (!confirm('Delete this custom scope? This cannot be undone.')) return;
+  const handleDelete = (scope: InvestigationScope) => {
+    setScopePendingDeletion({ id: scope.id, name: scope.name });
+  };
+
+  const confirmDelete = () => {
+    if (!scopePendingDeletion) return;
+    const scopeId = scopePendingDeletion.id;
 
     deleteScope(scopeId);
     setExpandedScopeIds((current) => current.filter((id) => id !== scopeId));
     if (activeScopeId === scopeId) {
       setActiveScope(BUILTIN_SCOPES[0].id);
     }
+    setScopePendingDeletion(null);
   };
 
   const isBuiltin = (scopeId: string) => BUILTIN_SCOPES.some((scope) => scope.id === scopeId);
@@ -361,7 +372,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                             <Edit2 className="w-3 h-3" />
                           </button>
                           <button
-                            onClick={() => handleDelete(scope.id)}
+                            onClick={() => handleDelete(scope)}
                             className="p-1 text-zinc-500 osint-danger-inline"
                             title="Delete"
                           >
@@ -377,6 +388,17 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
           })}
         </div>
       </div>
+
+      {scopePendingDeletion ? (
+        <ConfirmDialog
+          title="Delete Custom Scope"
+          description={`Delete "${scopePendingDeletion.name}"? This cannot be undone.`}
+          confirmLabel="Delete Scope"
+          tone="danger"
+          onClose={() => setScopePendingDeletion(null)}
+          onConfirm={confirmDelete}
+        />
+      ) : null}
     </div>
   );
 };
