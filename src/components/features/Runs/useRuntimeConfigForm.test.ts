@@ -67,10 +67,15 @@ describe('useRuntimeConfigForm', () => {
     );
 
     act(() => {
+      result.current.setProvider('OPENAI');
+    });
+
+    act(() => {
       result.current.setModelId('gpt-4.1-mini');
     });
 
     expect(recordRecentModelSelection).toHaveBeenCalledWith('gpt-4.1-mini');
+    expect(result.current.value.provider).toBe('OPENAI');
     expect(result.current.value.modelId).toBe('gpt-4.1-mini');
     expect(result.current.supportsThinkingBudget).toBe(false);
     expect(result.current.effectiveValue.thinkingBudget).toBe(0);
