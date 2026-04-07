@@ -326,7 +326,7 @@ Settings selectors are also split so persistence-maintenance reads and scope tab
 - `useSettingsDataMaintenanceState`
 - `useSettingsScopeState`
 
-Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
+Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, omnibox recent destinations, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
 
 The browser location is now the durable source of truth for active page identity. Store state keeps route-adjacent convenience selection such as the active workspace, board, chat session, and task ids, but it no longer mirrors top-level surface identity through a stored `currentView` field.
 
@@ -391,6 +391,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - stop/cancel handling for in-flight assistant turns
 - bounded retrieval actions for artifact summaries, full artifact text, and recent signals
 - `@` mention autocomplete for canonical workspace artifacts, items, entities, and saved signals from the active workspace
+- resolved mention refs persist on the user turn metadata, feed an explicit mentioned-record context block into retrieval, and render back out of the transcript as reopenable inline tokens
 - save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
 - retrieval attachments can now be promoted into canonical workspace excerpts and optionally placed directly onto the research board
 - transcript copy plus Markdown/JSON export

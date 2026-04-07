@@ -98,6 +98,7 @@ export interface ChatRequest {
   workspaceSummary: string;
   recentArtifacts: Array<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr'>>;
   recentSignals: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
+  mentionedContext?: WorkspaceContextSnippet[];
   retrievedContext: WorkspaceContextSnippet[];
 }
 
@@ -274,6 +275,7 @@ export interface RouterChatRequest {
   workspaceSummary: string;
   recentArtifacts: Array<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr'>>;
   recentSignals: Array<Pick<MonitorEvent, 'content' | 'sourceName' | 'timestamp' | 'type'>>;
+  mentionedContext?: WorkspaceContextSnippet[];
   retrievedContext: WorkspaceContextSnippet[];
 }
 

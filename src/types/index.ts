@@ -263,6 +263,19 @@ export interface WorkspaceBoardDocument {
   updatedAt: number;
 }
 
+export type ChatMentionKind = 'ARTIFACT' | 'ENTITY' | 'SIGNAL' | 'WORKSPACE_ITEM';
+
+export interface ChatMentionReference {
+  id: string;
+  workspaceId: string;
+  kind: ChatMentionKind;
+  refId: string;
+  title: string;
+  subtitle: string;
+  snippet?: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface WorkspaceBoardItemReference {
   workspaceId: string;
   refKind: WorkspaceCanonicalRefKind;

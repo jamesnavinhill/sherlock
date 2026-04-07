@@ -38,6 +38,7 @@ export const STORAGE_KEYS = {
   SYSTEM_CONFIG: 'sherlock_config',
   OPENROUTER_MODEL_CATALOG: 'sherlock_openrouter_model_catalog_v1',
   RECENT_MODEL_IDS: 'sherlock_recent_model_ids_v1',
+  OMNIBOX_RECENTS: 'sherlock_omnibox_recents_v1',
   MANUAL_LINKS: 'sherlock_manual_links',
   MANUAL_NODES: 'sherlock_manual_nodes',
   HIDDEN_NODES: 'sherlock_hidden_nodes',
@@ -46,6 +47,13 @@ export const STORAGE_KEYS = {
   API_KEY: 'sherlock_api_key',
   THEME: 'sherlock_theme',
 } as const;
+
+export interface StoredOmniboxRecent {
+  kind: 'WORKSPACE' | 'ARTIFACT' | 'CHAT_SESSION' | 'RUN' | 'WORKSPACE_ITEM';
+  refId: string;
+  workspaceId?: string;
+  visitedAt: number;
+}
 
 export function getStringItem(key: string): string | null {
   return readString(key);
@@ -107,6 +115,24 @@ export const getStoredRecentModelIds = (): string[] => {
 
 export const setStoredRecentModelIds = (modelIds: string[]): void => {
   setItem(STORAGE_KEYS.RECENT_MODEL_IDS, modelIds.slice(0, 8));
+};
+
+export const getStoredOmniboxRecents = (): StoredOmniboxRecent[] => {
+  const parsed = getOptionalItem<unknown>(STORAGE_KEYS.OMNIBOX_RECENTS);
+  return Array.isArray(parsed)
+    ? parsed.filter(
+        (entry): entry is StoredOmniboxRecent =>
+          !!entry &&
+          typeof entry === 'object' &&
+          typeof (entry as StoredOmniboxRecent).kind === 'string' &&
+          typeof (entry as StoredOmniboxRecent).refId === 'string' &&
+          typeof (entry as StoredOmniboxRecent).visitedAt === 'number'
+      )
+    : [];
+};
+
+export const setStoredOmniboxRecents = (records: StoredOmniboxRecent[]): void => {
+  setItem(STORAGE_KEYS.OMNIBOX_RECENTS, records.slice(0, 12));
 };
 
 /**

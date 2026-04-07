@@ -147,7 +147,7 @@ These evidence rows are also indexed into workspace search context bundles so ch
 The chat implementation adds:
 
 - `chat_sessions` for workspace-bound conversation metadata and model snapshots
-- `chat_messages` for persisted transcript turns and citation metadata
+- `chat_messages` for persisted transcript turns, citation metadata, and mention-reference metadata in `metadata_json`
 - `chat_message_attachments` for retrieved context snippets attached to a turn
 - `chat_actions` for auditable retrieval, save, append, and follow-up operations
 
@@ -202,6 +202,7 @@ The storage helper now exposes dedicated typed accessors for:
 - system config persistence
 - cached OpenRouter model-catalog payloads
 - recent model selections
+- omnibox recent destinations
 - active workspace selection
 - Live Monitor autosave preference
 - one-time demo bootstrap marker
@@ -212,6 +213,7 @@ Values still kept there:
 - `sherlock_config` (system config object)
 - `sherlock_openrouter_model_catalog_v1` (cached OpenRouter catalog snapshot/live refresh payload)
 - `sherlock_recent_model_ids_v1` (recent model selections for compact selectors and browser defaults)
+- `sherlock_omnibox_recents_v1` (durable recent workspace/artifact/chat/run/item destinations for the header omnibox)
 - `sherlock_livestream_autosave`
 - `sherlock_active_workspace_id` (archive selection hint)
 - `sherlock_demo_seed_v1_applied` (one-time demo workspace bootstrap marker)

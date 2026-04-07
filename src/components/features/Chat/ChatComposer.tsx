@@ -2,10 +2,14 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { CircleStop, Send } from 'lucide-react';
 
-import type { ChatGenerationStatus, InvestigationScope, Workspace } from '@/types';
+import type { ChatGenerationStatus, ChatMentionReference, InvestigationScope, Workspace } from '@/types';
 import type { GuidedRunDraft, GuidedSessionState } from '@/services/chat/guidedMode';
 import { sanitizeDisplayTitle } from '@/domain';
-import { applyMentionSelection, resolveMentionQuery } from '@/components/ui/omniboxModel';
+import {
+  applyMentionSelection,
+  resolveDraftMentions,
+  resolveMentionQuery,
+} from '@/components/ui/omniboxModel';
 import { GuidedRunBuilder } from './GuidedRunBuilder';
 
 interface ChatComposerProps {
@@ -15,7 +19,7 @@ interface ChatComposerProps {
   guidedState: GuidedSessionState | null;
   isBusy: boolean;
   chatGenerationStatus: ChatGenerationStatus;
-  mentionCandidates: Array<{ id: string; title: string; subtitle: string }>;
+  mentionCandidates: ChatMentionReference[];
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onDraftChange: (value: string) => void;
   onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
@@ -77,7 +81,7 @@ interface ChatComposerInputProps {
   chatGenerationStatus: ChatGenerationStatus;
   draft: string;
   isBusy: boolean;
-  mentionCandidates: Array<{ id: string; title: string; subtitle: string }>;
+  mentionCandidates: ChatMentionReference[];
   onDraftChange: (value: string) => void;
   onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
   onStopGeneration: () => void;
@@ -102,6 +106,10 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   const mentionState = useMemo(
     () => resolveMentionQuery(draft, selectionStart, mentionCandidates),
     [draft, mentionCandidates, selectionStart]
+  );
+  const linkedMentions = useMemo(
+    () => resolveDraftMentions(draft, mentionCandidates),
+    [draft, mentionCandidates]
   );
 
   useEffect(() => {
@@ -205,6 +213,19 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
           ) : null}
 
           <div className="absolute bottom-3 right-3 flex items-center gap-2">
+            {linkedMentions.length ? (
+              <div className="absolute bottom-12 left-3 right-24 flex flex-wrap gap-1.5">
+                {linkedMentions.map((mention) => (
+                  <span
+                    key={mention.id}
+                    className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-zinc-950/90 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-zinc-300"
+                  >
+                    <span className="truncate">{mention.title}</span>
+                    <span className="shrink-0 text-zinc-500">{mention.subtitle}</span>
+                  </span>
+                ))}
+              </div>
+            ) : null}
             {chatGenerationStatus === 'GENERATING' || chatGenerationStatus === 'CANCELLING' ? (
               <button
                 type="button"

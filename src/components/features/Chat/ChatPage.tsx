@@ -54,6 +54,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     handleGuidedSaveDraft,
     handleLaunchFollowUp,
     handleOpenManualSetup,
+    handleOpenMention,
     handlePromoteAttachment,
     handleRenameSession,
     handleAppendMessageToArtifact,
@@ -195,6 +196,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             formatTimestamp={formatTimestamp}
             copyToClipboard={copyToClipboard}
             formatMessageWithCitations={formatMessageWithCitations}
+            handleOpenMention={handleOpenMention}
             handlePromoteAttachment={handlePromoteAttachment}
             handleSaveMessageAsArtifact={handleSaveMessageAsArtifact}
             handleAppendMessageToArtifact={handleAppendMessageToArtifact}

@@ -11,8 +11,9 @@ import {
   PlayCircle,
 } from 'lucide-react';
 
-import type { ChatMessage, ChatSession, Workspace } from '@/types';
+import type { ChatMentionReference, ChatMessage, ChatSession, Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { findMentionMatches } from '@/services/chat/mentions';
 
 type ChatAttachment = NonNullable<ChatMessage['attachments']>[number];
 
@@ -31,6 +32,7 @@ interface ChatTranscriptProps {
   formatTimestamp: (value: number) => string;
   copyToClipboard: (value: string, successMessage: string) => Promise<void>;
   formatMessageWithCitations: (message: ChatMessage) => string;
+  handleOpenMention: (mention: ChatMentionReference) => void;
   handlePromoteAttachment: (
     message: ChatMessage,
     attachment: ChatAttachment,
@@ -58,6 +60,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
   formatTimestamp,
   copyToClipboard,
   formatMessageWithCitations,
+  handleOpenMention,
   handlePromoteAttachment,
   handleSaveMessageAsArtifact,
   handleAppendMessageToArtifact,
@@ -126,6 +129,11 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
             ? splitCollapsedFollowUpBlock(body)
             : { primaryBody: body, collapsedBody: '' };
 
+          const messageMentions = Array.isArray((message.metadata as { mentions?: unknown } | undefined)?.mentions)
+            ? ((message.metadata as { mentions?: ChatMentionReference[] }).mentions || [])
+            : [];
+          const mentionMatches = findMentionMatches(primaryBody, messageMentions);
+
           return (
             <article
               key={message.id}
@@ -169,9 +177,58 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                 <div className="text-sm text-zinc-500">Generating response...</div>
               ) : (
                 <>
-                  <div className={messageBodyClassName}>
-                    <ReactMarkdown>{primaryBody}</ReactMarkdown>
-                  </div>
+                  {messageMentions.length > 0 && isUser ? (
+                    <div className="text-sm leading-7 text-zinc-100">
+                      {mentionMatches.length === 0 ? (
+                        <span className="whitespace-pre-wrap">{primaryBody}</span>
+                      ) : (
+                        <>
+                          {(() => {
+                            const segments: React.ReactNode[] = [];
+                            let cursor = 0;
+
+                            mentionMatches.forEach((match) => {
+                              if (match.start > cursor) {
+                                segments.push(
+                                  <span key={`text:${cursor}`} className="whitespace-pre-wrap">
+                                    {primaryBody.slice(cursor, match.start)}
+                                  </span>
+                                );
+                              }
+
+                              segments.push(
+                                <button
+                                  key={`${match.mention.id}:${match.start}`}
+                                  type="button"
+                                  onClick={() => handleOpenMention(match.mention)}
+                                  className="mx-0.5 inline-flex items-center gap-2 border border-osint-primary/40 bg-osint-primary/10 px-2 py-0.5 text-[11px] font-mono uppercase tracking-wide text-zinc-100 transition hover:border-osint-primary hover:text-white"
+                                >
+                                  <span className="normal-case">{match.mention.title}</span>
+                                  <span className="text-zinc-400">{match.mention.subtitle}</span>
+                                </button>
+                              );
+
+                              cursor = match.end;
+                            });
+
+                            if (cursor < primaryBody.length) {
+                              segments.push(
+                                <span key={`text:${cursor}`} className="whitespace-pre-wrap">
+                                  {primaryBody.slice(cursor)}
+                                </span>
+                              );
+                            }
+
+                            return segments;
+                          })()}
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <div className={messageBodyClassName}>
+                      <ReactMarkdown>{primaryBody}</ReactMarkdown>
+                    </div>
+                  )}
                   {collapsedBody ? (
                     <div className="mt-4 border-t border-zinc-800 pt-3">
                       <details className="group">

@@ -1,12 +1,13 @@
 import type { MutableRefObject } from 'react';
 
-import type { AgentAction, ChatMessage, ChatSession } from '@/types';
+import type { AgentAction, ChatMentionReference, ChatMessage, ChatSession } from '@/types';
 import { streamWorkspaceChatTurn } from '@/services/chat/runtime';
 import { extractStreamingAnswerText } from '@/services/providers/shared/chat';
 import { createLocalId } from '@/utils/id';
 
 interface SendChatTurnInput {
   draft: string;
+  mentions: ChatMentionReference[];
   messages: ChatMessage[];
   session: ChatSession;
   abortControllerRef: MutableRefObject<AbortController | null>;
@@ -40,6 +41,7 @@ export const stopChatGeneration = ({
 
 export const sendChatTurn = async ({
   draft,
+  mentions,
   messages,
   session,
   abortControllerRef,
@@ -65,6 +67,11 @@ export const sendChatTurn = async ({
     role: 'user',
     content: query,
     status: 'COMPLETED',
+    metadata: mentions.length
+      ? {
+          mentions,
+        }
+      : undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -100,6 +107,7 @@ export const sendChatTurn = async ({
       session,
       messages: [...messages, userMessage],
       query,
+      mentions,
       assistantMessageId,
       signal: controller.signal,
       onStreamEvent: (streamEvent) => {

@@ -5,7 +5,9 @@ import {
   applyMentionSelection,
   buildMentionCandidates,
   buildOmniboxResults,
+  createStoredOmniboxRecent,
   mapWorkspaceSnippetToOmniboxResult,
+  resolveDraftMentions,
   resolveMentionQuery,
 } from './omniboxModel';
 
@@ -107,5 +109,72 @@ describe('omniboxModel', () => {
     );
 
     expect(applied).toBe('Check @Atlas Filing Note ');
+  });
+
+  it('resolves draft mentions and prioritizes stored recents when idle', () => {
+    const workspace: Workspace = {
+      id: 'ws-1',
+      title: 'Atlas Workspace',
+      displayTitle: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-07',
+      updatedAt: 300,
+    };
+    const artifact: Artifact = {
+      id: 'rep-1',
+      caseId: 'ws-1',
+      topic: 'Atlas Brief',
+      summary: 'Brief summary',
+      agendas: [],
+      leads: [],
+      entities: [],
+      sources: [],
+      rawText: 'raw',
+      createdAt: 100,
+    };
+    const item: WorkspaceItem = {
+      id: 'item-1',
+      workspaceId: 'ws-1',
+      kind: 'NOTE',
+      title: 'Atlas Filing Note',
+      createdAt: 100,
+      updatedAt: 120,
+    };
+
+    const candidates = buildMentionCandidates({
+      workspaceId: 'ws-1',
+      artifacts: [artifact],
+      signals: [],
+      workspaceItems: [item],
+    });
+
+    expect(resolveDraftMentions('Review @Atlas Filing Note with @Atlas Brief', candidates)).toEqual([
+      expect.objectContaining({ refId: 'item-1', kind: 'WORKSPACE_ITEM' }),
+      expect.objectContaining({ refId: 'rep-1', kind: 'ARTIFACT' }),
+    ]);
+
+    const recentRecord = createStoredOmniboxRecent({
+      id: 'workspace:ws-1',
+      kind: 'WORKSPACE',
+      title: 'Atlas Workspace',
+      subtitle: 'Workspace',
+      workspaceId: 'ws-1',
+      score: 1,
+      actions: ['OPEN'],
+    });
+
+    const recents = buildOmniboxResults({
+      query: '',
+      activeWorkspaceId: 'ws-1',
+      artifacts: [artifact],
+      chatSessions: [],
+      snippets: [],
+      storedRecents: recentRecord ? [recentRecord] : [],
+      workspaceItems: [item],
+      workspaceRuns: [],
+      workspaces: [workspace],
+    });
+
+    expect(recents[0]?.title).toBe('Atlas Workspace');
   });
 });

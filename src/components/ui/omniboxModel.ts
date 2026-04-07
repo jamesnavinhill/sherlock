@@ -1,5 +1,6 @@
 import type {
   Artifact,
+  ChatMentionReference,
   ChatSession,
   Headline,
   Workspace,
@@ -8,6 +9,8 @@ import type {
   WorkspaceRun,
 } from '@/types';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '@/domain';
+import type { StoredOmniboxRecent } from '@/utils/localStorage';
+import { findMentionMatches } from '@/services/chat/mentions';
 
 export type OmniboxResultKind =
   | 'ROUTE'
@@ -49,6 +52,7 @@ interface BuildOmniboxResultsInput {
   artifacts: Artifact[];
   chatSessions: ChatSession[];
   snippets: WorkspaceContextSnippet[];
+  storedRecents?: StoredOmniboxRecent[];
   workspaceItems: WorkspaceItem[];
   workspaceRuns: WorkspaceRun[];
   workspaces: Workspace[];
@@ -380,10 +384,104 @@ export const buildRecentOmniboxResults = ({
   activeWorkspaceId,
   artifacts,
   chatSessions,
+  storedRecents = [],
   workspaceItems,
   workspaceRuns,
   workspaces,
 }: Omit<BuildOmniboxResultsInput, 'query' | 'snippets'>): OmniboxResult[] => {
+  const storedRecentResults = storedRecents
+    .slice()
+    .sort((left, right) => right.visitedAt - left.visitedAt)
+    .map((recent, index): OmniboxResult | null => {
+      if (recent.kind === 'WORKSPACE') {
+        const workspace = workspaces.find((entry) => entry.id === recent.refId);
+        if (!workspace) return null;
+        return {
+          id: `stored-recent-workspace:${workspace.id}`,
+          kind: 'WORKSPACE',
+          title: getWorkspaceDisplayTitle(workspace),
+          subtitle: 'Recent workspace',
+          workspaceId: workspace.id,
+          score: 120 - index,
+          timestamp: recent.visitedAt,
+          actions: ['OPEN', 'OPEN_IN_FILES'],
+        };
+      }
+
+      if (recent.kind === 'ARTIFACT') {
+        const artifact = artifacts.find((entry) => entry.id === recent.refId);
+        if (!artifact?.id) return null;
+        return {
+          id: `stored-recent-artifact:${artifact.id}`,
+          kind: 'ARTIFACT',
+          title: sanitizeDisplayTitle(artifact.topic),
+          subtitle: 'Recent artifact',
+          snippet: artifact.summary,
+          workspaceId: artifact.caseId,
+          artifactId: artifact.id,
+          refId: artifact.id,
+          score: 118 - index,
+          timestamp: recent.visitedAt,
+          actions: ['OPEN', 'PLACE_ON_BOARD', 'OPEN_IN_TIMELINE', 'OPEN_IN_FILES'],
+        };
+      }
+
+      if (recent.kind === 'CHAT_SESSION') {
+        const session = chatSessions.find((entry) => entry.id === recent.refId);
+        if (!session) return null;
+        return {
+          id: `stored-recent-chat:${session.id}`,
+          kind: 'CHAT_SESSION',
+          title: session.title || 'Workspace Chat',
+          subtitle: 'Recent chat',
+          workspaceId: session.workspaceId,
+          refId: session.id,
+          score: 116 - index,
+          timestamp: recent.visitedAt,
+          actions: ['OPEN', 'OPEN_IN_TIMELINE'],
+        };
+      }
+
+      if (recent.kind === 'RUN') {
+        const run = workspaceRuns.find((entry) => entry.id === recent.refId);
+        if (!run) return null;
+        return {
+          id: `stored-recent-run:${run.id}`,
+          kind: 'RUN',
+          title: sanitizeDisplayTitle(run.topic),
+          subtitle: 'Recent run',
+          workspaceId: run.workspaceId || run.report?.caseId,
+          refId: run.id,
+          score: 114 - index,
+          timestamp: recent.visitedAt,
+          actions: ['OPEN', 'OPEN_IN_TIMELINE'],
+        };
+      }
+
+      if (recent.kind === 'WORKSPACE_ITEM') {
+        const item = workspaceItems.find((entry) => entry.id === recent.refId);
+        if (!item) return null;
+        return {
+          id: `stored-recent-item:${item.id}`,
+          kind: 'WORKSPACE_ITEM',
+          title: item.title,
+          subtitle: `Recent ${item.kind.toLowerCase()}`,
+          snippet: item.description || item.textContent || item.url,
+          workspaceId: item.workspaceId,
+          refId: item.id,
+          score: 112 - index,
+          timestamp: recent.visitedAt,
+          actions: ['OPEN', 'PLACE_ON_BOARD', 'OPEN_IN_FILES'],
+          metadata: {
+            workspaceItemKind: item.kind,
+          },
+        };
+      }
+
+      return null;
+    })
+    .filter((result): result is OmniboxResult => !!result);
+
   const recentWorkspaceResults = workspaces
     .slice()
     .sort((left, right) => (right.updatedAt || right.createdAt || 0) - (left.updatedAt || left.createdAt || 0))
@@ -479,6 +577,7 @@ export const buildRecentOmniboxResults = ({
     }));
 
   return dedupeResults([
+    ...storedRecentResults,
     ...recentWorkspaceResults,
     ...scopedArtifacts,
     ...scopedItems,
@@ -493,6 +592,7 @@ export const buildOmniboxResults = ({
   artifacts,
   chatSessions,
   snippets,
+  storedRecents,
   workspaceItems,
   workspaceRuns,
   workspaces,
@@ -503,6 +603,7 @@ export const buildOmniboxResults = ({
       activeWorkspaceId,
       artifacts,
       chatSessions,
+      storedRecents,
       workspaceItems,
       workspaceRuns,
       workspaces,
@@ -529,16 +630,25 @@ export const buildMentionCandidates = (input: {
   artifacts: Artifact[];
   signals: Headline[];
   workspaceItems: WorkspaceItem[];
-}) => {
+}): ChatMentionReference[] => {
   const artifactCandidates = input.artifacts
-    .filter((artifact) => artifact.caseId === input.workspaceId)
+    .filter((artifact): artifact is Artifact & { id: string } =>
+      artifact.caseId === input.workspaceId && typeof artifact.id === 'string' && artifact.id.length > 0
+    )
     .map((artifact) => ({
-      id: `artifact:${artifact.id || artifact.topic}`,
+      id: `artifact:${artifact.id}`,
+      workspaceId: input.workspaceId,
+      kind: 'ARTIFACT' as const,
+      refId: artifact.id,
       title: sanitizeDisplayTitle(artifact.topic),
       subtitle: 'Artifact',
+      snippet: artifact.summary,
+      metadata: {
+        artifactType: artifact.artifactType,
+      },
     }));
 
-  const entityCandidates = new Map<string, { id: string; title: string; subtitle: string }>();
+  const entityCandidates = new Map<string, ChatMentionReference>();
   input.artifacts
     .filter((artifact) => artifact.caseId === input.workspaceId)
     .forEach((artifact) => {
@@ -548,8 +658,12 @@ export const buildMentionCandidates = (input: {
         if (!key || entityCandidates.has(key)) return;
         entityCandidates.set(key, {
           id: `entity:${key}`,
+          workspaceId: input.workspaceId,
+          kind: 'ENTITY',
+          refId: key,
           title,
           subtitle: 'Entity',
+          snippet: artifact.topic,
         });
       });
     });
@@ -558,40 +672,80 @@ export const buildMentionCandidates = (input: {
     .filter((signal) => signal.caseId === input.workspaceId)
     .map((signal) => ({
       id: `signal:${signal.id}`,
+      workspaceId: input.workspaceId,
+      kind: 'SIGNAL' as const,
+      refId: signal.id,
       title: sanitizeDisplayTitle(signal.source || signal.content),
       subtitle: 'Signal',
+      snippet: signal.content,
+      metadata: {
+        signalType: signal.type,
+        threatLevel: signal.threatLevel,
+        linkedReportId: signal.linkedReportId,
+      },
     }));
 
   const itemCandidates = input.workspaceItems
     .filter((item) => item.workspaceId === input.workspaceId)
     .map((item) => ({
       id: `item:${item.id}`,
+      workspaceId: input.workspaceId,
+      kind: 'WORKSPACE_ITEM' as const,
+      refId: item.id,
       title: item.title,
       subtitle: item.kind,
+      snippet: item.description || item.textContent || item.url,
+      metadata: {
+        workspaceItemKind: item.kind,
+        url: item.url,
+      },
     }));
 
   return dedupeResults(
     [...itemCandidates, ...artifactCandidates, ...Array.from(entityCandidates.values()), ...signalCandidates].map(
       (candidate, index) => ({
         id: candidate.id,
-        kind: 'WORKSPACE_ITEM' as const,
+        kind:
+          candidate.kind === 'ARTIFACT'
+            ? ('ARTIFACT' as const)
+            : candidate.kind === 'ENTITY'
+              ? ('ENTITY' as const)
+              : candidate.kind === 'SIGNAL'
+                ? ('SIGNAL' as const)
+                : ('WORKSPACE_ITEM' as const),
         title: candidate.title,
         subtitle: candidate.subtitle,
+        snippet: candidate.snippet,
+        workspaceId: candidate.workspaceId,
+        refId: candidate.refId,
         score: 100 - index,
         actions: ['OPEN'] as OmniboxActionId[],
+        metadata: candidate.metadata,
       })
     )
   ).map((candidate) => ({
     id: candidate.id,
+    workspaceId: candidate.workspaceId || input.workspaceId,
+    kind:
+      candidate.kind === 'ARTIFACT'
+        ? 'ARTIFACT'
+        : candidate.kind === 'ENTITY'
+          ? 'ENTITY'
+          : candidate.kind === 'SIGNAL'
+            ? 'SIGNAL'
+            : 'WORKSPACE_ITEM',
+    refId: candidate.refId || candidate.id,
     title: candidate.title,
     subtitle: candidate.subtitle,
+    snippet: candidate.snippet,
+    metadata: candidate.metadata,
   }));
 };
 
 export const resolveMentionQuery = (
   draft: string,
   selectionStart: number,
-  candidates: Array<{ id: string; title: string; subtitle: string }>
+  candidates: ChatMentionReference[]
 ) => {
   const prefix = draft.slice(0, selectionStart);
   const match = prefix.match(/(?:^|\s)@([^\n@]*)$/);
@@ -618,10 +772,75 @@ export const applyMentionSelection = (
   draft: string,
   selectionStart: number,
   selectionEnd: number,
-  candidate: { title: string }
+  candidate: ChatMentionReference
 ) => {
-  const resolved = resolveMentionQuery(draft, selectionStart, [{ id: 'candidate', title: candidate.title, subtitle: '' }]);
+  const resolved = resolveMentionQuery(draft, selectionStart, [candidate]);
   if (!resolved) return null;
 
   return `${draft.slice(0, resolved.rangeStart)}@${candidate.title} ${draft.slice(selectionEnd)}`;
+};
+
+export const resolveDraftMentions = (
+  draft: string,
+  candidates: ChatMentionReference[]
+): ChatMentionReference[] => {
+  const matches = findMentionMatches(draft, candidates);
+  const seen = new Set<string>();
+
+  return matches.reduce<ChatMentionReference[]>((acc, match) => {
+    const key = `${match.mention.kind}:${match.mention.refId}`;
+    if (seen.has(key)) return acc;
+    seen.add(key);
+    acc.push(match.mention);
+    return acc;
+  }, []);
+};
+
+export const createStoredOmniboxRecent = (result: OmniboxResult): StoredOmniboxRecent | null => {
+  if (result.kind === 'WORKSPACE' && result.workspaceId) {
+    return {
+      kind: 'WORKSPACE',
+      refId: result.workspaceId,
+      workspaceId: result.workspaceId,
+      visitedAt: Date.now(),
+    };
+  }
+
+  if (result.kind === 'ARTIFACT' && (result.artifactId || result.refId)) {
+    return {
+      kind: 'ARTIFACT',
+      refId: result.artifactId || String(result.refId),
+      workspaceId: result.workspaceId,
+      visitedAt: Date.now(),
+    };
+  }
+
+  if (result.kind === 'CHAT_SESSION' && result.refId) {
+    return {
+      kind: 'CHAT_SESSION',
+      refId: result.refId,
+      workspaceId: result.workspaceId,
+      visitedAt: Date.now(),
+    };
+  }
+
+  if (result.kind === 'RUN' && result.refId) {
+    return {
+      kind: 'RUN',
+      refId: result.refId,
+      workspaceId: result.workspaceId,
+      visitedAt: Date.now(),
+    };
+  }
+
+  if (result.kind === 'WORKSPACE_ITEM' && result.refId) {
+    return {
+      kind: 'WORKSPACE_ITEM',
+      refId: result.refId,
+      workspaceId: result.workspaceId,
+      visitedAt: Date.now(),
+    };
+  }
+
+  return null;
 };

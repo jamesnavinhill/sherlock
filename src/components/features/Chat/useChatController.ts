@@ -5,10 +5,17 @@ import { useNavigate } from 'react-router-dom';
 import type {
   AgentAction,
   Artifact,
+  ChatMentionReference,
   ChatMessage,
   ChatSession,
   InvestigationLaunchRequest,
 } from '@/types';
+import {
+  buildFilesPath,
+  buildWorkspaceArtifactPath,
+  buildWorkspaceNetworkPath,
+  buildWorkspaceTimelinePath,
+} from '@/app/routes';
 import { useChatFeatureState } from '@/store/selectors/featureSelectors';
 import {
   fetchArtifactSummaryForChat,
@@ -57,7 +64,7 @@ import {
   promoteChatAttachmentToWorkspace,
   saveChatMessageAsArtifact,
 } from './chatTranscriptActions';
-import { buildMentionCandidates } from '@/components/ui/omniboxModel';
+import { buildMentionCandidates, resolveDraftMentions } from '@/components/ui/omniboxModel';
 
 export interface RenameSessionDialogState {
   session: ChatSession;
@@ -264,7 +271,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
             workspaceId: activeWorkspace.id,
             artifacts: workspaceReports,
             signals: workspaceSignals,
-            workspaceItems,
+            workspaceItems: workspaceItems || [],
           })
         : [],
     [activeWorkspace, workspaceItems, workspaceReports, workspaceSignals]
@@ -429,6 +436,27 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
       setChatGenerationStatus,
     });
 
+  const handleOpenMention = (mention: ChatMentionReference) => {
+    setActiveWorkspaceId(mention.workspaceId);
+
+    if (mention.kind === 'ARTIFACT') {
+      navigate(buildWorkspaceArtifactPath(mention.workspaceId, mention.refId));
+      return;
+    }
+
+    if (mention.kind === 'ENTITY') {
+      navigate(buildWorkspaceNetworkPath(mention.workspaceId));
+      return;
+    }
+
+    if (mention.kind === 'SIGNAL') {
+      navigate(buildWorkspaceTimelinePath(mention.workspaceId));
+      return;
+    }
+
+    navigate(buildFilesPath());
+  };
+
   const handleSend = async (event: FormEvent) => {
     event.preventDefault();
     const query = draft.trim();
@@ -439,8 +467,11 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     const session = await ensureSession();
     if (!session) return;
 
+    const resolvedMentions = resolveDraftMentions(query, mentionCandidates);
+
     await sendChatTurn({
       draft: query,
+      mentions: resolvedMentions,
       messages,
       session,
       abortControllerRef,
@@ -628,6 +659,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     handleGuidedSaveDraft,
     handleLaunchFollowUp,
     handleOpenManualSetup,
+    handleOpenMention,
     handlePromoteAttachment,
     handleRenameSession,
     handleAppendMessageToArtifact,

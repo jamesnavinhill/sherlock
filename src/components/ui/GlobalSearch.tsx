@@ -51,7 +51,12 @@ import {
 import { useWorkspaceStore } from '@/store/caseStore';
 import { buildTimelineRouteQuery, parseTimelineRouteQuery } from '@/components/features/Timeline/timelineRouteState';
 import {
+  getStoredOmniboxRecents,
+  setStoredOmniboxRecents,
+} from '@/utils/localStorage';
+import {
   buildOmniboxResults,
+  createStoredOmniboxRecent,
   type OmniboxActionId,
   type OmniboxResult,
 } from './omniboxModel';
@@ -185,6 +190,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
   const [workspaceResults, setWorkspaceResults] = useState<OmniboxResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [storedRecents, setStoredRecents] = useState(() => getStoredOmniboxRecents());
   const inputRef = useRef<HTMLInputElement>(null);
   const baseResults = useMemo(
     () =>
@@ -194,11 +200,21 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
         artifacts,
         chatSessions,
         snippets: [],
+        storedRecents,
         workspaceItems,
         workspaceRuns,
         workspaces,
       }),
-    [activeWorkspaceId, artifacts, chatSessions, query, workspaceItems, workspaceRuns, workspaces]
+    [
+      activeWorkspaceId,
+      artifacts,
+      chatSessions,
+      query,
+      storedRecents,
+      workspaceItems,
+      workspaceRuns,
+      workspaces,
+    ]
   );
   const results = query.trim() && activeWorkspaceId ? workspaceResults : baseResults;
   const safeSelectedIndex = results.length === 0 ? 0 : Math.min(selectedIndex, results.length - 1);
@@ -232,6 +248,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
               artifacts,
               chatSessions,
               snippets,
+              storedRecents,
               workspaceItems,
               workspaceRuns,
               workspaces,
@@ -260,10 +277,27 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
     baseResults,
     chatSessions,
     query,
+    storedRecents,
     workspaceItems,
     workspaceRuns,
     workspaces,
   ]);
+
+  const rememberRecent = (result: OmniboxResult) => {
+    const recent = createStoredOmniboxRecent(result);
+    if (!recent) return;
+
+    setStoredRecents((current) => {
+      const next = [
+        recent,
+        ...current.filter(
+          (entry) => !(entry.kind === recent.kind && entry.refId === recent.refId)
+        ),
+      ].slice(0, 12);
+      setStoredOmniboxRecents(next);
+      return next;
+    });
+  };
 
   const openTimeline = (result: OmniboxResult) => {
     if (!result.workspaceId) return;
@@ -440,22 +474,27 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
 
   const handleAction = async (result: OmniboxResult, action: OmniboxActionId) => {
     if (action === 'OPEN') {
+      rememberRecent(result);
       openResult(result);
       return;
     }
     if (action === 'PLACE_ON_BOARD') {
+      rememberRecent(result);
       await placeOnBoard(result);
       return;
     }
     if (action === 'OPEN_IN_TIMELINE') {
+      rememberRecent(result);
       openTimeline(result);
       return;
     }
     if (action === 'OPEN_IN_NETWORK') {
+      rememberRecent(result);
       openNetwork(result);
       return;
     }
     if (action === 'OPEN_IN_FILES') {
+      rememberRecent(result);
       openFiles(result);
     }
   };

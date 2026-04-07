@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ChatMessage, ChatSession } from '@/types';
 import { buildFollowUpRunFromChatMessage } from './runtime';
+import { mapMentionToWorkspaceContextSnippet } from './mentions';
 
 const buildSession = (overrides: Partial<ChatSession> = {}): ChatSession => ({
   id: overrides.id || 'chat-1',
@@ -54,5 +55,29 @@ describe('buildFollowUpRunFromChatMessage', () => {
     expect(result.request.parentArtifactId).toBe('rep-1');
     expect(result.request.sourceSignalId).toBe('sig-1');
     expect(result.request.launchSource).toBe('CHAT_FOLLOW_UP');
+  });
+
+  it('maps canonical mentions into retrieval snippets', () => {
+    expect(
+      mapMentionToWorkspaceContextSnippet({
+        id: 'mention:item-1',
+        workspaceId: 'case-1',
+        kind: 'WORKSPACE_ITEM',
+        refId: 'item-1',
+        title: 'Atlas Filing Note',
+        subtitle: 'NOTE',
+        snippet: 'Saved note',
+        metadata: {
+          workspaceItemKind: 'NOTE',
+        },
+      })
+    ).toEqual(
+      expect.objectContaining({
+        id: 'CTX-MENTION-WORKSPACE_ITEM-item-1',
+        kind: 'NOTE',
+        refId: 'item-1',
+        title: 'Atlas Filing Note',
+      })
+    );
   });
 });

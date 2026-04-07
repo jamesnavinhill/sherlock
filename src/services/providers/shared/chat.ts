@@ -30,6 +30,12 @@ const buildWorkspaceContextBlock = (request: ChatRequest): string => {
         .join('\n')
     : '- No saved signals yet.';
 
+  const mentionedLines = request.mentionedContext?.length
+    ? request.mentionedContext
+        .map((item) => `[${item.id}] ${item.title}\nKind: ${item.kind}\nSnippet: ${item.snippet}`)
+        .join('\n\n')
+    : 'No explicit canonical records were mentioned in this turn.';
+
   const contextLines = request.retrievedContext.length
     ? request.retrievedContext
         .map((item) => `[${item.id}] ${item.title}\nKind: ${item.kind}\nSnippet: ${item.snippet}`)
@@ -51,6 +57,9 @@ ${artifactLines}
 
 Recent Signals
 ${signalLines}
+
+Explicitly Mentioned Records
+${mentionedLines}
 
 Retrieved Workspace Context
 ${contextLines}

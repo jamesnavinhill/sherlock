@@ -3,6 +3,7 @@ import type {
   ArtifactSection,
   ArtifactType,
   ChatAttachment,
+  ChatMentionReference,
   ChatDraftArtifact,
   ChatMessage,
   ChatSession,
@@ -11,6 +12,7 @@ import type {
   Artifact,
   Signal,
   WorkspaceContextBundle,
+  WorkspaceContextSnippet,
 } from '@/types';
 import type { ChatStreamEvent } from '../providers/types';
 import {
@@ -27,6 +29,7 @@ import { chatWithProviderRouter, streamChatWithProviderRouter } from '../provide
 import { WorkspaceSearchRepository } from '../db/repositories/WorkspaceSearchRepository';
 import { getScopeById } from '../../data/presets';
 import { getChatLaunchContextFromSession } from './launchContext';
+import { mapMentionToWorkspaceContextSnippet } from './mentions';
 
 const toProviderMessages = (messages: ChatMessage[]) =>
   messages
@@ -58,13 +61,13 @@ const deriveTitleFromContent = (value: string, fallback: string): string => {
 
 const buildAttachments = (
   messageId: string,
-  contextBundle: WorkspaceContextBundle,
+  snippets: WorkspaceContextSnippet[],
   citations: string[],
   sourceCitations?: Array<{ url: string; title?: string; content?: string }>
 ): ChatAttachment[] => {
   const referenced = citations.length
-    ? contextBundle.snippets.filter((snippet) => citations.includes(snippet.id))
-    : contextBundle.snippets.slice(0, Math.min(3, contextBundle.snippets.length));
+    ? snippets.filter((snippet) => citations.includes(snippet.id))
+    : snippets.slice(0, Math.min(3, snippets.length));
 
   const workspaceAttachments = referenced.map((snippet) => ({
     id: createLocalId('chat-attachment'),
@@ -141,6 +144,22 @@ const resolveRunProfile = (
   return { pack, purpose, labelProfile };
 };
 
+const mergeContextSnippets = (...groups: WorkspaceContextSnippet[][]): WorkspaceContextSnippet[] => {
+  const seen = new Set<string>();
+  const merged: WorkspaceContextSnippet[] = [];
+
+  groups.flat().forEach((snippet) => {
+    if (seen.has(snippet.id)) return;
+    seen.add(snippet.id);
+    merged.push(snippet);
+  });
+
+  return merged;
+};
+
+const buildMentionContext = (mentions: ChatMentionReference[] | undefined): WorkspaceContextSnippet[] =>
+  (mentions || []).map((mention) => mapMentionToWorkspaceContextSnippet(mention));
+
 const buildArtifactSources = (message: ChatMessage): Artifact['sources'] =>
   (message.attachments || [])
     .filter((attachment) => attachment.kind === 'SOURCE')
@@ -198,6 +217,7 @@ export interface RunWorkspaceChatTurnParams {
   session: ChatSession;
   messages: ChatMessage[];
   query: string;
+  mentions?: ChatMentionReference[];
   assistantMessageId: string;
 }
 
@@ -223,6 +243,8 @@ export const runWorkspaceChatTurn = async (
     params.query,
     { limit: 6 }
   );
+  const mentionedContext = buildMentionContext(params.mentions);
+  const retrievedContext = mergeContextSnippets(mentionedContext, contextBundle.snippets);
 
   const response = await chatWithProviderRouter({
     workspace: contextBundle.workspace,
@@ -246,15 +268,11 @@ export const runWorkspaceChatTurn = async (
       timestamp: signal.timestamp,
       type: signal.type,
     })),
-    retrievedContext: contextBundle.snippets,
+    mentionedContext,
+    retrievedContext,
   });
 
-  const attachments = buildAttachments(
-    params.assistantMessageId,
-    contextBundle,
-    response.citations,
-    response.sourceCitations
-  );
+  const attachments = buildAttachments(params.assistantMessageId, retrievedContext, response.citations, response.sourceCitations);
   const now = Date.now();
 
   return {
@@ -281,7 +299,8 @@ export const runWorkspaceChatTurn = async (
         query: params.query,
       },
       result: {
-        retrievedSnippetIds: contextBundle.snippets.map((snippet) => snippet.id),
+        retrievedSnippetIds: retrievedContext.map((snippet) => snippet.id),
+        mentionedSnippetIds: mentionedContext.map((snippet) => snippet.id),
         citedSnippetIds: response.citations,
       },
       createdAt: now,
@@ -300,6 +319,8 @@ export const streamWorkspaceChatTurn = async (
     params.query,
     { limit: 6 }
   );
+  const mentionedContext = buildMentionContext(params.mentions);
+  const retrievedContext = mergeContextSnippets(mentionedContext, contextBundle.snippets);
 
   const response = await streamChatWithProviderRouter(
     {
@@ -324,7 +345,8 @@ export const streamWorkspaceChatTurn = async (
         timestamp: signal.timestamp,
         type: signal.type,
       })),
-      retrievedContext: contextBundle.snippets,
+      mentionedContext,
+      retrievedContext,
     },
     {
       signal: params.signal,
@@ -332,12 +354,7 @@ export const streamWorkspaceChatTurn = async (
     }
   );
 
-  const attachments = buildAttachments(
-    params.assistantMessageId,
-    contextBundle,
-    response.citations,
-    response.sourceCitations
-  );
+  const attachments = buildAttachments(params.assistantMessageId, retrievedContext, response.citations, response.sourceCitations);
   const now = Date.now();
 
   return {
@@ -364,7 +381,8 @@ export const streamWorkspaceChatTurn = async (
         query: params.query,
       },
       result: {
-        retrievedSnippetIds: contextBundle.snippets.map((snippet) => snippet.id),
+        retrievedSnippetIds: retrievedContext.map((snippet) => snippet.id),
+        mentionedSnippetIds: mentionedContext.map((snippet) => snippet.id),
         citedSnippetIds: response.citations,
       },
       createdAt: now,
