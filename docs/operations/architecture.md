@@ -12,6 +12,7 @@ Responsibilities:
 
 - initializes persistence/state (`useWorkspaceStore().initializeStore()`, re-exported from `src/store/caseStore.ts`)
 - mounts the browser router and route-backed page composition
+- mounts the global omnibox/search surface used for route, workspace, and canonical-record lookup
 - owns the unified launch pipeline
 - resolves domain-pack and purpose metadata into run config
 - wires lazy-loaded route pages and route wrappers
@@ -39,6 +40,8 @@ Supporting shell files now include:
 - `src/app/useAppShellController.ts`
 - `src/app/useAppShellEffects.ts`
 - `src/app/AppShellRoutes.tsx`
+- `src/components/ui/GlobalSearch.tsx`
+- `src/components/ui/omniboxModel.ts`
 
 `src/app/useAppShellController.ts` now delegates initialization, location tracking, and theme-application effects to `src/app/useAppShellEffects.ts`, keeping the controller focused on launch orchestration and surface commands.
 
@@ -387,6 +390,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - streaming grounded answers backed by deterministic workspace retrieval
 - stop/cancel handling for in-flight assistant turns
 - bounded retrieval actions for artifact summaries, full artifact text, and recent signals
+- `@` mention autocomplete for canonical workspace artifacts, items, entities, and saved signals from the active workspace
 - save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
 - retrieval attachments can now be promoted into canonical workspace excerpts and optionally placed directly onto the research board
 - transcript copy plus Markdown/JSON export
@@ -432,6 +436,15 @@ Operation View now also includes board handoff for the active artifact plus insp
 
 Live monitor requests now resolve through the active scope's derived pack and default purpose.
 
+### Files
+
+`src/components/features/Archives.tsx`
+
+- workspace/file browsing now mixes saved artifacts with canonical workspace items instead of treating items as board-only records
+- selected-workspace browsing supports `All`, `Artifacts`, and `Items` filtering over the same workspace-scoped list
+- artifact rows still route into saved artifact detail and artifact-grounded chat handoff
+- workspace-item rows expose provenance-aware summaries plus direct workspace-chat and source-link actions
+
 ### Timeline
 
 `src/components/features/TimelineView.tsx`
@@ -442,6 +455,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
 - route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
 - default-on chronology for saved signals, runs, and artifacts
+- default-on `ITEM` track for canonical workspace-item creation, promotion, and material-update events
 - opt-in secondary `ENTITY` track for first-seen moments, repeated-mention thresholds, and artifact-backed reappearance milestones
 - opt-in secondary `CHAT` track for chat session starts plus high-signal chat actions (`SEARCH_WORKSPACE`, saved artifact drafts, append-note actions, and follow-up launches)
 - lineage rendering across signal, run, artifact, entity, and chat relationships without introducing a new persistence schema

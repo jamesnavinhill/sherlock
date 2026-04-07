@@ -57,6 +57,7 @@ import {
   promoteChatAttachmentToWorkspace,
   saveChatMessageAsArtifact,
 } from './chatTranscriptActions';
+import { buildMentionCandidates } from '@/components/ui/omniboxModel';
 
 export interface RenameSessionDialogState {
   session: ChatSession;
@@ -110,6 +111,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     setPartialAssistantOutput,
     themeMode,
     updateChatMessage,
+    workspaceItems,
   } = useChatFeatureState();
 
   const [draft, setDraft] = useState('');
@@ -254,6 +256,18 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   const workspaceSignals = useMemo(
     () => headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
     [activeWorkspace?.id, headlines]
+  );
+  const mentionCandidates = useMemo(
+    () =>
+      activeWorkspace
+        ? buildMentionCandidates({
+            workspaceId: activeWorkspace.id,
+            artifacts: workspaceReports,
+            signals: workspaceSignals,
+            workspaceItems,
+          })
+        : [],
+    [activeWorkspace, workspaceItems, workspaceReports, workspaceSignals]
   );
   const launchContextSummary = useMemo(
     () =>
@@ -628,6 +642,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     LEFT_PANEL_SECTION_SCROLL_CLASS,
     manualSetupDraft,
     messageBodyClassName,
+    mentionCandidates,
     messages,
     navigateToSession,
     newMenuRef,

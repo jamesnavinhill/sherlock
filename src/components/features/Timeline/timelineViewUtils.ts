@@ -3,6 +3,7 @@ import {
   Clock3,
   FileText,
   Fingerprint,
+  FolderKanban,
   MessageSquare,
   Radio,
 } from 'lucide-react';
@@ -25,13 +26,14 @@ export type DetailSections = {
 
 export const DEFAULT_FILTERS: TimelineFilters = {
   range: 'ALL',
-  tracks: ['SIGNAL', 'RUN', 'ARTIFACT'],
+  tracks: ['SIGNAL', 'RUN', 'ARTIFACT', 'ITEM'],
 };
 
 export const TRACK_OPTIONS = [
   { track: 'SIGNAL', label: 'Signals', icon: Radio },
   { track: 'RUN', label: 'Runs', icon: Activity },
   { track: 'ARTIFACT', label: 'Artifacts', icon: FileText },
+  { track: 'ITEM', label: 'Items', icon: FolderKanban },
   { track: 'ENTITY', label: 'Entities', icon: Fingerprint },
   { track: 'CHAT', label: 'Chats', icon: MessageSquare },
 ] as const satisfies Array<{ track: TimelineTrack; label: string; icon: typeof Radio }>;
@@ -55,6 +57,8 @@ export const getEventIcon = (event: TimelineEvent) => {
       return Activity;
     case 'ARTIFACT':
       return FileText;
+    case 'ITEM':
+      return FolderKanban;
     case 'ENTITY':
       return Fingerprint;
     case 'CHAT':
@@ -72,6 +76,12 @@ export const getEventTone = (event: TimelineEvent) => {
       return 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary';
     case 'CHAT_ARTIFACT_SAVED':
       return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300';
+    case 'ITEM_CREATED':
+      return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200';
+    case 'ITEM_PROMOTED':
+      return 'border-sky-500/40 bg-sky-500/10 text-sky-200';
+    case 'ITEM_UPDATED':
+      return 'border-amber-500/40 bg-amber-500/10 text-amber-200';
     case 'CHAT_FOLLOW_UP_LAUNCHED':
       return 'border-amber-500/40 bg-amber-500/10 text-amber-300';
     case 'ENTITY_FIRST_SEEN':
@@ -127,7 +137,7 @@ export const getPrimaryRefId = (
 };
 
 export const buildTimelineSearchPlaceholder = (artifactLabelPlural: string) =>
-  `Search ${artifactLabelPlural.toLowerCase()}, runs, signals, entities, chats...`;
+  `Search ${artifactLabelPlural.toLowerCase()}, items, runs, signals, entities, chats...`;
 
 export const toggleExclusiveSection = <T extends Record<string, boolean>>(
   current: T,

@@ -60,6 +60,7 @@ export function useTimelineViewController({
     queueBoardPlacement,
     saveArtifact,
     setActiveWorkspaceId,
+    workspaceItems,
     workspaceRuns,
     workspaces,
   } = useTimelineFeatureState();
@@ -159,6 +160,7 @@ export function useTimelineViewController({
         headlines,
         selectedEventId,
         timelineQuery,
+        workspaceItems,
         workspaceRuns,
         workspaces,
       }),
@@ -170,6 +172,7 @@ export function useTimelineViewController({
       headlines,
       selectedEventId,
       timelineQuery,
+      workspaceItems,
       workspaceRuns,
       workspaces,
     ]

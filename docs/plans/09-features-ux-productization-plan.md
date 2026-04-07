@@ -216,6 +216,7 @@ Purpose:
 
 - replace the current quick-jump modal with a true search-and-action primitive
 - make workspace navigation and synthesis faster before a full workspace home exists
+- establish one reusable result/action contract that every routed surface can consume
 
 ### Scope
 
@@ -225,14 +226,39 @@ Primary targets:
 
 - `src/components/ui/GlobalSearch.tsx`
 - `src/services/db/repositories/WorkspaceSearchRepository.ts`
+- `src/services/workspace/library.ts`
+- `src/app/navigation.ts`
+- `src/app/routes.ts`
+- `src/app/useAppShellController.ts`
 - shell/header composition points
-- route navigation helpers
+- route navigation helpers across board, timeline, network, chat, and artifact viewers
 
 Decision:
 
 - ship one canonical omnibox
 - place it in the main header/toolbar area on surfaces where search is a primary behavior
 - center it visually in workspace-heavy surfaces, with keyboard-first open behavior still available globally
+
+Execution shape:
+
+- retire the current in-memory "quick jump" behavior in `GlobalSearch` and replace it with a typed omnibox result model
+- keep one search surface, but allow it to merge two result sources:
+  - lightweight shell/global entries for routes, workspaces, and recent destinations
+  - workspace-scoped search entries from `WorkspaceSearchRepository` and `buildWorkspaceLibraryEntries(...)`
+- define one canonical result type family before reworking UI:
+  - global routes
+  - workspaces
+  - artifacts
+  - artifact sections/evidence
+  - sources
+  - entities
+  - signals
+  - chat sessions
+  - runs
+  - workspace items
+  - saved views
+- define one canonical action resolver for results instead of per-surface ad hoc click handlers
+- keep all result shaping route-backed and local-first; if durable saved views need persistence, they should use the existing SQLite + IndexedDB path rather than ad hoc browser-only state
 
 Result model:
 
@@ -250,6 +276,14 @@ Selection behavior:
   - focus a timeline event or graph entity when already on that route
   - otherwise route to the correct surface
 
+Required routing seams:
+
+- timeline focus should prefer route-owned state via `search`, `focusTrack`, and `focusRefId`
+- board placement and board selection should reuse the existing queue/place flow instead of inventing a search-only insertion path
+- chat/session hits should deep-link to the canonical session route
+- artifact section/evidence hits should open the canonical artifact route with enough context to focus the matching slice once the viewer contract exists
+- the omnibox must never create a second navigation model beside `src/app/routes.ts` and `src/app/navigation.ts`
+
 #### 1B. Replace duplicate full-search products, not local filters
 
 Decision:
@@ -263,6 +297,13 @@ This means:
 - keep a library-panel filter when needed
 - do not keep multiple unrelated "search" concepts in headers and drawers
 - route all deep search through the omnibox result model
+
+Local-filter rules:
+
+- panel-local filters may stay in the board library rail, Files list/grid controls, timeline list filters, and similar dense surfaces
+- those inputs should only filter what is already loaded and visible in that surface
+- local filters should not claim to search the whole workspace, and should not fork result terminology away from the omnibox
+- if a surface needs both a local filter and a global jump, the header should expose the omnibox and the panel should keep only the narrow filter affordance
 
 #### 1C. Add recents, saved views, and action routing
 
@@ -278,25 +319,62 @@ Required additions:
   - open in timeline
   - open in network
 
+Execution shape:
+
+- define a small recents model for workspaces, artifacts, chats, runs, and workspace items so the omnibox is useful before a query is typed
+- define a saved-view model only for route states that already have durable, shareable value:
+  - timeline query state
+  - future graph focus/filter state once that contract is explicit
+  - Files filters/views once item-plus-artifact retrieval is unified
+- centralize result-to-action resolution so "open", "focus", "place on board", and other verbs are resolved in one place and reused by header omnibox instances
+- keep action menus concise; prioritize the 2-4 most meaningful verbs per result kind rather than exposing every possible destination
+
+#### 1D. Use the board as the proving ground for in-context search actions
+
+Decision:
+
+- validate the omnibox first on the workspace board, where search-to-placement and search-to-focus behavior is easiest to judge
+
+Why:
+
+- the board already has the richest existing item/action handoff surface
+- the app already supports queued board placement from chat, timeline, network, and operation view flows
+- success here proves the omnibox is a workspace action spine, not just a prettier modal
+
+Required outcomes:
+
+- from the omnibox, a user can search for a canonical record while on the board and either:
+  - focus/select the existing matching object on canvas
+  - place the selected canonical record onto the current board
+  - route to the owning surface when board placement is not the right action
+- the board library rail remains a working collection browser, not the only path to insert canonical items
+
 ### Why This Comes Before Workspace Home
 
-The omnibox gives Sherlock a synthesis/navigation layer immediately, and its result/action contracts become direct inputs to a later workspace dashboard. * Well be able to test it out on the worksace board - ideally i can search for items and add them to the canvas. 
+The omnibox gives Sherlock a synthesis/navigation layer immediately, and its result/action contracts become direct inputs to a later workspace dashboard.
+
+It also gives this plan a practical proving ground before workspace home exists: the board should be able to consume the same search spine so users can search for canon and add it directly to the canvas without detouring through specialist rails.
 
 ### Parallelization
 
 - result modeling and repository expansion can run in parallel with shell/header placement
 - recent-items plumbing can run in parallel with action routing once the result types are fixed
+- board proving-ground actions can run in parallel with timeline/network focus handling once the action resolver contract is fixed
 
 ### Exit Criteria
 
 - `GlobalSearch` is retired or absorbed into the new omnibox implementation
 - `WorkspaceSearchRepository` or its successor powers real workspace search in production UI
+- one typed result/action contract exists instead of separate per-surface search click logic
 - omnibox results can focus in-context where appropriate
+- board search can place canonical records onto the active canvas through the normal board-placement path
+- recents and saved views make the omnibox useful even before a typed query
 - misleading index counts and legacy placeholder copy are removed
 
 ### Docs To Update When Landing
 
 - `docs/operations/ARCHITECTURE.md`
+- `docs/operations/DATA_PERSISTENCE.md` if saved views or recents add durable schema/storage
 - `README.md`
 
 ## Workstream 2. Canonical Knowledge Layer
@@ -305,6 +383,7 @@ Purpose:
 
 - make workspace-native notes, links, files, and excerpts feel as real as artifacts
 - ensure canon is reusable across board, chat, files, search, and timeline
+- promote workspace items out of board-local status and into a shared workspace knowledge model
 
 ### Definition Of "First-Class"
 
@@ -325,10 +404,20 @@ A record is first-class only if it is:
 Primary targets:
 
 - `src/services/workspace/library.ts`
+- `src/services/db/repositories/WorkspaceItemRepository.ts`
 - `src/components/features/WorkspaceBoard/*`
 - `src/components/features/Archives.tsx`
 - `src/components/features/Timeline/*`
+- `src/components/ui/GlobalSearch.tsx`
 - chat attachment/composer flows
+
+Execution shape:
+
+- keep `WorkspaceItem` as the canonical persisted record instead of creating a second "knowledge" table or surface-only item abstraction
+- use `buildWorkspaceItemReference(...)` and `buildWorkspaceLibraryEntries(...)` as the shared identity bridge between board, chat, omnibox, Files, and future workspace-home consumers
+- treat the board as one consumer of workspace items, not their owning product surface
+- make Files the broad retrieval/browse surface for items and artifacts, while keeping board rails optimized for composition and placement
+- when a surface needs item details, it should resolve the canonical workspace-item record and metadata, not a board-local shadow copy
 
 Required outcomes:
 
@@ -336,6 +425,13 @@ Required outcomes:
 - Files/Archives gains a library-aware mode, tab, or filter
 - timeline gains events for item creation, promotion, and material updates
 - workspace items can be referenced from non-board surfaces without detouring through the board rail
+
+Required item identity rules:
+
+- item ids remain stable across all surfaces
+- links to an item should resolve to either a canonical Files/detail experience or an in-context focus target on the current surface
+- item provenance should remain attached and readable wherever the item is reused
+- item kind, title, and summary/snippet should render consistently enough that search, Files, and chat are obviously referring to the same object
 
 #### 2B. Add `@` mentions for workspace items in chat
 
@@ -349,6 +445,26 @@ Why:
 - this is the cleanest path to making canon reusable during grounded chat
 - it also creates a future-ready interaction contract for mentions in notes, agent prompts, and workspace home actions
 
+Execution shape:
+
+- power mention lookup from the same typed result identity used by the omnibox, but with chat-appropriate ranking and rendering
+- store canonical references for mentions rather than relying on plain-text inline labels only
+- render mentions as inline tokens in the composer and transcript, while preserving readable exported/plaintext fallbacks
+- when a chat turn includes mentioned records, feed those canonical refs into retrieval/context shaping so referenced items meaningfully affect the assistant turn
+
+Primary targets:
+
+- `src/components/features/Chat/*`
+- `src/services/chat/runtime.ts`
+- `src/services/providers/shared/chat.ts`
+- chat transcript/export helpers
+
+Required outcomes:
+
+- users can mention artifacts, workspace items, entities, and signals directly from chat
+- mentioned records can be reopened or re-focused from the transcript
+- mention-driven context feels lighter than attachment chips, but does not lose provenance or inspectability
+
 #### 2C. Reframe Files/Archives around artifact-plus-item retrieval
 
 Decision:
@@ -358,21 +474,71 @@ Decision:
 - make list view the denser default for heavy workspaces
 - keep card view for browsing and visual scanning, but redesign it to carry more signal and less empty chrome
 
+Execution shape:
+
+- move Files away from feeling like an artifact archive with an optional library sidecar
+- support one retrieval model where artifacts and workspace items can be browsed together, then filtered by type, workspace, recency, or source
+- use list mode as the canonical working view for dense workspaces
+- keep card/grid mode for scanning, but make each card carry more useful metadata, provenance hints, and direct actions
+
+Required outcomes:
+
+- Files can answer "show me what exists in this workspace" for both artifacts and items
+- item rows/cards expose the actions that matter most:
+  - open/focus
+  - open source URL or preview
+  - open in chat
+  - place on board
+- artifact and item retrieval share naming and filtering language instead of feeling like separate mini-products
+
+#### 2D. Make canonical knowledge visible in history and provenance
+
+Decision:
+
+- when canonical knowledge is created, promoted, or reused, Sherlock should leave a visible trail in timeline/history and in the consuming surface's provenance/readout
+
+Primary targets:
+
+- `src/components/features/Timeline/timelineEvents.ts`
+- `src/components/features/Timeline/*`
+- chat transcript and retrieval readouts
+- board-agent context/action receipts where workspace items are created or reused
+
+Execution shape:
+
+- add timeline events for:
+  - item created
+  - item materially updated
+  - attachment promoted to workspace item
+  - item reused in another surface when that reuse is worth preserving historically
+- make provenance readable from the consuming surface without requiring a board detour
+- avoid noisy event spam by logging only meaningful knowledge-layer changes, not every tiny field edit
+
+Required outcomes:
+
+- timeline can tell the story of canonical knowledge entering and evolving in a workspace
+- users can trace an item back to where it came from and where it was reused
+- grounded chat and future workspace-home summaries can rely on the same provenance trail
+
 ### Parallelization
 
 - item timeline events can run in parallel with Files view work
 - chat mentions can run in parallel once item identity/result models are fixed
+- Files retrieval work can run in parallel with provenance/timeline work once the canonical item identity rules are fixed
 
 ### Exit Criteria
 
 - workspace items are discoverable outside the board
-- chat can attach canonical records with inline mentions
+- chat can attach or mention canonical records inline
 - Files can browse artifacts and items without feeling artifact-only
+- timeline/history can reflect meaningful item creation and reuse events
+- provenance for workspace items remains readable when those items are reused outside the board
 
 ### Docs To Update When Landing
 
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
+- `docs/operations/DATA_PERSISTENCE.md` if item history or mention refs add durable persistence fields
 
 ## Workstream 3. Trustworthy Assistant And Output Legibility
 

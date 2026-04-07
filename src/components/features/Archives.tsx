@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact } from '../../types';
+import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact, WorkspaceItem } from '../../types';
 import {
   FileText,
   Trash2,
@@ -12,6 +12,7 @@ import {
   FileJson,
   ChevronDown,
   MessageSquare,
+  Link2,
 } from 'lucide-react';
 import { TaskSetupModal } from './Runs/TaskSetupModal';
 import { EmptyState } from '../ui/EmptyState';
@@ -20,7 +21,7 @@ import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { OsintSelect } from '../ui/OsintSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
-import { getLabelProfileById, stripLegacyWorkspacePrefix } from '../../domain';
+import { getLabelProfileById, getWorkspaceDisplayTitle } from '../../domain';
 import {
   clearStoredActiveWorkspaceId,
   getStoredActiveWorkspaceId,
@@ -38,7 +39,7 @@ export const Archives: React.FC<ArchivesProps> = ({
   onStartNewCase,
   onOpenChat,
 }) => {
-  const { artifacts, workspaces, deleteReport, purgeCase } = useWorkspaceStore();
+  const { artifacts, workspaces, workspaceItems, deleteReport, purgeCase } = useWorkspaceStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
     const activeWorkspaceId = getStoredActiveWorkspaceId();
     if (activeWorkspaceId && activeWorkspaceId !== 'ALL') {
@@ -48,6 +49,7 @@ export const Archives: React.FC<ArchivesProps> = ({
   });
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [recordFilter, setRecordFilter] = useState<'ALL' | 'ARTIFACT' | 'ITEM'>('ALL');
   const [workspacePendingPurge, setWorkspacePendingPurge] = useState<{
     id: string;
     name: string;
@@ -105,6 +107,9 @@ export const Archives: React.FC<ArchivesProps> = ({
     return artifacts.filter((r) => r.caseId === caseId);
   };
 
+  const getCaseItems = (caseId: string) =>
+    workspaceItems.filter((item) => item.workspaceId === caseId);
+
   const getUnassignedReports = () => {
     return artifacts.filter((r) => !r.caseId);
   };
@@ -152,6 +157,7 @@ export const Archives: React.FC<ArchivesProps> = ({
       setStoredActiveWorkspaceId(id);
     }
     setCurrentPage(1); // Reset pagination on filter change
+    setRecordFilter('ALL');
   };
 
   // --- RENDER HELPERS ---
@@ -182,6 +188,7 @@ export const Archives: React.FC<ArchivesProps> = ({
           {/* Active Cases */}
           {paginatedCases.map((c) => {
             const fileCount = artifacts.filter((r) => r.caseId === c.id).length;
+            const itemCount = workspaceItems.filter((item) => item.workspaceId === c.id).length;
             return (
               <div
                 key={c.id}
@@ -204,14 +211,17 @@ export const Archives: React.FC<ArchivesProps> = ({
                 </div>
 
                 <h3 className="mb-1 truncate text-lg font-medium leading-snug text-white group-hover:text-zinc-300 relative z-10 font-sans tracking-normal">
-                  {stripLegacyWorkspacePrefix(c.title)}
+                  {getWorkspaceDisplayTitle(c)}
                 </h3>
                 <p className="text-zinc-600 text-sm font-mono mb-4">{c.dateOpened}</p>
 
                 <div className="flex items-center justify-between text-sm text-zinc-500 border-t border-zinc-800 pt-4 relative z-10 font-mono uppercase">
-                  <span className="flex items-center">
+                  <span className="flex items-center gap-3">
+                    <span className="flex items-center">
                     <FileText className="w-4 h-4 mr-2" />
                     {fileCount} {fileCount === 1 ? artifactLabel : artifactLabelPlural}
+                    </span>
+                    <span>{itemCount} items</span>
                   </span>
                   <div className="flex space-x-1">
                     <button
@@ -318,76 +328,159 @@ export const Archives: React.FC<ArchivesProps> = ({
 
   const renderReportList = (caseId: string) => {
     const isUnassigned = caseId === 'unassigned';
-    const _currentCase = workspaces.find((c) => c.id === caseId);
     const caseReports = isUnassigned ? getUnassignedReports() : getCaseReports(caseId);
+    const caseItems = isUnassigned ? [] : getCaseItems(caseId);
+    const records: Array<
+      | { kind: 'ARTIFACT'; sortAt: number; artifact: Artifact }
+      | { kind: 'ITEM'; sortAt: number; item: WorkspaceItem }
+    > = [
+      ...caseReports.map((artifact) => ({
+        kind: 'ARTIFACT' as const,
+        sortAt: artifact.createdAt || 0,
+        artifact,
+      })),
+      ...caseItems.map((item) => ({
+        kind: 'ITEM' as const,
+        sortAt: item.updatedAt || item.createdAt || 0,
+        item,
+      })),
+    ]
+      .filter((record) => {
+        if (recordFilter === 'ALL') return true;
+        return record.kind === recordFilter;
+      })
+      .sort((left, right) => right.sortAt - left.sortAt);
 
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedReports = caseReports.slice(startIndex, startIndex + itemsPerPage);
-    const totalPages = Math.ceil(caseReports.length / itemsPerPage);
+    const paginatedRecords = records.slice(startIndex, startIndex + itemsPerPage);
+    const totalPages = Math.ceil(records.length / itemsPerPage);
 
     return (
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {caseReports.length === 0 ? (
+          {records.length === 0 ? (
             <div className="col-span-full py-20 bg-zinc-900/20 border border-dashed border-zinc-800 flex flex-col items-center justify-center animate-in fade-in">
               <FileText className="w-12 h-12 text-zinc-800 mb-4" />
               <div className="text-zinc-600 italic font-mono uppercase text-xs tracking-widest">
-                NO_REPORTS_FILED_IN_DATABASE
+                NO_WORKSPACE_RECORDS_MATCH_FILTER
               </div>
             </div>
           ) : (
-            paginatedReports.map((report, idx) => (
-              <div
-                key={report.id || idx}
-                onClick={() => onSelectReport(report)}
-                className="bg-zinc-900/70 backdrop-blur-sm p-6 border border-zinc-800 hover:border-osint-primary cursor-pointer group flex items-center justify-between transition-all hover:bg-zinc-900"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="bg-black p-3 text-white border border-zinc-800 group-hover:border-zinc-600">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 group-hover:text-white transition-colors">
-                      {report.topic}
-                    </h3>
-                    <div className="mt-1 text-xs font-mono uppercase text-zinc-500">
-                      {report.dateStr || 'Unknown Date'}
+            paginatedRecords.map((record, idx) =>
+              record.kind === 'ARTIFACT' ? (
+                <div
+                  key={record.artifact.id || idx}
+                  onClick={() => onSelectReport(record.artifact)}
+                  className="bg-zinc-900/70 backdrop-blur-sm p-6 border border-zinc-800 hover:border-osint-primary cursor-pointer group flex items-center justify-between transition-all hover:bg-zinc-900"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-black p-3 text-white border border-zinc-800 group-hover:border-zinc-600">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-mono uppercase text-zinc-500">
+                        Artifact
+                      </div>
+                      <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 group-hover:text-white transition-colors">
+                        {record.artifact.topic}
+                      </h3>
+                      <div className="mt-1 text-xs font-mono uppercase text-zinc-500">
+                        {record.artifact.dateStr || 'Unknown Date'}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-4">
-                  {report.caseId && report.id && (
+                  <div className="flex items-center space-x-4">
+                    {record.artifact.caseId && record.artifact.id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const workspaceId = record.artifact.caseId;
+                          const sourceReportId = record.artifact.id;
+                          if (!workspaceId || !sourceReportId) return;
+                          onOpenChat({
+                            workspaceId,
+                            launchContext: {
+                              sourceReportId,
+                            },
+                          });
+                        }}
+                        className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Open artifact context in workspace chat"
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => handleDeleteReport(e, record.artifact.id)}
+                      className="text-zinc-600 osint-danger-inline p-2 opacity-0 group-hover:opacity-100"
+                      title="Delete Artifact"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                    <ArrowRight className="w-5 h-5 text-zinc-700 group-hover:text-white transition-colors" />
+                  </div>
+                </div>
+              ) : (
+                <div
+                  key={record.item.id}
+                  className="bg-zinc-900/70 backdrop-blur-sm p-6 border border-zinc-800 hover:border-zinc-600 group flex items-center justify-between transition-all hover:bg-zinc-900"
+                >
+                  <div className="flex items-center space-x-4 min-w-0">
+                    <div className="bg-black p-3 text-white border border-zinc-800 group-hover:border-zinc-600">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-mono uppercase text-zinc-500">
+                        {record.item.kind}
+                      </div>
+                      <h3 className="truncate font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 group-hover:text-white transition-colors">
+                        {record.item.title}
+                      </h3>
+                      <div className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
+                        {record.item.description ||
+                          record.item.textContent ||
+                          record.item.url ||
+                          record.item.fileName ||
+                          'Saved workspace item'}
+                      </div>
+                      <div className="mt-2 text-[10px] font-mono uppercase text-zinc-600">
+                        {record.item.provenance?.source || 'USER'} •{' '}
+                        {new Date(record.item.updatedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="ml-4 flex items-center space-x-4">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const workspaceId = report.caseId;
-                        const sourceReportId = report.id;
-                        if (!workspaceId || !sourceReportId) return;
                         onOpenChat({
-                          workspaceId,
-                          launchContext: {
-                            sourceReportId,
-                          },
+                          workspaceId: record.item.workspaceId,
                         });
                       }}
                       className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Open report context in workspace chat"
+                      title="Open workspace chat"
                     >
                       <MessageSquare className="w-5 h-5" />
                     </button>
-                  )}
-                  <button
-                    onClick={(e) => handleDeleteReport(e, report.id)}
-                    className="text-zinc-600 osint-danger-inline p-2 opacity-0 group-hover:opacity-100"
-                    title="Delete Report"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                  <ArrowRight className="w-5 h-5 text-zinc-700 group-hover:text-white transition-colors" />
+                    {record.item.url ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(record.item.url, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Open linked source"
+                      >
+                        <Link2 className="w-5 h-5" />
+                      </button>
+                    ) : null}
+                    <ArrowRight className="w-5 h-5 text-zinc-700 group-hover:text-white transition-colors" />
+                  </div>
                 </div>
-              </div>
-            ))
+              )
+            )
           )}
         </div>
 
@@ -442,7 +535,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                 { value: 'ALL', label: `All ${archiveLabelProfile.workspaceLabelPlural}` },
                 ...workspaces.map((workspace) => ({
                   value: workspace.id,
-                  label: stripLegacyWorkspacePrefix(workspace.title),
+                  label: getWorkspaceDisplayTitle(workspace),
                 })),
                 ...(getUnassignedReports().length > 0
                   ? [
@@ -458,6 +551,26 @@ export const Archives: React.FC<ArchivesProps> = ({
         </div>
 
         <div className="flex items-center space-x-3">
+          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
+            <div className="hidden md:flex items-center rounded border border-zinc-800 bg-zinc-950/70 p-1">
+              {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
+                <button
+                  key={value}
+                  onClick={() => {
+                    setRecordFilter(value);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3 py-1.5 text-[10px] font-mono uppercase transition-colors ${
+                    recordFilter === value
+                      ? 'bg-zinc-800 text-white'
+                      : 'text-zinc-500 hover:text-white'
+                  }`}
+                >
+                  {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
+                </button>
+              ))}
+            </div>
+          ) : null}
           {/* Export Dropdown - only show when case is selected */}
           {effectiveSelectedCaseId &&
             effectiveSelectedCaseId !== 'unassigned' &&

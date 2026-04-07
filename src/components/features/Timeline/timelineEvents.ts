@@ -7,6 +7,7 @@ import type {
   TimelineQueryState,
   TimelineRange,
   TimelineTrack,
+  WorkspaceItem,
   WorkspaceRun,
 } from '@/types';
 import { getArtifactFollowUps, sanitizeDisplayTitle } from '../../../domain';
@@ -16,7 +17,7 @@ import {
 } from '../../../services/chat/launchContext';
 
 const FALLBACK_OCCURED_AT = 0;
-const DEFAULT_TRACKS: TimelineTrack[] = ['SIGNAL', 'RUN', 'ARTIFACT'];
+const DEFAULT_TRACKS: TimelineTrack[] = ['SIGNAL', 'RUN', 'ARTIFACT', 'ITEM'];
 const ENTITY_MENTION_THRESHOLDS = [3, 5];
 const ENTITY_REAPPEARANCE_GAP_MS = 14 * 24 * 60 * 60 * 1000;
 const HIGH_SIGNAL_CHAT_ACTIONS = new Set<AgentAction['type']>([
@@ -76,6 +77,21 @@ const buildRunSearchText = (run: WorkspaceRun): string =>
     run.config?.launchSource,
     run.config?.sourceSignalId,
     run.config?.parentArtifactId,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+const buildWorkspaceItemSearchText = (item: WorkspaceItem): string =>
+  [
+    item.title,
+    item.kind,
+    item.description,
+    item.textContent,
+    item.url,
+    item.fileName,
+    item.provenance?.source,
+    ...(item.tags || []),
   ]
     .filter(Boolean)
     .join(' ')
@@ -165,6 +181,7 @@ export const buildWorkspaceTimelineEvents = (input: {
   signals: Headline[];
   chatSessions: ChatSession[];
   chatActionsBySessionId: Record<string, AgentAction[]>;
+  workspaceItems?: WorkspaceItem[];
 }): TimelineEvent[] => {
   const scopedArtifacts = input.artifacts.filter(
     (artifact) => artifact.caseId === input.workspaceId
@@ -303,6 +320,62 @@ export const buildWorkspaceTimelineEvents = (input: {
           sourceRunId: artifact.config?.sourceRunId,
         },
       };
+    });
+
+  const workspaceItemEvents = (input.workspaceItems || [])
+    .filter((item) => item.workspaceId === input.workspaceId)
+    .flatMap<TimelineEvent>((item) => {
+      const events: TimelineEvent[] = [];
+      const provenanceSource = item.provenance?.source;
+      const baseBadges = [item.kind, provenanceSource].filter(Boolean) as string[];
+      const baseMetadata = {
+        workspaceItemKind: item.kind,
+        source: provenanceSource,
+        sourceSessionId: item.provenance?.sourceSessionId,
+        sourceMessageId: item.provenance?.sourceMessageId,
+        sourceReportId: item.provenance?.sourceReportId,
+        sourceSignalId: item.provenance?.sourceSignalId || item.provenance?.sourceHeadlineId,
+        url: item.url,
+        fileName: item.fileName,
+        tagCount: item.tags?.length || 0,
+      };
+
+      events.push({
+        id: `workspace-item-created-${item.id}`,
+        occurredAt: item.createdAt || FALLBACK_OCCURED_AT,
+        track: 'ITEM',
+        type: provenanceSource && provenanceSource !== 'USER' ? 'ITEM_PROMOTED' : 'ITEM_CREATED',
+        workspaceId: input.workspaceId,
+        title: item.title,
+        summary:
+          provenanceSource && provenanceSource !== 'USER'
+            ? `Promoted into the workspace from ${provenanceSource.toLowerCase().replace('_', ' ')} context.`
+            : `Workspace ${item.kind.toLowerCase()} created.`,
+        refId: item.id,
+        refKind: 'WORKSPACE_ITEM',
+        badges: baseBadges,
+        searchText: buildWorkspaceItemSearchText(item),
+        metadata: baseMetadata,
+      });
+
+      if ((item.updatedAt || 0) - (item.createdAt || 0) >= 60 * 1000) {
+        events.push({
+          id: `workspace-item-updated-${item.id}`,
+          occurredAt: item.updatedAt || FALLBACK_OCCURED_AT,
+          track: 'ITEM',
+          type: 'ITEM_UPDATED',
+          workspaceId: input.workspaceId,
+          title: item.title,
+          summary: `Workspace ${item.kind.toLowerCase()} updated.`,
+          refId: item.id,
+          refKind: 'WORKSPACE_ITEM',
+          badges: [...baseBadges, 'UPDATED'],
+          searchText: buildWorkspaceItemSearchText(item),
+          metadata: baseMetadata,
+        });
+      }
+
+      return events;
     });
 
   const entityEvents = (() => {
@@ -630,6 +703,7 @@ export const buildWorkspaceTimelineEvents = (input: {
     ...signalEvents,
     ...runEvents,
     ...artifactEvents,
+    ...workspaceItemEvents,
     ...entityEvents,
     ...chatSessionEvents,
     ...chatActionEvents,

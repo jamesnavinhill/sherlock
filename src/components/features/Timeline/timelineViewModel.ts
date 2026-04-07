@@ -6,6 +6,7 @@ import type {
   ChatSession,
   Headline,
   Workspace,
+  WorkspaceItem,
   WorkspaceRun,
 } from '@/types';
 
@@ -26,6 +27,7 @@ interface TimelineViewModelInput {
   headlines: Headline[];
   selectedEventId: string | null;
   timelineQuery: TimelineRouteQueryState;
+  workspaceItems: WorkspaceItem[];
   workspaceRuns: WorkspaceRun[];
   workspaces: Workspace[];
 }
@@ -38,6 +40,7 @@ export const buildTimelineViewModel = ({
   headlines,
   selectedEventId,
   timelineQuery,
+  workspaceItems,
   workspaceRuns,
   workspaces,
 }: TimelineViewModelInput) => {
@@ -57,6 +60,7 @@ export const buildTimelineViewModel = ({
         signals: headlines,
         chatSessions,
         chatActionsBySessionId,
+        workspaceItems,
       })
     : [];
 
@@ -72,6 +76,7 @@ export const buildTimelineViewModel = ({
   const runItems = toUniqueItems(allTimelineEvents, 'RUN');
   const artifactItems = toUniqueItems(allTimelineEvents, 'ARTIFACT');
   const signalItems = toUniqueItems(allTimelineEvents, 'SIGNAL');
+  const workspaceItemItems = toUniqueItems(allTimelineEvents, 'ITEM');
   const entityItems = toUniqueItems(allTimelineEvents, 'ENTITY');
   const chatSessionItems = allTimelineEvents.filter(
     (event) => event.type === 'CHAT_SESSION_STARTED'
@@ -172,5 +177,6 @@ export const buildTimelineViewModel = ({
     signalTitleById,
     timelineSnapshot,
     visibleEvents,
+    workspaceItemItems,
   };
 };

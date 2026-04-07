@@ -779,7 +779,7 @@ export interface TimelineSnapshot {
   metadata: TimelineSnapshotMetadata;
 }
 
-export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT' | 'ENTITY';
+export type TimelineTrack = 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT' | 'ENTITY' | 'ITEM';
 
 export type TimelineEventType =
   | 'SIGNAL_SAVED'
@@ -787,6 +787,9 @@ export type TimelineEventType =
   | 'RUN_COMPLETED'
   | 'RUN_FAILED'
   | 'ARTIFACT_CREATED'
+  | 'ITEM_CREATED'
+  | 'ITEM_PROMOTED'
+  | 'ITEM_UPDATED'
   | 'ENTITY_FIRST_SEEN'
   | 'ENTITY_MENTION_THRESHOLD'
   | 'ENTITY_REAPPEARED'
@@ -810,6 +813,7 @@ export interface TimelineEvent {
     | 'HEADLINE'
     | 'RUN'
     | 'ARTIFACT'
+    | 'WORKSPACE_ITEM'
     | 'CHAT_SESSION'
     | 'CHAT_ACTION'
     | 'ENTITY';

@@ -68,6 +68,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     LEFT_PANEL_SECTION_SCROLL_CLASS,
     manualSetupDraft,
     messageBodyClassName,
+    mentionCandidates,
     messages,
     navigateToSession,
     newMenuRef,
@@ -210,6 +211,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             guidedState={guidedState}
             isBusy={chatGenerationStatus === 'GENERATING' || chatGenerationStatus === 'CANCELLING'}
             chatGenerationStatus={chatGenerationStatus}
+            mentionCandidates={mentionCandidates}
             onSubmit={handleSend}
             onDraftChange={setDraft}
             onKeyDown={handleComposerKeyDown}

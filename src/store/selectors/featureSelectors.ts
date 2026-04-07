@@ -106,6 +106,7 @@ export const selectChatFeatureState = (state: WorkspaceState) => ({
   setPartialAssistantOutput: state.setPartialAssistantOutput,
   themeMode: state.themeMode,
   updateChatMessage: state.updateChatMessage,
+  workspaceItems: state.workspaceItems,
 });
 
 export const useChatFeatureState = () =>
@@ -157,6 +158,7 @@ export const selectTimelineFeatureState = (state: WorkspaceState) => ({
   queueBoardPlacement: state.queueBoardPlacement,
   saveArtifact: state.saveArtifact,
   setActiveWorkspaceId: state.setActiveWorkspaceId,
+  workspaceItems: state.workspaceItems,
   workspaceRuns: state.workspaceRuns,
   workspaces: state.workspaces,
 });

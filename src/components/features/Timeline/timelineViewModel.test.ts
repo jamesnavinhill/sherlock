@@ -54,6 +54,7 @@ describe('buildTimelineViewModel', () => {
         filters: DEFAULT_FILTERS,
         focusedTrack: 'ALL',
       },
+      workspaceItems: [],
       workspaceRuns: [],
       workspaces: [workspace],
     });
@@ -85,6 +86,7 @@ describe('buildTimelineViewModel', () => {
         filters: DEFAULT_FILTERS,
         focusedTrack: 'ALL',
       },
+      workspaceItems: [],
       workspaceRuns: [],
       workspaces: [workspace],
     });

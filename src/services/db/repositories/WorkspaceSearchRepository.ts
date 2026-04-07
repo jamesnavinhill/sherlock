@@ -240,6 +240,7 @@ export class WorkspaceSearchRepository {
         ),
         timestamp: parent?.createdAt,
         metadata: {
+          entityName: row.name,
           entityType: row.type,
           role: row.role || undefined,
         },

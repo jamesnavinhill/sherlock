@@ -259,6 +259,47 @@ describe('timelineEvents', () => {
     ).toBe('rep-1');
   });
 
+  it('adds workspace item chronology for created, promoted, and updated items', () => {
+    const events = buildWorkspaceTimelineEvents({
+      workspaceId: 'case-1',
+      artifacts: [],
+      runs: [],
+      signals: [],
+      chatSessions: [],
+      chatActionsBySessionId: {},
+      workspaceItems: [
+        {
+          id: 'item-1',
+          workspaceId: 'case-1',
+          kind: 'NOTE',
+          title: 'Workspace note',
+          createdAt: 100,
+          updatedAt: 100,
+        },
+        {
+          id: 'item-2',
+          workspaceId: 'case-1',
+          kind: 'EXCERPT',
+          title: 'Promoted excerpt',
+          createdAt: 200,
+          updatedAt: 320000,
+          provenance: {
+            source: 'CHAT',
+            sourceSessionId: 'session-1',
+          },
+        },
+      ],
+    });
+
+    expect(events.map((event) => event.type)).toContain('ITEM_CREATED');
+    expect(events.map((event) => event.type)).toContain('ITEM_PROMOTED');
+    expect(events.map((event) => event.type)).toContain('ITEM_UPDATED');
+    expect(events.find((event) => event.id === 'workspace-item-created-item-2')?.refKind).toBe(
+      'WORKSPACE_ITEM'
+    );
+    expect(getTrackCount(events, 'ITEM')).toBe(3);
+  });
+
   it('adds entity milestone chronology for first-seen, reappearance, and mention thresholds', () => {
     const events = buildWorkspaceTimelineEvents({
       workspaceId: 'case-1',

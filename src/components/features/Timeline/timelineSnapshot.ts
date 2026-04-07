@@ -24,6 +24,7 @@ const TRACK_LABELS: Record<TimelineTrack, string> = {
   SIGNAL: 'Signal',
   RUN: 'Run',
   ARTIFACT: 'Artifact',
+  ITEM: 'Item',
   CHAT: 'Chat',
   ENTITY: 'Entity',
 };
