@@ -137,7 +137,7 @@ The current targeted validation for the trust/identity/chrome contract workstrea
 - `npm run typecheck`: passes
 - targeted tests for workspace-data restore/bootstrap, transaction behavior, workspace identity helpers, and touched routed surfaces: pass
 - `npm run build`: passes
-- `npm run test` was not rerun as part of this scoped validation pass
+- the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint
 
 ## Documentation Index
