@@ -36,6 +36,11 @@ export const useBoardCanvasPersistence = ({
 }: UseBoardCanvasPersistenceInput) => {
   const editorRef = useRef<Editor | null>(null);
   const saveTimeoutRef = useRef<number | null>(null);
+  const lastPersistedSnapshotRef = useRef<{ boardId: string | null; serialized: string | null }>({
+    boardId: null,
+    serialized: null,
+  });
+  const lastSelectionKeyRef = useRef<string>('');
 
   const hydratedSnapshot = useMemo(
     () =>
@@ -46,6 +51,16 @@ export const useBoardCanvasPersistence = ({
     [activeBoardDocument?.snapshot]
   );
 
+  useEffect(() => {
+    const serialized = activeBoardDocument?.snapshot
+      ? JSON.stringify(activeBoardDocument.snapshot)
+      : null;
+    lastPersistedSnapshotRef.current = {
+      boardId: activeBoard?.id || null,
+      serialized,
+    };
+  }, [activeBoard?.id, activeBoardDocument?.snapshot]);
+
   const clearPendingSaveTimeout = useCallback(() => {
     if (saveTimeoutRef.current) {
       window.clearTimeout(saveTimeoutRef.current);
@@ -55,12 +70,25 @@ export const useBoardCanvasPersistence = ({
 
   const persistBoardSnapshot = useCallback(
     async (editor: Editor, boardId: string) => {
+      const snapshot = getSnapshot(editor.store) as unknown;
+      const serialized = JSON.stringify(snapshot);
+      if (
+        lastPersistedSnapshotRef.current.boardId === boardId &&
+        lastPersistedSnapshotRef.current.serialized === serialized
+      ) {
+        return;
+      }
+
       try {
         await saveWorkspaceBoardDocument({
           boardId,
-          snapshot: getSnapshot(editor.store) as unknown,
+          snapshot,
           updatedAt: Date.now(),
         });
+        lastPersistedSnapshotRef.current = {
+          boardId,
+          serialized,
+        };
       } catch (error) {
         console.error(`Failed to save board ${boardId}`, error);
         addToast('Unable to save the latest board changes.', 'ERROR');
@@ -127,7 +155,14 @@ export const useBoardCanvasPersistence = ({
         .filter((entry): entry is WorkspaceLibraryEntry => !!entry);
 
       const deduped = new Map(nextEntries.map((entry) => [boardRefKey(entry), entry]));
-      setSelectedEntries(Array.from(deduped.values()));
+      const orderedEntries = Array.from(deduped.values());
+      const nextSelectionKey = orderedEntries.map((entry) => boardRefKey(entry)).join('|');
+      if (nextSelectionKey === lastSelectionKeyRef.current) {
+        return;
+      }
+
+      lastSelectionKeyRef.current = nextSelectionKey;
+      setSelectedEntries(orderedEntries);
       setAiSummary(null);
     },
     [libraryMap, setAiSummary, setSelectedEntries]
@@ -137,6 +172,7 @@ export const useBoardCanvasPersistence = ({
     (editor: Editor) => {
       const mountedBoardId = activeBoard?.id || null;
       editorRef.current = editor;
+      lastSelectionKeyRef.current = '';
       editor.user.updateUserPreferences({ colorScheme: themeMode });
       editor.updateInstanceState({ isReadonly: !!activeBoard?.presentationMode });
       syncSelection(editor);

@@ -7,7 +7,6 @@ import { ToastContainer } from '@/components/ui/Toast';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { AppShellRoutes } from '@/app/AppShellRoutes';
 import { useAppShellController } from '@/app/useAppShellController';
-import { hasApiKey } from '@/services/runtime';
 
 export function AppShell() {
   const controller = useAppShellController();
@@ -25,10 +24,10 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen bg-osint-dark text-osint-text font-sans selection:bg-osint-primary selection:text-black overflow-hidden">
-      {!controller.isAuthenticated && (
+      {controller.showApiKeyPrompt && (
         <ApiKeyModal
-          onKeySet={() => controller.setIsAuthenticated(hasApiKey())}
-          onBypass={() => controller.setIsAuthenticated(true)}
+          onKeySet={controller.handleApiKeySet}
+          onBypass={controller.handleApiKeyPromptBypass}
         />
       )}
 

@@ -32,6 +32,7 @@ export const STORAGE_KEYS = {
   CASES: 'sherlock_cases',
   HEADLINES: 'sherlock_headlines',
   ACTIVE_WORKSPACE_ID: 'sherlock_active_workspace_id',
+  API_KEY_PROMPT_DISMISSED: 'sherlock_api_key_prompt_dismissed',
   DEMO_WORKSPACE_SEED_APPLIED: 'sherlock_demo_seed_v1_applied',
   LIVE_MONITOR_AUTOSAVE: 'sherlock_livestream_autosave',
   SYSTEM_CONFIG: 'sherlock_config',
@@ -141,6 +142,17 @@ export const setStoredActiveWorkspaceId = (value: string): void => {
 
 export const clearStoredActiveWorkspaceId = (): void => {
   clearKey(STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
+};
+
+export const hasDismissedApiKeyPrompt = (): boolean =>
+  getStringItem(STORAGE_KEYS.API_KEY_PROMPT_DISMISSED) === 'true';
+
+export const markApiKeyPromptDismissed = (): void => {
+  setStringItem(STORAGE_KEYS.API_KEY_PROMPT_DISMISSED, 'true');
+};
+
+export const clearApiKeyPromptDismissed = (): void => {
+  clearKey(STORAGE_KEYS.API_KEY_PROMPT_DISMISSED);
 };
 
 export const getStoredLiveMonitorAutosave = (): boolean =>

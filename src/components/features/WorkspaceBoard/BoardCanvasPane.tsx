@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tldraw, type TLEditorSnapshot, type TLStoreSnapshot } from 'tldraw';
 import { Shapes } from 'lucide-react';
 
@@ -13,35 +13,60 @@ interface BoardCanvasPaneProps {
   onEditorMount: React.ComponentProps<typeof Tldraw>['onMount'];
 }
 
+interface BoardCanvasInstanceProps {
+  boardId: string;
+  hydratedSnapshot?: TLEditorSnapshot | TLStoreSnapshot;
+  onEditorMount: React.ComponentProps<typeof Tldraw>['onMount'];
+}
+
+const BoardCanvasInstance: React.FC<BoardCanvasInstanceProps> = ({
+  boardId,
+  hydratedSnapshot,
+  onEditorMount,
+}) => {
+  const [initialSnapshot] = useState(() => hydratedSnapshot);
+
+  return (
+    <Tldraw
+      key={boardId}
+      className="h-full w-full"
+      components={boardTldrawComponents}
+      snapshot={initialSnapshot}
+      onMount={onEditorMount}
+    />
+  );
+};
+
 export const BoardCanvasPane: React.FC<BoardCanvasPaneProps> = ({
   activeBoard,
   hydratedSnapshot,
   onCanvasDrop,
   onEditorMount,
-}) => (
-  <main className="relative flex-1 overflow-hidden bg-osint-dark">
-    <div
-      className="sherlock-board-canvas absolute inset-0"
-      onDragOver={(event) => event.preventDefault()}
-      onDrop={onCanvasDrop}
-    >
-      {activeBoard ? (
-        <Tldraw
-          key={activeBoard.id}
-          className="h-full w-full"
-          components={boardTldrawComponents}
-          snapshot={hydratedSnapshot}
-          onMount={onEditorMount}
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center">
-          <EmptyState
-            icon={Shapes}
-            title="Preparing Board"
-            description="Sherlock is preparing the primary board for this workspace."
+}) => {
+  return (
+    <main className="relative flex-1 overflow-hidden bg-osint-dark">
+      <div
+        className="sherlock-board-canvas absolute inset-0"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={onCanvasDrop}
+      >
+        {activeBoard ? (
+          <BoardCanvasInstance
+            key={activeBoard.id}
+            boardId={activeBoard.id}
+            hydratedSnapshot={hydratedSnapshot}
+            onEditorMount={onEditorMount}
           />
-        </div>
-      )}
-    </div>
-  </main>
-);
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <EmptyState
+              icon={Shapes}
+              title="Preparing Board"
+              description="Sherlock is preparing the primary board for this workspace."
+            />
+          </div>
+        )}
+      </div>
+    </main>
+  );
+};

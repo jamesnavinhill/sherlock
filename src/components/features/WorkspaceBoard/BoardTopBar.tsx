@@ -34,7 +34,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
   rightPanelOpen,
   workspaces,
 }) => (
-  <header className="osint-header-shadow sticky top-0 z-[12000] flex h-20 items-center justify-between border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
+  <header className="osint-header-shadow sticky top-0 z-40 flex h-20 items-center justify-between border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
     <div className="flex min-w-0 items-center gap-3">
       <button
         onClick={onToggleLeftPanel}
@@ -53,26 +53,26 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         <FolderPlus className="h-4 w-4" />
         New Board
       </button>
-      <div className="relative z-[12010] hidden min-w-[220px] max-w-[280px] md:block">
+      <div className="relative z-50 hidden min-w-[220px] max-w-[280px] md:block">
         <OsintSelect
           ariaLabel="Select workspace"
           value={activeWorkspaceId}
           onChange={onSelectWorkspace}
           triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
-          menuClassName="z-[12020]"
+          menuClassName="z-[60]"
           options={workspaces.map((workspace) => ({
             value: workspace.id,
             label: sanitizeDisplayTitle(workspace.title),
           }))}
         />
       </div>
-      <div className="relative z-[12010] hidden min-w-[220px] max-w-[260px] md:block">
+      <div className="relative z-50 hidden min-w-[220px] max-w-[260px] md:block">
         <OsintSelect
           ariaLabel="Select board"
           value={activeBoard?.id || ''}
           onChange={onSelectBoard}
           triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
-          menuClassName="z-[12020]"
+          menuClassName="z-[60]"
           options={availableBoards.map((board) => ({
             value: board.id,
             label: board.name,

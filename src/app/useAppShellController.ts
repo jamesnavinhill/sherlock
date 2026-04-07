@@ -24,6 +24,11 @@ import { hasApiKey, runWorkspaceInvestigation } from '@/services/runtime';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createLocalId } from '@/utils/id';
+import {
+  clearApiKeyPromptDismissed,
+  hasDismissedApiKeyPrompt,
+  markApiKeyPromptDismissed,
+} from '@/utils/localStorage';
 import { normalizeTopicText } from '@/utils/textNormalization';
 import { loadSystemConfig } from '@/config/systemConfig';
 import {
@@ -85,6 +90,8 @@ export interface AppShellController {
   customScopes: InvestigationScope[];
   handleBack: () => void;
   handleBatchInvestigate: (followUps: FollowUp[], parentReport: Artifact) => void;
+  handleApiKeyPromptBypass: () => void;
+  handleApiKeySet: () => void;
   handleClearCompleted: () => Promise<void>;
   handleCloseSettings: () => void;
   handleNavigateRecord: (id: string) => void;
@@ -92,7 +99,7 @@ export interface AppShellController {
   handleSelectTask: (taskId: string) => void;
   handleViewReport: (report: Artifact) => void;
   initializeStore: () => Promise<void>;
-  isAuthenticated: boolean;
+  showApiKeyPrompt: boolean;
   isLoading: boolean;
   isSidebarCollapsed: boolean;
   launchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -105,7 +112,7 @@ export interface AppShellController {
   setActiveWorkspaceBoardId: (id: string | null) => void;
   setActiveWorkspaceId: (id: string | null) => void;
   setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
-  setIsAuthenticated: (value: boolean) => void;
+  setShowApiKeyPrompt: (value: boolean) => void;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   setShowHelpModal: (value: boolean) => void;
   setLiveEvents: ReturnType<typeof useWorkspaceStore.getState>['setLiveEvents'];
@@ -188,8 +195,20 @@ export function useAppShellController(): AppShellController {
   useInitializeAppShell(initializeStore);
 
   const routeCurrentView = useMemo(() => getAppViewForPath(location.pathname), [location.pathname]);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => hasApiKey());
+  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(
+    () => !hasApiKey() && !hasDismissedApiKeyPrompt()
+  );
   const [showHelpModal, setShowHelpModal] = useState(false);
+
+  const handleApiKeySet = useCallback(() => {
+    clearApiKeyPromptDismissed();
+    setShowApiKeyPrompt(false);
+  }, []);
+
+  const handleApiKeyPromptBypass = useCallback(() => {
+    markApiKeyPromptDismissed();
+    setShowApiKeyPrompt(false);
+  }, []);
 
   useTrackAppShellLocation({
     pathname: location.pathname,
@@ -358,7 +377,7 @@ export function useAppShellController(): AppShellController {
         const normalizedTopic = normalizeTopicText(request.topic);
 
         if (!hasApiKey(effectiveConfig.provider)) {
-          setIsAuthenticated(false);
+          setShowApiKeyPrompt(true);
           addToast(`Missing ${effectiveConfig.provider} API key. Add it to continue.`, 'ERROR');
           return;
         }
@@ -619,6 +638,8 @@ export function useAppShellController(): AppShellController {
     chatSessions,
     customScopes,
     handleBack,
+    handleApiKeyPromptBypass,
+    handleApiKeySet,
     handleBatchInvestigate,
     handleClearCompleted,
     handleCloseSettings,
@@ -627,7 +648,7 @@ export function useAppShellController(): AppShellController {
     handleSelectTask,
     handleViewReport,
     initializeStore,
-    isAuthenticated,
+    showApiKeyPrompt,
     isLoading,
     isSidebarCollapsed,
     launchInvestigation,
@@ -640,7 +661,7 @@ export function useAppShellController(): AppShellController {
     setActiveWorkspaceBoardId,
     setActiveWorkspaceId,
     setAccentSettings,
-    setIsAuthenticated,
+    setShowApiKeyPrompt,
     setIsSidebarCollapsed,
     setShowHelpModal,
     setLiveEvents,
