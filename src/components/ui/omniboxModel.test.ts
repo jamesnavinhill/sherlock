@@ -51,6 +51,7 @@ describe('omniboxModel', () => {
     );
 
     expect(snippetResult.kind).toBe('WORKSPACE_ITEM');
+    expect(snippetResult.actions).toContain('OPEN_IN_CHAT');
     expect(snippetResult.actions).toContain('PLACE_ON_BOARD');
 
     const results = buildOmniboxResults({
@@ -176,5 +177,6 @@ describe('omniboxModel', () => {
     });
 
     expect(recents[0]?.title).toBe('Atlas Workspace');
+    expect(recents[0]?.actions).toContain('OPEN_IN_CHAT');
   });
 });

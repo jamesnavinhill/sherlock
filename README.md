@@ -7,7 +7,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
 - Uses a capability-aware model registry with direct-provider defaults plus a dynamic OpenRouter catalog (bundled snapshot, local cache, live refresh, curated quick picks, and manual slug entry)
 - Runs workspace-grounded chat through the same provider router with persisted sessions, message history, streaming output, and stop support
-- Exposes one workspace omnibox for routes, workspaces, artifacts, items, chats, runs, and signals, with durable recent destinations plus board/timeline/network/files handoff actions
+- Exposes one workspace omnibox for routes, workspaces, artifacts, items, chats, runs, and signals, with durable recent destinations plus chat/board/timeline/network/files handoff actions
 - Provides a dedicated multi-board research workspace built on `tldraw`, with a canonical library for artifacts, entities, sources, signals, notes, links, files/media, and promoted chat excerpts
 - Executes Sherlock board-agent sessions that can place and organize board items, create canonical notes/excerpts/artifact drafts, launch follow-up runs, and continue through explicit review/follow-up actions while keeping an auditable action log
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
@@ -31,7 +31,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, and board handoff for reports/entities/signals
 - `Live Monitor`: live signal scans, filtering, and signal persistence
-- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with deletion and exports
+- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with direct chat, board, source-link, deletion, and export actions
 - `Finder`: discovery scanning and analysis launch
 - `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export
 

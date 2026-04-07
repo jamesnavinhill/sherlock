@@ -26,6 +26,7 @@ export type OmniboxResultKind =
 
 export type OmniboxActionId =
   | 'OPEN'
+  | 'OPEN_IN_CHAT'
   | 'PLACE_ON_BOARD'
   | 'OPEN_IN_TIMELINE'
   | 'OPEN_IN_NETWORK'
@@ -214,7 +215,7 @@ const buildWorkspaceResults = (query: string, workspaces: Workspace[]) =>
         workspaceId: workspace.id,
         score: score + 20,
         timestamp: workspace.updatedAt || workspace.createdAt,
-        actions: ['OPEN', 'OPEN_IN_FILES'] as OmniboxActionId[],
+        actions: ['OPEN', 'OPEN_IN_CHAT', 'OPEN_IN_FILES'] as OmniboxActionId[],
       };
     })
     .filter((result) => result.score > 0);
@@ -326,6 +327,15 @@ export const mapWorkspaceSnippetToOmniboxResult = (
   const kind = mapSnippetKindToResultKind(snippet);
   const actions: OmniboxActionId[] = ['OPEN'];
 
+  if (
+    kind === 'WORKSPACE_ITEM' ||
+    kind === 'ARTIFACT' ||
+    kind === 'SECTION' ||
+    kind === 'SIGNAL' ||
+    kind === 'ENTITY'
+  ) {
+    actions.push('OPEN_IN_CHAT');
+  }
   if (kind === 'ARTIFACT' || kind === 'SECTION' || kind === 'SIGNAL' || kind === 'ENTITY') {
     actions.push('OPEN_IN_TIMELINE');
   }
@@ -404,7 +414,7 @@ export const buildRecentOmniboxResults = ({
           workspaceId: workspace.id,
           score: 120 - index,
           timestamp: recent.visitedAt,
-          actions: ['OPEN', 'OPEN_IN_FILES'],
+          actions: ['OPEN', 'OPEN_IN_CHAT', 'OPEN_IN_FILES'],
         };
       }
 
@@ -422,7 +432,7 @@ export const buildRecentOmniboxResults = ({
           refId: artifact.id,
           score: 118 - index,
           timestamp: recent.visitedAt,
-          actions: ['OPEN', 'PLACE_ON_BOARD', 'OPEN_IN_TIMELINE', 'OPEN_IN_FILES'],
+          actions: ['OPEN', 'OPEN_IN_CHAT', 'PLACE_ON_BOARD', 'OPEN_IN_TIMELINE', 'OPEN_IN_FILES'],
         };
       }
 
@@ -471,7 +481,7 @@ export const buildRecentOmniboxResults = ({
           refId: item.id,
           score: 112 - index,
           timestamp: recent.visitedAt,
-          actions: ['OPEN', 'PLACE_ON_BOARD', 'OPEN_IN_FILES'],
+          actions: ['OPEN', 'OPEN_IN_CHAT', 'PLACE_ON_BOARD', 'OPEN_IN_FILES'],
           metadata: {
             workspaceItemKind: item.kind,
           },
@@ -494,7 +504,7 @@ export const buildRecentOmniboxResults = ({
       workspaceId: workspace.id,
       score: 90 - index,
       timestamp: workspace.updatedAt || workspace.createdAt,
-      actions: ['OPEN', 'OPEN_IN_FILES'] as OmniboxActionId[],
+      actions: ['OPEN', 'OPEN_IN_CHAT', 'OPEN_IN_FILES'] as OmniboxActionId[],
     }));
 
   const scopedArtifacts = artifacts
@@ -513,7 +523,13 @@ export const buildRecentOmniboxResults = ({
       refId: artifact.id,
       score: 88 - index,
       timestamp: artifact.createdAt,
-      actions: ['OPEN', 'PLACE_ON_BOARD', 'OPEN_IN_TIMELINE', 'OPEN_IN_FILES'] as OmniboxActionId[],
+      actions: [
+        'OPEN',
+        'OPEN_IN_CHAT',
+        'PLACE_ON_BOARD',
+        'OPEN_IN_TIMELINE',
+        'OPEN_IN_FILES',
+      ] as OmniboxActionId[],
     }));
 
   const scopedItems = workspaceItems
@@ -531,7 +547,7 @@ export const buildRecentOmniboxResults = ({
       refId: item.id,
       score: 86 - index,
       timestamp: item.updatedAt,
-      actions: ['OPEN', 'PLACE_ON_BOARD', 'OPEN_IN_FILES'] as OmniboxActionId[],
+      actions: ['OPEN', 'OPEN_IN_CHAT', 'PLACE_ON_BOARD', 'OPEN_IN_FILES'] as OmniboxActionId[],
       metadata: {
         workspaceItemKind: item.kind,
       },

@@ -22,34 +22,9 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-import type { Source } from '@/types';
 import { CANONICAL_NOUNS } from '@/domain';
-import { findWorkspaceLandingArtifact } from '@/app/navigation';
-import {
-  buildDiscoverPath,
-  buildFilesPath,
-  buildMonitorPath,
-  buildRunPath,
-  buildSettingsPath,
-  buildWorkspaceArtifactPath,
-  buildWorkspaceBoardDocumentPath,
-  buildWorkspaceBoardPath,
-  buildWorkspaceChatSessionPath,
-  buildWorkspaceChatPath,
-  buildWorkspaceHomePath,
-  buildWorkspaceNetworkPath,
-  buildWorkspaceTimelinePath,
-} from '@/app/routes';
 import { WorkspaceSearchRepository } from '@/services/db/repositories/WorkspaceSearchRepository';
-import {
-  buildWorkspaceArtifactReference,
-  buildWorkspaceEntityReference,
-  buildWorkspaceItemReference,
-  buildWorkspaceSignalReference,
-  buildWorkspaceSourceReference,
-} from '@/services/workspace/library';
 import { useWorkspaceStore } from '@/store/caseStore';
-import { buildTimelineRouteQuery, parseTimelineRouteQuery } from '@/components/features/Timeline/timelineRouteState';
 import {
   getStoredOmniboxRecents,
   setStoredOmniboxRecents,
@@ -60,6 +35,7 @@ import {
   type OmniboxActionId,
   type OmniboxResult,
 } from './omniboxModel';
+import { executeOmniboxAction, getOmniboxOpenLabel } from './omniboxActions';
 
 const resultIconByKind: Record<OmniboxResult['kind'], LucideIcon> = {
   ROUTE: CircleDot,
@@ -87,84 +63,6 @@ const resultLabelByKind: Record<OmniboxResult['kind'], string> = {
   WORKSPACE_ITEM: CANONICAL_NOUNS.item,
 };
 
-const isTimelinePathForWorkspace = (pathname: string, workspaceId: string) =>
-  pathname === buildWorkspaceTimelinePath(workspaceId);
-
-const buildTimelineFocusedPath = (
-  locationSearch: string,
-  workspaceId: string,
-  track: 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT' | 'ENTITY' | 'ITEM',
-  refId?: string
-) => {
-  const params = parseTimelineRouteQuery(new URLSearchParams(locationSearch));
-  const next = buildTimelineRouteQuery({
-    ...params,
-    focusedTrack: track === 'ITEM' ? 'ITEM' : track,
-    focusedRefId: refId,
-  });
-  const query = next.toString();
-  return `${buildWorkspaceTimelinePath(workspaceId)}${query ? `?${query}` : ''}`;
-};
-
-const resolveTimelineFocus = (
-  result: OmniboxResult
-): { track: 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT' | 'ENTITY' | 'ITEM'; refId?: string } | null => {
-  switch (result.kind) {
-    case 'ARTIFACT':
-    case 'SECTION':
-    case 'SOURCE':
-      return {
-        track: 'ARTIFACT',
-        refId: result.artifactId || result.refId,
-      };
-    case 'SIGNAL':
-      return {
-        track: 'SIGNAL',
-        refId: result.refId,
-      };
-    case 'RUN':
-      return {
-        track: 'RUN',
-        refId: result.refId,
-      };
-    case 'CHAT_SESSION':
-      return {
-        track: 'CHAT',
-        refId: result.refId,
-      };
-    case 'ENTITY':
-      return {
-        track: 'ENTITY',
-        refId:
-          typeof result.metadata?.entityName === 'string'
-            ? result.metadata.entityName
-            : result.title,
-      };
-    case 'WORKSPACE_ITEM':
-      return {
-        track: 'ITEM',
-        refId: result.refId,
-      };
-    default:
-      return null;
-  }
-};
-
-const toOpenLabel = (result: OmniboxResult) => {
-  switch (result.kind) {
-    case 'RUN':
-      return 'Open Run';
-    case 'CHAT_SESSION':
-      return 'Open Chat';
-    case 'WORKSPACE_ITEM':
-      return 'Open In Files';
-    case 'SIGNAL':
-      return 'Open Timeline';
-    default:
-      return 'Open';
-  }
-};
-
 interface GlobalSearchModalProps {
   onClose: () => void;
 }
@@ -173,13 +71,18 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const {
+    addChatMessage,
+    addToast,
     activeWorkspaceBoardId,
     activeWorkspaceId,
     artifacts,
+    chatMessagesBySessionId,
     chatSessions,
+    createChatSession,
     ensureWorkspaceBoard,
     headlines,
     queueBoardPlacement,
+    setActiveChatSessionId,
     setActiveTaskId,
     setActiveWorkspaceId,
     workspaceItems,
@@ -299,204 +202,33 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
     });
   };
 
-  const openTimeline = (result: OmniboxResult) => {
-    if (!result.workspaceId) return;
-    setActiveWorkspaceId(result.workspaceId);
-    const timelineFocus = resolveTimelineFocus(result);
-    navigate(
-      timelineFocus
-        ? buildTimelineFocusedPath(location.search, result.workspaceId, timelineFocus.track, timelineFocus.refId)
-        : buildWorkspaceTimelinePath(result.workspaceId)
-    );
-    onClose();
-  };
-
-  const openNetwork = (result: OmniboxResult) => {
-    if (!result.workspaceId) return;
-    setActiveWorkspaceId(result.workspaceId);
-    navigate(buildWorkspaceNetworkPath(result.workspaceId));
-    onClose();
-  };
-
-  const openFiles = (result: OmniboxResult) => {
-    if (result.workspaceId) {
-      setActiveWorkspaceId(result.workspaceId);
-    }
-    navigate(buildFilesPath());
-    onClose();
-  };
-
-  const placeOnBoard = async (result: OmniboxResult) => {
-    if (!result.workspaceId) return;
-    setActiveWorkspaceId(result.workspaceId);
-
-    let boardId = activeWorkspaceBoardId;
-    if (!boardId || activeWorkspaceId !== result.workspaceId) {
-      const board = await ensureWorkspaceBoard(result.workspaceId);
-      boardId = board.id;
-    }
-
-    const artifact =
-      result.artifactId || result.kind === 'ARTIFACT'
-        ? artifacts.find((entry) => entry.id === (result.artifactId || result.refId))
-        : null;
-    const item = result.kind === 'WORKSPACE_ITEM'
-      ? workspaceItems.find((entry) => entry.id === result.refId)
-      : null;
-    const signal = result.kind === 'SIGNAL'
-      ? headlines.find((entry) => entry.id === result.refId)
-      : null;
-
-    let reference = null;
-    if (artifact?.id) {
-      reference = buildWorkspaceArtifactReference(result.workspaceId, {
-        ...artifact,
-        id: artifact.id,
-      });
-    } else if (item) {
-      reference = buildWorkspaceItemReference(item);
-    } else if (signal) {
-      reference = buildWorkspaceSignalReference(result.workspaceId, signal);
-    } else if (result.kind === 'ENTITY') {
-      const entityName =
-        typeof result.metadata?.entityName === 'string' ? result.metadata.entityName : result.title;
-      reference = buildWorkspaceEntityReference(result.workspaceId, {
-        name: entityName,
-        type: 'UNKNOWN',
-      });
-    } else if (result.kind === 'SOURCE') {
-      reference = buildWorkspaceSourceReference(result.workspaceId, {
-        title: result.title,
-        url: typeof result.metadata?.url === 'string' ? result.metadata.url : '',
-      } as Source);
-    }
-
-    if (!reference || !boardId) return;
-
-    queueBoardPlacement({
-      workspaceId: result.workspaceId,
-      boardId,
-      item: reference,
-      openInBoard: true,
-    });
-    navigate(buildWorkspaceBoardDocumentPath(result.workspaceId, boardId));
-    onClose();
-  };
-
-  const openResult = (result: OmniboxResult) => {
-    if (result.kind === 'ROUTE') {
-      const routeId = String(result.metadata?.routeId || '');
-      const workspaceRouteMatch = routeId.match(/^route:workspace:(.+):(chat|board|timeline|network)$/);
-      const workspaceRouteId = workspaceRouteMatch?.[1];
-      const workspaceRouteSurface = workspaceRouteMatch?.[2];
-      if (routeId === 'route:discover') navigate(buildDiscoverPath());
-      if (routeId === 'route:files') navigate(buildFilesPath());
-      if (routeId === 'route:monitor') navigate(buildMonitorPath());
-      if (routeId === 'route:settings') navigate(buildSettingsPath());
-      if (workspaceRouteId && workspaceRouteSurface) {
-        setActiveWorkspaceId(workspaceRouteId);
-        if (workspaceRouteSurface === 'chat') navigate(buildWorkspaceChatPath(workspaceRouteId));
-        if (workspaceRouteSurface === 'board') navigate(buildWorkspaceBoardPath(workspaceRouteId));
-        if (workspaceRouteSurface === 'timeline') navigate(buildWorkspaceTimelinePath(workspaceRouteId));
-        if (workspaceRouteSurface === 'network') navigate(buildWorkspaceNetworkPath(workspaceRouteId));
-      }
-      onClose();
-      return;
-    }
-
-    if (result.kind === 'WORKSPACE' && result.workspaceId) {
-      setActiveWorkspaceId(result.workspaceId);
-      const landingArtifact = findWorkspaceLandingArtifact(result.workspaceId, artifacts);
-      navigate(
-        landingArtifact?.id
-          ? buildWorkspaceArtifactPath(result.workspaceId, landingArtifact.id)
-          : buildWorkspaceHomePath(result.workspaceId)
-      );
-      onClose();
-      return;
-    }
-
-    if (result.workspaceId) {
-      setActiveWorkspaceId(result.workspaceId);
-
-      const timelineFocus = resolveTimelineFocus(result);
-      if (
-        timelineFocus &&
-        isTimelinePathForWorkspace(location.pathname, result.workspaceId)
-      ) {
-        navigate(
-          buildTimelineFocusedPath(location.search, result.workspaceId, timelineFocus.track, timelineFocus.refId)
-        );
-        onClose();
-        return;
-      }
-    }
-
-    if ((result.kind === 'ARTIFACT' || result.kind === 'SECTION' || result.kind === 'SOURCE') && result.workspaceId && (result.artifactId || result.refId)) {
-      const artifactId = result.artifactId || result.refId;
-      if (artifactId) {
-        const existingTask = workspaceRuns.find((entry) => entry.report?.id === artifactId);
-        setActiveTaskId(existingTask?.id || null);
-        navigate(buildWorkspaceArtifactPath(result.workspaceId, artifactId));
-      }
-      onClose();
-      return;
-    }
-
-    if (result.kind === 'RUN' && result.refId) {
-      setActiveTaskId(result.refId);
-      navigate(buildRunPath(result.refId));
-      onClose();
-      return;
-    }
-
-    if (result.kind === 'CHAT_SESSION' && result.workspaceId && result.refId) {
-      navigate(buildWorkspaceChatSessionPath(result.workspaceId, result.refId));
-      onClose();
-      return;
-    }
-
-    if (result.kind === 'SIGNAL') {
-      openTimeline(result);
-      return;
-    }
-
-    if (result.kind === 'ENTITY') {
-      openNetwork(result);
-      return;
-    }
-
-    if (result.kind === 'WORKSPACE_ITEM') {
-      openFiles(result);
-      return;
-    }
-  };
-
   const handleAction = async (result: OmniboxResult, action: OmniboxActionId) => {
-    if (action === 'OPEN') {
-      rememberRecent(result);
-      openResult(result);
-      return;
-    }
-    if (action === 'PLACE_ON_BOARD') {
-      rememberRecent(result);
-      await placeOnBoard(result);
-      return;
-    }
-    if (action === 'OPEN_IN_TIMELINE') {
-      rememberRecent(result);
-      openTimeline(result);
-      return;
-    }
-    if (action === 'OPEN_IN_NETWORK') {
-      rememberRecent(result);
-      openNetwork(result);
-      return;
-    }
-    if (action === 'OPEN_IN_FILES') {
-      rememberRecent(result);
-      openFiles(result);
-    }
+    rememberRecent(result);
+    await executeOmniboxAction({
+      action,
+      activeWorkspaceBoardId,
+      activeWorkspaceId,
+      addChatMessage,
+      addToast,
+      artifacts,
+      chatMessagesBySessionId,
+      chatSessions,
+      createChatSession,
+      ensureWorkspaceBoard,
+      headlines,
+      locationPathname: location.pathname,
+      locationSearch: location.search,
+      navigate,
+      onClose,
+      queueBoardPlacement,
+      result,
+      setActiveChatSessionId,
+      setActiveTaskId,
+      setActiveWorkspaceId,
+      workspaceItems,
+      workspaceRuns,
+      workspaces,
+    });
   };
 
   const handleKeyDown = async (event: ReactKeyboardEvent<HTMLInputElement>) => {
@@ -654,8 +386,18 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
                   className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
                 >
                   <ArrowRight className="h-3 w-3" />
-                  {toOpenLabel(selectedResult)}
+                  {getOmniboxOpenLabel(selectedResult)}
                 </button>
+                {selectedResult.actions.includes('OPEN_IN_CHAT') ? (
+                  <button
+                    onClick={() => void handleAction(selectedResult, 'OPEN_IN_CHAT')}
+                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                    title="Open in workspace chat"
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                    Chat
+                  </button>
+                ) : null}
                 {selectedResult.actions.includes('PLACE_ON_BOARD') ? (
                   <button
                     onClick={() => void handleAction(selectedResult, 'PLACE_ON_BOARD')}

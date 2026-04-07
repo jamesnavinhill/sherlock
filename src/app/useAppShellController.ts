@@ -31,11 +31,6 @@ import {
 } from '@/utils/localStorage';
 import { normalizeTopicText } from '@/utils/textNormalization';
 import { loadSystemConfig } from '@/config/systemConfig';
-import {
-  buildChatSessionMetadata,
-  buildLaunchContextPrimer,
-  findReusableChatSession,
-} from '@/services/chat/launchContext';
 import { resolveLaunchLineage } from '@/services/lineage/relationships';
 import {
   buildPathForAppView,
@@ -50,7 +45,6 @@ import {
   buildWorkspaceArtifactPath,
   buildWorkspaceBoardDocumentPath,
   buildWorkspaceBoardPath,
-  buildWorkspaceChatSessionPath,
 } from '@/app/routes';
 import {
   useApplyAppShellTheme,
@@ -68,10 +62,7 @@ import {
   mergeArchivedReportRunConfig,
   mergePreseededEntities,
 } from '@/app/appShellLaunchHelpers';
-import {
-  resolveLaunchContextSessionTitle,
-  shouldAppendLaunchPrimer,
-} from '@/app/appShellOpenChatHelpers';
+import { openWorkspaceChatRequest } from '@/app/openChatRequest';
 import { resolveNavigationRecord } from '@/app/appShellNavigationHelpers';
 
 export interface AppShellController {
@@ -454,44 +445,20 @@ export function useAppShellController(): AppShellController {
 
   const openChat = useCallback(
     async (request: ChatOpenRequest) => {
-      const workspace = workspaces.find((entry) => entry.id === request.workspaceId);
-      if (!workspace) {
-        addToast('Unable to open chat because the target workspace was not found.', 'ERROR');
-        return;
-      }
-
-      setActiveWorkspaceId(workspace.id);
-
-      let session = findReusableChatSession(chatSessions, request);
-      if (!session) {
-        session = await createChatSession({
-          workspaceId: workspace.id,
-          title: resolveLaunchContextSessionTitle(artifacts, request.launchContext),
-          sourceReportId: request.launchContext?.sourceReportId,
-          packId: workspace.packId,
-          purposeId: workspace.purposeId,
-          metadata: buildChatSessionMetadata(undefined, request.launchContext),
-        });
-      }
-
-      if (request.launchContext) {
-        const existingMessages = chatMessagesBySessionId[session.id] || [];
-        if (shouldAppendLaunchPrimer(existingMessages, request.launchContext)) {
-          const primer = buildLaunchContextPrimer({
-            session,
-            launchContext: request.launchContext,
-            reports: artifacts.filter((entry) => entry.caseId === workspace.id),
-            headlines: headlines.filter((entry) => entry.caseId === workspace.id),
-          });
-
-          if (primer) {
-            await addChatMessage(primer);
-          }
-        }
-      }
-
-      setActiveChatSessionId(session.id);
-      navigate(buildWorkspaceChatSessionPath(workspace.id, session.id));
+      await openWorkspaceChatRequest({
+        addChatMessage,
+        addToast,
+        artifacts,
+        chatMessagesBySessionId,
+        chatSessions,
+        createChatSession,
+        headlines,
+        navigate,
+        request,
+        setActiveChatSessionId,
+        setActiveWorkspaceId,
+        workspaces,
+      });
     },
     [
       addToast,

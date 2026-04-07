@@ -443,8 +443,8 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 - workspace/file browsing now mixes saved artifacts with canonical workspace items instead of treating items as board-only records
 - selected-workspace browsing supports `All`, `Artifacts`, and `Items` filtering over the same workspace-scoped list
-- artifact rows still route into saved artifact detail and artifact-grounded chat handoff
-- workspace-item rows expose provenance-aware summaries plus direct workspace-chat and source-link actions
+- artifact rows still route into saved artifact detail and now share the same chat and board handoff verbs exposed by the omnibox
+- workspace-item rows expose provenance-aware summaries plus direct workspace-chat, board-placement, and source-link actions
 
 ### Timeline
 

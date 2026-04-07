@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact, WorkspaceItem } from '../../types';
 import {
   FileText,
@@ -13,6 +14,7 @@ import {
   ChevronDown,
   MessageSquare,
   Link2,
+  Workflow,
 } from 'lucide-react';
 import { TaskSetupModal } from './Runs/TaskSetupModal';
 import { EmptyState } from '../ui/EmptyState';
@@ -27,6 +29,13 @@ import {
   getStoredActiveWorkspaceId,
   setStoredActiveWorkspaceId,
 } from '../../utils/localStorage';
+import {
+  buildArtifactBoardReference,
+  buildArtifactChatOpenRequest,
+  buildWorkspaceItemBoardReference,
+  buildWorkspaceItemChatOpenRequest,
+  queueWorkspaceReferenceOnBoard,
+} from '../../services/workspace/workspaceHandoffs';
 
 interface ArchivesProps {
   onSelectReport: (report: Artifact) => void;
@@ -39,7 +48,17 @@ export const Archives: React.FC<ArchivesProps> = ({
   onStartNewCase,
   onOpenChat,
 }) => {
-  const { artifacts, workspaces, workspaceItems, deleteReport, purgeCase } = useWorkspaceStore();
+  const navigate = useNavigate();
+  const {
+    artifacts,
+    workspaces,
+    workspaceItems,
+    deleteReport,
+    ensureWorkspaceBoard,
+    purgeCase,
+    queueBoardPlacement,
+    setActiveWorkspaceId,
+  } = useWorkspaceStore();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
     const activeWorkspaceId = getStoredActiveWorkspaceId();
     if (activeWorkspaceId && activeWorkspaceId !== 'ALL') {
@@ -118,6 +137,33 @@ export const Archives: React.FC<ArchivesProps> = ({
     e.stopPropagation();
     if (!id) return;
     await deleteReport(id);
+  };
+
+  const handlePlaceArtifactOnBoard = async (e: React.MouseEvent, artifact: Artifact) => {
+    e.stopPropagation();
+    const reference = buildArtifactBoardReference(artifact);
+    if (!reference || !artifact.caseId) return;
+
+    setActiveWorkspaceId(artifact.caseId);
+    await queueWorkspaceReferenceOnBoard({
+      ensureWorkspaceBoard,
+      navigate,
+      queueBoardPlacement,
+      reference,
+      workspaceId: artifact.caseId,
+    });
+  };
+
+  const handlePlaceItemOnBoard = async (e: React.MouseEvent, item: WorkspaceItem) => {
+    e.stopPropagation();
+    setActiveWorkspaceId(item.workspaceId);
+    await queueWorkspaceReferenceOnBoard({
+      ensureWorkspaceBoard,
+      navigate,
+      queueBoardPlacement,
+      reference: buildWorkspaceItemBoardReference(item),
+      workspaceId: item.workspaceId,
+    });
   };
 
   const handlePurgeCase = (caseId: string, e?: React.MouseEvent) => {
@@ -395,15 +441,9 @@ export const Archives: React.FC<ArchivesProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          const workspaceId = record.artifact.caseId;
-                          const sourceReportId = record.artifact.id;
-                          if (!workspaceId || !sourceReportId) return;
-                          onOpenChat({
-                            workspaceId,
-                            launchContext: {
-                              sourceReportId,
-                            },
-                          });
+                          const request = buildArtifactChatOpenRequest(record.artifact);
+                          if (!request) return;
+                          onOpenChat(request);
                         }}
                         className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
                         title="Open artifact context in workspace chat"
@@ -411,6 +451,15 @@ export const Archives: React.FC<ArchivesProps> = ({
                         <MessageSquare className="w-5 h-5" />
                       </button>
                     )}
+                    {record.artifact.caseId && record.artifact.id ? (
+                      <button
+                        onClick={(e) => void handlePlaceArtifactOnBoard(e, record.artifact)}
+                        className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Place artifact on board"
+                      >
+                        <Workflow className="w-5 h-5" />
+                      </button>
+                    ) : null}
                     <button
                       onClick={(e) => handleDeleteReport(e, record.artifact.id)}
                       className="text-zinc-600 osint-danger-inline p-2 opacity-0 group-hover:opacity-100"
@@ -455,14 +504,19 @@ export const Archives: React.FC<ArchivesProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenChat({
-                          workspaceId: record.item.workspaceId,
-                        });
+                        onOpenChat(buildWorkspaceItemChatOpenRequest(record.item));
                       }}
                       className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
                       title="Open workspace chat"
                     >
                       <MessageSquare className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={(e) => void handlePlaceItemOnBoard(e, record.item)}
+                      className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Place item on board"
+                    >
+                      <Workflow className="w-5 h-5" />
                     </button>
                     {record.item.url ? (
                       <button
