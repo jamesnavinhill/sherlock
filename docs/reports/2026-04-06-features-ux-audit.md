@@ -108,7 +108,7 @@ Tradeoff: slightly more work now, but it gives you a durable write-path contract
 Option C: bypass transaction use during demo-seed restore only.
 Tradeoff: fastest workaround, but I would not recommend it because seed import is exactly the kind of multi-table write that should stay atomic.
 
-Recommendation:
+Recommendation: ** Agreed
 
 Choose Option B.
 
@@ -152,7 +152,7 @@ Recommendation:
 
 Choose Option B.
 
-Recommended behavior:
+Recommended behavior: ** im imagining like an ide, vscode search, centered in the main header/toolbars of the pages that make sense. and selecting an item, it would maybe just focus it (view it, add it, select it, etc) on whatever page im on- in context. maybe add a context menu to the results for key actions but def not 12 diff icons lol . we would likely replace all searches with this? or does the library panel keep/get a search panel, or is this where we uniform it to, and not in the headers?
 
 - one omnibox
 - global results for routes/workspaces
@@ -203,7 +203,7 @@ Tradeoff: requires some schema and migration thought, but it is the cleanest lon
 Option C: normalize only for new workspaces and leave legacy titles alone.
 Tradeoff: lowest migration pain, but introduces dual behavior and long-tail inconsistency.
 
-Recommendation:
+Recommendation: ** Agreed
 
 Choose Option B.
 
@@ -251,7 +251,7 @@ Tradeoff: new surface to design, but high leverage because it can unify the whol
 Option C: make Timeline or Board the de facto workspace home.
 Tradeoff: simpler routing, but each of those surfaces biases the user toward one representation of the workspace.
 
-Recommendation:
+Recommendation: ** Agreed but I'm not ready to build this yet. this is next round. for now lets continue to dial in the features that will coalesce here 
 
 Choose Option B.
 
@@ -311,7 +311,7 @@ First moves:
 - include workspace items in omnibox search
 - add a library tab or filter in Archives
 - create timeline events for item creation, promotion, and major updates
-- allow chat/context panels to surface saved notes/excerpts alongside artifacts
+- allow chat/context panels to surface saved notes/excerpts alongside artifacts ** my real wish would be to be able to @ in the chat inputs to get a nice clean inline display of my items so i can easily attach them to chat, like ide behavior :)
 
 ### 6. P1: Turn agent capability into an explainable, reviewable workflow rather than a hidden power feature
 
@@ -361,11 +361,10 @@ Choose Option B.
 
 Recommended product additions:
 
-- starter intents: organize evidence, find contradictions, draft note, prep briefing, cluster sources
-- per-action preview and diff summary
-- clearer action receipts after execution
+- starter intents: organize evidence, find contradictions, draft note, prep briefing, cluster sources * love this. should consider best way to surface.  dont love a bunch of chips and badges sitting on my surfaces. much prefer nesting them in a menu behind one icon
+- per-action preview and diff summary - where would this surface? as a whole new page, or just a focused modal like? 
+- clearer action receipts after execution *history log? 
 - stronger review loop for follow-up plans and queued todos
-- ability badges: “can write notes,” “can move cards,” “can launch follow-up runs”
 
 ### 7. P1: Improve prompt and output systems at the product layer, not just the adapter layer
 
@@ -418,7 +417,7 @@ High-value examples:
 
 Also recommended:
 
-- stronger provenance surfacing up front, not buried in an accordion
+- stronger provenance surfacing up front, not buried in an accordion *where would you envision this? I'm ok with it in the accordions tbh. do you mean just also within the reports section themselves where appropriate alongside the items,, or as a grouped collection? what's your thinking here.. "buried in the accordion" is supposed to serve as the expected uniform panels for these types of items. help me understand another strategy
 - clearer evidence-to-claim linking
 - explicit “what is grounded vs inferred” treatments
 
@@ -459,8 +458,8 @@ Choose Option B.
 Recommended direction:
 
 - make discoveries and signals feel more obviously workspace-bound
-- improve event/result cards with better context and downstream actions
-- surface “save to workspace,” “add to timeline,” “place on board,” and “open synthesis” patterns more explicitly
+- improve event/result cards with better context and downstream actions * we like the way the template cards are designed, in settings. would these be a good target for design
+- surface “save to workspace,” “add to timeline,” “place on board,” and “open synthesis” patterns more explicitly * uniformed and clean
 - reduce scanner-only vocabulary in favor of workspace workflow language
 
 ### 9. P1: Rationalize terminology across the product
@@ -505,7 +504,7 @@ I would define:
 - primary product nouns
 - approved alternates
 - banned legacy labels in user-facing copy
-- where label profiles are allowed to vary and where they should not
+- where label profiles are allowed to vary and where they should not / what is the recommended shape? it seems like we already defined this, but are just sitting with leftovers. but yes lets see a mapping of this - i prefer least amount of mismatch that makes sense 
 
 ### 10. P2: Improve affordance, onboarding, and visual guidance in Graph and Board
 
@@ -537,7 +536,7 @@ Tradeoff: modest improvement only.
 Option B: add guided empty states, legends, presets, and first-use affordances.
 Tradeoff: best leverage for a polish phase.
 
-Recommendation:
+Recommendation: * im open to it, but i dont want to add a bunch of clutter, expect a motivated user, but these items are valuable but shouldn't sit on the surface spread out and taking away from already busy pages. organized logically into nested areas, no redundancy, minimal wasted space
 
 Choose Option B.
 
@@ -601,7 +600,11 @@ Recommendation:
 
 I recommend a real workspace dashboard as the canonical home, with board/timeline/chat still one click away.
 
-### 2. Should workspace titles stay “rich” and capture launch context, or should they become clean names with structured metadata stored separately?
+Thoughts: 
+
+I think i agree there needs a more sensible entry than current offerings provide. But im not sure how it looks and flows / i suppose a ascii diagram would help. 
+
+### 2. Should workspace titles stay “rich” and capture launch context, or should they become clean names with structured metadata stored separately? Yes for sure clear names with struct metadata! 
 
 Tradeoff:
 
@@ -621,7 +624,10 @@ Recommendation:
 
 I recommend approval-first for material actions, with faster autonomy only for low-risk organization tasks.
 
-### 4. Do you want the canonical library to remain board-centered, or become a full workspace knowledge layer?
+Thoughts:
+Ideally we have both with a toggle for auto-approve, with sensible defaults like you suggest
+
+### 4. Do you want the canonical library to remain board-centered, or become a full workspace knowledge layer? For sure!! 
 
 Tradeoff:
 
@@ -641,3 +647,60 @@ Recommendation:
 
 I recommend keeping them as feeder surfaces conceptually, but raising their UX quality so they no longer feel like older subsystems.
 
+Thoughts:
+
+- discovery rn is our old entry point. its not necessarily coped to a workspace. its a legacy flow for finding fraud and stuff to start new investigations. so now it needs reconfigured a bit to support discovery more appropriate for the current workspace orientation. 
+- monitor is for creating signals - these a lot of times actually feel like noise lol. i digress. we love it though
+- what exactly is a "flagship" workflow surface, "first-class", "flagship" treatment, mean precisely in this context?
+- 
+
+- Uniformity with the ctas throughout for expected behaviour. right now a few fragmented approaches between button drop down in toolbar, buttons in panels, in-section/card buttons, etc. 
+- uniformity with headers/toolbars: spacing between items, sizes of items, outlines of items (network graph pages toggle inspector panel is model for the baseline) 
+- uniformity with our panels, panel sections, subsections layout and design so it can be consistent across the various contexts (we think the right side inspector panel like in the report viewer is pretty sharp, especially for entities and follow ups as that's where the others differ a bit in dossier/library panels. but one exception to this uniformity would be the canvas board library panel -- here we would keep/polish on the various subsections items to display relevant details. 
+- uniformity across selector and selector menu item text - removing all extra, in parentheses, after "-" text.
+- uniformity across UI surface to REMOVE all unnecessary text, for helpers and tips. all these should be thoughtfully implemented behind a uniform tip/hint system. 
+- default every panel, and their sections and subsections collapsed as default. expand by default all left side library/dossier panels. still all sections subsections collapsed for now, this will be our starting shape for each page that has it
+-  
+
+- All the title text feels too weighty? too bold? we seemed to have made it a bit better on // needs to feel more polished 
+-- (surface some further configs in our font selection suite? like weight, etc?) 
+
+
+Viewer page,
+- when the inspector opens, the view should be the current report in the viewer. right now its just showing the placeholder empty state even when i have a report in the viewer
+- the edit and voice buttons should be icons only and not have the box/bordering. plain icon  with accented hover/active like others
+
+Network graph page, left panel shifts the graph content currently, it should just slide over without shifting the graph contents like the right side panel behaves
+
+Chat page:
+- Remove the full width section that runs along the bottom of the page. not the chat input, but the full width section that surrounds chat. remove that.
+- Add small thin appropriate separator line for the chat input toolbar row, add a file upload and a config icon, uniform to canvas agent
+
+canvas:
+- immediately after selecting from the palate menu, it auto closes, we don't want that. 
+- the highlight logic on canvas items is ass backwards, boldened and bright on rest, dimmed on hover/active - reverse that
+- dragging an items from the library "looks like it works" as in there's a drag ability and ghost item, but it doesn't actually add to the canvas
+- font, styling of our various items, could use some structure, proper hierarchy of fonts size weight etc. so it reads better. part of that awkward boldened text everywhere. 
+
+Timeline:
+- remove? the buttons on the item sections, the lower row icons, and just keep the central and uniform in the panel?
+- uniform panels
+
+Archives/Files:
+- The big blocks for the various artifact cards feels off. either need more info or smaller sections. perhaps both - with a small non boxed filter icon for switching from a grid, or list views. list being much more streamlined, table / grid being cards but with quality styling and design
+
+
+Settings: 
+- Runtime:
+ - vertical stack existing sections, let the config section layout naturally. 
+- Theme:
+ - Auto detect which light/dark mode theme I'm on and default the surface systems dark/light toggle to match. 
+ - Accent and Font sections should share the top page. 
+ - Font section needs consolidated and the selections grouped and the display example grouped and separated from the selectors. clean
+ - surface workbench - the more and less chroma/and separation buttons should always logical map next to each other respectively with the match accent hue being its own line
+ -- surface preview, shows the various sized cards but changing or selecting them doesn't do anything in the preview except label the top raised surface card with whatever label i have selected, i would think the appropriate panel needs lightly highlighted with a border or something instead? .. no display text on the preview.. it'll be implied by the subtler active outline
+
+
+Other:
+- Matrix Rain.. i think we can either remove it altogether. OR keep it in few key spots for when there is a live running action like the run/ monitor and discovery run/refreshes. but not on rest? // is it also in settings? i cant tell. what are your thoughts.. it feels outdated tbh.. although i could see us keeping it but making it somewhat customizable so its not so matrix specific always? idk this is like something not important at all so IF we did keep it and polish it its like a save for very last type item. BUT if we remove it then it goes in the normal flows. 
+- 
