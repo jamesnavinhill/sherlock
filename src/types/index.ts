@@ -162,6 +162,10 @@ export interface Workspace {
   id: string;
   scopeId?: string;
   title: string;
+  displayTitle?: string;
+  launchTopic?: string;
+  launchAngle?: string;
+  prioritySourcesSummary?: string;
   status: 'ACTIVE' | 'CLOSED';
   dateOpened: string;
   createdAt?: number;

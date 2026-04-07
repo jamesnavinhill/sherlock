@@ -10,7 +10,13 @@ import type {
 import { getLabelProfileById } from './labels';
 import { getDomainPackForScope } from './packs';
 import { getPurposeProfileById } from './purposes';
-
+export {
+  extractWorkspaceLaunchFields,
+  getWorkspaceDisplayTitle,
+  resolveWorkspaceIdentity,
+  sanitizeDisplayTitle,
+  stripLegacyWorkspacePrefix,
+} from './workspaces';
 export interface StarterPromptTemplate {
   id: string;
   name: string;
@@ -42,21 +48,6 @@ export interface TaskSetupCopy {
   executeLabel: string;
   templateLabel: string;
 }
-
-const CONTROL_TAG_PATTERN = /\s*\[[A-Z_]+\]:[\s\S]*$/;
-const WRAPPED_TOPIC_PATTERN = /^\[(.+)\]$/;
-
-export const sanitizeDisplayTitle = (title: string): string => {
-  const withoutLegacyPrefix = title.replace(/^Operation:\s*/i, '').trim();
-  const withoutControlTags = withoutLegacyPrefix.replace(CONTROL_TAG_PATTERN, '').trim();
-  const singleLineTitle = withoutControlTags.replace(/\s+/g, ' ').trim();
-  const unwrappedTitle =
-    singleLineTitle.match(WRAPPED_TOPIC_PATTERN)?.[1]?.trim() || singleLineTitle;
-
-  return unwrappedTitle || withoutLegacyPrefix || title;
-};
-
-export const stripLegacyWorkspacePrefix = (title: string): string => sanitizeDisplayTitle(title);
 
 export const resolveDomainPresentation = (options: {
   scope?: InvestigationScope;

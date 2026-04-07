@@ -19,6 +19,7 @@ import type {
   WorkspaceBoard as WorkspaceBoardRecord,
   WorkspaceRun,
 } from '@/types';
+import { getWorkspaceDisplayTitle } from '@/domain';
 
 const OperationView = lazy(() =>
   import('@/components/features/OperationView').then((module) => ({
@@ -70,7 +71,7 @@ const buildBreadcrumbs = (
       breadcrumbs.push({
         type: 'CASE',
         id: workspace.id,
-        label: workspace.title,
+        label: getWorkspaceDisplayTitle(workspace),
       });
     }
   }

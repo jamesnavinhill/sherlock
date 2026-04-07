@@ -5,10 +5,10 @@ import type {
   InvestigationLaunchRequest,
   WorkspaceRun,
 } from '../../../types';
-import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
 import { AlertOctagon } from 'lucide-react';
+import { getWorkspaceDisplayTitle } from '@/domain';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
@@ -94,7 +94,6 @@ export const OperationView: React.FC<OperationViewProps> = ({
     showSaveTemplateModal,
     statusText,
     templateName,
-    toConfigOverride,
     toggleDossierSection,
   } = useOperationViewController({
     onNavigate,
@@ -129,8 +128,6 @@ export const OperationView: React.FC<OperationViewProps> = ({
 
   return (
     <div className="w-full h-screen bg-black relative flex flex-col overflow-hidden">
-      <BackgroundMatrixRain />
-
       <OperationViewDialogs
         leadToAnalyze={leadToAnalyze}
         report={report}
@@ -216,7 +213,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
         {/* Center: Report Viewer */}
         <ReportViewer
           report={report}
-          workspaceTitle={activeCase?.title}
+          workspaceTitle={activeCase ? getWorkspaceDisplayTitle(activeCase) : null}
           navStack={navStack}
           onNavigate={onNavigate}
           showPlaceholder={showPlaceholder}

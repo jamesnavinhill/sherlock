@@ -16,6 +16,10 @@ export const cases = sqliteTable('cases', {
   id: text('id').primaryKey(),
   scopeId: text('scope_id').references(() => scopes.id),
   title: text('title').notNull(),
+  displayTitle: text('display_title'),
+  launchTopic: text('launch_topic'),
+  launchAngle: text('launch_angle'),
+  prioritySourcesSummary: text('priority_sources_summary'),
   status: text('status').notNull(), // 'ACTIVE' | 'CLOSED'
   dateOpened: text('date_opened').notNull(),
   description: text('description'),

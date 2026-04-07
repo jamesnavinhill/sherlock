@@ -2,7 +2,12 @@ import type { Entity, Workspace } from '@/types';
 import { isLikelySameEntity } from '@/utils/entityUtils';
 import { createLocalId } from '@/utils/id';
 import { loadSystemConfig } from '@/config/systemConfig';
-import { buildArtifactFollowUps, toFollowUpTexts } from '@/domain';
+import {
+  buildArtifactFollowUps,
+  extractWorkspaceLaunchFields,
+  getWorkspaceDisplayTitle,
+  toFollowUpTexts,
+} from '@/domain';
 import { CaseRepository } from '@/services/db/repositories/CaseRepository';
 import { TaskRepository } from '@/services/db/repositories/TaskRepository';
 
@@ -163,29 +168,39 @@ export const createArtifactRunActions = ({
       targetWorkspaceId = sourceRun.workspaceId;
     }
     if (!targetWorkspaceId && parentContext) {
-      const parentWorkspace = workspaces.find((workspace) => workspace.title === parentContext.topic);
+      const parentWorkspace = workspaces.find(
+        (workspace) => getWorkspaceDisplayTitle(workspace) === parentContext.topic
+      );
       if (parentWorkspace) {
         targetWorkspaceId = parentWorkspace.id;
       }
     }
 
     if (!targetWorkspaceId) {
-      const existingWorkspace = workspaces.find((workspace) => workspace.title === artifact.topic);
+      const identity = extractWorkspaceLaunchFields(artifact.topic);
+      const existingWorkspace = workspaces.find(
+        (workspace) => getWorkspaceDisplayTitle(workspace) === identity.displayTitle
+      );
       if (existingWorkspace) targetWorkspaceId = existingWorkspace.id;
     }
 
     if (!targetWorkspaceId) {
       const now = Date.now();
       const newWorkspaceId = createLocalId('workspace');
+      const identity = extractWorkspaceLaunchFields(artifact.topic);
       const newWorkspace: Workspace = {
         id: newWorkspaceId,
         scopeId: artifact.config?.scopeId,
-        title: artifact.topic,
+        title: identity.displayTitle,
+        displayTitle: identity.displayTitle,
+        launchTopic: identity.launchTopic,
+        launchAngle: identity.launchAngle,
+        prioritySourcesSummary: identity.prioritySourcesSummary,
         status: 'ACTIVE',
         dateOpened: new Date().toLocaleDateString(),
         createdAt: now,
         updatedAt: now,
-        description: artifact.summary || `Workspace started on ${artifact.topic}`,
+        description: artifact.summary || `Workspace started on ${identity.displayTitle}`,
         mode: artifact.metadata?.workspaceMode as Workspace['mode'],
         packId: artifact.packId || artifact.config?.packId,
         purposeId: artifact.purposeId || artifact.config?.purposeId,

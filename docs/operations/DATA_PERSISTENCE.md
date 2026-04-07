@@ -55,6 +55,12 @@ Persistence is routed through repository classes:
 
 Critical multi-table writes now use one shared transaction helper in `src/services/db/client.ts`: `runWriteTransaction(...)`.
 
+Durable transaction rule:
+
+- repository helpers may accept and reuse an existing write executor/transaction
+- repository helpers must not implicitly open a second transaction when they were already called inside one
+- top-level callers still use `runWriteTransaction(...)` to preserve atomic restore/import/delete flows
+
 Repository hydration and serialization now follow a shared helper contract in `src/services/db/repositories/json.ts`:
 
 - JSON parsing should use labeled helpers so malformed persisted payloads warn consistently and fall back predictably
@@ -87,11 +93,21 @@ Finder/Feed discovery results are transient runtime state in the store and are n
 
 `cases` can now store workspace-oriented metadata:
 
+- `displayTitle`
+- `launchTopic`
+- `launchAngle`
+- `prioritySourcesSummary`
 - `mode`
 - `pack_id`
 - `purpose_id`
 - `label_profile_id`
 - `metadata_json`
+
+Runtime code now treats those workspace identity fields as distinct concerns:
+
+- `displayTitle` is the primary user-facing workspace name used in top-level chrome
+- `launchTopic`, `launchAngle`, and `prioritySourcesSummary` preserve structured launch metadata for prompts, exports, summaries, and future workspace-home selectors
+- legacy tagged `title` values remain readable through compatibility extraction during migration/hydration
 
 `reports` can now store artifact-oriented metadata:
 
@@ -242,6 +258,8 @@ Workspace-data backups include:
 - manual graph nodes and links
 - templates
 - Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `reports`/`artifact_sections`
+
+Workspace rows in those backups preserve both the clean display identity and the structured launch metadata fields (`displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`) when present, while older payloads without those fields still restore through compatibility title parsing.
 
 Workspace-data restore now replays that backup inside one SQLite transaction so a failed import does not leave a partially cleared or partially restored workspace domain behind.
 

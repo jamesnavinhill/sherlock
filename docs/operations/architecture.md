@@ -165,12 +165,16 @@ Domain runtime helpers live in:
 - `src/domain/labels.ts`
 - `src/domain/artifacts.ts`
 - `src/domain/presentation.ts`
+- `src/domain/workspaces.ts`
+- `src/domain/vocabulary.ts`
 
 Key responsibilities:
 
 - derive first-party domain packs from scopes
 - resolve purpose profiles for each run
 - resolve label profiles for compatibility rendering
+- resolve clean workspace display identity separately from launch metadata, while keeping compatibility with legacy tagged workspace titles
+- expose the canonical shell noun map (`Workspace`, `Artifact`, `Run`, `Signal`, `Source`, `Item`) so top-level product chrome does not drift by label profile
 - normalize canonical `Signal` and `FollowUp` runtime records alongside persistence compatibility aliases
 - build typed artifact sections alongside legacy flattened fields
 - provide pack-aware launch copy, purpose-aware setup labels, starter templates, export naming, and legacy title cleanup helpers
@@ -242,7 +246,7 @@ Entry points:
 
 The schema still uses compatibility table names such as `cases`, `reports`, and `tasks`, while runtime code treats them as workspaces, artifacts, and workspace runs:
 
-- `cases` can now hold workspace-oriented metadata such as `mode`, `packId`, `purposeId`, and `labelProfileId`
+- `cases` can now hold workspace-oriented metadata such as `displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`, `mode`, `packId`, `purposeId`, and `labelProfileId`
 - `reports` now store `artifactType`, pack/purpose references, label profiles, config snapshots, and metadata JSON including provider provenance
 - `follow_ups` now persist first-class actionable follow-up records linked to artifacts and lineage refs such as `sourceSignalId` and `resolvedByArtifactId`
 - `artifact_sections` persists typed section rows separately from the legacy flattened report fields, with section ids scoped per report rather than globally across the table
@@ -256,7 +260,7 @@ The schema still uses compatibility table names such as `cases`, `reports`, and 
 
 Artifact persistence still uses the existing `reports` table, while `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
-Repository write paths that span multiple tables now use the shared `runWriteTransaction(...)` helper from `src/services/db/client.ts` so artifact saves, chat attachment saves, workspace deletes, and workspace-data restore flows commit atomically instead of relying on sequential best effort.
+Repository write paths that span multiple tables now use the shared `runWriteTransaction(...)` helper from `src/services/db/client.ts` so artifact saves, chat attachment saves, workspace deletes, demo-seed imports, and workspace-data restore flows commit atomically instead of relying on sequential best effort. Repository helpers may join an existing transaction, but must not silently open a nested one.
 
 Maintenance flows now treat SQLite data as a workspace-data domain:
 
@@ -324,6 +328,13 @@ Persistence writes are handled through repository calls and settings KV writes r
 The browser location is now the durable source of truth for active page identity. Store state keeps route-adjacent convenience selection such as the active workspace, board, chat session, and task ids, but it no longer mirrors top-level surface identity through a stored `currentView` field.
 
 ## 7. Feature Composition
+
+Routed workflow surfaces now share a baseline chrome/panel contract rather than styling headers and side rails independently:
+
+- `src/components/ui/chrome.ts` provides shared toolbar/header spacing and menu/toggle button treatments
+- `src/components/ui/Accordion.tsx` is the shared section shell for dossier/inspector rails, including compact count badges instead of parenthetical count noise
+- right-side inspector/detail panels default to section-collapsed content, and left library/dossier rails keep their internal sections collapsed by default even when the rail itself is open
+- ambient matrix-rain backgrounds are reserved for active-running states instead of steady-state routed pages such as Operation View and Timeline
 
 ### Operation View
 
@@ -485,7 +496,7 @@ Task setup and template flows now expose:
 - launch directly into workspace chat from workspace cards and saved artifacts
 - deletion workflows
 - exports (HTML/Markdown/JSON)
-- label-profile-aware workspace and artifact naming for mixed investigation and non-investigation archives
+- canonical workspace/artifact shell naming with label-profile-aware artifact-specific copy retained inside export/rendering details where needed
 
 ## 8. Testing Coverage
 

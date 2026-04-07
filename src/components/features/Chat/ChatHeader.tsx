@@ -13,6 +13,12 @@ import {
 } from 'lucide-react';
 
 import { OsintSelect } from '@/components/ui/OsintSelect';
+import {
+  CHROME_HEADER_CLASS,
+  CHROME_HEADER_ROW_CLASS,
+  getChromeMenuButtonClass,
+  getChromeToggleButtonClass,
+} from '@/components/ui/chrome';
 
 interface ChatHeaderProps {
   activeSessionId?: string | null;
@@ -25,7 +31,7 @@ interface ChatHeaderProps {
   onExportJson: () => void;
   onExportMarkdown: () => void;
   onSelectWorkspace: (workspaceId: string | null) => void;
-  onStartNewProject: () => void;
+  onStartNewWorkspace: () => void;
   onToggleExportMenu: () => void;
   onToggleLeftPanel: () => void;
   onToggleNewMenu: () => void;
@@ -50,7 +56,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onExportJson,
   onExportMarkdown,
   onSelectWorkspace,
-  onStartNewProject,
+  onStartNewWorkspace,
   onToggleExportMenu,
   onToggleLeftPanel,
   onToggleNewMenu,
@@ -63,16 +69,12 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   workspaceDisabled,
   workspaces,
 }) => (
-  <header className="sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 px-4 backdrop-blur-md sm:px-6">
-    <div className="flex h-full items-center justify-between gap-4">
+  <header className={`${CHROME_HEADER_CLASS} px-4 sm:px-6`}>
+    <div className={`${CHROME_HEADER_ROW_CLASS} gap-4`}>
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition md:flex ${
-            leftPanelOpen
-              ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-              : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-          }`}
+          className={`hidden md:flex ${getChromeToggleButtonClass(leftPanelOpen)}`}
           title="Toggle Sessions Panel"
         >
           <Briefcase className="h-4 w-4" />
@@ -120,13 +122,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 Workspace
               </div>
               <button
-                onClick={onStartNewProject}
+                onClick={onStartNewWorkspace}
                 className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
                 title="Create a new workspace"
               >
                 <FilePlus2 className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                 <div>
-                  <div className="font-bold">New Project</div>
+                  <div className="font-bold">New Workspace</div>
                   <div className="text-[10px] text-zinc-500">Create or launch a new workspace</div>
                 </div>
               </button>
@@ -153,9 +155,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <div className="relative" ref={exportMenuRef}>
             <button
               onClick={onToggleExportMenu}
-              className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
-                showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
-              }`}
+              className={getChromeMenuButtonClass(showExportMenu)}
               title="Export current chat session"
             >
               <Download className="mr-1 h-4 w-4" />
@@ -199,11 +199,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             setShowExportMenu(false);
             onToggleRightPanel();
           }}
-          className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition xl:flex ${
-            rightPanelOpen
-              ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-              : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-          }`}
+          className={`hidden xl:flex ${getChromeToggleButtonClass(rightPanelOpen)}`}
           title="Toggle Context Panel"
         >
           <PanelRight className="h-4 w-4" />

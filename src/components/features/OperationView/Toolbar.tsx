@@ -13,6 +13,11 @@ import {
 } from 'lucide-react';
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import {
+  CHROME_HEADER_CLASS,
+  getChromeMenuButtonClass,
+  getChromeToggleButtonClass,
+} from '../../ui/chrome';
+import {
   exportCaseAsHtml,
   exportCaseAsJson,
   exportReportAsHtml,
@@ -20,7 +25,7 @@ import {
   exportCaseAsMarkdown,
   exportReportAsMarkdown,
 } from '../../../utils/exportUtils';
-import { stripLegacyWorkspacePrefix } from '../../../domain';
+import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../../domain';
 import { OsintSelect } from '../../ui/OsintSelect';
 
 interface ToolbarProps {
@@ -82,21 +87,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const hasContextActions = Boolean(onOpenChat || onOpenBoard || (onPlaceReportOnBoard && report));
 
   return (
-    <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 osint-header-shadow flex items-center justify-between flex-shrink-0">
+    <div className={`${CHROME_HEADER_CLASS} flex flex-shrink-0 items-center justify-between px-6`}>
       <div className="flex items-center space-x-4 min-w-0 flex-1">
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:flex items-center justify-center border p-2 transition outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'}`}
-          title="Toggle Dossier Panel (D)"
-          aria-label="Toggle Dossier Panel"
+          className={`hidden md:flex ${getChromeToggleButtonClass(leftPanelOpen)}`}
+          title="Toggle workspace panel (D)"
+          aria-label="Toggle workspace panel"
         >
           <Briefcase className="w-4 h-4" />
         </button>
         <button
           onClick={onToggleLeftPanel}
-          className={`md:hidden border p-2 transition duration-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${leftPanelOpen ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'}`}
-          title="Toggle Dossier Panel (D)"
-          aria-label="Toggle Dossier Panel"
+          className={`md:hidden ${getChromeToggleButtonClass(leftPanelOpen)}`}
+          title="Toggle workspace panel (D)"
+          aria-label="Toggle workspace panel"
         >
           <Briefcase className="w-5 h-5 focus:outline-none" />
         </button>
@@ -105,19 +110,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden lg:inline">{`New ${labelProfile.workspaceLabel}`}</span>
+          <span className="hidden lg:inline">{`New ${CANONICAL_NOUNS.workspace}`}</span>
         </button>
         <div className="hidden md:block min-w-[180px] max-w-[220px]">
           <OsintSelect
-            ariaLabel={`Select ${labelProfile.workspaceLabel}`}
+            ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
             value={selectedCaseId || 'ALL'}
             onChange={onSelectCase}
             triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
             options={[
-              { value: 'ALL', label: `All ${labelProfile.workspaceLabelPlural}` },
+              { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
               ...allCases.map((workspace) => ({
                 value: workspace.id,
-                label: stripLegacyWorkspacePrefix(workspace.title),
+                label: getWorkspaceDisplayTitle(workspace),
               })),
             ]}
           />
@@ -135,9 +140,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     setShowExportMenu(false);
                     setShowContextMenu((current) => !current);
                   }}
-                  className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
-                    showContextMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
-                  }`}
+                  className={getChromeMenuButtonClass(showContextMenu)}
                 >
                   <MessageSquare className="w-4 h-4 mr-1" />
                   <span className="hidden lg:inline">Open</span>
@@ -158,7 +161,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         title={
                           report
                             ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
-                            : `Open ${labelProfile.workspaceLabel.toLowerCase()} in workspace chat`
+                            : `Open ${CANONICAL_NOUNS.workspace.toLowerCase()} in workspace chat`
                         }
                       >
                         <MessageSquare className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -172,7 +175,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           setShowContextMenu(false);
                         }}
                         className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
-                        title={`Open ${labelProfile.workspaceLabel.toLowerCase()} research board`}
+                        title={`Open ${CANONICAL_NOUNS.workspace.toLowerCase()} board`}
                       >
                         <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
                         <span>Open Board</span>
@@ -185,10 +188,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           setShowContextMenu(false);
                         }}
                         className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center border-t border-zinc-800"
-                        title={`Place this ${labelProfile.artifactLabel.toLowerCase()} on the research board`}
+                        title={`Place this ${CANONICAL_NOUNS.artifact.toLowerCase()} on the board`}
                       >
                         <Shapes className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
-                        <span>{`Place ${labelProfile.artifactLabel} on Board`}</span>
+                        <span>{`Place ${CANONICAL_NOUNS.artifact} on Board`}</span>
                       </button>
                     )}
                   </div>
@@ -201,9 +204,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     setShowContextMenu(false);
                     setShowExportMenu((current) => !current);
                   }}
-                  className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
-                    showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
-                  }`}
+                  className={getChromeMenuButtonClass(showExportMenu)}
                 >
                 <Download className="w-4 h-4 mr-1" />
                 <span className="hidden lg:inline">Export</span>
@@ -213,17 +214,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
                   {activeCase && (
                     <>
-                      <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">{`Full ${labelProfile.workspaceLabel}`}</div>
+                      <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">{`Full ${CANONICAL_NOUNS.workspace}`}</div>
                       <button
                         onClick={() => {
                           exportCaseAsHtml(activeCase, allCaseReports);
                           setShowExportMenu(false);
                         }}
                         className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
-                        title={`Exports a formatted printable dossier of the entire ${labelProfile.workspaceLabel.toLowerCase()}`}
+                        title={`Exports a formatted printable view of the entire ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                       >
                         <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
-                        <span>{`${labelProfile.workspaceLabel} as HTML Dossier`}</span>
+                        <span>{`${CANONICAL_NOUNS.workspace} as HTML`}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -231,10 +232,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           setShowExportMenu(false);
                         }}
                         className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
-                        title={`Exports a full Markdown package of the ${labelProfile.workspaceLabel.toLowerCase()}`}
+                        title={`Exports a full Markdown package of the ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                       >
                         <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
-                        <span>{`${labelProfile.workspaceLabel} as Markdown (.md)`}</span>
+                        <span>{`${CANONICAL_NOUNS.workspace} as Markdown (.md)`}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -242,10 +243,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           setShowExportMenu(false);
                         }}
                         className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
-                        title={`Exports raw ${labelProfile.workspaceLabel.toLowerCase()} data for backup/integration`}
+                        title={`Exports raw ${CANONICAL_NOUNS.workspace.toLowerCase()} data for backup/integration`}
                       >
                         <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
-                        <span>{`${labelProfile.workspaceLabel} as JSON Data`}</span>
+                        <span>{`${CANONICAL_NOUNS.workspace} as JSON Data`}</span>
                       </button>
                     </>
                   )}
@@ -306,11 +307,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             {onToggleRightPanel && (
               <button
                 onClick={onToggleRightPanel}
-                className={`hidden lg:flex items-center justify-center border p-2 text-xs font-mono uppercase transition ${
-                  rightPanelOpen
-                    ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-                    : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-                }`}
+                className={`hidden lg:flex ${getChromeToggleButtonClass(rightPanelOpen)}`}
                 title="Toggle Inspector Panel"
                 aria-label="Toggle Inspector Panel"
               >

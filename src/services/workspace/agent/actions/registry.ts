@@ -25,6 +25,7 @@ import { createLocalId } from '../../../../utils/id';
 import {
   normalizeBoardAgentTodoItems,
 } from './todos';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import type {
   BoardAgentActionExecutionResult,
   BoardAgentExecutionContext,
@@ -728,8 +729,10 @@ export const executeBoardAgentStructuredAction = async ({
             : undefined,
       });
       const savedArtifact = await context.saveArtifact(artifact, {
-        topic: context.workspace.title,
-        summary: context.workspace.description || `${context.workspace.title} workspace`,
+        topic: getWorkspaceDisplayTitle(context.workspace),
+        summary:
+          context.workspace.description ||
+          `${getWorkspaceDisplayTitle(context.workspace)} workspace`,
       });
       context.artifacts.unshift(savedArtifact);
 
@@ -821,12 +824,14 @@ export const executeBoardAgentStructuredAction = async ({
         normalizeText(input.topic) ||
         normalizeText(input.title) ||
         normalizeText(input.prompt) ||
-        `Follow up on ${context.workspace.title}`;
+        `Follow up on ${getWorkspaceDisplayTitle(context.workspace)}`;
       const request = {
         topic,
         parentContext: {
-          topic: context.workspace.title,
-          summary: context.workspace.description || `${context.workspace.title} workspace`,
+          topic: getWorkspaceDisplayTitle(context.workspace),
+          summary:
+            context.workspace.description ||
+            `${getWorkspaceDisplayTitle(context.workspace)} workspace`,
         },
         configOverride: {
           provider: context.session.provider,

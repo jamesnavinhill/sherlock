@@ -1,4 +1,5 @@
 import type { ChatRequest, ChatResponse, ProviderMessage } from '../types';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import { parseJsonWithFallback, toDisplayText } from './jsonParsing';
 
 const formatConversation = (messages: ChatRequest['messages']): string =>
@@ -37,7 +38,10 @@ const buildWorkspaceContextBlock = (request: ChatRequest): string => {
 
   return `
 Workspace
-- Title: ${request.workspace.title}
+- Title: ${getWorkspaceDisplayTitle(request.workspace)}
+- Launch Topic: ${request.workspace.launchTopic || getWorkspaceDisplayTitle(request.workspace)}
+- Launch Angle: ${request.workspace.launchAngle || 'None recorded'}
+- Priority Sources: ${request.workspace.prioritySourcesSummary || 'Default pack sources'}
 - Summary: ${request.workspaceSummary}
 - Pack: ${request.pack.name}
 - Purpose: ${request.purpose.name}

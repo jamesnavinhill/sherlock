@@ -142,12 +142,12 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   const newMenuRef = useRef<HTMLDivElement | null>(null);
   const exportMenuRef = useRef<HTMLDivElement | null>(null);
   const [leftPanelSections, setLeftPanelSections] = useState({
-    sessions: true,
+    sessions: false,
     workspace: false,
   });
   const [rightPanelSections, setRightPanelSections] = useState({
-    launchContext: true,
-    recentArtifacts: true,
+    launchContext: false,
+    recentArtifacts: false,
     recentSignals: false,
     latestRetrieval: false,
     actionLog: false,

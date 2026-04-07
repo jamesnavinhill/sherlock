@@ -164,26 +164,24 @@ export class ChatRepository {
   }
 
   static async deleteSession(id: string, db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.deleteSession(id, tx));
-      return;
-    }
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      const messages = await executor
+        .select({ id: chatMessages.id })
+        .from(chatMessages)
+        .where(eq(chatMessages.sessionId, id));
+      const messageIds = messages.map((row) => row.id);
 
-    const messages = await db
-      .select({ id: chatMessages.id })
-      .from(chatMessages)
-      .where(eq(chatMessages.sessionId, id));
-    const messageIds = messages.map((row) => row.id);
+      if (messageIds.length > 0) {
+        await executor
+          .delete(chatMessageAttachments)
+          .where(inArray(chatMessageAttachments.messageId, messageIds));
+      }
 
-    if (messageIds.length > 0) {
-      await db
-        .delete(chatMessageAttachments)
-        .where(inArray(chatMessageAttachments.messageId, messageIds));
-    }
-
-    await db.delete(chatActions).where(eq(chatActions.sessionId, id));
-    await db.delete(chatMessages).where(eq(chatMessages.sessionId, id));
-    await db.delete(chatSessions).where(eq(chatSessions.id, id));
+      await executor.delete(chatActions).where(eq(chatActions.sessionId, id));
+      await executor.delete(chatMessages).where(eq(chatMessages.sessionId, id));
+      await executor.delete(chatSessions).where(eq(chatSessions.id, id));
+    }, db);
   }
 
   static async deleteSessionsForWorkspace(
@@ -208,12 +206,9 @@ export class ChatRepository {
   }
 
   static async createMessage(message: ChatMessage, db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.createMessage(message, tx));
-      return;
-    }
-
-    await db.insert(chatMessages).values({
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await executor.insert(chatMessages).values({
       id: message.id,
       sessionId: message.sessionId,
       role: message.role,
@@ -224,11 +219,11 @@ export class ChatRepository {
       error: message.error || null,
       createdAt: message.createdAt,
       updatedAt: message.updatedAt,
-    });
+      });
 
-    if (message.attachments?.length) {
-      for (const attachment of message.attachments) {
-        await db.insert(chatMessageAttachments).values({
+      if (message.attachments?.length) {
+        for (const attachment of message.attachments) {
+          await executor.insert(chatMessageAttachments).values({
           id: attachment.id,
           messageId: message.id,
           kind: attachment.kind,
@@ -238,9 +233,10 @@ export class ChatRepository {
           snippet: attachment.snippet || null,
           metadataJson: serializeStoredJsonOrNull(attachment.metadata),
           createdAt: attachment.createdAt,
-        });
+          });
+        }
       }
-    }
+    }, db);
   }
 
   static async updateMessage(
@@ -266,17 +262,14 @@ export class ChatRepository {
     attachments: ChatAttachment[],
     db?: SherlockWriteExecutor
   ): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) =>
-        this.replaceAttachments(messageId, attachments, tx)
-      );
-      return;
-    }
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await executor
+        .delete(chatMessageAttachments)
+        .where(eq(chatMessageAttachments.messageId, messageId));
 
-    await db.delete(chatMessageAttachments).where(eq(chatMessageAttachments.messageId, messageId));
-
-    for (const attachment of attachments) {
-      await db.insert(chatMessageAttachments).values({
+      for (const attachment of attachments) {
+        await executor.insert(chatMessageAttachments).values({
         id: attachment.id,
         messageId,
         kind: attachment.kind,
@@ -286,8 +279,9 @@ export class ChatRepository {
         snippet: attachment.snippet || null,
         metadataJson: serializeStoredJsonOrNull(attachment.metadata),
         createdAt: attachment.createdAt,
-      });
-    }
+        });
+      }
+    }, db);
   }
 
   static async createAction(

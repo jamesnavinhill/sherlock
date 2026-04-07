@@ -118,7 +118,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">
       <ControlBar
         workspaces={workspaces}
-        labelProfile={dossierLabelProfile}
         filterCaseId={filterCaseId || ''}
         onCaseChange={handleCaseChange}
         showLeftPanel={showLeftPanel}

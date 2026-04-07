@@ -4,6 +4,7 @@ import { useWorkspaceStore } from '../../store/caseStore';
 import { Search, FileText, Target, User, Radio, ArrowRight, X, Command, Hash } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { Artifact, Workspace, Headline, Entity, WorkspaceRun } from '../../types';
+import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../domain';
 import { findWorkspaceLandingArtifact } from '../../app/navigation';
 import {
   buildFilesPath,
@@ -56,10 +57,18 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     const q = query.toLowerCase();
     const output: SearchResult[] = [];
 
-    // Search Cases
+    // Search Workspaces
     workspaces.forEach((c) => {
-      if (c.title.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)) {
-        output.push({ type: 'CASE', title: c.title, data: c, icon: Target });
+      const displayTitle = getWorkspaceDisplayTitle(c);
+      if (
+        displayTitle.toLowerCase().includes(q) ||
+        c.title.toLowerCase().includes(q) ||
+        c.description?.toLowerCase().includes(q) ||
+        c.launchTopic?.toLowerCase().includes(q) ||
+        c.launchAngle?.toLowerCase().includes(q) ||
+        c.prioritySourcesSummary?.toLowerCase().includes(q)
+      ) {
+        output.push({ type: 'CASE', title: displayTitle, data: c, icon: Target });
       }
     });
 
@@ -163,7 +172,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               setSelectedIndex(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Search Intelligence, Entities, Operations..."
+            placeholder="Search workspaces, artifacts, signals, and entities..."
             className="flex-1 bg-transparent border-none outline-none text-white font-mono text-sm placeholder:text-zinc-600"
           />
           <div className="flex items-center space-x-2">
@@ -182,7 +191,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
             <div className="p-10 text-center">
               {query ? (
                 <p className="text-zinc-500 font-mono text-xs">
-                  No intelligence matching &quot;{query}&quot;
+                  No workspace records matching &quot;{query}&quot;
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -197,7 +206,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                       Search by entity (e.g. @google)
                     </div>
                     <div className="text-[10px] font-mono text-zinc-600 border border-zinc-800/50 p-2 rounded">
-                      Find archived dossiers
+                      Jump to saved artifacts
                     </div>
                   </div>
                 </div>
@@ -225,7 +234,13 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                   </div>
                   <div className="flex-1">
                     <div className="text-[10px] text-zinc-500 uppercase tracking-tighter mb-0.5">
-                      {result.type}
+                      {result.type === 'CASE'
+                        ? CANONICAL_NOUNS.workspace
+                        : result.type === 'REPORT'
+                          ? CANONICAL_NOUNS.artifact
+                          : result.type === 'HEADLINE'
+                            ? CANONICAL_NOUNS.signal
+                            : 'Entity'}
                     </div>
                     <div className="text-sm text-zinc-200 line-clamp-1">{result.title}</div>
                   </div>

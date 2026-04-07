@@ -27,23 +27,21 @@ export class ManualDataRepository {
     nodes: ManualNode[],
     db?: SherlockWriteExecutor
   ): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.saveAllNodes(nodes, tx));
-      return;
-    }
-
-    await db.delete(manualNodes);
-    if (nodes.length > 0) {
-      for (const node of nodes) {
-        await db.insert(manualNodes).values({
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await executor.delete(manualNodes);
+      if (nodes.length > 0) {
+        for (const node of nodes) {
+          await executor.insert(manualNodes).values({
           id: node.id,
           label: node.label,
           type: node.type,
           subtype: node.subtype,
           timestamp: node.timestamp,
-        });
+          });
+        }
       }
-    }
+    }, db);
   }
 
   static async addNode(node: ManualNode): Promise<void> {
@@ -81,21 +79,19 @@ export class ManualDataRepository {
     links: ManualConnection[],
     db?: SherlockWriteExecutor
   ): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.saveAllLinks(links, tx));
-      return;
-    }
-
-    await db.delete(manualLinks);
-    if (links.length > 0) {
-      for (const link of links) {
-        await db.insert(manualLinks).values({
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await executor.delete(manualLinks);
+      if (links.length > 0) {
+        for (const link of links) {
+          await executor.insert(manualLinks).values({
           source: link.source,
           target: link.target,
           timestamp: link.timestamp,
-        });
+          });
+        }
       }
-    }
+    }, db);
   }
 
   static async removeWorkspaceLinkedData(

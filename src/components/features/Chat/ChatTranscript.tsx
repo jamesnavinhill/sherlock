@@ -39,7 +39,7 @@ interface ChatTranscriptProps {
   handleSaveMessageAsArtifact: (message: ChatMessage) => Promise<void>;
   handleAppendMessageToArtifact: (message: ChatMessage) => Promise<void>;
   handleLaunchFollowUp: (message: ChatMessage) => Promise<void>;
-  handleStartNewProject: () => void;
+  handleStartNewWorkspace: () => void;
   handleCreateSession: () => Promise<void>;
 }
 
@@ -62,7 +62,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
   handleSaveMessageAsArtifact,
   handleAppendMessageToArtifact,
   handleLaunchFollowUp,
-  handleStartNewProject,
+  handleStartNewWorkspace,
   handleCreateSession,
 }) => (
   <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-black">
@@ -80,8 +80,8 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
             action={
               workspaces.length === 0
                 ? {
-                    label: 'Start New Project',
-                    onClick: handleStartNewProject,
+                    label: 'Start New Workspace',
+                    onClick: handleStartNewWorkspace,
                   }
                 : undefined
             }

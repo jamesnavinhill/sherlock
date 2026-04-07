@@ -164,13 +164,11 @@ export class BoardAgentRepository {
   }
 
   static async deleteSession(id: string, db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.deleteSession(id, tx));
-      return;
-    }
-
-    await db.delete(boardAgentActions).where(eq(boardAgentActions.sessionId, id));
-    await db.delete(boardAgentSessions).where(eq(boardAgentSessions.id, id));
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await executor.delete(boardAgentActions).where(eq(boardAgentActions.sessionId, id));
+      await executor.delete(boardAgentSessions).where(eq(boardAgentSessions.id, id));
+    }, db);
   }
 
   static async deleteSessionsForWorkspace(

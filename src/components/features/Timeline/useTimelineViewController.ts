@@ -69,7 +69,7 @@ export function useTimelineViewController({
   const [showFilters, setShowFilters] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [dossierSections, setDossierSections] = useState<DossierSections>({
-    events: true,
+    events: false,
     runs: false,
     artifacts: false,
     signals: false,
@@ -77,8 +77,8 @@ export function useTimelineViewController({
     chats: false,
   });
   const [detailSections, setDetailSections] = useState<DetailSections>({
-    summary: true,
-    context: true,
+    summary: false,
+    context: false,
   });
   const exportMenuRef = useRef<HTMLDivElement | null>(null);
   const filterMenuRef = useRef<HTMLDivElement | null>(null);

@@ -8,9 +8,14 @@ import {
   Search,
 } from 'lucide-react';
 
-import type { LabelProfile, TimelineRange, TimelineTrack, Workspace } from '@/types';
+import type { TimelineRange, TimelineTrack, Workspace } from '@/types';
 import { OsintSelect } from '@/components/ui/OsintSelect';
-import { sanitizeDisplayTitle } from '@/domain';
+import {
+  CHROME_HEADER_CLASS,
+  getChromeMenuButtonClass,
+  getChromeToggleButtonClass,
+} from '@/components/ui/chrome';
+import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '@/domain';
 import { buildTimelineSearchPlaceholder } from './timelineViewUtils';
 import { TimelineExportMenu } from './TimelineExportMenu';
 import { TimelineFiltersPanel } from './TimelineFiltersPanel';
@@ -23,7 +28,6 @@ interface TimelineFiltersState {
 interface TimelineToolbarProps {
   activeWorkspace: Workspace | null;
   workspaces: Workspace[];
-  labelProfile: LabelProfile;
   search: string;
   filters: TimelineFiltersState;
   leftPanelOpen: boolean;
@@ -51,7 +55,6 @@ interface TimelineToolbarProps {
 export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
   activeWorkspace,
   workspaces,
-  labelProfile,
   search,
   filters,
   leftPanelOpen,
@@ -75,15 +78,11 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
   onExportTimelineJson,
   onSaveTimelineArtifact,
 }) => (
-  <header className="sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
+  <header className={`${CHROME_HEADER_CLASS} px-6`}>
     <div className="flex h-full min-w-0 items-center gap-3">
       <button
         onClick={onToggleLeftPanel}
-        className={`flex shrink-0 items-center justify-center border p-2 text-xs font-mono uppercase transition ${
-          leftPanelOpen
-            ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-            : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-        }`}
+        className={`flex shrink-0 ${getChromeToggleButtonClass(leftPanelOpen)}`}
         title="Toggle timeline dossier"
       >
         <Briefcase className="h-4 w-4" />
@@ -91,14 +90,14 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
 
       <div className="w-full min-w-[220px] max-w-[320px] shrink-0">
         <OsintSelect
-          ariaLabel={`${labelProfile.workspaceLabel} timeline workspace`}
+          ariaLabel="Timeline workspace"
           value={activeWorkspace?.id || ''}
           onChange={(value) => onWorkspaceChange(value || null)}
-          placeholder={`Select ${labelProfile.workspaceLabel.toLowerCase()}`}
+          placeholder={`Select ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
           triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
           options={workspaces.map((workspace) => ({
             value: workspace.id,
-            label: sanitizeDisplayTitle(workspace.title),
+            label: getWorkspaceDisplayTitle(workspace),
           }))}
         />
       </div>
@@ -108,7 +107,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
         <input
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder={buildTimelineSearchPlaceholder(labelProfile.artifactLabelPlural)}
+          placeholder={buildTimelineSearchPlaceholder(CANONICAL_NOUNS.artifactPlural)}
           className="w-full border border-zinc-700 bg-black py-1.5 pl-9 pr-3 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary"
         />
       </div>
@@ -117,9 +116,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
         <button
           onClick={onToggleExportMenu}
           disabled={!timelineSnapshotAvailable}
-          className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
-            showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
-          }`}
+          className={getChromeMenuButtonClass(showExportMenu)}
           title="Export or save the current timeline snapshot"
         >
           <Download className="mr-1 h-4 w-4" />
@@ -138,9 +135,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
       <div className="relative shrink-0" ref={filterMenuRef}>
         <button
           onClick={onToggleFilters}
-          className={`flex items-center gap-2 border px-3 py-1.5 text-xs font-mono uppercase transition ${
-            showFilters ? 'osint-button-chrome-active' : 'osint-button-chrome'
-          }`}
+          className={getChromeMenuButtonClass(showFilters)}
         >
           <Filter className="h-4 w-4" />
           <span className="hidden lg:inline">Filters</span>
@@ -159,11 +154,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
 
       <button
         onClick={onToggleRightPanel}
-        className={`flex shrink-0 items-center justify-center border p-2 text-xs font-mono uppercase transition ${
-          rightPanelOpen
-            ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-            : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-        }`}
+        className={`flex shrink-0 ${getChromeToggleButtonClass(rightPanelOpen)}`}
         title="Toggle event details"
       >
         <PanelRight className="h-4 w-4" />

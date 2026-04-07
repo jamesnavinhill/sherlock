@@ -16,6 +16,8 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Supports typed artifact sections, evidence records, provenance metadata, first-class follow-up records, methodology blocks, deep dives, signal-grounded launches, entity graph workflows, workspace board composition, chat transcript export, guided run building, and artifact/workspace export tooling (HTML/Markdown/JSON)
 - Provides scope-driven domain packs, purpose-aware launch setup, built-in starters, personas, and reusable templates
 - Adapts launch copy, labels, and output defaults by pack and purpose while using `Workspace`, `Artifact`, and `WorkspaceRun` as the primary runtime model
+- Uses canonical top-level shell nouns (`Workspace`, `Artifact`, `Run`, `Signal`, `Source`, `Item`) while keeping pack/purpose-specific copy inside artifact content and guided flows
+- Separates workspace display identity from launch metadata so top-level chrome uses a clean workspace title while prompts and summaries retain `launchTopic`, `launchAngle`, and priority-source context
 - Supports hybrid artifact generation modes with a global default plus per-run overrides (`SINGLE_PASS` vs `STAGED`)
 - Exports and restores workspace-data backups for workspaces, artifacts, runs, chat history, research boards, canonical workspace items, templates, manual graph data, and saved signals without bundling device-local app preferences or API keys
 
@@ -23,14 +25,14 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 
 - `Operation View`: artifact reading, purpose-ordered typed-section rendering, dossier, inspector panel
 - `Task Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
-- `Research Workspace`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports live requests, cancellation, todos, action history, and cross-links back into reports, timeline, graph, and chat
+- `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports live requests, cancellation, todos, action history, and cross-links back into reports, timeline, graph, and chat
 - `Timeline`: workspace chronology across saved signals, runs, artifacts, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, and Timeline snapshot export/save actions
-- `Workspace Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
+- `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, and board handoff for reports/entities/signals
 - `Live Monitor`: live signal scans, filtering, and signal persistence
-- `Case Files`: workspace/archive browsing, deletion, and exports
+- `Files`: workspace/archive browsing, deletion, and exports
 - `Finder`: discovery scanning and analysis launch
-- `System Config`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export
+- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export
 
 ## Tech Stack
 
@@ -71,14 +73,14 @@ For this checkout, keep installs and script runs in the same environment. If you
 
 Configure keys in either:
 
-1. UI: `System Config -> Runtime`
+1. UI: `Settings -> Runtime`
 2. Env file: copy `.env.example` to `.env.local`
 
 For public or shared-hosting deployments, keep Sherlock in strict BYOK mode:
 
 - do not set shared provider API keys in Vercel
 - do not rely on `VITE_*` provider env vars for a public site
-- have each user enter their own key in `System Config -> Runtime`
+- have each user enter their own key in `Settings -> Runtime`
 
 Supported env vars:
 
@@ -95,9 +97,9 @@ Sherlock deploys cleanly to Vercel as a static Vite app.
 
 - No server database is required for the current runtime model.
 - Workspace and artifact data stay in the browser via SQLite over IndexedDB.
-- API keys stay browser-local when users add them through `System Config -> Runtime`.
+- API keys stay browser-local when users add them through `Settings -> Runtime`.
 - Each origin has its own local data, so Vercel preview URLs do not share storage with production.
-- If `public/seeds/demo-workspace.json` exists, an empty browser profile will import it once on first load for demo browsing. The seed file can be either a full workspace-data backup from `System Config -> Data` or a workspace export JSON produced from archive export actions.
+- If `public/seeds/demo-workspace.json` exists, an empty browser profile will import it once on first load for demo browsing. The seed file can be either a full workspace-data backup from `Settings -> Data` or a workspace export JSON produced from archive export actions.
 
 Recommended flow:
 
@@ -105,7 +107,7 @@ Recommended flow:
 2. Let Vercel use the repo `vercel.json` or set `npm ci --include=optional`, `npm run build`, and `dist` manually.
 3. Optionally place either a canonical workspace-data backup or a workspace export JSON at `public/seeds/demo-workspace.json` if you want first-time visitors to land in a pre-seeded demo workspace.
 4. Leave provider env vars unset in Vercel for public BYOK hosting.
-5. Deploy and have each user add their own provider key in-app under `System Config -> Runtime` if they want to run new analysis or chat.
+5. Deploy and have each user add their own provider key in-app under `Settings -> Runtime` if they want to run new analysis or chat.
 
 See `docs/operations/DEPLOYMENT.md` for the full checklist.
 
@@ -127,16 +129,16 @@ npm run check:full
 
 `npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
-## Current Validation Snapshot (April 6, 2026)
+## Current Validation Snapshot (April 7, 2026)
 
-The cross-feature refactor completion plan closeout validation passed on this checkout:
+The current targeted validation for the trust/identity/chrome contract workstreams passed on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- targeted slice tests for app-shell helpers, controller seams, route coverage, and pure helpers: pass
-- `npm run test`: passes (`55` files, `173` tests)
+- targeted tests for workspace-data restore/bootstrap, transaction behavior, workspace identity helpers, and touched routed surfaces: pass
 - `npm run build`: passes
-- Vite still emits one large-chunk warning for `vendor-tldraw-app` (`521.76 kB` minified); this remains a documented exception and review checkpoint
+- `npm run test` was not rerun as part of this scoped validation pass
+- Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint
 
 ## Documentation Index
 

@@ -17,6 +17,7 @@ import type {
   BuildBoardAgentContextInput,
   BuildBoardAgentContextResult,
 } from '../types';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import { extractBoardShapeSummaries, shapeIntersectsViewport } from './boardSnapshot';
 
 const clipText = (value: string | undefined, maxLength: number) => {
@@ -283,7 +284,7 @@ export const buildBoardAgentContext = (
       'SYSTEM_METADATA',
       'System Metadata',
       [
-        `Workspace: ${input.workspace.title}`,
+        `Workspace: ${getWorkspaceDisplayTitle(input.workspace)}`,
         `Board: ${input.board.name}`,
         `Total shapes: ${shapes.length}`,
         `Linked shapes: ${shapes.filter((shape) => !!shape.linkedRef).length}`,

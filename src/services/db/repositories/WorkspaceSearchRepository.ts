@@ -1,5 +1,6 @@
 import { desc, eq, inArray } from 'drizzle-orm';
 import type { Signal, Artifact, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
+import { resolveWorkspaceIdentity } from '@/domain';
 import { getDB } from '../client';
 import {
   artifactEvidence,
@@ -93,6 +94,14 @@ export class WorkspaceSearchRepository {
     if (!workspace) {
       throw new Error(`Workspace ${workspaceId} was not found.`);
     }
+
+    const workspaceIdentity = resolveWorkspaceIdentity({
+      title: workspace.title,
+      displayTitle: workspace.displayTitle || undefined,
+      launchTopic: workspace.launchTopic || undefined,
+      launchAngle: workspace.launchAngle || undefined,
+      prioritySourcesSummary: workspace.prioritySourcesSummary || undefined,
+    });
 
     const reportRows = await db
       .select()
@@ -339,16 +348,24 @@ export class WorkspaceSearchRepository {
     }));
 
     const summaryParts = [
-      workspace.description || `${workspace.title} workspace`,
+      workspace.description || `${workspaceIdentity.displayTitle} workspace`,
+      workspaceIdentity.launchAngle ? `Angle: ${workspaceIdentity.launchAngle}` : null,
+      workspaceIdentity.prioritySourcesSummary
+        ? `Priority sources: ${workspaceIdentity.prioritySourcesSummary}`
+        : null,
       reportRows.length ? `${reportRows.length} saved artifacts` : 'No saved artifacts yet',
       signalRows.length ? `${signalRows.length} saved signals` : 'No saved signals yet',
-    ];
+    ].filter((part): part is string => !!part);
 
     return {
       workspace: {
         id: workspace.id,
         scopeId: workspace.scopeId || undefined,
         title: workspace.title,
+        displayTitle: workspaceIdentity.displayTitle,
+        launchTopic: workspaceIdentity.launchTopic,
+        launchAngle: workspaceIdentity.launchAngle,
+        prioritySourcesSummary: workspaceIdentity.prioritySourcesSummary,
         status: workspace.status as 'ACTIVE' | 'CLOSED',
         dateOpened: workspace.dateOpened,
         description: workspace.description || undefined,

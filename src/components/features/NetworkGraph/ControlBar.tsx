@@ -14,13 +14,12 @@ import {
   EyeOff,
   Star,
 } from 'lucide-react';
-import type { Workspace, LabelProfile } from '../../../types';
-import { stripLegacyWorkspacePrefix } from '../../../domain';
+import type { Workspace } from '../../../types';
+import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../../domain';
 import { OsintSelect } from '../../ui/OsintSelect';
 
 interface ControlBarProps {
   workspaces: Workspace[];
-  labelProfile: LabelProfile;
   filterCaseId: string;
   onCaseChange: (caseId: string) => void;
   showLeftPanel: boolean;
@@ -45,7 +44,6 @@ interface ControlBarProps {
 
 export const ControlBar: React.FC<ControlBarProps> = ({
   workspaces,
-  labelProfile,
   filterCaseId,
   onCaseChange,
   showLeftPanel,
@@ -78,17 +76,17 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         </button>
         <div className="hidden md:block min-w-[180px] max-w-[220px]">
           <OsintSelect
-            ariaLabel={`Select ${labelProfile.workspaceLabel}`}
+            ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
             value={filterCaseId || ''}
             onChange={onCaseChange}
             triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
             options={[
-              { value: '', label: `Select ${labelProfile.workspaceLabel}` },
+              { value: '', label: `Select ${CANONICAL_NOUNS.workspace}` },
               ...workspaces.map((workspace) => ({
                 value: workspace.id,
-                label: stripLegacyWorkspacePrefix(workspace.title),
+                label: getWorkspaceDisplayTitle(workspace),
               })),
-              { value: 'ALL', label: `All ${labelProfile.workspaceLabelPlural} (Global View)` },
+              { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
             ]}
           />
         </div>

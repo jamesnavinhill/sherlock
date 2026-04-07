@@ -16,6 +16,7 @@ import type { ChatStreamEvent } from '../providers/types';
 import {
   buildArtifactFollowUps,
   buildArtifactSections,
+  getWorkspaceDisplayTitle,
   getDomainPackById,
   getDomainPackForScope,
   getLabelProfileById,
@@ -541,7 +542,7 @@ export const buildArtifactDraftFromChatMessage = (params: {
     params.title?.trim() ||
     deriveTitleFromContent(
       params.message.content,
-      `${labelProfile.artifactLabel}: ${params.workspace.title}`
+      `${labelProfile.artifactLabel}: ${getWorkspaceDisplayTitle(params.workspace)}`
     );
   const draft: ChatDraftArtifact = {
     id: createLocalId('chat-draft'),
@@ -688,8 +689,9 @@ export const buildFollowUpRunFromChatMessage = (params: {
     parentContext:
       (params.workspaceIntent || 'CURRENT') === 'CURRENT'
         ? {
-            topic: params.workspace.title,
-            summary: params.workspace.description || `${params.workspace.title} workspace`,
+            topic: getWorkspaceDisplayTitle(params.workspace),
+            summary:
+              params.workspace.description || `${getWorkspaceDisplayTitle(params.workspace)} workspace`,
           }
         : undefined,
     configOverride: {

@@ -112,13 +112,13 @@ export const useWorkspaceBoardController = ({
   });
   const [libraryItemSections, setLibraryItemSections] = useState<Record<string, boolean>>({});
   const [inspectorSections, setInspectorSections] = useState({
-    selection: true,
-    aiActions: true,
-    provenance: true,
+    selection: false,
+    aiActions: false,
+    provenance: false,
   });
   const [agentSections, setAgentSections] = useState({
-    context: true,
-    session: true,
+    context: false,
+    session: false,
     actions: false,
   });
   const [rightPanelView, setRightPanelView] = useState<RightPanelView>('AGENT');

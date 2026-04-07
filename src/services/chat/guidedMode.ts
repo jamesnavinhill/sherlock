@@ -13,6 +13,7 @@ import type {
 import { getAllScopes, getScopeById } from '../../data/presets';
 import {
   buildArtifactSections,
+  getWorkspaceDisplayTitle,
   getDomainPackForScope,
   getLabelProfileById,
   getPurposeProfileById,
@@ -262,8 +263,9 @@ export const buildLaunchRequestFromGuidedDraft = (
     parentContext:
       draft.workspaceIntent === 'CURRENT' && workspace
         ? {
-            topic: workspace.title,
-            summary: workspace.description || `${workspace.title} workspace`,
+            topic: getWorkspaceDisplayTitle(workspace),
+            summary:
+              workspace.description || `${getWorkspaceDisplayTitle(workspace)} workspace`,
           }
         : undefined,
     configOverride,

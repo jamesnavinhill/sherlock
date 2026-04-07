@@ -17,6 +17,7 @@ import {
 import {
   buildArtifactFollowUps,
   buildArtifactSections,
+  resolveWorkspaceIdentity,
   toFollowUpTexts,
   toLegacyReportArrays,
 } from '../../../domain';
@@ -151,6 +152,39 @@ const deleteReportDependencies = async (
   }
 };
 
+const mapCaseRow = (row: typeof cases.$inferSelect): Workspace => {
+  const identity = resolveWorkspaceIdentity({
+    title: row.title,
+    displayTitle: row.displayTitle || undefined,
+    launchTopic: row.launchTopic || undefined,
+    launchAngle: row.launchAngle || undefined,
+    prioritySourcesSummary: row.prioritySourcesSummary || undefined,
+  });
+
+  return {
+    id: row.id,
+    scopeId: row.scopeId || undefined,
+    title: row.title,
+    displayTitle: identity.displayTitle,
+    launchTopic: identity.launchTopic,
+    launchAngle: identity.launchAngle,
+    prioritySourcesSummary: identity.prioritySourcesSummary,
+    status: row.status as 'ACTIVE' | 'CLOSED',
+    dateOpened: row.dateOpened,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    description: row.description || undefined,
+    mode: (row.mode as Workspace['mode']) || undefined,
+    packId: row.packId || undefined,
+    purposeId: row.purposeId || undefined,
+    labelProfileId: row.labelProfileId || undefined,
+    metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+      row.metadataJson,
+      `workspace metadata ${row.id}`
+    ),
+  };
+};
+
 export class CaseRepository {
   // --- CASES ---
   static async getAllCases(): Promise<Workspace[]> {
@@ -160,24 +194,7 @@ export class CaseRepository {
     return mapRowsSafely(rows, {
       label: 'workspace row',
       getRowId: (row) => row.id,
-      mapRow: (row) => ({
-        id: row.id,
-        scopeId: row.scopeId || undefined,
-        title: row.title,
-        status: row.status as 'ACTIVE' | 'CLOSED',
-        dateOpened: row.dateOpened,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-        description: row.description || undefined,
-        mode: (row.mode as Workspace['mode']) || undefined,
-        packId: row.packId || undefined,
-        purposeId: row.purposeId || undefined,
-        labelProfileId: row.labelProfileId || undefined,
-        metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
-          row.metadataJson,
-          `workspace metadata ${row.id}`
-        ),
-      }),
+      mapRow: mapCaseRow,
     });
   }
 
@@ -187,24 +204,7 @@ export class CaseRepository {
 
     if (result.length === 0) return null;
 
-    return {
-      id: result[0].id,
-      scopeId: result[0].scopeId || undefined,
-      title: result[0].title,
-      status: result[0].status as 'ACTIVE' | 'CLOSED',
-      dateOpened: result[0].dateOpened,
-      createdAt: result[0].createdAt,
-      updatedAt: result[0].updatedAt,
-      description: result[0].description || undefined,
-      mode: (result[0].mode as Workspace['mode']) || undefined,
-      packId: result[0].packId || undefined,
-      purposeId: result[0].purposeId || undefined,
-      labelProfileId: result[0].labelProfileId || undefined,
-      metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
-        result[0].metadataJson,
-        `workspace metadata ${result[0].id}`
-      ),
-    };
+    return mapCaseRow(result[0]);
   }
 
   static async createCase(
@@ -213,10 +213,15 @@ export class CaseRepository {
   ): Promise<void> {
     const createdAt = caseData.createdAt ?? Date.now();
     const updatedAt = caseData.updatedAt ?? createdAt;
+    const identity = resolveWorkspaceIdentity(caseData);
     await db.insert(cases).values({
       id: caseData.id,
       scopeId: caseData.scopeId,
       title: caseData.title,
+      displayTitle: identity.displayTitle,
+      launchTopic: identity.launchTopic,
+      launchAngle: identity.launchAngle,
+      prioritySourcesSummary: identity.prioritySourcesSummary,
       status: caseData.status,
       dateOpened: caseData.dateOpened,
       description: caseData.description,
@@ -426,53 +431,51 @@ export class CaseRepository {
   }
 
   static async createReport(report: Artifact, db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.createReport(report, tx));
-      return;
-    }
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
 
-    const now = report.createdAt ?? Date.now();
-    if (!report.id) {
-      throw new Error('Report must have an id before persistence.');
-    }
-    const reportId = report.id;
-    const normalizedTopic = normalizeTopicText(report.topic);
-    const normalizedSummary = normalizeHumanText(report.summary, {
-      includePriority: false,
-      fallback: 'Analysis pending...',
-    });
-    const canonicalFollowUps = buildArtifactFollowUps({
-      existing: report.followUps,
-      leads: report.leads,
-      artifactId: reportId,
-      workspaceId: report.caseId,
-      sourceSignalId: report.config?.sourceSignalId,
-      createdAt: now,
-    });
+      const now = report.createdAt ?? Date.now();
+      if (!report.id) {
+        throw new Error('Report must have an id before persistence.');
+      }
+      const reportId = report.id;
+      const normalizedTopic = normalizeTopicText(report.topic);
+      const normalizedSummary = normalizeHumanText(report.summary, {
+        includePriority: false,
+        fallback: 'Analysis pending...',
+      });
+      const canonicalFollowUps = buildArtifactFollowUps({
+        existing: report.followUps,
+        leads: report.leads,
+        artifactId: reportId,
+        workspaceId: report.caseId,
+        sourceSignalId: report.config?.sourceSignalId,
+        createdAt: now,
+      });
 
-    const metadataPayload: ReportMetadataPayload | undefined =
-      report.metadata || report.provenance
-        ? {
-            ...(report.metadata || {}),
-            ...(report.provenance ? { provenance: report.provenance } : {}),
-          }
-        : undefined;
+      const metadataPayload: ReportMetadataPayload | undefined =
+        report.metadata || report.provenance
+          ? {
+              ...(report.metadata || {}),
+              ...(report.provenance ? { provenance: report.provenance } : {}),
+            }
+          : undefined;
 
-    await db.insert(reports).values({
-      id: reportId,
-      caseId: report.caseId,
-      topic: normalizedTopic,
-      dateStr: report.dateStr,
-      summary: normalizedSummary,
-      rawText: report.rawText,
-      artifactType: report.artifactType,
-      packId: report.packId || report.config?.packId,
-      purposeId: report.purposeId || report.config?.purposeId,
-      labelProfileId: report.labelProfileId || report.config?.labelProfileId,
-      metadataJson: serializeStoredJsonOrNull(metadataPayload),
-      configJson: serializeStoredJsonOrNull(report.config),
-      createdAt: now,
-    });
+      await executor.insert(reports).values({
+        id: reportId,
+        caseId: report.caseId,
+        topic: normalizedTopic,
+        dateStr: report.dateStr,
+        summary: normalizedSummary,
+        rawText: report.rawText,
+        artifactType: report.artifactType,
+        packId: report.packId || report.config?.packId,
+        purposeId: report.purposeId || report.config?.purposeId,
+        labelProfileId: report.labelProfileId || report.config?.labelProfileId,
+        metadataJson: serializeStoredJsonOrNull(metadataPayload),
+        configJson: serializeStoredJsonOrNull(report.config),
+        createdAt: now,
+      });
 
     // Insert Entities
     if (report.entities && report.entities.length > 0) {
@@ -480,7 +483,7 @@ export class CaseRepository {
         const entityObj =
           typeof entity === 'string' ? { name: entity, type: 'UNKNOWN' as const } : entity;
 
-        await db.insert(entities).values({
+        await executor.insert(entities).values({
           id: createLocalId('ent'),
           reportId,
           name: entityObj.name,
@@ -494,7 +497,7 @@ export class CaseRepository {
     // Insert Sources
     if (report.sources && report.sources.length > 0) {
       for (const source of report.sources) {
-        await db.insert(sources).values({
+        await executor.insert(sources).values({
           id: createLocalId('src'),
           reportId,
           title: source.title,
@@ -505,7 +508,7 @@ export class CaseRepository {
 
     if (canonicalFollowUps.length > 0) {
       for (const [index, followUp] of canonicalFollowUps.entries()) {
-        await db.insert(followUpRows).values({
+        await executor.insert(followUpRows).values({
           id: followUp.id,
           workspaceId: followUp.workspaceId || report.caseId,
           artifactId: reportId,
@@ -528,7 +531,7 @@ export class CaseRepository {
 
     if (report.sections && report.sections.length > 0) {
       for (const [index, section] of report.sections.entries()) {
-        await db.insert(artifactSections).values({
+        await executor.insert(artifactSections).values({
           id: section.id || `sec-${reportId}-${index}`,
           reportId,
           kind: section.kind,
@@ -542,7 +545,7 @@ export class CaseRepository {
 
     if (report.evidence && report.evidence.length > 0) {
       for (const [index, evidence] of report.evidence.entries()) {
-        await db.insert(artifactEvidence).values({
+        await executor.insert(artifactEvidence).values({
           id: evidence.id || `evidence-${reportId}-${index}`,
           reportId,
           kind: evidence.kind,
@@ -560,14 +563,14 @@ export class CaseRepository {
     }
 
     if (report.config?.sourceSignalId) {
-      await db
+      await executor
         .update(leads)
         .set({ linkedReportId: reportId })
         .where(eq(leads.id, report.config.sourceSignalId));
     }
 
     if (report.config?.sourceFollowUpId) {
-      await db
+      await executor
         .update(followUpRows)
         .set({
           status: 'RESOLVED',
@@ -579,8 +582,9 @@ export class CaseRepository {
 
     // Update parent case timestamp
     if (report.caseId) {
-      await db.update(cases).set({ updatedAt: now }).where(eq(cases.id, report.caseId));
+      await executor.update(cases).set({ updatedAt: now }).where(eq(cases.id, report.caseId));
     }
+    }, db);
   }
 
   static async updateReportTopic(reportId: string, topic: string): Promise<void> {
@@ -684,17 +688,15 @@ export class CaseRepository {
   }
 
   static async deleteReport(reportId: string, db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.deleteReport(reportId, tx));
-      return;
-    }
-
-    await db.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
-    await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
-    await db.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
-    await db.delete(entities).where(eq(entities.reportId, reportId));
-    await db.delete(sources).where(eq(sources.reportId, reportId));
-    await db.delete(reports).where(eq(reports.id, reportId));
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await executor.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
+      await executor.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
+      await executor.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
+      await executor.delete(entities).where(eq(entities.reportId, reportId));
+      await executor.delete(sources).where(eq(sources.reportId, reportId));
+      await executor.delete(reports).where(eq(reports.id, reportId));
+    }, db);
   }
 
   static async unassignReportsFromCase(caseId: string): Promise<void> {
@@ -703,66 +705,60 @@ export class CaseRepository {
   }
 
   static async deleteCase(caseId: string, db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.deleteCase(caseId, tx));
-      return;
-    }
-
-    await ChatRepository.deleteSessionsForWorkspace(caseId, db);
-    await BoardAgentRepository.deleteSessionsForWorkspace(caseId, db);
-    await TaskRepository.clearWorkspace(caseId, db);
-    await WorkspaceBoardRepository.deleteByWorkspace(caseId, db);
-    await WorkspaceItemRepository.deleteByWorkspace(caseId, db);
-    await db.delete(leads).where(eq(leads.caseId, caseId));
-    await ManualDataRepository.removeWorkspaceLinkedData(caseId, [], db);
-    await db.delete(cases).where(eq(cases.id, caseId));
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await ChatRepository.deleteSessionsForWorkspace(caseId, executor);
+      await BoardAgentRepository.deleteSessionsForWorkspace(caseId, executor);
+      await TaskRepository.clearWorkspace(caseId, executor);
+      await WorkspaceBoardRepository.deleteByWorkspace(caseId, executor);
+      await WorkspaceItemRepository.deleteByWorkspace(caseId, executor);
+      await executor.delete(leads).where(eq(leads.caseId, caseId));
+      await ManualDataRepository.removeWorkspaceLinkedData(caseId, [], executor);
+      await executor.delete(cases).where(eq(cases.id, caseId));
+    }, db);
   }
 
   static async purgeCase(caseId: string, db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.purgeCase(caseId, tx));
-      return;
-    }
-
-    const reportRows = await db
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      const reportRows = await executor
       .select({ id: reports.id })
       .from(reports)
       .where(eq(reports.caseId, caseId));
-    const reportIds = reportRows.map((row) => row.id);
+      const reportIds = reportRows.map((row) => row.id);
 
-    await deleteReportDependencies(reportIds, db);
-    await ChatRepository.deleteSessionsForWorkspace(caseId, db);
-    await BoardAgentRepository.deleteSessionsForWorkspace(caseId, db);
-    await TaskRepository.deleteByWorkspace(caseId, db);
-    await WorkspaceBoardRepository.deleteByWorkspace(caseId, db);
-    await WorkspaceItemRepository.deleteByWorkspace(caseId, db);
-    await ManualDataRepository.removeWorkspaceLinkedData(caseId, reportIds, db);
-    await db.delete(reports).where(eq(reports.caseId, caseId));
-    await db.delete(leads).where(eq(leads.caseId, caseId));
-    await db.delete(cases).where(eq(cases.id, caseId));
+      await deleteReportDependencies(reportIds, executor);
+      await ChatRepository.deleteSessionsForWorkspace(caseId, executor);
+      await BoardAgentRepository.deleteSessionsForWorkspace(caseId, executor);
+      await TaskRepository.deleteByWorkspace(caseId, executor);
+      await WorkspaceBoardRepository.deleteByWorkspace(caseId, executor);
+      await WorkspaceItemRepository.deleteByWorkspace(caseId, executor);
+      await ManualDataRepository.removeWorkspaceLinkedData(caseId, reportIds, executor);
+      await executor.delete(reports).where(eq(reports.caseId, caseId));
+      await executor.delete(leads).where(eq(leads.caseId, caseId));
+      await executor.delete(cases).where(eq(cases.id, caseId));
+    }, db);
   }
 
   static async clearCaseData(db?: SherlockWriteExecutor): Promise<void> {
-    if (!db) {
-      await runWriteTransaction(async (tx) => this.clearCaseData(tx));
-      return;
-    }
-
-    await ChatRepository.clearAll(db);
-    await BoardAgentRepository.clearAll(db);
-    await TaskRepository.clearAll(db);
-    await TemplateRepository.clearAll(db);
-    await WorkspaceBoardRepository.clearAll(db);
-    await WorkspaceItemRepository.clearAll(db);
-    await ManualDataRepository.clearAll(db);
-    await db.delete(followUpRows);
-    await db.delete(artifactSections);
-    await db.delete(artifactEvidence);
-    await db.delete(entities);
-    await db.delete(sources);
-    await db.delete(reports);
-    await db.delete(leads);
-    await db.delete(cases);
+    return runWriteTransaction(async (tx) => {
+      const executor = db ?? tx;
+      await ChatRepository.clearAll(executor);
+      await BoardAgentRepository.clearAll(executor);
+      await TaskRepository.clearAll(executor);
+      await TemplateRepository.clearAll(executor);
+      await WorkspaceBoardRepository.clearAll(executor);
+      await WorkspaceItemRepository.clearAll(executor);
+      await ManualDataRepository.clearAll(executor);
+      await executor.delete(followUpRows);
+      await executor.delete(artifactSections);
+      await executor.delete(artifactEvidence);
+      await executor.delete(entities);
+      await executor.delete(sources);
+      await executor.delete(reports);
+      await executor.delete(leads);
+      await executor.delete(cases);
+    }, db);
   }
 
   static async importCasesAndReports(caseData: Workspace[], reportData: Artifact[]): Promise<void> {

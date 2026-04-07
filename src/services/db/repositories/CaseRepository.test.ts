@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CaseRepository } from './CaseRepository';
+import { BoardAgentRepository } from './BoardAgentRepository';
+import { ChatRepository } from './ChatRepository';
+import { ManualDataRepository } from './ManualDataRepository';
+import { SettingsRepository } from './SettingsRepository';
+import { TaskRepository } from './TaskRepository';
+import { TemplateRepository } from './TemplateRepository';
+import { WorkspaceBoardRepository } from './WorkspaceBoardRepository';
+import { WorkspaceItemRepository } from './WorkspaceItemRepository';
 import { followUps, leads, reports } from '../schema';
 
 const { transactionEvents, mockTx, runWriteTransaction } = vi.hoisted(() => {
@@ -125,5 +133,79 @@ describe('CaseRepository', () => {
 
     expect(runWriteTransaction).toHaveBeenCalledTimes(1);
     expect(transactionEvents).toEqual(['begin', 'rollback']);
+  });
+
+  it('reuses the outer transaction across workspace backup restore writes', async () => {
+    vi.spyOn(CaseRepository, 'createCase').mockResolvedValue(undefined);
+    vi.spyOn(CaseRepository, 'createReport').mockResolvedValue(undefined);
+    vi.spyOn(TaskRepository, 'create').mockResolvedValue(undefined);
+    vi.spyOn(ChatRepository, 'createSession').mockResolvedValue(undefined);
+    vi.spyOn(ChatRepository, 'createMessage').mockResolvedValue(undefined);
+    vi.spyOn(ChatRepository, 'createAction').mockResolvedValue(undefined);
+    vi.spyOn(BoardAgentRepository, 'createSession').mockResolvedValue(undefined);
+    vi.spyOn(BoardAgentRepository, 'createAction').mockResolvedValue(undefined);
+    vi.spyOn(TemplateRepository, 'create').mockResolvedValue(undefined);
+    vi.spyOn(WorkspaceItemRepository, 'create').mockResolvedValue(undefined);
+    vi.spyOn(WorkspaceBoardRepository, 'createBoard').mockResolvedValue(undefined);
+    vi.spyOn(WorkspaceBoardRepository, 'upsertDocument').mockResolvedValue(undefined);
+    vi.spyOn(ManualDataRepository, 'saveAllNodes').mockResolvedValue(undefined);
+    vi.spyOn(ManualDataRepository, 'saveAllLinks').mockResolvedValue(undefined);
+    vi.spyOn(SettingsRepository, 'setSetting').mockResolvedValue(undefined);
+    vi.spyOn(CaseRepository, 'clearCaseData').mockResolvedValue(undefined);
+
+    await CaseRepository.replaceWorkspaceDataBackup({
+      workspaces: [
+        {
+          id: 'ws-1',
+          title: 'Legacy Workspace [RUN_ANGLE]: trace suppliers',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-07',
+        },
+      ],
+      artifacts: [
+        {
+          id: 'rep-1',
+          caseId: 'ws-1',
+          topic: 'Atlas',
+          summary: 'Summary',
+          agendas: [],
+          leads: [],
+          followUps: [],
+          entities: [],
+          sources: [],
+          rawText: 'raw artifact body',
+        },
+      ],
+      runs: [{ id: 'run-1', topic: 'Atlas', status: 'RUNNING', startTime: 1 }],
+      chat: { sessions: [], messages: [], actions: [] },
+      boardAgent: { sessions: [], actions: [] },
+      signals: { signals: [] },
+      templates: [],
+      workspaceSurface: { items: [], boards: [], boardDocuments: [] },
+      graph: { manualNodes: [], manualLinks: [] },
+      metadata: {
+        kind: 'SHERLOCK_WORKSPACE_DATA',
+        formatVersion: 1,
+        exportedAt: '2026-04-07T00:00:00.000Z',
+      },
+    });
+
+    expect(runWriteTransaction).toHaveBeenCalledTimes(1);
+    expect(transactionEvents).toEqual(['begin', 'commit']);
+    expect(CaseRepository.clearCaseData).toHaveBeenCalledWith(mockTx);
+    expect(CaseRepository.createCase).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'ws-1' }),
+      mockTx
+    );
+    expect(CaseRepository.createReport).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'rep-1' }),
+      mockTx
+    );
+    expect(TaskRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'run-1' }),
+      mockTx
+    );
+    expect(SettingsRepository.setSetting).toHaveBeenCalledWith('hidden_nodes', [], mockTx);
+    expect(SettingsRepository.setSetting).toHaveBeenCalledWith('flagged_nodes', [], mockTx);
   });
 });

@@ -7,6 +7,7 @@ import type {
   WorkspaceContextSnippet,
   WorkspaceItem,
 } from '@/types';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import type { WorkspaceLibraryEntry } from './library';
 
 const getEntryContextText = (entry: WorkspaceLibraryEntry) =>
@@ -77,7 +78,8 @@ export const generateBoardSelectionDraft = async (input: {
         content: `${modeInstruction}\n\nSelected items:\n${selectionDigest}`,
       },
     ],
-    workspaceSummary: input.workspace.description || `${input.workspace.title} workspace`,
+    workspaceSummary:
+      input.workspace.description || `${getWorkspaceDisplayTitle(input.workspace)} workspace`,
     recentArtifacts: input.artifacts.slice(0, 4).map((artifact) => ({
       id: artifact.id,
       topic: artifact.topic,
@@ -96,8 +98,8 @@ export const generateBoardSelectionDraft = async (input: {
   return {
     title:
       input.mode === 'SUMMARY'
-        ? `Selection Summary: ${input.selectedEntries[0]?.title || input.workspace.title}`
-        : `Board Note: ${input.selectedEntries[0]?.title || input.workspace.title}`,
+        ? `Selection Summary: ${input.selectedEntries[0]?.title || getWorkspaceDisplayTitle(input.workspace)}`
+        : `Board Note: ${input.selectedEntries[0]?.title || getWorkspaceDisplayTitle(input.workspace)}`,
     content: response.content.trim(),
   };
 };

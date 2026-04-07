@@ -3,7 +3,8 @@ import { Briefcase, FolderPlus, PanelRight, Presentation } from 'lucide-react';
 
 import type { WorkspaceBoard } from '@/types';
 import { OsintSelect } from '@/components/ui/OsintSelect';
-import { sanitizeDisplayTitle } from '@/domain';
+import { CHROME_HEADER_CLASS, getChromeToggleButtonClass } from '@/components/ui/chrome';
+import { getWorkspaceDisplayTitle } from '@/domain';
 
 interface BoardTopBarProps {
   activeBoard: WorkspaceBoard | null;
@@ -34,15 +35,11 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
   rightPanelOpen,
   workspaces,
 }) => (
-  <header className="osint-header-shadow sticky top-0 z-40 flex h-20 items-center justify-between border-b border-zinc-800 bg-black/95 px-6 backdrop-blur-md">
+  <header className={`${CHROME_HEADER_CLASS} z-40 flex items-center justify-between px-6`}>
     <div className="flex min-w-0 items-center gap-3">
       <button
         onClick={onToggleLeftPanel}
-        className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition md:inline-flex ${
-          leftPanelOpen
-            ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-            : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-        }`}
+        className={`hidden md:inline-flex ${getChromeToggleButtonClass(leftPanelOpen)}`}
       >
         <Briefcase className="h-4 w-4" />
       </button>
@@ -62,7 +59,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
           menuClassName="z-[60]"
           options={workspaces.map((workspace) => ({
             value: workspace.id,
-            label: sanitizeDisplayTitle(workspace.title),
+            label: getWorkspaceDisplayTitle(workspace),
           }))}
         />
       </div>
@@ -85,11 +82,9 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
       {activeBoard ? (
         <button
           onClick={onTogglePresentationMode}
-          className={`inline-flex items-center gap-2 border px-3 py-2 text-xs font-mono uppercase transition ${
-            activeBoard.presentationMode
-              ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-              : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-          }`}
+          className={`inline-flex items-center gap-2 px-3 py-2 ${getChromeToggleButtonClass(
+            !!activeBoard.presentationMode
+          )}`}
         >
           <Presentation className="h-4 w-4" />
           {activeBoard.presentationMode ? 'Presentation' : 'Edit Mode'}
@@ -97,11 +92,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
       ) : null}
       <button
         onClick={onToggleRightPanel}
-        className={`hidden items-center justify-center border p-2 text-xs font-mono uppercase transition xl:inline-flex ${
-          rightPanelOpen
-            ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-            : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-        }`}
+        className={`hidden xl:inline-flex ${getChromeToggleButtonClass(rightPanelOpen)}`}
         title="Toggle Inspector Panel"
       >
         <PanelRight className="h-4 w-4" />

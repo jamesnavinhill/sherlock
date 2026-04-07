@@ -110,6 +110,10 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
     'ALTER TABLE cases ADD COLUMN purpose_id text;',
     'ALTER TABLE cases ADD COLUMN label_profile_id text;',
     'ALTER TABLE cases ADD COLUMN metadata_json text;',
+    'ALTER TABLE cases ADD COLUMN display_title text;',
+    'ALTER TABLE cases ADD COLUMN launch_topic text;',
+    'ALTER TABLE cases ADD COLUMN launch_angle text;',
+    'ALTER TABLE cases ADD COLUMN priority_sources_summary text;',
     'ALTER TABLE reports ADD COLUMN artifact_type text;',
     'ALTER TABLE reports ADD COLUMN pack_id text;',
     'ALTER TABLE reports ADD COLUMN purpose_id text;',
@@ -459,9 +463,13 @@ export type SherlockTx = Parameters<SherlockDb['transaction']>[0] extends (
 export type SherlockWriteExecutor = SherlockDb | SherlockTx;
 
 export const runWriteTransaction = async <T>(
-  operation: (tx: SherlockTx) => Promise<T>
+  operation: (tx: SherlockTx) => Promise<T>,
+  executor: SherlockWriteExecutor = getDB()
 ): Promise<T> => {
   const db = getDB();
+  if (executor !== db) {
+    return operation(executor as SherlockTx);
+  }
   return db.transaction(async (tx) => operation(tx));
 };
 

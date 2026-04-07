@@ -4,9 +4,8 @@ import { Clock3 } from 'lucide-react';
 
 import type { Artifact, ChatOpenRequest, TimelineRange } from '@/types';
 import { buildWorkspaceTimelinePath } from '@/app/routes';
-import { BackgroundMatrixRain } from '@/components/ui/BackgroundMatrixRain';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { sanitizeDisplayTitle } from '@/domain';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import { useTimelineViewController } from './Timeline/useTimelineViewController';
 import { toggleExclusiveSection } from './Timeline/timelineViewUtils';
 import { TimelineToolbar } from './Timeline/TimelineToolbar';
@@ -99,12 +98,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
-      <BackgroundMatrixRain />
-
       <TimelineToolbar
         activeWorkspace={activeWorkspace}
         workspaces={workspaces}
-        labelProfile={labelProfile}
         search={search}
         filters={filters}
         leftPanelOpen={leftPanelOpen}
@@ -173,7 +169,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
       <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden">
         <TimelineDossierPanel
           isOpen={leftPanelOpen}
-          workspaceTitle={activeWorkspace ? sanitizeDisplayTitle(activeWorkspace.title) : 'Workspace'}
+          workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : 'Workspace'}
           labelProfile={labelProfile}
           dossierSections={dossierSections}
           allTimelineEvents={allTimelineEvents}

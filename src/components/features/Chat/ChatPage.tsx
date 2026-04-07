@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { InvestigationLaunchRequest } from '@/types';
-import { sanitizeDisplayTitle } from '@/domain';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import { useChatController } from './useChatController';
 import { ChatSessionRail } from './ChatSessionRail';
 import { ChatTranscript } from './ChatTranscript';
@@ -104,7 +104,6 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     workspaceSignals,
     workingAssistantMessageId,
     workingSessionId,
-    sanitizeDisplayTitle: sanitizeWorkspaceTitle,
   } = useChatController({ onLaunchInvestigation });
 
   return (
@@ -123,14 +122,14 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         workspaceDisabled={!activeWorkspace}
         workspaces={workspaces.map((workspace) => ({
           ...workspace,
-          title: sanitizeWorkspaceTitle(workspace.title),
+          title: getWorkspaceDisplayTitle(workspace),
         }))}
         onCreateGuidedSession={handleCreateGuidedSession}
         onCreateSession={handleCreateSession}
         onExportJson={handleExportSessionJson}
         onExportMarkdown={handleExportSessionMarkdown}
         onSelectWorkspace={setActiveWorkspaceId}
-        onStartNewProject={handleStartNewProject}
+        onStartNewWorkspace={handleStartNewProject}
         onToggleExportMenu={() => {
           setShowExportMenu((current) => !current);
           setShowNewMenu(false);
@@ -161,7 +160,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
           workspaceDescription={activeWorkspace?.description}
           workspaceSessions={workspaceSessions}
           chatMessagesBySessionId={chatMessagesBySessionId}
-          workspaceTitle={activeWorkspace ? sanitizeDisplayTitle(activeWorkspace.title) : ''}
+          workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : ''}
           sectionScrollClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
           getGuidedSessionState={getGuidedSessionState}
           getSessionTitle={getSessionTitle}
@@ -199,7 +198,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             handleSaveMessageAsArtifact={handleSaveMessageAsArtifact}
             handleAppendMessageToArtifact={handleAppendMessageToArtifact}
             handleLaunchFollowUp={handleLaunchFollowUp}
-            handleStartNewProject={handleStartNewProject}
+            handleStartNewWorkspace={handleStartNewProject}
             handleCreateSession={handleCreateSession}
           />
 

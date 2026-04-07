@@ -5,6 +5,7 @@ import type {
   BoardAgentStructuredAction,
   ProviderMessage,
 } from '../types';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import { parseJsonWithFallback, toDisplayText } from './jsonParsing';
 
 const formatContextParts = (request: BoardAgentProviderRequest): string =>
@@ -59,7 +60,9 @@ Stay grounded in the provided board context. Prefer Sherlock-aware actions tied 
 Be explicit, auditable, and conservative. If the context is insufficient, say what is missing instead of inventing details.
 
 Workspace
-- Title: ${request.workspace.title}
+- Title: ${getWorkspaceDisplayTitle(request.workspace)}
+- Launch Topic: ${request.workspace.launchTopic || getWorkspaceDisplayTitle(request.workspace)}
+- Launch Angle: ${request.workspace.launchAngle || 'None recorded'}
 - Board: ${request.board.name}
 - Pack: ${request.pack.name}
 - Purpose: ${request.purpose.name}

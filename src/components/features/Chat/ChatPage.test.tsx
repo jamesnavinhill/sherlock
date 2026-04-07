@@ -55,14 +55,14 @@ describe('Chat page', () => {
     });
   });
 
-  it('opens the project setup flow from the empty workspace state', () => {
+  it('opens the workspace setup flow from the empty workspace state', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <Chat onLaunchInvestigation={vi.fn()} />
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /start new project/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start new workspace/i }));
 
     expect(screen.getByTestId('task-setup-modal')).toBeInTheDocument();
   });
