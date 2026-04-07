@@ -31,7 +31,9 @@ describe('useOperationViewController', () => {
       headlines: [],
       addToast: vi.fn(),
       addTemplate: vi.fn(),
+      updateArtifactSection: vi.fn(async () => undefined),
       updateReportTitle: vi.fn(async () => undefined),
+      updateReportSummary: vi.fn(async () => undefined),
       renameEntityAcrossReports: vi.fn(async () => undefined),
       activeWorkspaceId: 'ws-1',
       setActiveWorkspaceId: vi.fn(),
@@ -107,5 +109,66 @@ describe('useOperationViewController', () => {
 
     expect(addTemplate).toHaveBeenCalledTimes(1);
     expect(addToast).toHaveBeenCalledWith('Template saved successfully', 'SUCCESS');
+  });
+
+  it('saves the unified report body to both summary and executive summary section state', async () => {
+    const updateReportSummary = vi.fn(async () => undefined);
+    const updateArtifactSection = vi.fn(async () => undefined);
+    const addToast = vi.fn();
+
+    selectorState.useOperationFeatureState.mockReturnValue({
+      ...baseState,
+      updateReportSummary,
+      updateArtifactSection,
+      addToast,
+    });
+
+    const { result } = renderHook(() =>
+      useOperationViewController({
+        onNavigate: vi.fn(),
+        onOpenChat: vi.fn(),
+        task: null,
+        reportOverride: {
+          id: 'artifact-1',
+          topic: 'Atlas Report',
+          summary: 'Summary',
+          agendas: [],
+          leads: [],
+          entities: [],
+          sources: [],
+          rawText: 'raw',
+          sections: [
+            {
+              id: 'section-executive_summary-0',
+              kind: 'EXECUTIVE_SUMMARY',
+              title: 'Executive Summary',
+              content: 'Summary',
+              order: 0,
+            },
+          ],
+          config: {},
+        },
+      })
+    );
+
+    await act(async () => {
+      await result.current.handleReportBodySave(
+        'Expanded report body for editing.',
+        'section-executive_summary-0'
+      );
+    });
+
+    expect(updateReportSummary).toHaveBeenCalledWith(
+      'artifact-1',
+      'Expanded report body for editing.'
+    );
+    expect(updateArtifactSection).toHaveBeenCalledWith(
+      'artifact-1',
+      'section-executive_summary-0',
+      {
+        content: 'Expanded report body for editing.',
+      }
+    );
+    expect(addToast).toHaveBeenCalledWith('Report updated.', 'SUCCESS');
   });
 });

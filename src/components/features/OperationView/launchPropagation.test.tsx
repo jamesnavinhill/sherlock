@@ -51,9 +51,9 @@ vi.mock('./DossierPanel', () => ({
 
 vi.mock('./ReportViewer', () => ({
   ReportViewer: ({
-    onDeepDive,
+    onLeadOpen,
   }: {
-    onDeepDive: (followUp: {
+    onLeadOpen: (followUp: {
       id: string;
       kind: 'TASK';
       title: string;
@@ -62,9 +62,9 @@ vi.mock('./ReportViewer', () => ({
     }) => void;
   }) => (
     <button
-      data-testid="report-deep-dive"
+      data-testid="report-open-lead"
       onClick={() =>
-        onDeepDive({
+        onLeadOpen({
           id: 'follow-up-1',
           kind: 'TASK',
           title: 'Trace vendor ownership',
@@ -73,7 +73,7 @@ vi.mock('./ReportViewer', () => ({
         })
       }
     >
-      Deep Dive
+      Open Lead
     </button>
   ),
 }));
@@ -221,7 +221,7 @@ describe('OperationView launch propagation', () => {
     });
   });
 
-  it('propagates deep-dive launches with inherited report config', () => {
+  it('propagates report lead launches through the modal flow with inherited report config', () => {
     const onDeepDive = vi.fn();
 
     render(
@@ -230,7 +230,6 @@ describe('OperationView launch propagation', () => {
           task={taskFixture}
           onBack={vi.fn()}
           onDeepDive={onDeepDive}
-          onBatchDeepDive={vi.fn()}
           navStack={[]}
           onNavigate={vi.fn()}
           onStartNewCase={vi.fn()}
@@ -240,13 +239,14 @@ describe('OperationView launch propagation', () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByTestId('report-deep-dive'));
+    fireEvent.click(screen.getByTestId('report-open-lead'));
+    fireEvent.click(screen.getByTestId('operation-modal-start'));
 
     expect(onDeepDive).toHaveBeenCalledTimes(1);
     expect(onDeepDive).toHaveBeenCalledWith(
       expect.objectContaining({
-        topic: 'Trace vendor ownership',
-        launchSource: 'OPERATION_DEEP_DIVE',
+        topic: 'Entity investigation from modal',
+        launchSource: 'OPERATION_LEAD_MODAL',
         parentArtifactId: 'report-1',
         sourceFollowUpId: 'follow-up-1',
         parentContext: {
@@ -254,8 +254,8 @@ describe('OperationView launch propagation', () => {
           summary: reportFixture.summary,
         },
         configOverride: expect.objectContaining({
-          provider: 'GEMINI',
-          modelId: 'gemini-3-flash-preview',
+          provider: 'OPENAI',
+          modelId: 'gpt-4.1-mini',
           searchDepth: 'DEEP',
         }),
         scope: expect.objectContaining({ id: 'open-investigation' }),
@@ -273,7 +273,6 @@ describe('OperationView launch propagation', () => {
           task={taskFixture}
           onBack={vi.fn()}
           onDeepDive={vi.fn()}
-          onBatchDeepDive={vi.fn()}
           navStack={[]}
           onNavigate={vi.fn()}
           onStartNewCase={vi.fn()}
@@ -305,7 +304,6 @@ describe('OperationView launch propagation', () => {
           task={taskFixture}
           onBack={vi.fn()}
           onDeepDive={onDeepDive}
-          onBatchDeepDive={vi.fn()}
           navStack={[]}
           onNavigate={vi.fn()}
           onStartNewCase={vi.fn()}
@@ -343,7 +341,6 @@ describe('OperationView launch propagation', () => {
           task={taskFixture}
           onBack={vi.fn()}
           onDeepDive={vi.fn()}
-          onBatchDeepDive={vi.fn()}
           navStack={[]}
           onNavigate={vi.fn()}
           onStartNewCase={vi.fn()}

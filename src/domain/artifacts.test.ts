@@ -39,4 +39,22 @@ describe('artifacts domain helpers', () => {
       'section-leads-3',
     ]);
   });
+
+  it('does not add redundant next-steps when normalized sections already include leads', () => {
+    const sections = buildArtifactSections({
+      sections: [
+        {
+          id: 'section-leads-0',
+          kind: 'LEADS',
+          title: 'Leads',
+          items: ['Existing lead'],
+          order: 0,
+        },
+      ],
+      leads: ['Derived lead'],
+      followUps: ['Derived follow-up'],
+    });
+
+    expect(sections.map((section) => section.kind)).toEqual(['LEADS']);
+  });
 });

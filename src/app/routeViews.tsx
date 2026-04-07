@@ -14,7 +14,6 @@ import type {
   Artifact,
   ChatOpenRequest,
   ChatSession,
-  FollowUp,
   InvestigationLaunchRequest,
   Workspace,
   WorkspaceBoard as WorkspaceBoardRecord,
@@ -94,7 +93,6 @@ interface InvestigationRouteViewProps {
   setActiveWorkspaceId: (id: string | null) => void;
   onBack: () => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
-  onBatchInvestigate: (followUps: FollowUp[], parentReport: Artifact) => void;
   onNavigateRecord: (id: string) => void;
   onViewReport: (report: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
@@ -171,7 +169,6 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   setActiveWorkspaceId,
   onBack,
   onLaunchInvestigation,
-  onBatchInvestigate,
   onNavigateRecord,
   onViewReport,
   onOpenChat,
@@ -214,7 +211,6 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
         reportOverride={report}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-        onBatchDeepDive={onBatchInvestigate}
         navStack={buildBreadcrumbs(report, workspaces, relatedTask?.id || null)}
         onNavigate={onNavigateRecord}
         onSelectCase={(reportId) => {
@@ -241,7 +237,6 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   setActiveWorkspaceId,
   onBack,
   onLaunchInvestigation,
-  onBatchInvestigate,
   onNavigateRecord,
   onViewReport,
   onOpenChat,
@@ -275,7 +270,6 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
         reportOverride={report}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-        onBatchDeepDive={onBatchInvestigate}
         navStack={buildBreadcrumbs(report, workspaces, task.id)}
         onNavigate={onNavigateRecord}
         onSelectCase={(reportId) => {

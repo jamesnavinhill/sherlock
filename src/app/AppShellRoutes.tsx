@@ -79,7 +79,6 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             onBack={controller.handleBack}
             onLaunchInvestigation={controller.launchInvestigation}
-            onBatchInvestigate={controller.handleBatchInvestigate}
             onNavigateRecord={controller.handleNavigateRecord}
             onViewReport={controller.handleViewReport}
             onOpenChat={controller.openChat}
@@ -109,7 +108,6 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             onBack={controller.handleBack}
             onLaunchInvestigation={controller.launchInvestigation}
-            onBatchInvestigate={controller.handleBatchInvestigate}
             onNavigateRecord={controller.handleNavigateRecord}
             onViewReport={controller.handleViewReport}
             onOpenChat={controller.openChat}

@@ -2,7 +2,6 @@ import React from 'react';
 import type {
   ChatOpenRequest,
   Artifact,
-  FollowUp,
   InvestigationLaunchRequest,
   WorkspaceRun,
 } from '../../../types';
@@ -10,7 +9,6 @@ import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
 import { AlertOctagon } from 'lucide-react';
-import { getFollowUpText } from '../../../domain';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
@@ -26,7 +24,6 @@ interface OperationViewProps {
   reportOverride?: Artifact | null;
   onBack: () => void;
   onDeepDive: (request: InvestigationLaunchRequest) => void;
-  onBatchDeepDive: (followUps: FollowUp[], currentReport: Artifact) => void;
   navStack: BreadcrumbItem[];
   onNavigate: (id: string) => void;
   onSelectCase?: (caseId: string) => void;
@@ -40,7 +37,6 @@ export const OperationView: React.FC<OperationViewProps> = ({
   reportOverride = null,
   onBack,
   onDeepDive,
-  onBatchDeepDive,
   navStack,
   onNavigate,
   onSelectCase,
@@ -220,31 +216,14 @@ export const OperationView: React.FC<OperationViewProps> = ({
         {/* Center: Report Viewer */}
         <ReportViewer
           report={report}
+          workspaceTitle={activeCase?.title}
           navStack={navStack}
           onNavigate={onNavigate}
           showPlaceholder={showPlaceholder}
           onStartNewCase={() => setIsNewCaseModalOpen(true)}
           onTitleSave={handleTitleSave}
           onReportBodySave={handleReportBodySave}
-          onDeepDive={(followUp) => {
-            if (report) {
-              onDeepDive({
-                topic: getFollowUpText(followUp),
-                parentContext: { topic: report.topic, summary: report.summary },
-                configOverride: toConfigOverride(report.config),
-                scope: resolveScope(report.config?.scopeId),
-                dateRangeOverride: report.config?.dateRangeOverride,
-                launchSource: 'OPERATION_DEEP_DIVE',
-                sourceFollowUpId: followUp.id,
-                parentArtifactId: report.id,
-              });
-            }
-          }}
-          onBatchDeepDive={(followUps) => {
-            if (report) {
-              onBatchDeepDive(followUps, report);
-            }
-          }}
+          onLeadOpen={handleLeadClick}
           onEntityClick={handleEntityClick}
           onNotify={addToast}
         />

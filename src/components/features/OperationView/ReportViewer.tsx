@@ -2,9 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   FileText,
-  Lightbulb,
-  Microscope,
-  Layers,
   AlertTriangle,
   Users,
   Globe,
@@ -30,6 +27,7 @@ import {
   getSectionByKinds,
   getSectionItemsByKinds,
   orderArtifactSections,
+  stripLegacyWorkspacePrefix,
 } from '../../../domain';
 import { Breadcrumbs } from '../../ui/Breadcrumbs';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -42,6 +40,7 @@ import { getEntityToneClass } from '../../../utils/entityPalette';
 
 interface ReportViewerProps {
   report: Artifact | null;
+  workspaceTitle?: string | null;
   navStack: BreadcrumbItem[];
   onNavigate: (id: string) => void;
   onNotify: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
@@ -49,13 +48,13 @@ interface ReportViewerProps {
   onStartNewCase: () => void;
   onTitleSave: (newTitle: string) => void;
   onReportBodySave: (body: string, sectionId?: string) => Promise<void>;
-  onDeepDive: (followUp: FollowUp) => void;
-  onBatchDeepDive: (followUps: FollowUp[]) => void;
+  onLeadOpen: (followUp: FollowUp) => void;
   onEntityClick: (entity: Entity) => void;
 }
 
 export const ReportViewer: React.FC<ReportViewerProps> = ({
   report,
+  workspaceTitle,
   navStack,
   onNavigate,
   onNotify,
@@ -63,24 +62,25 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   onStartNewCase,
   onTitleSave,
   onReportBodySave,
-  onDeepDive,
-  onBatchDeepDive,
+  onLeadOpen,
   onEntityClick,
 }) => {
+  const DETAIL_SECTION_SCROLL_CLASS =
+    'max-h-[min(24rem,calc(100svh-20rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+
   // --- Right Column Accordions State ---
   const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(true);
-  const [sidebarAccordions, setSidebarAccordions] = useState({
-    anomalies: true,
-    followUps: true,
-    entities: true,
-    resources: true,
-  });
+  const [openSidebarSection, setOpenSidebarSection] = useState<
+    'anomalies' | 'followUps' | 'entities' | 'resources' | null
+  >('anomalies');
   const [isEditingReportBody, setIsEditingReportBody] = useState(false);
   const [reportBodyDraft, setReportBodyDraft] = useState('');
   const [isSavingReportBody, setIsSavingReportBody] = useState(false);
 
-  const toggleSidebarAccordion = (section: keyof typeof sidebarAccordions) => {
-    setSidebarAccordions((prev) => ({ ...prev, [section]: !prev[section] }));
+  const toggleSidebarAccordion = (
+    section: 'anomalies' | 'followUps' | 'entities' | 'resources'
+  ) => {
+    setOpenSidebarSection((current) => (current === section ? null : section));
   };
 
   // --- Audio State ---
@@ -108,41 +108,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       audioContextRef.current = null;
     }
     setIsPlaying(false);
-  };
-
-  const handlePlayBriefing = async () => {
-    if (isPlaying) {
-      stopAudio();
-      return;
-    }
-    if (!report?.summary) return;
-
-    setIsAudioLoading(true);
-    try {
-      const base64Audio = await generateAudioBriefing(report.summary);
-      const WebkitAudioContext =
-        window.AudioContext ||
-        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!WebkitAudioContext) {
-        onNotify('Audio playback is not supported in this browser.', 'INFO');
-        return;
-      }
-      const ctx = new WebkitAudioContext({ sampleRate: 24000 });
-      audioContextRef.current = ctx;
-      const audioBuffer = await decodeAudioData(decodeBase64(base64Audio), ctx);
-      const source = ctx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(ctx.destination);
-      source.onended = () => setIsPlaying(false);
-      source.start();
-      sourceNodeRef.current = source;
-      setIsPlaying(true);
-    } catch (e) {
-      console.error('Audio playback failed', e);
-      onNotify('Failed to generate audio briefing.', 'ERROR');
-    } finally {
-      setIsAudioLoading(false);
-    }
   };
 
   // --- Markdown Configuration ---
@@ -221,37 +186,23 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     return null;
   };
 
-  // --- RENDER ---
-  if (showPlaceholder || !report) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-black relative">
-        <EmptyState
-          icon={FileText}
-          title="No Workspace Selected"
-          description="Select a saved workspace from the toolbar above or start a new run to begin."
-          action={{
-            label: 'Start New Run',
-            onClick: onStartNewCase,
-          }}
-          panelClassName="max-w-xl"
-        />
-      </div>
-    );
-  }
-
-  const reportSources = report.sources || [];
-  const labelProfile = getLabelProfileById(report.labelProfileId || report.config?.labelProfileId);
-  const purposeProfile = getPurposeProfileById(report.purposeId || report.config?.purposeId);
-  const orderedSections = orderArtifactSections(report.sections, purposeProfile);
+  const reportSources = report?.sources || [];
+  const labelProfile = getLabelProfileById(report?.labelProfileId || report?.config?.labelProfileId);
+  const purposeProfile = getPurposeProfileById(report?.purposeId || report?.config?.purposeId);
+  const detailPanelTitle = workspaceTitle?.trim()
+    ? stripLegacyWorkspacePrefix(workspaceTitle)
+    : navStack.find((item) => item.type === 'CASE')?.label || labelProfile.workspaceLabel;
+  const orderedSections = orderArtifactSections(report?.sections, purposeProfile);
   const primarySummarySection = getSectionByKinds(orderedSections, [
     'EXECUTIVE_SUMMARY',
     'KEY_FINDINGS',
   ]);
   const methodologySection = getSectionByKinds(orderedSections, ['METHODOLOGY']);
-  const visibleReportBody = primarySummarySection?.content || report.summary;
+  const visibleReportBody = primarySummarySection?.content || report?.summary || '';
   const editableReportSectionId =
     primarySummarySection?.kind === 'EXECUTIVE_SUMMARY' ? primarySummarySection.id : undefined;
   const visibleFollowUps = (() => {
+    if (!report) return [];
     const canonical = getArtifactFollowUps(report);
     if (canonical.length > 0) return canonical;
 
@@ -264,10 +215,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     }));
   })();
   const visibleAnomalies =
-    report.agendas.length > 0
+    report?.agendas && report.agendas.length > 0
       ? report.agendas
       : getSectionItemsByKinds(orderedSections, ['ANOMALIES', 'KEY_FINDINGS']);
-  const visibleEvidence = (report.evidence || []).filter(
+  const visibleEvidence = (report?.evidence || []).filter(
     (entry) => entry.summary.trim().length > 0
   );
   const hiddenSectionKinds = new Set(
@@ -325,9 +276,62 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     setIsEditingReportBody(false);
   };
 
+  const handlePlayBriefing = async () => {
+    if (isPlaying) {
+      stopAudio();
+      return;
+    }
+    if (!visibleReportBody.trim()) return;
+
+    setIsAudioLoading(true);
+    try {
+      const base64Audio = await generateAudioBriefing(visibleReportBody);
+      const WebkitAudioContext =
+        window.AudioContext ||
+        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!WebkitAudioContext) {
+        onNotify('Audio playback is not supported in this browser.', 'INFO');
+        return;
+      }
+      const ctx = new WebkitAudioContext({ sampleRate: 24000 });
+      audioContextRef.current = ctx;
+      const audioBuffer = await decodeAudioData(decodeBase64(base64Audio), ctx);
+      const source = ctx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(ctx.destination);
+      source.onended = () => setIsPlaying(false);
+      source.start();
+      sourceNodeRef.current = source;
+      setIsPlaying(true);
+    } catch (error) {
+      console.error('Audio playback failed', error);
+      onNotify('Failed to generate audio briefing.', 'ERROR');
+    } finally {
+      setIsAudioLoading(false);
+    }
+  };
+
+  // --- RENDER ---
+  if (showPlaceholder || !report) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-black relative">
+        <EmptyState
+          icon={FileText}
+          title="No Workspace Selected"
+          description="Select a saved workspace from the toolbar above or start a new run to begin."
+          action={{
+            label: 'Start New Run',
+            onClick: onStartNewCase,
+          }}
+          panelClassName="max-w-xl"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex overflow-hidden bg-black relative animate-in fade-in duration-500">
-      {/* MAIN COLUMN (Title, Exec Summary, Leads) - 3/4 Width */}
+      {/* MAIN COLUMN (Title + Report Body) - 3/4 Width */}
       <div className={mainColumnClassName}>
         {/* Sticky Header */}
         <div className="sticky top-0 z-20 px-6 py-4 bg-black/90 backdrop-blur-md border-b border-zinc-800 osint-header-shadow">
@@ -339,16 +343,16 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   LOG DATE: {report.dateStr}
                 </p>
               )}
-              <button
-                onClick={() => setIsDetailSidebarOpen((current) => !current)}
-                className={`flex items-center justify-center p-2 transition-colors ${
-                  isDetailSidebarOpen ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'
-                }`}
-                title="Toggle Report Sidebar"
-                aria-label="Toggle Report Sidebar"
-              >
-                <PanelRight className="w-4 h-4" />
-              </button>
+              {!isDetailSidebarOpen ? (
+                <button
+                  onClick={() => setIsDetailSidebarOpen(true)}
+                  className="text-zinc-500 hover:text-white transition-colors flex-shrink-0"
+                  title="Expand Report Details"
+                  aria-label="Expand Report Details"
+                >
+                  <PanelRight className="w-4 h-4" />
+                </button>
+              ) : null}
             </div>
           </div>
           <div className="min-w-0">
@@ -362,7 +366,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         </div>
 
         <div className="p-6">
-          {/* Executive Summary */}
+          {/* Report Body */}
           <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 osint-section-shadow relative overflow-hidden group mb-8">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
             <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
@@ -514,176 +518,196 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
       {/* RIGHT SIDE COLUMN (Anomalies, Entities, Resources) - 1/4 Width */}
       {isDetailSidebarOpen && (
-        <div className="w-1/4 h-full overflow-y-auto p-2 bg-zinc-900/10 custom-scrollbar">
-          {/* Anomalies */}
-          <Accordion
-            title={`${labelProfile.anomalyLabel} (${visibleAnomalies.length})`}
-            icon={AlertTriangle}
-            isOpen={sidebarAccordions.anomalies}
-            onToggle={() => toggleSidebarAccordion('anomalies')}
-            className="mb-2"
-            headerClassName="text-osint-primary"
-          >
-            <div className="space-y-2">
-              {visibleAnomalies.length === 0 ? (
-                <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
-              ) : (
-                visibleAnomalies.map((agenda, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-zinc-900/80 p-3 border-l-2 border-osint-primary text-xs text-zinc-300"
-                  >
-                    <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
-                  </div>
-                ))
-              )}
+        <div className="flex h-full w-1/4 flex-col overflow-hidden bg-black/95">
+          <div className="flex items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4 flex-shrink-0">
+            <div className="min-w-0 pr-3">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 font-mono">
+                {labelProfile.workspaceLabel} DETAILS
+              </div>
+              <h3
+                className="text-base font-bold text-white font-mono leading-tight truncate"
+                title={detailPanelTitle}
+              >
+                {detailPanelTitle}
+              </h3>
             </div>
-          </Accordion>
+            <button
+              onClick={() => setIsDetailSidebarOpen(false)}
+              className="mr-2 text-zinc-500 hover:text-white transition-colors flex-shrink-0"
+              title="Collapse Report Details"
+              aria-label="Collapse Report Details"
+            >
+              <PanelRight className="w-5 h-5" />
+            </button>
+          </div>
 
-          <Accordion
-            title={`${labelProfile.followUpLabel} (${visibleFollowUps.length})`}
-            icon={Target}
-            isOpen={sidebarAccordions.followUps}
-            onToggle={() => toggleSidebarAccordion('followUps')}
-            className="mb-2"
-            headerClassName="text-osint-primary"
-          >
-            <div className="space-y-2">
-              {visibleFollowUps.length === 0 ? (
-                <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
-                  {`No ${labelProfile.followUpLabel.toLowerCase()} extracted for this artifact.`}
-                </p>
-              ) : (
-                <>
-                  <button
-                    onClick={() => onBatchDeepDive(visibleFollowUps)}
-                    className="osint-button-primary mb-2 flex w-full items-center justify-center py-2 text-[10px] font-bold uppercase"
-                  >
-                    <Layers className="mr-2 h-3 w-3" />
-                    Full Spectrum
-                  </button>
-                  {visibleFollowUps.map((followUp) => (
+          <div className="flex-1 overflow-y-auto p-2 bg-zinc-900/10 custom-scrollbar">
+            {/* Anomalies */}
+            <Accordion
+              title={`${labelProfile.anomalyLabel} (${visibleAnomalies.length})`}
+              icon={AlertTriangle}
+              isOpen={openSidebarSection === 'anomalies'}
+              onToggle={() => toggleSidebarAccordion('anomalies')}
+              className="mb-2"
+              headerClassName="text-osint-primary"
+              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+            >
+              <div className="space-y-2">
+                {visibleAnomalies.length === 0 ? (
+                  <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
+                ) : (
+                  visibleAnomalies.map((agenda, idx) => (
                     <div
-                      key={followUp.id}
-                      className="border border-zinc-800 bg-zinc-900/60 p-3"
-                    >
-                      <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                        {followUp.kind.replace(/_/g, ' ')}
-                      </div>
-                      <div className="mb-3 text-xs leading-relaxed text-zinc-300 prose prose-invert max-w-none prose-p:my-0">
-                        <ReactMarkdown components={markdownComponents}>
-                          {getFollowUpText(followUp)}
-                        </ReactMarkdown>
-                      </div>
-                      <button
-                        onClick={() => onDeepDive(followUp)}
-                        className="osint-button-primary flex w-full items-center justify-center py-2 text-[10px] font-bold uppercase"
-                      >
-                        <Microscope className="mr-2 h-3 w-3" />
-                        Launch Investigation
-                      </button>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </Accordion>
-
-          {/* Entities List */}
-          <Accordion
-            title={`Entities (${(report.entities || []).length})`}
-            icon={Users}
-            isOpen={sidebarAccordions.entities}
-            onToggle={() => toggleSidebarAccordion('entities')}
-            className="mb-2"
-          >
-            <div className="space-y-1">
-              {(report.entities || []).length === 0 ? (
-                <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
-                  No entities detected.
-                </p>
-              ) : (
-                (report.entities || []).map((e, idx) => {
-                  const name = typeof e === 'string' ? e : e.name;
-                  const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
-                  return (
-                    <button
                       key={idx}
-                      onClick={() =>
-                        onEntityClick(typeof e === 'string' ? { name, type: 'UNKNOWN' } : e)
-                      }
-                      className="w-full text-left p-2 bg-zinc-900/50 hover:bg-zinc-800 border border-transparent hover:border-osint-primary transition-all rounded flex items-center group"
+                      className="bg-zinc-900/80 p-3 border-l-2 border-osint-primary text-xs text-zinc-300"
                     >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${getEntityToneClass(type)} entity-tone-dot`}
-                      ></div>
-                      <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white truncate">
-                        {name}
-                      </span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </Accordion>
-
-          {/* Resources */}
-          <Accordion
-            title={`Provenance (${reportSources.length + visibleEvidence.length})`}
-            icon={Globe}
-            isOpen={sidebarAccordions.resources}
-            onToggle={() => toggleSidebarAccordion('resources')}
-            className="mb-2"
-          >
-            <div className="space-y-1">
-              {report.provenance?.warnings?.length ? (
-                <div className="mb-2 space-y-2">
-                  {report.provenance.warnings.map((warning, index) => (
-                    <div
-                      key={`${warning}-${index}`}
-                      className="flex gap-2 border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-2 text-[10px] font-mono"
-                    >
-                      <ShieldAlert className="mt-0.5 h-3 w-3 flex-shrink-0 osint-danger-text" />
-                      <span className="osint-danger-text">{warning}</span>
+                      <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
                     </div>
-                  ))}
-                </div>
-              ) : null}
-              {report.provenance?.search?.webSearchRequests ? (
-                <div className="px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">
-                  Web search calls: {report.provenance.search.webSearchRequests}
-                </div>
-              ) : null}
-              {visibleEvidence.slice(0, 4).map((evidence) => (
-                <div key={evidence.id} className="border border-zinc-800 bg-zinc-900/70 p-2">
-                  <div className="text-[10px] font-mono uppercase text-zinc-500">
-                    {evidence.kind}
-                  </div>
-                  <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
-                </div>
-              ))}
-              {reportSources.length === 0 ? (
-                visibleEvidence.length === 0 ? (
-                  <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
-                    No sources captured for this report.
+                  ))
+                )}
+              </div>
+            </Accordion>
+
+            <Accordion
+              title={`${labelProfile.followUpLabel} (${visibleFollowUps.length})`}
+              icon={Target}
+              isOpen={openSidebarSection === 'followUps'}
+              onToggle={() => toggleSidebarAccordion('followUps')}
+              className="mb-2"
+              headerClassName="text-osint-primary"
+              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+            >
+              <div className="space-y-2">
+                {visibleFollowUps.length === 0 ? (
+                  <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+                    {`No ${labelProfile.followUpLabel.toLowerCase()} extracted for this artifact.`}
                   </p>
-                ) : null
-              ) : (
-                reportSources.map((source, idx) => (
-                  <a
-                    key={idx}
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0"
-                  >
-                    <Link2 className="w-3 h-3 inline mr-1" />
-                    {source.title}
-                  </a>
-                ))
-              )}
-            </div>
-          </Accordion>
+                ) : (
+                  <>
+                    {visibleFollowUps.map((followUp) => (
+                      <div
+                        key={followUp.id}
+                        className="border border-zinc-800 bg-zinc-900/60 p-3"
+                      >
+                        <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                          {followUp.kind.replace(/_/g, ' ')}
+                        </div>
+                        <div className="mb-3 text-xs leading-relaxed text-zinc-300 prose prose-invert max-w-none prose-p:my-0">
+                          <ReactMarkdown components={markdownComponents}>
+                            {getFollowUpText(followUp)}
+                          </ReactMarkdown>
+                        </div>
+                        <button
+                          onClick={() => onLeadOpen(followUp)}
+                          className="osint-button-primary w-full py-1 text-[10px] font-bold uppercase"
+                        >
+                          Open
+                        </button>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            </Accordion>
+
+            {/* Entities List */}
+            <Accordion
+              title={`Entities (${(report.entities || []).length})`}
+              icon={Users}
+              isOpen={openSidebarSection === 'entities'}
+              onToggle={() => toggleSidebarAccordion('entities')}
+              className="mb-2"
+              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+            >
+              <div className="space-y-1">
+                {(report.entities || []).length === 0 ? (
+                  <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
+                    No entities detected.
+                  </p>
+                ) : (
+                  (report.entities || []).map((e, idx) => {
+                    const name = typeof e === 'string' ? e : e.name;
+                    const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() =>
+                          onEntityClick(typeof e === 'string' ? { name, type: 'UNKNOWN' } : e)
+                        }
+                        className="w-full text-left p-2 bg-zinc-900/50 hover:bg-zinc-800 border border-transparent hover:border-osint-primary transition-all rounded flex items-center group"
+                      >
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${getEntityToneClass(type)} entity-tone-dot`}
+                        ></div>
+                        <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white truncate">
+                          {name}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </Accordion>
+
+            {/* Resources */}
+            <Accordion
+              title={`Provenance (${reportSources.length + visibleEvidence.length})`}
+              icon={Globe}
+              isOpen={openSidebarSection === 'resources'}
+              onToggle={() => toggleSidebarAccordion('resources')}
+              className="mb-2"
+              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+            >
+              <div className="space-y-1">
+                {report.provenance?.warnings?.length ? (
+                  <div className="mb-2 space-y-2">
+                    {report.provenance.warnings.map((warning, index) => (
+                      <div
+                        key={`${warning}-${index}`}
+                        className="flex gap-2 border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-2 text-[10px] font-mono"
+                      >
+                        <ShieldAlert className="mt-0.5 h-3 w-3 flex-shrink-0 osint-danger-text" />
+                        <span className="osint-danger-text">{warning}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {report.provenance?.search?.webSearchRequests ? (
+                  <div className="px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">
+                    Web search calls: {report.provenance.search.webSearchRequests}
+                  </div>
+                ) : null}
+                {visibleEvidence.slice(0, 4).map((evidence) => (
+                  <div key={evidence.id} className="border border-zinc-800 bg-zinc-900/70 p-2">
+                    <div className="text-[10px] font-mono uppercase text-zinc-500">
+                      {evidence.kind}
+                    </div>
+                    <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
+                  </div>
+                ))}
+                {reportSources.length === 0 ? (
+                  visibleEvidence.length === 0 ? (
+                    <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
+                      No sources captured for this report.
+                    </p>
+                  ) : null
+                ) : (
+                  reportSources.map((source, idx) => (
+                    <a
+                      key={idx}
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0"
+                    >
+                      <Link2 className="w-3 h-3 inline mr-1" />
+                      {source.title}
+                    </a>
+                  ))
+                )}
+              </div>
+            </Accordion>
+          </div>
         </div>
       )}
     </div>
