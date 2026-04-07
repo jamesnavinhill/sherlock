@@ -69,6 +69,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     handlePlaceEntityOnBoard,
     handlePlaceHeadlineOnBoard,
     handlePlaceReportOnBoard,
+    handleReportBodySave,
     handleSaveTemplate,
     handleTitleSave,
     headlines,
@@ -224,6 +225,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
           showPlaceholder={showPlaceholder}
           onStartNewCase={() => setIsNewCaseModalOpen(true)}
           onTitleSave={handleTitleSave}
+          onReportBodySave={handleReportBodySave}
           onDeepDive={(followUp) => {
             if (report) {
               onDeepDive({

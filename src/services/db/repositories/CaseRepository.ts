@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { and, eq, desc } from 'drizzle-orm';
 import {
   getDB,
   runWriteTransaction,
@@ -589,6 +589,47 @@ export class CaseRepository {
       .update(reports)
       .set({ topic: normalizeTopicText(topic) })
       .where(eq(reports.id, reportId));
+  }
+
+  static async updateReportSummary(reportId: string, summary: string): Promise<void> {
+    const db = getDB();
+    await db
+      .update(reports)
+      .set({
+        summary: normalizeHumanText(summary, {
+          includePriority: false,
+          fallback: 'Analysis pending...',
+        }),
+      })
+      .where(eq(reports.id, reportId));
+  }
+
+  static async updateReportSection(
+    reportId: string,
+    sectionId: string,
+    patch: Partial<Pick<ArtifactSection, 'title' | 'content' | 'items' | 'order'>>
+  ): Promise<void> {
+    const db = getDB();
+    const reportRows = await db
+      .select({ caseId: reports.caseId })
+      .from(reports)
+      .where(eq(reports.id, reportId));
+
+    await db
+      .update(artifactSections)
+      .set({
+        title: typeof patch.title === 'string' ? patch.title : undefined,
+        content: typeof patch.content === 'string' ? patch.content : undefined,
+        itemsJson:
+          patch.items !== undefined ? serializeStoredJsonOrNull(patch.items) : undefined,
+        sortOrder: typeof patch.order === 'number' ? patch.order : undefined,
+      })
+      .where(and(eq(artifactSections.reportId, reportId), eq(artifactSections.id, sectionId)));
+
+    const caseId = reportRows[0]?.caseId;
+    if (caseId) {
+      await db.update(cases).set({ updatedAt: Date.now() }).where(eq(cases.id, caseId));
+    }
   }
 
   static async appendSectionToReport(reportId: string, section: ArtifactSection): Promise<void> {

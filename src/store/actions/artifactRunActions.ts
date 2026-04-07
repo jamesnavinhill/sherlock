@@ -15,6 +15,9 @@ export const createArtifactRunActions = ({
 }: WorkspaceStoreApi): Pick<
   WorkspaceState,
   | 'appendSectionToReport'
+  | 'updateArtifactSummary'
+  | 'updateReportSummary'
+  | 'updateArtifactSection'
   | 'addWorkspaceRun'
   | 'addTask'
   | 'completeWorkspaceRun'
@@ -40,6 +43,30 @@ export const createArtifactRunActions = ({
               sections: [...(artifact.sections || []), section],
             }
           : artifact
+      ),
+    }));
+  },
+  updateArtifactSummary: async (artifactId, summary) => {
+    await CaseRepository.updateReportSummary(artifactId, summary);
+    set((state) => ({
+      artifacts: state.artifacts.map((artifact) =>
+        artifact.id === artifactId ? { ...artifact, summary } : artifact
+      ),
+    }));
+  },
+  updateReportSummary: async (reportId, summary) => get().updateArtifactSummary(reportId, summary),
+  updateArtifactSection: async (artifactId, sectionId, patch) => {
+    await CaseRepository.updateReportSection(artifactId, sectionId, patch);
+    set((state) => ({
+      artifacts: state.artifacts.map((artifact) =>
+        artifact.id !== artifactId
+          ? artifact
+          : {
+              ...artifact,
+              sections: (artifact.sections || []).map((section) =>
+                section.id === sectionId ? { ...section, ...patch } : section
+              ),
+            }
       ),
     }));
   },

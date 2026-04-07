@@ -294,7 +294,11 @@ export const buildArtifactSections = (options: {
       if (section) augmentedSections.push(section);
     }
 
-    if (!existingKinds.has('NEXT_STEPS') && (followUpTexts.length || options.leads?.length)) {
+    if (
+      !existingKinds.has('NEXT_STEPS') &&
+      !existingKinds.has('LEADS') &&
+      (followUpTexts.length || options.leads?.length)
+    ) {
       const section = createSection('NEXT_STEPS', augmentedSections.length, {
         items: followUpTexts.length ? followUpTexts : options.leads,
       });

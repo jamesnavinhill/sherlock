@@ -257,6 +257,13 @@ export interface WorkspaceState {
     >
   ) => Promise<void>;
   appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
+  updateArtifactSummary: (artifactId: string, summary: string) => Promise<void>;
+  updateReportSummary: (reportId: string, summary: string) => Promise<void>;
+  updateArtifactSection: (
+    artifactId: string,
+    sectionId: string,
+    patch: Partial<Pick<ArtifactSection, 'title' | 'content' | 'items' | 'order'>>
+  ) => Promise<void>;
   completeWorkspaceRun: (id: string, artifact: Artifact) => Promise<void>;
   completeTask: (id: string, report: Artifact) => Promise<void>;
   failTask: (id: string, error: string) => Promise<void>;

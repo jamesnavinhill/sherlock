@@ -197,6 +197,8 @@ export const selectOperationFeatureState = (state: WorkspaceState) => ({
   headlines: state.headlines,
   addToast: state.addToast,
   addTemplate: state.addTemplate,
+  updateArtifactSection: state.updateArtifactSection,
+  updateReportSummary: state.updateReportSummary,
   updateReportTitle: state.updateReportTitle,
   renameEntityAcrossReports: state.renameEntityAcrossReports,
   activeWorkspaceId: state.activeWorkspaceId,

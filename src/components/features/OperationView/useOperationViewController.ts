@@ -82,7 +82,9 @@ export function useOperationViewController({
     headlines: allHeadlines,
     addToast,
     addTemplate,
+    updateArtifactSection,
     updateReportTitle,
+    updateReportSummary,
     renameEntityAcrossReports,
     activeWorkspaceId: selectedCaseId,
     setActiveWorkspaceId,
@@ -364,6 +366,18 @@ export function useOperationViewController({
     if (report.id) onNavigate(report.id);
   };
 
+  const handleReportBodySave = async (summary: string, sectionId?: string) => {
+    if (!report?.id) return;
+
+    await updateReportSummary(report.id, summary);
+    if (sectionId) {
+      await updateArtifactSection(report.id, sectionId, {
+        content: summary,
+      });
+    }
+    addToast('Report updated.', 'SUCCESS');
+  };
+
   const handleEntityNameSave = async (newName: string) => {
     if (!selectedEntity) return;
     const oldName = selectedEntity.name;
@@ -416,6 +430,7 @@ export function useOperationViewController({
     handlePlaceEntityOnBoard,
     handlePlaceHeadlineOnBoard,
     handlePlaceReportOnBoard,
+    handleReportBodySave,
     handleSaveTemplate,
     handleTitleSave,
     headlines,

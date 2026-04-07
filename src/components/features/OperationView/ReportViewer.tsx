@@ -15,6 +15,9 @@ import {
   Link2,
   PanelRight,
   ShieldAlert,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react';
 import type { ComponentProps, ReactElement } from 'react';
 import type { Artifact, Entity, FollowUp } from '../../../types';
@@ -45,6 +48,7 @@ interface ReportViewerProps {
   showPlaceholder: boolean;
   onStartNewCase: () => void;
   onTitleSave: (newTitle: string) => void;
+  onReportBodySave: (body: string, sectionId?: string) => Promise<void>;
   onDeepDive: (followUp: FollowUp) => void;
   onBatchDeepDive: (followUps: FollowUp[]) => void;
   onEntityClick: (entity: Entity) => void;
@@ -58,6 +62,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   showPlaceholder,
   onStartNewCase,
   onTitleSave,
+  onReportBodySave,
   onDeepDive,
   onBatchDeepDive,
   onEntityClick,
@@ -66,9 +71,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(true);
   const [sidebarAccordions, setSidebarAccordions] = useState({
     anomalies: true,
+    followUps: true,
     entities: true,
     resources: true,
   });
+  const [isEditingReportBody, setIsEditingReportBody] = useState(false);
+  const [reportBodyDraft, setReportBodyDraft] = useState('');
+  const [isSavingReportBody, setIsSavingReportBody] = useState(false);
 
   const toggleSidebarAccordion = (section: keyof typeof sidebarAccordions) => {
     setSidebarAccordions((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -239,7 +248,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     'KEY_FINDINGS',
   ]);
   const methodologySection = getSectionByKinds(orderedSections, ['METHODOLOGY']);
-  const visibleSummary = primarySummarySection?.content || report.summary;
+  const visibleReportBody = primarySummarySection?.content || report.summary;
+  const editableReportSectionId =
+    primarySummarySection?.kind === 'EXECUTIVE_SUMMARY' ? primarySummarySection.id : undefined;
   const visibleFollowUps = (() => {
     const canonical = getArtifactFollowUps(report);
     if (canonical.length > 0) return canonical;
@@ -261,12 +272,13 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   );
   const hiddenSectionKinds = new Set(
     [
-      primarySummarySection?.kind,
-      'ANOMALIES',
-      'LEADS',
-      methodologySection?.kind,
-      visibleEvidence.length > 0 ? 'EVIDENCE' : null,
-    ].filter(Boolean)
+        primarySummarySection?.kind,
+        'ANOMALIES',
+        'LEADS',
+        'NEXT_STEPS',
+        methodologySection?.kind,
+        visibleEvidence.length > 0 ? 'EVIDENCE' : null,
+      ].filter(Boolean)
   );
   const supplementalSections = orderedSections.filter(
     (section) =>
@@ -277,6 +289,41 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const mainColumnClassName = isDetailSidebarOpen
     ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
     : 'flex-1 h-full overflow-y-auto custom-scrollbar';
+
+  useEffect(() => {
+    if (!isEditingReportBody) {
+      setReportBodyDraft(visibleReportBody);
+    }
+  }, [isEditingReportBody, visibleReportBody]);
+
+  const handleSaveReportBody = async () => {
+    const trimmed = reportBodyDraft.trim();
+    if (!trimmed) {
+      onNotify('Report text cannot be empty.', 'INFO');
+      return;
+    }
+
+    if (trimmed === visibleReportBody.trim()) {
+      setIsEditingReportBody(false);
+      return;
+    }
+
+    setIsSavingReportBody(true);
+    try {
+      await onReportBodySave(trimmed, editableReportSectionId);
+      setIsEditingReportBody(false);
+    } catch (error) {
+      console.error('Failed to save report body', error);
+      onNotify('Failed to update report text.', 'ERROR');
+    } finally {
+      setIsSavingReportBody(false);
+    }
+  };
+
+  const handleCancelReportBodyEdit = () => {
+    setReportBodyDraft(visibleReportBody);
+    setIsEditingReportBody(false);
+  };
 
   return (
     <div className="flex-1 flex overflow-hidden bg-black relative animate-in fade-in duration-500">
@@ -320,32 +367,70 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
             <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
               <h2 className="font-osint-display text-xl font-bold text-white flex items-center tracking-wide">
-                <FileText className="w-5 h-5 mr-3 text-osint-primary" />{' '}
-                {getArtifactSectionTitle(
-                  primarySummarySection?.kind || 'EXECUTIVE_SUMMARY',
-                  labelProfile,
-                  primarySummarySection?.title
-                ).toUpperCase()}
+                <FileText className="w-5 h-5 mr-3 text-osint-primary" /> REPORT
               </h2>
-              <button
-                onClick={handlePlayBriefing}
-                disabled={isAudioLoading}
-                className={`flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase transition-all border ${isPlaying ? 'osint-button-danger animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}
-                aria-label={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
-              >
-                {isAudioLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : isPlaying ? (
-                  <StopCircle className="w-4 h-4 mr-2" />
+              <div className="flex items-center gap-2">
+                {isEditingReportBody ? (
+                  <>
+                    <button
+                      onClick={handleSaveReportBody}
+                      disabled={isSavingReportBody}
+                      className="inline-flex items-center border border-green-500/40 bg-green-500/10 px-3 py-1.5 text-xs font-mono font-bold uppercase text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isSavingReportBody ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="mr-2 h-4 w-4" />
+                      )}
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelReportBodyEdit}
+                      disabled={isSavingReportBody}
+                      className="inline-flex items-center border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-mono font-bold uppercase text-zinc-400 transition-colors hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </button>
+                  </>
                 ) : (
-                  <Volume2 className="w-4 h-4 mr-2" />
+                  <button
+                    onClick={() => setIsEditingReportBody(true)}
+                    className="inline-flex items-center border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-mono font-bold uppercase text-zinc-400 transition-colors hover:border-white hover:text-white"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </button>
                 )}
-                {isAudioLoading ? 'Synth...' : isPlaying ? 'Stop' : 'Voice'}
-              </button>
+                <button
+                  onClick={handlePlayBriefing}
+                  disabled={isAudioLoading}
+                  className={`flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase transition-all border ${isPlaying ? 'osint-button-danger animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}
+                  aria-label={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
+                >
+                  {isAudioLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : isPlaying ? (
+                    <StopCircle className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Volume2 className="w-4 h-4 mr-2" />
+                  )}
+                  {isAudioLoading ? 'Synth...' : isPlaying ? 'Stop' : 'Voice'}
+                </button>
+              </div>
             </div>
-            <div className="text-zinc-300 leading-relaxed font-sans text-base relative z-10 prose prose-invert max-w-none">
-              <ReactMarkdown components={markdownComponents}>{visibleSummary}</ReactMarkdown>
-            </div>
+            {isEditingReportBody ? (
+              <textarea
+                value={reportBodyDraft}
+                onChange={(event) => setReportBodyDraft(event.target.value)}
+                className="relative z-10 min-h-[18rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 font-sans text-base leading-relaxed text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+                spellCheck={false}
+              />
+            ) : (
+              <div className="text-zinc-300 leading-relaxed font-sans text-base relative z-10 prose prose-invert max-w-none">
+                <ReactMarkdown components={markdownComponents}>{visibleReportBody}</ReactMarkdown>
+              </div>
+            )}
           </div>
 
           {methodologySection?.content && (
@@ -424,59 +509,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             </div>
           )}
 
-          {/* Leads */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-700 pb-2 mb-4 bg-black/30 p-2">
-              <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
-                <Target className="w-4 h-4 mr-2 text-osint-primary" /> {labelProfile.followUpLabel}
-              </h2>
-              {visibleFollowUps.length > 0 && (
-                <button
-                  onClick={() => onBatchDeepDive(visibleFollowUps)}
-                  className="osint-button-primary flex items-center text-xs font-mono font-bold px-3 py-1.5 uppercase"
-                  aria-label={`Investigate all ${labelProfile.followUpLabel.toLowerCase()}`}
-                >
-                  <Layers className="w-4 h-4 mr-2" /> Full Spectrum
-                </button>
-              )}
-            </div>
-            {visibleFollowUps.length === 0 ? (
-              <div className="p-4 border border-zinc-800 bg-zinc-900/30 text-[11px] font-mono text-zinc-500 italic">
-                {`No ${labelProfile.followUpLabel.toLowerCase()} were extracted for this artifact.`}
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-4">
-                {visibleFollowUps.map((followUp, idx) => (
-                  <div
-                    key={followUp.id}
-                    className="bg-osint-surface/80 backdrop-blur-sm border border-zinc-700/60 p-5 hover:border-osint-primary/50 transition-colors relative group flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="absolute top-4 right-4 text-zinc-800 font-mono text-4xl font-bold opacity-50 group-hover:text-zinc-700">
-                        {String(idx + 1).padStart(2, '0')}
-                      </div>
-                      <Lightbulb className="w-6 h-6 text-osint-primary mb-3 opacity-80" />
-                      <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                        {followUp.kind.replace(/_/g, ' ')}
-                      </div>
-                      <div className="text-zinc-300 font-medium text-sm leading-relaxed pr-6 prose prose-invert max-w-none prose-p:my-0 mb-4">
-                        <ReactMarkdown components={markdownComponents}>
-                          {getFollowUpText(followUp)}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => onDeepDive(followUp)}
-                      className="osint-button-primary mt-2 w-full flex items-center justify-center py-3 text-xs font-mono font-bold uppercase tracking-wider"
-                      aria-label={`Deep dive into follow up ${idx + 1}`}
-                    >
-                      <Microscope className="w-3 h-3 mr-2" /> DEEP DIVE
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -504,6 +536,55 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                     <ReactMarkdown components={markdownComponents}>{agenda}</ReactMarkdown>
                   </div>
                 ))
+              )}
+            </div>
+          </Accordion>
+
+          <Accordion
+            title={`${labelProfile.followUpLabel} (${visibleFollowUps.length})`}
+            icon={Target}
+            isOpen={sidebarAccordions.followUps}
+            onToggle={() => toggleSidebarAccordion('followUps')}
+            className="mb-2"
+            headerClassName="text-osint-primary"
+          >
+            <div className="space-y-2">
+              {visibleFollowUps.length === 0 ? (
+                <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+                  {`No ${labelProfile.followUpLabel.toLowerCase()} extracted for this artifact.`}
+                </p>
+              ) : (
+                <>
+                  <button
+                    onClick={() => onBatchDeepDive(visibleFollowUps)}
+                    className="osint-button-primary mb-2 flex w-full items-center justify-center py-2 text-[10px] font-bold uppercase"
+                  >
+                    <Layers className="mr-2 h-3 w-3" />
+                    Full Spectrum
+                  </button>
+                  {visibleFollowUps.map((followUp) => (
+                    <div
+                      key={followUp.id}
+                      className="border border-zinc-800 bg-zinc-900/60 p-3"
+                    >
+                      <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                        {followUp.kind.replace(/_/g, ' ')}
+                      </div>
+                      <div className="mb-3 text-xs leading-relaxed text-zinc-300 prose prose-invert max-w-none prose-p:my-0">
+                        <ReactMarkdown components={markdownComponents}>
+                          {getFollowUpText(followUp)}
+                        </ReactMarkdown>
+                      </div>
+                      <button
+                        onClick={() => onDeepDive(followUp)}
+                        className="osint-button-primary flex w-full items-center justify-center py-2 text-[10px] font-bold uppercase"
+                      >
+                        <Microscope className="mr-2 h-3 w-3" />
+                        Launch Investigation
+                      </button>
+                    </div>
+                  ))}
+                </>
               )}
             </div>
           </Accordion>
