@@ -73,7 +73,7 @@ This plan is complete only when all active workstreams below have:
    - `npm run build` for shipped app/runtime/UI changes
 4. moved any unfinished scope into a new dated plan rather than leaving "follow-up" debt inside this document
 
-The full suite `npm run test` should run when a slice becomes cross-cutting enough that targeted coverage would be misleading.
+The full suite `npm run test` should only be run at the end of the plan, it currently can take over 30 minutes to complete. Run targeted tests for session validation. 
 
 ## Delivery Model
 
@@ -280,7 +280,7 @@ Required additions:
 
 ### Why This Comes Before Workspace Home
 
-The omnibox gives Sherlock a synthesis/navigation layer immediately, and its result/action contracts become direct inputs to a later workspace dashboard.
+The omnibox gives Sherlock a synthesis/navigation layer immediately, and its result/action contracts become direct inputs to a later workspace dashboard. * Well be able to test it out on the worksace board - ideally i can search for items and add them to the canvas. 
 
 ### Parallelization
 
@@ -562,9 +562,9 @@ These should land after `4A` freezes the system contract.
 
 - `Runtime`: prefer natural vertical stacking over forced layout
 - `Theme`: default light/dark surface system to the detected active theme
-- `Theme`: put accent and font controls in the same top-level page section
+- `Theme`: put accent and font controls in the same top-level page sections horizontal stack
 - `Font`: group selectors separately from the preview specimen
-- `Surface workbench`: make "more/less chroma" and "more/less separation" pair logically; use subtle active outlines in preview instead of text labels
+- `Surface workbench`: make "more/less chroma" and "more/less separation" buttons pair logically with "match hue" on its own row; use subtle active outlines in preview instead of text labels
 
 #### Discovery And Live Monitor
 
