@@ -44,9 +44,9 @@ export const BoardCanvasPane: React.FC<BoardCanvasPaneProps> = ({
   onEditorMount,
 }) => {
   return (
-    <main className="relative flex-1 overflow-hidden bg-osint-dark">
+    <main className="relative z-0 flex-1 overflow-hidden bg-osint-dark">
       <div
-        className="sherlock-board-canvas absolute inset-0"
+        className="sherlock-board-canvas absolute inset-0 z-0"
         onDragOver={(event) => event.preventDefault()}
         onDrop={onCanvasDrop}
       >

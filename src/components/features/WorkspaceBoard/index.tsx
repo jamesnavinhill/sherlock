@@ -119,7 +119,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
+    <div className="workspace-board-page flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100 isolate">
       <BoardTopBar
         activeBoard={activeBoard}
         activeWorkspaceId={activeWorkspace.id}
@@ -150,7 +150,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
       />
 
-      <div className="relative flex flex-1 overflow-hidden">
+      <div className="relative z-0 flex flex-1 overflow-hidden">
         {leftPanelOpen || rightPanelOpen ? (
           <div
             className="absolute inset-0 z-20 bg-black/80 xl:hidden"

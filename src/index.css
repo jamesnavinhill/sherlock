@@ -672,6 +672,22 @@ body,
     linear-gradient(180deg, color-mix(in oklab, var(--osint-panel) 20%, transparent), transparent 30%);
 }
 
+.workspace-board-page .sherlock-board-canvas .tl-container {
+  /*
+   * Keep board-local canvas chrome beneath the workspace header and side rails.
+   * This fixes header dropdowns being covered by tldraw menus without raising
+   * global select layers high enough to bleed over app-wide modals.
+   */
+  --layer-panels: 10;
+  --layer-menu-click-capture: 11;
+  --layer-header-footer: 12;
+  --layer-menus: 13;
+  --layer-focused-input: 14;
+  --layer-toasts: 15;
+  --layer-cursor: 16;
+  --layer-following-indicator: 17;
+}
+
 .sherlock-board-canvas .tl-background {
   background-color: transparent;
 }
