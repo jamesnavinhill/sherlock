@@ -537,7 +537,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               title="Collapse Report Details"
               aria-label="Collapse Report Details"
             >
-              <PanelRight className="w-5 h-5" />
+              <PanelRight className="w-4 h-4" />
             </button>
           </div>
 
