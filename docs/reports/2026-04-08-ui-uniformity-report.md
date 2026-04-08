@@ -97,6 +97,7 @@ These decisions are in scope for this roadmap and should be treated as the defau
 - Key findings should be treated as their own canonical report category.
 - The main report should include a dedicated `Key Findings` section near the top of the document body.
 - Key findings should remain available in the details rail as well, but the rail is secondary to the document.
+- Key findings should be planned as first-class structured records, not just presentation-only section text.
 - Follow-up questions should use one shared layout pattern.
 - Entities should use a mixed pattern:
   - two-column library-style layout
@@ -152,29 +153,30 @@ Key findings and anomalies are currently much less structured as independent pro
 
 Implication:
 
-- this roadmap should immediately surface key findings as a dedicated top-level report section in the main document body and in the details rail
-- this roadmap should not silently treat key findings as first-class board or timeline objects without an explicit product decision
-- if we later decide key findings need first-class promotion, pinning, retrieval, or persistence behavior, that should land as a named follow-on data-contract stream and update `docs/operations/DATA_PERSISTENCE.md`
+- this is a real product gap, not just a viewer-layout issue
+- the roadmap should close that gap by making key findings first-class structured records instead of leaving them as presentation-derived content
+- implementation should update `docs/operations/DATA_PERSISTENCE.md` and `docs/operations/ARCHITECTURE.md` when the contract lands
 
-### Recommended product assumption for this pass
+### Accepted product decision for this roadmap
 
-For this roadmap, treat key findings as a canonical report category first, not automatic workspace-item records.
+For this roadmap, key findings should become first-class structured records.
 
 That means:
 
 - give them their own explicit `Key Findings` section in the report reader
 - keep them visible in the details rail
-- leave room for explicit promote or pin actions later if needed
-- avoid inventing hidden ingestion rules for Board, Timeline, or Chat until the product contract is deliberate
+- define a canonical finding shape in active types and normalization code
+- make them available to downstream product surfaces such as Board, Chat, Timeline, and workspace-level discovery flows through explicit rules
+- avoid a stopgap presentation-only implementation that would need to be redone immediately after
 
-### Recommended longer-term direction
+### Product intent for first-class key findings
 
-If key findings continue to be central to how operators read and act on reports, they should eventually become structured artifact-level records rather than only section text or agenda-style presentation inputs.
+Key findings are important enough to deserve the same seriousness as other reusable workspace intelligence.
 
-That future contract would let Sherlock:
+This contract should let Sherlock:
 
 - render a stronger `Key Findings` section in the report without brittle presentation heuristics
-- support deliberate pin or promote actions into Board, Chat, or Timeline
+- support deliberate use in Board, Chat, Timeline, and workspace discovery surfaces
 - distinguish key findings from follow-up questions and from evidence rows cleanly
 - keep report reading, retrieval, and action flows aligned around the same meaningful unit
 
@@ -197,6 +199,49 @@ That future contract would let Sherlock:
 
 6. Motion is not a feature stream.
    Reduce inconsistency; do not add visual flourish.
+
+7. First-class findings must be truly first-class.
+   Do not ship a version where findings have a dedicated UI but still piggyback on `agendas`, generic `SECTION` snippets, or ad hoc metadata without a canonical contract.
+
+## Codebase Reality And Implementation Constraints
+
+The roadmap is viable against the current codebase, but the first-class findings work needs to respect a few real implementation seams.
+
+### Existing strengths we can build on
+
+- `ArtifactSectionKind` already includes `KEY_FINDINGS`.
+- `buildArtifactSections()` in `src/domain/artifacts.ts` already has a dormant `findings?: string[]` input.
+- the report viewer and section-ordering logic already understand `KEY_FINDINGS`
+- workspace search already indexes artifact sections, so findings stored as sections can become discoverable snippets immediately
+- evidence, follow-ups, entities, and artifact sections already have established normalization and persistence patterns we can mirror
+
+### Current gaps that make findings non-first-class today
+
+- `Artifact` in `src/types/index.ts` has no canonical `keyFindings` field
+- `StructuredArtifactPayload` in `src/services/providers/types.ts` has no `keyFindings`
+- prompt instructions in `src/services/providers/shared/prompts.ts` do not request a dedicated `keyFindings` array
+- structured provider schemas such as the Gemini schema do not define `keyFindings`
+- persistence in `src/services/db/schema.ts` has tables for follow-ups, sections, evidence, entities, and sources, but nothing dedicated to findings
+- workspace library entries, board references, chat mention kinds, and chat attachment kinds have closed enums that do not include findings
+- workspace handoff helpers only know how to route artifact, entity, signal, source, and workspace-item references
+- timeline types do not currently have a finding-specific track or event type
+
+### Consequence for the implementation plan
+
+Because these enums and contracts are closed, first-class findings are not a one-file enhancement.
+
+The work has to cut through:
+
+- active types
+- provider output contract
+- domain shaping
+- repository read and write behavior
+- workspace discovery and search
+- chat mentions and attachments
+- board reference and placement types
+- timeline modeling
+
+That is still the right plan. It just means the roadmap should sequence the work as a real cross-system stream rather than a report-viewer enhancement.
 
 ## Stream 1. Canonical Rail Shell Contract
 
@@ -241,13 +286,18 @@ Purpose:
 
 - turn the main report into a readable document
 - align the report details rail with the rest of the panel language
-- surface key findings as a real report category without overcommitting yet to a cross-workspace persistence model
+- surface key findings as a real report category backed by the new first-class finding contract
 
 Primary targets:
 
 - `src/components/features/OperationView/ArtifactViewer.tsx`
 - `src/components/features/OperationView/artifactViewerPresentation.ts`
 - `src/components/features/OperationView/ArtifactViewer.test.tsx`
+
+Dependency note:
+
+- Final viewer wiring for `Key Findings` should land after the canonical findings contract from Stream 2A is in place.
+- Temporary viewer-only shaping should be avoided.
 
 Execution checklist:
 
@@ -267,38 +317,250 @@ Exit criteria:
 - key findings are visible as a distinct report section in the main document and in the details rail
 - follow-ups, entities, and provenance feel like one family instead of three different local patterns
 
-## Stream 2A. Key Findings Data Contract Decision
+## Stream 2A. Key Findings First-Class Implementation
 
 Purpose:
 
-- explicitly decide whether key findings remain report-only or become first-class structured records
-- avoid leaving a major product concept half-visual and half-implicit
+- implement key findings as first-class structured records end to end
+- avoid redundant viewer-only work that would need to be replaced immediately after
+- use the existing artifact, workspace, board, chat, and timeline systems rather than inventing a temporary halfway layer
 
 Primary targets:
 
-- artifact presentation and shaping modules under `src/components/features/OperationView/*`
-- artifact domain and provider normalization contracts where key-finding structure would need to be introduced
-- persistence and downstream consumers only if this stream is intentionally activated
+- `src/types/*`
+- artifact domain and provider normalization contracts
+- persistence and repository layers for the dedicated finding storage shape
+- workspace library and discovery flows
+- chat launch and retrieval context shaping
+- timeline derivation
+- board placement and inspector flows
+- artifact presentation modules under `src/components/features/OperationView/*`
+
+Recommended sequencing:
+
+1. contract and types
+2. provider payload and normalization
+3. persistence and repository hydration
+4. workspace discovery and handoff integration
+5. report viewer and panel rendering
+6. board, chat, and timeline integration
+7. docs and focused regression coverage
+
+Detailed workstreams:
+
+### Workstream A. Canonical Finding Contract
+
+Goal:
+
+- define one finding shape that the rest of the system can share
+
+Primary files:
+
+- `src/types/index.ts`
+- `src/domain/artifacts.ts`
+- any artifact helper modules that derive or reconcile sections and summary fields
+
+Tasks:
+
+1. Add a canonical `KeyFinding` type with stable ids and structured fields.
+2. Decide the minimum required fields:
+   - `id`
+   - `artifactId` or origin reference
+   - `title`
+   - `summary` or body
+   - optional evidence refs
+   - optional source refs
+   - optional tags or tone metadata
+   - sort order
+3. Add `keyFindings` to `Artifact`.
+4. Define how `keyFindings` and `KEY_FINDINGS` sections relate:
+   - `keyFindings` is the source of truth
+   - `KEY_FINDINGS` section becomes a presentation of that source
+5. Define whether legacy `agendas` remains anomaly-only after this stream or continues as a fallback bridge during migration.
+
+Acceptance criteria:
+
+- there is one source-of-truth finding shape
+- report rendering no longer has to infer findings from anomaly-oriented fields
+
+### Workstream B. Provider Output And Normalization
+
+Goal:
+
+- make findings part of the active AI output contract instead of a viewer-side reconstruction
+
+Primary files:
+
+- `src/services/providers/types.ts`
+- `src/services/providers/shared/prompts.ts`
+- `src/services/providers/shared/artifactContract.ts`
+- provider-specific schema implementations such as `src/services/providers/geminiProvider.ts`
+- provider contract tests
+
+Tasks:
+
+1. Add `keyFindings` to `StructuredArtifactPayload`.
+2. Update the structured JSON prompt contract to request dedicated findings separately from anomalies and follow-ups.
+3. Update provider-specific structured schemas so findings are accepted and validated.
+4. Normalize `keyFindings` alongside `entities`, `followUps`, `evidence`, and `sections`.
+5. Update adapter and contract tests so findings are no longer implicit in `agendas` or section-only output.
+
+Acceptance criteria:
+
+- provider output can produce dedicated findings directly
+- normalization produces canonical structured findings even when provider section output varies
+
+### Workstream C. Persistence And Repository Hydration
+
+Goal:
+
+- make findings survive save/load cycles without collapsing back into generic section items
+
+Primary files:
+
+- `src/services/db/schema.ts`
+- `src/services/db/migrations.ts`
+- `src/services/db/migrations_sql.ts`
+- `src/services/db/repositories/WorkspaceRepository.ts`
+- repository tests
+
+Tasks:
+
+1. Choose the persistence model:
+   - dedicated findings table
+   - or structured JSON persisted as artifact subrecords
+2. Prefer a dedicated table if findings need stable ids, refs, ordering, and cross-surface retrieval hooks.
+3. Persist findings with origin artifact linkage and any evidence/source refs needed for downstream use.
+4. Rehydrate findings as first-class records when loading artifacts.
+5. Keep `KEY_FINDINGS` report section generation in sync with persisted findings.
+6. Add migrations and repository tests for create, load, update, and fallback behavior.
+
+Acceptance criteria:
+
+- saving and reloading an artifact preserves findings as findings
+- viewer code is not the place where findings become structured
+
+### Workstream D. Workspace Discovery, Search, And Mentions
+
+Goal:
+
+- let findings participate in workspace discovery as real records rather than only generic section snippets
+
+Primary files:
+
+- `src/services/workspace/library.ts`
+- `src/services/db/repositories/WorkspaceSearchRepository.ts`
+- `src/components/ui/omniboxMentions.ts`
+- `src/services/chat/mentions.ts`
+- any search-result or mention rendering helpers
+
+Tasks:
+
+1. Decide whether findings appear as library entries, mention candidates, or both.
+2. Extend the relevant enums and result builders if findings should be directly addressable.
+3. Index finding title and body separately from generic section content in workspace search.
+4. Ensure finding search results preserve origin artifact linkage and section context.
+5. If mentionable, add findings to omnibox mention candidates and mention-to-context mapping.
+
+Acceptance criteria:
+
+- findings are discoverable through explicit finding-aware paths
+- search and mentions no longer treat them as anonymous section text
+
+### Workstream E. Board, Chat, And Timeline Integration
+
+Goal:
+
+- make findings genuinely reusable across the product surfaces that matter most
+
+Primary files:
+
+- `src/services/workspace/workspaceHandoffs.ts`
+- `src/services/workspace/boardShapes.ts`
+- `src/components/features/WorkspaceBoard/*`
+- `src/services/chat/launchContext.ts`
+- `src/services/chat/runtime.ts`
+- `src/components/features/Chat/*`
+- `src/components/features/Timeline/*`
+- any affected types for attachment kinds, mention kinds, ref kinds, tracks, or event types
+
+Tasks:
+
+1. Decide whether findings get their own canonical ref kind or travel as artifact-linked child refs.
+2. Extend board placement and rendering if findings can be placed directly.
+3. Extend chat attachment or context-snippet typing if findings can be pinned directly.
+4. Extend launch-context behavior if a chat can start from a finding rather than only an artifact, entity, signal, or workspace item.
+5. Decide timeline treatment:
+   - finding-specific events
+   - or artifact events enriched with finding summaries and drill-ins
+6. Keep provenance back to the origin artifact and any supporting evidence explicit.
+
+Acceptance criteria:
+
+- Board, Chat, and Timeline all consume findings through the same contract
+- findings do not become three different pseudo-objects depending on surface
+
+### Workstream F. Report Viewer, Panels, And Editing
+
+Goal:
+
+- make the viewer consume the new contract cleanly instead of deriving findings locally
+
+Primary files:
+
+- `src/components/features/OperationView/ArtifactViewer.tsx`
+- `src/components/features/OperationView/artifactViewerPresentation.ts`
+- related tests
+
+Tasks:
+
+1. Render the main `Key Findings` section from canonical finding records.
+2. Render the details-rail findings list from the same source.
+3. Preserve the dedicated top-of-report placement and panel-level quick scanning.
+4. Decide whether findings are directly editable in the viewer and how that maps back to persistence.
+5. Keep evidence jumps and inline source links coherent with the new finding structure.
+
+Acceptance criteria:
+
+- viewer logic reads from the finding contract rather than reconstructing it
+- the document view and details rail stay in parity
 
 Execution checklist:
 
-1. Decide whether `Key Findings` remains a report-only structured section for now, or becomes a true artifact-level structured collection.
-2. If report-only for now:
-   - keep the dedicated main-report `Key Findings` section
-   - keep details-rail duplication
-   - do not add implicit Board, Timeline, or Chat ingestion
-3. If promoted to a first-class structured collection:
-   - define canonical finding shape
-   - define how findings are generated and normalized from provider output
-   - define whether findings are persisted separately or as structured artifact subrecords
-   - define how findings appear in Chat context, Timeline, Board, and any workspace library flows
-   - document the persistence contract in `docs/operations/DATA_PERSISTENCE.md`
-4. Do not leave this as an accidental side effect of viewer refactoring.
+1. Define a canonical `KeyFinding` shape and naming contract in active types and domain helpers.
+2. Define how key findings are generated and normalized from provider output and report sections.
+3. Decide the persistence shape:
+   - structured artifact subrecords
+   - or separate persisted finding records linked to artifacts
+4. Make key findings render as a dedicated report section and details-rail section from the same structured source.
+5. Define how key findings appear in workspace discovery flows such as library, mentions, or pinned context, where appropriate.
+6. Define Board behavior for findings:
+   - whether they can be placed directly
+   - what the displayed card shape is
+   - what provenance and back-links they carry
+7. Define Timeline behavior for findings:
+   - whether they create finding-focused events
+   - or whether they enrich artifact events and drill-in context
+8. Define Chat behavior for findings:
+   - whether they can be pinned directly
+   - how they appear in launch context and retrieval summaries
+9. Update `docs/operations/DATA_PERSISTENCE.md` and `docs/operations/ARCHITECTURE.md` when the contract lands.
+10. Do not implement a temporary viewer-only approximation in parallel.
+
+Testing expectations:
+
+- provider contract tests for parsing and normalization
+- repository tests for persistence and hydration
+- workspace search tests for finding retrieval
+- mention and launch-context tests if findings become addressable in chat
+- board handoff or placement tests if findings become placeable
+- artifact viewer tests proving the report and rail both read from canonical findings
 
 Exit criteria:
 
-- the roadmap makes an explicit product call on key findings
-- implementation teams know whether they are only improving report presentation or also building a new workspace-level object
+- key findings have one canonical structured contract
+- report, details rail, Board, Chat, Timeline, and workspace discovery flows all read from that contract where relevant
+- implementation teams are not doing redundant temporary work for a viewer-only version
 
 ## Stream 3. Actionable Nested Item Pattern Across Board, Chat, Sessions, And Signals
 
@@ -400,18 +662,121 @@ This roadmap is complete when:
 - top-level panel expansion behavior is pinned, clean, and single-open by default
 - Artifact viewer reads like a document rather than a dashboard of small summaries
 - key findings are meaningfully surfaced in both the main report and the report details rail
-- the product decision on whether key findings are report-only or first-class is explicit rather than implied
+- key findings are implemented as a first-class structured concept rather than a presentation-only section
 - follow-ups, entities, provenance, sessions, and other actionable rows use consistent item anatomy
 - Board library remains rich where it should, but no longer feels structurally off-contract
 - motion, popups, and modals feel intentionally restrained and uniform
 
-## Recommended Follow-On If Key Findings Need To Become First-Class Later
+## Tradeoff We Are Accepting
 
-If later product work decides that key findings should be independently pinnable, searchable, or promotable into Board, Timeline, or Chat retrieval, handle that as a separate named stream with:
+This roadmap deliberately chooses the larger, cleaner implementation over a smaller presentation-only shortcut.
 
-- explicit structured finding records
-- clear promotion and retrieval rules
-- explicit Timeline and Board behavior
-- documentation updates in `docs/operations/DATA_PERSISTENCE.md` and `docs/operations/ARCHITECTURE.md`
+That means:
 
-That should be an intentional product expansion, not an incidental side effect of the UI cleanup.
+- more up-front scope now
+- clearer reusable behavior later
+- less redundant refactoring
+- lower risk of the report reader, Board, Chat, and Timeline drifting into incompatible interpretations of what a key finding is
+
+## Additional Structured-But-Underused Data To Track
+
+While reviewing the active codebase for first-class findings, a few other data shapes stood out as being persisted or carried structurally, but not yet fully utilized across the product.
+
+These are not in the same priority tier as `Key Findings`, but they should stay visible as likely follow-on candidates.
+
+### 1. Follow-up link metadata is stronger than the current UI suggests
+
+Follow-ups already persist richer structure than the product currently exposes:
+
+- `entityRefs`
+- `sourceRefs`
+- `originSectionId`
+- `sourceSignalId`
+- `resolvedByArtifactId`
+- follow-up-level `metadata`
+
+Current reality:
+
+- `sourceSignalId` and `resolvedByArtifactId` have meaningful lineage usage today
+- `entityRefs`, `sourceRefs`, and most follow-up metadata appear to be stored more faithfully than they are consumed
+
+Potential follow-on value:
+
+- entity-linked follow-up drill-ins
+- source-aware follow-up queues
+- richer follow-up resolution and provenance UI
+- better Board and Chat context for follow-up actions
+
+### 2. Evidence metadata is preserved but lightly exploited
+
+Artifact evidence already has a good first-class shell:
+
+- stable ids
+- kind
+- section linkage
+- source title and URL
+- tags
+- generic `metadata`
+
+Current reality:
+
+- the product meaningfully uses evidence title, summary, source attribution, and section linkage
+- generic evidence metadata is mostly preserved rather than actively driving UI or workflow behavior
+
+Potential follow-on value:
+
+- richer evidence filtering
+- stronger citation grouping and claim support views
+- better Board or Chat evidence pinning with typed metadata
+
+### 3. Provenance metadata is only partially surfaced
+
+Artifact provenance already stores more than the current UI consistently uses:
+
+- warnings
+- citations
+- request id
+- usage
+- search metadata
+- provenance metadata such as grounded versus inferred claim counts
+
+Current reality:
+
+- warnings and web-search count are surfaced in the viewer
+- grounded versus inferred counts are used in the viewer summary logic
+- request ids, usage details, and search-config specifics are mostly stored rather than operationalized in product flows
+
+Potential follow-on value:
+
+- stronger auditability and run-inspection UX
+- better debugging of provider behavior and search configuration
+- more explicit operator trust signals around evidence quality and search posture
+
+### 4. Artifact metadata contains useful snapshot context, but much of it is not a product primitive
+
+Artifact metadata currently carries fields such as:
+
+- `packName`
+- `purposeName`
+- `workspaceMode`
+- warnings and provider-side extras
+
+Current reality:
+
+- some of this is lightly consumed
+- much of it behaves more like preserved run snapshot context than a first-class reusable product object
+
+Recommendation:
+
+- do not automatically promote generic artifact metadata into product features
+- prefer promoting specific fields into typed contracts when a clear workflow depends on them
+
+### Prioritization note
+
+After `Key Findings`, the most promising structured follow-on candidates appear to be:
+
+1. richer follow-up linkage via `entityRefs` and `sourceRefs`
+2. typed evidence metadata usage
+3. more deliberate provenance inspection and audit surfaces
+
+These should be treated as explicit future streams if they become product priorities, not as incidental spillover during the findings implementation.

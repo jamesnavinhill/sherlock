@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { Artifact, WorkspaceRun } from '../../../types';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+const flushMicrotasks = async () => {
+  await act(async () => {
+    await Promise.resolve();
+  });
+};
 
 vi.mock('./Toolbar', () => ({
   Toolbar: ({ onOpenChat }: { onOpenChat?: () => void }) => (
@@ -221,7 +226,7 @@ describe('OperationView launch propagation', () => {
     });
   });
 
-  it('propagates report lead launches through the modal flow with inherited report config', () => {
+  it('propagates report lead launches through the modal flow with inherited report config', async () => {
     const onDeepDive = vi.fn();
 
     render(
@@ -238,6 +243,8 @@ describe('OperationView launch propagation', () => {
         />
       </MemoryRouter>
     );
+
+    await flushMicrotasks();
 
     fireEvent.click(screen.getByTestId('report-open-lead'));
     fireEvent.click(screen.getByTestId('operation-modal-start'));
@@ -264,7 +271,7 @@ describe('OperationView launch propagation', () => {
     );
   });
 
-  it('propagates headline investigate launches from inspector', () => {
+  it('propagates headline investigate launches from inspector', async () => {
     const onInvestigateHeadline = vi.fn();
 
     render(
@@ -282,7 +289,10 @@ describe('OperationView launch propagation', () => {
       </MemoryRouter>
     );
 
+    await flushMicrotasks();
+
     fireEvent.click(screen.getByTestId('select-headline'));
+    await flushMicrotasks();
     fireEvent.click(screen.getByTestId('inspect-headline'));
 
     expect(onInvestigateHeadline).toHaveBeenCalledTimes(1);
@@ -295,7 +305,7 @@ describe('OperationView launch propagation', () => {
     );
   });
 
-  it('propagates entity investigate launches through lead modal overrides', () => {
+  it('propagates entity investigate launches through lead modal overrides', async () => {
     const onDeepDive = vi.fn();
 
     render(
@@ -312,6 +322,8 @@ describe('OperationView launch propagation', () => {
         />
       </MemoryRouter>
     );
+
+    await flushMicrotasks();
 
     fireEvent.click(screen.getByTestId('inspect-entity'));
     fireEvent.click(screen.getByTestId('operation-modal-start'));
@@ -332,7 +344,7 @@ describe('OperationView launch propagation', () => {
     );
   });
 
-  it('propagates report and inspector chat launches with grounding context', () => {
+  it('propagates report and inspector chat launches with grounding context', async () => {
     const onOpenChat = vi.fn();
 
     render(
@@ -350,8 +362,11 @@ describe('OperationView launch propagation', () => {
       </MemoryRouter>
     );
 
+    await flushMicrotasks();
+
     fireEvent.click(screen.getByTestId('operation-open-chat'));
     fireEvent.click(screen.getByTestId('select-headline'));
+    await flushMicrotasks();
     fireEvent.click(screen.getByTestId('inspect-headline-chat'));
     fireEvent.click(screen.getByTestId('inspect-entity-chat'));
 
@@ -378,9 +393,10 @@ describe('OperationView launch propagation', () => {
       3,
       expect.objectContaining({
         workspaceId: 'case-1',
-        launchContext: {
+        launchContext: expect.objectContaining({
           entityName: 'Atlas Holdings',
-        },
+          sourceArtifactId: 'report-1',
+        }),
       })
     );
   });

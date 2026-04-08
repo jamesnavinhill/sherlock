@@ -1,21 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type {
   Artifact,
   ChatOpenRequest,
   WorkspaceTemplate,
-  Entity,
   FollowUp,
-  Headline,
   InvestigationLaunchRequest,
   InvestigationRunConfig,
   InvestigationScope,
   SystemConfig,
+  Workspace,
   WorkspaceRun,
 } from '@/types';
 import { useOperationFeatureState } from '@/store/selectors/operationSelectors';
-import { buildWorkspaceBoardDocumentPath, type ArtifactRouteState } from '@/app/routes';
+import type { ArtifactRouteState } from '@/app/routes';
 import {
   getWorkspaceDisplayTitle,
   getFollowUpText,
@@ -24,21 +23,11 @@ import {
   stripLegacyWorkspacePrefix,
 } from '@/domain';
 import {
-  buildWorkspaceArtifactReference,
-  buildWorkspaceEntityReference,
-  buildWorkspaceHeadlineReference,
-} from '@/services/workspace/library';
-import {
-  buildArtifactChatOpenRequest,
-  buildEntityChatOpenRequest,
-  buildSignalChatOpenRequest,
-  queueWorkspaceReferenceOnBoard,
-} from '@/services/workspace/workspaceHandoffs';
-import {
   resolveRuntimeScope,
   toRuntimeConfigOverride,
 } from '@/components/features/Runs/runtimeConfigMapping';
 import { buildOperationWorkspacePanelData } from './operationWorkspacePanelData';
+import { useOperationViewInspectorState } from './useOperationViewInspectorState';
 
 interface OperationViewControllerOptions {
   artifactRouteState?: ArtifactRouteState;
@@ -60,9 +49,7 @@ export function useOperationViewController({
   task,
 }: OperationViewControllerOptions) {
   const navigate = useNavigate();
-  const lastAppliedArtifactFocusKeyRef = useRef<string | null>(null);
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     caseInfo: false,
     reports: false,
@@ -72,11 +59,6 @@ export function useOperationViewController({
     sources: false,
     headlines: false,
   });
-  const [inspectorMode, setInspectorMode] = useState<'ENTITY' | 'HEADLINE' | 'REPORT' | null>(
-    null
-  );
-  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
-  const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
   const [leadToAnalyze, setLeadToAnalyze] = useState<{
     text: string;
     sourceFollowUpId?: string;
@@ -132,50 +114,8 @@ export function useOperationViewController({
     }
   }, [allCases, effectiveCaseId, selectedCaseId]);
 
-  useEffect(() => {
-    if (!report) return;
-
-    const focusKey = [
-      report.id || report.topic,
-      artifactRouteState?.inspector || '',
-      artifactRouteState?.focusSectionId || '',
-      artifactRouteState?.focusEvidenceId || '',
-    ].join(':');
-
-    const shouldOpenReportInspector =
-      artifactRouteState?.inspector === 'REPORT' ||
-      !!artifactRouteState?.focusSectionId ||
-      !!artifactRouteState?.focusEvidenceId;
-
-    if (shouldOpenReportInspector && lastAppliedArtifactFocusKeyRef.current !== focusKey) {
-      lastAppliedArtifactFocusKeyRef.current = focusKey;
-      queueMicrotask(() => {
-        setSelectedEntity(null);
-        setSelectedHeadline(null);
-        setInspectorMode('REPORT');
-        setRightPanelOpen(true);
-        if (window.innerWidth <= 1024) {
-          setLeftPanelOpen(false);
-        }
-      });
-      return;
-    }
-
-    if (!inspectorMode) {
-      queueMicrotask(() => {
-        setInspectorMode('REPORT');
-      });
-    }
-  }, [
-    artifactRouteState?.focusEvidenceId,
-    artifactRouteState?.focusSectionId,
-    artifactRouteState?.inspector,
-    inspectorMode,
-    report,
-  ]);
-
   const activeCase = useMemo(
-    () => allCases.find((c) => c.id === effectiveCaseId) || null,
+    () => (allCases.find((c) => c.id === effectiveCaseId) || null) as Workspace | null,
     [allCases, effectiveCaseId]
   );
 
@@ -260,26 +200,6 @@ export function useOperationViewController({
     [activeCase, allCaseReports]
   );
 
-  const handleEntityClick = (entity: Entity) => {
-    setSelectedHeadline(null);
-    setSelectedEntity(entity);
-    setInspectorMode('ENTITY');
-    setRightPanelOpen(true);
-    if (window.innerWidth <= 1024) {
-      setLeftPanelOpen(false);
-    }
-  };
-
-  const handleHeadlineClick = (headline: Headline) => {
-    setSelectedEntity(null);
-    setSelectedHeadline(headline);
-    setInspectorMode('HEADLINE');
-    setRightPanelOpen(true);
-    if (window.innerWidth <= 1024) {
-      setLeftPanelOpen(false);
-    }
-  };
-
   const handleLeadClick = (lead: string | FollowUp) => {
     const parentContext = report
       ? { topic: report.topic, summary: report.summary }
@@ -301,122 +221,44 @@ export function useOperationViewController({
     });
   };
 
-  const handleHeadlineInvestigate = () => {
-    if (!selectedHeadline || !onInvestigateHeadline) return;
-
-    onInvestigateHeadline({
-      topic: selectedHeadline.content,
-      parentContext: activeCase
-        ? { topic: activeCase.title, summary: activeCase.description || '' }
-        : undefined,
-      configOverride: toConfigOverride(report?.config),
-      scope: resolveScope(report?.config?.scopeId),
-      dateRangeOverride: report?.config?.dateRangeOverride,
-      launchSource: 'OPERATION_HEADLINE',
-      sourceSignalId: selectedHeadline.id,
-      parentArtifactId: report?.id,
-    });
-    setRightPanelOpen(false);
-  };
-
-  const handleOpenReportChat = () => {
-    if (report) {
-      const request = buildArtifactChatOpenRequest(report);
-      if (request) {
-        onOpenChat(request);
-        return;
+  const {
+    handleEntityClick,
+    handleHeadlineClick,
+    handleHeadlineInvestigate,
+    handleInvestigateEntity,
+    handleOpenEntityChat,
+    handleOpenHeadlineChat,
+    handleOpenReportChat,
+    handleOpenReportInspector,
+    handleOpenWorkspaceBoard,
+    handlePlaceEntityOnBoard,
+    handlePlaceHeadlineOnBoard,
+    handlePlaceReportOnBoard,
+    inspectorMode,
+    rightPanelOpen,
+    selectedEntity,
+    selectedHeadline,
+    setRightPanelOpen,
+    setSelectedEntity,
+  } = useOperationViewInspectorState({
+    activeWorkspace: activeCase,
+    artifactRouteState,
+    closeLeftPanelForMobile: () => {
+      if (window.innerWidth <= 1024) {
+        setLeftPanelOpen(false);
       }
-    }
-
-    const workspaceId = effectiveCaseId || report?.workspaceId;
-    if (!workspaceId) return;
-    onOpenChat({ workspaceId });
-  };
-
-  const handleOpenReportInspector = () => {
-    if (!report) return;
-    setSelectedEntity(null);
-    setSelectedHeadline(null);
-    setInspectorMode('REPORT');
-    setRightPanelOpen(true);
-    if (window.innerWidth <= 1024) {
-      setLeftPanelOpen(false);
-    }
-  };
-
-  const handleOpenWorkspaceBoard = async () => {
-    const workspaceId = effectiveCaseId || report?.workspaceId;
-    if (!workspaceId) return;
-
-    const board = await ensureWorkspaceBoard(workspaceId);
-    navigate(buildWorkspaceBoardDocumentPath(workspaceId, board.id));
-  };
-
-  const handlePlaceReferenceOnBoard = async (
-    reference:
-      | ReturnType<typeof buildWorkspaceArtifactReference>
-      | ReturnType<typeof buildWorkspaceEntityReference>
-      | ReturnType<typeof buildWorkspaceHeadlineReference>
-  ) => {
-    await queueWorkspaceReferenceOnBoard({
-      ensureWorkspaceBoard,
-      navigate,
-      queueBoardPlacement,
-      reference,
-      workspaceId: reference.workspaceId,
-    });
-  };
-
-  const handlePlaceReportOnBoard = async () => {
-    const workspaceId = effectiveCaseId || report?.workspaceId;
-    if (!workspaceId || !report?.id) return;
-
-    await handlePlaceReferenceOnBoard(
-      buildWorkspaceArtifactReference(workspaceId, { ...report, id: report.id })
-    );
-  };
-
-  const handleOpenEntityChat = (entityName: string) => {
-    const request = buildEntityChatOpenRequest({
-      entityName,
-      relatedArtifactId: report?.id,
-      workspaceId: effectiveCaseId || report?.workspaceId,
-    });
-    if (!request) return;
-    onOpenChat(request);
-    setRightPanelOpen(false);
-  };
-
-  const handlePlaceEntityOnBoard = async (entityName: string) => {
-    const workspaceId = effectiveCaseId || report?.workspaceId;
-    if (!workspaceId) return;
-
-    const entity =
-      selectedEntity && selectedEntity.name === entityName
-        ? selectedEntity
-        : ({ name: entityName, type: 'UNKNOWN' } satisfies Entity);
-
-    await handlePlaceReferenceOnBoard(buildWorkspaceEntityReference(workspaceId, entity));
-    setRightPanelOpen(false);
-  };
-
-  const handleOpenHeadlineChat = () => {
-    if (!selectedHeadline) return;
-    const request = buildSignalChatOpenRequest(selectedHeadline);
-    if (!request) return;
-    onOpenChat(request);
-    setRightPanelOpen(false);
-  };
-
-  const handlePlaceHeadlineOnBoard = async () => {
-    const workspaceId = effectiveCaseId || selectedHeadline?.workspaceId || report?.workspaceId;
-    if (!workspaceId || !selectedHeadline) return;
-
-    await handlePlaceReferenceOnBoard(
-      buildWorkspaceHeadlineReference(workspaceId, selectedHeadline)
-    );
-    setRightPanelOpen(false);
-  };
+    },
+    effectiveWorkspaceId: effectiveCaseId,
+    ensureWorkspaceBoard,
+    navigate,
+    onInvestigateHeadline,
+    onInvestigateEntity: (entityName) => handleLeadClick(entityName),
+    onOpenChat,
+    queueBoardPlacement,
+    report,
+    resolveScope,
+    toConfigOverride,
+  });
 
   const handleTitleSave = async (newTitle: string) => {
     if (!report) return;
@@ -453,11 +295,6 @@ export function useOperationViewController({
 
   const handleFlagEntity = (entityName: string) => {
     toggleFlag(entityName);
-  };
-
-  const handleInvestigateEntity = (entityName: string) => {
-    setRightPanelOpen(false);
-    handleLeadClick(entityName);
   };
 
   const isTaskRunning = task && (status === 'RUNNING' || status === 'QUEUED');
