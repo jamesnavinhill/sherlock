@@ -617,6 +617,15 @@ body,
   color: var(--osint-text-action);
 }
 
+:root[data-theme='light'] .osint-filter-option:hover,
+:root[data-theme='light'] .osint-filter-option:focus-visible {
+  background-color: color-mix(in oklab, var(--osint-panel) 74%, var(--osint-surface) 26%);
+}
+
+:root[data-theme='light'] .osint-filter-option[data-active='true'] {
+  background-color: color-mix(in oklab, var(--osint-panel) 62%, var(--osint-surface) 38%);
+}
+
 .osint-button-danger {
   background-color: var(--osint-danger-soft-bg);
   color: var(--color-osint-danger);
