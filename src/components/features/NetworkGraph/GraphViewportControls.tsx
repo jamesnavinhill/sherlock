@@ -1,8 +1,6 @@
 import React from 'react';
 import { Box, Eye, EyeOff, Lock, Star, Unlock, ZoomIn, ZoomOut } from 'lucide-react';
 
-import { getChromeSegmentButtonClass } from '@/components/ui/chrome';
-
 interface GraphViewportControlsProps {
   isLocked: boolean;
   onToggleHiddenNodes: () => void;
@@ -14,6 +12,13 @@ interface GraphViewportControlsProps {
   showHiddenNodes: boolean;
   showSingletons: boolean;
 }
+
+const getViewportButtonClass = (active: boolean) =>
+  `inline-flex items-center justify-center px-2.5 py-2 text-[10px] font-mono uppercase transition outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${
+    active
+      ? 'bg-osint-primary/10 text-osint-primary'
+      : 'text-zinc-500 hover:bg-osint-primary/8 hover:text-osint-primary'
+  }`;
 
 export const GraphViewportControls: React.FC<GraphViewportControlsProps> = ({
   isLocked,
@@ -27,10 +32,16 @@ export const GraphViewportControls: React.FC<GraphViewportControlsProps> = ({
   showSingletons,
 }) => (
   <div className="pointer-events-none absolute right-4 top-4 z-20">
-    <div className="pointer-events-auto flex items-center border border-zinc-800 bg-black/85 p-0.5 shadow-2xl backdrop-blur-md">
+    <div
+      className="pointer-events-auto flex items-center border p-0.5 shadow-2xl backdrop-blur-md"
+      style={{
+        backgroundColor: 'color-mix(in oklab, var(--osint-dark) 96%, transparent)',
+        borderColor: 'color-mix(in oklab, var(--osint-ink) 12%, transparent)',
+      }}
+    >
       <button
         onClick={onToggleSingletons}
-        className={`${getChromeSegmentButtonClass(showSingletons)} relative px-2.5 py-2`}
+        className={`${getViewportButtonClass(showSingletons)} relative`}
         title={showSingletons ? 'Hide Singletons' : 'Show Singletons'}
       >
         <Box className="h-3.5 w-3.5" />
@@ -40,41 +51,41 @@ export const GraphViewportControls: React.FC<GraphViewportControlsProps> = ({
           </div>
         ) : null}
       </button>
-      <div className="mx-1 h-3 w-px bg-zinc-800" />
+      <div className="mx-1 h-3 w-px bg-[color:color-mix(in_oklab,var(--osint-ink)_12%,transparent)]" />
       <button
         onClick={onToggleHiddenNodes}
-        className={`${getChromeSegmentButtonClass(showHiddenNodes)} px-2.5 py-2`}
+        className={getViewportButtonClass(showHiddenNodes)}
         title={showHiddenNodes ? 'Hide Deleted' : 'Show Deleted'}
       >
         {showHiddenNodes ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
       </button>
-      <div className="mx-1 h-3 w-px bg-zinc-800" />
+      <div className="mx-1 h-3 w-px bg-[color:color-mix(in_oklab,var(--osint-ink)_12%,transparent)]" />
       <button
         onClick={onToggleFlaggedOnly}
-        className={`${getChromeSegmentButtonClass(showFlaggedOnly)} px-2.5 py-2`}
+        className={getViewportButtonClass(showFlaggedOnly)}
         title="Show Flagged Only"
       >
         <Star className={`h-3.5 w-3.5 ${showFlaggedOnly ? 'fill-current' : ''}`} />
       </button>
-      <div className="mx-1 h-3 w-px bg-zinc-800" />
+      <div className="mx-1 h-3 w-px bg-[color:color-mix(in_oklab,var(--osint-ink)_12%,transparent)]" />
       <button
         onClick={() => onZoom('OUT')}
-        className={`${getChromeSegmentButtonClass(false)} px-2.5 py-2`}
+        className={getViewportButtonClass(false)}
         title="Zoom Out"
       >
         <ZoomOut className="h-3.5 w-3.5" />
       </button>
       <button
         onClick={() => onZoom('IN')}
-        className={`${getChromeSegmentButtonClass(false)} px-2.5 py-2`}
+        className={getViewportButtonClass(false)}
         title="Zoom In"
       >
         <ZoomIn className="h-3.5 w-3.5" />
       </button>
-      <div className="mx-1 h-3 w-px bg-zinc-800" />
+      <div className="mx-1 h-3 w-px bg-[color:color-mix(in_oklab,var(--osint-ink)_12%,transparent)]" />
       <button
         onClick={onToggleLock}
-        className={`${getChromeSegmentButtonClass(isLocked)} px-2.5 py-2`}
+        className={getViewportButtonClass(isLocked)}
         title={isLocked ? 'Unlock Simulation' : 'Lock Layout (Performance)'}
       >
         {isLocked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}

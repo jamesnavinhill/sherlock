@@ -156,41 +156,8 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
       onSubmit={onSubmit}
       className="border-t border-zinc-800 bg-black/95 px-4 pb-4 pt-3 sm:px-6"
     >
-      <div className="border border-zinc-800 bg-zinc-950/70">
-        <div className="flex items-center justify-between gap-2 border-b border-zinc-800 px-3 py-2">
-          <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-            Workspace Composer
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
-              title="Attach files to the workspace library"
-              aria-label="Attach files"
-            >
-              <Paperclip className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={onOpenManualSetup}
-              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
-              title="Open run configuration"
-              aria-label="Open run configuration"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={onFileUpload}
-            />
-          </div>
-        </div>
-
-        <div className="relative">
+      <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-zinc-950/70">
+        <div className="relative border-b border-zinc-800">
           <textarea
             ref={textareaRef}
             value={draft}
@@ -230,11 +197,11 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
                 ? `Ask about ${getWorkspaceDisplayTitle(activeWorkspace)}...`
                 : 'Select a workspace to begin chatting...'
             }
-            className="min-h-[132px] w-full resize-none bg-transparent px-4 py-4 pb-16 pr-28 text-sm text-white outline-none transition"
+            className="min-h-[132px] w-full resize-none bg-transparent px-4 py-4 text-sm text-white outline-none transition"
           />
 
           {mentionState?.results.length ? (
-            <div className="absolute bottom-16 left-4 right-4 z-10 rounded border border-zinc-800 bg-zinc-950 shadow-xl">
+            <div className="absolute bottom-4 left-4 right-4 z-10 rounded border border-zinc-800 bg-zinc-950 shadow-xl">
               <div className="border-b border-zinc-800 px-3 py-2 text-[10px] font-mono uppercase tracking-wide text-zinc-500">
                 Mention workspace records
               </div>
@@ -260,21 +227,52 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
               </div>
             </div>
           ) : null}
+        </div>
 
-          <div className="absolute bottom-3 right-3 flex items-center gap-2">
-            {linkedMentions.length ? (
-              <div className="absolute bottom-12 left-3 right-24 flex flex-wrap gap-1.5">
-                {linkedMentions.map((mention) => (
-                  <span
-                    key={mention.id}
-                    className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-zinc-950/90 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-zinc-300"
-                  >
-                    <span className="truncate">{mention.title}</span>
-                    <span className="shrink-0 text-zinc-500">{mention.subtitle}</span>
-                  </span>
-                ))}
-              </div>
-            ) : null}
+        {linkedMentions.length ? (
+          <div className="flex flex-wrap gap-1.5 border-b border-zinc-800 px-4 py-2">
+            {linkedMentions.map((mention) => (
+              <span
+                key={mention.id}
+                className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-zinc-950/90 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-zinc-300"
+              >
+                <span className="truncate">{mention.title}</span>
+                <span className="shrink-0 text-zinc-500">{mention.subtitle}</span>
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between gap-3 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
+              title="Attach files to the workspace library"
+              aria-label="Attach files"
+            >
+              <Paperclip className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onOpenManualSetup}
+              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
+              title="Open run configuration"
+              aria-label="Open run configuration"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={onFileUpload}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
             {chatGenerationStatus === 'GENERATING' || chatGenerationStatus === 'CANCELLING' ? (
               <button
                 type="button"
