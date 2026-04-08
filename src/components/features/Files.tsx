@@ -5,8 +5,6 @@ import {
   FileJson,
   FileText,
   Filter,
-  LayoutGrid,
-  List,
   Plus,
   Upload,
 } from 'lucide-react';
@@ -19,15 +17,14 @@ import {
   CHROME_HEADER_PRIMARY_ACTION_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
-  CHROME_TOOLBAR_GROUP_CLASS,
   getChromeMenuButtonClass,
-  getChromeSegmentButtonClass,
 } from '@/components/ui/chrome';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { WorkspaceDocumentUploadDialog } from '@/components/ui/WorkspaceDocumentUploadDialog';
 import { RunSetupModal } from '@/components/features/Runs/RunSetupModal';
+import { FilesFiltersPanel } from '@/components/features/Files/FilesFiltersPanel';
 import { FilesOverview } from '@/components/features/Files/FilesOverview';
 import { FilesRecords } from '@/components/features/Files/FilesRecords';
 import { useFilesController } from '@/components/features/Files/useFilesController';
@@ -138,105 +135,40 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
 
           <div className="flex flex-1 items-center justify-end">
             <div className="flex shrink-0 items-center gap-3">
-              <div
-                role="group"
-                aria-label="Files layout"
-                className={`${CHROME_TOOLBAR_GROUP_CLASS} flex items-stretch overflow-hidden`}
-              >
+              <div className="relative shrink-0" ref={filterMenuRef}>
                 <button
-                  onClick={() => setViewMode('LIST')}
-                  aria-pressed={viewMode === 'LIST'}
-                  className={`${getChromeSegmentButtonClass(viewMode === 'LIST')} flex min-w-[38px] items-center justify-center border-r border-zinc-800 px-2.5 py-1.5`}
-                  title="Show dense list view"
-                  aria-label="Show dense list view"
+                  onClick={() => {
+                    setShowFilters(!showFilters);
+                    setShowExportMenu(false);
+                  }}
+                  className={getChromeMenuButtonClass(showFilters)}
+                  aria-label="Files filters"
+                  title="Filter visible records"
                 >
-                  <List className="h-4 w-4" />
+                  <Filter className="h-4 w-4" />
                 </button>
-                <button
-                  onClick={() => setViewMode('GRID')}
-                  aria-pressed={viewMode === 'GRID'}
-                  className={`${getChromeSegmentButtonClass(viewMode === 'GRID')} flex min-w-[38px] items-center justify-center px-2.5 py-1.5`}
-                  title="Show grid view"
-                  aria-label="Show grid view"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </button>
-              </div>
 
-              {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
-                <div className="relative shrink-0" ref={filterMenuRef}>
-                  <button
-                    onClick={() => {
-                      setShowFilters(!showFilters);
-                      setShowExportMenu(false);
+                {showFilters ? (
+                  <FilesFiltersPanel
+                    recordFilter={recordFilter}
+                    showRecordTypeFilters={
+                      !!effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
+                    }
+                    viewMode={viewMode}
+                    onClearFilters={() => {
+                      setRecordFilter('ALL');
+                      setViewMode('LIST');
+                      setCurrentPage(1);
                     }}
-                    className={getChromeMenuButtonClass(showFilters)}
-                    aria-label="Files filters"
-                    title="Filter visible records"
-                  >
-                    <Filter className="h-4 w-4" />
-                  </button>
-
-                  {showFilters ? (
-                    <div className="absolute right-0 top-full z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
-                      <div className="border-b border-zinc-800 bg-black px-4 py-3">
-                        <h3 className="osint-panel-title">Files Filters</h3>
-                      </div>
-                      <div className="space-y-5 p-4">
-                        <div>
-                          <label className="osint-meta-label mb-2 block">Record Type</label>
-                          <div className="space-y-2">
-                            {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
-                              <button
-                                key={value}
-                                type="button"
-                                onClick={() => {
-                                  setRecordFilter(value);
-                                  setCurrentPage(1);
-                                }}
-                                className={`osint-meta-label flex w-full items-center justify-between border px-3 py-2 transition ${
-                                  recordFilter === value
-                                    ? 'border-osint-primary bg-osint-primary/10 text-osint-primary'
-                                    : 'border-zinc-800 bg-black text-zinc-300 hover:border-zinc-600 hover:text-white'
-                                }`}
-                              >
-                                <span>
-                                  {value === 'ALL'
-                                    ? 'All'
-                                    : value === 'ARTIFACT'
-                                      ? 'Artifacts'
-                                      : 'Items'}
-                                </span>
-                                {recordFilter === value ? <span>Active</span> : null}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setRecordFilter('ALL');
-                              setCurrentPage(1);
-                            }}
-                            className="osint-meta-label hover:text-white"
-                          >
-                            Reset
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setShowFilters(false)}
-                            className="osint-button-primary osint-meta-label-strong px-4 py-1.5"
-                          >
-                            Apply
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
+                    onClose={() => setShowFilters(false)}
+                    onRecordFilterChange={(value) => {
+                      setRecordFilter(value);
+                      setCurrentPage(1);
+                    }}
+                    onViewModeChange={setViewMode}
+                  />
+                ) : null}
+              </div>
 
               <button
                 onClick={openUploadPicker}

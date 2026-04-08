@@ -25,7 +25,6 @@ interface TimelineFiltersState {
 interface TimelineToolbarProps {
   activeWorkspace: Workspace | null;
   workspaces: Workspace[];
-  search: string;
   filters: TimelineFiltersState;
   leftPanelOpen: boolean;
   rightPanelOpen: boolean;
@@ -38,7 +37,6 @@ interface TimelineToolbarProps {
   onToggleLeftPanel: () => void;
   onToggleRightPanel: () => void;
   onWorkspaceChange: (workspaceId: string | null) => void;
-  onSearchChange: (value: string) => void;
   onToggleExportMenu: () => void;
   onToggleFilters: () => void;
   onSaveView: () => void;
@@ -54,7 +52,6 @@ interface TimelineToolbarProps {
 export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
   activeWorkspace,
   workspaces,
-  search,
   filters,
   leftPanelOpen,
   rightPanelOpen,
@@ -67,7 +64,6 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
   onToggleLeftPanel,
   onToggleRightPanel,
   onWorkspaceChange,
-  onSearchChange,
   onToggleExportMenu,
   onToggleFilters,
   onSaveView,
@@ -124,11 +120,9 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
           {showFilters ? (
             <TimelineFiltersPanel
               filters={filters}
-              search={search}
               onClose={onCloseFilters}
               onClearFilters={onClearFilters}
               onRangeChange={onRangeChange}
-              onSearchChange={onSearchChange}
               onToggleTrackFilter={onToggleTrackFilter}
             />
           ) : null}

@@ -63,7 +63,7 @@ describe('TimelineView route state', () => {
     });
   });
 
-  it('hydrates the search input from URL state and writes updates back to the URL', async () => {
+  it('does not render a search field inside the timeline filters menu', async () => {
     render(
       <MemoryRouter
         future={routerFuture}
@@ -85,16 +85,8 @@ describe('TimelineView route state', () => {
 
     fireEvent.click(screen.getByLabelText('Timeline filters'));
 
-    const searchInput = screen.getByLabelText('Timeline search');
-    expect(searchInput).toHaveValue('alpha signal');
-
-    fireEvent.change(searchInput, { target: { value: 'beta timeline' } });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('location').textContent).toMatch(
-        /\/workspaces\/case-1\/timeline\?search=beta(?:\+|%20)timeline/
-      );
-    });
+    expect(screen.queryByLabelText('Timeline search')).not.toBeInTheDocument();
+    expect(screen.getByText('Date Range')).toBeInTheDocument();
   });
 
   it('navigates to the selected workspace timeline route from the workspace selector', async () => {

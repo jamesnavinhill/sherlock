@@ -93,12 +93,16 @@ describe('Files chat launch propagation', () => {
     expect(screen.getByLabelText(/view workspace/i)).toBeInTheDocument();
   });
 
-  it('exposes the layout switch as one grouped toggle control', () => {
+  it('moves the layout switch into the files filters menu', () => {
     render(
       <MemoryRouter future={routerFuture}>
         <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
       </MemoryRouter>
     );
+
+    expect(screen.queryByRole('group', { name: /files layout/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /files filters/i }));
 
     expect(screen.getByRole('group', { name: /files layout/i })).toBeInTheDocument();
 

@@ -334,27 +334,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
 
           {/* Right: Controls & Status */}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
-            {/* Compact Stats */}
-            <div className="hidden xl:flex space-x-4 text-xs font-mono text-zinc-500 border-r border-zinc-800 pr-4">
-              <div className="flex items-center space-x-2">
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${isMonitoring ? 'bg-osint-primary animate-pulse' : 'bg-zinc-600'}`}
-                ></span>
-                <span>
-                  STATUS:{' '}
-                  <span className={isMonitoring ? 'text-osint-primary font-bold' : 'text-zinc-400'}>
-                    {streamStatus}
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-1.5 h-1.5 bg-zinc-600 rounded-full"></span>
-                <span>
-                  EVENTS: <span className="text-white font-bold">{safeEvents.length}</span>
-                </span>
-              </div>
-            </div>
-
             {/* Settings Toggle */}
             <button
               onClick={() => setShowSettings(!showSettings)}

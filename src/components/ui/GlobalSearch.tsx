@@ -456,7 +456,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                 )}
               </div>
             ) : (
-              <div className="px-3">
+              <div>
                 {results.map((result, index) => {
                   const Icon = resultIconByKind[result.kind];
                   const isSelected = index === Math.min(selectedIndex, results.length - 1);
@@ -468,6 +468,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                   const dividerStyle = {
                     borderColor: 'color-mix(in oklab, var(--osint-border) 46%, transparent)',
                   } as const;
+                  const rowToneClass = index % 2 === 1 ? 'bg-zinc-950/50' : 'bg-transparent';
 
                   return (
                     <div
@@ -476,14 +477,14 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                       className={`group w-full border-b text-left transition-all ${
                         isSelected
                           ? 'bg-osint-primary/8'
-                          : 'hover:bg-black/30'
+                          : `${rowToneClass} hover:bg-black/30`
                       }`}
                       style={dividerStyle}
                     >
                       <button
                         type="button"
                         onClick={() => void handleAction(result, 'OPEN')}
-                        className="w-full px-3 pt-2.5 pb-2 text-left"
+                        className="block w-full px-5 pt-3 pb-2.5 text-left"
                       >
                         <div className={`flex gap-3 ${snippetVisible ? 'items-start' : 'items-center'}`}>
                           <div
@@ -526,7 +527,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
 
                       {secondaryActions.length > 0 ? (
                         <div
-                          className={`overflow-hidden px-3 pb-2.5 transition-all duration-200 ${
+                          className={`overflow-hidden px-5 pb-3 transition-all duration-200 ${
                             isSelected
                               ? 'max-h-20 opacity-100'
                               : 'max-h-0 opacity-0 group-hover:max-h-20 group-hover:opacity-100 group-focus-within:max-h-20 group-focus-within:opacity-100'

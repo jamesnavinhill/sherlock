@@ -858,11 +858,14 @@ Landed in this Stream 6 session:
 
 - split `src/config/aiModels.ts` into smaller canonical modules under `src/config/aiModels/` for provider metadata, static catalog data, OpenRouter catalog IO/cache, and model-selection policy while preserving the existing public barrel import path
 - kept `systemConfig.ts` and runtime-facing callers on the stable `src/config/aiModels.ts` contract while removing the oversized policy-plus-network concentration from that module
+- extracted shared provider-router execution and pack/purpose resolution into `src/services/providers/routerContext.ts`, so `src/services/providers/index.ts` now delegates config/adapter/capability/logging setup instead of repeating it per operation
+- centralized repeated chat and board-agent request shaping in `src/services/providers/index.ts`, keeping the router focused on operation entrypoints while preserving workspace-default and explicit override precedence
 - added focused catalog/selection coverage in `src/config/aiModels.test.ts` so OpenRouter snapshot fallback, live refresh normalization, and manual slug persistence are locked at the extracted boundary
+- added router regression coverage in `src/services/providers/router.test.ts` for workspace-default and explicit pack/purpose override routing through the shared context path
 
 Validation run for this Stream 6 session:
 
-- `npm run test -- src/config/aiModels.test.ts src/config/systemConfig.test.ts`
+- `npm run test -- src/services/providers/router.test.ts src/config/aiModels.test.ts src/config/systemConfig.test.ts`
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`

@@ -1,9 +1,7 @@
 import React from 'react';
-import { Search } from 'lucide-react';
 
 import type { TimelineRange } from '@/types';
 import { OsintSelect } from '@/components/ui/OsintSelect';
-import { CANONICAL_NOUNS } from '@/domain';
 import { TRACK_OPTIONS } from './timelineViewUtils';
 
 interface TimelineFiltersPanelProps {
@@ -11,21 +9,17 @@ interface TimelineFiltersPanelProps {
     range: TimelineRange;
     tracks: string[];
   };
-  search: string;
   onClearFilters: () => void;
   onClose: () => void;
   onRangeChange: (range: TimelineRange) => void;
-  onSearchChange: (value: string) => void;
   onToggleTrackFilter: (track: (typeof TRACK_OPTIONS)[number]['track']) => void;
 }
 
 export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
   filters,
-  search,
   onClearFilters,
   onClose,
   onRangeChange,
-  onSearchChange,
   onToggleTrackFilter,
 }) => (
   <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
@@ -33,20 +27,6 @@ export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
       <h3 className="osint-meta-label-strong text-white">Timeline Filters</h3>
     </div>
     <div className="space-y-5 p-4">
-      <div>
-        <label className="mb-2 block osint-meta-label">Search</label>
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
-          <input
-            aria-label="Timeline search"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder={`Search ${CANONICAL_NOUNS.artifactPlural.toLowerCase()}, items, runs, signals, entities, chats...`}
-            className="w-full border border-zinc-700 bg-black py-2 pl-8 pr-3 osint-meta-value outline-none transition hover:border-osint-primary focus:border-osint-primary"
-          />
-        </div>
-      </div>
-
       <div>
         <label className="mb-2 block osint-meta-label">Date Range</label>
         <OsintSelect

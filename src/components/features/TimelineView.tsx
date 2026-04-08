@@ -54,7 +54,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     relatedSignal,
     rightPanelOpen,
     runItems,
-    search,
     searchParams,
     selectedArtifact,
     selectedChatAction,
@@ -104,7 +103,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
       <TimelineToolbar
         activeWorkspace={activeWorkspace}
         workspaces={workspaces}
-        search={search}
         filters={filters}
         leftPanelOpen={leftPanelOpen}
         rightPanelOpen={rightPanelOpen}
@@ -127,12 +125,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
             setActiveWorkspaceId(null);
           }
         }}
-        onSearchChange={(value) =>
-          updateTimelineQuery((current) => ({
-            ...current,
-            search: value,
-          }))
-        }
         onToggleExportMenu={() => {
           setShowExportMenu((current) => !current);
           setShowFilters(false);

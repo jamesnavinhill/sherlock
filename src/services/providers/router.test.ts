@@ -378,6 +378,43 @@ describe('provider router', () => {
     expect(mockGeminiChat).not.toHaveBeenCalled();
   });
 
+  it('uses workspace pack and purpose defaults for chat when request overrides are omitted', async () => {
+    localStorage.setItem(
+      'sherlock_config',
+      JSON.stringify({
+        provider: 'OPENAI',
+        modelId: 'gpt-4.1-mini',
+        persona: 'general-investigator',
+        searchDepth: 'STANDARD',
+        thinkingBudget: 0,
+      })
+    );
+
+    await chatWithProviderRouter({
+      workspace: {
+        id: 'case-1',
+        title: 'Workspace Alpha',
+        status: 'ACTIVE',
+        dateOpened: '2026-04-03',
+        scopeId: 'open-investigation',
+        packId: 'open-investigation',
+        purposeId: 'monitor',
+      },
+      messages: [{ role: 'user', content: 'Summarize the workspace.' }],
+      workspaceSummary: 'One workspace',
+      recentArtifacts: [],
+      recentSignals: [],
+      retrievedContext: [],
+    });
+
+    expect(mockOpenAIChat).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        pack: expect.objectContaining({ id: 'open-investigation' }),
+        purpose: expect.objectContaining({ id: 'monitor' }),
+      })
+    );
+  });
+
   it('dispatches streaming chat to the selected provider adapter', async () => {
     localStorage.setItem(
       'sherlock_config',
@@ -452,6 +489,56 @@ describe('provider router', () => {
 
     expect(mockOpenRouterBoardAgent).toHaveBeenCalledTimes(1);
     expect(mockGeminiBoardAgent).not.toHaveBeenCalled();
+  });
+
+  it('applies explicit pack and purpose overrides before board-agent dispatch', async () => {
+    localStorage.setItem(
+      'sherlock_config',
+      JSON.stringify({
+        provider: 'OPENROUTER',
+        modelId: 'stepfun/step-3.5-flash:free',
+        persona: 'general-investigator',
+        searchDepth: 'STANDARD',
+        thinkingBudget: 0,
+      })
+    );
+
+    await boardAgentWithProviderRouter({
+      workspace: {
+        id: 'case-1',
+        title: 'Workspace Alpha',
+        status: 'ACTIVE',
+        dateOpened: '2026-04-03',
+        scopeId: 'open-investigation',
+        packId: 'open-investigation',
+        purposeId: 'deep-dive',
+      },
+      board: {
+        id: 'board-1',
+        workspaceId: 'case-1',
+        name: 'Primary Board',
+      },
+      userRequest: 'Organize the visible board',
+      contextSnapshot: {
+        id: 'ctx-1',
+        workspaceId: 'case-1',
+        boardId: 'board-1',
+        request: 'Organize the visible board',
+        selectedShapeIds: [],
+        visibleShapeIds: [],
+        parts: [],
+        createdAt: 1,
+      },
+      packId: 'corporate-due-diligence',
+      purposeId: 'synthesis',
+    });
+
+    expect(mockOpenRouterBoardAgent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        pack: expect.objectContaining({ id: 'corporate-due-diligence' }),
+        purpose: expect.objectContaining({ id: 'synthesis' }),
+      })
+    );
   });
 
   it('dispatches streaming board-agent planning to the selected provider adapter', async () => {

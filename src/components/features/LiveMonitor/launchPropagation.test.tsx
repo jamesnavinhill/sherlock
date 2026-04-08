@@ -122,4 +122,29 @@ describe('LiveMonitor launch propagation', () => {
       })
     );
   });
+
+  it('does not render toolbar status or event counters', () => {
+    render(
+      <MemoryRouter future={routerFuture}>
+        <LiveMonitor
+          events={[
+            {
+              id: 'event-1',
+              type: 'NEWS',
+              sourceName: 'Ledger',
+              content: 'Contract update detected',
+              timestamp: '5m ago',
+              sentiment: 'NEGATIVE',
+              threatLevel: 'CAUTION',
+            },
+          ]}
+          setEvents={vi.fn()}
+          onInvestigate={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText(/status:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/events:/i)).not.toBeInTheDocument();
+  });
 });

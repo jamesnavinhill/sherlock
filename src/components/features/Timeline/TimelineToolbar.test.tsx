@@ -17,7 +17,6 @@ describe('TimelineToolbar', () => {
       <TimelineToolbar
         activeWorkspace={{ id: 'ws-1', title: 'Atlas Workspace', status: 'ACTIVE', dateOpened: '2026-04-08' }}
         workspaces={[]}
-        search=""
         filters={{ range: 'ALL', tracks: ['SIGNAL', 'RUN', 'ARTIFACT', 'ITEM'] }}
         leftPanelOpen
         rightPanelOpen={false}
@@ -30,7 +29,6 @@ describe('TimelineToolbar', () => {
         onToggleLeftPanel={vi.fn()}
         onToggleRightPanel={vi.fn()}
         onWorkspaceChange={vi.fn()}
-        onSearchChange={vi.fn()}
         onToggleExportMenu={vi.fn()}
         onToggleFilters={vi.fn()}
         onSaveView={vi.fn()}

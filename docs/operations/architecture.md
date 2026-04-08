@@ -225,6 +225,7 @@ App-facing runtime facade:
 Provider router and adapters:
 
 - `src/services/providers/index.ts`
+- `src/services/providers/routerContext.ts`
 - `src/services/providers/geminiProvider.ts`
 - `src/services/providers/openRouterProvider.ts`
 - `src/services/providers/openAIProvider.ts`
@@ -255,7 +256,8 @@ Key behavior:
 - `src/config/aiModels/modelSelection.ts` now owns provider/model lookup, capability derivation, recent selection persistence, and manual OpenRouter slug support
 - `aiModels.ts` remains the stable public barrel for feature/runtime imports while the model-catalog/runtime-config seam is internally split into smaller canonical modules
 - router enforces provider/model alignment and capability checks
-- router resolves a pack and purpose profile for each run
+- `routerContext.ts` now owns provider execution setup, capability gating, runtime logging, and shared scope/pack/purpose resolution for router entrypoints
+- router resolves a pack and purpose profile for each run without repeating workspace/scope fallback logic in every operation handler
 - router now exposes a sibling `CHAT` runtime path for workspace-grounded conversational turns
 - router now exposes a sibling `BOARD_AGENT` runtime path for workspace-board planning turns with structured action outputs
 - router now exposes both non-streaming and streaming chat paths with a provider-agnostic event envelope and abort support
