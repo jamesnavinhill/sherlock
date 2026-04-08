@@ -135,6 +135,63 @@ Execution shape:
 - update tests alongside the rename so the language matches the code
 - remove compatibility aliases instead of layering more synonyms
 
+### Exact Current File Inventory
+
+Canonical type/domain/store/persistence core:
+
+```text
+src/types/index.ts
+src/domain/artifacts.ts
+src/domain/artifacts.test.ts
+src/domain/index.ts
+src/domain/labels.ts
+src/domain/packs.ts
+src/domain/presentation.ts
+src/domain/presentation.test.ts
+src/domain/purposes.ts
+src/domain/vocabulary.ts
+src/domain/workspaces.ts
+src/domain/workspaces.test.ts
+src/store/caseStore.ts
+src/store/caseStore.test.ts
+src/services/db/schema.ts
+src/services/db/repositories/CaseRepository.ts
+src/services/db/repositories/CaseRepository.test.ts
+src/services/db/repositories/TaskRepository.ts
+src/services/maintenance/workspaceData.ts
+src/services/maintenance/workspaceData.test.ts
+```
+
+Confirmed current legacy-named active files:
+
+```text
+src/components/features/Archives.tsx
+src/components/features/Archives.launch.test.tsx
+src/components/features/OperationView/ReportViewer.tsx
+src/components/features/OperationView/ReportViewer.test.tsx
+src/components/features/OperationView/operationCasePanelData.ts
+src/components/features/OperationView/reportViewerPresentation.ts
+src/components/features/Runs/TaskSetupModal.tsx
+src/components/features/Runs/taskSetupUtils.ts
+src/components/features/Runs/useTaskSetupState.ts
+src/components/ui/TaskManager.tsx
+src/components/ui/TaskSetupModal.tsx
+src/services/db/repositories/CaseRepository.ts
+src/services/db/repositories/CaseRepository.test.ts
+src/services/db/repositories/TaskRepository.ts
+src/store/caseStore.ts
+src/store/caseStore.test.ts
+```
+
+### Execution Checklist
+
+1. Rename the active primitive types and domain helpers to canonical vocabulary in `src/types/index.ts` and `src/domain/*`.
+2. Rename the store backbone away from `caseStore` and update store-facing tests at the same time.
+3. Rename `CaseRepository` and `TaskRepository`, plus the canonical table/column names in `src/services/db/schema.ts`.
+4. Rewrite `workspaceData` backup/import terminology so the canonical backup shape no longer carries legacy primitive naming.
+5. Rename or replace the confirmed legacy-named feature and UI files so active filenames match the product vocabulary.
+6. Remove any compatibility aliases introduced by old naming once all call sites are moved.
+
 Parallel lanes when safe:
 
 - app/domain/type rename lane
@@ -183,6 +240,51 @@ Execution shape:
 - keep transaction behavior explicit and uniform across repository write paths
 - simplify import/export and workspace-data backup logic around one canonical backup shape
 
+### Exact Current File Inventory
+
+```text
+src/services/db/client.ts
+src/services/db/client.test.ts
+src/services/db/migrate.ts
+src/services/db/migrations/0000_woozy_harpoon.sql
+src/services/db/migrations/meta/0000_snapshot.json
+src/services/db/migrations/meta/_journal.json
+src/services/db/migrations_sql.ts
+src/services/db/schema.ts
+src/services/db/repositories/BoardAgentRepository.ts
+src/services/db/repositories/BoardAgentRepository.test.ts
+src/services/db/repositories/CaseRepository.ts
+src/services/db/repositories/CaseRepository.test.ts
+src/services/db/repositories/ChatRepository.ts
+src/services/db/repositories/ChatRepository.test.ts
+src/services/db/repositories/ManualDataRepository.ts
+src/services/db/repositories/ScopeRepository.ts
+src/services/db/repositories/SettingsRepository.ts
+src/services/db/repositories/TaskRepository.ts
+src/services/db/repositories/TemplateRepository.ts
+src/services/db/repositories/TemplateRepository.test.ts
+src/services/db/repositories/WorkspaceBoardRepository.ts
+src/services/db/repositories/WorkspaceItemRepository.ts
+src/services/db/repositories/WorkspaceSearchRepository.ts
+src/services/db/repositories/WorkspaceSearchRepository.test.ts
+src/services/db/repositories/json.ts
+src/services/db/repositories/json.test.ts
+src/services/maintenance/workspaceData.ts
+src/services/maintenance/workspaceData.test.ts
+src/store/actions/bootstrapActions.ts
+src/store/actions/bootstrapResourceLoader.ts
+src/store/actions/bootstrapResourceLoader.test.ts
+```
+
+### Execution Checklist
+
+1. Replace the current mixed migration story in `client.ts`, `migrate.ts`, `migrations_sql.ts`, and `migrations/*` with one canonical path.
+2. Remove the `sherlock-storage` bridge from `src/services/db/migrate.ts`.
+3. Retire runtime schema patch helpers in `src/services/db/client.ts` once canonical migrations cover the same ground.
+4. Standardize tolerant JSON parsing and hydration patterns across every repository file under `src/services/db/repositories/`.
+5. Normalize bootstrap import/export behavior in `bootstrapActions.ts`, `bootstrapResourceLoader.ts`, and `workspaceData.ts`.
+6. Land targeted repository, migration, and bootstrap tests for any changed persistence seam before closing the stream.
+
 Parallel lanes when safe:
 
 - schema/migration lane
@@ -226,6 +328,48 @@ Execution shape:
 - move pure shaping logic out of controllers where the seams are now obvious
 - tighten the route-state ownership model and remove leftover mixed responsibilities
 - reduce app-shell orchestration sprawl where helpers or smaller modules should own the behavior
+
+### Exact Current File Inventory
+
+```text
+src/app/AppShell.tsx
+src/app/AppShellRoutes.tsx
+src/app/appShellLaunchHelpers.ts
+src/app/appShellLaunchHelpers.test.ts
+src/app/appShellNavigationHelpers.ts
+src/app/appShellNavigationHelpers.test.ts
+src/app/appShellOpenChatHelpers.ts
+src/app/appShellOpenChatHelpers.test.ts
+src/app/navigation.ts
+src/app/openChatRequest.ts
+src/app/openChatRequest.test.ts
+src/app/routeViews.tsx
+src/app/routeViews.test.tsx
+src/app/routes.ts
+src/app/routes.test.ts
+src/app/useAppShellController.ts
+src/app/useAppShellEffects.ts
+src/store/caseStore.ts
+src/store/caseStore.test.ts
+src/store/actions/artifactRunActions.ts
+src/store/actions/bootstrapActions.ts
+src/store/actions/bootstrapResourceLoader.ts
+src/store/actions/bootstrapResourceLoader.test.ts
+src/store/actions/conversationActions.ts
+src/store/actions/shared.ts
+src/store/actions/simpleActions.ts
+src/store/actions/workspaceActions.ts
+src/store/selectors/featureSelectors.ts
+```
+
+### Execution Checklist
+
+1. Rename the app/store backbone away from `caseStore` and update all app-shell imports accordingly.
+2. Re-slice app-shell orchestration across `useAppShellController.ts`, helpers, and route views so ownership is explicit.
+3. Clean the route contract in `routes.ts`, `routeViews.tsx`, `navigation.ts`, and `openChatRequest.ts`.
+4. Reduce selector breadth in `featureSelectors.ts` so feature hooks stop consuming oversized store slices.
+5. Revisit each store action module so async orchestration, pure shaping, and persistence side effects are consistently separated.
+6. Update route and app-shell tests to match the new ownership model before stream closeout.
 
 Parallel lanes when safe:
 
@@ -271,6 +415,59 @@ Execution shape:
 - keep Timeline pure-logic seams pure and reduce the owner-file load in controller/event-building paths
 - align shared workspace-library/search/handoff contracts across Files, Timeline, Board, and Chat entry points
 
+### Exact Current File Inventory
+
+```text
+src/components/features/Archives.tsx
+src/components/features/Archives.launch.test.tsx
+src/components/features/TimelineView.tsx
+src/components/features/TimelineView.test.tsx
+src/components/features/Timeline/TimelineDetailRail.tsx
+src/components/features/Timeline/TimelineDossierPanel.tsx
+src/components/features/Timeline/TimelineEventList.tsx
+src/components/features/Timeline/TimelineExportMenu.tsx
+src/components/features/Timeline/TimelineFiltersPanel.tsx
+src/components/features/Timeline/TimelineToolbar.tsx
+src/components/features/Timeline/timelineDetailActions.ts
+src/components/features/Timeline/timelineEvents.ts
+src/components/features/Timeline/timelineEvents.test.ts
+src/components/features/Timeline/timelineQueryHelpers.ts
+src/components/features/Timeline/timelineRouteState.ts
+src/components/features/Timeline/timelineRouteState.test.ts
+src/components/features/Timeline/timelineSavedViews.ts
+src/components/features/Timeline/timelineSavedViews.test.ts
+src/components/features/Timeline/timelineSnapshot.ts
+src/components/features/Timeline/timelineSnapshot.test.ts
+src/components/features/Timeline/timelineViewModel.ts
+src/components/features/Timeline/timelineViewModel.test.ts
+src/components/features/Timeline/timelineViewUtils.ts
+src/components/features/Timeline/useTimelineViewController.ts
+src/components/features/Timeline/useTimelineViewController.test.ts
+src/components/ui/GlobalSearch.tsx
+src/components/ui/omniboxActions.ts
+src/components/ui/omniboxFocus.ts
+src/components/ui/omniboxModel.ts
+src/components/ui/omniboxModel.test.ts
+src/services/db/repositories/WorkspaceSearchRepository.ts
+src/services/db/repositories/WorkspaceSearchRepository.test.ts
+src/services/workspace/library.ts
+src/services/workspace/library.test.ts
+src/services/workspace/workspaceHandoffs.ts
+src/services/workspace/workspaceHandoffs.test.ts
+src/services/workspace/workspaceSurfaceFocus.ts
+src/app/navigation.ts
+src/app/routes.ts
+```
+
+### Execution Checklist
+
+1. Rename and extract the Files surface from `Archives.tsx` into canonical product naming and smaller sections.
+2. Split `omniboxModel.ts` into smaller ranking, result-shaping, mention, and recents modules while keeping `GlobalSearch.tsx` thin.
+3. Reduce the owner-file load in Timeline by extracting pure logic out of `timelineEvents.ts` and `useTimelineViewController.ts`.
+4. Align search and handoff contracts across `WorkspaceSearchRepository.ts`, `library.ts`, `workspaceHandoffs.ts`, and `workspaceSurfaceFocus.ts`.
+5. Update route helpers in `navigation.ts` and `routes.ts` only where the Files/Timeline/search contract actually changes.
+6. Land focused tests for Files behavior, omnibox behavior, and Timeline behavior before closing the stream.
+
 Parallel lanes when safe:
 
 - Files surface lane
@@ -314,6 +511,101 @@ Execution shape:
 - normalize cross-surface handoff actions so the same record types behave the same way everywhere
 - continue splitting pure derivation out of controller code
 - clean up board-agent/session/action seams so they match the rest of the app’s orchestration style
+
+### Exact Current File Inventory
+
+```text
+src/components/features/OperationView/DossierPanel.tsx
+src/components/features/OperationView/InspectorPanel.tsx
+src/components/features/OperationView/OperationViewDialogs.tsx
+src/components/features/OperationView/ReportViewer.tsx
+src/components/features/OperationView/ReportViewer.test.tsx
+src/components/features/OperationView/Toolbar.tsx
+src/components/features/OperationView/index.tsx
+src/components/features/OperationView/launchPropagation.test.tsx
+src/components/features/OperationView/operationCasePanelData.ts
+src/components/features/OperationView/reportViewerPresentation.ts
+src/components/features/OperationView/useOperationViewController.ts
+src/components/features/OperationView/useOperationViewController.test.ts
+src/components/features/Chat/ChatComposer.tsx
+src/components/features/Chat/ChatContextRail.tsx
+src/components/features/Chat/ChatDialogs.tsx
+src/components/features/Chat/ChatHeader.tsx
+src/components/features/Chat/ChatPage.tsx
+src/components/features/Chat/ChatPage.test.tsx
+src/components/features/Chat/ChatSessionRail.tsx
+src/components/features/Chat/ChatTranscript.tsx
+src/components/features/Chat/GuidedRunBuilder.tsx
+src/components/features/Chat/chatGuidedActions.ts
+src/components/features/Chat/chatGuidedActions.test.ts
+src/components/features/Chat/chatPageUtils.ts
+src/components/features/Chat/chatPageUtils.test.ts
+src/components/features/Chat/chatSessionLifecycle.ts
+src/components/features/Chat/chatStreaming.ts
+src/components/features/Chat/chatTranscriptActions.ts
+src/components/features/Chat/chatTranscriptActions.test.ts
+src/components/features/Chat/index.tsx
+src/components/features/Chat/useChatController.ts
+src/components/features/Chat/useChatController.test.ts
+src/components/features/WorkspaceBoard/BoardAgentRail.tsx
+src/components/features/WorkspaceBoard/BoardCanvasPane.tsx
+src/components/features/WorkspaceBoard/BoardCanvasPane.test.tsx
+src/components/features/WorkspaceBoard/BoardDialogs.tsx
+src/components/features/WorkspaceBoard/BoardInspectorRail.tsx
+src/components/features/WorkspaceBoard/BoardLibraryRail.tsx
+src/components/features/WorkspaceBoard/BoardTopBar.tsx
+src/components/features/WorkspaceBoard/CompactStylePanel.tsx
+src/components/features/WorkspaceBoard/boardInspectorActions.ts
+src/components/features/WorkspaceBoard/index.tsx
+src/components/features/WorkspaceBoard/useBoardCanvasPersistence.ts
+src/components/features/WorkspaceBoard/useWorkspaceBoardController.ts
+src/components/features/WorkspaceBoard/useWorkspaceBoardController.test.ts
+src/components/features/WorkspaceBoard/workspaceBoardAgent.ts
+src/components/features/WorkspaceBoard/workspaceBoardItemActions.ts
+src/components/features/WorkspaceBoard/workspaceBoardUtils.ts
+src/components/features/WorkspaceBoard/workspaceBoardViewModel.ts
+src/components/features/WorkspaceBoard/workspaceBoardViewModel.test.ts
+src/components/features/NetworkGraph/ControlBar.tsx
+src/components/features/NetworkGraph/EntityResolution.tsx
+src/components/features/NetworkGraph/GraphCanvas.tsx
+src/components/features/NetworkGraph/NetworkGraphAddNodeOverlay.tsx
+src/components/features/NetworkGraph/NetworkGraphDialogs.tsx
+src/components/features/NetworkGraph/NodeInspector.tsx
+src/components/features/NetworkGraph/entityResolutionUtils.ts
+src/components/features/NetworkGraph/index.tsx
+src/components/features/NetworkGraph/launchPropagation.test.tsx
+src/components/features/NetworkGraph/networkGraphDossierData.ts
+src/components/features/NetworkGraph/networkGraphNodeIds.ts
+src/components/features/NetworkGraph/networkGraphWorkspaceHandoffs.ts
+src/components/features/NetworkGraph/useNetworkGraphController.ts
+src/components/features/NetworkGraph/useNetworkGraphController.test.ts
+src/components/features/NetworkGraph/useNetworkGraphInspectorState.ts
+src/components/features/NetworkGraph/useNetworkGraphUiState.ts
+src/services/workspace/agent/actions/registry.ts
+src/services/workspace/agent/actions/registry.test.ts
+src/services/workspace/agent/actions/review.ts
+src/services/workspace/agent/actions/todos.ts
+src/services/workspace/agent/actions/types.ts
+src/services/workspace/agent/context/boardSnapshot.ts
+src/services/workspace/agent/context/buildBoardAgentContext.ts
+src/services/workspace/agent/context/buildBoardAgentContext.test.ts
+src/services/workspace/agent/index.ts
+src/services/workspace/agent/runtime.ts
+src/services/workspace/agent/session.ts
+src/services/workspace/agent/session.test.ts
+src/services/workspace/agent/types.ts
+src/services/workspace/boardAi.ts
+src/services/workspace/boardShapes.ts
+```
+
+### Execution Checklist
+
+1. Reduce oversized controller and owner files in OperationView, Chat, WorkspaceBoard, and NetworkGraph into consistent seams.
+2. Normalize dialog, menu, and section boundaries across these four feature families.
+3. Bring shared handoff behavior into parity so the same record types open, place, and route consistently across surfaces.
+4. Clean up the board-agent stack in `src/services/workspace/agent/*`, `workspaceBoardAgent.ts`, `boardAi.ts`, and `boardShapes.ts`.
+5. Remove remaining product-language drift inside operation, board, and network supporting modules such as `operationCasePanelData.ts`.
+6. Land focused controller, launch-propagation, and board-agent tests for every changed seam before closing the stream.
 
 Parallel lanes when safe:
 
@@ -361,6 +653,50 @@ Execution shape:
 - reduce repeated router request shaping across operations
 - normalize capability, error, logging, and structured-output handling
 
+### Exact Current File Inventory
+
+```text
+src/config/aiModels.ts
+src/config/systemConfig.ts
+src/config/systemConfig.test.ts
+src/services/runtime.ts
+src/services/chat/runtime.ts
+src/services/chat/runtime.test.ts
+src/services/providers/index.ts
+src/services/providers/types.ts
+src/services/providers/keys.ts
+src/services/providers/keys.test.ts
+src/services/providers/geminiClientState.ts
+src/services/providers/geminiProvider.ts
+src/services/providers/openRouterProvider.ts
+src/services/providers/openAIProvider.ts
+src/services/providers/anthropicProvider.ts
+src/services/providers/router.test.ts
+src/services/providers/adapters.contract.test.ts
+src/services/providers/__fixtures__/adapterPayloads.ts
+src/services/providers/shared/artifactContract.ts
+src/services/providers/shared/boardAgent.ts
+src/services/providers/shared/boardAgent.test.ts
+src/services/providers/shared/chat.ts
+src/services/providers/shared/errors.ts
+src/services/providers/shared/jsonParsing.ts
+src/services/providers/shared/logging.ts
+src/services/providers/shared/normalizers.ts
+src/services/providers/shared/parsingNormalization.test.ts
+src/services/providers/shared/prompts.ts
+src/services/providers/shared/retry.ts
+src/services/providers/shared/streaming.ts
+```
+
+### Execution Checklist
+
+1. Split `aiModels.ts` into smaller canonical modules for static model data, catalog IO/cache, and selection policy.
+2. Rework `systemConfig.ts`, `runtime.ts`, and `services/chat/runtime.ts` around the cleaned runtime boundaries.
+3. Extract shared transport and streaming behavior out of the provider adapter files where the request patterns are currently duplicated.
+4. Reduce repetition in `src/services/providers/index.ts` by centralizing shared operation-shaping logic.
+5. Keep provider-specific files focused on provider-specific payloads, capability differences, and response parsing.
+6. Update router, contract, parsing, and provider-specific tests as part of the same stream.
+
 Parallel lanes when safe:
 
 - model-catalog/config lane
@@ -405,6 +741,65 @@ Execution shape:
 - burn down React `act(...)` warnings and router future-flag warnings still present after earlier streams
 - update README and operations docs so they point only to active current files
 - archive completed plans/reports into `_legacy` once their active replacements exist
+
+### Exact Current File Inventory
+
+```text
+src/components/features/Settings/index.tsx
+src/components/features/Settings/SettingsDataTab.tsx
+src/components/features/Settings/SettingsDialogs.tsx
+src/components/features/Settings/SettingsRuntimeTab.tsx
+src/components/features/Settings/SettingsScopesTab.tsx
+src/components/features/Settings/SettingsTemplatesTab.tsx
+src/components/features/Settings/SettingsThemeTab.tsx
+src/components/features/Settings/TemplateGallery.tsx
+src/components/features/Settings/settingsUtils.ts
+src/components/features/Settings/useSettingsController.ts
+src/components/features/Settings/useSettingsController.test.ts
+src/components/features/Settings/useSettingsDataState.ts
+src/components/features/Settings/useSettingsRuntimeState.ts
+src/components/features/Settings/useSettingsThemeState.ts
+src/components/features/Runs/OpenRouterSearchControls.tsx
+src/components/features/Runs/ProviderModelSelector.tsx
+src/components/features/Runs/RuntimeConfigBehaviorControls.tsx
+src/components/features/Runs/RuntimeConfigSummary.tsx
+src/components/features/Runs/TaskSetupModal.tsx
+src/components/features/Runs/ThinkingBudgetControl.tsx
+src/components/features/Runs/runtimeConfigMapping.ts
+src/components/features/Runs/runtimeConfigMapping.test.ts
+src/components/features/Runs/runtimeConfigOptions.ts
+src/components/features/Runs/taskSetupUtils.ts
+src/components/features/Runs/useRuntimeConfigForm.ts
+src/components/features/Runs/useRuntimeConfigForm.test.ts
+src/components/features/Runs/useTaskSetupState.ts
+src/components/features/Chat/GuidedRunBuilder.tsx
+src/components/ui/ApiKeyModal.tsx
+src/components/ui/OpenRouterModelBrowser.tsx
+src/components/ui/ScopeManager.tsx
+src/components/ui/TaskSetupModal.tsx
+src/config/systemConfig.ts
+src/config/systemConfig.test.ts
+src/services/providers/keys.ts
+src/services/providers/keys.test.ts
+src/components/features/OperationView/launchPropagation.test.tsx
+src/components/features/OperationView/useOperationViewController.test.ts
+src/components/features/Timeline/useTimelineViewController.test.ts
+src/index.tsx
+README.md
+docs/operations/ARCHITECTURE.md
+docs/operations/DATA_PERSISTENCE.md
+docs/operations/OPERATIONS_RUNBOOK.md
+docs/operations/CONTRIBUTING.md
+```
+
+### Execution Checklist
+
+1. Finish the shared runtime-config contract across `Settings/*`, `Runs/*`, `GuidedRunBuilder.tsx`, and the supporting UI modules.
+2. Remove re-export shims and naming leftovers such as `src/components/ui/TaskSetupModal.tsx` once the canonical import surface is settled.
+3. Clean the current warning-owner tests in `OperationView/launchPropagation.test.tsx`, `OperationView/useOperationViewController.test.ts`, and `Timeline/useTimelineViewController.test.ts`.
+4. Confirm `src/index.tsx` and any router-based tests stay aligned on the React Router future flags so warnings do not regress.
+5. Update active docs only after the final runtime-config and warning contract lands.
+6. Move superseded plan/report docs to `_legacy` only once the active replacements are complete and linked.
 
 Parallel lanes when safe:
 
