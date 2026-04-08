@@ -131,202 +131,204 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center justify-center">
-            <GlobalSearch compact className="mx-auto w-full max-w-[38rem]" />
+          <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
+            <GlobalSearch compact className="mx-auto w-full" />
           </div>
 
-          <div className="flex shrink-0 items-center justify-end gap-3">
-            <div
-              role="group"
-              aria-label="Files layout"
-              className={`${CHROME_TOOLBAR_GROUP_CLASS} flex shrink-0 items-stretch overflow-hidden`}
-            >
-              <button
-                onClick={() => setViewMode('LIST')}
-                aria-pressed={viewMode === 'LIST'}
-                className={`${getChromeSegmentButtonClass(viewMode === 'LIST')} flex min-w-[38px] items-center justify-center border-r border-zinc-800 px-2.5 py-1.5`}
-                title="Show dense list view"
-                aria-label="Show dense list view"
+          <div className="flex flex-1 items-center justify-end">
+            <div className="flex shrink-0 items-center gap-3">
+              <div
+                role="group"
+                aria-label="Files layout"
+                className={`${CHROME_TOOLBAR_GROUP_CLASS} flex items-stretch overflow-hidden`}
               >
-                <List className="h-4 w-4" />
-              </button>
+                <button
+                  onClick={() => setViewMode('LIST')}
+                  aria-pressed={viewMode === 'LIST'}
+                  className={`${getChromeSegmentButtonClass(viewMode === 'LIST')} flex min-w-[38px] items-center justify-center border-r border-zinc-800 px-2.5 py-1.5`}
+                  title="Show dense list view"
+                  aria-label="Show dense list view"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('GRID')}
+                  aria-pressed={viewMode === 'GRID'}
+                  className={`${getChromeSegmentButtonClass(viewMode === 'GRID')} flex min-w-[38px] items-center justify-center px-2.5 py-1.5`}
+                  title="Show grid view"
+                  aria-label="Show grid view"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+              </div>
+
+              {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
+                <div className="relative shrink-0" ref={filterMenuRef}>
+                  <button
+                    onClick={() => {
+                      setShowFilters(!showFilters);
+                      setShowExportMenu(false);
+                    }}
+                    className={getChromeMenuButtonClass(showFilters)}
+                    aria-label="Files filters"
+                    title="Filter visible records"
+                  >
+                    <Filter className="h-4 w-4" />
+                  </button>
+
+                  {showFilters ? (
+                    <div className="absolute right-0 top-full z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
+                      <div className="border-b border-zinc-800 bg-black px-4 py-3">
+                        <h3 className="osint-panel-title">Files Filters</h3>
+                      </div>
+                      <div className="space-y-5 p-4">
+                        <div>
+                          <label className="osint-meta-label mb-2 block">Record Type</label>
+                          <div className="space-y-2">
+                            {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => {
+                                  setRecordFilter(value);
+                                  setCurrentPage(1);
+                                }}
+                                className={`osint-meta-label flex w-full items-center justify-between border px-3 py-2 transition ${
+                                  recordFilter === value
+                                    ? 'border-osint-primary bg-osint-primary/10 text-osint-primary'
+                                    : 'border-zinc-800 bg-black text-zinc-300 hover:border-zinc-600 hover:text-white'
+                                }`}
+                              >
+                                <span>
+                                  {value === 'ALL'
+                                    ? 'All'
+                                    : value === 'ARTIFACT'
+                                      ? 'Artifacts'
+                                      : 'Items'}
+                                </span>
+                                {recordFilter === value ? <span>Active</span> : null}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRecordFilter('ALL');
+                              setCurrentPage(1);
+                            }}
+                            className="osint-meta-label hover:text-white"
+                          >
+                            Reset
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowFilters(false)}
+                            className="osint-button-primary osint-meta-label-strong px-4 py-1.5"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               <button
-                onClick={() => setViewMode('GRID')}
-                aria-pressed={viewMode === 'GRID'}
-                className={`${getChromeSegmentButtonClass(viewMode === 'GRID')} flex min-w-[38px] items-center justify-center px-2.5 py-1.5`}
-                title="Show grid view"
-                aria-label="Show grid view"
+                onClick={openUploadPicker}
+                disabled={workspaces.length === 0}
+                className={getChromeMenuButtonClass(false)}
+                title={
+                  workspaces.length === 0
+                    ? `Create a ${workspaceLabelLower} before uploading documents`
+                    : 'Upload documents into a workspace'
+                }
               >
-                <LayoutGrid className="h-4 w-4" />
+                <Upload className="h-4 w-4" />
+                <span className="hidden lg:inline">Upload</span>
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+
+              {currentWorkspace ? (
+                <div className="relative" ref={exportMenuRef}>
+                  <button
+                    onClick={() => {
+                      setShowExportMenu(!showExportMenu);
+                      setShowFilters(false);
+                    }}
+                    className={getChromeMenuButtonClass(showExportMenu)}
+                  >
+                    <Download className="mr-1 h-4 w-4" />
+                    <span className="hidden lg:inline">Export</span>
+                    <ChevronDown className="ml-1 h-3 w-3" />
+                  </button>
+                  {showExportMenu ? (
+                    <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
+                      <button
+                        onClick={() => {
+                          if (!currentWorkspace) return;
+                          exportCaseAsHtml(currentWorkspace, currentWorkspaceArtifacts);
+                          setShowExportMenu(false);
+                        }}
+                        className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
+                        title={`Exports a formatted printable ${workspaceLabelLower}`}
+                      >
+                        <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                        <div>
+                          <div className="osint-menu-item-title">{`${workspaceLabel} HTML`}</div>
+                          <div className="osint-menu-item-description">
+                            {`Formatted printable ${workspaceLabelLower}`}
+                          </div>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!currentWorkspace) return;
+                          exportCaseAsJson(currentWorkspace, currentWorkspaceArtifacts);
+                          setShowExportMenu(false);
+                        }}
+                        className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
+                        title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
+                      >
+                        <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                        <div>
+                          <div className="osint-menu-item-title">{`${workspaceLabel} JSON`}</div>
+                          <div className="osint-menu-item-description">
+                            {`Raw ${workspaceLabelLower} data for backup`}
+                          </div>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!currentWorkspace) return;
+                          exportCaseAsMarkdown(currentWorkspace, currentWorkspaceArtifacts);
+                          setShowExportMenu(false);
+                        }}
+                        className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-zinc-300"
+                        title={`Exports ${workspaceLabelLower} as Markdown`}
+                      >
+                        <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                        <div>
+                          <div className="osint-menu-item-title">{`${workspaceLabel} Markdown`}</div>
+                          <div className="osint-menu-item-description">
+                            {`${workspaceLabel} narrative package`}
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
-
-            {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
-              <div className="relative shrink-0" ref={filterMenuRef}>
-                <button
-                  onClick={() => {
-                    setShowFilters(!showFilters);
-                    setShowExportMenu(false);
-                  }}
-                  className={getChromeMenuButtonClass(showFilters)}
-                  aria-label="Files filters"
-                  title="Filter visible records"
-                >
-                  <Filter className="h-4 w-4" />
-                </button>
-
-                {showFilters ? (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
-                    <div className="border-b border-zinc-800 bg-black px-4 py-3">
-                      <h3 className="osint-panel-title">Files Filters</h3>
-                    </div>
-                    <div className="space-y-5 p-4">
-                      <div>
-                        <label className="osint-meta-label mb-2 block">Record Type</label>
-                        <div className="space-y-2">
-                          {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
-                            <button
-                              key={value}
-                              type="button"
-                              onClick={() => {
-                                setRecordFilter(value);
-                                setCurrentPage(1);
-                              }}
-                              className={`osint-meta-label flex w-full items-center justify-between border px-3 py-2 transition ${
-                                recordFilter === value
-                                  ? 'border-osint-primary bg-osint-primary/10 text-osint-primary'
-                                  : 'border-zinc-800 bg-black text-zinc-300 hover:border-zinc-600 hover:text-white'
-                              }`}
-                            >
-                              <span>
-                                {value === 'ALL'
-                                  ? 'All'
-                                  : value === 'ARTIFACT'
-                                    ? 'Artifacts'
-                                    : 'Items'}
-                              </span>
-                              {recordFilter === value ? <span>Active</span> : null}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRecordFilter('ALL');
-                            setCurrentPage(1);
-                          }}
-                          className="osint-meta-label hover:text-white"
-                        >
-                          Reset
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowFilters(false)}
-                          className="osint-button-primary osint-meta-label-strong px-4 py-1.5"
-                        >
-                          Apply
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            <button
-              onClick={openUploadPicker}
-              disabled={workspaces.length === 0}
-              className={getChromeMenuButtonClass(false)}
-              title={
-                workspaces.length === 0
-                  ? `Create a ${workspaceLabelLower} before uploading documents`
-                  : 'Upload documents into a workspace'
-              }
-            >
-              <Upload className="h-4 w-4" />
-              <span className="hidden lg:inline">Upload</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-
-            {currentWorkspace ? (
-              <div className="relative" ref={exportMenuRef}>
-                <button
-                  onClick={() => {
-                    setShowExportMenu(!showExportMenu);
-                    setShowFilters(false);
-                  }}
-                  className={getChromeMenuButtonClass(showExportMenu)}
-                >
-                  <Download className="mr-1 h-4 w-4" />
-                  <span className="hidden lg:inline">Export</span>
-                  <ChevronDown className="ml-1 h-3 w-3" />
-                </button>
-                {showExportMenu ? (
-                  <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
-                    <button
-                      onClick={() => {
-                        if (!currentWorkspace) return;
-                        exportCaseAsHtml(currentWorkspace, currentWorkspaceArtifacts);
-                        setShowExportMenu(false);
-                      }}
-                      className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
-                      title={`Exports a formatted printable ${workspaceLabelLower}`}
-                    >
-                      <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                      <div>
-                        <div className="osint-menu-item-title">{`${workspaceLabel} HTML`}</div>
-                        <div className="osint-menu-item-description">
-                          {`Formatted printable ${workspaceLabelLower}`}
-                        </div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!currentWorkspace) return;
-                        exportCaseAsJson(currentWorkspace, currentWorkspaceArtifacts);
-                        setShowExportMenu(false);
-                      }}
-                      className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
-                      title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
-                    >
-                      <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                      <div>
-                        <div className="osint-menu-item-title">{`${workspaceLabel} JSON`}</div>
-                        <div className="osint-menu-item-description">
-                          {`Raw ${workspaceLabelLower} data for backup`}
-                        </div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!currentWorkspace) return;
-                        exportCaseAsMarkdown(currentWorkspace, currentWorkspaceArtifacts);
-                        setShowExportMenu(false);
-                      }}
-                      className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-zinc-300"
-                      title={`Exports ${workspaceLabelLower} as Markdown`}
-                    >
-                      <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                      <div>
-                        <div className="osint-menu-item-title">{`${workspaceLabel} Markdown`}</div>
-                        <div className="osint-menu-item-description">
-                          {`${workspaceLabel} narrative package`}
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
