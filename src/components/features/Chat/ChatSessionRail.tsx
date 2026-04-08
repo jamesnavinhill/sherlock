@@ -48,7 +48,7 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
     className={`${leftPanelOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:-translate-x-0 lg:border-r-0'} fixed inset-y-0 left-0 z-30 w-80 overflow-hidden border-r border-zinc-800 bg-black/95 shadow-2xl transition-all duration-300 lg:relative lg:z-0 lg:flex lg:flex-shrink-0 lg:flex-col lg:shadow-none ${leftPanelOpen ? 'lg:w-80' : 'lg:w-0'} backdrop-blur-md`}
   >
     <div className="border-b border-zinc-800 bg-zinc-900/30 p-4">
-      <h2 className="text-base font-bold text-white">{workspaceTitle}</h2>
+      <h2 className="osint-panel-title">{workspaceTitle}</h2>
     </div>
     <div className="flex-1 overflow-y-auto bg-black/20 p-2 custom-scrollbar">
       <Accordion
@@ -61,7 +61,7 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
       >
         <div className="space-y-1">
           {workspaceSessions.length === 0 ? (
-            <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+            <p className="osint-body-quiet px-2 py-1 italic">
               No chat history for this workspace yet.
             </p>
           ) : (
@@ -79,25 +79,23 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
                   }`}
                 >
                   <button onClick={() => onSelectSession(session)} className="w-full px-2 py-2 text-left">
-                    <div className="line-clamp-2 text-sm text-zinc-200">{getSessionTitle(session)}</div>
-                    <div className="mt-1 text-[10px] font-mono uppercase text-zinc-500">
-                      {sessionGuidedState ? 'Guided' : 'Chat'} · {sessionMessageCount} messages
+                    <div className="osint-body-small line-clamp-2">{getSessionTitle(session)}</div>
+                    <div className="osint-meta-label mt-1">
+                      {sessionGuidedState ? 'Guided' : 'Chat'} / {sessionMessageCount} messages
                     </div>
-                    <div className="mt-1 text-[10px] text-zinc-600">
-                      {formatDateTime(session.updatedAt)}
-                    </div>
+                    <div className="osint-body-quiet mt-1">{formatDateTime(session.updatedAt)}</div>
                   </button>
                   <div className="flex gap-3 px-2 pb-2">
                     <button
                       onClick={() => onRenameSession(session)}
-                      className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-white"
+                      className="osint-meta-label inline-flex items-center gap-1 transition hover:text-white"
                     >
                       <Pencil className="h-3 w-3" />
                       Rename
                     </button>
                     <button
                       onClick={() => onDeleteSession(session)}
-                      className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 osint-danger-inline"
+                      className="osint-meta-label inline-flex items-center gap-1 osint-danger-inline"
                     >
                       <Trash2 className="h-3 w-3" />
                       Delete
@@ -117,7 +115,7 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
         onToggle={onToggleWorkspace}
         contentClassName={sectionScrollClassName}
       >
-        <p className="px-2 py-1 text-xs leading-6 text-zinc-400">
+        <p className="osint-body-small px-2 py-1">
           {workspaceDescription || 'No workspace summary saved yet.'}
         </p>
       </Accordion>

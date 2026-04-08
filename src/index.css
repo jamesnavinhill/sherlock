@@ -465,7 +465,7 @@ body,
 }
 
 .osint-button-chrome {
-  background-color: transparent;
+  background-color: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
   font-weight: var(--font-weight-bold);
@@ -478,7 +478,7 @@ body,
 
 .osint-button-chrome:hover,
 .osint-button-chrome:focus-visible {
-  background-color: transparent;
+  background-color: color-mix(in oklab, var(--osint-dark) 86%, var(--osint-panel) 14%);
   color: var(--osint-text-action);
   border-color: var(--osint-primary-soft-border);
   box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
@@ -499,7 +499,7 @@ body,
 }
 
 .osint-toolbar-field {
-  background-color: color-mix(in oklab, var(--osint-panel) 92%, var(--osint-dark));
+  background-color: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
   transition:
@@ -518,8 +518,12 @@ body,
   outline: none;
 }
 
+.osint-toolbar-search-field {
+  background-color: color-mix(in oklab, var(--osint-panel) 92%, var(--osint-dark));
+}
+
 .osint-toolbar-group {
-  background-color: color-mix(in oklab, var(--osint-panel) 90%, var(--osint-dark));
+  background-color: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
 }
 

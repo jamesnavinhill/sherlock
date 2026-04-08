@@ -69,6 +69,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     leftPanelOpen,
     leftPanelSections,
     LEFT_PANEL_SECTION_SCROLL_CLASS,
+    RIGHT_PANEL_SECTION_SCROLL_CLASS,
     manualSetupDraft,
     messageBodyClassName,
     mentionCandidates,
@@ -237,6 +238,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
           latestAssistantMessage={latestAssistantMessage}
           sessionActions={sessionActions}
           expandedArtifactIds={expandedArtifactIds}
+          sectionScrollClassName={RIGHT_PANEL_SECTION_SCROLL_CLASS}
           formatDateTime={formatDateTime}
           onToggleSection={toggleRightPanelSection}
           onToggleArtifactCard={toggleArtifactCard}

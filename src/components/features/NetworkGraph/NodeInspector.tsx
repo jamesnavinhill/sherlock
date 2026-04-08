@@ -306,6 +306,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
       ]
     : [];
+  const footerActionClassName =
+    'osint-meta-label-strong inline-flex w-full items-center justify-center border border-zinc-700 px-4 py-3 text-zinc-300 transition-colors hover:border-osint-primary hover:text-white';
 
   return (
     <div
@@ -315,19 +317,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         <div className="flex h-full flex-col">
           <div className="flex flex-shrink-0 items-start border-b border-zinc-800 bg-zinc-900/30 p-4">
             <div className="min-w-0">
-              <div className="mb-1 text-[10px] font-bold font-mono uppercase tracking-widest text-zinc-500">
-                Inspector
-              </div>
-              <h3 className="font-mono text-base font-bold text-white">No Item Selected</h3>
+              <div className="osint-meta-label mb-1">Inspector</div>
+              <h3 className="osint-panel-title">No Item Selected</h3>
             </div>
           </div>
 
           <div className="flex flex-1 items-center justify-center p-6">
             <div className="max-w-xs border border-zinc-800 bg-zinc-900/40 p-5 text-center">
-              <div className="mb-3 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                Inspector Ready
-              </div>
-              <p className="text-sm leading-relaxed text-zinc-300">
+              <div className="osint-meta-label mb-3">Inspector Ready</div>
+              <p className="osint-body-small">
                 Select a node, report, or saved signal to inspect details here.
               </p>
             </div>
@@ -345,15 +343,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
+                  <span className="osint-meta-label">
                     {selectedHeadline.type} INTEL
                   </span>
-                  <span className="text-[9px] bg-green-900/20 text-green-500 border border-green-900 px-1.5 py-0.5 font-mono">
+                  <span className="osint-meta-label-strong border border-green-900 bg-green-900/20 px-1.5 py-0.5 text-green-500">
                     LIVE
                   </span>
                 </div>
                 <h3
-                  className="text-lg font-bold text-white leading-tight font-mono truncate"
+                  className="osint-panel-title truncate"
                   title={selectedHeadline.source}
                 >
                   {selectedHeadline.source}
@@ -367,13 +365,11 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
 
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
             <div className="bg-zinc-900/50 p-4 border border-zinc-800 relative group">
-              <h4 className="text-[10px] text-zinc-500 font-mono uppercase mb-2">
-                Captured Content
-              </h4>
-              <p className="text-sm font-mono text-zinc-300 leading-relaxed">
+              <h4 className="osint-meta-label mb-2">Captured Content</h4>
+              <p className="osint-body-small">
                 &quot;{selectedHeadline.content}&quot;
               </p>
-              <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-600 font-mono">
+              <div className="osint-body-quiet mt-4 flex items-center justify-between border-t border-zinc-800 pt-4">
                 <span>TS: {selectedHeadline.timestamp}</span>
               </div>
             </div>
@@ -386,7 +382,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               >
                 <div className="flex items-center overflow-hidden">
                   <Globe className="w-4 h-4 text-zinc-500 mr-3 group-hover:text-osint-primary" />
-                  <span className="text-xs font-mono text-zinc-400 group-hover:text-white truncate">
+                  <span className="osint-meta-value truncate group-hover:text-white">
                     {selectedHeadline.url}
                   </span>
                 </div>
@@ -401,7 +397,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 onOpenHeadlineChat(selectedHeadline);
                 onClose();
               }}
-              className="w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
+              className={footerActionClassName}
             >
               <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
             </button>
@@ -410,7 +406,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 onPlaceHeadlineOnBoard(selectedHeadline);
                 onClose();
               }}
-              className="w-full py-3 border border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white transition-colors font-mono text-sm uppercase flex items-center justify-center"
+              className={footerActionClassName}
             >
               <Shapes className="w-4 h-4 mr-2" /> Place On Board
             </button>
@@ -419,7 +415,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 onInvestigate(selectedHeadline.content);
                 onClose();
               }}
-              className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center"
+              className="osint-button-primary osint-meta-label-strong inline-flex w-full items-center justify-center px-4 py-3"
             >
               <Microscope className="w-4 h-4 mr-2" /> Launch Investigation
             </button>
@@ -437,15 +433,13 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
-                    INVESTIGATION REPORT
-                  </span>
+                  <span className="osint-meta-label">Investigation Report</span>
                 </div>
                 <EditableTitle
                   value={selectedReport.topic}
                   onSave={(newTitle) => onReportSave(selectedReport, newTitle)}
-                  className="text-md font-bold text-white leading-tight font-mono"
-                  inputClassName="text-md font-bold leading-tight"
+                  className="osint-panel-title leading-tight"
+                  inputClassName="osint-panel-title leading-tight"
                 />
               </div>
             </div>
@@ -459,10 +453,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
 
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
             <div className="bg-zinc-900/50 p-4 border border-zinc-800">
-              <h4 className="text-[10px] text-zinc-500 font-mono uppercase mb-2">
-                Executive Summary
-              </h4>
-              <p className="text-xs text-zinc-400 leading-relaxed font-mono line-clamp-6">
+              <h4 className="osint-meta-label mb-2">Executive Summary</h4>
+              <p className="osint-body-small line-clamp-6">
                 {selectedReport.summary.substring(0, 300)}...
               </p>
             </div>
@@ -476,9 +468,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
             >
               <div className="space-y-1">
                 {selectedReport.entities.length === 0 && (
-                  <p className="text-[10px] text-zinc-500 font-mono px-2 py-1">
-                    No entities found.
-                  </p>
+                  <p className="osint-body-quiet px-2 py-1">No entities found.</p>
                 )}
                 {selectedReport.entities.map((e, idx) => {
                   const name = typeof e === 'string' ? e : e.name;
@@ -486,7 +476,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     <button
                       key={idx}
                       disabled
-                      className="w-full text-left p-2 hover:bg-zinc-900 text-xs font-mono text-zinc-400 hover:text-white truncate cursor-default"
+                      className="osint-meta-value w-full cursor-default truncate p-2 text-left hover:bg-zinc-900 hover:text-white"
                     >
                       {name}
                     </button>
@@ -504,17 +494,17 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
             >
               <div className="space-y-1">
                 {(!selectedReport.leads || selectedReport.leads.length === 0) && (
-                  <p className="text-[10px] text-zinc-500 font-mono px-2 py-1">No leads found.</p>
+                  <p className="osint-body-quiet px-2 py-1">No leads found.</p>
                 )}
                 {selectedReport.leads?.map((lead, idx) => (
                   <div key={idx} className="p-2 bg-zinc-900/20 border border-zinc-800/50 mb-1">
-                    <p className="text-[10px] text-zinc-400 font-mono mb-2 line-clamp-2">{lead}</p>
+                    <p className="osint-body-quiet mb-2 line-clamp-2">{lead}</p>
                     <button
                       onClick={() => {
                         onInvestigate(lead);
                         onClose();
                       }}
-                      className="osint-button-primary w-full text-center py-1 text-[10px] font-bold uppercase"
+                      className="osint-button-primary osint-meta-label-strong w-full py-1 text-center"
                     >
                       Investigate
                     </button>
@@ -532,7 +522,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
             >
               <div className="space-y-1">
                 {(!selectedReport.sources || selectedReport.sources.length === 0) && (
-                  <p className="text-[10px] text-zinc-500 font-mono px-2 py-1">No sources found.</p>
+                  <p className="osint-body-quiet px-2 py-1">No sources found.</p>
                 )}
                 {selectedReport.sources?.map((s, idx) => (
                   <a
@@ -540,7 +530,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0"
+                    className="osint-link-list-item osint-meta-value block truncate border-b border-zinc-900 p-2 last:border-0"
                   >
                     <Link2 className="w-3 h-3 inline mr-1" />
                     {s.title}
@@ -572,7 +562,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
+                  <span className="osint-meta-label">
                     {selectedNodeType === 'SOURCE'
                       ? 'SOURCE NODE'
                       : selectedNodeType === 'UNKNOWN'
@@ -583,8 +573,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 <EditableTitle
                   value={selectedEntity}
                   onSave={(newName) => onEntitySave(selectedEntity, newName)}
-                  className="text-base font-bold text-white leading-tight font-mono"
-                  inputClassName="text-lg font-bold leading-tight"
+                  className="osint-panel-title leading-tight"
+                  inputClassName="osint-panel-title leading-tight"
                 />
               </div>
             </div>
@@ -608,19 +598,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     <div className="bg-zinc-900/50 p-4 border border-zinc-800 space-y-3">
                       {details.role && (
                         <div>
-                          <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
-                            Role
-                          </div>
-                          <div className="text-sm text-zinc-300">{details.role}</div>
+                          <div className="osint-meta-label mb-1">Role</div>
+                          <div className="osint-body-small">{details.role}</div>
                         </div>
                       )}
                       {details.sentiment && (
                         <div>
-                          <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
-                            Sentiment
-                          </div>
+                          <div className="osint-meta-label mb-1">Sentiment</div>
                           <span
-                            className={`text-xs uppercase font-mono px-2 py-1 border ${details.sentiment === 'NEGATIVE' ? 'border-osint-danger/40 osint-danger-text bg-osint-danger/10' : details.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}
+                            className={`osint-meta-label inline-flex border px-2 py-1 ${details.sentiment === 'NEGATIVE' ? 'border-osint-danger/40 osint-danger-text bg-osint-danger/10' : details.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}
                           >
                             {details.sentiment}
                           </span>
@@ -647,11 +633,11 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                       className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group"
                     >
                       <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
-                      <span className="truncate text-xs font-mono">{r.topic}</span>
+                      <span className="osint-meta-value truncate">{r.topic}</span>
                     </button>
                   ))
                 ) : (
-                  <p className="text-zinc-600 text-xs font-mono p-2">No direct mentions found.</p>
+                  <p className="osint-body-quiet p-2">No direct mentions found.</p>
                 )}
               </div>
             </Accordion>
@@ -684,19 +670,19 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                           />
                         )}
                         <span
-                          className="text-xs font-mono text-zinc-400 truncate"
+                          className="osint-meta-value truncate"
                           title={conn.entity.name}
                         >
                           {conn.entity.name}
                         </span>
                       </div>
-                      <span className="text-[9px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded-sm font-mono">
+                      <span className="osint-meta-label rounded-sm bg-zinc-800 px-1.5 py-0.5">
                         {conn.count} Links
                       </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-zinc-600 text-xs font-mono p-2">No connections established.</p>
+                  <p className="osint-body-quiet p-2">No connections established.</p>
                 )}
               </div>
             </Accordion>

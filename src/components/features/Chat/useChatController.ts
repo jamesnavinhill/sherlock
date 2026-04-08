@@ -38,6 +38,7 @@ import {
   getLaunchContextSummary,
   getSessionTitle,
   LEFT_PANEL_SECTION_SCROLL_CLASS,
+  RIGHT_PANEL_SECTION_SCROLL_CLASS,
   sectionLabelClassName,
   splitCollapsedFollowUpBlock,
   toggleExclusiveSection,
@@ -297,11 +298,8 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     [themeMode]
   );
 
-  const defaultExpandedArtifactIds = useMemo(
-    () =>
-      Object.fromEntries(
-        workspaceReports.slice(0, 4).map((artifact) => [artifact.id || artifact.topic, true])
-      ),
+  const defaultExpandedArtifactIds = useMemo<Record<string, boolean>>(
+    () => ({}),
     [workspaceReports]
   );
 
@@ -319,7 +317,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   };
 
   const toggleRightPanelSection = (section: keyof typeof rightPanelSections) => {
-    setRightPanelSections((current) => ({ ...current, [section]: !current[section] }));
+    setRightPanelSections((current) => toggleExclusiveSection(current, section));
   };
 
   const toggleArtifactCard = (artifactId: string) => {
@@ -741,6 +739,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     leftPanelOpen,
     leftPanelSections,
     LEFT_PANEL_SECTION_SCROLL_CLASS,
+    RIGHT_PANEL_SECTION_SCROLL_CLASS,
     manualSetupDraft,
     messageBodyClassName,
     mentionCandidates,

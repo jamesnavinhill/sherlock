@@ -141,14 +141,14 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+          <span className="mb-2 block osint-meta-label">
             Pack
           </span>
           <OsintSelect
             ariaLabel="Pack"
             value={draft.scopeId}
             onChange={handleScopeChange}
-            triggerClassName="px-3 py-2 pr-8 text-sm"
+            triggerClassName="px-3 py-2 pr-8 osint-meta-value"
             options={allScopes.map((scope) => ({
               value: scope.id,
               label: scope.name,
@@ -156,7 +156,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           />
         </label>
         <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+          <span className="mb-2 block osint-meta-label">
             Purpose
           </span>
           <OsintSelect
@@ -170,7 +170,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                 artifactType: nextPurpose.recommendedArtifactType,
               }));
             }}
-            triggerClassName="px-3 py-2 pr-8 text-sm"
+            triggerClassName="px-3 py-2 pr-8 osint-meta-value"
             options={supportedPurposes.map((purpose) => ({
               value: purpose.id,
               label: purpose.name,
@@ -180,7 +180,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+          <span className="mb-2 block osint-meta-label">
             Output Shape
           </span>
           <OsintSelect
@@ -192,7 +192,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                 artifactType: value as GuidedRunDraft['artifactType'],
               }))
             }
-            triggerClassName="px-3 py-2 pr-8 text-sm"
+            triggerClassName="px-3 py-2 pr-8 osint-meta-value"
             options={[
               selectedPurpose.recommendedArtifactType,
               'REPORT',
@@ -212,7 +212,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           />
         </label>
         <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+          <span className="mb-2 block osint-meta-label">
             Workspace Intent
           </span>
           <OsintSelect
@@ -224,7 +224,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                 workspaceIntent: value as GuidedRunDraft['workspaceIntent'],
               }))
             }
-            triggerClassName="px-3 py-2 pr-8 text-sm"
+            triggerClassName="px-3 py-2 pr-8 osint-meta-value"
             options={[
               {
                 value: 'CURRENT',
@@ -237,7 +237,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+          <span className="mb-2 block osint-meta-label">
             Date From
           </span>
           <input
@@ -252,11 +252,11 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                 },
               }))
             }
-            className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
+            className="w-full border border-zinc-700 bg-black px-3 py-2 osint-meta-value text-zinc-200 outline-none focus:border-osint-primary"
           />
         </label>
         <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+          <span className="mb-2 block osint-meta-label">
             Date To
           </span>
           <input
@@ -271,7 +271,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                 },
               }))
             }
-            className="w-full border border-zinc-700 bg-black px-3 py-2 text-sm text-zinc-200 outline-none focus:border-osint-primary"
+            className="w-full border border-zinc-700 bg-black px-3 py-2 osint-meta-value text-zinc-200 outline-none focus:border-osint-primary"
           />
         </label>
       </div>
@@ -283,7 +283,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       value={draft.topic}
       onChange={(event) => setDraft((current) => ({ ...current, topic: event.target.value }))}
       placeholder="What should Sherlock analyze, compare, or monitor?"
-      className="h-32 w-full resize-none border border-zinc-700 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
+      className="h-32 w-full resize-none border border-zinc-700 bg-black px-4 py-3 osint-body-small text-white outline-none transition focus:border-osint-primary"
     />
   );
 
@@ -292,7 +292,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       value={draft.angle}
       onChange={(event) => setDraft((current) => ({ ...current, angle: event.target.value }))}
       placeholder="Optional: frame the run around a hypothesis, comparison, decision, or risk."
-      className="h-28 w-full resize-none border border-zinc-700 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
+      className="h-28 w-full resize-none border border-zinc-700 bg-black px-4 py-3 osint-body-small text-white outline-none transition focus:border-osint-primary"
     />
   );
 
@@ -303,14 +303,14 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           value={newEntityName}
           onChange={(event) => setNewEntityName(event.target.value)}
           placeholder="Entity, source, or concept"
-          className="flex-1 border border-zinc-700 bg-black px-3 py-2 text-sm text-white outline-none focus:border-osint-primary"
+          className="flex-1 border border-zinc-700 bg-black px-3 py-2 osint-body-small text-white outline-none focus:border-osint-primary"
         />
         <div className="md:w-48">
           <OsintSelect
             ariaLabel="Entity type"
             value={newEntityType}
             onChange={(value) => setNewEntityType(value as GraphNodeSubtype)}
-            triggerClassName="px-3 py-2 pr-8 text-sm"
+            triggerClassName="px-3 py-2 pr-8 osint-meta-value"
             options={ENTITY_TYPES.map((entityType) => ({
               value: entityType,
               label: entityType,
@@ -320,7 +320,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
         <button
           type="button"
           onClick={handleAddEntity}
-          className="inline-flex items-center justify-center gap-2 border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-200 transition hover:border-osint-primary hover:text-white"
+          className="inline-flex items-center justify-center gap-2 border border-zinc-700 bg-zinc-900 px-3 py-2 osint-meta-label-strong text-zinc-200 transition hover:border-osint-primary hover:text-white"
         >
           <Plus className="h-4 w-4" />
           Add
@@ -328,7 +328,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
       </div>
       <div className="space-y-2">
         {draft.entities.length === 0 ? (
-          <div className="border border-dashed border-zinc-800 p-3 text-sm text-zinc-500">
+          <div className="border border-dashed border-zinc-800 p-3 osint-body-quiet">
             No seeded entities yet.
           </div>
         ) : (
@@ -337,8 +337,8 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
               key={entity.id}
               className="flex items-center justify-between border border-zinc-800 bg-zinc-950/70 px-3 py-2"
             >
-              <div className="text-sm text-zinc-200">
-                {entity.name} <span className="text-xs text-zinc-500">{entity.type}</span>
+              <div className="osint-body-small text-zinc-200">
+                {entity.name} <span className="osint-meta-label text-zinc-500">{entity.type}</span>
               </div>
               <button
                 type="button"
@@ -365,7 +365,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           }))
         }
         placeholder="Domains, handles, registries, or publications to emphasize"
-        className="h-28 w-full resize-none border border-zinc-700 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
+      className="h-28 w-full resize-none border border-zinc-700 bg-black px-4 py-3 osint-body-small text-white outline-none transition focus:border-osint-primary"
       />
       {selectedScope?.suggestedSources?.length ? (
         <div className="flex flex-wrap gap-2">
@@ -384,7 +384,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                       .join(current.prioritySources ? ', ' : ''),
                   }))
                 }
-                className="border border-zinc-800 bg-zinc-900/60 px-2 py-1 text-[11px] text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                className="border border-zinc-800 bg-zinc-900/60 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
               >
                 {source.label}
               </button>
@@ -398,14 +398,14 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+          <span className="mb-2 block osint-meta-label">
             Persona
           </span>
           <OsintSelect
             ariaLabel="Persona"
             value={draft.persona}
             onChange={(value) => setDraft((current) => ({ ...current, persona: value }))}
-            triggerClassName="px-3 py-2 pr-8 text-sm"
+            triggerClassName="px-3 py-2 pr-8 osint-meta-value"
             options={selectedScope.personas.map((persona) => ({
               value: persona.id,
               label: persona.label,
@@ -423,7 +423,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
 
   const renderReviewStep = () => (
     <div className="space-y-4">
-      <div className="border border-zinc-800 bg-zinc-950/70 p-4 text-sm leading-6 text-zinc-200">
+      <div className="border border-zinc-800 bg-zinc-950/70 p-4 osint-body-small text-zinc-200">
         <pre className="whitespace-pre-wrap font-sans">
           {buildGuidedReviewMarkdown(draft, customScopes, workspace)}
         </pre>
@@ -433,7 +433,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           type="button"
           onClick={onLaunchRun}
           disabled={isBusy}
-          className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
+          className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 osint-meta-label-strong disabled:opacity-50"
         >
           <Sparkles className="h-4 w-4" />
           Launch Run
@@ -442,7 +442,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           type="button"
           onClick={onSaveDraft}
           disabled={isBusy}
-          className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
+          className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 osint-meta-label-strong disabled:opacity-50"
         >
           <Target className="h-4 w-4" />
           Save Brief
@@ -451,7 +451,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           type="button"
           onClick={onOpenManualSetup}
           disabled={isBusy}
-          className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
+          className="osint-button-primary inline-flex items-center justify-center gap-2 px-4 py-2 osint-meta-label-strong disabled:opacity-50"
         >
           <Cpu className="h-4 w-4" />
           Open Manual Setup
@@ -463,7 +463,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
   return (
     <section className="border-t border-zinc-800 bg-zinc-950/90 px-4 py-4 sm:px-6">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-[0.24em] text-zinc-500">
+        <div className="mb-4 flex flex-wrap items-center gap-2 osint-meta-label text-zinc-500">
           <Sparkles className="h-4 w-4 text-osint-primary" />
           Guided Run Builder
           <span className="text-zinc-700">/</span>
@@ -474,7 +474,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           {GUIDED_STEP_ORDER.map((step, index) => (
             <span
               key={step}
-              className={`px-2 py-1 text-[10px] font-mono uppercase ${
+              className={`px-2 py-1 osint-meta-label ${
                 step === state.step
                   ? 'osint-button-soft'
                   : index < currentStepIndex
@@ -502,7 +502,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
             type="button"
             onClick={onBack}
             disabled={currentStepIndex === 0 || isBusy}
-            className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase tracking-wide text-zinc-300 transition hover:border-white hover:text-white disabled:opacity-30"
+            className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 osint-meta-label text-zinc-300 transition hover:border-white hover:text-white disabled:opacity-30"
           >
             <ChevronLeft className="h-4 w-4" />
             Back
@@ -512,7 +512,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
               type="button"
               onClick={() => onAdvance(draft)}
               disabled={!canAdvance || isBusy}
-              className="osint-button-primary inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-wide disabled:opacity-50"
+              className="osint-button-primary inline-flex items-center gap-2 px-4 py-2 osint-meta-label-strong disabled:opacity-50"
             >
               {state.step === 'TARGET' ? <Target className="h-4 w-4" /> : null}
               {state.step === 'ANGLE' ? <Lightbulb className="h-4 w-4" /> : null}

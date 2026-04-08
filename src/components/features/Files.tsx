@@ -253,17 +253,17 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
         <button
           onClick={() => setCurrentPage(Math.max(1, current - 1))}
           disabled={current === 1}
-          className="border border-zinc-800 p-2 text-xs font-mono uppercase text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
+          className="osint-meta-label border border-zinc-800 p-2 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
         >
           Prev
         </button>
-        <span className="text-xs font-mono uppercase text-zinc-500">
+        <span className="osint-meta-label">
           Page {current} of {total}
         </span>
         <button
           onClick={() => setCurrentPage(Math.min(total, current + 1))}
           disabled={current === total}
-          className="border border-zinc-800 p-2 text-xs font-mono uppercase text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
+          className="osint-meta-label border border-zinc-800 p-2 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
         >
           Next
         </button>
@@ -313,18 +313,18 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                       <FolderClosed className="h-8 w-8" />
                     </div>
                     <span
-                      className={`border px-2 py-1 text-[10px] font-mono uppercase ${workspace.status === 'ACTIVE' ? 'border-osint-primary/50 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
+                      className={`osint-meta-label border px-2 py-1 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/50 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
                     >
                       {workspace.status}
                     </span>
                   </div>
 
-                  <h3 className="relative z-10 mb-1 truncate text-lg font-medium leading-snug text-white transition-colors group-hover:text-zinc-300">
+                  <h3 className="osint-title-card relative z-10 mb-1 truncate transition-colors group-hover:text-zinc-300">
                     {getWorkspaceDisplayTitle(workspace)}
                   </h3>
-                  <p className="mb-4 text-sm font-mono text-zinc-600">{workspace.dateOpened}</p>
+                  <p className="osint-body-quiet mb-4">{workspace.dateOpened}</p>
 
-                  <div className="relative z-10 flex items-center justify-between border-t border-zinc-800 pt-4 text-sm font-mono uppercase text-zinc-500">
+                  <div className="osint-meta-label relative z-10 flex items-center justify-between border-t border-zinc-800 pt-4">
                     <span className="flex items-center gap-3">
                       <span className="flex items-center">
                         <FileText className="mr-2 h-4 w-4" />
@@ -398,11 +398,11 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                     <FolderOpen className="h-8 w-8" />
                   </div>
                 </div>
-                <h3 className="mb-1 text-lg font-medium leading-snug text-zinc-400 transition-colors hover:text-white">
+                <h3 className="osint-title-card mb-1 text-zinc-400 transition-colors hover:text-white">
                   Unassigned
                 </h3>
-                <p className="mb-4 text-sm font-mono text-zinc-600">{`Loose ${artifactLabelPlural}`}</p>
-                <div className="flex items-center border-t border-zinc-800 pt-4 text-sm font-mono uppercase text-zinc-500">
+                <p className="osint-body-quiet mb-4">{`Loose ${artifactLabelPlural}`}</p>
+                <div className="osint-meta-label flex items-center border-t border-zinc-800 pt-4">
                   <FileText className="mr-2 h-4 w-4" />
                   {getUnassignedReports().length} {artifactLabelPlural}
                 </div>
@@ -411,7 +411,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           </div>
         ) : (
           <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
-            <div className="grid grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3 text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+            <div className="osint-meta-label grid grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
               <span>Workspace</span>
               <span>Artifacts</span>
               <span>Items</span>
@@ -430,29 +430,23 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="text-sm font-semibold text-white">
-                          {getWorkspaceDisplayTitle(workspace)}
-                        </div>
+                        <div className="osint-title-inline">{getWorkspaceDisplayTitle(workspace)}</div>
                         <span
-                          className={`border px-2 py-0.5 text-[10px] font-mono uppercase ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
+                          className={`osint-meta-label border px-2 py-0.5 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
                         >
                           {workspace.status}
                         </span>
                       </div>
-                      <div className="mt-1 text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                      <div className="osint-meta-label mt-1">
                         {workspace.dateOpened}
                       </div>
-                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">
+                      <p className="osint-body-quiet mt-2 line-clamp-2">
                         {workspace.description ||
                           'Open this workspace to inspect artifacts, items, and saved history.'}
                       </p>
                     </div>
-                    <div className="self-center text-right text-sm font-mono text-zinc-300">
-                      {fileCount}
-                    </div>
-                    <div className="self-center text-right text-sm font-mono text-zinc-300">
-                      {itemCount}
-                    </div>
+                    <div className="osint-meta-value self-center text-right">{fileCount}</div>
+                    <div className="osint-meta-value self-center text-right">{itemCount}</div>
                     <div className="flex items-center justify-end gap-2 self-center">
                       <button
                         onClick={(event) => {
@@ -483,15 +477,13 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                   className="grid cursor-pointer grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
                 >
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-zinc-300">Unassigned</div>
-                    <div className="mt-1 text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    <div className="osint-title-inline text-zinc-300">Unassigned</div>
+                    <div className="osint-meta-label mt-1">
                       Loose {artifactLabelPlural}
                     </div>
                   </div>
-                  <div className="self-center text-right text-sm font-mono text-zinc-300">
-                    {getUnassignedReports().length}
-                  </div>
-                  <div className="self-center text-right text-sm font-mono text-zinc-500">0</div>
+                  <div className="osint-meta-value self-center text-right">{getUnassignedReports().length}</div>
+                  <div className="osint-meta-value self-center text-right text-zinc-500">0</div>
                   <div className="flex items-center justify-end">
                     <ArrowRight className="h-4 w-4 text-zinc-600" />
                   </div>
@@ -548,27 +540,25 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
         {focusedItem && !isUnassigned && focusedItem.workspaceId === workspaceId ? (
           <div className="mb-6 border border-osint-primary/40 bg-osint-primary/10 p-5">
-            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-osint-primary">
-              Focused Item
-            </div>
+            <div className="osint-meta-label text-osint-primary">Focused Item</div>
             <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                <div className="text-lg font-semibold text-white">{focusedItem.title}</div>
-                <div className="mt-2 max-w-3xl text-sm leading-6 text-zinc-300">
+                <div className="osint-title-card">{focusedItem.title}</div>
+                <div className="osint-body-small mt-2 max-w-3xl">
                   {focusedItem.description ||
                     focusedItem.textContent ||
                     focusedItem.url ||
                     focusedItem.fileName ||
                     'Saved workspace item'}
                 </div>
-                <div className="mt-3 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
-                  {focusedItem.kind} • {focusedItem.provenance?.source || 'USER'}
+                <div className="osint-meta-label mt-3">
+                  {focusedItem.kind} / {focusedItem.provenance?.source || 'USER'}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenChat(buildWorkspaceItemChatOpenRequest(focusedItem))}
-                  className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-200 transition hover:border-white hover:text-white"
+                  className="osint-meta-label-strong inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-zinc-200 transition hover:border-white hover:text-white"
                 >
                   <MessageSquare className="h-4 w-4" />
                   Chat
@@ -583,7 +573,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                       workspaceId: focusedItem.workspaceId,
                     })
                   }
-                  className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-200 transition hover:border-white hover:text-white"
+                  className="osint-meta-label-strong inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-zinc-200 transition hover:border-white hover:text-white"
                 >
                   <Workflow className="h-4 w-4" />
                   Board
@@ -591,7 +581,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                 {focusedItem.url ? (
                   <button
                     onClick={() => window.open(focusedItem.url, '_blank', 'noopener,noreferrer')}
-                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-200 transition hover:border-white hover:text-white"
+                    className="osint-meta-label-strong inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-zinc-200 transition hover:border-white hover:text-white"
                   >
                     <Link2 className="h-4 w-4" />
                     Source
@@ -606,7 +596,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             {records.length === 0 ? (
               <div className="col-span-full flex flex-col items-center justify-center border border-dashed border-zinc-800 bg-zinc-900/20 py-20 animate-in fade-in">
                 <FileText className="mb-4 h-12 w-12 text-zinc-800" />
-                <div className="text-xs font-mono uppercase tracking-widest text-zinc-600 italic">
+                <div className="osint-meta-label italic text-zinc-600">
                   NO_WORKSPACE_RECORDS_MATCH_FILTER
                 </div>
               </div>
@@ -623,13 +613,11 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                         <FileText className="h-6 w-6" />
                       </div>
                       <div>
-                        <div className="text-[10px] font-mono uppercase text-zinc-500">
-                          Artifact
-                        </div>
+                        <div className="osint-meta-label">Artifact</div>
                         <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-white">
                           {record.artifact.topic}
                         </h3>
-                        <div className="mt-1 text-xs font-mono uppercase text-zinc-500">
+                        <div className="osint-meta-label mt-1">
                           {record.artifact.dateStr || 'Unknown Date'}
                         </div>
                       </div>
@@ -692,21 +680,19 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                         <FileText className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[10px] font-mono uppercase text-zinc-500">
-                          {record.item.kind}
-                        </div>
+                        <div className="osint-meta-label">{record.item.kind}</div>
                         <h3 className="truncate font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-white">
                           {record.item.title}
                         </h3>
-                        <div className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
+                        <div className="osint-body-quiet mt-1 line-clamp-2">
                           {record.item.description ||
                             record.item.textContent ||
                             record.item.url ||
                             record.item.fileName ||
                             'Saved workspace item'}
                         </div>
-                        <div className="mt-2 text-[10px] font-mono uppercase text-zinc-600">
-                          {record.item.provenance?.source || 'USER'} •{' '}
+                        <div className="osint-meta-label mt-2 text-zinc-600">
+                          {record.item.provenance?.source || 'USER'} /{' '}
                           {new Date(record.item.updatedAt).toLocaleDateString()}
                         </div>
                       </div>
@@ -751,7 +737,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           </div>
         ) : (
           <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
-            <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3 text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+            <div className="osint-meta-label grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
               <span>Type</span>
               <span>Record</span>
               <span>Updated</span>
@@ -759,7 +745,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             </div>
             <div className="divide-y divide-zinc-800">
               {records.length === 0 ? (
-                <div className="px-4 py-16 text-center text-xs font-mono uppercase tracking-[0.2em] text-zinc-600">
+                <div className="osint-meta-label px-4 py-16 text-center text-zinc-600">
                   No workspace records match filter
                 </div>
               ) : (
@@ -774,17 +760,13 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                         <FileText className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
-                          Artifact
-                        </div>
-                        <h3 className="mt-1 truncate text-sm font-semibold text-white">
-                          {record.artifact.topic}
-                        </h3>
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">
+                        <div className="osint-meta-label">Artifact</div>
+                        <h3 className="osint-title-inline mt-1 truncate">{record.artifact.topic}</h3>
+                        <p className="osint-body-quiet mt-2 line-clamp-2">
                           {record.artifact.summary || 'Saved workspace artifact.'}
                         </p>
                       </div>
-                      <div className="self-center text-right text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                      <div className="osint-meta-label self-center text-right">
                         {record.artifact.dateStr || 'Unknown Date'}
                       </div>
                       <div className="flex items-center justify-end gap-3 self-center">
@@ -832,13 +814,9 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                         <FileText className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
-                          {record.item.kind}
-                        </div>
-                        <h3 className="mt-1 truncate text-sm font-semibold text-white">
-                          {record.item.title}
-                        </h3>
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">
+                        <div className="osint-meta-label">{record.item.kind}</div>
+                        <h3 className="osint-title-inline mt-1 truncate">{record.item.title}</h3>
+                        <p className="osint-body-quiet mt-2 line-clamp-2">
                           {record.item.description ||
                             record.item.textContent ||
                             record.item.url ||
@@ -846,7 +824,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                             'Saved workspace item'}
                         </p>
                       </div>
-                      <div className="self-center text-right text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                      <div className="osint-meta-label self-center text-right">
                         {new Date(record.item.updatedAt).toLocaleDateString()}
                       </div>
                       <div className="flex items-center justify-end gap-3 self-center">
@@ -972,15 +950,11 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                 {showFilters ? (
                   <div className="absolute right-0 top-full z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
                     <div className="border-b border-zinc-800 bg-black px-4 py-3">
-                      <h3 className="text-sm font-bold uppercase tracking-widest text-white">
-                        Files Filters
-                      </h3>
+                      <h3 className="osint-panel-title">Files Filters</h3>
                     </div>
                     <div className="space-y-5 p-4">
                       <div>
-                        <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                          Record Type
-                        </label>
+                        <label className="osint-meta-label mb-2 block">Record Type</label>
                         <div className="space-y-2">
                           {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
                             <button
@@ -990,7 +964,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                                 setRecordFilter(value);
                                 setCurrentPage(1);
                               }}
-                              className={`flex w-full items-center justify-between border px-3 py-2 text-xs font-mono uppercase transition ${
+                              className={`osint-meta-label flex w-full items-center justify-between border px-3 py-2 transition ${
                                 recordFilter === value
                                   ? 'border-osint-primary bg-osint-primary/10 text-osint-primary'
                                   : 'border-zinc-800 bg-black text-zinc-300 hover:border-zinc-600 hover:text-white'
@@ -1016,14 +990,14 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                             setRecordFilter('ALL');
                             setCurrentPage(1);
                           }}
-                          className="text-xs font-mono uppercase text-zinc-500 hover:text-white"
+                          className="osint-meta-label hover:text-white"
                         >
                           Reset
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowFilters(false)}
-                          className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
+                          className="osint-button-primary osint-meta-label-strong px-4 py-1.5"
                         >
                           Apply
                         </button>
@@ -1064,13 +1038,13 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                               );
                               setShowExportMenu(false);
                             }}
-                            className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                            className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
                             title={`Exports a formatted printable ${workspaceLabelLower}`}
                           >
                             <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                             <div>
-                              <div className="font-bold">{`${workspaceLabel} HTML`}</div>
-                              <div className="text-[10px] text-zinc-500">
+                              <div className="osint-menu-item-title">{`${workspaceLabel} HTML`}</div>
+                              <div className="osint-menu-item-description">
                                 {`Formatted printable ${workspaceLabelLower}`}
                               </div>
                             </div>
@@ -1083,13 +1057,13 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                               );
                               setShowExportMenu(false);
                             }}
-                            className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                            className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
                             title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
                           >
                             <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                             <div>
-                              <div className="font-bold">{`${workspaceLabel} JSON`}</div>
-                              <div className="text-[10px] text-zinc-500">
+                              <div className="osint-menu-item-title">{`${workspaceLabel} JSON`}</div>
+                              <div className="osint-menu-item-description">
                                 {`Raw ${workspaceLabelLower} data for backup`}
                               </div>
                             </div>
@@ -1102,13 +1076,13 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                               );
                               setShowExportMenu(false);
                             }}
-                            className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                            className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-zinc-300"
                             title={`Exports ${workspaceLabelLower} as Markdown`}
                           >
                             <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                             <div>
-                              <div className="font-bold">{`${workspaceLabel} Markdown`}</div>
-                              <div className="text-[10px] text-zinc-500">
+                              <div className="osint-menu-item-title">{`${workspaceLabel} Markdown`}</div>
+                              <div className="osint-menu-item-description">
                                 {`${workspaceLabel} narrative package`}
                               </div>
                             </div>

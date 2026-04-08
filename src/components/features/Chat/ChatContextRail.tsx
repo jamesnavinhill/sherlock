@@ -31,6 +31,7 @@ interface ChatContextRailProps {
   latestAssistantMessage?: ChatMessage;
   sessionActions: AgentAction[];
   expandedArtifactIds: Record<string, boolean>;
+  sectionScrollClassName: string;
   formatDateTime: (value: number) => string;
   onToggleSection: (section: keyof ChatContextRailProps['rightPanelSections']) => void;
   onToggleArtifactCard: (artifactKey: string) => void;
@@ -48,26 +49,33 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
   latestAssistantMessage,
   sessionActions,
   expandedArtifactIds,
+  sectionScrollClassName,
   formatDateTime,
   onToggleSection,
   onToggleArtifactCard,
   onFetchArtifactSummary,
   onFetchFullArtifact,
   onFetchRecentSignals,
-}) => (
-  <aside
-    className={`${rightPanelOpen ? 'translate-x-0' : 'translate-x-full xl:w-0 xl:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 overflow-hidden border-l border-zinc-800 bg-black/95 shadow-2xl transition-all duration-300 xl:relative xl:z-0 xl:flex xl:flex-shrink-0 xl:flex-col xl:shadow-none ${rightPanelOpen ? 'xl:w-96' : 'xl:w-0'} backdrop-blur-md`}
-  >
-    <div className="border-b border-zinc-800 bg-zinc-900/30 p-4">
-      <h2 className="osint-panel-title text-white">Context</h2>
-    </div>
-    <div className="flex-1 overflow-y-auto bg-black/20 p-2 custom-scrollbar">
+}) => {
+  const getAccordionClassName = (isOpen: boolean) =>
+    isOpen ? 'mb-0 flex min-h-0 flex-1 flex-col' : 'mb-0 shrink-0';
+
+  return (
+    <aside
+      className={`${rightPanelOpen ? 'translate-x-0' : 'translate-x-full xl:w-0 xl:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 overflow-hidden border-l border-zinc-800 bg-black/95 shadow-2xl transition-all duration-300 xl:relative xl:z-0 xl:flex xl:flex-shrink-0 xl:flex-col xl:shadow-none ${rightPanelOpen ? 'xl:w-96' : 'xl:w-0'} backdrop-blur-md`}
+    >
+      <div className="border-b border-zinc-800 bg-zinc-900/30 p-4">
+        <h2 className="osint-panel-title text-white">Context</h2>
+      </div>
+      <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden bg-black/20 p-2">
       {launchContextSummary ? (
         <Accordion
           title={launchContextSummary.label}
           icon={FileText}
           isOpen={rightPanelSections.launchContext}
           onToggle={() => onToggleSection('launchContext')}
+          className={getAccordionClassName(rightPanelSections.launchContext)}
+          contentClassName={sectionScrollClassName}
         >
           <div className="space-y-2 px-2 py-1">
             <div className="osint-panel-title text-white">{launchContextSummary.title}</div>
@@ -82,6 +90,8 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
         icon={FileText}
         isOpen={rightPanelSections.recentArtifacts}
         onToggle={() => onToggleSection('recentArtifacts')}
+        className={getAccordionClassName(rightPanelSections.recentArtifacts)}
+        contentClassName={sectionScrollClassName}
       >
         <div className="space-y-2">
           {workspaceReports.slice(0, 4).length === 0 ? (
@@ -141,6 +151,8 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
         icon={FileSearch}
         isOpen={rightPanelSections.recentSignals}
         onToggle={() => onToggleSection('recentSignals')}
+        className={getAccordionClassName(rightPanelSections.recentSignals)}
+        contentClassName={sectionScrollClassName}
       >
         <div className="space-y-2">
           <div className="flex justify-end">
@@ -174,6 +186,8 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           icon={FileSearch}
           isOpen={rightPanelSections.latestRetrieval}
           onToggle={() => onToggleSection('latestRetrieval')}
+          className={getAccordionClassName(rightPanelSections.latestRetrieval)}
+          contentClassName={sectionScrollClassName}
         >
           <div className="space-y-2">
             {latestAssistantMessage.attachments.map((attachment) => (
@@ -194,6 +208,8 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
         icon={Workflow}
         isOpen={rightPanelSections.actionLog}
         onToggle={() => onToggleSection('actionLog')}
+        className={getAccordionClassName(rightPanelSections.actionLog)}
+        contentClassName={sectionScrollClassName}
       >
         <div className="space-y-2">
           {sessionActions.length === 0 ? (
@@ -210,6 +226,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           )}
         </div>
       </Accordion>
-    </div>
-  </aside>
-);
+      </div>
+    </aside>
+  );
+};

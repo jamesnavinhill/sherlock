@@ -122,11 +122,11 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
   const renderStep0 = () => (
     <div className="space-y-5">
       <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-3 flex items-center">
+        <label className="mb-3 flex items-center osint-meta-label">
           <Compass className="w-3 h-3 mr-2" />
           Domain Pack
         </label>
-        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.scopeDescription}</p>
+        <p className="mb-3 osint-body-quiet">{setupCopy.scopeDescription}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pr-1">
           {allScopes.map((scope) => (
             <button
@@ -140,8 +140,8 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             >
               <span className="text-lg mr-2 flex-shrink-0">{scope.icon || '🔍'}</span>
               <div className="min-w-0">
-                <div className="text-xs font-mono font-bold truncate">{scope.name}</div>
-                <div className="text-[10px] text-zinc-500 line-clamp-2 mt-0.5">
+                <div className="truncate osint-panel-title">{scope.name}</div>
+                <div className="mt-0.5 line-clamp-2 osint-body-quiet">
                   {scope.description}
                 </div>
               </div>
@@ -152,11 +152,11 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
 
       <div className="pt-3 border-t border-zinc-800">
         <div>
-          <label className="block text-xs font-mono text-zinc-400 uppercase mb-3 flex items-center">
+          <label className="mb-3 flex items-center osint-meta-label">
             <Sparkles className="w-3 h-3 mr-2" />
             {setupCopy.purposeLabel}
           </label>
-          <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.purposeDescription}</p>
+          <p className="mb-3 osint-body-quiet">{setupCopy.purposeDescription}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             {supportedPurposes.map((purpose) => (
               <button
@@ -169,12 +169,12 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="text-xs font-mono font-bold uppercase">{purpose.name}</div>
-                  <span className="text-[9px] font-mono text-zinc-500 uppercase">
+                  <div className="osint-panel-title">{purpose.name}</div>
+                  <span className="osint-meta-label">
                     {purpose.recommendedArtifactType}
                   </span>
                 </div>
-                <p className="text-[10px] leading-relaxed text-zinc-500">{purpose.description}</p>
+                <p className="osint-body-quiet">{purpose.description}</p>
               </button>
             ))}
           </div>
@@ -182,27 +182,27 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
       </div>
 
       <div className="pt-3 border-t border-zinc-800">
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+        <label className="mb-2 flex items-center osint-meta-label">
           <Calendar className="w-3 h-3 mr-2" />
           Temporal Scope (Optional)
         </label>
         <div className="flex gap-3">
           <div className="flex-1">
-            <label className="block text-[10px] text-zinc-500 mb-1 font-mono">FROM</label>
+            <label className="mb-1 block osint-meta-label">From</label>
             <input
               type="date"
               value={dateRangeStart}
               onChange={(event) => setDateRangeStart(event.target.value)}
-              className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
+              className="w-full bg-black border border-zinc-700 p-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
             />
           </div>
           <div className="flex-1">
-            <label className="block text-[10px] text-zinc-500 mb-1 font-mono">TO</label>
+            <label className="mb-1 block osint-meta-label">To</label>
             <input
               type="date"
               value={dateRangeEnd}
               onChange={(event) => setDateRangeEnd(event.target.value)}
-              className="w-full bg-black border border-zinc-700 text-zinc-300 p-2 font-mono text-xs focus:border-osint-primary outline-none"
+              className="w-full bg-black border border-zinc-700 p-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
             />
           </div>
         </div>
@@ -213,7 +213,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
   const renderStep1 = () => (
     <div className="space-y-5">
       <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+        <label className="mb-2 flex items-center osint-meta-label">
           <AlignLeft className="w-3 h-3 mr-2" />
           {setupCopy.targetLabel}
         </label>
@@ -221,13 +221,13 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
           value={topic}
           onChange={(event) => setTopic(event.target.value)}
           placeholder={setupCopy.targetPlaceholder}
-          className="w-full h-32 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+          className="w-full h-32 bg-black border border-zinc-700 p-3 osint-body-small text-white focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
           autoFocus
         />
       </div>
 
       <div className="space-y-3 border-t border-zinc-900 pt-4">
-        <label className="block text-[10px] font-mono text-zinc-500 uppercase flex items-center">
+        <label className="flex items-center osint-meta-label">
           <Sparkles className="w-3 h-3 mr-2 text-osint-primary" />
           Pack Starters
         </label>
@@ -239,14 +239,14 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
               className="p-3 text-left border border-zinc-800 bg-zinc-900/40 hover:border-osint-primary transition-all"
             >
               <div className="flex items-center justify-between gap-3 mb-1">
-                <span className="text-xs font-mono font-bold text-white uppercase">
+                <span className="osint-meta-label-strong text-white">
                   {template.name}
                 </span>
-                <span className="text-[9px] font-mono text-zinc-500 uppercase">
+                <span className="osint-meta-label">
                   {template.purposeId}
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-500 leading-relaxed">{template.description}</p>
+              <p className="osint-body-quiet">{template.description}</p>
             </button>
           ))}
         </div>
@@ -254,7 +254,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
 
       {templates.length > 0 && (
         <div className="space-y-3 border-t border-zinc-900 pt-4">
-          <label className="block text-[10px] font-mono text-zinc-500 uppercase flex items-center">
+          <label className="flex items-center osint-meta-label">
             <Layout className="w-3 h-3 mr-2" />
             Saved Templates
           </label>
@@ -263,7 +263,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
               <button
                 key={template.id}
                 onClick={() => applyTemplate(template)}
-                className="flex items-center p-2 bg-zinc-900 border border-zinc-800 hover:border-osint-primary text-zinc-400 hover:text-white transition-all text-[10px] font-mono uppercase truncate"
+                className="flex items-center bg-zinc-900 border border-zinc-800 p-2 osint-meta-label text-zinc-400 hover:border-osint-primary hover:text-white transition-all truncate"
               >
                 <Layout className="w-3 h-3 mr-2" />
                 <span className="truncate">{template.name}</span>
@@ -278,16 +278,16 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
   const renderStep2 = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+        <label className="mb-2 flex items-center osint-meta-label">
           <Lightbulb className="w-3 h-3 mr-2" />
           {setupCopy.angleLabel} (Optional)
         </label>
-        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.angleDescription}</p>
+        <p className="mb-3 osint-body-quiet">{setupCopy.angleDescription}</p>
         <textarea
           value={angle}
           onChange={(event) => setAngle(event.target.value)}
           placeholder={setupCopy.anglePlaceholder}
-          className="w-full h-28 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+          className="w-full h-28 bg-black border border-zinc-700 p-3 osint-body-small text-white focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
         />
       </div>
     </div>
@@ -296,11 +296,11 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
   const renderStep3 = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+        <label className="mb-2 flex items-center osint-meta-label">
           <User className="w-3 h-3 mr-2" />
           {setupCopy.entityLabel} (Optional)
         </label>
-        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.entityDescription}</p>
+        <p className="mb-3 osint-body-quiet">{setupCopy.entityDescription}</p>
 
         <div className="flex gap-2 mb-4">
           <input
@@ -308,7 +308,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             value={newEntityName}
             onChange={(event) => setNewEntityName(event.target.value)}
             placeholder="Name..."
-            className="flex-1 bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none placeholder-zinc-600"
+            className="flex-1 bg-black border border-zinc-700 p-2 osint-body-small text-white focus:border-osint-primary outline-none placeholder-zinc-600"
             onKeyDown={(event) => event.key === 'Enter' && handleAddEntity()}
           />
           <div className="w-40">
@@ -316,7 +316,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
               ariaLabel="Seed entity type"
               value={newEntityType}
               onChange={(value) => setNewEntityType(value as GraphNodeSubtype)}
-              triggerClassName="p-2 pr-8 font-mono text-xs"
+              triggerClassName="p-2 pr-8 osint-meta-value"
               options={[
                 { value: 'PERSON', label: 'Person' },
                 { value: 'ORGANIZATION', label: 'Organization' },
@@ -329,7 +329,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
           <button
             onClick={handleAddEntity}
             disabled={!newEntityName.trim()}
-            className="osint-button-primary px-3 py-2 font-mono text-xs font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+            className="osint-button-primary px-3 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -359,8 +359,8 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
                     className={`w-3 h-3 flex-shrink-0 ${getEntityToneClass(entity.type)} entity-tone-text`}
                   />
                 )}
-                <span className="text-sm text-zinc-300 font-mono truncate">{entity.name}</span>
-                <span className="text-[10px] text-zinc-600 uppercase">{entity.type}</span>
+                <span className="truncate osint-body-small text-zinc-300">{entity.name}</span>
+                <span className="osint-meta-label text-zinc-600">{entity.type}</span>
               </div>
               <button
                 onClick={() => handleRemoveEntity(entity.id)}
@@ -371,7 +371,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             </div>
           ))}
           {seedEntities.length === 0 && (
-            <p className="text-xs text-zinc-600 font-mono italic">No seeded nodes added yet.</p>
+            <p className="osint-body-quiet italic">No seeded nodes added yet.</p>
           )}
         </div>
       </div>
@@ -381,28 +381,28 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
   const renderStep4 = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+        <label className="mb-2 flex items-center osint-meta-label">
           <Globe className="w-3 h-3 mr-2" />
           {setupCopy.sourceLabel} (Optional)
         </label>
-        <p className="text-xs text-zinc-600 mb-3 font-mono">{setupCopy.sourceDescription}</p>
+        <p className="mb-3 osint-body-quiet">{setupCopy.sourceDescription}</p>
         <textarea
           value={prioritySources}
           onChange={(event) => setPrioritySources(event.target.value)}
           placeholder={setupCopy.sourcePlaceholder}
-          className="w-full h-24 bg-black border border-zinc-700 text-white p-3 font-mono text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+          className="w-full h-24 bg-black border border-zinc-700 p-3 osint-body-small text-white focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
         />
       </div>
 
       {selectedScope.suggestedSources.length > 0 && (
         <div className="space-y-3 pt-3 border-t border-zinc-800">
-          <label className="block text-[10px] font-mono text-zinc-500 uppercase">
+          <label className="block osint-meta-label">
             Suggested Source Libraries
           </label>
           <div className="space-y-3">
             {selectedScope.suggestedSources.slice(0, 4).map((category) => (
               <div key={category.name}>
-                <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2">
+                <div className="mb-2 osint-meta-label">
                   {category.name}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -410,7 +410,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
                     <button
                       key={source.label}
                       onClick={() => appendSuggestedSources([source.label])}
-                      className="px-2 py-1 border border-zinc-800 bg-zinc-900/50 text-[10px] font-mono text-zinc-400 hover:text-white hover:border-osint-primary transition-colors"
+                      className="border border-zinc-800 bg-zinc-900/50 px-2 py-1 osint-meta-label text-zinc-400 hover:text-white hover:border-osint-primary transition-colors"
                     >
                       {source.label}
                     </button>
@@ -435,18 +435,18 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 auto-rows-fr">
         <section className="border border-zinc-800 bg-zinc-900/30 p-4 h-full flex flex-col">
-          <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+          <label className="mb-2 flex items-center osint-meta-label">
             <UserCog className="w-3 h-3 mr-2" />
             Agent Persona
           </label>
-          <p className="text-[10px] text-zinc-600 mb-3 font-mono">
+          <p className="mb-3 osint-body-quiet">
             Personas tailored for {selectedScope?.name || 'this pack'}
           </p>
           <OsintSelect
             ariaLabel="Agent persona"
             value={effectivePersona}
             onChange={setPersona}
-            triggerClassName="mt-auto p-2 pr-8 font-mono text-xs"
+            triggerClassName="mt-auto p-2 pr-8 osint-meta-value"
             options={(selectedScope?.personas || []).map((item) => ({
               value: item.id,
               label: item.label,
@@ -471,7 +471,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
           >
             {saveAsTemplate && <Check className="w-3 h-3" />}
           </div>
-          <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+          <span className="osint-meta-label text-zinc-400">
             {setupCopy.templateLabel}
           </span>
         </label>
@@ -483,7 +483,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
               placeholder="Enter Template Name..."
               value={templateName}
               onChange={(event) => setTemplateName(event.target.value)}
-              className="w-full bg-black border border-zinc-700 text-white p-2 font-mono text-xs focus:border-osint-primary outline-none"
+              className="w-full bg-black border border-zinc-700 p-2 osint-body-small text-white focus:border-osint-primary outline-none"
             />
           </div>
         )}
@@ -496,7 +496,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
       <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
         <div className="bg-osint-panel w-full max-w-5xl h-full sm:h-auto max-h-[95vh] border border-zinc-600 shadow-2xl flex flex-col relative overflow-hidden">
           <div className="flex justify-between items-center p-4 border-b border-zinc-700 bg-black">
-            <div className="flex items-center space-x-2 text-white font-mono uppercase font-bold tracking-wider">
+            <div className="flex items-center space-x-2 osint-meta-label-strong text-white">
               <Target className="w-5 h-5 text-osint-primary" />
               <span>{setupCopy.title}</span>
             </div>
@@ -537,7 +537,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
                         );
                       })()}
                     </div>
-                    <span className="text-[10px] font-mono uppercase hidden sm:block max-w-24 text-center">
+                    <span className="hidden max-w-24 text-center sm:block osint-meta-label">
                       {step.label}
                     </span>
                   </button>
@@ -555,10 +555,10 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
 
           {initialContext && (
             <div className="mx-6 mt-2 bg-zinc-900/50 border-l-2 border-osint-primary p-3">
-              <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">
+              <div className="mb-1 osint-meta-label text-zinc-500">
                 Parent Context
               </div>
-              <div className="text-xs text-zinc-300 font-mono">{initialContext.topic}</div>
+              <div className="osint-body-small text-zinc-300">{initialContext.topic}</div>
             </div>
           )}
 
@@ -575,7 +575,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             <button
               onClick={prevStep}
               disabled={currentStep === 0}
-              className="flex items-center px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center px-4 py-2 border border-zinc-700 osint-meta-label text-zinc-400 hover:text-white hover:border-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Back
@@ -584,7 +584,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             <div className="flex space-x-3">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors"
+                className="px-4 py-2 border border-zinc-700 osint-meta-label text-zinc-400 hover:text-white hover:border-white transition-colors"
               >
                 Cancel
               </button>
@@ -593,7 +593,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
                 <button
                   onClick={nextStep}
                   disabled={!canProceed()}
-                  className="osint-button-primary flex items-center px-6 py-2 font-bold font-mono text-xs uppercase disabled:opacity-50"
+                  className="osint-button-primary flex items-center px-6 py-2 osint-meta-label-strong disabled:opacity-50"
                 >
                   Next
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -601,7 +601,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
               ) : (
                 <button
                   onClick={handleStart}
-                  className="osint-button-primary px-6 py-2 font-bold font-mono text-xs uppercase flex items-center"
+                  className="osint-button-primary flex items-center px-6 py-2 osint-meta-label-strong"
                 >
                   <PlayCircle className="w-4 h-4 mr-2" />
                   {setupCopy.executeLabel}

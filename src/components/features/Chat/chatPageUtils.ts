@@ -74,6 +74,9 @@ export const getSessionTitle = (session: ChatSession): string =>
 export const LEFT_PANEL_SECTION_SCROLL_CLASS =
   'max-h-[min(20rem,calc(100svh-21rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
 
+export const RIGHT_PANEL_SECTION_SCROLL_CLASS =
+  'min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+
 export const toggleExclusiveSection = <T extends Record<string, boolean>>(
   current: T,
   section: keyof T

@@ -363,7 +363,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
     >
       <div
         data-state={isOpen ? 'open' : 'closed'}
-        className={`osint-toolbar-field flex items-center border transition-colors ${
+        className={`osint-toolbar-field osint-toolbar-search-field flex items-center border transition-colors ${
           isOpen
             ? 'border-[color:var(--osint-primary-soft-border)] text-white'
             : 'text-zinc-300 hover:text-white'
