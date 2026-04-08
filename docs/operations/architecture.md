@@ -237,6 +237,7 @@ Shared provider utilities:
   - error normalization
   - retry policy
   - direct-provider JSON request and SSE transport helpers
+  - shared simulated fallback builders for feed/live surfaces
   - JSON parsing fallbacks
   - output normalization
   - prompt builders
@@ -477,6 +478,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - workspace-item handoff now persists `workspaceItemId` in chat launch context so Files and omnibox item opens can pin the item itself, not just its provenance fallback
 - `ChatHeader.tsx`, `ChatSessionRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatContextRail.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
 - controller responsibilities are split across `useChatViewState.ts`, `useChatWorkspaceState.ts`, `chatSessionLifecycle.ts`, `chatStreaming.ts`, `chatGuidedActions.ts`, and `chatTranscriptActions.ts` so the routed chat controller no longer carries every local state declaration, workspace/session derivation, streaming flow, and transcript workflow inline
+- `src/services/chat/runtimeContext.ts` now owns shared chat/guided runtime profile resolution plus provider-router request shaping so `runtime.ts` and `guidedMode.ts` reuse the same scope/pack/purpose/label fallback rules
 
 `ArtifactViewer` now renders:
 

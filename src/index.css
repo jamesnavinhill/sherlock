@@ -11,9 +11,9 @@
   --osint-dark-darkmode: oklch(0 0 0);
   --osint-panel-darkmode: oklch(0.141 0.004 286);
   --osint-surface-darkmode: oklch(0.21 0.006 286);
-  --osint-dark-lightmode: oklch(0.94 0.03 85);
-  --osint-panel-lightmode: oklch(0.95 0.03 85);
-  --osint-surface-lightmode: oklch(0.84 0.03 81);
+  --osint-dark-lightmode: oklch(0.88 0.002 85);
+  --osint-panel-lightmode: oklch(0.9 0.004 85);
+  --osint-surface-lightmode: oklch(0.975 0.004 81);
   --osint-dark: var(--osint-dark-darkmode);
   --osint-panel: var(--osint-panel-darkmode);
   --osint-surface: var(--osint-surface-darkmode);

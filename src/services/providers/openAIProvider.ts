@@ -36,6 +36,7 @@ import {
   normalizeBoardAgentResponse,
 } from './shared/boardAgent';
 import { postJsonProviderRequest, streamSseProviderRequest } from './shared/directTransport';
+import { buildFallbackFeedItems, buildFallbackLiveEvents } from './shared/fallbacks';
 
 const PROVIDER = 'OPENAI' as const;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -345,31 +346,7 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
     }
   ).catch((error) => {
     if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-
-    const fallbackCategory = scope.categories[1] || 'General';
-    return [
-      {
-        id: '1',
-        title: `Notable development in ${fallbackCategory}`,
-        category: fallbackCategory,
-        timestamp: '10:42 AM',
-        riskLevel: 'HIGH' as const,
-      },
-      {
-        id: '2',
-        title: 'Emerging pattern detected',
-        category: scope.categories[2] || 'Analysis',
-        timestamp: '09:15 AM',
-        riskLevel: 'MEDIUM' as const,
-      },
-      {
-        id: '3',
-        title: 'New information surfaced',
-        category: scope.categories[0] || 'General',
-        timestamp: '08:30 AM',
-        riskLevel: 'HIGH' as const,
-      },
-    ].slice(0, limit);
+    return buildFallbackFeedItems(scope, limit);
   });
 };
 
@@ -402,37 +379,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
     }
   ).catch((error) => {
     if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-
-    const now = Date.now();
-    return [
-      {
-        id: `sim-${now}-1`,
-        type: 'NEWS',
-        sourceName: 'News Source',
-        content: `New developments regarding ${normalizedTopic}.`,
-        timestamp: '5m ago',
-        sentiment: 'NEGATIVE',
-        threatLevel: 'CAUTION',
-      },
-      {
-        id: `sim-${now}-2`,
-        type: 'SOCIAL',
-        sourceName: 'Social Media',
-        content: `Discussion emerging about ${normalizedTopic}.`,
-        timestamp: '12m ago',
-        sentiment: 'NEGATIVE',
-        threatLevel: 'CRITICAL',
-      },
-      {
-        id: `sim-${now}-3`,
-        type: 'OFFICIAL',
-        sourceName: 'Official Source',
-        content: 'Related announcement published.',
-        timestamp: '1h ago',
-        sentiment: 'NEUTRAL',
-        threatLevel: 'INFO',
-      },
-    ];
+    return buildFallbackLiveEvents(normalizedTopic);
   });
 };
 

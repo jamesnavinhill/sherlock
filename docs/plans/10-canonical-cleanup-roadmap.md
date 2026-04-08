@@ -861,14 +861,20 @@ Landed in this Stream 6 session:
 - extracted shared provider-router execution and pack/purpose resolution into `src/services/providers/routerContext.ts`, so `src/services/providers/index.ts` now delegates config/adapter/capability/logging setup instead of repeating it per operation
 - centralized repeated chat and board-agent request shaping in `src/services/providers/index.ts`, keeping the router focused on operation entrypoints while preserving workspace-default and explicit override precedence
 - extracted shared direct-provider POST/error/SSE plumbing into `src/services/providers/shared/directTransport.ts`, so the OpenAI, Anthropic, and OpenRouter adapters now keep transport setup reusable while staying focused on provider-specific headers, message shaping, and payload parsing
+- extracted shared chat/guided runtime profile resolution and provider-router request shaping into `src/services/chat/runtimeContext.ts`, so `src/services/chat/runtime.ts` and `src/services/chat/guidedMode.ts` now share the same scope/pack/purpose/label fallback behavior instead of carrying parallel copies
+- extracted shared simulated scan/live fallback builders into `src/services/providers/shared/fallbacks.ts`, so Gemini, OpenAI, Anthropic, and OpenRouter no longer repeat the same feed/live placeholder payload logic in each adapter
 - added focused catalog/selection coverage in `src/config/aiModels.test.ts` so OpenRouter snapshot fallback, live refresh normalization, and manual slug persistence are locked at the extracted boundary
 - added router regression coverage in `src/services/providers/router.test.ts` for workspace-default and explicit pack/purpose override routing through the shared context path
 - added focused shared-transport regression coverage in `src/services/providers/shared/directTransport.test.ts` and preserved adapter contract coverage in `src/services/providers/adapters.contract.test.ts` for the extracted direct-provider path
+- added focused chat-runtime boundary coverage in `src/services/chat/runtimeContext.test.ts`, while preserving `src/services/chat/runtime.test.ts` and `src/services/chat/guidedMode.test.ts` coverage for launch-lineage and guided-mode behavior
+- added focused fallback-helper coverage in `src/services/providers/shared/fallbacks.test.ts` while preserving `src/services/providers/adapters.contract.test.ts` coverage for provider-level investigate/scan/live contracts
 
 Validation run for this Stream 6 session:
 
 - `npm run test -- src/services/providers/router.test.ts src/config/aiModels.test.ts src/config/systemConfig.test.ts`
 - `npm run test -- src/services/providers/shared/directTransport.test.ts src/services/providers/adapters.contract.test.ts`
+- `npm run test -- src/services/chat/runtimeContext.test.ts src/services/chat/runtime.test.ts src/services/chat/guidedMode.test.ts`
+- `npm run test -- src/services/providers/shared/fallbacks.test.ts src/services/providers/adapters.contract.test.ts`
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`

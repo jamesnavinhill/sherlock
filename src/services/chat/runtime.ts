@@ -19,17 +19,16 @@ import {
   buildArtifactFollowUps,
   buildArtifactSections,
   getWorkspaceDisplayTitle,
-  getDomainPackById,
-  getDomainPackForScope,
-  getLabelProfileById,
-  getPurposeProfileById,
 } from '../../domain';
 import { createLocalId } from '../../utils/id';
 import { chatWithProviderRouter, streamChatWithProviderRouter } from '../providers';
 import { WorkspaceSearchRepository } from '../db/repositories/WorkspaceSearchRepository';
-import { getScopeById } from '../../data/presets';
 import { getChatLaunchContextFromSession } from './launchContext';
 import { mapMentionToWorkspaceContextSnippet } from './mentions';
+import {
+  buildWorkspaceChatRouterRequest,
+  resolveWorkspaceChatRunProfile,
+} from './runtimeContext';
 
 const toProviderMessages = (messages: ChatMessage[]) =>
   messages
@@ -129,21 +128,6 @@ const createSignalAttachment = (messageId: string, signal: Signal): ChatAttachme
   createdAt: Date.now(),
 });
 
-const resolveRunProfile = (
-  session: ChatSession,
-  workspace: WorkspaceContextBundle['workspace']
-) => {
-  const scope = getScopeById(workspace.scopeId || '');
-  const pack =
-    getDomainPackById(session.packId || workspace.packId || '') || getDomainPackForScope(scope);
-  const purpose = getPurposeProfileById(
-    session.purposeId || workspace.purposeId || pack.defaultPurposeId
-  );
-  const labelProfile = getLabelProfileById(workspace.labelProfileId || pack.labelProfileId);
-
-  return { pack, purpose, labelProfile };
-};
-
 const mergeContextSnippets = (...groups: WorkspaceContextSnippet[][]): WorkspaceContextSnippet[] => {
   const seen = new Set<string>();
   const merged: WorkspaceContextSnippet[] = [];
@@ -159,6 +143,26 @@ const mergeContextSnippets = (...groups: WorkspaceContextSnippet[][]): Workspace
 
 const buildMentionContext = (mentions: ChatMentionReference[] | undefined): WorkspaceContextSnippet[] =>
   (mentions || []).map((mention) => mapMentionToWorkspaceContextSnippet(mention));
+
+const prepareWorkspaceChatTurn = async (params: {
+  mentions?: ChatMentionReference[];
+  query: string;
+  session: Pick<ChatSession, 'workspaceId'>;
+}) => {
+  const contextBundle = await WorkspaceSearchRepository.getWorkspaceContextBundle(
+    params.session.workspaceId,
+    params.query,
+    { limit: 6 }
+  );
+  const mentionedContext = buildMentionContext(params.mentions);
+  const retrievedContext = mergeContextSnippets(mentionedContext, contextBundle.snippets);
+
+  return {
+    contextBundle,
+    mentionedContext,
+    retrievedContext,
+  };
+};
 
 const buildArtifactSources = (message: ChatMessage): Artifact['sources'] =>
   (message.attachments || [])
@@ -238,39 +242,21 @@ export interface WorkspaceChatTurnResult {
 export const runWorkspaceChatTurn = async (
   params: RunWorkspaceChatTurnParams
 ): Promise<WorkspaceChatTurnResult> => {
-  const contextBundle = await WorkspaceSearchRepository.getWorkspaceContextBundle(
-    params.session.workspaceId,
-    params.query,
-    { limit: 6 }
-  );
-  const mentionedContext = buildMentionContext(params.mentions);
-  const retrievedContext = mergeContextSnippets(mentionedContext, contextBundle.snippets);
-
-  const response = await chatWithProviderRouter({
-    workspace: contextBundle.workspace,
-    configOverride: {
-      provider: params.session.provider,
-      modelId: params.session.modelId,
-    },
-    packId: params.session.packId || contextBundle.workspace.packId,
-    purposeId: params.session.purposeId || contextBundle.workspace.purposeId,
-    messages: toProviderMessages(params.messages),
-    workspaceSummary: contextBundle.summary,
-    recentArtifacts: contextBundle.recentArtifacts.map((artifact) => ({
-      id: artifact.id,
-      topic: artifact.topic,
-      summary: artifact.summary,
-      dateStr: artifact.dateStr,
-    })),
-    recentSignals: contextBundle.recentSignals.map((signal) => ({
-      content: signal.content,
-      sourceName: signal.source,
-      timestamp: signal.timestamp,
-      type: signal.type,
-    })),
-    mentionedContext,
-    retrievedContext,
+  const { contextBundle, mentionedContext, retrievedContext } = await prepareWorkspaceChatTurn({
+    session: params.session,
+    query: params.query,
+    mentions: params.mentions,
   });
+
+  const response = await chatWithProviderRouter(
+    buildWorkspaceChatRouterRequest({
+      session: params.session,
+      contextBundle,
+      messages: toProviderMessages(params.messages),
+      mentionedContext,
+      retrievedContext,
+    })
+  );
 
   const attachments = buildAttachments(params.assistantMessageId, retrievedContext, response.citations, response.sourceCitations);
   const now = Date.now();
@@ -314,40 +300,20 @@ export const runWorkspaceChatTurn = async (
 export const streamWorkspaceChatTurn = async (
   params: StreamWorkspaceChatTurnParams
 ): Promise<WorkspaceChatTurnResult> => {
-  const contextBundle = await WorkspaceSearchRepository.getWorkspaceContextBundle(
-    params.session.workspaceId,
-    params.query,
-    { limit: 6 }
-  );
-  const mentionedContext = buildMentionContext(params.mentions);
-  const retrievedContext = mergeContextSnippets(mentionedContext, contextBundle.snippets);
+  const { contextBundle, mentionedContext, retrievedContext } = await prepareWorkspaceChatTurn({
+    session: params.session,
+    query: params.query,
+    mentions: params.mentions,
+  });
 
   const response = await streamChatWithProviderRouter(
-    {
-      workspace: contextBundle.workspace,
-      configOverride: {
-        provider: params.session.provider,
-        modelId: params.session.modelId,
-      },
-      packId: params.session.packId || contextBundle.workspace.packId,
-      purposeId: params.session.purposeId || contextBundle.workspace.purposeId,
+    buildWorkspaceChatRouterRequest({
+      session: params.session,
+      contextBundle,
       messages: toProviderMessages(params.messages),
-      workspaceSummary: contextBundle.summary,
-      recentArtifacts: contextBundle.recentArtifacts.map((artifact) => ({
-        id: artifact.id,
-        topic: artifact.topic,
-        summary: artifact.summary,
-        dateStr: artifact.dateStr,
-      })),
-      recentSignals: contextBundle.recentSignals.map((signal) => ({
-        content: signal.content,
-        sourceName: signal.source,
-        timestamp: signal.timestamp,
-        type: signal.type,
-      })),
       mentionedContext,
       retrievedContext,
-    },
+    }),
     {
       signal: params.signal,
       onEvent: params.onStreamEvent,
@@ -554,7 +520,7 @@ export const buildArtifactDraftFromChatMessage = (params: {
   artifactType?: ArtifactType;
 }): { draft: ChatDraftArtifact; report: Artifact; action: AgentAction } => {
   const now = Date.now();
-  const { purpose, labelProfile } = resolveRunProfile(params.session, params.workspace);
+  const { purpose, labelProfile } = resolveWorkspaceChatRunProfile(params.session, params.workspace);
   const artifactType = params.artifactType || purpose.recommendedArtifactType;
   const title =
     params.title?.trim() ||
@@ -695,7 +661,10 @@ export const buildFollowUpRunFromChatMessage = (params: {
   workspaceIntent?: 'CURRENT' | 'NEW';
 }): { request: InvestigationLaunchRequest; action: AgentAction; suggestedTopic: string } => {
   const now = Date.now();
-  const { pack, purpose, labelProfile } = resolveRunProfile(params.session, params.workspace);
+  const { pack, purpose, labelProfile } = resolveWorkspaceChatRunProfile(
+    params.session,
+    params.workspace
+  );
   const launchContext = getChatLaunchContextFromSession(params.session);
   const suggestedTopic = deriveTitleFromContent(
     params.message.content,

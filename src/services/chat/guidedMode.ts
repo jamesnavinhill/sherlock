@@ -10,18 +10,11 @@ import type {
   ManualNode,
   SystemConfig,
 } from '@/types';
-import { getAllScopes, getScopeById } from '../../data/presets';
-import {
-  buildArtifactSections,
-  getWorkspaceDisplayTitle,
-  getDomainPackForScope,
-  getLabelProfileById,
-  getPurposeProfileById,
-  getTaskSetupCopy,
-} from '../../domain';
+import { buildArtifactSections, getWorkspaceDisplayTitle } from '../../domain';
 import { loadSystemConfig } from '../../config/systemConfig';
 import { getDefaultModelForProvider, getModelProvider } from '../../config/aiModels';
 import { createLocalId } from '../../utils/id';
+import { resolveGuidedRuntimeProfile } from './runtimeContext';
 
 export type GuidedStepId =
   | 'PACK'
@@ -73,35 +66,18 @@ export const GUIDED_STEP_ORDER: GuidedStepId[] = [
   'REVIEW',
 ];
 
-const resolveScope = (
-  scopeId: string | undefined,
-  customScopes: InvestigationScope[]
-): InvestigationScope => {
-  return (
-    getScopeById(scopeId || '') ||
-    getAllScopes(customScopes).find((scope) => scope.id === scopeId) ||
-    getAllScopes(customScopes)[0]
-  );
-};
-
-const resolveDomainProfile = (draft: GuidedRunDraft, customScopes: InvestigationScope[]) => {
-  const scope = resolveScope(draft.scopeId, customScopes);
-  const pack = getDomainPackForScope(scope, customScopes);
-  const purpose = getPurposeProfileById(draft.purposeId || pack.defaultPurposeId);
-  const labelProfile = getLabelProfileById(pack.labelProfileId);
-  const setupCopy = getTaskSetupCopy(pack, purpose, labelProfile);
-
-  return { scope, pack, purpose, labelProfile, setupCopy };
-};
-
 export const createDefaultGuidedSessionState = (
   workspace?: Workspace | null,
   customScopes: InvestigationScope[] = []
 ): GuidedSessionState => {
   const systemConfig = loadSystemConfig();
-  const scope = resolveScope(workspace?.scopeId, customScopes);
-  const pack = getDomainPackForScope(scope, customScopes);
-  const purpose = getPurposeProfileById(workspace?.purposeId || pack.defaultPurposeId);
+  const { scope, purpose } = resolveGuidedRuntimeProfile(
+    {
+      scopeId: workspace?.scopeId,
+      purposeId: workspace?.purposeId,
+    },
+    customScopes
+  );
   const provider = systemConfig.provider || getModelProvider(systemConfig.modelId);
   const modelId = systemConfig.modelId || getDefaultModelForProvider(provider);
 
@@ -153,7 +129,7 @@ export const getGuidedAssistantPrompt = (
   customScopes: InvestigationScope[],
   workspace?: Workspace | null
 ): string => {
-  const { pack, purpose, labelProfile, setupCopy } = resolveDomainProfile(
+  const { pack, purpose, labelProfile, setupCopy } = resolveGuidedRuntimeProfile(
     state.draft,
     customScopes
   );
@@ -183,7 +159,7 @@ export const summarizeGuidedStep = (
   draft: GuidedRunDraft,
   customScopes: InvestigationScope[]
 ): string => {
-  const { scope, purpose, labelProfile } = resolveDomainProfile(draft, customScopes);
+  const { scope, purpose, labelProfile } = resolveGuidedRuntimeProfile(draft, customScopes);
 
   switch (step) {
     case 'PACK':
@@ -239,8 +215,7 @@ export const buildLaunchRequestFromGuidedDraft = (
   customScopes: InvestigationScope[],
   workspace?: Workspace | null
 ): InvestigationLaunchRequest => {
-  const { pack, purpose, labelProfile } = resolveDomainProfile(draft, customScopes);
-  const scope = resolveScope(draft.scopeId, customScopes);
+  const { scope, pack, purpose, labelProfile } = resolveGuidedRuntimeProfile(draft, customScopes);
   const configOverride: Partial<SystemConfig> & Partial<InvestigationRunConfig> = {
     provider: draft.provider,
     modelId: draft.modelId,
@@ -292,7 +267,7 @@ export const buildGuidedReviewMarkdown = (
   customScopes: InvestigationScope[],
   workspace?: Workspace | null
 ): string => {
-  const { pack, purpose, labelProfile } = resolveDomainProfile(draft, customScopes);
+  const { pack, purpose, labelProfile } = resolveGuidedRuntimeProfile(draft, customScopes);
   const entityLine =
     draft.entities.length > 0
       ? draft.entities.map((entity) => `${entity.name} (${entity.type})`).join(', ')
@@ -325,7 +300,7 @@ export const buildArtifactDraftFromGuidedDraft = (
   workspace?: Workspace | null
 ): { draftArtifact: ChatDraftArtifact; report: Artifact } => {
   const now = Date.now();
-  const { pack, purpose, labelProfile } = resolveDomainProfile(draft, customScopes);
+  const { pack, purpose, labelProfile } = resolveGuidedRuntimeProfile(draft, customScopes);
   const title = `${labelProfile.artifactLabel} Brief: ${draft.topic.trim() || purpose.name}`;
   const content = buildGuidedReviewMarkdown(draft, customScopes, workspace);
   const draftArtifact: ChatDraftArtifact = {
