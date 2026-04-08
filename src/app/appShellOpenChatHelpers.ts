@@ -6,15 +6,21 @@ import type {
   ChatSession,
   Headline,
   Workspace,
+  WorkspaceItem,
 } from '@/types';
 import { hasLaunchContextPrimer } from '@/services/chat/launchContext';
 import { buildChatSessionMetadata } from '@/services/chat/launchContext';
 
 export const resolveLaunchContextSessionTitle = (
   artifacts: Artifact[],
-  launchContext?: ChatLaunchContext
+  launchContext?: ChatLaunchContext,
+  workspaceItems: WorkspaceItem[] = []
 ): string | undefined => {
   if (!launchContext) return undefined;
+
+  if (launchContext.workspaceItemId) {
+    return workspaceItems.find((entry) => entry.id === launchContext.workspaceItemId)?.title;
+  }
 
   if (launchContext.sourceArtifactId) {
     return artifacts.find((entry) => entry.id === launchContext.sourceArtifactId)?.topic;
@@ -41,6 +47,7 @@ export const buildRequestedChatSessionInput = (input: {
   artifacts: Artifact[];
   request: ChatOpenRequest;
   workspace: Workspace;
+  workspaceItems: WorkspaceItem[];
 }): {
   workspaceId: string;
   title?: string;
@@ -50,7 +57,11 @@ export const buildRequestedChatSessionInput = (input: {
   metadata?: Record<string, unknown>;
 } => ({
   workspaceId: input.workspace.id,
-  title: resolveLaunchContextSessionTitle(input.artifacts, input.request.launchContext),
+  title: resolveLaunchContextSessionTitle(
+    input.artifacts,
+    input.request.launchContext,
+    input.workspaceItems
+  ),
   sourceArtifactId: input.request.launchContext?.sourceArtifactId,
   packId: input.workspace.packId,
   purposeId: input.workspace.purposeId,
@@ -62,11 +73,13 @@ export const buildRequestedLaunchPrimerInput = (input: {
   headlines: Headline[];
   session: ChatSession;
   workspaceId: string;
+  workspaceItems: WorkspaceItem[];
 }): {
   headlines: Headline[];
   launchContext: ChatLaunchContext;
   reports: Artifact[];
   session: ChatSession;
+  workspaceItems: WorkspaceItem[];
 } | null => {
   const launchContext =
     (input.session.metadata as { launchContext?: ChatLaunchContext } | undefined)?.launchContext || null;
@@ -77,5 +90,6 @@ export const buildRequestedLaunchPrimerInput = (input: {
     launchContext,
     reports: input.artifacts.filter((entry) => entry.workspaceId === input.workspaceId),
     headlines: input.headlines.filter((entry) => entry.workspaceId === input.workspaceId),
+    workspaceItems: input.workspaceItems.filter((entry) => entry.workspaceId === input.workspaceId),
   };
 };

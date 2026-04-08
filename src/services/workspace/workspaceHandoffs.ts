@@ -56,27 +56,14 @@ export const buildEntityChatOpenRequest = (input: {
 
 export const buildWorkspaceItemChatOpenRequest = (item: WorkspaceItem): ChatOpenRequest => {
   const signalId = item.provenance?.sourceSignalId || item.provenance?.sourceHeadlineId;
-  if (item.provenance?.sourceArtifactId) {
-    return {
-      workspaceId: item.workspaceId,
-      launchContext: {
-        sourceArtifactId: item.provenance.sourceArtifactId,
-      },
-    };
-  }
-
-  if (signalId) {
-    return {
-      workspaceId: item.workspaceId,
-      launchContext: {
-        signalId,
-        headlineId: signalId,
-      },
-    };
-  }
-
   return {
     workspaceId: item.workspaceId,
+    launchContext: {
+      workspaceItemId: item.id,
+      sourceArtifactId: item.provenance?.sourceArtifactId,
+      signalId,
+      headlineId: signalId,
+    },
   };
 };
 

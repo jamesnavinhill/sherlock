@@ -26,13 +26,26 @@ describe('chat launch context helpers', () => {
   it('compares launch contexts by report, entity, and headline identity', () => {
     expect(
       areChatLaunchContextsEqual(
-        { sourceArtifactId: 'report-1', entityName: 'Atlas', headlineId: 'headline-1' },
-        { sourceArtifactId: 'report-1', entityName: 'Atlas', headlineId: 'headline-1' }
+        {
+          workspaceItemId: 'item-1',
+          sourceArtifactId: 'report-1',
+          entityName: 'Atlas',
+          headlineId: 'headline-1',
+        },
+        {
+          workspaceItemId: 'item-1',
+          sourceArtifactId: 'report-1',
+          entityName: 'Atlas',
+          headlineId: 'headline-1',
+        }
       )
     ).toBe(true);
 
     expect(
-      areChatLaunchContextsEqual({ sourceArtifactId: 'report-1' }, { sourceArtifactId: 'report-2' })
+      areChatLaunchContextsEqual(
+        { workspaceItemId: 'item-1', sourceArtifactId: 'report-1' },
+        { workspaceItemId: 'item-2', sourceArtifactId: 'report-1' }
+      )
     ).toBe(false);
   });
 
@@ -129,10 +142,43 @@ describe('chat launch context helpers', () => {
         },
       ],
       headlines: [],
+      workspaceItems: [],
     });
 
     expect(primer?.content).toContain('Pinned entity context');
     expect(primer?.attachments).toHaveLength(1);
     expect(primer?.attachments?.[0].refId).toBe('report-1');
+  });
+
+  it('builds a primer for workspace-item launches with a workspace-item attachment', () => {
+    const primer = buildLaunchContextPrimer({
+      session: buildSession({ id: 'chat-item' }),
+      launchContext: {
+        workspaceItemId: 'item-1',
+      },
+      reports: [],
+      headlines: [],
+      workspaceItems: [
+        {
+          id: 'item-1',
+          workspaceId: 'case-1',
+          kind: 'NOTE',
+          title: 'Atlas Note',
+          textContent: 'Atlas shell timeline notes.',
+          createdAt: 1,
+          updatedAt: 2,
+        },
+      ],
+    });
+
+    expect(primer?.content).toContain('Pinned workspace note context');
+    expect(primer?.attachments).toEqual([
+      expect.objectContaining({
+        kind: 'NOTE',
+        refId: 'item-1',
+        refKind: 'WORKSPACE_ITEM',
+        title: 'Atlas Note',
+      }),
+    ]);
   });
 });

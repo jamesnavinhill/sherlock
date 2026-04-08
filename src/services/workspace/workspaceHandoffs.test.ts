@@ -43,6 +43,7 @@ describe('workspaceHandoffs', () => {
     ).toEqual({
       workspaceId: 'ws-1',
       launchContext: {
+        workspaceItemId: 'item-1',
         sourceArtifactId: 'rep-1',
       },
     });
@@ -63,8 +64,28 @@ describe('workspaceHandoffs', () => {
     ).toEqual({
       workspaceId: 'ws-1',
       launchContext: {
+        workspaceItemId: 'item-2',
         signalId: 'signal-1',
         headlineId: 'signal-1',
+      },
+    });
+
+    expect(
+      buildWorkspaceItemChatOpenRequest({
+        id: 'item-3',
+        workspaceId: 'ws-1',
+        kind: 'FILE',
+        title: 'Atlas source packet',
+        createdAt: 100,
+        updatedAt: 100,
+      })
+    ).toEqual({
+      workspaceId: 'ws-1',
+      launchContext: {
+        workspaceItemId: 'item-3',
+        signalId: undefined,
+        headlineId: undefined,
+        sourceArtifactId: undefined,
       },
     });
   });

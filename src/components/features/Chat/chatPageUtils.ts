@@ -1,4 +1,11 @@
-import type { Artifact, ChatLaunchContext, ChatMessage, ChatSession, Signal } from '@/types';
+import type {
+  Artifact,
+  ChatLaunchContext,
+  ChatMessage,
+  ChatSession,
+  Signal,
+  WorkspaceItem,
+} from '@/types';
 import type { GuidedRunDraft, GuidedSessionState } from '@/services/chat/guidedMode';
 import { isGuidedSessionState } from '@/services/chat/guidedMode';
 import { sanitizeDisplayTitle } from '@/domain';
@@ -89,8 +96,27 @@ export const getLaunchContextSummary = (params: {
   launchContext: ChatLaunchContext | null;
   reports: Artifact[];
   signals: Signal[];
+  workspaceItems: WorkspaceItem[];
 }) => {
   if (!params.launchContext) return null;
+
+  if (params.launchContext.workspaceItemId) {
+    const item = params.workspaceItems.find(
+      (entry) => entry.id === params.launchContext?.workspaceItemId
+    );
+    if (!item) return null;
+
+    return {
+      label: 'Pinned Item',
+      title: item.title,
+      body:
+        item.description ||
+        item.textContent ||
+        item.url ||
+        item.fileName ||
+        `Saved workspace ${item.kind.toLowerCase()}.`,
+    };
+  }
 
   if (params.launchContext.sourceArtifactId) {
     const report = params.reports.find(

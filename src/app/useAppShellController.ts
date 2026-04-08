@@ -148,6 +148,7 @@ export function useAppShellController(): AppShellController {
     chatSessions,
     createChatSession,
     headlines,
+    workspaceItems,
     workspaceBoards,
     workspaces,
   } = useAppShellLookupState();
@@ -270,6 +271,7 @@ export function useAppShellController(): AppShellController {
         request,
         setActiveChatSessionId,
         setActiveWorkspaceId,
+        workspaceItems,
         workspaces,
       });
     },
@@ -284,6 +286,7 @@ export function useAppShellController(): AppShellController {
       navigate,
       setActiveChatSessionId,
       setActiveWorkspaceId,
+      workspaceItems,
       workspaces,
     ]
   );

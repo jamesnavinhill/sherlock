@@ -465,6 +465,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - guided conversational run builder that maps into the same launch request shape used by `src/components/features/Runs/RunSetupModal.tsx`
 - context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
 - contextual handoff from Operation View, Files, and Network Graph into the same session backend, with artifact/entity/signal grounding persisted on the target chat session
+- workspace-item handoff now persists `workspaceItemId` in chat launch context so Files and omnibox item opens can pin the item itself, not just its provenance fallback
 - `ChatHeader.tsx`, `ChatSessionRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatContextRail.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
 - controller responsibilities are split across `chatSessionLifecycle.ts`, `chatStreaming.ts`, `chatGuidedActions.ts`, and `chatTranscriptActions.ts` so the routed chat controller no longer carries every session, streaming, and transcript workflow inline
 

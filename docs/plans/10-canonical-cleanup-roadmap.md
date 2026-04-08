@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: In Progress (Streams 1-3 completed; Stream 4 next)
+Status: In Progress (Streams 1-3 completed; Stream 4 in progress)
 
 Related inputs:
 
@@ -562,6 +562,27 @@ Docs to update on landing:
 
 - `docs/operations/ARCHITECTURE.md`
 - `README.md`
+
+### Landing Status
+
+Partially completed on April 8, 2026.
+
+Landed in Stream 4:
+
+- added first-class workspace-item chat launch context by extending `ChatLaunchContext` with `workspaceItemId`
+- updated `src/services/workspace/workspaceHandoffs.ts` so Files and omnibox item handoffs now open chat against the item itself while still preserving provenance lineage when available
+- updated `src/services/chat/launchContext.ts`, `src/app/openChatRequest.ts`, and `src/app/appShellOpenChatHelpers.ts` so workspace-item chat opens derive item-specific session titles and pinned launch primers
+- updated `src/components/features/Chat/chatPageUtils.ts` and `src/components/features/Chat/useChatController.ts` so the chat context rail now summarizes pinned workspace items directly
+
+Deferred within Stream 4:
+
+- Files surface extraction and successor module cleanup beyond the item-chat handoff seam
+- omnibox module decomposition out of `src/components/ui/omniboxModel.ts`
+- Timeline event/controller decomposition and broader workspace-knowledge/search contract alignment
+
+Validation run for this Stream 4 slice:
+
+- `npm run test -- src/services/workspace/workspaceHandoffs.test.ts src/services/chat/launchContext.test.ts src/components/features/Chat/chatPageUtils.test.ts src/app/appShellOpenChatHelpers.test.ts src/app/openChatRequest.test.ts`
 
 ## Stream 5. Workflow Surfaces Parity: Artifact, Chat, Board, Network
 

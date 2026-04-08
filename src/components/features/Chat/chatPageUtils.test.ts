@@ -60,6 +60,7 @@ describe('chatPageUtils', () => {
         launchContext: { entityName: 'atlas group' },
         reports,
         signals: [],
+        workspaceItems: [],
       })
     ).toEqual({
       label: 'Pinned Entity',
@@ -87,11 +88,37 @@ describe('chatPageUtils', () => {
         launchContext: { signalId: 'signal-1' },
         reports: [],
         signals,
+        workspaceItems: [],
       })
     ).toEqual({
       label: 'Pinned Signal',
       title: 'Desk Wire',
       body: 'Export restrictions expanded overnight.',
+    });
+  });
+
+  it('summarizes pinned workspace items directly from saved workspace-item records', () => {
+    expect(
+      getLaunchContextSummary({
+        launchContext: { workspaceItemId: 'item-1' },
+        reports: [],
+        signals: [],
+        workspaceItems: [
+          {
+            id: 'item-1',
+            workspaceId: 'ws-1',
+            kind: 'NOTE',
+            title: 'Atlas Note',
+            textContent: 'Saved workspace note body.',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      })
+    ).toEqual({
+      label: 'Pinned Item',
+      title: 'Atlas Note',
+      body: 'Saved workspace note body.',
     });
   });
 

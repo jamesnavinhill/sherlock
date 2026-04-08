@@ -37,14 +37,28 @@ describe('appShellOpenChatHelpers', () => {
             rawText: 'raw',
           },
         ],
-        { sourceArtifactId: 'artifact-1' }
+        { sourceArtifactId: 'artifact-1' },
+        []
       )
     ).toBe('Atlas Report');
 
-    expect(resolveLaunchContextSessionTitle([], { entityName: 'Atlas Holdings' })).toBe(
+    expect(
+      resolveLaunchContextSessionTitle([], { workspaceItemId: 'item-1' }, [
+        {
+          id: 'item-1',
+          workspaceId: 'ws-1',
+          kind: 'NOTE',
+          title: 'Atlas Note',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ])
+    ).toBe('Atlas Note');
+
+    expect(resolveLaunchContextSessionTitle([], { entityName: 'Atlas Holdings' }, [])).toBe(
       'Atlas Holdings'
     );
-    expect(resolveLaunchContextSessionTitle([], undefined)).toBeUndefined();
+    expect(resolveLaunchContextSessionTitle([], undefined, [])).toBeUndefined();
   });
 
   it('only appends launch primers when context exists and no primer has been added yet', () => {
@@ -115,21 +129,31 @@ describe('appShellOpenChatHelpers', () => {
         request: {
           workspaceId: 'ws-1',
           launchContext: {
-            sourceArtifactId: 'artifact-1',
+            workspaceItemId: 'item-1',
           },
         },
         workspace,
+        workspaceItems: [
+          {
+            id: 'item-1',
+            workspaceId: 'ws-1',
+            kind: 'NOTE',
+            title: 'Atlas Note',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
       })
     ).toEqual(
       expect.objectContaining({
         workspaceId: 'ws-1',
-        title: 'Atlas Brief',
-        sourceArtifactId: 'artifact-1',
+        title: 'Atlas Note',
+        sourceArtifactId: undefined,
         packId: 'pack-1',
         purposeId: 'purpose-1',
         metadata: {
           launchContext: {
-            sourceArtifactId: 'artifact-1',
+            workspaceItemId: 'item-1',
           },
         },
       })
@@ -190,20 +214,30 @@ describe('appShellOpenChatHelpers', () => {
           status: 'ACTIVE',
           metadata: {
             launchContext: {
-              sourceArtifactId: 'artifact-1',
+              workspaceItemId: 'item-1',
             },
           },
           createdAt: 1,
           updatedAt: 1,
         },
         workspaceId: 'ws-1',
+        workspaceItems: [
+          {
+            id: 'item-1',
+            workspaceId: 'ws-1',
+            kind: 'NOTE',
+            title: 'Atlas Note',
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
       })
     ).toEqual(
       expect.objectContaining({
         launchContext: {
-          sourceArtifactId: 'artifact-1',
+          workspaceItemId: 'item-1',
         },
-        reports: [expect.objectContaining({ id: 'artifact-1' })],
+        workspaceItems: [expect.objectContaining({ id: 'item-1' })],
         headlines: [expect.objectContaining({ id: 'signal-1' })],
       })
     );

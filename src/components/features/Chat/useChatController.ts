@@ -282,8 +282,9 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
         launchContext,
         reports: workspaceReports,
         signals: workspaceSignals,
+        workspaceItems: workspaceItems.filter((item) => item.workspaceId === activeWorkspace?.id),
       }),
-    [launchContext, workspaceReports, workspaceSignals]
+    [activeWorkspace?.id, launchContext, workspaceItems, workspaceReports, workspaceSignals]
   );
   const messageBodyClassName = useMemo(
     () =>

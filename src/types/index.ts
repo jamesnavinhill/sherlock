@@ -552,6 +552,7 @@ export interface ChatDraftArtifact {
 }
 
 export interface ChatLaunchContext {
+  workspaceItemId?: string;
   sourceArtifactId?: string;
   entityName?: string;
   signalId?: string;

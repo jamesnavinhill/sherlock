@@ -62,6 +62,7 @@ export const selectAppShellLookupState = (state: WorkspaceState) => ({
   createChatSession: state.createChatSession,
   headlines: state.headlines,
   workspaceBoards: state.workspaceBoards,
+  workspaceItems: state.workspaceItems,
   workspaces: state.workspaces,
 });
 

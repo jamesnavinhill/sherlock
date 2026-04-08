@@ -434,6 +434,7 @@ export const executeOmniboxAction = async ({
       request,
       setActiveChatSessionId,
       setActiveWorkspaceId,
+      workspaceItems,
       workspaces,
     });
     onClose();

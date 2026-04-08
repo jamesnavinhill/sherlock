@@ -47,6 +47,7 @@ describe('openWorkspaceChatRequest', () => {
       },
       setActiveChatSessionId,
       setActiveWorkspaceId,
+      workspaceItems: [],
       workspaces: [
         {
           id: 'ws-1',
@@ -109,11 +110,22 @@ describe('openWorkspaceChatRequest', () => {
       request: {
         workspaceId: 'ws-1',
         launchContext: {
-          sourceArtifactId: 'rep-1',
+          workspaceItemId: 'item-1',
         },
       },
       setActiveChatSessionId,
       setActiveWorkspaceId,
+      workspaceItems: [
+        {
+          id: 'item-1',
+          workspaceId: 'ws-1',
+          kind: 'NOTE',
+          title: 'Atlas Note',
+          textContent: 'Saved note body',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
       workspaces: [
         {
           id: 'ws-1',
@@ -130,14 +142,15 @@ describe('openWorkspaceChatRequest', () => {
     expect(createChatSession).toHaveBeenCalledWith(
       expect.objectContaining({
         workspaceId: 'ws-1',
-        title: 'Atlas Brief',
-        sourceArtifactId: 'rep-1',
+        title: 'Atlas Note',
+        sourceArtifactId: undefined,
       })
     );
     expect(addChatMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         sessionId: 'session-2',
         role: 'tool',
+        attachments: [expect.objectContaining({ refId: 'item-1', refKind: 'WORKSPACE_ITEM' })],
       })
     );
     expect(navigate).toHaveBeenCalledWith('/workspaces/ws-1/chat/session-2');

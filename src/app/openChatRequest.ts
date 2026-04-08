@@ -16,6 +16,7 @@ import type {
   ChatSession,
   Headline,
   Workspace,
+  WorkspaceItem,
 } from '@/types';
 
 interface OpenWorkspaceChatRequestInput {
@@ -39,6 +40,7 @@ interface OpenWorkspaceChatRequestInput {
   request: ChatOpenRequest;
   setActiveChatSessionId: (id: string | null) => void;
   setActiveWorkspaceId: (id: string | null) => void;
+  workspaceItems: WorkspaceItem[];
   workspaces: Workspace[];
 }
 
@@ -54,6 +56,7 @@ export const openWorkspaceChatRequest = async ({
   request,
   setActiveChatSessionId,
   setActiveWorkspaceId,
+  workspaceItems,
   workspaces,
 }: OpenWorkspaceChatRequestInput): Promise<ChatSession | null> => {
   const workspace = resolveRequestedChatWorkspace(workspaces, request);
@@ -71,6 +74,7 @@ export const openWorkspaceChatRequest = async ({
         artifacts,
         request,
         workspace,
+        workspaceItems,
       })
     );
   }
@@ -89,6 +93,7 @@ export const openWorkspaceChatRequest = async ({
           },
         },
         workspaceId: workspace.id,
+        workspaceItems,
       });
       const primer = primerInput ? buildLaunchContextPrimer(primerInput) : null;
 

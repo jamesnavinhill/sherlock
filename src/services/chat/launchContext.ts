@@ -6,6 +6,7 @@ import type {
   ChatSession,
   Artifact,
   Signal,
+  WorkspaceItem,
 } from '@/types';
 import { createLocalId } from '../../utils/id';
 import { cleanEntityName } from '../../utils/text';
@@ -48,11 +49,32 @@ const createSignalAttachment = (messageId: string, signal: Signal): ChatAttachme
   createdAt: Date.now(),
 });
 
+const createWorkspaceItemAttachment = (
+  messageId: string,
+  item: WorkspaceItem
+): ChatAttachment => ({
+  id: createLocalId('chat-attachment'),
+  messageId,
+  kind: item.kind,
+  title: item.title,
+  refId: item.id,
+  refKind: 'WORKSPACE_ITEM',
+  snippet: item.description || item.textContent || item.url || item.fileName,
+  metadata: {
+    workspaceItemKind: item.kind,
+    url: item.url,
+    mimeType: item.mimeType,
+    fileName: item.fileName,
+  },
+  createdAt: Date.now(),
+});
+
 export const isChatLaunchContext = (value: unknown): value is ChatLaunchContext => {
   if (!value || typeof value !== 'object') return false;
 
   const candidate = value as Record<string, unknown>;
   return (
+    (candidate.workspaceItemId === undefined || typeof candidate.workspaceItemId === 'string') &&
     (candidate.sourceArtifactId === undefined || typeof candidate.sourceArtifactId === 'string') &&
     (candidate.entityName === undefined || typeof candidate.entityName === 'string') &&
     (candidate.signalId === undefined || typeof candidate.signalId === 'string') &&
@@ -64,6 +86,7 @@ export const areChatLaunchContextsEqual = (
   left: ChatLaunchContext | null | undefined,
   right: ChatLaunchContext | null | undefined
 ): boolean =>
+  (left?.workspaceItemId || '') === (right?.workspaceItemId || '') &&
   (left?.sourceArtifactId || '') === (right?.sourceArtifactId || '') &&
   (left?.entityName || '') === (right?.entityName || '') &&
   (left?.signalId || '') === (right?.signalId || '') &&
@@ -135,9 +158,40 @@ export const buildLaunchContextPrimer = (params: {
   launchContext: ChatLaunchContext;
   reports: Artifact[];
   headlines: Signal[];
+  workspaceItems?: WorkspaceItem[];
 }): ChatMessage | null => {
   const now = Date.now();
   const messageId = createLocalId('chat-message');
+
+  if (params.launchContext.workspaceItemId) {
+    const item = (params.workspaceItems || []).find(
+      (entry) => entry.id === params.launchContext.workspaceItemId
+    );
+    if (!item) return null;
+
+    const attachment = createWorkspaceItemAttachment(messageId, item);
+    const summary =
+      item.description ||
+      item.textContent ||
+      item.url ||
+      item.fileName ||
+      `Saved workspace ${item.kind.toLowerCase()}.`;
+
+    return {
+      id: messageId,
+      sessionId: params.session.id,
+      role: 'tool',
+      content: `Pinned workspace ${item.kind.toLowerCase()} context for **${item.title}**.\n\n${summary}`,
+      status: 'COMPLETED',
+      attachments: [attachment],
+      metadata: {
+        actionType: 'PIN_LAUNCH_CONTEXT',
+        launchContext: params.launchContext,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
 
   if (params.launchContext.sourceArtifactId) {
     const report = params.reports.find((entry) => entry.id === params.launchContext.sourceArtifactId);
