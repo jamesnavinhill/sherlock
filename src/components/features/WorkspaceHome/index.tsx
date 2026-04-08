@@ -32,7 +32,7 @@ import {
   type WorkspaceHomeCounts,
   type WorkspaceHomeRecentActivityItem,
 } from '@/services/workspace/home';
-import { useWorkspaceHomeReadinessState } from '@/store/selectors/featureSelectors';
+import { useWorkspaceHomeReadinessState } from '@/store/selectors/workspaceHomeSelectors';
 import {
   CHROME_HEADER_CLASS,
   CHROME_PANEL_CLASS,

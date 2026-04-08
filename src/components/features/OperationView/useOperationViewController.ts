@@ -13,7 +13,7 @@ import type {
   SystemConfig,
   WorkspaceRun,
 } from '@/types';
-import { useOperationFeatureState } from '@/store/selectors/featureSelectors';
+import { useOperationFeatureState } from '@/store/selectors/operationSelectors';
 import { buildWorkspaceBoardDocumentPath, type ArtifactRouteState } from '@/app/routes';
 import {
   getWorkspaceDisplayTitle,

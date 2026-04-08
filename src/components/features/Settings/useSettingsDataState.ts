@@ -6,7 +6,7 @@ import {
   buildWorkspaceDataBackup,
   normalizeWorkspaceDataBackup,
 } from '@/services/maintenance/workspaceData';
-import { useSettingsDataMaintenanceState } from '@/store/selectors/featureSelectors';
+import { useSettingsDataMaintenanceState } from '@/store/selectors/settingsSelectors';
 
 interface FeedbackDialogState {
   description: string;

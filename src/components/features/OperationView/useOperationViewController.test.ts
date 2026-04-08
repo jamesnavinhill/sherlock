@@ -14,7 +14,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-vi.mock('@/store/selectors/featureSelectors', () => ({
+vi.mock('@/store/selectors/operationSelectors', () => ({
   useOperationFeatureState: selectorState.useOperationFeatureState,
 }));
 
@@ -68,7 +68,7 @@ describe('useOperationViewController', () => {
     expect(toggleFlag).toHaveBeenCalledWith('Atlas Holdings');
   });
 
-  it('saves templates and uses selector toast feedback', () => {
+  it('saves templates and uses selector toast feedback', async () => {
     const addTemplate = vi.fn();
     const addToast = vi.fn();
 
@@ -103,8 +103,8 @@ describe('useOperationViewController', () => {
 
     expect(result.current.templateName.length).toBeGreaterThan(0);
 
-    act(() => {
-      result.current.executeSaveTemplate();
+    await act(async () => {
+      await result.current.executeSaveTemplate();
     });
 
     expect(addTemplate).toHaveBeenCalledTimes(1);

@@ -33,6 +33,7 @@ const WORKSPACE_BOARD_DOCUMENT_ROUTE = /^\/workspaces\/[^/]+\/board\/[^/]+$/;
 const WORKSPACE_BOARD_ROUTE = /^\/workspaces\/[^/]+\/board$/;
 const WORKSPACE_TIMELINE_ROUTE = /^\/workspaces\/[^/]+\/timeline$/;
 const WORKSPACE_NETWORK_ROUTE = /^\/workspaces\/[^/]+\/network$/;
+const WORKSPACE_HOME_ROUTE = /^\/workspaces\/[^/]+$/;
 const RUN_ROUTE = /^\/runs\/[^/]+$/;
 
 export const getAppViewForPath = (pathname: string): AppView => {
@@ -46,6 +47,7 @@ export const getAppViewForPath = (pathname: string): AppView => {
   if (WORKSPACE_CHAT_ROUTE.test(pathname) || WORKSPACE_CHAT_SESSION_ROUTE.test(pathname)) {
     return AppView.CHAT;
   }
+  if (WORKSPACE_HOME_ROUTE.test(pathname)) return AppView.WORKSPACE;
   if (WORKSPACE_BOARD_ROUTE.test(pathname) || WORKSPACE_BOARD_DOCUMENT_ROUTE.test(pathname)) {
     return AppView.WORKSPACE;
   }

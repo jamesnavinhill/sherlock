@@ -168,32 +168,30 @@ Stream 3 and 4 behavior built on that model:
 - guided run mode persists its draft step state in `chat_sessions.metadata_json`
 - guided run saves reuse the existing `artifacts` and `artifact_sections` tables rather than introducing a parallel draft store
 
-## Legacy Migration
+## Schema Migration
 
-On startup, store initialization runs:
+On startup, store initialization now runs one persistence bootstrap entry point:
 
 1. `initDB()`
-2. `migrateLocalStorageToSqlite()`
 
-Migration source:
+`initDB()` opens the SQLite database and then runs the canonical migration pipeline in `src/services/db/migrations.ts`.
 
-- legacy Zustand payload key: `sherlock-storage`
+The migration runner records applied steps in SQLite table `__sherlock_schema_migrations` and currently applies these steps in order:
 
-Migration completion marker:
+- canonical storage cutover for legacy table and column names
+- canonical schema bootstrap from `src/services/db/migrations_sql.ts`
+- additive schema repairs for missing columns plus the `artifact_sections` composite-primary-key rebuild
 
-- settings key: `migration_v1_complete = true`
+That keeps schema evolution inside SQLite itself rather than layering a second localStorage-to-SQLite import bridge on top of database initialization.
 
-Existing local databases are upgraded in `src/services/db/client.ts` through a canonical storage cutover first:
+Existing local databases are upgraded through that pipeline:
 
 - legacy tables `cases`, `reports`, `leads`, and `tasks` are renamed to `workspaces`, `artifacts`, `signals`, and `workspace_runs`
 - legacy foreign-key columns such as `case_id`, `report_id`, `linked_report_id`, and `source_report_id` are renamed to canonical `workspace_id`, `artifact_id`, `linked_artifact_id`, and `source_artifact_id`
+- missing canonical columns such as workspace launch metadata and run/artifact pack metadata are added in place
 - `artifact_sections` still gets an in-place rebuild when older installs used a global primary key on `id`
 
-Current additive upgrade logic also creates `artifact_evidence` for older local databases that predate the research-output expansion.
-
-Current additive upgrade logic also creates `follow_ups` for older local databases that predate canonical follow-up persistence.
-
-Current additive upgrade logic also creates `board_agent_sessions` and `board_agent_actions` for older local databases that predate the board-agent groundwork.
+Legacy `sherlock-storage` Zustand payloads are no longer imported during bootstrap. Workspace maintenance flows now treat canonical workspace-data backup/import as the supported structured transfer path.
 
 ## Remaining localStorage Usage
 
@@ -225,7 +223,6 @@ Values still kept there:
 Intentional direct `localStorage` exceptions remain limited to:
 
 - provider key handling in `src/services/providers/keys.ts`
-- one-time legacy SQLite migration bootstrap in `src/services/db/migrate.ts`
 
 Provider keys are an explicit persistence invariant rather than an accidental implementation detail: they stay device-local, remain outside SQLite, and are excluded from workspace backup/restore on purpose. New persistence work should keep provider-key handling confined to `src/services/providers/keys.ts` rather than introducing a second storage path.
 

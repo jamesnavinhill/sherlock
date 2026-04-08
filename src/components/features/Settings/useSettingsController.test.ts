@@ -45,7 +45,7 @@ vi.mock('@/config/systemConfig', () => ({
   saveSystemConfig,
 }));
 
-vi.mock('@/store/selectors/featureSelectors', () => ({
+vi.mock('@/store/selectors/settingsSelectors', () => ({
   useSettingsScopeState,
 }));
 

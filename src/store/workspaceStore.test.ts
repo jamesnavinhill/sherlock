@@ -12,7 +12,6 @@ import { ScopeRepository } from '../services/db/repositories/ScopeRepository';
 import { WorkspaceBoardRepository } from '../services/db/repositories/WorkspaceBoardRepository';
 import { WorkspaceItemRepository } from '../services/db/repositories/WorkspaceItemRepository';
 import * as dbClient from '../services/db/client';
-import * as dbMigrate from '../services/db/migrate';
 
 describe('workspaceStore', () => {
   beforeEach(() => {
@@ -201,7 +200,6 @@ describe('workspaceStore', () => {
     vi.spyOn(dbClient, 'initDB').mockResolvedValue(
       {} as Awaited<ReturnType<typeof dbClient.initDB>>
     );
-    vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue(undefined);
     vi.spyOn(WorkspaceRepository, 'getAllWorkspaces').mockResolvedValue([]);
     vi.spyOn(WorkspaceRepository, 'getAllArtifacts').mockResolvedValue([]);
     vi.spyOn(ScopeRepository, 'getAll').mockResolvedValue([]);
@@ -238,7 +236,6 @@ describe('workspaceStore', () => {
     vi.spyOn(dbClient, 'initDB').mockResolvedValue(
       {} as Awaited<ReturnType<typeof dbClient.initDB>>
     );
-    vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue(undefined);
     vi.spyOn(WorkspaceRepository, 'getAllWorkspaces').mockResolvedValue([
       {
         id: 'ws-1',

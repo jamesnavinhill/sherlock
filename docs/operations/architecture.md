@@ -36,9 +36,12 @@ Supporting shell files now include:
 - `src/app/routes.ts`
 - `src/app/navigation.ts`
 - `src/app/routeViews.tsx`
+- `src/app/routeViewHelpers.ts`
 - `src/app/AppShell.tsx`
 - `src/app/useAppShellController.ts`
 - `src/app/useAppShellEffects.ts`
+- `src/app/useAppShellLaunch.ts`
+- `src/app/useAppShellNavigation.ts`
 - `src/app/AppShellRoutes.tsx`
 - `src/components/ui/GlobalSearch.tsx`
 - `src/components/ui/omniboxFocus.ts`
@@ -54,6 +57,9 @@ The app-shell controller now also relies on dedicated helper seams:
 - `src/app/appShellLaunchHelpers.ts` for launch/run config shaping and preseeded-entity merge behavior
 - `src/app/appShellOpenChatHelpers.ts` for launch-context chat title/primer decisions
 - `src/app/appShellNavigationHelpers.ts` for record-id to route-target resolution
+- `src/app/useAppShellLaunch.ts` for run-launch orchestration and lineage-aware task execution
+- `src/app/useAppShellNavigation.ts` for route-target and record-target navigation handlers
+- `src/app/routeViewHelpers.ts` for pure route-side artifact, board, and breadcrumb derivation
 
 Canonical path inventory:
 
@@ -301,8 +307,11 @@ Maintenance flows now treat SQLite data as a workspace-data domain:
 
 Migration:
 
-- `src/services/db/migrate.ts` migrates prior `localStorage` Zustand payload (`sherlock-storage`) into SQLite one time
-- `src/services/db/client.ts` applies additive schema upgrades for existing local databases, including rebuilding `artifact_sections` when older installs still use the legacy global section-id primary key
+- `src/services/db/client.ts` is the single persistence bootstrap entry point
+- `src/services/db/migrations.ts` applies the ordered SQLite migration pipeline: canonical table/column cutover, schema bootstrap from `src/services/db/migrations_sql.ts`, and additive schema repairs for older local databases
+- the migration runner records applied steps in SQLite table `__sherlock_schema_migrations`
+- older local databases still get the `artifact_sections` rebuild when they use the legacy global section-id primary key
+- legacy `sherlock-storage` Zustand payloads are no longer imported during bootstrap; canonical workspace-data backup/import is the supported transfer path
 
 Canonical signal naming now leads the active runtime seams even where compatibility aliases remain:
 
@@ -320,7 +329,16 @@ Global store:
 - `src/store/actions/conversationActions.ts`
 - `src/store/actions/artifactRunActions.ts`
 - `src/store/actions/workspaceActions.ts`
-- `src/store/selectors/featureSelectors.ts`
+- `src/store/actions/workspaceActionState.ts`
+- `src/store/selectors/appShellSelectors.ts`
+- `src/store/selectors/chatSelectors.ts`
+- `src/store/selectors/workspaceBoardSelectors.ts`
+- `src/store/selectors/timelineSelectors.ts`
+- `src/store/selectors/networkGraphSelectors.ts`
+- `src/store/selectors/operationSelectors.ts`
+- `src/store/selectors/settingsSelectors.ts`
+- `src/store/selectors/runSetupSelectors.ts`
+- `src/store/selectors/workspaceHomeSelectors.ts`
 
 State domains include:
 
@@ -339,7 +357,7 @@ State domains include:
 
 `src/store/workspaceStore.ts` is now primarily the public state contract plus initial state composition; grouped action modules own bootstrap, UI/settings, conversation, artifact/run, and workspace maintenance responsibilities behind that stable store entry.
 
-Feature-level subscriptions now route through selector hooks in `src/store/selectors/featureSelectors.ts` for the largest routed surfaces and controllers. That keeps `useAppShellController`, chat, board, timeline, network graph, operation, settings, and runtime-config flows subscribed to their own state slices without changing the underlying Zustand architecture or introducing a second state system.
+Feature-level subscriptions now route through surface-specific selector modules under `src/store/selectors/*Selectors.ts`. That keeps `useAppShellController`, chat, board, timeline, network graph, operation, settings, workspace-home, and runtime-config flows subscribed to their own state slices without relying on one kitchen-sink selector file or introducing a second state system.
 
 App-shell subscriptions are explicitly split by responsibility instead of one broad selector:
 
@@ -354,7 +372,12 @@ Settings selectors are also split so persistence-maintenance reads and scope tab
 - `useSettingsDataMaintenanceState`
 - `useSettingsScopeState`
 
-Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, omnibox recent destinations, active workspace id, and monitor autosave. Provider keys and one-time legacy migration remain the only intentional direct `localStorage` exceptions.
+Workspace maintenance action state shaping is also split out of the action creator now:
+
+- `src/store/actions/workspaceActionState.ts` owns pure state transitions for workspace delete/purge/import/clear flows
+- `src/store/actions/workspaceActions.ts` now focuses on repository coordination plus choosing the correct state transition helper
+
+Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, omnibox recent destinations, active workspace id, and monitor autosave. Provider keys remain the only intentional direct `localStorage` exception.
 
 The browser location is now the durable source of truth for active page identity. Store state keeps route-adjacent convenience selection such as the active workspace, board, chat session, and task ids, but it no longer mirrors top-level surface identity through a stored `currentView` field.
 

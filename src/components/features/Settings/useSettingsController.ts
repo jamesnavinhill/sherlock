@@ -5,7 +5,7 @@ import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
 import { saveSystemConfig } from '@/config/systemConfig';
 import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
 import type { ThemeFontSettings } from '@/utils/themeFonts';
-import { useSettingsScopeState } from '@/store/selectors/featureSelectors';
+import { useSettingsScopeState } from '@/store/selectors/settingsSelectors';
 import { useSettingsDataState } from './useSettingsDataState';
 import { useSettingsRuntimeState } from './useSettingsRuntimeState';
 import { useSettingsThemeState } from './useSettingsThemeState';

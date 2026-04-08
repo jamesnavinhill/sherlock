@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useTaskSetupFeatureState } from '@/store/selectors/featureSelectors';
+import { useTaskSetupFeatureState } from '@/store/selectors/runSetupSelectors';
 import { BUILTIN_SCOPES, getAllScopes, getScopeById } from '@/data/presets';
 import type { AIProvider } from '@/config/aiModels';
 import {

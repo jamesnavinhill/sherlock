@@ -17,7 +17,10 @@ const mapAttachment = (row: typeof chatMessageAttachments.$inferSelect): ChatAtt
   refId: row.refId || undefined,
   refKind: row.refKind || undefined,
   snippet: row.snippet || undefined,
-  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(row.metadataJson),
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.metadataJson,
+    `chat attachment metadata ${row.id}`
+  ),
   createdAt: row.createdAt,
 });
 
@@ -30,8 +33,11 @@ const mapMessage = (
   role: row.role as ChatMessage['role'],
   content: row.content,
   status: row.status as ChatMessage['status'],
-  citations: parseStoredJsonOrUndefined<string[]>(row.citationsJson),
-  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(row.metadataJson),
+  citations: parseStoredJsonOrUndefined<string[]>(row.citationsJson, `chat citations ${row.id}`),
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.metadataJson,
+    `chat message metadata ${row.id}`
+  ),
   error: row.error || undefined,
   attachments,
   createdAt: row.createdAt,
@@ -48,7 +54,10 @@ const mapSession = (row: typeof chatSessions.$inferSelect): ChatSession => ({
   purposeId: row.purposeId || undefined,
   provider: row.provider as ChatSession['provider'],
   modelId: row.modelId || undefined,
-  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(row.metadataJson),
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.metadataJson,
+    `chat session metadata ${row.id}`
+  ),
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });
@@ -59,8 +68,14 @@ const mapAction = (row: typeof chatActions.$inferSelect): AgentAction => ({
   messageId: row.messageId || undefined,
   type: row.type as AgentAction['type'],
   status: row.status as AgentAction['status'],
-  input: parseStoredJsonOrUndefined<Record<string, unknown>>(row.inputJson),
-  result: parseStoredJsonOrUndefined<Record<string, unknown>>(row.resultJson),
+  input: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.inputJson,
+    `chat action input ${row.id}`
+  ),
+  result: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.resultJson,
+    `chat action result ${row.id}`
+  ),
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });

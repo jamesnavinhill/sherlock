@@ -17,7 +17,7 @@ import {
   buildWorkspaceTimelinePath,
 } from '@/app/routes';
 import { buildTimelineRouteQuery } from '@/components/features/Timeline/timelineRouteState';
-import { useChatFeatureState } from '@/store/selectors/featureSelectors';
+import { useChatFeatureState } from '@/store/selectors/chatSelectors';
 import {
   fetchArtifactSummaryForChat,
   fetchFullArtifactTextForChat,

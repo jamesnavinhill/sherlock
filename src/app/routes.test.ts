@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AppView } from '@/types';
-import { buildPathForAppView } from './navigation';
+import { buildPathForAppView, getAppViewForPath } from './navigation';
 import {
   DEFAULT_APP_PATH,
   buildRunPath,
@@ -99,6 +99,16 @@ describe('route contract', () => {
         search: '?search=apollo&tracks=CHAT',
       })
     ).toBe('/workspaces/ws-1/timeline?search=apollo&tracks=CHAT');
+  });
+
+  it('treats the workspace landing route as part of the workspace app view', () => {
+    expect(getAppViewForPath('/workspaces/ws-1')).toBe(AppView.WORKSPACE);
+    expect(
+      buildPathForAppView(AppView.WORKSPACE, {
+        activeWorkspaceId: 'ws-1',
+        pathname: '/workspaces/ws-1',
+      })
+    ).toBe('/workspaces/ws-1');
   });
 
   it('parses focus-aware files, artifact, and network query state', () => {

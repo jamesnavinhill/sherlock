@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   ARTIFACT_SECTIONS_TABLE_SQL,
+  applyPendingDbMigrations,
   artifactSectionsTableRequiresUpgrade,
   ensureArtifactSectionsCompositeKey,
-} from './client';
+} from './migrations';
 
 describe('database section schema upgrades', () => {
   it('detects legacy artifact section tables that use a global id primary key', () => {
@@ -47,5 +48,27 @@ describe('database section schema upgrades', () => {
     );
     expect(exec).toHaveBeenCalledWith(1, 'DROP TABLE "artifact_sections_legacy";');
     expect(exec).toHaveBeenCalledWith(1, 'PRAGMA foreign_keys = ON;');
+  });
+
+  it('skips already-applied database migrations', async () => {
+    const exec = vi.fn(async (_db: number, sql: string, callback?: (row: unknown[]) => void) => {
+      if (sql.includes('SELECT "id" FROM "__sherlock_schema_migrations"')) {
+        callback?.([1]);
+        callback?.([2]);
+        callback?.([3]);
+      }
+    });
+
+    await applyPendingDbMigrations({ exec } as never, 1);
+
+    expect(exec).toHaveBeenCalledWith(
+      1,
+      expect.stringContaining('CREATE TABLE IF NOT EXISTS "__sherlock_schema_migrations"')
+    );
+    expect(exec).not.toHaveBeenCalledWith(1, 'ALTER TABLE "cases" RENAME TO "workspaces";');
+    expect(exec).not.toHaveBeenCalledWith(
+      1,
+      expect.stringContaining('CREATE TABLE IF NOT EXISTS "workspaces"')
+    );
   });
 });

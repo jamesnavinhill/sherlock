@@ -21,7 +21,10 @@ const mapSession = (row: typeof boardAgentSessions.$inferSelect): BoardAgentSess
   modelId: row.modelId || undefined,
   contextSnapshotId: row.contextSnapshotId || undefined,
   lastError: row.lastError || undefined,
-  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(row.metadataJson),
+  metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.metadataJson,
+    `board-agent session metadata ${row.id}`
+  ),
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
   startedAt: row.startedAt || undefined,
@@ -35,11 +38,26 @@ const mapAction = (row: typeof boardAgentActions.$inferSelect): BoardAgentAction
   boardId: row.boardId,
   type: row.type as BoardAgentAction['type'],
   status: row.status as BoardAgentAction['status'],
-  input: parseStoredJsonOrUndefined<Record<string, unknown>>(row.inputJson),
-  normalizedInput: parseStoredJsonOrUndefined<Record<string, unknown>>(row.normalizedInputJson),
-  result: parseStoredJsonOrUndefined<Record<string, unknown>>(row.resultJson),
-  affectedCanonicalIds: parseStoredJsonOrUndefined<string[]>(row.affectedCanonicalIdsJson),
-  affectedBoardShapeIds: parseStoredJsonOrUndefined<string[]>(row.affectedBoardShapeIdsJson),
+  input: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.inputJson,
+    `board-agent action input ${row.id}`
+  ),
+  normalizedInput: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.normalizedInputJson,
+    `board-agent action normalized input ${row.id}`
+  ),
+  result: parseStoredJsonOrUndefined<Record<string, unknown>>(
+    row.resultJson,
+    `board-agent action result ${row.id}`
+  ),
+  affectedCanonicalIds: parseStoredJsonOrUndefined<string[]>(
+    row.affectedCanonicalIdsJson,
+    `board-agent action affected canonical ids ${row.id}`
+  ),
+  affectedBoardShapeIds: parseStoredJsonOrUndefined<string[]>(
+    row.affectedBoardShapeIdsJson,
+    `board-agent action affected board shape ids ${row.id}`
+  ),
   error: row.error || undefined,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,

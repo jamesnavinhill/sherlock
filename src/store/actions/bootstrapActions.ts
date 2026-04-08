@@ -13,7 +13,6 @@ import {
   STORAGE_KEYS,
 } from '@/utils/localStorage';
 import { initDB } from '@/services/db/client';
-import { migrateLocalStorageToSqlite } from '@/services/db/migrate';
 import { SettingsRepository } from '@/services/db/repositories/SettingsRepository';
 import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
 import { ScopeRepository } from '@/services/db/repositories/ScopeRepository';
@@ -63,9 +62,8 @@ export const createBootstrapActions = (
   initializeStore: async () => {
     try {
       set({ isLoading: true });
-      // Initialization and migration are bootstrap hard failures.
+      // Database initialization and pending schema migrations are bootstrap hard failures.
       await initDB();
-      await migrateLocalStorageToSqlite();
 
       // Repository/settings reads are recoverable per-resource reads.
       const [

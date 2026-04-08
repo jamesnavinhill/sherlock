@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 
-import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import {
   buildFilesPath,
   buildWorkspaceBoardDocumentPath,
@@ -18,7 +17,13 @@ import type {
   WorkspaceBoard as WorkspaceBoardRecord,
   WorkspaceRun,
 } from '@/types';
-import { getWorkspaceDisplayTitle } from '@/domain';
+import {
+  buildArtifactRouteBreadcrumbs,
+  resolveArtifactRouteArtifact,
+  resolveBoardRouteState,
+  resolveRelatedRunForArtifact,
+  workspaceExistsForRoute,
+} from '@/app/routeViewHelpers';
 
 const OperationView = lazy(() =>
   import('@/components/features/OperationView').then((module) => ({
@@ -60,34 +65,6 @@ const RouteViewFallback = () => (
     </div>
   </div>
 );
-
-const buildBreadcrumbs = (
-  report: Artifact | null,
-  workspaces: Workspace[],
-  activeTaskId: string | null
-): BreadcrumbItem[] => {
-  if (!report) return [];
-
-  const breadcrumbs: BreadcrumbItem[] = [];
-  if (report.workspaceId) {
-    const workspace = workspaces.find((entry) => entry.id === report.workspaceId);
-    if (workspace) {
-      breadcrumbs.push({
-        type: 'CASE',
-        id: workspace.id,
-        label: getWorkspaceDisplayTitle(workspace),
-      });
-    }
-  }
-
-  breadcrumbs.push({
-    type: 'REPORT',
-    id: report.id || activeTaskId || 'report',
-    label: report.topic,
-  });
-
-  return breadcrumbs;
-};
 
 interface InvestigationRouteViewProps {
   artifacts: Artifact[];
@@ -144,7 +121,7 @@ export const WorkspaceHomeRouteView: React.FC<WorkspaceHomeRouteViewProps> = ({
     }
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
-  if (!nextWorkspaceId || !workspaces.some((workspace) => workspace.id === nextWorkspaceId)) {
+  if (!nextWorkspaceId || !workspaceExistsForRoute(workspaces, nextWorkspaceId)) {
     return <Navigate to={buildFilesPath()} replace />;
   }
 
@@ -179,18 +156,8 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
     }
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
-  const report =
-    artifacts.find((artifact) => artifact.id === nextArtifactId && artifact.workspaceId === nextWorkspaceId) ||
-    artifacts.find((artifact) => artifact.id === nextArtifactId) ||
-    null;
-
-  const relatedTask =
-    workspaceRuns.find(
-      (task) =>
-        task.report?.id === report?.id ||
-        task.id === report?.config?.sourceRunId ||
-        task.report?.topic === report?.topic
-    ) || null;
+  const report = resolveArtifactRouteArtifact(artifacts, nextWorkspaceId, nextArtifactId);
+  const relatedTask = resolveRelatedRunForArtifact(workspaceRuns, report);
 
   useEffect(() => {
     setActiveTaskId(relatedTask?.id || null);
@@ -208,7 +175,7 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
         artifactRouteState={artifactRouteState}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-        navStack={buildBreadcrumbs(report, workspaces, relatedTask?.id || null)}
+        navStack={buildArtifactRouteBreadcrumbs(report, workspaces, relatedTask?.id || null)}
         onNavigate={onNavigateRecord}
         onSelectCase={(reportId) => {
           const foundReport = artifacts.find((artifact) => artifact.id === reportId);
@@ -270,7 +237,7 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
         artifactRouteState={artifactRouteState}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-        navStack={buildBreadcrumbs(report, workspaces, task.id)}
+        navStack={buildArtifactRouteBreadcrumbs(report, workspaces, task.id)}
         onNavigate={onNavigateRecord}
         onSelectCase={(reportId) => {
           const foundReport = artifacts.find((artifact) => artifact.id === reportId);
@@ -335,12 +302,11 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
 }) => {
   const { workspaceId, boardId } = useParams();
   const nextWorkspaceId = workspaceId || '';
-  const workspaceScopedBoards = workspaceBoards
-    .filter((board) => board.workspaceId === nextWorkspaceId)
-    .sort((left, right) => left.sortOrder - right.sortOrder);
-  const matchedBoard = boardId
-    ? workspaceScopedBoards.find((board) => board.id === boardId) || null
-    : null;
+  const { matchedBoard, redirectBoardId } = resolveBoardRouteState(
+    workspaceBoards,
+    nextWorkspaceId,
+    boardId
+  );
 
   useEffect(() => {
     if (nextWorkspaceId) {
@@ -349,19 +315,10 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
     setActiveWorkspaceBoardId(matchedBoard?.id || null);
   }, [matchedBoard?.id, nextWorkspaceId, setActiveWorkspaceBoardId, setActiveWorkspaceId]);
 
-  if (!boardId && workspaceScopedBoards[0]) {
+  if (redirectBoardId) {
     return (
       <Navigate
-        to={buildWorkspaceBoardDocumentPath(nextWorkspaceId, workspaceScopedBoards[0].id)}
-        replace
-      />
-    );
-  }
-
-  if (boardId && !matchedBoard && workspaceScopedBoards[0]) {
-    return (
-      <Navigate
-        to={buildWorkspaceBoardDocumentPath(nextWorkspaceId, workspaceScopedBoards[0].id)}
+        to={buildWorkspaceBoardDocumentPath(nextWorkspaceId, redirectBoardId)}
         replace
       />
     );

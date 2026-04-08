@@ -20,7 +20,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-vi.mock('@/store/selectors/featureSelectors', () => ({
+vi.mock('@/store/selectors/workspaceBoardSelectors', () => ({
   useWorkspaceBoardFeatureState,
 }));
 

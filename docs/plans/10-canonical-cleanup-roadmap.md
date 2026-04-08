@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: In Progress
+Status: In Progress (Streams 1-2 completed; Stream 3 next)
 
 Related inputs:
 
@@ -323,6 +323,25 @@ Docs to update on landing:
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
 
+### Landing Status
+
+Completed on April 8, 2026.
+
+Landed in Stream 2:
+
+- replaced the mixed runtime schema-upgrade path in `src/services/db/client.ts` with one ordered migration runner in `src/services/db/migrations.ts`
+- removed the legacy `sherlock-storage` localStorage bridge and the separate `src/services/db/migrate.ts` bootstrap path
+- made `initDB()` the single hard-fail bootstrap entry point for schema setup and pending SQLite migrations
+- kept workspace export/import on the canonical `WorkspaceDataBackup` contract rather than a second bootstrap-specific data shape
+- tightened repository hydration warnings in chat and board-agent repositories so malformed JSON payloads log with row-specific labels
+
+Validation run for Stream 2:
+
+- `npm run test -- src/services/db/client.test.ts src/store/workspaceStore.test.ts src/store/actions/bootstrapResourceLoader.test.ts src/services/maintenance/workspaceData.test.ts src/services/db/repositories/ChatRepository.test.ts src/services/db/repositories/BoardAgentRepository.test.ts`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+
 ## Stream 3. App Shell, Routes, Store, And Selector Spine
 
 Purpose:
@@ -407,6 +426,31 @@ Docs to update on landing:
 - `docs/operations/ARCHITECTURE.md`
 - `README.md` if navigation/setup descriptions change materially
 
+### Landing Status
+
+Partially completed on April 8, 2026.
+
+Landed in Stream 3:
+
+- split the app-shell selector spine out of the old monolithic selector hub into surface-specific selector modules under `src/store/selectors/*Selectors.ts`
+- reduced `useAppShellController.ts` by extracting launch orchestration into `src/app/useAppShellLaunch.ts` and route/navigation orchestration into `src/app/useAppShellNavigation.ts`
+- extracted pure route-view derivation into `src/app/routeViewHelpers.ts` so route wrappers stop carrying inline artifact/board/workspace resolution logic
+- fixed workspace-home route classification in `src/app/navigation.ts` so `/workspaces/:workspaceId` is treated as a workspace surface instead of falling back to dashboard view state
+- extracted pure workspace maintenance state shaping into `src/store/actions/workspaceActionState.ts` so `workspaceActions.ts` reads more clearly as persistence plus orchestration
+- cleaned targeted test warnings in active Stream 3 validation by updating the Timeline router future flags and the Operation View `act(...)` coverage
+
+Deferred within Stream 3:
+
+- deeper action-slice cleanup beyond the workspace maintenance helpers, especially around artifact/run and conversation action shaping
+- any further `openChatRequest` contract cleanup if route/chat ownership work exposes a sharper seam in the next pass
+
+Validation run for this Stream 3 slice:
+
+- `npm run test -- src/app/routes.test.ts src/app/routeViews.test.tsx src/app/routeViewHelpers.test.ts src/app/appShellLaunchHelpers.test.ts src/components/features/Chat/useChatController.test.ts src/components/features/OperationView/useOperationViewController.test.ts src/components/features/WorkspaceBoard/useWorkspaceBoardController.test.ts src/components/features/Timeline/useTimelineViewController.test.ts src/components/features/NetworkGraph/useNetworkGraphController.test.ts src/components/features/Settings/useSettingsController.test.ts src/store/actions/workspaceActionState.test.ts src/store/workspaceStore.test.ts`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+
 ## Stream 4. Search, Files, Timeline, And Workspace-Knowledge Spine
 
 Purpose:
@@ -431,6 +475,7 @@ Primary targets:
 Execution shape:
 
 - finish the Files surface rename and extraction so the surface matches its product role
+- make Files the canonical home for workspace-document ingestion while keeping Chat and Board upload entry points on the same shared ingestion contract
 - break omnibox ranking, result shaping, mention handling, and recents into smaller uniform modules
 - keep Timeline pure-logic seams pure and reduce the owner-file load in controller/event-building paths
 - align shared workspace-library/search/handoff contracts across Files, Timeline, Board, and Chat entry points
@@ -482,11 +527,14 @@ src/app/routes.ts
 ### Execution Checklist
 
 1. Rename and extract the Files surface from `Archives.tsx` into canonical product naming and smaller sections.
-2. Split `omniboxModel.ts` into smaller ranking, result-shaping, mention, and recents modules while keeping `GlobalSearch.tsx` thin.
-3. Reduce the owner-file load in Timeline by extracting pure logic out of `timelineEvents.ts` and `useTimelineViewController.ts`.
-4. Align search and handoff contracts across `WorkspaceSearchRepository.ts`, `library.ts`, `workspaceHandoffs.ts`, and `workspaceSurfaceFocus.ts`.
-5. Update route helpers in `navigation.ts` and `routes.ts` only where the Files/Timeline/search contract actually changes.
-6. Land focused tests for Files behavior, omnibox behavior, and Timeline behavior before closing the stream.
+2. Define one shared workspace-document ingestion contract across Files, Chat, and Board so uploads create the same canonical `WorkspaceItem` records regardless of entry point.
+3. Extend workspace-item search/index shaping so ingested documents can contribute extracted `textContent`, metadata, and future richer retrieval signals without introducing a second knowledge path.
+4. Add true workspace-item chat handoff support so “open in chat” can ground a session directly on a specific item instead of only falling back to provenance-derived artifact/signal context.
+5. Split `omniboxModel.ts` into smaller ranking, result-shaping, mention, and recents modules while keeping `GlobalSearch.tsx` thin.
+6. Reduce the owner-file load in Timeline by extracting pure logic out of `timelineEvents.ts` and `useTimelineViewController.ts`.
+7. Align search and handoff contracts across `WorkspaceSearchRepository.ts`, `library.ts`, `workspaceHandoffs.ts`, and `workspaceSurfaceFocus.ts`.
+8. Update route helpers in `navigation.ts` and `routes.ts` only where the Files/Timeline/search contract actually changes.
+9. Land focused tests for Files behavior, omnibox behavior, and Timeline behavior before closing the stream.
 
 Parallel lanes when safe:
 
@@ -497,6 +545,7 @@ Parallel lanes when safe:
 Exit criteria:
 
 - Files, omnibox, and Timeline all use the same underlying workspace-knowledge contracts
+- uploaded workspace documents follow one shared ingestion/search/handoff path no matter whether they start in Files, Chat, or Board
 - large owner files in this slice are materially reduced
 - search/navigation behavior feels like one spine instead of several adjacent tools
 
@@ -529,6 +578,7 @@ Execution shape:
 - reduce oversized controller hooks and route roots
 - align dialog/menu/section extraction patterns across these surfaces
 - normalize cross-surface handoff actions so the same record types behave the same way everywhere
+- close the remaining parity gap between lightweight workspace-document uploads and first-class artifact creation flows
 - continue splitting pure derivation out of controller code
 - clean up board-agent/session/action seams so they match the rest of the app’s orchestration style
 
@@ -622,10 +672,11 @@ src/services/workspace/boardShapes.ts
 
 1. Reduce oversized controller and owner files in OperationView, Chat, WorkspaceBoard, and NetworkGraph into consistent seams.
 2. Normalize dialog, menu, and section boundaries across these four feature families.
-3. Bring shared handoff behavior into parity so the same record types open, place, and route consistently across surfaces.
-4. Clean up the board-agent stack in `src/services/workspace/agent/*`, `workspaceBoardAgent.ts`, `boardAi.ts`, and `boardShapes.ts`.
-5. Remove remaining product-language drift inside operation, board, and network supporting modules such as `operationCasePanelData.ts`.
-6. Land focused controller, launch-propagation, and board-agent tests for every changed seam before closing the stream.
+3. Add a shared upload-routing UX for user-supplied documents so the same file can intentionally land as a canonical workspace item, or kick off an artifact-oriented flow, without divergent per-surface behavior.
+4. Bring shared handoff behavior into parity so the same record types open, place, and route consistently across surfaces.
+5. Clean up the board-agent stack in `src/services/workspace/agent/*`, `workspaceBoardAgent.ts`, `boardAi.ts`, and `boardShapes.ts`.
+6. Remove remaining product-language drift inside operation, board, and network supporting modules such as `operationCasePanelData.ts`.
+7. Land focused controller, launch-propagation, and board-agent tests for every changed seam before closing the stream.
 
 Parallel lanes when safe:
 
@@ -636,6 +687,7 @@ Parallel lanes when safe:
 Exit criteria:
 
 - the main workflow surfaces use the same controller/view-model/dialog/section vocabulary
+- document-upload flows no longer feel like separate subsystems, and artifact-vs-item routing is an intentional product choice rather than an implicit implementation detail
 - cross-surface actions behave consistently
 - board-agent plumbing no longer feels like a subsystem with its own separate architectural dialect
 

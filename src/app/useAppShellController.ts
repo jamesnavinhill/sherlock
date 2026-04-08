@@ -6,12 +6,10 @@ import type {
   FollowUp,
   InvestigationLaunchRequest,
   Artifact,
-  InvestigationRunConfig,
+  AppView,
   InvestigationScope,
   WorkspaceRun,
-  SystemConfig,
 } from '@/types';
-import { AppView } from '@/types';
 import type { useWorkspaceStore } from '@/store/workspaceStore';
 import {
   useAppShellBootstrapState,
@@ -19,52 +17,26 @@ import {
   useAppShellLookupState,
   useAppShellRouteState,
   useAppShellThemeUiState,
-} from '@/store/selectors/featureSelectors';
-import { hasApiKey, runWorkspaceInvestigation } from '@/services/runtime';
+} from '@/store/selectors/appShellSelectors';
+import { hasApiKey } from '@/services/runtime';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { createAppShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { createLocalId } from '@/utils/id';
 import {
   clearApiKeyPromptDismissed,
   hasDismissedApiKeyPrompt,
   markApiKeyPromptDismissed,
 } from '@/utils/localStorage';
-import { normalizeTopicText } from '@/utils/textNormalization';
-import { loadSystemConfig } from '@/config/systemConfig';
-import { resolveLaunchLineage } from '@/services/lineage/relationships';
-import {
-  buildPathForAppView,
-  findWorkspaceLandingArtifact,
-  getAppViewForPath,
-} from '@/app/navigation';
-import {
-  buildDiscoverPath,
-  buildFilesPath,
-  buildRunPath,
-  buildSettingsPath,
-  buildWorkspaceArtifactPath,
-  buildWorkspaceBoardDocumentPath,
-  buildWorkspaceBoardPath,
-} from '@/app/routes';
+import { getAppViewForPath } from '@/app/navigation';
+import { buildDiscoverPath, buildFilesPath } from '@/app/routes';
 import {
   useApplyAppShellTheme,
   useInitializeAppShell,
   useTrackAppShellLocation,
 } from '@/app/useAppShellEffects';
-import {
-  resolveRuntimeLaunchFields,
-  resolveRuntimeScope,
-  toRuntimeConfigOverride,
-} from '@/components/features/Runs/runtimeConfigMapping';
-import {
-  buildLaunchRunConfig,
-  buildWorkspaceRun,
-  mergeArchivedReportRunConfig,
-  mergePreseededEntities,
-} from '@/app/appShellLaunchHelpers';
 import { openWorkspaceChatRequest } from '@/app/openChatRequest';
-import { resolveNavigationRecord } from '@/app/appShellNavigationHelpers';
 import { requestOmniboxFocus } from '@/components/ui/omniboxFocus';
+import { useAppShellLaunch } from '@/app/useAppShellLaunch';
+import { useAppShellNavigation } from '@/app/useAppShellNavigation';
 
 export interface AppShellController {
   activeChatSessionId: string | null;
@@ -210,45 +182,33 @@ export function useAppShellController(): AppShellController {
     lastNonSettingsPathRef,
   });
 
-  const handleNavigateToView = useCallback(
-    (view: AppView) => {
-      if (view === AppView.SETTINGS) {
-        if (routeCurrentView === AppView.SETTINGS) {
-          navigate(lastNonSettingsPathRef.current);
-        } else {
-          navigate(buildSettingsPath());
-        }
-      } else {
-        navigate(
-          buildPathForAppView(view, {
-            activeWorkspaceId,
-            activeWorkspaceBoardId,
-            activeChatSessionId,
-            activeTaskId,
-            artifacts,
-            pathname: location.pathname,
-            search: location.search,
-          })
-        );
-      }
-
-      if (window.innerWidth < 768) {
-        setIsSidebarCollapsed(true);
-      }
-    },
-    [
-      activeChatSessionId,
-      activeTaskId,
-      activeWorkspaceBoardId,
-      activeWorkspaceId,
-      artifacts,
-      location.pathname,
-      location.search,
-      navigate,
-      routeCurrentView,
-      setIsSidebarCollapsed,
-    ]
-  );
+  const {
+    handleBack,
+    handleClearCompleted,
+    handleCloseSettings,
+    handleNavigateRecord,
+    handleNavigateToView,
+    handleSelectTask,
+    handleViewReport,
+  } = useAppShellNavigation({
+    navigate,
+    routeCurrentView,
+    location,
+    locationPathRef,
+    lastNonSettingsPathRef,
+    activeChatSessionId,
+    activeTaskId,
+    activeWorkspaceBoardId,
+    activeWorkspaceId,
+    artifacts,
+    workspaceBoards,
+    workspaceRuns,
+    workspaces,
+    clearCompletedRuns,
+    setActiveTaskId,
+    setActiveWorkspaceId,
+    setIsSidebarCollapsed,
+  });
 
   const shortcuts = createAppShortcuts({
     onNewInvestigation: () => {
@@ -271,15 +231,6 @@ export function useAppShellController(): AppShellController {
 
   useKeyboardShortcuts(shortcuts);
 
-  const handleBack = useCallback(() => {
-    setActiveTaskId(null);
-    navigate(buildDiscoverPath());
-  }, [navigate, setActiveTaskId]);
-
-  const handleCloseSettings = useCallback(() => {
-    navigate(lastNonSettingsPathRef.current);
-  }, [navigate]);
-
   useApplyAppShellTheme({
     accentSettings,
     themeColor,
@@ -288,168 +239,22 @@ export function useAppShellController(): AppShellController {
     themeSurfaceSettings,
   });
 
-  const resolveScopeById = useCallback(
-    (scopeId?: string): InvestigationScope | undefined =>
-      resolveRuntimeScope(scopeId, customScopes),
-    [customScopes]
-  );
-
-  const addPreseededEntitiesToGraph = useCallback(
-    async (taskId: string, preseededEntities?: InvestigationRunConfig['preseededEntities']) => {
-      const nextNodes = mergePreseededEntities({
-        existingNodes: manualNodes,
-        preseededEntities,
-        taskId,
-      });
-      if (nextNodes.length !== manualNodes.length) {
-        await setManualNodes(nextNodes);
-      }
-    },
-    [manualNodes, setManualNodes]
-  );
-
-  const runInvestigationTask = useCallback(
-    async (
-      taskId: string,
-      launchRequest: InvestigationLaunchRequest,
-      runConfig: InvestigationRunConfig
-    ) => {
-      try {
-        let report = await runWorkspaceInvestigation(
-          launchRequest.topic,
-          launchRequest.parentContext,
-          launchRequest.configOverride,
-          launchRequest.scope,
-          launchRequest.dateRangeOverride,
-          runConfig
-        );
-
-        report = mergeArchivedReportRunConfig(report, runConfig, taskId);
-        report = await saveArtifact(report, launchRequest.parentContext);
-
-        if (launchRequest.preseededEntities?.length) {
-          await addPreseededEntitiesToGraph(taskId, launchRequest.preseededEntities);
-        }
-
-        await completeRun(taskId, report);
-
-        if (report.id && report.workspaceId && locationPathRef.current === buildRunPath(taskId)) {
-          navigate(buildWorkspaceArtifactPath(report.workspaceId, report.id), { replace: true });
-        }
-
-        if (!loadSystemConfig().quietMode) {
-          addToast(`Run complete: ${launchRequest.topic}`, 'SUCCESS');
-        }
-      } catch (error: unknown) {
-        console.error(`Task ${taskId} failed`, error);
-        const message = error instanceof Error ? error.message : 'Unknown error occurred';
-        await failRun(taskId, message);
-        addToast(`Run failed: ${launchRequest.topic}`, 'ERROR');
-      }
-    },
-    [addPreseededEntitiesToGraph, addToast, saveArtifact, completeRun, failRun, navigate]
-  );
-
-  const launchInvestigation = useCallback(
-    (request: InvestigationLaunchRequest) => {
-      void (async () => {
-        const switchToView = request.switchToView ?? true;
-        const storedConfig = loadSystemConfig();
-        const {
-          artifactType,
-          effectiveConfig,
-          labelProfileId,
-          pack: effectivePack,
-          purpose: effectivePurpose,
-          scope: effectiveScope,
-        } = resolveRuntimeLaunchFields({
-          baseConfig: storedConfig,
-          configOverride: request.configOverride as
-            | (Partial<SystemConfig> & Partial<InvestigationRunConfig>)
-            | undefined,
-          customScopes,
-          scope: request.scope,
-          artifactType: request.artifactType,
-          labelProfileId: request.labelProfileId,
-          purposeId: request.purposeId,
-        });
-        const normalizedTopic = normalizeTopicText(request.topic);
-
-        if (!hasApiKey(effectiveConfig.provider)) {
-          setShowApiKeyPrompt(true);
-          addToast(`Missing ${effectiveConfig.provider} API key. Add it to continue.`, 'ERROR');
-          return;
-        }
-
-        const derivedLineage = resolveLaunchLineage({
-          request,
-          artifacts,
-          runs: workspaceRuns,
-        });
-
-        const launchRequest: InvestigationLaunchRequest = {
-          ...request,
-          topic: normalizedTopic,
-          switchToView,
-          scope: effectiveScope,
-          packId: effectivePack.id,
-          purposeId: effectivePurpose.id,
-          artifactType,
-          labelProfileId,
-          sourceSignalId: derivedLineage.sourceSignalId,
-          sourceFollowUpId: derivedLineage.sourceFollowUpId,
-          parentArtifactId: derivedLineage.parentArtifactId,
-          parentRunId: derivedLineage.parentRunId,
-        };
-
-        const runConfig = buildLaunchRunConfig({
-          artifactType,
-          effectiveConfig,
-          effectivePack,
-          effectivePurpose,
-          effectiveScope,
-          labelProfileId,
-          launchRequest,
-        });
-
-        const newTaskId = createLocalId('task');
-        const newTask = buildWorkspaceRun({
-          launchRequest,
-          runConfig,
-          taskId: newTaskId,
-        });
-
-        try {
-          const addRunPromise = addRun(newTask);
-          if (!storedConfig.quietMode) {
-            addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
-          }
-
-          if (switchToView) {
-            setActiveTaskId(newTaskId);
-            navigate(buildRunPath(newTaskId));
-          }
-
-          await addRunPromise;
-          void runInvestigationTask(newTaskId, launchRequest, runConfig);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unable to launch run.';
-          addToast(message, 'ERROR');
-          setActiveTaskId(null);
-        }
-      })();
-    },
-    [
-      addRun,
-      addToast,
-      artifacts,
-      customScopes,
-      navigate,
-      runInvestigationTask,
-      setActiveTaskId,
-      workspaceRuns,
-    ]
-  );
+  const { launchInvestigation, handleBatchInvestigate } = useAppShellLaunch({
+    navigate,
+    locationPathRef,
+    artifacts,
+    customScopes,
+    workspaceRuns,
+    addRun,
+    addToast,
+    saveArtifact,
+    completeRun,
+    failRun,
+    manualNodes,
+    setManualNodes,
+    setActiveTaskId,
+    setShowApiKeyPrompt,
+  });
 
   const openChat = useCallback(
     async (request: ChatOpenRequest) => {
@@ -482,125 +287,6 @@ export function useAppShellController(): AppShellController {
       workspaces,
     ]
   );
-
-  const handleBatchInvestigate = useCallback(
-    (followUps: FollowUp[], parentReport: Artifact) => {
-      const parentContext = { topic: parentReport.topic, summary: parentReport.summary };
-      const inheritedConfig = toRuntimeConfigOverride(parentReport.config);
-      const inheritedScope = resolveScopeById(parentReport.config?.scopeId);
-
-      followUps.forEach((followUp, index) => {
-        setTimeout(() => {
-          launchInvestigation({
-            topic: followUp.actionText,
-            parentContext,
-            configOverride: inheritedConfig,
-            scope: inheritedScope,
-            dateRangeOverride: parentReport.config?.dateRangeOverride,
-            switchToView: false,
-            launchSource: 'FULL_SPECTRUM',
-            sourceFollowUpId: followUp.id,
-            parentArtifactId: parentReport.id,
-          });
-        }, index * 200);
-      });
-    },
-    [launchInvestigation, resolveScopeById]
-  );
-
-  const handleViewReport = useCallback(
-    (report: Artifact) => {
-      setActiveWorkspaceId(report.workspaceId || null);
-
-      const existingTask = workspaceRuns.find(
-        (task) =>
-          task.report?.id === report.id ||
-          task.id === report.config?.sourceRunId ||
-          task.report?.topic === report.topic
-      );
-
-      setActiveTaskId(existingTask?.id || null);
-
-      if (report.workspaceId && report.id) {
-        navigate(buildWorkspaceArtifactPath(report.workspaceId, report.id));
-      } else if (existingTask) {
-        navigate(buildRunPath(existingTask.id));
-      } else {
-        navigate(buildFilesPath());
-      }
-    },
-    [navigate, setActiveTaskId, setActiveWorkspaceId, workspaceRuns]
-  );
-
-  const handleSelectTask = useCallback(
-    (taskId: string) => {
-      setActiveTaskId(taskId);
-      navigate(buildRunPath(taskId));
-    },
-    [navigate, setActiveTaskId]
-  );
-
-  const handleNavigateRecord = useCallback(
-    (id: string) => {
-      const matchedRecord = resolveNavigationRecord({
-        artifacts,
-        id,
-        workspaceRuns,
-        workspaces,
-      });
-      if (!matchedRecord) return;
-
-      if (matchedRecord.kind === 'WORKSPACE') {
-        const landingArtifact = findWorkspaceLandingArtifact(matchedRecord.workspace.id, artifacts);
-        if (landingArtifact?.id) {
-          navigate(buildWorkspaceArtifactPath(matchedRecord.workspace.id, landingArtifact.id));
-        } else {
-          const boardId = workspaceBoards.find(
-            (board) => board.workspaceId === matchedRecord.workspace.id
-          )?.id;
-          navigate(
-            boardId
-              ? buildWorkspaceBoardDocumentPath(matchedRecord.workspace.id, boardId)
-              : buildWorkspaceBoardPath(matchedRecord.workspace.id)
-          );
-        }
-        return;
-      }
-
-      if (matchedRecord.kind === 'TASK') {
-        handleSelectTask(matchedRecord.task.id);
-        return;
-      }
-
-      if (matchedRecord.kind === 'ARTIFACT') {
-        handleViewReport(matchedRecord.artifact);
-      }
-    },
-    [
-      artifacts,
-      handleSelectTask,
-      handleViewReport,
-      navigate,
-      workspaceBoards,
-      workspaceRuns,
-      workspaces,
-    ]
-  );
-
-  const handleClearCompleted = useCallback(async () => {
-    const activeBeforeClear = workspaceRuns.find((task) => task.id === activeTaskId);
-    await clearCompletedRuns();
-
-    if (
-      activeBeforeClear &&
-      (activeBeforeClear.status === 'COMPLETED' || activeBeforeClear.status === 'FAILED')
-    ) {
-      setActiveTaskId(null);
-      if (locationPathRef.current === buildRunPath(activeBeforeClear.id)) {
-        navigate(buildFilesPath(), { replace: true });
-      }
-    }
-  }, [activeTaskId, clearCompletedRuns, navigate, setActiveTaskId, workspaceRuns]);
 
   return {
     activeChatSessionId,

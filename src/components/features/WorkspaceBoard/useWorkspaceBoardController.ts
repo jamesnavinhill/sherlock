@@ -15,7 +15,7 @@ import {
   buildWorkspaceNetworkPath,
   buildWorkspaceTimelinePath,
 } from '@/app/routes';
-import { useWorkspaceBoardFeatureState } from '@/store/selectors/featureSelectors';
+import { useWorkspaceBoardFeatureState } from '@/store/selectors/workspaceBoardSelectors';
 import {
   boardRefKey,
   buildSingleWorkspaceItemEntry,

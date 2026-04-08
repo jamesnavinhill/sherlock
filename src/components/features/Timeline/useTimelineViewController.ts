@@ -6,7 +6,7 @@ import type {
   TimelineEvent,
   TimelineTrack,
 } from '@/types';
-import { useTimelineFeatureState } from '@/store/selectors/featureSelectors';
+import { useTimelineFeatureState } from '@/store/selectors/timelineSelectors';
 import {
   buildFilesPath,
   buildWorkspaceBoardDocumentPath,

@@ -9,7 +9,7 @@ import type {
   ManualNode,
   Headline,
 } from '@/types';
-import { useNetworkGraphFeatureState } from '@/store/selectors/featureSelectors';
+import { useNetworkGraphFeatureState } from '@/store/selectors/networkGraphSelectors';
 import { getLabelProfileById } from '@/domain';
 
 import { detectEntityClusters } from './entityResolutionUtils';

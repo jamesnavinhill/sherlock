@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { WorkspaceTemplate } from '../../../types';
-import { useTemplateGalleryFeatureState } from '@/store/selectors/featureSelectors';
+import { useTemplateGalleryFeatureState } from '@/store/selectors/settingsSelectors';
 import {
   Trash2,
   Play,
