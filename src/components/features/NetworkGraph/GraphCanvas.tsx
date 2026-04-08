@@ -68,6 +68,7 @@ interface GraphCanvasProps {
 export interface GraphCanvasRef {
   zoomIn: () => void;
   zoomOut: () => void;
+  focusNode: (nodeId: string) => void;
 }
 
 export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
@@ -179,6 +180,25 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         if (svgRef.current && zoomRef.current) {
           d3.select(svgRef.current).transition().call(zoomRef.current.scaleBy, 0.8);
         }
+      },
+      focusNode: (nodeId: string) => {
+        if (!svgRef.current || !zoomRef.current || !containerRef.current) return;
+
+        const position = nodePositionsRef.current[nodeId];
+        if (position?.x === undefined || position?.y === undefined) return;
+
+        const width = containerRef.current.clientWidth;
+        const height = containerRef.current.clientHeight;
+        const currentScale = zoomTransformRef.current?.k || 1;
+        const nextScale = Math.max(1, currentScale);
+        const transform = d3.zoomIdentity
+          .translate(width / 2 - position.x * nextScale, height / 2 - position.y * nextScale)
+          .scale(nextScale);
+
+        d3.select(svgRef.current)
+          .transition()
+          .duration(180)
+          .call(zoomRef.current.transform, transform);
       },
     }));
 

@@ -31,6 +31,7 @@ import {
   buildWorkspaceItemChatOpenRequest,
   queueWorkspaceReferenceOnBoard,
 } from '@/services/workspace/workspaceHandoffs';
+import { requestNetworkEntityFocus } from '@/services/workspace/workspaceSurfaceFocus';
 import type {
   Artifact,
   ChatMessage,
@@ -45,6 +46,14 @@ import type { OmniboxActionId, OmniboxResult } from './omniboxModel';
 
 const isTimelinePathForWorkspace = (pathname: string, workspaceId: string) =>
   pathname === buildWorkspaceTimelinePath(workspaceId);
+
+const isBoardPathForWorkspace = (pathname: string, workspaceId: string) => {
+  const boardPath = buildWorkspaceBoardPath(workspaceId);
+  return pathname === boardPath || pathname.startsWith(`${boardPath}/`);
+};
+
+const isNetworkPathForWorkspace = (pathname: string, workspaceId: string) =>
+  pathname === buildWorkspaceNetworkPath(workspaceId);
 
 const buildTimelineFocusedPath = (
   locationSearch: string,
@@ -345,6 +354,18 @@ export const executeOmniboxAction = async ({
   const openNetwork = () => {
     if (!result.workspaceId) return;
     setActiveWorkspaceId(result.workspaceId);
+    if (
+      result.kind === 'ENTITY' &&
+      isNetworkPathForWorkspace(locationPathname, result.workspaceId)
+    ) {
+      requestNetworkEntityFocus({
+        workspaceId: result.workspaceId,
+        entityName:
+          typeof result.metadata?.entityName === 'string' ? result.metadata.entityName : result.title,
+      });
+      onClose();
+      return;
+    }
     navigate(buildWorkspaceNetworkPath(result.workspaceId));
     onClose();
   };
@@ -398,6 +419,9 @@ export const executeOmniboxAction = async ({
       boardId:
         activeWorkspaceId === result.workspaceId ? activeWorkspaceBoardId : null,
       ensureWorkspaceBoard,
+      mode: isBoardPathForWorkspace(locationPathname, result.workspaceId)
+        ? 'FOCUS_OR_PLACE'
+        : undefined,
       navigate,
       queueBoardPlacement,
       reference,

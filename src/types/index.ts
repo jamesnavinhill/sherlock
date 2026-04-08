@@ -290,6 +290,7 @@ export interface WorkspaceBoardPlacementRequest {
   boardId?: string;
   item: WorkspaceBoardItemReference;
   openInBoard?: boolean;
+  mode?: 'PLACE' | 'FOCUS_OR_PLACE';
 }
 
 export type BoardAgentSessionStatus =

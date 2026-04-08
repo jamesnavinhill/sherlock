@@ -110,7 +110,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           title="No Active Workspace"
           description="Open or create a workspace first. The research board mirrors the active workspace and keeps board composition tied to canonical Sherlock records."
           action={{
-            label: 'Open Case Files',
+            label: 'Open Files',
             onClick: () => navigate(buildFilesPath()),
           }}
         />

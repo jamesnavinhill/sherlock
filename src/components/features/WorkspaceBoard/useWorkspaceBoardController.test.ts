@@ -8,6 +8,9 @@ const { useWorkspaceBoardFeatureState } = vi.hoisted(() => ({
 const { buildWorkspaceBoardViewModel } = vi.hoisted(() => ({
   buildWorkspaceBoardViewModel: vi.fn(),
 }));
+const { useBoardCanvasPersistence } = vi.hoisted(() => ({
+  useBoardCanvasPersistence: vi.fn(),
+}));
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -26,12 +29,7 @@ vi.mock('./workspaceBoardViewModel', () => ({
 }));
 
 vi.mock('./useBoardCanvasPersistence', () => ({
-  useBoardCanvasPersistence: () => ({
-    editorRef: { current: null },
-    handleEditorMount: vi.fn(),
-    hydratedSnapshot: null,
-    persistCurrentBoardDocument: vi.fn(async () => undefined),
-  }),
+  useBoardCanvasPersistence,
 }));
 
 vi.mock('./boardInspectorActions', () => ({
@@ -41,10 +39,13 @@ vi.mock('./boardInspectorActions', () => ({
 import { useWorkspaceBoardController } from './useWorkspaceBoardController';
 
 describe('useWorkspaceBoardController', () => {
+  let baseFeatureState: Record<string, unknown>;
+  let baseViewModel: Record<string, unknown>;
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    useWorkspaceBoardFeatureState.mockReturnValue({
+    baseFeatureState = {
       activeWorkspaceBoardId: 'board-1',
       activeWorkspaceId: 'ws-1',
       artifacts: [],
@@ -73,9 +74,17 @@ describe('useWorkspaceBoardController', () => {
       deleteWorkspaceBoard: vi.fn(),
       addToast: vi.fn(),
       themeMode: 'dark',
+    };
+    useWorkspaceBoardFeatureState.mockReturnValue(baseFeatureState);
+
+    useBoardCanvasPersistence.mockReturnValue({
+      editorRef: { current: null },
+      handleEditorMount: vi.fn(),
+      hydratedSnapshot: null,
+      persistCurrentBoardDocument: vi.fn(async () => undefined),
     });
 
-    buildWorkspaceBoardViewModel.mockReturnValue({
+    baseViewModel = {
       activeBoard: {
         id: 'board-1',
         workspaceId: 'ws-1',
@@ -109,7 +118,8 @@ describe('useWorkspaceBoardController', () => {
       visibleBoardAgentSession: null,
       workspaceArtifacts: [],
       workspaceHeadlines: [],
-    });
+    };
+    buildWorkspaceBoardViewModel.mockReturnValue(baseViewModel);
   });
 
   it('opens board deletion confirmation state through controller-owned dialog boundaries', async () => {
@@ -130,5 +140,86 @@ describe('useWorkspaceBoardController', () => {
         id: 'board-1',
       })
     );
+  });
+
+  it('focuses an existing matching card instead of placing a duplicate when requested', () => {
+    const clearQueuedBoardPlacement = vi.fn();
+    const setSelectedShapes = vi.fn();
+    const zoomToBounds = vi.fn();
+    const getShapePageBounds = vi.fn(() => ({ x: 10, y: 20, w: 120, h: 80 }));
+
+    useWorkspaceBoardFeatureState.mockReturnValue({
+      ...baseFeatureState,
+      queuedBoardPlacement: {
+        workspaceId: 'ws-1',
+        boardId: 'board-1',
+        item: {
+          workspaceId: 'ws-1',
+          refKind: 'WORKSPACE_ITEM',
+          refId: 'item-1',
+          title: 'Atlas Note',
+        },
+        mode: 'FOCUS_OR_PLACE',
+      },
+      clearQueuedBoardPlacement,
+    });
+
+    useBoardCanvasPersistence.mockReturnValue({
+      editorRef: {
+        current: {
+          getCurrentPageShapes: () => [
+            {
+              id: 'shape-1',
+              meta: {
+                sherlockRefJson: JSON.stringify({
+                  workspaceId: 'ws-1',
+                  refKind: 'WORKSPACE_ITEM',
+                  refId: 'item-1',
+                  title: 'Atlas Note',
+                }),
+              },
+            },
+          ],
+          getShapePageBounds,
+          setSelectedShapes,
+          zoomToBounds,
+        },
+      },
+      handleEditorMount: vi.fn(),
+      hydratedSnapshot: null,
+      persistCurrentBoardDocument: vi.fn(async () => undefined),
+    });
+
+    buildWorkspaceBoardViewModel.mockReturnValue({
+      ...baseViewModel,
+      libraryMap: new Map([
+        [
+          'WORKSPACE_ITEM:item-1',
+          {
+            workspaceId: 'ws-1',
+            refKind: 'WORKSPACE_ITEM',
+            refId: 'item-1',
+            title: 'Atlas Note',
+            kind: 'NOTE',
+            searchText: 'atlas note',
+          },
+        ],
+      ]),
+    });
+
+    renderHook(() =>
+      useWorkspaceBoardController({
+        onLaunchInvestigation: vi.fn(),
+        onOpenChat: vi.fn(),
+        onOpenReport: vi.fn(),
+      })
+    );
+
+    expect(setSelectedShapes).toHaveBeenCalledWith(['shape-1']);
+    expect(zoomToBounds).toHaveBeenCalledWith(
+      { x: 10, y: 20, w: 120, h: 80 },
+      { targetZoom: 1, animation: { duration: 180 } }
+    );
+    expect(clearQueuedBoardPlacement).toHaveBeenCalledTimes(1);
   });
 });

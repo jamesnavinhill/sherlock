@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { useWorkspaceStore } from '../../store/caseStore';
+
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 vi.mock('../ui/BackgroundMatrixRain', () => ({
   BackgroundMatrixRain: () => null,
@@ -52,12 +55,16 @@ describe('Archives chat launch propagation', () => {
   it('opens workspace chat from case cards and report cards', () => {
     const onOpenChat = vi.fn();
 
-    render(<Archives onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={onOpenChat} />);
+    render(
+      <MemoryRouter future={routerFuture}>
+        <Archives onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={onOpenChat} />
+      </MemoryRouter>
+    );
 
     const chatButtons = screen.getAllByTitle(/workspace chat/i);
     fireEvent.click(chatButtons[0]);
     fireEvent.click(screen.getByText('Atlas'));
-    fireEvent.click(screen.getByTitle(/report context in workspace chat/i));
+    fireEvent.click(screen.getByTitle(/artifact context in workspace chat/i));
 
     expect(onOpenChat).toHaveBeenNthCalledWith(1, {
       workspaceId: 'case-1',
@@ -68,5 +75,16 @@ describe('Archives chat launch propagation', () => {
         sourceReportId: 'report-1',
       },
     });
+  });
+
+  it('uses canonical workspace and artifact labels in the Files shell', () => {
+    render(
+      <MemoryRouter future={routerFuture}>
+        <Archives onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('button', { name: /new workspace/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/view workspace/i)).toBeInTheDocument();
   });
 });

@@ -363,6 +363,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - multiple named boards/pages per workspace with persisted board snapshots
 - canonical library drawer for artifacts, entities, sources, signals, notes, links, files/media, and promoted excerpts
 - drag/drop or click-to-place flows from canonical library into the active board
+- omnibox board handoff now reuses the same queue/place path, but prefers focusing an existing linked card on the active board before placing a duplicate
 - presentation mode plus manual-first AI actions for selection summaries and drafted board notes
 - Sherlock-owned board-agent groundwork under `src/services/workspace/agent/*`, including pure snapshot parsing and prompt-part context assembly for selected, visible, and linked board state
 - a board-agent runtime wrapper that turns persisted board state plus bounded prompt parts into provider-router `BOARD_AGENT` requests
@@ -418,6 +419,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - case/report/entity node inspection
 - launch-into-chat handoff for inspected reports, entities, and headlines
 - board handoff for inspected reports, entities, and headlines
+- omnibox entity results can now focus the active network surface in place by reopening the entity inspector and recentering the graph instead of forcing a redundant route change
 - manual node/link creation
 - source nodes derived from artifact sources for non-investigation graph work
 - broader manual node semantics for concepts and sources alongside legacy people and organizations
@@ -442,6 +444,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 `src/components/features/Archives.tsx`
 
 - workspace/file browsing now mixes saved artifacts with canonical workspace items instead of treating items as board-only records
+- shell-level Files copy now uses the canonical `Workspace` / `Artifact` nouns instead of label-profile drift
 - selected-workspace browsing supports `All`, `Artifacts`, and `Items` filtering over the same workspace-scoped list
 - artifact rows still route into saved artifact detail and now share the same chat and board handoff verbs exposed by the omnibox
 - workspace-item rows expose provenance-aware summaries plus direct workspace-chat, board-placement, and source-link actions

@@ -62,6 +62,25 @@ export const parseBoardReference = (value: unknown): WorkspaceBoardItemReference
   }
 };
 
+export const boardReferenceMatches = (
+  left: Pick<WorkspaceBoardItemReference, 'workspaceId' | 'refKind' | 'refId'>,
+  right: Pick<WorkspaceBoardItemReference, 'workspaceId' | 'refKind' | 'refId'>
+) =>
+  left.workspaceId === right.workspaceId &&
+  left.refKind === right.refKind &&
+  left.refId === right.refId;
+
+export const findBoardShapeIdsForReference = (
+  shapes: Array<{ id: string; meta?: Record<string, unknown> | null }>,
+  target: WorkspaceBoardItemReference
+) =>
+  shapes
+    .filter((shape) => {
+      const parsed = parseBoardReference(shape.meta?.[BOARD_REF_META_KEY]);
+      return parsed ? boardReferenceMatches(parsed, target) : false;
+    })
+    .map((shape) => shape.id);
+
 const getShapeColor = (entry: WorkspaceLibraryEntry): BoardCardColor => {
   switch (entry.kind) {
     case 'ARTIFACT':

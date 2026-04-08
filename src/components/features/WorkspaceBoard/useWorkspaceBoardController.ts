@@ -24,6 +24,7 @@ import {
 import {
   BOARD_REF_META_KEY,
   buildBoardCardSpec,
+  findBoardShapeIdsForReference,
   parseBoardReference,
 } from '../../../services/workspace/boardShapes';
 import {
@@ -223,6 +224,40 @@ export const useWorkspaceBoardController = ({
 
     const queuedEntry = libraryMap.get(boardRefKey(queuedBoardPlacement.item));
     if (queuedEntry) {
+      if (queuedBoardPlacement.mode === 'FOCUS_OR_PLACE') {
+        const matchingShapeIds = findBoardShapeIdsForReference(
+          editorRef.current.getCurrentPageShapes(),
+          queuedBoardPlacement.item
+        );
+
+        if (matchingShapeIds.length > 0) {
+          const focusBounds = matchingShapeIds
+            .map((shapeId) => editorRef.current?.getShapePageBounds(shapeId as never))
+            .filter((entry): entry is NonNullable<typeof entry> => !!entry);
+
+          editorRef.current.setSelectedShapes(matchingShapeIds as never);
+          if (focusBounds.length > 0) {
+            const minX = Math.min(...focusBounds.map((entry) => entry.x));
+            const minY = Math.min(...focusBounds.map((entry) => entry.y));
+            const maxX = Math.max(...focusBounds.map((entry) => entry.x + entry.w));
+            const maxY = Math.max(...focusBounds.map((entry) => entry.y + entry.h));
+
+            editorRef.current.zoomToBounds(
+              {
+                x: minX,
+                y: minY,
+                w: maxX - minX,
+                h: maxY - minY,
+              },
+              { targetZoom: 1, animation: { duration: 180 } }
+            );
+          }
+
+          clearQueuedBoardPlacement();
+          return;
+        }
+      }
+
       if (activeBoard.presentationMode) {
         addToast('Board is in presentation mode. Disable it before placing new items.', 'INFO');
         clearQueuedBoardPlacement();

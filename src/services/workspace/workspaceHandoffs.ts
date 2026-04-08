@@ -118,6 +118,7 @@ export const buildSourceBoardReference = (input: {
 export const queueWorkspaceReferenceOnBoard = async ({
   boardId,
   ensureWorkspaceBoard,
+  mode,
   navigate,
   queueBoardPlacement,
   reference,
@@ -125,12 +126,14 @@ export const queueWorkspaceReferenceOnBoard = async ({
 }: {
   boardId?: string | null;
   ensureWorkspaceBoard: (workspaceId: string) => Promise<{ id: string }>;
+  mode?: 'PLACE' | 'FOCUS_OR_PLACE';
   navigate: (path: string) => void;
   queueBoardPlacement: (input: {
     workspaceId: string;
     boardId: string;
     item: WorkspaceBoardItemReference;
     openInBoard?: boolean;
+    mode?: 'PLACE' | 'FOCUS_OR_PLACE';
   }) => void;
   reference: WorkspaceBoardItemReference;
   workspaceId: string;
@@ -141,6 +144,7 @@ export const queueWorkspaceReferenceOnBoard = async ({
     boardId: resolvedBoardId,
     item: reference,
     openInBoard: true,
+    mode,
   });
   navigate(buildWorkspaceBoardDocumentPath(workspaceId, resolvedBoardId));
   return resolvedBoardId;

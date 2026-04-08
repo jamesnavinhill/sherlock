@@ -19,7 +19,6 @@ import { MatrixCardLoader } from '../ui/MatrixCardLoader';
 import { OsintSelect } from '../ui/OsintSelect';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
-import { getDomainPackForScope, getLabelProfileById } from '../../domain';
 
 interface FeedProps {
   onInvestigate: (request: InvestigationLaunchRequest) => void;
@@ -56,12 +55,6 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
       BUILTIN_SCOPES[0]
     );
   }, [activeScopeId, customScopes]);
-  const activePack = useMemo(
-    () => getDomainPackForScope(activeScope, customScopes),
-    [activeScope, customScopes]
-  );
-  const labelProfile = useMemo(() => getLabelProfileById(activePack.labelProfileId), [activePack]);
-
   // Dynamic categories from scope
   const categories = useMemo(() => {
     if (activeScope?.categories && activeScope.categories.length > 0) {
@@ -570,7 +563,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                   <div className="mt-auto pt-4 flex items-center justify-between text-sm text-zinc-500 border-t border-zinc-800">
                     <span className="font-mono text-xs uppercase">{item.category}</span>
                     <span className="flex items-center text-osint-primary opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono uppercase tracking-wider">
-                      Open {labelProfile.workspaceLabel} <ArrowRight className="w-3 h-3 ml-1" />
+                      Open Workspace <ArrowRight className="w-3 h-3 ml-1" />
                     </span>
                   </div>
                 </div>

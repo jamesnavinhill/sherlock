@@ -1,16 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import React from 'react';
 import { useWorkspaceStore } from '../../../store/caseStore';
+import { requestNetworkEntityFocus } from '@/services/workspace/workspaceSurfaceFocus';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
+const focusNodeMock = vi.fn();
 
 vi.mock('./ControlBar', () => ({
   ControlBar: () => null,
 }));
 
 vi.mock('./GraphCanvas', () => ({
-  GraphCanvas: () => null,
+  GraphCanvas: React.forwardRef(function GraphCanvasMock(
+    _props,
+    ref: React.ForwardedRef<{ focusNode: (nodeId: string) => void }>
+  ) {
+    React.useImperativeHandle(ref, () => ({
+      focusNode: focusNodeMock,
+      zoomIn: vi.fn(),
+      zoomOut: vi.fn(),
+    }));
+    return null;
+  }),
 }));
 
 vi.mock('./EntityResolution', () => ({
@@ -85,6 +98,7 @@ describe('NetworkGraph launch propagation', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
+    focusNodeMock.mockReset();
 
     useWorkspaceStore.setState({
       activeWorkspaceId: 'case-1',
@@ -178,5 +192,26 @@ describe('NetworkGraph launch propagation', () => {
         entityName: 'Atlas Holdings',
       },
     });
+  });
+
+  it('focuses the active entity in-place when the omnibox targets the current network surface', () => {
+    render(
+      <MemoryRouter future={routerFuture}>
+        <NetworkGraph
+          onOpenReport={vi.fn()}
+          onInvestigateEntity={vi.fn()}
+          onOpenChat={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    act(() => {
+      requestNetworkEntityFocus({
+        workspaceId: 'case-1',
+        entityName: 'Atlas Holdings',
+      });
+    });
+
+    expect(focusNodeMock).toHaveBeenCalledWith('entity-atlasholdings');
   });
 });

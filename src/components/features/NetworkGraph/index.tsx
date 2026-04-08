@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Network } from 'lucide-react';
 import type {
   ChatOpenRequest,
@@ -16,6 +16,8 @@ import { NodeInspector } from './NodeInspector';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { useNetworkGraphController } from './useNetworkGraphController';
 import { NetworkGraphDialogs } from './NetworkGraphDialogs';
+import { getEntityGraphNodeId } from './networkGraphNodeIds';
+import { addNetworkEntityFocusListener } from '@/services/workspace/workspaceSurfaceFocus';
 
 interface NetworkGraphProps {
   onOpenReport: (report: Artifact) => void;
@@ -113,6 +115,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     onInvestigateEntity,
     onOpenChat,
   });
+
+  useEffect(
+    () =>
+      addNetworkEntityFocusListener(({ workspaceId, entityName }) => {
+        if (!workspaceId || workspaceId !== filterCaseId) return;
+        handleOpenEntityInspector(entityName);
+        graphRef.current?.focusNode(getEntityGraphNodeId(entityName));
+      }),
+    [filterCaseId, handleOpenEntityInspector]
+  );
 
   return (
     <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">

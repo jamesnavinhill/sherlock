@@ -67,7 +67,7 @@ export const SHERLOCK_ROUTE_DEFINITIONS: Record<SherlockRouteId, SherlockRouteDe
     id: 'FILES',
     path: '/files',
     scope: 'GLOBAL',
-    description: 'Workspace and artifact archive navigation surface.',
+    description: 'Workspace files and canonical record retrieval surface.',
     urlParams: [],
     urlQuery: [],
     storeState: ['archive search input', 'sort mode', 'drawer visibility'],

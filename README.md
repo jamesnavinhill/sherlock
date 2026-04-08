@@ -7,7 +7,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
 - Uses a capability-aware model registry with direct-provider defaults plus a dynamic OpenRouter catalog (bundled snapshot, local cache, live refresh, curated quick picks, and manual slug entry)
 - Runs workspace-grounded chat through the same provider router with persisted sessions, message history, streaming output, and stop support
-- Exposes one workspace omnibox for routes, workspaces, saved timeline views, artifacts, items, chats, runs, and signals, with durable recent destinations plus chat/board/timeline/network/files handoff actions
+- Exposes one workspace omnibox for routes, workspaces, saved timeline views, artifacts, items, chats, runs, and signals, with durable recent destinations plus in-context board/timeline/network focus and chat/board/timeline/network/files handoff actions
 - Provides a dedicated multi-board research workspace built on `tldraw`, with a canonical library for artifacts, entities, sources, signals, notes, links, files/media, and promoted chat excerpts
 - Executes Sherlock board-agent sessions that can place and organize board items, create canonical notes/excerpts/artifact drafts, launch follow-up runs, and continue through explicit review/follow-up actions while keeping an auditable action log
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
@@ -130,13 +130,13 @@ npm run check:full
 
 `npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
-## Current Validation Snapshot (April 7, 2026)
+## Current Validation Snapshot (April 8, 2026)
 
-The current targeted validation for the omnibox + canonical knowledge workstreams passed on this checkout:
+The current targeted validation for the Workstream 0-2 closeout passed on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- targeted tests for omnibox model helpers, chat mention/runtime seams, chat page/controller flows, workspace search snippets, and touched timeline view-model/event slices: pass
+- targeted tests for Files shell labels, board omnibox focus behavior, and network omnibox focus behavior: pass
 - `npm run build`: passes
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint

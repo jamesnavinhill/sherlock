@@ -23,7 +23,7 @@ import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { OsintSelect } from '../ui/OsintSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
-import { getLabelProfileById, getWorkspaceDisplayTitle } from '../../domain';
+import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../domain';
 import {
   clearStoredActiveWorkspaceId,
   getStoredActiveWorkspaceId,
@@ -75,15 +75,11 @@ export const Archives: React.FC<ArchivesProps> = ({
     reportCount: number;
   } | null>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
-  const archiveLabelProfile = getLabelProfileById(
-    workspaces.find((entry) => entry.id === selectedCaseId)?.labelProfileId ||
-      artifacts.find((entry) => entry.caseId === selectedCaseId)?.labelProfileId
-  );
-  const workspaceLabel = archiveLabelProfile.workspaceLabel;
+  const workspaceLabel = CANONICAL_NOUNS.workspace;
   const workspaceLabelLower = workspaceLabel.toLowerCase();
-  const artifactLabel = archiveLabelProfile.artifactLabel;
+  const artifactLabel = CANONICAL_NOUNS.artifact;
   const artifactLabelLower = artifactLabel.toLowerCase();
-  const artifactLabelPlural = archiveLabelProfile.artifactLabelPlural;
+  const artifactLabelPlural = CANONICAL_NOUNS.artifactPlural;
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -173,7 +169,7 @@ export const Archives: React.FC<ArchivesProps> = ({
     const reportCount = getCaseReports(caseId).length;
     setWorkspacePendingPurge({
       id: caseId,
-      name: targetCase?.title || `this ${workspaceLabelLower}`,
+      name: targetCase ? getWorkspaceDisplayTitle(targetCase) : `this ${workspaceLabelLower}`,
       reportCount,
     });
   };
@@ -213,10 +209,10 @@ export const Archives: React.FC<ArchivesProps> = ({
       return (
         <EmptyState
           icon={FolderOpen}
-          title="Archives Empty"
-          description={`No saved ${archiveLabelProfile.workspaceLabelPlural.toLowerCase()} or ${archiveLabelProfile.artifactLabelPlural.toLowerCase()} found yet. Start a new run to begin collecting work.`}
+          title="Files Empty"
+          description={`No saved ${CANONICAL_NOUNS.workspacePlural.toLowerCase()} or ${CANONICAL_NOUNS.artifactPlural.toLowerCase()} found yet. Start a new run to begin collecting work.`}
           action={{
-            label: `Start New ${archiveLabelProfile.workspaceLabel}`,
+            label: `Start New ${CANONICAL_NOUNS.workspace}`,
             onClick: () => setIsNewCaseModalOpen(true),
           }}
           className="animate-in fade-in duration-700"
@@ -267,7 +263,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                     <FileText className="w-4 h-4 mr-2" />
                     {fileCount} {fileCount === 1 ? artifactLabel : artifactLabelPlural}
                     </span>
-                    <span>{itemCount} items</span>
+                    <span>{itemCount} {CANONICAL_NOUNS.itemPlural.toLowerCase()}</span>
                   </span>
                   <div className="flex space-x-1">
                     <button
@@ -581,12 +577,12 @@ export const Archives: React.FC<ArchivesProps> = ({
           {/* Workspace Selector */}
           <div className="hidden md:block min-w-[200px] max-w-[300px]">
             <OsintSelect
-              ariaLabel={`View ${archiveLabelProfile.workspaceLabel}`}
+              ariaLabel={`View ${workspaceLabel}`}
               value={effectiveSelectedCaseId || 'ALL'}
               onChange={handleCaseSelect}
               triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
               options={[
-                { value: 'ALL', label: `All ${archiveLabelProfile.workspaceLabelPlural}` },
+                { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
                 ...workspaces.map((workspace) => ({
                   value: workspace.id,
                   label: getWorkspaceDisplayTitle(workspace),
@@ -595,7 +591,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                   ? [
                       {
                         value: 'unassigned',
-                        label: `Unassigned ${archiveLabelProfile.artifactLabelPlural}`,
+                        label: `Unassigned ${artifactLabelPlural}`,
                       },
                     ]
                   : []),
