@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: In Progress (Streams 1-5 completed; Stream 6 next)
+Status: In Progress (Streams 1-5 completed; Stream 6 model-catalog lane underway)
 
 Related inputs:
 
@@ -849,6 +849,23 @@ Docs to update on landing:
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
 - `README.md`
+
+### Landing Status
+
+In Progress on April 8, 2026.
+
+Landed in this Stream 6 session:
+
+- split `src/config/aiModels.ts` into smaller canonical modules under `src/config/aiModels/` for provider metadata, static catalog data, OpenRouter catalog IO/cache, and model-selection policy while preserving the existing public barrel import path
+- kept `systemConfig.ts` and runtime-facing callers on the stable `src/config/aiModels.ts` contract while removing the oversized policy-plus-network concentration from that module
+- added focused catalog/selection coverage in `src/config/aiModels.test.ts` so OpenRouter snapshot fallback, live refresh normalization, and manual slug persistence are locked at the extracted boundary
+
+Validation run for this Stream 6 session:
+
+- `npm run test -- src/config/aiModels.test.ts src/config/systemConfig.test.ts`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
 
 ## Stream 7. Settings, Runtime-Config Unification, Warning Zero, And Docs Closeout
 

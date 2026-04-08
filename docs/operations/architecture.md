@@ -244,12 +244,16 @@ Shared provider utilities:
 Model registry and provider defaults:
 
 - `src/config/aiModels.ts`
+- `src/config/aiModels/*`
 - `src/config/systemConfig.ts`
 
 Key behavior:
 
 - model selection is now capability-aware at the selected-model level rather than only the provider level
-- `aiModels.ts` exposes static direct-provider models plus a dynamic OpenRouter catalog backed by bundled snapshot, local cache, live refresh, curated quick picks, recent selections, and manual slug support
+- `src/config/aiModels/staticCatalog.ts` now owns bundled direct-provider and OpenRouter snapshot model data
+- `src/config/aiModels/openRouterCatalog.ts` now owns OpenRouter catalog refresh, cache hydration, bundled snapshot fallback, and curated quick-pick shaping
+- `src/config/aiModels/modelSelection.ts` now owns provider/model lookup, capability derivation, recent selection persistence, and manual OpenRouter slug support
+- `aiModels.ts` remains the stable public barrel for feature/runtime imports while the model-catalog/runtime-config seam is internally split into smaller canonical modules
 - router enforces provider/model alignment and capability checks
 - router resolves a pack and purpose profile for each run
 - router now exposes a sibling `CHAT` runtime path for workspace-grounded conversational turns
