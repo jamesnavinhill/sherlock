@@ -293,10 +293,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     [themeMode]
   );
 
-  const defaultExpandedArtifactIds = useMemo<Record<string, boolean>>(
-    () => ({}),
-    [workspaceReports]
-  );
+  const defaultExpandedArtifactIds = useMemo<Record<string, boolean>>(() => ({}), []);
 
   const expandedArtifactIds =
     artifactCardState.workspaceId === activeWorkspace?.id

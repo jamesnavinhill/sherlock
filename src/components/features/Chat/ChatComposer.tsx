@@ -156,7 +156,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
       onSubmit={onSubmit}
       className="border-t border-zinc-800 bg-black/95 px-4 pb-4 pt-3 sm:px-6"
     >
-      <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-zinc-950/70">
+      <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
         <div className="relative border-b border-zinc-800">
           <textarea
             ref={textareaRef}
@@ -201,7 +201,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
           />
 
           {mentionState?.results.length ? (
-            <div className="absolute bottom-4 left-4 right-4 z-10 rounded border border-zinc-800 bg-zinc-950 shadow-xl">
+            <div className="absolute bottom-4 left-4 right-4 z-10 rounded border border-zinc-800 bg-black shadow-xl">
               <div className="border-b border-zinc-800 px-3 py-2 osint-meta-label">
                 Mention workspace records
               </div>
@@ -234,7 +234,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             {linkedMentions.map((mention) => (
               <span
                 key={mention.id}
-                className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-zinc-950/90 px-2 py-1 osint-meta-label-strong text-zinc-300"
+                className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-black/60 px-2 py-1 osint-meta-label-strong text-zinc-300"
               >
                 <span className="truncate">{mention.title}</span>
                 <span className="shrink-0 text-zinc-500">{mention.subtitle}</span>

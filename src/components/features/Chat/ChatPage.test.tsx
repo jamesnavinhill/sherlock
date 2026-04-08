@@ -281,5 +281,12 @@ describe('Chat page', () => {
     const proseBlock = container.querySelector('.prose');
     expect(proseBlock).toBeTruthy();
     expect(proseBlock?.className).not.toContain('prose-invert');
+
+    const composerShell = screen
+      .getByPlaceholderText(/ask about atlas workspace/i)
+      .closest('form')
+      ?.querySelector('.max-w-4xl');
+    expect(composerShell).toBeTruthy();
+    expect(composerShell?.className).toContain('bg-black/20');
   });
 });
