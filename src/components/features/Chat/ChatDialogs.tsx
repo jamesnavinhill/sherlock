@@ -5,6 +5,7 @@ import type { Artifact, InvestigationLaunchRequest, Workspace } from '@/types';
 import { ModalShell } from '@/components/ui/ModalShell';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TextPromptDialog } from '@/components/ui/TextPromptDialog';
+import { WorkspaceDocumentUploadDialog } from '@/components/ui/WorkspaceDocumentUploadDialog';
 import { RunSetupModal } from '../Runs/RunSetupModal';
 import type {
   AppendArtifactDialogState,
@@ -12,15 +13,21 @@ import type {
   RenameSessionDialogState,
 } from './useChatController';
 import { buildManualSetupSeed } from './chatPageUtils';
+import type { WorkspaceDocumentUploadDialogState } from '@/components/features/shared/useWorkspaceDocumentUpload';
+import type { WorkspaceDocumentUploadRoute } from '@/services/workspace/documentUploads';
+import type { ArtifactType } from '@/types';
 
 interface ChatDialogsProps {
   activeWorkspace: Workspace | null;
+  workspaces: Workspace[];
   manualSetupDraft: Parameters<typeof buildManualSetupSeed>[0] | null;
   showNewProjectModal: boolean;
   renameSessionDialog: RenameSessionDialogState | null;
   deleteSessionDialog: { title: string } | null;
   appendArtifactDialog: AppendArtifactDialogState | null;
   followUpDialog: FollowUpDialogState | null;
+  uploadDialogState: WorkspaceDocumentUploadDialogState | null;
+  uploadInFlight: boolean;
   appendableWorkspaceReports: Array<Artifact & { id: string }>;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
   onCloseManualSetup: () => void;
@@ -29,23 +36,31 @@ interface ChatDialogsProps {
   onCloseDeleteSession: () => void;
   onCloseAppendArtifact: () => void;
   onCloseFollowUp: () => void;
+  onCloseUploadDialog: () => void;
   onConfirmRenameSession: () => Promise<void>;
   onConfirmDeleteSession: () => Promise<void>;
   onConfirmAppendMessageToArtifact: () => Promise<void>;
   onConfirmLaunchFollowUp: () => Promise<void>;
+  onConfirmUploadDialog: () => Promise<void>;
   onRenameTitleChange: (value: string) => void;
   onAppendArtifactChange: (reportId: string) => void;
   onFollowUpTopicChange: (value: string) => void;
+  onUploadArtifactTypeChange: (artifactType: ArtifactType) => void;
+  onUploadRouteChange: (route: WorkspaceDocumentUploadRoute) => void;
+  onUploadTargetWorkspaceChange: (workspaceId: string) => void;
 }
 
 export const ChatDialogs: React.FC<ChatDialogsProps> = ({
   activeWorkspace,
+  workspaces,
   manualSetupDraft,
   showNewProjectModal,
   renameSessionDialog,
   deleteSessionDialog,
   appendArtifactDialog,
   followUpDialog,
+  uploadDialogState,
+  uploadInFlight,
   appendableWorkspaceReports,
   onLaunchInvestigation,
   onCloseManualSetup,
@@ -54,13 +69,18 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
   onCloseDeleteSession,
   onCloseAppendArtifact,
   onCloseFollowUp,
+  onCloseUploadDialog,
   onConfirmRenameSession,
   onConfirmDeleteSession,
   onConfirmAppendMessageToArtifact,
   onConfirmLaunchFollowUp,
+  onConfirmUploadDialog,
   onRenameTitleChange,
   onAppendArtifactChange,
   onFollowUpTopicChange,
+  onUploadArtifactTypeChange,
+  onUploadRouteChange,
+  onUploadTargetWorkspaceChange,
 }) => (
   <>
     {manualSetupDraft ? (
@@ -201,6 +221,19 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
         onConfirm={() => void onConfirmLaunchFollowUp()}
         confirmLabel="Launch Run"
         placeholder="Follow-up topic"
+      />
+    ) : null}
+
+    {uploadDialogState ? (
+      <WorkspaceDocumentUploadDialog
+        isSubmitting={uploadInFlight}
+        state={uploadDialogState}
+        workspaces={workspaces}
+        onArtifactTypeChange={onUploadArtifactTypeChange}
+        onClose={onCloseUploadDialog}
+        onConfirm={() => void onConfirmUploadDialog()}
+        onRouteChange={onUploadRouteChange}
+        onTargetWorkspaceChange={onUploadTargetWorkspaceChange}
       />
     ) : null}
   </>

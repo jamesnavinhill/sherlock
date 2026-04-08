@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import type { ChangeEvent } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const navigateMock = vi.fn();
@@ -221,5 +222,46 @@ describe('useWorkspaceBoardController', () => {
       { targetZoom: 1, animation: { duration: 180 } }
     );
     expect(clearQueuedBoardPlacement).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens shared upload routing state before committing board uploads', () => {
+    const createWorkspaceItem = vi.fn();
+    useWorkspaceBoardFeatureState.mockReturnValue({
+      ...baseFeatureState,
+      createWorkspaceItem,
+      workspaces: [
+        {
+          id: 'ws-1',
+          title: 'Atlas Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-06',
+        },
+      ],
+    });
+
+    const { result } = renderHook(() =>
+      useWorkspaceBoardController({
+        onLaunchInvestigation: vi.fn(),
+        onOpenChat: vi.fn(),
+        onOpenReport: vi.fn(),
+      })
+    );
+
+    act(() => {
+      result.current.handleFileUpload({
+        target: {
+          files: [new File(['Atlas findings'], 'atlas-note.md', { type: 'text/markdown' })],
+          value: 'atlas-note.md',
+        },
+      } as unknown as ChangeEvent<HTMLInputElement>);
+    });
+
+    expect(result.current.uploadDialogState).toEqual(
+      expect.objectContaining({
+        route: 'WORKSPACE_ITEM',
+        targetWorkspaceId: 'ws-1',
+      })
+    );
+    expect(createWorkspaceItem).not.toHaveBeenCalled();
   });
 });

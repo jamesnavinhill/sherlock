@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, DragEvent, KeyboardEvent } from 'react';
+import type { DragEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type {
@@ -40,7 +40,6 @@ import {
   buildWorkspaceItemFromCreateModal,
   createWorkspaceSelectionNote,
   generateWorkspaceSelectionSummary,
-  ingestWorkspaceFiles,
 } from './workspaceBoardItemActions';
 import { runWorkspaceBoardAgentTurn } from './workspaceBoardAgent';
 import {
@@ -51,6 +50,7 @@ import type {
   BoardAgentReviewDecision,
   BoardAgentReviewRequest,
 } from '@/services/workspace/agent';
+import { useWorkspaceDocumentUpload } from '@/components/features/shared/useWorkspaceDocumentUpload';
 
 interface BoardAgentReviewState {
   sessionId: string;
@@ -151,10 +151,27 @@ export const useWorkspaceBoardController = ({
   const boardAgentReviewResolveRef = useRef<((decision: BoardAgentReviewDecision) => void) | null>(
     null
   );
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const autoPlacementRef = useRef<{ boardId: string | null; index: number }>({
     boardId: null,
     index: 0,
+  });
+  const {
+    closeUploadDialog,
+    confirmUploadDialog,
+    fileInputRef,
+    handleFileUpload,
+    setUploadArtifactType,
+    setUploadRoute,
+    setUploadTargetWorkspaceId,
+    uploadDialogState,
+    uploadInFlight,
+  } = useWorkspaceDocumentUpload({
+    addToast,
+    createWorkspaceItem,
+    initialWorkspaceId: activeWorkspaceId,
+    saveArtifact,
+    source: 'BOARD',
+    workspaces,
   });
   const {
     activeBoard,
@@ -480,26 +497,6 @@ export const useWorkspaceBoardController = ({
     }
     setCreateModal(null);
   }, [activeWorkspace, createModal, createWorkspaceItem, handleDropEntry]);
-
-  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (!activeWorkspace) return;
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
-
-    await ingestWorkspaceFiles({
-      createWorkspaceItem,
-      files,
-      workspaceId: activeWorkspace.id,
-    });
-
-    addToast(
-      files.length === 1
-        ? 'Added file to the workspace library.'
-        : `Added ${files.length} files to the workspace library.`,
-      'SUCCESS'
-    );
-    event.target.value = '';
-  };
 
   const handleGenerateSummary = async () => {
     if (!activeWorkspace || selectedEntries.length === 0) return;
@@ -984,6 +981,9 @@ export const useWorkspaceBoardController = ({
     selectedHeadline,
     selectedPrimaryEntry,
     selectedWorkspaceItem,
+    setUploadArtifactType,
+    setUploadRoute,
+    setUploadTargetWorkspaceId,
     setBoardAgentAutoApproveOrganizationActions:
       handleBoardAgentAutoApproveOrganizationActionsChange,
     setBoardAgentPrompt,
@@ -998,6 +998,8 @@ export const useWorkspaceBoardController = ({
     toggleInspectorSection,
     toggleLibraryEntrySection,
     toggleLibrarySection,
+    uploadDialogState,
+    uploadInFlight,
     updateWorkspaceBoard,
     visibleBoardAgentActions,
     visibleBoardAgentSession,
@@ -1006,6 +1008,8 @@ export const useWorkspaceBoardController = ({
     workspaceBoards,
     workspaceItems,
     workspaces,
+    closeUploadDialog,
+    confirmUploadDialog,
     LEFT_PANEL_SECTION_SCROLL_CLASS,
   };
 };

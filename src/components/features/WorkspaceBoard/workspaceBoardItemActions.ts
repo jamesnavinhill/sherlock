@@ -60,50 +60,6 @@ export const buildWorkspaceItemFromCreateModal = ({
   return null;
 };
 
-const readPreviewUrl = async (file: File): Promise<string | undefined> => {
-  if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-    return undefined;
-  }
-
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-};
-
-export const ingestWorkspaceFiles = async ({
-  createWorkspaceItem,
-  files,
-  workspaceId,
-}: {
-  createWorkspaceItem: (item: WorkspaceItem) => Promise<unknown>;
-  files: File[];
-  workspaceId: string;
-}) => {
-  for (const file of files) {
-    const previewUrl = await readPreviewUrl(file);
-    await createWorkspaceItem({
-      id: createLocalId('workspace-item'),
-      workspaceId,
-      kind: file.type.startsWith('image/') || file.type.startsWith('video/') ? 'MEDIA' : 'FILE',
-      title: file.name,
-      description: `${file.name} - ${Math.max(1, Math.round(file.size / 1024))} KB`,
-      mimeType: file.type || undefined,
-      fileName: file.name,
-      sizeBytes: file.size,
-      previewUrl: previewUrl || undefined,
-      provenance: {
-        source: 'INGESTION',
-        description: 'Captured from a local file upload.',
-      },
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
-  }
-};
-
 export const generateWorkspaceSelectionSummary = async ({
   artifacts,
   headlines,

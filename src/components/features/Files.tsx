@@ -8,6 +8,7 @@ import {
   LayoutGrid,
   List,
   Plus,
+  Upload,
 } from 'lucide-react';
 import type { Artifact, ChatOpenRequest, InvestigationLaunchRequest } from '@/types';
 import { CANONICAL_NOUNS } from '@/domain';
@@ -25,6 +26,7 @@ import {
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { OsintSelect } from '@/components/ui/OsintSelect';
+import { WorkspaceDocumentUploadDialog } from '@/components/ui/WorkspaceDocumentUploadDialog';
 import { RunSetupModal } from '@/components/features/Runs/RunSetupModal';
 import { FilesOverview } from '@/components/features/Files/FilesOverview';
 import { FilesRecords } from '@/components/features/Files/FilesRecords';
@@ -49,6 +51,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     currentWorkspaceArtifacts,
     effectiveSelectedCaseId,
     exportMenuRef,
+    fileInputRef,
     filterMenuRef,
     focusedItem,
     focusedItemRowRef,
@@ -58,6 +61,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     handlePlaceItemOnBoard,
     handlePurgeWorkspace,
     handleWorkspaceSelect,
+    handleFileUpload,
     isNewCaseModalOpen,
     onOpenArtifactChat,
     onOpenItemChat,
@@ -66,6 +70,9 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     overviewViewModel,
     recordFilter,
     recordsViewModel,
+    setUploadArtifactType,
+    setUploadRoute,
+    setUploadTargetWorkspaceId,
     setCurrentPage,
     setIsNewCaseModalOpen,
     setRecordFilter,
@@ -74,11 +81,16 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     setViewMode,
     showExportMenu,
     showFilters,
+    uploadDialogState,
+    uploadInFlight,
     viewMode,
     workspaceLabel,
     workspaceLabelLower,
     workspacePendingPurge,
     workspaces,
+    closeUploadDialog,
+    confirmUploadDialog,
+    openUploadPicker,
   } = controller;
 
   return (
@@ -117,6 +129,26 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                 ]}
               />
             </div>
+            <button
+              onClick={openUploadPicker}
+              disabled={workspaces.length === 0}
+              className={getChromeMenuButtonClass(false)}
+              title={
+                workspaces.length === 0
+                  ? `Create a ${workspaceLabelLower} before uploading documents`
+                  : 'Upload documents into a workspace'
+              }
+            >
+              <Upload className="h-4 w-4" />
+              <span className="hidden lg:inline">Upload</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileUpload}
+            />
           </div>
 
           <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
@@ -322,6 +354,19 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           tone="danger"
           onClose={closeWorkspacePurgeDialog}
           onConfirm={() => void confirmPurgeWorkspace()}
+        />
+      ) : null}
+
+      {uploadDialogState ? (
+        <WorkspaceDocumentUploadDialog
+          isSubmitting={uploadInFlight}
+          state={uploadDialogState}
+          workspaces={workspaces}
+          onArtifactTypeChange={setUploadArtifactType}
+          onClose={closeUploadDialog}
+          onConfirm={() => void confirmUploadDialog()}
+          onRouteChange={setUploadRoute}
+          onTargetWorkspaceChange={setUploadTargetWorkspaceId}
         />
       ) : null}
 

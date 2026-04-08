@@ -9,6 +9,7 @@ import {
   setStoredActiveWorkspaceId,
 } from '@/utils/localStorage';
 import { useWorkspaceStore } from '@/store/workspaceStore';
+import { useWorkspaceDocumentUpload } from '@/components/features/shared/useWorkspaceDocumentUpload';
 import {
   buildArtifactBoardReference,
   buildArtifactChatOpenRequest,
@@ -40,10 +41,13 @@ export const useFilesController = ({
     artifacts,
     workspaces,
     workspaceItems,
+    addToast,
+    createWorkspaceItem,
     deleteArtifact,
     ensureWorkspaceBoard,
     purgeWorkspace,
     queueBoardPlacement,
+    saveArtifact,
     setActiveWorkspaceId,
   } = useWorkspaceStore();
 
@@ -62,6 +66,19 @@ export const useFilesController = ({
     reportCount: number;
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const applyWorkspaceSelection = (id: string) => {
+    if (id === 'ALL') {
+      setSelectedCaseId(null);
+      clearStoredActiveWorkspaceId();
+    } else {
+      setSelectedCaseId(id);
+      setStoredActiveWorkspaceId(id);
+    }
+
+    setCurrentPage(1);
+    setRecordFilter('ALL');
+  };
 
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const filterMenuRef = useRef<HTMLDivElement>(null);
@@ -119,6 +136,32 @@ export const useFilesController = ({
   const currentWorkspaceArtifacts = currentWorkspace
     ? artifacts.filter((artifact) => artifact.workspaceId === currentWorkspace.id)
     : [];
+  const {
+    closeUploadDialog,
+    confirmUploadDialog,
+    fileInputRef,
+    handleFileUpload,
+    openUploadPicker,
+    setUploadArtifactType,
+    setUploadRoute,
+    setUploadTargetWorkspaceId,
+    uploadDialogState,
+    uploadInFlight,
+  } = useWorkspaceDocumentUpload({
+    addToast,
+    createWorkspaceItem,
+    initialWorkspaceId:
+      currentWorkspace?.id ||
+      (effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
+        ? effectiveSelectedCaseId
+        : null),
+    onComplete: async (result) => {
+      applyWorkspaceSelection(result.targetWorkspaceId);
+    },
+    saveArtifact,
+    source: 'FILES',
+    workspaces,
+  });
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -199,16 +242,7 @@ export const useFilesController = ({
   };
 
   const handleWorkspaceSelect = (id: string) => {
-    if (id === 'ALL') {
-      setSelectedCaseId(null);
-      clearStoredActiveWorkspaceId();
-    } else {
-      setSelectedCaseId(id);
-      setStoredActiveWorkspaceId(id);
-    }
-
-    setCurrentPage(1);
-    setRecordFilter('ALL');
+    applyWorkspaceSelection(id);
   };
 
   const handlePurgeWorkspace = (workspaceId: string, event?: ReactMouseEvent) => {
@@ -250,6 +284,7 @@ export const useFilesController = ({
     effectiveRecordFilter,
     effectiveSelectedCaseId,
     exportMenuRef,
+    fileInputRef,
     filterMenuRef,
     focusedItem,
     focusedItemRowRef,
@@ -260,6 +295,7 @@ export const useFilesController = ({
     handlePlaceItemOnBoard,
     handlePurgeWorkspace,
     handleWorkspaceSelect,
+    handleFileUpload,
     isNewCaseModalOpen,
     itemsPerPage,
     onOpenArtifactChat: (artifact: Artifact) => {
@@ -277,6 +313,9 @@ export const useFilesController = ({
     recordFilter,
     recordsViewModel,
     routeState,
+    setUploadArtifactType,
+    setUploadRoute,
+    setUploadTargetWorkspaceId,
     setCurrentPage,
     setIsNewCaseModalOpen,
     setRecordFilter,
@@ -289,9 +328,14 @@ export const useFilesController = ({
     workspaceLabel,
     workspaceLabelLower,
     workspacePendingPurge,
+    uploadDialogState,
+    uploadInFlight,
     workspaces,
+    closeUploadDialog,
     closeWorkspacePurgeDialog: () => setWorkspacePendingPurge(null),
     confirmPurgeWorkspace,
+    confirmUploadDialog,
+    openUploadPicker,
   };
 };
 

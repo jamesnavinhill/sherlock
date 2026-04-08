@@ -51,6 +51,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     boardAgentReviewState,
     boardAgentTodoItems,
     boardPendingDeletion,
+    closeUploadDialog,
+    confirmUploadDialog,
     confirmDeleteCreatedItem,
     createModal,
     deleteWorkspaceBoard,
@@ -87,6 +89,9 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     search,
     selectedEntries,
     selectedWorkspaceItem,
+    setUploadArtifactType,
+    setUploadRoute,
+    setUploadTargetWorkspaceId,
     setBoardAgentAutoApproveOrganizationActions,
     setBoardAgentPrompt,
     setBoardPendingDeletion,
@@ -100,6 +105,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     toggleInspectorSection,
     toggleLibraryEntrySection,
     toggleLibrarySection,
+    uploadDialogState,
+    uploadInFlight,
     updateWorkspaceBoard,
     visibleBoardAgentActions,
     visibleBoardAgentSession,
@@ -289,6 +296,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         createModal={createModal}
         boardPendingDeletion={boardPendingDeletion}
         libraryItemPendingDeletion={libraryItemPendingDeletion}
+        uploadDialogState={uploadDialogState}
+        uploadInFlight={uploadInFlight}
         onCloseCreateModal={() => setCreateModal(null)}
         onCreateModalChange={setCreateModal}
         onSubmitCreateModal={handleSubmitCreateModal}
@@ -310,6 +319,12 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           await confirmDeleteCreatedItem(libraryItemPendingDeletion);
           setLibraryItemPendingDeletion(null);
         }}
+        onCloseUploadDialog={closeUploadDialog}
+        onConfirmUploadDialog={confirmUploadDialog}
+        onUploadArtifactTypeChange={setUploadArtifactType}
+        onUploadRouteChange={setUploadRoute}
+        onUploadTargetWorkspaceChange={setUploadTargetWorkspaceId}
+        workspaces={workspaces}
       />
     </div>
   );

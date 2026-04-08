@@ -2,7 +2,11 @@ import React from 'react';
 
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ModalShell } from '@/components/ui/ModalShell';
+import { WorkspaceDocumentUploadDialog } from '@/components/ui/WorkspaceDocumentUploadDialog';
+import type { WorkspaceDocumentUploadDialogState } from '@/components/features/shared/useWorkspaceDocumentUpload';
 import type { WorkspaceLibraryEntry } from '@/services/workspace/library';
+import type { WorkspaceDocumentUploadRoute } from '@/services/workspace/documentUploads';
+import type { ArtifactType, Workspace } from '@/types';
 import type { CreateModalState } from './workspaceBoardUtils';
 
 interface PendingBoardDeletion {
@@ -14,6 +18,8 @@ interface BoardDialogsProps {
   createModal: CreateModalState;
   boardPendingDeletion: PendingBoardDeletion | null;
   libraryItemPendingDeletion: WorkspaceLibraryEntry | null;
+  uploadDialogState: WorkspaceDocumentUploadDialogState | null;
+  uploadInFlight: boolean;
   onCloseCreateModal: () => void;
   onCreateModalChange: (next: CreateModalState | ((current: CreateModalState) => CreateModalState)) => void;
   onSubmitCreateModal: () => Promise<void>;
@@ -21,12 +27,20 @@ interface BoardDialogsProps {
   onConfirmBoardDeletion: () => Promise<void>;
   onCloseLibraryItemDeletion: () => void;
   onConfirmLibraryItemDeletion: () => Promise<void>;
+  onCloseUploadDialog: () => void;
+  onConfirmUploadDialog: () => Promise<void>;
+  onUploadArtifactTypeChange: (artifactType: ArtifactType) => void;
+  onUploadRouteChange: (route: WorkspaceDocumentUploadRoute) => void;
+  onUploadTargetWorkspaceChange: (workspaceId: string) => void;
+  workspaces: Workspace[];
 }
 
 export const BoardDialogs: React.FC<BoardDialogsProps> = ({
   createModal,
   boardPendingDeletion,
   libraryItemPendingDeletion,
+  uploadDialogState,
+  uploadInFlight,
   onCloseCreateModal,
   onCreateModalChange,
   onSubmitCreateModal,
@@ -34,6 +48,12 @@ export const BoardDialogs: React.FC<BoardDialogsProps> = ({
   onConfirmBoardDeletion,
   onCloseLibraryItemDeletion,
   onConfirmLibraryItemDeletion,
+  onCloseUploadDialog,
+  onConfirmUploadDialog,
+  onUploadArtifactTypeChange,
+  onUploadRouteChange,
+  onUploadTargetWorkspaceChange,
+  workspaces,
 }) => (
   <>
     {createModal ? (
@@ -133,6 +153,19 @@ export const BoardDialogs: React.FC<BoardDialogsProps> = ({
         tone="danger"
         onClose={onCloseLibraryItemDeletion}
         onConfirm={() => void onConfirmLibraryItemDeletion()}
+      />
+    ) : null}
+
+    {uploadDialogState ? (
+      <WorkspaceDocumentUploadDialog
+        isSubmitting={uploadInFlight}
+        state={uploadDialogState}
+        workspaces={workspaces}
+        onArtifactTypeChange={onUploadArtifactTypeChange}
+        onClose={onCloseUploadDialog}
+        onConfirm={() => void onConfirmUploadDialog()}
+        onRouteChange={onUploadRouteChange}
+        onTargetWorkspaceChange={onUploadTargetWorkspaceChange}
       />
     ) : null}
   </>

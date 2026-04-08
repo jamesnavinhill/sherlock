@@ -89,6 +89,7 @@ describe('Files chat launch propagation', () => {
     );
 
     expect(screen.getByRole('button', { name: /new workspace/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /upload/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/view workspace/i)).toBeInTheDocument();
   });
 });

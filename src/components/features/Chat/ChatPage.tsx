@@ -22,6 +22,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     appendableWorkspaceReports,
     chatGenerationStatus,
     chatMessagesBySessionId,
+    closeUploadDialog,
+    confirmUploadDialog,
     copyToClipboard,
     customScopes,
     deleteSessionDialog,
@@ -82,6 +84,9 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     rightPanelSections,
     sectionLabelClassName,
     sessionActions,
+    setUploadArtifactType,
+    setUploadRoute,
+    setUploadTargetWorkspaceId,
     setActiveChatSessionId,
     setActiveWorkspaceId,
     setAppendArtifactDialog,
@@ -103,6 +108,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     toggleLeftPanelSection,
     toggleRightPanelSection,
     transcriptEndRef,
+    uploadDialogState,
+    uploadInFlight,
     workspaces,
     workspaceReports,
     workspaceSessions,
@@ -256,6 +263,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
 
       <ChatDialogs
         activeWorkspace={activeWorkspace}
+        workspaces={workspaces}
         manualSetupDraft={manualSetupDraft}
         showNewProjectModal={showNewProjectModal}
         renameSessionDialog={renameSessionDialog}
@@ -274,6 +282,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         onConfirmDeleteSession={handleConfirmDeleteSession}
         onConfirmAppendMessageToArtifact={handleConfirmAppendMessageToArtifact}
         onConfirmLaunchFollowUp={handleConfirmLaunchFollowUp}
+        onCloseUploadDialog={closeUploadDialog}
+        onConfirmUploadDialog={confirmUploadDialog}
         onRenameTitleChange={(value) =>
           setRenameSessionDialog((current) => (current ? { ...current, title: value } : current))
         }
@@ -285,6 +295,11 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         onFollowUpTopicChange={(topic) =>
           setFollowUpDialog((current) => (current ? { ...current, topic } : current))
         }
+        onUploadArtifactTypeChange={setUploadArtifactType}
+        onUploadRouteChange={setUploadRoute}
+        onUploadTargetWorkspaceChange={setUploadTargetWorkspaceId}
+        uploadDialogState={uploadDialogState}
+        uploadInFlight={uploadInFlight}
       />
     </div>
   );

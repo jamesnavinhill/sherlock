@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: In Progress (Streams 1-4 completed; Stream 5 pending)
+Status: In Progress (Streams 1-4 completed; Stream 5 in progress)
 
 Related inputs:
 
@@ -728,6 +728,25 @@ Docs to update on landing:
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
 - `README.md`
+
+### Landing Status
+
+In progress as of April 8, 2026.
+
+Landed in this Stream 5 session:
+
+- added a shared document-upload routing contract in `src/services/workspace/documentUploads.ts` so readable uploads now extract canonical `textContent` for workspace-item ingestion and can also become draft artifacts without per-surface duplication
+- added a reusable upload controller seam in `src/components/features/shared/useWorkspaceDocumentUpload.ts` plus `src/components/ui/WorkspaceDocumentUploadDialog.tsx` so Chat, Board, and Files now share one routing dialog and one confirmation flow
+- wired Chat and Workspace Board upload entry points onto that shared routing flow instead of directly creating workspace items inline
+- added a first-class Files upload entry point in `src/components/features/Files.tsx` and `src/components/features/Files/useFilesController.ts` so Files can act as the explicit canonical upload surface while still using the same underlying routing contract
+- landed focused tests for the shared upload service, shared upload hook, Chat controller upload state, Board controller upload state, and the Files shell upload affordance
+
+Intentionally deferred within Stream 5:
+
+- deeper OperationView / Chat / Board / Network controller extraction
+- shared handoff parity cleanup across artifact, board, and network surfaces beyond the upload seam
+- board-agent runtime/session/action cleanup
+- remaining product-language cleanup in operation, board, and network support modules
 
 ## Stream 6. Provider, Model Catalog, And Runtime Subsystem Extraction
 
