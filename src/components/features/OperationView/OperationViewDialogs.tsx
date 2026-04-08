@@ -109,13 +109,13 @@ export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
           <div className="flex gap-3">
             <button
               onClick={onCloseSaveTemplateDialog}
-              className="flex-1 border border-zinc-800 py-2 text-xs font-mono uppercase text-zinc-500 transition-colors hover:border-zinc-500 hover:text-white"
+              className="flex-1 border border-zinc-800 py-2 osint-meta-label text-zinc-500 transition-colors hover:border-zinc-500 hover:text-white"
             >
               Cancel
             </button>
             <button
               onClick={onExecuteSaveTemplate}
-              className="osint-button-primary flex-1 py-2 text-xs font-mono font-bold uppercase"
+              className="osint-button-primary flex-1 py-2 osint-meta-label-strong"
             >
               Save Protocol
             </button>
@@ -124,19 +124,19 @@ export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
       >
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[10px] text-zinc-500 font-mono uppercase">Protocol Name</label>
+            <label className="block osint-meta-label">Protocol Name</label>
             <input
               type="text"
               value={templateName}
               onChange={(event) => onTemplateNameChange(event.target.value)}
               placeholder="e.g., Financial Audit Protocol"
-              className="w-full border border-zinc-800 bg-black p-3 text-xs font-mono text-white outline-none transition-colors focus:border-osint-primary"
+              className="w-full border border-zinc-800 bg-black p-3 osint-body-small text-white outline-none transition-colors focus:border-osint-primary"
               autoFocus
             />
           </div>
           <div className="border border-zinc-800 bg-zinc-800/50 p-3">
-            <div className="mb-1 text-[9px] font-mono uppercase text-zinc-500">Investigation Target</div>
-            <div className="truncate text-xs font-mono text-zinc-300">&quot;{report?.topic}&quot;</div>
+            <div className="mb-1 osint-meta-label">Investigation Target</div>
+            <div className="truncate osint-meta-value text-zinc-300">&quot;{report?.topic}&quot;</div>
           </div>
         </div>
       </ModalShell>

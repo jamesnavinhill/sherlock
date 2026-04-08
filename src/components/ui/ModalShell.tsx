@@ -45,12 +45,8 @@ export const ModalShell: React.FC<ModalShellProps> = ({
       >
         <div className="flex items-start justify-between gap-4 border-b border-zinc-800 bg-black px-6 py-4">
           <div className="min-w-0">
-            <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-white">
-              {title}
-            </h3>
-            {description ? (
-              <p className="mt-2 text-xs leading-5 text-zinc-400">{description}</p>
-            ) : null}
+            <h3 className="osint-panel-title text-white">{title}</h3>
+            {description ? <p className="mt-2 osint-body-muted">{description}</p> : null}
           </div>
           <button
             onClick={onClose}

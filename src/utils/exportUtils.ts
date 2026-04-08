@@ -5,6 +5,7 @@
 
 import type { Workspace, ChatMessage, ChatSession, Artifact, LabelProfile } from '../types';
 import { getArtifactFollowUps, getFollowUpText, getLabelProfileById } from '../domain';
+import { buildThemeFontCssVars, DEFAULT_THEME_FONT_SETTINGS } from './themeFonts';
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
   const blob = new Blob([content], { type: mimeType });
@@ -38,24 +39,48 @@ const getArtifactLabelProfile = (report: Artifact, caseObj?: Workspace): LabelPr
 
 const getExportFollowUps = (report: Artifact) => getArtifactFollowUps(report).map(getFollowUpText);
 
-const HTML_STYLES = `
-body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px; color: #1a1a1a; background: #f4f4f5; line-height: 1.6; }
+const GOOGLE_FONTS_STYLESHEET_HREF =
+  'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700;800&display=swap';
+
+const DEFAULT_EXPORT_FONT_VARS = buildThemeFontCssVars(DEFAULT_THEME_FONT_SETTINGS);
+
+const getExportFontVar = (name: keyof typeof DEFAULT_EXPORT_FONT_VARS) => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return DEFAULT_EXPORT_FONT_VARS[name];
+  }
+
+  const value = window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || DEFAULT_EXPORT_FONT_VARS[name];
+};
+
+const buildExportHtmlStyles = () => `
+:root {
+  --export-font-ui: ${getExportFontVar('--font-sans')};
+  --export-font-display: ${getExportFontVar('--font-display')};
+  --export-font-label: ${getExportFontVar('--font-label')};
+  --export-font-mono: ${getExportFontVar('--font-mono')};
+  --export-font-weight-semibold: ${getExportFontVar('--font-weight-semibold')};
+  --export-font-weight-bold: ${getExportFontVar('--font-weight-bold')};
+  --export-font-weight-display: ${getExportFontVar('--font-weight-display')};
+}
+body { font-family: var(--export-font-ui); max-width: 900px; margin: 0 auto; padding: 40px; color: #1a1a1a; background: #f4f4f5; line-height: 1.6; }
 .page { background: white; padding: 60px; box-shadow: 0 0 15px rgba(0,0,0,0.1); margin-bottom: 30px; border-radius: 4px; }
 .header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
-.stamp { border: 3px solid #b91c1c; color: #b91c1c; padding: 5px 15px; font-weight: bold; font-size: 20px; transform: rotate(-2deg); display: inline-block; text-transform: uppercase; font-family: 'Courier New', Courier, monospace; }
-h1 { text-transform: uppercase; font-size: 28px; margin: 0 0 10px 0; letter-spacing: 2px; font-weight: 800; }
-h2 { font-size: 18px; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 30px; text-transform: uppercase; color: #444; font-weight: 700; }
-h3 { font-size: 16px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-left: 4px solid #0f172a; font-weight: 700; }
-.meta { font-size: 12px; color: #64748b; margin-bottom: 30px; font-family: 'Courier New', Courier, monospace; }
+.stamp { border: 3px solid #b91c1c; color: #b91c1c; padding: 5px 15px; font-family: var(--export-font-label); font-weight: var(--export-font-weight-bold); font-size: 20px; letter-spacing: 0.18em; transform: rotate(-2deg); display: inline-block; text-transform: uppercase; }
+h1 { text-transform: uppercase; font-family: var(--export-font-display); font-size: 28px; margin: 0 0 10px 0; letter-spacing: 0.08em; font-weight: var(--export-font-weight-display); }
+h2 { font-size: 18px; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 30px; text-transform: uppercase; color: #444; font-family: var(--export-font-label); font-weight: var(--export-font-weight-bold); letter-spacing: 0.14em; }
+h3 { font-family: var(--export-font-ui); font-size: 16px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-left: 4px solid #0f172a; font-weight: var(--export-font-weight-semibold); }
+.meta { font-size: 12px; color: #64748b; margin-bottom: 30px; font-family: var(--export-font-mono); }
 .report-section { margin-bottom: 50px; }
-.entity-tag { display: inline-block; background: #f1f5f9; padding: 4px 8px; margin: 2px; font-size: 11px; border-radius: 4px; font-weight: 500; border: 1px solid #e2e8f0; }
+.entity-tag { display: inline-block; background: #f1f5f9; padding: 4px 8px; margin: 2px; font-family: var(--export-font-ui); font-size: 11px; border-radius: 4px; font-weight: var(--export-font-weight-semibold); border: 1px solid #e2e8f0; }
 .entity-tag.person { background: #eff6ff; color: #1d4ed8; border-color: #dbeafe; }
 .entity-tag.org { background: #faf5ff; color: #7e22ce; border-color: #f3e8ff; }
-.source-link { display: block; font-size: 12px; color: #2563eb; text-decoration: none; margin-bottom: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.footer { margin-top: 50px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; text-transform: uppercase; letter-spacing: 1px; }
+.source-link { display: block; font-family: var(--export-font-ui); font-size: 12px; color: #2563eb; text-decoration: none; margin-bottom: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.footer { margin-top: 50px; font-family: var(--export-font-label); font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; text-transform: uppercase; letter-spacing: 0.14em; }
 .stat-box { flex: 1; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; text-align: center; }
-.stat-number { font-weight: 800; font-size: 32px; margin-bottom: 5px; color: #0f172a; }
-.stat-label { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 600; letter-spacing: 1px; }
+.stat-number { font-family: var(--export-font-display); font-weight: var(--export-font-weight-display); font-size: 32px; margin-bottom: 5px; color: #0f172a; }
+.stat-label { font-family: var(--export-font-label); font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: var(--export-font-weight-bold); letter-spacing: 0.14em; }
+strong { font-weight: var(--export-font-weight-bold); }
 @media print {
   body { background: white; padding: 0; margin: 0; }
   .page { box-shadow: none; padding: 40px; margin: 0; border: none; width: 100%; border-radius: 0; }
@@ -186,7 +211,10 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
     <html>
     <head>
       <title>${workspaceToken}: ${caseObj.title}</title>
-      <style>${HTML_STYLES}</style>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link href="${GOOGLE_FONTS_STYLESHEET_HREF}" rel="stylesheet" />
+      <style>${buildExportHtmlStyles()}</style>
     </head>
     <body>
       <div class="page">
@@ -263,7 +291,10 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
     <html>
     <head>
       <title>${artifactToken}: ${report.topic}</title>
-      <style>${HTML_STYLES}</style>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link href="${GOOGLE_FONTS_STYLESHEET_HREF}" rel="stylesheet" />
+      <style>${buildExportHtmlStyles()}</style>
     </head>
     <body>
       <div class="page">

@@ -59,7 +59,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
     className={`${rightPanelOpen ? 'translate-x-0' : 'translate-x-full xl:w-0 xl:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 overflow-hidden border-l border-zinc-800 bg-black/95 shadow-2xl transition-all duration-300 xl:relative xl:z-0 xl:flex xl:flex-shrink-0 xl:flex-col xl:shadow-none ${rightPanelOpen ? 'xl:w-96' : 'xl:w-0'} backdrop-blur-md`}
   >
     <div className="border-b border-zinc-800 bg-zinc-900/30 p-4">
-      <h2 className="text-base font-bold text-white">Context</h2>
+      <h2 className="osint-panel-title text-white">Context</h2>
     </div>
     <div className="flex-1 overflow-y-auto bg-black/20 p-2 custom-scrollbar">
       {launchContextSummary ? (
@@ -69,9 +69,9 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           isOpen={rightPanelSections.launchContext}
           onToggle={() => onToggleSection('launchContext')}
         >
-          <div className="space-y-2 px-2 py-1 text-xs text-zinc-400">
-            <div className="text-sm text-white">{launchContextSummary.title}</div>
-            <p className="leading-5">{launchContextSummary.body}</p>
+          <div className="space-y-2 px-2 py-1">
+            <div className="osint-panel-title text-white">{launchContextSummary.title}</div>
+            <p className="osint-body-muted">{launchContextSummary.body}</p>
           </div>
         </Accordion>
       ) : null}
@@ -85,7 +85,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
       >
         <div className="space-y-2">
           {workspaceReports.slice(0, 4).length === 0 ? (
-            <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+            <p className="px-2 py-1 osint-body-quiet italic">
               No saved artifacts for this workspace yet.
             </p>
           ) : (
@@ -100,7 +100,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
                     onClick={() => onToggleArtifactCard(artifactKey)}
                     className="flex w-full items-start justify-between gap-3 text-left"
                   >
-                    <div className="text-sm text-zinc-200">{artifact.topic}</div>
+                    <div className="osint-panel-title text-zinc-200">{artifact.topic}</div>
                     {isExpanded ? (
                       <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
                     ) : (
@@ -109,18 +109,18 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
                   </button>
                   {isExpanded ? (
                     <>
-                      <p className="mt-1 text-xs leading-5 text-zinc-500">{artifact.summary}</p>
+                      <p className="mt-1 osint-body-muted">{artifact.summary}</p>
                       <div className="mt-2 flex gap-3">
                         <button
                           onClick={() => artifact.id && onFetchArtifactSummary(artifact.id)}
-                          className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-osint-primary"
+                          className="inline-flex items-center gap-1 osint-meta-label text-zinc-500 transition hover:text-osint-primary"
                         >
                           <FileText className="h-3 w-3" />
                           Summary
                         </button>
                         <button
                           onClick={() => artifact.id && onFetchFullArtifact(artifact.id)}
-                          className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-osint-primary"
+                          className="inline-flex items-center gap-1 osint-meta-label text-zinc-500 transition hover:text-osint-primary"
                         >
                           <FileSearch className="h-3 w-3" />
                           Full Text
@@ -146,21 +146,21 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           <div className="flex justify-end">
             <button
               onClick={onFetchRecentSignals}
-              className="inline-flex items-center gap-1 text-[10px] font-mono uppercase text-zinc-500 transition hover:text-osint-primary"
+              className="inline-flex items-center gap-1 osint-meta-label text-zinc-500 transition hover:text-osint-primary"
             >
               <FileSearch className="h-3 w-3" />
               Pin To Chat
             </button>
           </div>
           {workspaceSignals.slice(0, 4).length === 0 ? (
-            <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+            <p className="px-2 py-1 osint-body-quiet italic">
               No saved signals linked to this workspace.
             </p>
           ) : (
             workspaceSignals.slice(0, 4).map((signal) => (
               <div key={signal.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
-                <div className="text-sm text-zinc-200">{signal.source || signal.type}</div>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">{signal.content}</p>
+                <div className="osint-panel-title text-zinc-200">{signal.source || signal.type}</div>
+                <p className="mt-1 osint-body-muted">{signal.content}</p>
               </div>
             ))
           )}
@@ -178,9 +178,9 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           <div className="space-y-2">
             {latestAssistantMessage.attachments.map((attachment) => (
               <div key={attachment.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
-                <div className="text-sm text-zinc-200">{attachment.title}</div>
+                <div className="osint-panel-title text-zinc-200">{attachment.title}</div>
                 {attachment.snippet ? (
-                  <p className="mt-1 text-xs leading-5 text-zinc-500">{attachment.snippet}</p>
+                  <p className="mt-1 osint-body-muted">{attachment.snippet}</p>
                 ) : null}
               </div>
             ))}
@@ -197,16 +197,14 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
       >
         <div className="space-y-2">
           {sessionActions.length === 0 ? (
-            <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+            <p className="px-2 py-1 osint-body-quiet italic">
               No chat actions recorded yet.
             </p>
           ) : (
             sessionActions.slice(0, 8).map((action) => (
               <div key={action.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
-                <div className="text-[10px] font-mono uppercase text-zinc-400">{action.type}</div>
-                <div className="mt-1 text-[10px] text-zinc-600">
-                  {formatDateTime(action.createdAt)}
-                </div>
+                <div className="osint-meta-label-strong text-zinc-300">{action.type}</div>
+                <div className="mt-1 osint-body-quiet">{formatDateTime(action.createdAt)}</div>
               </div>
             ))
           )}

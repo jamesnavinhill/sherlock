@@ -135,7 +135,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
             placeholder="Search scopes..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full bg-black border border-zinc-700 text-white pl-10 pr-4 py-2 font-mono text-xs focus:border-osint-primary outline-none transition-colors"
+            className="w-full bg-black border border-zinc-700 pl-10 pr-4 py-2 osint-body-small focus:border-osint-primary outline-none transition-colors"
           />
         </div>
         <button
@@ -145,21 +145,6 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
           <Plus className="w-3 h-3 mr-1" />
           New Scope
         </button>
-      </div>
-
-      <div className="bg-zinc-900/50 border border-zinc-800 p-3">
-        <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Active Scope</div>
-        <div className="flex items-center justify-between">
-          <span className="text-white font-mono">
-            {allScopes.find((scope) => scope.id === activeScopeId)?.name || 'None'}
-          </span>
-          {defaultScopeId === activeScopeId && (
-            <span className="flex items-center text-[10px] text-osint-primary font-mono">
-              <Star className="w-3 h-3 mr-1 fill-current" />
-              DEFAULT
-            </span>
-          )}
-        </div>
       </div>
 
       {showCreateForm && (

@@ -160,7 +160,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   </button>
                   {showContextMenu && (
                     <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
-                      <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">
+                      <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
                         Workspace Actions
                       </div>
                       {onOpenChat && (
@@ -169,7 +169,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onOpenChat();
                             setShowContextMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={
                             report
                               ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
@@ -186,7 +186,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onOpenBoard();
                             setShowContextMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Open ${CANONICAL_NOUNS.workspace.toLowerCase()} board`}
                         >
                           <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -199,7 +199,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onPlaceReportOnBoard();
                             setShowContextMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center border-t border-zinc-800"
+                          className="osint-menu-item flex w-full items-center border-t border-zinc-800 px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Place this ${CANONICAL_NOUNS.artifact.toLowerCase()} on the board`}
                         >
                           <Shapes className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -226,13 +226,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
                     {activeCase && (
                       <>
-                        <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">{`Full ${CANONICAL_NOUNS.workspace}`}</div>
+                        <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">{`Full ${CANONICAL_NOUNS.workspace}`}</div>
                         <button
                           onClick={() => {
                             exportCaseAsHtml(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Exports a formatted printable view of the entire ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                         >
                           <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -243,7 +243,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportCaseAsMarkdown(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Exports a full Markdown package of the ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                         >
                           <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -254,7 +254,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportCaseAsJson(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
+                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Exports raw ${CANONICAL_NOUNS.workspace.toLowerCase()} data for backup/integration`}
                         >
                           <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -264,13 +264,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     )}
                     {report && (
                       <>
-                        <div className="px-3 py-1.5 text-[10px] text-zinc-500 font-mono uppercase border-b border-zinc-800 bg-zinc-900/50">{`Current ${labelProfile.artifactLabel}`}</div>
+                        <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">{`Current ${labelProfile.artifactLabel}`}</div>
                         <button
                           onClick={() => {
                             exportReportAsHtml(report, activeCase || undefined);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a formatted printable document`}
                         >
                           <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -281,7 +281,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportReportAsMarkdown(report);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a Markdown file`}
                         >
                           <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -292,7 +292,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportReportAsJson(report);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-zinc-300 flex items-center"
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as raw JSON data`}
                         >
                           <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
@@ -304,7 +304,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                               onSaveTemplate();
                               setShowExportMenu(false);
                             }}
-                            className="osint-menu-item w-full text-left px-4 py-2.5 text-xs font-mono text-osint-primary flex items-center border-t border-zinc-800"
+                            className="osint-menu-item flex w-full items-center border-t border-zinc-800 px-4 py-2.5 text-left osint-body-small text-osint-primary"
                             title="Saves this run configuration as a template"
                           >
                             <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-osint-primary" />

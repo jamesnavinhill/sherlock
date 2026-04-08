@@ -97,45 +97,49 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           </button>
           {showNewMenu ? (
             <div className="osint-menu-panel absolute left-0 top-full z-50 mt-1 min-w-[220px] border border-zinc-700 bg-zinc-900">
-              <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 text-[10px] font-mono uppercase text-zinc-500">
+              <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
                 Chat
               </div>
               <button
                 onClick={() => void onCreateSession()}
                 disabled={workspaceDisabled}
-                className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left osint-body-small text-zinc-300 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
                 title="Start a fresh chat session in the selected workspace"
               >
                 <MessageSquare className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                 <div>
-                  <div className="font-bold">New Session</div>
-                  <div className="text-[10px] text-zinc-500">Start a standard workspace chat</div>
+                  <div className="osint-menu-item-title">New Session</div>
+                  <div className="osint-menu-item-description">Start a standard workspace chat</div>
                 </div>
               </button>
               <button
                 onClick={() => void onCreateGuidedSession()}
                 disabled={workspaceDisabled}
-                className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                className="osint-menu-item flex w-full items-center px-4 py-3 text-left osint-body-small text-zinc-300 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
                 title="Open a guided run builder in the selected workspace"
               >
                 <PlayCircle className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                 <div>
-                  <div className="font-bold">Guided Run</div>
-                  <div className="text-[10px] text-zinc-500">Use the step-by-step run builder</div>
+                  <div className="osint-menu-item-title">Guided Run</div>
+                  <div className="osint-menu-item-description">
+                    Use the step-by-step run builder
+                  </div>
                 </div>
               </button>
-              <div className="border-y border-zinc-800 bg-zinc-900/50 px-3 py-1.5 text-[10px] font-mono uppercase text-zinc-500">
+              <div className="border-y border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
                 Workspace
               </div>
               <button
                 onClick={onStartNewWorkspace}
-                className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                className="osint-menu-item flex w-full items-center px-4 py-3 text-left osint-body-small text-zinc-300"
                 title="Create a new workspace"
               >
                 <FilePlus2 className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                 <div>
-                  <div className="font-bold">New Workspace</div>
-                  <div className="text-[10px] text-zinc-500">Create or launch a new workspace</div>
+                  <div className="osint-menu-item-title">New Workspace</div>
+                  <div className="osint-menu-item-description">
+                    Create or launch a new workspace
+                  </div>
                 </div>
               </button>
             </div>
@@ -175,29 +179,31 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </button>
             {showExportMenu ? (
               <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[220px] border border-zinc-700 bg-zinc-900">
-                <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 text-[10px] font-mono uppercase text-zinc-500">
+                <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
                   Current Session
                 </div>
                 <button
                   onClick={onExportMarkdown}
-                  className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                  className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left osint-body-small text-zinc-300"
                   title="Export the current chat session as Markdown"
                 >
                   <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                   <div>
-                    <div className="font-bold">Session Markdown</div>
-                    <div className="text-[10px] text-zinc-500">Readable transcript export</div>
+                    <div className="osint-menu-item-title">Session Markdown</div>
+                    <div className="osint-menu-item-description">Readable transcript export</div>
                   </div>
                 </button>
                 <button
                   onClick={onExportJson}
-                  className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                  className="osint-menu-item flex w-full items-center px-4 py-3 text-left osint-body-small text-zinc-300"
                   title="Export the current chat session as JSON"
                 >
                   <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
                   <div>
-                    <div className="font-bold">Session JSON</div>
-                    <div className="text-[10px] text-zinc-500">Raw session data for backup</div>
+                    <div className="osint-menu-item-title">Session JSON</div>
+                    <div className="osint-menu-item-description">
+                      Raw session data for backup
+                    </div>
                   </div>
                 </button>
               </div>

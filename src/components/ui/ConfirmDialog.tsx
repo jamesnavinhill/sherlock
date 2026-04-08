@@ -23,15 +23,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   const confirmClassName =
     tone === 'danger'
-      ? 'border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs font-mono uppercase text-red-200 transition hover:border-red-400 hover:bg-red-500/20'
-      : 'osint-button-primary px-4 py-2 text-xs font-mono uppercase';
+      ? 'border border-red-500/40 bg-red-500/10 px-4 py-2 osint-meta-label-strong text-red-200 transition hover:border-red-400 hover:bg-red-500/20'
+      : 'osint-button-primary px-4 py-2 osint-meta-label-strong';
 
   return (
     <ModalShell title={title} description={description} onClose={onClose} widthClassName="max-w-lg">
       <div className="flex justify-end gap-3">
         <button
           onClick={onClose}
-          className="border border-zinc-700 px-4 py-2 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+          className="border border-zinc-700 px-4 py-2 osint-meta-label text-zinc-400 transition hover:border-zinc-500 hover:text-white"
         >
           {cancelLabel}
         </button>

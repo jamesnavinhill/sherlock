@@ -44,20 +44,20 @@ export const TextPromptDialog: React.FC<TextPromptDialogProps> = ({
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="border border-zinc-700 px-4 py-2 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+            className="border border-zinc-700 px-4 py-2 osint-meta-label text-zinc-400 transition hover:border-zinc-500 hover:text-white"
           >
             {cancelLabel}
           </button>
           <button
             onClick={() => void onConfirm()}
-            className="osint-button-primary px-4 py-2 text-xs font-mono uppercase"
+            className="osint-button-primary px-4 py-2 osint-meta-label-strong"
           >
             {confirmLabel}
           </button>
         </div>
       }
     >
-      <label className="block text-xs font-mono uppercase text-zinc-400" htmlFor="text-prompt-input">
+      <label className="block osint-meta-label" htmlFor="text-prompt-input">
         {label}
       </label>
       <input
@@ -72,7 +72,7 @@ export const TextPromptDialog: React.FC<TextPromptDialogProps> = ({
           }
         }}
         placeholder={placeholder}
-        className="mt-3 w-full border border-zinc-700 bg-black px-3 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
+        className="mt-3 w-full border border-zinc-700 bg-black px-3 py-3 osint-body-small text-white outline-none transition focus:border-osint-primary"
       />
     </ModalShell>
   );

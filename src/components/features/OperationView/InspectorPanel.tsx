@@ -210,15 +210,15 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
+                  <span className="osint-meta-label">
                     {entity.type} ENTITY
                   </span>
                 </div>
                 <EditableTitle
                   value={entity.name}
                   onSave={onEntitySave}
-                  className="text-base font-bold text-white leading-tight font-mono"
-                  inputClassName="text-lg font-bold leading-tight"
+                  className="osint-panel-title text-white leading-tight"
+                  inputClassName="osint-panel-title text-white leading-tight"
                 />
               </div>
             </div>
@@ -239,17 +239,15 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               <div className="bg-zinc-900/50 p-4 border border-zinc-800 space-y-3">
                 {entity.role && (
                   <div>
-                    <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Role</div>
-                    <div className="text-sm text-zinc-300">{entity.role}</div>
+                    <div className="mb-1 osint-meta-label">Role</div>
+                    <div className="osint-body-small text-zinc-300">{entity.role}</div>
                   </div>
                 )}
                 {entity.sentiment && (
                   <div>
-                    <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
-                      Sentiment
-                    </div>
+                    <div className="mb-1 osint-meta-label">Sentiment</div>
                     <span
-                      className={`text-xs uppercase font-mono px-2 py-1 border ${entity.sentiment === 'NEGATIVE' ? 'border-osint-danger/40 osint-danger-text bg-osint-danger/10' : entity.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}
+                      className={`inline-flex items-center px-2 py-1 border osint-meta-label ${entity.sentiment === 'NEGATIVE' ? 'border-osint-danger/40 osint-danger-text bg-osint-danger/10' : entity.sentiment === 'POSITIVE' ? 'border-green-500 text-green-500' : 'border-zinc-600 text-zinc-400'}`}
                     >
                       {entity.sentiment}
                     </span>
@@ -275,13 +273,13 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                       title={sanitizeDisplayTitle(r.topic)}
                     >
                       <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
-                      <span className="truncate text-xs font-mono">
-                          {sanitizeDisplayTitle(r.topic)}
+                      <span className="truncate osint-meta-value text-zinc-300 group-hover:text-white">
+                        {sanitizeDisplayTitle(r.topic)}
                       </span>
                     </button>
                   ))
                 ) : (
-                  <p className="text-zinc-600 text-xs font-mono p-2">No direct mentions found.</p>
+                  <p className="p-2 osint-body-quiet">No direct mentions found.</p>
                 )}
               </div>
             </Accordion>
@@ -315,19 +313,19 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                           />
                         )}
                         <span
-                          className="text-xs font-mono text-zinc-400 truncate"
+                          className="truncate osint-meta-value text-zinc-400"
                           title={conn.entity.name}
                         >
                           {conn.entity.name}
                         </span>
                       </div>
-                      <span className="text-[9px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded-sm font-mono">
+                      <span className="rounded-sm bg-zinc-800 px-1.5 py-0.5 osint-meta-label text-zinc-500">
                         {conn.count} Links
                       </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-zinc-600 text-xs font-mono p-2">No connections established.</p>
+                  <p className="p-2 osint-body-quiet">No connections established.</p>
                 )}
               </div>
             </Accordion>
@@ -345,15 +343,15 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
+                  <span className="osint-meta-label">
                     {headline.type} INTEL
                   </span>
-                  <span className="text-[9px] bg-green-900/20 text-green-500 border border-green-900 px-1.5 py-0.5 font-mono">
+                  <span className="border border-green-900 bg-green-900/20 px-1.5 py-0.5 osint-meta-label text-green-500">
                     LIVE
                   </span>
                 </div>
                 <h3
-                  className="text-lg font-bold text-white leading-tight font-mono truncate"
+                  className="truncate osint-panel-title text-white"
                   title={headline.source}
                 >
                   {headline.source}
@@ -374,13 +372,11 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <div className="bg-zinc-900/50 p-6 border border-zinc-800 relative group">
-              <h4 className="text-[10px] text-zinc-500 font-mono uppercase mb-2">
-                Captured Content
-              </h4>
-              <p className="text-sm font-mono text-zinc-300 leading-relaxed">
+              <h4 className="mb-2 osint-meta-label">Captured Content</h4>
+              <p className="osint-body-small text-zinc-300">
                 &quot;{headline.content}&quot;
               </p>
-              <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-600 font-mono">
+              <div className="mt-4 flex items-center justify-between border-t border-zinc-800 pt-4 osint-body-quiet">
                 <span>TS: {headline.timestamp}</span>
               </div>
             </div>
@@ -394,7 +390,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               >
                 <div className="flex items-center overflow-hidden">
                   <Globe className="w-4 h-4 text-zinc-500 mr-3 group-hover:text-osint-primary" />
-                  <span className="text-xs font-mono text-zinc-400 group-hover:text-white truncate">
+                  <span className="truncate osint-meta-value text-zinc-400 group-hover:text-white">
                     {headline.url}
                   </span>
                 </div>
@@ -406,7 +402,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
             <button
               onClick={onInvestigateHeadline}
-              className="osint-button-primary w-full py-3 font-bold font-mono text-sm uppercase flex items-center justify-center"
+              className="osint-button-primary flex w-full items-center justify-center py-3 osint-meta-label-strong"
             >
               Launch Investigation
             </button>
@@ -422,10 +418,10 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 <FileText className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="mb-1 text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
+                <div className="mb-1 osint-meta-label">
                   Current Artifact
                 </div>
-                <h3 className="text-base font-bold text-white leading-tight font-mono">
+                <h3 className="osint-panel-title text-white leading-tight">
                   {reportDisplayTitle}
                 </h3>
               </div>
@@ -446,23 +442,19 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             <div className="border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
               {workspaceTitle ? (
                 <div>
-                  <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
-                    Workspace
-                  </div>
-                  <div className="text-sm text-zinc-300">{workspaceTitle}</div>
+                  <div className="mb-1 osint-meta-label">Workspace</div>
+                  <div className="osint-body-small text-zinc-300">{workspaceTitle}</div>
                 </div>
               ) : null}
               {report.artifactType ? (
                 <div>
-                  <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
-                    Artifact Type
-                  </div>
-                  <div className="text-sm text-zinc-300">{reportArtifactTypeLabel}</div>
+                  <div className="mb-1 osint-meta-label">Artifact Type</div>
+                  <div className="osint-body-small text-zinc-300">{reportArtifactTypeLabel}</div>
                 </div>
               ) : null}
               <div>
-                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Summary</div>
-                <div className="text-sm leading-6 text-zinc-300">
+                <div className="mb-1 osint-meta-label">Summary</div>
+                <div className="osint-body-small text-zinc-300">
                   {report.summary || 'No summary saved for this artifact yet.'}
                 </div>
               </div>
@@ -470,20 +462,20 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="border border-zinc-800 bg-zinc-900/30 p-3">
-                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Sections</div>
-                <div className="text-lg font-mono text-white">{report.sections?.length || 0}</div>
+                <div className="mb-1 osint-meta-label">Sections</div>
+                <div className="osint-meta-value text-lg text-white">{report.sections?.length || 0}</div>
               </div>
               <div className="border border-zinc-800 bg-zinc-900/30 p-3">
-                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Evidence</div>
-                <div className="text-lg font-mono text-white">{report.evidence?.length || 0}</div>
+                <div className="mb-1 osint-meta-label">Evidence</div>
+                <div className="osint-meta-value text-lg text-white">{report.evidence?.length || 0}</div>
               </div>
               <div className="border border-zinc-800 bg-zinc-900/30 p-3">
-                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Entities</div>
-                <div className="text-lg font-mono text-white">{report.entities?.length || 0}</div>
+                <div className="mb-1 osint-meta-label">Entities</div>
+                <div className="osint-meta-value text-lg text-white">{report.entities?.length || 0}</div>
               </div>
               <div className="border border-zinc-800 bg-zinc-900/30 p-3">
-                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Sources</div>
-                <div className="text-lg font-mono text-white">{report.sources?.length || 0}</div>
+                <div className="mb-1 osint-meta-label">Sources</div>
+                <div className="osint-meta-value text-lg text-white">{report.sources?.length || 0}</div>
               </div>
             </div>
           </div>
@@ -494,10 +486,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         <div className="flex h-full flex-col">
           <div className="flex items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4 flex-shrink-0">
             <div className="min-w-0 pr-3">
-              <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 font-mono">
-                Inspector
-              </div>
-              <h3 className="text-base font-bold text-white font-mono">No Item Selected</h3>
+              <div className="mb-1 osint-meta-label">Inspector</div>
+              <h3 className="osint-panel-title text-white">No Item Selected</h3>
             </div>
             <button
               onClick={onClose}
@@ -509,10 +499,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
           <div className="flex-1 p-6 flex items-center justify-center">
             <div className="max-w-xs border border-zinc-800 bg-zinc-900/40 p-5 text-center">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-3">
-                Inspector Ready
-              </div>
-              <p className="text-sm leading-relaxed text-zinc-300">
+              <div className="mb-3 osint-meta-label">Inspector Ready</div>
+              <p className="osint-body-small text-zinc-300">
                 Select an entity, saved signal, or reopen the current artifact inspector here.
               </p>
             </div>

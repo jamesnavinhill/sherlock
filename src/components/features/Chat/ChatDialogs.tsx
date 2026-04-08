@@ -148,27 +148,27 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
           <div className="flex justify-end gap-3">
             <button
               onClick={onCloseAppendArtifact}
-              className="border border-zinc-700 px-4 py-2 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+              className="border border-zinc-700 px-4 py-2 osint-meta-label text-zinc-400 transition hover:border-zinc-500 hover:text-white"
             >
               Cancel
             </button>
             <button
               onClick={() => void onConfirmAppendMessageToArtifact()}
-              className="osint-button-primary px-4 py-2 text-xs font-mono uppercase"
+              className="osint-button-primary px-4 py-2 osint-meta-label-strong"
             >
               Append Note
             </button>
           </div>
         }
       >
-        <label htmlFor="append-artifact-select" className="block text-xs font-mono uppercase text-zinc-400">
+        <label htmlFor="append-artifact-select" className="block osint-meta-label">
           Target Artifact
         </label>
         <select
           id="append-artifact-select"
           value={appendArtifactDialog.selectedReportId}
           onChange={(event) => onAppendArtifactChange(event.target.value)}
-          className="mt-3 w-full border border-zinc-700 bg-black px-3 py-3 text-sm text-white outline-none transition focus:border-osint-primary"
+          className="mt-3 w-full border border-zinc-700 bg-black px-3 py-3 osint-body-small text-white outline-none transition focus:border-osint-primary"
         >
           {appendableWorkspaceReports.map((artifact) => (
             <option key={artifact.id} value={artifact.id}>
@@ -179,7 +179,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
         {appendableWorkspaceReports.find(
           (artifact) => artifact.id === appendArtifactDialog.selectedReportId
         )?.summary ? (
-          <p className="mt-4 text-xs leading-5 text-zinc-500">
+          <p className="mt-4 osint-body-muted">
             {
               appendableWorkspaceReports.find(
                 (artifact) => artifact.id === appendArtifactDialog.selectedReportId

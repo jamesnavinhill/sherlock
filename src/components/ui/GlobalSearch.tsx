@@ -512,11 +512,12 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
 
                       {secondaryActions.length > 0 ? (
                         <div
-                          className={`ml-12 mt-3 flex flex-wrap items-center gap-2 transition ${
+                          className={`mt-3 grid gap-2 transition ${
                             isSelected
                               ? 'max-h-24 opacity-100'
                               : 'max-h-0 overflow-hidden opacity-0'
                           }`}
+                          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))' }}
                         >
                           <button
                             type="button"
@@ -524,7 +525,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                               event.stopPropagation();
                               void handleAction(result, 'OPEN');
                             }}
-                            className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                            className="flex w-full items-center justify-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
                           >
                             <ArrowRight className="h-3 w-3" />
                             {getOmniboxOpenLabel(result)}
@@ -542,7 +543,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                                   event.stopPropagation();
                                   void handleAction(result, action);
                                 }}
-                                className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                                className="flex w-full items-center justify-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
                                 title={actionMeta.title}
                               >
                                 <ActionIcon className="h-3 w-3" />

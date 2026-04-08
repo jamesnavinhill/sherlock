@@ -75,7 +75,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={handleSave}
-          className={`flex-1 bg-zinc-900 border border-osint-primary text-white px-2 py-1 font-mono outline-none ${inputClassName}`}
+          className={`flex-1 bg-zinc-900 border border-osint-primary text-white px-2 py-1 outline-none ${inputClassName}`}
         />
         <button
           onClick={handleSave}
