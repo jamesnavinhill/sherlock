@@ -1,4 +1,14 @@
 export type ThemeFontRole = 'ui' | 'display' | 'label' | 'mono';
+export type ThemeFontScaleStep =
+  | '2xs'
+  | 'xs'
+  | 'sm'
+  | 'base'
+  | 'lg'
+  | 'xl'
+  | '2xl'
+  | '3xl'
+  | '4xl';
 
 export interface ThemeFontOption {
   id: string;
@@ -8,11 +18,38 @@ export interface ThemeFontOption {
   preview: string;
 }
 
+export interface ThemeFontWeightScale {
+  medium: number;
+  semibold: number;
+  bold: number;
+  extrabold: number;
+  label: number;
+  display: number;
+}
+
 export interface ThemeFontSettings {
   ui: string;
   display: string;
   label: string;
   mono: string;
+  size: number;
+  weight: number;
+}
+
+interface ThemeFontScaleStop {
+  description: string;
+  id: 'compact' | 'standard' | 'large';
+  label: string;
+  scale: -1 | 0 | 1;
+  sizes: Record<ThemeFontScaleStep, number>;
+}
+
+interface ThemeFontWeightStop {
+  description: string;
+  id: 'regular' | 'balanced' | 'strong';
+  label: string;
+  scale: -1 | 0 | 1;
+  weights: ThemeFontWeightScale;
 }
 
 export const THEME_FONT_OPTIONS: ThemeFontOption[] = [
@@ -102,14 +139,159 @@ export const THEME_FONT_OPTIONS: ThemeFontOption[] = [
   },
 ];
 
+const THEME_FONT_SIZE_STOPS: ThemeFontScaleStop[] = [
+  {
+    id: 'compact',
+    label: 'Compact',
+    description: 'Tighter type for dense dashboards and high-volume evidence review.',
+    scale: -1,
+    sizes: {
+      '2xs': 0.625,
+      xs: 0.6875,
+      sm: 0.8125,
+      base: 0.9375,
+      lg: 1.0625,
+      xl: 1.1875,
+      '2xl': 1.45,
+      '3xl': 1.85,
+      '4xl': 2.2,
+    },
+  },
+  {
+    id: 'standard',
+    label: 'Standard',
+    description: 'Balanced hierarchy for everyday investigation and reading.',
+    scale: 0,
+    sizes: {
+      '2xs': 0.6875,
+      xs: 0.75,
+      sm: 0.875,
+      base: 1,
+      lg: 1.125,
+      xl: 1.3,
+      '2xl': 1.6,
+      '3xl': 2,
+      '4xl': 2.4,
+    },
+  },
+  {
+    id: 'large',
+    label: 'Large',
+    description: 'Looser hierarchy for presentation mode and long reading sessions.',
+    scale: 1,
+    sizes: {
+      '2xs': 0.75,
+      xs: 0.8125,
+      sm: 0.9375,
+      base: 1.0625,
+      lg: 1.1875,
+      xl: 1.4,
+      '2xl': 1.8,
+      '3xl': 2.25,
+      '4xl': 2.7,
+    },
+  },
+];
+
+const THEME_FONT_WEIGHT_STOPS: ThemeFontWeightStop[] = [
+  {
+    id: 'regular',
+    label: 'Regular',
+    description: 'A quieter reading weight with less chrome contrast.',
+    scale: -1,
+    weights: {
+      medium: 460,
+      semibold: 520,
+      bold: 580,
+      extrabold: 640,
+      label: 540,
+      display: 560,
+    },
+  },
+  {
+    id: 'balanced',
+    label: 'Balanced',
+    description: 'Default contrast tuned for the current Sherlock visual style.',
+    scale: 0,
+    weights: {
+      medium: 500,
+      semibold: 560,
+      bold: 620,
+      extrabold: 680,
+      label: 580,
+      display: 600,
+    },
+  },
+  {
+    id: 'strong',
+    label: 'Strong',
+    description: 'Higher-impact weights for command-center chrome and headings.',
+    scale: 1,
+    weights: {
+      medium: 540,
+      semibold: 600,
+      bold: 680,
+      extrabold: 740,
+      label: 620,
+      display: 640,
+    },
+  },
+];
+
 export const DEFAULT_THEME_FONT_SETTINGS: ThemeFontSettings = {
-  ui: 'inter',
+  ui: 'space-grotesk',
   display: 'space-grotesk',
   label: 'ibm-plex-mono',
-  mono: 'jetbrains-mono',
+  mono: 'ibm-plex-mono',
+  size: -1,
+  weight: -1,
 };
 
 const FONT_OPTION_IDS = new Set(THEME_FONT_OPTIONS.map((option) => option.id));
+const LEGACY_SIZE_SCALE_BY_ID = Object.fromEntries(
+  THEME_FONT_SIZE_STOPS.map((option) => [option.id, option.scale])
+) as Record<ThemeFontScaleStop['id'], ThemeFontScaleStop['scale']>;
+const LEGACY_WEIGHT_SCALE_BY_ID = Object.fromEntries(
+  THEME_FONT_WEIGHT_STOPS.map((option) => [option.id, option.scale])
+) as Record<ThemeFontWeightStop['id'], ThemeFontWeightStop['scale']>;
+
+const clampThemeFontAxis = (value: number) => Math.min(1, Math.max(-1, value));
+
+const interpolateValue = (value: number, low: number, mid: number, high: number) => {
+  const clampedValue = clampThemeFontAxis(value);
+
+  if (clampedValue <= 0) {
+    return mid + (mid - low) * clampedValue;
+  }
+
+  return mid + (high - mid) * clampedValue;
+};
+
+const formatRem = (value: number) => `${Number(value.toFixed(4)).toString()}rem`;
+
+const normalizeThemeFontSizeValue = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return clampThemeFontAxis(Number(value.toFixed(2)));
+  }
+
+  if (typeof value === 'string' && value in LEGACY_SIZE_SCALE_BY_ID) {
+    return LEGACY_SIZE_SCALE_BY_ID[value as keyof typeof LEGACY_SIZE_SCALE_BY_ID];
+  }
+
+  return null;
+};
+
+const normalizeThemeFontWeightValue = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return clampThemeFontAxis(Number(value.toFixed(2)));
+  }
+
+  if (typeof value === 'string' && value in LEGACY_WEIGHT_SCALE_BY_ID) {
+    return LEGACY_WEIGHT_SCALE_BY_ID[value as keyof typeof LEGACY_WEIGHT_SCALE_BY_ID];
+  }
+
+  return null;
+};
 
 export const getThemeFontOption = (id: string): ThemeFontOption =>
   THEME_FONT_OPTIONS.find((option) => option.id === id) ||
@@ -135,6 +317,71 @@ export const getThemeFontOptionsForRole = (role: ThemeFontRole): ThemeFontOption
 
   return THEME_FONT_OPTIONS.filter((option) => option.category === 'sans');
 };
+
+export const resolveThemeFontSizes = (value: number): Record<ThemeFontScaleStep, string> => {
+  const compact = THEME_FONT_SIZE_STOPS[0].sizes;
+  const standard = THEME_FONT_SIZE_STOPS[1].sizes;
+  const large = THEME_FONT_SIZE_STOPS[2].sizes;
+
+  return {
+    '2xs': formatRem(interpolateValue(value, compact['2xs'], standard['2xs'], large['2xs'])),
+    xs: formatRem(interpolateValue(value, compact.xs, standard.xs, large.xs)),
+    sm: formatRem(interpolateValue(value, compact.sm, standard.sm, large.sm)),
+    base: formatRem(interpolateValue(value, compact.base, standard.base, large.base)),
+    lg: formatRem(interpolateValue(value, compact.lg, standard.lg, large.lg)),
+    xl: formatRem(interpolateValue(value, compact.xl, standard.xl, large.xl)),
+    '2xl': formatRem(interpolateValue(value, compact['2xl'], standard['2xl'], large['2xl'])),
+    '3xl': formatRem(interpolateValue(value, compact['3xl'], standard['3xl'], large['3xl'])),
+    '4xl': formatRem(interpolateValue(value, compact['4xl'], standard['4xl'], large['4xl'])),
+  };
+};
+
+export const resolveThemeFontWeights = (value: number): ThemeFontWeightScale => {
+  const regular = THEME_FONT_WEIGHT_STOPS[0].weights;
+  const balanced = THEME_FONT_WEIGHT_STOPS[1].weights;
+  const strong = THEME_FONT_WEIGHT_STOPS[2].weights;
+
+  return {
+    medium: Math.round(interpolateValue(value, regular.medium, balanced.medium, strong.medium)),
+    semibold: Math.round(
+      interpolateValue(value, regular.semibold, balanced.semibold, strong.semibold)
+    ),
+    bold: Math.round(interpolateValue(value, regular.bold, balanced.bold, strong.bold)),
+    extrabold: Math.round(
+      interpolateValue(value, regular.extrabold, balanced.extrabold, strong.extrabold)
+    ),
+    label: Math.round(interpolateValue(value, regular.label, balanced.label, strong.label)),
+    display: Math.round(
+      interpolateValue(value, regular.display, balanced.display, strong.display)
+    ),
+  };
+};
+
+const getScaleDescriptor = <T extends ThemeFontScaleStop | ThemeFontWeightStop>(
+  value: number,
+  stops: [T, T, T]
+) => {
+  const clampedValue = clampThemeFontAxis(value);
+
+  if (clampedValue <= -0.66) return stops[0];
+  if (clampedValue >= 0.66) return stops[2];
+
+  return stops[1];
+};
+
+export const describeThemeFontSize = (value: number) =>
+  getScaleDescriptor(value, [
+    THEME_FONT_SIZE_STOPS[0],
+    THEME_FONT_SIZE_STOPS[1],
+    THEME_FONT_SIZE_STOPS[2],
+  ]);
+
+export const describeThemeFontWeight = (value: number) =>
+  getScaleDescriptor(value, [
+    THEME_FONT_WEIGHT_STOPS[0],
+    THEME_FONT_WEIGHT_STOPS[1],
+    THEME_FONT_WEIGHT_STOPS[2],
+  ]);
 
 export const parseThemeFontSettings = (value: unknown): ThemeFontSettings | null => {
   if (!value || typeof value !== 'object') return null;
@@ -162,19 +409,52 @@ export const parseThemeFontSettings = (value: unknown): ThemeFontSettings | null
     return null;
   }
 
+  const normalizedSize = normalizeThemeFontSizeValue(candidate.size);
+  const normalizedWeight = normalizeThemeFontWeightValue(candidate.weight);
+
+  if (candidate.size != null && normalizedSize == null) {
+    return null;
+  }
+
+  if (candidate.weight != null && normalizedWeight == null) {
+    return null;
+  }
+
   return {
     ui: candidate.ui,
     display: candidate.display,
     label: candidate.label,
     mono: candidate.mono,
+    size: normalizedSize ?? DEFAULT_THEME_FONT_SETTINGS.size,
+    weight: normalizedWeight ?? DEFAULT_THEME_FONT_SETTINGS.weight,
   };
 };
 
 export const buildThemeFontCssVars = (
   settings: ThemeFontSettings
-): Record<string, string> => ({
-  '--font-sans': getThemeFontOption(settings.ui).cssValue,
-  '--font-display': getThemeFontOption(settings.display).cssValue,
-  '--font-label': getThemeFontOption(settings.label).cssValue,
-  '--font-mono': getThemeFontOption(settings.mono).cssValue,
-});
+): Record<string, string> => {
+  const sizes = resolveThemeFontSizes(settings.size);
+  const weights = resolveThemeFontWeights(settings.weight);
+
+  return {
+    '--font-sans': getThemeFontOption(settings.ui).cssValue,
+    '--font-display': getThemeFontOption(settings.display).cssValue,
+    '--font-label': getThemeFontOption(settings.label).cssValue,
+    '--font-mono': getThemeFontOption(settings.mono).cssValue,
+    '--font-size-2xs': sizes['2xs'],
+    '--font-size-xs': sizes.xs,
+    '--font-size-sm': sizes.sm,
+    '--font-size-base': sizes.base,
+    '--font-size-lg': sizes.lg,
+    '--font-size-xl': sizes.xl,
+    '--font-size-2xl': sizes['2xl'],
+    '--font-size-3xl': sizes['3xl'],
+    '--font-size-4xl': sizes['4xl'],
+    '--font-weight-medium': String(weights.medium),
+    '--font-weight-semibold': String(weights.semibold),
+    '--font-weight-bold': String(weights.bold),
+    '--font-weight-extrabold': String(weights.extrabold),
+    '--font-weight-label': String(weights.label),
+    '--font-weight-display': String(weights.display),
+  };
+};

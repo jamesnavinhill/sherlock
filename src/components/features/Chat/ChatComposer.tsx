@@ -197,12 +197,12 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
                 ? `Ask about ${getWorkspaceDisplayTitle(activeWorkspace)}...`
                 : 'Select a workspace to begin chatting...'
             }
-            className="min-h-[132px] w-full resize-none bg-transparent px-4 py-4 text-sm text-white outline-none transition"
+            className="min-h-[132px] w-full resize-none bg-transparent px-4 py-4 osint-body-small text-white outline-none transition"
           />
 
           {mentionState?.results.length ? (
             <div className="absolute bottom-4 left-4 right-4 z-10 rounded border border-zinc-800 bg-zinc-950 shadow-xl">
-              <div className="border-b border-zinc-800 px-3 py-2 text-[10px] font-mono uppercase tracking-wide text-zinc-500">
+              <div className="border-b border-zinc-800 px-3 py-2 osint-meta-label">
                 Mention workspace records
               </div>
               <div className="max-h-48 overflow-y-auto py-1">
@@ -218,8 +218,8 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
                       index === activeMentionIndex ? 'bg-zinc-900 text-white' : 'text-zinc-300 hover:bg-zinc-900'
                     }`}
                   >
-                    <span className="truncate text-sm">{candidate.title}</span>
-                    <span className="ml-3 shrink-0 text-[10px] font-mono uppercase text-zinc-500">
+                    <span className="truncate osint-body-small">{candidate.title}</span>
+                    <span className="ml-3 shrink-0 osint-meta-label">
                       {candidate.subtitle}
                     </span>
                   </button>
@@ -234,7 +234,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             {linkedMentions.map((mention) => (
               <span
                 key={mention.id}
-                className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-zinc-950/90 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-zinc-300"
+                className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-zinc-950/90 px-2 py-1 osint-meta-label-strong text-zinc-300"
               >
                 <span className="truncate">{mention.title}</span>
                 <span className="shrink-0 text-zinc-500">{mention.subtitle}</span>
@@ -277,7 +277,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
               <button
                 type="button"
                 onClick={onStopGeneration}
-                className="osint-button-danger inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase tracking-wide"
+                className="osint-button-danger inline-flex items-center gap-2 px-3 py-2 osint-meta-label-strong"
               >
                 <CircleStop className="h-4 w-4" />
                 Stop

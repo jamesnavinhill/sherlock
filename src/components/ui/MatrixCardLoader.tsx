@@ -24,6 +24,9 @@ export const MatrixCardLoader = ({ active }: { active: boolean }) => {
 
     // Config
     const fontSize = 14;
+    const getMonoFamily = () =>
+      getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim() ||
+      'monospace';
     const columns = Math.ceil(canvas.width / fontSize);
     const drops: number[] = new Array(columns).fill(1);
 
@@ -42,7 +45,7 @@ export const MatrixCardLoader = ({ active }: { active: boolean }) => {
         getComputedStyle(document.documentElement).getPropertyValue('--osint-primary').trim() ||
         '#0f0';
       ctx.fillStyle = accentColor;
-      ctx.font = `${fontSize}px monospace`;
+      ctx.font = `${fontSize}px ${getMonoFamily()}`;
 
       for (let i = 0; i < drops.length; i++) {
         const text = chars[Math.floor(Math.random() * chars.length)];

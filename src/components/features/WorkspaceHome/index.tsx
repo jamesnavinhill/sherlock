@@ -257,13 +257,13 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
       <header className={`${CHROME_HEADER_CLASS} px-6`}>
         <div className="flex h-full min-w-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            <div className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-zinc-500">
+            <div className="mb-1 osint-meta-label">
               Workspace Overview
             </div>
-            <h1 className="truncate text-2xl font-semibold tracking-tight text-white">
+            <h1 className="truncate osint-title-page">
               {snapshot.summary.title}
             </h1>
-            <p className="mt-2 max-w-3xl text-sm text-zinc-400">
+            <p className="mt-2 max-w-3xl osint-body-muted">
               {workspace.description ||
                 snapshot.summary.launchAngle ||
                 snapshot.summary.launchTopic ||
@@ -302,7 +302,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
           <div className="space-y-6">
             <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
               <div className={CHROME_PANEL_HEADER_CLASS}>
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                <div className="osint-meta-label">
                   Summary
                 </div>
               </div>
@@ -312,10 +312,10 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     key={card.label}
                     className="border border-zinc-800 bg-zinc-950/60 px-4 py-3"
                   >
-                    <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                    <div className="osint-meta-label">
                       {card.label}
                     </div>
-                    <div className="mt-2 text-2xl font-semibold text-white">{card.value}</div>
+                    <div className="mt-2 osint-title-section">{card.value}</div>
                   </div>
                 ))}
               </div>
@@ -323,7 +323,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
 
             <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
               <div className={CHROME_PANEL_HEADER_CLASS}>
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                <div className="osint-meta-label">
                   Quick Actions
                 </div>
               </div>
@@ -342,8 +342,8 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
-                            <div className="text-sm font-medium text-white">{action.label}</div>
-                            <div className="mt-1 text-sm text-zinc-400">{action.detail}</div>
+                            <div className="osint-panel-title">{action.label}</div>
+                            <div className="mt-1 osint-body-muted">{action.detail}</div>
                           </div>
                         </div>
                         <ArrowRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
@@ -356,12 +356,12 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
 
             <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
               <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-center justify-between gap-3`}>
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                <div className="osint-meta-label">
                   Recent Activity
                 </div>
                 <Link
                   to={buildWorkspaceTimelinePath(workspaceId)}
-                  className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 transition hover:text-white"
+                  className="osint-meta-label transition hover:text-white"
                 >
                   Open Timeline
                 </Link>
@@ -376,19 +376,19 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
-                            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                            <div className="osint-meta-label">
                               {activityLabel[entry.kind]}
                             </div>
-                            <div className="mt-1 truncate text-sm font-medium text-white">
+                            <div className="mt-1 truncate osint-panel-title">
                               {entry.title}
                             </div>
-                            <div className="mt-1 text-sm text-zinc-400">{entry.subtitle}</div>
+                            <div className="mt-1 osint-body-muted">{entry.subtitle}</div>
                           </div>
                           <div className="shrink-0 text-right">
-                            <div className="text-xs text-zinc-400">
+                            <div className="osint-body-quiet">
                               {formatRelativeTimestamp(entry.timestamp)}
                             </div>
-                            <div className="mt-1 text-[11px] text-zinc-600">
+                            <div className="mt-1 osint-body-quiet">
                               {formatTimestamp(entry.timestamp)}
                             </div>
                           </div>
@@ -397,7 +397,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     ))}
                   </div>
                 ) : (
-                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 text-sm text-zinc-500">
+                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 osint-body-muted">
                     Recent workspace activity will appear here as artifacts, items, signals, runs,
                     chats, and boards are updated.
                   </div>
@@ -409,46 +409,46 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
           <div className="space-y-6">
             <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
               <div className={CHROME_PANEL_HEADER_CLASS}>
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                <div className="osint-meta-label">
                   Workspace Context
                 </div>
               </div>
-              <div className="space-y-4 p-4 text-sm text-zinc-300">
+              <div className="space-y-4 p-4 osint-body-small">
                 <div>
-                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                  <div className="osint-meta-label">
                     Opened
                   </div>
-                  <div className="mt-1 text-white">{workspace.dateOpened}</div>
+                  <div className="mt-1 osint-panel-title">{workspace.dateOpened}</div>
                 </div>
                 {snapshot.summary.launchTopic ? (
                   <div>
-                    <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    <div className="osint-meta-label">
                       Launch Topic
                     </div>
-                    <div className="mt-1 text-white">{snapshot.summary.launchTopic}</div>
+                    <div className="mt-1 osint-panel-title">{snapshot.summary.launchTopic}</div>
                   </div>
                 ) : null}
                 {snapshot.summary.launchAngle ? (
                   <div>
-                    <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    <div className="osint-meta-label">
                       Angle
                     </div>
-                    <div className="mt-1 text-white">{snapshot.summary.launchAngle}</div>
+                    <div className="mt-1 osint-panel-title">{snapshot.summary.launchAngle}</div>
                   </div>
                 ) : null}
                 {snapshot.summary.prioritySourcesSummary ? (
                   <div>
-                    <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    <div className="osint-meta-label">
                       Priority Sources
                     </div>
-                    <div className="mt-1 text-white">{snapshot.summary.prioritySourcesSummary}</div>
+                    <div className="mt-1 osint-panel-title">{snapshot.summary.prioritySourcesSummary}</div>
                   </div>
                 ) : null}
                 <div>
-                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                  <div className="osint-meta-label">
                     Board State
                   </div>
-                  <div className="mt-1 text-white">
+                  <div className="mt-1 osint-panel-title">
                     {snapshot.summary.boardState.count} boards,{' '}
                     {snapshot.summary.boardState.boardsWithSnapshots} with saved snapshots
                   </div>
@@ -458,12 +458,12 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
 
             <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
               <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-center justify-between gap-3`}>
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                <div className="osint-meta-label">
                   Saved Views
                 </div>
                 <Link
                   to={buildWorkspaceTimelinePath(workspaceId)}
-                  className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 transition hover:text-white"
+                  className="osint-meta-label transition hover:text-white"
                 >
                   Timeline
                 </Link>
@@ -487,12 +487,12 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="truncate text-sm font-medium text-white">
+                            <div className="truncate osint-panel-title">
                               {view.title}
                             </div>
-                            <div className="mt-1 text-sm text-zinc-400">{view.snippet}</div>
+                            <div className="mt-1 osint-body-muted">{view.snippet}</div>
                           </div>
-                          <div className="shrink-0 text-[11px] text-zinc-500">
+                          <div className="shrink-0 osint-body-quiet">
                             {formatRelativeTimestamp(view.updatedAt)}
                           </div>
                         </div>
@@ -500,7 +500,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     ))}
                   </div>
                 ) : (
-                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 text-sm text-zinc-500">
+                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 osint-body-muted">
                     Save filtered timeline states to make this workspace home jump directly into
                     recurring chronology views.
                   </div>

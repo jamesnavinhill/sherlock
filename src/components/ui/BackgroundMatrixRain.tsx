@@ -27,6 +27,9 @@ export const BackgroundMatrixRain = () => {
     const chars = '0123456789ABCDEFｦｧｨｩｪｫｬｭｮｯｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
     const charArray = chars.split('');
     const fontSize = 14;
+    const getMonoFamily = () =>
+      getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim() ||
+      'monospace';
 
     let columns = 0;
     let drops: number[] = [];
@@ -63,7 +66,7 @@ export const BackgroundMatrixRain = () => {
         getComputedStyle(document.documentElement).getPropertyValue('--osint-primary').trim() ||
         '#0f0';
       ctx.fillStyle = accentColor;
-      ctx.font = `${fontSize}px monospace`;
+      ctx.font = `${fontSize}px ${getMonoFamily()}`;
 
       for (let i = 0; i < drops.length; i++) {
         const text = charArray[Math.floor(Math.random() * charArray.length)];

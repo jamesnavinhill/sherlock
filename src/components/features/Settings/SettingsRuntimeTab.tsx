@@ -23,7 +23,7 @@ const ProviderKeyField: React.FC<{
   showValue: boolean;
 }> = ({ keyValue, label, onChange, onClear, onToggleVisibility, provider, showValue }) => (
   <div className="space-y-2">
-    <label className="block text-[10px] text-zinc-500 font-mono uppercase">{label}</label>
+    <label className="block osint-meta-label">{label}</label>
     <div className="flex flex-col sm:flex-row gap-2">
       <input
         type={showValue ? 'text' : 'password'}
@@ -34,17 +34,17 @@ const ProviderKeyField: React.FC<{
         data-1p-ignore="true"
         spellCheck={false}
         placeholder={`Enter ${provider} API Key...`}
-        className="flex-1 bg-black border border-zinc-700 text-white p-3 text-xs font-mono focus:border-osint-primary outline-none transition-colors"
+        className="flex-1 bg-black border border-zinc-700 p-3 osint-meta-value focus:border-osint-primary outline-none transition-colors"
       />
       <button
         onClick={onToggleVisibility}
-        className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors text-xs font-mono"
+        className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors osint-meta-label-strong"
       >
         {showValue ? 'HIDE' : 'SHOW'}
       </button>
       <button
         onClick={onClear}
-        className="osint-button-danger px-4 text-xs font-mono"
+        className="osint-button-danger px-4 osint-meta-label-strong"
         title={`Clear ${provider} key`}
       >
         CLEAR
@@ -82,7 +82,7 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               showModelHint={false}
             />
 
-            <p className="text-[10px] text-zinc-500 font-mono">
+            <p className="osint-meta-label">
               TTS {runtime.form.providerMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
             </p>
 
@@ -157,12 +157,12 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
             />
 
             {saveError ? (
-              <div className="osint-danger-banner text-[10px] font-mono border px-3 py-2">
+              <div className="osint-danger-banner osint-meta-label border px-3 py-2">
                 {saveError}
               </div>
             ) : null}
 
-            <p className="pt-2 text-[9px] font-mono italic text-zinc-600">
+            <p className="pt-2 osint-body-quiet italic">
               Keys are stored locally in your browser.
             </p>
           </div>

@@ -270,7 +270,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
             placeholder="Search templates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-black border border-zinc-700 text-white pl-10 pr-4 py-2 font-sans text-sm focus:border-osint-primary outline-none transition-colors"
+            className="w-full bg-black border border-zinc-700 pl-10 pr-4 py-2 osint-body-small focus:border-osint-primary outline-none transition-colors"
           />
         </div>
         <button
@@ -299,17 +299,17 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               >
                 <div className="p-4 flex-1">
                   <div className="flex items-center justify-between mb-2 gap-3">
-                    <span className="text-[10px] font-mono text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30 uppercase font-bold">
+                    <span className="osint-meta-label-strong text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30">
                       Starter
                     </span>
-                    <span className="text-[9px] font-mono text-zinc-600 uppercase">
+                    <span className="osint-meta-label">
                       {template.config.purposeId}
                     </span>
                   </div>
                   <h3 className="osint-title-card mb-2 line-clamp-2">
                     {template.name}
                   </h3>
-                  <p className="osint-body-copy mb-4 line-clamp-3 text-sm">
+                  <p className="osint-body-small mb-4 line-clamp-3">
                     {template.description}
                   </p>
                   <div className="osint-eyebrow border-t border-zinc-800 pt-3 text-zinc-600">
@@ -333,7 +333,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         <div className="flex flex-col items-center justify-center p-12 border border-dashed border-zinc-800 bg-zinc-900/20">
           <Layout className="w-12 h-12 text-zinc-700 mb-4 opacity-30" />
           <h3 className="osint-title-inline mb-1 text-zinc-500">No Templates Found</h3>
-          <p className="osint-body-copy text-sm text-zinc-600">
+          <p className="osint-body-quiet">
             Save pack and purpose-aware launch setups to reuse them here.
           </p>
         </div>
@@ -346,11 +346,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
             >
               <div className="p-4 flex-1">
                 <div className="flex items-center justify-between mb-2 gap-3">
-                  <span className="text-[10px] font-mono text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30 uppercase font-bold">
+                  <span className="osint-meta-label-strong text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30">
                     Protocol
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-mono text-zinc-600 uppercase">
+                    <span className="osint-meta-label">
                       {t.config.purposeId || t.purposeId || 'custom'}
                     </span>
                     <button
@@ -368,7 +368,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 <h3 className="osint-title-card mb-2 line-clamp-2">
                   {t.name}
                 </h3>
-                <p className="osint-body-copy mb-4 line-clamp-3 text-sm">
+                <p className="osint-body-small mb-4 line-clamp-3">
                   {t.description || t.topic}
                 </p>
                 <div className="osint-eyebrow border-t border-zinc-800 pt-3 text-zinc-600">
@@ -388,7 +388,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         </div>
       )}
 
-      <p className="osint-body-copy flex items-start bg-zinc-900/30 p-3 border border-zinc-800/50 text-sm">
+      <p className="osint-body-small flex items-start bg-zinc-900/30 p-3 border border-zinc-800/50">
         <Info className="w-3 h-3 mr-2 flex-shrink-0 text-osint-primary" />
         Templates now capture pack, purpose, artifact, and model context. Applying one launches the
         matching workspace flow with those defaults prefilled.
@@ -437,7 +437,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               {createStep === 0 && (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
+                    <label className="block osint-meta-label mb-2">
                       Protocol Name
                     </label>
                     <input
@@ -445,19 +445,19 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={templateName}
                       onChange={(event) => setTemplateName(event.target.value)}
                       placeholder="e.g., Corporate Fraud Deep-Dive"
-                      className="w-full bg-black border border-zinc-700 text-white p-3 font-sans text-sm focus:border-osint-primary outline-none placeholder-zinc-600"
+                      className="w-full bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none placeholder-zinc-600"
                       autoFocus
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
+                    <label className="block osint-meta-label mb-2">
                       Description (Optional)
                     </label>
                     <textarea
                       value={templateDescription}
                       onChange={(event) => setTemplateDescription(event.target.value)}
                       placeholder="Describe when and why this protocol should be used."
-                      className="w-full h-28 bg-black border border-zinc-700 text-white p-3 font-sans text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+                      className="w-full h-28 bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
                     />
                   </div>
                 </div>
@@ -466,7 +466,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               {createStep === 1 && (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
+                    <label className="block osint-meta-label mb-2">
                       Domain Pack
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -480,7 +480,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                             <span className="text-lg">{scope.icon || '🔍'}</span>
                             <div className="min-w-0">
                               <div className="osint-title-inline truncate">{scope.name}</div>
-                              <div className="text-[10px] text-zinc-500 mt-0.5 line-clamp-2">
+                              <div className="osint-body-quiet mt-0.5 line-clamp-2">
                                 {scope.description}
                               </div>
                             </div>
@@ -491,7 +491,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                   </div>
 
                   <div className="pt-4 border-t border-zinc-800">
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
+                    <label className="block osint-meta-label mb-2">
                       Purpose
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -503,11 +503,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <div className="osint-title-inline truncate">{purpose.name}</div>
-                            <div className="text-[9px] font-mono text-zinc-500 uppercase">
+                            <div className="osint-meta-label">
                               {purpose.recommendedArtifactType}
                             </div>
                           </div>
-                          <div className="text-[10px] text-zinc-500 line-clamp-2">
+                          <div className="osint-body-quiet line-clamp-2">
                             {purpose.description}
                           </div>
                         </button>
@@ -520,18 +520,18 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               {createStep === 2 && (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
+                    <label className="block osint-meta-label mb-2">
                       Launch Target
                     </label>
                     <textarea
                       value={topic}
                       onChange={(event) => setTopic(event.target.value)}
                       placeholder="Enter the question, subject, or topic this template should launch with..."
-                      className="w-full h-32 bg-black border border-zinc-700 text-white p-3 font-sans text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+                      className="w-full h-32 bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2 flex items-center">
+                    <label className="block osint-meta-label mb-2 flex items-center">
                       <Lightbulb className="w-3 h-3 mr-2" />
                       Run Angle (Optional)
                     </label>
@@ -539,7 +539,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={hypothesis}
                       onChange={(event) => setHypothesis(event.target.value)}
                       placeholder="Capture the default lens, hypothesis, or comparison this template should carry."
-                      className="w-full h-24 bg-black border border-zinc-700 text-white p-3 font-sans text-sm focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+                      className="w-full h-24 bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
                     />
                   </div>
                 </div>
@@ -549,7 +549,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 <div className="space-y-5">
                   <ProviderModelSelector form={runtimeConfigForm} />
                   <div>
-                    <label className="block text-xs font-mono text-zinc-400 uppercase mb-2">
+                    <label className="block osint-meta-label mb-2">
                       Persona
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -560,7 +560,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                           className={`p-3 border text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="osint-title-inline">{item.label}</div>
-                          <div className="text-[10px] text-zinc-500 mt-1 line-clamp-2">
+                          <div className="osint-body-quiet mt-1 line-clamp-2">
                             {item.instruction}
                           </div>
                         </button>
@@ -579,7 +579,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
             </div>
 
             <div className="px-6 py-4 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
-              <div className="text-[10px] text-zinc-500 font-mono uppercase">
+              <div className="osint-meta-label">
                 Step {createStep + 1} of {CREATE_STEPS.length}
               </div>
               <div className="flex items-center gap-2">

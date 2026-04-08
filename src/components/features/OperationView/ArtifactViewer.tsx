@@ -148,8 +148,8 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 {index < items.length - 1 && <div className="w-px flex-1 bg-zinc-700 mt-2" />}
               </div>
               <div className="flex-1 pb-3">
-                <div className="text-[10px] font-mono uppercase text-zinc-500 mb-1">{`Step ${index + 1}`}</div>
-                <div className="text-sm text-zinc-300">
+                <div className="mb-1 osint-meta-label">{`Step ${index + 1}`}</div>
+                <div className="osint-body-small">
                   <ReactMarkdown components={markdownComponents}>{item}</ReactMarkdown>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
     if (section.content) {
       return (
-        <div className="text-zinc-300 prose prose-invert max-w-none text-sm">
+        <div className="osint-body-small prose prose-invert max-w-none">
           <ReactMarkdown components={markdownComponents}>{section.content}</ReactMarkdown>
         </div>
       );
@@ -384,7 +384,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <Breadcrumbs items={navStack} onNavigate={onNavigate} />
             <div className="mt-2 md:mt-0 flex items-center gap-3">
               {report.dateStr && (
-                <p className="text-zinc-500 text-[10px] font-mono whitespace-nowrap uppercase">
+                <p className="osint-meta-label whitespace-nowrap">
                   LOG DATE: {report.dateStr}
                 </p>
               )}
@@ -405,8 +405,8 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               value={report.topic}
               displayValue={reportDisplayTitle}
               onSave={onTitleSave}
-              className="font-osint-display text-2xl font-bold text-white uppercase tracking-tight truncate"
-              inputClassName="font-osint-display text-2xl font-bold uppercase tracking-tight"
+              className="font-osint-display osint-title-page uppercase truncate"
+              inputClassName="font-osint-display osint-title-page uppercase"
             />
           </div>
         </div>
@@ -414,10 +414,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         <div className="p-6">
           <div className="mb-6 border p-4" style={readingPatternPanelStyle}>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
-              <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+              <div className="osint-meta-label">
                 {artifactTypeLabel} Reading Pattern
               </div>
-              <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+              <div className="osint-meta-label">
                 Provenance at a glance
               </div>
             </div>
@@ -425,10 +425,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               <div className="grid gap-3 md:grid-cols-3">
                 {readingHighlights.map((highlight) => (
                   <div key={highlight.label} className="border p-3" style={readingPatternCardStyle}>
-                    <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+                    <div className="osint-meta-label">
                       {highlight.label}
                     </div>
-                    <div className="mt-2 text-sm leading-6 text-[color:var(--osint-ink)]">
+                    <div className="mt-2 osint-body-small text-[color:var(--osint-ink)]">
                       {highlight.value}
                     </div>
                   </div>
@@ -447,10 +447,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           : readingPatternCardStyle
                     }
                   >
-                    <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+                    <div className="osint-meta-label">
                       {stat.label}
                     </div>
-                    <div className="mt-2 text-sm text-[color:var(--osint-ink)]">{stat.value}</div>
+                    <div className="mt-2 osint-body-small text-[color:var(--osint-ink)]">{stat.value}</div>
                   </div>
                 ))}
               </div>
@@ -472,7 +472,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
             <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
-              <h2 className="font-osint-display text-xl font-bold text-white flex items-center tracking-wide">
+              <h2 className="font-osint-display osint-title-section flex items-center tracking-wide">
                 <FileText className="w-5 h-5 mr-3 text-osint-primary" /> {artifactTypeLabel}
               </h2>
               <div className="flex items-center gap-2">
@@ -533,7 +533,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 {evidenceBySectionId[primarySummarySection.id].slice(0, 4).map((evidence) => (
                   <span
                     key={evidence.id}
-                    className={`rounded-none border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
+                    className={`rounded-none border px-2 py-1 osint-meta-label ${
                       focusedEvidenceId === evidence.id
                         ? 'border-osint-primary bg-osint-primary/20 text-white'
                         : 'border-osint-primary/30 bg-osint-primary/10 text-osint-primary'
@@ -545,7 +545,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
             ) : null}
             {focusedEvidenceId || focusedSectionId ? (
-              <div className="relative z-10 mb-4 inline-flex items-center border border-osint-primary/40 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.16em] text-osint-primary">
+              <div className="relative z-10 mb-4 inline-flex items-center border border-osint-primary/40 bg-osint-primary/10 px-2 py-1 osint-meta-label text-osint-primary">
                 Focused Reading Target
               </div>
             ) : null}
@@ -553,11 +553,11 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               <textarea
                 value={reportBodyDraft}
                 onChange={(event) => setReportBodyDraft(event.target.value)}
-                className="relative z-10 min-h-[18rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 font-sans text-base leading-relaxed text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+                className="relative z-10 min-h-[18rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 osint-prose text-zinc-200 outline-none transition-colors focus:border-osint-primary"
                 spellCheck={false}
               />
             ) : (
-              <div className="text-zinc-300 leading-relaxed font-sans text-base relative z-10 prose prose-invert max-w-none">
+              <div className="relative z-10 osint-prose prose prose-invert max-w-none">
                 <ReactMarkdown components={markdownComponents}>{visibleReportBody}</ReactMarkdown>
               </div>
             )}
@@ -574,7 +574,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   : 'border-zinc-800'
               }`}
             >
-              <h3 className="mb-3 text-sm font-mono font-bold uppercase tracking-widest text-white">
+              <h3 className="mb-3 osint-meta-label-strong">
                 {getArtifactSectionTitle(
                   methodologySection.kind,
                   labelProfile,
@@ -586,7 +586,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   {evidenceBySectionId[methodologySection.id].slice(0, 3).map((evidence) => (
                     <span
                       key={evidence.id}
-                      className={`rounded-none border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
+                      className={`rounded-none border px-2 py-1 osint-meta-label ${
                         focusedEvidenceId === evidence.id
                           ? 'border-osint-primary bg-osint-primary/20 text-white'
                           : 'border-osint-primary/30 bg-osint-primary/10 text-osint-primary'
@@ -604,10 +604,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           {visibleEvidence.length > 0 && (
             <div className="mb-8 space-y-4">
               <div className="flex items-center justify-between border-b border-zinc-700 pb-2">
-                <h2 className="text-sm font-mono font-bold text-white uppercase tracking-widest flex items-center">
+                <h2 className="osint-meta-label-strong flex items-center">
                   <Globe className="w-4 h-4 mr-2 text-osint-primary" /> Evidence Log
                 </h2>
-                <span className="text-[10px] font-mono uppercase text-zinc-500">
+                <span className="osint-meta-label">
                   {visibleEvidence.length} items
                 </span>
               </div>
@@ -625,27 +625,27 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3 mb-2">
-                      <div className="text-xs font-mono font-bold uppercase text-white">
+                      <div className="osint-meta-label-strong text-white">
                         {evidence.title}
                       </div>
-                      <div className="text-[10px] font-mono uppercase text-zinc-500">
+                      <div className="osint-meta-label">
                         {evidence.kind}
                       </div>
                     </div>
-                    <p className="text-sm leading-relaxed text-zinc-300">{evidence.summary}</p>
+                    <p className="osint-body-small leading-relaxed">{evidence.summary}</p>
                     {evidence.quote && (
-                      <blockquote className="mt-3 border-l-2 border-osint-primary/40 pl-3 text-sm italic text-zinc-400">
+                      <blockquote className="mt-3 border-l-2 border-osint-primary/40 pl-3 osint-body-muted italic">
                         {evidence.quote}
                       </blockquote>
                     )}
                     {(evidence.sourceTitle || evidence.sourceUrl) && (
-                      <div className="mt-3 text-[10px] font-mono uppercase text-zinc-500">
+                      <div className="mt-3 osint-meta-label">
                         {evidence.sourceUrl ? (
                           <a
                             href={evidence.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="osint-link-list-item inline-flex items-center border-b-0 p-0 text-[10px]"
+                            className="osint-link-list-item inline-flex items-center border-b-0 p-0 osint-meta-label"
                           >
                             <Link2 className="w-3 h-3 mr-1" />
                             {evidence.sourceTitle || evidence.sourceUrl}
@@ -675,7 +675,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       : 'border-zinc-800'
                   }`}
                 >
-                  <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-white mb-3">
+                  <h3 className="mb-3 osint-meta-label-strong">
                     {getArtifactSectionTitle(section.kind, labelProfile, section.title)}
                   </h3>
                   {(evidenceBySectionId[section.id] || []).length > 0 ? (
@@ -683,7 +683,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       {evidenceBySectionId[section.id].slice(0, 3).map((evidence) => (
                         <span
                           key={evidence.id}
-                          className={`rounded-none border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
+                          className={`rounded-none border px-2 py-1 osint-meta-label ${
                             focusedEvidenceId === evidence.id
                               ? 'border-osint-primary bg-osint-primary/20 text-white'
                               : 'border-osint-primary/30 bg-osint-primary/10 text-osint-primary'
@@ -708,11 +708,11 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         <div className="flex h-full w-1/4 flex-col overflow-hidden bg-black/95">
           <div className="flex items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4 flex-shrink-0">
             <div className="min-w-0 pr-3">
-              <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 font-mono">
+              <div className="mb-1 osint-meta-label">
                 {labelProfile.workspaceLabel} DETAILS
               </div>
               <h3
-                className="text-base font-bold text-white font-mono leading-tight truncate"
+                className="truncate osint-panel-title font-mono"
                 title={detailPanelTitle}
               >
                 {detailPanelTitle}
@@ -741,7 +741,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             >
               <div className="space-y-2">
                 {visibleAnomalies.length === 0 ? (
-                  <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
+                  <p className="px-2 py-1 osint-body-quiet italic">{`No ${labelProfile.anomalyLabel.toLowerCase()} extracted for this artifact.`}</p>
                 ) : (
                   visibleAnomalies.map((agenda, idx) => (
                     <div
@@ -766,7 +766,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             >
               <div className="space-y-2">
                 {visibleFollowUps.length === 0 ? (
-                  <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+                  <p className="px-2 py-1 osint-body-quiet italic">
                     {`No ${labelProfile.followUpLabel.toLowerCase()} extracted for this artifact.`}
                   </p>
                 ) : (
@@ -776,10 +776,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         key={followUp.id}
                         className="border border-zinc-800 bg-zinc-900/60 p-3"
                       >
-                        <div className="mb-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                        <div className="mb-2 osint-meta-label">
                           {followUp.kind.replace(/_/g, ' ')}
                         </div>
-                        <div className="mb-3 text-xs leading-relaxed text-zinc-300 prose prose-invert max-w-none prose-p:my-0">
+                        <div className="mb-3 osint-body-small leading-relaxed prose prose-invert max-w-none prose-p:my-0">
                           <ReactMarkdown components={markdownComponents}>
                             {getFollowUpText(followUp)}
                           </ReactMarkdown>
@@ -808,7 +808,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             >
               <div className="space-y-1">
                 {(report.entities || []).length === 0 ? (
-                  <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
+                  <p className="px-2 py-1 osint-body-quiet italic">
                     No entities detected.
                   </p>
                 ) : (
@@ -826,7 +826,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         <div
                           className={`w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0 ${getEntityToneClass(type)} entity-tone-dot`}
                         ></div>
-                        <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white truncate">
+                        <span className="osint-meta-value text-zinc-400 group-hover:text-white truncate">
                           {name}
                         </span>
                       </button>
@@ -851,7 +851,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     {report.provenance.warnings.map((warning, index) => (
                       <div
                         key={`${warning}-${index}`}
-                        className="flex gap-2 border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-2 text-[10px] font-mono"
+                        className="flex gap-2 border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-2 osint-meta-value"
                       >
                         <ShieldAlert className="mt-0.5 h-3 w-3 flex-shrink-0 osint-danger-text" />
                         <span className="osint-danger-text">{warning}</span>
@@ -860,21 +860,21 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </div>
                 ) : null}
                 {report.provenance?.search?.webSearchRequests ? (
-                  <div className="px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">
+                  <div className="px-2 py-1 osint-meta-label">
                     Web search calls: {report.provenance.search.webSearchRequests}
                   </div>
                 ) : null}
                 {visibleEvidence.slice(0, 4).map((evidence) => (
                   <div key={evidence.id} className="border border-zinc-800 bg-zinc-900/70 p-2">
-                    <div className="text-[10px] font-mono uppercase text-zinc-500">
+                    <div className="osint-meta-label">
                       {evidence.kind}
                     </div>
-                    <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
+                    <div className="mt-1 osint-body-quiet text-zinc-300">{evidence.title}</div>
                   </div>
                 ))}
                 {reportSources.length === 0 ? (
                   visibleEvidence.length === 0 ? (
-                    <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">
+                    <p className="px-2 py-1 osint-body-quiet italic">
                       No sources captured for this report.
                     </p>
                   ) : null
@@ -885,7 +885,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0"
+                      className="osint-link-list-item block p-2 osint-meta-label truncate border-b border-zinc-900 last:border-0"
                     >
                       <Link2 className="w-3 h-3 inline mr-1" />
                       {source.title}

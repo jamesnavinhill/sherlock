@@ -11,8 +11,12 @@ import {
   type ThemeSurfaceSettings,
 } from '@/utils/themeSurfaces';
 import {
+  describeThemeFontSize,
+  describeThemeFontWeight,
   getThemeFontOption,
   getThemeFontOptionsForRole,
+  resolveThemeFontSizes,
+  resolveThemeFontWeights,
   type ThemeFontSettings,
 } from '@/utils/themeFonts';
 import {
@@ -82,7 +86,11 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   }));
   const fontSelectionByRole = Object.fromEntries(
     fontSelections.map((role) => [role.key, role])
-  ) as Record<keyof ThemeFontSettings, (typeof fontSelections)[number]>;
+  ) as Record<(typeof FONT_ROLE_CARDS)[number]['key'], (typeof fontSelections)[number]>;
+  const activeSizeProfile = describeThemeFontSize(themeFontSettings.size);
+  const activeWeightProfile = describeThemeFontWeight(themeFontSettings.weight);
+  const resolvedSizes = resolveThemeFontSizes(themeFontSettings.size);
+  const resolvedWeights = resolveThemeFontWeights(themeFontSettings.weight);
 
   const renderThemeSurfaceEditor = () => {
     const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
@@ -391,6 +399,82 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </button>
       </div>
 
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <div>
+              <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
+                Global Size Scale
+              </div>
+              <p className="mt-2 text-sm leading-6 text-zinc-400">
+                Shift the whole typography system up or down without rewriting each screen.
+              </p>
+            </div>
+            <span className="text-[10px] font-mono uppercase text-zinc-500">
+              {activeSizeProfile.label}
+            </span>
+          </div>
+          <div className="mt-4 rounded border border-zinc-800 bg-black/50 p-4">
+            <input
+              type="range"
+              min={-1}
+              max={1}
+              step={0.05}
+              value={themeFontSettings.size}
+              onChange={(event) =>
+                onThemeFontSettingsChange({
+                  ...themeFontSettings,
+                  size: Number(event.target.value),
+                })
+              }
+              className="w-full accent-[var(--osint-primary)]"
+            />
+            <div className="mt-3 flex items-center justify-between text-[10px] font-mono uppercase text-zinc-500">
+              <span>Compact</span>
+              <span>Base {resolvedSizes.base}</span>
+              <span>Large</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <div>
+              <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
+                Global Weight Profile
+              </div>
+              <p className="mt-2 text-sm leading-6 text-zinc-400">
+                Keep emphasis consistent across labels, headings, and buttons.
+              </p>
+            </div>
+            <span className="text-[10px] font-mono uppercase text-zinc-500">
+              {activeWeightProfile.label}
+            </span>
+          </div>
+          <div className="mt-4 rounded border border-zinc-800 bg-black/50 p-4">
+            <input
+              type="range"
+              min={-1}
+              max={1}
+              step={0.05}
+              value={themeFontSettings.weight}
+              onChange={(event) =>
+                onThemeFontSettingsChange({
+                  ...themeFontSettings,
+                  weight: Number(event.target.value),
+                })
+              }
+              className="w-full accent-[var(--osint-primary)]"
+            />
+            <div className="mt-3 flex items-center justify-between text-[10px] font-mono uppercase text-zinc-500">
+              <span>Regular</span>
+              <span>Bold {resolvedWeights.bold}</span>
+              <span>Strong</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
         <div className="grid gap-3 md:grid-cols-2">
           {fontSelections.map((role) => (
@@ -429,19 +513,30 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <div className="mt-4 rounded border border-zinc-800 bg-black/60 p-5">
           <div
             className="text-[10px] uppercase tracking-[0.28em] text-zinc-500"
-            style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+            style={{
+              fontFamily: fontSelectionByRole.label.activeOption.cssValue,
+              fontSize: resolvedSizes['2xs'],
+              fontWeight: resolvedWeights.label,
+            }}
           >
             Incident Desk / Theme Preview
           </div>
           <div
-            className="mt-3 text-3xl leading-tight text-white sm:text-4xl"
-            style={{ fontFamily: fontSelectionByRole.display.activeOption.cssValue }}
+            className="mt-3 leading-tight text-white"
+            style={{
+              fontFamily: fontSelectionByRole.display.activeOption.cssValue,
+              fontSize: resolvedSizes['3xl'],
+              fontWeight: resolvedWeights.display,
+            }}
           >
             Operational Summary
           </div>
           <p
-            className="mt-4 max-w-3xl text-base leading-7 text-zinc-300"
-            style={{ fontFamily: fontSelectionByRole.ui.activeOption.cssValue }}
+            className="mt-4 max-w-3xl leading-7 text-zinc-300"
+            style={{
+              fontFamily: fontSelectionByRole.ui.activeOption.cssValue,
+              fontSize: resolvedSizes.base,
+            }}
           >
             Signal review should stay calm and readable while headings, chrome, and dense evidence
             still feel like part of the same system.
@@ -450,7 +545,11 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
               <div
                 className="text-[10px] uppercase tracking-[0.24em] text-zinc-500"
-                style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+                style={{
+                  fontFamily: fontSelectionByRole.label.activeOption.cssValue,
+                  fontSize: resolvedSizes['2xs'],
+                  fontWeight: resolvedWeights.label,
+                }}
               >
                 Navigation Labels
               </div>
@@ -458,8 +557,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 {['Data', 'Runtime', 'Scopes', 'Theme'].map((item) => (
                   <span
                     key={item}
-                    className="border border-zinc-700 px-2 py-1 text-[11px] uppercase text-zinc-300"
-                    style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+                    className="border border-zinc-700 px-2 py-1 uppercase text-zinc-300"
+                    style={{
+                      fontFamily: fontSelectionByRole.label.activeOption.cssValue,
+                      fontSize: resolvedSizes.xs,
+                      fontWeight: resolvedWeights.label,
+                    }}
                   >
                     {item}
                   </span>
@@ -469,13 +572,20 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
               <div
                 className="text-[10px] uppercase tracking-[0.24em] text-zinc-500"
-                style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+                style={{
+                  fontFamily: fontSelectionByRole.label.activeOption.cssValue,
+                  fontSize: resolvedSizes['2xs'],
+                  fontWeight: resolvedWeights.label,
+                }}
               >
                 Evidence Sample
               </div>
               <pre
-                className="mt-3 overflow-x-auto text-sm leading-7 text-zinc-300"
-                style={{ fontFamily: fontSelectionByRole.mono.activeOption.cssValue }}
+                className="mt-3 overflow-x-auto leading-7 text-zinc-300"
+                style={{
+                  fontFamily: fontSelectionByRole.mono.activeOption.cssValue,
+                  fontSize: resolvedSizes.sm,
+                }}
               >
                 <code>{`artifact_id=ops-17\noklch(0.21 0.01 286)\nstatus=monitoring`}</code>
               </pre>

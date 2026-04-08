@@ -23,10 +23,25 @@
   --osint-text-strong: color-mix(in oklab, var(--osint-ink) 44%, var(--osint-text));
   --osint-text-heading: color-mix(in oklab, var(--osint-ink) 56%, var(--osint-text));
   --osint-text-action: color-mix(in oklab, var(--osint-ink) 92%, var(--osint-primary) 8%);
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: 'Space Grotesk', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
   --font-label: 'IBM Plex Mono', monospace;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-size-2xs: 0.625rem;
+  --font-size-xs: 0.6875rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-base: 0.9375rem;
+  --font-size-lg: 1.0625rem;
+  --font-size-xl: 1.1875rem;
+  --font-size-2xl: 1.45rem;
+  --font-size-3xl: 1.85rem;
+  --font-size-4xl: 2.2rem;
+  --font-weight-medium: 460;
+  --font-weight-semibold: 520;
+  --font-weight-bold: 580;
+  --font-weight-extrabold: 640;
+  --font-weight-label: 540;
+  --font-weight-display: 560;
   --osint-danger-soft-bg: color-mix(in oklab, var(--color-osint-danger) 14%, transparent);
   --osint-danger-soft-bg-strong: color-mix(in oklab, var(--color-osint-danger) 20%, transparent);
   --osint-danger-soft-border: color-mix(in oklab, var(--color-osint-danger) 42%, transparent);
@@ -84,6 +99,15 @@
 body {
   background-color: var(--osint-dark);
   color: var(--osint-text);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
   font-family: var(--font-sans);
 }
 
@@ -287,20 +311,20 @@ body,
 }
 
 :root:not([data-theme='light']) .font-semibold {
-  font-weight: 560 !important;
+  font-weight: var(--font-weight-semibold) !important;
 }
 
 :root:not([data-theme='light']) .font-bold {
-  font-weight: 620 !important;
+  font-weight: var(--font-weight-bold) !important;
 }
 
 :root:not([data-theme='light']) .font-extrabold {
-  font-weight: 680 !important;
+  font-weight: var(--font-weight-extrabold) !important;
 }
 
 :root:not([data-theme='light'])
   :is(h1, h2, h3, h4, h5, h6, div, span, p).text-white.uppercase:is(.font-mono, .font-osint-label) {
-  font-weight: 580 !important;
+  font-weight: var(--font-weight-label) !important;
   letter-spacing: 0.08em !important;
 }
 
@@ -308,14 +332,83 @@ body,
   :is(h1, h2, h3, h4, h5, h6, div, span, p).text-zinc-200.uppercase:is(.font-mono, .font-osint-label),
 :root:not([data-theme='light'])
   :is(h1, h2, h3, h4, h5, h6, div, span, p).text-zinc-300.uppercase:is(.font-mono, .font-osint-label) {
-  font-weight: 560 !important;
+  font-weight: var(--font-weight-label) !important;
 }
 
 :root:not([data-theme='light'])
   :is(h1, h2, h3, h4, h5, h6, div, span, p):is(.font-osint-display, .font-osint-label).text-white,
 :root:not([data-theme='light'])
   :is(h1, h2, h3, h4, h5, h6, div, span, p):is(.font-osint-display, .font-osint-label).text-zinc-200 {
-  font-weight: 600 !important;
+  font-weight: var(--font-weight-display) !important;
+}
+
+.font-sans {
+  font-family: var(--font-sans) !important;
+}
+
+.font-mono {
+  font-family: var(--font-mono) !important;
+}
+
+.font-medium {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.font-semibold {
+  font-weight: var(--font-weight-semibold) !important;
+}
+
+.font-bold {
+  font-weight: var(--font-weight-bold) !important;
+}
+
+.font-extrabold {
+  font-weight: var(--font-weight-extrabold) !important;
+}
+
+.text-\[9px\] {
+  font-size: calc(var(--font-size-2xs) * 0.92) !important;
+}
+
+.text-\[10px\] {
+  font-size: var(--font-size-2xs) !important;
+}
+
+.text-\[11px\] {
+  font-size: calc(var(--font-size-xs) * 0.98) !important;
+}
+
+.text-xs {
+  font-size: var(--font-size-xs) !important;
+}
+
+.text-sm {
+  font-size: var(--font-size-sm) !important;
+}
+
+.text-base,
+.text-md {
+  font-size: var(--font-size-base) !important;
+}
+
+.text-lg {
+  font-size: var(--font-size-lg) !important;
+}
+
+.text-xl {
+  font-size: var(--font-size-xl) !important;
+}
+
+.text-2xl {
+  font-size: var(--font-size-2xl) !important;
+}
+
+.text-3xl {
+  font-size: var(--font-size-3xl) !important;
+}
+
+.text-4xl {
+  font-size: var(--font-size-4xl) !important;
 }
 
 :root {
@@ -328,7 +421,7 @@ body,
   background-color: var(--osint-panel);
   color: var(--osint-text-action);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -349,7 +442,7 @@ body,
   background-color: var(--osint-primary-soft-bg);
   color: var(--osint-primary);
   border: 1px solid var(--osint-primary-soft-border);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -369,7 +462,7 @@ body,
   background-color: transparent;
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -389,7 +482,7 @@ body,
   background-color: var(--osint-primary-soft-bg);
   color: var(--osint-primary);
   border: 1px solid var(--osint-primary-soft-border);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
 }
 
@@ -452,7 +545,7 @@ body,
   background-color: var(--osint-danger-soft-bg);
   color: var(--color-osint-danger);
   border: 1px solid var(--osint-danger-soft-border);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -504,8 +597,8 @@ body,
 .osint-empty-state-title {
   color: var(--osint-text-heading);
   font-family: var(--font-mono);
-  font-size: 1.5rem;
-  font-weight: 650;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-display);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -515,7 +608,7 @@ body,
   max-width: 34rem;
   color: color-mix(in oklab, var(--osint-text-strong) 84%, var(--osint-text));
   font-family: var(--font-mono);
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
   line-height: 1.8;
 }
 
@@ -529,8 +622,8 @@ body,
   gap: 0.5rem;
   padding: 0.85rem 1.5rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -612,11 +705,11 @@ body,
   }
 
   .osint-empty-state-title {
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
   }
 
   .osint-empty-state-description {
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
     line-height: 1.7;
   }
 }
@@ -729,17 +822,42 @@ body,
 .osint-eyebrow {
   color: color-mix(in oklab, var(--osint-text) 80%, var(--osint-ink) 20%);
   font-family: var(--font-label);
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-label);
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.osint-meta-label {
+  color: color-mix(in oklab, var(--osint-text) 72%, var(--osint-dark));
+  font-family: var(--font-label);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.osint-meta-label-strong {
+  color: var(--osint-text-heading);
+  font-family: var(--font-label);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.osint-meta-value {
+  color: var(--osint-text-strong);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
 }
 
 .osint-title-page {
   color: var(--osint-text-heading);
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 1.2rem + 1vw, 2.2rem);
-  font-weight: 560;
+  font-size: clamp(var(--font-size-2xl), calc(var(--font-size-xl) + 1vw), var(--font-size-4xl));
+  font-weight: var(--font-weight-display);
   letter-spacing: -0.02em;
   line-height: 1.08;
 }
@@ -747,8 +865,8 @@ body,
 .osint-title-section {
   color: var(--osint-text-heading);
   font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 540;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-display);
   letter-spacing: -0.01em;
   line-height: 1.16;
 }
@@ -756,8 +874,8 @@ body,
 .osint-title-card {
   color: var(--osint-text-heading);
   font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 520;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
@@ -765,16 +883,53 @@ body,
 .osint-title-inline {
   color: var(--osint-text-heading);
   font-family: var(--font-sans);
-  font-size: 0.95rem;
-  font-weight: 520;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   letter-spacing: -0.01em;
   line-height: 1.3;
+}
+
+.osint-panel-title {
+  color: var(--osint-text-heading);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
 }
 
 .osint-body-copy {
   color: var(--osint-text-strong);
   font-family: var(--font-sans);
+  font-size: var(--font-size-base);
   line-height: 1.65;
+}
+
+.osint-body-small {
+  color: var(--osint-text-strong);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}
+
+.osint-body-muted {
+  color: color-mix(in oklab, var(--osint-text) 84%, var(--osint-ink) 16%);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}
+
+.osint-body-quiet {
+  color: color-mix(in oklab, var(--osint-text) 70%, var(--osint-dark));
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  line-height: 1.55;
+}
+
+.osint-prose {
+  color: var(--osint-text-strong);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.75;
 }
 
 .sherlock-board-canvas .tl-container {

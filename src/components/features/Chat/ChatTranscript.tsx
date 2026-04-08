@@ -142,7 +142,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                   )}
                   {message.role}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-zinc-600">
+                <div className="flex items-center gap-3 osint-body-quiet">
                   <span>{formatTimestamp(message.createdAt)}</span>
                   <button
                     onClick={() =>
@@ -160,11 +160,11 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
               </div>
 
               {isStreamingMessage && !body ? (
-                <div className="text-sm text-zinc-500">Generating response...</div>
+                <div className="osint-body-muted">Generating response...</div>
               ) : (
                 <>
                   {messageMentions.length > 0 && isUser ? (
-                    <div className="text-sm leading-7 text-zinc-100">
+                    <div className="osint-body-small leading-7 text-zinc-100">
                       {mentionMatches.length === 0 ? (
                         <span className="whitespace-pre-wrap">{primaryBody}</span>
                       ) : (
@@ -187,7 +187,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                                   key={`${match.mention.id}:${match.start}`}
                                   type="button"
                                   onClick={() => handleOpenMention(match.mention)}
-                                  className="mx-0.5 inline-flex items-center gap-2 border border-osint-primary/40 bg-osint-primary/10 px-2 py-0.5 text-[11px] font-mono uppercase tracking-wide text-zinc-100 transition hover:border-osint-primary hover:text-white"
+                                  className="mx-0.5 inline-flex items-center gap-2 border border-osint-primary/40 bg-osint-primary/10 px-2 py-0.5 osint-meta-label-strong text-zinc-100 transition hover:border-osint-primary hover:text-white"
                                 >
                                   <span className="normal-case">{match.mention.title}</span>
                                   <span className="text-zinc-400">{match.mention.subtitle}</span>
@@ -218,7 +218,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                   {collapsedBody ? (
                     <div className="mt-4 border-t border-zinc-800 pt-3">
                       <details className="group">
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500 transition hover:text-white [&::-webkit-details-marker]:hidden">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 osint-meta-label transition hover:text-white [&::-webkit-details-marker]:hidden">
                           Suggested Topics
                           <ChevronDown className="h-4 w-4 shrink-0" />
                         </summary>
@@ -234,28 +234,28 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
               {(message.attachments?.length ?? 0) > 0 ? (
                 <div className="mt-4 border-t border-zinc-800 pt-3">
                   <details className="group">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500 transition hover:text-white [&::-webkit-details-marker]:hidden">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 osint-meta-label transition hover:text-white [&::-webkit-details-marker]:hidden">
                       {`Related Context (${message.attachments?.length ?? 0})`}
                       <ChevronDown className="h-4 w-4 shrink-0" />
                     </summary>
                     <div className="mt-3 space-y-2">
                       {(message.attachments || []).map((attachment) => (
                         <div key={attachment.id} className="border border-zinc-800 bg-zinc-900/20 p-3">
-                          <div className="text-sm text-zinc-200">{attachment.title}</div>
+                          <div className="osint-panel-title text-zinc-200">{attachment.title}</div>
                           {attachment.snippet ? (
-                            <p className="mt-1 text-xs leading-5 text-zinc-500">{attachment.snippet}</p>
+                            <p className="mt-1 osint-body-quiet leading-5">{attachment.snippet}</p>
                           ) : null}
                           <div className="mt-3 flex flex-wrap gap-2">
                             <button
                               onClick={() => void handlePromoteAttachment(message, attachment)}
-                              className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                              className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-1.5 osint-meta-label-strong text-zinc-300 transition hover:border-osint-primary hover:text-white"
                             >
                               <FilePlus2 className="h-3.5 w-3.5" />
                               Promote Excerpt
                             </button>
                             <button
                               onClick={() => void handlePromoteAttachment(message, attachment, true)}
-                              className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                              className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-1.5 osint-meta-label-strong text-zinc-300 transition hover:border-osint-primary hover:text-white"
                             >
                               <Layout className="h-3.5 w-3.5" />
                               Promote To Board
@@ -272,21 +272,21 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-800 pt-3">
                   <button
                     onClick={() => void handleSaveMessageAsArtifact(message)}
-                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-[11px] font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 osint-meta-label-strong text-zinc-300 transition hover:border-osint-primary hover:text-white"
                   >
                     <FilePlus2 className="h-3.5 w-3.5" />
                     Save Draft
                   </button>
                   <button
                     onClick={() => void handleAppendMessageToArtifact(message)}
-                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-[11px] font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 osint-meta-label-strong text-zinc-300 transition hover:border-osint-primary hover:text-white"
                   >
                     <FileSearch className="h-3.5 w-3.5" />
                     Append To Artifact
                   </button>
                   <button
                     onClick={() => void handleLaunchFollowUp(message)}
-                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-[11px] font-mono uppercase tracking-wide text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 osint-meta-label-strong text-zinc-300 transition hover:border-osint-primary hover:text-white"
                   >
                     <PlayCircle className="h-3.5 w-3.5" />
                     Follow-up Run

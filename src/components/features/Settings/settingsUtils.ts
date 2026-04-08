@@ -1,7 +1,7 @@
 import { Compass, Cpu, Database, Layout, Palette } from 'lucide-react';
 
 import type { ThemeSurfaceScale, ThemeSurfaceSettings } from '@/utils/themeSurfaces';
-import type { ThemeFontSettings } from '@/utils/themeFonts';
+import type { ThemeFontRole } from '@/utils/themeFonts';
 
 export const TABS = [
   { id: 'DATA', label: 'Data', icon: Database },
@@ -18,7 +18,7 @@ export const SURFACE_LABELS: Record<keyof ThemeSurfaceScale, string> = {
 };
 
 export const FONT_ROLE_CARDS: Array<{
-  key: keyof ThemeFontSettings;
+  key: ThemeFontRole;
   label: string;
   description: string;
   sample: string;
