@@ -33,10 +33,9 @@ export const GraphViewportControls: React.FC<GraphViewportControlsProps> = ({
 }) => (
   <div className="pointer-events-none absolute right-4 top-4 z-20">
     <div
-      className="pointer-events-auto flex items-center border p-0.5 shadow-2xl backdrop-blur-md"
+      className="pointer-events-auto flex items-center p-0.5 shadow-2xl backdrop-blur-md"
       style={{
         backgroundColor: 'color-mix(in oklab, var(--osint-dark) 96%, transparent)',
-        borderColor: 'color-mix(in oklab, var(--osint-ink) 12%, transparent)',
       }}
     >
       <button

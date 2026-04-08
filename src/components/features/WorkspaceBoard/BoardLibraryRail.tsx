@@ -74,6 +74,11 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
         Canonical Library
       </div>
       <div className="mt-1 osint-meta-value">{workspaceTitle}</div>
+      <div
+        aria-hidden="true"
+        data-testid="board-library-title-divider"
+        className="mt-3 border-t border-zinc-800/80"
+      />
       <div className="mt-3 flex gap-2">
         <button
           onClick={onCreateNote}
@@ -104,6 +109,11 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
           onChange={onFileUpload}
         />
       </div>
+      <div
+        aria-hidden="true"
+        data-testid="board-library-search-divider"
+        className="mt-4 border-t border-zinc-800/80"
+      />
       <div className="relative mt-4">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
         <input
