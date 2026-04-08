@@ -136,8 +136,8 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
             isOpen={agentSections.context}
             onToggle={onToggleContext}
           >
-            <div className="space-y-3 bg-black/20 p-3 text-sm text-zinc-300">
-              <div>
+            <div className="space-y-3 bg-black/20 p-3 osint-body-small">
+              <div className="osint-meta-value">
                 {selectedEntries.length > 0
                   ? `${selectedEntries.length} selected item${selectedEntries.length === 1 ? '' : 's'}`
                   : 'Entire board in view'}
@@ -147,22 +147,20 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                   {selectedEntries.slice(0, 4).map((entry) => (
                     <span
                       key={`${entry.refKind}:${entry.refId}`}
-                      className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 text-[11px] text-zinc-300"
+                      className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-title-inline text-zinc-300"
                     >
                       {entry.title}
                     </span>
                   ))}
                   {selectedEntries.length > 4 ? (
-                    <span className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 text-[11px] text-zinc-500">
+                    <span className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-body-quiet">
                       +{selectedEntries.length - 4} more
                     </span>
                   ) : null}
                 </div>
               ) : null}
               {aiSummary ? (
-                <div className="border border-zinc-800 bg-black/30 p-3 text-xs leading-6 text-zinc-300">
-                  {aiSummary}
-                </div>
+                <div className="border border-zinc-800 bg-black/30 p-3 osint-body-small">{aiSummary}</div>
               ) : null}
             </div>
           </Accordion>
@@ -172,26 +170,26 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
               <div className="border-b border-zinc-800 px-4 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    <div className="osint-eyebrow flex items-center gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-osint-primary" />
                       Review Plan
                     </div>
-                    <div className="mt-2 text-sm text-zinc-200">
+                    <div className="mt-2 osint-meta-value">
                       Pass {boardAgentReviewState.passIndex}
                     </div>
                   </div>
                   <div
-                    className={`rounded-none border px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.14em] ${getStatusClassName(boardAgentReviewState.phase)}`}
+                    className={`rounded-none border px-2.5 py-1 osint-meta-label-strong ${getStatusClassName(boardAgentReviewState.phase)}`}
                   >
                     {boardAgentReviewState.phase}
                   </div>
                 </div>
                 {boardAgentReviewState.message ? (
-                  <div className="mt-3 border border-zinc-800 bg-black/40 p-3 text-xs leading-6 text-zinc-300">
+                  <div className="mt-3 border border-zinc-800 bg-black/40 p-3 osint-body-small">
                     {boardAgentReviewState.message}
                   </div>
                 ) : null}
-                <label className="mt-4 flex items-start gap-3 border border-zinc-800 bg-black/40 p-3 text-xs text-zinc-300">
+                <label className="mt-4 flex items-start gap-3 border border-zinc-800 bg-black/40 p-3 osint-body-small">
                   <input
                     type="checkbox"
                     checked={boardAgentAutoApproveOrganizationActions}
@@ -202,10 +200,10 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     disabled={boardAgentReviewState.phase !== 'REVIEW'}
                   />
                   <div>
-                    <div className="font-medium text-zinc-200">
+                    <div className="osint-meta-value">
                       Auto-approve low-risk organization moves
                     </div>
-                    <div className="mt-1 leading-5 text-zinc-500">
+                    <div className="mt-1 osint-body-quiet">
                       Preselect board-only layout changes like align, move, distribute, grouping, and viewport actions.
                     </div>
                   </div>
@@ -232,21 +230,19 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <div className="text-sm font-medium text-zinc-100">
-                                {presentation.title}
-                              </div>
+                              <div className="osint-title-inline">{presentation.title}</div>
                               <span
-                                className={`rounded-none border px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.14em] ${getRiskClassName(presentation.risk)}`}
+                                className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getRiskClassName(presentation.risk)}`}
                               >
                                 {presentation.risk}
                               </span>
                               <span
-                                className={`rounded-none border px-2 py-0.5 text-[10px] font-mono uppercase tracking-[0.14em] ${getStatusClassName(action.status)}`}
+                                className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(action.status)}`}
                               >
                                 {action.status}
                               </span>
                             </div>
-                            <div className="mt-2 text-xs leading-6 text-zinc-300">
+                            <div className="mt-2 osint-body-small">
                               {presentation.summary}
                             </div>
                             {presentation.expectedWrites.length > 0 ? (
@@ -254,7 +250,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                                 {presentation.expectedWrites.map((write) => (
                                   <span
                                     key={write}
-                                    className="rounded-none border border-zinc-800 bg-black/70 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-400"
+                                    className="rounded-none border border-zinc-800 bg-black/70 px-2 py-1 osint-meta-label text-zinc-400"
                                   >
                                     {write}
                                   </span>
@@ -262,7 +258,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                               </div>
                             ) : null}
                             {boardAgentReviewState.phase !== 'REVIEW' ? (
-                              <div className="mt-3 border-t border-zinc-800 pt-3 text-[11px] leading-5 text-zinc-400">
+                              <div className="mt-3 border-t border-zinc-800 pt-3 osint-body-quiet">
                                 {presentation.receipt}
                                 {presentation.queuedFollowUpPrompt ? (
                                   <div className="mt-2 text-zinc-500">
@@ -281,7 +277,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
 
               {boardAgentReviewState.phase === 'REVIEW' ? (
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 px-4 py-4">
-                  <div className="text-xs text-zinc-500">
+                  <div className="osint-body-quiet">
                     {selectedReviewCount} of {boardAgentReviewActions.length} action
                     {boardAgentReviewActions.length === 1 ? '' : 's'} selected
                   </div>
@@ -289,14 +285,14 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     <button
                       type="button"
                       onClick={onSkipPlan}
-                      className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+                      className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-3 py-2 osint-meta-label-strong text-zinc-400 transition hover:border-zinc-500 hover:text-white"
                     >
                       Skip All
                     </button>
                     <button
                       type="button"
                       onClick={onApprovePlan}
-                      className="osint-button-primary inline-flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                      className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
                       disabled={selectedReviewCount === 0}
                     >
                       Execute Selected
@@ -309,11 +305,11 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
 
           {boardAgentMessage ? (
             <div className="border border-zinc-800 bg-black/30 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.24)]">
-              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+              <div className="osint-eyebrow flex items-center gap-2">
                 <Bot className="h-3.5 w-3.5 text-osint-primary" />
                 Agent Response
               </div>
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-300">
+              <div className="mt-3 whitespace-pre-wrap osint-body-small">
                 {boardAgentMessage}
               </div>
             </div>
@@ -325,22 +321,20 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
               icon={Clock3}
               isOpen={agentSections.session}
               onToggle={onToggleSession}
-            >
+          >
               <div className="space-y-3 border border-t-0 border-zinc-800 bg-black/20 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm text-zinc-300">
-                    {visibleBoardAgentSession?.title || 'Board agent'}
-                  </div>
+                  <div className="osint-meta-value">{visibleBoardAgentSession?.title || 'Board agent'}</div>
                   {visibleBoardAgentSession ? (
                     <div
-                      className={`rounded-none border px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.14em] ${getStatusClassName(visibleBoardAgentSession.requestState || visibleBoardAgentSession.status)}`}
+                      className={`rounded-none border px-2.5 py-1 osint-meta-label-strong ${getStatusClassName(visibleBoardAgentSession.requestState || visibleBoardAgentSession.status)}`}
                     >
                       {visibleBoardAgentSession.requestState}
                     </div>
                   ) : null}
                 </div>
                 {visibleBoardAgentSession ? (
-                  <div className="space-y-1 text-xs text-zinc-500">
+                  <div className="space-y-1 osint-body-quiet">
                     <div>
                       {visibleBoardAgentSession.provider || 'Provider pending'}
                       {visibleBoardAgentSession.modelId
@@ -355,7 +349,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     <button
                       type="button"
                       onClick={onCancelAgent}
-                      className="inline-flex items-center gap-1 rounded-none border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 text-[11px] font-medium text-red-200 transition hover:bg-red-500/20 hover:text-white"
+                      className="inline-flex items-center gap-1 rounded-none border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 osint-meta-label-strong text-red-200 transition hover:bg-red-500/20 hover:text-white"
                     >
                       <X className="h-3.5 w-3.5" />
                       Cancel
@@ -367,10 +361,10 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     {boardAgentTodoItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-start justify-between gap-3 border border-zinc-800 bg-black/60 px-3 py-2 text-xs text-zinc-300"
+                        className="flex items-start justify-between gap-3 border border-zinc-800 bg-black/60 px-3 py-2"
                       >
-                        <div>{item.text}</div>
-                        <div className="shrink-0 text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+                        <div className="osint-body-small">{item.text}</div>
+                        <div className="shrink-0 osint-meta-label">
                           {item.status}
                         </div>
                       </div>
@@ -394,21 +388,19 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                   return (
                     <div
                       key={action.id}
-                      className="border border-zinc-800 bg-black/60 px-3 py-3 text-xs text-zinc-300"
+                      className="border border-zinc-800 bg-black/60 px-3 py-3"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="font-mono uppercase tracking-[0.14em] text-zinc-200">
-                          {presentation.title}
-                        </div>
+                        <div className="osint-title-inline">{presentation.title}</div>
                         <div
-                          className={`rounded-none border px-2 py-0.5 font-mono uppercase tracking-[0.14em] ${getStatusClassName(action.status)}`}
+                          className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(action.status)}`}
                         >
                           {action.status}
                         </div>
                       </div>
-                      <div className="mt-2 leading-5 text-zinc-400">{presentation.receipt}</div>
+                      <div className="mt-2 osint-body-quiet">{presentation.receipt}</div>
                       {presentation.queuedFollowUpPrompt ? (
-                        <div className="mt-2 text-[11px] leading-5 text-zinc-500">
+                        <div className="mt-2 osint-body-quiet text-zinc-500">
                           Next action: {presentation.queuedFollowUpPrompt}
                         </div>
                       ) : null}
@@ -436,7 +428,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 <button
                   type="button"
                   onClick={() => setStarterMenuOpen((current) => !current)}
-                  className={`inline-flex h-10 items-center gap-2 rounded-none border px-3 text-xs font-mono uppercase transition ${
+                  className={`osint-meta-label-strong inline-flex h-10 items-center gap-2 rounded-none border px-3 transition ${
                     starterMenuOpen
                       ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
                       : 'border-zinc-800 bg-zinc-900/80 text-zinc-400 hover:bg-zinc-800 hover:text-white'
@@ -457,12 +449,8 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                         }}
                         className="block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 hover:bg-zinc-900/80"
                       >
-                        <div className="text-xs font-mono uppercase tracking-[0.14em] text-zinc-200">
-                          {intent.label}
-                        </div>
-                        <div className="mt-1 text-[11px] leading-5 text-zinc-500">
-                          {intent.description}
-                        </div>
+                        <div className="osint-meta-label-strong text-zinc-200">{intent.label}</div>
+                        <div className="mt-1 osint-body-quiet">{intent.description}</div>
                       </button>
                     ))}
                   </div>
@@ -495,7 +483,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
               type="button"
               onClick={onRunAgent}
               disabled={boardAgentBusy || !boardAgentPrompt.trim()}
-              className="osint-button-primary inline-flex items-center gap-2 rounded-none px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+              className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 rounded-none px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
               {boardAgentBusy ? 'Running' : 'Plan'}

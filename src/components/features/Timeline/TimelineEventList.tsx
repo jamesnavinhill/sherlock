@@ -77,9 +77,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
             <section key={group.label}>
               <div className="mb-3 flex items-center gap-3">
                 <div className="h-px flex-1 bg-zinc-800" />
-                <div className="text-[10px] font-mono uppercase tracking-[0.28em] text-zinc-500">
-                  {group.label}
-                </div>
+                <div className="osint-eyebrow">{group.label}</div>
                 <div className="h-px flex-1 bg-zinc-800" />
               </div>
 
@@ -118,11 +116,11 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                       <div className="flex flex-col gap-3">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                            <span className="text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+                            <span className="osint-meta-label">
                               {formatEventTime(event.occurredAt)}
                             </span>
                             <span
-                              className={`inline-flex items-center gap-2 border px-2 py-1 text-[10px] font-mono uppercase tracking-wide ${getEventTone(event)}`}
+                              className={`inline-flex items-center gap-2 border px-2 py-1 osint-meta-label-strong ${getEventTone(event)}`}
                             >
                               <EventIcon className="h-3.5 w-3.5" />
                               {event.track}
@@ -130,19 +128,15 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                             {event.badges?.map((badge) => (
                               <span
                                 key={`${event.id}-${badge}`}
-                                className="border border-zinc-700 bg-black px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-zinc-500"
+                                className="border border-zinc-700 bg-black px-2 py-1 osint-meta-label text-zinc-500"
                               >
                                 {badge}
                               </span>
                             ))}
                           </div>
-                          <div className="mt-3 text-sm font-bold uppercase tracking-wide text-white">
-                            {event.title}
-                          </div>
+                          <div className="mt-3 osint-title-inline">{event.title}</div>
                           {event.summary ? (
-                            <p className="mt-2 text-sm font-mono leading-relaxed text-zinc-400">
-                              {event.summary}
-                            </p>
+                            <p className="mt-2 osint-body-small">{event.summary}</p>
                           ) : null}
                           {relatedArtifactId || sourceSignalId || previousArtifactId || sessionId ? (
                             <div className="mt-3 flex flex-wrap gap-2">
@@ -152,7 +146,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('ARTIFACT', relatedArtifactId);
                                   }}
-                                  className="border border-violet-500/30 bg-violet-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-violet-200 transition hover:border-violet-400 hover:text-white"
+                                  className="border border-violet-500/30 bg-violet-500/5 px-2 py-1 osint-meta-label-strong text-violet-200 transition hover:border-violet-400 hover:text-white"
                                 >
                                   In {artifactTitleById.get(relatedArtifactId) || labelProfile.artifactLabel}
                                 </button>
@@ -163,7 +157,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('SIGNAL', sourceSignalId);
                                   }}
-                                  className="border border-cyan-500/30 bg-cyan-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-cyan-200 transition hover:border-cyan-400 hover:text-white"
+                                  className="border border-cyan-500/30 bg-cyan-500/5 px-2 py-1 osint-meta-label-strong text-cyan-200 transition hover:border-cyan-400 hover:text-white"
                                 >
                                   From {signalTitleById.get(sourceSignalId) || 'Signal'}
                                 </button>
@@ -174,7 +168,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('ARTIFACT', previousArtifactId);
                                   }}
-                                  className="border border-indigo-500/30 bg-indigo-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-indigo-200 transition hover:border-indigo-400 hover:text-white"
+                                  className="border border-indigo-500/30 bg-indigo-500/5 px-2 py-1 osint-meta-label-strong text-indigo-200 transition hover:border-indigo-400 hover:text-white"
                                 >
                                   Previous {artifactTitleById.get(previousArtifactId) || labelProfile.artifactLabel}
                                 </button>
@@ -185,7 +179,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('CHAT', sessionId);
                                   }}
-                                  className="border border-emerald-500/30 bg-emerald-500/5 px-2 py-1 text-[10px] font-mono uppercase tracking-wide text-emerald-200 transition hover:border-emerald-400 hover:text-white"
+                                  className="border border-emerald-500/30 bg-emerald-500/5 px-2 py-1 osint-meta-label-strong text-emerald-200 transition hover:border-emerald-400 hover:text-white"
                                 >
                                   Chat {chatTitleById.get(sessionId) || 'Session'}
                                 </button>
@@ -195,7 +189,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                         </div>
 
                         <div className="flex items-center justify-between gap-3 border-t border-zinc-800 pt-3">
-                          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-600">
+                          <div className="osint-meta-label text-zinc-600">
                             Select for actions in details
                           </div>
                           {relatedArtifactId ? (
@@ -204,7 +198,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                 clickEvent.stopPropagation();
                                 onOpenArtifact(relatedArtifactId);
                               }}
-                              className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 transition hover:text-white"
+                              className="osint-meta-label text-zinc-500 transition hover:text-white"
                             >
                               Open {labelProfile.artifactLabel}
                             </button>
@@ -214,7 +208,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                 clickEvent.stopPropagation();
                                 onOpenWorkspaceChat(event);
                               }}
-                              className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 transition hover:text-white"
+                              className="osint-meta-label text-zinc-500 transition hover:text-white"
                             >
                               {sessionId ? 'Chat Session' : 'Workspace Chat'}
                             </button>

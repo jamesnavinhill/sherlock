@@ -69,31 +69,29 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
     }`}
   >
     <div className="border-b border-zinc-800 px-4 py-4">
-      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+      <div className="osint-eyebrow flex items-center gap-2">
         <Shapes className="h-4 w-4 text-osint-primary" />
         Canonical Library
       </div>
-      <div className="mt-1 text-sm font-bold uppercase tracking-widest text-white">
-        {workspaceTitle}
-      </div>
+      <div className="mt-1 osint-meta-value">{workspaceTitle}</div>
       <div className="mt-3 flex gap-2">
         <button
           onClick={onCreateNote}
-          className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-[11px] font-mono uppercase"
+          className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 px-3 py-2"
         >
           <FilePlus2 className="h-4 w-4" />
           Note
         </button>
         <button
           onClick={onCreateLink}
-          className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-[11px] font-mono uppercase"
+          className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 px-3 py-2"
         >
           <Link2 className="h-4 w-4" />
           Link
         </button>
         <button
           onClick={onTriggerFileUpload}
-          className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-[11px] font-mono uppercase"
+          className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 px-3 py-2"
         >
           <Radio className="h-4 w-4" />
           File
@@ -138,13 +136,15 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
         >
           <div className="space-y-2">
             {entries.length === 0 ? (
-              <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
-                No matching items in this section.
-              </p>
+              <p className="px-2 py-1 osint-body-quiet italic">No matching items in this section.</p>
             ) : (
-              entries.map((entry) => (
-                <div
-                  key={boardRefKey(entry)}
+              entries.map((entry) => {
+                const entryKey = boardRefKey(entry);
+                const isEntryOpen = !!libraryItemSections[entryKey];
+
+                return (
+                  <div
+                    key={entryKey}
                   draggable
                   onDragStart={(event) =>
                     event.dataTransfer.setData(
@@ -152,51 +152,48 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                       serializeBoardReference(entry)
                     )
                   }
-                >
-                  <Accordion
-                    title={entry.title}
-                    isOpen={!!libraryItemSections[boardRefKey(entry)]}
-                    onToggle={() => onToggleLibraryEntrySection(boardRefKey(entry))}
-                    className="border-zinc-800 bg-zinc-900/40 text-zinc-200"
-                    headerClassName="bg-black/10 px-2.5 py-2 text-left text-[10px] font-normal leading-5 tracking-[0.04em] text-zinc-500 hover:bg-zinc-900/60 hover:text-zinc-200"
-                    chevronClassName="h-[15px] w-[15px] shrink-0 text-zinc-500"
                   >
-                    <div className="space-y-3">
-                      <div
-                        className={`text-xs leading-5 text-zinc-500 ${
-                          key === 'sources' ? 'line-clamp-2 break-all' : ''
-                        }`}
-                      >
-                        {entry.description || 'Open this item from the library to place it on the board.'}
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
-                          {entry.kind}
+                    <Accordion
+                      title={entry.title}
+                      isOpen={isEntryOpen}
+                      onToggle={() => onToggleLibraryEntrySection(entryKey)}
+                    >
+                      <div className="space-y-3">
+                        <div
+                          className={`osint-body-quiet ${
+                            key === 'sources' ? 'line-clamp-2 break-all' : ''
+                          }`}
+                        >
+                          {entry.description ||
+                            'Open this item from the library to place it on the board.'}
                         </div>
-                        <div className="flex items-center gap-2">
-                          {key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? (
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="osint-meta-label">{entry.kind}</div>
+                          <div className="flex items-center gap-2">
+                            {key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? (
+                              <button
+                                type="button"
+                                onClick={() => onDeleteCreatedItem(entry)}
+                                className="inline-flex items-center gap-1 border border-zinc-700 px-3 py-1.5 osint-meta-label-strong text-zinc-400 transition hover:border-red-400/50 hover:text-red-300"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Delete
+                              </button>
+                            ) : null}
                             <button
                               type="button"
-                              onClick={() => onDeleteCreatedItem(entry)}
-                              className="inline-flex items-center gap-1 border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase text-zinc-400 transition hover:border-red-400/50 hover:text-red-300"
+                              onClick={() => onAddToBoard(entry)}
+                              className="osint-button-primary px-3 py-1.5 osint-meta-label-strong"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Delete
+                              Add To Board
                             </button>
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={() => onAddToBoard(entry)}
-                            className="osint-button-primary px-3 py-1.5 text-[10px] font-mono uppercase"
-                          >
-                            Add To Board
-                          </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Accordion>
-                </div>
-              ))
+                    </Accordion>
+                  </div>
+                );
+              })
             )}
           </div>
         </Accordion>

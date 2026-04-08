@@ -60,7 +60,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
       >
         <div className="space-y-2">
           {selectedEntries.length === 0 ? (
-            <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+            <p className="px-2 py-1 osint-body-quiet italic">
               Select one or more board items to inspect linked Sherlock records.
             </p>
           ) : (
@@ -69,11 +69,9 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
                 key={boardRefKey(entry)}
                 className="border border-zinc-800 bg-zinc-900/40 p-3 text-zinc-200"
               >
-                <div className="text-xs font-bold uppercase tracking-wide text-osint-ink">
-                  {entry.title}
-                </div>
+                <div className="osint-title-inline">{entry.title}</div>
                 {entry.description ? (
-                  <div className="mt-2 text-xs leading-5 text-zinc-400">{entry.description}</div>
+                  <div className="mt-2 osint-body-quiet">{entry.description}</div>
                 ) : null}
               </div>
             ))
@@ -91,7 +89,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
           <button
             onClick={onShowAgentAndGenerateSummary}
             disabled={selectedEntries.length === 0 || aiBusy}
-            className="osint-button-primary inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+            className="osint-button-primary osint-meta-label-strong inline-flex w-full items-center justify-center gap-2 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Sparkles className="h-4 w-4" />
             Summarize Selection
@@ -99,12 +97,12 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
           <button
             onClick={onShowAgentAndGenerateNote}
             disabled={selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode}
-            className="osint-button-primary inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+            className="osint-button-primary osint-meta-label-strong inline-flex w-full items-center justify-center gap-2 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Bot className="h-4 w-4" />
             Draft Note Card
           </button>
-          {aiSummary ? <div className="bg-black/40 p-3 text-xs leading-6 text-zinc-300">{aiSummary}</div> : null}
+          {aiSummary ? <div className="bg-black/40 p-3 osint-body-small">{aiSummary}</div> : null}
         </div>
       </Accordion>
 
@@ -114,48 +112,48 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
         isOpen={inspectorSections.provenance}
         onToggle={onToggleProvenance}
       >
-        <div className="space-y-3 px-1 py-1 text-xs font-mono text-zinc-300">
+        <div className="space-y-3 px-1 py-1 osint-meta-value">
           {selectedWorkspaceItem ? (
             <>
               <div>
-                <div className="text-[10px] uppercase text-zinc-500">Source</div>
+                <div className="osint-meta-label">Source</div>
                 <div className="mt-1">{selectedWorkspaceItem.provenance?.source || 'USER'}</div>
               </div>
               {selectedWorkspaceItem.provenance?.description ? (
                 <div>
-                  <div className="text-[10px] uppercase text-zinc-500">Notes</div>
-                  <div className="mt-1 leading-relaxed text-zinc-400">
+                  <div className="osint-meta-label">Notes</div>
+                  <div className="mt-1 osint-body-quiet">
                     {selectedWorkspaceItem.provenance.description}
                   </div>
                 </div>
               ) : null}
               {selectedWorkspaceItem.provenance?.sourceSessionId ? (
                 <div>
-                  <div className="text-[10px] uppercase text-zinc-500">Chat Session</div>
+                  <div className="osint-meta-label">Chat Session</div>
                   <div className="mt-1">{selectedWorkspaceItem.provenance.sourceSessionId}</div>
                 </div>
               ) : null}
               {selectedWorkspaceItem.provenance?.sourceMessageId ? (
                 <div>
-                  <div className="text-[10px] uppercase text-zinc-500">Message</div>
+                  <div className="osint-meta-label">Message</div>
                   <div className="mt-1">{selectedWorkspaceItem.provenance.sourceMessageId}</div>
                 </div>
               ) : null}
               {selectedWorkspaceItem.provenance?.sourceArtifactId ? (
                 <div>
-                  <div className="text-[10px] uppercase text-zinc-500">Source Report</div>
+                  <div className="osint-meta-label">Source Report</div>
                   <div className="mt-1">{selectedWorkspaceItem.provenance.sourceArtifactId}</div>
                 </div>
               ) : null}
               {selectedWorkspaceItem.provenance?.sourceHeadlineId ? (
                 <div>
-                  <div className="text-[10px] uppercase text-zinc-500">Source Signal</div>
+                  <div className="osint-meta-label">Source Signal</div>
                   <div className="mt-1">{selectedWorkspaceItem.provenance.sourceHeadlineId}</div>
                 </div>
               ) : null}
             </>
           ) : (
-            <p className="px-2 py-1 text-[10px] font-mono italic text-zinc-600">
+            <p className="px-2 py-1 osint-body-quiet italic">
               Select a promoted excerpt, note, link, file, or media item to inspect its origin.
             </p>
           )}
@@ -167,7 +165,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
           <button
             onClick={onDeleteBoard}
             disabled={availableBoardsLength <= 1}
-            className="osint-button-danger inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-xs font-mono uppercase disabled:cursor-not-allowed disabled:opacity-40"
+            className="osint-button-danger osint-meta-label-strong inline-flex w-full items-center justify-center gap-2 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Trash2 className="h-4 w-4" />
             Delete Board

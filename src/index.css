@@ -246,6 +246,37 @@ body,
   color: #312619 !important;
 }
 
+:root[data-theme='light'] .text-emerald-200,
+:root[data-theme='light'] .text-emerald-300 {
+  color: #2f6a4f !important;
+}
+
+:root[data-theme='light'] .text-sky-200 {
+  color: #255f7d !important;
+}
+
+:root[data-theme='light'] .text-cyan-200,
+:root[data-theme='light'] .text-cyan-300 {
+  color: #1f6675 !important;
+}
+
+:root[data-theme='light'] .text-amber-200,
+:root[data-theme='light'] .text-amber-300 {
+  color: #7d541f !important;
+}
+
+:root[data-theme='light'] .text-violet-200 {
+  color: #654aa1 !important;
+}
+
+:root[data-theme='light'] .text-fuchsia-200 {
+  color: #8d4276 !important;
+}
+
+:root[data-theme='light'] .text-indigo-200 {
+  color: #4457a6 !important;
+}
+
 :root[data-theme='light'] .hover\:border-white:hover,
 :root[data-theme='light'] .border-white,
 :root[data-theme='light'] .focus-visible\:border-white:focus-visible {

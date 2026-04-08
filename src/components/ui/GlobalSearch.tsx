@@ -420,7 +420,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
               inputRef.current?.focus();
             }
           }}
-          className={`osint-button-chrome hidden rounded px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] ${
+          className={`osint-button-chrome osint-meta-label-strong hidden rounded px-2 py-1 ${
             compact ? 'xl:inline-flex' : 'md:inline-flex'
           }`}
           aria-label="Focus omnibox"
@@ -435,22 +435,20 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
             {results.length === 0 ? (
               <div className="p-10 text-center">
                 {query.trim() ? (
-                  <p className="text-xs font-mono text-zinc-500">
+                  <p className="osint-body-quiet">
                     No workspace records matching &quot;{query.trim()}&quot;
                   </p>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex flex-col items-center opacity-20">
                       <Command className="mb-2 h-12 w-12" />
-                      <p className="text-xs font-mono uppercase tracking-widest">
-                        Sherlock Omnibox
-                      </p>
+                      <p className="osint-eyebrow">Sherlock Omnibox</p>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-left">
-                      <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
+                      <div className="rounded border border-zinc-800/50 p-2 osint-body-quiet">
                         Recents, saved views, artifacts, items, and chat sessions
                       </div>
-                      <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
+                      <div className="rounded border border-zinc-800/50 p-2 osint-body-quiet">
                         `Enter` opens, `Shift+Enter` places on board
                       </div>
                     </div>
@@ -490,12 +488,12 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                             <Icon size={18} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="mb-1 text-[10px] uppercase tracking-tighter text-zinc-500">
+                            <div className="mb-1 osint-meta-label">
                               {result.subtitle || resultLabelByKind[result.kind]}
                             </div>
-                            <div className="line-clamp-1 text-sm text-zinc-200">{result.title}</div>
+                            <div className="line-clamp-1 osint-title-inline">{result.title}</div>
                             {result.snippet ? (
-                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
+                              <p className="mt-1 line-clamp-2 osint-body-quiet">
                                 {result.snippet}
                               </p>
                             ) : null}
@@ -525,7 +523,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                               event.stopPropagation();
                               void handleAction(result, 'OPEN');
                             }}
-                            className="flex w-full items-center justify-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                            className="osint-meta-label-strong flex w-full items-center justify-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
                           >
                             <ArrowRight className="h-3 w-3" />
                             {getOmniboxOpenLabel(result)}
@@ -543,7 +541,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                                   event.stopPropagation();
                                   void handleAction(result, action);
                                 }}
-                                className="flex w-full items-center justify-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                                className="osint-meta-label-strong flex w-full items-center justify-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
                                 title={actionMeta.title}
                               >
                                 <ActionIcon className="h-3 w-3" />
@@ -560,7 +558,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-4 border-t border-zinc-800 bg-zinc-950/50 p-3 text-[10px] font-mono text-zinc-600">
+          <div className="flex items-center justify-between gap-4 border-t border-zinc-800 bg-zinc-950/50 p-3 osint-body-quiet">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <Hash className="h-3 w-3" />
@@ -571,14 +569,14 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
             <div className="flex flex-wrap items-center justify-end gap-2">
               {selectedResult ? (
                 <>
-                  <span className="rounded border border-zinc-800 px-2 py-1">{`Enter ${getOmniboxOpenLabel(
+                  <span className="rounded border border-zinc-800 px-2 py-1 osint-meta-label">{`Enter ${getOmniboxOpenLabel(
                     selectedResult
                   )}`}</span>
                   {selectedResult.actions.includes('PLACE_ON_BOARD') ? (
-                    <span className="rounded border border-zinc-800 px-2 py-1">Shift+Enter Place</span>
+                    <span className="rounded border border-zinc-800 px-2 py-1 osint-meta-label">Shift+Enter Place</span>
                   ) : null}
                   {selectedResult.actions.includes('OPEN_IN_TIMELINE') ? (
-                    <span className="rounded border border-zinc-800 px-2 py-1">
+                    <span className="rounded border border-zinc-800 px-2 py-1 osint-meta-label">
                       Alt+Enter Timeline
                     </span>
                   ) : null}

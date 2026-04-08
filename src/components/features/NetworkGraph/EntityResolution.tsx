@@ -142,12 +142,8 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
               <Layers className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold font-mono text-white uppercase tracking-wider">
-                Entity Clustering
-              </h2>
-              <p className="text-xs text-zinc-500 font-mono">
-                Multi-node identity consolidation protocol.
-              </p>
+              <h2 className="osint-title-section">Entity Clustering</h2>
+              <p className="osint-body-quiet mt-1">Multi-node identity consolidation protocol.</p>
             </div>
           </div>
 
@@ -155,7 +151,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
             {activeTab === 'CLUSTERS' && clusters.length > 0 && (
               <button
                 onClick={handleAutoMergeAll}
-                className="flex items-center px-4 py-2 bg-osint-primary/10 text-osint-primary border border-osint-primary/50 hover:bg-osint-primary/20 hover:border-osint-primary transition-all font-mono text-xs font-bold uppercase tracking-wider animate-pulse"
+                className="osint-button-primary osint-meta-label-strong inline-flex items-center px-4 py-2 animate-pulse"
               >
                 <Wand2 className="w-4 h-4 mr-2" />
                 Merge All Clusters ({clusters.length})
@@ -174,13 +170,13 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
         <div className="flex border-b border-zinc-800 bg-zinc-900/50 flex-shrink-0">
           <button
             onClick={() => setActiveTab('CLUSTERS')}
-            className={`flex-1 md:flex-none px-8 py-4 text-xs font-mono font-bold uppercase tracking-wider border-r border-zinc-800 transition-all ${activeTab === 'CLUSTERS' ? 'osint-button-soft' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
+            className={`osint-meta-label-strong flex-1 border-r border-zinc-800 px-8 py-4 transition-all md:flex-none ${activeTab === 'CLUSTERS' ? 'osint-button-soft' : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200'}`}
           >
             Detected Clusters ({clusters.length})
           </button>
           <button
             onClick={() => setActiveTab('MANAGE')}
-            className={`flex-1 md:flex-none px-8 py-4 text-xs font-mono font-bold uppercase tracking-wider border-r border-zinc-800 transition-all ${activeTab === 'MANAGE' ? 'osint-button-soft' : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'}`}
+            className={`osint-meta-label-strong flex-1 border-r border-zinc-800 px-8 py-4 transition-all md:flex-none ${activeTab === 'MANAGE' ? 'osint-button-soft' : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200'}`}
           >
             Active Mappings ({Object.keys(currentAliases).length})
           </button>
@@ -195,10 +191,8 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                   <div className="bg-zinc-900/50 p-6 rounded-full border border-zinc-800 mb-6">
                     <Check className="w-16 h-16 opacity-50" />
                   </div>
-                  <p className="font-mono text-xl uppercase tracking-widest text-zinc-400 mb-2">
-                    Network Harmonized
-                  </p>
-                  <p className="text-sm font-mono">No identity clusters detected.</p>
+                  <p className="osint-title-section mb-2 text-zinc-400">Network Harmonized</p>
+                  <p className="osint-body-small">No identity clusters detected.</p>
                 </div>
               ) : (
                 clusters.map((cluster, idx) => (
@@ -210,18 +204,14 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-4">
                         <AlertCircle className="w-4 h-4 text-osint-primary" />
-                        <h3 className="text-sm font-mono font-bold text-white uppercase">
-                          Identity Cluster #{idx + 1}
-                        </h3>
-                        <span className="text-xs text-zinc-500 font-mono">
-                          ({cluster.length} variations)
-                        </span>
+                        <h3 className="osint-title-inline">Identity Cluster #{idx + 1}</h3>
+                        <span className="osint-body-quiet">({cluster.length} variations)</span>
                       </div>
 
                       <div className="space-y-1 bg-zinc-900/50 p-4 border border-zinc-800">
-                        <div className="flex items-center justify-between text-[9px] text-zinc-500 uppercase font-mono mb-2 px-2">
-                          <span>Target Node</span>
-                          <span>Include in Merge</span>
+                        <div className="mb-2 flex items-center justify-between px-2">
+                          <span className="osint-meta-label">Target Node</span>
+                          <span className="osint-meta-label">Include in Merge</span>
                         </div>
                         {cluster.map((variant) => {
                           const isSelected = canonicalSelections[idx] === variant;
@@ -248,12 +238,12 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                                   className="form-radio text-osint-primary bg-black border-zinc-600 focus:ring-osint-primary focus:ring-offset-black mt-1"
                                 />
                                 <span
-                                  className={`ml-3 font-mono text-sm break-words leading-relaxed ${isSelected ? 'text-white font-bold' : 'text-zinc-400'}`}
+                                  className={`ml-3 break-words osint-meta-value ${isSelected ? 'text-white font-semibold' : 'text-zinc-400'}`}
                                 >
                                   {variant}
                                 </span>
                                 {isSelected && (
-                                  <span className="ml-2 text-[10px] text-osint-primary font-bold uppercase tracking-wider bg-black px-1 rounded whitespace-nowrap mt-0.5">
+                                  <span className="ml-2 mt-0.5 whitespace-nowrap rounded bg-black px-1 osint-meta-label-strong text-osint-primary">
                                     MASTER
                                   </span>
                                 )}
@@ -292,13 +282,13 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
                     {/* Right: Actions */}
                     <div className="w-full md:w-64 flex flex-col justify-center space-y-3 border-t md:border-t-0 md:border-l border-zinc-800 pt-4 md:pt-0 md:pl-6">
-                      <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1 text-center md:text-left">
+                      <div className="mb-1 text-center osint-meta-label md:text-left">
                         Action Required
                       </div>
 
                       <button
                         onClick={() => handleMergeCluster(idx)}
-                        className="osint-button-primary w-full flex items-center justify-center px-4 py-3 font-mono text-xs font-bold uppercase tracking-wider"
+                        className="osint-button-primary osint-meta-label-strong flex w-full items-center justify-center px-4 py-3"
                       >
                         <GitMerge className="w-4 h-4 mr-2" />
                         Harmonize Group
@@ -306,14 +296,15 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
                       <button
                         onClick={() => handleIgnoreCluster(idx)}
-                        className="w-full flex items-center justify-center px-4 py-2 bg-black hover:bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs font-mono uppercase transition-colors"
+                        className="osint-meta-label-strong flex w-full items-center justify-center border border-zinc-800 bg-black px-4 py-2 text-zinc-500 transition-colors hover:bg-zinc-900"
                       >
                         <X className="w-4 h-4 mr-2" />
                         Ignore Cluster
                       </button>
 
-                      <div className="mt-4 p-3 bg-osint-primary/10 border border-osint-primary/30 text-[10px] text-osint-primary font-mono leading-tight">
-                        <span className="font-bold">NOTE:</span> Selected nodes will merge into
+                      <div className="mt-4 border border-osint-primary/30 bg-osint-primary/10 p-3 osint-body-quiet text-osint-primary">
+                        <span className="osint-meta-label-strong text-osint-primary">Note:</span>{' '}
+                        Selected nodes will merge into
                         &quot;{canonicalSelections[idx]?.substring(0, 15)}...&quot;. Unchecked nodes
                         remain distinct.
                       </div>
@@ -329,7 +320,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
               {Object.keys(currentAliases).length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-zinc-600 min-h-[400px]">
                   <Split className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                  <p className="font-mono text-lg uppercase">No Active Merges</p>
+                  <p className="osint-title-inline">No Active Merges</p>
                 </div>
               ) : (
                 Object.entries(currentAliases).map(([alias, canonical]) => (
@@ -339,10 +330,8 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                   >
                     <div className="flex flex-1 items-center justify-center md:justify-start w-full md:w-auto mb-4 md:mb-0 space-x-4">
                       <div className="flex-1 text-right md:text-left">
-                        <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">
-                          Alias (Hidden)
-                        </div>
-                        <div className="text-zinc-300 font-mono text-sm break-all line-through decoration-red-500/50 decoration-2">
+                        <div className="mb-1 osint-meta-label">Alias (Hidden)</div>
+                        <div className="break-all osint-meta-value text-zinc-300 line-through decoration-red-500/50 decoration-2">
                           {alias}
                         </div>
                       </div>
@@ -350,18 +339,14 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                       <ArrowRight className="w-5 h-5 text-zinc-600 flex-shrink-0" />
 
                       <div className="flex-1 text-left">
-                        <div className="text-[10px] font-mono text-zinc-500 uppercase mb-1">
-                          Canonical (Shown)
-                        </div>
-                        <div className="text-white font-mono font-bold text-sm break-all">
-                          {canonical}
-                        </div>
+                        <div className="mb-1 osint-meta-label">Canonical (Shown)</div>
+                        <div className="break-all osint-meta-value text-white">{canonical}</div>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleUnmerge(alias)}
-                      className="w-full md:w-auto px-4 py-2 bg-black border border-zinc-800 text-zinc-500 transition-all font-mono text-xs uppercase flex items-center justify-center osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]"
+                      className="osint-meta-label-strong osint-danger-inline flex w-full items-center justify-center border border-zinc-800 bg-black px-4 py-2 text-zinc-500 transition-all hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)] md:w-auto"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Unlink
