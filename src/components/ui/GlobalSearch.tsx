@@ -456,50 +456,66 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                 )}
               </div>
             ) : (
-              <div className="space-y-1 p-2">
+              <div className="px-3">
                 {results.map((result, index) => {
                   const Icon = resultIconByKind[result.kind];
                   const isSelected = index === Math.min(selectedIndex, results.length - 1);
                   const secondaryActions = result.actions.filter(
                     (action): action is Exclude<OmniboxActionId, 'OPEN'> => action !== 'OPEN'
                   );
+                  const showExpandedContent = isSelected || secondaryActions.length > 0;
+                  const snippetVisible = Boolean(result.snippet) && isSelected;
+                  const dividerStyle = {
+                    borderColor: 'color-mix(in oklab, var(--osint-border) 46%, transparent)',
+                  } as const;
 
                   return (
                     <div
                       key={result.id}
                       onMouseEnter={() => setSelectedIndex(index)}
-                      className={`group w-full border p-3 text-left transition-colors ${
+                      className={`group w-full border-b text-left transition-all ${
                         isSelected
-                          ? 'border-osint-primary/30 bg-osint-primary/10'
-                          : 'border-transparent hover:bg-zinc-900'
+                          ? 'bg-osint-primary/8'
+                          : 'hover:bg-black/30'
                       }`}
+                      style={dividerStyle}
                     >
                       <button
                         type="button"
                         onClick={() => void handleAction(result, 'OPEN')}
-                        className="w-full text-left"
+                        className="w-full px-3 pt-2.5 pb-2 text-left"
                       >
-                        <div className="flex items-start gap-4">
+                        <div className={`flex gap-3 ${snippetVisible ? 'items-start' : 'items-center'}`}>
                           <div
-                            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded ${
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded ${
                               isSelected ? 'text-osint-primary' : 'text-zinc-600'
                             }`}
                           >
-                            <Icon size={18} />
+                            <Icon size={16} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="mb-1 osint-meta-label">
-                              {result.subtitle || resultLabelByKind[result.kind]}
+                            <div className="flex min-w-0 items-baseline gap-2">
+                              <span className="shrink-0 osint-meta-label">
+                                {result.subtitle || resultLabelByKind[result.kind]}
+                              </span>
+                              <div className="min-w-0 line-clamp-1 osint-title-inline">
+                                {result.title}
+                              </div>
                             </div>
-                            <div className="line-clamp-1 osint-title-inline">{result.title}</div>
                             {result.snippet ? (
-                              <p className="mt-1 line-clamp-2 osint-body-quiet">
+                              <p
+                                className={`mt-1 overflow-hidden osint-body-quiet transition-all duration-200 ${
+                                  isSelected
+                                    ? 'max-h-14 opacity-100'
+                                    : 'max-h-0 opacity-0 group-hover:max-h-14 group-hover:opacity-100 group-focus-within:max-h-14 group-focus-within:opacity-100'
+                                }`}
+                              >
                                 {result.snippet}
                               </p>
                             ) : null}
                           </div>
                           <ArrowRight
-                            className={`mt-2 h-4 w-4 transition-all ${
+                            className={`h-4 w-4 shrink-0 self-center transition-all ${
                               isSelected
                                 ? 'translate-x-0 text-osint-primary opacity-100'
                                 : '-translate-x-2 text-zinc-700 opacity-0'
@@ -510,46 +526,48 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
 
                       {secondaryActions.length > 0 ? (
                         <div
-                          className={`mt-3 flex flex-wrap gap-2 transition ${
+                          className={`overflow-hidden px-3 pb-2.5 transition-all duration-200 ${
                             isSelected
-                              ? 'max-h-24 opacity-100'
-                              : 'max-h-0 overflow-hidden opacity-0'
+                              ? 'max-h-20 opacity-100'
+                              : 'max-h-0 opacity-0 group-hover:max-h-20 group-hover:opacity-100 group-focus-within:max-h-20 group-focus-within:opacity-100'
                           }`}
                         >
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              void handleAction(result, 'OPEN');
-                            }}
-                            className="osint-meta-label-strong inline-flex items-center justify-center gap-1 whitespace-nowrap rounded border border-zinc-700 px-2.5 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                          >
-                            <ArrowRight className="h-3 w-3" />
-                            {getOmniboxOpenLabel(result)}
-                          </button>
+                          <div className="flex flex-wrap gap-2 border-t border-white/5 pt-2">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleAction(result, 'OPEN');
+                              }}
+                              className="osint-meta-label-strong inline-flex items-center justify-center gap-1 whitespace-nowrap rounded border border-zinc-700/70 px-2.5 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                            >
+                              <ArrowRight className="h-3 w-3" />
+                              {getOmniboxOpenLabel(result)}
+                            </button>
 
-                          {secondaryActions.map((action) => {
-                            const actionMeta = actionMetaById[action];
-                            const ActionIcon = actionMeta.icon;
+                            {secondaryActions.map((action) => {
+                              const actionMeta = actionMetaById[action];
+                              const ActionIcon = actionMeta.icon;
 
-                            return (
-                              <button
-                                key={`${result.id}:${action}`}
-                                type="button"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  void handleAction(result, action);
-                                }}
-                                className="osint-meta-label-strong inline-flex items-center justify-center gap-1 whitespace-nowrap rounded border border-zinc-700 px-2.5 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                                title={actionMeta.title}
-                              >
-                                <ActionIcon className="h-3 w-3" />
-                                {actionMeta.label}
-                              </button>
-                            );
-                          })}
+                              return (
+                                <button
+                                  key={`${result.id}:${action}`}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    void handleAction(result, action);
+                                  }}
+                                  className="osint-meta-label-strong inline-flex items-center justify-center gap-1 whitespace-nowrap rounded border border-zinc-700/70 px-2.5 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                                  title={actionMeta.title}
+                                >
+                                  <ActionIcon className="h-3 w-3" />
+                                  {actionMeta.label}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      ) : null}
+                      ) : result.snippet && showExpandedContent ? <div className="pb-1" /> : null}
                     </div>
                   );
                 })}
@@ -557,14 +575,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-4 border-t border-zinc-800 bg-zinc-950/50 p-3 osint-body-quiet">
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1">
-                <Hash className="h-3 w-3" />
-                {results.length} {query.trim() ? 'results' : 'recents'}
-              </span>
-            </div>
-
+          <div className="flex items-center justify-end gap-4 border-t border-zinc-800 bg-zinc-950/50 p-3 osint-body-quiet">
             <div className="flex flex-wrap items-center justify-end gap-2">
               {selectedResult ? (
                 <>
