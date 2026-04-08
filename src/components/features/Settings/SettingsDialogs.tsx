@@ -58,7 +58,7 @@ export const SettingsDialogs: React.FC<SettingsDialogsProps> = ({
         <div className="flex justify-end">
           <button
             onClick={onCloseFeedbackDialog}
-            className="osint-button-primary px-4 py-2 text-xs font-mono uppercase"
+            className="osint-button-primary px-4 py-2 osint-meta-label-strong"
           >
             Close
           </button>

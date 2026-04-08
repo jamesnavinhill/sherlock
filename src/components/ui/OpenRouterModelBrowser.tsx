@@ -86,10 +86,8 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
       <div className="flex max-h-[88vh] w-full max-w-5xl flex-col overflow-hidden border border-zinc-700 bg-black shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-zinc-800 bg-zinc-950 px-6 py-4">
           <div>
-            <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-white">
-              Browse OpenRouter Models
-            </h3>
-            <p className="mt-1 text-[10px] font-mono uppercase text-zinc-500">
+            <h3 className="osint-meta-label-strong text-white">Browse OpenRouter Models</h3>
+            <p className="mt-1 osint-body-quiet">
               Compact picks up front, full searchable catalog below
             </p>
           </div>
@@ -105,17 +103,17 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
         <div className="grid gap-6 overflow-y-auto p-6 custom-scrollbar lg:grid-cols-[1.1fr_1.9fr]">
           <section className="space-y-4">
             <div className="border border-zinc-800 bg-zinc-950/70 p-4">
-              <div className="text-[10px] font-mono uppercase text-zinc-500">Current model</div>
-              <div className="mt-2 text-sm font-mono text-white">
+              <div className="osint-meta-label">Current model</div>
+              <div className="mt-2 osint-meta-value text-white">
                 {currentModel?.name || currentModelId || 'None selected'}
               </div>
-              {currentModelId && (
-                <div className="mt-1 text-[10px] font-mono text-zinc-500">{currentModelId}</div>
-              )}
+              {currentModelId ? (
+                <div className="mt-1 osint-body-quiet">{currentModelId}</div>
+              ) : null}
             </div>
 
             <div className="border border-zinc-800 bg-zinc-950/70 p-4">
-              <div className="mb-3 text-[10px] font-mono uppercase text-zinc-500">Quick picks</div>
+              <div className="mb-3 osint-meta-label">Quick picks</div>
               <div className="space-y-2">
                 {quickPicks.map((model) => (
                   <button
@@ -128,13 +126,13 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     className="w-full border border-zinc-800 bg-zinc-900/60 p-3 text-left transition-colors hover:border-osint-primary"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <div className="text-xs font-mono font-bold text-white">{model.name}</div>
+                      <div className="osint-meta-label-strong text-white">{model.name}</div>
                       {currentModelId === model.id ? (
                         <Check className="h-4 w-4 text-osint-primary" />
                       ) : null}
                     </div>
-                    <div className="mt-1 text-[10px] font-mono text-zinc-500">{model.id}</div>
-                    <div className="mt-2 text-[10px] text-zinc-400">
+                    <div className="mt-1 osint-body-quiet">{model.id}</div>
+                    <div className="mt-2 osint-body-quiet text-zinc-400">
                       {formatCapabilitySummary(model)}
                     </div>
                   </button>
@@ -143,15 +141,15 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
             </div>
 
             <div className="border border-zinc-800 bg-zinc-950/70 p-4">
-              <div className="mb-3 text-[10px] font-mono uppercase text-zinc-500">Manual slug</div>
+              <div className="mb-3 osint-meta-label">Manual slug</div>
               <input
                 value={manualSlug}
                 onChange={(event) => setManualSlug(event.target.value)}
                 placeholder="e.g. openai/gpt-5.4-mini"
-                className="w-full border border-zinc-700 bg-black px-3 py-2 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                className="w-full border border-zinc-700 bg-black px-3 py-2 osint-meta-value text-white outline-none focus:border-osint-primary"
               />
               <div className="mt-3 flex items-center justify-between gap-3">
-                <div className="text-[10px] text-zinc-500">
+                <div className="osint-body-quiet">
                   Manual entries stay available even if the live catalog changes.
                 </div>
                 <button
@@ -162,7 +160,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     onSelectModel(slug);
                     onClose();
                   }}
-                  className="osint-button-primary px-3 py-2 text-[10px] font-mono font-bold uppercase"
+                  className="osint-button-primary px-3 py-2 osint-meta-label-strong"
                 >
                   Use slug
                 </button>
@@ -178,7 +176,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search the OpenRouter catalog"
-                  className="w-full border border-zinc-700 bg-black py-2 pl-10 pr-3 text-sm text-white outline-none focus:border-osint-primary"
+                  className="w-full border border-zinc-700 bg-black py-2 pl-10 pr-3 osint-meta-value text-white outline-none focus:border-osint-primary"
                 />
               </label>
               <button
@@ -195,14 +193,14 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     )
                     .finally(() => setIsRefreshing(false));
                 }}
-                className="inline-flex items-center justify-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white"
+                className="inline-flex items-center justify-center gap-2 border border-zinc-700 px-3 py-2 osint-meta-label-strong text-zinc-300 transition-colors hover:border-white hover:text-white"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
             </div>
 
-            <div className="text-[10px] font-mono uppercase text-zinc-500">
+            <div className="osint-meta-label text-zinc-500">
               Source: {catalog.source}{' '}
               {catalog.fetchedAt
                 ? `• ${new Date(catalog.fetchedAt).toLocaleString()}`
@@ -212,10 +210,10 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
             <div className="grid gap-3">
               {filteredCatalog.length === 0 ? (
                 <div className="border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center">
-                  <div className="text-xs font-mono uppercase text-zinc-400">
+                  <div className="osint-meta-label-strong text-zinc-400">
                     No models match this search
                   </div>
-                  <div className="mt-2 text-[10px] text-zinc-500">
+                  <div className="mt-2 osint-body-quiet">
                     Try a broader query or use a manual slug if you already know the model id.
                   </div>
                 </div>
@@ -239,39 +237,37 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <div className="text-sm font-mono font-bold text-white">{model.name}</div>
-                          <div className="mt-1 text-[10px] font-mono text-zinc-500">{model.id}</div>
+                          <div className="osint-meta-label-strong text-white">{model.name}</div>
+                          <div className="mt-1 osint-body-quiet">{model.id}</div>
                         </div>
                         {currentModelId === model.id ? (
                           <Check className="h-4 w-4 text-osint-primary" />
                         ) : null}
                       </div>
-                      <p className="mt-3 text-xs leading-relaxed text-zinc-400">
-                        {model.description}
-                      </p>
+                      <p className="mt-3 osint-body-small text-zinc-400">{model.description}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {capabilities.supportsThinkingBudget ? (
-                          <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
+                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
                             Reasoning
                           </span>
                         ) : null}
                         {capabilities.supportsStructuredOutput ? (
-                          <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
+                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
                             Structured
                           </span>
                         ) : null}
                         {capabilities.supportsWebSearch ? (
-                          <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
+                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
                             Web Search
                           </span>
                         ) : null}
                         {capabilities.supportsToolUse ? (
-                          <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-300">
+                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
                             Tools
                           </span>
                         ) : null}
                         {model.contextLength ? (
-                          <span className="border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase text-zinc-500">
+                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label text-zinc-500">
                             {Intl.NumberFormat().format(model.contextLength)} ctx
                           </span>
                         ) : null}

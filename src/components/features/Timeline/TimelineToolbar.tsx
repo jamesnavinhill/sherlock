@@ -157,7 +157,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
         <button
           onClick={onSaveView}
           disabled={!canSaveCurrentView}
-          className={`inline-flex shrink-0 items-center px-3 py-1.5 font-mono text-xs font-bold uppercase transition ${
+          className={`inline-flex shrink-0 items-center px-3 py-1.5 osint-meta-label-strong transition ${
             canSaveCurrentView
               ? 'osint-button-chrome'
               : 'cursor-not-allowed border border-zinc-800 bg-zinc-950 text-zinc-600'

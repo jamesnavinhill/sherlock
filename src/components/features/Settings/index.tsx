@@ -84,7 +84,7 @@ export const Settings: React.FC<SettingsProps> = ({
           <button
             onClick={handleSaveConfiguration}
             disabled={isSaving || !canSaveActiveTab}
-            className="font-osint-label osint-button-primary flex items-center px-4 py-2 text-xs font-bold uppercase disabled:opacity-40 disabled:cursor-not-allowed"
+            className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />

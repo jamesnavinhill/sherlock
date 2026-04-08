@@ -228,9 +228,9 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         name: templateName.trim(),
         description: templateDescription.trim() || undefined,
         topic: combinedTopic,
-          config: buildTemplateRuntimeConfig({
-            baseConfig: loadSystemConfig(),
-            configOverride: {
+        config: buildTemplateRuntimeConfig({
+          baseConfig: loadSystemConfig(),
+          configOverride: {
             provider: runtimeConfigForm.effectiveValue.provider,
             modelId: runtimeConfigForm.effectiveValue.modelId,
             persona,
@@ -275,7 +275,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         </div>
         <button
           onClick={openCreateModal}
-          className="osint-button-primary flex items-center px-4 py-2 font-mono text-xs font-bold uppercase"
+          className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong"
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Template
@@ -306,7 +306,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       {template.config.purposeId}
                     </span>
                   </div>
-                  <h3 className="osint-title-card mb-2 line-clamp-2">
+                  <h3 className="osint-panel-title mb-2 line-clamp-2">
                     {template.name}
                   </h3>
                   <p className="osint-body-small mb-4 line-clamp-3">
@@ -318,7 +318,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 </div>
                 <button
                   onClick={() => onApply(template)}
-                  className="osint-button-primary flex items-center justify-center p-3 border-t border-zinc-800 font-mono text-[10px] font-bold uppercase"
+                  className="osint-button-primary flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
                 >
                   <Play className="w-3 h-3 mr-2" />
                   Launch Starter
@@ -332,7 +332,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
       {filteredTemplates.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 border border-dashed border-zinc-800 bg-zinc-900/20">
           <Layout className="w-12 h-12 text-zinc-700 mb-4 opacity-30" />
-          <h3 className="osint-title-inline mb-1 text-zinc-500">No Templates Found</h3>
+          <h3 className="osint-panel-title mb-1 text-zinc-500">No Templates Found</h3>
           <p className="osint-body-quiet">
             Save pack and purpose-aware launch setups to reuse them here.
           </p>
@@ -365,7 +365,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                     </button>
                   </div>
                 </div>
-                <h3 className="osint-title-card mb-2 line-clamp-2">
+                <h3 className="osint-panel-title mb-2 line-clamp-2">
                   {t.name}
                 </h3>
                 <p className="osint-body-small mb-4 line-clamp-3">
@@ -378,7 +378,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
               <button
                 onClick={() => onApply(t)}
-                className="osint-button-primary flex items-center justify-center p-3 border-t border-zinc-800 font-mono text-[10px] font-bold uppercase"
+                className="osint-button-primary flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
               >
                 <Play className="w-3 h-3 mr-2" />
                 Launch Template
@@ -420,7 +420,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 return (
                   <div
                     key={step.id}
-                    className={`flex items-center px-3 py-2 border font-mono text-[10px] uppercase whitespace-nowrap ${isActive ? 'border-osint-primary text-osint-primary bg-osint-primary/10' : isDone ? 'border-zinc-700 text-zinc-300 bg-zinc-900' : 'border-zinc-800 text-zinc-500 bg-black'}`}
+                    className={`flex items-center whitespace-nowrap border px-3 py-2 osint-meta-label ${isActive ? 'border-osint-primary text-osint-primary bg-osint-primary/10' : isDone ? 'border-zinc-700 text-zinc-300 bg-zinc-900' : 'border-zinc-800 text-zinc-500 bg-black'}`}
                   >
                     {isDone ? (
                       <Check className="w-3 h-3 mr-2" />
@@ -479,7 +479,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                           <div className="flex items-start gap-2">
                             <span className="text-lg">{scope.icon || '🔍'}</span>
                             <div className="min-w-0">
-                              <div className="osint-title-inline truncate">{scope.name}</div>
+                              <div className="osint-panel-title truncate">{scope.name}</div>
                               <div className="osint-body-quiet mt-0.5 line-clamp-2">
                                 {scope.description}
                               </div>
@@ -502,7 +502,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                           className={`p-3 border text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <div className="osint-title-inline truncate">{purpose.name}</div>
+                            <div className="osint-panel-title truncate">{purpose.name}</div>
                             <div className="osint-meta-label">
                               {purpose.recommendedArtifactType}
                             </div>
@@ -559,7 +559,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                           onClick={() => setPersona(item.id)}
                           className={`p-3 border text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
-                          <div className="osint-title-inline">{item.label}</div>
+                          <div className="osint-panel-title">{item.label}</div>
                           <div className="osint-body-quiet mt-1 line-clamp-2">
                             {item.instruction}
                           </div>
@@ -585,14 +585,14 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               <div className="flex items-center gap-2">
                 <button
                   onClick={closeCreateModal}
-                  className="px-4 py-2 border border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 font-mono text-xs uppercase transition-colors"
+                  className="border border-zinc-800 px-4 py-2 osint-meta-label text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors"
                 >
                   Cancel
                 </button>
                 {createStep > 0 && (
                   <button
                     onClick={() => setCreateStep((current) => Math.max(0, current - 1))}
-                    className="px-4 py-2 border border-zinc-700 text-zinc-300 hover:text-white hover:border-white font-mono text-xs uppercase transition-colors flex items-center"
+                    className="flex items-center border border-zinc-700 px-4 py-2 osint-meta-label text-zinc-300 hover:text-white hover:border-white transition-colors"
                   >
                     <ChevronLeft className="w-3 h-3 mr-1" />
                     Back
@@ -606,7 +606,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       }
                     }}
                     disabled={!canProceed()}
-                    className="osint-button-primary px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed font-mono text-xs font-bold uppercase flex items-center"
+                    className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                     <ChevronRight className="w-3 h-3 ml-1" />
@@ -617,7 +617,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       void handleCreateTemplate();
                     }}
                     disabled={!canProceed() || isCreating}
-                    className="osint-button-primary px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed font-mono text-xs font-bold uppercase"
+                    className="osint-button-primary px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCreating ? 'Creating...' : 'Create Template'}
                   </button>

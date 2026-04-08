@@ -12,6 +12,7 @@ import {
   Download,
   FileJson,
   FileText,
+  Filter,
   Folder,
   FolderClosed,
   FolderOpen,
@@ -34,13 +35,13 @@ import { exportCaseAsHtml, exportCaseAsJson, exportCaseAsMarkdown } from '../../
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../domain';
 import {
   CHROME_HEADER_CLASS,
+  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
   CHROME_HEADER_PRIMARY_ACTION_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
-  CHROME_TOOLBAR_GROUP_CLASS,
   getChromeMenuButtonClass,
-  getChromeToolbarSegmentButtonClass,
+  getChromeToggleButtonClass,
 } from '../ui/chrome';
 import {
   clearStoredActiveWorkspaceId,
@@ -89,6 +90,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
   });
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [recordFilter, setRecordFilter] = useState<RecordFilter>('ALL');
   const [viewMode, setViewMode] = useState<FilesViewMode>('LIST');
   const [workspacePendingPurge, setWorkspacePendingPurge] = useState<{
@@ -99,6 +101,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
   const [currentPage, setCurrentPage] = useState(1);
 
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
   const focusedItemRowRef = useRef<HTMLDivElement | null>(null);
   const itemsPerPage = 8;
   const workspaceLabel = CANONICAL_NOUNS.workspace;
@@ -116,6 +119,9 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     const handleClickOutside = (event: MouseEvent) => {
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
         setShowExportMenu(false);
+      }
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
+        setShowFilters(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -926,6 +932,108 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           </div>
 
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+            <div className="flex items-center -space-x-px">
+              <button
+                onClick={() => setViewMode('LIST')}
+                className={`flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(
+                  viewMode === 'LIST'
+                )}`}
+                title="Show dense list view"
+                aria-label="Show dense list view"
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('GRID')}
+                className={`flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(
+                  viewMode === 'GRID'
+                )}`}
+                title="Show grid view"
+                aria-label="Show grid view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+            </div>
+
+            {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
+              <div className="relative shrink-0" ref={filterMenuRef}>
+                <button
+                  onClick={() => {
+                    setShowFilters((current) => !current);
+                    setShowExportMenu(false);
+                  }}
+                  className={getChromeMenuButtonClass(showFilters)}
+                  aria-label="Files filters"
+                  title="Filter visible records"
+                >
+                  <Filter className="h-4 w-4" />
+                </button>
+
+                {showFilters ? (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
+                    <div className="border-b border-zinc-800 bg-black px-4 py-3">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-white">
+                        Files Filters
+                      </h3>
+                    </div>
+                    <div className="space-y-5 p-4">
+                      <div>
+                        <label className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
+                          Record Type
+                        </label>
+                        <div className="space-y-2">
+                          {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => {
+                                setRecordFilter(value);
+                                setCurrentPage(1);
+                              }}
+                              className={`flex w-full items-center justify-between border px-3 py-2 text-xs font-mono uppercase transition ${
+                                recordFilter === value
+                                  ? 'border-osint-primary bg-osint-primary/10 text-osint-primary'
+                                  : 'border-zinc-800 bg-black text-zinc-300 hover:border-zinc-600 hover:text-white'
+                              }`}
+                            >
+                              <span>
+                                {value === 'ALL'
+                                  ? 'All'
+                                  : value === 'ARTIFACT'
+                                    ? 'Artifacts'
+                                    : 'Items'}
+                              </span>
+                              {recordFilter === value ? <span>Active</span> : null}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRecordFilter('ALL');
+                            setCurrentPage(1);
+                          }}
+                          className="text-xs font-mono uppercase text-zinc-500 hover:text-white"
+                        >
+                          Reset
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowFilters(false)}
+                          className="osint-button-primary px-4 py-1.5 text-xs font-mono font-bold uppercase"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
               ? (() => {
                   const currentWorkspace = workspaces.find(
@@ -936,7 +1044,10 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                   return (
                     <div className="relative" ref={exportMenuRef}>
                       <button
-                        onClick={() => setShowExportMenu((current) => !current)}
+                        onClick={() => {
+                          setShowExportMenu((current) => !current);
+                          setShowFilters(false);
+                        }}
                         className={getChromeMenuButtonClass(showExportMenu)}
                       >
                         <Download className="mr-1 h-4 w-4" />
@@ -1042,44 +1153,6 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
       ) : null}
 
       <div className="relative z-10 h-full w-full overflow-y-auto p-6">
-        <div className="mb-5 flex flex-wrap items-center justify-end gap-3">
-          <div className={`flex items-center p-0.5 ${CHROME_TOOLBAR_GROUP_CLASS}`}>
-            <button
-              onClick={() => setViewMode('LIST')}
-              className={getChromeToolbarSegmentButtonClass(viewMode === 'LIST')}
-              title="Show dense list view"
-            >
-              <List className="mr-1 h-3.5 w-3.5" />
-              List
-            </button>
-            <button
-              onClick={() => setViewMode('GRID')}
-              className={getChromeToolbarSegmentButtonClass(viewMode === 'GRID')}
-              title="Show grid view"
-            >
-              <LayoutGrid className="mr-1 h-3.5 w-3.5" />
-              Grid
-            </button>
-          </div>
-
-          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
-            <div className={`flex items-center rounded p-1 ${CHROME_TOOLBAR_GROUP_CLASS}`}>
-              {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
-                <button
-                  key={value}
-                  onClick={() => {
-                    setRecordFilter(value);
-                    setCurrentPage(1);
-                  }}
-                  className={getChromeToolbarSegmentButtonClass(recordFilter === value)}
-                >
-                  {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
         {effectiveSelectedCaseId
           ? renderWorkspaceRecords(effectiveSelectedCaseId)
           : renderWorkspaceOverview()}

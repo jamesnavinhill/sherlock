@@ -21,16 +21,16 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
 }) => (
   <div className={className}>
     <section className="border border-zinc-800 bg-zinc-900/30 p-4">
-      <label className="mb-2 flex items-center text-xs font-mono uppercase text-zinc-400">
+      <label className="mb-2 flex items-center osint-meta-label">
         <Microscope className="mr-2 h-3 w-3 text-osint-primary" />
         Search Depth
       </label>
-      <p className="mb-3 text-[10px] font-mono text-zinc-600">{searchDepthHint}</p>
+      <p className="mb-3 osint-body-quiet">{searchDepthHint}</p>
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => form.setSearchDepth('STANDARD')}
-          className={`py-2 text-xs font-mono uppercase ${
+          className={`py-2 osint-meta-label-strong ${
             form.value.searchDepth === 'STANDARD' ? 'osint-button-soft' : 'osint-button-primary'
           }`}
         >
@@ -39,7 +39,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
         <button
           type="button"
           onClick={() => form.setSearchDepth('DEEP')}
-          className={`py-2 text-xs font-mono uppercase ${
+          className={`py-2 osint-meta-label-strong ${
             form.value.searchDepth === 'DEEP' ? 'osint-button-soft' : 'osint-button-primary'
           }`}
         >
@@ -49,16 +49,16 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
     </section>
 
     <section className="border border-zinc-800 bg-zinc-900/30 p-4">
-      <label className="mb-2 flex items-center text-xs font-mono uppercase text-zinc-400">
+      <label className="mb-2 flex items-center osint-meta-label">
         <Workflow className="mr-2 h-3 w-3 text-osint-primary" />
         Generation Mode
       </label>
-      <p className="mb-3 text-[10px] font-mono text-zinc-600">{generationHint}</p>
+      <p className="mb-3 osint-body-quiet">{generationHint}</p>
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => form.setGenerationMode('SINGLE_PASS')}
-          className={`py-2 text-xs font-mono uppercase ${
+          className={`py-2 osint-meta-label-strong ${
             form.value.generationMode === 'SINGLE_PASS'
               ? 'osint-button-soft'
               : 'osint-button-primary'
@@ -69,7 +69,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
         <button
           type="button"
           onClick={() => form.setGenerationMode('STAGED')}
-          className={`py-2 text-xs font-mono uppercase ${
+          className={`py-2 osint-meta-label-strong ${
             form.value.generationMode === 'STAGED' ? 'osint-button-soft' : 'osint-button-primary'
           }`}
         >

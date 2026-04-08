@@ -17,7 +17,7 @@ export const SourceList: React.FC<SourceListProps> = ({ sources, className = '',
   const remainingCount = typeof maxItems === 'number' ? Math.max(0, sources.length - maxItems) : 0;
 
   if (sources.length === 0) {
-    return <p className="text-xs text-zinc-600 font-mono italic">No sources available</p>;
+    return <p className="osint-body-quiet italic">No sources available</p>;
   }
 
   return (
@@ -28,7 +28,7 @@ export const SourceList: React.FC<SourceListProps> = ({ sources, className = '',
           href={source.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0 group"
+          className="osint-link-list-item osint-meta-value block truncate border-b border-zinc-900 p-2 last:border-0 group"
         >
           <div className="flex items-center gap-1">
             <Link2 className="w-3 h-3 flex-shrink-0" />
@@ -38,7 +38,7 @@ export const SourceList: React.FC<SourceListProps> = ({ sources, className = '',
         </a>
       ))}
       {hasMore && (
-        <p className="text-[10px] text-zinc-600 font-mono px-2">+{remainingCount} more sources</p>
+        <p className="px-2 osint-body-quiet">+{remainingCount} more sources</p>
       )}
     </div>
   );

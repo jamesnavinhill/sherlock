@@ -27,14 +27,14 @@ export const RuntimeConfigSummary: React.FC<RuntimeConfigSummaryProps> = ({
           {badges.map((badge) => (
             <span
               key={badge}
-              className="px-2 py-1 border border-zinc-700 text-[10px] font-mono uppercase text-zinc-300"
+              className="px-2 py-1 border border-zinc-700 osint-meta-label-strong text-zinc-300"
             >
               {badge}
             </span>
           ))}
         </div>
       ) : null}
-      {hint ? <p className="text-[10px] font-mono uppercase text-zinc-500">{hint}</p> : null}
+      {hint ? <p className="osint-body-quiet">{hint}</p> : null}
     </div>
   );
 };

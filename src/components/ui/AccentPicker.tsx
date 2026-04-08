@@ -77,13 +77,13 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
   return (
     <div className={containerClassName ?? 'space-y-4'}>
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs text-zinc-500 font-mono uppercase">
-          <span>Hue</span>
-          <span className="font-mono text-zinc-300">{hue}°</span>
+        <div className="flex items-center justify-between">
+          <span className="osint-meta-label">Hue</span>
+          <span className="osint-meta-value text-zinc-300">{hue} deg</span>
         </div>
         <div
           ref={hueRef}
-          className="relative h-8 rounded-full overflow-hidden border border-zinc-700"
+          className="relative h-8 overflow-hidden rounded-full border border-zinc-700"
         >
           <div className="absolute inset-0 rounded-full" style={{ background: hueTrackGradient }} />
           <input
@@ -99,7 +99,7 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
               })
             }
             title="Adjust hue"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
           <button
             aria-label="Hue thumb"
@@ -123,7 +123,7 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
                 });
               }
             }}
-            className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 border-white shadow-lg transition-transform duration-150 focus:outline-none ${
+            className={`absolute top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border-2 border-white shadow-lg transition-transform duration-150 focus:outline-none ${
               isDraggingHue ? 'scale-105 ring-2 ring-white/40' : 'hover:scale-105'
             }`}
             style={{ left: `calc(${huePercent}% - 12px)`, background: oklchColor }}
@@ -132,9 +132,9 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs text-zinc-500 font-mono uppercase">
-          <span>Lightness</span>
-          <span className="font-mono text-zinc-300">{clampedLightness.toFixed(2)}</span>
+        <div className="flex items-center justify-between">
+          <span className="osint-meta-label">Lightness</span>
+          <span className="osint-meta-value text-zinc-300">{clampedLightness.toFixed(2)}</span>
         </div>
         <div className="relative">
           <div
@@ -153,19 +153,19 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
               onChange({ hue, lightness: parseFloat(event.target.value), chroma: clampedChroma })
             }
             title="Adjust lightness"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white shadow pointer-events-none"
+            className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-white shadow"
             style={{ left: `calc(${lightnessPercent}% - 8px)`, background: oklchColor }}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs text-zinc-500 font-mono uppercase">
-          <span>Chroma</span>
-          <span className="font-mono text-zinc-300">{clampedChroma.toFixed(2)}</span>
+        <div className="flex items-center justify-between">
+          <span className="osint-meta-label">Chroma</span>
+          <span className="osint-meta-value text-zinc-300">{clampedChroma.toFixed(2)}</span>
         </div>
         <div className="relative">
           <div
@@ -184,29 +184,29 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
               onChange({ hue, lightness: clampedLightness, chroma: parseFloat(event.target.value) })
             }
             title="Adjust chroma"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-white shadow pointer-events-none"
+            className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-white shadow"
             style={{ left: `calc(${chromaPercent}% - 8px)`, background: oklchColor }}
           />
         </div>
       </div>
 
-      {showPreview && (
-        <div className="flex items-center gap-3 pt-3 border-t border-zinc-800">
+      {showPreview ? (
+        <div className="flex items-center gap-3 border-t border-zinc-800 pt-3">
           <div
-            className="w-10 h-10 rounded-xl border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]"
+            className="h-10 w-10 rounded-xl border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]"
             style={{ background: oklchColor }}
           />
           <div className="flex-1">
-            <div className="text-sm font-bold text-white font-mono uppercase">{previewLabel}</div>
-            <div className="text-[10px] text-zinc-500 font-mono">
+            <div className="osint-meta-label-strong text-white">{previewLabel}</div>
+            <div className="osint-meta-value text-zinc-500">
               oklch({clampedLightness.toFixed(2)} {clampedChroma.toFixed(2)} {hue})
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

@@ -23,6 +23,9 @@
   --osint-text-strong: color-mix(in oklab, var(--osint-ink) 44%, var(--osint-text));
   --osint-text-heading: color-mix(in oklab, var(--osint-ink) 56%, var(--osint-text));
   --osint-text-action: color-mix(in oklab, var(--osint-ink) 92%, var(--osint-primary) 8%);
+  --osint-text-meta: color-mix(in oklab, var(--osint-text) 72%, var(--osint-dark));
+  --osint-text-muted: color-mix(in oklab, var(--osint-text) 84%, var(--osint-ink) 16%);
+  --osint-text-quiet: color-mix(in oklab, var(--osint-text) 70%, var(--osint-dark));
   --font-sans: 'Space Grotesk', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
   --font-label: 'IBM Plex Mono', monospace;
@@ -64,6 +67,9 @@
   --osint-text-strong: color-mix(in oklab, var(--osint-ink) 74%, var(--osint-text));
   --osint-text-heading: var(--osint-ink);
   --osint-text-action: var(--osint-ink);
+  --osint-text-meta: color-mix(in oklab, var(--osint-ink) 56%, var(--osint-text));
+  --osint-text-muted: color-mix(in oklab, var(--osint-ink) 74%, var(--osint-text));
+  --osint-text-quiet: color-mix(in oklab, var(--osint-ink) 62%, var(--osint-text));
 
   /* Light mode remap for existing dark-first utility usage */
   --color-zinc-950: color-mix(
@@ -820,7 +826,7 @@ body,
 }
 
 .osint-eyebrow {
-  color: color-mix(in oklab, var(--osint-text) 80%, var(--osint-ink) 20%);
+  color: var(--osint-text-meta);
   font-family: var(--font-label);
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-label);
@@ -829,7 +835,7 @@ body,
 }
 
 .osint-meta-label {
-  color: color-mix(in oklab, var(--osint-text) 72%, var(--osint-dark));
+  color: var(--osint-text-meta);
   font-family: var(--font-label);
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-label);
@@ -912,14 +918,14 @@ body,
 }
 
 .osint-body-muted {
-  color: color-mix(in oklab, var(--osint-text) 84%, var(--osint-ink) 16%);
+  color: var(--osint-text-muted);
   font-family: var(--font-sans);
   font-size: var(--font-size-sm);
   line-height: 1.65;
 }
 
 .osint-body-quiet {
-  color: color-mix(in oklab, var(--osint-text) 70%, var(--osint-dark));
+  color: var(--osint-text-quiet);
   font-family: var(--font-sans);
   font-size: var(--font-size-xs);
   line-height: 1.55;
@@ -933,7 +939,7 @@ body,
 }
 
 .osint-menu-section-label {
-  color: color-mix(in oklab, var(--osint-text) 72%, var(--osint-dark));
+  color: var(--osint-text-meta);
   font-family: var(--font-label);
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-label);
@@ -950,7 +956,7 @@ body,
 }
 
 .osint-menu-item-description {
-  color: color-mix(in oklab, var(--osint-text) 78%, var(--osint-dark));
+  color: var(--osint-text-quiet);
   font-family: var(--font-sans);
   font-size: var(--font-size-2xs);
   line-height: 1.5;

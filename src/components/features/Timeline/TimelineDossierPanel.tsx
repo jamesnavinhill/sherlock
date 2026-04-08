@@ -66,12 +66,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
     }`}
   >
     <div className="border-b border-zinc-800 px-4 py-3">
-      <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
-        Timeline Dossier
-      </div>
-      <div className="mt-1 text-sm font-bold uppercase tracking-widest text-white">
-        {workspaceTitle}
-      </div>
+      <div className="osint-meta-label">Timeline Dossier</div>
+      <div className="mt-1 osint-meta-label-strong text-white">{workspaceTitle}</div>
     </div>
 
     <div className="h-[calc(100%-72px)] overflow-y-auto p-3 custom-scrollbar">
@@ -112,7 +108,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
       >
         <div className="space-y-2">
           {runItems.length === 0 ? (
-            <div className="px-3 py-2 text-[11px] font-mono text-zinc-600">
+            <div className="px-3 py-2 osint-body-quiet">
               No workspace runs available yet.
             </div>
           ) : (
@@ -122,8 +118,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('RUN', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate font-bold text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-500">
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
                   {item.badges?.[0] || 'RUN'}
                 </div>
               </button>
@@ -142,7 +138,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
       >
         <div className="space-y-2">
           {artifactItems.length === 0 ? (
-            <div className="px-3 py-2 text-[11px] font-mono text-zinc-600">
+            <div className="px-3 py-2 osint-body-quiet">
               No saved {labelProfile.artifactLabelPlural.toLowerCase()} yet.
             </div>
           ) : (
@@ -152,8 +148,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('ARTIFACT', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate font-bold text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-500">
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
                   {item.badges?.join(' / ') || labelProfile.artifactLabel}
                 </div>
               </button>
@@ -172,7 +168,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
       >
         <div className="space-y-2">
           {signalItems.length === 0 ? (
-            <div className="px-3 py-2 text-[11px] font-mono text-zinc-600">
+            <div className="px-3 py-2 osint-body-quiet">
               No saved signals in this workspace yet.
             </div>
           ) : (
@@ -182,8 +178,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('SIGNAL', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate font-bold text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-500">
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
                   {item.badges?.join(' / ') || 'Signal'}
                 </div>
               </button>
@@ -202,7 +198,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
       >
         <div className="space-y-2">
           {entityItems.length === 0 ? (
-            <div className="px-3 py-2 text-[11px] font-mono text-zinc-600">
+            <div className="px-3 py-2 osint-body-quiet">
               No entity milestones in this workspace yet.
             </div>
           ) : (
@@ -212,8 +208,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('ENTITY', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate font-bold text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-500">
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
                   {item.badges?.join(' / ') || 'ENTITY'}
                 </div>
               </button>
@@ -232,7 +228,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
       >
         <div className="space-y-2">
           {chatSessionItems.length === 0 ? (
-            <div className="px-3 py-2 text-[11px] font-mono text-zinc-600">
+            <div className="px-3 py-2 osint-body-quiet">
               No workspace chats available yet.
             </div>
           ) : (
@@ -242,8 +238,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('CHAT', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate font-bold text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-500">
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
                   {item.badges?.join(' / ') || 'CHAT'}
                 </div>
               </button>

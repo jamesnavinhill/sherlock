@@ -42,18 +42,18 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
       <div className={className}>
         {showProvider ? (
           <section className="border border-zinc-800 bg-zinc-900/30 p-4">
-            <label className="mb-2 flex items-center text-xs font-mono uppercase text-zinc-400">
+            <label className="mb-2 flex items-center osint-meta-label">
               <Cpu className="mr-2 h-3 w-3 text-osint-primary" />
               {providerLabel}
             </label>
             {providerHint ? (
-              <p className="mb-3 text-[10px] font-mono text-zinc-600">{providerHint}</p>
+              <p className="mb-3 osint-body-quiet">{providerHint}</p>
             ) : null}
             <OsintSelect
               ariaLabel={providerAriaLabel}
               value={form.value.provider}
               onChange={(value) => form.setProvider(value as typeof form.value.provider)}
-              triggerClassName="p-2 pr-8 font-mono text-xs"
+              triggerClassName="p-2 pr-8 osint-meta-value"
               options={form.providerOptions.map((provider) => ({
                 value: provider.id,
                 label: provider.label,
@@ -63,12 +63,12 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
         ) : null}
 
         <section className="border border-zinc-800 bg-zinc-900/30 p-4">
-          <label className="mb-2 flex items-center text-xs font-mono uppercase text-zinc-400">
+          <label className="mb-2 flex items-center osint-meta-label">
             <Cpu className="mr-2 h-3 w-3 text-osint-primary" />
             {modelLabel}
           </label>
           {showModelHint ? (
-            <p className="mb-2 text-[10px] font-mono text-zinc-600">
+            <p className="mb-2 osint-body-quiet">
               {modelHint || `Selected provider: ${form.providerMeta?.label || form.value.provider}`}
             </p>
           ) : null}
@@ -78,7 +78,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
                 ariaLabel={modelAriaLabel}
                 value={form.activeModelId}
                 onChange={form.setModelId}
-                triggerClassName="p-2 pr-8 font-mono text-xs"
+                triggerClassName="p-2 pr-8 osint-meta-value"
                 options={form.selectableModels.map((model) => ({
                   value: model.id,
                   label: `${model.name} - ${model.description}`,
@@ -89,13 +89,13 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
               <button
                 type="button"
                 onClick={() => form.setShowOpenRouterBrowser(true)}
-                className="border border-zinc-700 px-3 py-2 text-[10px] font-mono uppercase text-zinc-300 transition-colors hover:border-white hover:text-white"
+                className="border border-zinc-700 px-3 py-2 osint-meta-label-strong text-zinc-300 transition-colors hover:border-white hover:text-white"
               >
                 Browse
               </button>
             ) : null}
           </div>
-          <p className="mt-2 text-[10px] font-mono text-zinc-600">Capabilities: {capabilityText}.</p>
+          <p className="mt-2 osint-body-quiet">Capabilities: {capabilityText}.</p>
         </section>
       </div>
 
