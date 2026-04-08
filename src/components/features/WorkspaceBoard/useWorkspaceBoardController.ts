@@ -43,6 +43,22 @@ import {
   ingestWorkspaceFiles,
 } from './workspaceBoardItemActions';
 import { runWorkspaceBoardAgentTurn } from './workspaceBoardAgent';
+import {
+  getBoardAgentReviewDefaultSelection,
+  isBoardAgentLowRiskOrganizationActionType,
+} from '@/services/workspace/agent';
+import type {
+  BoardAgentReviewDecision,
+  BoardAgentReviewRequest,
+} from '@/services/workspace/agent';
+
+interface BoardAgentReviewState {
+  sessionId: string;
+  passIndex: number;
+  actionIds: string[];
+  message: string;
+  phase: 'REVIEW' | 'EXECUTING' | 'COMPLETE' | 'CANCELLED';
+}
 
 interface UseWorkspaceBoardControllerInput {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -94,9 +110,17 @@ export const useWorkspaceBoardController = ({
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [boardAgentBusy, setBoardAgentBusy] = useState(false);
+  const [boardAgentAutoApproveOrganizationActions, setBoardAgentAutoApproveOrganizationActions] =
+    useState(false);
   const [boardAgentPrompt, setBoardAgentPrompt] = useState('');
   const [boardAgentMessage, setBoardAgentMessage] = useState<string | null>(null);
   const [boardAgentActiveSessionId, setBoardAgentActiveSessionId] = useState<string | null>(null);
+  const [boardAgentReviewState, setBoardAgentReviewState] = useState<BoardAgentReviewState | null>(
+    null
+  );
+  const [boardAgentReviewSelections, setBoardAgentReviewSelections] = useState<
+    Record<string, boolean>
+  >({});
   const [boardPendingDeletion, setBoardPendingDeletion] = useState<{
     id: string;
     name: string;
@@ -124,6 +148,9 @@ export const useWorkspaceBoardController = ({
   });
   const [rightPanelView, setRightPanelView] = useState<RightPanelView>('AGENT');
   const boardAgentAbortRef = useRef<AbortController | null>(null);
+  const boardAgentReviewResolveRef = useRef<((decision: BoardAgentReviewDecision) => void) | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const autoPlacementRef = useRef<{ boardId: string | null; index: number }>({
     boardId: null,
@@ -180,6 +207,16 @@ export const useWorkspaceBoardController = ({
       workspaces,
     ]
   );
+
+  const boardAgentReviewActions = useMemo(() => {
+    if (!boardAgentReviewState) return [];
+    const sessionActions = boardAgentActionsBySessionId[boardAgentReviewState.sessionId] || [];
+    const actionMap = new Map(sessionActions.map((action) => [action.id, action]));
+
+    return boardAgentReviewState.actionIds
+      .map((actionId) => actionMap.get(actionId))
+      .filter((action): action is NonNullable<typeof action> => !!action);
+  }, [boardAgentActionsBySessionId, boardAgentReviewState]);
 
   const rightPanelTabButtonClass = (view: RightPanelView) =>
     `inline-flex h-9 flex-1 items-center justify-center border px-4 text-xs font-mono uppercase transition ${
@@ -291,6 +328,9 @@ export const useWorkspaceBoardController = ({
   useEffect(() => {
     setBoardAgentActiveSessionId(null);
     setBoardAgentMessage(null);
+    setBoardAgentReviewState(null);
+    setBoardAgentReviewSelections({});
+    boardAgentReviewResolveRef.current = null;
   }, [activeBoard?.id, activeWorkspace?.id]);
 
   useEffect(() => {
@@ -305,6 +345,11 @@ export const useWorkspaceBoardController = ({
   useEffect(
     () => () => {
       boardAgentAbortRef.current?.abort();
+      boardAgentReviewResolveRef.current?.({
+        approvedActionIds: [],
+        cancelled: true,
+      });
+      boardAgentReviewResolveRef.current = null;
       void persistCurrentBoardDocument();
     },
     [persistCurrentBoardDocument]
@@ -510,7 +555,129 @@ export const useWorkspaceBoardController = ({
   const handleCancelBoardAgent = useCallback(() => {
     boardAgentAbortRef.current?.abort();
     boardAgentAbortRef.current = null;
+    setBoardAgentReviewState((current) =>
+      current
+        ? {
+            ...current,
+            phase: 'CANCELLED',
+          }
+        : current
+    );
+    boardAgentReviewResolveRef.current?.({
+      approvedActionIds: [],
+      cancelled: true,
+    });
+    boardAgentReviewResolveRef.current = null;
   }, []);
+
+  const requestBoardAgentReview = useCallback(
+    async (request: BoardAgentReviewRequest) =>
+      await new Promise<BoardAgentReviewDecision>((resolve) => {
+        boardAgentReviewResolveRef.current = resolve;
+        setRightPanelOpen(true);
+        setRightPanelView('AGENT');
+        setAgentSections((current) => ({
+          ...current,
+          actions: true,
+          session: true,
+        }));
+        setBoardAgentReviewSelections(
+          Object.fromEntries(
+            request.actions.map((action) => [
+              action.id,
+              request.defaultSelectedActionIds.includes(action.id),
+            ])
+          )
+        );
+        setBoardAgentReviewState({
+          sessionId: request.session.id,
+          passIndex: request.passIndex,
+          actionIds: request.actions.map((action) => action.id),
+          message: request.message,
+          phase: 'REVIEW',
+        });
+      }),
+    []
+  );
+
+  const handleBoardAgentReviewSelectionChange = useCallback(
+    (actionId: string, selected: boolean) => {
+      setBoardAgentReviewSelections((current) => ({
+        ...current,
+        [actionId]: selected,
+      }));
+    },
+    []
+  );
+
+  const handleBoardAgentAutoApproveOrganizationActionsChange = useCallback(
+    (value: boolean) => {
+      setBoardAgentAutoApproveOrganizationActions(value);
+      if (!boardAgentReviewState || boardAgentReviewState.phase !== 'REVIEW') {
+        return;
+      }
+
+      setBoardAgentReviewSelections((current) => {
+        const next = { ...current };
+        for (const action of boardAgentReviewActions) {
+          if (!isBoardAgentLowRiskOrganizationActionType(action.type)) continue;
+          next[action.id] = getBoardAgentReviewDefaultSelection(action.type, value);
+        }
+        return next;
+      });
+    },
+    [boardAgentReviewActions, boardAgentReviewState]
+  );
+
+  const handleApproveBoardAgentPlan = useCallback(() => {
+    if (!boardAgentReviewState || !boardAgentReviewResolveRef.current) return;
+
+    const approvedActionIds = boardAgentReviewState.actionIds.filter(
+      (actionId) => boardAgentReviewSelections[actionId]
+    );
+    const skippedActionIds = boardAgentReviewState.actionIds.filter(
+      (actionId) => !boardAgentReviewSelections[actionId]
+    );
+
+    setBoardAgentReviewState((current) =>
+      current
+        ? {
+            ...current,
+            phase: 'EXECUTING',
+          }
+        : current
+    );
+
+    const resolve = boardAgentReviewResolveRef.current;
+    boardAgentReviewResolveRef.current = null;
+    resolve({
+      approvedActionIds,
+      skippedActionIds,
+    });
+  }, [boardAgentReviewSelections, boardAgentReviewState]);
+
+  const handleSkipBoardAgentPlan = useCallback(() => {
+    if (!boardAgentReviewState || !boardAgentReviewResolveRef.current) return;
+
+    setBoardAgentReviewSelections(
+      Object.fromEntries(boardAgentReviewState.actionIds.map((actionId) => [actionId, false]))
+    );
+    setBoardAgentReviewState((current) =>
+      current
+        ? {
+            ...current,
+            phase: 'EXECUTING',
+          }
+        : current
+    );
+
+    const resolve = boardAgentReviewResolveRef.current;
+    boardAgentReviewResolveRef.current = null;
+    resolve({
+      approvedActionIds: [],
+      skippedActionIds: [...boardAgentReviewState.actionIds],
+    });
+  }, [boardAgentReviewState]);
 
   const handleRunBoardAgent = useCallback(async () => {
     if (!activeWorkspace || !activeBoard || !editorRef.current) return;
@@ -531,6 +698,8 @@ export const useWorkspaceBoardController = ({
     setRightPanelView('AGENT');
     setBoardAgentBusy(true);
     setBoardAgentMessage(null);
+    setBoardAgentReviewState(null);
+    setBoardAgentReviewSelections({});
 
     try {
       const result = await runWorkspaceBoardAgentTurn({
@@ -554,6 +723,7 @@ export const useWorkspaceBoardController = ({
           .sort((left, right) => right.createdAt - left.createdAt)
           .slice(0, 24),
         signal: abortController.signal,
+        autoApproveOrganizationActions: boardAgentAutoApproveOrganizationActions,
         createBoardAgentSession,
         updateBoardAgentSession,
         addBoardAgentAction,
@@ -562,6 +732,7 @@ export const useWorkspaceBoardController = ({
         createWorkspaceItem,
         saveArtifact,
         appendSectionToReport,
+        requestReview: requestBoardAgentReview,
         launchInvestigation: async (launchRequest) => {
           onLaunchInvestigation({
             ...launchRequest,
@@ -585,6 +756,14 @@ export const useWorkspaceBoardController = ({
 
       setBoardAgentActiveSessionId(result.session.id);
       setBoardAgentMessage(result.message || null);
+      setBoardAgentReviewState((current) =>
+        current && current.sessionId === result.session.id
+          ? {
+              ...current,
+              phase: result.status === 'CANCELLED' ? 'CANCELLED' : 'COMPLETE',
+            }
+          : current
+      );
 
       if (result.status === 'FAILED') {
         addToast(result.session.lastError || 'Board-agent run failed.', 'ERROR');
@@ -600,6 +779,7 @@ export const useWorkspaceBoardController = ({
       );
     } finally {
       boardAgentAbortRef.current = null;
+      boardAgentReviewResolveRef.current = null;
       setBoardAgentBusy(false);
     }
   }, [
@@ -609,6 +789,7 @@ export const useWorkspaceBoardController = ({
     addBoardAgentAction,
     addToast,
     appendSectionToReport,
+    boardAgentAutoApproveOrganizationActions,
     boardAgentActionsBySessionId,
     boardAgentPrompt,
     boardSessionsForBoard,
@@ -624,6 +805,7 @@ export const useWorkspaceBoardController = ({
     workspaceArtifacts,
     workspaceHeadlines,
     editorRef,
+    requestBoardAgentReview,
   ]);
 
   const handleBoardAgentComposerKeyDown = useCallback(
@@ -751,9 +933,13 @@ export const useWorkspaceBoardController = ({
     agentSections,
     availableBoards,
     boardAgentActiveSessionId,
+    boardAgentAutoApproveOrganizationActions,
     boardAgentBusy,
     boardAgentMessage,
     boardAgentPrompt,
+    boardAgentReviewActions,
+    boardAgentReviewSelections,
+    boardAgentReviewState,
     boardAgentTodoItems,
     boardPendingDeletion,
     confirmDeleteCreatedItem,
@@ -764,6 +950,8 @@ export const useWorkspaceBoardController = ({
     fileInputRef,
     groupedEntries,
     handleBoardAgentComposerKeyDown,
+    handleBoardAgentReviewSelectionChange,
+    handleApproveBoardAgentPlan,
     handleCanvasDrop,
     handleCancelBoardAgent,
     handleCreateBoard,
@@ -775,6 +963,7 @@ export const useWorkspaceBoardController = ({
     handleGenerateNote,
     handleGenerateSummary,
     handleRunBoardAgent,
+    handleSkipBoardAgentPlan,
     handleSubmitCreateModal,
     handleWorkspaceChange,
     hydratedSnapshot,
@@ -795,6 +984,8 @@ export const useWorkspaceBoardController = ({
     selectedHeadline,
     selectedPrimaryEntry,
     selectedWorkspaceItem,
+    setBoardAgentAutoApproveOrganizationActions:
+      handleBoardAgentAutoApproveOrganizationActionsChange,
     setBoardAgentPrompt,
     setBoardPendingDeletion,
     setCreateModal,

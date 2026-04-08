@@ -367,8 +367,8 @@ Operation View now also includes board handoff for the active artifact plus insp
 - presentation mode plus manual-first AI actions for selection summaries and drafted board notes
 - Sherlock-owned board-agent groundwork under `src/services/workspace/agent/*`, including pure snapshot parsing and prompt-part context assembly for selected, visible, and linked board state
 - a board-agent runtime wrapper that turns persisted board state plus bounded prompt parts into provider-router `BOARD_AGENT` requests
-- a board-agent session runner and action registry that execute safe board actions plus Sherlock-aware canonical writes against the live `tldraw` editor while persisting audit status updates in `board_agent_actions`
-- board inspector request entry, live task state, todo tracking, cancellation, and recent action audit history for the latest board-agent session
+- a board-agent session runner and action registry that persist planned actions into `board_agent_actions`, pause for approval-first review, then execute safe board actions plus Sherlock-aware canonical writes against the live `tldraw` editor while persisting `AWAITING_APPROVAL`, `SKIPPED`, `COMPLETED`, and `FAILED` audit state transitions
+- board inspector request entry, starter-intent menu, low-risk auto-approve toggle, review-sheet previews, todo tracking, cancellation, and action receipt/history for the latest board-agent session
 - cross-surface placement handoff respects presentation mode rather than mutating readonly boards
 - inspector actions back into reports, workspace chat, timeline, network graph, source links, and promoted-item provenance
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system
@@ -404,6 +404,9 @@ Operation View now also includes board handoff for the active artifact plus insp
 
 `ReportViewer` now renders:
 
+- artifact-type-aware reading highlights before the main body so briefs, syntheses, comparisons, monitor snapshots, and timelines foreground different first-pass questions
+- a provenance summary strip with artifact type, source/evidence/citation counts, and warning visibility before the deeper accordion detail rail
+- inline section-level evidence/source cues for sections that have explicit evidence linkage
 - typed summary sections
 - supplemental sections such as findings, methodology, implications, or timeline
 - compatibility-mapped lead and anomaly sections for legacy artifacts

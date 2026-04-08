@@ -4,7 +4,7 @@ Date: April 7, 2026
 
 Status: In Progress
 
-Progress note (April 8, 2026): Workstreams 0-2 are now landed in code/docs on this branch. Remaining scope in this plan starts at Workstream 3.
+Progress note (April 8, 2026): Workstreams 0-3 are now landed in code/docs on this branch. Remaining scope in this plan starts at Workstream 4.
 
 Related inputs:
 

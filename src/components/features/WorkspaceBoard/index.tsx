@@ -42,9 +42,13 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     aiSummary,
     agentSections,
     availableBoards,
+    boardAgentAutoApproveOrganizationActions,
     boardAgentBusy,
     boardAgentMessage,
     boardAgentPrompt,
+    boardAgentReviewActions,
+    boardAgentReviewSelections,
+    boardAgentReviewState,
     boardAgentTodoItems,
     boardPendingDeletion,
     confirmDeleteCreatedItem,
@@ -53,6 +57,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     fileInputRef,
     groupedEntries,
     handleBoardAgentComposerKeyDown,
+    handleBoardAgentReviewSelectionChange,
+    handleApproveBoardAgentPlan,
     handleCanvasDrop,
     handleCancelBoardAgent,
     handleCreateBoard,
@@ -64,6 +70,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     handleGenerateNote,
     handleGenerateSummary,
     handleRunBoardAgent,
+    handleSkipBoardAgentPlan,
     handleSubmitCreateModal,
     handleWorkspaceChange,
     hydratedSnapshot,
@@ -80,6 +87,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     search,
     selectedEntries,
     selectedWorkspaceItem,
+    setBoardAgentAutoApproveOrganizationActions,
     setBoardAgentPrompt,
     setBoardPendingDeletion,
     setCreateModal,
@@ -243,16 +251,29 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               agentSections={agentSections}
               selectedEntries={selectedEntries}
               aiSummary={aiSummary}
+              boardAgentAutoApproveOrganizationActions={
+                boardAgentAutoApproveOrganizationActions
+              }
               boardAgentMessage={boardAgentMessage}
+              boardAgentReviewActions={boardAgentReviewActions}
+              boardAgentReviewSelections={boardAgentReviewSelections}
+              boardAgentReviewState={boardAgentReviewState}
               boardAgentTodoItems={boardAgentTodoItems}
               boardAgentBusy={boardAgentBusy}
               boardAgentPrompt={boardAgentPrompt}
               visibleBoardAgentActions={visibleBoardAgentActions}
               visibleBoardAgentSession={visibleBoardAgentSession}
+              onApprovePlan={handleApproveBoardAgentPlan}
               onPromptChange={setBoardAgentPrompt}
+              onReviewSelectionChange={handleBoardAgentReviewSelectionChange}
+              onSelectStarterIntent={setBoardAgentPrompt}
+              onSkipPlan={handleSkipBoardAgentPlan}
               onToggleContext={() => toggleAgentSection('context')}
               onToggleSession={() => toggleAgentSection('session')}
               onToggleActions={() => toggleAgentSection('actions')}
+              onToggleAutoApproveOrganizationActions={
+                setBoardAgentAutoApproveOrganizationActions
+              }
               onAttachFiles={() => fileInputRef.current?.click()}
               onRunAgent={() => {
                 void handleRunBoardAgent();

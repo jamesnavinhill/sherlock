@@ -54,7 +54,7 @@ Adapters in scope:
 - Chat stop/cancel: aborts the active provider request and persists the turn as cancelled if a final answer was not completed.
 - Board agent stop/cancel: aborts the active provider request and marks the active board-agent session as `CANCELLED`. Completed actions remain in the audit trail; future passes are not scheduled after cancellation.
 - Chat actions: retrieval/save/follow-up operations are persisted in `chat_actions`; use them when confirming what the system actually did for a user.
-- Board agent actions: provider output is normalized into explicit structured actions, persisted as `board_agent_actions`, and now executed through a Sherlock-owned sanitization/registry layer. When debugging board-agent incidents, capture both the provider-normalized action payload and the persisted `status`, `normalizedInput`, `result`, and `error` fields.
+- Board agent actions: provider output is normalized into explicit structured actions, persisted as `board_agent_actions`, and now routed through an approval-first review step before execution. When debugging board-agent incidents, capture both the provider-normalized action payload and the persisted `status`, `normalizedInput`, `result`, and `error` fields, including whether an action stayed `AWAITING_APPROVAL`, was `SKIPPED` during review, or completed with a queued follow-up prompt in the receipt payload.
 - Research Workspace AI actions: selection summaries and drafted board notes reuse the same provider router with explicit manual triggers only. Failures surface inline/toast-side and do not auto-reorganize the board or create silent persistence side effects. Presentation mode blocks board-mutating placement flows until the operator returns the board to edit mode.
 - Timeline audit: persisted chat sessions and high-signal `chat_actions` now surface in `Timeline`, so operator verification can cross-check Chat's action log against the workspace chronology.
 - Thinking budget: model-gated. Do not assume it is available just because the provider supports some reasoning-capable models.
@@ -107,6 +107,12 @@ This distinction is important when diagnosing "why data still appeared" in feed/
 4. For OpenRouter incidents, retry with web search disabled once to separate provider/model issues from search-tool issues.
 5. If the artifact shows provenance warnings, capture them before retrying because they often explain unsupported engine/filter combinations.
 6. Capture logs and failing input for escalation.
+
+For artifact legibility regressions:
+
+1. Confirm the artifact-type highlight strip matches the saved `artifactType`.
+2. Confirm the provenance summary strip count changes still match the artifact's saved `sources`, `evidence`, `citations`, and warning payloads.
+3. If inline section evidence cues are missing, inspect `artifact_evidence.sectionId` values before assuming the viewer lost provenance data.
 
 ## 7. Escalation Artifact Checklist
 

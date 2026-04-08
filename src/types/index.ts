@@ -304,6 +304,7 @@ export type BoardAgentRequestState =
   | 'QUEUED'
   | 'ASSEMBLING_CONTEXT'
   | 'STREAMING'
+  | 'AWAITING_APPROVAL'
   | 'EXECUTING_ACTIONS'
   | 'COMPLETED'
   | 'FAILED'
@@ -332,10 +333,12 @@ export type BoardAgentActionType =
 
 export type BoardAgentActionStatus =
   | 'PENDING'
+  | 'AWAITING_APPROVAL'
   | 'RUNNING'
   | 'COMPLETED'
   | 'FAILED'
   | 'CANCELLED'
+  | 'SKIPPED'
   | 'REJECTED';
 
 export type BoardAgentContextPartKind =

@@ -8,11 +8,30 @@ const reportFixture: Artifact = {
   caseId: 'case-1',
   topic: 'Atlas Contract Network',
   summary: 'Fallback summary',
+  artifactType: 'SYNTHESIS',
   agendas: ['Award timing clusters across overlapping vendors.'],
   leads: [],
   followUps: [],
   entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
   sources: [{ title: 'Registry', url: 'https://example.com/registry' }],
+  evidence: [
+    {
+      id: 'evidence-1',
+      kind: 'FINDING',
+      title: 'Procurement record',
+      summary: 'The procurement record ties Atlas to overlapping awards.',
+      sourceTitle: 'Registry',
+      sourceUrl: 'https://example.com/registry',
+      sectionId: 'section-executive_summary-0',
+    },
+  ],
+  provenance: {
+    provider: 'OPENAI',
+    modelId: 'gpt-test',
+    generatedAt: '2026-04-08T12:00:00.000Z',
+    warnings: ['One source could not be fully verified.'],
+    citations: [{ url: 'https://example.com/registry', title: 'Registry' }],
+  },
   rawText: 'raw',
   sections: [
     {
@@ -61,9 +80,12 @@ describe('ReportViewer', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'REPORT' })).toBeInTheDocument();
-    expect(screen.getByText('This is the fuller report body.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Synthesis/i })).toBeInTheDocument();
+    expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
+    expect(screen.getByText('Synthesis Reading Pattern')).toBeInTheDocument();
+    expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Registry').length).toBeGreaterThan(0);
     expect(screen.queryByText('Follow-Up Questions')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Collapse Report Details' }));
@@ -80,6 +102,9 @@ describe('ReportViewer', () => {
       screen.getByText('Trace shared directors across the vendor cluster.')
     ).toBeInTheDocument();
     expect(screen.queryByText('Atlas Holdings')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Provenance (2)' }));
+    expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Entities (1)' }));
     expect(screen.getByText('Atlas Holdings')).toBeInTheDocument();

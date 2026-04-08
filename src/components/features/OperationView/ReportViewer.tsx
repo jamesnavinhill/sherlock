@@ -26,7 +26,6 @@ import {
   getPurposeProfileById,
   getSectionByKinds,
   getSectionItemsByKinds,
-  orderArtifactSections,
   stripLegacyWorkspacePrefix,
 } from '../../../domain';
 import { Breadcrumbs } from '../../ui/Breadcrumbs';
@@ -37,6 +36,7 @@ import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import { Accordion } from '../../ui/Accordion';
 import { getEntityToneClass } from '../../../utils/entityPalette';
+import { buildReportViewerPresentation } from './reportViewerPresentation';
 
 interface ReportViewerProps {
   report: Artifact | null;
@@ -192,7 +192,14 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const detailPanelTitle = workspaceTitle?.trim()
     ? stripLegacyWorkspacePrefix(workspaceTitle)
     : navStack.find((item) => item.type === 'CASE')?.label || labelProfile.workspaceLabel;
-  const orderedSections = orderArtifactSections(report?.sections, purposeProfile);
+  const {
+    artifactTypeLabel,
+    evidenceBySectionId,
+    orderedSections,
+    provenanceSummary,
+    readingHighlights,
+    visibleEvidence,
+  } = buildReportViewerPresentation(report, purposeProfile);
   const primarySummarySection = getSectionByKinds(orderedSections, [
     'EXECUTIVE_SUMMARY',
     'KEY_FINDINGS',
@@ -218,9 +225,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     report?.agendas && report.agendas.length > 0
       ? report.agendas
       : getSectionItemsByKinds(orderedSections, ['ANOMALIES', 'KEY_FINDINGS']);
-  const visibleEvidence = (report?.evidence || []).filter(
-    (entry) => entry.summary.trim().length > 0
-  );
   const hiddenSectionKinds = new Set(
     [
         primarySummarySection?.kind,
@@ -366,12 +370,54 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         </div>
 
         <div className="p-6">
+          <div className="mb-6 border border-zinc-800 bg-zinc-950/80 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+              <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                {artifactTypeLabel} Reading Pattern
+              </div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+                Provenance at a glance
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="grid gap-3 md:grid-cols-3">
+                {readingHighlights.map((highlight) => (
+                  <div key={highlight.label} className="border border-zinc-800 bg-black/40 p-3">
+                    <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+                      {highlight.label}
+                    </div>
+                    <div className="mt-2 text-sm leading-6 text-zinc-200">{highlight.value}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {provenanceSummary.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className={`border p-3 ${
+                      stat.tone === 'WARNING'
+                        ? 'border-red-400/30 bg-red-500/10'
+                        : stat.tone === 'ACCENT'
+                          ? 'border-osint-primary/30 bg-osint-primary/10'
+                          : 'border-zinc-800 bg-black/40'
+                    }`}
+                  >
+                    <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
+                      {stat.label}
+                    </div>
+                    <div className="mt-2 text-sm text-zinc-100">{stat.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Report Body */}
           <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 osint-section-shadow relative overflow-hidden group mb-8">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
             <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
               <h2 className="font-osint-display text-xl font-bold text-white flex items-center tracking-wide">
-                <FileText className="w-5 h-5 mr-3 text-osint-primary" /> REPORT
+                <FileText className="w-5 h-5 mr-3 text-osint-primary" /> {artifactTypeLabel}
               </h2>
               <div className="flex items-center gap-2">
                 {isEditingReportBody ? (
@@ -423,6 +469,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 </button>
               </div>
             </div>
+            {primarySummarySection && (evidenceBySectionId[primarySummarySection.id] || []).length > 0 ? (
+              <div className="relative z-10 mb-4 flex flex-wrap gap-2">
+                {evidenceBySectionId[primarySummarySection.id].slice(0, 4).map((evidence) => (
+                  <span
+                    key={evidence.id}
+                    className="rounded-none border border-osint-primary/30 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] text-osint-primary"
+                  >
+                    {evidence.sourceTitle || evidence.title}
+                  </span>
+                ))}
+              </div>
+            ) : null}
             {isEditingReportBody ? (
               <textarea
                 value={reportBodyDraft}
@@ -446,6 +504,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   methodologySection.title
                 )}
               </h3>
+              {(evidenceBySectionId[methodologySection.id] || []).length > 0 ? (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {evidenceBySectionId[methodologySection.id].slice(0, 3).map((evidence) => (
+                    <span
+                      key={evidence.id}
+                      className="rounded-none border border-osint-primary/30 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] text-osint-primary"
+                    >
+                      {evidence.sourceTitle || evidence.title}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
               {renderSectionBody(methodologySection)}
             </div>
           )}
@@ -507,6 +577,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-white mb-3">
                     {getArtifactSectionTitle(section.kind, labelProfile, section.title)}
                   </h3>
+                  {(evidenceBySectionId[section.id] || []).length > 0 ? (
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      {evidenceBySectionId[section.id].slice(0, 3).map((evidence) => (
+                        <span
+                          key={evidence.id}
+                          className="rounded-none border border-osint-primary/30 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] text-osint-primary"
+                        >
+                          {evidence.sourceTitle || evidence.title}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   {renderSectionBody(section)}
                 </div>
               ))}

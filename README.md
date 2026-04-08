@@ -9,7 +9,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Runs workspace-grounded chat through the same provider router with persisted sessions, message history, streaming output, and stop support
 - Exposes one workspace omnibox for routes, workspaces, saved timeline views, artifacts, items, chats, runs, and signals, with durable recent destinations plus in-context board/timeline/network focus and chat/board/timeline/network/files handoff actions
 - Provides a dedicated multi-board research workspace built on `tldraw`, with a canonical library for artifacts, entities, sources, signals, notes, links, files/media, and promoted chat excerpts
-- Executes Sherlock board-agent sessions that can place and organize board items, create canonical notes/excerpts/artifact drafts, launch follow-up runs, and continue through explicit review/follow-up actions while keeping an auditable action log
+- Executes Sherlock board-agent sessions through an approval-first review sheet that previews planned actions, supports an auto-approve toggle for low-risk organization moves, and leaves auditable action receipts for completed, skipped, failed, and queued follow-up work
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
 - Maintains a unified launch pipeline across Finder, Operation View, Live Monitor, Network Graph, and chat follow-up flows
 - Resolves built-in domain packs and purpose profiles into run metadata and prompt behavior
@@ -24,9 +24,9 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 
 ## UI Areas
 
-- `Operation View`: artifact reading, purpose-ordered typed-section rendering, dossier, inspector panel
+- `Operation View`: artifact reading with artifact-type-aware summary highlights, provenance-at-a-glance strip, inline evidence cues, purpose-ordered typed-section rendering, dossier, inspector panel
 - `Task Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
-- `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports live requests, cancellation, todos, action history, and cross-links back into reports, timeline, graph, and chat
+- `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into reports, timeline, graph, and chat
 - `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update events, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
 - `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, and board handoff for reports/entities/signals
@@ -132,11 +132,11 @@ npm run check:full
 
 ## Current Validation Snapshot (April 8, 2026)
 
-The current targeted validation for the Workstream 0-2 closeout passed on this checkout:
+The current targeted validation for the Workstream 3 closeout passed on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- targeted tests for Files shell labels, board omnibox focus behavior, and network omnibox focus behavior: pass
+- targeted tests for board-agent review execution, report-viewer reading/provenance behavior, and workspace-board controller behavior: pass
 - `npm run build`: passes
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint

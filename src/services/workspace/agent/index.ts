@@ -4,5 +4,6 @@ export * from './context/buildBoardAgentContext';
 export * from './runtime';
 export * from './session';
 export * from './actions/registry';
+export * from './actions/review';
 export * from './actions/todos';
 export * from './actions/types';
