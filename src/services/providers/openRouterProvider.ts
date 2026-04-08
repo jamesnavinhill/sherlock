@@ -20,7 +20,6 @@ import type {
   StructuredArtifactPayload,
 } from './types';
 import { parseJsonWithFallback, toDisplayText } from './shared/jsonParsing';
-import { normalizeFeedItems, normalizeLiveEvents } from './shared/normalizers';
 import {
   buildAnomalyPrompt,
   buildInvestigationPrompt,
@@ -39,6 +38,11 @@ import {
 } from './shared/boardAgent';
 import { postJsonProviderRequest, streamSseProviderRequest } from './shared/directTransport';
 import { buildFallbackFeedItems, buildFallbackLiveEvents } from './shared/fallbacks';
+import {
+  normalizeLiveIntelPayload,
+  normalizeScanResultPayload,
+  withSimulatedProviderFallback,
+} from './shared/situationalIntel';
 
 const PROVIDER = 'OPENROUTER' as const;
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -611,43 +615,38 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
   const limit = options?.limit || 8;
   const capabilities = getEffectiveModelCapabilities(config.modelId);
 
-  return withProviderRetry(
-    async () => {
-      const basePrompt = buildAnomalyPrompt({
-        region,
-        category,
-        limit,
-        prioritySources: options?.prioritySources || '',
-        scope,
-        pack: request.pack,
-        purpose: request.purpose,
-        dateRange,
-      });
-      const search = buildOpenRouterSearchTool(config);
+  return withSimulatedProviderFallback(
+    () =>
+      withProviderRetry(
+        async () => {
+          const basePrompt = buildAnomalyPrompt({
+            region,
+            category,
+            limit,
+            prioritySources: options?.prioritySources || '',
+            scope,
+            pack: request.pack,
+            purpose: request.purpose,
+            dateRange,
+          });
+          const search = buildOpenRouterSearchTool(config);
 
-      const completion = await queryOpenRouter(config.modelId, buildArtifactMessages(basePrompt), {
-        maxTokens: 1800,
-        expectJson: capabilities.supportsStructuredOutput,
-        tools: search.tool ? [search.tool] : undefined,
-        warnings: search.warnings,
-      });
-      const parsed = parseJsonWithFallback(completion.rawText);
-      return normalizeFeedItems(
-        parsed,
-        scope.categories[0] || 'General',
-        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        'feed'
-      );
-    },
-    {
-      provider: PROVIDER,
-      modelId: config.modelId,
-      operation: 'SCAN_ANOMALIES',
-    }
-  ).catch((error) => {
-    if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-    return buildFallbackFeedItems(scope, limit);
-  });
+          const completion = await queryOpenRouter(config.modelId, buildArtifactMessages(basePrompt), {
+            maxTokens: 1800,
+            expectJson: capabilities.supportsStructuredOutput,
+            tools: search.tool ? [search.tool] : undefined,
+            warnings: search.warnings,
+          });
+          return normalizeScanResultPayload(parseJsonWithFallback(completion.rawText), scope);
+        },
+        {
+          provider: PROVIDER,
+          modelId: config.modelId,
+          operation: 'SCAN_ANOMALIES',
+        }
+      ),
+    () => buildFallbackFeedItems(scope, limit)
+  );
 };
 
 const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> => {
@@ -655,36 +654,36 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
   const normalizedTopic = normalizeTopicText(topic);
   const capabilities = getEffectiveModelCapabilities(config.modelId);
 
-  return withProviderRetry(
-    async () => {
-      const basePrompt = buildLiveIntelPrompt({
-        topic: normalizedTopic,
-        scope,
-        pack: request.pack,
-        purpose: request.purpose,
-        monitorConfig,
-        existingContent,
-      });
-      const search = buildOpenRouterSearchTool(config);
+  return withSimulatedProviderFallback(
+    () =>
+      withProviderRetry(
+        async () => {
+          const basePrompt = buildLiveIntelPrompt({
+            topic: normalizedTopic,
+            scope,
+            pack: request.pack,
+            purpose: request.purpose,
+            monitorConfig,
+            existingContent,
+          });
+          const search = buildOpenRouterSearchTool(config);
 
-      const completion = await queryOpenRouter(config.modelId, buildArtifactMessages(basePrompt), {
-        maxTokens: 2400,
-        expectJson: capabilities.supportsStructuredOutput,
-        tools: search.tool ? [search.tool] : undefined,
-        warnings: search.warnings,
-      });
-      const parsed = parseJsonWithFallback(completion.rawText);
-      return normalizeLiveEvents(parsed, 'sim');
-    },
-    {
-      provider: PROVIDER,
-      modelId: config.modelId,
-      operation: 'LIVE_INTEL',
-    }
-  ).catch((error) => {
-    if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-    return buildFallbackLiveEvents(normalizedTopic);
-  });
+          const completion = await queryOpenRouter(config.modelId, buildArtifactMessages(basePrompt), {
+            maxTokens: 2400,
+            expectJson: capabilities.supportsStructuredOutput,
+            tools: search.tool ? [search.tool] : undefined,
+            warnings: search.warnings,
+          });
+          return normalizeLiveIntelPayload(parseJsonWithFallback(completion.rawText));
+        },
+        {
+          provider: PROVIDER,
+          modelId: config.modelId,
+          operation: 'LIVE_INTEL',
+        }
+      ),
+    () => buildFallbackLiveEvents(normalizedTopic)
+  );
 };
 
 export const openRouterProvider: ProviderAdapter = {

@@ -16,8 +16,6 @@ import { parseJsonWithFallback, toDisplayText } from './shared/jsonParsing';
 import {
   dedupeSources,
   extractSourcesFromText,
-  normalizeFeedItems,
-  normalizeLiveEvents,
 } from './shared/normalizers';
 import {
   buildAnomalyPrompt,
@@ -37,6 +35,11 @@ import {
 } from './shared/boardAgent';
 import { postJsonProviderRequest, streamSseProviderRequest } from './shared/directTransport';
 import { buildFallbackFeedItems, buildFallbackLiveEvents } from './shared/fallbacks';
+import {
+  normalizeLiveIntelPayload,
+  normalizeScanResultPayload,
+  withSimulatedProviderFallback,
+} from './shared/situationalIntel';
 
 const PROVIDER = 'OPENAI' as const;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -313,74 +316,68 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
   const { region, category, dateRange, config, scope, options } = request;
   const limit = options?.limit || 8;
 
-  return withProviderRetry(
-    async () => {
-      const prompt = buildAnomalyPrompt({
-        region,
-        category,
-        limit,
-        prioritySources: options?.prioritySources || '',
-        scope,
-        pack: request.pack,
-        purpose: request.purpose,
-        dateRange,
-      });
+  return withSimulatedProviderFallback(
+    () =>
+      withProviderRetry(
+        async () => {
+          const prompt = buildAnomalyPrompt({
+            region,
+            category,
+            limit,
+            prioritySources: options?.prioritySources || '',
+            scope,
+            pack: request.pack,
+            purpose: request.purpose,
+            dateRange,
+          });
 
-      const rawText = await queryOpenAI(config.modelId, [{ role: 'user', content: prompt }], {
-        maxTokens: 1800,
-        expectJson: false,
-      });
-      const parsed = parseJsonWithFallback(rawText);
-
-      return normalizeFeedItems(
-        parsed,
-        scope.categories[0] || 'General',
-        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        'feed'
-      );
-    },
-    {
-      provider: PROVIDER,
-      modelId: config.modelId,
-      operation: 'SCAN_ANOMALIES',
-    }
-  ).catch((error) => {
-    if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-    return buildFallbackFeedItems(scope, limit);
-  });
+          const rawText = await queryOpenAI(config.modelId, [{ role: 'user', content: prompt }], {
+            maxTokens: 1800,
+            expectJson: false,
+          });
+          return normalizeScanResultPayload(parseJsonWithFallback(rawText), scope);
+        },
+        {
+          provider: PROVIDER,
+          modelId: config.modelId,
+          operation: 'SCAN_ANOMALIES',
+        }
+      ),
+    () => buildFallbackFeedItems(scope, limit)
+  );
 };
 
 const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> => {
   const { topic, config, scope, monitorConfig, existingContent } = request;
   const normalizedTopic = normalizeTopicText(topic);
 
-  return withProviderRetry(
-    async () => {
-      const prompt = buildLiveIntelPrompt({
-        topic: normalizedTopic,
-        scope,
-        pack: request.pack,
-        purpose: request.purpose,
-        monitorConfig,
-        existingContent,
-      });
+  return withSimulatedProviderFallback(
+    () =>
+      withProviderRetry(
+        async () => {
+          const prompt = buildLiveIntelPrompt({
+            topic: normalizedTopic,
+            scope,
+            pack: request.pack,
+            purpose: request.purpose,
+            monitorConfig,
+            existingContent,
+          });
 
-      const rawText = await queryOpenAI(config.modelId, [{ role: 'user', content: prompt }], {
-        maxTokens: 2200,
-        expectJson: false,
-      });
-      const parsed = parseJsonWithFallback(rawText);
-      return normalizeLiveEvents(parsed, 'sim');
-    },
-    {
-      provider: PROVIDER,
-      modelId: config.modelId,
-      operation: 'LIVE_INTEL',
-    }
-  ).catch((error) => {
-    if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-    return buildFallbackLiveEvents(normalizedTopic);
-  });
+          const rawText = await queryOpenAI(config.modelId, [{ role: 'user', content: prompt }], {
+            maxTokens: 2200,
+            expectJson: false,
+          });
+          return normalizeLiveIntelPayload(parseJsonWithFallback(rawText));
+        },
+        {
+          provider: PROVIDER,
+          modelId: config.modelId,
+          operation: 'LIVE_INTEL',
+        }
+      ),
+    () => buildFallbackLiveEvents(normalizedTopic)
+  );
 };
 
 export const openAIProvider: ProviderAdapter = {

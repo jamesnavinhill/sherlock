@@ -18,8 +18,6 @@ import {
   dedupeSources,
   extractSourcesFromGrounding,
   extractSourcesFromText,
-  normalizeFeedItems,
-  normalizeLiveEvents,
   normalizeStringList,
 } from './shared/normalizers';
 import { normalizeTopicText } from '../../utils/textNormalization';
@@ -44,6 +42,11 @@ import {
   normalizeBoardAgentResponse,
 } from './shared/boardAgent';
 import { buildFallbackFeedItems, buildFallbackLiveEvents } from './shared/fallbacks';
+import {
+  normalizeLiveIntelPayload,
+  normalizeScanResultPayload,
+  withSimulatedProviderFallback,
+} from './shared/situationalIntel';
 
 const PROVIDER = 'GEMINI' as const;
 
@@ -398,77 +401,73 @@ const scanAnomalies = async (request: ScanAnomaliesRequest): Promise<FeedItem[]>
   const useStructuredOutput = supportsStructuredOutput(config.modelId);
   const limit = options?.limit || 8;
 
-  return withProviderRetry(
-    async () => {
-      const ai = getAI();
-      const basePrompt = buildAnomalyPrompt({
-        region,
-        category,
-        limit,
-        prioritySources: options?.prioritySources || '',
-        scope,
-        pack: request.pack,
-        purpose: request.purpose,
-        dateRange,
-      });
+  return withSimulatedProviderFallback(
+    () =>
+      withProviderRetry(
+        async () => {
+          const ai = getAI();
+          const basePrompt = buildAnomalyPrompt({
+            region,
+            category,
+            limit,
+            prioritySources: options?.prioritySources || '',
+            scope,
+            pack: request.pack,
+            purpose: request.purpose,
+            dateRange,
+          });
 
-      const jsonInstruction = useStructuredOutput
-        ? ''
-        : `
+          const jsonInstruction = useStructuredOutput
+            ? ''
+            : `
 CRITICAL: You MUST respond with ONLY a valid JSON array. No other text.
 Each item must have: id (string), title (string), category (string), riskLevel ("LOW" | "MEDIUM" | "HIGH")`;
 
-      const response = await ai.models.generateContent({
-        model: config.modelId,
-        contents: `${basePrompt}\n${jsonInstruction}`,
-        config: {
-          ...(useStructuredOutput
-            ? {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      title: { type: Type.STRING },
-                      category: { type: Type.STRING },
-                      riskLevel: {
-                        type: Type.STRING,
-                        enum: ['LOW', 'MEDIUM', 'HIGH'],
+          const response = await ai.models.generateContent({
+            model: config.modelId,
+            contents: `${basePrompt}\n${jsonInstruction}`,
+            config: {
+              ...(useStructuredOutput
+                ? {
+                    responseMimeType: 'application/json',
+                    responseSchema: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: { type: Type.STRING },
+                          title: { type: Type.STRING },
+                          category: { type: Type.STRING },
+                          riskLevel: {
+                            type: Type.STRING,
+                            enum: ['LOW', 'MEDIUM', 'HIGH'],
+                          },
+                        },
+                        required: ['id', 'title', 'category', 'riskLevel'],
                       },
                     },
-                    required: ['id', 'title', 'category', 'riskLevel'],
-                  },
-                },
-              }
-            : {}),
-          tools: [{ googleSearch: {} }],
-          thinkingConfig:
-            config.thinkingBudget > 0 ? { thinkingBudget: config.thinkingBudget } : undefined,
-          safetySettings: SAFETY_SETTINGS,
+                  }
+                : {}),
+              tools: [{ googleSearch: {} }],
+              thinkingConfig:
+                config.thinkingBudget > 0 ? { thinkingBudget: config.thinkingBudget } : undefined,
+              safetySettings: SAFETY_SETTINGS,
+            },
+          });
+
+          const rawText = response.text || '[]';
+          const parsed = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
+
+          return normalizeScanResultPayload(parsed, scope);
         },
-      });
-
-      const rawText = response.text || '[]';
-      const parsed = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
-
-      return normalizeFeedItems(
-        parsed,
-        scope.categories[0] || 'General',
-        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        'feed'
-      );
-    },
-    {
-      provider: PROVIDER,
-      modelId: config.modelId,
-      operation: 'SCAN_ANOMALIES',
-    }
-  ).catch((error) => {
-    if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-    return buildFallbackFeedItems(scope, limit);
-  });
+        {
+          provider: PROVIDER,
+          modelId: config.modelId,
+          operation: 'SCAN_ANOMALIES',
+        }
+      ),
+    () => buildFallbackFeedItems(scope, limit)
+  );
 };
 
 const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> => {
@@ -476,83 +475,84 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
   const normalizedTopic = normalizeTopicText(topic);
   const useStructuredOutput = supportsStructuredOutput(config.modelId);
 
-  return withProviderRetry(
-    async () => {
-      const ai = getAI();
-      const basePrompt = buildLiveIntelPrompt({
-        topic: normalizedTopic,
-        monitorConfig,
-        scope,
-        pack: request.pack,
-        purpose: request.purpose,
-        existingContent,
-      });
+  return withSimulatedProviderFallback(
+    () =>
+      withProviderRetry(
+        async () => {
+          const ai = getAI();
+          const basePrompt = buildLiveIntelPrompt({
+            topic: normalizedTopic,
+            monitorConfig,
+            scope,
+            pack: request.pack,
+            purpose: request.purpose,
+            existingContent,
+          });
 
-      const jsonInstruction = useStructuredOutput
-        ? ''
-        : 'CRITICAL: Respond with ONLY a valid JSON array. Items: id, type, sourceName, content, timestamp, sentiment, threatLevel ("INFO" | "CAUTION" | "CRITICAL"), url (opt)';
+          const jsonInstruction = useStructuredOutput
+            ? ''
+            : 'CRITICAL: Respond with ONLY a valid JSON array. Items: id, type, sourceName, content, timestamp, sentiment, threatLevel ("INFO" | "CAUTION" | "CRITICAL"), url (opt)';
 
-      const response = await ai.models.generateContent({
-        model: config.modelId,
-        contents: `${basePrompt}\n${jsonInstruction}`,
-        config: {
-          ...(useStructuredOutput
-            ? {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      type: {
-                        type: Type.STRING,
-                        enum: ['SOCIAL', 'NEWS', 'OFFICIAL'],
+          const response = await ai.models.generateContent({
+            model: config.modelId,
+            contents: `${basePrompt}\n${jsonInstruction}`,
+            config: {
+              ...(useStructuredOutput
+                ? {
+                    responseMimeType: 'application/json',
+                    responseSchema: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: { type: Type.STRING },
+                          type: {
+                            type: Type.STRING,
+                            enum: ['SOCIAL', 'NEWS', 'OFFICIAL'],
+                          },
+                          sourceName: { type: Type.STRING },
+                          content: { type: Type.STRING },
+                          timestamp: { type: Type.STRING },
+                          sentiment: {
+                            type: Type.STRING,
+                            enum: ['NEGATIVE', 'NEUTRAL', 'POSITIVE'],
+                          },
+                          threatLevel: {
+                            type: Type.STRING,
+                            enum: ['INFO', 'CAUTION', 'CRITICAL'],
+                          },
+                          url: { type: Type.STRING },
+                        },
+                        required: [
+                          'id',
+                          'type',
+                          'sourceName',
+                          'content',
+                          'timestamp',
+                          'sentiment',
+                          'threatLevel',
+                        ],
                       },
-                      sourceName: { type: Type.STRING },
-                      content: { type: Type.STRING },
-                      timestamp: { type: Type.STRING },
-                      sentiment: {
-                        type: Type.STRING,
-                        enum: ['NEGATIVE', 'NEUTRAL', 'POSITIVE'],
-                      },
-                      threatLevel: {
-                        type: Type.STRING,
-                        enum: ['INFO', 'CAUTION', 'CRITICAL'],
-                      },
-                      url: { type: Type.STRING },
                     },
-                    required: [
-                      'id',
-                      'type',
-                      'sourceName',
-                      'content',
-                      'timestamp',
-                      'sentiment',
-                      'threatLevel',
-                    ],
-                  },
-                },
-              }
-            : {}),
-          tools: [{ googleSearch: {} }],
-          safetySettings: SAFETY_SETTINGS,
-        },
-      });
+                  }
+                : {}),
+              tools: [{ googleSearch: {} }],
+              safetySettings: SAFETY_SETTINGS,
+            },
+          });
 
-      const rawText = response.text || '[]';
-      const parsed = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
-      return normalizeLiveEvents(parsed, 'sim');
-    },
-    {
-      provider: PROVIDER,
-      modelId: config.modelId,
-      operation: 'LIVE_INTEL',
-    }
-  ).catch((error) => {
-    if (error instanceof Error && error.message.includes('MISSING_API_KEY')) throw error;
-    return buildFallbackLiveEvents(normalizedTopic);
-  });
+          const rawText = response.text || '[]';
+          const parsed = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
+          return normalizeLiveIntelPayload(parsed);
+        },
+        {
+          provider: PROVIDER,
+          modelId: config.modelId,
+          operation: 'LIVE_INTEL',
+        }
+      ),
+    () => buildFallbackLiveEvents(normalizedTopic)
+  );
 };
 
 const generateAudioBriefing = async (request: TtsRequest): Promise<string> => {

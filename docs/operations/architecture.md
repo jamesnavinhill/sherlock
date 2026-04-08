@@ -238,6 +238,7 @@ Shared provider utilities:
   - retry policy
   - direct-provider JSON request and SSE transport helpers
   - shared simulated fallback builders for feed/live surfaces
+  - shared scan/live normalization and fallback control-flow helpers
   - JSON parsing fallbacks
   - output normalization
   - prompt builders
