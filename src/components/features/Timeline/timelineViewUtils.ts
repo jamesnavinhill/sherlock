@@ -82,6 +82,8 @@ export const getEventTone = (event: TimelineEvent) => {
       return 'border-sky-500/40 bg-sky-500/10 text-sky-200';
     case 'ITEM_UPDATED':
       return 'border-amber-500/40 bg-amber-500/10 text-amber-200';
+    case 'ITEM_REUSED':
+      return 'border-cyan-500/40 bg-cyan-500/10 text-cyan-200';
     case 'CHAT_FOLLOW_UP_LAUNCHED':
       return 'border-amber-500/40 bg-amber-500/10 text-amber-300';
     case 'ENTITY_FIRST_SEEN':

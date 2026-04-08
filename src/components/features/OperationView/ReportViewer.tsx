@@ -277,7 +277,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const handleSaveReportBody = async () => {
     const trimmed = reportBodyDraft.trim();
     if (!trimmed) {
-      onNotify('Report text cannot be empty.', 'INFO');
+      onNotify('Artifact text cannot be empty.', 'INFO');
       return;
     }
 
@@ -292,7 +292,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       setIsEditingReportBody(false);
     } catch (error) {
       console.error('Failed to save report body', error);
-      onNotify('Failed to update report text.', 'ERROR');
+      onNotify('Failed to update artifact text.', 'ERROR');
     } finally {
       setIsSavingReportBody(false);
     }
@@ -374,8 +374,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 <button
                   onClick={() => setIsDetailSidebarOpen(true)}
                   className="text-zinc-500 hover:text-white transition-colors flex-shrink-0"
-                  title="Expand Report Details"
-                  aria-label="Expand Report Details"
+                  title="Expand Artifact Details"
+                  aria-label="Expand Artifact Details"
                 >
                   <PanelRight className="w-4 h-4" />
                 </button>
@@ -460,7 +460,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                       onClick={handleSaveReportBody}
                       disabled={isSavingReportBody}
                       className="inline-flex h-9 w-9 items-center justify-center border border-green-500/40 bg-green-500/10 text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                      title="Save report text"
+                      title="Save artifact text"
                       aria-label="Save"
                     >
                       {isSavingReportBody ? (
@@ -483,7 +483,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   <button
                     onClick={() => setIsEditingReportBody(true)}
                     className="inline-flex h-9 w-9 items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-white hover:text-white"
-                    title="Edit report text"
+                    title="Edit artifact text"
                     aria-label="Edit"
                   >
                     <Pencil className="h-4 w-4" />
@@ -699,8 +699,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             <button
               onClick={() => setIsDetailSidebarOpen(false)}
               className="mr-2 text-zinc-500 hover:text-white transition-colors flex-shrink-0"
-              title="Collapse Report Details"
-              aria-label="Collapse Report Details"
+              title="Collapse Artifact Details"
+              aria-label="Collapse Artifact Details"
             >
               <PanelRight className="w-4 h-4" />
             </button>

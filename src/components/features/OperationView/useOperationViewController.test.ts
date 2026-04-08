@@ -169,6 +169,6 @@ describe('useOperationViewController', () => {
         content: 'Expanded report body for editing.',
       }
     );
-    expect(addToast).toHaveBeenCalledWith('Report updated.', 'SUCCESS');
+    expect(addToast).toHaveBeenCalledWith('Artifact updated.', 'SUCCESS');
   });
 });

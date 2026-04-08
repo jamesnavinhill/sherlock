@@ -256,7 +256,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
             {/* Mentions Accordion */}
             <Accordion
-              title="Report Mentions"
+              title="Artifact Mentions"
               icon={FileText}
               isOpen={inspectorAccordions.mentions}
               onToggle={() => toggleAccordion('mentions')}
@@ -506,7 +506,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 Inspector Ready
               </div>
               <p className="text-sm leading-relaxed text-zinc-300">
-                Select an entity or saved signal to inspect details here.
+                Select an entity, saved signal, or reopen the current artifact inspector here.
               </p>
             </div>
           </div>

@@ -88,10 +88,10 @@ describe('ReportViewer', () => {
     expect(screen.getAllByText('Registry').length).toBeGreaterThan(0);
     expect(screen.queryByText('Follow-Up Questions')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse Report Details' }));
-    expect(screen.getByRole('button', { name: 'Expand Report Details' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Expand Report Details' }));
-    expect(screen.getByRole('button', { name: 'Collapse Report Details' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse Artifact Details' }));
+    expect(screen.getByRole('button', { name: 'Expand Artifact Details' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Artifact Details' }));
+    expect(screen.getByRole('button', { name: 'Collapse Artifact Details' })).toBeInTheDocument();
 
     expect(
       screen.queryByText('Trace shared directors across the vendor cluster.')

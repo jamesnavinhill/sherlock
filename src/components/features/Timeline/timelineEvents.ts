@@ -128,6 +128,42 @@ const extractStringValues = (value: unknown): string[] => {
   return [];
 };
 
+const getStringArray = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === 'string')
+    : [];
+
+const resolveWorkspaceItemIdFromSnippetId = (snippetId: string): string | undefined => {
+  const itemSnippetPrefix = 'CTX-WORKSPACE-ITEM-';
+  if (snippetId.startsWith(itemSnippetPrefix)) {
+    return snippetId.slice(itemSnippetPrefix.length);
+  }
+
+  const mentionSnippetPrefix = 'CTX-MENTION-WORKSPACE_ITEM-';
+  if (snippetId.startsWith(mentionSnippetPrefix)) {
+    return snippetId.slice(mentionSnippetPrefix.length);
+  }
+
+  return undefined;
+};
+
+const buildWorkspaceItemReuseSummary = (input: {
+  cited: boolean;
+  mentioned: boolean;
+  retrieved: boolean;
+}) => {
+  if (input.cited && input.mentioned) {
+    return 'Pinned into chat context and cited in the response.';
+  }
+  if (input.cited) {
+    return 'Reused in chat and cited in the response.';
+  }
+  if (input.mentioned) {
+    return 'Pinned into workspace chat context.';
+  }
+  return input.retrieved ? 'Retrieved into workspace chat context.' : 'Reused in workspace chat.';
+};
+
 const buildChatActionSearchText = (action: AgentAction, session: ChatSession | undefined): string =>
   [
     session?.title,
@@ -191,6 +227,10 @@ export const buildWorkspaceTimelineEvents = (input: {
       .filter((artifact): artifact is Artifact & { id: string } => !!artifact.id)
       .map((artifact) => [artifact.id, artifact])
   );
+  const scopedWorkspaceItems = (input.workspaceItems || []).filter(
+    (item) => item.workspaceId === input.workspaceId
+  );
+  const workspaceItemById = new Map(scopedWorkspaceItems.map((item) => [item.id, item]));
   const sessionById = new Map(
     input.chatSessions
       .filter((session) => session.workspaceId === input.workspaceId)
@@ -322,9 +362,7 @@ export const buildWorkspaceTimelineEvents = (input: {
       };
     });
 
-  const workspaceItemEvents = (input.workspaceItems || [])
-    .filter((item) => item.workspaceId === input.workspaceId)
-    .flatMap<TimelineEvent>((item) => {
+  const workspaceItemEvents = scopedWorkspaceItems.flatMap<TimelineEvent>((item) => {
       const events: TimelineEvent[] = [];
       const provenanceSource = item.provenance?.source;
       const baseBadges = [item.kind, provenanceSource].filter(Boolean) as string[];
@@ -377,6 +415,88 @@ export const buildWorkspaceTimelineEvents = (input: {
 
       return events;
     });
+
+  const workspaceItemReuseEvents = Array.from(sessionById.values()).flatMap<TimelineEvent>(
+    (session) => {
+      const launchContext = getChatLaunchContextFromSession(session);
+
+      return (input.chatActionsBySessionId[session.id] || [])
+        .filter((action) => action.type === 'SEARCH_WORKSPACE')
+        .flatMap<TimelineEvent>((action) => {
+          const usageByItemId = new Map<
+            string,
+            {
+              cited: boolean;
+              mentioned: boolean;
+              retrieved: boolean;
+            }
+          >();
+          const markUsage = (
+            snippetIds: string[],
+            field: 'cited' | 'mentioned' | 'retrieved'
+          ) => {
+            snippetIds.forEach((snippetId) => {
+              const itemId = resolveWorkspaceItemIdFromSnippetId(snippetId);
+              if (!itemId) return;
+              const existing = usageByItemId.get(itemId) || {
+                cited: false,
+                mentioned: false,
+                retrieved: false,
+              };
+              existing[field] = true;
+              usageByItemId.set(itemId, existing);
+            });
+          };
+
+          const citedSnippetIds = getStringArray(action.result?.citedSnippetIds);
+          const mentionedSnippetIds = getStringArray(action.result?.mentionedSnippetIds);
+          const retrievedSnippetIds = getStringArray(action.result?.retrievedSnippetIds);
+          const query = typeof action.input?.query === 'string' ? action.input.query : undefined;
+
+          markUsage(citedSnippetIds, 'cited');
+          markUsage(mentionedSnippetIds, 'mentioned');
+          markUsage(retrievedSnippetIds, 'retrieved');
+
+          return Array.from(usageByItemId.entries())
+            .map<TimelineEvent | null>(([itemId, usage]) => {
+              const item = workspaceItemById.get(itemId);
+              if (!item) return null;
+
+              const reuseReason = usage.cited
+                ? 'CITED'
+                : usage.mentioned
+                  ? 'PINNED'
+                  : 'RETRIEVED';
+
+              return {
+                id: `workspace-item-reused-${item.id}-${action.id}`,
+                occurredAt: action.createdAt || FALLBACK_OCCURED_AT,
+                track: 'ITEM',
+                type: 'ITEM_REUSED' as const,
+                workspaceId: input.workspaceId,
+                title: item.title,
+                summary: buildWorkspaceItemReuseSummary(usage),
+                refId: item.id,
+                refKind: 'WORKSPACE_ITEM' as const,
+                parentRefId: session.id,
+                badges: [item.kind, 'CHAT', reuseReason],
+                searchText: [buildWorkspaceItemSearchText(item), buildChatActionSearchText(action, session)]
+                  .filter(Boolean)
+                  .join(' '),
+                metadata: {
+                  workspaceItemId: item.id,
+                  sessionId: session.id,
+                  query,
+                  reuseReason,
+                  relatedArtifactId: session.sourceReportId || launchContext?.sourceReportId,
+                  sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
+                },
+              };
+            })
+            .filter((event): event is TimelineEvent => event !== null);
+        });
+    }
+  );
 
   const entityEvents = (() => {
     const entityMilestones: TimelineEvent[] = [];
@@ -704,6 +824,7 @@ export const buildWorkspaceTimelineEvents = (input: {
     ...runEvents,
     ...artifactEvents,
     ...workspaceItemEvents,
+    ...workspaceItemReuseEvents,
     ...entityEvents,
     ...chatSessionEvents,
     ...chatActionEvents,

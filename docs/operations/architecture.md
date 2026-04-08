@@ -494,7 +494,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
 - route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
 - default-on chronology for saved signals, runs, and artifacts
-- default-on `ITEM` track for canonical workspace-item creation, promotion, and material-update events
+- default-on `ITEM` track for canonical workspace-item creation, promotion, material-update, and chat-reuse events
 - opt-in secondary `ENTITY` track for first-seen moments, repeated-mention thresholds, and artifact-backed reappearance milestones
 - opt-in secondary `CHAT` track for chat session starts plus high-signal chat actions (`SEARCH_WORKSPACE`, saved artifact drafts, append-note actions, and follow-up launches)
 - lineage rendering across signal, run, artifact, entity, and chat relationships without introducing a new persistence schema

@@ -436,7 +436,7 @@ export function useOperationViewController({
         content: summary,
       });
     }
-    addToast('Report updated.', 'SUCCESS');
+    addToast('Artifact updated.', 'SUCCESS');
   };
 
   const handleEntityNameSave = async (newName: string) => {

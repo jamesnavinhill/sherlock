@@ -300,6 +300,75 @@ describe('timelineEvents', () => {
     expect(getTrackCount(events, 'ITEM')).toBe(3);
   });
 
+  it('adds workspace item reuse chronology when chat retrieval cites or pins an item', () => {
+    const events = buildWorkspaceTimelineEvents({
+      workspaceId: 'case-1',
+      artifacts: [],
+      runs: [],
+      signals: [],
+      chatSessions: [
+        {
+          id: 'chat-1',
+          workspaceId: 'case-1',
+          title: 'Workspace Chat',
+          status: 'ACTIVE',
+          createdAt: 100,
+          updatedAt: 200,
+        },
+      ],
+      chatActionsBySessionId: {
+        'chat-1': [
+          {
+            id: 'act-search',
+            sessionId: 'chat-1',
+            type: 'SEARCH_WORKSPACE',
+            status: 'COMPLETED',
+            input: {
+              query: 'atlas note',
+            },
+            result: {
+              retrievedSnippetIds: ['CTX-WORKSPACE-ITEM-item-1'],
+              mentionedSnippetIds: ['CTX-MENTION-WORKSPACE_ITEM-item-1'],
+              citedSnippetIds: ['CTX-WORKSPACE-ITEM-item-1'],
+            },
+            createdAt: 300,
+            updatedAt: 300,
+          },
+        ],
+      },
+      workspaceItems: [
+        {
+          id: 'item-1',
+          workspaceId: 'case-1',
+          kind: 'NOTE',
+          title: 'Atlas workspace note',
+          createdAt: 100,
+          updatedAt: 100,
+        },
+      ],
+    });
+
+    const reuseEvent = events.find((event) => event.id === 'workspace-item-reused-item-1-act-search');
+
+    expect(reuseEvent?.type).toBe('ITEM_REUSED');
+    expect(reuseEvent?.refKind).toBe('WORKSPACE_ITEM');
+    expect(reuseEvent?.parentRefId).toBe('chat-1');
+    expect(reuseEvent?.metadata?.reuseReason).toBe('CITED');
+
+    const focused = filterTimelineEvents(events, {
+      workspaceId: 'case-1',
+      search: '',
+      filters: {
+        range: 'ALL',
+        tracks: ['ITEM'],
+      },
+      focusedTrack: 'ITEM',
+      focusedRefId: 'item-1',
+    });
+
+    expect(focused.map((event) => event.type)).toEqual(['ITEM_REUSED', 'ITEM_CREATED']);
+  });
+
   it('adds entity milestone chronology for first-seen, reappearance, and mention thresholds', () => {
     const events = buildWorkspaceTimelineEvents({
       workspaceId: 'case-1',
