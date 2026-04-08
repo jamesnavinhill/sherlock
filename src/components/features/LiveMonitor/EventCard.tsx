@@ -164,7 +164,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               }`}
             >
               <Microscope className="w-3 h-3 mr-2" />
-              {event.threatLevel === 'CRITICAL' ? 'DEEP_DIVE_NOW' : 'Investigate This'}
+              {event.threatLevel === 'CRITICAL' ? 'Open In Synthesis' : 'Investigate Signal'}
             </button>
           </div>
         </div>
@@ -176,7 +176,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="text-[10px] text-zinc-600 font-mono uppercase">{event.timestamp}</div>
           <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="text-xs text-zinc-400 flex items-center font-mono uppercase">
-              Click to Expand
+              Review Signal
             </span>
           </div>
         </div>

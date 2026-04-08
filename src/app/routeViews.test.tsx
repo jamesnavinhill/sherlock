@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
-import type { Artifact, ChatSession, Workspace, WorkspaceBoard } from '@/types';
+import type { ChatSession, Workspace, WorkspaceBoard } from '@/types';
 
 vi.mock('@/components/features/OperationView', () => ({
   OperationView: () => <div>Operation View</div>,
@@ -22,6 +22,12 @@ vi.mock('@/components/features/TimelineView', () => ({
 
 vi.mock('@/components/features/WorkspaceBoard', () => ({
   WorkspaceBoard: () => <div>Workspace Board</div>,
+}));
+
+vi.mock('@/components/features/WorkspaceHome', () => ({
+  WorkspaceHome: ({ workspaceId }: { workspaceId: string }) => (
+    <div>Workspace Home {workspaceId}</div>
+  ),
 }));
 
 import { BoardRouteView, ChatRouteView, WorkspaceHomeRouteView } from './routeViews';
@@ -48,19 +54,6 @@ const workspaceFixture: Workspace = {
   title: 'Workspace One',
   status: 'ACTIVE',
   dateOpened: '2026-04-05',
-};
-
-const artifactFixture: Artifact = {
-  id: 'artifact-1',
-  caseId: 'ws-1',
-  topic: 'Landing Artifact',
-  summary: 'Primary workspace artifact',
-  agendas: [],
-  leads: [],
-  entities: [],
-  sources: [],
-  rawText: 'artifact body',
-  createdAt: 1,
 };
 
 const sessionFixture: ChatSession = {
@@ -193,7 +186,7 @@ describe('route views', () => {
     });
   });
 
-  it('redirects the workspace landing route to the first canonical artifact when one exists', async () => {
+  it('renders the workspace landing route in place for a valid workspace id', async () => {
     const setActiveWorkspaceId = vi.fn();
 
     render(
@@ -204,18 +197,12 @@ describe('route views', () => {
             element={
               <>
                 <WorkspaceHomeRouteView
-                  artifacts={[artifactFixture]}
                   workspaces={[workspaceFixture]}
-                  workspaceBoards={[boardFixture]}
                   setActiveWorkspaceId={setActiveWorkspaceId}
                 />
                 <LocationProbe />
               </>
             }
-          />
-          <Route
-            path="/workspaces/:workspaceId/artifacts/:artifactId"
-            element={<LocationProbe />}
           />
         </Routes>
       </MemoryRouter>
@@ -223,13 +210,12 @@ describe('route views', () => {
 
     await waitFor(() => {
       expect(setActiveWorkspaceId).toHaveBeenCalledWith('ws-1');
-      expect(screen.getByTestId('location')).toHaveTextContent(
-        '/workspaces/ws-1/artifacts/artifact-1'
-      );
+      expect(screen.getByText('Workspace Home ws-1')).toBeInTheDocument();
+      expect(screen.getByTestId('location')).toHaveTextContent('/workspaces/ws-1');
     });
   });
 
-  it('falls back to the first workspace board when the landing workspace has no artifact yet', async () => {
+  it('keeps the canonical workspace path even when the workspace has no artifact or board yet', async () => {
     render(
       <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1']}>
         <Routes>
@@ -238,22 +224,20 @@ describe('route views', () => {
             element={
               <>
                 <WorkspaceHomeRouteView
-                  artifacts={[]}
                   workspaces={[workspaceFixture]}
-                  workspaceBoards={[boardFixture]}
                   setActiveWorkspaceId={vi.fn()}
                 />
                 <LocationProbe />
               </>
             }
           />
-          <Route path="/workspaces/:workspaceId/board/:boardId" element={<LocationProbe />} />
         </Routes>
       </MemoryRouter>
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('location')).toHaveTextContent('/workspaces/ws-1/board/board-1');
+      expect(screen.getByText('Workspace Home ws-1')).toBeInTheDocument();
+      expect(screen.getByTestId('location')).toHaveTextContent('/workspaces/ws-1');
     });
   });
 
@@ -266,9 +250,7 @@ describe('route views', () => {
             element={
               <>
                 <WorkspaceHomeRouteView
-                  artifacts={[]}
                   workspaces={[workspaceFixture]}
-                  workspaceBoards={[]}
                   setActiveWorkspaceId={vi.fn()}
                 />
                 <LocationProbe />

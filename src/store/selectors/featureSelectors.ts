@@ -266,3 +266,17 @@ export const selectTemplateGalleryFeatureState = (state: WorkspaceState) => ({
 
 export const useTemplateGalleryFeatureState = () =>
   useWorkspaceStore(useShallow(selectTemplateGalleryFeatureState));
+
+export const selectWorkspaceHomeReadinessState = (state: WorkspaceState) => ({
+  artifacts: state.artifacts,
+  chatSessions: state.chatSessions,
+  headlines: state.headlines,
+  workspaceBoardDocuments: state.workspaceBoardDocuments,
+  workspaceBoards: state.workspaceBoards,
+  workspaceItems: state.workspaceItems,
+  workspaceRuns: state.workspaceRuns,
+  workspaces: state.workspaces,
+});
+
+export const useWorkspaceHomeReadinessState = () =>
+  useWorkspaceStore(useShallow(selectWorkspaceHomeReadinessState));

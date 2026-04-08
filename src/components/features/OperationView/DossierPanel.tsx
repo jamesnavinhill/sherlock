@@ -13,6 +13,7 @@ import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from
 import { Accordion } from '../../ui/Accordion';
 import { stripLegacyWorkspacePrefix } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
+import { CHROME_PANEL_CLASS } from '../../ui/chrome';
 
 const LEFT_PANEL_SECTION_SCROLL_CLASS =
   'max-h-[min(20rem,calc(100svh-22rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
@@ -36,6 +37,7 @@ interface DossierPanelProps {
   onLeadClick: (lead: string) => void;
   onHeadlineClick: (headline: Headline) => void;
   activeReportId?: string;
+  overlayOnDesktop?: boolean;
 }
 
 export const DossierPanel: React.FC<DossierPanelProps> = ({
@@ -54,10 +56,19 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
   onLeadClick,
   onHeadlineClick,
   activeReportId,
+  overlayOnDesktop = false,
 }) => {
+  const desktopLayoutClass = overlayOnDesktop
+    ? isOpen
+      ? 'lg:absolute lg:inset-y-0 lg:left-0 lg:z-20 lg:w-80 lg:translate-x-0'
+      : 'lg:absolute lg:inset-y-0 lg:left-0 lg:z-20 lg:w-80 lg:-translate-x-full'
+    : isOpen
+      ? 'lg:relative lg:z-0 lg:w-80 lg:translate-x-0'
+      : 'lg:relative lg:z-0 lg:w-0 lg:-translate-x-0 lg:border-r-0';
+
   return (
     <div
-      className={`${isOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:-translate-x-0 lg:border-r-0'} fixed inset-y-0 left-0 z-30 w-80 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-r border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-80' : 'lg:w-0'}`}
+      className={`${isOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-80 border-r overflow-hidden flex flex-col shadow-2xl transition-all duration-300 ${CHROME_PANEL_CLASS} ${desktopLayoutClass} ${isOpen ? 'pointer-events-auto' : 'pointer-events-none lg:pointer-events-none'} ${overlayOnDesktop ? 'lg:shadow-2xl' : 'lg:shadow-none'}`}
     >
       {activeCase && (
         <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">

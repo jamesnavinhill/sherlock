@@ -12,6 +12,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Executes Sherlock board-agent sessions through an approval-first review sheet that previews planned actions, supports an auto-approve toggle for low-risk organization moves, and leaves auditable action receipts for completed, skipped, failed, and queued follow-up work
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
 - Maintains a unified launch pipeline across Finder, Operation View, Live Monitor, Network Graph, and chat follow-up flows
+- Keeps `/workspaces/:workspaceId` as a lightweight workspace-home overview with canonical counts, recent activity, saved timeline views, and direct handoff links into artifact/chat/board/timeline/network/files workflows
 - Resolves built-in domain packs and purpose profiles into run metadata and prompt behavior
 - Stores workspace/artifact/workspace-run data in browser-persistent SQLite (wa-sqlite + IndexedDB)
 - Supports typed artifact sections, evidence records, provenance metadata, first-class follow-up records, methodology blocks, deep dives, signal-grounded launches, entity graph workflows, workspace board composition, chat transcript export, guided run building, and artifact/workspace export tooling (HTML/Markdown/JSON)
@@ -29,11 +30,12 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into reports, timeline, graph, and chat
 - `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update events, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
 - `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
-- `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, and board handoff for reports/entities/signals
-- `Live Monitor`: live signal scans, filtering, and signal persistence
-- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with direct chat, board, source-link, deletion, and export actions
+- `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files
+- `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for reports/entities/signals, and an overlaying dossier rail that no longer shifts graph content
+- `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
+- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with dense list/grid modes, direct chat, board, source-link, deletion, and export actions
 - `Finder`: discovery scanning and analysis launch
-- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export
+- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a vertically stacked runtime/theme workbench aligned to the shared chrome contract
 
 ## Tech Stack
 
@@ -132,11 +134,11 @@ npm run check:full
 
 ## Current Validation Snapshot (April 8, 2026)
 
-The current targeted validation for the Workstream 3 closeout passed on this checkout:
+The current targeted validation for the Workstream 4 and 5 closeout passed on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- targeted tests for board-agent review execution, report-viewer reading/provenance behavior, and workspace-board controller behavior: pass
+- targeted tests for Files, Feed, Live Monitor, Network Graph, Chat, Timeline, workspace-home routing, and workspace-home readiness shaping: pass
 - `npm run build`: passes
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint

@@ -89,9 +89,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
         path={getRouteDefinition('WORKSPACE_HOME').path}
         element={
           <WorkspaceHomeRouteView
-            artifacts={controller.artifacts}
             workspaces={controller.workspaces}
-            workspaceBoards={controller.workspaceBoards}
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
           />
         }

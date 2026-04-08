@@ -3,6 +3,11 @@ export const CHROME_HEADER_CLASS =
 
 export const CHROME_HEADER_ROW_CLASS = 'flex h-full min-w-0 items-center justify-between gap-3';
 
+export const CHROME_PANEL_CLASS = 'border-zinc-800 bg-black/95 backdrop-blur-md';
+
+export const CHROME_PANEL_HEADER_CLASS =
+  'border-b border-zinc-800 bg-zinc-900/30 px-4 py-3';
+
 export const getChromeToggleButtonClass = (active: boolean) =>
   `inline-flex items-center justify-center border p-2 text-xs font-mono uppercase transition outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${
     active
@@ -13,4 +18,11 @@ export const getChromeToggleButtonClass = (active: boolean) =>
 export const getChromeMenuButtonClass = (active: boolean) =>
   `inline-flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
     active ? 'osint-button-chrome-active' : 'osint-button-chrome'
+  }`;
+
+export const getChromeSegmentButtonClass = (active: boolean) =>
+  `inline-flex items-center justify-center px-3 py-1.5 text-[10px] font-mono uppercase transition ${
+    active
+      ? 'bg-osint-primary/10 text-osint-primary'
+      : 'text-zinc-500 hover:text-white'
   }`;

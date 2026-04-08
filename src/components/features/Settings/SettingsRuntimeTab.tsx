@@ -54,7 +54,7 @@ const ProviderKeyField: React.FC<{
 
 export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime, saveError }) => (
   <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12">
+    <div className="space-y-10">
       <section className="space-y-4">
         <div className="flex items-center space-x-2">
           <Key className="w-4 h-4 text-osint-primary" />

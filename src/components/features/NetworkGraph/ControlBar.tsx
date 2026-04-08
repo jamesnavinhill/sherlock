@@ -17,6 +17,12 @@ import {
 import type { Workspace } from '../../../types';
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../../domain';
 import { OsintSelect } from '../../ui/OsintSelect';
+import {
+  CHROME_HEADER_CLASS,
+  getChromeMenuButtonClass,
+  getChromeSegmentButtonClass,
+  getChromeToggleButtonClass,
+} from '../../ui/chrome';
 
 interface ControlBarProps {
   workspaces: Workspace[];
@@ -66,11 +72,11 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onToggleLock,
 }) => {
   return (
-    <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between flex-shrink-0">
-      <div className="flex items-center space-x-4 min-w-0 flex-1">
+    <div className={`${CHROME_HEADER_CLASS} flex flex-shrink-0 items-center justify-between px-6`}>
+      <div className="flex min-w-0 flex-1 items-center gap-4">
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:flex items-center justify-center border p-2 transition ${showLeftPanel ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'}`}
+          className={`hidden md:flex ${getChromeToggleButtonClass(showLeftPanel)}`}
         >
           <Briefcase className="w-4 h-4" />
         </button>
@@ -92,11 +98,10 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         </div>
       </div>
 
-      {/* Filter Toggles */}
-      <div className="hidden lg:flex items-center bg-zinc-900 border border-zinc-700/50 rounded-sm p-0.5 mx-4">
+      <div className="hidden lg:flex items-center border border-zinc-800 bg-black/70 p-0.5 mx-4">
         <button
           onClick={onToggleSingletons}
-          className={`p-1.5 ${showSingletons ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors relative group`}
+          className={`${getChromeSegmentButtonClass(showSingletons)} relative px-2.5 py-2`}
           title={showSingletons ? 'Hide Singletons' : 'Show Singletons'}
         >
           <Box className="w-3.5 h-3.5" />
@@ -109,7 +114,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleHiddenNodes}
-          className={`p-1.5 ${showHiddenNodes ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors`}
+          className={`${getChromeSegmentButtonClass(showHiddenNodes)} px-2.5 py-2`}
           title={showHiddenNodes ? 'Hide Deleted' : 'Show Deleted'}
         >
           {showHiddenNodes ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -117,7 +122,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleFlaggedOnly}
-          className={`p-1.5 ${showFlaggedOnly ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors`}
+          className={`${getChromeSegmentButtonClass(showFlaggedOnly)} px-2.5 py-2`}
           title="Show Flagged Only"
         >
           <Star className={`w-3.5 h-3.5 ${showFlaggedOnly ? 'fill-current' : ''}`} />
@@ -125,14 +130,14 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={() => onZoom('OUT')}
-          className="p-1.5 text-zinc-500 hover:text-osint-primary transition-colors"
+          className={`${getChromeSegmentButtonClass(false)} px-2.5 py-2`}
           title="Zoom Out"
         >
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => onZoom('IN')}
-          className="p-1.5 text-zinc-500 hover:text-osint-primary transition-colors"
+          className={`${getChromeSegmentButtonClass(false)} px-2.5 py-2`}
           title="Zoom In"
         >
           <ZoomIn className="w-3.5 h-3.5" />
@@ -140,43 +145,42 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className="w-px h-3 bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleLock}
-          className={`p-1.5 ${isLocked ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'} transition-colors`}
+          className={`${getChromeSegmentButtonClass(isLocked)} px-2.5 py-2`}
           title={isLocked ? 'Unlock Simulation' : 'Lock Layout (Performance)'}
         >
           {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
         </button>
       </div>
 
-      <div className="flex items-center space-x-3 flex-shrink-0">
+      <div className="flex items-center gap-2 flex-shrink-0">
         <div className="h-6 w-px bg-zinc-800 mx-1"></div>
         <button
           onClick={onToggleLinkingMode}
-          className={`p-2 border transition-colors ${isLinkingMode ? 'osint-button-soft' : 'osint-button-chrome'}`}
+          className={getChromeMenuButtonClass(isLinkingMode)}
           title="Manual Link Mode"
         >
-          <LinkIcon className="w-4 h-4" />
+          <LinkIcon className="w-4 h-4 lg:mr-1" />
+          <span className="hidden lg:inline">Link</span>
         </button>
         <button
           onClick={onShowAddNode}
-          className="osint-button-chrome p-2 transition-colors"
+          className={getChromeMenuButtonClass(false)}
           title="Add Manual Node"
         >
-          <PlusCircle className="w-4 h-4" />
+          <PlusCircle className="w-4 h-4 lg:mr-1" />
+          <span className="hidden lg:inline">Add</span>
         </button>
         <button
           onClick={onShowResolution}
-          className={`p-2 border transition-colors relative ${
-            pendingClusterCount > 0
-              ? 'osint-button-chrome-active text-osint-primary'
-              : 'osint-button-chrome'
-          }`}
+          className={`${getChromeMenuButtonClass(pendingClusterCount > 0)} relative`}
           title={
             pendingClusterCount > 0
               ? `Consolidate Entities (${pendingClusterCount} cluster${pendingClusterCount === 1 ? '' : 's'} detected)`
               : 'Consolidate Entities'
           }
         >
-          <GitMerge className="w-4 h-4" />
+          <GitMerge className="w-4 h-4 lg:mr-1" />
+          <span className="hidden lg:inline">Resolve</span>
           {pendingClusterCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-osint-primary text-black text-[9px] leading-4 font-bold font-mono text-center">
               {pendingClusterCount}
@@ -185,9 +189,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         </button>
         <button
           onClick={onToggleRightPanel}
-          className={`p-2 border transition-colors ${
-            showRightPanel ? 'osint-button-chrome-active text-osint-primary' : 'osint-button-chrome'
-          }`}
+          className={getChromeToggleButtonClass(showRightPanel)}
           title="Toggle Inspector Panel"
           aria-label="Toggle Inspector Panel"
         >

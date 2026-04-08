@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
-import { CircleStop, Send } from 'lucide-react';
+import { CircleStop, Paperclip, Send, SlidersHorizontal } from 'lucide-react';
 
 import type { ChatGenerationStatus, ChatMentionReference, InvestigationScope, Workspace } from '@/types';
 import type { GuidedRunDraft, GuidedSessionState } from '@/services/chat/guidedMode';
@@ -16,12 +16,14 @@ interface ChatComposerProps {
   activeWorkspace: Workspace | null;
   customScopes: InvestigationScope[];
   draft: string;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   guidedState: GuidedSessionState | null;
   isBusy: boolean;
   chatGenerationStatus: ChatGenerationStatus;
   mentionCandidates: ChatMentionReference[];
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onDraftChange: (value: string) => void;
+  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
   onStopGeneration: () => void;
   onAdvanceGuided: (draft: GuidedRunDraft) => void;
@@ -35,12 +37,14 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
   activeWorkspace,
   customScopes,
   draft,
+  fileInputRef,
   guidedState,
   isBusy,
   chatGenerationStatus,
   mentionCandidates,
   onSubmit,
   onDraftChange,
+  onFileUpload,
   onKeyDown,
   onStopGeneration,
   onAdvanceGuided,
@@ -67,10 +71,13 @@ export const ChatComposer: React.FC<ChatComposerProps> = ({
       activeWorkspace={activeWorkspace}
       chatGenerationStatus={chatGenerationStatus}
       draft={draft}
+      fileInputRef={fileInputRef}
       isBusy={isBusy}
       mentionCandidates={mentionCandidates}
       onDraftChange={onDraftChange}
+      onFileUpload={onFileUpload}
       onKeyDown={onKeyDown}
+      onOpenManualSetup={onOpenManualSetup}
       onStopGeneration={onStopGeneration}
       onSubmit={onSubmit}
     />
@@ -80,10 +87,13 @@ interface ChatComposerInputProps {
   activeWorkspace: Workspace | null;
   chatGenerationStatus: ChatGenerationStatus;
   draft: string;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   isBusy: boolean;
   mentionCandidates: ChatMentionReference[];
   onDraftChange: (value: string) => void;
+  onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  onOpenManualSetup: () => void;
   onStopGeneration: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
@@ -92,10 +102,13 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   activeWorkspace,
   chatGenerationStatus,
   draft,
+  fileInputRef,
   isBusy,
   mentionCandidates,
   onDraftChange,
+  onFileUpload,
   onKeyDown,
+  onOpenManualSetup,
   onStopGeneration,
   onSubmit,
 }) => {
@@ -139,8 +152,44 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   };
 
   return (
-    <form onSubmit={onSubmit} className="h-[150px] border-t border-zinc-800 bg-black/95 px-4 sm:px-6">
-      <div className="mx-auto h-full max-w-4xl py-2">
+    <form
+      onSubmit={onSubmit}
+      className="border-t border-zinc-800 bg-black/95 px-4 pb-4 pt-3 sm:px-6"
+    >
+      <div className="border border-zinc-800 bg-zinc-950/70">
+        <div className="flex items-center justify-between gap-2 border-b border-zinc-800 px-3 py-2">
+          <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+            Workspace Composer
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
+              title="Attach files to the workspace library"
+              aria-label="Attach files"
+            >
+              <Paperclip className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onOpenManualSetup}
+              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
+              title="Open run configuration"
+              aria-label="Open run configuration"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={onFileUpload}
+            />
+          </div>
+        </div>
+
         <div className="relative">
           <textarea
             ref={textareaRef}
@@ -181,7 +230,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
                 ? `Ask about ${sanitizeDisplayTitle(activeWorkspace.title)}...`
                 : 'Select a workspace to begin chatting...'
             }
-            className="h-full min-h-0 w-full resize-none border border-zinc-700 bg-black px-4 py-4 pb-14 pr-24 text-sm text-white outline-none transition focus:border-osint-primary"
+            className="min-h-[132px] w-full resize-none bg-transparent px-4 py-4 pb-16 pr-28 text-sm text-white outline-none transition"
           />
 
           {mentionState?.results.length ? (

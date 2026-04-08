@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { FormEvent, KeyboardEvent } from 'react';
+import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type {
@@ -65,6 +65,7 @@ import {
   saveChatMessageAsArtifact,
 } from './chatTranscriptActions';
 import { buildMentionCandidates, resolveDraftMentions } from '@/components/ui/omniboxModel';
+import { ingestWorkspaceFiles } from '../WorkspaceBoard/workspaceBoardItemActions';
 
 export interface RenameSessionDialogState {
   session: ChatSession;
@@ -150,6 +151,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
   const newMenuRef = useRef<HTMLDivElement | null>(null);
   const exportMenuRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [leftPanelSections, setLeftPanelSections] = useState({
     sessions: false,
     workspace: false,
@@ -380,6 +382,27 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
       openInBoard,
       queueBoardPlacement,
     });
+
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (!activeWorkspace) return;
+
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    await ingestWorkspaceFiles({
+      createWorkspaceItem,
+      files,
+      workspaceId: activeWorkspace.id,
+    });
+
+    addToast(
+      files.length === 1
+        ? 'Added file to the workspace library.'
+        : `Added ${files.length} files to the workspace library.`,
+      'SUCCESS'
+    );
+    event.target.value = '';
+  };
 
   const handleCreateSession = async () =>
     createStandardChatSession({
@@ -634,6 +657,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     draft,
     expandedArtifactIds,
     exportMenuRef,
+    fileInputRef,
     followUpDialog,
     formatDateTime,
     formatMessageWithCitations,
@@ -651,6 +675,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     handleDeleteSession,
     handleExportSessionJson,
     handleExportSessionMarkdown,
+    handleFileUpload,
     handleFetchArtifactSummary,
     handleFetchFullArtifact,
     handleFetchRecentSignals,

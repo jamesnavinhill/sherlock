@@ -14,6 +14,7 @@ import { TaskSetupModal } from '../Runs/TaskSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { EmptyState } from '../../ui/EmptyState';
 import { OsintSelect } from '../../ui/OsintSelect';
+import { CHROME_HEADER_CLASS, getChromeMenuButtonClass } from '../../ui/chrome';
 import {
   getDomainPackForScope,
   getLabelProfileById,
@@ -295,7 +296,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
   return (
     <div className="h-screen w-full flex flex-col bg-black text-zinc-200 overflow-hidden relative">
       {/* Unified Top Toolbar */}
-      <div className="h-20 px-6 bg-black/90 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between z-20 flex-shrink-0 relative">
+      <div className={`${CHROME_HEADER_CLASS} relative flex items-center justify-between px-6`}>
         {/* Left: Selectors */}
         <div className="flex items-center space-x-6">
           {/* Workspace Selector */}
@@ -393,10 +394,11 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
           {/* Settings Toggle */}
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-1.5 border transition-all ${showSettings ? 'osint-button-chrome-active' : 'osint-button-chrome'}`}
+            className={getChromeMenuButtonClass(showSettings)}
             title="Configure Feed Parameters"
           >
             <Settings2 className="w-4 h-4" />
+            <span className="hidden lg:inline ml-1">Config</span>
           </button>
 
           {selectedCaseId && (
@@ -439,7 +441,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
               backgroundSize: '20px 20px',
             }}
           ></div>
-          <BackgroundMatrixRain />
+          {isMonitoring || streamStatus !== 'IDLE' ? <BackgroundMatrixRain /> : null}
         </div>
 
         {/* Center: The Stream */}

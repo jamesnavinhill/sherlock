@@ -2,12 +2,9 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 
 import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
-import { findWorkspaceLandingArtifact } from '@/app/navigation';
 import {
   buildFilesPath,
-  buildWorkspaceArtifactPath,
   buildWorkspaceBoardDocumentPath,
-  buildWorkspaceBoardPath,
   buildWorkspaceChatPath,
 } from '@/app/routes';
 import type {
@@ -44,6 +41,11 @@ const TimelineView = lazy(() =>
 const WorkspaceBoard = lazy(() =>
   import('@/components/features/WorkspaceBoard').then((module) => ({
     default: module.WorkspaceBoard,
+  }))
+);
+const WorkspaceHome = lazy(() =>
+  import('@/components/features/WorkspaceHome').then((module) => ({
+    default: module.WorkspaceHome,
   }))
 );
 
@@ -123,16 +125,12 @@ interface WorkspaceScopedRouteViewProps {
 }
 
 interface WorkspaceHomeRouteViewProps {
-  artifacts: Artifact[];
   workspaces: Workspace[];
-  workspaceBoards: WorkspaceBoardRecord[];
   setActiveWorkspaceId: (id: string | null) => void;
 }
 
 export const WorkspaceHomeRouteView: React.FC<WorkspaceHomeRouteViewProps> = ({
-  artifacts,
   workspaces,
-  workspaceBoards,
   setActiveWorkspaceId,
 }) => {
   const { workspaceId } = useParams();
@@ -144,21 +142,14 @@ export const WorkspaceHomeRouteView: React.FC<WorkspaceHomeRouteViewProps> = ({
     }
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
-  const landingArtifact = findWorkspaceLandingArtifact(nextWorkspaceId, artifacts);
   if (!nextWorkspaceId || !workspaces.some((workspace) => workspace.id === nextWorkspaceId)) {
     return <Navigate to={buildFilesPath()} replace />;
   }
 
-  if (landingArtifact?.id) {
-    return <Navigate to={buildWorkspaceArtifactPath(nextWorkspaceId, landingArtifact.id)} replace />;
-  }
-
-  const boardId = workspaceBoards.find((board) => board.workspaceId === nextWorkspaceId)?.id;
   return (
-    <Navigate
-      to={boardId ? buildWorkspaceBoardDocumentPath(nextWorkspaceId, boardId) : buildWorkspaceBoardPath(nextWorkspaceId)}
-      replace
-    />
+    <Suspense fallback={<RouteViewFallback />}>
+      <WorkspaceHome workspaceId={nextWorkspaceId} />
+    </Suspense>
   );
 };
 

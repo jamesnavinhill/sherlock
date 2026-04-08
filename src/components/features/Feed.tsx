@@ -19,6 +19,7 @@ import { MatrixCardLoader } from '../ui/MatrixCardLoader';
 import { OsintSelect } from '../ui/OsintSelect';
 import { useWorkspaceStore } from '../../store/caseStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
+import { CHROME_HEADER_CLASS, getChromeMenuButtonClass } from '../ui/chrome';
 
 interface FeedProps {
   onInvestigate: (request: InvestigationLaunchRequest) => void;
@@ -274,7 +275,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
   return (
     <div className="flex flex-col h-screen w-full bg-black relative overflow-hidden">
-      <BackgroundMatrixRain />
+      {loading ? <BackgroundMatrixRain /> : null}
 
       {/* Investigation Wizard Modal */}
       {selectedItem && (
@@ -297,7 +298,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
       )}
 
       {/* Sticky Header */}
-      <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between flex-shrink-0 gap-4">
+      <div className={`${CHROME_HEADER_CLASS} flex items-center justify-between flex-shrink-0 gap-4 px-6`}>
         {/* Search & Filters Group */}
         <div className="flex-1 flex items-center space-x-2 min-w-0">
           {/* Category Filter */}
@@ -406,10 +407,11 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           {/* Settings Toggle */}
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-1.5 border transition-all ${showSettings ? 'osint-button-chrome-active' : 'osint-button-chrome bg-black'}`}
+            className={getChromeMenuButtonClass(showSettings)}
             title="Configure Scanner"
           >
             <Settings2 className="w-4 h-4" />
+            <span className="hidden lg:inline ml-1">Config</span>
           </button>
 
           <button
@@ -544,7 +546,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             : feedItems.map((item) => (
                 <div
                   key={item.id}
-                  className="h-full bg-osint-panel border border-zinc-800 p-6 hover:border-osint-primary transition-all cursor-pointer group flex flex-col hover:bg-zinc-900/80 animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-sm"
+                  className="h-full bg-osint-panel border border-zinc-800 p-5 hover:border-osint-primary transition-all cursor-pointer group flex flex-col hover:bg-zinc-900/80 animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-sm"
                   onClick={() => setSelectedItem(item)}
                 >
                   <div className="flex justify-between items-start mb-4">
@@ -556,14 +558,18 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                     <span className="text-xs text-zinc-600 font-mono">{item.timestamp}</span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-zinc-200 mb-2 group-hover:text-white transition-colors line-clamp-2 h-14 overflow-hidden">
+                  <h3 className="text-lg font-semibold text-zinc-200 mb-3 group-hover:text-white transition-colors line-clamp-2 min-h-[3.5rem]">
                     {item.title}
                   </h3>
+
+                  <p className="line-clamp-3 text-sm leading-6 text-zinc-500">
+                    {`${item.category} discovery ready for workspace triage and follow-up synthesis.`}
+                  </p>
 
                   <div className="mt-auto pt-4 flex items-center justify-between text-sm text-zinc-500 border-t border-zinc-800">
                     <span className="font-mono text-xs uppercase">{item.category}</span>
                     <span className="flex items-center text-osint-primary opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono uppercase tracking-wider">
-                      Open Workspace <ArrowRight className="w-3 h-3 ml-1" />
+                      Open In Synthesis <ArrowRight className="w-3 h-3 ml-1" />
                     </span>
                   </div>
                 </div>

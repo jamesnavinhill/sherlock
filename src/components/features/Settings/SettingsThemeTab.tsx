@@ -182,29 +182,44 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   className="mt-4 rounded border p-4"
                   style={{
                     background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].background),
-                    borderColor: backgroundTone.borderColor,
+                    borderColor:
+                      selectedSurfaceKey === 'background'
+                        ? 'color-mix(in oklab, var(--osint-primary) 55%, white)'
+                        : backgroundTone.borderColor,
+                    boxShadow:
+                      selectedSurfaceKey === 'background'
+                        ? '0 0 0 1px color-mix(in oklab, var(--osint-primary) 30%, transparent)'
+                        : undefined,
                   }}
                 >
                   <div
                     className="rounded border p-4"
                     style={{
                       background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].panel),
-                      borderColor: panelTone.borderColor,
+                      borderColor:
+                        selectedSurfaceKey === 'panel'
+                          ? 'color-mix(in oklab, var(--osint-primary) 55%, white)'
+                          : panelTone.borderColor,
+                      boxShadow:
+                        selectedSurfaceKey === 'panel'
+                          ? '0 0 0 1px color-mix(in oklab, var(--osint-primary) 30%, transparent)'
+                          : undefined,
                     }}
                   >
                     <div
                       className="rounded border p-4"
                       style={{
                         background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].surface),
-                        borderColor: surfaceTone.borderColor,
+                        borderColor:
+                          selectedSurfaceKey === 'surface'
+                            ? 'color-mix(in oklab, var(--osint-primary) 55%, white)'
+                            : surfaceTone.borderColor,
+                        boxShadow:
+                          selectedSurfaceKey === 'surface'
+                            ? '0 0 0 1px color-mix(in oklab, var(--osint-primary) 30%, transparent)'
+                            : undefined,
                       }}
                     >
-                      <div
-                        className="text-xs uppercase tracking-[0.22em]"
-                        style={{ color: surfaceTone.labelColor }}
-                      >
-                        Selected Surface
-                      </div>
                       <div className="mt-2 text-base font-semibold" style={{ color: surfaceTone.textColor }}>
                         {SURFACE_LABELS[selectedSurfaceKey]}
                       </div>
@@ -305,42 +320,46 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
                   Quick Adjust
                 </div>
-                <div className="mt-4 grid gap-2 md:grid-cols-2">
+                <div className="mt-4 space-y-2">
                   <button
                     type="button"
                     onClick={() => handleMatchAccentHue(activeSurfaceMode)}
-                    className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    className="w-full border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
                   >
                     Match Accent Hue
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustModeChroma(activeSurfaceMode, 0.004)}
-                    className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                  >
-                    Increase Chroma
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustModeChroma(activeSurfaceMode, -0.004)}
-                    className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                  >
-                    Reduce Chroma
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustModeSeparation(activeSurfaceMode, 1)}
-                    className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                  >
-                    Increase Separation
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustModeSeparation(activeSurfaceMode, -1)}
-                    className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white md:col-span-2"
-                  >
-                    Soften Separation
-                  </button>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAdjustModeChroma(activeSurfaceMode, 0.004)}
+                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    >
+                      Increase Chroma
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAdjustModeChroma(activeSurfaceMode, -0.004)}
+                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    >
+                      Reduce Chroma
+                    </button>
+                  </div>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAdjustModeSeparation(activeSurfaceMode, 1)}
+                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    >
+                      Increase Separation
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAdjustModeSeparation(activeSurfaceMode, -1)}
+                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    >
+                      Soften Separation
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -376,43 +395,43 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           const activeOption = getThemeFontOption(themeFontSettings[role.key]);
           return (
             <div key={role.key} className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
-              <div className="flex items-start justify-between gap-4">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
                 <div>
                   <div className="text-xs font-semibold text-white">{role.label}</div>
                   <p className="mt-2 text-sm leading-6 text-zinc-500">{role.description}</p>
+                  <div className="mt-4 text-[10px] font-mono uppercase text-zinc-500">
+                    {activeOption?.label || themeFontSettings[role.key]}
+                  </div>
+                  <div className="mt-4">
+                    <select
+                      value={themeFontSettings[role.key]}
+                      onChange={(event) =>
+                        onThemeFontSettingsChange({
+                          ...themeFontSettings,
+                          [role.key]: event.target.value,
+                        })
+                      }
+                      className="w-full border border-zinc-700 bg-black px-3 py-3 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                    >
+                      {getThemeFontOptionsForRole(role.key).map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div className="text-[10px] font-mono uppercase text-zinc-500">
-                  {activeOption?.label || themeFontSettings[role.key]}
-                </div>
-              </div>
-              <div className="mt-4">
-                <select
-                  value={themeFontSettings[role.key]}
-                  onChange={(event) =>
-                    onThemeFontSettingsChange({
-                      ...themeFontSettings,
-                      [role.key]: event.target.value,
-                    })
-                  }
-                  className="w-full border border-zinc-700 bg-black px-3 py-3 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                <div
+                  className="rounded border border-zinc-800 bg-black/60 p-4"
+                  style={{
+                    fontFamily: THEME_FONT_OPTIONS.find(
+                      (option) => option.id === themeFontSettings[role.key]
+                    )?.cssValue,
+                  }}
                 >
-                  {getThemeFontOptionsForRole(role.key).map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div
-                className="mt-4 rounded border border-zinc-800 bg-black/60 p-4"
-                style={{
-                  fontFamily: THEME_FONT_OPTIONS.find(
-                    (option) => option.id === themeFontSettings[role.key]
-                  )?.cssValue,
-                }}
-              >
-                <div className="text-[10px] font-mono uppercase text-zinc-500">Preview</div>
-                <div className="mt-3 text-lg text-white">{role.sample}</div>
+                  <div className="text-[10px] font-mono uppercase text-zinc-500">Preview</div>
+                  <div className="mt-3 text-lg text-white">{role.sample}</div>
+                </div>
               </div>
             </div>
           );
@@ -423,43 +442,55 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-6">
-      <Accordion
-        title="Accent"
-        icon={Palette}
-        isOpen={themeSections.accent}
-        onToggle={() => toggleThemeSection('accent')}
-        className="mb-0"
-      >
-        <div className="space-y-6 px-3 pb-3 pt-1">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
-                style={{ background: buildAccentColor(accentSettings) }}
-              />
-              <label className="font-osint-label block text-[10px] text-zinc-500 uppercase">
-                Custom Accent
-              </label>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Accordion
+          title="Accent"
+          icon={Palette}
+          isOpen={themeSections.accent}
+          onToggle={() => toggleThemeSection('accent')}
+          className="mb-0"
+        >
+          <div className="space-y-6 px-3 pb-3 pt-1">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                  style={{ background: buildAccentColor(accentSettings) }}
+                />
+                <label className="font-osint-label block text-[10px] text-zinc-500 uppercase">
+                  Custom Accent
+                </label>
+              </div>
+              <button
+                onClick={handleResetThemeSettings}
+                className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+              >
+                Reset Theme
+              </button>
             </div>
-            <button
-              onClick={handleResetThemeSettings}
-              className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
-            >
-              Reset Theme
-            </button>
+            <div className="font-osint-label text-[10px] text-zinc-500">
+              {buildAccentColor(accentSettings)}
+            </div>
+            <AccentPicker
+              hue={accentSettings.hue}
+              lightness={accentSettings.lightness}
+              chroma={accentSettings.chroma}
+              showPreview={false}
+              onChange={onAccentChange}
+            />
           </div>
-          <div className="font-osint-label text-[10px] text-zinc-500">
-            {buildAccentColor(accentSettings)}
-          </div>
-          <AccentPicker
-            hue={accentSettings.hue}
-            lightness={accentSettings.lightness}
-            chroma={accentSettings.chroma}
-            showPreview={false}
-            onChange={onAccentChange}
-          />
-        </div>
-      </Accordion>
+        </Accordion>
+
+        <Accordion
+          title="Fonts"
+          icon={Type}
+          isOpen={themeSections.fonts}
+          onToggle={() => toggleThemeSection('fonts')}
+          className="mb-0"
+        >
+          {renderFontSection()}
+        </Accordion>
+      </div>
 
       <Accordion
         title="Surface System"
@@ -469,16 +500,6 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         className="mb-0"
       >
         {renderThemeSurfaceEditor()}
-      </Accordion>
-
-      <Accordion
-        title="Fonts"
-        icon={Type}
-        isOpen={themeSections.fonts}
-        onToggle={() => toggleThemeSection('fonts')}
-        className="mb-0"
-      >
-        {renderFontSection()}
       </Accordion>
     </div>
   );

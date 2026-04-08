@@ -194,27 +194,31 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                           ) : null}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center justify-between gap-3 border-t border-zinc-800 pt-3">
+                          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-600">
+                            Select for actions in details
+                          </div>
                           {relatedArtifactId ? (
                             <button
                               onClick={(clickEvent) => {
                                 clickEvent.stopPropagation();
                                 onOpenArtifact(relatedArtifactId);
                               }}
-                              className="border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                              className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 transition hover:text-white"
                             >
                               Open {labelProfile.artifactLabel}
                             </button>
-                          ) : null}
-                          <button
-                            onClick={(clickEvent) => {
-                              clickEvent.stopPropagation();
-                              onOpenWorkspaceChat(event);
-                            }}
-                            className="border border-zinc-700 px-3 py-1.5 text-[10px] font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                          >
-                            {sessionId ? 'Open Chat Session' : 'Workspace Chat'}
-                          </button>
+                          ) : (
+                            <button
+                              onClick={(clickEvent) => {
+                                clickEvent.stopPropagation();
+                                onOpenWorkspaceChat(event);
+                              }}
+                              className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 transition hover:text-white"
+                            >
+                              {sessionId ? 'Chat Session' : 'Workspace Chat'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

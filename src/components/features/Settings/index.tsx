@@ -12,6 +12,7 @@ import { SettingsScopesTab } from './SettingsScopesTab';
 import { SettingsTemplatesTab } from './SettingsTemplatesTab';
 import { SettingsThemeTab } from './SettingsThemeTab';
 import { SettingsDialogs } from './SettingsDialogs';
+import { CHROME_HEADER_CLASS, getChromeSegmentButtonClass } from '@/components/ui/chrome';
 
 interface SettingsProps {
   themeColor: string;
@@ -63,18 +64,16 @@ export const Settings: React.FC<SettingsProps> = ({
 
   return (
     <div className="h-full w-full bg-black relative flex flex-col overflow-hidden">
-      <header className="h-20 px-8 bg-zinc-900/45 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between relative z-20 flex-shrink-0">
+      <header className={`${CHROME_HEADER_CLASS} relative z-20 flex items-center justify-between px-8`}>
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-700/70 to-transparent pointer-events-none" />
-        <div className="h-full flex items-center space-x-8">
+        <div className="h-full flex items-center gap-2 border border-zinc-800 bg-zinc-950/70 p-0.5">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`font-osint-label h-full px-2 text-xs uppercase tracking-widest font-bold transition-all border-b-2 flex items-center space-x-2 ${
+              className={`font-osint-label flex h-full items-center gap-2 ${getChromeSegmentButtonClass(
                 activeTab === tab.id
-                  ? 'border-osint-primary text-osint-primary'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
-              }`}
+              )}`}
             >
               <tab.icon className="w-3 h-3" />
               <span>{tab.label}</span>

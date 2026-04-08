@@ -1,0 +1,515 @@
+import { startTransition, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  Bot,
+  FileText,
+  FolderKanban,
+  GitBranch,
+  Radar,
+  Workflow,
+} from 'lucide-react';
+
+import {
+  buildFilesPath,
+  buildWorkspaceArtifactPath,
+  buildWorkspaceBoardDocumentPath,
+  buildWorkspaceBoardPath,
+  buildWorkspaceChatPath,
+  buildWorkspaceChatSessionPath,
+  buildWorkspaceNetworkPath,
+  buildWorkspaceTimelinePath,
+} from '@/app/routes';
+import { findWorkspaceLandingArtifact } from '@/app/navigation';
+import {
+  buildTimelineRouteQuery,
+  DEFAULT_TIMELINE_ROUTE_QUERY,
+  type TimelineRouteQueryState,
+} from '@/components/features/Timeline/timelineRouteState';
+import { getWorkspaceTimelineSavedViews } from '@/components/features/Timeline/timelineSavedViews';
+import {
+  buildWorkspaceHomeSnapshot,
+  type WorkspaceHomeCounts,
+  type WorkspaceHomeRecentActivityItem,
+} from '@/services/workspace/home';
+import { useWorkspaceHomeReadinessState } from '@/store/selectors/featureSelectors';
+import {
+  CHROME_HEADER_CLASS,
+  CHROME_PANEL_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  getChromeMenuButtonClass,
+} from '@/components/ui/chrome';
+
+interface WorkspaceHomeProps {
+  workspaceId: string;
+}
+
+const formatTimestamp = (timestamp: number) =>
+  new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: timestamp > 0 ? 'short' : undefined,
+  }).format(timestamp);
+
+const formatRelativeTimestamp = (timestamp: number) => {
+  const diffMs = Math.max(Date.now() - timestamp, 0);
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return formatTimestamp(timestamp);
+};
+
+const activityLabel: Record<WorkspaceHomeRecentActivityItem['kind'], string> = {
+  ARTIFACT: 'Artifact',
+  ITEM: 'Item',
+  SIGNAL: 'Signal',
+  CHAT: 'Chat',
+  RUN: 'Run',
+  BOARD: 'Board',
+};
+
+const activityAccentClass: Record<WorkspaceHomeRecentActivityItem['kind'], string> = {
+  ARTIFACT: 'border-l-cyan-400/70',
+  ITEM: 'border-l-emerald-400/70',
+  SIGNAL: 'border-l-amber-400/70',
+  CHAT: 'border-l-violet-400/70',
+  RUN: 'border-l-red-400/70',
+  BOARD: 'border-l-osint-primary/70',
+};
+
+const buildSavedViewHref = (workspaceId: string, query: TimelineRouteQueryState) => {
+  const params = buildTimelineRouteQuery(query).toString();
+  const path = buildWorkspaceTimelinePath(workspaceId);
+  return params.length > 0 ? `${path}?${params}` : path;
+};
+
+const useWorkspaceHomeController = (workspaceId: string) => {
+  const readiness = useWorkspaceHomeReadinessState();
+  const [savedViews, setSavedViews] = useState<Awaited<
+    ReturnType<typeof getWorkspaceTimelineSavedViews>
+  >>([]);
+  const [loadedWorkspaceId, setLoadedWorkspaceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void getWorkspaceTimelineSavedViews(workspaceId)
+      .then((views) => {
+        if (!isMounted) return;
+        startTransition(() => {
+          setLoadedWorkspaceId(workspaceId);
+          setSavedViews(views);
+        });
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        startTransition(() => {
+          setLoadedWorkspaceId(workspaceId);
+          setSavedViews([]);
+        });
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [workspaceId]);
+
+  const savedViewsPending = loadedWorkspaceId !== workspaceId;
+
+  const workspace = readiness.workspaces.find((entry) => entry.id === workspaceId) || null;
+  const primaryArtifact = findWorkspaceLandingArtifact(workspaceId, readiness.artifacts);
+  const primaryBoard =
+    readiness.workspaceBoards
+      .filter((board) => board.workspaceId === workspaceId)
+      .sort((left, right) =>
+        left.sortOrder === right.sortOrder
+          ? left.updatedAt - right.updatedAt
+          : left.sortOrder - right.sortOrder
+      )[0] || null;
+  const recentChatSession =
+    readiness.chatSessions
+      .filter((session) => session.workspaceId === workspaceId)
+      .sort((left, right) => right.updatedAt - left.updatedAt)[0] || null;
+
+  const snapshot = useMemo(() => {
+    if (!workspace) return null;
+
+    return buildWorkspaceHomeSnapshot({
+      artifacts: readiness.artifacts,
+      chatSessions: readiness.chatSessions,
+      headlines: readiness.headlines,
+      savedViews,
+      workspace,
+      workspaceBoardDocuments: readiness.workspaceBoardDocuments,
+      workspaceBoards: readiness.workspaceBoards,
+      workspaceItems: readiness.workspaceItems,
+      workspaceRuns: readiness.workspaceRuns,
+    });
+  }, [
+    readiness.artifacts,
+    readiness.chatSessions,
+    readiness.headlines,
+    readiness.workspaceBoardDocuments,
+    readiness.workspaceBoards,
+    readiness.workspaceItems,
+    readiness.workspaceRuns,
+    savedViews,
+    workspace,
+  ]);
+
+  return {
+    primaryArtifact,
+    primaryBoard,
+    recentChatSession,
+    savedViews,
+    savedViewsPending,
+    snapshot,
+    workspace,
+  };
+};
+
+const buildCountCards = (counts: WorkspaceHomeCounts) => [
+  { label: 'Artifacts', value: counts.artifacts },
+  { label: 'Items', value: counts.items },
+  { label: 'Signals', value: counts.signals },
+  { label: 'Chats', value: counts.chats },
+  { label: 'Runs', value: counts.runs },
+  { label: 'Boards', value: counts.boards },
+  { label: 'Snapshots', value: counts.boardsWithSnapshots },
+];
+
+export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => {
+  const {
+    primaryArtifact,
+    primaryBoard,
+    recentChatSession,
+    savedViews,
+    savedViewsPending,
+    snapshot,
+    workspace,
+  } = useWorkspaceHomeController(workspaceId);
+
+  if (!workspace || !snapshot) {
+    return null;
+  }
+
+  const quickActions = [
+    primaryArtifact?.id
+      ? {
+          href: buildWorkspaceArtifactPath(workspaceId, primaryArtifact.id),
+          icon: FileText,
+          label: 'Open Artifact',
+          detail: primaryArtifact.topic,
+        }
+      : null,
+    {
+      href: recentChatSession?.id
+        ? buildWorkspaceChatSessionPath(workspaceId, recentChatSession.id)
+        : buildWorkspaceChatPath(workspaceId),
+      icon: Bot,
+      label: recentChatSession ? 'Resume Chat' : 'Open Chat',
+      detail: recentChatSession?.title || 'Continue workspace-grounded analysis',
+    },
+    {
+      href: primaryBoard?.id
+        ? buildWorkspaceBoardDocumentPath(workspaceId, primaryBoard.id)
+        : buildWorkspaceBoardPath(workspaceId),
+      icon: FolderKanban,
+      label: 'Open Board',
+      detail: primaryBoard?.name || 'Place artifacts, items, and notes',
+    },
+    {
+      href: buildWorkspaceTimelinePath(workspaceId),
+      icon: Workflow,
+      label: 'Review Timeline',
+      detail: `${snapshot.summary.counts.signals} signals and saved chronology views`,
+    },
+    {
+      href: buildWorkspaceNetworkPath(workspaceId),
+      icon: GitBranch,
+      label: 'Open Network',
+      detail: 'Inspect entities, sources, and manual links',
+    },
+    {
+      href: buildFilesPath(),
+      icon: Radar,
+      label: 'Open Files',
+      detail: 'Browse artifacts and canonical workspace items',
+    },
+  ].filter(Boolean) as Array<{
+    href: string;
+    icon: typeof Bot;
+    label: string;
+    detail: string;
+  }>;
+
+  const countCards = buildCountCards(snapshot.summary.counts);
+
+  return (
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-200">
+      <header className={`${CHROME_HEADER_CLASS} px-6`}>
+        <div className="flex h-full min-w-0 items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="mb-1 text-[10px] font-mono uppercase tracking-[0.24em] text-zinc-500">
+              Workspace Overview
+            </div>
+            <h1 className="truncate text-2xl font-semibold tracking-tight text-white">
+              {snapshot.summary.title}
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm text-zinc-400">
+              {workspace.description ||
+                snapshot.summary.launchAngle ||
+                snapshot.summary.launchTopic ||
+                'Summary counts, saved views, and recent activity for this workspace.'}
+            </p>
+          </div>
+          <div className="hidden shrink-0 items-center gap-2 lg:flex">
+            <Link
+              to={buildWorkspaceChatPath(workspaceId)}
+              className={getChromeMenuButtonClass(false)}
+            >
+              Chat
+            </Link>
+            <Link
+              to={
+                primaryBoard?.id
+                  ? buildWorkspaceBoardDocumentPath(workspaceId, primaryBoard.id)
+                  : buildWorkspaceBoardPath(workspaceId)
+              }
+              className={getChromeMenuButtonClass(false)}
+            >
+              Board
+            </Link>
+            <Link
+              to={buildWorkspaceTimelinePath(workspaceId)}
+              className={getChromeMenuButtonClass(false)}
+            >
+              Timeline
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+          <div className="space-y-6">
+            <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
+              <div className={CHROME_PANEL_HEADER_CLASS}>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                  Summary
+                </div>
+              </div>
+              <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
+                {countCards.map((card) => (
+                  <div
+                    key={card.label}
+                    className="border border-zinc-800 bg-zinc-950/60 px-4 py-3"
+                  >
+                    <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                      {card.label}
+                    </div>
+                    <div className="mt-2 text-2xl font-semibold text-white">{card.value}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
+              <div className={CHROME_PANEL_HEADER_CLASS}>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                  Quick Actions
+                </div>
+              </div>
+              <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-3">
+                {quickActions.map((action) => {
+                  const Icon = action.icon;
+                  return (
+                    <Link
+                      key={action.label}
+                      to={action.href}
+                      className="group border border-zinc-800 bg-zinc-950/60 p-4 transition-colors hover:border-osint-primary/60"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 rounded-sm border border-zinc-800 bg-black/70 p-2 text-osint-primary">
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-white">{action.label}</div>
+                            <div className="mt-1 text-sm text-zinc-400">{action.detail}</div>
+                          </div>
+                        </div>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
+              <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-center justify-between gap-3`}>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                  Recent Activity
+                </div>
+                <Link
+                  to={buildWorkspaceTimelinePath(workspaceId)}
+                  className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 transition hover:text-white"
+                >
+                  Open Timeline
+                </Link>
+              </div>
+              <div className="p-4">
+                {snapshot.recentActivity.length > 0 ? (
+                  <div className="space-y-3">
+                    {snapshot.recentActivity.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className={`border border-zinc-800 border-l-2 bg-zinc-950/60 p-4 ${activityAccentClass[entry.kind]}`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                              {activityLabel[entry.kind]}
+                            </div>
+                            <div className="mt-1 truncate text-sm font-medium text-white">
+                              {entry.title}
+                            </div>
+                            <div className="mt-1 text-sm text-zinc-400">{entry.subtitle}</div>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <div className="text-xs text-zinc-400">
+                              {formatRelativeTimestamp(entry.timestamp)}
+                            </div>
+                            <div className="mt-1 text-[11px] text-zinc-600">
+                              {formatTimestamp(entry.timestamp)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 text-sm text-zinc-500">
+                    Recent workspace activity will appear here as artifacts, items, signals, runs,
+                    chats, and boards are updated.
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          <div className="space-y-6">
+            <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
+              <div className={CHROME_PANEL_HEADER_CLASS}>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                  Workspace Context
+                </div>
+              </div>
+              <div className="space-y-4 p-4 text-sm text-zinc-300">
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    Opened
+                  </div>
+                  <div className="mt-1 text-white">{workspace.dateOpened}</div>
+                </div>
+                {snapshot.summary.launchTopic ? (
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                      Launch Topic
+                    </div>
+                    <div className="mt-1 text-white">{snapshot.summary.launchTopic}</div>
+                  </div>
+                ) : null}
+                {snapshot.summary.launchAngle ? (
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                      Angle
+                    </div>
+                    <div className="mt-1 text-white">{snapshot.summary.launchAngle}</div>
+                  </div>
+                ) : null}
+                {snapshot.summary.prioritySourcesSummary ? (
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                      Priority Sources
+                    </div>
+                    <div className="mt-1 text-white">{snapshot.summary.prioritySourcesSummary}</div>
+                  </div>
+                ) : null}
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                    Board State
+                  </div>
+                  <div className="mt-1 text-white">
+                    {snapshot.summary.boardState.count} boards,{' '}
+                    {snapshot.summary.boardState.boardsWithSnapshots} with saved snapshots
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
+              <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-center justify-between gap-3`}>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500">
+                  Saved Views
+                </div>
+                <Link
+                  to={buildWorkspaceTimelinePath(workspaceId)}
+                  className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 transition hover:text-white"
+                >
+                  Timeline
+                </Link>
+              </div>
+              <div className="p-4">
+                {savedViewsPending ? (
+                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 text-sm text-zinc-500">
+                    Loading saved timeline views...
+                  </div>
+                ) : snapshot.savedViews.length > 0 ? (
+                  <div className="space-y-3">
+                    {snapshot.savedViews.map((view) => (
+                      <Link
+                        key={view.id}
+                        to={buildSavedViewHref(
+                          workspaceId,
+                          savedViews.find((entry) => entry.id === view.id)?.query ||
+                            DEFAULT_TIMELINE_ROUTE_QUERY
+                        )}
+                        className="block border border-zinc-800 bg-zinc-950/60 p-4 transition-colors hover:border-osint-primary/60"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-medium text-white">
+                              {view.title}
+                            </div>
+                            <div className="mt-1 text-sm text-zinc-400">{view.snippet}</div>
+                          </div>
+                          <div className="shrink-0 text-[11px] text-zinc-500">
+                            {formatRelativeTimestamp(view.updatedAt)}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 text-sm text-zinc-500">
+                    Save filtered timeline states to make this workspace home jump directly into
+                    recurring chronology views.
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

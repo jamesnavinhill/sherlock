@@ -2,9 +2,9 @@
 
 Date: April 7, 2026
 
-Status: In Progress
+Status: Complete
 
-Progress note (April 8, 2026): Workstreams 0-3 are now landed in code/docs on this branch. Remaining scope in this plan starts at Workstream 4.
+Progress note (April 8, 2026): Workstreams 0-5 are now landed in code/docs on this branch. Workstream 4 finalized the shared chrome/panel contract and routed-surface parity pass; Workstream 5 landed the workspace-home readiness model plus a lightweight workspace landing view anchored on those contracts instead of another redirect.
 
 Related inputs:
 
@@ -663,6 +663,12 @@ Purpose:
 
 ### 4A. Shared Chrome And Panel Contract
 
+Landing note (April 8, 2026):
+
+- shared routed-surface chrome now lives in `src/components/ui/chrome.ts`
+- the panel/header/button contract is applied across Files, Feed, Live Monitor, Network Graph, Settings, Chat composer, and Workspace Home
+- ambient matrix-rain backgrounds are now constrained to active-loading/monitoring states rather than steady-state routed pages
+
 Define this before broad UI slicing:
 
 - toolbar spacing, control height, and icon-button treatments
@@ -689,6 +695,15 @@ Board/graph guidance decision:
 - do not scatter legends, chips, and helper copy across already dense canvases
 
 ### 4B. Targeted Surface Slices
+
+Landing note (April 8, 2026):
+
+- Network graph dossier now overlays instead of shifting graph content
+- Chat gained a cleaner composer shell plus file-upload/config entry points aligned to the shared toolbar language
+- Timeline reduced duplicated inline row actions in favor of the details rail as the canonical action path
+- Files now supports denser list/grid working modes behind shared filter/view controls
+- Settings runtime/theme layout was restacked to match the shared surface system
+- Discovery and Live Monitor cards/CTAs now read as feeder surfaces into workspace synthesis instead of alternate homes
 
 These should land after `4A` freezes the system contract.
 
@@ -802,6 +817,12 @@ Workspace Home
 ```
 
 This round should make that page obvious to build later, not attempt to fake it through more redirects.
+
+Landing note (April 8, 2026):
+
+- `selectWorkspaceHomeReadinessState` now exposes the canonical workspace-home input slice
+- `src/services/workspace/home.ts` derives counts, board state, recent activity, and saved-view summaries for a workspace
+- `/workspaces/:workspaceId` now renders a lightweight workspace overview using those contracts rather than redirecting immediately into artifact or board detail
 
 ## Recommended Execution Order
 

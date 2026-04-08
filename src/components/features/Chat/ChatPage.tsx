@@ -28,6 +28,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     draft,
     expandedArtifactIds,
     exportMenuRef,
+    fileInputRef,
     followUpDialog,
     formatDateTime,
     formatMessageWithCitations,
@@ -46,6 +47,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
     handleDeleteSession,
     handleExportSessionJson,
     handleExportSessionMarkdown,
+    handleFileUpload,
     handleFetchArtifactSummary,
     handleFetchFullArtifact,
     handleFetchRecentSignals,
@@ -213,9 +215,11 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             guidedState={guidedState}
             isBusy={chatGenerationStatus === 'GENERATING' || chatGenerationStatus === 'CANCELLING'}
             chatGenerationStatus={chatGenerationStatus}
+            fileInputRef={fileInputRef}
             mentionCandidates={mentionCandidates}
             onSubmit={handleSend}
             onDraftChange={setDraft}
+            onFileUpload={handleFileUpload}
             onKeyDown={handleComposerKeyDown}
             onStopGeneration={handleStopGeneration}
             onAdvanceGuided={handleAdvanceGuided}

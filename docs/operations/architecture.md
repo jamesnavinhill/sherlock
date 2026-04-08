@@ -42,6 +42,9 @@ Supporting shell files now include:
 - `src/app/AppShellRoutes.tsx`
 - `src/components/ui/GlobalSearch.tsx`
 - `src/components/ui/omniboxModel.ts`
+- `src/components/ui/chrome.ts`
+- `src/components/features/WorkspaceHome/index.tsx`
+- `src/services/workspace/home.ts`
 
 `src/app/useAppShellController.ts` now delegates initialization, location tracking, and theme-application effects to `src/app/useAppShellEffects.ts`, keeping the controller focused on launch orchestration and surface commands.
 
@@ -80,11 +83,32 @@ Examples captured directly in `src/app/routes.ts`:
 
 Route wrappers now enforce the same contract at runtime:
 
+- `WorkspaceHomeRouteView` now keeps `/workspaces/:workspaceId` in place and renders a lightweight overview backed by the workspace-home readiness model instead of redirecting immediately into artifacts or boards
 - `TimelineView` round-trips chronology query state through `useSearchParams` with parsing/serialization centralized in `src/components/features/Timeline/timelineRouteState.ts`
 - the bare workspace chat route (`/workspaces/:workspaceId/chat`) clears stale deep-linked session selection when no `sessionId` is present
 - the bare workspace board route (`/workspaces/:workspaceId/board`) redirects to the first valid board document when one exists, and invalid board ids fall back to that same canonical board route
 
 The route contract is now active runtime behavior rather than future groundwork. `AppView` still exists only as a coarse navigation label for the sidebar and route-targeting helpers, while URL-backed routing is the primary navigation mechanism.
+
+### Shared chrome contract
+
+Shared routed-surface chrome now lives in `src/components/ui/chrome.ts`.
+
+That module currently centralizes:
+
+- sticky header treatment for routed surfaces
+- shared panel shell/header treatments
+- common toolbar/menu/toggle/segmented-button classes
+
+Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, and Workspace Home now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
+
+### Workspace-home readiness contract
+
+This round still stops short of a full dashboard-style workspace home, but it now leaves behind the runtime contract the next round will build on:
+
+- `selectWorkspaceHomeReadinessState` in `src/store/selectors/featureSelectors.ts` exposes the canonical workspace-home input slice
+- `src/services/workspace/home.ts` derives summary counts, board state, recent activity, and saved-view summaries
+- `src/components/features/WorkspaceHome/index.tsx` uses that readiness model to render the canonical workspace landing route without introducing a second persistence path
 
 ### Feature extraction contract
 

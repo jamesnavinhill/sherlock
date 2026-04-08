@@ -1,29 +1,36 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact, WorkspaceItem } from '../../types';
+import type { Artifact, ChatOpenRequest, InvestigationLaunchRequest, WorkspaceItem } from '../../types';
 import {
-  FileText,
-  Trash2,
   ArrowRight,
-  FolderOpen,
-  Folder,
-  Plus,
-  FolderClosed,
+  ChevronDown,
   Download,
   FileJson,
-  ChevronDown,
-  MessageSquare,
+  FileText,
+  Folder,
+  FolderClosed,
+  FolderOpen,
+  LayoutGrid,
   Link2,
+  List,
+  MessageSquare,
+  Plus,
+  Trash2,
   Workflow,
 } from 'lucide-react';
+
 import { TaskSetupModal } from './Runs/TaskSetupModal';
 import { EmptyState } from '../ui/EmptyState';
-import { useWorkspaceStore } from '../../store/caseStore';
-import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { OsintSelect } from '../ui/OsintSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { exportCaseAsJson, exportCaseAsHtml, exportCaseAsMarkdown } from '../../utils/exportUtils';
+import { useWorkspaceStore } from '../../store/caseStore';
+import { exportCaseAsHtml, exportCaseAsJson, exportCaseAsMarkdown } from '../../utils/exportUtils';
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../domain';
+import {
+  CHROME_HEADER_CLASS,
+  getChromeMenuButtonClass,
+  getChromeSegmentButtonClass,
+} from '../ui/chrome';
 import {
   clearStoredActiveWorkspaceId,
   getStoredActiveWorkspaceId,
@@ -43,6 +50,9 @@ interface ArchivesProps {
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 
+type FilesViewMode = 'GRID' | 'LIST';
+type RecordFilter = 'ALL' | 'ARTIFACT' | 'ITEM';
+
 export const Archives: React.FC<ArchivesProps> = ({
   onSelectReport,
   onStartNewCase,
@@ -59,6 +69,7 @@ export const Archives: React.FC<ArchivesProps> = ({
     queueBoardPlacement,
     setActiveWorkspaceId,
   } = useWorkspaceStore();
+
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
     const activeWorkspaceId = getStoredActiveWorkspaceId();
     if (activeWorkspaceId && activeWorkspaceId !== 'ALL') {
@@ -68,24 +79,23 @@ export const Archives: React.FC<ArchivesProps> = ({
   });
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [recordFilter, setRecordFilter] = useState<'ALL' | 'ARTIFACT' | 'ITEM'>('ALL');
+  const [recordFilter, setRecordFilter] = useState<RecordFilter>('ALL');
+  const [viewMode, setViewMode] = useState<FilesViewMode>('LIST');
   const [workspacePendingPurge, setWorkspacePendingPurge] = useState<{
     id: string;
     name: string;
     reportCount: number;
   } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const itemsPerPage = 8;
   const workspaceLabel = CANONICAL_NOUNS.workspace;
   const workspaceLabelLower = workspaceLabel.toLowerCase();
   const artifactLabel = CANONICAL_NOUNS.artifact;
   const artifactLabelLower = artifactLabel.toLowerCase();
   const artifactLabelPlural = CANONICAL_NOUNS.artifactPlural;
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
-
-  // Close export menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
@@ -106,37 +116,31 @@ export const Archives: React.FC<ArchivesProps> = ({
   const effectiveSelectedCaseId =
     selectedCaseId &&
     selectedCaseId !== 'unassigned' &&
-    !workspaces.some((c) => c.id === selectedCaseId)
+    !workspaces.some((workspace) => workspace.id === selectedCaseId)
       ? null
       : selectedCaseId;
 
   useEffect(() => {
     if (!selectedCaseId || selectedCaseId === 'unassigned') return;
-    if (workspaces.some((c) => c.id === selectedCaseId)) return;
+    if (workspaces.some((workspace) => workspace.id === selectedCaseId)) return;
     if (getStoredActiveWorkspaceId() === selectedCaseId) {
       clearStoredActiveWorkspaceId();
     }
   }, [workspaces, selectedCaseId]);
 
-  const getCaseReports = (caseId: string) => {
-    return artifacts.filter((r) => r.caseId === caseId);
-  };
-
+  const getCaseReports = (caseId: string) => artifacts.filter((artifact) => artifact.caseId === caseId);
   const getCaseItems = (caseId: string) =>
     workspaceItems.filter((item) => item.workspaceId === caseId);
+  const getUnassignedReports = () => artifacts.filter((artifact) => !artifact.caseId);
 
-  const getUnassignedReports = () => {
-    return artifacts.filter((r) => !r.caseId);
-  };
-
-  const handleDeleteReport = async (e: React.MouseEvent, id?: string) => {
-    e.stopPropagation();
+  const handleDeleteReport = async (event: React.MouseEvent, id?: string) => {
+    event.stopPropagation();
     if (!id) return;
     await deleteReport(id);
   };
 
-  const handlePlaceArtifactOnBoard = async (e: React.MouseEvent, artifact: Artifact) => {
-    e.stopPropagation();
+  const handlePlaceArtifactOnBoard = async (event: React.MouseEvent, artifact: Artifact) => {
+    event.stopPropagation();
     const reference = buildArtifactBoardReference(artifact);
     if (!reference || !artifact.caseId) return;
 
@@ -150,8 +154,8 @@ export const Archives: React.FC<ArchivesProps> = ({
     });
   };
 
-  const handlePlaceItemOnBoard = async (e: React.MouseEvent, item: WorkspaceItem) => {
-    e.stopPropagation();
+  const handlePlaceItemOnBoard = async (event: React.MouseEvent, item: WorkspaceItem) => {
+    event.stopPropagation();
     setActiveWorkspaceId(item.workspaceId);
     await queueWorkspaceReferenceOnBoard({
       ensureWorkspaceBoard,
@@ -162,15 +166,16 @@ export const Archives: React.FC<ArchivesProps> = ({
     });
   };
 
-  const handlePurgeCase = (caseId: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const handlePurgeCase = (caseId: string, event?: React.MouseEvent) => {
+    event?.stopPropagation();
 
-    const targetCase = workspaces.find((c) => c.id === caseId);
-    const reportCount = getCaseReports(caseId).length;
+    const targetWorkspace = workspaces.find((workspace) => workspace.id === caseId);
     setWorkspacePendingPurge({
       id: caseId,
-      name: targetCase ? getWorkspaceDisplayTitle(targetCase) : `this ${workspaceLabelLower}`,
-      reportCount,
+      name: targetWorkspace
+        ? getWorkspaceDisplayTitle(targetWorkspace)
+        : `this ${workspaceLabelLower}`,
+      reportCount: getCaseReports(caseId).length,
     });
   };
 
@@ -198,13 +203,35 @@ export const Archives: React.FC<ArchivesProps> = ({
       setSelectedCaseId(id);
       setStoredActiveWorkspaceId(id);
     }
-    setCurrentPage(1); // Reset pagination on filter change
+
+    setCurrentPage(1);
     setRecordFilter('ALL');
   };
 
-  // --- RENDER HELPERS ---
+  const renderPagination = (current: number, total: number) =>
+    total > 1 ? (
+      <div className="flex items-center justify-center space-x-4 pt-8">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+          disabled={current === 1}
+          className="border border-zinc-800 p-2 text-xs font-mono uppercase text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
+        >
+          Prev
+        </button>
+        <span className="text-xs font-mono uppercase text-zinc-500">
+          Page {current} of {total}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(total, prev + 1))}
+          disabled={current === total}
+          className="border border-zinc-800 p-2 text-xs font-mono uppercase text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
+        >
+          Next
+        </button>
+      </div>
+    ) : null;
 
-  const renderCaseGrid = () => {
+  const renderWorkspaceOverview = () => {
     if (workspaces.length === 0 && getUnassignedReports().length === 0) {
       return (
         <EmptyState
@@ -221,154 +248,224 @@ export const Archives: React.FC<ArchivesProps> = ({
     }
 
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedCases = workspaces.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedWorkspaces = workspaces.slice(startIndex, startIndex + itemsPerPage);
     const totalPages = Math.ceil(workspaces.length / itemsPerPage);
 
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-          {/* Active Cases */}
-          {paginatedCases.map((c) => {
-            const fileCount = artifacts.filter((r) => r.caseId === c.id).length;
-            const itemCount = workspaceItems.filter((item) => item.workspaceId === c.id).length;
-            return (
-              <div
-                key={c.id}
-                onClick={() => handleCaseSelect(c.id)}
-                className="bg-osint-panel/80 backdrop-blur-sm p-6 border border-zinc-800 hover:border-osint-primary cursor-pointer group transition-all relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
-                  <Folder className="w-24 h-24 text-white" />
-                </div>
+        {viewMode === 'GRID' ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {paginatedWorkspaces.map((workspace) => {
+              const fileCount = getCaseReports(workspace.id).length;
+              const itemCount = getCaseItems(workspace.id).length;
 
-                <div className="flex justify-between items-start mb-4 relative z-10">
-                  <div className="bg-zinc-900 p-3 text-white border border-zinc-700">
-                    <FolderClosed className="w-8 h-8" />
+              return (
+                <div
+                  key={workspace.id}
+                  onClick={() => handleCaseSelect(workspace.id)}
+                  className="group relative cursor-pointer overflow-hidden border border-zinc-800 bg-osint-panel/80 p-6 backdrop-blur-sm transition-all hover:border-osint-primary"
+                >
+                  <div className="absolute right-0 top-0 p-4 opacity-20 transition-opacity group-hover:opacity-40">
+                    <Folder className="h-24 w-24 text-white" />
                   </div>
-                  <span
-                    className={`text-[10px] font-mono px-2 py-1 border uppercase ${c.status === 'ACTIVE' ? 'border-osint-primary/50 text-osint-primary bg-osint-primary/10' : 'border-zinc-700 text-zinc-500'}`}
-                  >
-                    {c.status}
-                  </span>
-                </div>
 
-                <h3 className="mb-1 truncate text-lg font-medium leading-snug text-white group-hover:text-zinc-300 relative z-10 font-sans tracking-normal">
-                  {getWorkspaceDisplayTitle(c)}
-                </h3>
-                <p className="text-zinc-600 text-sm font-mono mb-4">{c.dateOpened}</p>
-
-                <div className="flex items-center justify-between text-sm text-zinc-500 border-t border-zinc-800 pt-4 relative z-10 font-mono uppercase">
-                  <span className="flex items-center gap-3">
-                    <span className="flex items-center">
-                    <FileText className="w-4 h-4 mr-2" />
-                    {fileCount} {fileCount === 1 ? artifactLabel : artifactLabelPlural}
+                  <div className="relative z-10 mb-4 flex items-start justify-between">
+                    <div className="border border-zinc-700 bg-zinc-900 p-3 text-white">
+                      <FolderClosed className="h-8 w-8" />
+                    </div>
+                    <span
+                      className={`border px-2 py-1 text-[10px] font-mono uppercase ${workspace.status === 'ACTIVE' ? 'border-osint-primary/50 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
+                    >
+                      {workspace.status}
                     </span>
-                    <span>{itemCount} {CANONICAL_NOUNS.itemPlural.toLowerCase()}</span>
-                  </span>
-                  <div className="flex space-x-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenChat({ workspaceId: c.id });
-                      }}
-                      className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                      title={`Open ${workspaceLabelLower} in workspace chat`}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        exportCaseAsHtml(c, getCaseReports(c.id));
-                      }}
-                      className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                      title={`Export formatted printable ${workspaceLabelLower} (HTML)`}
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        exportCaseAsJson(c, getCaseReports(c.id));
-                      }}
-                      className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                      title={`Export raw ${workspaceLabelLower} data for backup (JSON)`}
-                    >
-                      <FileJson className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        exportCaseAsMarkdown(c, getCaseReports(c.id));
-                      }}
-                      className="p-1 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-                      title={`Export ${workspaceLabelLower} as Markdown (.md)`}
-                    >
-                      <FileText className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={(e) => handlePurgeCase(c.id, e)}
-                      className="p-1 hover:text-osint-danger transition-colors opacity-0 group-hover:opacity-100"
-                      title={`Permanently Purge ${workspaceLabel}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  </div>
+
+                  <h3 className="relative z-10 mb-1 truncate text-lg font-medium leading-snug text-white transition-colors group-hover:text-zinc-300">
+                    {getWorkspaceDisplayTitle(workspace)}
+                  </h3>
+                  <p className="mb-4 text-sm font-mono text-zinc-600">{workspace.dateOpened}</p>
+
+                  <div className="relative z-10 flex items-center justify-between border-t border-zinc-800 pt-4 text-sm font-mono uppercase text-zinc-500">
+                    <span className="flex items-center gap-3">
+                      <span className="flex items-center">
+                        <FileText className="mr-2 h-4 w-4" />
+                        {fileCount} {fileCount === 1 ? artifactLabel : artifactLabelPlural}
+                      </span>
+                      <span>{itemCount} {CANONICAL_NOUNS.itemPlural.toLowerCase()}</span>
+                    </span>
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onOpenChat({ workspaceId: workspace.id });
+                        }}
+                        className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                        title={`Open ${workspaceLabelLower} in workspace chat`}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          exportCaseAsHtml(workspace, getCaseReports(workspace.id));
+                        }}
+                        className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                        title={`Export formatted printable ${workspaceLabelLower} (HTML)`}
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          exportCaseAsJson(workspace, getCaseReports(workspace.id));
+                        }}
+                        className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                        title={`Export raw ${workspaceLabelLower} data for backup (JSON)`}
+                      >
+                        <FileJson className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          exportCaseAsMarkdown(workspace, getCaseReports(workspace.id));
+                        }}
+                        className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                        title={`Export ${workspaceLabelLower} as Markdown (.md)`}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(event) => handlePurgeCase(workspace.id, event)}
+                        className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-osint-danger"
+                        title={`Permanently Purge ${workspaceLabel}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {/* Unassigned Reports Folder (Virtual) */}
-          {getUnassignedReports().length > 0 && (
-            <div
-              onClick={() => handleCaseSelect('unassigned')}
-              className="bg-zinc-900/30 backdrop-blur-sm p-6 border border-zinc-800 border-dashed hover:border-zinc-500 cursor-pointer group transition-all"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-zinc-900 p-3 text-zinc-500">
-                  <FolderOpen className="w-8 h-8" />
+            {getUnassignedReports().length > 0 ? (
+              <div
+                onClick={() => handleCaseSelect('unassigned')}
+                className="cursor-pointer border border-dashed border-zinc-800 bg-zinc-900/30 p-6 backdrop-blur-sm transition-all hover:border-zinc-500"
+              >
+                <div className="mb-4 flex justify-between">
+                  <div className="bg-zinc-900 p-3 text-zinc-500">
+                    <FolderOpen className="h-8 w-8" />
+                  </div>
+                </div>
+                <h3 className="mb-1 text-lg font-medium leading-snug text-zinc-400 transition-colors hover:text-white">
+                  Unassigned
+                </h3>
+                <p className="mb-4 text-sm font-mono text-zinc-600">{`Loose ${artifactLabelPlural}`}</p>
+                <div className="flex items-center border-t border-zinc-800 pt-4 text-sm font-mono uppercase text-zinc-500">
+                  <FileText className="mr-2 h-4 w-4" />
+                  {getUnassignedReports().length} {artifactLabelPlural}
                 </div>
               </div>
-              <h3 className="mb-1 text-lg font-medium leading-snug text-zinc-400 group-hover:text-white font-sans tracking-normal">
-                Unassigned
-              </h3>
-              <p className="text-zinc-600 text-sm font-mono mb-4">{`Loose ${artifactLabelPlural}`}</p>
-              <div className="flex items-center text-sm text-zinc-500 border-t border-zinc-800 pt-4 font-mono uppercase">
-                <FileText className="w-4 h-4 mr-2" />
-                {getUnassignedReports().length} {artifactLabelPlural}
-              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
+            <div className="grid grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3 text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+              <span>Workspace</span>
+              <span>Artifacts</span>
+              <span>Items</span>
+              <span className="text-right">Actions</span>
             </div>
-          )}
+            <div className="divide-y divide-zinc-800">
+              {paginatedWorkspaces.map((workspace) => {
+                const fileCount = getCaseReports(workspace.id).length;
+                const itemCount = getCaseItems(workspace.id).length;
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4 pt-8">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
-              >
-                Prev
-              </button>
-              <span className="text-xs font-mono text-zinc-500 uppercase">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
-              >
-                Next
-              </button>
+                return (
+                  <div
+                    key={workspace.id}
+                    onClick={() => handleCaseSelect(workspace.id)}
+                    className="grid cursor-pointer grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-semibold text-white">
+                          {getWorkspaceDisplayTitle(workspace)}
+                        </div>
+                        <span
+                          className={`border px-2 py-0.5 text-[10px] font-mono uppercase ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
+                        >
+                          {workspace.status}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                        {workspace.dateOpened}
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">
+                        {workspace.description ||
+                          'Open this workspace to inspect artifacts, items, and saved history.'}
+                      </p>
+                    </div>
+                    <div className="self-center text-right text-sm font-mono text-zinc-300">
+                      {fileCount}
+                    </div>
+                    <div className="self-center text-right text-sm font-mono text-zinc-300">
+                      {itemCount}
+                    </div>
+                    <div className="flex items-center justify-end gap-2 self-center">
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onOpenChat({ workspaceId: workspace.id });
+                        }}
+                        className="text-zinc-500 transition hover:text-white"
+                        title={`Open ${workspaceLabelLower} in workspace chat`}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(event) => handlePurgeCase(workspace.id, event)}
+                        className="text-zinc-500 transition hover:text-osint-danger"
+                        title={`Permanently Purge ${workspaceLabel}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                      <ArrowRight className="h-4 w-4 text-zinc-600" />
+                    </div>
+                  </div>
+                );
+              })}
+
+              {getUnassignedReports().length > 0 ? (
+                <div
+                  onClick={() => handleCaseSelect('unassigned')}
+                  className="grid cursor-pointer grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-zinc-300">Unassigned</div>
+                    <div className="mt-1 text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                      Loose {artifactLabelPlural}
+                    </div>
+                  </div>
+                  <div className="self-center text-right text-sm font-mono text-zinc-300">
+                    {getUnassignedReports().length}
+                  </div>
+                  <div className="self-center text-right text-sm font-mono text-zinc-500">0</div>
+                  <div className="flex items-center justify-end">
+                    <ArrowRight className="h-4 w-4 text-zinc-600" />
+                  </div>
+                </div>
+              ) : null}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {renderPagination(currentPage, totalPages)}
       </div>
     );
   };
 
-  const renderReportList = (caseId: string) => {
+  const renderWorkspaceRecords = (caseId: string) => {
     const isUnassigned = caseId === 'unassigned';
     const caseReports = isUnassigned ? getUnassignedReports() : getCaseReports(caseId);
     const caseItems = isUnassigned ? [] : getCaseItems(caseId);
@@ -387,10 +484,7 @@ export const Archives: React.FC<ArchivesProps> = ({
         item,
       })),
     ]
-      .filter((record) => {
-        if (recordFilter === 'ALL') return true;
-        return record.kind === recordFilter;
-      })
+      .filter((record) => recordFilter === 'ALL' || record.kind === recordFilter)
       .sort((left, right) => right.sortAt - left.sortAt);
 
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -399,183 +493,294 @@ export const Archives: React.FC<ArchivesProps> = ({
 
     return (
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {records.length === 0 ? (
-            <div className="col-span-full py-20 bg-zinc-900/20 border border-dashed border-zinc-800 flex flex-col items-center justify-center animate-in fade-in">
-              <FileText className="w-12 h-12 text-zinc-800 mb-4" />
-              <div className="text-zinc-600 italic font-mono uppercase text-xs tracking-widest">
-                NO_WORKSPACE_RECORDS_MATCH_FILTER
+        {viewMode === 'GRID' ? (
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            {records.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center border border-dashed border-zinc-800 bg-zinc-900/20 py-20 animate-in fade-in">
+                <FileText className="mb-4 h-12 w-12 text-zinc-800" />
+                <div className="text-xs font-mono uppercase tracking-widest text-zinc-600 italic">
+                  NO_WORKSPACE_RECORDS_MATCH_FILTER
+                </div>
               </div>
-            </div>
-          ) : (
-            paginatedRecords.map((record, idx) =>
-              record.kind === 'ARTIFACT' ? (
-                <div
-                  key={record.artifact.id || idx}
-                  onClick={() => onSelectReport(record.artifact)}
-                  className="bg-zinc-900/70 backdrop-blur-sm p-6 border border-zinc-800 hover:border-osint-primary cursor-pointer group flex items-center justify-between transition-all hover:bg-zinc-900"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-black p-3 text-white border border-zinc-800 group-hover:border-zinc-600">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-mono uppercase text-zinc-500">
-                        Artifact
+            ) : (
+              paginatedRecords.map((record, index) =>
+                record.kind === 'ARTIFACT' ? (
+                  <div
+                    key={record.artifact.id || index}
+                    onClick={() => onSelectReport(record.artifact)}
+                    className="group flex cursor-pointer items-center justify-between border border-zinc-800 bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:border-osint-primary hover:bg-zinc-900"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="border border-zinc-800 bg-black p-3 text-white group-hover:border-zinc-600">
+                        <FileText className="h-6 w-6" />
                       </div>
-                      <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 group-hover:text-white transition-colors">
-                        {record.artifact.topic}
-                      </h3>
-                      <div className="mt-1 text-xs font-mono uppercase text-zinc-500">
-                        {record.artifact.dateStr || 'Unknown Date'}
+                      <div>
+                        <div className="text-[10px] font-mono uppercase text-zinc-500">Artifact</div>
+                        <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-white">
+                          {record.artifact.topic}
+                        </h3>
+                        <div className="mt-1 text-xs font-mono uppercase text-zinc-500">
+                          {record.artifact.dateStr || 'Unknown Date'}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center space-x-4">
-                    {record.artifact.caseId && record.artifact.id && (
+                    <div className="flex items-center space-x-4">
+                      {record.artifact.caseId && record.artifact.id ? (
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            const request = buildArtifactChatOpenRequest(record.artifact);
+                            if (!request) return;
+                            onOpenChat(request);
+                          }}
+                          className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                          title="Open artifact context in workspace chat"
+                        >
+                          <MessageSquare className="h-5 w-5" />
+                        </button>
+                      ) : null}
+                      {record.artifact.caseId && record.artifact.id ? (
+                        <button
+                          onClick={(event) => void handlePlaceArtifactOnBoard(event, record.artifact)}
+                          className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                          title="Place artifact on board"
+                        >
+                          <Workflow className="h-5 w-5" />
+                        </button>
+                      ) : null}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const request = buildArtifactChatOpenRequest(record.artifact);
-                          if (!request) return;
-                          onOpenChat(request);
-                        }}
-                        className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Open artifact context in workspace chat"
+                        onClick={(event) => handleDeleteReport(event, record.artifact.id)}
+                        className="osint-danger-inline p-2 text-zinc-600 opacity-0 group-hover:opacity-100"
+                        title="Delete Artifact"
                       >
-                        <MessageSquare className="w-5 h-5" />
+                        <Trash2 className="h-5 w-5" />
                       </button>
-                    )}
-                    {record.artifact.caseId && record.artifact.id ? (
-                      <button
-                        onClick={(e) => void handlePlaceArtifactOnBoard(e, record.artifact)}
-                        className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Place artifact on board"
-                      >
-                        <Workflow className="w-5 h-5" />
-                      </button>
-                    ) : null}
-                    <button
-                      onClick={(e) => handleDeleteReport(e, record.artifact.id)}
-                      className="text-zinc-600 osint-danger-inline p-2 opacity-0 group-hover:opacity-100"
-                      title="Delete Artifact"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                    <ArrowRight className="w-5 h-5 text-zinc-700 group-hover:text-white transition-colors" />
+                      <ArrowRight className="h-5 w-5 text-zinc-700 transition-colors group-hover:text-white" />
+                    </div>
                   </div>
+                ) : (
+                  <div
+                    key={record.item.id}
+                    className="group flex items-center justify-between border border-zinc-800 bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:border-zinc-600 hover:bg-zinc-900"
+                  >
+                    <div className="flex min-w-0 items-center space-x-4">
+                      <div className="border border-zinc-800 bg-black p-3 text-white group-hover:border-zinc-600">
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-mono uppercase text-zinc-500">
+                          {record.item.kind}
+                        </div>
+                        <h3 className="truncate font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-white">
+                          {record.item.title}
+                        </h3>
+                        <div className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
+                          {record.item.description ||
+                            record.item.textContent ||
+                            record.item.url ||
+                            record.item.fileName ||
+                            'Saved workspace item'}
+                        </div>
+                        <div className="mt-2 text-[10px] font-mono uppercase text-zinc-600">
+                          {record.item.provenance?.source || 'USER'} •{' '}
+                          {new Date(record.item.updatedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="ml-4 flex items-center space-x-4">
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onOpenChat(buildWorkspaceItemChatOpenRequest(record.item));
+                        }}
+                        className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                        title="Open workspace chat"
+                      >
+                        <MessageSquare className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={(event) => void handlePlaceItemOnBoard(event, record.item)}
+                        className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                        title="Place item on board"
+                      >
+                        <Workflow className="h-5 w-5" />
+                      </button>
+                      {record.item.url ? (
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            window.open(record.item.url, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                          title="Open linked source"
+                        >
+                          <Link2 className="h-5 w-5" />
+                        </button>
+                      ) : null}
+                      <ArrowRight className="h-5 w-5 text-zinc-700 transition-colors group-hover:text-white" />
+                    </div>
+                  </div>
+                )
+              )
+            )}
+          </div>
+        ) : (
+          <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
+            <div className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3 text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-500">
+              <span>Type</span>
+              <span>Record</span>
+              <span>Updated</span>
+              <span className="text-right">Actions</span>
+            </div>
+            <div className="divide-y divide-zinc-800">
+              {records.length === 0 ? (
+                <div className="px-4 py-16 text-center text-xs font-mono uppercase tracking-[0.2em] text-zinc-600">
+                  No workspace records match filter
                 </div>
               ) : (
-                <div
-                  key={record.item.id}
-                  className="bg-zinc-900/70 backdrop-blur-sm p-6 border border-zinc-800 hover:border-zinc-600 group flex items-center justify-between transition-all hover:bg-zinc-900"
-                >
-                  <div className="flex items-center space-x-4 min-w-0">
-                    <div className="bg-black p-3 text-white border border-zinc-800 group-hover:border-zinc-600">
-                      <FileText className="w-6 h-6" />
+                paginatedRecords.map((record, index) =>
+                  record.kind === 'ARTIFACT' ? (
+                    <div
+                      key={record.artifact.id || index}
+                      onClick={() => onSelectReport(record.artifact)}
+                      className="grid cursor-pointer grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                    >
+                      <div className="self-start border border-zinc-800 bg-black p-3 text-white">
+                        <FileText className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                          Artifact
+                        </div>
+                        <h3 className="mt-1 truncate text-sm font-semibold text-white">
+                          {record.artifact.topic}
+                        </h3>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">
+                          {record.artifact.summary || 'Saved workspace artifact.'}
+                        </p>
+                      </div>
+                      <div className="self-center text-right text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                        {record.artifact.dateStr || 'Unknown Date'}
+                      </div>
+                      <div className="flex items-center justify-end gap-3 self-center">
+                        {record.artifact.caseId && record.artifact.id ? (
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              const request = buildArtifactChatOpenRequest(record.artifact);
+                              if (!request) return;
+                              onOpenChat(request);
+                            }}
+                            className="text-zinc-500 transition hover:text-white"
+                            title="Open artifact context in workspace chat"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </button>
+                        ) : null}
+                        {record.artifact.caseId && record.artifact.id ? (
+                          <button
+                            onClick={(event) => void handlePlaceArtifactOnBoard(event, record.artifact)}
+                            className="text-zinc-500 transition hover:text-white"
+                            title="Place artifact on board"
+                          >
+                            <Workflow className="h-4 w-4" />
+                          </button>
+                        ) : null}
+                        <button
+                          onClick={(event) => handleDeleteReport(event, record.artifact.id)}
+                          className="text-zinc-500 transition hover:text-osint-danger"
+                          title="Delete Artifact"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <ArrowRight className="h-4 w-4 text-zinc-600" />
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-[10px] font-mono uppercase text-zinc-500">
-                        {record.item.kind}
+                  ) : (
+                    <div
+                      key={record.item.id}
+                      className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                    >
+                      <div className="self-start border border-zinc-800 bg-black p-3 text-white">
+                        <FileText className="h-4 w-4" />
                       </div>
-                      <h3 className="truncate font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 group-hover:text-white transition-colors">
-                        {record.item.title}
-                      </h3>
-                      <div className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
-                        {record.item.description ||
-                          record.item.textContent ||
-                          record.item.url ||
-                          record.item.fileName ||
-                          'Saved workspace item'}
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                          {record.item.kind}
+                        </div>
+                        <h3 className="mt-1 truncate text-sm font-semibold text-white">
+                          {record.item.title}
+                        </h3>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-500">
+                          {record.item.description ||
+                            record.item.textContent ||
+                            record.item.url ||
+                            record.item.fileName ||
+                            'Saved workspace item'}
+                        </p>
                       </div>
-                      <div className="mt-2 text-[10px] font-mono uppercase text-zinc-600">
-                        {record.item.provenance?.source || 'USER'} •{' '}
+                      <div className="self-center text-right text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
                         {new Date(record.item.updatedAt).toLocaleDateString()}
                       </div>
+                      <div className="flex items-center justify-end gap-3 self-center">
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onOpenChat(buildWorkspaceItemChatOpenRequest(record.item));
+                          }}
+                          className="text-zinc-500 transition hover:text-white"
+                          title="Open workspace chat"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(event) => void handlePlaceItemOnBoard(event, record.item)}
+                          className="text-zinc-500 transition hover:text-white"
+                          title="Place item on board"
+                        >
+                          <Workflow className="h-4 w-4" />
+                        </button>
+                        {record.item.url ? (
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              window.open(record.item.url, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="text-zinc-500 transition hover:text-white"
+                            title="Open linked source"
+                          >
+                            <Link2 className="h-4 w-4" />
+                          </button>
+                        ) : null}
+                        <ArrowRight className="h-4 w-4 text-zinc-600" />
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="ml-4 flex items-center space-x-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenChat(buildWorkspaceItemChatOpenRequest(record.item));
-                      }}
-                      className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Open workspace chat"
-                    >
-                      <MessageSquare className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={(e) => void handlePlaceItemOnBoard(e, record.item)}
-                      className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Place item on board"
-                    >
-                      <Workflow className="w-5 h-5" />
-                    </button>
-                    {record.item.url ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(record.item.url, '_blank', 'noopener,noreferrer');
-                        }}
-                        className="text-zinc-600 hover:text-white p-2 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Open linked source"
-                      >
-                        <Link2 className="w-5 h-5" />
-                      </button>
-                    ) : null}
-                    <ArrowRight className="w-5 h-5 text-zinc-700 group-hover:text-white transition-colors" />
-                  </div>
-                </div>
-              )
-            )
-          )}
-        </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center space-x-4 pt-8">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
-            >
-              Prev
-            </button>
-            <span className="text-xs font-mono text-zinc-500 uppercase">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 border border-zinc-800 text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500 font-mono text-xs uppercase"
-            >
-              Next
-            </button>
+                  )
+                )
+              )}
+            </div>
           </div>
         )}
+
+        {renderPagination(currentPage, totalPages)}
       </div>
     );
   };
 
   return (
-    <div className="w-full h-full bg-black min-h-screen relative">
-      <BackgroundMatrixRain />
-
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-30 h-20 px-6 bg-black/95 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between">
+    <div className="relative min-h-screen h-full w-full bg-black">
+      <div className={`${CHROME_HEADER_CLASS} flex items-center justify-between px-6`}>
         <div className="flex items-center space-x-6">
           <button
             onClick={() => setIsNewCaseModalOpen(true)}
             className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
           </button>
-          {/* Workspace Selector */}
-          <div className="hidden md:block min-w-[200px] max-w-[300px]">
+          <div className="hidden min-w-[200px] max-w-[300px] md:block">
             <OsintSelect
               ariaLabel={`View ${workspaceLabel}`}
               value={effectiveSelectedCaseId || 'ALL'}
@@ -588,12 +793,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                   label: getWorkspaceDisplayTitle(workspace),
                 })),
                 ...(getUnassignedReports().length > 0
-                  ? [
-                      {
-                        value: 'unassigned',
-                        label: `Unassigned ${artifactLabelPlural}`,
-                      },
-                    ]
+                  ? [{ value: 'unassigned', label: `Unassigned ${artifactLabelPlural}` }]
                   : []),
               ]}
             />
@@ -601,8 +801,27 @@ export const Archives: React.FC<ArchivesProps> = ({
         </div>
 
         <div className="flex items-center space-x-3">
+          <div className="hidden items-center border border-zinc-800 bg-zinc-950/70 p-0.5 md:flex">
+            <button
+              onClick={() => setViewMode('LIST')}
+              className={getChromeSegmentButtonClass(viewMode === 'LIST')}
+              title="Show dense list view"
+            >
+              <List className="mr-1 h-3.5 w-3.5" />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('GRID')}
+              className={getChromeSegmentButtonClass(viewMode === 'GRID')}
+              title="Show grid view"
+            >
+              <LayoutGrid className="mr-1 h-3.5 w-3.5" />
+              Grid
+            </button>
+          </div>
+
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
-            <div className="hidden md:flex items-center rounded border border-zinc-800 bg-zinc-950/70 p-1">
+            <div className="hidden items-center rounded border border-zinc-800 bg-zinc-950/70 p-1 md:flex">
               {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
                 <button
                   key={value}
@@ -610,74 +829,91 @@ export const Archives: React.FC<ArchivesProps> = ({
                     setRecordFilter(value);
                     setCurrentPage(1);
                   }}
-                  className={`px-3 py-1.5 text-[10px] font-mono uppercase transition-colors ${
-                    recordFilter === value
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-500 hover:text-white'
-                  }`}
+                  className={getChromeSegmentButtonClass(recordFilter === value)}
                 >
                   {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
                 </button>
               ))}
             </div>
           ) : null}
-          {/* Export Dropdown - only show when case is selected */}
-          {effectiveSelectedCaseId &&
-            effectiveSelectedCaseId !== 'unassigned' &&
-            (() => {
-              const currentCase = workspaces.find((c) => c.id === effectiveSelectedCaseId);
-              return currentCase ? (
-                <div className="relative" ref={exportMenuRef}>
-                  <button
-                    onClick={() => setShowExportMenu(!showExportMenu)}
-                    className={`flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase ${
-                      showExportMenu ? 'osint-button-chrome-active' : 'osint-button-chrome'
-                    }`}
-                  >
-                    <Download className="w-4 h-4 mr-1" />
-                    <span className="hidden lg:inline">Export</span>
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </button>
-                  {showExportMenu && (
-                    <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[200px]">
-                      <button
-                        onClick={() => {
-                          exportCaseAsHtml(currentCase, getCaseReports(currentCase.id));
-                          setShowExportMenu(false);
-                        }}
-                        className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center border-b border-zinc-800"
-                        title={`Exports a formatted printable ${workspaceLabelLower}`}
-                      >
-                        <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
-                        <div>
-                          <div className="font-bold">{`${workspaceLabel} HTML`}</div>
-                          <div className="text-[10px] text-zinc-500">{`Formatted printable ${workspaceLabelLower}`}</div>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          exportCaseAsJson(currentCase, getCaseReports(currentCase.id));
-                          setShowExportMenu(false);
-                        }}
-                        className="osint-menu-item w-full text-left px-4 py-3 text-xs font-mono text-zinc-300 flex items-center"
-                        title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
-                      >
-                        <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
-                        <div>
-                          <div className="font-bold">{`${workspaceLabel} JSON`}</div>
-                          <div className="text-[10px] text-zinc-500">{`Raw ${workspaceLabelLower} data for backup`}</div>
-                        </div>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : null;
-            })()}
+
+          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
+            ? (() => {
+                const currentWorkspace = workspaces.find(
+                  (workspace) => workspace.id === effectiveSelectedCaseId
+                );
+                if (!currentWorkspace) return null;
+
+                return (
+                  <div className="relative" ref={exportMenuRef}>
+                    <button
+                      onClick={() => setShowExportMenu((current) => !current)}
+                      className={getChromeMenuButtonClass(showExportMenu)}
+                    >
+                      <Download className="mr-1 h-4 w-4" />
+                      <span className="hidden lg:inline">Export</span>
+                      <ChevronDown className="ml-1 h-3 w-3" />
+                    </button>
+                    {showExportMenu ? (
+                      <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
+                        <button
+                          onClick={() => {
+                            exportCaseAsHtml(currentWorkspace, getCaseReports(currentWorkspace.id));
+                            setShowExportMenu(false);
+                          }}
+                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                          title={`Exports a formatted printable ${workspaceLabelLower}`}
+                        >
+                          <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <div>
+                            <div className="font-bold">{`${workspaceLabel} HTML`}</div>
+                            <div className="text-[10px] text-zinc-500">
+                              {`Formatted printable ${workspaceLabelLower}`}
+                            </div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            exportCaseAsJson(currentWorkspace, getCaseReports(currentWorkspace.id));
+                            setShowExportMenu(false);
+                          }}
+                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                          title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
+                        >
+                          <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <div>
+                            <div className="font-bold">{`${workspaceLabel} JSON`}</div>
+                            <div className="text-[10px] text-zinc-500">
+                              {`Raw ${workspaceLabelLower} data for backup`}
+                            </div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            exportCaseAsMarkdown(currentWorkspace, getCaseReports(currentWorkspace.id));
+                            setShowExportMenu(false);
+                          }}
+                          className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                          title={`Exports ${workspaceLabelLower} as Markdown`}
+                        >
+                          <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <div>
+                            <div className="font-bold">{`${workspaceLabel} Markdown`}</div>
+                            <div className="text-[10px] text-zinc-500">
+                              {`${workspaceLabel} narrative package`}
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })()
+            : null}
         </div>
       </div>
 
-      {/* Start New Workspace Modal */}
-      {isNewCaseModalOpen && (
+      {isNewCaseModalOpen ? (
         <TaskSetupModal
           initialTopic=""
           onCancel={() => setIsNewCaseModalOpen(false)}
@@ -693,7 +929,7 @@ export const Archives: React.FC<ArchivesProps> = ({
             setIsNewCaseModalOpen(false);
           }}
         />
-      )}
+      ) : null}
 
       {workspacePendingPurge ? (
         <ConfirmDialog
@@ -706,8 +942,8 @@ export const Archives: React.FC<ArchivesProps> = ({
         />
       ) : null}
 
-      <div className="relative z-10 p-6 w-full h-full overflow-y-auto">
-        {effectiveSelectedCaseId ? renderReportList(effectiveSelectedCaseId) : renderCaseGrid()}
+      <div className="relative z-10 h-full w-full overflow-y-auto p-6">
+        {effectiveSelectedCaseId ? renderWorkspaceRecords(effectiveSelectedCaseId) : renderWorkspaceOverview()}
       </div>
     </div>
   );
