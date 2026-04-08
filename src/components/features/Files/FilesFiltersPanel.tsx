@@ -72,8 +72,8 @@ export const FilesFiltersPanel: React.FC<FilesFiltersPanelProps> = ({
                 onClick={() => onRecordFilterChange(value)}
                 className={`osint-meta-label flex w-full items-center justify-between border px-3 py-2 transition ${
                   recordFilter === value
-                    ? 'border-osint-primary bg-osint-primary/10 text-osint-primary'
-                    : 'border-zinc-800 bg-black text-zinc-300 hover:border-zinc-600 hover:text-white'
+                    ? 'border-zinc-700 bg-black/65 text-white'
+                    : 'border-zinc-800 bg-zinc-950/45 text-zinc-300 hover:border-zinc-700 hover:bg-black/55 hover:text-white'
                 }`}
               >
                 <span>
