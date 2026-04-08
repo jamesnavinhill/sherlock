@@ -104,10 +104,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="font-osint-label text-[10px] uppercase tracking-[0.24em] text-zinc-500">
-                Theme Presets
-              </div>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+              <div className="osint-meta-label">Theme Presets</div>
+              <p className="osint-body-small mt-2 max-w-2xl">
                 Start from a whole-system palette, then tune only the one surface that needs it.
                 Full OKLCH values stay available without keeping eighteen sliders on screen.
               </p>
@@ -115,7 +113,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             <button
               type="button"
               onClick={handleResetThemeSettings}
-              className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+              className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
             >
               Reset Theme
             </button>
@@ -138,9 +136,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-osint-label text-[10px] uppercase tracking-[0.22em] text-zinc-500">
-                      {preset.label}
-                    </div>
+                    <div className="osint-meta-label">{preset.label}</div>
                     <div className="flex items-center gap-2">
                       <div
                         className="h-3 w-3 rounded-sm border border-zinc-700"
@@ -152,7 +148,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                       />
                     </div>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-zinc-300">{preset.description}</p>
+                  <p className="osint-body-small mt-3">{preset.description}</p>
                 </button>
               );
             })}
@@ -162,10 +158,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="font-osint-label text-[10px] uppercase tracking-[0.24em] text-zinc-500">
-                Surface Workbench
-              </div>
-              <div className="mt-2 font-osint-display text-lg font-bold text-white">
+              <div className="osint-meta-label">Surface Workbench</div>
+              <div className="osint-title-card mt-2">
                 {activeSurfaceMode === 'dark' ? 'Dark' : 'Light'} mode
               </div>
             </div>
@@ -175,7 +169,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   key={mode}
                   type="button"
                   onClick={() => setActiveSurfaceMode(mode)}
-                  className={`font-osint-label px-4 py-2 text-xs uppercase tracking-[0.2em] transition-colors ${
+                  className={`osint-meta-label px-4 py-2 transition-colors ${
                     activeSurfaceMode === mode
                       ? 'bg-osint-primary/12 text-osint-primary'
                       : 'text-zinc-500 hover:text-zinc-200'
@@ -190,9 +184,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           <div className="mt-6 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
             <div className="space-y-4">
               <div className="rounded border border-zinc-800 bg-black p-4">
-                <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
-                  Surface Preview
-                </div>
+                <div className="osint-meta-label">Surface Preview</div>
                 <div
                   className="mt-4 rounded border p-4"
                   style={{
@@ -235,7 +227,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                             : undefined,
                       }}
                     >
-                      <div className="mt-2 text-base font-semibold" style={{ color: surfaceTone.textColor }}>
+                      <div className="osint-title-inline mt-2" style={{ color: surfaceTone.textColor }}>
                         {SURFACE_LABELS[selectedSurfaceKey]}
                       </div>
                       <div className="mt-3 h-8 rounded border" style={{ borderColor: surfaceTone.overlayColor }} />
@@ -245,9 +237,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               </div>
 
               <div className="rounded border border-zinc-800 bg-black p-4">
-                <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
-                  Surface Targets
-                </div>
+                <div className="osint-meta-label">Surface Targets</div>
                 <div className="mt-3 grid gap-2">
                   {(Object.keys(SURFACE_LABELS) as Array<keyof ThemeSurfaceScale>).map((surfaceKey) => {
                     const surface = themeSurfaceSettings[activeSurfaceMode][surfaceKey];
@@ -263,8 +253,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                         }`}
                       >
                         <div>
-                          <div className="text-xs font-medium text-white">{SURFACE_LABELS[surfaceKey]}</div>
-                          <div className="text-[10px] font-mono uppercase text-zinc-500">
+                          <div className="osint-title-inline">{SURFACE_LABELS[surfaceKey]}</div>
+                          <div className="osint-meta-label">
                             h {surface.hue.toFixed(0)} / l {surface.lightness.toFixed(3)} / c{' '}
                             {surface.chroma.toFixed(3)}
                           </div>
@@ -284,17 +274,15 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               <div className="rounded border border-zinc-800 bg-black p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
-                      Selected Surface
-                    </div>
-                    <div className="mt-1 text-sm font-semibold text-white">
+                    <div className="osint-meta-label">Selected Surface</div>
+                    <div className="osint-title-inline mt-1">
                       {SURFACE_LABELS[selectedSurfaceKey]}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleResetSurfaceMode(activeSurfaceMode)}
-                    className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+                    className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
                   >
                     Reset {activeSurfaceMode}
                   </button>
@@ -309,9 +297,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     ] as const
                   ).map(([field, label, min, max, step]) => (
                     <label key={field} className="block">
-                      <span className="mb-2 block text-[10px] font-mono uppercase text-zinc-500">
-                        {label}
-                      </span>
+                      <span className="osint-meta-label mb-2 block">{label}</span>
                       <input
                         type="range"
                         min={min}
@@ -323,7 +309,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                         }
                         className="w-full accent-[var(--osint-primary)]"
                       />
-                      <div className="mt-2 text-[10px] font-mono uppercase text-zinc-500">
+                      <div className="osint-meta-label mt-2">
                         {selectedSurface[field].toFixed(field === 'hue' ? 0 : 3)}
                       </div>
                     </label>
@@ -332,14 +318,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               </div>
 
               <div className="rounded border border-zinc-800 bg-black p-4">
-                <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
-                  Quick Adjust
-                </div>
+                <div className="osint-meta-label">Quick Adjust</div>
                 <div className="mt-4 space-y-2">
                   <button
                     type="button"
                     onClick={() => handleMatchAccentHue(activeSurfaceMode)}
-                    className="w-full border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    className="osint-meta-label-strong w-full border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
                   >
                     Match Accent Hue
                   </button>
@@ -347,14 +331,14 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     <button
                       type="button"
                       onClick={() => handleAdjustModeChroma(activeSurfaceMode, 0.004)}
-                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
                     >
                       Increase Chroma
                     </button>
                     <button
                       type="button"
                       onClick={() => handleAdjustModeChroma(activeSurfaceMode, -0.004)}
-                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
                     >
                       Reduce Chroma
                     </button>
@@ -363,14 +347,14 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     <button
                       type="button"
                       onClick={() => handleAdjustModeSeparation(activeSurfaceMode, 1)}
-                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
                     >
                       Increase Separation
                     </button>
                     <button
                       type="button"
                       onClick={() => handleAdjustModeSeparation(activeSurfaceMode, -1)}
-                      className="border border-zinc-800 px-3 py-2 text-xs font-mono uppercase text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
                     >
                       Soften Separation
                     </button>
@@ -387,13 +371,11 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const renderFontSection = () => (
     <div className="space-y-6 px-3 pb-3 pt-1">
       <div className="flex items-center justify-between gap-3">
-        <div className="font-osint-label text-[10px] uppercase tracking-[0.22em] text-zinc-500">
-          Font Roles
-        </div>
+        <div className="osint-meta-label">Font Roles</div>
         <button
           type="button"
           onClick={handleResetFonts}
-          className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+          className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
         >
           Reset Fonts
         </button>
@@ -404,8 +386,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           {fontSelections.map((role) => (
             <label key={role.key} className="rounded border border-zinc-800 bg-black/50 p-3">
               <div className="flex items-baseline justify-between gap-3">
-                <span className="text-sm font-semibold text-white">{role.label}</span>
-                <span className="text-[10px] font-mono uppercase text-zinc-500">
+                <span className="osint-title-inline">{role.label}</span>
+                <span className="osint-meta-label">
                   {role.activeOption.label}
                 </span>
               </div>
@@ -417,7 +399,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     [role.key]: event.target.value,
                   })
                 }
-                className="mt-3 w-full border border-zinc-700 bg-black px-3 py-2.5 text-xs font-mono text-white outline-none focus:border-osint-primary"
+                className="osint-meta-value mt-3 w-full border border-zinc-700 bg-black px-3 py-2.5 text-white outline-none focus:border-osint-primary"
               >
                 {getThemeFontOptionsForRole(role.key).map((option) => (
                   <option key={option.id} value={option.id}>
@@ -434,14 +416,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
           <div className="flex items-baseline justify-between gap-3">
             <div>
-              <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
-                Global Size Scale
-              </div>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <div className="osint-meta-label">Global Size Scale</div>
+              <p className="osint-body-small mt-2">
                 Shift the whole typography system up or down without rewriting each screen.
               </p>
             </div>
-            <span className="text-[10px] font-mono uppercase text-zinc-500">
+            <span className="osint-meta-label">
               {activeSizeProfile.label}
             </span>
           </div>
@@ -460,7 +440,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               }
               className="w-full accent-[var(--osint-primary)]"
             />
-            <div className="mt-3 flex items-center justify-between text-[10px] font-mono uppercase text-zinc-500">
+            <div className="osint-meta-label mt-3 flex items-center justify-between">
               <span>Compact</span>
               <span>Base {resolvedSizes.base}</span>
               <span>Large</span>
@@ -471,14 +451,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
           <div className="flex items-baseline justify-between gap-3">
             <div>
-              <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
-                Global Weight Profile
-              </div>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <div className="osint-meta-label">Global Weight Profile</div>
+              <p className="osint-body-small mt-2">
                 Keep emphasis consistent across labels, headings, and buttons.
               </p>
             </div>
-            <span className="text-[10px] font-mono uppercase text-zinc-500">
+            <span className="osint-meta-label">
               {activeWeightProfile.label}
             </span>
           </div>
@@ -497,7 +475,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               }
               className="w-full accent-[var(--osint-primary)]"
             />
-            <div className="mt-3 flex items-center justify-between text-[10px] font-mono uppercase text-zinc-500">
+            <div className="osint-meta-label mt-3 flex items-center justify-between">
               <span>Regular</span>
               <span>Bold {resolvedWeights.bold}</span>
               <span>Strong</span>
@@ -508,7 +486,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
 
       <div className="rounded border border-zinc-800 bg-black/60 p-5">
         <div
-          className="text-[10px] uppercase tracking-[0.28em] text-zinc-500"
+          className="osint-meta-label"
           style={{
             fontFamily: fontSelectionByRole.label.activeOption.cssValue,
             fontSize: resolvedSizes['2xs'],
@@ -540,7 +518,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
             <div
-              className="text-[10px] uppercase tracking-[0.24em] text-zinc-500"
+              className="osint-meta-label"
               style={{
                 fontFamily: fontSelectionByRole.label.activeOption.cssValue,
                 fontSize: resolvedSizes['2xs'],
@@ -567,7 +545,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
           <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
             <div
-              className="text-[10px] uppercase tracking-[0.24em] text-zinc-500"
+              className="osint-meta-label"
               style={{
                 fontFamily: fontSelectionByRole.label.activeOption.cssValue,
                 fontSize: resolvedSizes['2xs'],
@@ -609,17 +587,15 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   style={{ background: buildAccentColor(accentSettings) }}
                 />
                 <div className="min-w-0">
-                  <div className="font-osint-label block text-[10px] uppercase text-zinc-500">
-                    Custom Accent
-                  </div>
-                  <div className="mt-1 truncate font-mono text-xs text-zinc-300">
+                  <div className="osint-meta-label block">Custom Accent</div>
+                  <div className="osint-meta-value mt-1 truncate">
                     {buildAccentColor(accentSettings)}
                   </div>
                 </div>
               </div>
               <button
                 onClick={handleResetThemeSettings}
-                className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+                className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
               >
                 Reset Theme
               </button>

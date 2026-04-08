@@ -72,10 +72,10 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
     >
       {activeCase && (
         <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
-          <h2 className="text-base font-bold text-white font-mono leading-tight mb-2">
+          <h2 className="osint-meta-value mb-2 leading-tight">
             {getWorkspaceDisplayTitle(activeCase)}
           </h2>
-          <div className="flex items-center space-x-3 text-xs text-zinc-500 font-mono">
+          <div className="osint-meta-label flex items-center space-x-3">
             <span className="flex items-center">
               <FileText className="w-3 h-3 mr-1" />
               {reports.length} {labelProfile.artifactLabelPlural}
@@ -89,8 +89,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
       )}
       {!activeCase && (
         <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
-          <h2 className="text-sm font-mono font-bold text-zinc-500 uppercase tracking-wider">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
-          <p className="text-xs text-zinc-600 mt-1">{`Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`}</p>
+          <h2 className="osint-meta-value text-zinc-500">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
+          <p className="osint-body-quiet mt-1">{`Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`}</p>
         </div>
       )}
 
@@ -110,7 +110,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={r.id || r.topic}
                   onClick={() => r.id && onNavigate(r.id)}
-                  className={`w-full text-left p-2 hover:bg-zinc-900 text-xs font-mono text-zinc-400 hover:text-white truncate flex items-center border-l-2 ${activeReportId === r.id ? 'border-osint-primary bg-zinc-900/50' : 'border-transparent hover:border-osint-primary'}`}
+                  className={`osint-meta-value flex w-full items-center truncate border-l-2 p-2 text-left text-zinc-400 hover:bg-zinc-900 hover:text-white ${activeReportId === r.id ? 'border-osint-primary bg-zinc-900/50' : 'border-transparent hover:border-osint-primary'}`}
                   title={sanitizeDisplayTitle(r.topic)}
                 >
                   <div className="w-1.5 h-1.5 bg-zinc-700 rounded-full mr-2"></div>{' '}
@@ -136,7 +136,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={idx}
                   onClick={() => onEntityClick(e)}
-                  className="text-left p-2 bg-zinc-900/30 hover:bg-zinc-800 text-[10px] font-mono text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-600 truncate"
+                  className="osint-meta-value truncate border border-zinc-800 bg-zinc-900/30 p-2 text-left text-zinc-400 hover:border-zinc-600 hover:bg-zinc-800 hover:text-white"
                   title={e.name}
                 >
                   {e.type === 'PERSON' && (
@@ -171,14 +171,14 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         >
           <div className="space-y-1">
             {leads.length === 0 ? (
-              <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
+              <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
             ) : (
               leads.map((lead, idx) => (
                 <div key={idx} className="p-2 bg-zinc-900/20 border border-zinc-800/50 mb-1">
-                  <p className="text-[10px] text-zinc-400 font-mono mb-2 line-clamp-2">{lead}</p>
+                  <p className="osint-body-quiet mb-2 line-clamp-2">{lead}</p>
                   <button
                     onClick={() => onLeadClick(lead)}
-                    className="osint-button-primary w-full text-center py-1 text-[10px] font-bold uppercase"
+                    className="osint-button-primary osint-meta-label-strong w-full py-1 text-center"
                   >
                     Open
                   </button>
@@ -212,10 +212,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                     onClick={() => report.id && onNavigate(report.id)}
                     className="w-full border border-zinc-800 bg-zinc-900/30 p-2 text-left hover:border-osint-primary"
                   >
-                    <div className="text-[10px] font-mono uppercase text-zinc-500">
-                      {evidence.kind}
-                    </div>
-                    <div className="mt-1 text-[11px] text-zinc-300">{evidence.title}</div>
+                    <div className="osint-meta-label">{evidence.kind}</div>
+                    <div className="osint-meta-value mt-1">{evidence.title}</div>
                   </button>
                 ))}
             </div>
@@ -233,7 +231,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         >
           <div className="space-y-1">
             {sources.length === 0 ? (
-              <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No ${labelProfile.signalLabel.toLowerCase()} captured yet.`}</p>
+              <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.signalLabel.toLowerCase()} captured yet.`}</p>
             ) : (
               sources.map((s, idx) => (
                 <a
@@ -241,7 +239,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="osint-link-list-item block p-2 text-[10px] font-mono truncate border-b border-zinc-900 last:border-0"
+                  className="osint-link-list-item osint-meta-value block truncate border-b border-zinc-900 p-2 last:border-0"
                 >
                   <Link2 className="w-3 h-3 inline mr-1" />
                   {s.title}
@@ -262,7 +260,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         >
           <div className="space-y-1">
             {headlines.length === 0 ? (
-              <p className="text-[10px] text-zinc-600 font-mono italic px-2 py-1">{`No saved signals linked to this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
+              <p className="osint-body-quiet px-2 py-1 italic">{`No saved signals linked to this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
             ) : (
               headlines.map((h) => (
                 <button
@@ -270,11 +268,11 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   onClick={() => onHeadlineClick(h)}
                   className="w-full text-left p-2 bg-zinc-900/20 hover:bg-zinc-900 border border-zinc-800/50 hover:border-zinc-700 transition-colors group"
                 >
-                  <p className="text-[10px] text-zinc-300 group-hover:text-white font-mono line-clamp-2 leading-relaxed">
+                  <p className="osint-body-quiet line-clamp-2 text-zinc-300 group-hover:text-white">
                     {h.content}
                   </p>
                   <div className="flex justify-between items-center mt-1">
-                    <span className="text-zinc-600 text-[9px] uppercase">{h.source}</span>
+                    <span className="osint-meta-label text-zinc-600">{h.source}</span>
                     <ChevronRight className="w-3 h-3 text-zinc-700 group-hover:text-osint-primary opacity-0 group-hover:opacity-100 transition-all" />
                   </div>
                 </button>

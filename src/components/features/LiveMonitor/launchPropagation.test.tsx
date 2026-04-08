@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
+
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 vi.mock('./SettingsPanel', () => ({
   SettingsPanel: () => null,
@@ -80,21 +83,23 @@ describe('LiveMonitor launch propagation', () => {
     const onInvestigate = vi.fn();
 
     render(
-      <LiveMonitor
-        events={[
-          {
-            id: 'event-1',
-            type: 'NEWS',
-            sourceName: 'Ledger',
-            content: 'Contract update detected',
-            timestamp: '5m ago',
-            sentiment: 'NEGATIVE',
-            threatLevel: 'CAUTION',
-          },
-        ]}
-        setEvents={vi.fn()}
-        onInvestigate={onInvestigate}
-      />
+      <MemoryRouter future={routerFuture}>
+        <LiveMonitor
+          events={[
+            {
+              id: 'event-1',
+              type: 'NEWS',
+              sourceName: 'Ledger',
+              content: 'Contract update detected',
+              timestamp: '5m ago',
+              sentiment: 'NEGATIVE',
+              threatLevel: 'CAUTION',
+            },
+          ]}
+          setEvents={vi.fn()}
+          onInvestigate={onInvestigate}
+        />
+      </MemoryRouter>
     );
 
     fireEvent.click(screen.getByTestId('live-event-investigate'));

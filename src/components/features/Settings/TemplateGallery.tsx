@@ -306,7 +306,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       {template.config.purposeId}
                     </span>
                   </div>
-                  <h3 className="osint-panel-title mb-2 line-clamp-2">
+                  <h3 className="osint-meta-value mb-2 line-clamp-2">
                     {template.name}
                   </h3>
                   <p className="osint-body-small mb-4 line-clamp-3">
@@ -332,7 +332,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
       {filteredTemplates.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 border border-dashed border-zinc-800 bg-zinc-900/20">
           <Layout className="w-12 h-12 text-zinc-700 mb-4 opacity-30" />
-          <h3 className="osint-panel-title mb-1 text-zinc-500">No Templates Found</h3>
+          <h3 className="osint-meta-value mb-1 text-zinc-500">No Templates Found</h3>
           <p className="osint-body-quiet">
             Save pack and purpose-aware launch setups to reuse them here.
           </p>
@@ -365,7 +365,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                     </button>
                   </div>
                 </div>
-                <h3 className="osint-panel-title mb-2 line-clamp-2">
+                <h3 className="osint-meta-value mb-2 line-clamp-2">
                   {t.name}
                 </h3>
                 <p className="osint-body-small mb-4 line-clamp-3">
@@ -399,7 +399,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
           <div className="w-full max-w-4xl bg-black border border-zinc-700 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
             <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-950 flex items-start justify-between gap-4">
               <div>
-                <h3 className="osint-title-section text-white">Create Protocol Template</h3>
+                <h3 className="osint-panel-title">Create Protocol Template</h3>
                 <p className="osint-eyebrow mt-1 text-zinc-500">
                   Reusable pack and purpose-aware launch setup
                 </p>
@@ -479,7 +479,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                           <div className="flex items-start gap-2">
                             <span className="text-lg">{scope.icon || '🔍'}</span>
                             <div className="min-w-0">
-                              <div className="osint-panel-title truncate">{scope.name}</div>
+                              <div className="osint-meta-value truncate">{scope.name}</div>
                               <div className="osint-body-quiet mt-0.5 line-clamp-2">
                                 {scope.description}
                               </div>
@@ -502,7 +502,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                           className={`p-3 border text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <div className="osint-panel-title truncate">{purpose.name}</div>
+                            <div className="osint-meta-value truncate">{purpose.name}</div>
                             <div className="osint-meta-label">
                               {purpose.recommendedArtifactType}
                             </div>
@@ -559,7 +559,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                           onClick={() => setPersona(item.id)}
                           className={`p-3 border text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
-                          <div className="osint-panel-title">{item.label}</div>
+                          <div className="osint-meta-value">{item.label}</div>
                           <div className="osint-body-quiet mt-1 line-clamp-2">
                             {item.instruction}
                           </div>

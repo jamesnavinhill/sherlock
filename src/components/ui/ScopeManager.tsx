@@ -150,7 +150,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
       {showCreateForm && (
         <div className="bg-black border border-zinc-700 p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between">
-            <h4 className="osint-panel-title text-white">
+            <h4 className="osint-meta-value">
               {editingScope ? 'Edit Scope' : 'Create Custom Scope'}
             </h4>
             <button onClick={resetForm} className="text-zinc-500 hover:text-white">
@@ -247,9 +247,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="osint-panel-title text-white">
-                          {scope.name}
-                        </span>
+                        <span className="osint-meta-value">{scope.name}</span>
                         {activeScopeId === scope.id && (
                           <span className="border border-osint-primary/40 bg-osint-primary/10 px-1.5 py-0.5 osint-meta-label text-osint-primary">
                             Active
@@ -262,7 +260,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                           </span>
                         )}
                       </div>
-                      <p className="mt-2 osint-body-muted line-clamp-3">
+                      <p className="mt-2 osint-body-quiet line-clamp-3">
                         {scope.description}
                       </p>
                     </div>

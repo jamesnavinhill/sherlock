@@ -65,7 +65,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
       className={`${rightPanelOpen ? 'translate-x-0' : 'translate-x-full xl:w-0 xl:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 overflow-hidden border-l border-zinc-800 bg-black/95 shadow-2xl transition-all duration-300 xl:relative xl:z-0 xl:flex xl:flex-shrink-0 xl:flex-col xl:shadow-none ${rightPanelOpen ? 'xl:w-96' : 'xl:w-0'} backdrop-blur-md`}
     >
       <div className="border-b border-zinc-800 bg-zinc-900/30 p-4">
-        <h2 className="osint-panel-title text-white">Context</h2>
+        <h2 className="osint-meta-value">Context</h2>
       </div>
       <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden bg-black/20 p-2">
       {launchContextSummary ? (
@@ -78,7 +78,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           contentClassName={sectionScrollClassName}
         >
           <div className="space-y-2 px-2 py-1">
-            <div className="osint-panel-title text-white">{launchContextSummary.title}</div>
+            <div className="osint-meta-value">{launchContextSummary.title}</div>
             <p className="osint-body-muted">{launchContextSummary.body}</p>
           </div>
         </Accordion>
@@ -110,7 +110,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
                     onClick={() => onToggleArtifactCard(artifactKey)}
                     className="flex w-full items-start justify-between gap-3 text-left"
                   >
-                    <div className="osint-panel-title text-zinc-200">{artifact.topic}</div>
+                    <div className="osint-meta-value">{artifact.topic}</div>
                     {isExpanded ? (
                       <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
                     ) : (
@@ -171,7 +171,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           ) : (
             workspaceSignals.slice(0, 4).map((signal) => (
               <div key={signal.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
-                <div className="osint-panel-title text-zinc-200">{signal.source || signal.type}</div>
+                <div className="osint-meta-value">{signal.source || signal.type}</div>
                 <p className="mt-1 osint-body-muted">{signal.content}</p>
               </div>
             ))
@@ -192,7 +192,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           <div className="space-y-2">
             {latestAssistantMessage.attachments.map((attachment) => (
               <div key={attachment.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
-                <div className="osint-panel-title text-zinc-200">{attachment.title}</div>
+                <div className="osint-meta-value">{attachment.title}</div>
                 {attachment.snippet ? (
                   <p className="mt-1 osint-body-muted">{attachment.snippet}</p>
                 ) : null}

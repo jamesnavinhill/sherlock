@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, RefreshCw, Search, X } from 'lucide-react';
 import type { AIModelOption } from '../../config/aiModels';
 import {
@@ -80,10 +81,11 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
   }, [catalog.models, query]);
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
-  return (
-    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[88vh] w-full max-w-5xl flex-col overflow-hidden border border-zinc-700 bg-black shadow-2xl">
+  return createPortal(
+    <div className="fixed inset-0 z-[140] overflow-hidden bg-black/80 backdrop-blur-sm">
+      <div className="mx-2 my-2 flex h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-auto min-h-0 flex-col overflow-hidden border border-zinc-700 bg-black shadow-2xl sm:mx-4 sm:my-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)]">
         <div className="flex items-start justify-between gap-4 border-b border-zinc-800 bg-zinc-950 px-6 py-4">
           <div>
             <h3 className="osint-meta-label-strong text-white">Browse OpenRouter Models</h3>
@@ -100,8 +102,8 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
           </button>
         </div>
 
-        <div className="grid gap-6 overflow-y-auto p-6 custom-scrollbar lg:grid-cols-[1.1fr_1.9fr]">
-          <section className="space-y-4">
+        <div className="grid min-h-0 flex-1 gap-6 overflow-hidden p-6 lg:grid-cols-[1.1fr_1.9fr]">
+          <section className="min-h-0 space-y-4 overflow-y-auto pr-1 custom-scrollbar">
             <div className="border border-zinc-800 bg-zinc-950/70 p-4">
               <div className="osint-meta-label">Current model</div>
               <div className="mt-2 osint-meta-value text-white">
@@ -168,8 +170,8 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
             </div>
           </section>
 
-          <section className="space-y-4">
-            <div className="flex flex-col gap-3 border border-zinc-800 bg-zinc-950/70 p-4 md:flex-row md:items-center">
+          <section className="min-h-0 space-y-4 overflow-y-auto pr-1 custom-scrollbar">
+            <div className="sticky top-0 z-10 flex flex-col gap-3 border border-zinc-800 bg-zinc-950/95 p-4 md:flex-row md:items-center">
               <label className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                 <input
@@ -280,6 +282,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
           </section>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -81,7 +81,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
                 triggerClassName="p-2 pr-8 osint-meta-value"
                 options={form.selectableModels.map((model) => ({
                   value: model.id,
-                  label: `${model.name} - ${model.description}`,
+                  label: model.name,
                 }))}
               />
             </div>

@@ -22,7 +22,7 @@ const PreferenceCard: React.FC<{
   <div className="border border-zinc-800 bg-zinc-900/40 p-6">
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-2">
-        <div className="osint-panel-title">{title}</div>
+        <div className="osint-meta-value">{title}</div>
         <p className="osint-body-small">{description}</p>
       </div>
       <button
@@ -74,7 +74,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
       <section className="flex h-full flex-col border border-zinc-800 bg-zinc-900/40 p-8">
         <div className="flex items-center gap-3">
           <Database className="h-5 w-5 text-osint-primary" />
-          <h3 className="osint-panel-title">Data Management</h3>
+          <h3 className="osint-meta-value">Data Management</h3>
         </div>
         <p className="osint-body-small mt-5 max-w-2xl">
           Sherlock stores workspace data locally in your browser. Exports and restores include
@@ -114,7 +114,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
       <section className="osint-danger-panel flex h-full flex-col border p-8">
         <div className="flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 osint-danger-text" />
-          <h3 className="osint-panel-title osint-danger-text">System Purge</h3>
+          <h3 className="osint-meta-value osint-danger-text">System Purge</h3>
         </div>
         <p className="mt-5 max-w-2xl osint-body-small osint-danger-text">
           The purge protocol will permanently delete all local workspace data, including runs, chat

@@ -88,22 +88,22 @@ export const EventCard: React.FC<EventCardProps> = ({
       <div className="flex justify-between items-start">
         <div className="flex items-center space-x-2">
           {getTypeIcon(event.type)}
-          <span className="text-xs font-mono font-bold text-zinc-400">{event.type}</span>
+          <span className="osint-meta-label text-zinc-400">{event.type}</span>
           {isSaved && (
-            <span className="text-[9px] font-mono text-green-500 flex items-center">
+            <span className="osint-meta-label flex items-center text-green-500">
               <Save className="w-3 h-3 mr-1" /> SAVED
             </span>
           )}
         </div>
         <div className="flex items-center space-x-2">
           <span
-            className={`text-[10px] uppercase font-mono px-2 py-0.5 border flex items-center ${threat.color}`}
+            className={`osint-meta-label flex items-center border px-2 py-0.5 ${threat.color}`}
           >
             <ThreatIcon className="w-3 h-3 mr-1" />
             {event.threatLevel || 'INFO'}
           </span>
           <span
-            className={`text-[10px] uppercase font-mono px-2 py-0.5 border ${getSentimentColor(event.sentiment)}`}
+            className={`osint-meta-label border px-2 py-0.5 ${getSentimentColor(event.sentiment)}`}
           >
             {event.sentiment}
           </span>
@@ -123,11 +123,9 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Content */}
       <div className="flex-1">
-        <h4 className="text-sm font-bold text-zinc-200 mb-2 font-mono truncate">
-          {event.sourceName}
-        </h4>
+        <h4 className="osint-title-inline mb-2 truncate">{event.sourceName}</h4>
         <p
-          className={`text-zinc-300 font-medium leading-relaxed font-mono text-sm ${isExpanded ? '' : 'line-clamp-3'}`}
+          className={`osint-body-small ${isExpanded ? '' : 'line-clamp-3'}`}
         >
           &quot;{event.content}&quot;
         </p>
@@ -142,7 +140,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               href={event.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center text-xs font-mono text-osint-primary hover:text-white transition-colors"
+              className="osint-meta-value flex items-center text-osint-primary transition-colors hover:text-white"
               onClick={(e) => e.stopPropagation()}
             >
               <LinkIcon className="w-3 h-3 mr-2" />
@@ -153,13 +151,13 @@ export const EventCard: React.FC<EventCardProps> = ({
 
           {/* Actions */}
           <div className="flex items-center justify-between">
-            <div className="text-[10px] text-zinc-600 font-mono uppercase">{event.timestamp}</div>
+            <div className="osint-meta-label text-zinc-600">{event.timestamp}</div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onInvestigate();
               }}
-              className={`flex items-center px-4 py-2 font-mono text-xs font-bold uppercase transition-colors ${
+              className={`osint-meta-label-strong flex items-center px-4 py-2 transition-colors ${
                 event.threatLevel === 'CRITICAL' ? 'osint-button-danger' : 'osint-button-primary'
               }`}
             >
@@ -173,9 +171,9 @@ export const EventCard: React.FC<EventCardProps> = ({
       {/* Collapsed Footer */}
       {!isExpanded && (
         <div className="pt-3 border-t border-zinc-800 flex items-center justify-between mt-auto">
-          <div className="text-[10px] text-zinc-600 font-mono uppercase">{event.timestamp}</div>
+          <div className="osint-meta-label text-zinc-600">{event.timestamp}</div>
           <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="text-xs text-zinc-400 flex items-center font-mono uppercase">
+            <span className="osint-meta-label flex items-center text-zinc-400">
               Review Signal
             </span>
           </div>

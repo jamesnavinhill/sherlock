@@ -882,7 +882,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
               className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
             >
               <Plus className="h-4 w-4" />
-              <span>New</span>
+              <span>{`New ${workspaceLabel}`}</span>
             </button>
             <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
               <OsintSelect
