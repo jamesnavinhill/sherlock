@@ -91,8 +91,15 @@ Supported env vars:
 - `VITE_OPENROUTER_API_KEY`
 - `VITE_OPENAI_API_KEY`
 - `VITE_ANTHROPIC_API_KEY`
+- `VITE_TLDRAW_LICENSE_KEY`
 - `OPENAI_API_KEY` (fallback)
 - `ANTHROPIC_API_KEY` (fallback)
+
+Notes:
+
+- `VITE_TLDRAW_LICENSE_KEY` is app-level config for Sherlock's `tldraw` board surface on `tldraw 4.x`
+- unlike provider API keys, it is not entered in `Settings -> Runtime`
+- for hosted deployments such as Vercel, set it in project env vars and redeploy
 
 ## Vercel Deployment
 
@@ -110,7 +117,8 @@ Recommended flow:
 2. Let Vercel use the repo `vercel.json` or set `npm ci --include=optional`, `npm run build`, and `dist` manually.
 3. Optionally place either a canonical workspace-data backup or a workspace export JSON at `public/seeds/demo-workspace.json` if you want first-time visitors to land in a pre-seeded demo workspace.
 4. Leave provider env vars unset in Vercel for public BYOK hosting.
-5. Deploy and have each user add their own provider key in-app under `Settings -> Runtime` if they want to run new analysis or chat.
+5. Set `VITE_TLDRAW_LICENSE_KEY` in Vercel if the deployment uses Sherlock's `tldraw 4.x` board.
+6. Deploy and have each user add their own provider key in-app under `Settings -> Runtime` if they want to run new analysis or chat.
 
 See `docs/operations/DEPLOYMENT.md` for the full checklist.
 

@@ -7,6 +7,7 @@ Sherlock currently deploys as a static Vite application. The shipped app does no
 - Static assets are built with Vite and can be served by Vercel.
 - Workspace and artifact data persist locally in the browser through SQLite backed by IndexedDB.
 - Provider API keys persist locally in the browser when entered through `System Config -> AI`.
+- The `tldraw` board license key is app-level env config passed to the client build rather than a user runtime setting.
 - Provider requests are sent from the browser directly to the configured AI provider.
 
 ## Route Entry And SPA Rewrites
@@ -31,6 +32,7 @@ Notes:
 - Keep `.env`, `.env.local`, and other local env files untracked.
 - Do not add shared provider API keys to Vercel env vars for a public deployment.
 - Prefer strict BYOK: each user enters their own provider key in-app.
+- Set `VITE_TLDRAW_LICENSE_KEY` in host env config when deploying Sherlock with `tldraw 4.x`.
 - Enable GitHub secret scanning after the repository is public.
 - If any secret alert appears, treat the key as compromised and rotate it immediately.
 - Remember that older commit history matters too; review GitHub secret-scanning alerts after publication even if the current tree looks clean.
@@ -43,8 +45,9 @@ Notes:
    `buildCommand`: `npm run build`
    `outputDirectory`: `dist`
 3. Leave provider env vars unset in Vercel for public BYOK hosting.
-4. Deploy the site.
-5. Open the deployed app and add provider keys through `System Config -> AI` on a per-browser basis.
+4. Set `VITE_TLDRAW_LICENSE_KEY` in Vercel for environments that need the `tldraw 4.x` board.
+5. Deploy the site.
+6. Open the deployed app and add provider keys through `System Config -> AI` on a per-browser basis.
 
 ## Persistence Caveats
 

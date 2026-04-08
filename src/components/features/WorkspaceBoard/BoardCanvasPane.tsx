@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Tldraw, type TLEditorSnapshot, type TLStoreSnapshot } from 'tldraw';
 import { Shapes } from 'lucide-react';
 
+import { getTldrawLicenseKey } from '@/config/tldraw';
 import type { WorkspaceBoard } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { boardTldrawComponents } from './workspaceBoardUtils';
@@ -19,6 +20,8 @@ interface BoardCanvasInstanceProps {
   onEditorMount: React.ComponentProps<typeof Tldraw>['onMount'];
 }
 
+const tldrawLicenseKey = getTldrawLicenseKey();
+
 const BoardCanvasInstance: React.FC<BoardCanvasInstanceProps> = ({
   boardId,
   hydratedSnapshot,
@@ -31,6 +34,7 @@ const BoardCanvasInstance: React.FC<BoardCanvasInstanceProps> = ({
       key={boardId}
       className="h-full w-full"
       components={boardTldrawComponents}
+      licenseKey={tldrawLicenseKey}
       snapshot={initialSnapshot}
       onMount={onEditorMount}
     />

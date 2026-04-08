@@ -1,6 +1,7 @@
 import {
   createBindingId,
   createShapeId,
+  toRichText,
   type TLArrowShape,
 } from 'tldraw';
 import type {
@@ -565,7 +566,7 @@ export const executeBoardAgentStructuredAction = async ({
           start: { x: 0, y: 0 },
           end: { x: end.x - start.x, y: end.y - start.y },
           bend: 0,
-          text: normalizeText(input.label),
+          richText: toRichText(normalizeText(input.label) || ''),
           labelPosition: 0.5,
           scale: 1,
           elbowMidPoint: 0.5,

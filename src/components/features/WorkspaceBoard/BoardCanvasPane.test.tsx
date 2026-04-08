@@ -1,11 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/config/tldraw', () => ({
+  getTldrawLicenseKey: () => 'test-license-key',
+}));
+
 import { BoardCanvasPane } from './BoardCanvasPane';
 
 vi.mock('tldraw', () => ({
-  Tldraw: ({ snapshot }: { snapshot?: unknown }) => (
-    <div data-testid="tldraw">{JSON.stringify(snapshot ?? null)}</div>
+  Tldraw: ({ licenseKey, snapshot }: { licenseKey?: string; snapshot?: unknown }) => (
+    <div data-testid="tldraw" data-license-key={licenseKey ?? ''}>
+      {JSON.stringify(snapshot ?? null)}
+    </div>
   ),
 }));
 
@@ -32,6 +38,7 @@ describe('BoardCanvasPane', () => {
     );
 
     expect(screen.getByTestId('tldraw')).toHaveTextContent('{"document":"first"}');
+    expect(screen.getByTestId('tldraw')).toHaveAttribute('data-license-key', 'test-license-key');
 
     rerender(
       <BoardCanvasPane
@@ -83,5 +90,6 @@ describe('BoardCanvasPane', () => {
     );
 
     expect(screen.getByTestId('tldraw')).toHaveTextContent('{"document":"second"}');
+    expect(screen.getByTestId('tldraw')).toHaveAttribute('data-license-key', 'test-license-key');
   });
 });
