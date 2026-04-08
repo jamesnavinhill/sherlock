@@ -42,6 +42,9 @@ const ARTIFACT_TYPE_LABELS: Record<ArtifactType, string> = {
   NOTE: 'Note',
 };
 
+export const getArtifactTypeLabel = (artifactType?: ArtifactType) =>
+  ARTIFACT_TYPE_LABELS[artifactType || 'REPORT'];
+
 const summarizeText = (value: string, max = 120) =>
   value.length <= max ? value : `${value.slice(0, Math.max(0, max - 3)).trimEnd()}...`;
 
@@ -163,7 +166,7 @@ export const buildArtifactViewerPresentation = (report: Artifact | null, purpose
       : undefined;
 
   const provenanceSummary: ProvenanceSummaryStat[] = [
-    { label: 'Artifact Type', value: ARTIFACT_TYPE_LABELS[report?.artifactType || 'REPORT'], tone: 'ACCENT' },
+    { label: 'Artifact Type', value: getArtifactTypeLabel(report?.artifactType), tone: 'ACCENT' },
     { label: 'Sources', value: String(sourcesCount) },
     { label: 'Evidence Rows', value: String(visibleEvidence.length) },
     { label: 'Citations', value: String(citationsCount) },
@@ -183,7 +186,7 @@ export const buildArtifactViewerPresentation = (report: Artifact | null, purpose
   }
 
   return {
-    artifactTypeLabel: ARTIFACT_TYPE_LABELS[report?.artifactType || 'REPORT'],
+    artifactTypeLabel: getArtifactTypeLabel(report?.artifactType),
     evidenceBySectionId,
     orderedSections,
     provenanceSummary,

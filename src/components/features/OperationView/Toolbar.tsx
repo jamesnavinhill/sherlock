@@ -109,10 +109,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </button>
           <button
             onClick={onStartNewCase}
-            className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
+            className="osint-button-primary inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 text-xs font-mono uppercase"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden lg:inline">{`New ${CANONICAL_NOUNS.workspace}`}</span>
+            <span>New</span>
           </button>
           <div className="hidden md:block min-w-[170px] max-w-[210px]">
             <OsintSelect

@@ -19,6 +19,7 @@ import {
   getWorkspaceDisplayTitle,
   getFollowUpText,
   getLabelProfileById,
+  sanitizeDisplayTitle,
   stripLegacyWorkspacePrefix,
 } from '@/domain';
 import {
@@ -223,7 +224,7 @@ export function useOperationViewController({
     if (!report) return;
     setShowSaveTemplateModal(true);
     setTemplateName(
-      `${activeCase ? getWorkspaceDisplayTitle(activeCase) : stripLegacyWorkspacePrefix(labelProfile.workspaceLabel)}: ${report.topic}`
+      `${activeCase ? getWorkspaceDisplayTitle(activeCase) : stripLegacyWorkspacePrefix(labelProfile.workspaceLabel)}: ${sanitizeDisplayTitle(report.topic)}`
     );
   };
 

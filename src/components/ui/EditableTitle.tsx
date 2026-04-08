@@ -3,6 +3,7 @@ import { Pencil, Check, X } from 'lucide-react';
 
 interface EditableTitleProps {
   value: string;
+  displayValue?: string;
   onSave: (newValue: string) => void;
   className?: string;
   inputClassName?: string;
@@ -13,6 +14,7 @@ interface EditableTitleProps {
 
 export const EditableTitle: React.FC<EditableTitleProps> = ({
   value,
+  displayValue,
   onSave,
   className = '',
   inputClassName = '',
@@ -23,6 +25,7 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
   const [editValue, setEditValue] = useState(value);
   const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const resolvedDisplayValue = displayValue ?? value;
 
   // Update editValue when value prop changes
   useEffect(() => {
@@ -100,10 +103,10 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
     >
       <span
         className={`truncate ${className}`}
-        title={value}
+        title={resolvedDisplayValue}
         onDoubleClick={() => setIsEditing(true)}
       >
-        {value}
+        {resolvedDisplayValue}
       </span>
       {showEditIcon && (
         <button

@@ -1,11 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Network } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import type {
-  ChatOpenRequest,
-  InvestigationLaunchRequest,
-  Artifact,
-} from '../../../types';
+import type { ChatOpenRequest, InvestigationLaunchRequest, Artifact } from '../../../types';
 import type { NetworkRouteState } from '@/app/routes';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EmptyState } from '../../ui/EmptyState';
@@ -14,6 +10,7 @@ import { EmptyState } from '../../ui/EmptyState';
 import { ControlBar } from './ControlBar';
 import type { GraphCanvasRef } from './GraphCanvas';
 import { GraphCanvas } from './GraphCanvas';
+import { GraphViewportControls } from './GraphViewportControls';
 import { NodeInspector } from './NodeInspector';
 import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
 import { useNetworkGraphController } from './useNetworkGraphController';
@@ -148,20 +145,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         onToggleLeftPanel={() => setShowLeftPanel(!showLeftPanel)}
         showRightPanel={showRightPanel}
         onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
-        showSingletons={showSingletons}
-        onToggleSingletons={() => setShowSingletons(!showSingletons)}
-        showHiddenNodes={showHiddenNodes}
-        onToggleHiddenNodes={() => setShowHiddenNodes(!showHiddenNodes)}
-        showFlaggedOnly={showFlaggedOnly}
-        onToggleFlaggedOnly={() => setShowFlaggedOnly(!showFlaggedOnly)}
         isLinkingMode={isLinkingMode}
         onToggleLinkingMode={() => setIsLinkingMode(!isLinkingMode)}
-        onZoom={(dir) => (dir === 'IN' ? graphRef.current?.zoomIn() : graphRef.current?.zoomOut())}
         onShowAddNode={() => setShowAddNodeUI(true)}
         onShowResolution={() => setShowResolutionModal(true)}
         pendingClusterCount={pendingClusterCount}
-        isLocked={isLocked}
-        onToggleLock={() => setIsLocked(!isLocked)}
       />
 
       <div className="flex-1 flex overflow-hidden relative z-10">
@@ -204,27 +192,42 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               />
             </div>
           ) : (
-            <GraphCanvas
-              ref={graphRef}
-              reports={reports}
-              manualLinks={manualLinks}
-              manualNodes={manualNodes}
-              workspaces={workspaces}
-              aliases={aliases}
-              hiddenNodeIds={hiddenNodeIds}
-              flaggedNodeIds={flaggedNodeIds}
-              filterCaseId={filterCaseId || ''}
-              showSingletons={showSingletons}
-              showHiddenNodes={showHiddenNodes}
-              showFlaggedOnly={showFlaggedOnly}
-              isLinkingMode={isLinkingMode}
-              linkSourceNode={linkSourceNode}
-              isLocked={isLocked}
-              onNodeClick={handleNodeClick}
-              onSetLinkSource={setLinkSourceNode}
-              onCreateManualLink={handleCreateManualLink}
-              onStatsUpdate={handleGraphStatsUpdate}
-            />
+            <>
+              <GraphCanvas
+                ref={graphRef}
+                reports={reports}
+                manualLinks={manualLinks}
+                manualNodes={manualNodes}
+                workspaces={workspaces}
+                aliases={aliases}
+                hiddenNodeIds={hiddenNodeIds}
+                flaggedNodeIds={flaggedNodeIds}
+                filterCaseId={filterCaseId || ''}
+                showSingletons={showSingletons}
+                showHiddenNodes={showHiddenNodes}
+                showFlaggedOnly={showFlaggedOnly}
+                isLinkingMode={isLinkingMode}
+                linkSourceNode={linkSourceNode}
+                isLocked={isLocked}
+                onNodeClick={handleNodeClick}
+                onSetLinkSource={setLinkSourceNode}
+                onCreateManualLink={handleCreateManualLink}
+                onStatsUpdate={handleGraphStatsUpdate}
+              />
+              <GraphViewportControls
+                showSingletons={showSingletons}
+                onToggleSingletons={() => setShowSingletons(!showSingletons)}
+                showHiddenNodes={showHiddenNodes}
+                onToggleHiddenNodes={() => setShowHiddenNodes(!showHiddenNodes)}
+                showFlaggedOnly={showFlaggedOnly}
+                onToggleFlaggedOnly={() => setShowFlaggedOnly(!showFlaggedOnly)}
+                onZoom={(dir) =>
+                  dir === 'IN' ? graphRef.current?.zoomIn() : graphRef.current?.zoomOut()
+                }
+                isLocked={isLocked}
+                onToggleLock={() => setIsLocked(!isLocked)}
+              />
+            </>
           )}
         </div>
 

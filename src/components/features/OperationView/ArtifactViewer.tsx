@@ -26,6 +26,7 @@ import {
   getPurposeProfileById,
   getSectionByKinds,
   getSectionItemsByKinds,
+  sanitizeDisplayTitle,
 } from '../../../domain';
 import { Breadcrumbs } from '../../ui/Breadcrumbs';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -254,6 +255,23 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const mainColumnClassName = isDetailSidebarOpen
     ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
     : 'flex-1 h-full overflow-y-auto custom-scrollbar';
+  const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
+  const readingPatternPanelStyle = {
+    backgroundColor: 'color-mix(in oklab, var(--osint-panel) 96%, transparent)',
+    borderColor: 'color-mix(in oklab, var(--osint-ink) 12%, transparent)',
+  } as const;
+  const readingPatternCardStyle = {
+    backgroundColor: 'color-mix(in oklab, var(--osint-surface) 74%, var(--osint-panel))',
+    borderColor: 'color-mix(in oklab, var(--osint-ink) 10%, transparent)',
+  } as const;
+  const readingPatternAccentCardStyle = {
+    backgroundColor: 'color-mix(in oklab, var(--osint-primary) 10%, var(--osint-surface))',
+    borderColor: 'color-mix(in oklab, var(--osint-primary) 28%, var(--osint-surface))',
+  } as const;
+  const readingPatternWarningCardStyle = {
+    backgroundColor: 'color-mix(in oklab, var(--color-osint-danger) 10%, var(--osint-surface))',
+    borderColor: 'color-mix(in oklab, var(--color-osint-danger) 26%, var(--osint-panel))',
+  } as const;
 
   useEffect(() => {
     if (!isEditingReportBody) {
@@ -385,6 +403,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           <div className="min-w-0">
             <EditableTitle
               value={report.topic}
+              displayValue={reportDisplayTitle}
               onSave={onTitleSave}
               className="font-osint-display text-2xl font-bold text-white uppercase tracking-tight truncate"
               inputClassName="font-osint-display text-2xl font-bold uppercase tracking-tight"
@@ -393,7 +412,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         </div>
 
         <div className="p-6">
-          <div className="mb-6 border border-zinc-800 bg-zinc-950/80 p-4">
+          <div className="mb-6 border p-4" style={readingPatternPanelStyle}>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
               <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
                 {artifactTypeLabel} Reading Pattern
@@ -405,11 +424,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
               <div className="grid gap-3 md:grid-cols-3">
                 {readingHighlights.map((highlight) => (
-                  <div key={highlight.label} className="border border-zinc-800 bg-black/40 p-3">
+                  <div key={highlight.label} className="border p-3" style={readingPatternCardStyle}>
                     <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
                       {highlight.label}
                     </div>
-                    <div className="mt-2 text-sm leading-6 text-zinc-200">{highlight.value}</div>
+                    <div className="mt-2 text-sm leading-6 text-[color:var(--osint-ink)]">
+                      {highlight.value}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -417,18 +438,19 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 {provenanceSummary.map((stat) => (
                   <div
                     key={stat.label}
-                    className={`border p-3 ${
+                    className="border p-3"
+                    style={
                       stat.tone === 'WARNING'
-                        ? 'border-red-400/30 bg-red-500/10'
+                        ? readingPatternWarningCardStyle
                         : stat.tone === 'ACCENT'
-                          ? 'border-osint-primary/30 bg-osint-primary/10'
-                          : 'border-zinc-800 bg-black/40'
-                    }`}
+                          ? readingPatternAccentCardStyle
+                          : readingPatternCardStyle
+                    }
                   >
                     <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
                       {stat.label}
                     </div>
-                    <div className="mt-2 text-sm text-zinc-100">{stat.value}</div>
+                    <div className="mt-2 text-sm text-[color:var(--osint-ink)]">{stat.value}</div>
                   </div>
                 ))}
               </div>

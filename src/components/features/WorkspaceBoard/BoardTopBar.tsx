@@ -47,12 +47,12 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         </button>
         <button
           onClick={onCreateBoard}
-          className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
+          className="osint-button-primary inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 text-xs font-mono uppercase"
         >
           <FolderPlus className="h-4 w-4" />
-          New Board
+          New
         </button>
-        <div className="relative z-50 hidden min-w-[180px] max-w-[220px] md:block">
+        <div className="relative z-50 hidden min-w-[170px] max-w-[210px] md:block">
           <OsintSelect
             ariaLabel="Select workspace"
             value={activeWorkspaceId}
@@ -65,7 +65,14 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
             }))}
           />
         </div>
-        <div className="relative z-50 hidden min-w-[180px] max-w-[220px] md:block">
+      </div>
+
+      <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
+        <GlobalSearch compact className="mx-auto w-full max-w-[22rem]" />
+      </div>
+
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+        <div className="relative z-50 hidden min-w-[170px] max-w-[210px] md:block">
           <OsintSelect
             ariaLabel="Select board"
             value={activeBoard?.id || ''}
@@ -78,13 +85,6 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
             }))}
           />
         </div>
-      </div>
-
-      <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
-        <GlobalSearch compact className="mx-auto w-full" />
-      </div>
-
-      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
         {activeBoard ? (
           <button
             onClick={onTogglePresentationMode}

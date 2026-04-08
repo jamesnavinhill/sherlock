@@ -890,10 +890,10 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <button
               onClick={() => setIsNewCaseModalOpen(true)}
-              className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
+              className="osint-button-primary inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 text-xs font-mono uppercase"
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
+              <span>New</span>
             </button>
             <div className="hidden min-w-[180px] max-w-[240px] md:block">
               <OsintSelect
@@ -920,42 +920,6 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           </div>
 
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-            <div className="hidden items-center border border-zinc-800 bg-zinc-950/70 p-0.5 md:flex">
-              <button
-                onClick={() => setViewMode('LIST')}
-                className={getChromeSegmentButtonClass(viewMode === 'LIST')}
-                title="Show dense list view"
-              >
-                <List className="mr-1 h-3.5 w-3.5" />
-                List
-              </button>
-              <button
-                onClick={() => setViewMode('GRID')}
-                className={getChromeSegmentButtonClass(viewMode === 'GRID')}
-                title="Show grid view"
-              >
-                <LayoutGrid className="mr-1 h-3.5 w-3.5" />
-                Grid
-              </button>
-            </div>
-
-            {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
-              <div className="hidden items-center rounded border border-zinc-800 bg-zinc-950/70 p-1 md:flex">
-                {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => {
-                      setRecordFilter(value);
-                      setCurrentPage(1);
-                    }}
-                    className={getChromeSegmentButtonClass(recordFilter === value)}
-                  >
-                    {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
             {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
               ? (() => {
                   const currentWorkspace = workspaces.find(
@@ -1072,6 +1036,44 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
       ) : null}
 
       <div className="relative z-10 h-full w-full overflow-y-auto p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-end gap-3">
+          <div className="flex items-center border border-zinc-800 bg-zinc-950/70 p-0.5">
+            <button
+              onClick={() => setViewMode('LIST')}
+              className={getChromeSegmentButtonClass(viewMode === 'LIST')}
+              title="Show dense list view"
+            >
+              <List className="mr-1 h-3.5 w-3.5" />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('GRID')}
+              className={getChromeSegmentButtonClass(viewMode === 'GRID')}
+              title="Show grid view"
+            >
+              <LayoutGrid className="mr-1 h-3.5 w-3.5" />
+              Grid
+            </button>
+          </div>
+
+          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
+            <div className="flex items-center rounded border border-zinc-800 bg-zinc-950/70 p-1">
+              {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
+                <button
+                  key={value}
+                  onClick={() => {
+                    setRecordFilter(value);
+                    setCurrentPage(1);
+                  }}
+                  className={getChromeSegmentButtonClass(recordFilter === value)}
+                >
+                  {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
         {effectiveSelectedCaseId
           ? renderWorkspaceRecords(effectiveSelectedCaseId)
           : renderWorkspaceOverview()}

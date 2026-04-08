@@ -19,6 +19,8 @@ import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
 import { getEntityToneClass } from '../../../utils/entityPalette';
+import { sanitizeDisplayTitle } from '../../../domain';
+import { getArtifactTypeLabel } from './artifactViewerPresentation';
 
 interface InspectorPanelProps {
   isOpen: boolean;
@@ -64,6 +66,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   onNavigate,
 }) => {
   const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
+  const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
+  const reportArtifactTypeLabel = report ? getArtifactTypeLabel(report.artifactType) : '';
   const entityActions: InspectorActionItem[] = entity
     ? [
         {
@@ -268,9 +272,12 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                       key={r.id || r.topic}
                       onClick={() => r.id && onNavigate(r.id)}
                       className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group"
+                      title={sanitizeDisplayTitle(r.topic)}
                     >
                       <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
-                      <span className="truncate text-xs font-mono">{r.topic}</span>
+                      <span className="truncate text-xs font-mono">
+                          {sanitizeDisplayTitle(r.topic)}
+                      </span>
                     </button>
                   ))
                 ) : (
@@ -419,7 +426,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                   Current Artifact
                 </div>
                 <h3 className="text-base font-bold text-white leading-tight font-mono">
-                  {report.topic}
+                  {reportDisplayTitle}
                 </h3>
               </div>
             </div>
@@ -450,7 +457,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                   <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
                     Artifact Type
                   </div>
-                  <div className="text-sm text-zinc-300">{report.artifactType}</div>
+                  <div className="text-sm text-zinc-300">{reportArtifactTypeLabel}</div>
                 </div>
               ) : null}
               <div>

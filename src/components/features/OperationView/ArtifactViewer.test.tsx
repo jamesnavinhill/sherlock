@@ -6,7 +6,8 @@ import { ArtifactViewer } from './ArtifactViewer';
 const reportFixture: Artifact = {
   id: 'report-1',
   workspaceId: 'case-1',
-  topic: 'Atlas Contract Network',
+  topic:
+    '[Atlas Contract Network] [RUN_ANGLE]: trace unusual award timing [PRIORITY_SOURCES]: registry.example',
   summary: 'Fallback summary',
   artifactType: 'SYNTHESIS',
   agendas: ['Award timing clusters across overlapping vendors.'],
@@ -68,7 +69,10 @@ describe('ArtifactViewer', () => {
       <ArtifactViewer
         report={reportFixture}
         workspaceTitle="Atlas Review"
-        navStack={[]}
+        navStack={[
+          { type: 'CASE', id: 'case-1', label: 'Atlas Review' },
+          { type: 'REPORT', id: 'report-1', label: reportFixture.topic },
+        ]}
         onNavigate={vi.fn()}
         onNotify={vi.fn()}
         showPlaceholder={false}
@@ -83,7 +87,10 @@ describe('ArtifactViewer', () => {
     expect(screen.getByRole('heading', { name: /Synthesis/i })).toBeInTheDocument();
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
+    expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
     expect(screen.getByText('Synthesis Reading Pattern')).toBeInTheDocument();
+    expect(screen.queryByText(/\[RUN_ANGLE\]/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\[PRIORITY_SOURCES\]/)).not.toBeInTheDocument();
     expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();
     expect(screen.getAllByText('Registry').length).toBeGreaterThan(0);
     expect(screen.queryByText('Follow-Up Questions')).not.toBeInTheDocument();

@@ -11,7 +11,6 @@ import {
   type ThemeSurfaceSettings,
 } from '@/utils/themeSurfaces';
 import {
-  THEME_FONT_OPTIONS,
   getThemeFontOption,
   getThemeFontOptionsForRole,
   type ThemeFontSettings,
@@ -77,6 +76,14 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   toggleThemeSection,
   updateSelectedSurfaceField,
 }) => {
+  const fontSelections = FONT_ROLE_CARDS.map((role) => ({
+    ...role,
+    activeOption: getThemeFontOption(themeFontSettings[role.key]),
+  }));
+  const fontSelectionByRole = Object.fromEntries(
+    fontSelections.map((role) => [role.key, role])
+  ) as Record<keyof ThemeFontSettings, (typeof fontSelections)[number]>;
+
   const renderThemeSurfaceEditor = () => {
     const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
     const bounds = getSurfaceBounds(activeSurfaceMode, selectedSurfaceKey);
@@ -372,14 +379,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const renderFontSection = () => (
     <div className="space-y-6 px-3 pb-3 pt-1">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="font-osint-label text-[10px] uppercase tracking-[0.22em] text-zinc-500">
-            Font Roles
-          </div>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-            Each role maps to a curated font set so headers, labels, and dense evidence can carry
-            different voices without breaking the system.
-          </p>
+        <div className="font-osint-label text-[10px] uppercase tracking-[0.22em] text-zinc-500">
+          Font Roles
         </div>
         <button
           type="button"
@@ -390,59 +391,104 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </button>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        {FONT_ROLE_CARDS.map((role) => {
-          const activeOption = getThemeFontOption(themeFontSettings[role.key]);
-          return (
-            <div key={role.key} className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
-                <div>
-                  <div className="text-xs font-semibold text-white">{role.label}</div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-500">{role.description}</p>
-                  <div className="mt-4 text-[10px] font-mono uppercase text-zinc-500">
-                    {activeOption?.label || themeFontSettings[role.key]}
-                  </div>
-                  <div className="mt-4">
-                    <select
-                      value={themeFontSettings[role.key]}
-                      onChange={(event) =>
-                        onThemeFontSettingsChange({
-                          ...themeFontSettings,
-                          [role.key]: event.target.value,
-                        })
-                      }
-                      className="w-full border border-zinc-700 bg-black px-3 py-3 text-xs font-mono text-white outline-none focus:border-osint-primary"
-                    >
-                      {getThemeFontOptionsForRole(role.key).map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div
-                  className="rounded border border-zinc-800 bg-black/60 p-4"
-                  style={{
-                    fontFamily: THEME_FONT_OPTIONS.find(
-                      (option) => option.id === themeFontSettings[role.key]
-                    )?.cssValue,
-                  }}
-                >
-                  <div className="text-[10px] font-mono uppercase text-zinc-500">Preview</div>
-                  <div className="mt-3 text-lg text-white">{role.sample}</div>
-                </div>
+      <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className="grid gap-3 md:grid-cols-2">
+          {fontSelections.map((role) => (
+            <label key={role.key} className="rounded border border-zinc-800 bg-black/50 p-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-semibold text-white">{role.label}</span>
+                <span className="text-[10px] font-mono uppercase text-zinc-500">
+                  {role.activeOption.label}
+                </span>
+              </div>
+              <select
+                value={themeFontSettings[role.key]}
+                onChange={(event) =>
+                  onThemeFontSettingsChange({
+                    ...themeFontSettings,
+                    [role.key]: event.target.value,
+                  })
+                }
+                className="mt-3 w-full border border-zinc-700 bg-black px-3 py-2.5 text-xs font-mono text-white outline-none focus:border-osint-primary"
+              >
+                {getThemeFontOptionsForRole(role.key).map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded border border-zinc-800 bg-zinc-950/50 p-5">
+        <div className="text-[10px] font-osint-label uppercase tracking-[0.22em] text-zinc-500">
+          Preview
+        </div>
+        <div className="mt-4 rounded border border-zinc-800 bg-black/60 p-5">
+          <div
+            className="text-[10px] uppercase tracking-[0.28em] text-zinc-500"
+            style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+          >
+            Incident Desk / Theme Preview
+          </div>
+          <div
+            className="mt-3 text-3xl leading-tight text-white sm:text-4xl"
+            style={{ fontFamily: fontSelectionByRole.display.activeOption.cssValue }}
+          >
+            Operational Summary
+          </div>
+          <p
+            className="mt-4 max-w-3xl text-base leading-7 text-zinc-300"
+            style={{ fontFamily: fontSelectionByRole.ui.activeOption.cssValue }}
+          >
+            Signal review should stay calm and readable while headings, chrome, and dense evidence
+            still feel like part of the same system.
+          </p>
+          <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
+              <div
+                className="text-[10px] uppercase tracking-[0.24em] text-zinc-500"
+                style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+              >
+                Navigation Labels
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {['Data', 'Runtime', 'Scopes', 'Theme'].map((item) => (
+                  <span
+                    key={item}
+                    className="border border-zinc-700 px-2 py-1 text-[11px] uppercase text-zinc-300"
+                    style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+                  >
+                    {item}
+                  </span>
+                ))}
               </div>
             </div>
-          );
-        })}
+            <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
+              <div
+                className="text-[10px] uppercase tracking-[0.24em] text-zinc-500"
+                style={{ fontFamily: fontSelectionByRole.label.activeOption.cssValue }}
+              >
+                Evidence Sample
+              </div>
+              <pre
+                className="mt-3 overflow-x-auto text-sm leading-7 text-zinc-300"
+                style={{ fontFamily: fontSelectionByRole.mono.activeOption.cssValue }}
+              >
+                <code>{`artifact_id=ops-17\noklch(0.21 0.01 286)\nstatus=monitoring`}</code>
+              </pre>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12 space-y-6">
-      <div className="grid gap-6 xl:grid-cols-2">
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-6 pb-12">
+      <div className="space-y-6">
         <Accordion
           title="Accent"
           icon={Palette}
@@ -451,33 +497,39 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           className="mb-0"
         >
           <div className="space-y-6 px-3 pb-3 pt-1">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
-                  style={{ background: buildAccentColor(accentSettings) }}
-                />
-                <label className="font-osint-label block text-[10px] text-zinc-500 uppercase">
-                  Custom Accent
-                </label>
+            <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                    style={{ background: buildAccentColor(accentSettings) }}
+                  />
+                  <div className="min-w-0">
+                    <div className="font-osint-label block text-[10px] uppercase text-zinc-500">
+                      Custom Accent
+                    </div>
+                    <div className="mt-1 truncate font-mono text-xs text-zinc-300">
+                      {buildAccentColor(accentSettings)}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleResetThemeSettings}
+                  className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
+                >
+                  Reset Theme
+                </button>
               </div>
-              <button
-                onClick={handleResetThemeSettings}
-                className="font-osint-label px-3 py-1 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white text-[10px] uppercase transition-colors"
-              >
-                Reset Theme
-              </button>
+              <div className="mt-4">
+                <AccentPicker
+                  hue={accentSettings.hue}
+                  lightness={accentSettings.lightness}
+                  chroma={accentSettings.chroma}
+                  showPreview={false}
+                  onChange={onAccentChange}
+                />
+              </div>
             </div>
-            <div className="font-osint-label text-[10px] text-zinc-500">
-              {buildAccentColor(accentSettings)}
-            </div>
-            <AccentPicker
-              hue={accentSettings.hue}
-              lightness={accentSettings.lightness}
-              chroma={accentSettings.chroma}
-              showPreview={false}
-              onChange={onAccentChange}
-            />
           </div>
         </Accordion>
 

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from '../../../types';
 import { Accordion } from '../../ui/Accordion';
-import { getWorkspaceDisplayTitle } from '../../../domain';
+import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { CHROME_PANEL_CLASS } from '../../ui/chrome';
 
@@ -111,8 +111,10 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   key={r.id || r.topic}
                   onClick={() => r.id && onNavigate(r.id)}
                   className={`w-full text-left p-2 hover:bg-zinc-900 text-xs font-mono text-zinc-400 hover:text-white truncate flex items-center border-l-2 ${activeReportId === r.id ? 'border-osint-primary bg-zinc-900/50' : 'border-transparent hover:border-osint-primary'}`}
+                  title={sanitizeDisplayTitle(r.topic)}
                 >
-                  <div className="w-1.5 h-1.5 bg-zinc-700 rounded-full mr-2"></div> {r.topic}
+                  <div className="w-1.5 h-1.5 bg-zinc-700 rounded-full mr-2"></div>{' '}
+                  {sanitizeDisplayTitle(r.topic)}
                 </button>
               ))}
             </div>

@@ -1,19 +1,5 @@
 import React from 'react';
-import {
-  ZoomOut,
-  ZoomIn,
-  Link as LinkIcon,
-  PlusCircle,
-  GitMerge,
-  Lock,
-  Unlock,
-  Briefcase,
-  PanelRight,
-  Box,
-  Eye,
-  EyeOff,
-  Star,
-} from 'lucide-react';
+import { Link as LinkIcon, PlusCircle, GitMerge, Briefcase, PanelRight } from 'lucide-react';
 import type { Workspace } from '../../../types';
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../../domain';
 import { GlobalSearch } from '../../ui/GlobalSearch';
@@ -21,7 +7,6 @@ import { OsintSelect } from '../../ui/OsintSelect';
 import {
   CHROME_HEADER_CLASS,
   getChromeMenuButtonClass,
-  getChromeSegmentButtonClass,
   getChromeToggleButtonClass,
 } from '../../ui/chrome';
 
@@ -33,20 +18,11 @@ interface ControlBarProps {
   onToggleLeftPanel: () => void;
   showRightPanel: boolean;
   onToggleRightPanel: () => void;
-  showSingletons: boolean;
-  onToggleSingletons: () => void;
-  showHiddenNodes: boolean;
-  onToggleHiddenNodes: () => void;
-  showFlaggedOnly: boolean;
-  onToggleFlaggedOnly: () => void;
   isLinkingMode: boolean;
   onToggleLinkingMode: () => void;
-  onZoom: (dir: 'IN' | 'OUT') => void;
   onShowAddNode: () => void;
   onShowResolution: () => void;
   pendingClusterCount: number;
-  isLocked: boolean;
-  onToggleLock: () => void;
 }
 
 export const ControlBar: React.FC<ControlBarProps> = ({
@@ -57,20 +33,11 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onToggleLeftPanel,
   showRightPanel,
   onToggleRightPanel,
-  showSingletons,
-  onToggleSingletons,
-  showHiddenNodes,
-  onToggleHiddenNodes,
-  showFlaggedOnly,
-  onToggleFlaggedOnly,
   isLinkingMode,
   onToggleLinkingMode,
-  onZoom,
   onShowAddNode,
   onShowResolution,
   pendingClusterCount,
-  isLocked,
-  onToggleLock,
 }) => {
   return (
     <div className={`${CHROME_HEADER_CLASS} px-6`}>
@@ -101,70 +68,11 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         </div>
 
         <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
-          <GlobalSearch compact className="mx-auto w-full" />
+          <GlobalSearch compact className="mx-auto w-full max-w-[24rem]" />
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-          <div className="hidden xl:flex items-center border border-zinc-800 bg-black/70 p-0.5 mx-2">
-            <button
-              onClick={onToggleSingletons}
-              className={`${getChromeSegmentButtonClass(showSingletons)} relative px-2.5 py-2`}
-              title={showSingletons ? 'Hide Singletons' : 'Show Singletons'}
-            >
-              <Box className="w-3.5 h-3.5" />
-              {!showSingletons && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-full h-px bg-red-500 rotate-45 transform scale-110"></div>
-                </div>
-              )}
-            </button>
-            <div className="w-px h-3 bg-zinc-800 mx-1"></div>
-            <button
-              onClick={onToggleHiddenNodes}
-              className={`${getChromeSegmentButtonClass(showHiddenNodes)} px-2.5 py-2`}
-              title={showHiddenNodes ? 'Hide Deleted' : 'Show Deleted'}
-            >
-              {showHiddenNodes ? (
-                <Eye className="w-3.5 h-3.5" />
-              ) : (
-                <EyeOff className="w-3.5 h-3.5" />
-              )}
-            </button>
-            <div className="w-px h-3 bg-zinc-800 mx-1"></div>
-            <button
-              onClick={onToggleFlaggedOnly}
-              className={`${getChromeSegmentButtonClass(showFlaggedOnly)} px-2.5 py-2`}
-              title="Show Flagged Only"
-            >
-              <Star className={`w-3.5 h-3.5 ${showFlaggedOnly ? 'fill-current' : ''}`} />
-            </button>
-            <div className="w-px h-3 bg-zinc-800 mx-1"></div>
-            <button
-              onClick={() => onZoom('OUT')}
-              className={`${getChromeSegmentButtonClass(false)} px-2.5 py-2`}
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onZoom('IN')}
-              className={`${getChromeSegmentButtonClass(false)} px-2.5 py-2`}
-              title="Zoom In"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-            <div className="w-px h-3 bg-zinc-800 mx-1"></div>
-            <button
-              onClick={onToggleLock}
-              className={`${getChromeSegmentButtonClass(isLocked)} px-2.5 py-2`}
-              title={isLocked ? 'Unlock Simulation' : 'Lock Layout (Performance)'}
-            >
-              {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="h-6 w-px bg-zinc-800 mx-1"></div>
             <button
               onClick={onToggleLinkingMode}
               className={getChromeMenuButtonClass(isLinkingMode)}
