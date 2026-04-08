@@ -12,6 +12,13 @@ const { buildWorkspaceBoardViewModel } = vi.hoisted(() => ({
 const { useBoardCanvasPersistence } = vi.hoisted(() => ({
   useBoardCanvasPersistence: vi.fn(),
 }));
+const { buildBoardInspectorActions } = vi.hoisted(() => ({
+  buildBoardInspectorActions: vi.fn(
+    (_args: {
+      onOpenSelectedChat: () => void;
+    }) => []
+  ),
+}));
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -34,7 +41,7 @@ vi.mock('./useBoardCanvasPersistence', () => ({
 }));
 
 vi.mock('./boardInspectorActions', () => ({
-  buildBoardInspectorActions: () => [],
+  buildBoardInspectorActions,
 }));
 
 import { useWorkspaceBoardController } from './useWorkspaceBoardController';
@@ -263,5 +270,70 @@ describe('useWorkspaceBoardController', () => {
       })
     );
     expect(createWorkspaceItem).not.toHaveBeenCalled();
+  });
+
+  it('routes selected workspace items into item-aware chat handoffs from the board inspector', () => {
+    const onOpenChat = vi.fn();
+    buildWorkspaceBoardViewModel.mockReturnValue({
+      ...baseViewModel,
+      selectedEntries: [
+        {
+          workspaceId: 'ws-1',
+          refKind: 'WORKSPACE_ITEM',
+          refId: 'item-1',
+          title: 'Atlas note',
+          kind: 'NOTE',
+          searchText: 'atlas note',
+        },
+      ],
+      selectedPrimaryEntry: {
+        workspaceId: 'ws-1',
+        refKind: 'WORKSPACE_ITEM',
+        refId: 'item-1',
+        title: 'Atlas note',
+        kind: 'NOTE',
+        searchText: 'atlas note',
+      },
+      selectedWorkspaceItem: {
+        id: 'item-1',
+        workspaceId: 'ws-1',
+        kind: 'NOTE',
+        title: 'Atlas note',
+        createdAt: 1,
+        updatedAt: 1,
+        provenance: {
+          source: 'CHAT',
+          sourceArtifactId: 'rep-1',
+        },
+      },
+    });
+
+    renderHook(() =>
+      useWorkspaceBoardController({
+        onLaunchInvestigation: vi.fn(),
+        onOpenChat,
+        onOpenReport: vi.fn(),
+      })
+    );
+
+    const inspectorArgs = buildBoardInspectorActions.mock.calls.at(-1)?.[0];
+    expect(inspectorArgs).toBeTruthy();
+    if (!inspectorArgs) {
+      throw new Error('Expected board inspector actions to be built.');
+    }
+
+    act(() => {
+      inspectorArgs.onOpenSelectedChat();
+    });
+
+    expect(onOpenChat).toHaveBeenCalledWith({
+      workspaceId: 'ws-1',
+      launchContext: {
+        workspaceItemId: 'item-1',
+        sourceArtifactId: 'rep-1',
+        signalId: undefined,
+        headlineId: undefined,
+      },
+    });
   });
 });

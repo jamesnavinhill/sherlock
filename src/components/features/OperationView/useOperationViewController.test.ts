@@ -171,4 +171,93 @@ describe('useOperationViewController', () => {
     );
     expect(addToast).toHaveBeenCalledWith('Artifact updated.', 'SUCCESS');
   });
+
+  it('uses canonical chat and board handoff payloads for report and headline actions', async () => {
+    const onOpenChat = vi.fn();
+    const queueBoardPlacement = vi.fn();
+
+    selectorState.useOperationFeatureState.mockReturnValue({
+      ...baseState,
+      queueBoardPlacement,
+      ensureWorkspaceBoard: vi.fn(async () => ({ id: 'board-1' })),
+    });
+
+    const { result } = renderHook(() =>
+      useOperationViewController({
+        onNavigate: vi.fn(),
+        onOpenChat,
+        task: null,
+        reportOverride: {
+          id: 'artifact-1',
+          workspaceId: 'ws-1',
+          topic: 'Atlas Report',
+          summary: 'Summary',
+          agendas: [],
+          leads: [],
+          entities: [],
+          sources: [],
+          rawText: 'raw',
+          config: {},
+        },
+      })
+    );
+
+    act(() => {
+      result.current.handleOpenReportChat();
+      result.current.handleHeadlineClick({
+        id: 'signal-1',
+        workspaceId: 'ws-1',
+        content: 'Headline text',
+        source: 'Ledger',
+        timestamp: '2026-04-08T00:00:00.000Z',
+        type: 'NEWS',
+        status: 'PENDING',
+        threatLevel: 'INFO',
+      });
+    });
+
+    act(() => {
+      result.current.handleOpenHeadlineChat();
+    });
+
+    await act(async () => {
+      await result.current.handlePlaceReportOnBoard();
+    });
+
+    expect(onOpenChat.mock.calls).toEqual([
+      [
+        {
+          workspaceId: 'ws-1',
+          launchContext: {
+            sourceArtifactId: 'artifact-1',
+          },
+        },
+      ],
+      [
+        {
+          workspaceId: 'ws-1',
+          launchContext: {
+            signalId: 'signal-1',
+            headlineId: 'signal-1',
+          },
+        },
+      ],
+    ]);
+    expect(queueBoardPlacement).toHaveBeenCalledWith({
+      workspaceId: 'ws-1',
+      boardId: 'board-1',
+      item: {
+        workspaceId: 'ws-1',
+        refKind: 'ARTIFACT',
+        refId: 'artifact-1',
+        title: 'Atlas Report',
+        metadata: {
+          artifactType: undefined,
+        },
+      },
+      openInBoard: true,
+      mode: undefined,
+    });
+    expect(navigateMock).toHaveBeenCalledWith('/workspaces/ws-1/board/board-1');
+  });
 });

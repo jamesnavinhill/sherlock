@@ -12,35 +12,23 @@ import {
   buildFilesPath,
   buildWorkspaceBoardDocumentPath,
   buildWorkspaceBoardPath,
-  buildWorkspaceNetworkPath,
-  buildWorkspaceTimelinePath,
 } from '@/app/routes';
 import { useWorkspaceBoardFeatureState } from '@/store/selectors/workspaceBoardSelectors';
 import {
   boardRefKey,
-  buildSingleWorkspaceItemEntry,
   type WorkspaceLibraryEntry,
 } from '@/services/workspace/library';
 import {
-  BOARD_REF_META_KEY,
   buildBoardCardSpec,
   findBoardShapeIdsForReference,
-  parseBoardReference,
 } from '../../../services/workspace/boardShapes';
 import {
   LEFT_PANEL_SECTION_SCROLL_CLASS,
   placeEntryOnBoard,
-  type CreateModalState,
   type RightPanelView,
 } from './workspaceBoardUtils';
 import { buildWorkspaceBoardViewModel } from './workspaceBoardViewModel';
-import { buildBoardInspectorActions } from './boardInspectorActions';
 import { useBoardCanvasPersistence } from './useBoardCanvasPersistence';
-import {
-  buildWorkspaceItemFromCreateModal,
-  createWorkspaceSelectionNote,
-  generateWorkspaceSelectionSummary,
-} from './workspaceBoardItemActions';
 import { runWorkspaceBoardAgentTurn } from './workspaceBoardAgent';
 import {
   getBoardAgentReviewDefaultSelection,
@@ -51,8 +39,9 @@ import type {
   BoardAgentReviewRequest,
 } from '@/services/workspace/agent';
 import { useWorkspaceDocumentUpload } from '@/components/features/shared/useWorkspaceDocumentUpload';
-
-interface BoardAgentReviewState {
+import { useWorkspaceBoardLibraryState } from './useWorkspaceBoardLibraryState';
+import { useWorkspaceBoardInspectorState } from './useWorkspaceBoardInspectorState';
+export interface BoardAgentReviewState {
   sessionId: string;
   passIndex: number;
   actionIds: string[];
@@ -106,7 +95,6 @@ export const useWorkspaceBoardController = ({
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [createModal, setCreateModal] = useState<CreateModalState>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [boardAgentBusy, setBoardAgentBusy] = useState(false);
@@ -125,22 +113,7 @@ export const useWorkspaceBoardController = ({
     id: string;
     name: string;
   } | null>(null);
-  const [libraryItemPendingDeletion, setLibraryItemPendingDeletion] =
-    useState<WorkspaceLibraryEntry | null>(null);
   const [selectedEntries, setSelectedEntries] = useState<WorkspaceLibraryEntry[]>([]);
-  const [librarySections, setLibrarySections] = useState({
-    created: false,
-    artifacts: false,
-    entities: false,
-    sources: false,
-    signals: false,
-  });
-  const [libraryItemSections, setLibraryItemSections] = useState<Record<string, boolean>>({});
-  const [inspectorSections, setInspectorSections] = useState({
-    selection: false,
-    aiActions: false,
-    provenance: false,
-  });
   const [agentSections, setAgentSections] = useState({
     context: false,
     session: false,
@@ -452,101 +425,59 @@ export const useWorkspaceBoardController = ({
     }
   };
 
-  const toggleLibraryEntrySection = (entryKey: string) => {
-    setLibraryItemSections((current) => ({
-      ...current,
-      [entryKey]: !current[entryKey],
-    }));
-  };
+  const {
+    confirmDeleteCreatedItem,
+    createModal,
+    handleDeleteCreatedItem,
+    handleSubmitCreateModal,
+    libraryItemPendingDeletion,
+    libraryItemSections,
+    librarySections,
+    setCreateModal,
+    setLibraryItemPendingDeletion,
+    toggleLibraryEntrySection,
+    toggleLibrarySection,
+  } = useWorkspaceBoardLibraryState({
+    activeWorkspace,
+    addToast,
+    createWorkspaceItem,
+    deleteWorkspaceItem,
+    editorRef,
+    handleDropEntry,
+  });
 
-  const toggleLibrarySection = (section: keyof typeof librarySections) => {
-    setLibrarySections((current) =>
-      Object.fromEntries(
-        Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
-      ) as typeof current
-    );
-  };
-
-  const toggleInspectorSection = (section: keyof typeof inspectorSections) => {
-    setInspectorSections((current) => ({
-      ...current,
-      [section]: !current[section],
-    }));
-  };
+  const {
+    handleGenerateNote,
+    handleGenerateSummary,
+    inspectorActions,
+    inspectorSections,
+    toggleInspectorSection,
+  } = useWorkspaceBoardInspectorState({
+    activeBoard,
+    activeWorkspace,
+    addToast,
+    createWorkspaceItem,
+    handleDropEntry,
+    navigate,
+    onOpenChat,
+    onOpenReport,
+    persistCurrentBoardDocument,
+    setAiBusy,
+    setAiSummary,
+    selectedArtifact,
+    selectedEntries,
+    selectedHeadline,
+    selectedPrimaryEntry,
+    selectedWorkspaceItem,
+    workspaceArtifacts,
+    workspaceHeadlines,
+  });
 
   const toggleAgentSection = (section: keyof typeof agentSections) => {
     setAgentSections((current) => ({
       ...current,
       [section]: !current[section],
     }));
-  };
-
-  const handleSubmitCreateModal = useCallback(async () => {
-    if (!activeWorkspace || !createModal) return;
-
-    const nextItem = buildWorkspaceItemFromCreateModal({
-      createModal,
-      workspaceId: activeWorkspace.id,
-    });
-
-    if (!nextItem) return;
-    await createWorkspaceItem(nextItem);
-    const entry = buildSingleWorkspaceItemEntry(activeWorkspace.id, nextItem);
-    if (entry) {
-      handleDropEntry(entry);
-    }
-    setCreateModal(null);
-  }, [activeWorkspace, createModal, createWorkspaceItem, handleDropEntry]);
-
-  const handleGenerateSummary = async () => {
-    if (!activeWorkspace || selectedEntries.length === 0) return;
-    setAiBusy(true);
-
-    try {
-      const result = await generateWorkspaceSelectionSummary({
-        workspace: activeWorkspace,
-        artifacts: workspaceArtifacts,
-        headlines: workspaceHeadlines,
-        selectedEntries,
-      });
-      setAiSummary(result.content);
-    } catch (error) {
-      addToast(
-        error instanceof Error ? error.message : 'Unable to summarize this selection.',
-        'ERROR'
-      );
-    } finally {
-      setAiBusy(false);
-    }
-  };
-
-  const handleGenerateNote = async () => {
-    if (!activeWorkspace || !activeBoard || selectedEntries.length === 0) return;
-    if (activeBoard.presentationMode) {
-      addToast('Disable presentation mode before drafting a note card onto the board.', 'INFO');
-      return;
-    }
-    setAiBusy(true);
-
-    try {
-      const noteItem = await createWorkspaceSelectionNote({
-        activeBoard,
-        createWorkspaceItem,
-        selectedEntries,
-        workspace: activeWorkspace,
-        workspaceArtifacts,
-        workspaceHeadlines,
-      });
-      const entry = buildSingleWorkspaceItemEntry(activeWorkspace.id, noteItem);
-      if (entry) {
-        handleDropEntry(entry);
-      }
-      addToast('Created a new AI-assisted board note.', 'SUCCESS');
-    } catch (error) {
-      addToast(error instanceof Error ? error.message : 'Unable to draft a board note.', 'ERROR');
-    } finally {
-      setAiBusy(false);
-    }
   };
 
   const handleCancelBoardAgent = useCallback(() => {
@@ -814,111 +745,6 @@ export const useWorkspaceBoardController = ({
       }
     },
     [boardAgentBusy, boardAgentPrompt, handleRunBoardAgent]
-  );
-
-  const confirmDeleteCreatedItem = useCallback(
-    async (entry: WorkspaceLibraryEntry) => {
-      if (editorRef.current) {
-        const shapeIds = editorRef.current.store.allRecords().flatMap((record) => {
-          if (record.typeName !== 'shape') return [];
-
-          const meta = record.meta as Record<string, unknown> | undefined;
-          const ref = parseBoardReference(meta?.[BOARD_REF_META_KEY]);
-          if (ref?.refKind === 'WORKSPACE_ITEM' && ref.refId === entry.refId) {
-            return [record.id];
-          }
-
-          return [];
-        });
-
-        if (shapeIds.length > 0) {
-          editorRef.current.deleteShapes(shapeIds);
-        }
-      }
-
-      await deleteWorkspaceItem(entry.refId);
-      setLibraryItemSections((current) => {
-        const next = { ...current };
-        delete next[boardRefKey(entry)];
-        return next;
-      });
-      addToast('Removed item from the library.', 'SUCCESS');
-    },
-    [addToast, deleteWorkspaceItem, editorRef]
-  );
-
-  const handleDeleteCreatedItem = useCallback((entry: WorkspaceLibraryEntry) => {
-    if (entry.refKind !== 'WORKSPACE_ITEM') return;
-    setLibraryItemPendingDeletion(entry);
-  }, []);
-
-  const handleOpenSelectedChat = useCallback(() => {
-    if (!activeWorkspace) return;
-
-    if (selectedArtifact?.id) {
-      onOpenChat({
-        workspaceId: activeWorkspace.id,
-        launchContext: { sourceArtifactId: selectedArtifact.id },
-      });
-      return;
-    }
-
-    if (selectedHeadline) {
-      onOpenChat({
-        workspaceId: activeWorkspace.id,
-        launchContext: { signalId: selectedHeadline.id, headlineId: selectedHeadline.id },
-      });
-      return;
-    }
-
-    const selectedEntity = selectedEntries.find((entry) => entry.refKind === 'ENTITY');
-    if (selectedEntity) {
-      onOpenChat({
-        workspaceId: activeWorkspace.id,
-        launchContext: { entityName: selectedEntity.title },
-      });
-      return;
-    }
-
-    onOpenChat({ workspaceId: activeWorkspace.id });
-  }, [activeWorkspace, onOpenChat, selectedArtifact, selectedEntries, selectedHeadline]);
-
-  const inspectorActions = useMemo(
-    () =>
-      buildBoardInspectorActions({
-        activeWorkspaceId: activeWorkspace?.id,
-        onNavigateNetwork: async () => {
-          if (!activeWorkspace) return;
-          await persistCurrentBoardDocument();
-          navigate(buildWorkspaceNetworkPath(activeWorkspace.id));
-        },
-        onNavigateTimeline: async () => {
-          if (!activeWorkspace) return;
-          await persistCurrentBoardDocument();
-          navigate(buildWorkspaceTimelinePath(activeWorkspace.id));
-        },
-        onOpenChat,
-        onOpenReport,
-        onOpenSelectedChat: handleOpenSelectedChat,
-        selectedArtifact,
-        selectedEntries,
-        selectedPrimaryEntry,
-        selectedWorkspaceItem,
-        workspaceArtifacts,
-      }),
-    [
-      activeWorkspace,
-      handleOpenSelectedChat,
-      navigate,
-      onOpenChat,
-      onOpenReport,
-      persistCurrentBoardDocument,
-      selectedArtifact,
-      selectedEntries,
-      selectedPrimaryEntry,
-      selectedWorkspaceItem,
-      workspaceArtifacts,
-    ]
   );
 
   return {

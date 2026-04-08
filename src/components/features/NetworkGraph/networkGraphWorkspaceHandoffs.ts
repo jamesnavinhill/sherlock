@@ -1,10 +1,13 @@
-import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
 import type { Artifact, ChatOpenRequest, Headline } from '@/types';
 import {
-  buildWorkspaceArtifactReference,
-  buildWorkspaceEntityReference,
-  buildWorkspaceHeadlineReference,
-} from '@/services/workspace/library';
+  buildArtifactBoardReference,
+  buildArtifactChatOpenRequest,
+  buildEntityBoardReference,
+  buildEntityChatOpenRequest,
+  buildSignalBoardReference,
+  buildSignalChatOpenRequest,
+  queueWorkspaceReferenceOnBoard,
+} from '@/services/workspace/workspaceHandoffs';
 
 export const openEntityGraphChat = ({
   onOpenChat,
@@ -15,14 +18,15 @@ export const openEntityGraphChat = ({
   workspaceId: string | null;
   entityName: string;
 }) => {
-  if (!workspaceId || workspaceId === 'ALL') return;
-
-  onOpenChat({
-    workspaceId,
-    launchContext: {
-      entityName,
-    },
-  });
+  const request =
+    workspaceId && workspaceId !== 'ALL'
+      ? buildEntityChatOpenRequest({
+          entityName,
+          workspaceId,
+        })
+      : null;
+  if (!request) return;
+  onOpenChat(request);
 };
 
 export const openReportGraphChat = ({
@@ -32,14 +36,9 @@ export const openReportGraphChat = ({
   onOpenChat: (request: ChatOpenRequest) => void;
   report: Artifact;
 }) => {
-  if (!report.workspaceId || !report.id) return;
-
-  onOpenChat({
-    workspaceId: report.workspaceId,
-    launchContext: {
-      sourceArtifactId: report.id,
-    },
-  });
+  const request = buildArtifactChatOpenRequest(report);
+  if (!request) return;
+  onOpenChat(request);
 };
 
 export const openHeadlineGraphChat = ({
@@ -49,15 +48,9 @@ export const openHeadlineGraphChat = ({
   headline: Headline;
   onOpenChat: (request: ChatOpenRequest) => void;
 }) => {
-  if (!headline.workspaceId) return;
-
-  onOpenChat({
-    workspaceId: headline.workspaceId,
-    launchContext: {
-      signalId: headline.id,
-      headlineId: headline.id,
-    },
-  });
+  const request = buildSignalChatOpenRequest(headline);
+  if (!request) return;
+  onOpenChat(request);
 };
 
 export const placeEntityOnWorkspaceBoard = async ({
@@ -73,24 +66,27 @@ export const placeEntityOnWorkspaceBoard = async ({
   queueBoardPlacement: (input: {
     workspaceId: string;
     boardId: string;
-    item: ReturnType<typeof buildWorkspaceEntityReference>;
+    item: NonNullable<ReturnType<typeof buildEntityBoardReference>>;
     openInBoard?: boolean;
   }) => void;
   workspaceId: string | null;
 }) => {
-  if (!workspaceId || workspaceId === 'ALL') return;
+  const reference =
+    workspaceId && workspaceId !== 'ALL'
+      ? buildEntityBoardReference({
+          entityName,
+          workspaceId,
+        })
+      : null;
+  if (!reference) return;
 
-  const board = await ensureWorkspaceBoard(workspaceId);
-  queueBoardPlacement({
-    workspaceId,
-    boardId: board.id,
-    item: buildWorkspaceEntityReference(workspaceId, {
-      name: entityName,
-      type: 'UNKNOWN',
-    }),
-    openInBoard: true,
+  await queueWorkspaceReferenceOnBoard({
+    ensureWorkspaceBoard,
+    navigate,
+    queueBoardPlacement,
+    reference,
+    workspaceId: reference.workspaceId,
   });
-  navigate(buildWorkspaceBoardDocumentPath(workspaceId, board.id));
 };
 
 export const placeReportOnWorkspaceBoard = async ({
@@ -104,21 +100,21 @@ export const placeReportOnWorkspaceBoard = async ({
   queueBoardPlacement: (input: {
     workspaceId: string;
     boardId: string;
-    item: ReturnType<typeof buildWorkspaceArtifactReference>;
+    item: NonNullable<ReturnType<typeof buildArtifactBoardReference>>;
     openInBoard?: boolean;
   }) => void;
   report: Artifact;
 }) => {
-  if (!report.workspaceId || !report.id) return;
+  const reference = buildArtifactBoardReference(report);
+  if (!reference) return;
 
-  const board = await ensureWorkspaceBoard(report.workspaceId);
-  queueBoardPlacement({
-    workspaceId: report.workspaceId,
-    boardId: board.id,
-    item: buildWorkspaceArtifactReference(report.workspaceId, { ...report, id: report.id }),
-    openInBoard: true,
+  await queueWorkspaceReferenceOnBoard({
+    ensureWorkspaceBoard,
+    navigate,
+    queueBoardPlacement,
+    reference,
+    workspaceId: reference.workspaceId,
   });
-  navigate(buildWorkspaceBoardDocumentPath(report.workspaceId, board.id));
 };
 
 export const placeHeadlineOnWorkspaceBoard = async ({
@@ -133,18 +129,18 @@ export const placeHeadlineOnWorkspaceBoard = async ({
   queueBoardPlacement: (input: {
     workspaceId: string;
     boardId: string;
-    item: ReturnType<typeof buildWorkspaceHeadlineReference>;
+    item: NonNullable<ReturnType<typeof buildSignalBoardReference>>;
     openInBoard?: boolean;
   }) => void;
 }) => {
-  if (!headline.workspaceId) return;
+  const reference = buildSignalBoardReference(headline);
+  if (!reference) return;
 
-  const board = await ensureWorkspaceBoard(headline.workspaceId);
-  queueBoardPlacement({
-    workspaceId: headline.workspaceId,
-    boardId: board.id,
-    item: buildWorkspaceHeadlineReference(headline.workspaceId, headline),
-    openInBoard: true,
+  await queueWorkspaceReferenceOnBoard({
+    ensureWorkspaceBoard,
+    navigate,
+    queueBoardPlacement,
+    reference,
+    workspaceId: reference.workspaceId,
   });
-  navigate(buildWorkspaceBoardDocumentPath(headline.workspaceId, board.id));
 };

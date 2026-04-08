@@ -1,269 +1,417 @@
-# Sherlock UI Uniformity Report
+# Sherlock UI Uniformity Roadmap
 
 Date: 2026-04-08
-Repository: `/mnt/c/Users/james/projects/sherlock`
 
-## Scope and Intent
+Status: Proposed
+
+Related inputs:
 
-This report surveys the current UI surface for consistency issues that should be folded into a dedicated cleanup plan after the current Stream 3 work lands.
+- `docs/reports/2026-04-08-codebase-audit.md`
+- `docs/plans/10-canonical-cleanup-roadmap.md`
+- `src/components/features/OperationView/ArtifactViewer.tsx`
+- `src/components/features/Chat/ChatContextRail.tsx`
+- `src/components/features/Timeline/TimelineDossierPanel.tsx`
+- `src/components/features/Timeline/TimelineDetailRail.tsx`
+- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
+- `src/components/features/WorkspaceBoard/BoardInspectorRail.tsx`
+- `src/components/features/NetworkGraph/NodeInspector.tsx`
+- `src/components/features/OperationView/InspectorPanel.tsx`
+- `src/components/ui/Accordion.tsx`
+- `src/components/ui/InspectorActionRow.tsx`
+- `src/components/ui/chrome.ts`
+- `src/index.css`
 
-The focus here is not to lock final design choices yet. The immediate goal is to:
+## Intent
 
-- identify the shared UI patterns that already exist
-- identify where those patterns are not being applied consistently
-- call out the most obvious outliers and odd-duck surfaces
-- make the transition from report to implementation plan straightforward
+This document replaces the earlier audit framing for this file and turns the April 8 UI review into an execution-ready roadmap.
 
-This review concentrated on panels, rails, headers, labels, helper text, hover and active states, motion and transitions, modals, menus, popups, and nested action surfaces across active `src/` UI code.
+The goal is not a redesign pass. The goal is to make Sherlock read as one product family by:
 
-## Executive Summary
+- codifying the panel and rail patterns that already feel right
+- applying those patterns consistently across Artifact, Chat, Timeline, Board, and Network surfaces
+- improving the main report reading experience so reports feel like documents instead of fragmented snippets
+- explicitly calling out where current data structures already support the desired UI and where they do not
 
-Sherlock already has the beginnings of a canonical UI language, but it is scattered. The most important shared pieces are already present in [`src/components/ui/chrome.ts`](/mnt/c/Users/james/projects/sherlock/src/components/ui/chrome.ts), [`src/components/ui/ModalShell.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/ModalShell.tsx), [`src/components/ui/Accordion.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/Accordion.tsx), [`src/components/ui/OsintSelect.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/OsintSelect.tsx), and [`src/index.css`](/mnt/c/Users/james/projects/sherlock/src/index.css).
+## Product North Star
 
-The main issue is not lack of taste or direction. The issue is partial adoption. Some surfaces already feel like they belong to the same product family, while others still use bespoke panel shells, one-off typography, custom hover logic, or custom overlay structures.
+Sherlock should feel like one coherent workspace with one obvious panel language:
 
-The best next step is not a broad redesign. It is a consolidation pass:
+- left rails read as `Library`
+- right rails read as `Details`, `Context`, or `Inspector`
+- headers are simple and contextual, not repetitive
+- action buttons sit in one predictable place
+- only one expandable section is open at a time
+- expanded sections pin cleanly to the bottom and scroll inline
+- selectable items share one hover and active treatment
+- the main report view reads like a serious editable document, not a dashboard of small cards
 
-- inventory the preferred patterns that already exist
-- turn those patterns into an explicit canonical contract
-- migrate high-traffic and high-visibility outliers first
+## Locked Product Decisions
 
-## Current Canonical Pieces Already In Place
+These decisions are in scope for this roadmap and should be treated as the default contract unless a stream explicitly carves out an exception.
 
-These are the strongest existing building blocks and should likely serve as the baseline for the eventual uniformity plan.
+### 1. Header vocabulary and panel naming
 
-### Panel and Header Chrome
+- Eyebrow text should only identify the panel role: `Library`, `Details`, `Context`, or `Inspector`.
+- Do not repeat `Project`, `Workspace`, `Timeline`, or similar nouns in the eyebrow.
+- The title should carry the actual context: the workspace title, selected artifact title, selected event title, selected item title, and so on.
+- Left-side rails standardize on `Library`.
+- Right-side rails standardize on `Details`, `Context`, or `Inspector`, depending on the surface.
+- Remove the icon from the Board library eyebrow and rename `Canonical Library` to `Library`.
+- Network-side library/dossier surfaces should use the same eyebrow and title pattern and drop extra counter-row ceremony unless it adds real value.
 
-[`src/components/ui/chrome.ts`](/mnt/c/Users/james/projects/sherlock/src/components/ui/chrome.ts) already contains a meaningful shared vocabulary for panel shells, headers, toggle buttons, segment buttons, and menu-style controls.
+### 2. Rail opening and scrolling behavior
 
-Good examples of that vocabulary in use:
+- The default rail behavior is the current Chat context rail model.
+- Only one top-level section should be open at a time.
+- The open section should flex into the remaining vertical space.
+- The bottom of the rail should stay pinned cleanly to the viewport.
+- Only the open section body should scroll when content exceeds the available height.
+- The rail itself should not create a second awkward scrollbar because an expanded section pushes past the page.
+- The Board library rail is the main exception for nested content richness, but it still needs the same pinned-bottom behavior.
 
-- [`src/components/features/Chat/ChatHeader.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Chat/ChatHeader.tsx)
-- [`src/components/features/Timeline/TimelineToolbar.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Timeline/TimelineToolbar.tsx)
-- [`src/components/features/WorkspaceHome/index.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/WorkspaceHome/index.tsx)
-- [`src/components/features/OperationView/DossierPanel.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
+### 3. Action row placement and button language
 
-### Modal Shell
+- Cross-panel action buttons belong directly under the header, before the section stack.
+- Those buttons should use the same light-outline, accent-on-hover language already used in toolbar-style controls and `InspectorActionRow`.
+- Action rows should not drift into ad hoc placements inside individual sections unless the action is truly section-local.
 
-[`src/components/ui/ModalShell.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/ModalShell.tsx) is already a credible canonical modal structure with a shared overlay, header, title/description treatment, close affordance, and footer slot.
+### 4. Canonical item hover and active states
 
-This is a strong base for normalizing dialogs and should likely remain the default shell unless a surface has a clear reason to diverge.
+- The hover and active treatment used by the Artifact viewer details panel entity rows is the canonical pattern for selectable panel items.
+- That treatment is a subtle shadow plus a very thin outline.
+- Apply it to findings, follow-up questions, entities, context rows, history rows, and other meaningful panel items.
+- Keep top-level section headers simpler; the more pronounced outlined treatment belongs to the items inside sections.
 
-### Section and Rail Behavior
+### 5. Typography rules
 
-[`src/components/ui/Accordion.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/Accordion.tsx) is a good candidate for the default collapsible section treatment. It already appears in some of the newer or more structured surfaces.
+- Section titles should use the same simple shadow treatment everywhere it makes sense.
+- Sources and provenance rows should use the lighter viewer-library style rather than a stronger section-label weight.
+- Existing good system-specific exceptions stay in place: destructive states, toasts, accent badges, entity colors, and other already-orderly system cues.
 
-### Menu and Selection Language
+### 6. Main report view direction
 
-[`src/components/ui/OsintSelect.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/OsintSelect.tsx) and the menu classes in [`src/index.css`](/mnt/c/Users/james/projects/sherlock/src/index.css) show an emerging menu/popup language that should be expanded rather than replaced.
+- Remove the current top summary or reading-pattern block from the main report view.
+- Do not fill the main report page with small cards and small summary boxes.
+- Keep the panels for compact summaries and quick jumps.
+- The main report page should prioritize clear, readable, editable document sections with strong hierarchy and sensible spacing.
+- Key findings should be treated as their own canonical report category.
+- The main report should include a dedicated `Key Findings` section near the top of the document body.
+- Key findings should remain available in the details rail as well, but the rail is secondary to the document.
+- Follow-up questions should use one shared layout pattern.
+- Entities should use a mixed pattern:
+  - two-column library-style layout
+  - dot marker treatment from the details panel instead of icon-heavy rows
+- Use chips for internal item links where helpful and inline hyperlinks for sources where relevant.
 
-### Shared Text Utilities
+### 7. Motion and overlays
 
-[`src/index.css`](/mnt/c/Users/james/projects/sherlock/src/index.css) already defines `osint-eyebrow`, `osint-meta-label`, `osint-meta-label-strong`, `osint-meta-value`, `osint-panel-title`, and muted body helpers. That means the cleanup is more about consolidation and adoption than inventing a system from scratch.
+- Motion should stay minimal and utilitarian.
+- Prefer little or no text entrance motion.
+- Use animation only where it helps opening, closing, cursor tracking, or orientation.
+- Popups and modals are mostly in a good place already. This roadmap includes only a light consistency sweep there, not a redesign.
 
-## Findings
+## Current Data-Flow Reality
 
-### 1. Panels, Rails, Headers, and Action Placement Are Only Partially Unified
+The roadmap needs to distinguish between surfaces that are only visual cleanup and surfaces that imply a deeper product or persistence choice.
 
-The app has a recognizable panel/header treatment, but many feature surfaces still implement their own shell structure, spacing rules, and action placement.
+### Entities are already first-class
 
-Representative stronger examples:
+Entities already have meaningful downstream use:
 
-- [`src/components/features/WorkspaceHome/index.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/WorkspaceHome/index.tsx)
-- [`src/components/features/Timeline/TimelineToolbar.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Timeline/TimelineToolbar.tsx)
-- [`src/components/features/OperationView/DossierPanel.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
+- persisted as structured artifact data
+- derived into workspace library entries in `src/services/workspace/library.ts`
+- used by timeline event derivation in `src/components/features/Timeline/timelineEventBuilders.ts`
+- used by graph and inspector flows across Operation View and Network Graph
+- used in chat launch-context grounding in `src/services/chat/launchContext.ts`
 
-Representative outliers:
+Implication:
 
-- [`src/components/features/OperationView/InspectorPanel.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
-- [`src/components/features/NetworkGraph/NodeInspector.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx)
-- [`src/components/features/Timeline/TimelineFiltersPanel.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Timeline/TimelineFiltersPanel.tsx)
-- [`src/components/features/WorkspaceBoard/BoardAgentRail.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardAgentRail.tsx)
+- entity UI work in this roadmap is mostly a presentation and interaction cleanup, not a data-model invention
 
-Patterns that need standardization:
+### Follow-up questions are already first-class enough to standardize confidently
 
-- panel header anatomy
-- title, subtext, and metadata placement
-- right-side action grouping
-- section spacing and divider behavior
-- default rail shell widths and padding
-- when to use `Accordion` versus a static section stack
+Follow-ups already have real product meaning:
 
-Important note for the follow-up plan:
+- canonicalized in `src/domain/artifacts.ts`
+- persisted through repository flows
+- used for launch and follow-up run behavior
+- surfaced in Artifact viewer flows as actionable items
 
-The preferred panel and header patterns already exist, but they are scattered across feature implementations and helper modules. The report-to-plan transition should include a short inventory step to identify the preferred variants before migration work begins.
+Implication:
 
-### 2. Eyebrows, Labels, Helper Text, and Secondary Copy Need a Single Contract
+- follow-up questions should get one shared visual pattern across panels without waiting on new storage work
 
-This is one of the clearest consistency gaps in the codebase.
+### Key findings are not first-class workspace objects today
 
-The app already has shared typography utilities, but surfaces still mix:
+Key findings and anomalies are currently much less structured as independent product objects:
 
-- `osint-eyebrow`
-- `osint-meta-label`
-- raw uppercase mono utility strings
-- one-off muted subtext styles
-- feature-local helper text treatments
+- `ArtifactViewer.tsx` derives `visibleAnomalies` from `report.agendas` or section content
+- `artifactViewerPresentation.ts` derives summary stats and reading highlights from sections, evidence, and provenance metadata
+- key findings are not currently represented as standalone workspace library entries
+- key findings are not independently promoted into board references, timeline milestone derivation, or chat context snippets
 
-Representative mixed usage appears in:
+Implication:
 
-- [`src/components/ui/HelpModal.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/HelpModal.tsx)
-- [`src/components/ui/ApiKeyModal.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/ApiKeyModal.tsx)
-- [`src/components/ui/GlobalSearch.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/GlobalSearch.tsx)
-- [`src/components/features/Runs/RunSetupModal.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Runs/RunSetupModal.tsx)
+- this roadmap should immediately surface key findings as a dedicated top-level report section in the main document body and in the details rail
+- this roadmap should not silently treat key findings as first-class board or timeline objects without an explicit product decision
+- if we later decide key findings need first-class promotion, pinning, retrieval, or persistence behavior, that should land as a named follow-on data-contract stream and update `docs/operations/DATA_PERSISTENCE.md`
 
-The product direction for the final eyebrow/label shapes does not need to be settled in this report. What should be captured now is that:
+### Recommended product assumption for this pass
 
-- the team already has preferred shapes in mind
-- those shapes are not yet codified
-- a canonical text hierarchy should be part of the next uniformity plan
+For this roadmap, treat key findings as a canonical report category first, not automatic workspace-item records.
 
-At minimum, the plan should define default treatments for:
+That means:
 
-- eyebrow text
-- section labels
-- field labels
-- helper text
-- muted explanatory copy
-- empty-state and inline status subtext
+- give them their own explicit `Key Findings` section in the report reader
+- keep them visible in the details rail
+- leave room for explicit promote or pin actions later if needed
+- avoid inventing hidden ingestion rules for Board, Timeline, or Chat until the product contract is deliberate
 
-### 3. Hover, Active, Selected, and Focused States Are Still Fragmented
+### Recommended longer-term direction
 
-[`src/components/ui/chrome.ts`](/mnt/c/Users/james/projects/sherlock/src/components/ui/chrome.ts) already provides useful button and toggle state helpers, but many higher-level surfaces still implement state styling ad hoc.
+If key findings continue to be central to how operators read and act on reports, they should eventually become structured artifact-level records rather than only section text or agenda-style presentation inputs.
 
-Representative areas with bespoke or repeated state logic:
+That future contract would let Sherlock:
 
-- [`src/components/ui/GlobalSearch.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/GlobalSearch.tsx)
-- [`src/components/features/WorkspaceBoard/BoardAgentRail.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardAgentRail.tsx)
-- [`src/components/features/OperationView/InspectorPanel.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
-- [`src/components/features/NetworkGraph/NodeInspector.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx)
-- [`src/components/features/NetworkGraph/EntityResolution.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/NetworkGraph/EntityResolution.tsx)
-- [`src/components/features/Runs/RunSetupModal.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Runs/RunSetupModal.tsx)
+- render a stronger `Key Findings` section in the report without brittle presentation heuristics
+- support deliberate pin or promote actions into Board, Chat, or Timeline
+- distinguish key findings from follow-up questions and from evidence rows cleanly
+- keep report reading, retrieval, and action flows aligned around the same meaningful unit
 
-The visible result is that controls with similar jobs do not always feel equally interactive or equally related.
+## Roadmap Rules
 
-The follow-up plan should define shared treatments for:
+1. Reuse and extend existing primitives before inventing new ones.
+   Prefer building on `Accordion`, `InspectorActionRow`, `chrome.ts`, and existing typography helpers.
 
-- hover states on row items and cards
-- selected states on list items, chips, and segmented controls
-- active button emphasis
-- focus-visible behavior
-- destructive and caution variants
+2. One rail contract unless explicitly exempted.
+   Left and right rails can have different jobs, but they should share the same structural rules.
 
-### 4. Motion, Animation, and Transition Timing Do Not Yet Read as One System
+3. Report body is document-first.
+   Panels can summarize. The main report page should carry the actual substance.
 
-[`src/index.css`](/mnt/c/Users/james/projects/sherlock/src/index.css) contains some shared animation utilities, but the overall motion language is still inconsistent in both timing and effect choice.
+4. No accidental persistence changes.
+   UI cleanup should not create new storage behavior implicitly.
 
-Across the codebase there is a mix of:
+5. Board Library keeps its richer nested content.
+   It is an exception in interaction richness, not an excuse to diverge from the shell and scroll contract.
 
-- local fade and slide utilities
-- multiple duration values
-- one-off scale or zoom transitions
-- different entrance behaviors for menus, overlays, result lists, and transient UI
+6. Motion is not a feature stream.
+   Reduce inconsistency; do not add visual flourish.
 
-Motion consistency is especially important for:
+## Stream 1. Canonical Rail Shell Contract
 
-- overlays and dialogs
-- popups and menus
-- rail open/close behavior
-- hover reveals
-- toasts and transient feedback
+Purpose:
 
-Representative surfaces worth reviewing together:
+- define the shared left-rail and right-rail shell contract
+- unify header vocabulary and action placement
+- standardize the pinned-bottom single-open-section behavior
 
-- [`src/components/ui/GlobalSearch.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/GlobalSearch.tsx)
-- [`src/components/features/Files.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Files.tsx)
-- [`src/components/features/Feed.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Feed.tsx)
-- [`src/components/features/LiveMonitor/EventCard.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/LiveMonitor/EventCard.tsx)
-- [`src/components/ui/Toast.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/Toast.tsx)
+Primary targets:
 
-The immediate need is not more animation. It is fewer, clearer motion primitives with a shared duration and easing vocabulary.
+- `src/components/ui/Accordion.tsx`
+- `src/components/ui/InspectorActionRow.tsx`
+- `src/components/ui/chrome.ts`
+- `src/components/features/Chat/ChatContextRail.tsx`
+- `src/components/features/Timeline/TimelineDossierPanel.tsx`
+- `src/components/features/Timeline/TimelineDetailRail.tsx`
+- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
+- `src/components/features/WorkspaceBoard/BoardInspectorRail.tsx`
+- `src/components/features/OperationView/InspectorPanel.tsx`
+- `src/components/features/NetworkGraph/NodeInspector.tsx`
 
-### 5. Modals, Popups, Menus, and Nested Action Surfaces Have the Most Noticeable Outliers
+Execution checklist:
 
-This is the area where inconsistency is easiest for users to feel.
+1. Define canonical left-rail and right-rail header anatomy.
+2. Standardize eyebrow copy to `Library`, `Details`, `Context`, or `Inspector`.
+3. Move shared action rows directly beneath the header across affected rails.
+4. Make one-open-at-a-time section behavior the default for rail stacks.
+5. Make the expanded section flex into remaining height and scroll inline.
+6. Fix the Board library top-scroll issue so the rail feels as crisp as the Chat context panel.
+7. Remove unnecessary header icons or extra label clutter where the panel role is already obvious.
 
-There is already a good default modal shell, but not all overlays use it. Some still bring their own header structure, spacing, close affordances, action rows, and typography.
+Exit criteria:
 
-Representative modal and overlay outliers:
+- major rails share the same shell behavior
+- header copy is simplified and consistent
+- expanded sections feel pinned and clean instead of causing full-rail scroll drift
 
-- [`src/components/ui/ApiKeyModal.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/ApiKeyModal.tsx)
-- [`src/components/ui/HelpModal.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/HelpModal.tsx)
-- [`src/components/features/Runs/RunSetupModal.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Runs/RunSetupModal.tsx)
-- [`src/components/features/NetworkGraph/EntityResolution.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/NetworkGraph/EntityResolution.tsx)
-- [`src/components/features/Settings/TemplateGallery.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Settings/TemplateGallery.tsx)
+## Stream 2. Artifact Viewer And Report Details Overhaul
 
-Representative popup and menu surfaces that should be reviewed as a set:
+Purpose:
 
-- [`src/components/features/Chat/ChatHeader.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Chat/ChatHeader.tsx)
-- [`src/components/features/Timeline/TimelineExportMenu.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Timeline/TimelineExportMenu.tsx)
-- [`src/components/features/Timeline/TimelineFiltersPanel.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/features/Timeline/TimelineFiltersPanel.tsx)
-- [`src/components/ui/GlobalSearch.tsx`](/mnt/c/Users/james/projects/sherlock/src/components/ui/GlobalSearch.tsx)
+- turn the main report into a readable document
+- align the report details rail with the rest of the panel language
+- surface key findings as a real report category without overcommitting yet to a cross-workspace persistence model
 
-Specific items to normalize:
+Primary targets:
 
-- close button style
-- footer button placement
-- title and description spacing
-- menu item row anatomy
-- nested item indentation and hover behavior
-- destructive action presentation
-- popup border, radius, and shadow treatment
+- `src/components/features/OperationView/ArtifactViewer.tsx`
+- `src/components/features/OperationView/artifactViewerPresentation.ts`
+- `src/components/features/OperationView/ArtifactViewer.test.tsx`
 
-### 6. Additional Outliers and Odd Ducks Worth Tracking
+Execution checklist:
 
-These do not need their own design system category, but they should be part of the plan inventory:
+1. Remove the current top summary or reading-pattern block from the main report view.
+2. Rebuild the main column around substantive document sections and editing affordances.
+3. Add a dedicated `Key Findings` section near the top of the main report body.
+4. Keep key findings in the details rail and give them the canonical item hover treatment.
+5. Normalize all follow-up question rows to one shared card or row pattern.
+6. Restyle entities as a two-column layout that borrows the library structure while keeping the dot marker from the details rail.
+7. Restyle sources and provenance rows to use the lighter viewer-library font treatment.
+8. Prefer chips and inline links over miniature summary cards in the main document body.
+9. Preserve section-level editability and evidence jump affordances.
 
-- rail shells across Chat, Timeline, Board, Operation View, and Network Graph are very similar but not yet extracted into a shared contract
-- chip, badge, and pill treatments vary more than they should across inspectors, board review UI, search, and setup flows
-- roundedness is inconsistent across surfaces that otherwise want the same visual family
-- icon-only action rows have some promising local patterns, but they are not consistently reused
-- empty states and inline status callouts use multiple different hierarchies and visual weights
+Exit criteria:
 
-## Recommended Transition From Report to Plan
+- the report page reads like a clear, professional, editable document
+- key findings are visible as a distinct report section in the main document and in the details rail
+- follow-ups, entities, and provenance feel like one family instead of three different local patterns
 
-The next document should be a focused cleanup plan, not another broad audit.
+## Stream 2A. Key Findings Data Contract Decision
 
-Recommended first step:
+Purpose:
 
-1. inventory the preferred existing patterns already in production
-2. pick the canonical defaults for panels, text hierarchy, states, and overlays
-3. list the migration targets by feature and impact
+- explicitly decide whether key findings remain report-only or become first-class structured records
+- avoid leaving a major product concept half-visual and half-implicit
 
-That inventory should explicitly answer:
+Primary targets:
 
-- which header layout is the default panel header
-- which text style is the default eyebrow
-- which secondary-copy style is the default helper text
-- which button and row-state helpers are the default interaction language
-- which shell is the default modal, popup, and menu baseline
-- which motion durations and transitions are officially supported
+- artifact presentation and shaping modules under `src/components/features/OperationView/*`
+- artifact domain and provider normalization contracts where key-finding structure would need to be introduced
+- persistence and downstream consumers only if this stream is intentionally activated
 
-## Suggested Implementation Order
+Execution checklist:
 
-This work is best done as a structured cleanup pass rather than many tiny opportunistic edits.
+1. Decide whether `Key Findings` remains a report-only structured section for now, or becomes a true artifact-level structured collection.
+2. If report-only for now:
+   - keep the dedicated main-report `Key Findings` section
+   - keep details-rail duplication
+   - do not add implicit Board, Timeline, or Chat ingestion
+3. If promoted to a first-class structured collection:
+   - define canonical finding shape
+   - define how findings are generated and normalized from provider output
+   - define whether findings are persisted separately or as structured artifact subrecords
+   - define how findings appear in Chat context, Timeline, Board, and any workspace library flows
+   - document the persistence contract in `docs/operations/DATA_PERSISTENCE.md`
+4. Do not leave this as an accidental side effect of viewer refactoring.
 
-Recommended order:
+Exit criteria:
 
-1. define and document the canonical UI primitives to reuse
-2. normalize panel headers, rail shells, and action placement
-3. normalize text hierarchy for eyebrows, labels, helper text, and subtext
-4. normalize hover, active, selected, and focus-visible states
-5. normalize modal, popup, and menu shells
-6. normalize motion timing and transition primitives
-7. sweep remaining outliers and nested-item odd ducks
+- the roadmap makes an explicit product call on key findings
+- implementation teams know whether they are only improving report presentation or also building a new workspace-level object
 
-## Candidate Acceptance Criteria
+## Stream 3. Actionable Nested Item Pattern Across Board, Chat, Sessions, And Signals
 
-The eventual plan should be considered complete when:
+Purpose:
 
-- major panels and rails share the same header anatomy and section behavior
-- helper text, labels, and eyebrow styles come from a small documented set
-- similar controls share similar hover, active, selected, and focus behavior
-- modal and popup surfaces use one default shell unless intentionally exempted
-- motion primitives are limited to a small documented set of durations and effects
-- the main outlier surfaces have either been migrated or explicitly exempted with a reason
+- reuse the strongest actionable nested item pattern across surfaces that need context plus actions
+- bring Chat context and history closer to the Board library interaction model
 
-## Closing Note
+Primary targets:
 
-This report points to consolidation, not reinvention. Sherlock already contains the beginnings of a strong UI system. The next step is to gather the preferred pieces that are currently scattered across the app, make them explicit, and use them to bring the remaining outliers into the same visual and interaction family.
+- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
+- `src/components/features/Chat/ChatContextRail.tsx`
+- Chat history and session-side panel components touched by `src/components/features/Chat/*`
+- any signal or session panel rows that currently use thinner one-off item anatomy
+
+Execution checklist:
+
+1. Treat the Board library nested artifact rows as the canonical pattern for actionable contextual items.
+2. Update Chat context items so they share the same layout, spacing, fonts, and button language.
+3. Replace ad hoc `Summary` and `Full Text` button styling with the same visual family as `Add To Board`, while keeping action labels specific to the surface.
+4. Apply the same nested info pattern to sessions and signals where those rows are actionable and context-rich.
+5. Keep the Board library's richer details and add-to-board flow intact rather than flattening it into the simpler rail style.
+
+Exit criteria:
+
+- actionable context rows in Board and Chat feel clearly related
+- sessions and signals no longer look like a separate micro-system
+- nested item actions are visually consistent without losing surface-specific meaning
+
+## Stream 4. Cross-Surface State, Typography, And Control Sweep
+
+Purpose:
+
+- make similar controls feel equally interactive
+- finish the typography and hover-state cleanup across panels
+
+Primary targets:
+
+- `src/index.css`
+- `src/components/ui/Accordion.tsx`
+- `src/components/ui/InspectorActionRow.tsx`
+- panel-heavy surfaces across Operation View, Timeline, Chat, Board, and Network
+
+Execution checklist:
+
+1. Apply the report-details entity hover treatment to selectable panel items across the app.
+2. Normalize section-title shadow treatment where appropriate.
+3. Normalize sublabels, helper text, and provenance copy weight.
+4. Bring remaining buttons, selectors, and panel-local controls into the existing subtle accent system.
+5. Preserve intentional exceptions such as destructive actions, toasts, system badges, and entity-color semantics.
+
+Exit criteria:
+
+- hover, active, and selected states no longer feel fragmented
+- secondary copy reads from one small set of weights and roles
+- panel controls feel like one product family
+
+## Stream 5. Motion, Popup, And Modal Consistency Sweep
+
+Purpose:
+
+- reduce visual noise from inconsistent motion and overlay behavior
+- keep the current polished feel without adding flourish
+
+Primary targets:
+
+- overlay, menu, popup, and modal surfaces touched by `src/components/ui/*` and relevant feature menus
+
+Execution checklist:
+
+1. Reduce entrance and close motion to the minimal set needed for orientation.
+2. Remove overly fancy text or panel motion where it distracts from reading.
+3. Sweep obvious popup or menu outliers in border, radius, or hover behavior.
+4. Leave already-good modal and popup surfaces mostly intact.
+
+Exit criteria:
+
+- motion feels clean and polished rather than theatrical
+- menus and popups align without forcing a redesign of already-good overlays
+
+## Validation Standard
+
+For implementation work on this roadmap, use the narrowest credible validation for the touched slice:
+
+- `npm run lint`
+- `npm run typecheck`
+- the most relevant targeted test command(s)
+- `npm run build` when shipped UI behavior, routing, shared UI primitives, or layout contracts change
+
+Do not default to the full Vitest suite unless the work becomes cross-cutting enough that targeted validation would be misleading.
+
+## Completion Standard
+
+This roadmap is complete when:
+
+- left and right rails use one clear shell contract
+- headers use the simplified panel-role eyebrow convention
+- action rows appear in one predictable place
+- top-level panel expansion behavior is pinned, clean, and single-open by default
+- Artifact viewer reads like a document rather than a dashboard of small summaries
+- key findings are meaningfully surfaced in both the main report and the report details rail
+- the product decision on whether key findings are report-only or first-class is explicit rather than implied
+- follow-ups, entities, provenance, sessions, and other actionable rows use consistent item anatomy
+- Board library remains rich where it should, but no longer feels structurally off-contract
+- motion, popups, and modals feel intentionally restrained and uniform
+
+## Recommended Follow-On If Key Findings Need To Become First-Class Later
+
+If later product work decides that key findings should be independently pinnable, searchable, or promotable into Board, Timeline, or Chat retrieval, handle that as a separate named stream with:
+
+- explicit structured finding records
+- clear promotion and retrieval rules
+- explicit Timeline and Board behavior
+- documentation updates in `docs/operations/DATA_PERSISTENCE.md` and `docs/operations/ARCHITECTURE.md`
+
+That should be an intentional product expansion, not an incidental side effect of the UI cleanup.

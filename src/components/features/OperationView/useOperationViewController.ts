@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import type {
   Artifact,
+  ChatOpenRequest,
   WorkspaceTemplate,
   Entity,
   FollowUp,
@@ -28,6 +29,12 @@ import {
   buildWorkspaceHeadlineReference,
 } from '@/services/workspace/library';
 import {
+  buildArtifactChatOpenRequest,
+  buildEntityChatOpenRequest,
+  buildSignalChatOpenRequest,
+  queueWorkspaceReferenceOnBoard,
+} from '@/services/workspace/workspaceHandoffs';
+import {
   resolveRuntimeScope,
   toRuntimeConfigOverride,
 } from '@/components/features/Runs/runtimeConfigMapping';
@@ -37,7 +44,7 @@ interface OperationViewControllerOptions {
   artifactRouteState?: ArtifactRouteState;
   onNavigate: (id: string) => void;
   onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
-  onOpenChat: (request: { workspaceId: string; launchContext?: Record<string, unknown> }) => void;
+  onOpenChat: (request: ChatOpenRequest) => void;
   onSelectCase?: (workspaceId: string) => void;
   reportOverride?: Artifact | null;
   task: WorkspaceRun | null;
@@ -313,17 +320,17 @@ export function useOperationViewController({
   };
 
   const handleOpenReportChat = () => {
+    if (report) {
+      const request = buildArtifactChatOpenRequest(report);
+      if (request) {
+        onOpenChat(request);
+        return;
+      }
+    }
+
     const workspaceId = effectiveCaseId || report?.workspaceId;
     if (!workspaceId) return;
-
-    onOpenChat({
-      workspaceId,
-      launchContext: report?.id
-        ? {
-            sourceArtifactId: report.id,
-          }
-        : undefined,
-    });
+    onOpenChat({ workspaceId });
   };
 
   const handleOpenReportInspector = () => {
@@ -351,14 +358,13 @@ export function useOperationViewController({
       | ReturnType<typeof buildWorkspaceEntityReference>
       | ReturnType<typeof buildWorkspaceHeadlineReference>
   ) => {
-    const board = await ensureWorkspaceBoard(reference.workspaceId);
-    queueBoardPlacement({
+    await queueWorkspaceReferenceOnBoard({
+      ensureWorkspaceBoard,
+      navigate,
+      queueBoardPlacement,
+      reference,
       workspaceId: reference.workspaceId,
-      boardId: board.id,
-      item: reference,
-      openInBoard: true,
     });
-    navigate(buildWorkspaceBoardDocumentPath(reference.workspaceId, board.id));
   };
 
   const handlePlaceReportOnBoard = async () => {
@@ -371,15 +377,13 @@ export function useOperationViewController({
   };
 
   const handleOpenEntityChat = (entityName: string) => {
-    const workspaceId = effectiveCaseId || report?.workspaceId;
-    if (!workspaceId) return;
-
-    onOpenChat({
-      workspaceId,
-      launchContext: {
-        entityName,
-      },
+    const request = buildEntityChatOpenRequest({
+      entityName,
+      relatedArtifactId: report?.id,
+      workspaceId: effectiveCaseId || report?.workspaceId,
     });
+    if (!request) return;
+    onOpenChat(request);
     setRightPanelOpen(false);
   };
 
@@ -397,16 +401,10 @@ export function useOperationViewController({
   };
 
   const handleOpenHeadlineChat = () => {
-    const workspaceId = effectiveCaseId || selectedHeadline?.workspaceId || report?.workspaceId;
-    if (!workspaceId || !selectedHeadline) return;
-
-    onOpenChat({
-      workspaceId,
-      launchContext: {
-        signalId: selectedHeadline.id,
-        headlineId: selectedHeadline.id,
-      },
-    });
+    if (!selectedHeadline) return;
+    const request = buildSignalChatOpenRequest(selectedHeadline);
+    if (!request) return;
+    onOpenChat(request);
     setRightPanelOpen(false);
   };
 

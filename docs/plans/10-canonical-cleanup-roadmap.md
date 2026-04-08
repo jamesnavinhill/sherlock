@@ -739,12 +739,16 @@ Landed in this Stream 5 session:
 - added a reusable upload controller seam in `src/components/features/shared/useWorkspaceDocumentUpload.ts` plus `src/components/ui/WorkspaceDocumentUploadDialog.tsx` so Chat, Board, and Files now share one routing dialog and one confirmation flow
 - wired Chat and Workspace Board upload entry points onto that shared routing flow instead of directly creating workspace items inline
 - added a first-class Files upload entry point in `src/components/features/Files.tsx` and `src/components/features/Files/useFilesController.ts` so Files can act as the explicit canonical upload surface while still using the same underlying routing contract
+- routed OperationView, NetworkGraph, and Workspace Board chat/board actions through the shared `src/services/workspace/workspaceHandoffs.ts` helpers so artifact, entity, signal, and workspace-item handoffs now use one canonical request/placement contract instead of per-surface duplication
+- updated the Workspace Board inspector chat action so selected workspace items now open item-grounded chat sessions, matching Files and Timeline behavior
+- split Workspace Board controller seams further by extracting board-library state/actions into `src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts` and board-inspector state/actions into `src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts`, reducing `useWorkspaceBoardController.ts` owner-file load without changing the route contract
 - landed focused tests for the shared upload service, shared upload hook, Chat controller upload state, Board controller upload state, and the Files shell upload affordance
+- added focused handoff-parity tests for `workspaceHandoffs.ts`, NetworkGraph handoff adapters, OperationView controller handoffs, and the Workspace Board inspector chat bridge
+- added focused board extraction tests for the new Workspace Board library and inspector hooks plus the updated controller seam
 
 Intentionally deferred within Stream 5:
 
-- deeper OperationView / Chat / Board / Network controller extraction
-- shared handoff parity cleanup across artifact, board, and network surfaces beyond the upload seam
+- deeper OperationView / Chat / Network controller extraction plus any remaining Workspace Board controller shrink beyond the new library/inspector seams
 - board-agent runtime/session/action cleanup
 - remaining product-language cleanup in operation, board, and network support modules
 

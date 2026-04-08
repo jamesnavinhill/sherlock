@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   buildArtifactChatOpenRequest,
+  buildEntityChatOpenRequest,
+  buildSignalChatOpenRequest,
   buildWorkspaceItemChatOpenRequest,
   queueWorkspaceReferenceOnBoard,
 } from './workspaceHandoffs';
@@ -86,6 +88,41 @@ describe('workspaceHandoffs', () => {
         signalId: undefined,
         headlineId: undefined,
         sourceArtifactId: undefined,
+      },
+    });
+  });
+
+  it('builds entity and signal chat requests for shared surface handoffs', () => {
+    expect(
+      buildEntityChatOpenRequest({
+        entityName: 'Atlas Holdings',
+        relatedArtifactId: 'rep-1',
+        workspaceId: 'ws-1',
+      })
+    ).toEqual({
+      workspaceId: 'ws-1',
+      launchContext: {
+        entityName: 'Atlas Holdings',
+        sourceArtifactId: 'rep-1',
+      },
+    });
+
+    expect(
+      buildSignalChatOpenRequest({
+        id: 'signal-1',
+        workspaceId: 'ws-1',
+        content: 'Signal',
+        source: 'Registry',
+        timestamp: '2026-04-08T00:00:00.000Z',
+        type: 'NEWS',
+        status: 'PENDING',
+        threatLevel: 'INFO',
+      })
+    ).toEqual({
+      workspaceId: 'ws-1',
+      launchContext: {
+        signalId: 'signal-1',
+        headlineId: 'signal-1',
       },
     });
   });
