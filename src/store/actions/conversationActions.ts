@@ -3,6 +3,20 @@ import { loadSystemConfig } from '@/config/systemConfig';
 import { ChatRepository } from '@/services/db/repositories/ChatRepository';
 import { BoardAgentRepository } from '@/services/db/repositories/BoardAgentRepository';
 
+import {
+  buildAddBoardAgentActionState,
+  buildAddChatActionState,
+  buildAddChatMessageState,
+  buildBoardAgentSessionRecord,
+  buildChatSessionRecord,
+  buildCreateBoardAgentSessionState,
+  buildCreateChatSessionState,
+  buildDeleteChatSessionState,
+  buildUpdateBoardAgentActionState,
+  buildUpdateBoardAgentSessionState,
+  buildUpdateChatMessageState,
+  buildUpdateChatSessionState,
+} from './conversationActionState';
 import type { WorkspaceState } from '../workspaceStore';
 import type { WorkspaceStoreApi } from './shared';
 
@@ -26,43 +40,25 @@ export const createConversationActions = ({
   createChatSession: async (input) => {
     const systemConfig = loadSystemConfig();
     const now = Date.now();
-    const session = {
+    const session = buildChatSessionRecord({
+      defaults: {
+        provider: systemConfig.provider,
+        modelId: systemConfig.modelId,
+      },
       id: createLocalId('chat-session'),
-      workspaceId: input.workspaceId,
-      title: input.title?.trim() || 'Untitled Chat',
-      status: 'ACTIVE' as const,
-      sourceArtifactId: input.sourceArtifactId,
-      packId: input.packId,
-      purposeId: input.purposeId,
-      provider: input.provider || systemConfig.provider,
-      modelId: input.modelId || systemConfig.modelId,
-      metadata: input.metadata,
-      createdAt: now,
-      updatedAt: now,
-    };
+      input,
+      now,
+    });
 
     await ChatRepository.createSession(session);
-    set((state) => ({
-      chatSessions: [session, ...state.chatSessions],
-      activeChatSessionId: session.id,
-    }));
+    set((state) => buildCreateChatSessionState(state, session));
 
     return session;
   },
   updateChatSession: async (sessionId, patch) => {
     const updatedAt = patch.updatedAt ?? Date.now();
     await ChatRepository.updateSession(sessionId, { ...patch, updatedAt });
-    set((state) => ({
-      chatSessions: state.chatSessions.map((session) =>
-        session.id === sessionId
-          ? {
-              ...session,
-              ...patch,
-              updatedAt,
-            }
-          : session
-      ),
-    }));
+    set((state) => buildUpdateChatSessionState(state, sessionId, patch, updatedAt));
   },
   renameChatSession: async (sessionId, title) => {
     const trimmedTitle = title.trim();
@@ -71,35 +67,11 @@ export const createConversationActions = ({
   },
   deleteChatSession: async (sessionId) => {
     await ChatRepository.deleteSession(sessionId);
-    set((state) => {
-      const chatSessions = state.chatSessions.filter((session) => session.id !== sessionId);
-      const chatMessagesBySessionId = { ...state.chatMessagesBySessionId };
-      const chatActionsBySessionId = { ...state.chatActionsBySessionId };
-      delete chatMessagesBySessionId[sessionId];
-      delete chatActionsBySessionId[sessionId];
-
-      return {
-        chatSessions,
-        chatMessagesBySessionId,
-        chatActionsBySessionId,
-        activeChatSessionId:
-          state.activeChatSessionId === sessionId
-            ? chatSessions[0]?.id || null
-            : state.activeChatSessionId,
-      };
-    });
+    set((state) => buildDeleteChatSessionState(state, sessionId));
   },
   addChatMessage: async (message) => {
     await ChatRepository.createMessage(message);
-    set((state) => ({
-      chatMessagesBySessionId: {
-        ...state.chatMessagesBySessionId,
-        [message.sessionId]: [...(state.chatMessagesBySessionId[message.sessionId] || []), message],
-      },
-      chatSessions: state.chatSessions.map((session) =>
-        session.id === message.sessionId ? { ...session, updatedAt: message.updatedAt } : session
-      ),
-    }));
+    set((state) => buildAddChatMessageState(state, message));
   },
   updateChatMessage: async (messageId, sessionId, patch) => {
     await ChatRepository.updateMessage(messageId, patch);
@@ -107,101 +79,39 @@ export const createConversationActions = ({
       await ChatRepository.replaceAttachments(messageId, patch.attachments);
     }
 
-    set((state) => ({
-      chatMessagesBySessionId: {
-        ...state.chatMessagesBySessionId,
-        [sessionId]: (state.chatMessagesBySessionId[sessionId] || []).map((message) =>
-          message.id === messageId
-            ? {
-                ...message,
-                ...patch,
-                updatedAt: patch.updatedAt ?? Date.now(),
-                attachments: patch.attachments ?? message.attachments,
-              }
-            : message
-        ),
-      },
-    }));
+    const updatedAt = patch.updatedAt ?? Date.now();
+    set((state) => buildUpdateChatMessageState(state, messageId, sessionId, patch, updatedAt));
   },
   addChatAction: async (action) => {
     await ChatRepository.createAction(action);
-    set((state) => ({
-      chatActionsBySessionId: {
-        ...state.chatActionsBySessionId,
-        [action.sessionId]: [...(state.chatActionsBySessionId[action.sessionId] || []), action],
-      },
-    }));
+    set((state) => buildAddChatActionState(state, action));
   },
   createBoardAgentSession: async (input) => {
     const now = Date.now();
-    const session = {
+    const session = buildBoardAgentSessionRecord({
       id: createLocalId('board-agent-session'),
-      workspaceId: input.workspaceId,
-      boardId: input.boardId,
-      title: input.title?.trim() || 'Board Agent Session',
-      status: 'PENDING' as const,
-      request: input.request,
-      requestState: 'QUEUED' as const,
-      provider: input.provider,
-      modelId: input.modelId,
-      metadata: input.metadata,
-      createdAt: now,
-      updatedAt: now,
-    };
+      input,
+      now,
+    });
 
     await BoardAgentRepository.createSession(session);
-    set((state) => ({
-      boardAgentSessions: [session, ...state.boardAgentSessions],
-    }));
+    set((state) => buildCreateBoardAgentSessionState(state, session));
     return session;
   },
   updateBoardAgentSession: async (sessionId, patch) => {
+    const updatedAt = patch.updatedAt ?? Date.now();
     await BoardAgentRepository.updateSession(sessionId, patch);
-    set((state) => ({
-      boardAgentSessions: state.boardAgentSessions.map((session) =>
-        session.id === sessionId
-          ? {
-              ...session,
-              ...patch,
-              updatedAt: patch.updatedAt ?? Date.now(),
-            }
-          : session
-      ),
-    }));
+    set((state) => buildUpdateBoardAgentSessionState(state, sessionId, patch, updatedAt));
   },
   addBoardAgentAction: async (action) => {
     await BoardAgentRepository.createAction(action);
-    set((state) => ({
-      boardAgentActionsBySessionId: {
-        ...state.boardAgentActionsBySessionId,
-        [action.sessionId]: [
-          ...(state.boardAgentActionsBySessionId[action.sessionId] || []),
-          action,
-        ],
-      },
-      boardAgentSessions: state.boardAgentSessions.map((session) =>
-        session.id === action.sessionId ? { ...session, updatedAt: action.updatedAt } : session
-      ),
-    }));
+    set((state) => buildAddBoardAgentActionState(state, action));
   },
   updateBoardAgentAction: async (actionId, sessionId, patch) => {
+    const updatedAt = patch.updatedAt ?? Date.now();
     await BoardAgentRepository.updateAction(actionId, patch);
-    set((state) => ({
-      boardAgentActionsBySessionId: {
-        ...state.boardAgentActionsBySessionId,
-        [sessionId]: (state.boardAgentActionsBySessionId[sessionId] || []).map((action) =>
-          action.id === actionId
-            ? {
-                ...action,
-                ...patch,
-                updatedAt: patch.updatedAt ?? Date.now(),
-              }
-            : action
-        ),
-      },
-      boardAgentSessions: state.boardAgentSessions.map((session) =>
-        session.id === sessionId ? { ...session, updatedAt: patch.updatedAt ?? Date.now() } : session
-      ),
-    }));
+    set((state) =>
+      buildUpdateBoardAgentActionState(state, actionId, sessionId, patch, updatedAt)
+    );
   },
 });

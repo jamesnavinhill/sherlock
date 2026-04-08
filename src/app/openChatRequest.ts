@@ -1,10 +1,14 @@
 import { buildWorkspaceChatSessionPath } from '@/app/routes';
-import { resolveLaunchContextSessionTitle, shouldAppendLaunchPrimer } from '@/app/appShellOpenChatHelpers';
 import {
-  buildChatSessionMetadata,
   buildLaunchContextPrimer,
   findReusableChatSession,
 } from '@/services/chat/launchContext';
+import {
+  buildRequestedChatSessionInput,
+  buildRequestedLaunchPrimerInput,
+  resolveRequestedChatWorkspace,
+  shouldAppendLaunchPrimer,
+} from '@/app/appShellOpenChatHelpers';
 import type {
   Artifact,
   ChatMessage,
@@ -52,7 +56,7 @@ export const openWorkspaceChatRequest = async ({
   setActiveWorkspaceId,
   workspaces,
 }: OpenWorkspaceChatRequestInput): Promise<ChatSession | null> => {
-  const workspace = workspaces.find((entry) => entry.id === request.workspaceId);
+  const workspace = resolveRequestedChatWorkspace(workspaces, request);
   if (!workspace) {
     addToast('Unable to open chat because the target workspace was not found.', 'ERROR');
     return null;
@@ -62,25 +66,31 @@ export const openWorkspaceChatRequest = async ({
 
   let session = findReusableChatSession(chatSessions, request);
   if (!session) {
-    session = await createChatSession({
-      workspaceId: workspace.id,
-      title: resolveLaunchContextSessionTitle(artifacts, request.launchContext),
-      sourceArtifactId: request.launchContext?.sourceArtifactId,
-      packId: workspace.packId,
-      purposeId: workspace.purposeId,
-      metadata: buildChatSessionMetadata(undefined, request.launchContext),
-    });
+    session = await createChatSession(
+      buildRequestedChatSessionInput({
+        artifacts,
+        request,
+        workspace,
+      })
+    );
   }
 
   if (request.launchContext) {
     const existingMessages = chatMessagesBySessionId[session.id] || [];
     if (shouldAppendLaunchPrimer(existingMessages, request.launchContext)) {
-      const primer = buildLaunchContextPrimer({
-        session,
-        launchContext: request.launchContext,
-        reports: artifacts.filter((entry) => entry.workspaceId === workspace.id),
-        headlines: headlines.filter((entry) => entry.workspaceId === workspace.id),
+      const primerInput = buildRequestedLaunchPrimerInput({
+        artifacts,
+        headlines,
+        session: {
+          ...session,
+          metadata: {
+            ...(session.metadata || {}),
+            launchContext: request.launchContext,
+          },
+        },
+        workspaceId: workspace.id,
       });
+      const primer = primerInput ? buildLaunchContextPrimer(primerInput) : null;
 
       if (primer) {
         await addChatMessage(primer);

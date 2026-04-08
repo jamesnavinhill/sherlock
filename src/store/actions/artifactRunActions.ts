@@ -1,16 +1,17 @@
-import type { Entity, Workspace } from '@/types';
-import { isLikelySameEntity } from '@/utils/entityUtils';
 import { createLocalId } from '@/utils/id';
 import { loadSystemConfig } from '@/config/systemConfig';
-import {
-  buildArtifactFollowUps,
-  extractWorkspaceLaunchFields,
-  getWorkspaceDisplayTitle,
-  toFollowUpTexts,
-} from '@/domain';
 import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
 import { WorkspaceRunRepository } from '@/services/db/repositories/WorkspaceRunRepository';
 
+import {
+  buildAddWorkspaceRunState,
+  buildArtifactSavePlan,
+  buildClearCompletedRunsState,
+  buildCompleteWorkspaceRunState,
+  buildFailWorkspaceRunState,
+  buildRemoveWorkspaceRunState,
+  buildSavedArtifactState,
+} from './artifactRunActionState';
 import type { WorkspaceState } from '../workspaceStore';
 import type { WorkspaceStoreApi } from './shared';
 
@@ -70,19 +71,12 @@ export const createArtifactRunActions = ({
     }));
   },
   addWorkspaceRun: async (workspaceRun) => {
-    set((state) => ({
-      workspaceRuns: [
-        ...state.workspaceRuns.filter((existingRun) => existingRun.id !== workspaceRun.id),
-        workspaceRun,
-      ],
-    }));
+    set((state) => buildAddWorkspaceRunState(state, workspaceRun));
 
     try {
       await WorkspaceRunRepository.create(workspaceRun);
     } catch (error) {
-      set((state) => ({
-        workspaceRuns: state.workspaceRuns.filter((existingRun) => existingRun.id !== workspaceRun.id),
-      }));
+      set((state) => buildRemoveWorkspaceRunState(state, workspaceRun.id));
       throw error;
     }
   },
@@ -104,29 +98,19 @@ export const createArtifactRunActions = ({
       await WorkspaceRunRepository.updateConfig(id, nextConfig);
     }
 
-    set((state) => ({
-      workspaceRuns: state.workspaceRuns.map((workspaceRun) =>
-        workspaceRun.id === id
-          ? {
-              ...workspaceRun,
-              status: 'COMPLETED',
-              report: artifact,
-              config: nextConfig || workspaceRun.config,
-              workspaceId: artifact.workspaceId ?? workspaceRun.workspaceId,
-              endTime: Date.now(),
-            }
-          : workspaceRun
-      ),
-    }));
+    set((state) =>
+      buildCompleteWorkspaceRunState(state, {
+        artifact,
+        endTime: Date.now(),
+        id,
+        nextConfig,
+      })
+    );
   },
   completeRun: async (id, artifact) => get().completeWorkspaceRun(id, artifact),
   failRun: async (id, error) => {
     await WorkspaceRunRepository.updateStatus(id, 'FAILED', error);
-    set((state) => ({
-      workspaceRuns: state.workspaceRuns.map((workspaceRun) =>
-        workspaceRun.id === id ? { ...workspaceRun, status: 'FAILED', error } : workspaceRun
-      ),
-    }));
+    set((state) => buildFailWorkspaceRunState(state, id, error));
   },
   clearCompletedRuns: async () => {
     const runsToRemove = get().workspaceRuns.filter(
@@ -135,193 +119,47 @@ export const createArtifactRunActions = ({
     await Promise.all(
       runsToRemove.map((workspaceRun) => WorkspaceRunRepository.delete(workspaceRun.id))
     );
-    set((state) => ({
-      workspaceRuns: state.workspaceRuns.filter(
-        (workspaceRun) => workspaceRun.status === 'RUNNING' || workspaceRun.status === 'QUEUED'
-      ),
-    }));
+    set((state) => buildClearCompletedRunsState(state));
   },
   saveArtifact: async (artifact, parentContext) => {
     const state = get();
-    const artifacts = [...state.artifacts];
-    const workspaces = [...state.workspaces];
-    const sourceRun = artifact.config?.sourceRunId
-      ? state.workspaceRuns.find((workspaceRun) => workspaceRun.id === artifact.config?.sourceRunId)
-      : undefined;
-    const parentArtifactId = artifact.config?.parentArtifactId || sourceRun?.config?.parentArtifactId;
-    const sourceSignalId = artifact.config?.sourceSignalId || sourceRun?.config?.sourceSignalId;
-    const parentRunId = artifact.config?.parentRunId || sourceRun?.config?.parentRunId;
-    let targetWorkspaceId = artifact.workspaceId;
-    let isNewWorkspace = false;
-
-    if (!targetWorkspaceId && parentArtifactId) {
-      const parentArtifact = artifacts.find((entry) => entry.id === parentArtifactId);
-      if (parentArtifact?.workspaceId) {
-        targetWorkspaceId = parentArtifact.workspaceId;
-      }
-    }
-    if (!targetWorkspaceId && sourceRun?.workspaceId) {
-      targetWorkspaceId = sourceRun.workspaceId;
-    }
-    if (!targetWorkspaceId && parentContext) {
-      const parentWorkspace = workspaces.find(
-        (workspace) => getWorkspaceDisplayTitle(workspace) === parentContext.topic
-      );
-      if (parentWorkspace) {
-        targetWorkspaceId = parentWorkspace.id;
-      }
-    }
-
-    if (!targetWorkspaceId) {
-      const identity = extractWorkspaceLaunchFields(artifact.topic);
-      const existingWorkspace = workspaces.find(
-        (workspace) => getWorkspaceDisplayTitle(workspace) === identity.displayTitle
-      );
-      if (existingWorkspace) targetWorkspaceId = existingWorkspace.id;
-    }
-
-    if (!targetWorkspaceId) {
-      const now = Date.now();
-      const newWorkspaceId = createLocalId('workspace');
-      const identity = extractWorkspaceLaunchFields(artifact.topic);
-      const newWorkspace: Workspace = {
-        id: newWorkspaceId,
-        scopeId: artifact.config?.scopeId,
-        title: identity.displayTitle,
-        displayTitle: identity.displayTitle,
-        launchTopic: identity.launchTopic,
-        launchAngle: identity.launchAngle,
-        prioritySourcesSummary: identity.prioritySourcesSummary,
-        status: 'ACTIVE',
-        dateOpened: new Date().toLocaleDateString(),
-        createdAt: now,
-        updatedAt: now,
-        description: artifact.summary || `Workspace started on ${identity.displayTitle}`,
-        mode: artifact.metadata?.workspaceMode as Workspace['mode'],
-        packId: artifact.packId || artifact.config?.packId,
-        purposeId: artifact.purposeId || artifact.config?.purposeId,
-        labelProfileId: artifact.labelProfileId || artifact.config?.labelProfileId,
-        metadata: artifact.metadata,
-      };
-      workspaces.push(newWorkspace);
-      targetWorkspaceId = newWorkspaceId;
-      isNewWorkspace = true;
-    }
-
     const autoNormalize = loadSystemConfig().autoNormalizeEntities ?? true;
-
-    const processedEntities: Entity[] = artifact.entities.map((entity) => {
-      const name = entity.name;
-      let resolvedName = state.entityAliases[name] || name;
-
-      if (autoNormalize && resolvedName === name) {
-        const existingWorkspaceEntities = artifacts
-          .filter((entry) => entry.workspaceId === targetWorkspaceId)
-          .flatMap((entry) => entry.entities)
-          .map((entry) => (typeof entry === 'string' ? entry : entry.name));
-
-        const match = existingWorkspaceEntities.find((existingName) =>
-          isLikelySameEntity(name, existingName)
-        );
-
-        if (match && match !== name) {
-          resolvedName = match;
-          state.addAlias(name, match);
-        }
-      }
-
-      return { ...entity, name: resolvedName };
+    const now = Date.now();
+    const artifactSavePlan = buildArtifactSavePlan({
+      artifact,
+      artifacts: state.artifacts,
+      autoNormalize,
+      createArtifactId: () => createLocalId('rep'),
+      createWorkspaceId: () => createLocalId('workspace'),
+      dateOpened: new Date(now).toLocaleDateString(),
+      entityAliases: state.entityAliases,
+      now,
+      parentContext,
+      workspaces: state.workspaces,
+      workspaceRuns: state.workspaceRuns,
     });
 
-    const savedArtifact = {
-      ...artifact,
-      entities: processedEntities,
-      id: artifact.id || createLocalId('rep'),
-      createdAt: artifact.createdAt ?? Date.now(),
-      config: artifact.config
-        ? {
-            ...artifact.config,
-            sourceRunId: artifact.config.sourceRunId || sourceRun?.id,
-            sourceSignalId,
-            sourceFollowUpId:
-              artifact.config.sourceFollowUpId || sourceRun?.config?.sourceFollowUpId,
-            parentArtifactId,
-            parentRunId,
-          }
-        : undefined,
-      workspaceId: targetWorkspaceId,
-    };
+    const aliasEntries = Object.entries(artifactSavePlan.aliasUpdates);
+    if (aliasEntries.length > 0) {
+      await state.setEntityAliases({
+        ...state.entityAliases,
+        ...artifactSavePlan.aliasUpdates,
+      });
+    }
 
-    savedArtifact.followUps = buildArtifactFollowUps({
-      existing: savedArtifact.followUps,
-      leads: savedArtifact.leads,
-      artifactId: savedArtifact.id,
-      workspaceId: targetWorkspaceId,
-      sourceSignalId,
-      createdAt: savedArtifact.createdAt,
-    });
-    savedArtifact.leads = toFollowUpTexts(savedArtifact.followUps);
-
-    if (isNewWorkspace) {
-      const workspaceToSave = workspaces.find((workspace) => workspace.id === targetWorkspaceId);
+    if (artifactSavePlan.isNewWorkspace) {
+      const workspaceToSave = artifactSavePlan.workspaces.find(
+        (workspace) => workspace.id === artifactSavePlan.targetWorkspaceId
+      );
       if (workspaceToSave) {
         await WorkspaceRepository.createWorkspace(workspaceToSave);
       }
     }
-    await WorkspaceRepository.createArtifact(savedArtifact);
+    await WorkspaceRepository.createArtifact(artifactSavePlan.savedArtifact);
 
-    const existingIndex = artifacts.findIndex(
-      (entry) =>
-        entry.id === savedArtifact.id ||
-        (entry.topic === savedArtifact.topic && entry.dateStr === savedArtifact.dateStr)
-    );
-    if (existingIndex >= 0) {
-      artifacts[existingIndex] = savedArtifact;
-    } else {
-      artifacts.push(savedArtifact);
-    }
+    set((current) => buildSavedArtifactState(current, artifactSavePlan));
 
-    let nextArtifacts = artifacts;
-    if (sourceSignalId && savedArtifact.id) {
-      const matchingHeadline = state.headlines.find((headline) => headline.id === sourceSignalId);
-      if (matchingHeadline) {
-        const updatedHeadline = {
-          ...matchingHeadline,
-          linkedArtifactId: savedArtifact.id,
-        };
-
-        set((current) => ({
-          headlines: current.headlines.map((headline) =>
-            headline.id === sourceSignalId ? updatedHeadline : headline
-          ),
-        }));
-      }
-    }
-
-    const sourceFollowUpId = savedArtifact.config?.sourceFollowUpId;
-    if (sourceFollowUpId && savedArtifact.id) {
-      nextArtifacts = nextArtifacts.map((entry) => ({
-        ...entry,
-        followUps: (entry.followUps || []).map((followUp) =>
-          followUp.id === sourceFollowUpId
-            ? {
-                ...followUp,
-                status: 'RESOLVED',
-                resolvedByArtifactId: savedArtifact.id,
-                updatedAt: Date.now(),
-              }
-            : followUp
-        ),
-      }));
-    }
-
-    set({
-      workspaces,
-      artifacts: nextArtifacts,
-      activeWorkspaceId: targetWorkspaceId,
-    });
-
-    return savedArtifact;
+    return artifactSavePlan.savedArtifact;
   },
   updateArtifactTitle: async (artifactId, title) => {
     await WorkspaceRepository.updateArtifactTopic(artifactId, title);

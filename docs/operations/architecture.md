@@ -116,7 +116,7 @@ Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, W
 
 This round still stops short of a full dashboard-style workspace home, but it now leaves behind the runtime contract the next round will build on:
 
-- `selectWorkspaceHomeReadinessState` in `src/store/selectors/featureSelectors.ts` exposes the canonical workspace-home input slice
+- `selectWorkspaceHomeReadinessState` in `src/store/selectors/workspaceHomeSelectors.ts` exposes the canonical workspace-home input slice
 - `src/services/workspace/home.ts` derives summary counts, board state, recent activity, and saved-view summaries
 - `src/components/features/WorkspaceHome/index.tsx` uses that readiness model to render the canonical workspace landing route without introducing a second persistence path
 
@@ -327,7 +327,9 @@ Global store:
 - `src/store/actions/bootstrapActions.ts`
 - `src/store/actions/simpleActions.ts`
 - `src/store/actions/conversationActions.ts`
+- `src/store/actions/conversationActionState.ts`
 - `src/store/actions/artifactRunActions.ts`
+- `src/store/actions/artifactRunActionState.ts`
 - `src/store/actions/workspaceActions.ts`
 - `src/store/actions/workspaceActionState.ts`
 - `src/store/selectors/appShellSelectors.ts`
@@ -376,6 +378,18 @@ Workspace maintenance action state shaping is also split out of the action creat
 
 - `src/store/actions/workspaceActionState.ts` owns pure state transitions for workspace delete/purge/import/clear flows
 - `src/store/actions/workspaceActions.ts` now focuses on repository coordination plus choosing the correct state transition helper
+
+Conversation and artifact/run action shaping now follow the same pattern:
+
+- `src/store/actions/conversationActionState.ts` owns pure chat-session, chat-message, and board-agent session/action record shaping plus local state transitions
+- `src/store/actions/conversationActions.ts` now coordinates repository writes and then applies those pure conversation-state builders
+- `src/store/actions/artifactRunActionState.ts` owns pure workspace-run transitions plus artifact-save planning/state updates
+- `src/store/actions/artifactRunActions.ts` now handles repository coordination, alias persistence, and artifact-save orchestration around those pure builders
+
+Route-to-chat opening also has a smaller contract:
+
+- `src/app/openChatRequest.ts` now acts as a thin route-side orchestrator
+- `src/app/appShellOpenChatHelpers.ts` now owns workspace resolution plus chat-session/primer input shaping for route-driven chat opens
 
 Persistence writes are handled through repository calls and settings KV writes rather than direct feature-level `localStorage` use. The remaining browser-persisted non-SQLite values now flow through typed helpers in `src/utils/localStorage.ts`, including dedicated helpers for system config, cached OpenRouter catalog data, recent model selections, omnibox recent destinations, active workspace id, and monitor autosave. Provider keys remain the only intentional direct `localStorage` exception.
 

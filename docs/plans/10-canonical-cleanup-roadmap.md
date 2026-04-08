@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: In Progress (Streams 1-2 completed; Stream 3 next)
+Status: In Progress (Streams 1-3 completed; Stream 4 next)
 
 Related inputs:
 
@@ -355,9 +355,9 @@ Purpose:
 Primary targets:
 
 - `src/app/*`
-- `src/store/caseStore.ts` and its successor naming/location
+- `src/store/workspaceStore.ts`
 - `src/store/actions/*`
-- `src/store/selectors/featureSelectors.ts`
+- `src/store/selectors/*Selectors.ts`
 - app-shell helpers and route state helpers
 
 Execution shape:
@@ -388,17 +388,28 @@ src/app/routes.ts
 src/app/routes.test.ts
 src/app/useAppShellController.ts
 src/app/useAppShellEffects.ts
-src/store/caseStore.ts
-src/store/caseStore.test.ts
+src/store/workspaceStore.ts
+src/store/workspaceStore.test.ts
 src/store/actions/artifactRunActions.ts
+src/store/actions/artifactRunActionState.ts
 src/store/actions/bootstrapActions.ts
 src/store/actions/bootstrapResourceLoader.ts
 src/store/actions/bootstrapResourceLoader.test.ts
 src/store/actions/conversationActions.ts
+src/store/actions/conversationActionState.ts
 src/store/actions/shared.ts
 src/store/actions/simpleActions.ts
 src/store/actions/workspaceActions.ts
-src/store/selectors/featureSelectors.ts
+src/store/actions/workspaceActionState.ts
+src/store/selectors/appShellSelectors.ts
+src/store/selectors/chatSelectors.ts
+src/store/selectors/networkGraphSelectors.ts
+src/store/selectors/operationSelectors.ts
+src/store/selectors/runSetupSelectors.ts
+src/store/selectors/settingsSelectors.ts
+src/store/selectors/timelineSelectors.ts
+src/store/selectors/workspaceBoardSelectors.ts
+src/store/selectors/workspaceHomeSelectors.ts
 ```
 
 ### Execution Checklist
@@ -406,7 +417,7 @@ src/store/selectors/featureSelectors.ts
 1. Rename the app/store backbone away from `caseStore` and update all app-shell imports accordingly.
 2. Re-slice app-shell orchestration across `useAppShellController.ts`, helpers, and route views so ownership is explicit.
 3. Clean the route contract in `routes.ts`, `routeViews.tsx`, `navigation.ts`, and `openChatRequest.ts`.
-4. Reduce selector breadth in `featureSelectors.ts` so feature hooks stop consuming oversized store slices.
+4. Reduce selector breadth into surface-specific selector modules so feature hooks stop consuming oversized store slices.
 5. Revisit each store action module so async orchestration, pure shaping, and persistence side effects are consistently separated.
 6. Update route and app-shell tests to match the new ownership model before stream closeout.
 
@@ -428,7 +439,7 @@ Docs to update on landing:
 
 ### Landing Status
 
-Partially completed on April 8, 2026.
+Completed on April 8, 2026.
 
 Landed in Stream 3:
 
@@ -437,16 +448,14 @@ Landed in Stream 3:
 - extracted pure route-view derivation into `src/app/routeViewHelpers.ts` so route wrappers stop carrying inline artifact/board/workspace resolution logic
 - fixed workspace-home route classification in `src/app/navigation.ts` so `/workspaces/:workspaceId` is treated as a workspace surface instead of falling back to dashboard view state
 - extracted pure workspace maintenance state shaping into `src/store/actions/workspaceActionState.ts` so `workspaceActions.ts` reads more clearly as persistence plus orchestration
+- extracted pure conversation record/state shaping into `src/store/actions/conversationActionState.ts` so `conversationActions.ts` now focuses on repository writes plus orchestration
+- extracted pure run/artifact state shaping into `src/store/actions/artifactRunActionState.ts` so `artifactRunActions.ts` now focuses on persistence, alias updates, and artifact-save coordination
+- tightened the route-to-chat seam in `src/app/openChatRequest.ts` by moving workspace/session/primer input shaping into `src/app/appShellOpenChatHelpers.ts`
 - cleaned targeted test warnings in active Stream 3 validation by updating the Timeline router future flags and the Operation View `act(...)` coverage
 
-Deferred within Stream 3:
+Validation run for Stream 3:
 
-- deeper action-slice cleanup beyond the workspace maintenance helpers, especially around artifact/run and conversation action shaping
-- any further `openChatRequest` contract cleanup if route/chat ownership work exposes a sharper seam in the next pass
-
-Validation run for this Stream 3 slice:
-
-- `npm run test -- src/app/routes.test.ts src/app/routeViews.test.tsx src/app/routeViewHelpers.test.ts src/app/appShellLaunchHelpers.test.ts src/components/features/Chat/useChatController.test.ts src/components/features/OperationView/useOperationViewController.test.ts src/components/features/WorkspaceBoard/useWorkspaceBoardController.test.ts src/components/features/Timeline/useTimelineViewController.test.ts src/components/features/NetworkGraph/useNetworkGraphController.test.ts src/components/features/Settings/useSettingsController.test.ts src/store/actions/workspaceActionState.test.ts src/store/workspaceStore.test.ts`
+- `npm run test -- src/app/routes.test.ts src/app/routeViews.test.tsx src/app/routeViewHelpers.test.ts src/app/appShellLaunchHelpers.test.ts src/app/appShellOpenChatHelpers.test.ts src/app/openChatRequest.test.ts src/components/features/Chat/useChatController.test.ts src/components/features/OperationView/useOperationViewController.test.ts src/components/features/WorkspaceBoard/useWorkspaceBoardController.test.ts src/components/features/Timeline/useTimelineViewController.test.ts src/components/features/NetworkGraph/useNetworkGraphController.test.ts src/components/features/Settings/useSettingsController.test.ts src/store/actions/workspaceActionState.test.ts src/store/actions/conversationActionState.test.ts src/store/actions/artifactRunActionState.test.ts src/store/workspaceStore.test.ts`
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`
