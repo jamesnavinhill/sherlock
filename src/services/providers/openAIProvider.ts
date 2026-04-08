@@ -28,16 +28,35 @@ import {
 import { buildWorkspaceChatMessages, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
-import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
+import { createChatStreamAccumulator } from './shared/streaming';
 import { buildArtifactFromPayload } from './shared/artifactContract';
 import {
   buildBoardAgentMessages,
   createBoardAgentStreamAccumulator,
   normalizeBoardAgentResponse,
 } from './shared/boardAgent';
+import { postJsonProviderRequest, streamSseProviderRequest } from './shared/directTransport';
 
 const PROVIDER = 'OPENAI' as const;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+
+interface OpenAICompletionPayload {
+  error?: { message?: string };
+  choices?: Array<{
+    message?: { content?: unknown };
+    delta?: { content?: unknown };
+    text?: unknown;
+    finish_reason?: string;
+  }>;
+}
+
+const extractOpenAIErrorMessage = (payload: OpenAICompletionPayload | null): string | undefined =>
+  payload?.error?.message;
+
+const buildOpenAIHeaders = (key: string) => ({
+  Authorization: `Bearer ${key}`,
+  'Content-Type': 'application/json',
+});
 
 const queryOpenAI = async (
   modelId: string,
@@ -45,48 +64,25 @@ const queryOpenAI = async (
   options?: { maxTokens?: number; expectJson?: boolean; signal?: AbortSignal }
 ): Promise<string> => {
   const key = getApiKeyOrThrow(PROVIDER);
-
-  const response = await fetch(OPENAI_API_URL, {
-    method: 'POST',
+  const { payload } = await postJsonProviderRequest<OpenAICompletionPayload>({
+    providerLabel: 'OpenAI',
+    url: OPENAI_API_URL,
     signal: options?.signal,
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+    headers: buildOpenAIHeaders(key),
+    body: {
       model: modelId,
       messages,
       ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
       ...(options?.expectJson ? { response_format: { type: 'json_object' } } : {}),
       temperature: 0.2,
-    }),
+    },
+    extractErrorMessage: extractOpenAIErrorMessage,
   });
 
-  const rawBody = await response.text();
-  let payload: {
-    error?: { message?: string };
-    choices?: Array<{ message?: { content?: unknown }; finish_reason?: string }>;
-  } = {};
-
-  try {
-    payload = JSON.parse(rawBody) as typeof payload;
-  } catch {
-    if (!response.ok) {
-      throw new Error(`UPSTREAM_ERROR: OpenAI request failed with status ${response.status}`);
-    }
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      payload.error?.message ||
-        `UPSTREAM_ERROR: OpenAI request failed with status ${response.status}`
-    );
-  }
-
-  const content = toDisplayText(payload.choices?.[0]?.message?.content).trim();
+  const content = toDisplayText(payload?.choices?.[0]?.message?.content).trim();
   if (!content) {
     throw new Error(
-      `UPSTREAM_ERROR: OpenAI returned an empty response (finish_reason: ${payload.choices?.[0]?.finish_reason || 'unknown'})`
+      `UPSTREAM_ERROR: OpenAI returned an empty response (finish_reason: ${payload?.choices?.[0]?.finish_reason || 'unknown'})`
     );
   }
 
@@ -100,57 +96,25 @@ const streamOpenAI = async (
 ): Promise<string> => {
   const key = getApiKeyOrThrow(PROVIDER);
   const accumulator = createChatStreamAccumulator(options);
-  accumulator.start();
-
-  const response = await fetch(OPENAI_API_URL, {
-    method: 'POST',
+  return streamSseProviderRequest<OpenAICompletionPayload, string>({
+    providerLabel: 'OpenAI',
+    url: OPENAI_API_URL,
     signal: options?.signal,
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+    headers: buildOpenAIHeaders(key),
+    body: {
       model: modelId,
       messages,
       ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
       temperature: 0.2,
       stream: true,
-    }),
+    },
+    accumulator,
+    extractErrorMessage: extractOpenAIErrorMessage,
+    ignoreEvent: (event) => event.data === '[DONE]',
+    parseEventPayload: (event) => JSON.parse(event.data) as OpenAICompletionPayload,
+    resolveDelta: (payload) =>
+      toDisplayText(payload.choices?.[0]?.delta?.content ?? payload.choices?.[0]?.text),
   });
-
-  if (!response.ok) {
-    const rawBody = await response.text();
-    let payload: { error?: { message?: string } } = {};
-
-    try {
-      payload = JSON.parse(rawBody) as typeof payload;
-    } catch {
-      // Fall through to generic error.
-    }
-
-    throw new Error(
-      payload.error?.message ||
-        `UPSTREAM_ERROR: OpenAI request failed with status ${response.status}`
-    );
-  }
-
-  await readSseStream(response, (event) => {
-    if (event.data === '[DONE]') return;
-
-    try {
-      const payload = JSON.parse(event.data) as {
-        choices?: Array<{ delta?: { content?: unknown }; text?: unknown }>;
-      };
-      const delta = toDisplayText(
-        payload.choices?.[0]?.delta?.content ?? payload.choices?.[0]?.text
-      );
-      accumulator.push(delta);
-    } catch {
-      // Ignore malformed partial events and rely on the final response parse.
-    }
-  });
-
-  return accumulator.complete();
 };
 
 const investigate = async (request: InvestigationRequest): Promise<Artifact> => {
@@ -315,57 +279,26 @@ const streamBoardAgent = async (
     async () => {
       const key = getApiKeyOrThrow(PROVIDER);
       const accumulator = createBoardAgentStreamAccumulator(PROVIDER, config.modelId, options);
-      accumulator.start();
 
-      const response = await fetch(OPENAI_API_URL, {
-        method: 'POST',
+      return streamSseProviderRequest<OpenAICompletionPayload, ReturnType<typeof accumulator.complete>>({
+        providerLabel: 'OpenAI',
+        url: OPENAI_API_URL,
         signal: options?.signal,
-        headers: {
-          Authorization: `Bearer ${key}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        headers: buildOpenAIHeaders(key),
+        body: {
           model: config.modelId,
           messages: buildBoardAgentMessages(request, 'tagged'),
           max_tokens: 2200,
           temperature: 0.2,
           stream: true,
-        }),
+        },
+        accumulator,
+        extractErrorMessage: extractOpenAIErrorMessage,
+        ignoreEvent: (event) => event.data === '[DONE]',
+        parseEventPayload: (event) => JSON.parse(event.data) as OpenAICompletionPayload,
+        resolveDelta: (payload) =>
+          toDisplayText(payload.choices?.[0]?.delta?.content ?? payload.choices?.[0]?.text),
       });
-
-      if (!response.ok) {
-        const rawBody = await response.text();
-        let payload: { error?: { message?: string } } = {};
-
-        try {
-          payload = JSON.parse(rawBody) as typeof payload;
-        } catch {
-          // Fall through to generic error.
-        }
-
-        throw new Error(
-          payload.error?.message ||
-            `UPSTREAM_ERROR: OpenAI request failed with status ${response.status}`
-        );
-      }
-
-      await readSseStream(response, (event) => {
-        if (event.data === '[DONE]') return;
-
-        try {
-          const payload = JSON.parse(event.data) as {
-            choices?: Array<{ delta?: { content?: unknown }; text?: unknown }>;
-          };
-          const delta = toDisplayText(
-            payload.choices?.[0]?.delta?.content ?? payload.choices?.[0]?.text
-          );
-          accumulator.push(delta);
-        } catch {
-          // Ignore malformed partial events and rely on the final response parse.
-        }
-      });
-
-      return accumulator.complete();
     },
     {
       provider: PROVIDER,

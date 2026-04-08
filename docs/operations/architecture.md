@@ -236,6 +236,7 @@ Shared provider utilities:
 - `src/services/providers/shared/*`
   - error normalization
   - retry policy
+  - direct-provider JSON request and SSE transport helpers
   - JSON parsing fallbacks
   - output normalization
   - prompt builders
@@ -258,6 +259,7 @@ Key behavior:
 - router enforces provider/model alignment and capability checks
 - `routerContext.ts` now owns provider execution setup, capability gating, runtime logging, and shared scope/pack/purpose resolution for router entrypoints
 - router resolves a pack and purpose profile for each run without repeating workspace/scope fallback logic in every operation handler
+- `src/services/providers/shared/directTransport.ts` now owns the shared POST/error/SSE plumbing for OpenAI, Anthropic, and OpenRouter adapters so those files stay focused on provider-specific headers, request bodies, and response parsing
 - router now exposes a sibling `CHAT` runtime path for workspace-grounded conversational turns
 - router now exposes a sibling `BOARD_AGENT` runtime path for workspace-board planning turns with structured action outputs
 - router now exposes both non-streaming and streaming chat paths with a provider-agnostic event envelope and abort support

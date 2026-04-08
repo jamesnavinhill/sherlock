@@ -52,14 +52,11 @@ export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
             return (
               <label
                 key={option.track}
-                className={`flex items-center justify-between border px-3 py-2 osint-meta-value transition ${
-                  isActive
-                    ? 'border-zinc-700 bg-black/65 text-white'
-                    : 'border-zinc-800 bg-zinc-950/45 text-zinc-300 hover:border-zinc-700 hover:bg-black/55 hover:text-white'
-                }`}
+                data-active={isActive ? 'true' : 'false'}
+                className="osint-filter-option flex items-center justify-between px-3 py-2 osint-meta-value"
               >
                 <span className="flex items-center gap-2">
-                  <option.icon className={`h-4 w-4 ${isActive ? 'text-zinc-300' : 'text-zinc-500'}`} />
+                  <option.icon className="osint-filter-option-icon h-4 w-4" />
                   {option.label}
                 </span>
                 <input

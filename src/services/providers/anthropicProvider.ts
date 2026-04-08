@@ -28,16 +28,35 @@ import {
 import { buildWorkspaceChatMessages, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
-import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
+import { createChatStreamAccumulator } from './shared/streaming';
 import { buildArtifactFromPayload } from './shared/artifactContract';
 import {
   buildBoardAgentMessages,
   createBoardAgentStreamAccumulator,
   normalizeBoardAgentResponse,
 } from './shared/boardAgent';
+import { postJsonProviderRequest, streamSseProviderRequest } from './shared/directTransport';
 
 const PROVIDER = 'ANTHROPIC' as const;
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
+
+interface AnthropicCompletionPayload {
+  error?: { message?: string };
+  content?: Array<{ type?: string; text?: string }>;
+  delta?: { type?: string; text?: string };
+  stop_reason?: string;
+  type?: string;
+}
+
+const extractAnthropicErrorMessage = (
+  payload: AnthropicCompletionPayload | null
+): string | undefined => payload?.error?.message;
+
+const buildAnthropicHeaders = (key: string) => ({
+  'x-api-key': key,
+  'anthropic-version': '2023-06-01',
+  'content-type': 'application/json',
+});
 
 const splitAnthropicMessages = (
   messages: ProviderMessage[]
@@ -64,53 +83,28 @@ const queryAnthropic = async (
 ): Promise<string> => {
   const key = getApiKeyOrThrow(PROVIDER);
   const { system, messages } = splitAnthropicMessages(providerMessages);
-
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
+  const { payload } = await postJsonProviderRequest<AnthropicCompletionPayload>({
+    providerLabel: 'Anthropic',
+    url: ANTHROPIC_API_URL,
     signal: options?.signal,
-    headers: {
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
+    headers: buildAnthropicHeaders(key),
+    body: {
       model: modelId,
       max_tokens: options?.maxTokens ?? 2048,
       temperature: 0.2,
       ...(system ? { system } : {}),
       messages,
-    }),
+    },
+    extractErrorMessage: extractAnthropicErrorMessage,
   });
 
-  const rawBody = await response.text();
-  let payload: {
-    error?: { message?: string };
-    content?: Array<{ type?: string; text?: string }>;
-    stop_reason?: string;
-  } = {};
-
-  try {
-    payload = JSON.parse(rawBody) as typeof payload;
-  } catch {
-    if (!response.ok) {
-      throw new Error(`UPSTREAM_ERROR: Anthropic request failed with status ${response.status}`);
-    }
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      payload.error?.message ||
-        `UPSTREAM_ERROR: Anthropic request failed with status ${response.status}`
-    );
-  }
-
   const content = toDisplayText(
-    (payload.content || []).map((item) => (item.type === 'text' ? item.text : ''))
+    (payload?.content || []).map((item) => (item.type === 'text' ? item.text : ''))
   ).trim();
 
   if (!content) {
     throw new Error(
-      `UPSTREAM_ERROR: Anthropic returned an empty response (stop_reason: ${payload.stop_reason || 'unknown'})`
+      `UPSTREAM_ERROR: Anthropic returned an empty response (stop_reason: ${payload?.stop_reason || 'unknown'})`
     );
   }
 
@@ -124,63 +118,31 @@ const streamAnthropic = async (
 ): Promise<string> => {
   const key = getApiKeyOrThrow(PROVIDER);
   const accumulator = createChatStreamAccumulator(options);
-  accumulator.start();
   const { system, messages } = splitAnthropicMessages(providerMessages);
 
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
+  return streamSseProviderRequest<AnthropicCompletionPayload, string>({
+    providerLabel: 'Anthropic',
+    url: ANTHROPIC_API_URL,
     signal: options?.signal,
-    headers: {
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
+    headers: buildAnthropicHeaders(key),
+    body: {
       model: modelId,
       max_tokens: options?.maxTokens ?? 2048,
       temperature: 0.2,
       stream: true,
       ...(system ? { system } : {}),
       messages,
-    }),
-  });
-
-  if (!response.ok) {
-    const rawBody = await response.text();
-    let payload: { error?: { message?: string } } = {};
-
-    try {
-      payload = JSON.parse(rawBody) as typeof payload;
-    } catch {
-      // Fall through to generic error.
-    }
-
-    throw new Error(
-      payload.error?.message ||
-        `UPSTREAM_ERROR: Anthropic request failed with status ${response.status}`
-    );
-  }
-
-  await readSseStream(response, (event) => {
-    if (event.data === '[DONE]') return;
-
-    try {
-      const payload = JSON.parse(event.data) as {
-        type?: string;
-        delta?: { type?: string; text?: string };
-      };
+    },
+    accumulator,
+    extractErrorMessage: extractAnthropicErrorMessage,
+    ignoreEvent: (event) => event.data === '[DONE]',
+    parseEventPayload: (event) => JSON.parse(event.data) as AnthropicCompletionPayload,
+    resolveDelta: (payload, event) => {
       const isDeltaEvent =
         event.event === 'content_block_delta' || payload.type === 'content_block_delta';
-      if (!isDeltaEvent) return;
-
-      const delta = payload.delta?.type === 'text_delta' ? payload.delta.text || '' : '';
-      accumulator.push(delta);
-    } catch {
-      // Ignore malformed partial events and rely on the final response parse.
-    }
+      return isDeltaEvent && payload.delta?.type === 'text_delta' ? payload.delta.text || '' : '';
+    },
   });
-
-  return accumulator.complete();
 };
 
 const investigate = async (request: InvestigationRequest): Promise<Artifact> => {
@@ -340,65 +302,38 @@ const streamBoardAgent = async (
 
   return withProviderRetry(
     async () => {
-      const key = getApiKeyOrThrow(PROVIDER);
       const accumulator = createBoardAgentStreamAccumulator(PROVIDER, config.modelId, options);
-      accumulator.start();
+      const key = getApiKeyOrThrow(PROVIDER);
       const { system, messages } = splitAnthropicMessages(buildBoardAgentMessages(request, 'tagged'));
 
-      const response = await fetch(ANTHROPIC_API_URL, {
-        method: 'POST',
+      return streamSseProviderRequest<
+        AnthropicCompletionPayload,
+        ReturnType<typeof accumulator.complete>
+      >({
+        providerLabel: 'Anthropic',
+        url: ANTHROPIC_API_URL,
         signal: options?.signal,
-        headers: {
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
+        headers: buildAnthropicHeaders(key),
+        body: {
           model: config.modelId,
           max_tokens: 2200,
           temperature: 0.2,
           stream: true,
           ...(system ? { system } : {}),
           messages,
-        }),
-      });
-
-      if (!response.ok) {
-        const rawBody = await response.text();
-        let payload: { error?: { message?: string } } = {};
-
-        try {
-          payload = JSON.parse(rawBody) as typeof payload;
-        } catch {
-          // Fall through to generic error.
-        }
-
-        throw new Error(
-          payload.error?.message ||
-            `UPSTREAM_ERROR: Anthropic request failed with status ${response.status}`
-        );
-      }
-
-      await readSseStream(response, (event) => {
-        if (event.data === '[DONE]') return;
-
-        try {
-          const payload = JSON.parse(event.data) as {
-            type?: string;
-            delta?: { type?: string; text?: string };
-          };
+        },
+        accumulator,
+        extractErrorMessage: extractAnthropicErrorMessage,
+        ignoreEvent: (event) => event.data === '[DONE]',
+        parseEventPayload: (event) => JSON.parse(event.data) as AnthropicCompletionPayload,
+        resolveDelta: (payload, event) => {
           const isDeltaEvent =
             event.event === 'content_block_delta' || payload.type === 'content_block_delta';
-          if (!isDeltaEvent) return;
-
-          const delta = payload.delta?.type === 'text_delta' ? payload.delta.text || '' : '';
-          accumulator.push(delta);
-        } catch {
-          // Ignore malformed partial events and rely on the final response parse.
-        }
+          return isDeltaEvent && payload.delta?.type === 'text_delta'
+            ? payload.delta.text || ''
+            : '';
+        },
       });
-
-      return accumulator.complete();
     },
     {
       provider: PROVIDER,

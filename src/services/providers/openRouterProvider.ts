@@ -30,13 +30,14 @@ import {
 import { buildWorkspaceChatMessages, normalizeChatResponse } from './shared/chat';
 import { withProviderRetry } from './shared/retry';
 import { normalizeTopicText } from '../../utils/textNormalization';
-import { createChatStreamAccumulator, readSseStream } from './shared/streaming';
+import { createChatStreamAccumulator } from './shared/streaming';
 import { buildArtifactFromPayload } from './shared/artifactContract';
 import {
   buildBoardAgentMessages,
   createBoardAgentStreamAccumulator,
   normalizeBoardAgentResponse,
 } from './shared/boardAgent';
+import { postJsonProviderRequest, streamSseProviderRequest } from './shared/directTransport';
 
 const PROVIDER = 'OPENROUTER' as const;
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -64,11 +65,50 @@ interface OpenRouterCompletionResult {
   warnings: string[];
 }
 
+interface OpenRouterChoiceMessage {
+  content?: unknown;
+  reasoning?: unknown;
+  refusal?: unknown;
+  annotations?: Array<{
+    type?: unknown;
+    url_citation?: {
+      url?: unknown;
+      title?: unknown;
+      content?: unknown;
+      start_index?: unknown;
+      end_index?: unknown;
+    };
+  }>;
+}
+
+interface OpenRouterCompletionPayload {
+  id?: string;
+  error?: { message?: string };
+  usage?: OpenRouterUsage;
+  choices?: Array<{
+    delta?: { content?: unknown };
+    message?: OpenRouterChoiceMessage;
+    text?: unknown;
+    finish_reason?: string;
+  }>;
+}
+
 const buildSystemPrompt = (task: string): string => {
   return `You are Sherlock's runtime research engine.\n\n${task}`;
 };
 
 const toMessageContent = (content: unknown): string => toDisplayText(content).trim();
+
+const extractOpenRouterErrorMessage = (
+  payload: OpenRouterCompletionPayload | null
+): string | undefined => payload?.error?.message;
+
+const buildOpenRouterHeaders = (key: string) => ({
+  Authorization: `Bearer ${key}`,
+  'Content-Type': 'application/json',
+  'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
+  'X-OpenRouter-Title': 'Sherlock AI',
+});
 
 const normalizeOpenRouterMessages = (messages: ProviderMessage[]): ProviderMessage[] => {
   return messages
@@ -202,66 +242,22 @@ const queryOpenRouter = async (
   }
 ): Promise<OpenRouterCompletionResult> => {
   const key = getApiKeyOrThrow(PROVIDER);
-  const response = await fetch(OPENROUTER_API_URL, {
-    method: 'POST',
+  const { payload } = await postJsonProviderRequest<OpenRouterCompletionPayload>({
+    providerLabel: 'OpenRouter',
+    url: OPENROUTER_API_URL,
     signal: options?.signal,
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-      'X-OpenRouter-Title': 'Sherlock AI',
-    },
-    body: JSON.stringify({
+    headers: buildOpenRouterHeaders(key),
+    body: {
       model: modelId,
       messages: normalizeOpenRouterMessages(messages),
       ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
       ...(options?.expectJson ? { response_format: { type: 'json_object' } } : {}),
       ...(options?.tools?.length ? { tools: options.tools } : {}),
-    }),
+    },
+    extractErrorMessage: extractOpenRouterErrorMessage,
   });
 
-  const rawBody = await response.text();
-  let payload: {
-    id?: string;
-    error?: { message?: string };
-    usage?: OpenRouterUsage;
-    choices?: Array<{
-      message?: {
-        content?: unknown;
-        reasoning?: unknown;
-        refusal?: unknown;
-        annotations?: Array<{
-          type?: unknown;
-          url_citation?: {
-            url?: unknown;
-            title?: unknown;
-            content?: unknown;
-            start_index?: unknown;
-            end_index?: unknown;
-          };
-        }>;
-      };
-      text?: unknown;
-      finish_reason?: string;
-    }>;
-  } = {};
-
-  try {
-    payload = JSON.parse(rawBody) as typeof payload;
-  } catch {
-    if (!response.ok) {
-      throw new Error(`UPSTREAM_ERROR: OpenRouter request failed with status ${response.status}`);
-    }
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      payload.error?.message ||
-        `UPSTREAM_ERROR: OpenRouter request failed with status ${response.status}`
-    );
-  }
-
-  const firstChoice = payload.choices?.[0];
+  const firstChoice = payload?.choices?.[0];
   const message = firstChoice?.message || {};
   const rawText =
     toMessageContent(message.content) ||
@@ -277,9 +273,9 @@ const queryOpenRouter = async (
 
   return {
     rawText,
-    requestId: payload.id,
+    requestId: payload?.id,
     citations: extractAnnotations(message),
-    usage: payload.usage,
+    usage: payload?.usage,
     warnings: options?.warnings || [],
   };
 };
@@ -295,77 +291,42 @@ const streamOpenRouter = async (
 ): Promise<OpenRouterCompletionResult> => {
   const key = getApiKeyOrThrow(PROVIDER);
   const accumulator = createChatStreamAccumulator(options);
-  accumulator.start();
   const warnings = options?.warnings || [];
   let requestId: string | undefined;
   let usage: OpenRouterUsage | undefined;
 
-  const response = await fetch(OPENROUTER_API_URL, {
-    method: 'POST',
+  const rawText = await streamSseProviderRequest<OpenRouterCompletionPayload, string>({
+    providerLabel: 'OpenRouter',
+    url: OPENROUTER_API_URL,
     signal: options?.signal,
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-      'X-OpenRouter-Title': 'Sherlock AI',
-    },
-    body: JSON.stringify({
+    headers: buildOpenRouterHeaders(key),
+    body: {
       model: modelId,
       messages: normalizeOpenRouterMessages(messages),
       ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
       ...(options?.tools?.length ? { tools: options.tools } : {}),
       stream: true,
-    }),
-  });
-
-  if (!response.ok) {
-    const rawBody = await response.text();
-    let payload: { error?: { message?: string } } = {};
-
-    try {
-      payload = JSON.parse(rawBody) as typeof payload;
-    } catch {
-      // Fall through to generic error.
-    }
-
-    throw new Error(
-      payload.error?.message ||
-        `UPSTREAM_ERROR: OpenRouter request failed with status ${response.status}`
-    );
-  }
-
-  await readSseStream(response, (event) => {
-    if (event.data === '[DONE]') return;
-
-    try {
-      const payload = JSON.parse(event.data) as {
-        id?: string;
-        usage?: OpenRouterUsage;
-        choices?: Array<{
-          delta?: { content?: unknown };
-          message?: { content?: unknown };
-          text?: unknown;
-        }>;
-      };
-
+    },
+    accumulator,
+    extractErrorMessage: extractOpenRouterErrorMessage,
+    ignoreEvent: (event) => event.data === '[DONE]',
+    parseEventPayload: (event) => JSON.parse(event.data) as OpenRouterCompletionPayload,
+    onPayload: (payload) => {
       requestId = payload.id || requestId;
       if (payload.usage) {
         usage = payload.usage;
       }
-
-      const delta = toDisplayText(
+    },
+    resolveDelta: (payload) =>
+      toDisplayText(
         payload.choices?.[0]?.delta?.content ??
           payload.choices?.[0]?.message?.content ??
           payload.choices?.[0]?.text
-      );
-      accumulator.push(delta);
-    } catch {
-      // Ignore malformed partial events and rely on the final response parse.
-    }
+      ),
   });
 
   return {
-    rawText: accumulator.complete(),
+    rawText,
     requestId,
     citations: [],
     usage,
@@ -604,65 +565,33 @@ const streamBoardAgent = async (
     async () => {
       const key = getApiKeyOrThrow(PROVIDER);
       const accumulator = createBoardAgentStreamAccumulator(PROVIDER, config.modelId, options);
-      accumulator.start();
 
-      const response = await fetch(OPENROUTER_API_URL, {
-        method: 'POST',
+      const normalized = await streamSseProviderRequest<
+        OpenRouterCompletionPayload,
+        ReturnType<typeof accumulator.complete>
+      >({
+        providerLabel: 'OpenRouter',
+        url: OPENROUTER_API_URL,
         signal: options?.signal,
-        headers: {
-          Authorization: `Bearer ${key}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-          'X-OpenRouter-Title': 'Sherlock AI',
-        },
-        body: JSON.stringify({
+        headers: buildOpenRouterHeaders(key),
+        body: {
           model: config.modelId,
           messages: buildBoardAgentMessages(request, 'tagged'),
           max_tokens: 2200,
           stream: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const rawBody = await response.text();
-        let payload: { error?: { message?: string } } = {};
-
-        try {
-          payload = JSON.parse(rawBody) as typeof payload;
-        } catch {
-          // Fall through to generic error.
-        }
-
-        throw new Error(
-          payload.error?.message ||
-            `UPSTREAM_ERROR: OpenRouter request failed with status ${response.status}`
-        );
-      }
-
-      await readSseStream(response, (event) => {
-        if (event.data === '[DONE]') return;
-
-        try {
-          const payload = JSON.parse(event.data) as {
-            choices?: Array<{
-              delta?: { content?: unknown };
-              message?: { content?: unknown };
-              text?: unknown;
-            }>;
-          };
-
-          const delta = toDisplayText(
+        },
+        accumulator,
+        extractErrorMessage: extractOpenRouterErrorMessage,
+        ignoreEvent: (event) => event.data === '[DONE]',
+        parseEventPayload: (event) => JSON.parse(event.data) as OpenRouterCompletionPayload,
+        resolveDelta: (payload) =>
+          toDisplayText(
             payload.choices?.[0]?.delta?.content ??
               payload.choices?.[0]?.message?.content ??
               payload.choices?.[0]?.text
-          );
-          accumulator.push(delta);
-        } catch {
-          // Ignore malformed partial events and rely on the final response parse.
-        }
+          ),
       });
 
-      const normalized = accumulator.complete();
       return {
         ...normalized,
         warnings: [],

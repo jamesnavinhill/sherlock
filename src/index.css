@@ -582,6 +582,41 @@ body,
   color: var(--osint-primary) !important;
 }
 
+.osint-filter-option {
+  background-color: var(--osint-panel);
+  border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  color: var(--osint-text-strong);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.osint-filter-option:hover,
+.osint-filter-option:focus-visible {
+  background-color: color-mix(in oklab, var(--osint-panel) 82%, var(--osint-dark) 18%);
+  border-color: color-mix(in oklab, var(--osint-border) 100%, transparent);
+  color: var(--osint-text-action);
+  outline: none;
+}
+
+.osint-filter-option[data-active='true'] {
+  background-color: color-mix(in oklab, var(--osint-panel) 76%, var(--osint-dark) 24%);
+  border-color: color-mix(in oklab, var(--osint-border) 100%, transparent);
+  color: var(--osint-text-action);
+}
+
+.osint-filter-option-icon {
+  color: var(--osint-text-meta);
+  transition: color 180ms ease;
+}
+
+.osint-filter-option:hover .osint-filter-option-icon,
+.osint-filter-option:focus-visible .osint-filter-option-icon,
+.osint-filter-option[data-active='true'] .osint-filter-option-icon {
+  color: var(--osint-text-action);
+}
+
 .osint-button-danger {
   background-color: var(--osint-danger-soft-bg);
   color: var(--color-osint-danger);
