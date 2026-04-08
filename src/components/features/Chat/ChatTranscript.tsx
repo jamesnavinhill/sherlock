@@ -107,7 +107,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
         ) : null}
 
         {showAssistantPrimer ? (
-          <article className="w-full max-w-3xl self-start border border-zinc-800 bg-zinc-900/80 p-4">
+          <article className="w-full max-w-4xl self-start border border-zinc-800 bg-zinc-900/80 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className={`flex items-center gap-2 ${sectionLabelClassName}`}>
                 <Bot className="h-4 w-4 text-osint-primary" />
