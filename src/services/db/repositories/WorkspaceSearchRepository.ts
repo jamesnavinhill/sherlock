@@ -1,6 +1,16 @@
 import { desc, eq, inArray } from 'drizzle-orm';
-import type { Signal, Artifact, WorkspaceContextBundle, WorkspaceContextSnippet } from '@/types';
+import type {
+  Signal,
+  Artifact,
+  WorkspaceContextBundle,
+  WorkspaceContextSnippet,
+  WorkspaceItem,
+} from '@/types';
 import { resolveWorkspaceIdentity } from '@/domain';
+import {
+  buildWorkspaceItemSearchText,
+  summarizeWorkspaceItemText,
+} from '@/services/workspace/workspaceItemText';
 import { getDB } from '../client';
 import {
   artifactEvidence,
@@ -295,33 +305,36 @@ export class WorkspaceSearchRepository {
 
     workspaceItemRows.forEach((row) => {
       const timestamp = row.updatedAt || row.createdAt;
-      const content = [row.description || '', row.textContent || '', row.url || '']
-        .filter(Boolean)
-        .join('\n');
+      const tags = parseStoredJsonOrUndefined<string[]>(
+        row.tagsJson,
+        `workspace search item tags ${row.id}`
+      );
+      const content = buildWorkspaceItemSearchText({
+        kind: row.kind as WorkspaceItem['kind'],
+        title: row.title,
+        description: row.description || undefined,
+        textContent: row.textContent || undefined,
+        url: row.url || undefined,
+        fileName: row.fileName || undefined,
+        tags,
+      });
 
       candidates.push({
         id: `CTX-WORKSPACE-ITEM-${row.id}`,
         kind: row.kind as WorkspaceContextSnippet['kind'],
         title: row.title,
-        snippet: toSnippet(content || row.title),
+        snippet: summarizeWorkspaceItemText(content || row.title) || toSnippet(row.title),
         refId: row.id,
         refKind: row.kind,
         score: scoreCandidate(
           query,
-          [
-            row.title,
-            row.description || '',
-            row.textContent || '',
-            row.url || '',
-            row.fileName || '',
-            row.tagsJson || '',
-          ],
+          [content],
           timestamp,
           row.title
         ),
         timestamp,
         metadata: {
-          workspaceItemKind: row.kind,
+          workspaceItemKind: row.kind as WorkspaceItem['kind'],
           mimeType: row.mimeType || undefined,
           fileName: row.fileName || undefined,
           url: row.url || undefined,

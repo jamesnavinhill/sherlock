@@ -514,12 +514,15 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 `src/components/features/Files.tsx`
 
+- `src/components/features/Files/useFilesController.ts` now owns selection state, route-focus recovery, export/purge menu state, and board/chat handoff commands while `Files.tsx` stays focused on shell chrome, dialogs, and top-level menu wiring
+- `src/components/features/Files/FilesOverview.tsx` and `src/components/features/Files/FilesRecords.tsx` now own the workspace-overview and selected-workspace record sections instead of keeping both grid/list render trees inline
 - workspace/file browsing now mixes saved artifacts with canonical workspace items instead of treating items as board-only records
 - shell-level Files copy now uses the canonical `Workspace` / `Artifact` nouns instead of label-profile drift
 - selected-workspace browsing supports `All`, `Artifacts`, and `Items` filtering over the same workspace-scoped list
 - artifact rows still route into saved artifact detail and now share the same chat and board handoff verbs exposed by the omnibox
 - item opens now resolve through `/files?workspaceId=...&focusItemId=...`, which gives canonical workspace items a stable focusable destination for omnibox, chat-mention, and timeline handoffs
 - workspace-item rows expose provenance-aware summaries plus direct workspace-chat, board-placement, and source-link actions
+- Files, chat primers, library entries, workspace search snippets, and omnibox recents now share one workspace-item text shaping contract through `src/services/workspace/workspaceItemText.ts`
 
 ### Timeline
 
@@ -527,9 +530,12 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 - routed chronology page with header search, filters popout, dossier, central event stream, and details drawer
 - `src/components/features/Timeline/useTimelineViewController.ts` now owns route-query wiring, export/save commands, board/chat handoffs, and detail action composition while `TimelineView.tsx` stays focused on route shell layout
+- `src/components/features/Timeline/useTimelinePanelState.ts` now owns panel/open-menu shell state and outside-click handling so the main controller no longer carries those UI effects inline
+- `src/components/features/Timeline/useTimelineWorkspaceActions.ts` now owns Files/chat/board detail actions and selected-record handoff shaping
 - timeline query parsing/serialization lives in `src/components/features/Timeline/timelineRouteState.ts`
 - durable saved timeline views persist through SQLite-backed settings records and reopen through the shared omnibox result/action model
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
+- `timelineEvents.ts` now composes dedicated `timelineEventBuilders.ts` and `timelineEventUtils.ts` seams instead of keeping all event heuristics inline in one owner file
 - route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
 - default-on chronology for saved signals, runs, and artifacts
 - default-on `ITEM` track for canonical workspace-item creation, promotion, material-update, and chat-reuse events
@@ -539,10 +545,18 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - explicit lineage ids now drive timeline run/artifact derivation and nearby report-navigation helpers
 - smaller-breakpoint header controls now keep workspace switching and chronology search visible without opening the dossier first
 - click-through into saved artifacts and exact workspace chat sessions from timeline events
-- board handoff for timeline-selected artifacts, entities, and signals
+- board handoff for timeline-selected artifacts, entities, signals, and focused workspace items
 - timeline snapshot export in JSON/Markdown plus save-as-artifact support for `artifactType: TIMELINE`
 - `TimelineToolbar.tsx`, `TimelineFiltersPanel.tsx`, `TimelineExportMenu.tsx`, `TimelineDossierPanel.tsx`, `TimelineEventList.tsx`, and `TimelineDetailRail.tsx` now own the major timeline sections so the route shell mainly coordinates route state and layout
 - query updates and detail action shaping now live in `timelineQueryHelpers.ts` and `timelineDetailActions.ts`, keeping the view controller focused on orchestration
+
+### Omnibox
+
+`src/components/ui/GlobalSearch.tsx`
+
+- the omnibox runtime contract remains centered on `src/components/ui/omniboxModel.ts`, but that module now delegates to smaller result-builder, recents, mention, and scoring helpers instead of keeping all ranking and shaping logic in one 900-line file
+- route results, workspace results, saved timeline views, run/chat results, and workspace-search snippets still converge into one result list so search/navigation behavior remains one shared spine
+- `GlobalSearch.tsx` stays responsible for UI state and async repository lookups while the pure omnibox shaping logic now lives in dedicated helper modules
 
 ### Feed
 

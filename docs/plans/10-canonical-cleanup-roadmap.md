@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: In Progress (Streams 1-3 completed; Stream 4 in progress)
+Status: In Progress (Streams 1-4 completed; Stream 5 pending)
 
 Related inputs:
 
@@ -565,7 +565,7 @@ Docs to update on landing:
 
 ### Landing Status
 
-Partially completed on April 8, 2026.
+Completed on April 8, 2026.
 
 Landed in Stream 4:
 
@@ -573,16 +573,18 @@ Landed in Stream 4:
 - updated `src/services/workspace/workspaceHandoffs.ts` so Files and omnibox item handoffs now open chat against the item itself while still preserving provenance lineage when available
 - updated `src/services/chat/launchContext.ts`, `src/app/openChatRequest.ts`, and `src/app/appShellOpenChatHelpers.ts` so workspace-item chat opens derive item-specific session titles and pinned launch primers
 - updated `src/components/features/Chat/chatPageUtils.ts` and `src/components/features/Chat/useChatController.ts` so the chat context rail now summarizes pinned workspace items directly
+- extracted the Files surface into a controller plus dedicated overview/record sections in `src/components/features/Files/*`, keeping the route shell focused on header chrome, dialogs, and menu wiring
+- split `src/components/ui/omniboxModel.ts` into dedicated result-builder, recents, mention, and scoring helpers while keeping `GlobalSearch.tsx` thin and preserving the existing omnibox contract
+- reduced Timeline owner-file load by moving event derivation into `timelineEventBuilders.ts` / `timelineEventUtils.ts` and moving panel/action orchestration into `useTimelinePanelState.ts` / `useTimelineWorkspaceActions.ts`
+- aligned workspace-item text/search shaping across `WorkspaceSearchRepository.ts`, `library.ts`, `launchContext.ts`, Files, omnibox recents, and Timeline by introducing `src/services/workspace/workspaceItemText.ts`
+- cleaned the Files launch test warning by isolating the feature-level test from live omnibox async state
 
-Deferred within Stream 4:
+Validation run for Stream 4:
 
-- Files surface extraction and successor module cleanup beyond the item-chat handoff seam
-- omnibox module decomposition out of `src/components/ui/omniboxModel.ts`
-- Timeline event/controller decomposition and broader workspace-knowledge/search contract alignment
-
-Validation run for this Stream 4 slice:
-
-- `npm run test -- src/services/workspace/workspaceHandoffs.test.ts src/services/chat/launchContext.test.ts src/components/features/Chat/chatPageUtils.test.ts src/app/appShellOpenChatHelpers.test.ts src/app/openChatRequest.test.ts`
+- `npm run test -- src/services/workspace/workspaceHandoffs.test.ts src/services/chat/launchContext.test.ts src/components/features/Chat/chatPageUtils.test.ts src/app/appShellOpenChatHelpers.test.ts src/app/openChatRequest.test.ts src/components/features/Files.launch.test.tsx src/components/ui/omniboxModel.test.ts src/components/features/Timeline/timelineEvents.test.ts src/components/features/Timeline/useTimelineViewController.test.ts src/services/workspace/library.test.ts`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
 
 ## Stream 5. Workflow Surfaces Parity: Artifact, Chat, Board, Network
 

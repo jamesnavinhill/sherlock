@@ -9,6 +9,10 @@ vi.mock('../ui/BackgroundMatrixRain', () => ({
   BackgroundMatrixRain: () => null,
 }));
 
+vi.mock('../ui/GlobalSearch', () => ({
+  GlobalSearch: () => null,
+}));
+
 vi.mock('./Runs/RunSetupModal', () => ({
   RunSetupModal: () => null,
 }));

@@ -8,6 +8,10 @@ import type {
   Signal,
   WorkspaceItem,
 } from '@/types';
+import {
+  getWorkspaceItemPrimaryText,
+  buildWorkspaceItemSnippet,
+} from '@/services/workspace/workspaceItemText';
 import { createLocalId } from '../../utils/id';
 import { cleanEntityName } from '../../utils/text';
 
@@ -59,7 +63,7 @@ const createWorkspaceItemAttachment = (
   title: item.title,
   refId: item.id,
   refKind: 'WORKSPACE_ITEM',
-  snippet: item.description || item.textContent || item.url || item.fileName,
+  snippet: buildWorkspaceItemSnippet(item),
   metadata: {
     workspaceItemKind: item.kind,
     url: item.url,
@@ -170,12 +174,7 @@ export const buildLaunchContextPrimer = (params: {
     if (!item) return null;
 
     const attachment = createWorkspaceItemAttachment(messageId, item);
-    const summary =
-      item.description ||
-      item.textContent ||
-      item.url ||
-      item.fileName ||
-      `Saved workspace ${item.kind.toLowerCase()}.`;
+    const summary = getWorkspaceItemPrimaryText(item);
 
     return {
       id: messageId,

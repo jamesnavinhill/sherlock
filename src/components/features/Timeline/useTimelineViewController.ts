@@ -1,24 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type {
   Artifact,
   ChatOpenRequest,
-  TimelineEvent,
   TimelineTrack,
 } from '@/types';
 import { useTimelineFeatureState } from '@/store/selectors/timelineSelectors';
-import {
-  buildFilesPath,
-  buildWorkspaceBoardDocumentPath,
-} from '@/app/routes';
-import {
-  buildWorkspaceArtifactReference,
-  buildWorkspaceEntityReference,
-  buildWorkspaceHeadlineReference,
-  buildWorkspaceItemReference,
-} from '@/services/workspace/library';
-import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
-import { buildWorkspaceItemChatOpenRequest } from '@/services/workspace/workspaceHandoffs';
 
 import {
   buildTimelineSnapshotArtifact,
@@ -31,15 +18,16 @@ import {
   type TimelineRouteQueryState,
 } from './timelineRouteState';
 import { buildTimelineViewModel } from './timelineViewModel';
-import { getMetadataValue, getPrimaryRefId, type DetailSections, type DossierSections } from './timelineViewUtils';
+import type { DetailSections, DossierSections } from './timelineViewUtils';
 import {
   clearTimelineQuery,
   focusTimelineReference,
   setTimelineTrackFocus,
   toggleTimelineTrack,
 } from './timelineQueryHelpers';
-import { buildTimelineDetailActions } from './timelineDetailActions';
 import { isTimelineQuerySaveable, saveTimelineSavedView } from './timelineSavedViews';
+import { useTimelinePanelState } from './useTimelinePanelState';
+import { useTimelineWorkspaceActions } from './useTimelineWorkspaceActions';
 
 interface TimelineViewControllerOptions {
   onOpenChat: (request: ChatOpenRequest) => void;
@@ -50,7 +38,6 @@ export function useTimelineViewController({
   onOpenChat,
   onOpenReport,
 }: TimelineViewControllerOptions) {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     activeWorkspaceId,
@@ -68,10 +55,6 @@ export function useTimelineViewController({
     workspaceRuns,
     workspaces,
   } = useTimelineFeatureState();
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [dossierSections, setDossierSections] = useState<DossierSections>({
     events: false,
@@ -85,8 +68,18 @@ export function useTimelineViewController({
     summary: false,
     context: false,
   });
-  const exportMenuRef = useRef<HTMLDivElement | null>(null);
-  const filterMenuRef = useRef<HTMLDivElement | null>(null);
+  const {
+    exportMenuRef,
+    filterMenuRef,
+    leftPanelOpen,
+    rightPanelOpen,
+    setLeftPanelOpen,
+    setRightPanelOpen,
+    setShowExportMenu,
+    setShowFilters,
+    showExportMenu,
+    showFilters,
+  } = useTimelinePanelState();
 
   const timelineQuery = useMemo(() => parseTimelineRouteQuery(searchParams), [searchParams]);
   const { search, filters, focusedTrack, focusedRefId } = timelineQuery;
@@ -97,36 +90,6 @@ export function useTimelineViewController({
     },
     [setSearchParams, timelineQuery]
   );
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 1024) {
-        setLeftPanelOpen(false);
-        setRightPanelOpen(false);
-      } else {
-        setLeftPanelOpen(true);
-        setRightPanelOpen(false);
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
-      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
-        setShowExportMenu(false);
-      }
-      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
-        setShowFilters(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, []);
 
   const {
     activeWorkspace,
@@ -228,14 +191,14 @@ export function useTimelineViewController({
     downloadTimelineSnapshotJson(timelineSnapshot);
     setShowExportMenu(false);
     addToast('Timeline snapshot exported as JSON.', 'SUCCESS');
-  }, [addToast, timelineSnapshot]);
+  }, [addToast, setShowExportMenu, timelineSnapshot]);
 
   const handleExportTimelineMarkdown = useCallback(() => {
     if (!timelineSnapshot) return;
     downloadTimelineSnapshotMarkdown(timelineSnapshot);
     setShowExportMenu(false);
     addToast('Timeline snapshot exported as Markdown.', 'SUCCESS');
-  }, [addToast, timelineSnapshot]);
+  }, [addToast, setShowExportMenu, timelineSnapshot]);
 
   const handleSaveTimelineArtifact = useCallback(async () => {
     if (!timelineSnapshot) return;
@@ -243,7 +206,7 @@ export function useTimelineViewController({
     const saved = await saveArtifact(buildTimelineSnapshotArtifact(timelineSnapshot));
     setShowExportMenu(false);
     addToast(`Saved timeline snapshot to ${saved.topic}.`, 'SUCCESS');
-  }, [addToast, saveArtifact, timelineSnapshot]);
+  }, [addToast, saveArtifact, setShowExportMenu, timelineSnapshot]);
 
   const handleSaveTimelineView = useCallback(async () => {
     if (!activeWorkspace) return;
@@ -256,166 +219,25 @@ export function useTimelineViewController({
     addToast(`Saved timeline view: ${savedView.title}.`, 'SUCCESS');
   }, [activeWorkspace, addToast, timelineQuery]);
 
-  const openWorkspaceChat = useCallback(
-    (event?: TimelineEvent | null) => {
-      if (!activeWorkspace) return;
-
-      const sessionId =
-        getPrimaryRefId(event || null, 'CHAT_SESSION') ||
-        getMetadataValue<string>(event || null, 'sessionId');
-      if (sessionId) {
-        onOpenChat({
-          workspaceId: activeWorkspace.id,
-          sessionId,
-        });
-        return;
-      }
-
-      if (selectedWorkspaceItem) {
-        onOpenChat(buildWorkspaceItemChatOpenRequest(selectedWorkspaceItem));
-        return;
-      }
-
-      if (getPrimaryRefId(event || null, 'ARTIFACT')) {
-        onOpenChat({
-          workspaceId: activeWorkspace.id,
-          launchContext: { sourceArtifactId: getPrimaryRefId(event || null, 'ARTIFACT') },
-        });
-        return;
-      }
-
-      if (getPrimaryRefId(event || null, 'SIGNAL')) {
-        onOpenChat({
-          workspaceId: activeWorkspace.id,
-          launchContext: {
-            signalId: getPrimaryRefId(event || null, 'SIGNAL'),
-            headlineId: getPrimaryRefId(event || null, 'SIGNAL'),
-          },
-        });
-        return;
-      }
-
-      const entityName =
-        getPrimaryRefId(event || null, 'ENTITY') ||
-        getMetadataValue<string>(event || null, 'entityName');
-      if (entityName) {
-        onOpenChat({
-          workspaceId: activeWorkspace.id,
-          launchContext: {
-            entityName,
-            sourceArtifactId: getMetadataValue<string>(event || null, 'relatedArtifactId'),
-          },
-        });
-        return;
-      }
-
-      onOpenChat({ workspaceId: activeWorkspace.id });
-    },
-    [activeWorkspace, onOpenChat, selectedWorkspaceItem]
-  );
-
-  const openWorkspaceItem = useCallback(() => {
-    if (!activeWorkspace || !selectedWorkspaceItem) return;
-    navigate(
-      buildFilesPath({
-        workspaceId: activeWorkspace.id,
-        focusItemId: selectedWorkspaceItem.id,
-      })
-    );
-  }, [activeWorkspace, navigate, selectedWorkspaceItem]);
-
-  const openWorkspaceBoard = useCallback(async () => {
-    if (!activeWorkspace) return;
-    const board = await ensureWorkspaceBoard(activeWorkspace.id);
-    navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
-  }, [activeWorkspace, ensureWorkspaceBoard, navigate]);
-
-  const placeReferenceOnBoard = useCallback(async () => {
-    if (!activeWorkspace) return;
-
-    let reference = null;
-
-    if (selectedArtifact?.id) {
-      reference = buildWorkspaceArtifactReference(activeWorkspace.id, {
-        ...selectedArtifact,
-        id: selectedArtifact.id,
-      });
-    } else if (selectedWorkspaceItem) {
-      reference = buildWorkspaceItemReference(selectedWorkspaceItem);
-    } else if (relatedSignal) {
-      reference = buildWorkspaceHeadlineReference(activeWorkspace.id, relatedSignal);
-    } else if (selectedEntityName) {
-      reference = buildWorkspaceEntityReference(activeWorkspace.id, {
-        name: selectedEntityName,
-        type: 'UNKNOWN',
-      });
-    }
-
-    if (!reference) return;
-
-    const board = await ensureWorkspaceBoard(activeWorkspace.id);
-    queueBoardPlacement({
-      workspaceId: activeWorkspace.id,
-      boardId: board.id,
-      item: reference,
-      openInBoard: true,
-    });
-    navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, board.id));
-  }, [
-    activeWorkspace,
-    ensureWorkspaceBoard,
-    navigate,
-    queueBoardPlacement,
-    relatedSignal,
-    selectedArtifact,
-    selectedEntityName,
-    selectedWorkspaceItem,
-  ]);
-
-  const detailActions: InspectorActionItem[] = useMemo(
-    () =>
-      buildTimelineDetailActions({
-        focusReference,
-        labelArtifactLabel: labelProfile.artifactLabel,
-        onOpenArtifact: openArtifact,
-        onOpenItemSource: () => {
-          if (selectedWorkspaceItem?.url) {
-            window.open(selectedWorkspaceItem.url, '_blank', 'noopener,noreferrer');
-          }
-        },
-        onOpenWorkspaceItem: openWorkspaceItem,
-        onOpenWorkspaceBoard: openWorkspaceBoard,
-        onOpenWorkspaceChat: openWorkspaceChat,
-        onPlaceReferenceOnBoard: placeReferenceOnBoard,
-        parentArtifactId: parentArtifact?.id,
-        previousArtifactId,
-        relatedSignalId: relatedSignal?.id,
-        selectedArtifact,
-        selectedChatSessionId: selectedChatSession?.id,
-        selectedEntityName,
-        selectedEvent,
-        selectedRunId: selectedRun?.id,
-        selectedWorkspaceItem,
-      }),
-    [
+  const { detailActions, openWorkspaceBoard, openWorkspaceChat, placeReferenceOnBoard } =
+    useTimelineWorkspaceActions({
+      activeWorkspaceId: activeWorkspace?.id,
+      detailEvent: selectedEvent,
+      ensureWorkspaceBoard,
       focusReference,
-      labelProfile.artifactLabel,
-      openArtifact,
-      openWorkspaceItem,
-      openWorkspaceBoard,
-      openWorkspaceChat,
-      parentArtifact?.id,
-      placeReferenceOnBoard,
+      labelArtifactLabel: labelProfile.artifactLabel,
+      onOpenChat,
+      onOpenReport: openArtifact,
+      parentArtifactId: parentArtifact?.id,
+      placeBoardItem: queueBoardPlacement,
       previousArtifactId,
-      relatedSignal?.id,
+      relatedSignal,
       selectedArtifact,
-      selectedChatSession?.id,
+      selectedChatSessionId: selectedChatSession?.id,
       selectedEntityName,
-      selectedEvent,
-      selectedRun?.id,
+      selectedRunId: selectedRun?.id,
       selectedWorkspaceItem,
-    ]
-  );
+    });
 
   return {
     activeWorkspace,

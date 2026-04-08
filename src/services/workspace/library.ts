@@ -7,6 +7,11 @@ import type {
   WorkspaceItem,
 } from '@/types';
 import { cleanEntityName } from '../../utils/text';
+import {
+  buildWorkspaceItemContextText,
+  buildWorkspaceItemSearchText,
+  getWorkspaceItemPrimaryText,
+} from './workspaceItemText';
 
 export interface WorkspaceLibraryEntry extends WorkspaceBoardItemReference {
   kind: 'ARTIFACT' | 'ENTITY' | 'SOURCE' | 'SIGNAL' | 'HEADLINE' | WorkspaceItem['kind'];
@@ -174,28 +179,10 @@ export const buildWorkspaceLibraryEntries = (input: {
   const workspaceItemEntries = input.workspaceItems.map((item) => ({
     ...buildWorkspaceItemReference(item),
     kind: item.kind,
-    description: item.description || item.textContent || item.url || undefined,
+    description: getWorkspaceItemPrimaryText(item, undefined),
     subtitle: item.kind,
-    contextText: [
-      item.title,
-      item.textContent || '',
-      item.description || '',
-      item.url || '',
-      item.fileName || '',
-      ...(item.tags || []),
-    ]
-      .filter(Boolean)
-      .join('\n'),
-    searchText: [
-      item.title,
-      item.description || '',
-      item.textContent || '',
-      item.url || '',
-      item.fileName || '',
-      ...(item.tags || []),
-    ]
-      .filter(Boolean)
-      .join(' '),
+    contextText: buildWorkspaceItemContextText(item),
+    searchText: buildWorkspaceItemSearchText(item),
     url: item.url,
     previewUrl: item.previewUrl,
   }));

@@ -33,7 +33,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for artifacts/entities/signals, and an overlaying dossier rail that no longer shifts graph content
 - `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
-- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, and export actions
+- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
 - `Finder`: discovery scanning and analysis launch
 - `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a vertically stacked runtime/theme workbench aligned to the shared chrome contract
 
@@ -142,11 +142,11 @@ npm run check:full
 
 ## Current Validation Snapshot (April 8, 2026)
 
-The current targeted validation for the Stream 1 canonical foundation cutover passed on this checkout:
+The current targeted validation for the completed Stream 4 search/files/timeline cleanup passed on this checkout:
 
+- `npm run test -- src/services/workspace/workspaceHandoffs.test.ts src/services/chat/launchContext.test.ts src/components/features/Chat/chatPageUtils.test.ts src/app/appShellOpenChatHelpers.test.ts src/app/openChatRequest.test.ts src/components/features/Files.launch.test.tsx src/components/ui/omniboxModel.test.ts src/components/features/Timeline/timelineEvents.test.ts src/components/features/Timeline/useTimelineViewController.test.ts src/services/workspace/library.test.ts`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- targeted tests for the renamed workspace store, workspace repository/search repository, workspace-data normalization, Files route shell, and Artifact Viewer: pass
 - `npm run build`: passes
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint
