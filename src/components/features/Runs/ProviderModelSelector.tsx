@@ -12,6 +12,7 @@ interface ProviderModelSelectorProps {
   modelAriaLabel?: string;
   modelHint?: string;
   modelLabel?: string;
+  showModelHint?: boolean;
   providerAriaLabel?: string;
   providerHint?: string;
   providerLabel?: string;
@@ -24,6 +25,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
   modelAriaLabel = 'Model',
   modelHint,
   modelLabel = 'Model',
+  showModelHint = true,
   providerAriaLabel = 'Provider',
   providerHint,
   providerLabel = 'Provider',
@@ -65,9 +67,11 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
             <Cpu className="mr-2 h-3 w-3 text-osint-primary" />
             {modelLabel}
           </label>
-          <p className="mb-2 text-[10px] font-mono text-zinc-600">
-            {modelHint || `Selected provider: ${form.providerMeta?.label || form.value.provider}`}
-          </p>
+          {showModelHint ? (
+            <p className="mb-2 text-[10px] font-mono text-zinc-600">
+              {modelHint || `Selected provider: ${form.providerMeta?.label || form.value.provider}`}
+            </p>
+          ) : null}
           <div className="flex gap-2">
             <div className="flex-1">
               <OsintSelect

@@ -5,6 +5,7 @@ import type { AIProvider } from '@/config/aiModels';
 import { ProviderModelSelector } from '@/components/features/Runs/ProviderModelSelector';
 import { RuntimeConfigBehaviorControls } from '@/components/features/Runs/RuntimeConfigBehaviorControls';
 import { OpenRouterSearchControls } from '@/components/features/Runs/OpenRouterSearchControls';
+import { Accordion } from '@/components/ui/Accordion';
 import type { SettingsRuntimeState } from './useSettingsRuntimeState';
 
 interface SettingsRuntimeTabProps {
@@ -52,110 +53,121 @@ const ProviderKeyField: React.FC<{
   </div>
 );
 
-export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime, saveError }) => (
-  <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
-    <div className="space-y-10">
-      <section className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Key className="w-4 h-4 text-osint-primary" />
-          <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">
-            Access Credentials
-          </h3>
-        </div>
-        <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 h-full">
-          <ProviderKeyField
-            label="Google Gemini API Key"
-            provider="GEMINI"
-            keyValue={runtime.geminiKey}
-            showValue={runtime.showGeminiKey}
-            onChange={runtime.setGeminiKey}
-            onToggleVisibility={() => runtime.setShowGeminiKey((current) => !current)}
-            onClear={() => runtime.handleClearProviderKey('GEMINI')}
-          />
-          <ProviderKeyField
-            label="OpenRouter API Key"
-            provider="OPENROUTER"
-            keyValue={runtime.openRouterKey}
-            showValue={runtime.showOpenRouterKey}
-            onChange={runtime.setOpenRouterKey}
-            onToggleVisibility={() => runtime.setShowOpenRouterKey((current) => !current)}
-            onClear={() => runtime.handleClearProviderKey('OPENROUTER')}
-          />
-          <ProviderKeyField
-            label="OpenAI API Key"
-            provider="OPENAI"
-            keyValue={runtime.openAIKey}
-            showValue={runtime.showOpenAIKey}
-            onChange={runtime.setOpenAIKey}
-            onToggleVisibility={() => runtime.setShowOpenAIKey((current) => !current)}
-            onClear={() => runtime.handleClearProviderKey('OPENAI')}
-          />
-          <ProviderKeyField
-            label="Anthropic API Key"
-            provider="ANTHROPIC"
-            keyValue={runtime.anthropicKey}
-            showValue={runtime.showAnthropicKey}
-            onChange={runtime.setAnthropicKey}
-            onToggleVisibility={() => runtime.setShowAnthropicKey((current) => !current)}
-            onClear={() => runtime.handleClearProviderKey('ANTHROPIC')}
-          />
+export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime, saveError }) => {
+  const configuredKeyCount = [
+    runtime.geminiKey,
+    runtime.openRouterKey,
+    runtime.openAIKey,
+    runtime.anthropicKey,
+  ].filter((value) => value.trim().length > 0).length;
 
-          {saveError ? (
-            <div className="osint-danger-banner text-[10px] font-mono border px-3 py-2">
-              {saveError}
-            </div>
-          ) : null}
-
-          <p className="text-[9px] text-zinc-600 font-mono italic pt-2">
-            Keys are stored locally in your browser.
-          </p>
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Cpu className="w-4 h-4 text-osint-primary" />
-          <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">
-            Runtime Profile
-          </h3>
-        </div>
-        <div className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-6 h-full">
-          <ProviderModelSelector
-            form={runtime.form}
-            providerLabel="Active Provider"
-            providerAriaLabel="Active provider"
-            modelLabel="Active Model"
-            modelAriaLabel="Active model"
-          />
-
-          <p className="text-[10px] text-zinc-500 font-mono">
-            TTS{' '}
-            {runtime.form.providerMeta?.capabilities.supportsTts ? 'enabled' : 'not available'} for
-            the selected provider.
-          </p>
-
-          <RuntimeConfigBehaviorControls form={runtime.form} />
-
-          {runtime.form.value.provider === 'OPENROUTER' ? (
-            <OpenRouterSearchControls
-              webSearchEnabled={runtime.openRouterWebSearchEnabled}
-              setWebSearchEnabled={runtime.setOpenRouterWebSearchEnabled}
-              engine={runtime.openRouterEngine}
-              setEngine={runtime.setOpenRouterEngine}
-              maxResults={runtime.openRouterMaxResults}
-              setMaxResults={runtime.setOpenRouterMaxResults}
-              maxTotalResults={runtime.openRouterMaxTotalResults}
-              setMaxTotalResults={runtime.setOpenRouterMaxTotalResults}
-              searchContextSize={runtime.openRouterSearchContextSize}
-              setSearchContextSize={runtime.setOpenRouterSearchContextSize}
-              allowedDomains={runtime.openRouterAllowedDomains}
-              setAllowedDomains={runtime.setOpenRouterAllowedDomains}
-              excludedDomains={runtime.openRouterExcludedDomains}
-              setExcludedDomains={runtime.setOpenRouterExcludedDomains}
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
+      <div className="space-y-4">
+        <Accordion
+          title="Access Credentials"
+          count={configuredKeyCount}
+          icon={Key}
+          isOpen={runtime.runtimeSections.apiKeys}
+          onToggle={() => runtime.toggleRuntimeSection('apiKeys')}
+          className="bg-zinc-900/40"
+          contentClassName="p-4 sm:p-6"
+        >
+          <div className="space-y-4">
+            <ProviderKeyField
+              label="Google Gemini API Key"
+              provider="GEMINI"
+              keyValue={runtime.geminiKey}
+              showValue={runtime.showGeminiKey}
+              onChange={runtime.setGeminiKey}
+              onToggleVisibility={() => runtime.setShowGeminiKey((current) => !current)}
+              onClear={() => runtime.handleClearProviderKey('GEMINI')}
             />
-          ) : null}
-        </div>
-      </section>
+            <ProviderKeyField
+              label="OpenRouter API Key"
+              provider="OPENROUTER"
+              keyValue={runtime.openRouterKey}
+              showValue={runtime.showOpenRouterKey}
+              onChange={runtime.setOpenRouterKey}
+              onToggleVisibility={() => runtime.setShowOpenRouterKey((current) => !current)}
+              onClear={() => runtime.handleClearProviderKey('OPENROUTER')}
+            />
+            <ProviderKeyField
+              label="OpenAI API Key"
+              provider="OPENAI"
+              keyValue={runtime.openAIKey}
+              showValue={runtime.showOpenAIKey}
+              onChange={runtime.setOpenAIKey}
+              onToggleVisibility={() => runtime.setShowOpenAIKey((current) => !current)}
+              onClear={() => runtime.handleClearProviderKey('OPENAI')}
+            />
+            <ProviderKeyField
+              label="Anthropic API Key"
+              provider="ANTHROPIC"
+              keyValue={runtime.anthropicKey}
+              showValue={runtime.showAnthropicKey}
+              onChange={runtime.setAnthropicKey}
+              onToggleVisibility={() => runtime.setShowAnthropicKey((current) => !current)}
+              onClear={() => runtime.handleClearProviderKey('ANTHROPIC')}
+            />
+
+            {saveError ? (
+              <div className="osint-danger-banner text-[10px] font-mono border px-3 py-2">
+                {saveError}
+              </div>
+            ) : null}
+
+            <p className="pt-2 text-[9px] font-mono italic text-zinc-600">
+              Keys are stored locally in your browser.
+            </p>
+          </div>
+        </Accordion>
+
+        <Accordion
+          title="Runtime Profile"
+          icon={Cpu}
+          isOpen={runtime.runtimeSections.runtime}
+          onToggle={() => runtime.toggleRuntimeSection('runtime')}
+          className="bg-zinc-900/40"
+          contentClassName="p-4 sm:p-6"
+        >
+          <div className="space-y-6">
+            <ProviderModelSelector
+              form={runtime.form}
+              providerLabel="Active Provider"
+              providerAriaLabel="Active provider"
+              modelLabel="Active Model"
+              modelAriaLabel="Active model"
+              showModelHint={false}
+            />
+
+            <p className="text-[10px] text-zinc-500 font-mono">
+              TTS {runtime.form.providerMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
+            </p>
+
+            <RuntimeConfigBehaviorControls form={runtime.form} />
+
+            {runtime.form.value.provider === 'OPENROUTER' ? (
+              <OpenRouterSearchControls
+                webSearchEnabled={runtime.openRouterWebSearchEnabled}
+                setWebSearchEnabled={runtime.setOpenRouterWebSearchEnabled}
+                engine={runtime.openRouterEngine}
+                setEngine={runtime.setOpenRouterEngine}
+                maxResults={runtime.openRouterMaxResults}
+                setMaxResults={runtime.setOpenRouterMaxResults}
+                maxTotalResults={runtime.openRouterMaxTotalResults}
+                setMaxTotalResults={runtime.setOpenRouterMaxTotalResults}
+                searchContextSize={runtime.openRouterSearchContextSize}
+                setSearchContextSize={runtime.setOpenRouterSearchContextSize}
+                allowedDomains={runtime.openRouterAllowedDomains}
+                setAllowedDomains={runtime.setOpenRouterAllowedDomains}
+                excludedDomains={runtime.openRouterExcludedDomains}
+                setExcludedDomains={runtime.setOpenRouterExcludedDomains}
+              />
+            ) : null}
+          </div>
+        </Accordion>
+      </div>
     </div>
-  </div>
-);
+  );
+};

@@ -27,6 +27,10 @@ export interface SettingsRuntimeState {
   openRouterSearchContextSize: 'low' | 'medium' | 'high';
   openRouterWebSearchEnabled: boolean;
   persistProviderKeys: (requiredProvider: AIProvider) => string | null;
+  runtimeSections: {
+    apiKeys: boolean;
+    runtime: boolean;
+  };
   setAnthropicKey: Dispatch<SetStateAction<string>>;
   setGeminiKey: Dispatch<SetStateAction<string>>;
   setOpenAIKey: Dispatch<SetStateAction<string>>;
@@ -48,6 +52,7 @@ export interface SettingsRuntimeState {
   showGeminiKey: boolean;
   showOpenAIKey: boolean;
   showOpenRouterKey: boolean;
+  toggleRuntimeSection: (section: 'apiKeys' | 'runtime') => void;
 }
 
 export const useSettingsRuntimeState = (): SettingsRuntimeState => {
@@ -71,6 +76,10 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
   const [showOpenRouterKey, setShowOpenRouterKey] = useState(false);
   const [showOpenAIKey, setShowOpenAIKey] = useState(false);
   const [showAnthropicKey, setShowAnthropicKey] = useState(false);
+  const [runtimeSections, setRuntimeSections] = useState({
+    apiKeys: true,
+    runtime: true,
+  });
 
   const [openRouterWebSearchEnabled, setOpenRouterWebSearchEnabled] = useState(
     initialConfig.openRouter?.webSearchEnabled !== false
@@ -101,6 +110,13 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     if (provider === 'OPENROUTER') setOpenRouterKey('');
     if (provider === 'OPENAI') setOpenAIKey('');
     if (provider === 'ANTHROPIC') setAnthropicKey('');
+  };
+
+  const toggleRuntimeSection = (section: 'apiKeys' | 'runtime') => {
+    setRuntimeSections((current) => ({
+      ...current,
+      [section]: !current[section],
+    }));
   };
 
   const persistProviderKeys = (requiredProvider: AIProvider) => {
@@ -157,6 +173,7 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     openRouterSearchContextSize,
     openRouterWebSearchEnabled,
     persistProviderKeys,
+    runtimeSections,
     setAnthropicKey,
     setGeminiKey,
     setOpenAIKey,
@@ -176,5 +193,6 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     showGeminiKey,
     showOpenAIKey,
     showOpenRouterKey,
+    toggleRuntimeSection,
   };
 };
