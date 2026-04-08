@@ -2,9 +2,9 @@
 
 Date: April 7, 2026
 
-Status: Complete
+Status: Audit follow-up required
 
-Progress note (April 8, 2026): Workstreams 0-5 are now landed in code/docs on this branch. Workstream 4 finalized the shared chrome/panel contract and routed-surface parity pass; Workstream 5 landed the workspace-home readiness model plus a lightweight workspace landing view anchored on those contracts instead of another redirect.
+Progress note (April 8, 2026): Workstreams 0-5 landed substantial code/docs changes on this branch, and the product spine is materially stronger than the pre-refactor state. A post-landing audit found several parity/completion gaps that still need to be closed before this plan can honestly be treated as fully complete; see the audit addendum at the end of this document.
 
 Related inputs:
 
@@ -867,3 +867,67 @@ Why this order:
 | UI helper text             | Remove persistent helper clutter and move tips into one hint system                                                          | Dense pages need less always-visible text, not more                                      |
 | Matrix rain                | Remove it from ambient/static pages; keep or revisit only for active-running states                                          | It currently reads more as legacy theme than useful state communication                  |
 | Workspace home             | Do not build it in this round; leave behind the contracts it needs                                                           | The next round should consume the stronger spine produced here                           |
+
+## Audit Addendum (April 8, 2026): Remaining Work For Full Parity And Completion
+
+Audit summary:
+
+- This refactor landed the shared contracts, a working omnibox/search model, item promotion, saved timeline views, board-agent review mechanics, artifact-type reading patterns, and a lightweight workspace home.
+- It does not yet meet this document's own completion standard for full parity. The remaining items below are the concrete gaps preventing a true `Complete` call.
+- If these do not land in this branch immediately, move them into a new dated follow-up plan and update this document to link to that successor plan.
+
+### Remaining Workstream 0 Follow-Up: Identity And Vocabulary Cleanup
+
+- Replace remaining user-facing `workspace.title` compatibility reads with `getWorkspaceDisplayTitle(...)` or the resolved workspace identity contract.
+  The remaining stragglers are mostly compatibility-driven reads such as `sanitizeDisplayTitle(...)` or `stripLegacyWorkspacePrefix(...)` in active surfaces like chat composer placeholder text, workspace board titles, timeline detail text, timeline snapshot export/title generation, and some feeder-surface labels. Full completion requires the new identity fields to be the primary source of truth everywhere the user sees a workspace title.
+- Finish the post-refactor naming cleanup in active docs and compatibility-heavy surfaces.
+  Internal types can remain legacy for migration stability, but the active docs and visible product language should stop implying that `Case`/`Report`/archive-era naming is still the real canonical model. At minimum, re-audit `README.md`, `docs/operations/*`, Files copy, and Operation View copy after the remaining UI work lands.
+
+### Remaining Workstream 1 Follow-Up: Omnibox Needs True Product Parity
+
+- Replace the modal-only `GlobalSearch` implementation with the header-level omnibox placement promised in this plan.
+  The current implementation still mounts as a global modal in `src/app/AppShell.tsx`, triggered from store state, rather than as the centered, always-available search/action primitive described for workspace-heavy routed surfaces.
+- Close the "typed result exists but exact focus target does not" gap for section/evidence results.
+  `WorkspaceSearchRepository` already returns `sectionId` and `evidenceId` metadata for section/evidence hits, but omnibox open actions currently route only to the parent artifact. Full parity requires route-backed artifact viewer focus state so a section/evidence result opens the artifact and lands on the matching slice.
+- Add canonical deep-link/focus support for workspace-item results.
+  Omnibox open, chat mention open, and other item actions still fall back to `buildFilesPath()` without enough route/query state to select a specific item. Full completion requires a canonical Files/detail or Files/focus contract so item ids are directly resolvable instead of only opening the generic Files surface.
+- Expand in-context focus parity beyond the currently landed timeline/network cases.
+  Timeline focus via `focusTrack`/`focusRefId` is in place, and network entity focus is in place, but workspace-item focus, artifact-section focus, and artifact-evidence focus are still missing as first-class routed behaviors.
+
+### Remaining Workstream 2 Follow-Up: Canonical Knowledge Still Needs Full Reuse Parity
+
+- Make workspace-item links resolvable from every consuming surface.
+  Today the canonical item record exists and appears in Files, chat mentions, omnibox, timeline, and board placement flows, but item opens still do not resolve to a stable item detail/focus destination. This blocks the plan's own "deep-linkable or focusable" standard for first-class canon.
+- Add meaningful item reuse chronology, not just create/promote/update chronology.
+  `timelineEvents.ts` now emits `ITEM_CREATED`, `ITEM_PROMOTED`, and `ITEM_UPDATED`, but it does not yet leave a historical trail when an item is reused in chat, reopened from Files, placed on the board, or otherwise reused across surfaces in a way worth preserving.
+- Finish item-aware action parity inside Timeline.
+  Timeline history can show item events, but the detail/action layer is still artifact/signal/entity oriented. Add item-specific actions such as open/focus item, open source URL/preview when relevant, open in chat with the correct item context, and place the item on the board through the canonical item reference path.
+- Upgrade chat mention reopening from route-only navigation to focused reopening.
+  Mention clicks currently navigate to Network, Timeline, or Files, but entity, signal, and item mentions do not yet reopen those surfaces in a focused state tied to the clicked canonical record. The mention model is good; the reopen/focus contract still needs to catch up.
+
+### Remaining Workstream 3 Follow-Up: Trust/Legibility Pass Is Substantial But Not Fully Closed
+
+- Add artifact-viewer focus handling that matches the new provenance/search contract.
+  The viewer now has artifact-type ordering/highlights plus a provenance summary strip, but the omnibox/search/refocus story still cannot land the user on a specific section/evidence/claim target inside the artifact. That weakens the legibility promise for search-driven artifact reading.
+- Decide whether claim-level provenance cues are complete enough or need one more pass.
+  The top summary strip is landed, and the accordion/deep view remains the canonical provenance surface. The remaining question for full completion is whether high-value claim/evidence links need more explicit inline anchors beyond the current badges and section-level evidence rendering.
+
+### Remaining Workstream 4 Follow-Up: Operation View And Final Surface Parity
+
+- Finish the Operation View inspector contract so the right panel can target the current artifact by default.
+  The current inspector still only has `ENTITY` and `HEADLINE` modes, which means opening the inspector does not yet provide the "current artifact inspector" behavior called for in this plan.
+- Bring Operation View toolbar/body actions fully onto the shared chrome treatment.
+  The plan explicitly called for the edit and voice actions in the artifact reader to become icon-first shared-toolbar controls. The current `ReportViewer` still renders labeled action buttons (`Edit`, `Voice`, `Save`, `Cancel`) inside the body card rather than using the finalized chrome contract.
+- Re-run a last routed-surface parity review after the Operation View work lands.
+  This refactor closed many parity gaps, but Operation View is still the clearest active routed surface that reads as partially pre-contract. Once the artifact inspector/focus work lands, re-check Files, Timeline, Network, Chat, Board, Discovery, Live Monitor, and Workspace Home against the same chrome/panel/action rubric before calling the wave done.
+
+### Remaining Workstream 5 Follow-Up: Workspace Home Readiness Is Landed, But Search/Home Convergence Is Not Done
+
+- Wire the eventual header omnibox contract into workspace home and other flagship surfaces through the same composition seam.
+  Workspace Home now has the readiness selectors, counts, recent activity, and saved-view summaries the plan asked for. The remaining gap is not in the data contract; it is in the shared surface composition, because the home route still cannot consume the promised non-modal omnibox/header system.
+
+### Required Close-Out Before This Plan Can Return To `Complete`
+
+- Land the remaining code and docs above, then re-run the plan's required validation bar: `npm run lint`, `npm run typecheck`, targeted tests for omnibox/artifact viewer/item/timeline/operation-view behavior, and `npm run build`.
+- Update `README.md` and `docs/operations/ARCHITECTURE.md` once the final routed-surface contracts are settled, especially for omnibox placement, canonical item deep-linking, and Operation View inspector behavior.
+- If this remaining scope is intentionally deferred, create a new dated follow-up plan and change this document's status to point at that successor plan instead of leaving the gaps implied away.
