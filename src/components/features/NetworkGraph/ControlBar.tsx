@@ -16,8 +16,8 @@ import {
 
 interface ControlBarProps {
   workspaces: Workspace[];
-  filterCaseId: string;
-  onCaseChange: (workspaceId: string) => void;
+  filterWorkspaceId: string;
+  onWorkspaceChange: (workspaceId: string) => void;
   showLeftPanel: boolean;
   onToggleLeftPanel: () => void;
   showRightPanel: boolean;
@@ -31,8 +31,8 @@ interface ControlBarProps {
 
 export const ControlBar: React.FC<ControlBarProps> = ({
   workspaces,
-  filterCaseId,
-  onCaseChange,
+  filterWorkspaceId,
+  onWorkspaceChange,
   showLeftPanel,
   onToggleLeftPanel,
   showRightPanel,
@@ -56,8 +56,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
             <OsintSelect
               ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
-              value={filterCaseId || ''}
-              onChange={onCaseChange}
+              value={filterWorkspaceId || ''}
+              onChange={onWorkspaceChange}
               chrome="toolbar"
               triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
               options={[

@@ -2,7 +2,11 @@
 
 Date: 2026-04-08
 
-Status: Proposed
+Status: Folded Into Active Plan
+
+Active plan:
+
+- `docs/plans/11-ui-uniformity-roadmap.md`
 
 Related inputs:
 

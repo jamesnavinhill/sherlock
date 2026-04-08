@@ -194,7 +194,7 @@ export function useOperationViewController({
   const casePanelData = useMemo(
     () =>
       buildOperationWorkspacePanelData({
-        activeCase,
+        activeWorkspace: activeCase,
         reports: allCaseReports,
       }),
     [activeCase, allCaseReports]

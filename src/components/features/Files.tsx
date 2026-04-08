@@ -15,13 +15,13 @@ import { CANONICAL_NOUNS } from '@/domain';
 import { exportCaseAsHtml, exportCaseAsJson, exportCaseAsMarkdown } from '@/utils/exportUtils';
 import {
   CHROME_HEADER_CLASS,
-  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
   CHROME_HEADER_PRIMARY_ACTION_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
+  CHROME_TOOLBAR_GROUP_CLASS,
   getChromeMenuButtonClass,
-  getChromeToggleButtonClass,
+  getChromeSegmentButtonClass,
 } from '@/components/ui/chrome';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
@@ -103,7 +103,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
               className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
             >
               <Plus className="h-4 w-4" />
-              <span>{`New ${workspaceLabel}`}</span>
+              <span>New</span>
             </button>
             <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
               <OsintSelect
@@ -129,26 +129,6 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                 ]}
               />
             </div>
-            <button
-              onClick={openUploadPicker}
-              disabled={workspaces.length === 0}
-              className={getChromeMenuButtonClass(false)}
-              title={
-                workspaces.length === 0
-                  ? `Create a ${workspaceLabelLower} before uploading documents`
-                  : 'Upload documents into a workspace'
-              }
-            >
-              <Upload className="h-4 w-4" />
-              <span className="hidden lg:inline">Upload</span>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={handleFileUpload}
-            />
           </div>
 
           <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
@@ -156,12 +136,15 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           </div>
 
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-            <div className="flex items-center -space-x-px">
+            <div
+              role="group"
+              aria-label="Files layout"
+              className={`${CHROME_TOOLBAR_GROUP_CLASS} flex items-stretch overflow-hidden`}
+            >
               <button
                 onClick={() => setViewMode('LIST')}
-                className={`flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(
-                  viewMode === 'LIST'
-                )}`}
+                aria-pressed={viewMode === 'LIST'}
+                className={`${getChromeSegmentButtonClass(viewMode === 'LIST')} flex min-w-[38px] items-center justify-center border-r border-zinc-800 px-2.5 py-1.5`}
                 title="Show dense list view"
                 aria-label="Show dense list view"
               >
@@ -169,9 +152,8 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
               </button>
               <button
                 onClick={() => setViewMode('GRID')}
-                className={`flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(
-                  viewMode === 'GRID'
-                )}`}
+                aria-pressed={viewMode === 'GRID'}
+                className={`${getChromeSegmentButtonClass(viewMode === 'GRID')} flex min-w-[38px] items-center justify-center px-2.5 py-1.5`}
                 title="Show grid view"
                 aria-label="Show grid view"
               >
@@ -253,6 +235,27 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                 ) : null}
               </div>
             ) : null}
+
+            <button
+              onClick={openUploadPicker}
+              disabled={workspaces.length === 0}
+              className={getChromeMenuButtonClass(false)}
+              title={
+                workspaces.length === 0
+                  ? `Create a ${workspaceLabelLower} before uploading documents`
+                  : 'Upload documents into a workspace'
+              }
+            >
+              <Upload className="h-4 w-4" />
+              <span className="hidden lg:inline">Upload</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileUpload}
+            />
 
             {currentWorkspace ? (
               <div className="relative" ref={exportMenuRef}>

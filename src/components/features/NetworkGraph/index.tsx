@@ -46,9 +46,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     dossierData,
     dossierLabelProfile,
     dossierSections,
-    filterCaseId,
+    filterWorkspaceId,
     flaggedNodeIds,
-    handleCaseChange,
+    handleWorkspaceChange,
     handleCreateManualLink,
     handleCreateNode,
     handleDeleteNode,
@@ -121,26 +121,26 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   useEffect(
     () =>
       addNetworkEntityFocusListener(({ workspaceId, entityName }) => {
-        if (!workspaceId || workspaceId !== filterCaseId) return;
+        if (!workspaceId || workspaceId !== filterWorkspaceId) return;
         handleOpenEntityInspector(entityName);
         graphRef.current?.focusNode(getEntityGraphNodeId(entityName));
       }),
-    [filterCaseId, handleOpenEntityInspector]
+    [filterWorkspaceId, handleOpenEntityInspector]
   );
 
   useEffect(() => {
     const focusEntity = routeState?.focusEntity || searchParams.get('focusEntity') || '';
-    if (!focusEntity || !filterCaseId) return;
+    if (!focusEntity || !filterWorkspaceId) return;
     handleOpenEntityInspector(focusEntity);
     graphRef.current?.focusNode(getEntityGraphNodeId(focusEntity));
-  }, [filterCaseId, handleOpenEntityInspector, routeState?.focusEntity, searchParams]);
+  }, [filterWorkspaceId, handleOpenEntityInspector, routeState?.focusEntity, searchParams]);
 
   return (
     <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">
       <ControlBar
         workspaces={workspaces}
-        filterCaseId={filterCaseId || ''}
-        onCaseChange={handleCaseChange}
+        filterWorkspaceId={filterWorkspaceId || ''}
+        onWorkspaceChange={handleWorkspaceChange}
         showLeftPanel={showLeftPanel}
         onToggleLeftPanel={() => setShowLeftPanel(!showLeftPanel)}
         showRightPanel={showRightPanel}
@@ -157,7 +157,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         <DossierPanel
           isOpen={showLeftPanel}
           overlayOnDesktop
-          activeCase={workspaces.find((c) => c.id === filterCaseId) || null}
+          activeCase={workspaces.find((workspace) => workspace.id === filterWorkspaceId) || null}
           labelProfile={dossierLabelProfile}
           reports={dossierData.reports}
           entities={dossierData.entities}
@@ -202,7 +202,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                 aliases={aliases}
                 hiddenNodeIds={hiddenNodeIds}
                 flaggedNodeIds={flaggedNodeIds}
-                filterCaseId={filterCaseId || ''}
+                filterWorkspaceId={filterWorkspaceId || ''}
                 showSingletons={showSingletons}
                 showHiddenNodes={showHiddenNodes}
                 showFlaggedOnly={showFlaggedOnly}

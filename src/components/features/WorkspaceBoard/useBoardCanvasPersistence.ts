@@ -175,6 +175,10 @@ export const useBoardCanvasPersistence = ({
       lastSelectionKeyRef.current = '';
       editor.user.updateUserPreferences({ colorScheme: themeMode });
       editor.updateInstanceState({ isReadonly: !!activeBoard?.presentationMode });
+      if (!hydratedSnapshot) {
+        const camera = editor.getCamera();
+        editor.setCamera({ x: camera.x, y: camera.y, z: 0.5 }, { immediate: true });
+      }
       syncSelection(editor);
 
       const removeSelectionListener = editor.store.listen(() => {
@@ -208,6 +212,7 @@ export const useBoardCanvasPersistence = ({
       persistBoardSnapshot,
       scheduleSave,
       syncSelection,
+      hydratedSnapshot,
       themeMode,
     ]
   );

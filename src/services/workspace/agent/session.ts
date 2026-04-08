@@ -12,7 +12,6 @@ import type {
   Headline,
 } from '@/types';
 import type { BoardAgentStreamEvent, RouterBoardAgentRequest } from '@/services/providers/types';
-import { createLocalId } from '@/utils/id';
 import {
   streamBoardAgentPass,
   type RunBoardAgentPassInput,
@@ -22,9 +21,14 @@ import {
   isBoardAgentActionFailureTerminal,
 } from './actions/registry';
 import type { BoardAgentTodoItem } from './actions/types';
-import { getBoardAgentReviewDefaultSelection } from './actions/review';
 import type { BoardThemeMode } from '../boardShapes';
 import type { Editor } from 'tldraw';
+import {
+  applyBoardAgentActionPatch,
+  applyBoardAgentSessionPatch,
+  createPendingBoardAgentActions,
+  getDefaultSelectedBoardActionIds,
+} from './sessionLifecycle';
 
 interface BoardAgentSessionStore {
   createBoardAgentSession: (input: {
@@ -126,14 +130,6 @@ const throwIfAborted = (signal?: AbortSignal) => {
   }
 };
 
-const mergeSessionMetadata = (
-  session: BoardAgentSession,
-  patch: Record<string, unknown>
-): Record<string, unknown> => ({
-  ...(session.metadata || {}),
-  ...patch,
-});
-
 const isAbortError = (error: unknown) =>
   error instanceof DOMException
     ? error.name === 'AbortError'
@@ -173,25 +169,19 @@ export const runBoardAgentSession = async (
   input.onEvent?.({ type: 'SESSION_CREATED', session });
 
   try {
-    await input.updateBoardAgentSession(session.id, {
-      status: 'RUNNING',
-      requestState: 'ASSEMBLING_CONTEXT',
-      startedAt: Date.now(),
-      metadata: mergeSessionMetadata(session, {
+    session = await applyBoardAgentSessionPatch({
+      session,
+      updateBoardAgentSession: input.updateBoardAgentSession,
+      patch: {
+        status: 'RUNNING',
+        requestState: 'ASSEMBLING_CONTEXT',
+        startedAt: Date.now(),
+      },
+      metadataPatch: {
         packId: input.packId || input.workspace.packId,
         purposeId: input.purposeId || input.workspace.purposeId,
-      }),
+      },
     });
-    session = {
-      ...session,
-      status: 'RUNNING',
-      requestState: 'ASSEMBLING_CONTEXT',
-      startedAt: Date.now(),
-      metadata: mergeSessionMetadata(session, {
-        packId: input.packId || input.workspace.packId,
-        purposeId: input.purposeId || input.workspace.purposeId,
-      }),
-    };
 
     while (passIndex < maxPasses) {
       throwIfAborted(input.signal);
@@ -216,27 +206,20 @@ export const runBoardAgentSession = async (
         recentActions: recentActions,
       };
 
-      await input.updateBoardAgentSession(session.id, {
-        request: currentRequest,
-        requestState: 'STREAMING',
-        updatedAt: Date.now(),
-        metadata: mergeSessionMetadata(session, {
+      session = await applyBoardAgentSessionPatch({
+        session,
+        updateBoardAgentSession: input.updateBoardAgentSession,
+        patch: {
+          request: currentRequest,
+          requestState: 'STREAMING',
+          updatedAt: Date.now(),
+        },
+        metadataPatch: {
           passCount: passIndex - 1,
           todoItems,
           latestMessage,
-        }),
+        },
       });
-      session = {
-        ...session,
-        request: currentRequest,
-        requestState: 'STREAMING',
-        updatedAt: Date.now(),
-        metadata: mergeSessionMetadata(session, {
-          passCount: passIndex - 1,
-          todoItems,
-          latestMessage,
-        }),
-      };
 
       const pass = await streamBoardAgentPass(passInput, {
         signal: input.signal,
@@ -254,88 +237,57 @@ export const runBoardAgentSession = async (
         },
       });
 
-      const sessionPatch: Partial<Omit<BoardAgentSession, 'id' | 'workspaceId' | 'boardId' | 'createdAt'>> =
-        {
+      session = await applyBoardAgentSessionPatch({
+        session,
+        updateBoardAgentSession: input.updateBoardAgentSession,
+        patch: {
           requestState: 'EXECUTING_ACTIONS',
           contextSnapshotId: pass.contextSnapshot.id,
           provider: pass.response.provider,
           modelId: pass.response.modelId,
           title: pass.response.suggestedTitle || session.title,
-          metadata: mergeSessionMetadata(session, {
-            latestMessage: pass.response.message,
-            passCount: passIndex,
-            todoItems,
-          }),
           updatedAt: Date.now(),
-        };
-      await input.updateBoardAgentSession(session.id, sessionPatch);
-      session = {
-        ...session,
-        ...sessionPatch,
-      };
+        },
+        metadataPatch: {
+          latestMessage: pass.response.message,
+          passCount: passIndex,
+          todoItems,
+        },
+      });
       latestMessage = pass.response.message;
 
       const nextPrompts: string[] = [];
-      const pendingActions: Array<{
-        persistedAction: BoardAgentAction;
-        structuredAction: typeof pass.response.actions[number];
-      }> = [];
-
-      for (const structuredAction of pass.response.actions) {
-        throwIfAborted(input.signal);
-        const now = Date.now();
-        const action: BoardAgentAction = {
-          id: createLocalId('board-agent-action'),
-          sessionId: session.id,
-          workspaceId: input.workspace.id,
-          boardId: input.board.id,
-          type: structuredAction.type,
-          status: 'AWAITING_APPROVAL',
-          input: structuredAction.input,
-          createdAt: now,
-          updatedAt: now,
-        };
-
-        await input.addBoardAgentAction(action);
-        pendingActions.push({ persistedAction: action, structuredAction });
-      }
+      const pendingActions = await createPendingBoardAgentActions({
+        actions: pass.response.actions,
+        addBoardAgentAction: input.addBoardAgentAction,
+        boardId: input.board.id,
+        session,
+        workspaceId: input.workspace.id,
+      });
 
       if (pendingActions.length > 0) {
-        const defaultSelectedActionIds = pendingActions
-          .filter(({ persistedAction }) =>
-            getBoardAgentReviewDefaultSelection(
-              persistedAction.type,
-              autoApproveOrganizationActions
-            )
-          )
-          .map(({ persistedAction }) => persistedAction.id);
+        const defaultSelectedActionIds = getDefaultSelectedBoardActionIds({
+          autoApproveOrganizationActions,
+          pendingActions,
+        });
 
         if (input.requestReview) {
-          await input.updateBoardAgentSession(session.id, {
-            requestState: 'AWAITING_APPROVAL',
-            updatedAt: Date.now(),
-            metadata: mergeSessionMetadata(session, {
+          session = await applyBoardAgentSessionPatch({
+            session,
+            updateBoardAgentSession: input.updateBoardAgentSession,
+            patch: {
+              requestState: 'AWAITING_APPROVAL',
+              updatedAt: Date.now(),
+            },
+            metadataPatch: {
               latestMessage,
               passCount: passIndex,
               todoItems,
               awaitingApprovalActionIds: pendingActions.map(
                 ({ persistedAction }) => persistedAction.id
               ),
-            }),
+            },
           });
-          session = {
-            ...session,
-            requestState: 'AWAITING_APPROVAL',
-            updatedAt: Date.now(),
-            metadata: mergeSessionMetadata(session, {
-              latestMessage,
-              passCount: passIndex,
-              todoItems,
-              awaitingApprovalActionIds: pendingActions.map(
-                ({ persistedAction }) => persistedAction.id
-              ),
-            }),
-          };
         }
 
         const reviewDecision = input.requestReview
@@ -355,33 +307,31 @@ export const runBoardAgentSession = async (
 
         if (reviewDecision.cancelled) {
           for (const { persistedAction } of pendingActions) {
-            await input.updateBoardAgentAction(persistedAction.id, session.id, {
-              status: 'CANCELLED',
-              updatedAt: Date.now(),
+            await applyBoardAgentActionPatch({
+              action: persistedAction,
+              sessionId: session.id,
+              updateBoardAgentAction: input.updateBoardAgentAction,
+              patch: {
+                status: 'CANCELLED',
+                updatedAt: Date.now(),
+              },
             });
           }
 
-          await input.updateBoardAgentSession(session.id, {
-            status: 'CANCELLED',
-            requestState: 'CANCELLED',
-            completedAt: Date.now(),
-            metadata: mergeSessionMetadata(session, {
+          session = await applyBoardAgentSessionPatch({
+            session,
+            updateBoardAgentSession: input.updateBoardAgentSession,
+            patch: {
+              status: 'CANCELLED',
+              requestState: 'CANCELLED',
+              completedAt: Date.now(),
+            },
+            metadataPatch: {
               latestMessage,
               passCount: passIndex,
               todoItems,
-            }),
+            },
           });
-          session = {
-            ...session,
-            status: 'CANCELLED',
-            requestState: 'CANCELLED',
-            completedAt: Date.now(),
-            metadata: mergeSessionMetadata(session, {
-              latestMessage,
-              passCount: passIndex,
-              todoItems,
-            }),
-          };
 
           return {
             session,
@@ -395,45 +345,36 @@ export const runBoardAgentSession = async (
         const approvedActionIds = new Set(reviewDecision.approvedActionIds);
         const skippedActionIds = new Set(reviewDecision.skippedActionIds || []);
 
-        await input.updateBoardAgentSession(session.id, {
-          requestState: 'EXECUTING_ACTIONS',
-          updatedAt: Date.now(),
-          metadata: mergeSessionMetadata(session, {
+        session = await applyBoardAgentSessionPatch({
+          session,
+          updateBoardAgentSession: input.updateBoardAgentSession,
+          patch: {
+            requestState: 'EXECUTING_ACTIONS',
+            updatedAt: Date.now(),
+          },
+          metadataPatch: {
             latestMessage,
             passCount: passIndex,
             todoItems,
             awaitingApprovalActionIds: [],
-          }),
+          },
         });
-        session = {
-          ...session,
-          requestState: 'EXECUTING_ACTIONS',
-          updatedAt: Date.now(),
-          metadata: mergeSessionMetadata(session, {
-            latestMessage,
-            passCount: passIndex,
-            todoItems,
-            awaitingApprovalActionIds: [],
-          }),
-        };
 
         for (const { persistedAction, structuredAction } of pendingActions) {
           throwIfAborted(input.signal);
 
           if (!approvedActionIds.has(persistedAction.id) || skippedActionIds.has(persistedAction.id)) {
-            const skippedAction: BoardAgentAction = {
-              ...persistedAction,
-              status: 'SKIPPED',
-              result: {
-                reviewDecision: 'SKIPPED',
+            const skippedAction = await applyBoardAgentActionPatch({
+              action: persistedAction,
+              sessionId: session.id,
+              updateBoardAgentAction: input.updateBoardAgentAction,
+              patch: {
+                status: 'SKIPPED',
+                result: {
+                  reviewDecision: 'SKIPPED',
+                },
+                updatedAt: Date.now(),
               },
-              updatedAt: Date.now(),
-            };
-
-            await input.updateBoardAgentAction(skippedAction.id, session.id, {
-              status: skippedAction.status,
-              result: skippedAction.result,
-              updatedAt: skippedAction.updatedAt,
             });
 
             persistedActions.push(skippedAction);
@@ -448,9 +389,14 @@ export const runBoardAgentSession = async (
             continue;
           }
 
-          await input.updateBoardAgentAction(persistedAction.id, session.id, {
-            status: 'RUNNING',
-            updatedAt: Date.now(),
+          await applyBoardAgentActionPatch({
+            action: persistedAction,
+            sessionId: session.id,
+            updateBoardAgentAction: input.updateBoardAgentAction,
+            patch: {
+              status: 'RUNNING',
+              updatedAt: Date.now(),
+            },
           });
 
           const execution = await executeBoardAgentStructuredAction({
@@ -479,25 +425,19 @@ export const runBoardAgentSession = async (
               : {}),
           };
 
-          const finalizedAction: BoardAgentAction = {
-            ...persistedAction,
-            status: execution.status,
-            normalizedInput: execution.normalizedInput,
-            result: Object.keys(mergedResult).length > 0 ? mergedResult : undefined,
-            affectedCanonicalIds: execution.affectedCanonicalIds,
-            affectedBoardShapeIds: execution.affectedBoardShapeIds,
-            error: execution.error,
-            updatedAt: Date.now(),
-          };
-
-          await input.updateBoardAgentAction(persistedAction.id, session.id, {
-            status: finalizedAction.status,
-            normalizedInput: finalizedAction.normalizedInput,
-            result: finalizedAction.result,
-            affectedCanonicalIds: finalizedAction.affectedCanonicalIds,
-            affectedBoardShapeIds: finalizedAction.affectedBoardShapeIds,
-            error: finalizedAction.error,
-            updatedAt: finalizedAction.updatedAt,
+          const finalizedAction = await applyBoardAgentActionPatch({
+            action: persistedAction,
+            sessionId: session.id,
+            updateBoardAgentAction: input.updateBoardAgentAction,
+            patch: {
+              status: execution.status,
+              normalizedInput: execution.normalizedInput,
+              result: Object.keys(mergedResult).length > 0 ? mergedResult : undefined,
+              affectedCanonicalIds: execution.affectedCanonicalIds,
+              affectedBoardShapeIds: execution.affectedBoardShapeIds,
+              error: execution.error,
+              updatedAt: Date.now(),
+            },
           });
 
           persistedActions.push(finalizedAction);
@@ -518,29 +458,21 @@ export const runBoardAgentSession = async (
 
           if (isBoardAgentActionFailureTerminal(execution)) {
             const errorMessage = execution.error || 'Board-agent execution failed.';
-            await input.updateBoardAgentSession(session.id, {
-              status: 'FAILED',
-              requestState: 'FAILED',
-              lastError: errorMessage,
-              completedAt: Date.now(),
-              metadata: mergeSessionMetadata(session, {
+            session = await applyBoardAgentSessionPatch({
+              session,
+              updateBoardAgentSession: input.updateBoardAgentSession,
+              patch: {
+                status: 'FAILED',
+                requestState: 'FAILED',
+                lastError: errorMessage,
+                completedAt: Date.now(),
+              },
+              metadataPatch: {
                 latestMessage,
                 passCount: passIndex,
                 todoItems,
-              }),
+              },
             });
-            session = {
-              ...session,
-              status: 'FAILED',
-              requestState: 'FAILED',
-              lastError: errorMessage,
-              completedAt: Date.now(),
-              metadata: mergeSessionMetadata(session, {
-                latestMessage,
-                passCount: passIndex,
-                todoItems,
-              }),
-            };
             input.onEvent?.({
               type: 'SESSION_FAILED',
               session,
@@ -565,27 +497,20 @@ export const runBoardAgentSession = async (
       currentRequest = Array.from(new Set(nextPrompts)).join('\n\n');
     }
 
-    await input.updateBoardAgentSession(session.id, {
-      status: 'COMPLETED',
-      requestState: 'COMPLETED',
-      completedAt: Date.now(),
-      metadata: mergeSessionMetadata(session, {
+    session = await applyBoardAgentSessionPatch({
+      session,
+      updateBoardAgentSession: input.updateBoardAgentSession,
+      patch: {
+        status: 'COMPLETED',
+        requestState: 'COMPLETED',
+        completedAt: Date.now(),
+      },
+      metadataPatch: {
         latestMessage,
         passCount: passIndex,
         todoItems,
-      }),
+      },
     });
-    session = {
-      ...session,
-      status: 'COMPLETED',
-      requestState: 'COMPLETED',
-      completedAt: Date.now(),
-      metadata: mergeSessionMetadata(session, {
-        latestMessage,
-        passCount: passIndex,
-        todoItems,
-      }),
-    };
     input.onEvent?.({
       type: 'SESSION_COMPLETE',
       session,
@@ -606,29 +531,21 @@ export const runBoardAgentSession = async (
     const nextStatus = isAbortError(error) ? 'CANCELLED' : 'FAILED';
     const nextState = isAbortError(error) ? 'CANCELLED' : 'FAILED';
 
-    await input.updateBoardAgentSession(session.id, {
-      status: nextStatus,
-      requestState: nextState,
-      lastError: isAbortError(error) ? undefined : message,
-      completedAt: Date.now(),
-      metadata: mergeSessionMetadata(session, {
+    session = await applyBoardAgentSessionPatch({
+      session,
+      updateBoardAgentSession: input.updateBoardAgentSession,
+      patch: {
+        status: nextStatus,
+        requestState: nextState,
+        lastError: isAbortError(error) ? undefined : message,
+        completedAt: Date.now(),
+      },
+      metadataPatch: {
         latestMessage,
         passCount: passIndex,
         todoItems,
-      }),
+      },
     });
-    session = {
-      ...session,
-      status: nextStatus,
-      requestState: nextState,
-      lastError: isAbortError(error) ? undefined : message,
-      completedAt: Date.now(),
-      metadata: mergeSessionMetadata(session, {
-        latestMessage,
-        passCount: passIndex,
-        todoItems,
-      }),
-    };
 
     if (!isAbortError(error)) {
       input.onEvent?.({

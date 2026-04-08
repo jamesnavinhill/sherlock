@@ -92,4 +92,25 @@ describe('Files chat launch propagation', () => {
     expect(screen.getByRole('button', { name: /upload/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/view workspace/i)).toBeInTheDocument();
   });
+
+  it('exposes the layout switch as one grouped toggle control', () => {
+    render(
+      <MemoryRouter future={routerFuture}>
+        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('group', { name: /files layout/i })).toBeInTheDocument();
+
+    const listToggle = screen.getByRole('button', { name: /show dense list view/i });
+    const gridToggle = screen.getByRole('button', { name: /show grid view/i });
+
+    expect(listToggle).toHaveAttribute('aria-pressed', 'true');
+    expect(gridToggle).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(gridToggle);
+
+    expect(listToggle).toHaveAttribute('aria-pressed', 'false');
+    expect(gridToggle).toHaveAttribute('aria-pressed', 'true');
+  });
 });

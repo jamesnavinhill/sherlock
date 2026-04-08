@@ -9,15 +9,15 @@ interface NetworkGraphDossierData {
 }
 
 export const buildNetworkGraphDossierData = ({
-  filterCaseId,
+  filterWorkspaceId,
   headlines,
   reports,
 }: {
-  filterCaseId?: string | null;
+  filterWorkspaceId?: string | null;
   headlines: Headline[];
   reports: Artifact[];
 }): NetworkGraphDossierData => {
-  if (!filterCaseId) {
+  if (!filterWorkspaceId) {
     return {
       reports: [],
       headlines: [],
@@ -28,9 +28,13 @@ export const buildNetworkGraphDossierData = ({
   }
 
   const activeReports =
-    filterCaseId === 'ALL' ? reports : reports.filter((report) => report.workspaceId === filterCaseId);
+    filterWorkspaceId === 'ALL'
+      ? reports
+      : reports.filter((report) => report.workspaceId === filterWorkspaceId);
   const activeHeadlines =
-    filterCaseId === 'ALL' ? headlines : headlines.filter((headline) => headline.workspaceId === filterCaseId);
+    filterWorkspaceId === 'ALL'
+      ? headlines
+      : headlines.filter((headline) => headline.workspaceId === filterWorkspaceId);
 
   const allLeads = Array.from(new Set(activeReports.flatMap((report) => report.leads || [])));
 

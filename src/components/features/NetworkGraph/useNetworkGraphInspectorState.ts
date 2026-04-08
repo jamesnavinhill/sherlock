@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 import type { Artifact, Headline } from '@/types';
 import type { GraphNode } from './GraphCanvas';
-import { getEntityGraphNodeId } from './networkGraphNodeIds';
+import { getEntityGraphNodeId, getReportGraphNodeId } from './networkGraphNodeIds';
 
 export const useNetworkGraphInspectorState = () => {
   const [showRightPanel, setShowRightPanel] = useState(false);
@@ -53,8 +53,8 @@ export const useNetworkGraphInspectorState = () => {
       node ||
         (report.id
           ? {
-              id: `case-${report.id}`,
-              type: 'CASE',
+              id: getReportGraphNodeId(report.id),
+              type: 'REPORT',
               label: report.topic,
               data: report,
               connections: 0,
@@ -74,7 +74,7 @@ export const useNetworkGraphInspectorState = () => {
         return;
       }
 
-      if (node.type === 'CASE' && node.data) {
+      if (node.type === 'REPORT' && node.data) {
         handleOpenReportInspector(node.data, node);
       } else if (node.type === 'ENTITY') {
         handleOpenEntityInspector(node.label, node);

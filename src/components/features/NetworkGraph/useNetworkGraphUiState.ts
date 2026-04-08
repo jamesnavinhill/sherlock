@@ -13,7 +13,7 @@ export const useNetworkGraphUiState = () => {
   const [linkSourceNode, setLinkSourceNode] = useState<GraphNode | null>(null);
   const [showAddNodeUI, setShowAddNodeUI] = useState(false);
   const [newNodeLabel, setNewNodeLabel] = useState('');
-  const [newNodeType, setNewNodeType] = useState<'ENTITY' | 'CASE'>('ENTITY');
+  const [newNodeType, setNewNodeType] = useState<'ENTITY' | 'REPORT'>('ENTITY');
   const [newNodeSubtype, setNewNodeSubtype] = useState<GraphNodeSubtype>('PERSON');
   const [showResolutionModal, setShowResolutionModal] = useState(false);
   const [nodePendingDeletion, setNodePendingDeletion] = useState<GraphNode | null>(null);

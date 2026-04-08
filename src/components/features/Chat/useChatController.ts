@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type {
   AgentAction,
-  Artifact,
   ChatMentionReference,
   ChatMessage,
   ChatSession,
@@ -25,23 +24,18 @@ import {
 } from '../../../services/chat/runtime';
 import type { GuidedRunDraft } from '../../../services/chat/guidedMode';
 import { exportChatSessionAsJson, exportChatSessionAsMarkdown } from '../../../utils/exportUtils';
-import { getChatLaunchContextFromSession } from '../../../services/chat/launchContext';
 import { sanitizeDisplayTitle } from '../../../domain';
 import {
   buildManualSetupSeed,
   formatDateTime,
   formatMessageWithCitations,
   formatTimestamp,
-  getDefaultLeftPanelOpen,
-  getDefaultRightPanelOpen,
   getGuidedSessionState,
-  getLaunchContextSummary,
   getSessionTitle,
   LEFT_PANEL_SECTION_SCROLL_CLASS,
   RIGHT_PANEL_SECTION_SCROLL_CLASS,
   sectionLabelClassName,
   splitCollapsedFollowUpBlock,
-  toggleExclusiveSection,
 } from './chatPageUtils';
 import {
   advanceGuidedChatSession,
@@ -66,25 +60,17 @@ import {
   promoteChatAttachmentToWorkspace,
   saveChatMessageAsArtifact,
 } from './chatTranscriptActions';
-import { buildMentionCandidates, resolveDraftMentions } from '@/components/ui/omniboxModel';
+import { resolveDraftMentions } from '@/components/ui/omniboxModel';
 import { requestNetworkEntityFocus } from '@/services/workspace/workspaceSurfaceFocus';
 import { useWorkspaceDocumentUpload } from '@/components/features/shared/useWorkspaceDocumentUpload';
+import { useChatViewState } from './useChatViewState';
+import { useChatWorkspaceState } from './useChatWorkspaceState';
 
-export interface RenameSessionDialogState {
-  session: ChatSession;
-  title: string;
-}
-
-export interface AppendArtifactDialogState {
-  message: ChatMessage;
-  selectedReportId: string;
-}
-
-export interface FollowUpDialogState {
-  action: AgentAction;
-  request: InvestigationLaunchRequest;
-  topic: string;
-}
+export type {
+  AppendArtifactDialogState,
+  FollowUpDialogState,
+  RenameSessionDialogState,
+} from './useChatViewState';
 
 interface UseChatControllerInput {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -124,46 +110,46 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     updateChatMessage,
     workspaceItems,
   } = useChatFeatureState();
-
-  const [draft, setDraft] = useState('');
-  const [leftPanelOpen, setLeftPanelOpen] = useState(getDefaultLeftPanelOpen);
-  const [rightPanelOpen, setRightPanelOpen] = useState(getDefaultRightPanelOpen);
-  const [workingSessionId, setWorkingSessionId] = useState<string | null>(null);
-  const [workingAssistantMessageId, setWorkingAssistantMessageId] = useState<string | null>(null);
-  const [manualSetupDraft, setManualSetupDraft] = useState<GuidedRunDraft | null>(null);
-  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
-  const [showNewMenu, setShowNewMenu] = useState(false);
-  const [showExportMenu, setShowExportMenu] = useState(false);
-  const [renameSessionDialog, setRenameSessionDialog] = useState<RenameSessionDialogState | null>(
-    null
-  );
-  const [deleteSessionDialog, setDeleteSessionDialog] = useState<ChatSession | null>(null);
-  const [appendArtifactDialog, setAppendArtifactDialog] = useState<AppendArtifactDialogState | null>(
-    null
-  );
-  const [followUpDialog, setFollowUpDialog] = useState<FollowUpDialogState | null>(null);
-  const [artifactCardState, setArtifactCardState] = useState<{
-    expanded: Record<string, boolean>;
-    workspaceId: string | null;
-  }>({
-    expanded: {},
-    workspaceId: null,
-  });
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const streamedAnswerRef = useRef('');
-  const transcriptEndRef = useRef<HTMLDivElement | null>(null);
-  const newMenuRef = useRef<HTMLDivElement | null>(null);
-  const exportMenuRef = useRef<HTMLDivElement | null>(null);
-  const [leftPanelSections, setLeftPanelSections] = useState({
-    sessions: false,
-    workspace: false,
-  });
-  const [rightPanelSections, setRightPanelSections] = useState({
-    launchContext: false,
-    recentArtifacts: false,
-    recentSignals: false,
-    latestRetrieval: false,
-    actionLog: false,
+  const {
+    abortControllerRef,
+    appendArtifactDialog,
+    artifactCardState,
+    deleteSessionDialog,
+    draft,
+    exportMenuRef,
+    followUpDialog,
+    leftPanelOpen,
+    leftPanelSections,
+    manualSetupDraft,
+    newMenuRef,
+    renameSessionDialog,
+    rightPanelOpen,
+    rightPanelSections,
+    setAppendArtifactDialog,
+    setDeleteSessionDialog,
+    setDraft,
+    setFollowUpDialog,
+    setLeftPanelOpen,
+    setManualSetupDraft,
+    setRenameSessionDialog,
+    setRightPanelOpen,
+    setShowExportMenu,
+    setShowNewMenu,
+    setShowNewProjectModal,
+    setWorkingAssistantMessageId,
+    setWorkingSessionId,
+    showExportMenu,
+    showNewMenu,
+    showNewProjectModal,
+    streamedAnswerRef,
+    toggleArtifactCard,
+    toggleLeftPanelSection,
+    toggleRightPanelSection,
+    transcriptEndRef,
+    workingAssistantMessageId,
+    workingSessionId,
+  } = useChatViewState({
+    activeWorkspaceId,
   });
   const {
     closeUploadDialog,
@@ -188,43 +174,34 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     navigateToChatSession(navigate, workspaceId, sessionId);
   };
 
-  useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
-      if (newMenuRef.current && !newMenuRef.current.contains(event.target as Node)) {
-        setShowNewMenu(false);
-      }
-      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
-        setShowExportMenu(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setLeftPanelOpen(getDefaultLeftPanelOpen());
-      setRightPanelOpen(getDefaultRightPanelOpen());
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const activeWorkspace = useMemo(
-    () => workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null,
-    [activeWorkspaceId, workspaces]
-  );
-
-  const workspaceSessions = useMemo(
-    () =>
-      chatSessions
-        .filter((session) => session.workspaceId === activeWorkspace?.id)
-        .sort((a, b) => b.updatedAt - a.updatedAt),
-    [activeWorkspace?.id, chatSessions]
-  );
+  const {
+    activeSession,
+    activeWorkspace,
+    appendableWorkspaceReports,
+    expandedArtifactIds,
+    guidedState,
+    launchContextSummary,
+    latestAssistantMessage,
+    mentionCandidates,
+    messageBodyClassName,
+    messages,
+    sessionActions,
+    workspaceReports,
+    workspaceSessions,
+    workspaceSignals,
+  } = useChatWorkspaceState({
+    activeChatSessionId,
+    activeWorkspaceId,
+    artifacts,
+    artifactCardState,
+    chatActionsBySessionId,
+    chatMessagesBySessionId,
+    chatSessions,
+    headlines,
+    themeMode,
+    workspaceItems: workspaceItems || [],
+    workspaces,
+  });
 
   useEffect(() => {
     if (!activeWorkspace) {
@@ -242,108 +219,9 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     }
   }, [activeWorkspace, activeChatSessionId, setActiveChatSessionId, workspaceSessions]);
 
-  const activeSession = useMemo(
-    () => workspaceSessions.find((session) => session.id === activeChatSessionId) || null,
-    [activeChatSessionId, workspaceSessions]
-  );
-  const launchContext = useMemo(() => getChatLaunchContextFromSession(activeSession), [activeSession]);
-
-  const guidedState = useMemo(() => getGuidedSessionState(activeSession), [activeSession]);
-  const messages = useMemo(
-    () => (activeSession ? chatMessagesBySessionId[activeSession.id] || [] : []),
-    [activeSession, chatMessagesBySessionId]
-  );
-  const latestAssistantMessage = [...messages]
-    .reverse()
-    .find((message) => message.role === 'assistant' && message.content.trim().length > 0);
-  const sessionActions = useMemo(
-    () =>
-      activeSession
-        ? [...(chatActionsBySessionId[activeSession.id] || [])].sort(
-            (a, b) => b.createdAt - a.createdAt
-          )
-        : [],
-    [activeSession, chatActionsBySessionId]
-  );
-  const workspaceReports = useMemo(
-    () => artifacts.filter((artifact) => artifact.workspaceId === activeWorkspace?.id),
-    [activeWorkspace?.id, artifacts]
-  );
-  const appendableWorkspaceReports = useMemo(
-    () =>
-      workspaceReports.filter(
-        (artifact): artifact is Artifact & { id: string } =>
-          typeof artifact.id === 'string' && artifact.id.length > 0
-      ),
-    [workspaceReports]
-  );
-  const workspaceSignals = useMemo(
-    () => headlines.filter((headline) => headline.workspaceId === activeWorkspace?.id),
-    [activeWorkspace?.id, headlines]
-  );
-  const mentionCandidates = useMemo(
-    () =>
-      activeWorkspace
-        ? buildMentionCandidates({
-            workspaceId: activeWorkspace.id,
-            artifacts: workspaceReports,
-            signals: workspaceSignals,
-            workspaceItems: workspaceItems || [],
-          })
-        : [],
-    [activeWorkspace, workspaceItems, workspaceReports, workspaceSignals]
-  );
-  const launchContextSummary = useMemo(
-    () =>
-      getLaunchContextSummary({
-        launchContext,
-        reports: workspaceReports,
-        signals: workspaceSignals,
-        workspaceItems: workspaceItems.filter((item) => item.workspaceId === activeWorkspace?.id),
-      }),
-    [activeWorkspace?.id, launchContext, workspaceItems, workspaceReports, workspaceSignals]
-  );
-  const messageBodyClassName = useMemo(
-    () =>
-      `prose max-w-none text-sm leading-7 text-zinc-200 prose-p:my-2 prose-ul:my-2 prose-headings:my-3 [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_p]:text-inherit [&_li]:text-inherit [&_ol]:text-inherit [&_ul]:text-inherit [&_strong]:text-inherit [&_em]:text-inherit [&_code]:text-inherit [&_blockquote]:text-inherit ${
-        themeMode === 'dark' ? 'prose-invert' : ''
-      }`.trim(),
-    [themeMode]
-  );
-
-  const defaultExpandedArtifactIds = useMemo<Record<string, boolean>>(() => ({}), []);
-
-  const expandedArtifactIds =
-    artifactCardState.workspaceId === activeWorkspace?.id
-      ? artifactCardState.expanded
-      : defaultExpandedArtifactIds;
-
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ block: 'end' });
-  }, [messages, partialAssistantOutput, guidedState]);
-
-  const toggleLeftPanelSection = (section: keyof typeof leftPanelSections) => {
-    setLeftPanelSections((current) => toggleExclusiveSection(current, section));
-  };
-
-  const toggleRightPanelSection = (section: keyof typeof rightPanelSections) => {
-    setRightPanelSections((current) => toggleExclusiveSection(current, section));
-  };
-
-  const toggleArtifactCard = (artifactId: string) => {
-    setArtifactCardState((current) => {
-      const baseExpanded =
-        current.workspaceId === activeWorkspace?.id ? current.expanded : defaultExpandedArtifactIds;
-
-      return {
-        expanded: {
-          ...baseExpanded,
-          [artifactId]: !baseExpanded[artifactId],
-        },
-        workspaceId: activeWorkspace?.id || null,
-      };
-    });
-  };
+  }, [guidedState, messages, partialAssistantOutput, transcriptEndRef]);
 
   const copyToClipboard = async (value: string, successMessage: string) => {
     await navigator.clipboard.writeText(value);

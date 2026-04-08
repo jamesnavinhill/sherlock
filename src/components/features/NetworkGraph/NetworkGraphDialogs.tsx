@@ -28,7 +28,7 @@ interface NetworkGraphDialogsProps {
   allEntityNames: string[];
   newNodeLabel: string;
   newNodeSubtype: GraphNodeSubtype;
-  newNodeType: 'ENTITY' | 'CASE';
+  newNodeType: 'ENTITY' | 'REPORT';
   nodePendingDeletion: PendingNodeDeletion | null;
   onCloseAddNode: () => void;
   onCloseLeadModal: () => void;
@@ -39,7 +39,7 @@ interface NetworkGraphDialogsProps {
   onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
   onNodeLabelChange: (value: string) => void;
   onNodeSubtypeChange: (value: GraphNodeSubtype) => void;
-  onNodeTypeChange: (value: 'ENTITY' | 'CASE') => void;
+  onNodeTypeChange: (value: 'ENTITY' | 'REPORT') => void;
   onSaveAliases: (aliases: EntityAliasMap) => void;
   selectedLeadForAnalysis: SelectedLeadForAnalysis | null;
   showAddNodeUI: boolean;

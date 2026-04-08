@@ -10,11 +10,12 @@ import type {
 } from '../../../types';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneCssVar } from '../../../utils/entityPalette';
+import { getReportGraphNodeId } from './networkGraphNodeIds';
 
 // Graph Types
 export interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
-  type: 'CASE' | 'ENTITY';
+  type: 'REPORT' | 'ENTITY';
   subtype?: GraphNodeSubtype;
   label: string;
   data?: Artifact;
@@ -43,7 +44,7 @@ interface GraphCanvasProps {
   flaggedNodeIds: Set<string>;
 
   // Filters
-  filterCaseId: string | null;
+  filterWorkspaceId: string | null;
   showSingletons: boolean;
   showHiddenNodes: boolean;
   showFlaggedOnly: boolean;
@@ -81,7 +82,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       aliases,
       hiddenNodeIds,
       flaggedNodeIds,
-      filterCaseId,
+      filterWorkspaceId,
       showSingletons,
       showHiddenNodes,
       showFlaggedOnly,
@@ -109,7 +110,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
     const simulationRef = useRef<d3.Simulation<GraphNode, undefined> | null>(null);
 
-    const buildManualCaseArtifact = (id: string, label: string): Artifact => ({
+    const buildManualReportArtifact = (id: string, label: string): Artifact => ({
       id,
       workspaceId: id,
       topic: label,
@@ -142,13 +143,13 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             .select('circle')
             .attr(
               'fill',
-              isLinkSource ? '#ef4444' : d.type === 'CASE' ? '#000' : getEntityFillColor(d.subtype)
+              isLinkSource ? '#ef4444' : d.type === 'REPORT' ? '#000' : getEntityFillColor(d.subtype)
             )
             .attr(
               'stroke',
               isLinkSource
                 ? '#f87171'
-                : d.type === 'CASE'
+                : d.type === 'REPORT'
                   ? '#fff'
                   : getEntityStrokeColor(d.subtype)
             )
@@ -158,7 +159,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             .selectAll('path')
             .attr(
               'stroke',
-              d.type === 'CASE'
+              d.type === 'REPORT'
                 ? isLinkSource
                   ? '#f87171'
                   : '#fff'
@@ -234,15 +235,14 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       const isNodeHidden = (id: string, label: string) =>
         hiddenNodeIds.has(id) || hiddenNodeIds.has(label);
 
-      // Filter reports by selected case
+      // Filter reports by selected workspace
       const activeReports =
-        filterCaseId === 'ALL' || !filterCaseId
+        filterWorkspaceId === 'ALL' || !filterWorkspaceId
           ? reports
-          : reports.filter((r) => r.workspaceId === filterCaseId);
+          : reports.filter((r) => r.workspaceId === filterWorkspaceId);
 
-      if (!filterCaseId) {
-        // If no case selected/loaded, empty graph? original logic says empty if ''
-        // But existing logic handles empty arrays fine.
+      if (!filterWorkspaceId) {
+        // No workspace selected; the empty-state path handles the blank graph.
       }
 
       const rawNodes = new Map<string, GraphNode>();
@@ -251,7 +251,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       // Helper to get/create node
       const getOrCreateNode = (
         id: string,
-        type: 'CASE' | 'ENTITY',
+        type: 'REPORT' | 'ENTITY',
         label: string,
         reportData?: Artifact,
         isManual: boolean = false,
@@ -260,10 +260,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         if (isNodeDeleted(id, label) || (isNodeHidden(id, label) && !showHiddenNodes)) return null;
         if (!rawNodes.has(id)) {
           const previousPosition = nodePositionsRef.current[id];
-          // If it's a Manual "CASE" node but has no report data
+          // If it's a manual report node but has no report data
           let data = reportData;
-          if (type === 'CASE' && isManual && !data) {
-            data = buildManualCaseArtifact(id, label);
+          if (type === 'REPORT' && isManual && !data) {
+            data = buildManualReportArtifact(id, label);
           }
 
           rawNodes.set(id, {
@@ -285,22 +285,23 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
       // Build Graph from Manual Nodes
       manualNodes.forEach((mn) =>
-        getOrCreateNode(mn.id, mn.type, mn.label, undefined, true, mn.subtype)
+        getOrCreateNode(mn.id, mn.type === 'CASE' ? 'REPORT' : mn.type, mn.label, undefined, true, mn.subtype)
       );
 
       // Build Graph from Reports
       activeReports.forEach((report) => {
-        const workspaceId = `case-${report.id}`;
-        const caseNode = getOrCreateNode(workspaceId, 'CASE', report.topic, report);
-        if (!caseNode) return;
+        if (!report.id) return;
+        const reportNodeId = getReportGraphNodeId(report.id);
+        const reportNode = getOrCreateNode(reportNodeId, 'REPORT', report.topic, report);
+        if (!reportNode) return;
 
         if (report.config?.parentArtifactId) {
           const parentReport = activeReports.find(
             (entry) => entry.id === report.config?.parentArtifactId
           );
-          if (parentReport) {
-            const pId = `case-${parentReport.id}`;
-            if (rawNodes.has(pId)) rawLinks.push({ source: pId, target: workspaceId, value: 3 });
+          if (parentReport?.id) {
+            const pId = getReportGraphNodeId(parentReport.id);
+            if (rawNodes.has(pId)) rawLinks.push({ source: pId, target: reportNodeId, value: 3 });
           }
         }
 
@@ -318,11 +319,12 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
           const linkExists = rawLinks.some(
             (l) =>
-              (l.source === workspaceId && l.target === eId) || (l.source === eId && l.target === workspaceId)
+              (l.source === reportNodeId && l.target === eId) ||
+              (l.source === eId && l.target === reportNodeId)
           );
           if (!linkExists) {
-            rawLinks.push({ source: workspaceId, target: eId, value: 1 });
-            caseNode.connections++;
+            rawLinks.push({ source: reportNodeId, target: eId, value: 1 });
+            reportNode.connections++;
             eNode.connections++;
           }
         });
@@ -342,12 +344,12 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
           const linkExists = rawLinks.some(
             (link) =>
-              (link.source === workspaceId && link.target === sourceId) ||
-              (link.source === sourceId && link.target === workspaceId)
+              (link.source === reportNodeId && link.target === sourceId) ||
+              (link.source === sourceId && link.target === reportNodeId)
           );
           if (!linkExists) {
-            rawLinks.push({ source: workspaceId, target: sourceId, value: 0.8 });
-            caseNode.connections++;
+            rawLinks.push({ source: reportNodeId, target: sourceId, value: 0.8 });
+            reportNode.connections++;
             sourceNode.connections++;
           }
         });
@@ -382,7 +384,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
       if (showFlaggedOnly) {
         nodesArray.forEach((n) => {
-          if (flaggedNodeIds.has(n.id) || flaggedNodeIds.has(n.label) || n.type === 'CASE') {
+          if (flaggedNodeIds.has(n.id) || flaggedNodeIds.has(n.label) || n.type === 'REPORT') {
             nodesToKeep.add(n.id);
           }
         });
@@ -392,7 +394,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         );
       } else if (!showSingletons) {
         nodesArray.forEach((n) => {
-          if (n.isManual || n.type === 'CASE' || n.connections > 1) nodesToKeep.add(n.id);
+          if (n.isManual || n.type === 'REPORT' || n.connections > 1) nodesToKeep.add(n.id);
         });
         filteredNodes = nodesArray.filter((n) => nodesToKeep.has(n.id));
         filteredLinks = linksArray.filter(
@@ -516,14 +518,14 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       node
         .append('circle')
         .attr('r', (d: GraphNode) =>
-          d.type === 'CASE' ? 20 : Math.min(6 + d.connections * 2, 20)
+          d.type === 'REPORT' ? 20 : Math.min(6 + d.connections * 2, 20)
         );
 
       // Icons
       node.each((d: GraphNode, index: number, nodes: ArrayLike<SVGGElement>) => {
         const g = d3.select(nodes[index]);
         let iconPath = '';
-        if (d.type === 'CASE') {
+        if (d.type === 'REPORT') {
           iconPath =
             'M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8';
         } else if (d.subtype === 'PERSON') {
@@ -543,7 +545,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         g.append('path')
           .attr('d', iconPath)
           .attr('fill', 'transparent')
-          .attr('stroke', d.type === 'CASE' ? '#000' : getEntityStrokeColor(d.subtype))
+          .attr('stroke', d.type === 'REPORT' ? '#000' : getEntityStrokeColor(d.subtype))
           .attr('stroke-width', 2)
           .attr('stroke-linecap', 'round')
           .attr('stroke-linejoin', 'round')
@@ -551,7 +553,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
         g.selectAll('path').attr(
           'stroke',
-          d.type === 'CASE' ? '#fff' : getEntityStrokeColor(d.subtype)
+          d.type === 'REPORT' ? '#fff' : getEntityStrokeColor(d.subtype)
         );
       });
 
@@ -593,7 +595,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       aliases,
       manualNodes,
       hiddenNodeIds,
-      filterCaseId,
+      filterWorkspaceId,
       showSingletons,
       showHiddenNodes,
       flaggedNodeIds,

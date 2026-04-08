@@ -12,12 +12,12 @@ interface SubtypeOption {
 interface NetworkGraphAddNodeOverlayProps {
   newNodeLabel: string;
   newNodeSubtype: GraphNodeSubtype;
-  newNodeType: 'ENTITY' | 'CASE';
+  newNodeType: 'ENTITY' | 'REPORT';
   onClose: () => void;
   onCreateNode: () => void;
   onNodeLabelChange: (value: string) => void;
   onNodeSubtypeChange: (value: GraphNodeSubtype) => void;
-  onNodeTypeChange: (value: 'ENTITY' | 'CASE') => void;
+  onNodeTypeChange: (value: 'ENTITY' | 'REPORT') => void;
   show: boolean;
   subtypeOptions: SubtypeOption[];
 }
@@ -54,9 +54,9 @@ export const NetworkGraphAddNodeOverlay: React.FC<NetworkGraphAddNodeOverlayProp
           ENTITY
         </button>
         <button
-          onClick={() => onNodeTypeChange('CASE')}
+          onClick={() => onNodeTypeChange('REPORT')}
           className={`flex-1 px-3 py-1.5 text-[10px] font-mono font-bold uppercase transition-colors ${
-            newNodeType === 'CASE' ? 'osint-button-chrome-active' : 'osint-button-chrome'
+            newNodeType === 'REPORT' ? 'osint-button-chrome-active' : 'osint-button-chrome'
           }`}
         >
           REPORT

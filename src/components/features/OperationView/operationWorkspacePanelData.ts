@@ -1,8 +1,8 @@
 import type { Artifact, Entity, Source, Workspace } from '@/types';
 import { getArtifactFollowUps, getFollowUpText } from '@/domain';
 
-interface OperationCasePanelData {
-  caseInfo: Workspace | null;
+interface OperationWorkspacePanelData {
+  workspaceInfo: Workspace | null;
   entities: Entity[];
   leads: string[];
   reports: Artifact[];
@@ -10,15 +10,15 @@ interface OperationCasePanelData {
 }
 
 export const buildOperationWorkspacePanelData = ({
-  activeCase,
+  activeWorkspace,
   reports,
 }: {
-  activeCase: Workspace | null;
+  activeWorkspace: Workspace | null;
   reports: Artifact[];
-}): OperationCasePanelData => {
-  if (!activeCase || reports.length === 0) {
+}): OperationWorkspacePanelData => {
+  if (!activeWorkspace || reports.length === 0) {
     return {
-      caseInfo: activeCase,
+      workspaceInfo: activeWorkspace,
       reports: [],
       entities: [],
       leads: [],
@@ -55,7 +55,7 @@ export const buildOperationWorkspacePanelData = ({
     });
 
   return {
-    caseInfo: activeCase,
+    workspaceInfo: activeWorkspace,
     reports,
     entities: Array.from(entityMap.values()),
     leads,
