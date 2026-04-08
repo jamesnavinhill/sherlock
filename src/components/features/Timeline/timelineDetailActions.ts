@@ -1,12 +1,24 @@
-import { Activity, FileText, Fingerprint, MessageSquare, Radio, Save, Workflow } from 'lucide-react';
+import {
+  Activity,
+  ExternalLink,
+  FileText,
+  Fingerprint,
+  FolderKanban,
+  MessageSquare,
+  Radio,
+  Save,
+  Workflow,
+} from 'lucide-react';
 
-import type { Artifact, TimelineEvent, TimelineTrack } from '@/types';
+import type { Artifact, TimelineEvent, TimelineTrack, WorkspaceItem } from '@/types';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
 
 interface BuildTimelineDetailActionsInput {
   focusReference: (track: TimelineTrack, refId?: string) => void;
   labelArtifactLabel: string;
   onOpenArtifact: (artifactId?: string) => void;
+  onOpenItemSource: () => void;
+  onOpenWorkspaceItem: () => void;
   onOpenWorkspaceBoard: () => Promise<void>;
   onOpenWorkspaceChat: (event?: TimelineEvent | null) => void;
   onPlaceReferenceOnBoard: () => Promise<void>;
@@ -18,12 +30,15 @@ interface BuildTimelineDetailActionsInput {
   selectedEntityName?: string | null;
   selectedEvent?: TimelineEvent | null;
   selectedRunId?: string;
+  selectedWorkspaceItem?: WorkspaceItem | null;
 }
 
 export const buildTimelineDetailActions = ({
   focusReference,
   labelArtifactLabel,
   onOpenArtifact,
+  onOpenItemSource,
+  onOpenWorkspaceItem,
   onOpenWorkspaceBoard,
   onOpenWorkspaceChat,
   onPlaceReferenceOnBoard,
@@ -35,6 +50,7 @@ export const buildTimelineDetailActions = ({
   selectedEntityName,
   selectedEvent,
   selectedRunId,
+  selectedWorkspaceItem,
 }: BuildTimelineDetailActionsInput): InspectorActionItem[] => {
   if (!selectedEvent) return [];
 
@@ -53,13 +69,31 @@ export const buildTimelineDetailActions = ({
     },
   ];
 
-  if (selectedArtifact?.id || relatedSignalId || selectedEntityName) {
+  if (selectedArtifact?.id || relatedSignalId || selectedEntityName || selectedWorkspaceItem) {
     actions.push({
       id: 'timeline-board-place',
       label: 'Place On Board',
       icon: Save,
       onClick: () => void onPlaceReferenceOnBoard(),
     });
+  }
+
+  if (selectedWorkspaceItem) {
+    actions.push({
+      id: 'timeline-item-open',
+      label: 'Open Item',
+      icon: FolderKanban,
+      onClick: onOpenWorkspaceItem,
+    });
+
+    if (selectedWorkspaceItem.url) {
+      actions.push({
+        id: 'timeline-item-source',
+        label: 'Open Source URL',
+        icon: ExternalLink,
+        onClick: onOpenItemSource,
+      });
+    }
   }
 
   if (selectedArtifact?.id) {

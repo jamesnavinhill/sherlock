@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from '../../../types';
 import { Accordion } from '../../ui/Accordion';
-import { stripLegacyWorkspacePrefix } from '../../../domain';
+import { getWorkspaceDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { CHROME_PANEL_CLASS } from '../../ui/chrome';
 
@@ -73,7 +73,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
       {activeCase && (
         <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
           <h2 className="text-base font-bold text-white font-mono leading-tight mb-2">
-            {stripLegacyWorkspacePrefix(activeCase.title)}
+            {getWorkspaceDisplayTitle(activeCase)}
           </h2>
           <div className="flex items-center space-x-3 text-xs text-zinc-500 font-mono">
             <span className="flex items-center">

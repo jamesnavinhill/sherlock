@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { Network } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import type {
   ChatOpenRequest,
   InvestigationLaunchRequest,
   Artifact,
 } from '../../../types';
+import type { NetworkRouteState } from '@/app/routes';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EmptyState } from '../../ui/EmptyState';
 
@@ -23,6 +25,7 @@ interface NetworkGraphProps {
   onOpenReport: (report: Artifact) => void;
   onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
+  routeState?: NetworkRouteState;
   onBack?: () => void;
   navStack?: BreadcrumbItem[];
   onNavigate?: (id: string) => void;
@@ -32,10 +35,12 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   onOpenReport,
   onInvestigateEntity,
   onOpenChat,
+  routeState,
   onBack: _onBack,
   navStack: _navStack,
   onNavigate: _onNavigate,
 }) => {
+  const [searchParams] = useSearchParams();
   const graphRef = useRef<GraphCanvasRef>(null);
   const {
     activeScopeId,
@@ -125,6 +130,13 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       }),
     [filterCaseId, handleOpenEntityInspector]
   );
+
+  useEffect(() => {
+    const focusEntity = routeState?.focusEntity || searchParams.get('focusEntity') || '';
+    if (!focusEntity || !filterCaseId) return;
+    handleOpenEntityInspector(focusEntity);
+    graphRef.current?.focusNode(getEntityGraphNodeId(focusEntity));
+  }, [filterCaseId, handleOpenEntityInspector, routeState?.focusEntity, searchParams]);
 
   return (
     <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">

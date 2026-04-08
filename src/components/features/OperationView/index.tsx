@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ArtifactRouteState } from '@/app/routes';
 import type {
   ChatOpenRequest,
   Artifact,
@@ -22,6 +23,7 @@ import { OperationViewDialogs } from './OperationViewDialogs';
 interface OperationViewProps {
   task: WorkspaceRun | null;
   reportOverride?: Artifact | null;
+  artifactRouteState?: ArtifactRouteState;
   onBack: () => void;
   onDeepDive: (request: InvestigationLaunchRequest) => void;
   navStack: BreadcrumbItem[];
@@ -35,6 +37,7 @@ interface OperationViewProps {
 export const OperationView: React.FC<OperationViewProps> = ({
   task,
   reportOverride = null,
+  artifactRouteState,
   onBack,
   onDeepDive,
   navStack,
@@ -60,6 +63,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     handleLeadClick,
     handleOpenEntityChat,
     handleOpenHeadlineChat,
+    handleOpenReportInspector,
     handleOpenReportChat,
     handleOpenWorkspaceBoard,
     handlePlaceEntityOnBoard,
@@ -96,6 +100,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
     templateName,
     toggleDossierSection,
   } = useOperationViewController({
+    artifactRouteState,
     onNavigate,
     onInvestigateHeadline,
     onOpenChat,
@@ -159,8 +164,11 @@ export const OperationView: React.FC<OperationViewProps> = ({
         }}
         rightPanelOpen={rightPanelOpen}
         onToggleRightPanel={() => {
-          setRightPanelOpen((current) => !current);
-          if (window.innerWidth <= 1024) setLeftPanelOpen(false);
+          if (rightPanelOpen) {
+            setRightPanelOpen(false);
+            return;
+          }
+          handleOpenReportInspector();
         }}
         onSelectCase={handleCaseSelect}
         onStartNewCase={() => setIsNewCaseModalOpen(true)}
@@ -214,6 +222,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
         <ReportViewer
           report={report}
           workspaceTitle={activeCase ? getWorkspaceDisplayTitle(activeCase) : null}
+          focusedSectionId={artifactRouteState?.focusSectionId}
+          focusedEvidenceId={artifactRouteState?.focusEvidenceId}
           navStack={navStack}
           onNavigate={onNavigate}
           showPlaceholder={showPlaceholder}
@@ -230,6 +240,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
           isOpen={rightPanelOpen}
           onClose={() => setRightPanelOpen(false)}
           mode={inspectorMode}
+          report={report}
+          workspaceTitle={activeCase ? getWorkspaceDisplayTitle(activeCase) : null}
           entity={selectedEntity}
           headline={selectedHeadline}
           reports={allCaseReports}
@@ -239,11 +251,15 @@ export const OperationView: React.FC<OperationViewProps> = ({
           onInvestigateHeadline={handleHeadlineInvestigate}
           onOpenEntityChat={handleOpenEntityChat}
           onOpenHeadlineChat={handleOpenHeadlineChat}
+          onOpenReportChat={handleOpenReportChat}
           onPlaceEntityOnBoard={(entityName) => {
             void handlePlaceEntityOnBoard(entityName);
           }}
           onPlaceHeadlineOnBoard={() => {
             void handlePlaceHeadlineOnBoard();
+          }}
+          onPlaceReportOnBoard={() => {
+            void handlePlaceReportOnBoard();
           }}
           onNavigate={onNavigate}
         />

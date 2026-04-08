@@ -12,7 +12,7 @@ Responsibilities:
 
 - initializes persistence/state (`useWorkspaceStore().initializeStore()`, re-exported from `src/store/caseStore.ts`)
 - mounts the browser router and route-backed page composition
-- mounts the global omnibox/search surface used for route, workspace, and canonical-record lookup
+- mounts the shared header omnibox/search surface used for route, workspace, and canonical-record lookup
 - owns the unified launch pipeline
 - resolves domain-pack and purpose metadata into run config
 - wires lazy-loaded route pages and route wrappers
@@ -41,6 +41,7 @@ Supporting shell files now include:
 - `src/app/useAppShellEffects.ts`
 - `src/app/AppShellRoutes.tsx`
 - `src/components/ui/GlobalSearch.tsx`
+- `src/components/ui/omniboxFocus.ts`
 - `src/components/ui/omniboxModel.ts`
 - `src/components/ui/chrome.ts`
 - `src/components/features/WorkspaceHome/index.tsx`
@@ -78,7 +79,10 @@ Route/state ownership is intentionally split this way:
 Examples captured directly in `src/app/routes.ts`:
 
 - timeline query state (`search`, `range`, `tracks`, `focusTrack`, `focusRefId`) is designated URL-owned
-- artifact inspector panel visibility and temporary selection state remain store/component-owned
+- files focus state (`workspaceId`, `focusItemId`) is URL-owned so canonical workspace items resolve to a stable Files destination
+- artifact reading focus state (`focusSectionId`, `focusEvidenceId`, `inspector`) is URL-owned so search/omnibox opens can land on a precise reading target
+- network entity focus (`focusEntity`) is URL-owned so entity mentions and omnibox results can reopen the graph in a focused state
+- artifact/entity/headline temporary inspector selection beyond the current report focus remains store/component-owned
 - board agent drafts, chat composer drafts, and other transient workflow state remain store/component-owned
 
 Route wrappers now enforce the same contract at runtime:
@@ -100,7 +104,7 @@ That module currently centralizes:
 - shared panel shell/header treatments
 - common toolbar/menu/toggle/segmented-button classes
 
-Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, and Workspace Home now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
+Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
 
 ### Workspace-home readiness contract
 
@@ -373,6 +377,7 @@ Routed workflow surfaces now share a baseline chrome/panel contract rather than 
 - InspectorPanel
 - `useOperationViewController.ts` now owns route-level selection state, handoff commands, template-save flow, and board/chat orchestration while `index.tsx` stays focused on layout and modal composition
 - `OperationViewDialogs.tsx` now holds the lead follow-through modal, new-workspace modal, and protocol-template save dialog so workflow copy and launch boundaries live outside the page shell
+- saved artifact routes can now carry `focusSectionId`, `focusEvidenceId`, and `inspector=REPORT`, which lets omnibox/search hits reopen the reader on a precise section/evidence target while defaulting the right rail to a current-artifact inspector
 
 Supports deep dives, follow-up execution, signal follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
@@ -447,6 +452,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - launch-into-chat handoff for inspected reports, entities, and headlines
 - board handoff for inspected reports, entities, and headlines
 - omnibox entity results can now focus the active network surface in place by reopening the entity inspector and recentering the graph instead of forcing a redundant route change
+- omnibox, chat mentions, and timeline actions now share the same routed focus contract for item-in-Files, report-section/report-evidence, and network-entity reopening
 - manual node/link creation
 - source nodes derived from artifact sources for non-investigation graph work
 - broader manual node semantics for concepts and sources alongside legacy people and organizations
@@ -474,6 +480,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - shell-level Files copy now uses the canonical `Workspace` / `Artifact` nouns instead of label-profile drift
 - selected-workspace browsing supports `All`, `Artifacts`, and `Items` filtering over the same workspace-scoped list
 - artifact rows still route into saved artifact detail and now share the same chat and board handoff verbs exposed by the omnibox
+- item opens now resolve through `/files?workspaceId=...&focusItemId=...`, which gives canonical workspace items a stable focusable destination for omnibox, chat-mention, and timeline handoffs
 - workspace-item rows expose provenance-aware summaries plus direct workspace-chat, board-placement, and source-link actions
 
 ### Timeline

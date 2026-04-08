@@ -13,7 +13,7 @@ import {
   buildWorkspaceBoardDocumentPath,
 } from '@/app/routes';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { sanitizeDisplayTitle } from '@/domain';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import { LEFT_PANEL_SECTION_SCROLL_CLASS } from './workspaceBoardUtils';
 import { useWorkspaceBoardController } from './useWorkspaceBoardController';
 import { BoardLibraryRail } from './BoardLibraryRail';
@@ -171,7 +171,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
 
         <BoardLibraryRail
           isOpen={leftPanelOpen}
-          workspaceTitle={sanitizeDisplayTitle(activeWorkspace.title)}
+          workspaceTitle={getWorkspaceDisplayTitle(activeWorkspace)}
           search={search}
           groupedEntries={groupedEntries}
           librarySections={librarySections}

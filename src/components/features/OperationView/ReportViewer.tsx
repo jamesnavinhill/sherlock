@@ -26,7 +26,6 @@ import {
   getPurposeProfileById,
   getSectionByKinds,
   getSectionItemsByKinds,
-  stripLegacyWorkspacePrefix,
 } from '../../../domain';
 import { Breadcrumbs } from '../../ui/Breadcrumbs';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
@@ -41,6 +40,8 @@ import { buildReportViewerPresentation } from './reportViewerPresentation';
 interface ReportViewerProps {
   report: Artifact | null;
   workspaceTitle?: string | null;
+  focusedSectionId?: string;
+  focusedEvidenceId?: string;
   navStack: BreadcrumbItem[];
   onNavigate: (id: string) => void;
   onNotify: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
@@ -55,6 +56,8 @@ interface ReportViewerProps {
 export const ReportViewer: React.FC<ReportViewerProps> = ({
   report,
   workspaceTitle,
+  focusedSectionId,
+  focusedEvidenceId,
   navStack,
   onNavigate,
   onNotify,
@@ -67,6 +70,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 }) => {
   const DETAIL_SECTION_SCROLL_CLASS =
     'max-h-[min(24rem,calc(100svh-20rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+  const reportSources = report?.sources || [];
 
   // --- Right Column Accordions State ---
   const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(true);
@@ -76,6 +80,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const [isEditingReportBody, setIsEditingReportBody] = useState(false);
   const [reportBodyDraft, setReportBodyDraft] = useState('');
   const [isSavingReportBody, setIsSavingReportBody] = useState(false);
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const evidenceRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const toggleSidebarAccordion = (
     section: 'anomalies' | 'followUps' | 'entities' | 'resources'
@@ -186,11 +192,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     return null;
   };
 
-  const reportSources = report?.sources || [];
   const labelProfile = getLabelProfileById(report?.labelProfileId || report?.config?.labelProfileId);
   const purposeProfile = getPurposeProfileById(report?.purposeId || report?.config?.purposeId);
   const detailPanelTitle = workspaceTitle?.trim()
-    ? stripLegacyWorkspacePrefix(workspaceTitle)
+    ? workspaceTitle.trim()
     : navStack.find((item) => item.type === 'CASE')?.label || labelProfile.workspaceLabel;
   const {
     artifactTypeLabel,
@@ -200,6 +205,11 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     readingHighlights,
     visibleEvidence,
   } = buildReportViewerPresentation(report, purposeProfile);
+  const focusedEvidence =
+    focusedEvidenceId && visibleEvidence.length > 0
+      ? visibleEvidence.find((entry) => entry.id === focusedEvidenceId)
+      : undefined;
+  const highlightedSectionId = focusedSectionId || focusedEvidence?.sectionId;
   const primarySummarySection = getSectionByKinds(orderedSections, [
     'EXECUTIVE_SUMMARY',
     'KEY_FINDINGS',
@@ -250,6 +260,19 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       setReportBodyDraft(visibleReportBody);
     }
   }, [isEditingReportBody, visibleReportBody]);
+
+  useEffect(() => {
+    const nextTarget =
+      (focusedEvidenceId ? evidenceRefs.current[focusedEvidenceId] : null) ||
+      (highlightedSectionId ? sectionRefs.current[highlightedSectionId] : null);
+
+    if (!nextTarget) return;
+
+    nextTarget.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }, [focusedEvidenceId, highlightedSectionId, report?.id]);
 
   const handleSaveReportBody = async () => {
     const trimmed = reportBodyDraft.trim();
@@ -413,7 +436,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           </div>
 
           {/* Report Body */}
-          <div className="bg-osint-panel/90 backdrop-blur-md p-8 border border-zinc-700 osint-section-shadow relative overflow-hidden group mb-8">
+          <div
+            ref={(node) => {
+              if (primarySummarySection?.id) {
+                sectionRefs.current[primarySummarySection.id] = node;
+              }
+            }}
+            className={`bg-osint-panel/90 backdrop-blur-md p-8 border osint-section-shadow relative overflow-hidden group mb-8 transition-colors ${
+              highlightedSectionId === primarySummarySection?.id
+                ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                : 'border-zinc-700'
+            }`}
+          >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:bg-white/10"></div>
             <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
               <h2 className="font-osint-display text-xl font-bold text-white flex items-center tracking-wide">
@@ -425,47 +459,50 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                     <button
                       onClick={handleSaveReportBody}
                       disabled={isSavingReportBody}
-                      className="inline-flex items-center border border-green-500/40 bg-green-500/10 px-3 py-1.5 text-xs font-mono font-bold uppercase text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-9 w-9 items-center justify-center border border-green-500/40 bg-green-500/10 text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      title="Save report text"
+                      aria-label="Save"
                     >
                       {isSavingReportBody ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Check className="mr-2 h-4 w-4" />
+                        <Check className="h-4 w-4" />
                       )}
-                      Save
                     </button>
                     <button
                       onClick={handleCancelReportBodyEdit}
                       disabled={isSavingReportBody}
-                      className="inline-flex items-center border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-mono font-bold uppercase text-zinc-400 transition-colors hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex h-9 w-9 items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      title="Cancel editing"
+                      aria-label="Cancel"
                     >
-                      <X className="mr-2 h-4 w-4" />
-                      Cancel
+                      <X className="h-4 w-4" />
                     </button>
                   </>
                 ) : (
                   <button
                     onClick={() => setIsEditingReportBody(true)}
-                    className="inline-flex items-center border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-mono font-bold uppercase text-zinc-400 transition-colors hover:border-white hover:text-white"
+                    className="inline-flex h-9 w-9 items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-white hover:text-white"
+                    title="Edit report text"
+                    aria-label="Edit"
                   >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
+                    <Pencil className="h-4 w-4" />
                   </button>
                 )}
                 <button
                   onClick={handlePlayBriefing}
                   disabled={isAudioLoading}
-                  className={`flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase transition-all border ${isPlaying ? 'osint-button-danger animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}
+                  className={`inline-flex h-9 w-9 items-center justify-center transition-all border ${isPlaying ? 'osint-button-danger animate-pulse' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white hover:border-white'}`}
                   aria-label={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
+                  title={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
                 >
                   {isAudioLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : isPlaying ? (
-                    <StopCircle className="w-4 h-4 mr-2" />
+                    <StopCircle className="w-4 h-4" />
                   ) : (
-                    <Volume2 className="w-4 h-4 mr-2" />
+                    <Volume2 className="w-4 h-4" />
                   )}
-                  {isAudioLoading ? 'Synth...' : isPlaying ? 'Stop' : 'Voice'}
                 </button>
               </div>
             </div>
@@ -474,11 +511,20 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 {evidenceBySectionId[primarySummarySection.id].slice(0, 4).map((evidence) => (
                   <span
                     key={evidence.id}
-                    className="rounded-none border border-osint-primary/30 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] text-osint-primary"
+                    className={`rounded-none border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
+                      focusedEvidenceId === evidence.id
+                        ? 'border-osint-primary bg-osint-primary/20 text-white'
+                        : 'border-osint-primary/30 bg-osint-primary/10 text-osint-primary'
+                    }`}
                   >
                     {evidence.sourceTitle || evidence.title}
                   </span>
                 ))}
+              </div>
+            ) : null}
+            {focusedEvidenceId || focusedSectionId ? (
+              <div className="relative z-10 mb-4 inline-flex items-center border border-osint-primary/40 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.16em] text-osint-primary">
+                Focused Reading Target
               </div>
             ) : null}
             {isEditingReportBody ? (
@@ -496,7 +542,16 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           </div>
 
           {methodologySection?.content && (
-            <div className="mb-8 border border-zinc-800 bg-zinc-950/70 p-5">
+            <div
+              ref={(node) => {
+                sectionRefs.current[methodologySection.id] = node;
+              }}
+              className={`mb-8 border bg-zinc-950/70 p-5 transition-colors ${
+                highlightedSectionId === methodologySection.id
+                  ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                  : 'border-zinc-800'
+              }`}
+            >
               <h3 className="mb-3 text-sm font-mono font-bold uppercase tracking-widest text-white">
                 {getArtifactSectionTitle(
                   methodologySection.kind,
@@ -509,7 +564,11 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   {evidenceBySectionId[methodologySection.id].slice(0, 3).map((evidence) => (
                     <span
                       key={evidence.id}
-                      className="rounded-none border border-osint-primary/30 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] text-osint-primary"
+                      className={`rounded-none border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
+                        focusedEvidenceId === evidence.id
+                          ? 'border-osint-primary bg-osint-primary/20 text-white'
+                          : 'border-osint-primary/30 bg-osint-primary/10 text-osint-primary'
+                      }`}
                     >
                       {evidence.sourceTitle || evidence.title}
                     </span>
@@ -532,7 +591,17 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
                 {visibleEvidence.map((evidence) => (
-                  <div key={evidence.id} className="border border-zinc-800 bg-zinc-950/70 p-4">
+                  <div
+                    key={evidence.id}
+                    ref={(node) => {
+                      evidenceRefs.current[evidence.id] = node;
+                    }}
+                    className={`border bg-zinc-950/70 p-4 transition-colors ${
+                      focusedEvidenceId === evidence.id
+                        ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                        : 'border-zinc-800'
+                    }`}
+                  >
                     <div className="flex items-center justify-between gap-3 mb-2">
                       <div className="text-xs font-mono font-bold uppercase text-white">
                         {evidence.title}
@@ -573,7 +642,17 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           {supplementalSections.length > 0 && (
             <div className="space-y-4 mb-8">
               {supplementalSections.map((section) => (
-                <div key={section.id} className="bg-zinc-950/60 border border-zinc-800 p-5">
+                <div
+                  key={section.id}
+                  ref={(node) => {
+                    sectionRefs.current[section.id] = node;
+                  }}
+                  className={`bg-zinc-950/60 border p-5 transition-colors ${
+                    highlightedSectionId === section.id
+                      ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                      : 'border-zinc-800'
+                  }`}
+                >
                   <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-white mb-3">
                     {getArtifactSectionTitle(section.kind, labelProfile, section.title)}
                   </h3>
@@ -582,7 +661,11 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                       {evidenceBySectionId[section.id].slice(0, 3).map((evidence) => (
                         <span
                           key={evidence.id}
-                          className="rounded-none border border-osint-primary/30 bg-osint-primary/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] text-osint-primary"
+                          className={`rounded-none border px-2 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
+                            focusedEvidenceId === evidence.id
+                              ? 'border-osint-primary bg-osint-primary/20 text-white'
+                              : 'border-osint-primary/30 bg-osint-primary/10 text-osint-primary'
+                          }`}
                         >
                           {evidence.sourceTitle || evidence.title}
                         </span>

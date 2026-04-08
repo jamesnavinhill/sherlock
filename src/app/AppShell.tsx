@@ -49,6 +49,11 @@ export function AppShell() {
       <main
         className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${controller.isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}
       >
+        <div className="border-b border-zinc-800 bg-black/95 px-4 py-3 backdrop-blur-md md:px-6">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-center">
+            <GlobalSearch />
+          </div>
+        </div>
         <div className="flex-1 overflow-hidden relative w-full">
           <Suspense
             fallback={
@@ -64,7 +69,6 @@ export function AppShell() {
         </div>
       </main>
       {controller.showHelpModal && <HelpModal onClose={() => controller.setShowHelpModal(false)} />}
-      <GlobalSearch />
       <ToastContainer />
     </div>
   );

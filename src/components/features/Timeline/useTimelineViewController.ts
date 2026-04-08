@@ -8,14 +8,17 @@ import type {
 } from '@/types';
 import { useTimelineFeatureState } from '@/store/selectors/featureSelectors';
 import {
+  buildFilesPath,
   buildWorkspaceBoardDocumentPath,
 } from '@/app/routes';
 import {
   buildWorkspaceArtifactReference,
   buildWorkspaceEntityReference,
   buildWorkspaceHeadlineReference,
+  buildWorkspaceItemReference,
 } from '@/services/workspace/library';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import { buildWorkspaceItemChatOpenRequest } from '@/services/workspace/workspaceHandoffs';
 
 import {
   buildTimelineSnapshotArtifact,
@@ -147,6 +150,7 @@ export function useTimelineViewController({
     selectedEntityName,
     selectedEvent,
     selectedRun,
+    selectedWorkspaceItem,
     signalItems,
     signalTitleById,
     timelineSnapshot,
@@ -267,6 +271,11 @@ export function useTimelineViewController({
         return;
       }
 
+      if (selectedWorkspaceItem) {
+        onOpenChat(buildWorkspaceItemChatOpenRequest(selectedWorkspaceItem));
+        return;
+      }
+
       if (getPrimaryRefId(event || null, 'ARTIFACT')) {
         onOpenChat({
           workspaceId: activeWorkspace.id,
@@ -302,8 +311,18 @@ export function useTimelineViewController({
 
       onOpenChat({ workspaceId: activeWorkspace.id });
     },
-    [activeWorkspace, onOpenChat]
+    [activeWorkspace, onOpenChat, selectedWorkspaceItem]
   );
+
+  const openWorkspaceItem = useCallback(() => {
+    if (!activeWorkspace || !selectedWorkspaceItem) return;
+    navigate(
+      buildFilesPath({
+        workspaceId: activeWorkspace.id,
+        focusItemId: selectedWorkspaceItem.id,
+      })
+    );
+  }, [activeWorkspace, navigate, selectedWorkspaceItem]);
 
   const openWorkspaceBoard = useCallback(async () => {
     if (!activeWorkspace) return;
@@ -321,6 +340,8 @@ export function useTimelineViewController({
         ...selectedArtifact,
         id: selectedArtifact.id,
       });
+    } else if (selectedWorkspaceItem) {
+      reference = buildWorkspaceItemReference(selectedWorkspaceItem);
     } else if (relatedSignal) {
       reference = buildWorkspaceHeadlineReference(activeWorkspace.id, relatedSignal);
     } else if (selectedEntityName) {
@@ -348,6 +369,7 @@ export function useTimelineViewController({
     relatedSignal,
     selectedArtifact,
     selectedEntityName,
+    selectedWorkspaceItem,
   ]);
 
   const detailActions: InspectorActionItem[] = useMemo(
@@ -356,6 +378,12 @@ export function useTimelineViewController({
         focusReference,
         labelArtifactLabel: labelProfile.artifactLabel,
         onOpenArtifact: openArtifact,
+        onOpenItemSource: () => {
+          if (selectedWorkspaceItem?.url) {
+            window.open(selectedWorkspaceItem.url, '_blank', 'noopener,noreferrer');
+          }
+        },
+        onOpenWorkspaceItem: openWorkspaceItem,
         onOpenWorkspaceBoard: openWorkspaceBoard,
         onOpenWorkspaceChat: openWorkspaceChat,
         onPlaceReferenceOnBoard: placeReferenceOnBoard,
@@ -367,11 +395,13 @@ export function useTimelineViewController({
         selectedEntityName,
         selectedEvent,
         selectedRunId: selectedRun?.id,
+        selectedWorkspaceItem,
       }),
     [
       focusReference,
       labelProfile.artifactLabel,
       openArtifact,
+      openWorkspaceItem,
       openWorkspaceBoard,
       openWorkspaceChat,
       parentArtifact?.id,
@@ -383,6 +413,7 @@ export function useTimelineViewController({
       selectedEntityName,
       selectedEvent,
       selectedRun?.id,
+      selectedWorkspaceItem,
     ]
   );
 
@@ -433,6 +464,7 @@ export function useTimelineViewController({
     selectedEvent,
     selectedEventId,
     selectedRun,
+    selectedWorkspaceItem,
     setDetailSections,
     setDossierSections,
     setLeftPanelOpen,

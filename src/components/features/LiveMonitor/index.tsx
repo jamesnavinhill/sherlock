@@ -18,7 +18,7 @@ import { CHROME_HEADER_CLASS, getChromeMenuButtonClass } from '../../ui/chrome';
 import {
   getDomainPackForScope,
   getLabelProfileById,
-  stripLegacyWorkspacePrefix,
+  getWorkspaceDisplayTitle,
 } from '../../../domain';
 import {
   getStoredLiveMonitorAutosave,
@@ -138,7 +138,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
     try {
       const existingContent = safeEvents.map((e) => e.content);
       const newIntel = await getLiveWorkspaceIntel(
-        stripLegacyWorkspacePrefix(activeCase.title),
+        getWorkspaceDisplayTitle(activeCase),
         feedConfig,
         existingContent,
         activeScope,
@@ -311,7 +311,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
                 { value: '', label: 'None Selected' },
                 ...workspaces.map((workspace) => ({
                   value: workspace.id,
-                  label: stripLegacyWorkspacePrefix(workspace.title),
+                  label: getWorkspaceDisplayTitle(workspace),
                 })),
               ]}
             />

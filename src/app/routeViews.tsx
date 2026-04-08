@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 
 import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import {
   buildFilesPath,
   buildWorkspaceBoardDocumentPath,
   buildWorkspaceChatPath,
+  parseArtifactRouteState,
+  parseNetworkRouteState,
 } from '@/app/routes';
 import type {
   Artifact,
@@ -166,8 +168,10 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   onOpenChat,
 }) => {
   const { workspaceId, artifactId } = useParams();
+  const [searchParams] = useSearchParams();
   const nextWorkspaceId = workspaceId || '';
   const nextArtifactId = artifactId || '';
+  const artifactRouteState = parseArtifactRouteState(searchParams);
 
   useEffect(() => {
     if (nextWorkspaceId) {
@@ -201,6 +205,7 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
       <OperationView
         task={relatedTask}
         reportOverride={report}
+        artifactRouteState={artifactRouteState}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
         navStack={buildBreadcrumbs(report, workspaces, relatedTask?.id || null)}
@@ -234,9 +239,11 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   onOpenChat,
 }) => {
   const { runId } = useParams();
+  const [searchParams] = useSearchParams();
   const nextRunId = runId || '';
   const task = workspaceRuns.find((workspaceRun) => workspaceRun.id === nextRunId) || null;
   const report = task?.report || null;
+  const artifactRouteState = parseArtifactRouteState(searchParams);
 
   useEffect(() => {
     if (nextRunId) {
@@ -260,6 +267,7 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
       <OperationView
         task={task}
         reportOverride={report}
+        artifactRouteState={artifactRouteState}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
         navStack={buildBreadcrumbs(report, workspaces, task.id)}
@@ -398,7 +406,9 @@ export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
   onLaunchInvestigation,
 }) => {
   const { workspaceId } = useParams();
+  const [searchParams] = useSearchParams();
   const nextWorkspaceId = workspaceId || '';
+  const networkRouteState = parseNetworkRouteState(searchParams);
 
   useEffect(() => {
     if (nextWorkspaceId) {
@@ -409,6 +419,7 @@ export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
   return (
     <Suspense fallback={<RouteViewFallback />}>
       <NetworkGraph
+        routeState={networkRouteState}
         onOpenReport={onViewReport}
         onInvestigateEntity={(request) =>
           onLaunchInvestigation({ ...request, switchToView: true })

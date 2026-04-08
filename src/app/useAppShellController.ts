@@ -64,6 +64,7 @@ import {
 } from '@/app/appShellLaunchHelpers';
 import { openWorkspaceChatRequest } from '@/app/openChatRequest';
 import { resolveNavigationRecord } from '@/app/appShellNavigationHelpers';
+import { requestOmniboxFocus } from '@/components/ui/omniboxFocus';
 
 export interface AppShellController {
   activeChatSessionId: string | null;
@@ -258,7 +259,14 @@ export function useAppShellController(): AppShellController {
     },
     onCloseModal: () => setShowHelpModal(false),
     onShowHelp: () => setShowHelpModal(true),
-    onGlobalSearch: () => setShowGlobalSearch(!showGlobalSearch),
+    onGlobalSearch: () => {
+      if (showGlobalSearch) {
+        setShowGlobalSearch(false);
+        return;
+      }
+      setShowGlobalSearch(true);
+      requestOmniboxFocus();
+    },
   });
 
   useKeyboardShortcuts(shortcuts);

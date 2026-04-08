@@ -19,18 +19,17 @@ import {
   Sparkles,
   Target,
   Workflow,
-  X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { CANONICAL_NOUNS } from '@/domain';
 import { WorkspaceSearchRepository } from '@/services/db/repositories/WorkspaceSearchRepository';
 import { useWorkspaceStore } from '@/store/caseStore';
+import { getAllTimelineSavedViews, type TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
 import {
   getStoredOmniboxRecents,
   setStoredOmniboxRecents,
 } from '@/utils/localStorage';
-import { getAllTimelineSavedViews, type TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
 import {
   buildOmniboxResults,
   createStoredOmniboxRecent,
@@ -38,6 +37,7 @@ import {
   type OmniboxResult,
 } from './omniboxModel';
 import { executeOmniboxAction, getOmniboxOpenLabel } from './omniboxActions';
+import { OMNIBOX_FOCUS_EVENT } from './omniboxFocus';
 
 const resultIconByKind: Record<OmniboxResult['kind'], LucideIcon> = {
   ROUTE: CircleDot,
@@ -67,11 +67,17 @@ const resultLabelByKind: Record<OmniboxResult['kind'], string> = {
   WORKSPACE_ITEM: CANONICAL_NOUNS.item,
 };
 
-interface GlobalSearchModalProps {
+interface GlobalSearchInlineProps {
+  isOpen: boolean;
   onClose: () => void;
+  onOpen: () => void;
 }
 
-const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
+const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
+  isOpen,
+  onClose,
+  onOpen,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -100,6 +106,8 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
   const [storedRecents, setStoredRecents] = useState(() => getStoredOmniboxRecents());
   const [savedViews, setSavedViews] = useState<TimelineSavedView[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+
   const baseResults = useMemo(
     () =>
       buildOmniboxResults({
@@ -128,13 +136,12 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
   );
   const results = query.trim() && activeWorkspaceId ? workspaceResults : baseResults;
   const safeSelectedIndex = results.length === 0 ? 0 : Math.min(selectedIndex, results.length - 1);
-
-  const selectedResult =
-    results.length > 0 ? results[safeSelectedIndex] : null;
+  const selectedResult = results.length > 0 ? results[safeSelectedIndex] : null;
 
   useEffect(() => {
+    if (!isOpen) return;
     inputRef.current?.focus();
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -215,6 +222,29 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
     workspaces,
   ]);
 
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!rootRef.current || rootRef.current.contains(event.target as Node)) return;
+      onClose();
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    const handleFocusRequest = () => {
+      onOpen();
+      window.setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 0);
+    };
+
+    window.addEventListener(OMNIBOX_FOCUS_EVENT, handleFocusRequest);
+    return () => window.removeEventListener(OMNIBOX_FOCUS_EVENT, handleFocusRequest);
+  }, [onOpen]);
+
   const rememberRecent = (result: OmniboxResult) => {
     const recent = createStoredOmniboxRecent(result);
     if (!recent) return;
@@ -262,11 +292,13 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
 
   const handleKeyDown = async (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'ArrowDown' && results.length > 0) {
+      onOpen();
       setSelectedIndex((previous) => (previous + 1) % results.length);
       event.preventDefault();
       return;
     }
     if (event.key === 'ArrowUp' && results.length > 0) {
+      onOpen();
       setSelectedIndex((previous) => (previous - 1 + results.length) % results.length);
       event.preventDefault();
       return;
@@ -292,186 +324,208 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/80 px-4 pt-20 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-3xl overflow-hidden border border-zinc-800 bg-osint-panel shadow-2xl animate-in zoom-in-95 duration-200">
-        <div className="flex items-center gap-4 border-b border-zinc-800 p-4">
-          <Search className="h-5 w-5 text-osint-primary" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(event) => {
-              const nextQuery = event.target.value;
-              setQuery(nextQuery);
-              setSelectedIndex(0);
-              if (!nextQuery.trim() || !activeWorkspaceId) {
-                setWorkspaceResults([]);
-                setIsLoading(false);
-                return;
-              }
-              setIsLoading(true);
-            }}
-            onKeyDown={(event) => void handleKeyDown(event)}
-            placeholder="Search routes, workspaces, artifacts, items, chats, runs, and signals..."
-            className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-zinc-600"
-          />
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin text-zinc-500" /> : null}
-          <button onClick={onClose}>
-            <X className="h-4 w-4 text-zinc-500 transition-colors hover:text-white" />
-          </button>
-        </div>
-
-        <div className="max-h-[440px] overflow-y-auto">
-          {results.length === 0 ? (
-            <div className="p-10 text-center">
-              {query.trim() ? (
-                <p className="text-xs font-mono text-zinc-500">
-                  No workspace records matching &quot;{query.trim()}&quot;
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex flex-col items-center opacity-20">
-                    <Command className="mb-2 h-12 w-12" />
-                    <p className="text-xs font-mono uppercase tracking-widest">
-                      Sherlock Omnibox
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-left">
-                    <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
-                      Recents, saved views, artifacts, items, and chat sessions
-                    </div>
-                    <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
-                      `Enter` opens, `Shift+Enter` places on board
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-1 p-2">
-              {results.map((result, index) => {
-                const Icon = resultIconByKind[result.kind];
-                const isSelected = index === Math.min(selectedIndex, results.length - 1);
-
-                return (
-                  <button
-                    key={result.id}
-                    onClick={() => void handleAction(result, 'OPEN')}
-                    onMouseEnter={() => setSelectedIndex(index)}
-                    className={`w-full border p-3 text-left transition-colors ${
-                      isSelected
-                        ? 'border-osint-primary/30 bg-osint-primary/10'
-                        : 'border-transparent hover:bg-zinc-900'
-                    }`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded ${
-                          isSelected ? 'text-osint-primary' : 'text-zinc-600'
-                        }`}
-                      >
-                        <Icon size={18} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 text-[10px] uppercase tracking-tighter text-zinc-500">
-                          {result.subtitle || resultLabelByKind[result.kind]}
-                        </div>
-                        <div className="line-clamp-1 text-sm text-zinc-200">{result.title}</div>
-                        {result.snippet ? (
-                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
-                            {result.snippet}
-                          </p>
-                        ) : null}
-                      </div>
-                      <ArrowRight
-                        className={`mt-2 h-4 w-4 transition-all ${
-                          isSelected
-                            ? 'translate-x-0 text-osint-primary opacity-100'
-                            : '-translate-x-2 text-zinc-700 opacity-0'
-                        }`}
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between gap-4 border-t border-zinc-800 bg-zinc-950/50 p-3 text-[10px] font-mono text-zinc-600">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <Hash className="h-3 w-3" />
-              {results.length} {query.trim() ? 'results' : 'recents'}
-            </span>
-            {selectedResult ? <span>{selectedResult.title}</span> : null}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {selectedResult ? (
-              <>
-                <button
-                  onClick={() => void handleAction(selectedResult, 'OPEN')}
-                  className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                >
-                  <ArrowRight className="h-3 w-3" />
-                  {getOmniboxOpenLabel(selectedResult)}
-                </button>
-                {selectedResult.actions.includes('OPEN_IN_CHAT') ? (
-                  <button
-                    onClick={() => void handleAction(selectedResult, 'OPEN_IN_CHAT')}
-                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                    title="Open in workspace chat"
-                  >
-                    <MessageSquare className="h-3 w-3" />
-                    Chat
-                  </button>
-                ) : null}
-                {selectedResult.actions.includes('PLACE_ON_BOARD') ? (
-                  <button
-                    onClick={() => void handleAction(selectedResult, 'PLACE_ON_BOARD')}
-                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                    title="Place on board"
-                  >
-                    <Workflow className="h-3 w-3" />
-                    Place
-                  </button>
-                ) : null}
-                {selectedResult.actions.includes('OPEN_IN_TIMELINE') ? (
-                  <button
-                    onClick={() => void handleAction(selectedResult, 'OPEN_IN_TIMELINE')}
-                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                    title="Open in timeline"
-                  >
-                    <Radio className="h-3 w-3" />
-                    Timeline
-                  </button>
-                ) : null}
-                {selectedResult.actions.includes('OPEN_IN_NETWORK') ? (
-                  <button
-                    onClick={() => void handleAction(selectedResult, 'OPEN_IN_NETWORK')}
-                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                    title="Open in network"
-                  >
-                    <Network className="h-3 w-3" />
-                    Network
-                  </button>
-                ) : null}
-                {selectedResult.actions.includes('OPEN_IN_FILES') ? (
-                  <button
-                    onClick={() => void handleAction(selectedResult, 'OPEN_IN_FILES')}
-                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                    title="Open in Files"
-                  >
-                    <FolderKanban className="h-3 w-3" />
-                    Files
-                  </button>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-        </div>
+    <div ref={rootRef} className="relative w-full max-w-3xl">
+      <div
+        className={`flex items-center gap-3 border px-4 py-3 transition-colors ${
+          isOpen
+            ? 'border-osint-primary/40 bg-zinc-950 text-white shadow-[0_0_0_1px_rgba(231,255,77,0.18)]'
+            : 'border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:border-zinc-600'
+        }`}
+      >
+        <Search className={`h-4 w-4 ${isOpen ? 'text-osint-primary' : 'text-zinc-500'}`} />
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onFocus={onOpen}
+          onChange={(event) => {
+            const nextQuery = event.target.value;
+            setQuery(nextQuery);
+            setSelectedIndex(0);
+            onOpen();
+            if (!nextQuery.trim() || !activeWorkspaceId) {
+              setWorkspaceResults([]);
+              setIsLoading(false);
+              return;
+            }
+            setIsLoading(true);
+          }}
+          onKeyDown={(event) => void handleKeyDown(event)}
+          placeholder="Search routes, workspaces, artifacts, sections, items, chats, and signals..."
+          className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-zinc-600"
+        />
+        {isLoading ? <Loader2 className="h-4 w-4 animate-spin text-zinc-500" /> : null}
+        <button
+          type="button"
+          onClick={() => {
+            if (isOpen) {
+              onClose();
+            } else {
+              onOpen();
+              inputRef.current?.focus();
+            }
+          }}
+          className="hidden rounded border border-zinc-800 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 md:inline-flex"
+          aria-label="Focus omnibox"
+        >
+          Ctrl K
+        </button>
       </div>
+
+      {isOpen ? (
+        <div className="absolute left-0 right-0 top-full z-[100] mt-2 overflow-hidden border border-zinc-800 bg-osint-panel shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="max-h-[440px] overflow-y-auto">
+            {results.length === 0 ? (
+              <div className="p-10 text-center">
+                {query.trim() ? (
+                  <p className="text-xs font-mono text-zinc-500">
+                    No workspace records matching &quot;{query.trim()}&quot;
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex flex-col items-center opacity-20">
+                      <Command className="mb-2 h-12 w-12" />
+                      <p className="text-xs font-mono uppercase tracking-widest">
+                        Sherlock Omnibox
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-left">
+                      <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
+                        Recents, saved views, artifacts, items, and chat sessions
+                      </div>
+                      <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
+                        `Enter` opens, `Shift+Enter` places on board
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1 p-2">
+                {results.map((result, index) => {
+                  const Icon = resultIconByKind[result.kind];
+                  const isSelected = index === Math.min(selectedIndex, results.length - 1);
+
+                  return (
+                    <button
+                      key={result.id}
+                      onClick={() => void handleAction(result, 'OPEN')}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                      className={`w-full border p-3 text-left transition-colors ${
+                        isSelected
+                          ? 'border-osint-primary/30 bg-osint-primary/10'
+                          : 'border-transparent hover:bg-zinc-900'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded ${
+                            isSelected ? 'text-osint-primary' : 'text-zinc-600'
+                          }`}
+                        >
+                          <Icon size={18} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 text-[10px] uppercase tracking-tighter text-zinc-500">
+                            {result.subtitle || resultLabelByKind[result.kind]}
+                          </div>
+                          <div className="line-clamp-1 text-sm text-zinc-200">{result.title}</div>
+                          {result.snippet ? (
+                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
+                              {result.snippet}
+                            </p>
+                          ) : null}
+                        </div>
+                        <ArrowRight
+                          className={`mt-2 h-4 w-4 transition-all ${
+                            isSelected
+                              ? 'translate-x-0 text-osint-primary opacity-100'
+                              : '-translate-x-2 text-zinc-700 opacity-0'
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-4 border-t border-zinc-800 bg-zinc-950/50 p-3 text-[10px] font-mono text-zinc-600">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1">
+                <Hash className="h-3 w-3" />
+                {results.length} {query.trim() ? 'results' : 'recents'}
+              </span>
+              {selectedResult ? <span>{selectedResult.title}</span> : null}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {selectedResult ? (
+                <>
+                  <button
+                    onClick={() => void handleAction(selectedResult, 'OPEN')}
+                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                  >
+                    <ArrowRight className="h-3 w-3" />
+                    {getOmniboxOpenLabel(selectedResult)}
+                  </button>
+                  {selectedResult.actions.includes('OPEN_IN_CHAT') ? (
+                    <button
+                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_CHAT')}
+                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                      title="Open in workspace chat"
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                      Chat
+                    </button>
+                  ) : null}
+                  {selectedResult.actions.includes('PLACE_ON_BOARD') ? (
+                    <button
+                      onClick={() => void handleAction(selectedResult, 'PLACE_ON_BOARD')}
+                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                      title="Place on board"
+                    >
+                      <Workflow className="h-3 w-3" />
+                      Place
+                    </button>
+                  ) : null}
+                  {selectedResult.actions.includes('OPEN_IN_TIMELINE') ? (
+                    <button
+                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_TIMELINE')}
+                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                      title="Open in timeline"
+                    >
+                      <Radio className="h-3 w-3" />
+                      Timeline
+                    </button>
+                  ) : null}
+                  {selectedResult.actions.includes('OPEN_IN_NETWORK') ? (
+                    <button
+                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_NETWORK')}
+                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                      title="Open in network"
+                    >
+                      <Network className="h-3 w-3" />
+                      Network
+                    </button>
+                  ) : null}
+                  {selectedResult.actions.includes('OPEN_IN_FILES') ? (
+                    <button
+                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_FILES')}
+                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                      title="Open in Files"
+                    >
+                      <FolderKanban className="h-3 w-3" />
+                      Files
+                    </button>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -479,10 +533,10 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
 export const GlobalSearch: React.FC = () => {
   const { showGlobalSearch, setShowGlobalSearch } = useWorkspaceStore();
 
-  if (!showGlobalSearch) return null;
-
   return (
-    <GlobalSearchModal
+    <GlobalSearchInline
+      isOpen={showGlobalSearch}
+      onOpen={() => setShowGlobalSearch(true)}
       onClose={() => setShowGlobalSearch(false)}
     />
   );

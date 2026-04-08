@@ -4,11 +4,16 @@ import { buildPathForAppView } from './navigation';
 import {
   DEFAULT_APP_PATH,
   buildRunPath,
+  buildFilesPath,
   buildWorkspaceArtifactPath,
   buildWorkspaceChatSessionPath,
+  buildWorkspaceNetworkPath,
   buildWorkspaceSurfacePath,
   getRouteDefinition,
   getWorkspaceRouteDefinitions,
+  parseArtifactRouteState,
+  parseFilesRouteState,
+  parseNetworkRouteState,
 } from './routes';
 
 describe('route contract', () => {
@@ -19,6 +24,24 @@ describe('route contract', () => {
   it('encodes workspace and artifact ids in generated paths', () => {
     expect(buildWorkspaceArtifactPath('workspace alpha', 'artifact/42')).toBe(
       '/workspaces/workspace%20alpha/artifacts/artifact%2F42'
+    );
+  });
+
+  it('builds focus-aware files and artifact paths', () => {
+    expect(buildFilesPath({ workspaceId: 'ws-1', focusItemId: 'item/42' })).toBe(
+      '/files?workspaceId=ws-1&focusItemId=item%2F42'
+    );
+    expect(
+      buildWorkspaceArtifactPath('ws-1', 'artifact-2', {
+        focusSectionId: 'section-3',
+        focusEvidenceId: 'evidence-9',
+        inspector: 'REPORT',
+      })
+    ).toBe(
+      '/workspaces/ws-1/artifacts/artifact-2?focusSectionId=section-3&focusEvidenceId=evidence-9&inspector=REPORT'
+    );
+    expect(buildWorkspaceNetworkPath('ws-1', { focusEntity: 'Atlas Holdings' })).toBe(
+      '/workspaces/ws-1/network?focusEntity=Atlas+Holdings'
     );
   });
 
@@ -52,6 +75,16 @@ describe('route contract', () => {
     ]);
   });
 
+  it('documents files, artifact, and network focus query state', () => {
+    expect(getRouteDefinition('FILES').urlQuery).toEqual(['workspaceId', 'focusItemId']);
+    expect(getRouteDefinition('WORKSPACE_ARTIFACT').urlQuery).toEqual([
+      'focusSectionId',
+      'focusEvidenceId',
+      'inspector',
+    ]);
+    expect(getRouteDefinition('WORKSPACE_NETWORK').urlQuery).toEqual(['focusEntity']);
+  });
+
   it('keeps workspace-scoped routes grouped under the workspace prefix', () => {
     expect(getWorkspaceRouteDefinitions().every((route) => route.path.startsWith('/workspaces/'))).toBe(
       true
@@ -66,5 +99,28 @@ describe('route contract', () => {
         search: '?search=apollo&tracks=CHAT',
       })
     ).toBe('/workspaces/ws-1/timeline?search=apollo&tracks=CHAT');
+  });
+
+  it('parses focus-aware files, artifact, and network query state', () => {
+    expect(parseFilesRouteState(new URLSearchParams('workspaceId=ws-1&focusItemId=item-1'))).toEqual(
+      {
+        workspaceId: 'ws-1',
+        focusItemId: 'item-1',
+      }
+    );
+    expect(
+      parseArtifactRouteState(
+        new URLSearchParams(
+          'focusSectionId=section-1&focusEvidenceId=evidence-2&inspector=REPORT'
+        )
+      )
+    ).toEqual({
+      focusSectionId: 'section-1',
+      focusEvidenceId: 'evidence-2',
+      inspector: 'REPORT',
+    });
+    expect(parseNetworkRouteState(new URLSearchParams('focusEntity=Atlas+Holdings'))).toEqual({
+      focusEntity: 'Atlas Holdings',
+    });
   });
 });

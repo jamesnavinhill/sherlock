@@ -1,6 +1,7 @@
 import { findWorkspaceLandingArtifact } from '@/app/navigation';
 import { openWorkspaceChatRequest } from '@/app/openChatRequest';
 import {
+  type ArtifactRouteState,
   buildDiscoverPath,
   buildFilesPath,
   buildMonitorPath,
@@ -113,6 +114,27 @@ const resolveTimelineFocus = (
     default:
       return null;
   }
+};
+
+const resolveArtifactRouteState = (result: OmniboxResult): ArtifactRouteState | undefined => {
+  if (result.kind !== 'ARTIFACT' && result.kind !== 'SECTION' && result.kind !== 'SOURCE') {
+    return undefined;
+  }
+
+  const focusSectionId =
+    typeof result.metadata?.sectionId === 'string' ? result.metadata.sectionId : undefined;
+  const focusEvidenceId =
+    typeof result.metadata?.evidenceId === 'string' ? result.metadata.evidenceId : undefined;
+
+  if (!focusSectionId && !focusEvidenceId) {
+    return undefined;
+  }
+
+  return {
+    focusSectionId,
+    focusEvidenceId,
+    inspector: 'REPORT',
+  };
 };
 
 const buildChatOpenRequestForResult = (input: {
@@ -366,7 +388,16 @@ export const executeOmniboxAction = async ({
       onClose();
       return;
     }
-    navigate(buildWorkspaceNetworkPath(result.workspaceId));
+    navigate(
+      buildWorkspaceNetworkPath(result.workspaceId, {
+        focusEntity:
+          result.kind === 'ENTITY'
+            ? typeof result.metadata?.entityName === 'string'
+              ? result.metadata.entityName
+              : result.title
+            : undefined,
+      })
+    );
     onClose();
   };
 
@@ -374,7 +405,12 @@ export const executeOmniboxAction = async ({
     if (result.workspaceId) {
       setActiveWorkspaceId(result.workspaceId);
     }
-    navigate(buildFilesPath());
+    navigate(
+      buildFilesPath({
+        workspaceId: result.workspaceId || undefined,
+        focusItemId: result.kind === 'WORKSPACE_ITEM' ? result.refId : undefined,
+      })
+    );
     onClose();
   };
 
@@ -522,7 +558,9 @@ export const executeOmniboxAction = async ({
     if (artifactId) {
       const existingTask = workspaceRuns.find((entry) => entry.report?.id === artifactId);
       setActiveTaskId(existingTask?.id || null);
-      navigate(buildWorkspaceArtifactPath(result.workspaceId, artifactId));
+      navigate(
+        buildWorkspaceArtifactPath(result.workspaceId, artifactId, resolveArtifactRouteState(result))
+      );
     }
     onClose();
     return;

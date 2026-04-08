@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Artifact, ChatOpenRequest, InvestigationLaunchRequest, WorkspaceItem } from '../../types';
 import {
   ArrowRight,
@@ -43,6 +43,7 @@ import {
   buildWorkspaceItemChatOpenRequest,
   queueWorkspaceReferenceOnBoard,
 } from '../../services/workspace/workspaceHandoffs';
+import { parseFilesRouteState } from '@/app/routes';
 
 interface ArchivesProps {
   onSelectReport: (report: Artifact) => void;
@@ -59,6 +60,8 @@ export const Archives: React.FC<ArchivesProps> = ({
   onOpenChat,
 }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const routeState = parseFilesRouteState(searchParams);
   const {
     artifacts,
     workspaces,
@@ -89,12 +92,19 @@ export const Archives: React.FC<ArchivesProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
 
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const focusedItemRowRef = useRef<HTMLDivElement | null>(null);
   const itemsPerPage = 8;
   const workspaceLabel = CANONICAL_NOUNS.workspace;
   const workspaceLabelLower = workspaceLabel.toLowerCase();
   const artifactLabel = CANONICAL_NOUNS.artifact;
   const artifactLabelLower = artifactLabel.toLowerCase();
   const artifactLabelPlural = CANONICAL_NOUNS.artifactPlural;
+  const focusedItem =
+    routeState.focusItemId
+      ? workspaceItems.find((item) => item.id === routeState.focusItemId) || null
+      : null;
+  const requestedCaseId = focusedItem?.workspaceId || routeState.workspaceId || selectedCaseId;
+  const effectiveRecordFilter: RecordFilter = focusedItem ? 'ALL' : recordFilter;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -114,19 +124,35 @@ export const Archives: React.FC<ArchivesProps> = ({
   }, []);
 
   const effectiveSelectedCaseId =
-    selectedCaseId &&
-    selectedCaseId !== 'unassigned' &&
-    !workspaces.some((workspace) => workspace.id === selectedCaseId)
+    requestedCaseId &&
+    requestedCaseId !== 'unassigned' &&
+    !workspaces.some((workspace) => workspace.id === requestedCaseId)
       ? null
-      : selectedCaseId;
+      : requestedCaseId;
 
   useEffect(() => {
-    if (!selectedCaseId || selectedCaseId === 'unassigned') return;
-    if (workspaces.some((workspace) => workspace.id === selectedCaseId)) return;
-    if (getStoredActiveWorkspaceId() === selectedCaseId) {
+    if (!requestedCaseId || requestedCaseId === 'unassigned') return;
+    if (workspaces.some((workspace) => workspace.id === requestedCaseId)) return;
+    if (getStoredActiveWorkspaceId() === requestedCaseId) {
       clearStoredActiveWorkspaceId();
     }
-  }, [workspaces, selectedCaseId]);
+  }, [requestedCaseId, workspaces]);
+
+  useEffect(() => {
+    if (!effectiveSelectedCaseId || effectiveSelectedCaseId === 'unassigned') return;
+    setActiveWorkspaceId(effectiveSelectedCaseId);
+    if (getStoredActiveWorkspaceId() !== effectiveSelectedCaseId) {
+      setStoredActiveWorkspaceId(effectiveSelectedCaseId);
+    }
+  }, [effectiveSelectedCaseId, setActiveWorkspaceId]);
+
+  useEffect(() => {
+    if (!focusedItemRowRef.current) return;
+    focusedItemRowRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  }, [currentPage, effectiveRecordFilter, effectiveSelectedCaseId, focusedItem?.id, viewMode]);
 
   const getCaseReports = (caseId: string) => artifacts.filter((artifact) => artifact.caseId === caseId);
   const getCaseItems = (caseId: string) =>
@@ -212,7 +238,7 @@ export const Archives: React.FC<ArchivesProps> = ({
     total > 1 ? (
       <div className="flex items-center justify-center space-x-4 pt-8">
         <button
-          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+          onClick={() => setCurrentPage(Math.max(1, current - 1))}
           disabled={current === 1}
           className="border border-zinc-800 p-2 text-xs font-mono uppercase text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
         >
@@ -222,7 +248,7 @@ export const Archives: React.FC<ArchivesProps> = ({
           Page {current} of {total}
         </span>
         <button
-          onClick={() => setCurrentPage((prev) => Math.min(total, prev + 1))}
+          onClick={() => setCurrentPage(Math.min(total, current + 1))}
           disabled={current === total}
           className="border border-zinc-800 p-2 text-xs font-mono uppercase text-zinc-500 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-500"
         >
@@ -484,15 +510,80 @@ export const Archives: React.FC<ArchivesProps> = ({
         item,
       })),
     ]
-      .filter((record) => recordFilter === 'ALL' || record.kind === recordFilter)
+      .filter((record) => effectiveRecordFilter === 'ALL' || record.kind === effectiveRecordFilter)
       .sort((left, right) => right.sortAt - left.sortAt);
+    const focusedItemPage =
+      focusedItem && !isUnassigned && focusedItem.workspaceId === caseId
+        ? Math.floor(
+            Math.max(
+              0,
+              records.findIndex((record) => record.kind === 'ITEM' && record.item.id === focusedItem.id)
+            ) / itemsPerPage
+          ) + 1
+        : null;
+    const resolvedCurrentPage = focusedItemPage || currentPage;
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
+    const startIndex = (resolvedCurrentPage - 1) * itemsPerPage;
     const paginatedRecords = records.slice(startIndex, startIndex + itemsPerPage);
     const totalPages = Math.ceil(records.length / itemsPerPage);
 
     return (
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+        {focusedItem && !isUnassigned && focusedItem.workspaceId === caseId ? (
+          <div className="mb-6 border border-osint-primary/40 bg-osint-primary/10 p-5">
+            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-osint-primary">
+              Focused Item
+            </div>
+            <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-lg font-semibold text-white">{focusedItem.title}</div>
+                <div className="mt-2 max-w-3xl text-sm leading-6 text-zinc-300">
+                  {focusedItem.description ||
+                    focusedItem.textContent ||
+                    focusedItem.url ||
+                    focusedItem.fileName ||
+                    'Saved workspace item'}
+                </div>
+                <div className="mt-3 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+                  {focusedItem.kind} • {focusedItem.provenance?.source || 'USER'}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenChat(buildWorkspaceItemChatOpenRequest(focusedItem))}
+                  className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-200 transition hover:border-white hover:text-white"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Chat
+                </button>
+                <button
+                  onClick={() =>
+                    void queueWorkspaceReferenceOnBoard({
+                      ensureWorkspaceBoard,
+                      navigate,
+                      queueBoardPlacement,
+                      reference: buildWorkspaceItemBoardReference(focusedItem),
+                      workspaceId: focusedItem.workspaceId,
+                    })
+                  }
+                  className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-200 transition hover:border-white hover:text-white"
+                >
+                  <Workflow className="h-4 w-4" />
+                  Board
+                </button>
+                {focusedItem.url ? (
+                  <button
+                    onClick={() => window.open(focusedItem.url, '_blank', 'noopener,noreferrer')}
+                    className="inline-flex items-center gap-2 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-zinc-200 transition hover:border-white hover:text-white"
+                  >
+                    <Link2 className="h-4 w-4" />
+                    Source
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : null}
         {viewMode === 'GRID' ? (
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             {records.length === 0 ? (
@@ -562,7 +653,18 @@ export const Archives: React.FC<ArchivesProps> = ({
                 ) : (
                   <div
                     key={record.item.id}
-                    className="group flex items-center justify-between border border-zinc-800 bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:border-zinc-600 hover:bg-zinc-900"
+                    ref={
+                      focusedItem?.id === record.item.id
+                        ? (node) => {
+                            focusedItemRowRef.current = node;
+                          }
+                        : undefined
+                    }
+                    className={`group flex items-center justify-between border bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:bg-zinc-900 ${
+                      focusedItem?.id === record.item.id
+                        ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.28)]'
+                        : 'border-zinc-800 hover:border-zinc-600'
+                    }`}
                   >
                     <div className="flex min-w-0 items-center space-x-4">
                       <div className="border border-zinc-800 bg-black p-3 text-white group-hover:border-zinc-600">
@@ -764,7 +866,7 @@ export const Archives: React.FC<ArchivesProps> = ({
           </div>
         )}
 
-        {renderPagination(currentPage, totalPages)}
+        {renderPagination(resolvedCurrentPage, totalPages)}
       </div>
     );
   };

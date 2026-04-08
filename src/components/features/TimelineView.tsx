@@ -63,6 +63,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     selectedEntityName,
     selectedEvent,
     selectedRun,
+    selectedWorkspaceItem,
     setDetailSections,
     setDossierSections,
     setLeftPanelOpen,
@@ -225,6 +226,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
           parentArtifact={parentArtifact}
           relatedSignal={relatedSignal}
           selectedRun={selectedRun}
+          selectedWorkspaceItem={selectedWorkspaceItem}
           selectedChatLaunchContext={selectedChatLaunchContext}
           selectedChatAction={selectedChatAction}
           labelProfile={labelProfile}

@@ -16,6 +16,7 @@ import {
   buildWorkspaceNetworkPath,
   buildWorkspaceTimelinePath,
 } from '@/app/routes';
+import { buildTimelineRouteQuery } from '@/components/features/Timeline/timelineRouteState';
 import { useChatFeatureState } from '@/store/selectors/featureSelectors';
 import {
   fetchArtifactSummaryForChat,
@@ -66,6 +67,7 @@ import {
 } from './chatTranscriptActions';
 import { buildMentionCandidates, resolveDraftMentions } from '@/components/ui/omniboxModel';
 import { ingestWorkspaceFiles } from '../WorkspaceBoard/workspaceBoardItemActions';
+import { requestNetworkEntityFocus } from '@/services/workspace/workspaceSurfaceFocus';
 
 export interface RenameSessionDialogState {
   session: ChatSession;
@@ -463,21 +465,63 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     setActiveWorkspaceId(mention.workspaceId);
 
     if (mention.kind === 'ARTIFACT') {
-      navigate(buildWorkspaceArtifactPath(mention.workspaceId, mention.refId));
+      navigate(
+        buildWorkspaceArtifactPath(mention.workspaceId, mention.refId, {
+          focusSectionId:
+            typeof mention.metadata?.sectionId === 'string' ? mention.metadata.sectionId : undefined,
+          focusEvidenceId:
+            typeof mention.metadata?.evidenceId === 'string'
+              ? mention.metadata.evidenceId
+              : undefined,
+          inspector:
+            typeof mention.metadata?.sectionId === 'string' ||
+            typeof mention.metadata?.evidenceId === 'string'
+              ? 'REPORT'
+              : undefined,
+        })
+      );
       return;
     }
 
     if (mention.kind === 'ENTITY') {
-      navigate(buildWorkspaceNetworkPath(mention.workspaceId));
+      const entityName =
+        typeof mention.metadata?.entityName === 'string' ? mention.metadata.entityName : mention.title;
+      navigate(
+        buildWorkspaceNetworkPath(mention.workspaceId, {
+          focusEntity: entityName,
+        })
+      );
+      window.setTimeout(() => {
+        requestNetworkEntityFocus({
+          workspaceId: mention.workspaceId,
+          entityName,
+        });
+      }, 0);
       return;
     }
 
     if (mention.kind === 'SIGNAL') {
-      navigate(buildWorkspaceTimelinePath(mention.workspaceId));
+      const query = buildTimelineRouteQuery({
+        search: '',
+        filters: {
+          range: 'ALL',
+          tracks: ['SIGNAL', 'RUN', 'ARTIFACT', 'ITEM'],
+        },
+        focusedTrack: 'SIGNAL',
+        focusedRefId: mention.refId,
+      }).toString();
+      navigate(
+        `${buildWorkspaceTimelinePath(mention.workspaceId)}${query ? `?${query}` : ''}`
+      );
       return;
     }
 
-    navigate(buildFilesPath());
+    navigate(
+      buildFilesPath({
+        workspaceId: mention.workspaceId,
+        focusItemId: mention.kind === 'WORKSPACE_ITEM' ? mention.refId : undefined,
+      })
+    );
   };
 
   const handleSend = async (event: FormEvent) => {

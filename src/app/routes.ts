@@ -17,7 +17,35 @@ export type SherlockRouteScope = 'GLOBAL' | 'WORKSPACE';
 
 export type SherlockRouteParamKey = 'workspaceId' | 'artifactId' | 'sessionId' | 'boardId' | 'runId';
 
-export type SherlockRouteQueryKey = 'search' | 'range' | 'tracks' | 'focusTrack' | 'focusRefId';
+export type SherlockRouteQueryKey =
+  | 'search'
+  | 'range'
+  | 'tracks'
+  | 'focusTrack'
+  | 'focusRefId'
+  | 'workspaceId'
+  | 'focusItemId'
+  | 'focusSectionId'
+  | 'focusEvidenceId'
+  | 'inspector'
+  | 'focusEntity';
+
+export type WorkspaceArtifactInspectorMode = 'ENTITY' | 'HEADLINE' | 'REPORT';
+
+export interface FilesRouteState {
+  workspaceId?: string;
+  focusItemId?: string;
+}
+
+export interface ArtifactRouteState {
+  focusSectionId?: string;
+  focusEvidenceId?: string;
+  inspector?: WorkspaceArtifactInspectorMode;
+}
+
+export interface NetworkRouteState {
+  focusEntity?: string;
+}
 
 export interface SherlockRouteDefinition {
   id: SherlockRouteId;
@@ -40,6 +68,28 @@ export type WorkspaceSurfaceRoute =
   | { surface: 'NETWORK'; workspaceId: string };
 
 const encodeRouteSegment = (value: string): string => encodeURIComponent(value.trim());
+
+const normalizeQueryValue = (value?: string | null) => {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+};
+
+const buildQueryString = (
+  entries: Array<[SherlockRouteQueryKey, string | undefined]>
+): string => {
+  const params = new URLSearchParams();
+
+  entries.forEach(([key, value]) => {
+    const normalized = normalizeQueryValue(value);
+    if (normalized) {
+      params.set(key, normalized);
+    }
+  });
+
+  const query = params.toString();
+  return query ? `?${query}` : '';
+};
 
 const buildWorkspaceBasePath = (workspaceId: string): string =>
   `/workspaces/${encodeRouteSegment(workspaceId)}`;
@@ -69,7 +119,7 @@ export const SHERLOCK_ROUTE_DEFINITIONS: Record<SherlockRouteId, SherlockRouteDe
     scope: 'GLOBAL',
     description: 'Workspace files and canonical record retrieval surface.',
     urlParams: [],
-    urlQuery: [],
+    urlQuery: ['workspaceId', 'focusItemId'],
     storeState: ['archive search input', 'sort mode', 'drawer visibility'],
   },
   RUN_DETAIL: {
@@ -105,7 +155,7 @@ export const SHERLOCK_ROUTE_DEFINITIONS: Record<SherlockRouteId, SherlockRouteDe
     scope: 'WORKSPACE',
     description: 'Artifact detail surface replacing shell-only investigation/report selection.',
     urlParams: ['workspaceId', 'artifactId'],
-    urlQuery: [],
+    urlQuery: ['focusSectionId', 'focusEvidenceId', 'inspector'],
     storeState: [
       'dossier and inspector panel visibility',
       'entity or signal inspector selection',
@@ -172,7 +222,7 @@ export const SHERLOCK_ROUTE_DEFINITIONS: Record<SherlockRouteId, SherlockRouteDe
     scope: 'WORKSPACE',
     description: 'Workspace network graph surface and node inspection workflow.',
     urlParams: ['workspaceId'],
-    urlQuery: [],
+    urlQuery: ['focusEntity'],
     storeState: ['inspector drawer state', 'hidden and flagged node sets', 'graph viewport state'],
   },
 };
@@ -203,7 +253,11 @@ export const buildDiscoverPath = (): string => SHERLOCK_ROUTE_DEFINITIONS.DISCOV
 
 export const buildMonitorPath = (): string => SHERLOCK_ROUTE_DEFINITIONS.MONITOR.path;
 
-export const buildFilesPath = (): string => SHERLOCK_ROUTE_DEFINITIONS.FILES.path;
+export const buildFilesPath = (routeState?: FilesRouteState): string =>
+  `${SHERLOCK_ROUTE_DEFINITIONS.FILES.path}${buildQueryString([
+    ['workspaceId', routeState?.workspaceId],
+    ['focusItemId', routeState?.focusItemId],
+  ])}`;
 
 export const buildRunPath = (runId: string): string => `/runs/${encodeRouteSegment(runId)}`;
 
@@ -212,8 +266,16 @@ export const buildSettingsPath = (): string => SHERLOCK_ROUTE_DEFINITIONS.SETTIN
 export const buildWorkspaceHomePath = (workspaceId: string): string =>
   buildWorkspaceBasePath(workspaceId);
 
-export const buildWorkspaceArtifactPath = (workspaceId: string, artifactId: string): string =>
-  `${buildWorkspaceBasePath(workspaceId)}/artifacts/${encodeRouteSegment(artifactId)}`;
+export const buildWorkspaceArtifactPath = (
+  workspaceId: string,
+  artifactId: string,
+  routeState?: ArtifactRouteState
+): string =>
+  `${buildWorkspaceBasePath(workspaceId)}/artifacts/${encodeRouteSegment(artifactId)}${buildQueryString([
+    ['focusSectionId', routeState?.focusSectionId],
+    ['focusEvidenceId', routeState?.focusEvidenceId],
+    ['inspector', routeState?.inspector],
+  ])}`;
 
 export const buildWorkspaceChatPath = (workspaceId: string): string =>
   `${buildWorkspaceBasePath(workspaceId)}/chat`;
@@ -230,8 +292,35 @@ export const buildWorkspaceBoardDocumentPath = (workspaceId: string, boardId: st
 export const buildWorkspaceTimelinePath = (workspaceId: string): string =>
   `${buildWorkspaceBasePath(workspaceId)}/timeline`;
 
-export const buildWorkspaceNetworkPath = (workspaceId: string): string =>
-  `${buildWorkspaceBasePath(workspaceId)}/network`;
+export const buildWorkspaceNetworkPath = (
+  workspaceId: string,
+  routeState?: NetworkRouteState
+): string =>
+  `${buildWorkspaceBasePath(workspaceId)}/network${buildQueryString([
+    ['focusEntity', routeState?.focusEntity],
+  ])}`;
+
+export const parseFilesRouteState = (searchParams: URLSearchParams): FilesRouteState => ({
+  workspaceId: normalizeQueryValue(searchParams.get('workspaceId')),
+  focusItemId: normalizeQueryValue(searchParams.get('focusItemId')),
+});
+
+export const parseArtifactRouteState = (searchParams: URLSearchParams): ArtifactRouteState => {
+  const inspector = normalizeQueryValue(searchParams.get('inspector'));
+
+  return {
+    focusSectionId: normalizeQueryValue(searchParams.get('focusSectionId')),
+    focusEvidenceId: normalizeQueryValue(searchParams.get('focusEvidenceId')),
+    inspector:
+      inspector === 'ENTITY' || inspector === 'HEADLINE' || inspector === 'REPORT'
+        ? inspector
+        : undefined,
+  };
+};
+
+export const parseNetworkRouteState = (searchParams: URLSearchParams): NetworkRouteState => ({
+  focusEntity: normalizeQueryValue(searchParams.get('focusEntity')),
+});
 
 export const buildWorkspaceSurfacePath = (target: WorkspaceSurfaceRoute): string => {
   switch (target.surface) {

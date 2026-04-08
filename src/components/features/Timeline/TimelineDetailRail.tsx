@@ -10,12 +10,13 @@ import type {
   Signal,
   TimelineEvent,
   Workspace,
+  WorkspaceItem,
   WorkspaceRun,
 } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
-import { sanitizeDisplayTitle } from '@/domain';
+import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '@/domain';
 import { getMetadataValue, type DetailSections } from './timelineViewUtils';
 
 interface TimelineDetailRailProps {
@@ -30,6 +31,7 @@ interface TimelineDetailRailProps {
   parentArtifact: Artifact | null;
   relatedSignal: Signal | null;
   selectedRun: WorkspaceRun | null;
+  selectedWorkspaceItem: WorkspaceItem | null;
   selectedChatLaunchContext: ChatLaunchContext | null;
   selectedChatAction: AgentAction | null;
   labelProfile: LabelProfile;
@@ -49,6 +51,7 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
   parentArtifact,
   relatedSignal,
   selectedRun,
+  selectedWorkspaceItem,
   selectedChatLaunchContext,
   selectedChatAction,
   labelProfile,
@@ -125,13 +128,31 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
               <div>
                 <div className="text-[10px] uppercase text-zinc-500">Workspace</div>
                 <div className="mt-1">
-                  {activeWorkspace ? sanitizeDisplayTitle(activeWorkspace.title) : 'Unknown'}
+                  {activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : 'Unknown'}
                 </div>
               </div>
+              {selectedWorkspaceItem ? (
+                <div>
+                  <div className="text-[10px] uppercase text-zinc-500">Workspace Item</div>
+                  <div className="mt-1">{selectedWorkspaceItem.title}</div>
+                </div>
+              ) : null}
               {selectedChatSession ? (
                 <div>
                   <div className="text-[10px] uppercase text-zinc-500">Chat Session</div>
                   <div className="mt-1">{selectedChatSession.title || 'Workspace Chat'}</div>
+                </div>
+              ) : null}
+              {selectedWorkspaceItem?.url ? (
+                <div>
+                  <div className="text-[10px] uppercase text-zinc-500">Linked Source</div>
+                  <div className="mt-1 break-all">{selectedWorkspaceItem.url}</div>
+                </div>
+              ) : null}
+              {selectedWorkspaceItem?.provenance?.source ? (
+                <div>
+                  <div className="text-[10px] uppercase text-zinc-500">Item Provenance</div>
+                  <div className="mt-1">{selectedWorkspaceItem.provenance.source}</div>
                 </div>
               ) : null}
               {selectedEntityName ? (

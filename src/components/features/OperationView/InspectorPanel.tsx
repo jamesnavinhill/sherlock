@@ -23,7 +23,9 @@ import { getEntityToneClass } from '../../../utils/entityPalette';
 interface InspectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: 'ENTITY' | 'HEADLINE' | null;
+  mode: 'ENTITY' | 'HEADLINE' | 'REPORT' | null;
+  report: Artifact | null;
+  workspaceTitle?: string | null;
   entity: Entity | null;
   headline: Headline | null;
   reports: Artifact[]; // For mentions/connections
@@ -33,8 +35,10 @@ interface InspectorPanelProps {
   onInvestigateHeadline: () => void;
   onOpenEntityChat: (entityName: string) => void;
   onOpenHeadlineChat: () => void;
+  onOpenReportChat: () => void;
   onPlaceEntityOnBoard: (entityName: string) => void;
   onPlaceHeadlineOnBoard: () => void;
+  onPlaceReportOnBoard: () => void;
   onNavigate: (reportId: string) => void;
 }
 
@@ -42,6 +46,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   isOpen,
   onClose,
   mode,
+  report,
+  workspaceTitle,
   entity,
   headline,
   reports,
@@ -51,8 +57,10 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   onInvestigateHeadline,
   onOpenEntityChat,
   onOpenHeadlineChat,
+  onOpenReportChat,
   onPlaceEntityOnBoard,
   onPlaceHeadlineOnBoard,
+  onPlaceReportOnBoard,
   onNavigate,
 }) => {
   const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
@@ -111,6 +119,22 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           label: 'Launch Investigation',
           icon: Microscope,
           onClick: onInvestigateHeadline,
+        },
+      ]
+    : [];
+  const reportActions: InspectorActionItem[] = report
+    ? [
+        {
+          id: 'report-chat',
+          label: 'Open In Chat',
+          icon: MessageSquare,
+          onClick: onOpenReportChat,
+        },
+        {
+          id: 'report-board',
+          label: 'Place On Board',
+          icon: Shapes,
+          onClick: onPlaceReportOnBoard,
         },
       ]
     : [];
@@ -379,6 +403,82 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             >
               Launch Investigation
             </button>
+          </div>
+        </div>
+      )}
+
+      {mode === 'REPORT' && report && (
+        <div className="flex h-full flex-col">
+          <div className="flex items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4 flex-shrink-0">
+            <div className="flex items-start space-x-3 flex-1 min-w-0">
+              <div className="p-2 border flex-shrink-0 bg-zinc-800/50 text-white border-zinc-700">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0 pr-2">
+                <div className="mb-1 text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-widest">
+                  Current Artifact
+                </div>
+                <h3 className="text-base font-bold text-white leading-tight font-mono">
+                  {report.topic}
+                </h3>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-zinc-500 hover:text-white transition-colors flex-shrink-0"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+            <InspectorActionRow actions={reportActions} />
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24 custom-scrollbar">
+            <div className="border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
+              {workspaceTitle ? (
+                <div>
+                  <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
+                    Workspace
+                  </div>
+                  <div className="text-sm text-zinc-300">{workspaceTitle}</div>
+                </div>
+              ) : null}
+              {report.artifactType ? (
+                <div>
+                  <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">
+                    Artifact Type
+                  </div>
+                  <div className="text-sm text-zinc-300">{report.artifactType}</div>
+                </div>
+              ) : null}
+              <div>
+                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Summary</div>
+                <div className="text-sm leading-6 text-zinc-300">
+                  {report.summary || 'No summary saved for this artifact yet.'}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Sections</div>
+                <div className="text-lg font-mono text-white">{report.sections?.length || 0}</div>
+              </div>
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Evidence</div>
+                <div className="text-lg font-mono text-white">{report.evidence?.length || 0}</div>
+              </div>
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Entities</div>
+                <div className="text-lg font-mono text-white">{report.entities?.length || 0}</div>
+              </div>
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+                <div className="text-[10px] text-zinc-500 uppercase font-mono mb-1">Sources</div>
+                <div className="text-lg font-mono text-white">{report.sources?.length || 0}</div>
+              </div>
+            </div>
           </div>
         </div>
       )}

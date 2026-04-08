@@ -138,6 +138,11 @@ export const buildTimelineViewModel = ({
     getPrimaryRefId(selectedEvent, 'ENTITY') ||
     getMetadataValue<string>(selectedEvent, 'entityName') ||
     null;
+  const selectedWorkspaceItemId =
+    getPrimaryRefId(selectedEvent, 'WORKSPACE_ITEM') ||
+    getMetadataValue<string>(selectedEvent, 'workspaceItemId');
+  const selectedWorkspaceItem =
+    workspaceItems.find((item) => item.id === selectedWorkspaceItemId) || null;
   const previousArtifactId = getMetadataValue<string>(selectedEvent, 'previousArtifactId');
 
   const timelineSnapshot = activeWorkspace
@@ -173,6 +178,7 @@ export const buildTimelineViewModel = ({
     selectedEntityName,
     selectedEvent,
     selectedRun,
+    selectedWorkspaceItem,
     signalItems,
     signalTitleById,
     timelineSnapshot,

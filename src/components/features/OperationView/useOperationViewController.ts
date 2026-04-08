@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type {
@@ -14,8 +14,9 @@ import type {
   WorkspaceRun,
 } from '@/types';
 import { useOperationFeatureState } from '@/store/selectors/featureSelectors';
-import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
+import { buildWorkspaceBoardDocumentPath, type ArtifactRouteState } from '@/app/routes';
 import {
+  getWorkspaceDisplayTitle,
   getFollowUpText,
   getLabelProfileById,
   stripLegacyWorkspacePrefix,
@@ -32,6 +33,7 @@ import {
 import { buildOperationCasePanelData } from './operationCasePanelData';
 
 interface OperationViewControllerOptions {
+  artifactRouteState?: ArtifactRouteState;
   onNavigate: (id: string) => void;
   onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: { workspaceId: string; launchContext?: Record<string, unknown> }) => void;
@@ -41,6 +43,7 @@ interface OperationViewControllerOptions {
 }
 
 export function useOperationViewController({
+  artifactRouteState,
   onNavigate,
   onInvestigateHeadline,
   onOpenChat,
@@ -49,6 +52,7 @@ export function useOperationViewController({
   task,
 }: OperationViewControllerOptions) {
   const navigate = useNavigate();
+  const lastAppliedArtifactFocusKeyRef = useRef<string | null>(null);
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -60,7 +64,9 @@ export function useOperationViewController({
     sources: false,
     headlines: false,
   });
-  const [inspectorMode, setInspectorMode] = useState<'ENTITY' | 'HEADLINE' | null>(null);
+  const [inspectorMode, setInspectorMode] = useState<'ENTITY' | 'HEADLINE' | 'REPORT' | null>(
+    null
+  );
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
   const [selectedHeadline, setSelectedHeadline] = useState<Headline | null>(null);
   const [leadToAnalyze, setLeadToAnalyze] = useState<{
@@ -117,6 +123,48 @@ export function useOperationViewController({
       // Keep the dependency seam explicit even though re-sync is store-driven today.
     }
   }, [allCases, effectiveCaseId, selectedCaseId]);
+
+  useEffect(() => {
+    if (!report) return;
+
+    const focusKey = [
+      report.id || report.topic,
+      artifactRouteState?.inspector || '',
+      artifactRouteState?.focusSectionId || '',
+      artifactRouteState?.focusEvidenceId || '',
+    ].join(':');
+
+    const shouldOpenReportInspector =
+      artifactRouteState?.inspector === 'REPORT' ||
+      !!artifactRouteState?.focusSectionId ||
+      !!artifactRouteState?.focusEvidenceId;
+
+    if (shouldOpenReportInspector && lastAppliedArtifactFocusKeyRef.current !== focusKey) {
+      lastAppliedArtifactFocusKeyRef.current = focusKey;
+      queueMicrotask(() => {
+        setSelectedEntity(null);
+        setSelectedHeadline(null);
+        setInspectorMode('REPORT');
+        setRightPanelOpen(true);
+        if (window.innerWidth <= 1024) {
+          setLeftPanelOpen(false);
+        }
+      });
+      return;
+    }
+
+    if (!inspectorMode) {
+      queueMicrotask(() => {
+        setInspectorMode('REPORT');
+      });
+    }
+  }, [
+    artifactRouteState?.focusEvidenceId,
+    artifactRouteState?.focusSectionId,
+    artifactRouteState?.inspector,
+    inspectorMode,
+    report,
+  ]);
 
   const activeCase = useMemo(
     () => allCases.find((c) => c.id === effectiveCaseId) || null,
@@ -175,7 +223,7 @@ export function useOperationViewController({
     if (!report) return;
     setShowSaveTemplateModal(true);
     setTemplateName(
-      `${stripLegacyWorkspacePrefix(activeCase?.title || labelProfile.workspaceLabel)}: ${report.topic}`
+      `${activeCase ? getWorkspaceDisplayTitle(activeCase) : stripLegacyWorkspacePrefix(labelProfile.workspaceLabel)}: ${report.topic}`
     );
   };
 
@@ -205,6 +253,7 @@ export function useOperationViewController({
   );
 
   const handleEntityClick = (entity: Entity) => {
+    setSelectedHeadline(null);
     setSelectedEntity(entity);
     setInspectorMode('ENTITY');
     setRightPanelOpen(true);
@@ -214,6 +263,7 @@ export function useOperationViewController({
   };
 
   const handleHeadlineClick = (headline: Headline) => {
+    setSelectedEntity(null);
     setSelectedHeadline(headline);
     setInspectorMode('HEADLINE');
     setRightPanelOpen(true);
@@ -273,6 +323,17 @@ export function useOperationViewController({
           }
         : undefined,
     });
+  };
+
+  const handleOpenReportInspector = () => {
+    if (!report) return;
+    setSelectedEntity(null);
+    setSelectedHeadline(null);
+    setInspectorMode('REPORT');
+    setRightPanelOpen(true);
+    if (window.innerWidth <= 1024) {
+      setLeftPanelOpen(false);
+    }
   };
 
   const handleOpenWorkspaceBoard = async () => {
@@ -425,6 +486,7 @@ export function useOperationViewController({
     handleLeadClick,
     handleOpenEntityChat,
     handleOpenHeadlineChat,
+    handleOpenReportInspector,
     handleOpenReportChat,
     handleOpenWorkspaceBoard,
     handlePlaceEntityOnBoard,

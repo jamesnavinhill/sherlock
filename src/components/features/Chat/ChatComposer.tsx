@@ -4,7 +4,7 @@ import { CircleStop, Paperclip, Send, SlidersHorizontal } from 'lucide-react';
 
 import type { ChatGenerationStatus, ChatMentionReference, InvestigationScope, Workspace } from '@/types';
 import type { GuidedRunDraft, GuidedSessionState } from '@/services/chat/guidedMode';
-import { sanitizeDisplayTitle } from '@/domain';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import {
   applyMentionSelection,
   resolveDraftMentions,
@@ -227,7 +227,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             }}
             placeholder={
               activeWorkspace
-                ? `Ask about ${sanitizeDisplayTitle(activeWorkspace.title)}...`
+                ? `Ask about ${getWorkspaceDisplayTitle(activeWorkspace)}...`
                 : 'Select a workspace to begin chatting...'
             }
             className="min-h-[132px] w-full resize-none bg-transparent px-4 py-4 pb-16 pr-28 text-sm text-white outline-none transition"

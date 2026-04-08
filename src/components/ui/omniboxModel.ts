@@ -755,6 +755,10 @@ export const buildMentionCandidates = (input: {
           title,
           subtitle: 'Entity',
           snippet: artifact.topic,
+          metadata: {
+            entityName: title,
+            relatedArtifactId: artifact.id,
+          },
         });
       });
     });

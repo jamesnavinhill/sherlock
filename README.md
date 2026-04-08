@@ -7,7 +7,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
 - Uses a capability-aware model registry with direct-provider defaults plus a dynamic OpenRouter catalog (bundled snapshot, local cache, live refresh, curated quick picks, and manual slug entry)
 - Runs workspace-grounded chat through the same provider router with persisted sessions, message history, streaming output, and stop support
-- Exposes one workspace omnibox for routes, workspaces, saved timeline views, artifacts, items, chats, runs, and signals, with durable recent destinations plus in-context board/timeline/network focus and chat/board/timeline/network/files handoff actions
+- Exposes one shared header omnibox for routes, workspaces, saved timeline views, artifacts, items, chats, runs, and signals, with durable recent destinations plus in-context board/timeline/network/files focus and chat/board/timeline/network/files handoff actions
 - Provides a dedicated multi-board research workspace built on `tldraw`, with a canonical library for artifacts, entities, sources, signals, notes, links, files/media, and promoted chat excerpts
 - Executes Sherlock board-agent sessions through an approval-first review sheet that previews planned actions, supports an auto-approve toggle for low-risk organization moves, and leaves auditable action receipts for completed, skipped, failed, and queued follow-up work
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
@@ -25,15 +25,15 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 
 ## UI Areas
 
-- `Operation View`: artifact reading with artifact-type-aware summary highlights, provenance-at-a-glance strip, inline evidence cues, purpose-ordered typed-section rendering, dossier, inspector panel
+- `Operation View`: artifact reading with artifact-type-aware summary highlights, provenance-at-a-glance strip, inline evidence cues, route-backed section/evidence focus, purpose-ordered typed-section rendering, dossier, and a current-artifact/entity/signal inspector panel
 - `Task Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
 - `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into reports, timeline, graph, and chat
-- `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update events, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
-- `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
+- `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update events, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
+- `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records that reopen focused workspace surfaces, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
 - `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for reports/entities/signals, and an overlaying dossier rail that no longer shifts graph content
 - `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
-- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with dense list/grid modes, direct chat, board, source-link, deletion, and export actions
+- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, and export actions
 - `Finder`: discovery scanning and analysis launch
 - `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a vertically stacked runtime/theme workbench aligned to the shared chrome contract
 

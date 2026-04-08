@@ -6,7 +6,7 @@ import type {
   TimelineTrack,
   Workspace,
 } from '@/types';
-import { buildArtifactFollowUps, sanitizeDisplayTitle } from '../../../domain';
+import { buildArtifactFollowUps, getWorkspaceDisplayTitle } from '../../../domain';
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
   const blob = new Blob([content], { type: mimeType });
@@ -45,7 +45,7 @@ const formatEventLine = (event: TimelineEvent) => {
 };
 
 const buildSnapshotFilename = (workspace: Workspace, suffix: string) =>
-  `${normalizeFileToken(sanitizeDisplayTitle(workspace.title) || 'WORKSPACE')}_TIMELINE_${suffix}`;
+  `${normalizeFileToken(getWorkspaceDisplayTitle(workspace) || 'WORKSPACE')}_TIMELINE_${suffix}`;
 
 export const buildTimelineSnapshot = (input: {
   workspace: Workspace;
@@ -73,7 +73,7 @@ export const buildTimelineSnapshotMarkdown = (snapshot: TimelineSnapshot): strin
   const tracks = snapshot.metadata.tracks.length > 0 ? snapshot.metadata.tracks.join(', ') : 'ALL';
 
   return [
-    `# Timeline Snapshot: ${sanitizeDisplayTitle(snapshot.workspace.title)}`,
+    `# Timeline Snapshot: ${getWorkspaceDisplayTitle(snapshot.workspace)}`,
     '',
     `Generated: ${snapshot.metadata.generatedAt}`,
     `Range: ${snapshot.metadata.range}`,
@@ -114,13 +114,13 @@ export const buildTimelineSnapshotArtifact = (snapshot: TimelineSnapshot): Artif
 
   return {
     caseId: snapshot.workspace.id,
-    topic: `${sanitizeDisplayTitle(snapshot.workspace.title)} Timeline Snapshot`,
+    topic: `${getWorkspaceDisplayTitle(snapshot.workspace)} Timeline Snapshot`,
     dateStr: new Date(snapshot.metadata.generatedAt).toLocaleDateString(),
     createdAt: Date.parse(snapshot.metadata.generatedAt) || Date.now(),
     summary:
       snapshot.events.length > 0
-        ? `${snapshot.events.length} timeline events captured for ${sanitizeDisplayTitle(snapshot.workspace.title)}.`
-        : `Timeline snapshot saved before any events were visible for ${sanitizeDisplayTitle(snapshot.workspace.title)}.`,
+        ? `${snapshot.events.length} timeline events captured for ${getWorkspaceDisplayTitle(snapshot.workspace)}.`
+        : `Timeline snapshot saved before any events were visible for ${getWorkspaceDisplayTitle(snapshot.workspace)}.`,
     agendas: [
       `${snapshot.events.length} visible chronology events`,
       `Range: ${snapshot.metadata.range}`,
@@ -136,7 +136,7 @@ export const buildTimelineSnapshotArtifact = (snapshot: TimelineSnapshot): Artif
         kind: 'EXECUTIVE_SUMMARY',
         title: 'Timeline Snapshot Summary',
         content: [
-          `Workspace: ${sanitizeDisplayTitle(snapshot.workspace.title)}`,
+          `Workspace: ${getWorkspaceDisplayTitle(snapshot.workspace)}`,
           `Generated: ${snapshot.metadata.generatedAt}`,
           `Visible events: ${snapshot.events.length}`,
           `Focused track: ${snapshot.metadata.focusedTrack || 'ALL'}`,

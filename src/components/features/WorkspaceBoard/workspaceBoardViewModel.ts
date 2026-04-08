@@ -1,4 +1,4 @@
-import { sanitizeDisplayTitle } from '@/domain';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import {
   boardRefKey,
   buildWorkspaceLibraryEntries,
@@ -147,6 +147,6 @@ export const buildWorkspaceBoardViewModel = ({
     workspaceArtifacts,
     workspaceHeadlines,
     workspaceTitle:
-      activeWorkspace ? sanitizeDisplayTitle(activeWorkspace.title) : 'Workspace Board',
+      activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : 'Workspace Board',
   };
 };
