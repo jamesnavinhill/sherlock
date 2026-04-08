@@ -65,6 +65,51 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 pb-12">
       <div className="space-y-4">
         <Accordion
+          title="Runtime Profile"
+          icon={Cpu}
+          isOpen={runtime.runtimeSections.runtime}
+          onToggle={() => runtime.toggleRuntimeSection('runtime')}
+          className="bg-zinc-900/40"
+          contentClassName="p-4 sm:p-6"
+        >
+          <div className="space-y-6">
+            <ProviderModelSelector
+              form={runtime.form}
+              providerLabel="Active Provider"
+              providerAriaLabel="Active provider"
+              modelLabel="Active Model"
+              modelAriaLabel="Active model"
+              showModelHint={false}
+            />
+
+            <p className="text-[10px] text-zinc-500 font-mono">
+              TTS {runtime.form.providerMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
+            </p>
+
+            <RuntimeConfigBehaviorControls form={runtime.form} />
+
+            {runtime.form.value.provider === 'OPENROUTER' ? (
+              <OpenRouterSearchControls
+                webSearchEnabled={runtime.openRouterWebSearchEnabled}
+                setWebSearchEnabled={runtime.setOpenRouterWebSearchEnabled}
+                engine={runtime.openRouterEngine}
+                setEngine={runtime.setOpenRouterEngine}
+                maxResults={runtime.openRouterMaxResults}
+                setMaxResults={runtime.setOpenRouterMaxResults}
+                maxTotalResults={runtime.openRouterMaxTotalResults}
+                setMaxTotalResults={runtime.setOpenRouterMaxTotalResults}
+                searchContextSize={runtime.openRouterSearchContextSize}
+                setSearchContextSize={runtime.setOpenRouterSearchContextSize}
+                allowedDomains={runtime.openRouterAllowedDomains}
+                setAllowedDomains={runtime.setOpenRouterAllowedDomains}
+                excludedDomains={runtime.openRouterExcludedDomains}
+                setExcludedDomains={runtime.setOpenRouterExcludedDomains}
+              />
+            ) : null}
+          </div>
+        </Accordion>
+
+        <Accordion
           title="Access Credentials"
           count={configuredKeyCount}
           icon={Key}
@@ -120,51 +165,6 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
             <p className="pt-2 text-[9px] font-mono italic text-zinc-600">
               Keys are stored locally in your browser.
             </p>
-          </div>
-        </Accordion>
-
-        <Accordion
-          title="Runtime Profile"
-          icon={Cpu}
-          isOpen={runtime.runtimeSections.runtime}
-          onToggle={() => runtime.toggleRuntimeSection('runtime')}
-          className="bg-zinc-900/40"
-          contentClassName="p-4 sm:p-6"
-        >
-          <div className="space-y-6">
-            <ProviderModelSelector
-              form={runtime.form}
-              providerLabel="Active Provider"
-              providerAriaLabel="Active provider"
-              modelLabel="Active Model"
-              modelAriaLabel="Active model"
-              showModelHint={false}
-            />
-
-            <p className="text-[10px] text-zinc-500 font-mono">
-              TTS {runtime.form.providerMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
-            </p>
-
-            <RuntimeConfigBehaviorControls form={runtime.form} />
-
-            {runtime.form.value.provider === 'OPENROUTER' ? (
-              <OpenRouterSearchControls
-                webSearchEnabled={runtime.openRouterWebSearchEnabled}
-                setWebSearchEnabled={runtime.setOpenRouterWebSearchEnabled}
-                engine={runtime.openRouterEngine}
-                setEngine={runtime.setOpenRouterEngine}
-                maxResults={runtime.openRouterMaxResults}
-                setMaxResults={runtime.setOpenRouterMaxResults}
-                maxTotalResults={runtime.openRouterMaxTotalResults}
-                setMaxTotalResults={runtime.setOpenRouterMaxTotalResults}
-                searchContextSize={runtime.openRouterSearchContextSize}
-                setSearchContextSize={runtime.setOpenRouterSearchContextSize}
-                allowedDomains={runtime.openRouterAllowedDomains}
-                setAllowedDomains={runtime.setOpenRouterAllowedDomains}
-                excludedDomains={runtime.openRouterExcludedDomains}
-                setExcludedDomains={runtime.setOpenRouterExcludedDomains}
-              />
-            ) : null}
           </div>
         </Accordion>
       </div>

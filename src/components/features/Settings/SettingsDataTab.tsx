@@ -22,10 +22,8 @@ const PreferenceCard: React.FC<{
   <div className="border border-zinc-800 bg-zinc-900/40 p-6">
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-2">
-        <div className="text-xs font-bold uppercase tracking-widest text-zinc-200 font-mono">
-          {title}
-        </div>
-        <p className="text-sm leading-6 text-zinc-500">{description}</p>
+        <div className="osint-title-inline">{title}</div>
+        <p className="osint-body-copy text-sm">{description}</p>
       </div>
       <button
         type="button"
@@ -54,9 +52,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
     <section className="space-y-4">
       <div className="flex items-center space-x-2">
         <Shield className="w-4 h-4 text-osint-primary" />
-        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono">
-          Operational Preferences
-        </h3>
+        <h3 className="osint-eyebrow">Operational Preferences</h3>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <PreferenceCard
@@ -78,11 +74,9 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
       <section className="flex h-full flex-col border border-zinc-800 bg-zinc-900/40 p-8">
         <div className="flex items-center gap-3">
           <Database className="h-5 w-5 text-osint-primary" />
-          <h3 className="text-lg font-bold text-white font-mono uppercase tracking-widest">
-            Data Management
-          </h3>
+          <h3 className="osint-title-section">Data Management</h3>
         </div>
-        <p className="mt-5 max-w-2xl text-xs font-mono leading-relaxed text-zinc-500">
+        <p className="osint-body-copy mt-5 max-w-2xl text-sm">
           Sherlock stores workspace data locally in your browser. Exports and restores include
           workspaces, artifacts, runs, chat history, saved signals, manual graph data, templates,
           research boards, and workspace library items. Theme preferences, provider defaults, and
@@ -95,9 +89,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
             onClick={onExportData}
             className="group flex h-14 items-center justify-between gap-4 border border-zinc-800 bg-black/60 px-5 text-left transition-all hover:border-osint-primary/50 hover:bg-zinc-900"
           >
-            <div className="min-w-0 text-xs font-bold text-white font-mono uppercase">
-              Export Workspace Data
-            </div>
+            <div className="min-w-0 osint-eyebrow text-[11px] text-zinc-200">Export Workspace Data</div>
             <Download className="h-5 w-5 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
           </button>
 
@@ -106,9 +98,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
             onClick={() => fileInputRef.current?.click()}
             className="group flex h-14 items-center justify-between gap-4 border border-zinc-800 bg-black/60 px-5 text-left transition-all hover:border-osint-primary/50 hover:bg-zinc-900"
           >
-            <div className="min-w-0 text-xs font-bold text-white font-mono uppercase">
-              Restore Backup
-            </div>
+            <div className="min-w-0 osint-eyebrow text-[11px] text-zinc-200">Restore Backup</div>
             <Upload className="h-5 w-5 flex-shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
           </button>
           <input
@@ -124,11 +114,9 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
       <section className="osint-danger-panel flex h-full flex-col border p-8">
         <div className="flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 osint-danger-text" />
-          <h3 className="text-lg font-bold osint-danger-text font-mono uppercase tracking-widest">
-            System Purge
-          </h3>
+          <h3 className="osint-title-section osint-danger-text">System Purge</h3>
         </div>
-        <p className="mt-5 max-w-2xl text-xs font-mono leading-relaxed osint-danger-text">
+        <p className="mt-5 max-w-2xl font-sans text-sm leading-7 osint-danger-text">
           The purge protocol will permanently delete all local workspace data, including runs, chat
           history, saved signals, templates, research boards, workspace library items, and manual
           graph data. This action cannot be reversed.
