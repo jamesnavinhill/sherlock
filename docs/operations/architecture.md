@@ -453,6 +453,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - routed chronology page with header search, filters popout, dossier, central event stream, and details drawer
 - `src/components/features/Timeline/useTimelineViewController.ts` now owns route-query wiring, export/save commands, board/chat handoffs, and detail action composition while `TimelineView.tsx` stays focused on route shell layout
 - timeline query parsing/serialization lives in `src/components/features/Timeline/timelineRouteState.ts`
+- durable saved timeline views persist through SQLite-backed settings records and reopen through the shared omnibox result/action model
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
 - route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
 - default-on chronology for saved signals, runs, and artifacts

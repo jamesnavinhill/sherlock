@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  BookmarkPlus,
   Briefcase,
   ChevronDown,
   Download,
@@ -35,6 +36,7 @@ interface TimelineToolbarProps {
   showExportMenu: boolean;
   showFilters: boolean;
   timelineSnapshotAvailable: boolean;
+  canSaveCurrentView: boolean;
   exportMenuRef: React.RefObject<HTMLDivElement | null>;
   filterMenuRef: React.RefObject<HTMLDivElement | null>;
   onToggleLeftPanel: () => void;
@@ -43,6 +45,7 @@ interface TimelineToolbarProps {
   onSearchChange: (value: string) => void;
   onToggleExportMenu: () => void;
   onToggleFilters: () => void;
+  onSaveView: () => void;
   onCloseFilters: () => void;
   onClearFilters: () => void;
   onRangeChange: (range: TimelineRange) => void;
@@ -62,6 +65,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
   showExportMenu,
   showFilters,
   timelineSnapshotAvailable,
+  canSaveCurrentView,
   exportMenuRef,
   filterMenuRef,
   onToggleLeftPanel,
@@ -70,6 +74,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
   onSearchChange,
   onToggleExportMenu,
   onToggleFilters,
+  onSaveView,
   onCloseFilters,
   onClearFilters,
   onRangeChange,
@@ -151,6 +156,24 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
           />
         ) : null}
       </div>
+
+      <button
+        onClick={onSaveView}
+        disabled={!canSaveCurrentView}
+        className={`inline-flex shrink-0 items-center px-3 py-1.5 font-mono text-xs font-bold uppercase transition ${
+          canSaveCurrentView
+            ? 'osint-button-chrome'
+            : 'cursor-not-allowed border border-zinc-800 bg-zinc-950 text-zinc-600'
+        }`}
+        title={
+          canSaveCurrentView
+            ? 'Save the current timeline query as a durable omnibox view'
+            : 'Change search, range, tracks, or focus before saving a timeline view'
+        }
+      >
+        <BookmarkPlus className="mr-1 h-4 w-4" />
+        <span className="hidden lg:inline">Save View</span>
+      </button>
 
       <button
         onClick={onToggleRightPanel}

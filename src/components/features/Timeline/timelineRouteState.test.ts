@@ -39,7 +39,7 @@ describe('timeline route state', () => {
         search: '',
         filters: {
           range: 'ALL',
-          tracks: ['SIGNAL', 'RUN', 'ARTIFACT'],
+          tracks: ['SIGNAL', 'RUN', 'ARTIFACT', 'ITEM'],
         },
         focusedTrack: 'ALL',
         focusedRefId: undefined,

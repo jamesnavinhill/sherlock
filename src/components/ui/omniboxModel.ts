@@ -11,10 +11,13 @@ import type {
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '@/domain';
 import type { StoredOmniboxRecent } from '@/utils/localStorage';
 import { findMentionMatches } from '@/services/chat/mentions';
+import type { TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
+import { buildTimelineSavedViewSnippet } from '@/components/features/Timeline/timelineSavedViews';
 
 export type OmniboxResultKind =
   | 'ROUTE'
   | 'WORKSPACE'
+  | 'SAVED_VIEW'
   | 'ARTIFACT'
   | 'SECTION'
   | 'SOURCE'
@@ -54,6 +57,7 @@ interface BuildOmniboxResultsInput {
   chatSessions: ChatSession[];
   snippets: WorkspaceContextSnippet[];
   storedRecents?: StoredOmniboxRecent[];
+  savedViews?: TimelineSavedView[];
   workspaceItems: WorkspaceItem[];
   workspaceRuns: WorkspaceRun[];
   workspaces: Workspace[];
@@ -216,6 +220,48 @@ const buildWorkspaceResults = (query: string, workspaces: Workspace[]) =>
         score: score + 20,
         timestamp: workspace.updatedAt || workspace.createdAt,
         actions: ['OPEN', 'OPEN_IN_CHAT', 'OPEN_IN_FILES'] as OmniboxActionId[],
+      };
+    })
+    .filter((result) => result.score > 0);
+
+const buildSavedViewResults = (
+  query: string,
+  activeWorkspaceId: string | null,
+  savedViews: TimelineSavedView[],
+  workspaces: Workspace[]
+) =>
+  savedViews
+    .filter((view) => !activeWorkspaceId || view.workspaceId === activeWorkspaceId)
+    .map((view) => {
+      const workspace = workspaces.find((entry) => entry.id === view.workspaceId);
+      const score = scoreTextMatch(
+        query,
+        [
+          view.title,
+          buildTimelineSavedViewSnippet(view, workspace),
+          view.query.search,
+          view.query.filters.range,
+          view.query.filters.tracks.join(' '),
+          view.query.focusedTrack,
+          view.query.focusedRefId,
+        ],
+        view.title
+      );
+
+      return {
+        id: `saved-view:${view.id}`,
+        kind: 'SAVED_VIEW' as const,
+        title: view.title,
+        subtitle: 'Saved view',
+        snippet: buildTimelineSavedViewSnippet(view, workspace),
+        workspaceId: view.workspaceId,
+        refId: view.id,
+        score: score + 16,
+        timestamp: view.updatedAt,
+        actions: ['OPEN', 'OPEN_IN_TIMELINE'] as OmniboxActionId[],
+        metadata: {
+          savedViewQuery: view.query,
+        },
       };
     })
     .filter((result) => result.score > 0);
@@ -394,6 +440,7 @@ export const buildRecentOmniboxResults = ({
   activeWorkspaceId,
   artifacts,
   chatSessions,
+  savedViews = [],
   storedRecents = [],
   workspaceItems,
   workspaceRuns,
@@ -592,6 +639,30 @@ export const buildRecentOmniboxResults = ({
       actions: ['OPEN', 'OPEN_IN_TIMELINE'] as OmniboxActionId[],
     }));
 
+  const recentSavedViews = savedViews
+    .filter((view) => !activeWorkspaceId || view.workspaceId === activeWorkspaceId)
+    .slice()
+    .sort((left, right) => right.updatedAt - left.updatedAt)
+    .slice(0, 3)
+    .map((view, index) => {
+      const workspace = workspaces.find((entry) => entry.id === view.workspaceId);
+      return {
+        id: `recent-saved-view:${view.id}`,
+        kind: 'SAVED_VIEW' as const,
+        title: view.title,
+        subtitle: 'Saved view',
+        snippet: buildTimelineSavedViewSnippet(view, workspace),
+        workspaceId: view.workspaceId,
+        refId: view.id,
+        score: 80 - index,
+        timestamp: view.updatedAt,
+        actions: ['OPEN', 'OPEN_IN_TIMELINE'] as OmniboxActionId[],
+        metadata: {
+          savedViewQuery: view.query,
+        },
+      };
+    });
+
   return dedupeResults([
     ...storedRecentResults,
     ...recentWorkspaceResults,
@@ -599,6 +670,7 @@ export const buildRecentOmniboxResults = ({
     ...scopedItems,
     ...recentChats,
     ...recentRuns,
+    ...recentSavedViews,
   ]).slice(0, 10);
 };
 
@@ -607,6 +679,7 @@ export const buildOmniboxResults = ({
   activeWorkspaceId,
   artifacts,
   chatSessions,
+  savedViews = [],
   snippets,
   storedRecents,
   workspaceItems,
@@ -619,6 +692,7 @@ export const buildOmniboxResults = ({
       activeWorkspaceId,
       artifacts,
       chatSessions,
+      savedViews,
       storedRecents,
       workspaceItems,
       workspaceRuns,
@@ -633,6 +707,7 @@ export const buildOmniboxResults = ({
   return dedupeResults([
     ...buildRouteResults(trimmedQuery, activeWorkspaceId),
     ...buildWorkspaceResults(trimmedQuery, workspaces),
+    ...buildSavedViewResults(trimmedQuery, activeWorkspaceId, savedViews, workspaces),
     ...buildRunResults(trimmedQuery, activeWorkspaceId, workspaceRuns),
     ...buildChatResults(trimmedQuery, activeWorkspaceId, chatSessions),
     ...snippets

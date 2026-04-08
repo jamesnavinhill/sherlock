@@ -36,6 +36,7 @@ import {
   toggleTimelineTrack,
 } from './timelineQueryHelpers';
 import { buildTimelineDetailActions } from './timelineDetailActions';
+import { isTimelineQuerySaveable, saveTimelineSavedView } from './timelineSavedViews';
 
 interface TimelineViewControllerOptions {
   onOpenChat: (request: ChatOpenRequest) => void;
@@ -189,6 +190,11 @@ export function useTimelineViewController({
     updateTimelineQuery(() => clearTimelineQuery());
   }, [updateTimelineQuery]);
 
+  const canSaveCurrentView = useMemo(
+    () => isTimelineQuerySaveable(timelineQuery),
+    [timelineQuery]
+  );
+
   const focusReference = useCallback(
     (track: TimelineTrack, refId?: string) => {
       updateTimelineQuery((current) => focusTimelineReference(current, track, refId));
@@ -234,6 +240,17 @@ export function useTimelineViewController({
     setShowExportMenu(false);
     addToast(`Saved timeline snapshot to ${saved.topic}.`, 'SUCCESS');
   }, [addToast, saveArtifact, timelineSnapshot]);
+
+  const handleSaveTimelineView = useCallback(async () => {
+    if (!activeWorkspace) return;
+    if (!isTimelineQuerySaveable(timelineQuery)) return;
+
+    const savedView = await saveTimelineSavedView({
+      workspaceId: activeWorkspace.id,
+      query: timelineQuery,
+    });
+    addToast(`Saved timeline view: ${savedView.title}.`, 'SUCCESS');
+  }, [activeWorkspace, addToast, timelineQuery]);
 
   const openWorkspaceChat = useCallback(
     (event?: TimelineEvent | null) => {
@@ -385,6 +402,7 @@ export function useTimelineViewController({
     exportMenuRef,
     filterMenuRef,
     filters,
+    canSaveCurrentView,
     focusReference,
     focusedRefId,
     focusedTrack,
@@ -392,6 +410,7 @@ export function useTimelineViewController({
     handleExportTimelineJson,
     handleExportTimelineMarkdown,
     handleSaveTimelineArtifact,
+    handleSaveTimelineView,
     isLoading,
     labelProfile,
     leftPanelOpen,

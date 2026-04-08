@@ -14,7 +14,11 @@ import {
   buildWorkspaceNetworkPath,
   buildWorkspaceTimelinePath,
 } from '@/app/routes';
-import { buildTimelineRouteQuery, parseTimelineRouteQuery } from '@/components/features/Timeline/timelineRouteState';
+import {
+  buildTimelineRouteQuery,
+  parseTimelineRouteQuery,
+  type TimelineRouteQueryState,
+} from '@/components/features/Timeline/timelineRouteState';
 import {
   buildArtifactBoardReference,
   buildArtifactChatOpenRequest,
@@ -220,6 +224,8 @@ const resolveBoardPlacementReference = (input: {
 
 export const getOmniboxOpenLabel = (result: OmniboxResult) => {
   switch (result.kind) {
+    case 'SAVED_VIEW':
+      return 'Open View';
     case 'RUN':
       return 'Open Run';
     case 'CHAT_SESSION':
@@ -302,7 +308,24 @@ export const executeOmniboxAction = async ({
   workspaceRuns,
   workspaces,
 }: ExecuteOmniboxActionInput) => {
+  const openSavedView = (query: TimelineRouteQueryState) => {
+    if (!result.workspaceId) return;
+    setActiveWorkspaceId(result.workspaceId);
+    const nextQuery = buildTimelineRouteQuery(query).toString();
+    navigate(
+      `${buildWorkspaceTimelinePath(result.workspaceId)}${nextQuery ? `?${nextQuery}` : ''}`
+    );
+    onClose();
+  };
+
   const openTimeline = () => {
+    if (result.kind === 'SAVED_VIEW') {
+      const savedViewQuery = result.metadata?.savedViewQuery as TimelineRouteQueryState | undefined;
+      if (savedViewQuery) {
+        openSavedView(savedViewQuery);
+      }
+      return;
+    }
     if (!result.workspaceId) return;
     setActiveWorkspaceId(result.workspaceId);
     const timelineFocus = resolveTimelineFocus(result);
@@ -437,6 +460,14 @@ export const executeOmniboxAction = async ({
         : buildWorkspaceHomePath(result.workspaceId)
     );
     onClose();
+    return;
+  }
+
+  if (result.kind === 'SAVED_VIEW') {
+    const savedViewQuery = result.metadata?.savedViewQuery as TimelineRouteQueryState | undefined;
+    if (savedViewQuery) {
+      openSavedView(savedViewQuery);
+    }
     return;
   }
 

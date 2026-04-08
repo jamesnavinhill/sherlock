@@ -207,6 +207,8 @@ The storage helper now exposes dedicated typed accessors for:
 - Live Monitor autosave preference
 - one-time demo bootstrap marker
 
+Durable saved timeline views do not use browser storage. They persist through the SQLite `settings` table under workspace-scoped keys so omnibox saved-view results survive reloads and backup/restore flows.
+
 Values still kept there:
 
 - provider keys (for selected providers)

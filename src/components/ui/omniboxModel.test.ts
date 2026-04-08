@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Artifact, Workspace, WorkspaceItem } from '@/types';
+import type { TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
 import {
   applyMentionSelection,
   buildMentionCandidates,
@@ -32,6 +33,22 @@ describe('omniboxModel', () => {
       rawText: 'raw',
       createdAt: 100,
     };
+    const savedView: TimelineSavedView = {
+      id: 'view-1',
+      workspaceId: 'ws-1',
+      title: 'Timeline: atlas',
+      query: {
+        search: 'atlas',
+        filters: {
+          range: '30D',
+          tracks: ['SIGNAL', 'ARTIFACT'],
+        },
+        focusedTrack: 'ALL',
+        focusedRefId: undefined,
+      },
+      createdAt: 90,
+      updatedAt: 110,
+    };
 
     const snippetResult = mapWorkspaceSnippetToOmniboxResult(
       {
@@ -59,6 +76,7 @@ describe('omniboxModel', () => {
       activeWorkspaceId: 'ws-1',
       artifacts: [artifact],
       chatSessions: [],
+      savedViews: [savedView],
       snippets: [
         {
           id: 'CTX-REPORT-rep-1',
@@ -78,6 +96,7 @@ describe('omniboxModel', () => {
     });
 
     expect(results.some((result) => result.kind === 'WORKSPACE')).toBe(true);
+    expect(results.some((result) => result.kind === 'SAVED_VIEW')).toBe(true);
     expect(results.some((result) => result.kind === 'ARTIFACT')).toBe(true);
     expect(results.some((result) => result.kind === 'ROUTE')).toBe(true);
   });
@@ -141,6 +160,22 @@ describe('omniboxModel', () => {
       createdAt: 100,
       updatedAt: 120,
     };
+    const savedView: TimelineSavedView = {
+      id: 'view-1',
+      workspaceId: 'ws-1',
+      title: 'Timeline: Atlas Brief',
+      query: {
+        search: 'Atlas Brief',
+        filters: {
+          range: '30D',
+          tracks: ['SIGNAL', 'ARTIFACT'],
+        },
+        focusedTrack: 'ALL',
+        focusedRefId: undefined,
+      },
+      createdAt: 100,
+      updatedAt: 140,
+    };
 
     const candidates = buildMentionCandidates({
       workspaceId: 'ws-1',
@@ -169,6 +204,7 @@ describe('omniboxModel', () => {
       activeWorkspaceId: 'ws-1',
       artifacts: [artifact],
       chatSessions: [],
+      savedViews: [savedView],
       snippets: [],
       storedRecents: recentRecord ? [recentRecord] : [],
       workspaceItems: [item],
@@ -178,5 +214,6 @@ describe('omniboxModel', () => {
 
     expect(recents[0]?.title).toBe('Atlas Workspace');
     expect(recents[0]?.actions).toContain('OPEN_IN_CHAT');
+    expect(recents.some((result) => result.kind === 'SAVED_VIEW')).toBe(true);
   });
 });

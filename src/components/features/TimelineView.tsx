@@ -27,6 +27,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     artifactTitleById,
     chatSessionItems,
     chatTitleById,
+    canSaveCurrentView,
     clearFilters,
     detailActions,
     detailSections,
@@ -43,6 +44,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     handleExportTimelineJson,
     handleExportTimelineMarkdown,
     handleSaveTimelineArtifact,
+    handleSaveTimelineView,
     isLoading,
     labelProfile,
     leftPanelOpen,
@@ -108,6 +110,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         showExportMenu={showExportMenu}
         showFilters={showFilters}
         timelineSnapshotAvailable={!!timelineSnapshot}
+        canSaveCurrentView={canSaveCurrentView}
         exportMenuRef={exportMenuRef}
         filterMenuRef={filterMenuRef}
         onToggleLeftPanel={() => setLeftPanelOpen((current) => !current)}
@@ -136,6 +139,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
         onToggleFilters={() => {
           setShowFilters((current) => !current);
           setShowExportMenu(false);
+        }}
+        onSaveView={() => {
+          void handleSaveTimelineView();
         }}
         onCloseFilters={() => setShowFilters(false)}
         onClearFilters={clearFilters}

@@ -3,6 +3,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
+  Bookmark,
   CircleDot,
   Command,
   FileSearch,
@@ -29,6 +30,7 @@ import {
   getStoredOmniboxRecents,
   setStoredOmniboxRecents,
 } from '@/utils/localStorage';
+import { getAllTimelineSavedViews, type TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
 import {
   buildOmniboxResults,
   createStoredOmniboxRecent,
@@ -40,6 +42,7 @@ import { executeOmniboxAction, getOmniboxOpenLabel } from './omniboxActions';
 const resultIconByKind: Record<OmniboxResult['kind'], LucideIcon> = {
   ROUTE: CircleDot,
   WORKSPACE: Target,
+  SAVED_VIEW: Bookmark,
   ARTIFACT: FileText,
   SECTION: FileSearch,
   SOURCE: Hash,
@@ -53,6 +56,7 @@ const resultIconByKind: Record<OmniboxResult['kind'], LucideIcon> = {
 const resultLabelByKind: Record<OmniboxResult['kind'], string> = {
   ROUTE: 'Route',
   WORKSPACE: CANONICAL_NOUNS.workspace,
+  SAVED_VIEW: 'Saved view',
   ARTIFACT: CANONICAL_NOUNS.artifact,
   SECTION: 'Section',
   SOURCE: CANONICAL_NOUNS.source,
@@ -94,6 +98,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [storedRecents, setStoredRecents] = useState(() => getStoredOmniboxRecents());
+  const [savedViews, setSavedViews] = useState<TimelineSavedView[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const baseResults = useMemo(
     () =>
@@ -102,6 +107,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
         activeWorkspaceId,
         artifacts,
         chatSessions,
+        savedViews,
         snippets: [],
         storedRecents,
         workspaceItems,
@@ -113,6 +119,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
       artifacts,
       chatSessions,
       query,
+      savedViews,
       storedRecents,
       workspaceItems,
       workspaceRuns,
@@ -128,6 +135,26 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void getAllTimelineSavedViews(workspaces.map((workspace) => workspace.id))
+      .then((views) => {
+        if (!cancelled) {
+          setSavedViews(views);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSavedViews([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaces]);
 
   useEffect(() => {
     let cancelled = false;
@@ -150,6 +177,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
               activeWorkspaceId,
               artifacts,
               chatSessions,
+              savedViews,
               snippets,
               storedRecents,
               workspaceItems,
@@ -180,6 +208,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
     baseResults,
     chatSessions,
     query,
+    savedViews,
     storedRecents,
     workspaceItems,
     workspaceRuns,
@@ -309,7 +338,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ onClose }) => {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-left">
                     <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
-                      Recents, artifacts, items, and chat sessions
+                      Recents, saved views, artifacts, items, and chat sessions
                     </div>
                     <div className="rounded border border-zinc-800/50 p-2 text-[10px] font-mono text-zinc-600">
                       `Enter` opens, `Shift+Enter` places on board
