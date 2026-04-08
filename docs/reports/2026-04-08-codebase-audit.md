@@ -32,6 +32,8 @@ Result:
 Notable validation notes:
 
 - the build still emits the expected large-chunk warning for `vendor-tldraw-app`
+- the full test suite passed with non-failing React `act(...)` warnings in `src/components/features/OperationView/launchPropagation.test.tsx` and `src/components/features/OperationView/useOperationViewController.test.ts`
+- the test run also emitted the existing React Router future-flag warnings from `src/components/features/Timeline/useTimelineViewController.test.ts`
 - active `src/` code does not show broad `TODO` / `FIXME` / `HACK` marker sprawl
 
 ## Executive Summary
