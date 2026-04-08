@@ -111,7 +111,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
     const buildManualCaseArtifact = (id: string, label: string): Artifact => ({
       id,
-      caseId: id,
+      workspaceId: id,
       topic: label,
       summary: 'Manually created report node. Content pending investigation.',
       dateStr: new Date().toISOString().split('T')[0],
@@ -238,7 +238,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       const activeReports =
         filterCaseId === 'ALL' || !filterCaseId
           ? reports
-          : reports.filter((r) => r.caseId === filterCaseId);
+          : reports.filter((r) => r.workspaceId === filterCaseId);
 
       if (!filterCaseId) {
         // If no case selected/loaded, empty graph? original logic says empty if ''
@@ -290,8 +290,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
       // Build Graph from Reports
       activeReports.forEach((report) => {
-        const caseId = `case-${report.id}`;
-        const caseNode = getOrCreateNode(caseId, 'CASE', report.topic, report);
+        const workspaceId = `case-${report.id}`;
+        const caseNode = getOrCreateNode(workspaceId, 'CASE', report.topic, report);
         if (!caseNode) return;
 
         if (report.config?.parentArtifactId) {
@@ -300,7 +300,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
           );
           if (parentReport) {
             const pId = `case-${parentReport.id}`;
-            if (rawNodes.has(pId)) rawLinks.push({ source: pId, target: caseId, value: 3 });
+            if (rawNodes.has(pId)) rawLinks.push({ source: pId, target: workspaceId, value: 3 });
           }
         }
 
@@ -318,10 +318,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
           const linkExists = rawLinks.some(
             (l) =>
-              (l.source === caseId && l.target === eId) || (l.source === eId && l.target === caseId)
+              (l.source === workspaceId && l.target === eId) || (l.source === eId && l.target === workspaceId)
           );
           if (!linkExists) {
-            rawLinks.push({ source: caseId, target: eId, value: 1 });
+            rawLinks.push({ source: workspaceId, target: eId, value: 1 });
             caseNode.connections++;
             eNode.connections++;
           }
@@ -342,11 +342,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
           const linkExists = rawLinks.some(
             (link) =>
-              (link.source === caseId && link.target === sourceId) ||
-              (link.source === sourceId && link.target === caseId)
+              (link.source === workspaceId && link.target === sourceId) ||
+              (link.source === sourceId && link.target === workspaceId)
           );
           if (!linkExists) {
-            rawLinks.push({ source: caseId, target: sourceId, value: 0.8 });
+            rawLinks.push({ source: workspaceId, target: sourceId, value: 0.8 });
             caseNode.connections++;
             sourceNode.connections++;
           }

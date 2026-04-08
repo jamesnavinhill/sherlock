@@ -3,7 +3,7 @@ import { loadSystemConfig } from '@/config/systemConfig';
 import { ChatRepository } from '@/services/db/repositories/ChatRepository';
 import { BoardAgentRepository } from '@/services/db/repositories/BoardAgentRepository';
 
-import type { WorkspaceState } from '../caseStore';
+import type { WorkspaceState } from '../workspaceStore';
 import type { WorkspaceStoreApi } from './shared';
 
 export const createConversationActions = ({
@@ -31,7 +31,7 @@ export const createConversationActions = ({
       workspaceId: input.workspaceId,
       title: input.title?.trim() || 'Untitled Chat',
       status: 'ACTIVE' as const,
-      sourceReportId: input.sourceReportId,
+      sourceArtifactId: input.sourceArtifactId,
       packId: input.packId,
       purposeId: input.purposeId,
       provider: input.provider || systemConfig.provider,

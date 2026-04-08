@@ -30,7 +30,7 @@ describe('useTimelineViewController', () => {
       artifacts: [
         {
           id: 'artifact-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           topic: 'Atlas Report',
           summary: 'Summary',
           agendas: [],

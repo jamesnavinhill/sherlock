@@ -126,7 +126,7 @@ export type FollowUpStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'DISMISSED';
 
 export interface Signal {
   id: string;
-  caseId: string;
+  workspaceId: string;
   content: string;
   source: string;
   url?: string;
@@ -134,7 +134,7 @@ export interface Signal {
   type: 'SOCIAL' | 'NEWS' | 'OFFICIAL';
   status: SignalStatus;
   threatLevel: 'INFO' | 'CAUTION' | 'CRITICAL';
-  linkedReportId?: string;
+  linkedArtifactId?: string;
 }
 
 export interface FollowUp {
@@ -218,7 +218,7 @@ export interface WorkspaceItemProvenance {
   source: 'USER' | 'CHAT' | 'REPORT' | 'TIMELINE' | 'NETWORK' | 'INGESTION' | 'BOARD_AGENT';
   sourceMessageId?: string;
   sourceSessionId?: string;
-  sourceReportId?: string;
+  sourceArtifactId?: string;
   sourceSignalId?: string;
   sourceHeadlineId?: string;
   sourceBoardId?: string;
@@ -491,7 +491,7 @@ export interface ChatSession {
   workspaceId: string;
   title: string;
   status: ChatSessionStatus;
-  sourceReportId?: string;
+  sourceArtifactId?: string;
   packId?: string;
   purposeId?: string;
   provider?: AIProvider;
@@ -552,7 +552,7 @@ export interface ChatDraftArtifact {
 }
 
 export interface ChatLaunchContext {
-  sourceReportId?: string;
+  sourceArtifactId?: string;
   entityName?: string;
   signalId?: string;
   headlineId?: string;
@@ -589,7 +589,7 @@ export enum AppView {
   INVESTIGATION = 'INVESTIGATION',
   WORKSPACE = 'WORKSPACE',
   CHAT = 'CHAT',
-  ARCHIVES = 'ARCHIVES',
+  FILES = 'FILES',
   NETWORK = 'NETWORK',
   LIVE_MONITOR = 'LIVE_MONITOR',
   SETTINGS = 'SETTINGS',
@@ -724,7 +724,7 @@ export interface InvestigationLaunchRequest {
 
 export interface Artifact {
   id?: string;
-  caseId?: string;
+  workspaceId?: string;
   topic: string;
   dateStr?: string;
   createdAt?: number;
@@ -746,7 +746,7 @@ export interface Artifact {
   config?: InvestigationRunConfig;
 }
 
-export interface CaseTemplate {
+export interface WorkspaceTemplate {
   id: string;
   name: string;
   description?: string;
@@ -902,6 +902,6 @@ export interface WorkspaceDataBackup {
   signals: WorkspaceDataSignalSnapshot;
   graph: WorkspaceDataGraphSnapshot;
   workspaceSurface: WorkspaceDataWorkspaceSurfaceSnapshot;
-  templates: CaseTemplate[];
+  templates: WorkspaceTemplate[];
   metadata: WorkspaceDataBackupMetadata;
 }

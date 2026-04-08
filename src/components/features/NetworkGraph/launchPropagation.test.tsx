@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import React from 'react';
-import { useWorkspaceStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/workspaceStore';
 import { requestNetworkEntityFocus } from '@/services/workspace/workspaceSurfaceFocus';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
@@ -57,8 +57,8 @@ vi.mock('./NodeInspector', () => ({
   ),
 }));
 
-vi.mock('../Runs/TaskSetupModal', () => ({
-  TaskSetupModal: ({
+vi.mock('../Runs/RunSetupModal', () => ({
+  RunSetupModal: ({
     onStart,
   }: {
     onStart: (
@@ -115,7 +115,7 @@ describe('NetworkGraph launch propagation', () => {
       artifacts: [
         {
           id: 'report-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas baseline',
           summary: 'Summary',
           agendas: [],

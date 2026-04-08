@@ -41,7 +41,7 @@ export interface BoardAgentExecutionContext {
     artifact: Artifact,
     parentContext?: { topic: string; summary: string }
   ) => Promise<Artifact>;
-  appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
+  appendSectionToArtifact: (reportId: string, section: ArtifactSection) => Promise<void>;
   launchInvestigation?: (request: InvestigationLaunchRequest) => Promise<void> | void;
 }
 

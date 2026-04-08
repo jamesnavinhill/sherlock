@@ -1,12 +1,12 @@
 import { buildAccentColor, parseOklch } from '@/utils/accent';
 import { clearStoredActiveWorkspaceId, setStoredActiveWorkspaceId } from '@/utils/localStorage';
 import { SettingsRepository } from '@/services/db/repositories/SettingsRepository';
-import { CaseRepository } from '@/services/db/repositories/CaseRepository';
+import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
 import { TemplateRepository } from '@/services/db/repositories/TemplateRepository';
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import { ScopeRepository } from '@/services/db/repositories/ScopeRepository';
 
-import type { WorkspaceState } from '../caseStore';
+import type { WorkspaceState } from '../workspaceStore';
 import type { WorkspaceStoreApi } from './shared';
 
 export const createSimpleActions = ({
@@ -124,7 +124,7 @@ export const createSimpleActions = ({
   queueBoardPlacement: (queuedBoardPlacement) => set({ queuedBoardPlacement }),
   clearQueuedBoardPlacement: () => set({ queuedBoardPlacement: null }),
   addHeadline: async (headline) => {
-    await CaseRepository.createSignal(headline);
+    await WorkspaceRepository.createSignal(headline);
     set((state) => {
       const existingIndex = state.headlines.findIndex((entry) => entry.id === headline.id);
       if (existingIndex >= 0) {

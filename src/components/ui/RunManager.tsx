@@ -11,7 +11,7 @@ import {
   Trash2,
 } from 'lucide-react';
 
-interface TaskManagerProps {
+interface RunManagerProps {
   workspaceRuns: WorkspaceRun[];
   activeTaskId: string | null;
   onSelectTask: (taskId: string) => void;
@@ -20,7 +20,7 @@ interface TaskManagerProps {
   onExpand: () => void;
 }
 
-export const TaskManager: React.FC<TaskManagerProps> = ({
+export const RunManager: React.FC<RunManagerProps> = ({
   workspaceRuns,
   activeTaskId,
   onSelectTask,

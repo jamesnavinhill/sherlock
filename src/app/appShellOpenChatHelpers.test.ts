@@ -29,7 +29,7 @@ describe('appShellOpenChatHelpers', () => {
             rawText: 'raw',
           },
         ],
-        { sourceReportId: 'artifact-1' }
+        { sourceArtifactId: 'artifact-1' }
       )
     ).toBe('Atlas Report');
 

@@ -28,9 +28,9 @@ export const buildNetworkGraphDossierData = ({
   }
 
   const activeReports =
-    filterCaseId === 'ALL' ? reports : reports.filter((report) => report.caseId === filterCaseId);
+    filterCaseId === 'ALL' ? reports : reports.filter((report) => report.workspaceId === filterCaseId);
   const activeHeadlines =
-    filterCaseId === 'ALL' ? headlines : headlines.filter((headline) => headline.caseId === filterCaseId);
+    filterCaseId === 'ALL' ? headlines : headlines.filter((headline) => headline.workspaceId === filterCaseId);
 
   const allLeads = Array.from(new Set(activeReports.flatMap((report) => report.leads || [])));
 

@@ -15,7 +15,7 @@ const summarizeText = (value: string, max = 220): string => {
   return normalized.length <= max ? normalized : `${normalized.slice(0, max - 1).trimEnd()}...`;
 };
 
-const createReportAttachment = (messageId: string, report: Artifact): ChatAttachment | null => {
+const createArtifactAttachment = (messageId: string, report: Artifact): ChatAttachment | null => {
   if (!report.id) return null;
 
   return {
@@ -53,7 +53,7 @@ export const isChatLaunchContext = (value: unknown): value is ChatLaunchContext 
 
   const candidate = value as Record<string, unknown>;
   return (
-    (candidate.sourceReportId === undefined || typeof candidate.sourceReportId === 'string') &&
+    (candidate.sourceArtifactId === undefined || typeof candidate.sourceArtifactId === 'string') &&
     (candidate.entityName === undefined || typeof candidate.entityName === 'string') &&
     (candidate.signalId === undefined || typeof candidate.signalId === 'string') &&
     (candidate.headlineId === undefined || typeof candidate.headlineId === 'string')
@@ -64,7 +64,7 @@ export const areChatLaunchContextsEqual = (
   left: ChatLaunchContext | null | undefined,
   right: ChatLaunchContext | null | undefined
 ): boolean =>
-  (left?.sourceReportId || '') === (right?.sourceReportId || '') &&
+  (left?.sourceArtifactId || '') === (right?.sourceArtifactId || '') &&
   (left?.entityName || '') === (right?.entityName || '') &&
   (left?.signalId || '') === (right?.signalId || '') &&
   (left?.headlineId || '') === (right?.headlineId || '');
@@ -139,11 +139,11 @@ export const buildLaunchContextPrimer = (params: {
   const now = Date.now();
   const messageId = createLocalId('chat-message');
 
-  if (params.launchContext.sourceReportId) {
-    const report = params.reports.find((entry) => entry.id === params.launchContext.sourceReportId);
+  if (params.launchContext.sourceArtifactId) {
+    const report = params.reports.find((entry) => entry.id === params.launchContext.sourceArtifactId);
     if (!report) return null;
 
-    const attachment = createReportAttachment(messageId, report);
+    const attachment = createArtifactAttachment(messageId, report);
     return {
       id: messageId,
       sessionId: params.session.id,
@@ -195,7 +195,7 @@ export const buildLaunchContextPrimer = (params: {
 
     const attachments = relatedReports
       .slice(0, 3)
-      .map((report) => createReportAttachment(messageId, report))
+      .map((report) => createArtifactAttachment(messageId, report))
       .filter((attachment): attachment is ChatAttachment => !!attachment);
     const mentionLines = relatedReports
       .slice(0, 3)

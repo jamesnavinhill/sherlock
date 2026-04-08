@@ -15,7 +15,7 @@ describe('buildTimelineViewModel', () => {
 
   const artifact: Artifact = {
     id: 'artifact-1',
-    caseId: 'ws-1',
+    workspaceId: 'ws-1',
     topic: 'Signal Follow-up',
     summary: 'Saved artifact summary.',
     agendas: [],
@@ -39,7 +39,7 @@ describe('buildTimelineViewModel', () => {
       headlines: [
         {
           id: 'signal-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           content: 'Signal',
           source: 'Desk',
           timestamp: '2026-04-05T00:00:00.000Z',
@@ -71,7 +71,7 @@ describe('buildTimelineViewModel', () => {
       headlines: [
         {
           id: 'signal-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           content: 'Signal',
           source: 'Desk',
           timestamp: '2026-04-05T00:00:00.000Z',

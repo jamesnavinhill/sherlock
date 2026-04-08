@@ -49,8 +49,8 @@ export const buildWorkspaceBoardViewModel = ({
 }: WorkspaceBoardViewModelInput) => {
   const activeWorkspace =
     workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null;
-  const workspaceArtifacts = artifacts.filter((artifact) => artifact.caseId === activeWorkspace?.id);
-  const workspaceHeadlines = headlines.filter((headline) => headline.caseId === activeWorkspace?.id);
+  const workspaceArtifacts = artifacts.filter((artifact) => artifact.workspaceId === activeWorkspace?.id);
+  const workspaceHeadlines = headlines.filter((headline) => headline.workspaceId === activeWorkspace?.id);
   const createdWorkspaceItems = workspaceItems.filter(
     (item) => item.workspaceId === activeWorkspace?.id
   );

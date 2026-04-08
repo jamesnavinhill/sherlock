@@ -61,7 +61,7 @@ describe('useWorkspaceBoardController', () => {
       saveArtifact: vi.fn(),
       saveWorkspaceBoardDocument: vi.fn(),
       setActiveWorkspaceId: vi.fn(),
-      appendSectionToReport: vi.fn(),
+      appendSectionToArtifact: vi.fn(),
       addBoardAgentAction: vi.fn(),
       updateWorkspaceBoard: vi.fn(),
       updateBoardAgentAction: vi.fn(),

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { useWorkspaceStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/workspaceStore';
 import type {
   MonitorEvent,
   InvestigationLaunchRequest,
@@ -10,7 +10,7 @@ import type { MonitorConfig } from '../../../services/runtime';
 import { getLiveWorkspaceIntel } from '../../../services/runtime';
 import { getAllScopes, getScopeById } from '../../../data/presets';
 import { Radio, Play, Pause, Activity, Settings2, Radar } from 'lucide-react';
-import { TaskSetupModal } from '../Runs/TaskSetupModal';
+import { RunSetupModal } from '../Runs/RunSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { EmptyState } from '../../ui/EmptyState';
 import { OsintSelect } from '../../ui/OsintSelect';
@@ -230,7 +230,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
     try {
       const newHeadline: Headline = {
         id: `headline-${event.id}`,
-        caseId: selectedCaseId,
+        workspaceId: selectedCaseId,
         content: event.content,
         source: event.sourceName,
         url: event.url,
@@ -514,7 +514,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
 
       {/* Task Setup Modal */}
       {selectedEventForAnalysis && (
-        <TaskSetupModal
+        <RunSetupModal
           initialTopic={selectedEventForAnalysis.content}
           initialContext={
             selectedCase

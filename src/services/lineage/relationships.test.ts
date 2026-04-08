@@ -11,7 +11,7 @@ describe('resolveLaunchLineage', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Parent Artifact',
           summary: 'Summary',
           agendas: [],
@@ -56,7 +56,7 @@ describe('resolveLaunchLineage', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Parent Artifact',
           summary: 'Summary',
           agendas: [],

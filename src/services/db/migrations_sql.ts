@@ -1,5 +1,5 @@
 export const SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS "cases" (
+CREATE TABLE IF NOT EXISTS "workspaces" (
 	"id" text PRIMARY KEY NOT NULL,
 	"scope_id" text,
 	"title" text NOT NULL,
@@ -22,19 +22,19 @@ CREATE TABLE IF NOT EXISTS "cases" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "artifact_sections" (
 	"id" text NOT NULL,
-	"report_id" text NOT NULL,
+	"artifact_id" text NOT NULL,
 	"kind" text NOT NULL,
 	"title" text NOT NULL,
 	"content" text,
 	"items_json" text,
 	"sort_order" integer NOT NULL,
-	PRIMARY KEY ("report_id", "id"),
-	FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+	PRIMARY KEY ("artifact_id", "id"),
+	FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "artifact_evidence" (
 	"id" text NOT NULL,
-	"report_id" text NOT NULL,
+	"artifact_id" text NOT NULL,
 	"kind" text NOT NULL,
 	"title" text NOT NULL,
 	"summary" text NOT NULL,
@@ -45,37 +45,37 @@ CREATE TABLE IF NOT EXISTS "artifact_evidence" (
 	"tags_json" text,
 	"metadata_json" text,
 	"sort_order" integer NOT NULL,
-	PRIMARY KEY ("report_id", "id"),
-	FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+	PRIMARY KEY ("artifact_id", "id"),
+	FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "entities" (
 	"id" text PRIMARY KEY NOT NULL,
-	"report_id" text,
+	"artifact_id" text,
 	"name" text NOT NULL,
 	"type" text NOT NULL,
 	"role" text,
 	"sentiment" text,
-	FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "leads" (
+CREATE TABLE IF NOT EXISTS "signals" (
 	"id" text PRIMARY KEY NOT NULL,
-	"case_id" text,
+	"workspace_id" text,
 	"content" text NOT NULL,
 	"source" text,
 	"type" text,
 	"url" text,
 	"status" text NOT NULL,
 	"threat_level" text,
-	"linked_report_id" text,
+	"linked_artifact_id" text,
 	"timestamp" text,
-	FOREIGN KEY ("case_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "reports" (
+CREATE TABLE IF NOT EXISTS "artifacts" (
 	"id" text PRIMARY KEY NOT NULL,
-	"case_id" text,
+	"workspace_id" text,
 	"topic" text NOT NULL,
 	"date_str" text,
 	"summary" text,
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS "reports" (
 	"metadata_json" text,
 	"config_json" text,
 	"created_at" integer NOT NULL,
-	FOREIGN KEY ("case_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "follow_ups" (
@@ -107,8 +107,8 @@ CREATE TABLE IF NOT EXISTS "follow_ups" (
 	"sort_order" integer NOT NULL,
 	"created_at" integer NOT NULL,
 	"updated_at" integer NOT NULL,
-	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY ("artifact_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "scopes" (
@@ -128,15 +128,15 @@ CREATE TABLE IF NOT EXISTS "settings" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "sources" (
 	"id" text PRIMARY KEY NOT NULL,
-	"report_id" text,
+	"artifact_id" text,
 	"title" text NOT NULL,
 	"url" text NOT NULL,
-	FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "tasks" (
+CREATE TABLE IF NOT EXISTS "workspace_runs" (
 	"id" text PRIMARY KEY NOT NULL,
-	"case_id" text,
+	"workspace_id" text,
 	"topic" text NOT NULL,
 	"status" text NOT NULL,
 	"error" text,
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS "tasks" (
 	"config_json" text,
 	"start_time" integer,
 	"end_time" integer,
-	FOREIGN KEY ("case_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "chat_sessions" (
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS "chat_sessions" (
 	"workspace_id" text NOT NULL,
 	"title" text NOT NULL,
 	"status" text NOT NULL,
-	"source_report_id" text,
+	"source_artifact_id" text,
 	"pack_id" text,
 	"purpose_id" text,
 	"provider" text,
@@ -163,8 +163,8 @@ CREATE TABLE IF NOT EXISTS "chat_sessions" (
 	"metadata_json" text,
 	"created_at" integer NOT NULL,
 	"updated_at" integer NOT NULL,
-	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY ("source_report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("source_artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "chat_messages" (
@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS "workspace_items" (
 	"metadata_json" text,
 	"created_at" integer NOT NULL,
 	"updated_at" integer NOT NULL,
-	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "workspace_boards" (
@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS "workspace_boards" (
 	"metadata_json" text,
 	"created_at" integer NOT NULL,
 	"updated_at" integer NOT NULL,
-	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "workspace_board_documents" (
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS "board_agent_sessions" (
 	"updated_at" integer NOT NULL,
 	"started_at" integer,
 	"completed_at" integer,
-	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS "board_agent_actions" (
 	"created_at" integer NOT NULL,
 	"updated_at" integer NOT NULL,
 	FOREIGN KEY ("session_id") REFERENCES "board_agent_sessions"("id") ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

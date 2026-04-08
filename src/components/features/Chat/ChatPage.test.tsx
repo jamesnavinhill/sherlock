@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { ChatMessage, ChatSession } from '@/types';
-import { useWorkspaceStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/workspaceStore';
 import { Chat } from './ChatPage';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
@@ -24,8 +24,8 @@ vi.mock('./GuidedRunBuilder', () => ({
   GuidedRunBuilder: () => <div data-testid="guided-run-builder" />,
 }));
 
-vi.mock('../Runs/TaskSetupModal', () => ({
-  TaskSetupModal: ({ onStart }: { onStart: (...args: unknown[]) => void }) => (
+vi.mock('../Runs/RunSetupModal', () => ({
+  RunSetupModal: ({ onStart }: { onStart: (...args: unknown[]) => void }) => (
     <div data-testid="task-setup-modal">
       <button onClick={() => onStart('New project topic', {}, undefined, undefined, undefined)}>
         Start
@@ -126,7 +126,7 @@ describe('Chat page', () => {
       deleteChatSession: vi.fn(async () => undefined),
       updateChatSession: vi.fn(async () => undefined),
       addToast: vi.fn(),
-      archiveReport: vi.fn(async () => ({
+      saveArtifact: vi.fn(async () => ({
         id: 'report-1',
         topic: 'Draft',
         summary: 'Draft summary',
@@ -136,7 +136,7 @@ describe('Chat page', () => {
         sources: [],
         rawText: 'draft',
       })),
-      appendSectionToReport: vi.fn(async () => undefined),
+      appendSectionToArtifact: vi.fn(async () => undefined),
       setActiveWorkspaceId: vi.fn(),
       setActiveChatSessionId: vi.fn(),
       setChatGenerationStatus: vi.fn(),
@@ -237,7 +237,7 @@ describe('Chat page', () => {
       addChatAction: vi.fn(async () => undefined),
       addChatMessage: vi.fn(async () => undefined),
       addToast: vi.fn(),
-      archiveReport: vi.fn(async () => ({
+      saveArtifact: vi.fn(async () => ({
         id: 'report-1',
         topic: 'Draft',
         summary: 'Draft summary',
@@ -247,7 +247,7 @@ describe('Chat page', () => {
         sources: [],
         rawText: 'draft',
       })),
-      appendSectionToReport: vi.fn(async () => undefined),
+      appendSectionToArtifact: vi.fn(async () => undefined),
       customScopes: [],
       deleteChatSession: vi.fn(async () => undefined),
       ensureWorkspaceBoard: vi.fn(async () => ({

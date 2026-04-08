@@ -9,7 +9,7 @@ interface OperationCasePanelData {
   sources: Source[];
 }
 
-export const buildOperationCasePanelData = ({
+export const buildOperationWorkspacePanelData = ({
   activeCase,
   reports,
 }: {

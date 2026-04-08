@@ -10,7 +10,7 @@ Sherlock now runs on a canonical workspace architecture. The domain-pack shell r
 
 Responsibilities:
 
-- initializes persistence/state (`useWorkspaceStore().initializeStore()`, re-exported from `src/store/caseStore.ts`)
+- initializes persistence/state (`useWorkspaceStore().initializeStore()`, exported from `src/store/workspaceStore.ts`)
 - mounts the browser router and route-backed page composition
 - mounts the shared header omnibox/search surface used for route, workspace, and canonical-record lookup
 - owns the unified launch pipeline
@@ -21,7 +21,7 @@ Responsibilities:
 Primary route-backed surfaces:
 
 - `Feed` at `/discover`
-- `Archives` at `/files`
+- `Files` at `/files`
 - `LiveMonitor` at `/monitor`
 - `OperationView` for transient execution state at `/runs/:runId`
 - `OperationView` for saved artifact detail at `/workspaces/:workspaceId/artifacts/:artifactId`
@@ -159,7 +159,7 @@ Flow:
 1. Resolve runtime-config fields through `src/components/features/Runs/runtimeConfigMapping.ts`
 2. Enforce provider API key presence before task creation
 3. Resolve effective scope, domain pack, purpose profile, artifact type, and label profile
-4. Create and persist a workspace run (`TaskRepository`)
+4. Create and persist a workspace run (`WorkspaceRunRepository`)
 5. Execute the provider run via `runWorkspaceInvestigation`
 6. Normalize typed artifact sections and run metadata
 7. Save the resulting artifact into the canonical workspace/artifact store
@@ -253,7 +253,7 @@ Key behavior:
 - adapters now share a stronger request/response shape for both chat and artifact generation, including model-aware capability handling and warning surfaces
 - adapters now share a board-agent planning contract that keeps BYOK/model selection aligned with the rest of the app instead of introducing a separate board-only provider stack
 - the board-agent runtime now layers a Sherlock-owned session runner plus action registry on top of the provider router so streamed planning actions can be sanitized, executed, audited, and continued without introducing a second provider subsystem
-- adapters return typed artifact sections plus canonical `followUps`; legacy `summary`, `agendas`, and `leads` compatibility fields are still populated for transitional readers
+- adapters return typed artifact sections plus canonical `followUps`; legacy flattened `agendas` and `leads` fields still exist only for compatibility import/export and older payload hydration
 - chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations/provenance
 - TTS is only implemented on Gemini adapter
 - OpenRouter uses native message arrays, requests native structured output when available, and enables `openrouter:web_search` by default when the active configuration allows it
@@ -275,21 +275,21 @@ Entry points:
 - `src/services/db/schema.ts`
 - `src/services/db/repositories/*`
 
-The schema still uses compatibility table names such as `cases`, `reports`, and `tasks`, while runtime code treats them as workspaces, artifacts, and workspace runs:
+The active schema now uses canonical table and column names that mirror the runtime vocabulary:
 
-- `cases` can now hold workspace-oriented metadata such as `displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`, `mode`, `packId`, `purposeId`, and `labelProfileId`
-- `reports` now store `artifactType`, pack/purpose references, label profiles, config snapshots, and metadata JSON including provider provenance
+- `workspaces` hold workspace-oriented metadata such as `displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`, `mode`, `packId`, `purposeId`, and `labelProfileId`
+- `artifacts` store `artifactType`, pack/purpose references, label profiles, config snapshots, and metadata JSON including provider provenance
 - `follow_ups` now persist first-class actionable follow-up records linked to artifacts and lineage refs such as `sourceSignalId` and `resolvedByArtifactId`
-- `artifact_sections` persists typed section rows separately from the legacy flattened report fields, with section ids scoped per report rather than globally across the table
+- `artifact_sections` persists typed section rows separately from the legacy flattened artifact fields, with section ids scoped per artifact rather than globally across the table
 - `artifact_evidence` persists first-class evidence rows for artifact claims, citations, quotes, and source hints
-- `tasks` now persist pack/purpose/artifact metadata alongside the config snapshot
+- `workspace_runs` persist pack/purpose/artifact metadata alongside the config snapshot
 - `chat_sessions`, `chat_messages`, `chat_message_attachments`, and `chat_actions` persist workspace-bound chat history and auditable retrieval traces
 - `workspace_items` persist canonical workspace-native notes, links, files/media, and promoted excerpts with provenance
 - `workspace_boards` persist named board/page shells per workspace
 - `workspace_board_documents` persist tldraw board snapshots separately from canonical research records
 - `board_agent_sessions` and `board_agent_actions` persist board-agent task state plus action audit trails for workspace boards
 
-Artifact persistence still uses the existing `reports` table, while `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the legacy flattened artifact fields. `configJson` now carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
+Artifact persistence now lands in the canonical `artifacts` table, while `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the flattened compatibility fields still written for import/export continuity. `configJson` carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
 Repository write paths that span multiple tables now use the shared `runWriteTransaction(...)` helper from `src/services/db/client.ts` so artifact saves, chat attachment saves, workspace deletes, demo-seed imports, and workspace-data restore flows commit atomically instead of relying on sequential best effort. Repository helpers may join an existing transaction, but must not silently open a nested one.
 
@@ -314,7 +314,7 @@ Canonical signal naming now leads the active runtime seams even where compatibil
 
 Global store:
 
-- `src/store/caseStore.ts`
+- `src/store/workspaceStore.ts`
 - `src/store/actions/bootstrapActions.ts`
 - `src/store/actions/simpleActions.ts`
 - `src/store/actions/conversationActions.ts`
@@ -337,7 +337,7 @@ State domains include:
 - scopes and templates
 - feed config and UI state
 
-`src/store/caseStore.ts` is now primarily the public state contract plus initial state composition; grouped action modules own bootstrap, UI/settings, conversation, artifact/run, and workspace maintenance responsibilities behind that stable store entry.
+`src/store/workspaceStore.ts` is now primarily the public state contract plus initial state composition; grouped action modules own bootstrap, UI/settings, conversation, artifact/run, and workspace maintenance responsibilities behind that stable store entry.
 
 Feature-level subscriptions now route through selector hooks in `src/store/selectors/featureSelectors.ts` for the largest routed surfaces and controllers. That keeps `useAppShellController`, chat, board, timeline, network graph, operation, settings, and runtime-config flows subscribed to their own state slices without changing the underlying Zustand architecture or introducing a second state system.
 
@@ -373,7 +373,7 @@ Routed workflow surfaces now share a baseline chrome/panel contract rather than 
 
 - Toolbar
 - DossierPanel
-- ReportViewer
+- ArtifactViewer
 - InspectorPanel
 - `useOperationViewController.ts` now owns route-level selection state, handoff commands, template-save flow, and board/chat orchestration while `index.tsx` stays focused on layout and modal composition
 - `OperationViewDialogs.tsx` now holds the lead follow-through modal, new-workspace modal, and protocol-template save dialog so workflow copy and launch boundaries live outside the page shell
@@ -399,12 +399,12 @@ Operation View now also includes board handoff for the active artifact plus insp
 - a board-agent session runner and action registry that persist planned actions into `board_agent_actions`, pause for approval-first review, then execute safe board actions plus Sherlock-aware canonical writes against the live `tldraw` editor while persisting `AWAITING_APPROVAL`, `SKIPPED`, `COMPLETED`, and `FAILED` audit state transitions
 - board inspector request entry, starter-intent menu, low-risk auto-approve toggle, review-sheet previews, todo tracking, cancellation, and action receipt/history for the latest board-agent session
 - cross-surface placement handoff respects presentation mode rather than mutating readonly boards
-- inspector actions back into reports, workspace chat, timeline, network graph, source links, and promoted-item provenance
+- inspector actions back into artifacts, workspace chat, timeline, network graph, source links, and promoted-item provenance
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system
 - `BoardTopBar.tsx`, `BoardCanvasPane.tsx`, `BoardLibraryRail.tsx`, `BoardInspectorRail.tsx`, `BoardAgentRail.tsx`, and `BoardDialogs.tsx` now isolate the major board sections from the route shell
 - controller responsibilities are split further across `useBoardCanvasPersistence.ts`, `workspaceBoardItemActions.ts`, `boardInspectorActions.ts`, and `workspaceBoardAgent.ts` so the public controller stays focused on orchestration
 
-`ReportViewer` and `DossierPanel` now also surface:
+`ArtifactViewer` and `DossierPanel` now also surface:
 
 - evidence records as first-class report content
 - methodology sections when present
@@ -425,13 +425,13 @@ Operation View now also includes board handoff for the active artifact plus insp
 - save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
 - retrieval attachments can now be promoted into canonical workspace excerpts and optionally placed directly onto the research board
 - transcript copy plus Markdown/JSON export
-- guided conversational run builder that maps into the same launch request shape used by `src/components/features/Runs/TaskSetupModal.tsx`
+- guided conversational run builder that maps into the same launch request shape used by `src/components/features/Runs/RunSetupModal.tsx`
 - context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
-- contextual handoff from Operation View, Archives, and Network Graph into the same session backend, with report/entity/signal grounding persisted on the target chat session
+- contextual handoff from Operation View, Files, and Network Graph into the same session backend, with artifact/entity/signal grounding persisted on the target chat session
 - `ChatHeader.tsx`, `ChatSessionRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatContextRail.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
 - controller responsibilities are split across `chatSessionLifecycle.ts`, `chatStreaming.ts`, `chatGuidedActions.ts`, and `chatTranscriptActions.ts` so the routed chat controller no longer carries every session, streaming, and transcript workflow inline
 
-`ReportViewer` now renders:
+`ArtifactViewer` now renders:
 
 - artifact-type-aware reading highlights before the main body so briefs, syntheses, comparisons, monitor snapshots, and timelines foreground different first-pass questions
 - a provenance summary strip with artifact type, source/evidence/citation counts, and warning visibility before the deeper accordion detail rail
@@ -449,8 +449,8 @@ Operation View now also includes board handoff for the active artifact plus insp
 - D3 canvas rendering
 - `src/components/features/NetworkGraph/useNetworkGraphController.ts` now owns inspector selection, graph mutations, board/chat handoffs, and modal state while `index.tsx` stays focused on composing the control bar, canvas, dossier, and inspector surfaces
 - case/report/entity node inspection
-- launch-into-chat handoff for inspected reports, entities, and headlines
-- board handoff for inspected reports, entities, and headlines
+- launch-into-chat handoff for inspected artifacts, entities, and headlines
+- board handoff for inspected artifacts, entities, and headlines
 - omnibox entity results can now focus the active network surface in place by reopening the entity inspector and recentering the graph instead of forcing a redundant route change
 - omnibox, chat mentions, and timeline actions now share the same routed focus contract for item-in-Files, report-section/report-evidence, and network-entity reopening
 - manual node/link creation
@@ -474,7 +474,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 ### Files
 
-`src/components/features/Archives.tsx`
+`src/components/features/Files.tsx`
 
 - workspace/file browsing now mixes saved artifacts with canonical workspace items instead of treating items as board-only records
 - shell-level Files copy now uses the canonical `Workspace` / `Artifact` nouns instead of label-profile drift
@@ -529,7 +529,7 @@ Task setup and template flows now expose:
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
 - wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useTaskSetupState.ts`
 - shared runtime-config behavior now routes through `useRuntimeConfigForm.ts`, `ProviderModelSelector.tsx`, `RuntimeConfigBehaviorControls.tsx`, `RuntimeConfigSummary.tsx`, and `OpenRouterSearchControls.tsx`, with launch-field shaping centralized in `runtimeConfigMapping.ts`
-- the task-setup implementation now lives with the run-launch feature under `src/components/features/Runs/TaskSetupModal.tsx`, while the old UI path remains a compatibility re-export only
+- the run-setup implementation now lives with the run-launch feature under `src/components/features/Runs/RunSetupModal.tsx`
 
 ### Settings
 
@@ -541,9 +541,9 @@ Task setup and template flows now expose:
 - `SettingsDialogs.tsx` owns backup restore, purge confirmation, and import feedback boundaries instead of leaving those workflows inline in the page root
 - the Runtime tab now reuses the same shared runtime-config modules used by task setup, guided chat, template authoring, and launch mapping
 
-### Archives
+### Files
 
-`src/components/features/Archives.tsx`
+`src/components/features/Files.tsx`
 
 - workspace/artifact navigation
 - launch directly into workspace chat from workspace cards and saved artifacts
@@ -576,7 +576,7 @@ See:
 - `src/components/features/WorkspaceBoard/workspaceBoardViewModel.test.ts`
 - `src/services/providers/*.test.ts`
 - `src/components/features/*/launchPropagation.test.tsx`
-- `src/store/caseStore.test.ts`
+- `src/store/workspaceStore.test.ts`
 - `src/config/systemConfig.test.ts`
 
 ## 9. Bundle Review Checkpoint

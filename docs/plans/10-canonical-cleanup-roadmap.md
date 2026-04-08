@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: Planned
+Status: In Progress
 
 Related inputs:
 
@@ -209,6 +209,26 @@ Docs to update on landing:
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/DATA_PERSISTENCE.md`
+
+### Landing Status
+
+Completed on April 8, 2026.
+
+Landed in Stream 1:
+
+- renamed the active store backbone from `caseStore` to `workspaceStore`
+- renamed `CaseRepository` / `TaskRepository` to `WorkspaceRepository` / `WorkspaceRunRepository`
+- renamed active SQLite tables and foreign-key columns to canonical `workspaces`, `artifacts`, `signals`, `workspace_runs`, `workspace_id`, and `artifact_id` forms
+- added an in-place canonical storage cutover in `src/services/db/client.ts` so older local databases rename legacy tables/columns before normal schema initialization continues
+- renamed active Files, Artifact Viewer, Run Setup, and Run Manager modules away from legacy filenames
+- updated active docs to describe the canonical store, file/module names, and persistence contract
+
+Validation run for Stream 1:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test -- src/store/workspaceStore.test.ts src/services/db/repositories/WorkspaceRepository.test.ts src/services/db/repositories/WorkspaceSearchRepository.test.ts src/services/maintenance/workspaceData.test.ts src/components/features/Files.launch.test.tsx src/components/features/OperationView/ArtifactViewer.test.tsx`
+- `npm run build`
 
 ## Stream 2. Persistence And Bootstrap Simplification
 

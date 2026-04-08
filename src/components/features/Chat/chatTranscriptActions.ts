@@ -80,14 +80,14 @@ export const saveChatMessageAsArtifact = async ({
   activeWorkspace,
   addChatAction,
   addToast,
-  archiveReport,
+  saveArtifact,
   message,
 }: {
   activeSession: ChatSession | null;
   activeWorkspace: Workspace | null;
   addChatAction: (action: AgentAction) => Promise<unknown>;
   addToast: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
-  archiveReport: (
+  saveArtifact: (
     report: Artifact,
     workspaceSummary?: { topic: string; summary: string }
   ) => Promise<Artifact>;
@@ -100,7 +100,7 @@ export const saveChatMessageAsArtifact = async ({
     workspace: activeWorkspace,
     message,
   });
-  const saved = await archiveReport(report, {
+  const saved = await saveArtifact(report, {
     topic: getWorkspaceDisplayTitle(activeWorkspace),
     summary:
       activeWorkspace.description || `${getWorkspaceDisplayTitle(activeWorkspace)} workspace`,
@@ -142,7 +142,7 @@ export const appendChatMessageToArtifact = async ({
   addChatAction,
   addToast,
   appendArtifactDialog,
-  appendSectionToReport,
+  appendSectionToArtifact,
   appendableWorkspaceReports,
   setAppendArtifactDialog,
 }: {
@@ -150,7 +150,7 @@ export const appendChatMessageToArtifact = async ({
   addChatAction: (action: AgentAction) => Promise<unknown>;
   addToast: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
   appendArtifactDialog: { message: ChatMessage; selectedReportId: string } | null;
-  appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<unknown>;
+  appendSectionToArtifact: (reportId: string, section: ArtifactSection) => Promise<unknown>;
   appendableWorkspaceReports: Array<Artifact & { id: string }>;
   setAppendArtifactDialog: (value: null) => void;
 }) => {
@@ -170,7 +170,7 @@ export const appendChatMessageToArtifact = async ({
     message: appendArtifactDialog.message,
   });
 
-  await appendSectionToReport(targetReport.id, section);
+  await appendSectionToArtifact(targetReport.id, section);
   await addChatAction(action);
   setAppendArtifactDialog(null);
   addToast(`Added this chat note to ${targetReport.topic}.`, 'SUCCESS');

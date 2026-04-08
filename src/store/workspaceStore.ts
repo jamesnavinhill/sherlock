@@ -6,7 +6,7 @@ import type {
   ArtifactSection,
   BoardAgentAction,
   BoardAgentSession,
-  CaseTemplate,
+  WorkspaceTemplate,
   ChatGenerationStatus,
   ChatLaunchContext,
   ChatMessage,
@@ -27,7 +27,7 @@ import type {
   WorkspaceRun,
 } from '../types';
 import type { BreadcrumbItem } from '../components/ui/Breadcrumbs';
-import { CaseRepository } from '../services/db/repositories/CaseRepository';
+import { WorkspaceRepository } from '../services/db/repositories/WorkspaceRepository';
 import { normalizeWorkspaceDataBackup } from '../services/maintenance/workspaceData';
 import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../utils/accent';
 import {
@@ -61,7 +61,7 @@ const hasExistingWorkspaceData = (input: {
   chatSessions: ChatSession[];
   boardAgentSessions: BoardAgentSession[];
   headlines: Headline[];
-  templates: CaseTemplate[];
+  templates: WorkspaceTemplate[];
   workspaceItems: WorkspaceItem[];
   workspaceBoards: WorkspaceBoard[];
   workspaceBoardDocuments: WorkspaceBoardDocument[];
@@ -82,7 +82,7 @@ const hasExistingWorkspaceData = (input: {
   input.manualLinks.length > 0;
 
 const persistWorkspaceDataBackup = async (payload: WorkspaceDataBackup) => {
-  await CaseRepository.replaceWorkspaceDataBackup(payload);
+  await WorkspaceRepository.replaceWorkspaceDataBackup(payload);
 };
 
 const loadDemoWorkspaceSeed = async () => {
@@ -121,7 +121,7 @@ export interface WorkspaceState {
   activeTaskId: string | null;
   liveEvents: MonitorEvent[];
   headlines: Headline[];
-  templates: CaseTemplate[];
+  templates: WorkspaceTemplate[];
   workspaceItems: WorkspaceItem[];
   workspaceBoards: WorkspaceBoard[];
   workspaceBoardDocuments: Record<string, WorkspaceBoardDocument>;
@@ -180,7 +180,7 @@ export interface WorkspaceState {
   setThemeSurfaceSettings: (settings: ThemeSurfaceSettings) => void;
   setThemeFontSettings: (settings: ThemeFontSettings) => void;
   setShowGlobalSearch: (show: boolean) => void;
-  setTemplates: (templates: CaseTemplate[]) => void;
+  setTemplates: (templates: WorkspaceTemplate[]) => void;
   setHeadlines: (headlines: Headline[]) => void;
   setWorkspaceItems: (items: WorkspaceItem[]) => void;
   setWorkspaceBoards: (boards: WorkspaceBoard[]) => void;
@@ -188,7 +188,7 @@ export interface WorkspaceState {
   queueBoardPlacement: (request: WorkspaceBoardPlacementRequest | null) => void;
   clearQueuedBoardPlacement: () => void;
   addHeadline: (headline: Headline) => Promise<void>;
-  addTemplate: (template: CaseTemplate) => void;
+  addTemplate: (template: WorkspaceTemplate) => void;
   deleteTemplate: (id: string) => void;
   setEntityAliases: (aliases: EntityAliasMap) => Promise<void>;
   addAlias: (variant: string, canonical: string) => void;
@@ -211,11 +211,11 @@ export interface WorkspaceState {
   deleteScope: (id: string) => void;
 
   addWorkspaceRun: (workspaceRun: WorkspaceRun) => Promise<void>;
-  addTask: (task: WorkspaceRun) => Promise<void>;
+  addRun: (run: WorkspaceRun) => Promise<void>;
   createChatSession: (input: {
     workspaceId: string;
     title?: string;
-    sourceReportId?: string;
+    sourceArtifactId?: string;
     packId?: string;
     purposeId?: string;
     provider?: ChatSession['provider'];
@@ -256,36 +256,26 @@ export interface WorkspaceState {
       Omit<BoardAgentAction, 'id' | 'sessionId' | 'workspaceId' | 'boardId' | 'createdAt'>
     >
   ) => Promise<void>;
-  appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
+  appendSectionToArtifact: (artifactId: string, section: ArtifactSection) => Promise<void>;
   updateArtifactSummary: (artifactId: string, summary: string) => Promise<void>;
-  updateReportSummary: (reportId: string, summary: string) => Promise<void>;
   updateArtifactSection: (
     artifactId: string,
     sectionId: string,
     patch: Partial<Pick<ArtifactSection, 'title' | 'content' | 'items' | 'order'>>
   ) => Promise<void>;
   completeWorkspaceRun: (id: string, artifact: Artifact) => Promise<void>;
-  completeTask: (id: string, report: Artifact) => Promise<void>;
-  failTask: (id: string, error: string) => Promise<void>;
-  clearCompletedTasks: () => Promise<void>;
+  completeRun: (id: string, artifact: Artifact) => Promise<void>;
+  failRun: (id: string, error: string) => Promise<void>;
+  clearCompletedRuns: () => Promise<void>;
   saveArtifact: (
     artifact: Artifact,
     parentContext?: { topic: string; summary: string }
   ) => Promise<Artifact>;
-  archiveReport: (
-    report: Artifact,
-    parentContext?: { topic: string; summary: string }
-  ) => Promise<Artifact>;
   updateArtifactTitle: (artifactId: string, title: string) => Promise<void>;
-  updateReportTitle: (reportId: string, title: string) => Promise<void>;
   renameEntityAcrossArtifacts: (oldName: string, newName: string) => Promise<void>;
-  renameEntityAcrossReports: (oldName: string, newName: string) => Promise<void>;
   deleteArtifact: (artifactId: string) => Promise<void>;
-  deleteReport: (reportId: string) => Promise<void>;
   deleteWorkspace: (workspaceId: string) => Promise<void>;
-  deleteCase: (caseId: string) => Promise<void>;
   purgeWorkspace: (workspaceId: string) => Promise<void>;
-  purgeCase: (caseId: string) => Promise<void>;
   ensureWorkspaceBoard: (workspaceId: string) => Promise<WorkspaceBoard>;
   createWorkspaceBoard: (input: {
     workspaceId: string;

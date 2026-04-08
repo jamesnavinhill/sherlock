@@ -20,14 +20,14 @@ const DATABASE_NAME = 'sherlock-v1.sqlite';
 
 export const ARTIFACT_SECTIONS_TABLE_SQL = `CREATE TABLE IF NOT EXISTS "artifact_sections" (
     "id" text NOT NULL,
-    "report_id" text NOT NULL,
+    "artifact_id" text NOT NULL,
     "kind" text NOT NULL,
     "title" text NOT NULL,
     "content" text,
     "items_json" text,
     "sort_order" integer NOT NULL,
-    PRIMARY KEY ("report_id", "id"),
-    FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+    PRIMARY KEY ("artifact_id", "id"),
+    FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );`;
 
 export const artifactSectionsTableRequiresUpgrade = (
@@ -73,13 +73,48 @@ export const ensureArtifactSectionsCompositeKey = async (
     await api.exec(db, ARTIFACT_SECTIONS_TABLE_SQL.replace(' IF NOT EXISTS', ''));
     await api.exec(
       db,
-      `INSERT INTO "artifact_sections" ("id", "report_id", "kind", "title", "content", "items_json", "sort_order")
-             SELECT "id", "report_id", "kind", "title", "content", "items_json", "sort_order"
+      `INSERT INTO "artifact_sections" ("id", "artifact_id", "kind", "title", "content", "items_json", "sort_order")
+             SELECT "id", "artifact_id", "kind", "title", "content", "items_json", "sort_order"
              FROM "artifact_sections_legacy";`
     );
     await api.exec(db, 'DROP TABLE "artifact_sections_legacy";');
   } finally {
     await api.exec(db, 'PRAGMA foreign_keys = ON;');
+  }
+};
+
+const runCanonicalStorageCutover = async (api: SQLiteApi, db: number): Promise<void> => {
+  const renameStatements = [
+    'ALTER TABLE "cases" RENAME TO "workspaces";',
+    'ALTER TABLE "reports" RENAME TO "artifacts";',
+    'ALTER TABLE "leads" RENAME TO "signals";',
+    'ALTER TABLE "tasks" RENAME TO "workspace_runs";',
+    'ALTER TABLE "artifacts" RENAME COLUMN "case_id" TO "workspace_id";',
+    'ALTER TABLE "signals" RENAME COLUMN "case_id" TO "workspace_id";',
+    'ALTER TABLE "signals" RENAME COLUMN "linked_report_id" TO "linked_artifact_id";',
+    'ALTER TABLE "workspace_runs" RENAME COLUMN "case_id" TO "workspace_id";',
+    'ALTER TABLE "chat_sessions" RENAME COLUMN "source_report_id" TO "source_artifact_id";',
+    'ALTER TABLE "artifact_sections" RENAME COLUMN "report_id" TO "artifact_id";',
+    'ALTER TABLE "artifact_evidence" RENAME COLUMN "report_id" TO "artifact_id";',
+    'ALTER TABLE "entities" RENAME COLUMN "report_id" TO "artifact_id";',
+    'ALTER TABLE "sources" RENAME COLUMN "report_id" TO "artifact_id";',
+  ];
+
+  for (const sql of renameStatements) {
+    try {
+      await api.exec(db, sql);
+    } catch (error) {
+      const message = String(error);
+      if (
+        !message.includes('no such table') &&
+        !message.includes('duplicate column name') &&
+        !message.includes('no such column') &&
+        !message.includes('already exists')
+      ) {
+        console.error('Canonical storage cutover error:', error);
+        throw error;
+      }
+    }
   }
 };
 
@@ -103,32 +138,32 @@ export const initDB = async (): Promise<ReturnType<typeof drizzle>> => {
 
 const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
   const alterStatements = [
-    'ALTER TABLE leads ADD COLUMN type text;',
-    'ALTER TABLE leads ADD COLUMN url text;',
-    'ALTER TABLE cases ADD COLUMN mode text;',
-    'ALTER TABLE cases ADD COLUMN pack_id text;',
-    'ALTER TABLE cases ADD COLUMN purpose_id text;',
-    'ALTER TABLE cases ADD COLUMN label_profile_id text;',
-    'ALTER TABLE cases ADD COLUMN metadata_json text;',
-    'ALTER TABLE cases ADD COLUMN display_title text;',
-    'ALTER TABLE cases ADD COLUMN launch_topic text;',
-    'ALTER TABLE cases ADD COLUMN launch_angle text;',
-    'ALTER TABLE cases ADD COLUMN priority_sources_summary text;',
-    'ALTER TABLE reports ADD COLUMN artifact_type text;',
-    'ALTER TABLE reports ADD COLUMN pack_id text;',
-    'ALTER TABLE reports ADD COLUMN purpose_id text;',
-    'ALTER TABLE reports ADD COLUMN label_profile_id text;',
-    'ALTER TABLE reports ADD COLUMN metadata_json text;',
-    'ALTER TABLE tasks ADD COLUMN pack_id text;',
-    'ALTER TABLE tasks ADD COLUMN purpose_id text;',
-    'ALTER TABLE tasks ADD COLUMN artifact_type text;',
-    'ALTER TABLE tasks ADD COLUMN label_profile_id text;',
+    'ALTER TABLE signals ADD COLUMN type text;',
+    'ALTER TABLE signals ADD COLUMN url text;',
+    'ALTER TABLE workspaces ADD COLUMN mode text;',
+    'ALTER TABLE workspaces ADD COLUMN pack_id text;',
+    'ALTER TABLE workspaces ADD COLUMN purpose_id text;',
+    'ALTER TABLE workspaces ADD COLUMN label_profile_id text;',
+    'ALTER TABLE workspaces ADD COLUMN metadata_json text;',
+    'ALTER TABLE workspaces ADD COLUMN display_title text;',
+    'ALTER TABLE workspaces ADD COLUMN launch_topic text;',
+    'ALTER TABLE workspaces ADD COLUMN launch_angle text;',
+    'ALTER TABLE workspaces ADD COLUMN priority_sources_summary text;',
+    'ALTER TABLE artifacts ADD COLUMN artifact_type text;',
+    'ALTER TABLE artifacts ADD COLUMN pack_id text;',
+    'ALTER TABLE artifacts ADD COLUMN purpose_id text;',
+    'ALTER TABLE artifacts ADD COLUMN label_profile_id text;',
+    'ALTER TABLE artifacts ADD COLUMN metadata_json text;',
+    'ALTER TABLE workspace_runs ADD COLUMN pack_id text;',
+    'ALTER TABLE workspace_runs ADD COLUMN purpose_id text;',
+    'ALTER TABLE workspace_runs ADD COLUMN artifact_type text;',
+    'ALTER TABLE workspace_runs ADD COLUMN label_profile_id text;',
     `CREATE TABLE IF NOT EXISTS "chat_sessions" (
             "id" text PRIMARY KEY NOT NULL,
             "workspace_id" text NOT NULL,
             "title" text NOT NULL,
             "status" text NOT NULL,
-            "source_report_id" text,
+            "source_artifact_id" text,
             "pack_id" text,
             "purpose_id" text,
             "provider" text,
@@ -136,8 +171,8 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "metadata_json" text,
             "created_at" integer NOT NULL,
             "updated_at" integer NOT NULL,
-            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
-            FOREIGN KEY ("source_report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+            FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
+            FOREIGN KEY ("source_artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
         );`,
     `CREATE TABLE IF NOT EXISTS "chat_messages" (
             "id" text PRIMARY KEY NOT NULL,
@@ -179,7 +214,7 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
         );`,
     `CREATE TABLE IF NOT EXISTS "artifact_evidence" (
             "id" text NOT NULL,
-            "report_id" text NOT NULL,
+            "artifact_id" text NOT NULL,
             "kind" text NOT NULL,
             "title" text NOT NULL,
             "summary" text NOT NULL,
@@ -190,8 +225,8 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "tags_json" text,
             "metadata_json" text,
             "sort_order" integer NOT NULL,
-            PRIMARY KEY ("report_id", "id"),
-            FOREIGN KEY ("report_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+            PRIMARY KEY ("artifact_id", "id"),
+            FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
         );`,
     `CREATE TABLE IF NOT EXISTS "follow_ups" (
             "id" text PRIMARY KEY NOT NULL,
@@ -210,8 +245,8 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "sort_order" integer NOT NULL,
             "created_at" integer NOT NULL,
             "updated_at" integer NOT NULL,
-            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
-            FOREIGN KEY ("artifact_id") REFERENCES "reports"("id") ON UPDATE no action ON DELETE no action
+            FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
+            FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
         );`,
     `CREATE TABLE IF NOT EXISTS "workspace_items" (
             "id" text PRIMARY KEY NOT NULL,
@@ -230,7 +265,7 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "metadata_json" text,
             "created_at" integer NOT NULL,
             "updated_at" integer NOT NULL,
-            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+            FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action
         );`,
     `CREATE TABLE IF NOT EXISTS "workspace_boards" (
             "id" text PRIMARY KEY NOT NULL,
@@ -242,7 +277,7 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "metadata_json" text,
             "created_at" integer NOT NULL,
             "updated_at" integer NOT NULL,
-            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action
+            FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action
         );`,
     `CREATE TABLE IF NOT EXISTS "workspace_board_documents" (
             "board_id" text PRIMARY KEY NOT NULL,
@@ -267,7 +302,7 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "updated_at" integer NOT NULL,
             "started_at" integer,
             "completed_at" integer,
-            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+            FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
             FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
         );`,
     `CREATE TABLE IF NOT EXISTS "board_agent_actions" (
@@ -286,7 +321,7 @@ const runSchemaUpgrades = async (api: SQLiteApi, db: number): Promise<void> => {
             "created_at" integer NOT NULL,
             "updated_at" integer NOT NULL,
             FOREIGN KEY ("session_id") REFERENCES "board_agent_sessions"("id") ON UPDATE no action ON DELETE no action,
-            FOREIGN KEY ("workspace_id") REFERENCES "cases"("id") ON UPDATE no action ON DELETE no action,
+            FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
             FOREIGN KEY ("board_id") REFERENCES "workspace_boards"("id") ON UPDATE no action ON DELETE no action
         );`,
   ];
@@ -324,6 +359,8 @@ const doInitDB = async (): Promise<ReturnType<typeof drizzle>> => {
       vfs.name
     );
     dbHandle = openedDbHandle;
+
+    await runCanonicalStorageCutover(sqlite3, openedDbHandle);
 
     // Initialize schema - execute each statement separately
     const statements = SCHEMA_SQL.split('--> statement-breakpoint');

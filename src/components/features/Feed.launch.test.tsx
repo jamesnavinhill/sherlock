@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Feed } from './Feed';
-import { useWorkspaceStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 
 vi.mock('../ui/BackgroundMatrixRain', () => ({
   BackgroundMatrixRain: () => null,

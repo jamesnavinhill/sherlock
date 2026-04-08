@@ -40,7 +40,7 @@ describe('workspace home readiness model', () => {
       artifacts: [
         {
           id: 'artifact-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           topic: 'Atlas baseline',
           summary: 'Baseline summary',
           agendas: [],
@@ -64,7 +64,7 @@ describe('workspace home readiness model', () => {
       headlines: [
         {
           id: 'headline-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           content: 'Contract update detected',
           source: 'Ledger',
           timestamp: '2026-04-08T10:00:00.000Z',

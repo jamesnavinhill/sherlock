@@ -43,7 +43,7 @@ describe('ChatRepository', () => {
         workspaceId: 'case-1',
         title: 'Atlas Chat',
         status: 'ACTIVE',
-        sourceReportId: null,
+        sourceArtifactId: null,
         packId: 'corporate-intelligence',
         purposeId: 'deep-dive',
         provider: 'OPENAI',
@@ -156,7 +156,7 @@ describe('ChatRepository', () => {
       expect.objectContaining({
         id: 'chat-2',
         workspaceId: 'case-1',
-        sourceReportId: null,
+        sourceArtifactId: null,
         metadataJson: JSON.stringify({ pinned: true }),
       })
     );

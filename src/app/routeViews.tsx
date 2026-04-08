@@ -69,8 +69,8 @@ const buildBreadcrumbs = (
   if (!report) return [];
 
   const breadcrumbs: BreadcrumbItem[] = [];
-  if (report.caseId) {
-    const workspace = workspaces.find((entry) => entry.id === report.caseId);
+  if (report.workspaceId) {
+    const workspace = workspaces.find((entry) => entry.id === report.workspaceId);
     if (workspace) {
       breadcrumbs.push({
         type: 'CASE',
@@ -180,7 +180,7 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
   const report =
-    artifacts.find((artifact) => artifact.id === nextArtifactId && artifact.caseId === nextWorkspaceId) ||
+    artifacts.find((artifact) => artifact.id === nextArtifactId && artifact.workspaceId === nextWorkspaceId) ||
     artifacts.find((artifact) => artifact.id === nextArtifactId) ||
     null;
 
@@ -252,11 +252,11 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   }, [nextRunId, setActiveTaskId]);
 
   useEffect(() => {
-    const workspaceId = report?.caseId || task?.workspaceId || null;
+    const workspaceId = report?.workspaceId || task?.workspaceId || null;
     if (workspaceId) {
       setActiveWorkspaceId(workspaceId);
     }
-  }, [report?.caseId, setActiveWorkspaceId, task?.workspaceId]);
+  }, [report?.workspaceId, setActiveWorkspaceId, task?.workspaceId]);
 
   if (!task || !nextRunId) {
     return <Navigate to={buildFilesPath()} replace />;

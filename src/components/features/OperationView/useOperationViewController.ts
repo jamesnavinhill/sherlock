@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import type {
   Artifact,
-  CaseTemplate,
+  WorkspaceTemplate,
   Entity,
   FollowUp,
   Headline,
@@ -30,14 +30,14 @@ import {
   resolveRuntimeScope,
   toRuntimeConfigOverride,
 } from '@/components/features/Runs/runtimeConfigMapping';
-import { buildOperationCasePanelData } from './operationCasePanelData';
+import { buildOperationWorkspacePanelData } from './operationWorkspacePanelData';
 
 interface OperationViewControllerOptions {
   artifactRouteState?: ArtifactRouteState;
   onNavigate: (id: string) => void;
   onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: { workspaceId: string; launchContext?: Record<string, unknown> }) => void;
-  onSelectCase?: (caseId: string) => void;
+  onSelectCase?: (workspaceId: string) => void;
   reportOverride?: Artifact | null;
   task: WorkspaceRun | null;
 }
@@ -89,9 +89,9 @@ export function useOperationViewController({
     addToast,
     addTemplate,
     updateArtifactSection,
-    updateReportTitle,
-    updateReportSummary,
-    renameEntityAcrossReports,
+    updateArtifactTitle,
+    updateArtifactSummary,
+    renameEntityAcrossArtifacts,
     activeWorkspaceId: selectedCaseId,
     setActiveWorkspaceId,
     ensureWorkspaceBoard,
@@ -103,7 +103,7 @@ export function useOperationViewController({
 
   const report = task?.report ?? reportOverride;
   const status = task?.status ?? null;
-  const effectiveCaseId = selectedCaseId ?? report?.caseId ?? null;
+  const effectiveCaseId = selectedCaseId ?? report?.workspaceId ?? null;
 
   useEffect(() => {
     const handleResize = () => {
@@ -172,13 +172,13 @@ export function useOperationViewController({
   );
 
   const allCaseReports = useMemo(
-    () => artifacts.filter((r) => r.caseId === effectiveCaseId),
+    () => artifacts.filter((r) => r.workspaceId === effectiveCaseId),
     [artifacts, effectiveCaseId]
   );
 
   const headlines = useMemo(() => {
     if (!effectiveCaseId) return [];
-    return allHeadlines.filter((h) => h.caseId === effectiveCaseId);
+    return allHeadlines.filter((h) => h.workspaceId === effectiveCaseId);
   }, [effectiveCaseId, allHeadlines]);
 
   const labelProfile = useMemo(
@@ -202,11 +202,11 @@ export function useOperationViewController({
     );
   };
 
-  const handleCaseSelect = (caseId: string) => {
-    setActiveWorkspaceId(caseId);
+  const handleCaseSelect = (workspaceId: string) => {
+    setActiveWorkspaceId(workspaceId);
 
-    if (caseId !== 'ALL' && caseId !== '') {
-      const caseReports = artifacts.filter((r) => r.caseId === caseId);
+    if (workspaceId !== 'ALL' && workspaceId !== '') {
+      const caseReports = artifacts.filter((r) => r.workspaceId === workspaceId);
       if (caseReports.length > 0) {
         const rootReport = caseReports.find((r) => !r.config?.parentArtifactId) || caseReports[0];
         if (!rootReport.id) return;
@@ -230,7 +230,7 @@ export function useOperationViewController({
   const executeSaveTemplate = () => {
     if (!report || !templateName.trim()) return;
 
-    const newTemplate: CaseTemplate = {
+    const newTemplate: WorkspaceTemplate = {
       id: `tpl-${Date.now()}`,
       name: templateName.trim(),
       topic: report.topic,
@@ -245,7 +245,7 @@ export function useOperationViewController({
 
   const casePanelData = useMemo(
     () =>
-      buildOperationCasePanelData({
+      buildOperationWorkspacePanelData({
         activeCase,
         reports: allCaseReports,
       }),
@@ -312,14 +312,14 @@ export function useOperationViewController({
   };
 
   const handleOpenReportChat = () => {
-    const workspaceId = effectiveCaseId || report?.caseId;
+    const workspaceId = effectiveCaseId || report?.workspaceId;
     if (!workspaceId) return;
 
     onOpenChat({
       workspaceId,
       launchContext: report?.id
         ? {
-            sourceReportId: report.id,
+            sourceArtifactId: report.id,
           }
         : undefined,
     });
@@ -337,7 +337,7 @@ export function useOperationViewController({
   };
 
   const handleOpenWorkspaceBoard = async () => {
-    const workspaceId = effectiveCaseId || report?.caseId;
+    const workspaceId = effectiveCaseId || report?.workspaceId;
     if (!workspaceId) return;
 
     const board = await ensureWorkspaceBoard(workspaceId);
@@ -361,7 +361,7 @@ export function useOperationViewController({
   };
 
   const handlePlaceReportOnBoard = async () => {
-    const workspaceId = effectiveCaseId || report?.caseId;
+    const workspaceId = effectiveCaseId || report?.workspaceId;
     if (!workspaceId || !report?.id) return;
 
     await handlePlaceReferenceOnBoard(
@@ -370,7 +370,7 @@ export function useOperationViewController({
   };
 
   const handleOpenEntityChat = (entityName: string) => {
-    const workspaceId = effectiveCaseId || report?.caseId;
+    const workspaceId = effectiveCaseId || report?.workspaceId;
     if (!workspaceId) return;
 
     onOpenChat({
@@ -383,7 +383,7 @@ export function useOperationViewController({
   };
 
   const handlePlaceEntityOnBoard = async (entityName: string) => {
-    const workspaceId = effectiveCaseId || report?.caseId;
+    const workspaceId = effectiveCaseId || report?.workspaceId;
     if (!workspaceId) return;
 
     const entity =
@@ -396,7 +396,7 @@ export function useOperationViewController({
   };
 
   const handleOpenHeadlineChat = () => {
-    const workspaceId = effectiveCaseId || selectedHeadline?.caseId || report?.caseId;
+    const workspaceId = effectiveCaseId || selectedHeadline?.workspaceId || report?.workspaceId;
     if (!workspaceId || !selectedHeadline) return;
 
     onOpenChat({
@@ -410,7 +410,7 @@ export function useOperationViewController({
   };
 
   const handlePlaceHeadlineOnBoard = async () => {
-    const workspaceId = effectiveCaseId || selectedHeadline?.caseId || report?.caseId;
+    const workspaceId = effectiveCaseId || selectedHeadline?.workspaceId || report?.workspaceId;
     if (!workspaceId || !selectedHeadline) return;
 
     await handlePlaceReferenceOnBoard(
@@ -422,7 +422,7 @@ export function useOperationViewController({
   const handleTitleSave = async (newTitle: string) => {
     if (!report) return;
     if (report.id) {
-      await updateReportTitle(report.id, newTitle);
+      await updateArtifactTitle(report.id, newTitle);
     }
     if (report.id) onNavigate(report.id);
   };
@@ -430,7 +430,7 @@ export function useOperationViewController({
   const handleReportBodySave = async (summary: string, sectionId?: string) => {
     if (!report?.id) return;
 
-    await updateReportSummary(report.id, summary);
+    await updateArtifactSummary(report.id, summary);
     if (sectionId) {
       await updateArtifactSection(report.id, sectionId, {
         content: summary,
@@ -442,7 +442,7 @@ export function useOperationViewController({
   const handleEntityNameSave = async (newName: string) => {
     if (!selectedEntity) return;
     const oldName = selectedEntity.name;
-    await renameEntityAcrossReports(oldName, newName);
+    await renameEntityAcrossArtifacts(oldName, newName);
 
     if (flaggedNodeIds.includes(oldName)) {
       toggleFlag(oldName);

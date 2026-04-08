@@ -203,7 +203,7 @@ const buildArtifactFromInput = (context: BoardAgentExecutionContext, input: {
 
   return {
     id: createLocalId('rep'),
-    caseId: context.workspace.id,
+    workspaceId: context.workspace.id,
     topic: input.title,
     dateStr: new Date(now).toLocaleDateString(),
     createdAt: now,
@@ -803,7 +803,7 @@ export const executeBoardAgentStructuredAction = async ({
         content,
         order: now,
       };
-      await context.appendSectionToReport(artifactId, section);
+      await context.appendSectionToArtifact(artifactId, section);
       return complete(type, {
         normalizedInput: {
           artifactId,

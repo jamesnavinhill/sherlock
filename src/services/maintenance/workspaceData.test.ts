@@ -14,7 +14,7 @@ describe('workspaceData maintenance helpers', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Alpha',
           summary: 'Summary',
           agendas: [],
@@ -92,7 +92,7 @@ describe('workspaceData maintenance helpers', () => {
       signals: [
         {
           id: 'head-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'Signal',
           source: 'Desk',
           timestamp: '2026-04-03T00:00:00.000Z',
@@ -119,7 +119,7 @@ describe('workspaceData maintenance helpers', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Alpha',
           summary: 'Summary',
           agendas: [],
@@ -196,7 +196,7 @@ describe('workspaceData maintenance helpers', () => {
         signals: [
           {
             id: 'head-1',
-            caseId: 'case-1',
+            workspaceId: 'case-1',
             content: 'Signal',
             source: 'Desk',
             timestamp: '2026-04-03T00:00:00.000Z',
@@ -235,7 +235,7 @@ describe('workspaceData maintenance helpers', () => {
       archives: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Alpha',
           summary: 'Summary',
           agendas: [],
@@ -251,7 +251,7 @@ describe('workspaceData maintenance helpers', () => {
           topic: 'Alpha',
           status: 'COMPLETED',
           startTime: 1,
-          report: { caseId: 'case-1' },
+          report: { workspaceId: 'case-1' },
         },
       ],
       chatSessions: [
@@ -319,7 +319,7 @@ describe('workspaceData maintenance helpers', () => {
       headlines: [
         {
           id: 'head-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'Signal',
           source: 'Desk',
           timestamp: '2026-04-03T00:00:00.000Z',
@@ -357,7 +357,7 @@ describe('workspaceData maintenance helpers', () => {
       reports: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Alpha',
           summary: 'Summary',
           agendas: [],
@@ -376,7 +376,7 @@ describe('workspaceData maintenance helpers', () => {
     expect(payload.artifacts).toEqual([
       {
         id: 'rep-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         topic: 'Alpha',
         summary: 'Summary',
         agendas: [],

@@ -33,7 +33,7 @@ describe('chatPageUtils', () => {
     const reports: Artifact[] = [
       {
         id: 'artifact-1',
-        caseId: 'ws-1',
+        workspaceId: 'ws-1',
         topic: 'Atlas Procurement Review',
         summary: 'Summary',
         agendas: [],
@@ -44,7 +44,7 @@ describe('chatPageUtils', () => {
       },
       {
         id: 'artifact-2',
-        caseId: 'ws-1',
+        workspaceId: 'ws-1',
         topic: 'Satellite Filing',
         summary: 'Summary',
         agendas: [],
@@ -72,7 +72,7 @@ describe('chatPageUtils', () => {
     const signals: Signal[] = [
       {
         id: 'signal-1',
-        caseId: 'ws-1',
+        workspaceId: 'ws-1',
         content: 'Export restrictions expanded overnight.',
         source: 'Desk Wire',
         timestamp: '2026-04-05T00:00:00.000Z',

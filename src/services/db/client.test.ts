@@ -9,12 +9,12 @@ describe('database section schema upgrades', () => {
   it('detects legacy artifact section tables that use a global id primary key', () => {
     expect(
       artifactSectionsTableRequiresUpgrade(
-        'CREATE TABLE "artifact_sections" ("id" text PRIMARY KEY NOT NULL, "report_id" text NOT NULL)'
+        'CREATE TABLE "artifact_sections" ("id" text PRIMARY KEY NOT NULL, "artifact_id" text NOT NULL)'
       )
     ).toBe(true);
     expect(
       artifactSectionsTableRequiresUpgrade(
-        'CREATE TABLE "artifact_sections" ("id" text NOT NULL, "report_id" text NOT NULL, PRIMARY KEY ("report_id", "id"))'
+        'CREATE TABLE "artifact_sections" ("id" text NOT NULL, "artifact_id" text NOT NULL, PRIMARY KEY ("artifact_id", "id"))'
       )
     ).toBe(false);
   });
@@ -23,7 +23,7 @@ describe('database section schema upgrades', () => {
     const exec = vi.fn(async (_db: number, sql: string, callback?: (row: unknown[]) => void) => {
       if (sql.includes('sqlite_master')) {
         callback?.([
-          'CREATE TABLE "artifact_sections" ("id" text PRIMARY KEY NOT NULL, "report_id" text NOT NULL, "kind" text NOT NULL, "title" text NOT NULL, "content" text, "items_json" text, "sort_order" integer NOT NULL)',
+          'CREATE TABLE "artifact_sections" ("id" text PRIMARY KEY NOT NULL, "artifact_id" text NOT NULL, "kind" text NOT NULL, "title" text NOT NULL, "content" text, "items_json" text, "sort_order" integer NOT NULL)',
         ]);
       }
     });

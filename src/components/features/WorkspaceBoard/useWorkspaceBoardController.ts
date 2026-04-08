@@ -88,7 +88,7 @@ export const useWorkspaceBoardController = ({
     saveArtifact,
     saveWorkspaceBoardDocument,
     setActiveWorkspaceId,
-    appendSectionToReport,
+    appendSectionToArtifact,
     addBoardAgentAction,
     updateWorkspaceBoard,
     updateBoardAgentAction,
@@ -731,7 +731,7 @@ export const useWorkspaceBoardController = ({
         persistBoardDocument: persistCurrentBoardDocument,
         createWorkspaceItem,
         saveArtifact,
-        appendSectionToReport,
+        appendSectionToArtifact,
         requestReview: requestBoardAgentReview,
         launchInvestigation: async (launchRequest) => {
           onLaunchInvestigation({
@@ -788,7 +788,7 @@ export const useWorkspaceBoardController = ({
     activeWorkspace,
     addBoardAgentAction,
     addToast,
-    appendSectionToReport,
+    appendSectionToArtifact,
     boardAgentAutoApproveOrganizationActions,
     boardAgentActionsBySessionId,
     boardAgentPrompt,
@@ -861,7 +861,7 @@ export const useWorkspaceBoardController = ({
     if (selectedArtifact?.id) {
       onOpenChat({
         workspaceId: activeWorkspace.id,
-        launchContext: { sourceReportId: selectedArtifact.id },
+        launchContext: { sourceArtifactId: selectedArtifact.id },
       });
       return;
     }

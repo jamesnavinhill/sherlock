@@ -21,7 +21,7 @@ describe('openWorkspaceChatRequest', () => {
       purposeId: 'purpose-1',
       metadata: {
         launchContext: {
-          sourceReportId: 'rep-1',
+          sourceArtifactId: 'rep-1',
         },
       },
       createdAt: 100,
@@ -42,7 +42,7 @@ describe('openWorkspaceChatRequest', () => {
       request: {
         workspaceId: 'ws-1',
         launchContext: {
-          sourceReportId: 'rep-1',
+          sourceArtifactId: 'rep-1',
         },
       },
       setActiveChatSessionId,
@@ -91,7 +91,7 @@ describe('openWorkspaceChatRequest', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           topic: 'Atlas Brief',
           summary: 'Brief summary',
           agendas: [],
@@ -109,7 +109,7 @@ describe('openWorkspaceChatRequest', () => {
       request: {
         workspaceId: 'ws-1',
         launchContext: {
-          sourceReportId: 'rep-1',
+          sourceArtifactId: 'rep-1',
         },
       },
       setActiveChatSessionId,
@@ -131,7 +131,7 @@ describe('openWorkspaceChatRequest', () => {
       expect.objectContaining({
         workspaceId: 'ws-1',
         title: 'Atlas Brief',
-        sourceReportId: 'rep-1',
+        sourceArtifactId: 'rep-1',
       })
     );
     expect(addChatMessage).toHaveBeenCalledWith(

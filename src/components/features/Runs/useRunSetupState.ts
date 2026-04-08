@@ -17,7 +17,7 @@ import {
   type StarterPromptTemplate,
 } from '@/domain';
 import type {
-  CaseTemplate,
+  WorkspaceTemplate,
   GraphNodeSubtype,
   InvestigationRunConfig,
   InvestigationScope,
@@ -25,20 +25,20 @@ import type {
   SystemConfig,
 } from '@/types';
 
-import { createTemplateMetadata } from './taskSetupUtils';
+import { createTemplateMetadata } from './runSetupUtils';
 import { getFallbackRuntimeModel } from './runtimeConfigOptions';
 import { useRuntimeConfigForm } from './useRuntimeConfigForm';
 
-export type TaskSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
+export type RunSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
 
 interface UseTaskSetupStateInput {
   initialTopic: string;
   initialScopeId?: string;
-  initialConfigOverride?: TaskSetupConfigOverride;
+  initialConfigOverride?: RunSetupConfigOverride;
   initialDateRangeOverride?: { start?: string; end?: string };
   onStart: (
     topic: string,
-    configOverride: TaskSetupConfigOverride,
+    configOverride: RunSetupConfigOverride,
     preseededEntities?: ManualNode[],
     scope?: InvestigationScope,
     dateRange?: { start?: string; end?: string }
@@ -51,7 +51,7 @@ interface SeedEntity {
   type: GraphNodeSubtype;
 }
 
-export const useTaskSetupState = ({
+export const useRunSetupState = ({
   initialTopic,
   initialScopeId,
   initialConfigOverride,
@@ -138,7 +138,7 @@ export const useTaskSetupState = ({
     { id: 5, label: 'Config' },
   ];
 
-  const applyTemplate = (template: CaseTemplate) => {
+  const applyTemplate = (template: WorkspaceTemplate) => {
     const nextScopeId = template.scopeId || selectedScopeId;
     const nextScope =
       getScopeById(nextScopeId || '') ||

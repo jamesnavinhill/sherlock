@@ -1,4 +1,4 @@
-import { CaseRepository } from './repositories/CaseRepository';
+import { WorkspaceRepository } from './repositories/WorkspaceRepository';
 import { ScopeRepository } from './repositories/ScopeRepository';
 import { ManualDataRepository } from './repositories/ManualDataRepository';
 import { SettingsRepository } from './repositories/SettingsRepository';
@@ -59,21 +59,21 @@ export const migrateLocalStorageToSqlite = async () => {
       // 2. Migrate Cases
       if (state.cases && Array.isArray(state.cases)) {
         for (const c of state.cases) {
-          await CaseRepository.createCase(c);
+          await WorkspaceRepository.createWorkspace(c);
         }
       }
 
       // 3. Migrate Reports (Archives)
       if (state.archives && Array.isArray(state.archives)) {
         for (const report of state.archives) {
-          await CaseRepository.createReport(report);
+          await WorkspaceRepository.createArtifact(report);
         }
       }
 
       // 4. Migrate Headlines
       if (state.headlines && Array.isArray(state.headlines)) {
         for (const headline of state.headlines) {
-          await CaseRepository.createHeadline(headline);
+          await WorkspaceRepository.createHeadline(headline);
         }
       }
 

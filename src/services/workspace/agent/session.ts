@@ -88,7 +88,7 @@ export interface RunBoardAgentSessionInput extends BoardAgentSessionStore {
     artifact: Artifact,
     parentContext?: { topic: string; summary: string }
   ) => Promise<Artifact>;
-  appendSectionToReport: (reportId: string, section: ArtifactSection) => Promise<void>;
+  appendSectionToArtifact: (reportId: string, section: ArtifactSection) => Promise<void>;
   launchInvestigation?: (request: InvestigationLaunchRequest) => Promise<void> | void;
   requestReview?: (
     request: BoardAgentReviewRequest
@@ -467,7 +467,7 @@ export const runBoardAgentSession = async (
               persistBoardDocument: input.persistBoardDocument,
               createWorkspaceItem: input.createWorkspaceItem,
               saveArtifact: input.saveArtifact,
-              appendSectionToReport: input.appendSectionToReport,
+              appendSectionToArtifact: input.appendSectionToArtifact,
               launchInvestigation: input.launchInvestigation,
             },
           });

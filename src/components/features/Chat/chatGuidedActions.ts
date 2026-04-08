@@ -141,7 +141,7 @@ export const saveGuidedChatDraft = async ({
   activeWorkspace,
   addChatAction,
   addToast,
-  archiveReport,
+  saveArtifact,
   customScopes,
   guidedState,
 }: {
@@ -149,7 +149,7 @@ export const saveGuidedChatDraft = async ({
   activeWorkspace: Workspace | null;
   addChatAction: (action: AgentAction) => Promise<unknown>;
   addToast: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
-  archiveReport: (
+  saveArtifact: (
     report: Artifact,
     workspaceSummary?: { topic: string; summary: string }
   ) => Promise<Artifact>;
@@ -162,12 +162,12 @@ export const saveGuidedChatDraft = async ({
     customScopes,
     activeWorkspace
   );
-  const saved = await archiveReport(
+  const saved = await saveArtifact(
     guidedState.draft.workspaceIntent === 'CURRENT'
       ? report
       : {
           ...report,
-          caseId: undefined,
+          workspaceId: undefined,
         },
     guidedState.draft.workspaceIntent === 'CURRENT' && activeWorkspace
       ? {

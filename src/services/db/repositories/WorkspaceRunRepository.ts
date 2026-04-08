@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 import { getDB, type SherlockWriteExecutor } from '../client';
-import { tasks } from '../schema';
+import { workspaceRuns } from '../schema';
 import type { ArtifactType, WorkspaceRun } from '@/types';
 import { mapRowsSafely, parseStoredJson, serializeStoredJsonOrNull } from './json';
 
-const mapTaskRow = (row: typeof tasks.$inferSelect): WorkspaceRun => {
+const mapTaskRow = (row: typeof workspaceRuns.$inferSelect): WorkspaceRun => {
   const legacyConfig: WorkspaceRun['config'] = {
     packId: row.packId || undefined,
     purposeId: row.purposeId || undefined,
@@ -18,7 +18,7 @@ const mapTaskRow = (row: typeof tasks.$inferSelect): WorkspaceRun => {
     status: row.status as WorkspaceRun['status'],
     startTime: row.startTime || 0,
     endTime: row.endTime || undefined,
-    workspaceId: row.caseId || undefined,
+    workspaceId: row.workspaceId || undefined,
     error: row.error || undefined,
     config: row.configJson
       ? parseStoredJson<WorkspaceRun['config']>(row.configJson, legacyConfig, `task config ${row.id}`)
@@ -26,9 +26,9 @@ const mapTaskRow = (row: typeof tasks.$inferSelect): WorkspaceRun => {
   };
 };
 
-const toTaskInsertRow = (task: WorkspaceRun): typeof tasks.$inferInsert => ({
+const toTaskInsertRow = (task: WorkspaceRun): typeof workspaceRuns.$inferInsert => ({
   id: task.id,
-  caseId: task.workspaceId || task.report?.caseId || null,
+  workspaceId: task.workspaceId || task.report?.workspaceId || null,
   topic: task.topic,
   status: task.status,
   packId: task.config?.packId,
@@ -41,10 +41,10 @@ const toTaskInsertRow = (task: WorkspaceRun): typeof tasks.$inferInsert => ({
   configJson: serializeStoredJsonOrNull(task.config),
 });
 
-export class TaskRepository {
+export class WorkspaceRunRepository {
   static async getAll(): Promise<WorkspaceRun[]> {
     const db = getDB();
-    const rows = await db.select().from(tasks);
+    const rows = await db.select().from(workspaceRuns);
 
     return mapRowsSafely(rows, {
       label: 'task row',
@@ -54,7 +54,7 @@ export class TaskRepository {
   }
 
   static async create(task: WorkspaceRun, db: SherlockWriteExecutor = getDB()): Promise<void> {
-    await db.insert(tasks).values(toTaskInsertRow(task));
+    await db.insert(workspaceRuns).values(toTaskInsertRow(task));
   }
 
   static async updateStatus(
@@ -69,42 +69,42 @@ export class TaskRepository {
     if (error) updateData.error = error;
     if (status === 'COMPLETED' || status === 'FAILED') updateData.endTime = Date.now();
 
-    await db.update(tasks).set(updateData).where(eq(tasks.id, id));
+    await db.update(workspaceRuns).set(updateData).where(eq(workspaceRuns.id, id));
   }
 
   static async updateWorkspace(id: string, workspaceId: string | null): Promise<void> {
     const db = getDB();
-    await db.update(tasks).set({ caseId: workspaceId }).where(eq(tasks.id, id));
+    await db.update(workspaceRuns).set({ workspaceId: workspaceId }).where(eq(workspaceRuns.id, id));
   }
 
   static async updateConfig(id: string, config: WorkspaceRun['config']): Promise<void> {
     const db = getDB();
     await db
-      .update(tasks)
+      .update(workspaceRuns)
       .set({ configJson: serializeStoredJsonOrNull(config) })
-      .where(eq(tasks.id, id));
+      .where(eq(workspaceRuns.id, id));
   }
 
   static async clearWorkspace(
     workspaceId: string,
     db: SherlockWriteExecutor = getDB()
   ): Promise<void> {
-    await db.update(tasks).set({ caseId: null }).where(eq(tasks.caseId, workspaceId));
+    await db.update(workspaceRuns).set({ workspaceId: null }).where(eq(workspaceRuns.workspaceId, workspaceId));
   }
 
   static async deleteByWorkspace(
     workspaceId: string,
     db: SherlockWriteExecutor = getDB()
   ): Promise<void> {
-    await db.delete(tasks).where(eq(tasks.caseId, workspaceId));
+    await db.delete(workspaceRuns).where(eq(workspaceRuns.workspaceId, workspaceId));
   }
 
   static async clearAll(db: SherlockWriteExecutor = getDB()): Promise<void> {
-    await db.delete(tasks);
+    await db.delete(workspaceRuns);
   }
 
   static async delete(id: string): Promise<void> {
     const db = getDB();
-    await db.delete(tasks).where(eq(tasks.id, id));
+    await db.delete(workspaceRuns).where(eq(workspaceRuns.id, id));
   }
 }

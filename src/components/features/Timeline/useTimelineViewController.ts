@@ -279,7 +279,7 @@ export function useTimelineViewController({
       if (getPrimaryRefId(event || null, 'ARTIFACT')) {
         onOpenChat({
           workspaceId: activeWorkspace.id,
-          launchContext: { sourceReportId: getPrimaryRefId(event || null, 'ARTIFACT') },
+          launchContext: { sourceArtifactId: getPrimaryRefId(event || null, 'ARTIFACT') },
         });
         return;
       }
@@ -303,7 +303,7 @@ export function useTimelineViewController({
           workspaceId: activeWorkspace.id,
           launchContext: {
             entityName,
-            sourceReportId: getMetadataValue<string>(event || null, 'relatedArtifactId'),
+            sourceArtifactId: getMetadataValue<string>(event || null, 'relatedArtifactId'),
           },
         });
         return;

@@ -4,8 +4,8 @@
   "id": "881ad3ed-20bf-4c56-a6be-ada2aebe2c5f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "cases": {
-      "name": "cases",
+    "workspaces": {
+      "name": "workspaces",
       "columns": {
         "id": {
           "name": "id",
@@ -68,7 +68,7 @@
       "foreignKeys": {
         "cases_scope_id_scopes_id_fk": {
           "name": "cases_scope_id_scopes_id_fk",
-          "tableFrom": "cases",
+          "tableFrom": "workspaces",
           "tableTo": "scopes",
           "columnsFrom": ["scope_id"],
           "columnsTo": ["id"],
@@ -90,8 +90,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "report_id": {
-          "name": "report_id",
+        "artifact_id": {
+          "name": "artifact_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -128,11 +128,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "entities_report_id_reports_id_fk": {
-          "name": "entities_report_id_reports_id_fk",
+        "entities_artifact_id_reports_id_fk": {
+          "name": "entities_artifact_id_reports_id_fk",
           "tableFrom": "entities",
-          "tableTo": "reports",
-          "columnsFrom": ["report_id"],
+          "tableTo": "artifacts",
+          "columnsFrom": ["artifact_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -142,8 +142,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "leads": {
-      "name": "leads",
+    "signals": {
+      "name": "signals",
       "columns": {
         "id": {
           "name": "id",
@@ -152,8 +152,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "case_id": {
-          "name": "case_id",
+        "workspace_id": {
+          "name": "workspace_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -187,8 +187,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "linked_report_id": {
-          "name": "linked_report_id",
+        "linked_artifact_id": {
+          "name": "linked_artifact_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -204,11 +204,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "leads_case_id_cases_id_fk": {
-          "name": "leads_case_id_cases_id_fk",
-          "tableFrom": "leads",
-          "tableTo": "cases",
-          "columnsFrom": ["case_id"],
+        "leads_workspace_id_cases_id_fk": {
+          "name": "leads_workspace_id_cases_id_fk",
+          "tableFrom": "signals",
+          "tableTo": "workspaces",
+          "columnsFrom": ["workspace_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -218,8 +218,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "reports": {
-      "name": "reports",
+    "artifacts": {
+      "name": "artifacts",
       "columns": {
         "id": {
           "name": "id",
@@ -228,8 +228,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "case_id": {
-          "name": "case_id",
+        "workspace_id": {
+          "name": "workspace_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -280,11 +280,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "reports_case_id_cases_id_fk": {
-          "name": "reports_case_id_cases_id_fk",
-          "tableFrom": "reports",
-          "tableTo": "cases",
-          "columnsFrom": ["case_id"],
+        "reports_workspace_id_cases_id_fk": {
+          "name": "reports_workspace_id_cases_id_fk",
+          "tableFrom": "artifacts",
+          "tableTo": "workspaces",
+          "columnsFrom": ["workspace_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -388,8 +388,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "report_id": {
-          "name": "report_id",
+        "artifact_id": {
+          "name": "artifact_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -412,11 +412,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "sources_report_id_reports_id_fk": {
-          "name": "sources_report_id_reports_id_fk",
+        "sources_artifact_id_reports_id_fk": {
+          "name": "sources_artifact_id_reports_id_fk",
           "tableFrom": "sources",
-          "tableTo": "reports",
-          "columnsFrom": ["report_id"],
+          "tableTo": "artifacts",
+          "columnsFrom": ["artifact_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -426,8 +426,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "tasks": {
-      "name": "tasks",
+    "workspace_runs": {
+      "name": "workspace_runs",
       "columns": {
         "id": {
           "name": "id",
@@ -436,8 +436,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "case_id": {
-          "name": "case_id",
+        "workspace_id": {
+          "name": "workspace_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -488,11 +488,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "tasks_case_id_cases_id_fk": {
-          "name": "tasks_case_id_cases_id_fk",
-          "tableFrom": "tasks",
-          "tableTo": "cases",
-          "columnsFrom": ["case_id"],
+        "tasks_workspace_id_cases_id_fk": {
+          "name": "tasks_workspace_id_cases_id_fk",
+          "tableFrom": "workspace_runs",
+          "tableTo": "workspaces",
+          "columnsFrom": ["workspace_id"],
           "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"

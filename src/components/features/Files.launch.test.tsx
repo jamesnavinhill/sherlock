@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { useWorkspaceStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
@@ -9,8 +9,8 @@ vi.mock('../ui/BackgroundMatrixRain', () => ({
   BackgroundMatrixRain: () => null,
 }));
 
-vi.mock('./Runs/TaskSetupModal', () => ({
-  TaskSetupModal: () => null,
+vi.mock('./Runs/RunSetupModal', () => ({
+  RunSetupModal: () => null,
 }));
 
 vi.mock('../../utils/exportUtils', () => ({
@@ -19,9 +19,9 @@ vi.mock('../../utils/exportUtils', () => ({
   exportCaseAsMarkdown: vi.fn(),
 }));
 
-import { Archives } from './Archives';
+import { Files } from './Files';
 
-describe('Archives chat launch propagation', () => {
+describe('Files chat launch propagation', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
@@ -39,7 +39,7 @@ describe('Archives chat launch propagation', () => {
       artifacts: [
         {
           id: 'report-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas baseline',
           summary: 'Summary',
           agendas: [],
@@ -57,7 +57,7 @@ describe('Archives chat launch propagation', () => {
 
     render(
       <MemoryRouter future={routerFuture}>
-        <Archives onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={onOpenChat} />
+        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={onOpenChat} />
       </MemoryRouter>
     );
 
@@ -72,7 +72,7 @@ describe('Archives chat launch propagation', () => {
     expect(onOpenChat).toHaveBeenNthCalledWith(2, {
       workspaceId: 'case-1',
       launchContext: {
-        sourceReportId: 'report-1',
+        sourceArtifactId: 'report-1',
       },
     });
   });
@@ -80,7 +80,7 @@ describe('Archives chat launch propagation', () => {
   it('uses canonical workspace and artifact labels in the Files shell', () => {
     render(
       <MemoryRouter future={routerFuture}>
-        <Archives onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
       </MemoryRouter>
     );
 

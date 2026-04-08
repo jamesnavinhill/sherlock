@@ -55,8 +55,8 @@ export function useNetworkGraphController({
     setManualLinks,
     setManualNodes,
     setEntityAliases: setAliases,
-    updateReportTitle,
-    renameEntityAcrossReports,
+    updateArtifactTitle,
+    renameEntityAcrossArtifacts,
     setActiveWorkspaceId,
     setFlaggedNodeIds,
     setHiddenNodeIds,
@@ -69,7 +69,7 @@ export function useNetworkGraphController({
   const flaggedNodeIds = useMemo(() => new Set(flaggedNodeIdsArray), [flaggedNodeIdsArray]);
   const dossierLabelProfile = useMemo(() => {
     const activeCase = workspaces.find((entry) => entry.id === filterCaseId);
-    const activeReport = reports.find((entry) => entry.caseId === filterCaseId);
+    const activeReport = reports.find((entry) => entry.workspaceId === filterCaseId);
     return getLabelProfileById(activeCase?.labelProfileId || activeReport?.labelProfileId);
   }, [workspaces, filterCaseId, reports]);
 
@@ -209,7 +209,7 @@ export function useNetworkGraphController({
       return;
     }
 
-    await renameEntityAcrossReports(oldName, newName);
+    await renameEntityAcrossArtifacts(oldName, newName);
 
     const oldNodeId = selectedNode?.id || getEntityGraphNodeId(oldName);
     const newNodeId = getEntityGraphNodeId(newName);
@@ -270,7 +270,7 @@ export function useNetworkGraphController({
 
   const handleReportSave = async (report: Artifact, newTitle: string) => {
     if (report.id) {
-      await updateReportTitle(report.id, newTitle);
+      await updateArtifactTitle(report.id, newTitle);
     }
     setSelectedReport({ ...report, topic: newTitle });
   };

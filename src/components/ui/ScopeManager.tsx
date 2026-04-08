@@ -11,7 +11,7 @@ import {
   ChevronUp,
   Star,
 } from 'lucide-react';
-import { useWorkspaceStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { BUILTIN_SCOPES, getAllScopes } from '../../data/presets';
 import type { InvestigationScope } from '../../types';
 import { ConfirmDialog } from './ConfirmDialog';

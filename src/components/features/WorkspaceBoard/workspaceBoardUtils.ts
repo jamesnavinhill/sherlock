@@ -1,6 +1,6 @@
 import type { Editor, TLComponents } from 'tldraw';
 
-import type { ThemeMode } from '@/store/caseStore';
+import type { ThemeMode } from '@/store/workspaceStore';
 import type { WorkspaceLibraryEntry } from '@/services/workspace/library';
 import { placeEntryOnBoard as placeWorkspaceEntryOnBoard } from '@/services/workspace/boardShapes';
 import { CompactStylePanel } from './CompactStylePanel';

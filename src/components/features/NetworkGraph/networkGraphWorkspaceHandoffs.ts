@@ -32,12 +32,12 @@ export const openReportGraphChat = ({
   onOpenChat: (request: ChatOpenRequest) => void;
   report: Artifact;
 }) => {
-  if (!report.caseId || !report.id) return;
+  if (!report.workspaceId || !report.id) return;
 
   onOpenChat({
-    workspaceId: report.caseId,
+    workspaceId: report.workspaceId,
     launchContext: {
-      sourceReportId: report.id,
+      sourceArtifactId: report.id,
     },
   });
 };
@@ -49,10 +49,10 @@ export const openHeadlineGraphChat = ({
   headline: Headline;
   onOpenChat: (request: ChatOpenRequest) => void;
 }) => {
-  if (!headline.caseId) return;
+  if (!headline.workspaceId) return;
 
   onOpenChat({
-    workspaceId: headline.caseId,
+    workspaceId: headline.workspaceId,
     launchContext: {
       signalId: headline.id,
       headlineId: headline.id,
@@ -109,16 +109,16 @@ export const placeReportOnWorkspaceBoard = async ({
   }) => void;
   report: Artifact;
 }) => {
-  if (!report.caseId || !report.id) return;
+  if (!report.workspaceId || !report.id) return;
 
-  const board = await ensureWorkspaceBoard(report.caseId);
+  const board = await ensureWorkspaceBoard(report.workspaceId);
   queueBoardPlacement({
-    workspaceId: report.caseId,
+    workspaceId: report.workspaceId,
     boardId: board.id,
-    item: buildWorkspaceArtifactReference(report.caseId, { ...report, id: report.id }),
+    item: buildWorkspaceArtifactReference(report.workspaceId, { ...report, id: report.id }),
     openInBoard: true,
   });
-  navigate(buildWorkspaceBoardDocumentPath(report.caseId, board.id));
+  navigate(buildWorkspaceBoardDocumentPath(report.workspaceId, board.id));
 };
 
 export const placeHeadlineOnWorkspaceBoard = async ({
@@ -137,14 +137,14 @@ export const placeHeadlineOnWorkspaceBoard = async ({
     openInBoard?: boolean;
   }) => void;
 }) => {
-  if (!headline.caseId) return;
+  if (!headline.workspaceId) return;
 
-  const board = await ensureWorkspaceBoard(headline.caseId);
+  const board = await ensureWorkspaceBoard(headline.workspaceId);
   queueBoardPlacement({
-    workspaceId: headline.caseId,
+    workspaceId: headline.workspaceId,
     boardId: board.id,
-    item: buildWorkspaceHeadlineReference(headline.caseId, headline),
+    item: buildWorkspaceHeadlineReference(headline.workspaceId, headline),
     openInBoard: true,
   });
-  navigate(buildWorkspaceBoardDocumentPath(headline.caseId, board.id));
+  navigate(buildWorkspaceBoardDocumentPath(headline.workspaceId, board.id));
 };

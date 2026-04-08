@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { useWorkspaceStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/workspaceStore';
 
 vi.mock('./SettingsPanel', () => ({
   SettingsPanel: () => null,
@@ -14,8 +14,8 @@ vi.mock('./EventCard', () => ({
   ),
 }));
 
-vi.mock('../Runs/TaskSetupModal', () => ({
-  TaskSetupModal: ({
+vi.mock('../Runs/RunSetupModal', () => ({
+  RunSetupModal: ({
     onStart,
   }: {
     onStart: (

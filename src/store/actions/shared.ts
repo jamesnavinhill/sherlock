@@ -1,4 +1,4 @@
-import type { WorkspaceState } from '../caseStore';
+import type { WorkspaceState } from '../workspaceStore';
 
 export type WorkspaceStoreSet = (
   partial:

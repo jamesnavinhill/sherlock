@@ -19,11 +19,11 @@ import {
   Workflow,
 } from 'lucide-react';
 
-import { TaskSetupModal } from './Runs/TaskSetupModal';
+import { RunSetupModal } from './Runs/RunSetupModal';
 import { EmptyState } from '../ui/EmptyState';
 import { OsintSelect } from '../ui/OsintSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
-import { useWorkspaceStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { exportCaseAsHtml, exportCaseAsJson, exportCaseAsMarkdown } from '../../utils/exportUtils';
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../domain';
 import {
@@ -45,7 +45,7 @@ import {
 } from '../../services/workspace/workspaceHandoffs';
 import { parseFilesRouteState } from '@/app/routes';
 
-interface ArchivesProps {
+interface FilesProps {
   onSelectReport: (report: Artifact) => void;
   onStartNewCase: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
@@ -54,7 +54,7 @@ interface ArchivesProps {
 type FilesViewMode = 'GRID' | 'LIST';
 type RecordFilter = 'ALL' | 'ARTIFACT' | 'ITEM';
 
-export const Archives: React.FC<ArchivesProps> = ({
+export const Files: React.FC<FilesProps> = ({
   onSelectReport,
   onStartNewCase,
   onOpenChat,
@@ -66,9 +66,9 @@ export const Archives: React.FC<ArchivesProps> = ({
     artifacts,
     workspaces,
     workspaceItems,
-    deleteReport,
+    deleteArtifact,
     ensureWorkspaceBoard,
-    purgeCase,
+    purgeWorkspace,
     queueBoardPlacement,
     setActiveWorkspaceId,
   } = useWorkspaceStore();
@@ -154,29 +154,29 @@ export const Archives: React.FC<ArchivesProps> = ({
     });
   }, [currentPage, effectiveRecordFilter, effectiveSelectedCaseId, focusedItem?.id, viewMode]);
 
-  const getCaseReports = (caseId: string) => artifacts.filter((artifact) => artifact.caseId === caseId);
-  const getCaseItems = (caseId: string) =>
-    workspaceItems.filter((item) => item.workspaceId === caseId);
-  const getUnassignedReports = () => artifacts.filter((artifact) => !artifact.caseId);
+  const getCaseReports = (workspaceId: string) => artifacts.filter((artifact) => artifact.workspaceId === workspaceId);
+  const getCaseItems = (workspaceId: string) =>
+    workspaceItems.filter((item) => item.workspaceId === workspaceId);
+  const getUnassignedReports = () => artifacts.filter((artifact) => !artifact.workspaceId);
 
   const handleDeleteReport = async (event: React.MouseEvent, id?: string) => {
     event.stopPropagation();
     if (!id) return;
-    await deleteReport(id);
+    await deleteArtifact(id);
   };
 
   const handlePlaceArtifactOnBoard = async (event: React.MouseEvent, artifact: Artifact) => {
     event.stopPropagation();
     const reference = buildArtifactBoardReference(artifact);
-    if (!reference || !artifact.caseId) return;
+    if (!reference || !artifact.workspaceId) return;
 
-    setActiveWorkspaceId(artifact.caseId);
+    setActiveWorkspaceId(artifact.workspaceId);
     await queueWorkspaceReferenceOnBoard({
       ensureWorkspaceBoard,
       navigate,
       queueBoardPlacement,
       reference,
-      workspaceId: artifact.caseId,
+      workspaceId: artifact.workspaceId,
     });
   };
 
@@ -192,23 +192,23 @@ export const Archives: React.FC<ArchivesProps> = ({
     });
   };
 
-  const handlePurgeCase = (caseId: string, event?: React.MouseEvent) => {
+  const handlePurgeCase = (workspaceId: string, event?: React.MouseEvent) => {
     event?.stopPropagation();
 
-    const targetWorkspace = workspaces.find((workspace) => workspace.id === caseId);
+    const targetWorkspace = workspaces.find((workspace) => workspace.id === workspaceId);
     setWorkspacePendingPurge({
-      id: caseId,
+      id: workspaceId,
       name: targetWorkspace
         ? getWorkspaceDisplayTitle(targetWorkspace)
         : `this ${workspaceLabelLower}`,
-      reportCount: getCaseReports(caseId).length,
+      reportCount: getCaseReports(workspaceId).length,
     });
   };
 
   const confirmPurgeCase = async () => {
     if (!workspacePendingPurge) return;
 
-    await purgeCase(workspacePendingPurge.id);
+    await purgeWorkspace(workspacePendingPurge.id);
 
     if (effectiveSelectedCaseId === workspacePendingPurge.id) {
       setSelectedCaseId(null);
@@ -491,10 +491,10 @@ export const Archives: React.FC<ArchivesProps> = ({
     );
   };
 
-  const renderWorkspaceRecords = (caseId: string) => {
-    const isUnassigned = caseId === 'unassigned';
-    const caseReports = isUnassigned ? getUnassignedReports() : getCaseReports(caseId);
-    const caseItems = isUnassigned ? [] : getCaseItems(caseId);
+  const renderWorkspaceRecords = (workspaceId: string) => {
+    const isUnassigned = workspaceId === 'unassigned';
+    const caseReports = isUnassigned ? getUnassignedReports() : getCaseReports(workspaceId);
+    const caseItems = isUnassigned ? [] : getCaseItems(workspaceId);
     const records: Array<
       | { kind: 'ARTIFACT'; sortAt: number; artifact: Artifact }
       | { kind: 'ITEM'; sortAt: number; item: WorkspaceItem }
@@ -513,7 +513,7 @@ export const Archives: React.FC<ArchivesProps> = ({
       .filter((record) => effectiveRecordFilter === 'ALL' || record.kind === effectiveRecordFilter)
       .sort((left, right) => right.sortAt - left.sortAt);
     const focusedItemPage =
-      focusedItem && !isUnassigned && focusedItem.workspaceId === caseId
+      focusedItem && !isUnassigned && focusedItem.workspaceId === workspaceId
         ? Math.floor(
             Math.max(
               0,
@@ -529,7 +529,7 @@ export const Archives: React.FC<ArchivesProps> = ({
 
     return (
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-        {focusedItem && !isUnassigned && focusedItem.workspaceId === caseId ? (
+        {focusedItem && !isUnassigned && focusedItem.workspaceId === workspaceId ? (
           <div className="mb-6 border border-osint-primary/40 bg-osint-primary/10 p-5">
             <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-osint-primary">
               Focused Item
@@ -617,7 +617,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                     </div>
 
                     <div className="flex items-center space-x-4">
-                      {record.artifact.caseId && record.artifact.id ? (
+                      {record.artifact.workspaceId && record.artifact.id ? (
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
@@ -631,7 +631,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                           <MessageSquare className="h-5 w-5" />
                         </button>
                       ) : null}
-                      {record.artifact.caseId && record.artifact.id ? (
+                      {record.artifact.workspaceId && record.artifact.id ? (
                         <button
                           onClick={(event) => void handlePlaceArtifactOnBoard(event, record.artifact)}
                           className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
@@ -767,7 +767,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                         {record.artifact.dateStr || 'Unknown Date'}
                       </div>
                       <div className="flex items-center justify-end gap-3 self-center">
-                        {record.artifact.caseId && record.artifact.id ? (
+                        {record.artifact.workspaceId && record.artifact.id ? (
                           <button
                             onClick={(event) => {
                               event.stopPropagation();
@@ -781,7 +781,7 @@ export const Archives: React.FC<ArchivesProps> = ({
                             <MessageSquare className="h-4 w-4" />
                           </button>
                         ) : null}
-                        {record.artifact.caseId && record.artifact.id ? (
+                        {record.artifact.workspaceId && record.artifact.id ? (
                           <button
                             onClick={(event) => void handlePlaceArtifactOnBoard(event, record.artifact)}
                             className="text-zinc-500 transition hover:text-white"
@@ -1016,7 +1016,7 @@ export const Archives: React.FC<ArchivesProps> = ({
       </div>
 
       {isNewCaseModalOpen ? (
-        <TaskSetupModal
+        <RunSetupModal
           initialTopic=""
           onCancel={() => setIsNewCaseModalOpen(false)}
           onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {

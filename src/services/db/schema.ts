@@ -12,7 +12,7 @@ export const scopes = sqliteTable('scopes', {
 });
 
 // --- CASES ---
-export const cases = sqliteTable('cases', {
+export const workspaces = sqliteTable('workspaces', {
   id: text('id').primaryKey(),
   scopeId: text('scope_id').references(() => scopes.id),
   title: text('title').notNull(),
@@ -33,9 +33,9 @@ export const cases = sqliteTable('cases', {
 });
 
 // --- REPORTS (Investigated Items) ---
-export const reports = sqliteTable('reports', {
+export const artifacts = sqliteTable('artifacts', {
   id: text('id').primaryKey(),
-  caseId: text('case_id').references(() => cases.id),
+  workspaceId: text('workspace_id').references(() => workspaces.id),
   topic: text('topic').notNull(),
   dateStr: text('date_str'),
   summary: text('summary'),
@@ -51,10 +51,10 @@ export const reports = sqliteTable('reports', {
 
 export const followUps = sqliteTable('follow_ups', {
   id: text('id').primaryKey(),
-  workspaceId: text('workspace_id').references(() => cases.id),
+  workspaceId: text('workspace_id').references(() => workspaces.id),
   artifactId: text('artifact_id')
     .notNull()
-    .references(() => reports.id),
+    .references(() => artifacts.id),
   sectionId: text('section_id'),
   sourceSignalId: text('source_signal_id'),
   kind: text('kind').notNull(),
@@ -74,9 +74,9 @@ export const artifactSections = sqliteTable(
   'artifact_sections',
   {
     id: text('id').notNull(),
-    reportId: text('report_id')
+    reportId: text('artifact_id')
       .notNull()
-      .references(() => reports.id),
+      .references(() => artifacts.id),
     kind: text('kind').notNull(),
     title: text('title').notNull(),
     content: text('content'),
@@ -92,9 +92,9 @@ export const artifactEvidence = sqliteTable(
   'artifact_evidence',
   {
     id: text('id').notNull(),
-    reportId: text('report_id')
+    reportId: text('artifact_id')
       .notNull()
-      .references(() => reports.id),
+      .references(() => artifacts.id),
     kind: text('kind').notNull(),
     title: text('title').notNull(),
     summary: text('summary').notNull(),
@@ -114,7 +114,7 @@ export const artifactEvidence = sqliteTable(
 // --- ENTITIES ---
 export const entities = sqliteTable('entities', {
   id: text('id').primaryKey(),
-  reportId: text('report_id').references(() => reports.id),
+  reportId: text('artifact_id').references(() => artifacts.id),
   name: text('name').notNull(),
   type: text('type').notNull(), // 'PERSON' | 'ORGANIZATION' | 'UNKNOWN'
   role: text('role'),
@@ -124,29 +124,29 @@ export const entities = sqliteTable('entities', {
 // --- SOURCES ---
 export const sources = sqliteTable('sources', {
   id: text('id').primaryKey(),
-  reportId: text('report_id').references(() => reports.id),
+  reportId: text('artifact_id').references(() => artifacts.id),
   title: text('title').notNull(),
   url: text('url').notNull(),
 });
 
 // --- LEADS ---
-export const leads = sqliteTable('leads', {
+export const signals = sqliteTable('signals', {
   id: text('id').primaryKey(),
-  caseId: text('case_id').references(() => cases.id),
+  workspaceId: text('workspace_id').references(() => workspaces.id),
   content: text('content').notNull(),
   source: text('source'),
   type: text('type'),
   url: text('url'),
   status: text('status').notNull(), // 'PENDING' | 'INVESTIGATED' | 'FLAGGED'
   threatLevel: text('threat_level'),
-  linkedReportId: text('linked_report_id'),
+  linkedArtifactId: text('linked_artifact_id'),
   timestamp: text('timestamp'),
 });
 
 // --- TASKS (Async Queue) ---
-export const tasks = sqliteTable('tasks', {
+export const workspaceRuns = sqliteTable('workspace_runs', {
   id: text('id').primaryKey(),
-  caseId: text('case_id').references(() => cases.id),
+  workspaceId: text('workspace_id').references(() => workspaces.id),
   topic: text('topic').notNull(),
   status: text('status').notNull(), // 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED'
   error: text('error'),
@@ -164,10 +164,10 @@ export const chatSessions = sqliteTable('chat_sessions', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id')
     .notNull()
-    .references(() => cases.id),
+    .references(() => workspaces.id),
   title: text('title').notNull(),
   status: text('status').notNull(),
-  sourceReportId: text('source_report_id').references(() => reports.id),
+  sourceArtifactId: text('source_artifact_id').references(() => artifacts.id),
   packId: text('pack_id'),
   purposeId: text('purpose_id'),
   provider: text('provider'),
@@ -242,7 +242,7 @@ export const workspaceItems = sqliteTable('workspace_items', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id')
     .notNull()
-    .references(() => cases.id),
+    .references(() => workspaces.id),
   kind: text('kind').notNull(),
   title: text('title').notNull(),
   description: text('description'),
@@ -263,7 +263,7 @@ export const workspaceBoards = sqliteTable('workspace_boards', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id')
     .notNull()
-    .references(() => cases.id),
+    .references(() => workspaces.id),
   name: text('name').notNull(),
   description: text('description'),
   sortOrder: integer('sort_order').notNull(),
@@ -285,7 +285,7 @@ export const boardAgentSessions = sqliteTable('board_agent_sessions', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id')
     .notNull()
-    .references(() => cases.id),
+    .references(() => workspaces.id),
   boardId: text('board_id')
     .notNull()
     .references(() => workspaceBoards.id),
@@ -311,7 +311,7 @@ export const boardAgentActions = sqliteTable('board_agent_actions', {
     .references(() => boardAgentSessions.id),
   workspaceId: text('workspace_id')
     .notNull()
-    .references(() => cases.id),
+    .references(() => workspaces.id),
   boardId: text('board_id')
     .notNull()
     .references(() => workspaceBoards.id),

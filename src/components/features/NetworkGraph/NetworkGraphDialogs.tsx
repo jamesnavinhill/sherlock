@@ -2,7 +2,7 @@ import React from 'react';
 
 import type { EntityAliasMap, GraphNodeSubtype, InvestigationLaunchRequest } from '@/types';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { TaskSetupModal } from '../Runs/TaskSetupModal';
+import { RunSetupModal } from '../Runs/RunSetupModal';
 import { EntityResolution } from './EntityResolution';
 import { NetworkGraphAddNodeOverlay } from './NetworkGraphAddNodeOverlay';
 
@@ -86,7 +86,7 @@ export const NetworkGraphDialogs: React.FC<NetworkGraphDialogsProps> = ({
     />
 
     {selectedLeadForAnalysis ? (
-      <TaskSetupModal
+      <RunSetupModal
         initialTopic={selectedLeadForAnalysis.text}
         initialContext={selectedLeadForAnalysis.context}
         initialScopeId={activeScopeId || undefined}

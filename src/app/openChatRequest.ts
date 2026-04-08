@@ -23,7 +23,7 @@ interface OpenWorkspaceChatRequestInput {
   createChatSession: (input: {
     workspaceId: string;
     title?: string;
-    sourceReportId?: string;
+    sourceArtifactId?: string;
     packId?: string;
     purposeId?: string;
     provider?: ChatSession['provider'];
@@ -65,7 +65,7 @@ export const openWorkspaceChatRequest = async ({
     session = await createChatSession({
       workspaceId: workspace.id,
       title: resolveLaunchContextSessionTitle(artifacts, request.launchContext),
-      sourceReportId: request.launchContext?.sourceReportId,
+      sourceArtifactId: request.launchContext?.sourceArtifactId,
       packId: workspace.packId,
       purposeId: workspace.purposeId,
       metadata: buildChatSessionMetadata(undefined, request.launchContext),
@@ -78,8 +78,8 @@ export const openWorkspaceChatRequest = async ({
       const primer = buildLaunchContextPrimer({
         session,
         launchContext: request.launchContext,
-        reports: artifacts.filter((entry) => entry.caseId === workspace.id),
-        headlines: headlines.filter((entry) => entry.caseId === workspace.id),
+        reports: artifacts.filter((entry) => entry.workspaceId === workspace.id),
+        headlines: headlines.filter((entry) => entry.workspaceId === workspace.id),
       });
 
       if (primer) {

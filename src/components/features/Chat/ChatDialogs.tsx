@@ -5,7 +5,7 @@ import type { Artifact, InvestigationLaunchRequest, Workspace } from '@/types';
 import { ModalShell } from '@/components/ui/ModalShell';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TextPromptDialog } from '@/components/ui/TextPromptDialog';
-import { TaskSetupModal } from '../Runs/TaskSetupModal';
+import { RunSetupModal } from '../Runs/RunSetupModal';
 import type {
   AppendArtifactDialogState,
   FollowUpDialogState,
@@ -64,7 +64,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
 }) => (
   <>
     {manualSetupDraft ? (
-      <TaskSetupModal
+      <RunSetupModal
         {...buildManualSetupSeed(manualSetupDraft)}
         initialContext={
           manualSetupDraft.workspaceIntent === 'CURRENT' && activeWorkspace
@@ -94,7 +94,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
     ) : null}
 
     {showNewProjectModal ? (
-      <TaskSetupModal
+      <RunSetupModal
         initialTopic=""
         initialScopeId={activeWorkspace?.scopeId}
         onCancel={onCloseNewProjectModal}

@@ -77,7 +77,7 @@ describe('buildBoardAgentContext', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas Brief',
           summary: 'A concise report on the Atlas network.',
           agendas: [],
@@ -91,7 +91,7 @@ describe('buildBoardAgentContext', () => {
       headlines: [
         {
           id: 'head-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'New filing ties Atlas to a regional broker.',
           source: 'Desk',
           timestamp: '2026-04-05T00:00:00.000Z',

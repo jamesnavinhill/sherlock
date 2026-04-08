@@ -14,10 +14,10 @@ import {
   Settings2,
 } from 'lucide-react';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
-import { TaskSetupModal } from './Runs/TaskSetupModal';
+import { RunSetupModal } from './Runs/RunSetupModal';
 import { MatrixCardLoader } from '../ui/MatrixCardLoader';
 import { OsintSelect } from '../ui/OsintSelect';
-import { useWorkspaceStore } from '../../store/caseStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 import { CHROME_HEADER_CLASS, getChromeMenuButtonClass } from '../ui/chrome';
 
@@ -279,7 +279,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
       {/* Investigation Wizard Modal */}
       {selectedItem && (
-        <TaskSetupModal
+        <RunSetupModal
           initialTopic={selectedItem.title}
           initialScopeId={activeScope?.id}
           onCancel={() => setSelectedItem(null)}

@@ -14,15 +14,15 @@ Sherlock persists workspace and artifact data locally in the browser using SQLit
 Defined in `src/services/db/schema.ts`:
 
 - `scopes`
-- `cases`
-- `reports`
+- `workspaces`
+- `artifacts`
 - `follow_ups`
 - `artifact_sections`
 - `artifact_evidence`
 - `entities`
 - `sources`
-- `leads` (legacy table name for saved signal storage)
-- `tasks`
+- `signals`
+- `workspace_runs`
 - `chat_sessions`
 - `chat_messages`
 - `chat_message_attachments`
@@ -41,8 +41,8 @@ Defined in `src/services/db/schema.ts`:
 
 Persistence is routed through repository classes:
 
-- `CaseRepository`
-- `TaskRepository`
+- `WorkspaceRepository`
+- `WorkspaceRunRepository`
 - `ScopeRepository`
 - `TemplateRepository`
 - `ManualDataRepository`
@@ -78,20 +78,18 @@ That helper is the canonical repository pattern for:
 
 Runtime code now treats persisted records as:
 
-- `Workspace` -> stored in `cases`
-- `Artifact` -> stored in `reports` plus `follow_ups`, `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
-- `WorkspaceRun` -> stored in `tasks`
-- `Signal` -> stored in `leads`
+- `Workspace` -> stored in `workspaces`
+- `Artifact` -> stored in `artifacts` plus `follow_ups`, `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
+- `WorkspaceRun` -> stored in `workspace_runs`
+- `Signal` -> stored in `signals`
 - `FollowUp` -> stored in `follow_ups`
 - `WorkspaceItem` -> stored in `workspace_items`
 - `WorkspaceBoard` and `WorkspaceBoardDocument` -> stored in `workspace_boards` and `workspace_board_documents`
 - `BoardAgentSession` and `BoardAgentAction` -> stored in `board_agent_sessions` and `board_agent_actions`
 
-The table names remain for persistence continuity, but the primary runtime model is canonical workspace terminology.
-
 Finder/Feed discovery results are transient runtime state in the store and are not persisted as a separate SQLite table.
 
-`cases` can now store workspace-oriented metadata:
+`workspaces` store workspace-oriented metadata:
 
 - `displayTitle`
 - `launchTopic`
@@ -109,7 +107,7 @@ Runtime code now treats those workspace identity fields as distinct concerns:
 - `launchTopic`, `launchAngle`, and `prioritySourcesSummary` preserve structured launch metadata for prompts, exports, summaries, and future workspace-home selectors
 - legacy tagged `title` values remain readable through compatibility extraction during migration/hydration
 
-`reports` can now store artifact-oriented metadata:
+`artifacts` store artifact-oriented metadata:
 
 - `artifact_type`
 - `pack_id`
@@ -118,9 +116,9 @@ Runtime code now treats those workspace identity fields as distinct concerns:
 - `metadata_json`
 - `config_json`
 
-`reports.metadata_json` may now include persisted artifact provenance metadata, while `Artifact.metadata` in runtime code remains reserved for non-provenance metadata.
+`artifacts.metadata_json` may include persisted artifact provenance metadata, while `Artifact.metadata` in runtime code remains reserved for non-provenance metadata.
 
-`tasks` can now store:
+`workspace_runs` store:
 
 - `pack_id`
 - `purpose_id`
@@ -129,11 +127,11 @@ Runtime code now treats those workspace identity fields as distinct concerns:
 
 `follow_ups` persists first-class actionable records linked to their origin artifact, optional originating section, optional source signal, entity/source references, and resolution metadata. Follow-up lineage can now connect `Signal -> Run -> Artifact -> FollowUp -> Run -> Artifact` without relying only on compatibility arrays.
 
-`artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility. Section ids are unique within a report, and the table uses a composite primary key of `report_id + id` so repeated section labels from different artifacts do not collide.
+`artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility. Section ids are unique within an artifact, and the table uses a composite primary key of `artifact_id + id` so repeated section labels from different artifacts do not collide.
 
 `artifact_evidence` persists first-class evidence rows with:
 
-- `report_id`
+- `artifact_id`
 - `id`
 - `kind`
 - `title`
@@ -168,7 +166,7 @@ Stream 3 and 4 behavior built on that model:
 - streaming assistant text is transient UI state, while final message state persists back into `chat_messages`
 - cancelled turns persist with final message status rather than leaving orphaned partial rows
 - guided run mode persists its draft step state in `chat_sessions.metadata_json`
-- guided run saves reuse the existing `reports` and `artifact_sections` tables rather than introducing a parallel draft store
+- guided run saves reuse the existing `artifacts` and `artifact_sections` tables rather than introducing a parallel draft store
 
 ## Legacy Migration
 
@@ -185,7 +183,11 @@ Migration completion marker:
 
 - settings key: `migration_v1_complete = true`
 
-Existing local databases are upgraded additively in `src/services/db/client.ts`, including an in-place rebuild of legacy `artifact_sections` tables that still enforce a global primary key on `id`.
+Existing local databases are upgraded in `src/services/db/client.ts` through a canonical storage cutover first:
+
+- legacy tables `cases`, `reports`, `leads`, and `tasks` are renamed to `workspaces`, `artifacts`, `signals`, and `workspace_runs`
+- legacy foreign-key columns such as `case_id`, `report_id`, `linked_report_id`, and `source_report_id` are renamed to canonical `workspace_id`, `artifact_id`, `linked_artifact_id`, and `source_artifact_id`
+- `artifact_sections` still gets an in-place rebuild when older installs used a global primary key on `id`
 
 Current additive upgrade logic also creates `artifact_evidence` for older local databases that predate the research-output expansion.
 
@@ -217,7 +219,7 @@ Values still kept there:
 - `sherlock_recent_model_ids_v1` (recent model selections for compact selectors and browser defaults)
 - `sherlock_omnibox_recents_v1` (durable recent workspace/artifact/chat/run/item destinations for the header omnibox)
 - `sherlock_livestream_autosave`
-- `sherlock_active_workspace_id` (archive selection hint)
+- `sherlock_active_workspace_id` (Files selection hint)
 - `sherlock_demo_seed_v1_applied` (one-time demo workspace bootstrap marker)
 
 Intentional direct `localStorage` exceptions remain limited to:
@@ -250,18 +252,18 @@ Canonical exported shape:
 
 Workspace-data backups include:
 
-- workspaces (`cases`)
-- artifacts (`reports`, `artifact_sections`, `artifact_evidence`, `entities`, `sources`)
+- workspaces (`workspaces`)
+- artifacts (`artifacts`, `artifact_sections`, `artifact_evidence`, `entities`, `sources`)
 - artifact follow-ups (`follow_ups`, also reflected canonically on artifact payloads)
-- runs (`tasks`)
+- runs (`workspace_runs`)
 - chat sessions, messages, attachments, and actions
 - board-agent sessions and action audit history
-- saved signals (`leads`), exported canonically as `signals.signals`
+- saved signals (`signals`), exported canonically as `signals.signals`
 - workspace library items (`workspace_items`)
 - workspace boards and board documents (`workspace_boards`, `workspace_board_documents`)
 - manual graph nodes and links
 - templates
-- Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `reports`/`artifact_sections`
+- Timeline snapshots saved from `TimelineView` reuse the normal artifact path and persist as `artifactType: TIMELINE` inside `artifacts`/`artifact_sections`
 
 Workspace rows in those backups preserve both the clean display identity and the structured launch metadata fields (`displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`) when present, while older payloads without those fields still restore through compatibility title parsing.
 
@@ -303,4 +305,4 @@ Maintenance cleanup behavior:
 - purging a workspace removes the workspace, its artifacts, saved signals, linked chat history, linked run rows, canonical workspace items/boards, and directly linked manual graph references
 - clearing workspace data removes all persisted workspace-domain records and resets graph hide/flag filters that only reference workspace data
 
-See `src/components/features/Settings/index.tsx`, `src/store/caseStore.ts`, and `src/services/maintenance/workspaceData.ts` for the implemented flow.
+See `src/components/features/Settings/index.tsx`, `src/store/workspaceStore.ts`, and `src/services/maintenance/workspaceData.ts` for the implemented flow.

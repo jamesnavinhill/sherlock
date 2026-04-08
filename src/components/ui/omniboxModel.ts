@@ -276,10 +276,10 @@ const buildRunResults = (
       (run) =>
         !activeWorkspaceId ||
         run.workspaceId === activeWorkspaceId ||
-        run.report?.caseId === activeWorkspaceId
+        run.report?.workspaceId === activeWorkspaceId
     )
     .map((run) => {
-      const workspaceId = run.workspaceId || run.report?.caseId;
+      const workspaceId = run.workspaceId || run.report?.workspaceId;
       const score = scoreTextMatch(
         query,
         [
@@ -321,7 +321,7 @@ const buildChatResults = (
     .map((session) => {
       const score = scoreTextMatch(
         query,
-        [session.title, session.status, session.sourceReportId, session.packId, session.purposeId],
+        [session.title, session.status, session.sourceArtifactId, session.packId, session.purposeId],
         session.title
       );
 
@@ -422,8 +422,8 @@ export const mapWorkspaceSnippetToOmniboxResult = (
     artifactId:
       kind === 'ARTIFACT' || kind === 'SECTION' || kind === 'SOURCE'
         ? snippet.refId
-        : typeof snippet.metadata?.linkedReportId === 'string'
-          ? snippet.metadata.linkedReportId
+        : typeof snippet.metadata?.linkedArtifactId === 'string'
+          ? snippet.metadata.linkedArtifactId
           : undefined,
     refId:
       kind === 'ENTITY' && typeof snippet.metadata?.entityName === 'string'
@@ -474,7 +474,7 @@ export const buildRecentOmniboxResults = ({
           title: sanitizeDisplayTitle(artifact.topic),
           subtitle: 'Recent artifact',
           snippet: artifact.summary,
-          workspaceId: artifact.caseId,
+          workspaceId: artifact.workspaceId,
           artifactId: artifact.id,
           refId: artifact.id,
           score: 118 - index,
@@ -507,7 +507,7 @@ export const buildRecentOmniboxResults = ({
           kind: 'RUN',
           title: sanitizeDisplayTitle(run.topic),
           subtitle: 'Recent run',
-          workspaceId: run.workspaceId || run.report?.caseId,
+          workspaceId: run.workspaceId || run.report?.workspaceId,
           refId: run.id,
           score: 114 - index,
           timestamp: recent.visitedAt,
@@ -555,7 +555,7 @@ export const buildRecentOmniboxResults = ({
     }));
 
   const scopedArtifacts = artifacts
-    .filter((artifact) => !activeWorkspaceId || artifact.caseId === activeWorkspaceId)
+    .filter((artifact) => !activeWorkspaceId || artifact.workspaceId === activeWorkspaceId)
     .slice()
     .sort((left, right) => (right.createdAt || 0) - (left.createdAt || 0))
     .slice(0, 3)
@@ -565,7 +565,7 @@ export const buildRecentOmniboxResults = ({
       title: sanitizeDisplayTitle(artifact.topic),
       subtitle: 'Recent artifact',
       snippet: artifact.summary,
-      workspaceId: artifact.caseId,
+      workspaceId: artifact.workspaceId,
       artifactId: artifact.id,
       refId: artifact.id,
       score: 88 - index,
@@ -622,7 +622,7 @@ export const buildRecentOmniboxResults = ({
       (run) =>
         !activeWorkspaceId ||
         run.workspaceId === activeWorkspaceId ||
-        run.report?.caseId === activeWorkspaceId
+        run.report?.workspaceId === activeWorkspaceId
     )
     .slice()
     .sort((left, right) => (right.endTime || right.startTime || 0) - (left.endTime || left.startTime || 0))
@@ -632,7 +632,7 @@ export const buildRecentOmniboxResults = ({
       kind: 'RUN' as const,
       title: sanitizeDisplayTitle(run.topic),
       subtitle: 'Recent run',
-      workspaceId: run.workspaceId || run.report?.caseId,
+      workspaceId: run.workspaceId || run.report?.workspaceId,
       refId: run.id,
       score: 82 - index,
       timestamp: run.endTime || run.startTime,
@@ -724,7 +724,7 @@ export const buildMentionCandidates = (input: {
 }): ChatMentionReference[] => {
   const artifactCandidates = input.artifacts
     .filter((artifact): artifact is Artifact & { id: string } =>
-      artifact.caseId === input.workspaceId && typeof artifact.id === 'string' && artifact.id.length > 0
+      artifact.workspaceId === input.workspaceId && typeof artifact.id === 'string' && artifact.id.length > 0
     )
     .map((artifact) => ({
       id: `artifact:${artifact.id}`,
@@ -741,7 +741,7 @@ export const buildMentionCandidates = (input: {
 
   const entityCandidates = new Map<string, ChatMentionReference>();
   input.artifacts
-    .filter((artifact) => artifact.caseId === input.workspaceId)
+    .filter((artifact) => artifact.workspaceId === input.workspaceId)
     .forEach((artifact) => {
       artifact.entities.forEach((entity) => {
         const title = typeof entity === 'string' ? sanitizeDisplayTitle(entity) : entity.name;
@@ -764,7 +764,7 @@ export const buildMentionCandidates = (input: {
     });
 
   const signalCandidates = input.signals
-    .filter((signal) => signal.caseId === input.workspaceId)
+    .filter((signal) => signal.workspaceId === input.workspaceId)
     .map((signal) => ({
       id: `signal:${signal.id}`,
       workspaceId: input.workspaceId,
@@ -776,7 +776,7 @@ export const buildMentionCandidates = (input: {
       metadata: {
         signalType: signal.type,
         threatLevel: signal.threatLevel,
-        linkedReportId: signal.linkedReportId,
+        linkedArtifactId: signal.linkedArtifactId,
       },
     }));
 

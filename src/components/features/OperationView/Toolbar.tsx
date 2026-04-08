@@ -39,7 +39,7 @@ interface ToolbarProps {
   onToggleLeftPanel: () => void;
   rightPanelOpen?: boolean;
   onToggleRightPanel?: () => void;
-  onSelectCase: (caseId: string) => void;
+  onSelectCase: (workspaceId: string) => void;
   onStartNewCase: () => void;
   onSaveTemplate?: () => void;
   onOpenChat?: () => void;

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { Artifact, WorkspaceRun } from '../../../types';
-import { useWorkspaceStore } from '../../../store/caseStore';
+import { useWorkspaceStore } from '../../../store/workspaceStore';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
@@ -21,7 +21,7 @@ vi.mock('./DossierPanel', () => ({
     onHeadlineClick: (headline: {
       id: string;
       content: string;
-      caseId: string;
+      workspaceId: string;
       source: string;
       timestamp: string;
       type: 'NEWS';
@@ -34,7 +34,7 @@ vi.mock('./DossierPanel', () => ({
       onClick={() =>
         onHeadlineClick({
           id: 'headline-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'Suspicious contract amendment detected',
           source: 'Ledger',
           timestamp: '2026-02-07T00:00:00.000Z',
@@ -49,8 +49,8 @@ vi.mock('./DossierPanel', () => ({
   ),
 }));
 
-vi.mock('./ReportViewer', () => ({
-  ReportViewer: ({
+vi.mock('./ArtifactViewer', () => ({
+  ArtifactViewer: ({
     onLeadOpen,
   }: {
     onLeadOpen: (followUp: {
@@ -110,8 +110,8 @@ vi.mock('./InspectorPanel', () => ({
   ),
 }));
 
-vi.mock('../Runs/TaskSetupModal', () => ({
-  TaskSetupModal: ({
+vi.mock('../Runs/RunSetupModal', () => ({
+  RunSetupModal: ({
     onStart,
   }: {
     onStart: (
@@ -151,7 +151,7 @@ import { OperationView } from './index';
 
 const reportFixture: Artifact = {
   id: 'report-1',
-  caseId: 'case-1',
+  workspaceId: 'case-1',
   topic: 'Atlas Contract Network',
   summary: 'Initial summary',
   agendas: ['Agenda 1'],
@@ -208,7 +208,7 @@ describe('OperationView launch propagation', () => {
       headlines: [
         {
           id: 'headline-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'Suspicious contract amendment detected',
           source: 'Ledger',
           timestamp: '2026-02-07T00:00:00.000Z',
@@ -360,7 +360,7 @@ describe('OperationView launch propagation', () => {
       expect.objectContaining({
         workspaceId: 'case-1',
         launchContext: {
-          sourceReportId: 'report-1',
+          sourceArtifactId: 'report-1',
         },
       })
     );

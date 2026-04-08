@@ -136,7 +136,7 @@ const createContext = (
       workspaceItems.unshift(item);
     }),
     saveArtifact: vi.fn(async (artifact) => artifact),
-    appendSectionToReport: vi.fn(async () => undefined),
+    appendSectionToArtifact: vi.fn(async () => undefined),
     launchInvestigation: vi.fn(async () => undefined),
     ...overrides,
   };

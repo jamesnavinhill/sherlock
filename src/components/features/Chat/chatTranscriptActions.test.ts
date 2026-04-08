@@ -40,7 +40,7 @@ describe('chatTranscriptActions', () => {
   });
 
   it('uses the resolved workspace display title when saving chat drafts as artifacts', async () => {
-    const archiveReport = vi.fn(async (report) => ({
+    const saveArtifact = vi.fn(async (report) => ({
       ...report,
       id: 'artifact-1',
     }));
@@ -64,7 +64,7 @@ describe('chatTranscriptActions', () => {
       } as never,
       addChatAction,
       addToast,
-      archiveReport,
+      saveArtifact,
       message: {
         id: 'message-1',
         sessionId: 'session-1',
@@ -76,7 +76,7 @@ describe('chatTranscriptActions', () => {
       } as never,
     });
 
-    expect(archiveReport).toHaveBeenCalledWith(
+    expect(saveArtifact).toHaveBeenCalledWith(
       expect.objectContaining({
         topic: 'Saved artifact',
       }),

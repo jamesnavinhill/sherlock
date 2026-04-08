@@ -12,7 +12,7 @@ import {
   orderArtifactSections,
 } from '@/domain';
 
-export interface ReportViewerHighlight {
+export interface ArtifactViewerHighlight {
   label: string;
   value: string;
 }
@@ -70,7 +70,7 @@ const buildHighlightsForArtifactType = (
   artifactType: ArtifactType | undefined,
   sections: ArtifactSection[],
   evidenceCount: number
-): ReportViewerHighlight[] => {
+): ArtifactViewerHighlight[] => {
   switch (artifactType) {
     case 'BRIEF':
       return [
@@ -117,7 +117,7 @@ const buildHighlightsForArtifactType = (
   }
 };
 
-export const orderReportViewerSections = (
+export const orderArtifactViewerSections = (
   sections: ArtifactSection[] | undefined,
   purposeProfile?: PurposeProfile,
   artifactType?: ArtifactType
@@ -140,8 +140,8 @@ export const orderReportViewerSections = (
   });
 };
 
-export const buildReportViewerPresentation = (report: Artifact | null, purposeProfile?: PurposeProfile) => {
-  const orderedSections = orderReportViewerSections(report?.sections, purposeProfile, report?.artifactType);
+export const buildArtifactViewerPresentation = (report: Artifact | null, purposeProfile?: PurposeProfile) => {
+  const orderedSections = orderArtifactViewerSections(report?.sections, purposeProfile, report?.artifactType);
   const visibleEvidence = (report?.evidence || []).filter((entry) => normalizeText(entry.summary).length > 0);
   const evidenceBySectionId = visibleEvidence.reduce<Record<string, ArtifactEvidence[]>>((acc, evidence) => {
     if (!evidence.sectionId) return acc;

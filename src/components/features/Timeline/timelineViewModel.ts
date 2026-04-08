@@ -49,7 +49,7 @@ export const buildTimelineViewModel = ({
     workspaces.find((workspace) => workspace.id === activeWorkspaceId) || null;
   const labelProfile = getLabelProfileById(
     activeWorkspace?.labelProfileId ||
-      artifacts.find((artifact) => artifact.caseId === activeWorkspace?.id)?.labelProfileId
+      artifacts.find((artifact) => artifact.workspaceId === activeWorkspace?.id)?.labelProfileId
   );
 
   const allTimelineEvents = activeWorkspace

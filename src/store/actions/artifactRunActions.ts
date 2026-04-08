@@ -8,10 +8,10 @@ import {
   getWorkspaceDisplayTitle,
   toFollowUpTexts,
 } from '@/domain';
-import { CaseRepository } from '@/services/db/repositories/CaseRepository';
-import { TaskRepository } from '@/services/db/repositories/TaskRepository';
+import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
+import { WorkspaceRunRepository } from '@/services/db/repositories/WorkspaceRunRepository';
 
-import type { WorkspaceState } from '../caseStore';
+import type { WorkspaceState } from '../workspaceStore';
 import type { WorkspaceStoreApi } from './shared';
 
 export const createArtifactRunActions = ({
@@ -19,30 +19,25 @@ export const createArtifactRunActions = ({
   set,
 }: WorkspaceStoreApi): Pick<
   WorkspaceState,
-  | 'appendSectionToReport'
+  | 'appendSectionToArtifact'
   | 'updateArtifactSummary'
-  | 'updateReportSummary'
   | 'updateArtifactSection'
   | 'addWorkspaceRun'
-  | 'addTask'
+  | 'addRun'
   | 'completeWorkspaceRun'
-  | 'completeTask'
-  | 'failTask'
-  | 'clearCompletedTasks'
+  | 'completeRun'
+  | 'failRun'
+  | 'clearCompletedRuns'
   | 'saveArtifact'
-  | 'archiveReport'
   | 'updateArtifactTitle'
-  | 'updateReportTitle'
   | 'renameEntityAcrossArtifacts'
-  | 'renameEntityAcrossReports'
   | 'deleteArtifact'
-  | 'deleteReport'
 > => ({
-  appendSectionToReport: async (reportId, section) => {
-    await CaseRepository.appendSectionToReport(reportId, section);
+  appendSectionToArtifact: async (artifactId, section) => {
+    await WorkspaceRepository.appendSectionToArtifact(artifactId, section);
     set((state) => ({
       artifacts: state.artifacts.map((artifact) =>
-        artifact.id === reportId
+        artifact.id === artifactId
           ? {
               ...artifact,
               sections: [...(artifact.sections || []), section],
@@ -52,16 +47,15 @@ export const createArtifactRunActions = ({
     }));
   },
   updateArtifactSummary: async (artifactId, summary) => {
-    await CaseRepository.updateReportSummary(artifactId, summary);
+    await WorkspaceRepository.updateArtifactSummary(artifactId, summary);
     set((state) => ({
       artifacts: state.artifacts.map((artifact) =>
         artifact.id === artifactId ? { ...artifact, summary } : artifact
       ),
     }));
   },
-  updateReportSummary: async (reportId, summary) => get().updateArtifactSummary(reportId, summary),
   updateArtifactSection: async (artifactId, sectionId, patch) => {
-    await CaseRepository.updateReportSection(artifactId, sectionId, patch);
+    await WorkspaceRepository.updateArtifactSection(artifactId, sectionId, patch);
     set((state) => ({
       artifacts: state.artifacts.map((artifact) =>
         artifact.id !== artifactId
@@ -84,7 +78,7 @@ export const createArtifactRunActions = ({
     }));
 
     try {
-      await TaskRepository.create(workspaceRun);
+      await WorkspaceRunRepository.create(workspaceRun);
     } catch (error) {
       set((state) => ({
         workspaceRuns: state.workspaceRuns.filter((existingRun) => existingRun.id !== workspaceRun.id),
@@ -92,22 +86,22 @@ export const createArtifactRunActions = ({
       throw error;
     }
   },
-  addTask: async (task) => get().addWorkspaceRun(task),
+  addRun: async (run) => get().addWorkspaceRun(run),
   completeWorkspaceRun: async (id, artifact) => {
-    const existingTask = get().workspaceRuns.find((task) => task.id === id);
-    const nextConfig = existingTask?.config
+    const existingRun = get().workspaceRuns.find((run) => run.id === id);
+    const nextConfig = existingRun?.config
       ? {
-          ...existingTask.config,
+          ...existingRun.config,
           producedArtifactId: artifact.id,
         }
-      : existingTask?.config;
+      : existingRun?.config;
 
-    await TaskRepository.updateStatus(id, 'COMPLETED');
-    if (artifact.caseId) {
-      await TaskRepository.updateWorkspace(id, artifact.caseId);
+    await WorkspaceRunRepository.updateStatus(id, 'COMPLETED');
+    if (artifact.workspaceId) {
+      await WorkspaceRunRepository.updateWorkspace(id, artifact.workspaceId);
     }
     if (nextConfig) {
-      await TaskRepository.updateConfig(id, nextConfig);
+      await WorkspaceRunRepository.updateConfig(id, nextConfig);
     }
 
     set((state) => ({
@@ -118,27 +112,29 @@ export const createArtifactRunActions = ({
               status: 'COMPLETED',
               report: artifact,
               config: nextConfig || workspaceRun.config,
-              workspaceId: artifact.caseId ?? workspaceRun.workspaceId,
+              workspaceId: artifact.workspaceId ?? workspaceRun.workspaceId,
               endTime: Date.now(),
             }
           : workspaceRun
       ),
     }));
   },
-  completeTask: async (id, report) => get().completeWorkspaceRun(id, report),
-  failTask: async (id, error) => {
-    await TaskRepository.updateStatus(id, 'FAILED', error);
+  completeRun: async (id, artifact) => get().completeWorkspaceRun(id, artifact),
+  failRun: async (id, error) => {
+    await WorkspaceRunRepository.updateStatus(id, 'FAILED', error);
     set((state) => ({
       workspaceRuns: state.workspaceRuns.map((workspaceRun) =>
         workspaceRun.id === id ? { ...workspaceRun, status: 'FAILED', error } : workspaceRun
       ),
     }));
   },
-  clearCompletedTasks: async () => {
-    const tasksToRemove = get().workspaceRuns.filter(
+  clearCompletedRuns: async () => {
+    const runsToRemove = get().workspaceRuns.filter(
       (workspaceRun) => workspaceRun.status === 'COMPLETED' || workspaceRun.status === 'FAILED'
     );
-    await Promise.all(tasksToRemove.map((workspaceRun) => TaskRepository.delete(workspaceRun.id)));
+    await Promise.all(
+      runsToRemove.map((workspaceRun) => WorkspaceRunRepository.delete(workspaceRun.id))
+    );
     set((state) => ({
       workspaceRuns: state.workspaceRuns.filter(
         (workspaceRun) => workspaceRun.status === 'RUNNING' || workspaceRun.status === 'QUEUED'
@@ -155,13 +151,13 @@ export const createArtifactRunActions = ({
     const parentArtifactId = artifact.config?.parentArtifactId || sourceRun?.config?.parentArtifactId;
     const sourceSignalId = artifact.config?.sourceSignalId || sourceRun?.config?.sourceSignalId;
     const parentRunId = artifact.config?.parentRunId || sourceRun?.config?.parentRunId;
-    let targetWorkspaceId = artifact.caseId;
+    let targetWorkspaceId = artifact.workspaceId;
     let isNewWorkspace = false;
 
     if (!targetWorkspaceId && parentArtifactId) {
       const parentArtifact = artifacts.find((entry) => entry.id === parentArtifactId);
-      if (parentArtifact?.caseId) {
-        targetWorkspaceId = parentArtifact.caseId;
+      if (parentArtifact?.workspaceId) {
+        targetWorkspaceId = parentArtifact.workspaceId;
       }
     }
     if (!targetWorkspaceId && sourceRun?.workspaceId) {
@@ -220,7 +216,7 @@ export const createArtifactRunActions = ({
 
       if (autoNormalize && resolvedName === name) {
         const existingWorkspaceEntities = artifacts
-          .filter((entry) => entry.caseId === targetWorkspaceId)
+          .filter((entry) => entry.workspaceId === targetWorkspaceId)
           .flatMap((entry) => entry.entities)
           .map((entry) => (typeof entry === 'string' ? entry : entry.name));
 
@@ -253,7 +249,7 @@ export const createArtifactRunActions = ({
             parentRunId,
           }
         : undefined,
-      caseId: targetWorkspaceId,
+      workspaceId: targetWorkspaceId,
     };
 
     savedArtifact.followUps = buildArtifactFollowUps({
@@ -269,10 +265,10 @@ export const createArtifactRunActions = ({
     if (isNewWorkspace) {
       const workspaceToSave = workspaces.find((workspace) => workspace.id === targetWorkspaceId);
       if (workspaceToSave) {
-        await CaseRepository.createCase(workspaceToSave);
+        await WorkspaceRepository.createWorkspace(workspaceToSave);
       }
     }
-    await CaseRepository.createReport(savedArtifact);
+    await WorkspaceRepository.createArtifact(savedArtifact);
 
     const existingIndex = artifacts.findIndex(
       (entry) =>
@@ -291,7 +287,7 @@ export const createArtifactRunActions = ({
       if (matchingHeadline) {
         const updatedHeadline = {
           ...matchingHeadline,
-          linkedReportId: savedArtifact.id,
+          linkedArtifactId: savedArtifact.id,
         };
 
         set((current) => ({
@@ -327,18 +323,16 @@ export const createArtifactRunActions = ({
 
     return savedArtifact;
   },
-  archiveReport: async (report, parentContext) => get().saveArtifact(report, parentContext),
   updateArtifactTitle: async (artifactId, title) => {
-    await CaseRepository.updateReportTopic(artifactId, title);
+    await WorkspaceRepository.updateArtifactTopic(artifactId, title);
     set((state) => ({
       artifacts: state.artifacts.map((artifact) =>
         artifact.id === artifactId ? { ...artifact, topic: title } : artifact
       ),
     }));
   },
-  updateReportTitle: async (reportId, title) => get().updateArtifactTitle(reportId, title),
   renameEntityAcrossArtifacts: async (oldName, newName) => {
-    await CaseRepository.renameEntity(oldName, newName);
+    await WorkspaceRepository.renameEntity(oldName, newName);
     set((state) => ({
       artifacts: state.artifacts.map((artifact) => ({
         ...artifact,
@@ -348,13 +342,10 @@ export const createArtifactRunActions = ({
       })),
     }));
   },
-  renameEntityAcrossReports: async (oldName, newName) =>
-    get().renameEntityAcrossArtifacts(oldName, newName),
   deleteArtifact: async (artifactId) => {
-    await CaseRepository.deleteReport(artifactId);
+    await WorkspaceRepository.deleteArtifact(artifactId);
     set((state) => ({
       artifacts: state.artifacts.filter((artifact) => artifact.id !== artifactId),
     }));
   },
-  deleteReport: async (reportId) => get().deleteArtifact(reportId),
 });

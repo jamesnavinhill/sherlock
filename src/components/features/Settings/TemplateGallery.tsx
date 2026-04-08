@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import type { CaseTemplate } from '../../../types';
+import type { WorkspaceTemplate } from '../../../types';
 import { useTemplateGalleryFeatureState } from '@/store/selectors/featureSelectors';
 import {
   Trash2,
@@ -38,7 +38,7 @@ import { RuntimeConfigSummary } from '../Runs/RuntimeConfigSummary';
 import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
 
 interface TemplateGalleryProps {
-  onApply: (template: CaseTemplate) => void;
+  onApply: (template: WorkspaceTemplate) => void;
 }
 
 const CREATE_STEPS = [
@@ -140,7 +140,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
           }),
           scopeId: starterScope.id,
           createdAt: 0,
-        }) satisfies CaseTemplate
+        }) satisfies WorkspaceTemplate
     );
   }, [customScopes, starterPack, starterPurpose, starterScope]);
 

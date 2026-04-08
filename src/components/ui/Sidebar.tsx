@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import type { WorkspaceRun } from '../../types';
 import { AppView } from '../../types';
-import { TaskManager } from './TaskManager';
+import { RunManager } from './RunManager';
 
 interface SidebarProps {
   currentView: AppView;
@@ -61,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { view: AppView.TIMELINE, label: 'Timeline', icon: Clock3 },
     { view: AppView.LIVE_MONITOR, label: 'Monitor', icon: Radio },
     { view: AppView.DASHBOARD, label: 'Discovery', icon: LayoutDashboard },
-    { view: AppView.ARCHIVES, label: 'Files', icon: FolderClosed },
+    { view: AppView.FILES, label: 'Files', icon: FolderClosed },
   ] as const;
 
   return (
@@ -123,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Task Manager - Now blends seamlessly as a bottom nav section */}
-        <TaskManager
+        <RunManager
           workspaceRuns={workspaceRuns}
           activeTaskId={activeTaskId}
           onSelectTask={onSelectTask}

@@ -45,7 +45,7 @@ describe('chatGuidedActions', () => {
   });
 
   it('uses the resolved workspace display title when saving guided drafts into the current workspace', async () => {
-    const archiveReport = vi.fn(async (report) => ({
+    const saveArtifact = vi.fn(async (report) => ({
       ...report,
       id: 'artifact-1',
     }));
@@ -69,7 +69,7 @@ describe('chatGuidedActions', () => {
       } as never,
       addChatAction,
       addToast,
-      archiveReport,
+      saveArtifact,
       customScopes: [],
       guidedState: {
         mode: 'GUIDED',
@@ -81,7 +81,7 @@ describe('chatGuidedActions', () => {
       } as never,
     });
 
-    expect(archiveReport).toHaveBeenCalledWith(
+    expect(saveArtifact).toHaveBeenCalledWith(
       expect.objectContaining({
         topic: 'Guided brief',
       }),

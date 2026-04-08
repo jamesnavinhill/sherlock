@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Toast as ToastType } from '../../store/caseStore';
-import { useWorkspaceStore } from '../../store/caseStore';
+import type { Toast as ToastType } from '../../store/workspaceStore';
+import { useWorkspaceStore } from '../../store/workspaceStore';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 export const Toast: React.FC<{ toast: ToastType; onRemove: (id: string) => void }> = ({

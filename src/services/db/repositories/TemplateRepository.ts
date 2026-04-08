@@ -1,17 +1,17 @@
 import { eq, desc } from 'drizzle-orm';
 import { getDB, type SherlockWriteExecutor } from '../client';
 import { templates } from '../schema';
-import type { CaseTemplate } from '@/types';
+import type { WorkspaceTemplate } from '@/types';
 import { mapRowsSafely, parseStoredJson, serializeStoredJson } from './json';
 
-const EMPTY_TEMPLATE_CONFIG: CaseTemplate['config'] = {};
+const EMPTY_TEMPLATE_CONFIG: WorkspaceTemplate['config'] = {};
 
-const mapTemplateRow = (row: typeof templates.$inferSelect): CaseTemplate => ({
+const mapTemplateRow = (row: typeof templates.$inferSelect): WorkspaceTemplate => ({
   id: row.id,
   name: row.name,
   description: row.description || undefined,
   topic: row.topic,
-  config: parseStoredJson<CaseTemplate['config']>(
+  config: parseStoredJson<WorkspaceTemplate['config']>(
     row.configJson,
     EMPTY_TEMPLATE_CONFIG,
     `template config ${row.id}`
@@ -20,7 +20,7 @@ const mapTemplateRow = (row: typeof templates.$inferSelect): CaseTemplate => ({
   scopeId: row.scopeId || undefined,
 });
 
-const toTemplateInsertRow = (template: CaseTemplate): typeof templates.$inferInsert => ({
+const toTemplateInsertRow = (template: WorkspaceTemplate): typeof templates.$inferInsert => ({
   id: template.id,
   name: template.name,
   description: template.description,
@@ -31,7 +31,7 @@ const toTemplateInsertRow = (template: CaseTemplate): typeof templates.$inferIns
 });
 
 export class TemplateRepository {
-  static async getAll(): Promise<CaseTemplate[]> {
+  static async getAll(): Promise<WorkspaceTemplate[]> {
     const db = getDB();
     const rows = await db.select().from(templates).orderBy(desc(templates.createdAt));
 
@@ -43,7 +43,7 @@ export class TemplateRepository {
   }
 
   static async create(
-    template: CaseTemplate,
+    template: WorkspaceTemplate,
     db: SherlockWriteExecutor = getDB()
   ): Promise<void> {
     await db.insert(templates).values(toTemplateInsertRow(template));

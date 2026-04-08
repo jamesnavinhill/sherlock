@@ -105,8 +105,8 @@ const buildChatSessionSearchText = (session: ChatSession): string => {
     session.status,
     session.packId,
     session.purposeId,
-    session.sourceReportId,
-    launchContext?.sourceReportId,
+    session.sourceArtifactId,
+    launchContext?.sourceArtifactId,
     launchContext?.signalId || launchContext?.headlineId,
     launchContext?.entityName,
     isGuidedChatSession(session) ? 'guided session' : 'workspace chat',
@@ -183,13 +183,13 @@ const inferArtifactForRun = (run: WorkspaceRun, artifacts: Artifact[], workspace
   if (run.report?.id) return run.report.id;
 
   const artifactFromSourceRun = artifacts.find(
-    (artifact) => artifact.caseId === workspaceId && artifact.config?.sourceRunId === run.id
+    (artifact) => artifact.workspaceId === workspaceId && artifact.config?.sourceRunId === run.id
   )?.id;
   if (artifactFromSourceRun) return artifactFromSourceRun;
 
   return artifacts.find(
     (artifact) =>
-      artifact.caseId === workspaceId &&
+      artifact.workspaceId === workspaceId &&
       sanitizeDisplayTitle(artifact.topic).toLowerCase() ===
         sanitizeDisplayTitle(run.topic).toLowerCase()
   )?.id;
@@ -220,7 +220,7 @@ export const buildWorkspaceTimelineEvents = (input: {
   workspaceItems?: WorkspaceItem[];
 }): TimelineEvent[] => {
   const scopedArtifacts = input.artifacts.filter(
-    (artifact) => artifact.caseId === input.workspaceId
+    (artifact) => artifact.workspaceId === input.workspaceId
   );
   const artifactById = new Map(
     scopedArtifacts
@@ -238,7 +238,7 @@ export const buildWorkspaceTimelineEvents = (input: {
   );
 
   const signalEvents = input.signals
-    .filter((headline) => headline.caseId === input.workspaceId)
+    .filter((headline) => headline.workspaceId === input.workspaceId)
     .map<TimelineEvent>((headline) => ({
       id: `signal-${headline.id}`,
       occurredAt: parseTimestamp(headline.timestamp),
@@ -254,13 +254,13 @@ export const buildWorkspaceTimelineEvents = (input: {
       metadata: {
         source: headline.source,
         url: headline.url,
-        linkedArtifactId: headline.linkedReportId,
+        linkedArtifactId: headline.linkedArtifactId,
       },
     }));
 
   const runEvents = input.runs
     .filter(
-      (run) => run.workspaceId === input.workspaceId || run.report?.caseId === input.workspaceId
+      (run) => run.workspaceId === input.workspaceId || run.report?.workspaceId === input.workspaceId
     )
     .flatMap<TimelineEvent>((run) => {
       const relatedArtifactId =
@@ -327,7 +327,7 @@ export const buildWorkspaceTimelineEvents = (input: {
     });
 
   const artifactEvents = input.artifacts
-    .filter((artifact) => artifact.caseId === input.workspaceId)
+    .filter((artifact) => artifact.workspaceId === input.workspaceId)
     .map<TimelineEvent>((artifact) => {
       const parentRefId = getArtifactParentId(artifact);
       const artifactSummary = artifact.config?.sourceSignalId
@@ -371,7 +371,7 @@ export const buildWorkspaceTimelineEvents = (input: {
         source: provenanceSource,
         sourceSessionId: item.provenance?.sourceSessionId,
         sourceMessageId: item.provenance?.sourceMessageId,
-        sourceReportId: item.provenance?.sourceReportId,
+        sourceArtifactId: item.provenance?.sourceArtifactId,
         sourceSignalId: item.provenance?.sourceSignalId || item.provenance?.sourceHeadlineId,
         url: item.url,
         fileName: item.fileName,
@@ -488,7 +488,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                   sessionId: session.id,
                   query,
                   reuseReason,
-                  relatedArtifactId: session.sourceReportId || launchContext?.sourceReportId,
+                  relatedArtifactId: session.sourceArtifactId || launchContext?.sourceArtifactId,
                   sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
                 },
               };
@@ -638,7 +638,7 @@ export const buildWorkspaceTimelineEvents = (input: {
       const guided = isGuidedChatSession(session);
       const summary = guided
         ? 'Guided run builder started for this workspace.'
-        : launchContext?.sourceReportId
+        : launchContext?.sourceArtifactId
           ? 'Chat opened from a saved workspace artifact.'
           : launchContext?.signalId || launchContext?.headlineId
             ? 'Chat opened from a saved workspace signal.'
@@ -662,7 +662,7 @@ export const buildWorkspaceTimelineEvents = (input: {
         searchText: buildChatSessionSearchText(session),
         metadata: {
           sessionId: session.id,
-          sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+          sourceArtifactId: session.sourceArtifactId || launchContext?.sourceArtifactId,
           sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
           entityName: launchContext?.entityName,
           sessionMode: guided ? 'GUIDED' : 'STANDARD',
@@ -685,7 +685,7 @@ export const buildWorkspaceTimelineEvents = (input: {
         const artifactIdFromInput =
           typeof action.input?.reportId === 'string' ? action.input.reportId : undefined;
         const relatedArtifactId =
-          artifactIdFromResult || artifactIdFromInput || session.sourceReportId;
+          artifactIdFromResult || artifactIdFromInput || session.sourceArtifactId;
         const relatedArtifact = relatedArtifactId ? artifactById.get(relatedArtifactId) : undefined;
 
         switch (action.type) {
@@ -714,7 +714,7 @@ export const buildWorkspaceTimelineEvents = (input: {
                 sessionId: session.id,
                 query,
                 citedSnippetCount: citedSnippetIds.length,
-                sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                sourceArtifactId: session.sourceArtifactId || launchContext?.sourceArtifactId,
                 sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
               },
             };
@@ -749,7 +749,7 @@ export const buildWorkspaceTimelineEvents = (input: {
               metadata: {
                 sessionId: session.id,
                 relatedArtifactId,
-                sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                sourceArtifactId: session.sourceArtifactId || launchContext?.sourceArtifactId,
                 sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
               },
             };
@@ -774,7 +774,7 @@ export const buildWorkspaceTimelineEvents = (input: {
               metadata: {
                 sessionId: session.id,
                 relatedArtifactId,
-                sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                sourceArtifactId: session.sourceArtifactId || launchContext?.sourceArtifactId,
                 sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
               },
             };
@@ -803,8 +803,8 @@ export const buildWorkspaceTimelineEvents = (input: {
               searchText: buildChatActionSearchText(action, session),
               metadata: {
                 sessionId: session.id,
-                relatedArtifactId: session.sourceReportId || launchContext?.sourceReportId,
-                sourceReportId: session.sourceReportId || launchContext?.sourceReportId,
+                relatedArtifactId: session.sourceArtifactId || launchContext?.sourceArtifactId,
+                sourceArtifactId: session.sourceArtifactId || launchContext?.sourceArtifactId,
                 sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
                 launchSource:
                   typeof action.result?.launchSource === 'string'

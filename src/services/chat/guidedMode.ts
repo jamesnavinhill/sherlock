@@ -347,7 +347,7 @@ export const buildArtifactDraftFromGuidedDraft = (
     draftArtifact,
     report: {
       id: createLocalId('rep'),
-      caseId: workspace?.id,
+      workspaceId: workspace?.id,
       topic: title,
       dateStr: new Date(now).toLocaleDateString(),
       summary: `Guided run brief for ${draft.topic.trim() || purpose.name}`,

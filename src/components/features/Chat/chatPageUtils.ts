@@ -89,9 +89,9 @@ export const getLaunchContextSummary = (params: {
 }) => {
   if (!params.launchContext) return null;
 
-  if (params.launchContext.sourceReportId) {
+  if (params.launchContext.sourceArtifactId) {
     const report = params.reports.find(
-      (entry) => entry.id === params.launchContext?.sourceReportId
+      (entry) => entry.id === params.launchContext?.sourceArtifactId
     );
     if (!report) return null;
 

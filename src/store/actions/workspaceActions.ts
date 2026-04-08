@@ -6,14 +6,14 @@ import {
   groupChatMessagesBySessionId,
 } from '@/services/maintenance/workspaceData';
 import { SettingsRepository } from '@/services/db/repositories/SettingsRepository';
-import { CaseRepository } from '@/services/db/repositories/CaseRepository';
+import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
 import { WorkspaceBoardRepository } from '@/services/db/repositories/WorkspaceBoardRepository';
 import { WorkspaceItemRepository } from '@/services/db/repositories/WorkspaceItemRepository';
 import { createLocalId } from '@/utils/id';
 import { setStoredActiveWorkspaceId } from '@/utils/localStorage';
 
 import type { WorkspaceDataBackup } from '@/types';
-import type { WorkspaceState } from '../caseStore';
+import type { WorkspaceState } from '../workspaceStore';
 import type { WorkspaceStoreApi } from './shared';
 
 interface WorkspaceActionDependencies {
@@ -26,9 +26,7 @@ export const createWorkspaceActions = (
 ): Pick<
   WorkspaceState,
   | 'deleteWorkspace'
-  | 'deleteCase'
   | 'purgeWorkspace'
-  | 'purgeCase'
   | 'ensureWorkspaceBoard'
   | 'createWorkspaceBoard'
   | 'updateWorkspaceBoard'
@@ -41,20 +39,20 @@ export const createWorkspaceActions = (
   | 'clearWorkspaceData'
 > => ({
   deleteWorkspace: async (workspaceId) => {
-    await CaseRepository.unassignReportsFromCase(workspaceId);
-    await CaseRepository.deleteCase(workspaceId);
+    await WorkspaceRepository.unassignArtifactsFromWorkspace(workspaceId);
+    await WorkspaceRepository.deleteWorkspace(workspaceId);
     set((state) => {
       const boardAgentSessionIds = state.boardAgentSessions
         .filter((session) => session.workspaceId === workspaceId)
         .map((session) => session.id);
       const workspaces = state.workspaces.filter((item) => item.id !== workspaceId);
       const artifacts = state.artifacts.map((artifact) =>
-        artifact.caseId === workspaceId ? { ...artifact, caseId: undefined } : artifact
+        artifact.workspaceId === workspaceId ? { ...artifact, workspaceId: undefined } : artifact
       );
       const workspaceRuns = state.workspaceRuns.map((workspaceRun) => {
         if (
           workspaceRun.workspaceId !== workspaceId &&
-          workspaceRun.report?.caseId !== workspaceId
+          workspaceRun.report?.workspaceId !== workspaceId
         ) {
           return workspaceRun;
         }
@@ -63,7 +61,7 @@ export const createWorkspaceActions = (
           ...workspaceRun,
           workspaceId: undefined,
           report: workspaceRun.report
-            ? { ...workspaceRun.report, caseId: undefined }
+            ? { ...workspaceRun.report, workspaceId: undefined }
             : workspaceRun.report,
         };
       });
@@ -107,7 +105,7 @@ export const createWorkspaceActions = (
         ),
         workspaces,
         artifacts,
-        headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
+        headlines: state.headlines.filter((headline) => headline.workspaceId !== workspaceId),
         workspaceItems: state.workspaceItems.filter((item) => item.workspaceId !== workspaceId),
         workspaceBoards,
         workspaceBoardDocuments,
@@ -126,12 +124,11 @@ export const createWorkspaceActions = (
       };
     });
   },
-  deleteCase: async (caseId) => get().deleteWorkspace(caseId),
   purgeWorkspace: async (workspaceId) => {
-    await CaseRepository.purgeCase(workspaceId);
+    await WorkspaceRepository.purgeWorkspace(workspaceId);
     set((state) => {
       const artifactIds = state.artifacts
-        .filter((artifact) => artifact.caseId === workspaceId && !!artifact.id)
+        .filter((artifact) => artifact.workspaceId === workspaceId && !!artifact.id)
         .map((artifact) => artifact.id as string);
       const chatSessionIds = state.chatSessions
         .filter((session) => session.workspaceId === workspaceId)
@@ -141,7 +138,7 @@ export const createWorkspaceActions = (
         .map((session) => session.id);
       const workspaceRuns = state.workspaceRuns.filter(
         (workspaceRun) =>
-          workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.caseId !== workspaceId
+          workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.workspaceId !== workspaceId
       );
       const activeTaskId =
         !state.activeTaskId ||
@@ -187,8 +184,8 @@ export const createWorkspaceActions = (
           )
         ),
         workspaces: state.workspaces.filter((item) => item.id !== workspaceId),
-        artifacts: state.artifacts.filter((artifact) => artifact.caseId !== workspaceId),
-        headlines: state.headlines.filter((headline) => headline.caseId !== workspaceId),
+        artifacts: state.artifacts.filter((artifact) => artifact.workspaceId !== workspaceId),
+        headlines: state.headlines.filter((headline) => headline.workspaceId !== workspaceId),
         workspaceItems: state.workspaceItems.filter((item) => item.workspaceId !== workspaceId),
         workspaceBoards: state.workspaceBoards.filter((board) => board.workspaceId !== workspaceId),
         workspaceBoardDocuments: Object.fromEntries(
@@ -209,7 +206,6 @@ export const createWorkspaceActions = (
       };
     });
   },
-  purgeCase: async (caseId) => get().purgeWorkspace(caseId),
   ensureWorkspaceBoard: async (workspaceId) => {
     const existing = get().workspaceBoards.find((board) => board.workspaceId === workspaceId);
     if (existing) {
@@ -366,7 +362,7 @@ export const createWorkspaceActions = (
     });
   },
   clearWorkspaceData: async () => {
-    await CaseRepository.clearCaseData();
+    await WorkspaceRepository.clearWorkspaceData();
     await SettingsRepository.setSetting('hidden_nodes', []);
     await SettingsRepository.setSetting('flagged_nodes', []);
     set({

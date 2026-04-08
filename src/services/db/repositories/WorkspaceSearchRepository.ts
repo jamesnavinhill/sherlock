@@ -5,14 +5,14 @@ import { getDB } from '../client';
 import {
   artifactEvidence,
   artifactSections,
-  cases,
+  workspaces,
   entities,
-  leads,
-  reports,
+  signals,
+  artifacts,
   sources,
   workspaceItems,
 } from '../schema';
-import { CaseRepository } from './CaseRepository';
+import { WorkspaceRepository } from './WorkspaceRepository';
 import { parseStoredJson, parseStoredJsonOrUndefined } from './json';
 
 const tokenize = (value: string): string[] =>
@@ -56,9 +56,9 @@ const scoreCandidate = (query: string, fields: string[], timestamp = 0, title = 
   return score;
 };
 
-const toRecentArtifact = (row: typeof reports.$inferSelect): Artifact => ({
+const toRecentArtifact = (row: typeof artifacts.$inferSelect): Artifact => ({
   id: row.id,
-  caseId: row.caseId || undefined,
+  workspaceId: row.workspaceId || undefined,
   topic: row.topic,
   dateStr: row.dateStr || undefined,
   summary: row.summary || 'No summary available.',
@@ -88,7 +88,7 @@ export class WorkspaceSearchRepository {
     options?: { limit?: number }
   ): Promise<WorkspaceContextBundle> {
     const db = getDB();
-    const workspaceRows = await db.select().from(cases).where(eq(cases.id, workspaceId));
+    const workspaceRows = await db.select().from(workspaces).where(eq(workspaces.id, workspaceId));
     const workspace = workspaceRows[0];
 
     if (!workspace) {
@@ -105,9 +105,9 @@ export class WorkspaceSearchRepository {
 
     const reportRows = await db
       .select()
-      .from(reports)
-      .where(eq(reports.caseId, workspaceId))
-      .orderBy(desc(reports.createdAt));
+      .from(artifacts)
+      .where(eq(artifacts.workspaceId, workspaceId))
+      .orderBy(desc(artifacts.createdAt));
     const reportIds = reportRows.map((row) => row.id);
     const sectionRows = reportIds.length
       ? await db
@@ -129,9 +129,9 @@ export class WorkspaceSearchRepository {
       : [];
     const signalRows = await db
       .select()
-      .from(leads)
-      .where(eq(leads.caseId, workspaceId))
-      .orderBy(desc(leads.timestamp));
+      .from(signals)
+      .where(eq(signals.workspaceId, workspaceId))
+      .orderBy(desc(signals.timestamp));
     const workspaceItemRows = await db
       .select()
       .from(workspaceItems)
@@ -288,7 +288,7 @@ export class WorkspaceSearchRepository {
         metadata: {
           signalType: row.type || undefined,
           threatLevel: row.threatLevel || undefined,
-          linkedReportId: row.linkedReportId || undefined,
+          linkedArtifactId: row.linkedArtifactId || undefined,
         },
       });
     });
@@ -337,7 +337,7 @@ export class WorkspaceSearchRepository {
     const recentArtifacts = reportRows.slice(0, 4).map(toRecentArtifact);
     const recentSignals: Signal[] = signalRows.slice(0, 5).map((row) => ({
       id: row.id,
-      caseId: row.caseId || workspaceId,
+      workspaceId: row.workspaceId || workspaceId,
       content: row.content,
       source: row.source || '',
       url: row.url || undefined,
@@ -345,7 +345,7 @@ export class WorkspaceSearchRepository {
       type: row.type === 'SOCIAL' || row.type === 'OFFICIAL' ? row.type : 'NEWS',
       status: row.status as 'PENDING' | 'INVESTIGATED' | 'FLAGGED',
       threatLevel: row.threatLevel as 'INFO' | 'CAUTION' | 'CRITICAL',
-      linkedReportId: row.linkedReportId || undefined,
+      linkedArtifactId: row.linkedArtifactId || undefined,
     }));
 
     const summaryParts = [
@@ -414,9 +414,9 @@ export class WorkspaceSearchRepository {
   }
 
   static async getRecentSignals(workspaceId: string, limit = 5): Promise<Signal[]> {
-    const signals = await CaseRepository.getSignals();
+    const signals = await WorkspaceRepository.getSignals();
     return signals
-      .filter((signal) => signal.caseId === workspaceId)
+      .filter((signal) => signal.workspaceId === workspaceId)
       .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp))
       .slice(0, limit);
   }
@@ -425,8 +425,8 @@ export class WorkspaceSearchRepository {
     workspaceId: string,
     reportId: string
   ): Promise<Artifact> {
-    const reports = await CaseRepository.getAllReports();
-    const report = reports.find((entry) => entry.id === reportId && entry.caseId === workspaceId);
+    const artifacts = await WorkspaceRepository.getAllArtifacts();
+    const report = artifacts.find((entry) => entry.id === reportId && entry.workspaceId === workspaceId);
 
     if (!report || !report.id) {
       throw new Error(`Artifact ${reportId} was not found in workspace ${workspaceId}.`);

@@ -71,9 +71,9 @@ export const buildBoardInspectorActions = ({
     });
   }
 
-  if (selectedWorkspaceItem?.provenance?.sourceReportId) {
+  if (selectedWorkspaceItem?.provenance?.sourceArtifactId) {
     const sourceReport = workspaceArtifacts.find(
-      (artifact) => artifact.id === selectedWorkspaceItem.provenance?.sourceReportId
+      (artifact) => artifact.id === selectedWorkspaceItem.provenance?.sourceArtifactId
     );
     if (sourceReport) {
       inspectorActions.push({

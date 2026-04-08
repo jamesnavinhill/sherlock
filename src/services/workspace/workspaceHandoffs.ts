@@ -16,21 +16,21 @@ import type {
 } from '@/types';
 
 export const buildArtifactChatOpenRequest = (artifact: Artifact): ChatOpenRequest | null => {
-  if (!artifact.caseId || !artifact.id) return null;
+  if (!artifact.workspaceId || !artifact.id) return null;
 
   return {
-    workspaceId: artifact.caseId,
+    workspaceId: artifact.workspaceId,
     launchContext: {
-      sourceReportId: artifact.id,
+      sourceArtifactId: artifact.id,
     },
   };
 };
 
 export const buildSignalChatOpenRequest = (signal: Headline): ChatOpenRequest | null => {
-  if (!signal.caseId) return null;
+  if (!signal.workspaceId) return null;
 
   return {
-    workspaceId: signal.caseId,
+    workspaceId: signal.workspaceId,
     launchContext: {
       signalId: signal.id,
       headlineId: signal.id,
@@ -49,18 +49,18 @@ export const buildEntityChatOpenRequest = (input: {
     workspaceId: input.workspaceId,
     launchContext: {
       entityName: input.entityName,
-      sourceReportId: input.relatedArtifactId,
+      sourceArtifactId: input.relatedArtifactId,
     },
   };
 };
 
 export const buildWorkspaceItemChatOpenRequest = (item: WorkspaceItem): ChatOpenRequest => {
   const signalId = item.provenance?.sourceSignalId || item.provenance?.sourceHeadlineId;
-  if (item.provenance?.sourceReportId) {
+  if (item.provenance?.sourceArtifactId) {
     return {
       workspaceId: item.workspaceId,
       launchContext: {
-        sourceReportId: item.provenance.sourceReportId,
+        sourceArtifactId: item.provenance.sourceArtifactId,
       },
     };
   }
@@ -81,12 +81,12 @@ export const buildWorkspaceItemChatOpenRequest = (item: WorkspaceItem): ChatOpen
 };
 
 export const buildArtifactBoardReference = (artifact: Artifact): WorkspaceBoardItemReference | null =>
-  artifact.caseId && artifact.id
-    ? buildWorkspaceArtifactReference(artifact.caseId, { ...artifact, id: artifact.id })
+  artifact.workspaceId && artifact.id
+    ? buildWorkspaceArtifactReference(artifact.workspaceId, { ...artifact, id: artifact.id })
     : null;
 
 export const buildSignalBoardReference = (signal: Headline): WorkspaceBoardItemReference | null =>
-  signal.caseId ? buildWorkspaceSignalReference(signal.caseId, signal) : null;
+  signal.workspaceId ? buildWorkspaceSignalReference(signal.workspaceId, signal) : null;
 
 export const buildEntityBoardReference = (input: {
   entityName: string;

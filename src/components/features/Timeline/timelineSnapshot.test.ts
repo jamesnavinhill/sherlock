@@ -87,7 +87,7 @@ describe('timelineSnapshot', () => {
     expect(markdown).toContain('# Timeline Snapshot: Atlas Workspace');
     expect(markdown).toContain('Atlas supplier brief');
     expect(artifact.artifactType).toBe('TIMELINE');
-    expect(artifact.caseId).toBe('case-1');
+    expect(artifact.workspaceId).toBe('case-1');
     expect(artifact.sections?.find((section) => section.kind === 'TIMELINE')?.items).toHaveLength(
       2
     );

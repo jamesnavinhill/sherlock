@@ -83,6 +83,6 @@ describe('workspace promotions', () => {
     });
 
     expect(item.textContent).toContain('only available excerpt text');
-    expect(item.provenance?.sourceReportId).toBe('rep-9');
+    expect(item.provenance?.sourceArtifactId).toBe('rep-9');
   });
 });

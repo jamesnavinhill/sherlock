@@ -161,7 +161,7 @@ const buildChatOpenRequestForResult = (input: {
   if ((result.kind === 'ARTIFACT' || result.kind === 'SECTION') && (result.artifactId || result.refId)) {
     return buildArtifactChatOpenRequest({
       id: result.artifactId || result.refId,
-      caseId: result.workspaceId,
+      workspaceId: result.workspaceId,
       topic: result.title,
       summary: result.snippet || '',
       agendas: [],
@@ -282,7 +282,7 @@ interface ExecuteOmniboxActionInput {
   createChatSession: (input: {
     workspaceId: string;
     title?: string;
-    sourceReportId?: string;
+    sourceArtifactId?: string;
     packId?: string;
     purposeId?: string;
     provider?: ChatSession['provider'];

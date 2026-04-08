@@ -111,7 +111,7 @@ describe('runBoardAgentSession', () => {
       updateBoardAgentAction,
       createWorkspaceItem: vi.fn(async () => undefined),
       saveArtifact: vi.fn(async (artifact) => artifact),
-      appendSectionToReport: vi.fn(async () => undefined),
+      appendSectionToArtifact: vi.fn(async () => undefined),
       requestReview,
       maxPasses: 1,
     });
@@ -207,7 +207,7 @@ describe('runBoardAgentSession', () => {
       updateBoardAgentAction: vi.fn(async () => undefined),
       createWorkspaceItem: vi.fn(async () => undefined),
       saveArtifact: vi.fn(async (artifact) => artifact),
-      appendSectionToReport: vi.fn(async () => undefined),
+      appendSectionToArtifact: vi.fn(async () => undefined),
       requestReview,
       autoApproveOrganizationActions: true,
       maxPasses: 1,

@@ -1,6 +1,6 @@
 import type {
   ArtifactType,
-  CaseTemplate,
+  WorkspaceTemplate,
   DomainPack,
   Artifact,
   InvestigationScope,
@@ -317,7 +317,7 @@ export const getStarterTemplates = (
 };
 
 export const buildLaunchRequestFromTemplate = (
-  template: CaseTemplate,
+  template: WorkspaceTemplate,
   scope?: InvestigationScope
 ) => {
   const { pack, purpose, labelProfile } = resolveDomainPresentation({

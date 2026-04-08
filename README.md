@@ -27,11 +27,11 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 
 - `Operation View`: artifact reading with artifact-type-aware summary highlights, provenance-at-a-glance strip, inline evidence cues, route-backed section/evidence focus, purpose-ordered typed-section rendering, dossier, and a current-artifact/entity/signal inspector panel
 - `Task Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
-- `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into reports, timeline, graph, and chat
+- `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into artifacts, timeline, graph, and chat
 - `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update/reuse events, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
-- `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records that reopen focused workspace surfaces, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Archives, and Network Graph
+- `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records that reopen focused workspace surfaces, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Files, and Network Graph
 - `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files
-- `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for reports/entities/signals, and an overlaying dossier rail that no longer shifts graph content
+- `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for artifacts/entities/signals, and an overlaying dossier rail that no longer shifts graph content
 - `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
 - `Files`: workspace/archive browsing across artifacts and canonical workspace items, with dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, and export actions
 - `Finder`: discovery scanning and analysis launch
@@ -134,11 +134,11 @@ npm run check:full
 
 ## Current Validation Snapshot (April 8, 2026)
 
-The current targeted validation for the features/UX productization closeout passed on this checkout:
+The current targeted validation for the Stream 1 canonical foundation cutover passed on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- targeted tests for Files, Feed, Live Monitor, Network Graph, Chat, Timeline, workspace-home routing, workspace-home readiness shaping, and final chat/workspace-identity cleanup: pass
+- targeted tests for the renamed workspace store, workspace repository/search repository, workspace-data normalization, Files route shell, and Artifact Viewer: pass
 - `npm run build`: passes
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint
@@ -154,10 +154,8 @@ The current targeted validation for the features/UX productization closeout pass
 - `docs/operations/SOURCES.md`
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
-- `docs/plans/08-cross-feature-refactor-slice-plan.md`
-- `docs/reports/2026-04-06-cross-feature-refactor-audit.md`
-- `docs/reports/2026-04-06-cross-feature-refactor-closeout.md`
-- `docs/plans/2026-04-05-post-refactor-completion-plan.md`
+- `docs/plans/10-canonical-cleanup-roadmap.md`
+- `docs/reports/2026-04-08-codebase-audit.md`
 
 Historical plans and reports live under `docs/_legacy/`.
 

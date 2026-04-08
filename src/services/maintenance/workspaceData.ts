@@ -3,7 +3,7 @@ import type {
   Artifact,
   BoardAgentAction,
   BoardAgentSession,
-  CaseTemplate,
+  WorkspaceTemplate,
   ChatMessage,
   ChatSession,
   ManualConnection,
@@ -53,7 +53,7 @@ const flattenSessionRecord = <T extends { sessionId: string }>(value: unknown): 
 
 const withWorkspaceLink = (run: WorkspaceRun): WorkspaceRun => ({
   ...run,
-  workspaceId: run.workspaceId || run.report?.caseId,
+  workspaceId: run.workspaceId || run.report?.workspaceId,
 });
 
 export const groupChatMessagesBySessionId = (
@@ -146,7 +146,7 @@ export const buildWorkspaceDataBackup = (input: {
   workspaceItems: WorkspaceItem[];
   workspaceBoards: WorkspaceBoard[];
   workspaceBoardDocuments: WorkspaceBoardDocument[];
-  templates: CaseTemplate[];
+  templates: WorkspaceTemplate[];
   exportedAt?: string;
 }): WorkspaceDataBackup => ({
   workspaces: input.workspaces,
@@ -262,7 +262,7 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
   const workspaceBoardDocuments = looksCanonical
     ? asArray<WorkspaceBoardDocument>(payload.workspaceSurface?.boardDocuments)
     : asArray<WorkspaceBoardDocument>(payload.workspaceBoardDocuments);
-  const templates = looksWorkspaceExport ? [] : asArray<CaseTemplate>(payload.templates);
+  const templates = looksWorkspaceExport ? [] : asArray<WorkspaceTemplate>(payload.templates);
   const exportedAt =
     typeof metadata?.exportedAt === 'string'
       ? metadata.exportedAt

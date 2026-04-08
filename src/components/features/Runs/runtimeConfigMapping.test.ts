@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { CaseTemplate, InvestigationScope } from '@/types';
+import type { WorkspaceTemplate, InvestigationScope } from '@/types';
 
 import {
   buildLaunchRequestFromTemplate,
@@ -82,7 +82,7 @@ describe('runtimeConfigMapping', () => {
   });
 
   it('builds template launch requests with the normalized runtime config seam', () => {
-    const template: CaseTemplate = {
+    const template: WorkspaceTemplate = {
       id: 'tpl-1',
       name: 'Policy Monitor',
       topic: 'Track SEC enforcement changes',

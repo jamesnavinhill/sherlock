@@ -97,12 +97,12 @@ export const buildWorkspaceHomeCounts = (input: {
   ).length;
 
   return {
-    artifacts: input.artifacts.filter((artifact) => artifact.caseId === input.workspaceId).length,
+    artifacts: input.artifacts.filter((artifact) => artifact.workspaceId === input.workspaceId).length,
     items: input.workspaceItems.filter((item) => item.workspaceId === input.workspaceId).length,
-    signals: input.headlines.filter((headline) => headline.caseId === input.workspaceId).length,
+    signals: input.headlines.filter((headline) => headline.workspaceId === input.workspaceId).length,
     chats: input.chatSessions.filter((session) => session.workspaceId === input.workspaceId).length,
     runs: input.workspaceRuns.filter(
-      (run) => run.workspaceId === input.workspaceId || run.report?.caseId === input.workspaceId
+      (run) => run.workspaceId === input.workspaceId || run.report?.workspaceId === input.workspaceId
     ).length,
     boards: boards.length,
     boardsWithSnapshots,
@@ -157,7 +157,7 @@ export const buildWorkspaceHomeRecentActivity = (input: {
   const entries: WorkspaceHomeRecentActivityItem[] = [];
 
   input.artifacts
-    .filter((artifact) => artifact.caseId === input.workspaceId && artifact.id)
+    .filter((artifact) => artifact.workspaceId === input.workspaceId && artifact.id)
     .forEach((artifact) => {
       entries.push({
         id: `artifact:${artifact.id}`,
@@ -183,7 +183,7 @@ export const buildWorkspaceHomeRecentActivity = (input: {
     });
 
   input.headlines
-    .filter((headline) => headline.caseId === input.workspaceId)
+    .filter((headline) => headline.workspaceId === input.workspaceId)
     .forEach((headline) => {
       entries.push({
         id: `signal:${headline.id}`,
@@ -209,7 +209,7 @@ export const buildWorkspaceHomeRecentActivity = (input: {
     });
 
   input.workspaceRuns
-    .filter((run) => run.workspaceId === input.workspaceId || run.report?.caseId === input.workspaceId)
+    .filter((run) => run.workspaceId === input.workspaceId || run.report?.workspaceId === input.workspaceId)
     .forEach((run) => {
       entries.push({
         id: `run:${run.id}`,

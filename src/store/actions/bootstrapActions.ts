@@ -15,9 +15,9 @@ import {
 import { initDB } from '@/services/db/client';
 import { migrateLocalStorageToSqlite } from '@/services/db/migrate';
 import { SettingsRepository } from '@/services/db/repositories/SettingsRepository';
-import { CaseRepository } from '@/services/db/repositories/CaseRepository';
+import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
 import { ScopeRepository } from '@/services/db/repositories/ScopeRepository';
-import { TaskRepository } from '@/services/db/repositories/TaskRepository';
+import { WorkspaceRunRepository } from '@/services/db/repositories/WorkspaceRunRepository';
 import { TemplateRepository } from '@/services/db/repositories/TemplateRepository';
 import { ChatRepository } from '@/services/db/repositories/ChatRepository';
 import { BoardAgentRepository } from '@/services/db/repositories/BoardAgentRepository';
@@ -32,7 +32,7 @@ import {
   groupChatMessagesBySessionId,
 } from '@/services/maintenance/workspaceData';
 
-import type { ThemeMode, WorkspaceState } from '../caseStore';
+import type { ThemeMode, WorkspaceState } from '../workspaceStore';
 import type { WorkspaceDataBackup } from '@/types';
 import type { WorkspaceStoreApi } from './shared';
 import { loadBootstrapResource } from './bootstrapResourceLoader';
@@ -91,13 +91,13 @@ export const createBootstrapActions = (
         storedThemeSurfaceSettings,
         storedThemeFontSettings,
       ] = await Promise.all([
-        loadBootstrapResource('workspaces', () => CaseRepository.getAllCases(), []),
-        loadBootstrapResource('artifacts', () => CaseRepository.getAllReports(), []),
+        loadBootstrapResource('workspaces', () => WorkspaceRepository.getAllWorkspaces(), []),
+        loadBootstrapResource('artifacts', () => WorkspaceRepository.getAllArtifacts(), []),
         loadBootstrapResource('scopes', () => ScopeRepository.getAll(), []),
-        loadBootstrapResource('workspace runs', () => TaskRepository.getAll(), []),
+        loadBootstrapResource('workspace runs', () => WorkspaceRunRepository.getAll(), []),
         loadBootstrapResource('chat sessions', () => ChatRepository.getAllSessions(), []),
         loadBootstrapResource('board-agent sessions', () => BoardAgentRepository.getAllSessions(), []),
-        loadBootstrapResource('saved signals', () => CaseRepository.getSignals(), []),
+        loadBootstrapResource('saved signals', () => WorkspaceRepository.getSignals(), []),
         loadBootstrapResource('templates', () => TemplateRepository.getAll(), []),
         loadBootstrapResource('workspace items', () => WorkspaceItemRepository.getAll(), []),
         loadBootstrapResource('workspace boards', () => WorkspaceBoardRepository.getAllBoards(), []),

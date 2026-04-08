@@ -83,7 +83,7 @@ If users report wrong provider/model context:
 3. Confirm pack/purpose snapshots (`packId`, `purposeId`, `artifactType`, `labelProfileId`) match the selected launch setup.
 4. Confirm inherited context from parent artifact/workspace where expected.
 5. Confirm `generationMode` propagated correctly when the launch came from Settings defaults, a saved template, guided mode, or a parent artifact follow-up.
-6. If the launch used a starter or template, verify the resolved purpose and artifact type still match the prefilled copy shown in `TaskSetupModal`.
+6. If the launch used a starter or template, verify the resolved purpose and artifact type still match the prefilled copy shown in `RunSetupModal`.
 
 ## 5. Fallback Behavior Notes
 

@@ -141,10 +141,10 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
                   <div className="mt-1">{selectedWorkspaceItem.provenance.sourceMessageId}</div>
                 </div>
               ) : null}
-              {selectedWorkspaceItem.provenance?.sourceReportId ? (
+              {selectedWorkspaceItem.provenance?.sourceArtifactId ? (
                 <div>
                   <div className="text-[10px] uppercase text-zinc-500">Source Report</div>
-                  <div className="mt-1">{selectedWorkspaceItem.provenance.sourceReportId}</div>
+                  <div className="mt-1">{selectedWorkspaceItem.provenance.sourceArtifactId}</div>
                 </div>
               ) : null}
               {selectedWorkspaceItem.provenance?.sourceHeadlineId ? (

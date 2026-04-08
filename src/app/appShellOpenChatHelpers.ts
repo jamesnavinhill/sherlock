@@ -7,8 +7,8 @@ export const resolveLaunchContextSessionTitle = (
 ): string | undefined => {
   if (!launchContext) return undefined;
 
-  if (launchContext.sourceReportId) {
-    return artifacts.find((entry) => entry.id === launchContext.sourceReportId)?.topic;
+  if (launchContext.sourceArtifactId) {
+    return artifacts.find((entry) => entry.id === launchContext.sourceArtifactId)?.topic;
   }
 
   return launchContext.entityName || undefined;

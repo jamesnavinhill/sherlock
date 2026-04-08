@@ -14,8 +14,8 @@ import {
 } from '@/app/routeViews';
 import type { AppShellController } from '@/app/useAppShellController';
 
-const Archives = lazy(() =>
-  import('@/components/features/Archives').then((m) => ({ default: m.Archives }))
+const Files = lazy(() =>
+  import('@/components/features/Files').then((m) => ({ default: m.Files }))
 );
 const LiveMonitor = lazy(() =>
   import('@/components/features/LiveMonitor').then((m) => ({ default: m.LiveMonitor }))
@@ -46,7 +46,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
       <Route
         path={getRouteDefinition('FILES').path}
         element={
-          <Archives
+          <Files
             onSelectReport={controller.handleViewReport}
             onStartNewCase={(request) =>
               controller.launchInvestigation({ ...request, switchToView: true })

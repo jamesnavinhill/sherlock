@@ -34,7 +34,7 @@ export const buildWorkspaceExcerptItemFromAttachment = (input: {
       source: 'CHAT',
       sourceMessageId: input.message.id,
       sourceSessionId: input.sessionId,
-      sourceReportId:
+      sourceArtifactId:
         input.attachment.kind === 'REPORT' ? input.attachment.refId : undefined,
       sourceSignalId:
         input.attachment.kind === 'SIGNAL' || input.attachment.kind === 'HEADLINE'

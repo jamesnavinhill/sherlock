@@ -106,8 +106,8 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     addChatAction,
     addChatMessage,
     addToast,
-    archiveReport,
-    appendSectionToReport,
+    saveArtifact,
+    appendSectionToArtifact,
     customScopes,
     deleteChatSession,
     ensureWorkspaceBoard,
@@ -253,7 +253,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     [activeSession, chatActionsBySessionId]
   );
   const workspaceReports = useMemo(
-    () => artifacts.filter((artifact) => artifact.caseId === activeWorkspace?.id),
+    () => artifacts.filter((artifact) => artifact.workspaceId === activeWorkspace?.id),
     [activeWorkspace?.id, artifacts]
   );
   const appendableWorkspaceReports = useMemo(
@@ -265,7 +265,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     [workspaceReports]
   );
   const workspaceSignals = useMemo(
-    () => headlines.filter((headline) => headline.caseId === activeWorkspace?.id),
+    () => headlines.filter((headline) => headline.workspaceId === activeWorkspace?.id),
     [activeWorkspace?.id, headlines]
   );
   const mentionCandidates = useMemo(
@@ -562,7 +562,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
       activeWorkspace,
       addChatAction,
       addToast,
-      archiveReport,
+      saveArtifact,
       message,
     });
 
@@ -582,7 +582,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
       addChatAction,
       addToast,
       appendArtifactDialog,
-      appendSectionToReport,
+      appendSectionToArtifact,
       appendableWorkspaceReports,
       setAppendArtifactDialog,
     });
@@ -640,7 +640,7 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
       activeWorkspace,
       addChatAction,
       addToast,
-      archiveReport,
+      saveArtifact,
       customScopes,
       guidedState,
     });

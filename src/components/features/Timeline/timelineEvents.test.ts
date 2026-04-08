@@ -11,7 +11,7 @@ describe('timelineEvents', () => {
     const artifacts: Artifact[] = [
       {
         id: 'rep-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         topic: 'Acme Supplier Brief',
         createdAt: 300,
         summary: 'Artifact summary',
@@ -37,7 +37,7 @@ describe('timelineEvents', () => {
     const signals: Headline[] = [
       {
         id: 'sig-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         content: 'Supplier risk escalated',
         source: 'Reuters',
         timestamp: '2026-04-01T10:00:00.000Z',
@@ -77,7 +77,7 @@ describe('timelineEvents', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Quarterly Research Brief',
           createdAt: Date.parse('2026-04-08T12:00:00.000Z'),
           summary: 'Focus on supply chain',
@@ -101,7 +101,7 @@ describe('timelineEvents', () => {
       signals: [
         {
           id: 'sig-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'Legacy signal',
           source: 'Archive',
           timestamp: '2026-01-01T00:00:00.000Z',
@@ -137,7 +137,7 @@ describe('timelineEvents', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Parent Artifact',
           createdAt: 50,
           summary: 'Parent',
@@ -149,7 +149,7 @@ describe('timelineEvents', () => {
         },
         {
           id: 'rep-2',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Child Artifact',
           createdAt: 300,
           summary: 'Child',
@@ -183,14 +183,14 @@ describe('timelineEvents', () => {
       signals: [
         {
           id: 'sig-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'Trigger signal',
           source: 'Reuters',
           timestamp: '2026-04-01T10:00:00.000Z',
           type: 'NEWS',
           status: 'PENDING',
           threatLevel: 'CAUTION',
-          linkedReportId: 'rep-2',
+          linkedArtifactId: 'rep-2',
         },
       ],
       chatSessions: [],
@@ -225,7 +225,7 @@ describe('timelineEvents', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas Follow-up Brief',
           createdAt: 300,
           summary: 'Child artifact',
@@ -375,7 +375,7 @@ describe('timelineEvents', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas Initial Brief',
           createdAt: Date.parse('2026-01-01T00:00:00.000Z'),
           summary: 'First artifact',
@@ -388,7 +388,7 @@ describe('timelineEvents', () => {
         },
         {
           id: 'rep-2',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas Update',
           createdAt: Date.parse('2026-01-05T00:00:00.000Z'),
           summary: 'Second artifact',
@@ -401,7 +401,7 @@ describe('timelineEvents', () => {
         },
         {
           id: 'rep-3',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas Returns',
           createdAt: Date.parse('2026-01-20T00:00:00.000Z'),
           summary: 'Third artifact',
@@ -454,7 +454,7 @@ describe('timelineEvents', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas Chat Brief',
           createdAt: 400,
           summary: 'Saved from chat',
@@ -470,7 +470,7 @@ describe('timelineEvents', () => {
       signals: [
         {
           id: 'sig-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           content: 'Atlas signal',
           source: 'Desk',
           timestamp: '2026-04-01T00:00:00.000Z',
@@ -485,11 +485,11 @@ describe('timelineEvents', () => {
           workspaceId: 'case-1',
           title: 'Atlas Workspace Chat',
           status: 'ACTIVE',
-          sourceReportId: 'rep-1',
+          sourceArtifactId: 'rep-1',
           metadata: {
             launchContext: {
               headlineId: 'sig-1',
-              sourceReportId: 'rep-1',
+              sourceArtifactId: 'rep-1',
             },
           },
           createdAt: 100,

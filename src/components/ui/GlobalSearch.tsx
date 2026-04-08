@@ -24,7 +24,7 @@ import type { LucideIcon } from 'lucide-react';
 
 import { CANONICAL_NOUNS } from '@/domain';
 import { WorkspaceSearchRepository } from '@/services/db/repositories/WorkspaceSearchRepository';
-import { useWorkspaceStore } from '@/store/caseStore';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { getAllTimelineSavedViews, type TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
 import {
   getStoredOmniboxRecents,

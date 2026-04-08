@@ -4,7 +4,7 @@ import { getModelProvider } from '@/config/aiModels';
 import { migrateSystemConfig } from '@/config/systemConfig';
 import type {
   ArtifactType,
-  CaseTemplate,
+  WorkspaceTemplate,
   InvestigationLaunchRequest,
   InvestigationRunConfig,
   InvestigationScope,
@@ -117,7 +117,7 @@ export const buildTemplateRuntimeConfig = (
 interface BuildLaunchRequestFromTemplateInput {
   customScopes?: InvestigationScope[];
   fallbackConfig?: Partial<SystemConfig>;
-  template: CaseTemplate;
+  template: WorkspaceTemplate;
 }
 
 export const buildLaunchRequestFromTemplate = ({

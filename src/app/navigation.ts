@@ -39,7 +39,7 @@ export const getAppViewForPath = (pathname: string): AppView => {
   if (pathname === '/settings') return AppView.SETTINGS;
   if (pathname === '/discover' || pathname === '/') return AppView.DASHBOARD;
   if (pathname === '/monitor') return AppView.LIVE_MONITOR;
-  if (pathname === '/files') return AppView.ARCHIVES;
+  if (pathname === '/files') return AppView.FILES;
   if (RUN_ROUTE.test(pathname) || WORKSPACE_ARTIFACT_ROUTE.test(pathname)) {
     return AppView.INVESTIGATION;
   }
@@ -58,7 +58,7 @@ export const findWorkspaceLandingArtifact = (
   workspaceId: string,
   artifacts: Artifact[] | undefined
 ): Artifact | null => {
-  const workspaceArtifacts = (artifacts || []).filter((artifact) => artifact.caseId === workspaceId);
+  const workspaceArtifacts = (artifacts || []).filter((artifact) => artifact.workspaceId === workspaceId);
   if (workspaceArtifacts.length === 0) return null;
 
   return (
@@ -89,7 +89,7 @@ export const buildPathForAppView = (
       return buildDiscoverPath();
     case AppView.LIVE_MONITOR:
       return buildMonitorPath();
-    case AppView.ARCHIVES:
+    case AppView.FILES:
       return buildFilesPath();
     case AppView.SETTINGS:
       return buildSettingsPath();

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import type { TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
-import { useWorkspaceStore } from '@/store/caseStore';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { WorkspaceHome } from './index';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
@@ -65,7 +65,7 @@ describe('WorkspaceHome', () => {
       artifacts: [
         {
           id: 'artifact-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           topic: 'Supplier baseline',
           artifactType: 'SYNTHESIS',
           summary: 'Baseline summary',
@@ -90,7 +90,7 @@ describe('WorkspaceHome', () => {
       headlines: [
         {
           id: 'signal-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           content: 'Recent vendor movement',
           source: 'Reuters',
           timestamp: '2026-04-08T10:00:00.000Z',

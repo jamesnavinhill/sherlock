@@ -12,7 +12,7 @@ import type {
   SystemConfig,
 } from '@/types';
 import { AppView } from '@/types';
-import type { useWorkspaceStore } from '@/store/caseStore';
+import type { useWorkspaceStore } from '@/store/workspaceStore';
 import {
   useAppShellBootstrapState,
   useAppShellLaunchTaskState,
@@ -131,14 +131,14 @@ export function useAppShellController(): AppShellController {
 
   const {
     activeTaskId,
-    addTask,
+    addRun,
     addToast,
-    archiveReport,
+    saveArtifact,
     artifacts,
-    clearCompletedTasks,
-    completeTask,
+    clearCompletedRuns,
+    completeRun,
     customScopes,
-    failTask,
+    failRun,
     manualNodes,
     setActiveTaskId,
     setManualNodes,
@@ -325,16 +325,16 @@ export function useAppShellController(): AppShellController {
         );
 
         report = mergeArchivedReportRunConfig(report, runConfig, taskId);
-        report = await archiveReport(report, launchRequest.parentContext);
+        report = await saveArtifact(report, launchRequest.parentContext);
 
         if (launchRequest.preseededEntities?.length) {
           await addPreseededEntitiesToGraph(taskId, launchRequest.preseededEntities);
         }
 
-        await completeTask(taskId, report);
+        await completeRun(taskId, report);
 
-        if (report.id && report.caseId && locationPathRef.current === buildRunPath(taskId)) {
-          navigate(buildWorkspaceArtifactPath(report.caseId, report.id), { replace: true });
+        if (report.id && report.workspaceId && locationPathRef.current === buildRunPath(taskId)) {
+          navigate(buildWorkspaceArtifactPath(report.workspaceId, report.id), { replace: true });
         }
 
         if (!loadSystemConfig().quietMode) {
@@ -343,11 +343,11 @@ export function useAppShellController(): AppShellController {
       } catch (error: unknown) {
         console.error(`Task ${taskId} failed`, error);
         const message = error instanceof Error ? error.message : 'Unknown error occurred';
-        await failTask(taskId, message);
+        await failRun(taskId, message);
         addToast(`Run failed: ${launchRequest.topic}`, 'ERROR');
       }
     },
-    [addPreseededEntitiesToGraph, addToast, archiveReport, completeTask, failTask, navigate]
+    [addPreseededEntitiesToGraph, addToast, saveArtifact, completeRun, failRun, navigate]
   );
 
   const launchInvestigation = useCallback(
@@ -420,7 +420,7 @@ export function useAppShellController(): AppShellController {
         });
 
         try {
-          const addTaskPromise = addTask(newTask);
+          const addRunPromise = addRun(newTask);
           if (!storedConfig.quietMode) {
             addToast(`Launching run: ${launchRequest.topic}`, 'INFO');
           }
@@ -430,7 +430,7 @@ export function useAppShellController(): AppShellController {
             navigate(buildRunPath(newTaskId));
           }
 
-          await addTaskPromise;
+          await addRunPromise;
           void runInvestigationTask(newTaskId, launchRequest, runConfig);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unable to launch run.';
@@ -440,7 +440,7 @@ export function useAppShellController(): AppShellController {
       })();
     },
     [
-      addTask,
+      addRun,
       addToast,
       artifacts,
       customScopes,
@@ -510,7 +510,7 @@ export function useAppShellController(): AppShellController {
 
   const handleViewReport = useCallback(
     (report: Artifact) => {
-      setActiveWorkspaceId(report.caseId || null);
+      setActiveWorkspaceId(report.workspaceId || null);
 
       const existingTask = workspaceRuns.find(
         (task) =>
@@ -521,8 +521,8 @@ export function useAppShellController(): AppShellController {
 
       setActiveTaskId(existingTask?.id || null);
 
-      if (report.caseId && report.id) {
-        navigate(buildWorkspaceArtifactPath(report.caseId, report.id));
+      if (report.workspaceId && report.id) {
+        navigate(buildWorkspaceArtifactPath(report.workspaceId, report.id));
       } else if (existingTask) {
         navigate(buildRunPath(existingTask.id));
       } else {
@@ -589,7 +589,7 @@ export function useAppShellController(): AppShellController {
 
   const handleClearCompleted = useCallback(async () => {
     const activeBeforeClear = workspaceRuns.find((task) => task.id === activeTaskId);
-    await clearCompletedTasks();
+    await clearCompletedRuns();
 
     if (
       activeBeforeClear &&
@@ -600,7 +600,7 @@ export function useAppShellController(): AppShellController {
         navigate(buildFilesPath(), { replace: true });
       }
     }
-  }, [activeTaskId, clearCompletedTasks, navigate, setActiveTaskId, workspaceRuns]);
+  }, [activeTaskId, clearCompletedRuns, navigate, setActiveTaskId, workspaceRuns]);
 
   return {
     activeChatSessionId,

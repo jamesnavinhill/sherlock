@@ -11,7 +11,7 @@ describe('workspaceHandoffs', () => {
     expect(
       buildArtifactChatOpenRequest({
         id: 'rep-1',
-        caseId: 'ws-1',
+        workspaceId: 'ws-1',
         topic: 'Atlas Brief',
         summary: 'Summary',
         agendas: [],
@@ -23,7 +23,7 @@ describe('workspaceHandoffs', () => {
     ).toEqual({
       workspaceId: 'ws-1',
       launchContext: {
-        sourceReportId: 'rep-1',
+        sourceArtifactId: 'rep-1',
       },
     });
 
@@ -37,13 +37,13 @@ describe('workspaceHandoffs', () => {
         updatedAt: 100,
         provenance: {
           source: 'CHAT',
-          sourceReportId: 'rep-1',
+          sourceArtifactId: 'rep-1',
         },
       })
     ).toEqual({
       workspaceId: 'ws-1',
       launchContext: {
-        sourceReportId: 'rep-1',
+        sourceArtifactId: 'rep-1',
       },
     });
 

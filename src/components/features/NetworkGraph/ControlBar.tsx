@@ -27,7 +27,7 @@ import {
 interface ControlBarProps {
   workspaces: Workspace[];
   filterCaseId: string;
-  onCaseChange: (caseId: string) => void;
+  onCaseChange: (workspaceId: string) => void;
   showLeftPanel: boolean;
   onToggleLeftPanel: () => void;
   showRightPanel: boolean;

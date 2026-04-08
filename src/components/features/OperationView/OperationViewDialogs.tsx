@@ -8,7 +8,7 @@ import type {
   SystemConfig,
 } from '@/types';
 import { ModalShell } from '@/components/ui/ModalShell';
-import { TaskSetupModal } from '../Runs/TaskSetupModal';
+import { RunSetupModal } from '../Runs/RunSetupModal';
 
 interface LeadToAnalyzeState {
   text: string;
@@ -53,7 +53,7 @@ export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
 }) => (
   <>
     {leadToAnalyze && report ? (
-      <TaskSetupModal
+      <RunSetupModal
         initialTopic={leadToAnalyze.text}
         initialContext={leadToAnalyze.context}
         initialScopeId={leadToAnalyze.inheritedScopeId}
@@ -82,7 +82,7 @@ export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
     ) : null}
 
     {isNewCaseModalOpen ? (
-      <TaskSetupModal
+      <RunSetupModal
         initialTopic=""
         onCancel={onCloseNewCaseDialog}
         onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {

@@ -14,7 +14,7 @@ import { getWorkspaceDisplayTitle } from '@/domain';
 // Sub-components
 import { Toolbar } from './Toolbar';
 import { DossierPanel } from './DossierPanel';
-import { ReportViewer } from './ReportViewer';
+import { ArtifactViewer } from './ArtifactViewer';
 import { InspectorPanel } from './InspectorPanel';
 import { useOperationViewController } from './useOperationViewController';
 import { OperationViewDialogs } from './OperationViewDialogs';
@@ -28,7 +28,7 @@ interface OperationViewProps {
   onDeepDive: (request: InvestigationLaunchRequest) => void;
   navStack: BreadcrumbItem[];
   onNavigate: (id: string) => void;
-  onSelectCase?: (caseId: string) => void;
+  onSelectCase?: (workspaceId: string) => void;
   onStartNewCase: (request: InvestigationLaunchRequest) => void;
   onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
@@ -219,7 +219,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
         />
 
         {/* Center: Report Viewer */}
-        <ReportViewer
+        <ArtifactViewer
           report={report}
           workspaceTitle={activeCase ? getWorkspaceDisplayTitle(activeCase) : null}
           focusedSectionId={artifactRouteState?.focusSectionId}

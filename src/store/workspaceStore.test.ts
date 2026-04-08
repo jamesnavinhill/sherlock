@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useWorkspaceStore } from './caseStore';
-import type { Artifact, CaseTemplate, WorkspaceDataBackup } from '../types';
+import { useWorkspaceStore } from './workspaceStore';
+import type { Artifact, WorkspaceTemplate, WorkspaceDataBackup } from '../types';
 import { TemplateRepository } from '../services/db/repositories/TemplateRepository';
-import { TaskRepository } from '../services/db/repositories/TaskRepository';
-import { CaseRepository } from '../services/db/repositories/CaseRepository';
+import { WorkspaceRunRepository } from '../services/db/repositories/WorkspaceRunRepository';
+import { WorkspaceRepository } from '../services/db/repositories/WorkspaceRepository';
 import { ChatRepository } from '../services/db/repositories/ChatRepository';
 import { BoardAgentRepository } from '../services/db/repositories/BoardAgentRepository';
 import { ManualDataRepository } from '../services/db/repositories/ManualDataRepository';
@@ -14,7 +14,7 @@ import { WorkspaceItemRepository } from '../services/db/repositories/WorkspaceIt
 import * as dbClient from '../services/db/client';
 import * as dbMigrate from '../services/db/migrate';
 
-describe('caseStore', () => {
+describe('workspaceStore', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -22,18 +22,18 @@ describe('caseStore', () => {
     vi.spyOn(TemplateRepository, 'create').mockResolvedValue();
     vi.spyOn(TemplateRepository, 'delete').mockResolvedValue();
     vi.spyOn(TemplateRepository, 'clearAll').mockResolvedValue();
-    vi.spyOn(TaskRepository, 'create').mockResolvedValue();
-    vi.spyOn(TaskRepository, 'updateStatus').mockResolvedValue();
-    vi.spyOn(TaskRepository, 'updateWorkspace').mockResolvedValue();
-    vi.spyOn(TaskRepository, 'updateConfig').mockResolvedValue();
-    vi.spyOn(TaskRepository, 'clearWorkspace').mockResolvedValue();
-    vi.spyOn(TaskRepository, 'deleteByWorkspace').mockResolvedValue();
-    vi.spyOn(CaseRepository, 'purgeCase').mockResolvedValue();
-    vi.spyOn(CaseRepository, 'clearCaseData').mockResolvedValue();
-    vi.spyOn(CaseRepository, 'createCase').mockResolvedValue();
-    vi.spyOn(CaseRepository, 'createReport').mockResolvedValue();
-    vi.spyOn(CaseRepository, 'createSignal').mockResolvedValue();
-    vi.spyOn(CaseRepository, 'replaceWorkspaceDataBackup').mockResolvedValue();
+    vi.spyOn(WorkspaceRunRepository, 'create').mockResolvedValue();
+    vi.spyOn(WorkspaceRunRepository, 'updateStatus').mockResolvedValue();
+    vi.spyOn(WorkspaceRunRepository, 'updateWorkspace').mockResolvedValue();
+    vi.spyOn(WorkspaceRunRepository, 'updateConfig').mockResolvedValue();
+    vi.spyOn(WorkspaceRunRepository, 'clearWorkspace').mockResolvedValue();
+    vi.spyOn(WorkspaceRunRepository, 'deleteByWorkspace').mockResolvedValue();
+    vi.spyOn(WorkspaceRepository, 'purgeWorkspace').mockResolvedValue();
+    vi.spyOn(WorkspaceRepository, 'clearWorkspaceData').mockResolvedValue();
+    vi.spyOn(WorkspaceRepository, 'createWorkspace').mockResolvedValue();
+    vi.spyOn(WorkspaceRepository, 'createArtifact').mockResolvedValue();
+    vi.spyOn(WorkspaceRepository, 'createSignal').mockResolvedValue();
+    vi.spyOn(WorkspaceRepository, 'replaceWorkspaceDataBackup').mockResolvedValue();
     vi.spyOn(ChatRepository, 'createSession').mockResolvedValue();
     vi.spyOn(ChatRepository, 'updateSession').mockResolvedValue();
     vi.spyOn(ChatRepository, 'deleteSession').mockResolvedValue();
@@ -148,7 +148,7 @@ describe('caseStore', () => {
       artifacts: [
         {
           id: 'artifact-seed',
-          caseId: 'ws-seed',
+          workspaceId: 'ws-seed',
           topic: 'Seed Artifact',
           summary: 'Saved artifact',
           agendas: [],
@@ -202,14 +202,14 @@ describe('caseStore', () => {
       {} as Awaited<ReturnType<typeof dbClient.initDB>>
     );
     vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue(undefined);
-    vi.spyOn(CaseRepository, 'getAllCases').mockResolvedValue([]);
-    vi.spyOn(CaseRepository, 'getAllReports').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRepository, 'getAllWorkspaces').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRepository, 'getAllArtifacts').mockResolvedValue([]);
     vi.spyOn(ScopeRepository, 'getAll').mockResolvedValue([]);
-    vi.spyOn(TaskRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRunRepository, 'getAll').mockResolvedValue([]);
     vi.spyOn(ChatRepository, 'getAllSessions').mockResolvedValue([]);
     vi.spyOn(ChatRepository, 'getMessagesBySessionIds').mockResolvedValue({});
     vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
-    vi.spyOn(CaseRepository, 'getSignals').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRepository, 'getSignals').mockResolvedValue([]);
     vi.spyOn(TemplateRepository, 'getAll').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'getAllNodes').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'getAllLinks').mockResolvedValue([]);
@@ -224,7 +224,7 @@ describe('caseStore', () => {
     await useWorkspaceStore.getState().initializeStore();
 
     expect(fetchMock).toHaveBeenCalledWith('/seeds/demo-workspace.json', { cache: 'no-store' });
-    expect(CaseRepository.replaceWorkspaceDataBackup).toHaveBeenCalledWith(payload);
+    expect(WorkspaceRepository.replaceWorkspaceDataBackup).toHaveBeenCalledWith(payload);
     expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
     expect(useWorkspaceStore.getState().artifacts).toEqual(payload.artifacts);
     expect(useWorkspaceStore.getState().activeWorkspaceId).toBe('ws-seed');
@@ -239,7 +239,7 @@ describe('caseStore', () => {
       {} as Awaited<ReturnType<typeof dbClient.initDB>>
     );
     vi.spyOn(dbMigrate, 'migrateLocalStorageToSqlite').mockResolvedValue(undefined);
-    vi.spyOn(CaseRepository, 'getAllCases').mockResolvedValue([
+    vi.spyOn(WorkspaceRepository, 'getAllWorkspaces').mockResolvedValue([
       {
         id: 'ws-1',
         title: 'Workspace One',
@@ -247,13 +247,13 @@ describe('caseStore', () => {
         dateOpened: '2026-04-04',
       },
     ]);
-    vi.spyOn(CaseRepository, 'getAllReports').mockRejectedValue(new Error('corrupted report row'));
+    vi.spyOn(WorkspaceRepository, 'getAllArtifacts').mockRejectedValue(new Error('corrupted report row'));
     vi.spyOn(ScopeRepository, 'getAll').mockResolvedValue([]);
-    vi.spyOn(TaskRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRunRepository, 'getAll').mockResolvedValue([]);
     vi.spyOn(ChatRepository, 'getAllSessions').mockResolvedValue([]);
     vi.spyOn(ChatRepository, 'getMessagesBySessionIds').mockResolvedValue({});
     vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
-    vi.spyOn(CaseRepository, 'getSignals').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRepository, 'getSignals').mockResolvedValue([]);
     vi.spyOn(TemplateRepository, 'getAll').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'getAllNodes').mockResolvedValue([]);
     vi.spyOn(ManualDataRepository, 'getAllLinks').mockResolvedValue([]);
@@ -285,7 +285,7 @@ describe('caseStore', () => {
   });
 
   it('should add and delete templates', async () => {
-    const template: CaseTemplate = {
+    const template: WorkspaceTemplate = {
       id: 'tpl-1',
       name: 'Test Template',
       topic: 'Test Topic',
@@ -304,10 +304,10 @@ describe('caseStore', () => {
   });
 
   it('should handle task lifecycle', async () => {
-    const { addTask, completeTask } = useWorkspaceStore.getState();
+    const { addRun, completeRun } = useWorkspaceStore.getState();
     const taskId = 'task-1';
 
-    await addTask({
+    await addRun({
       id: taskId,
       topic: 'Lifecycle test',
       status: 'RUNNING',
@@ -329,19 +329,19 @@ describe('caseStore', () => {
       rawText: 'Test content',
     };
 
-    await completeTask(taskId, report);
+    await completeRun(taskId, report);
     expect(useWorkspaceStore.getState().workspaceRuns[0].status).toBe('COMPLETED');
     expect(useWorkspaceStore.getState().workspaceRuns[0].report?.id).toBe('rep-1');
-    expect(TaskRepository.updateConfig).toHaveBeenCalledWith(taskId, {
+    expect(WorkspaceRunRepository.updateConfig).toHaveBeenCalledWith(taskId, {
       producedArtifactId: 'rep-1',
     });
   });
 
   it('rolls back optimistic task state when task persistence fails', async () => {
-    vi.mocked(TaskRepository.create).mockRejectedValueOnce(new Error('sqlite unavailable'));
+    vi.mocked(WorkspaceRunRepository.create).mockRejectedValueOnce(new Error('sqlite unavailable'));
 
     await expect(
-      useWorkspaceStore.getState().addTask({
+      useWorkspaceStore.getState().addRun({
         id: 'task-fail',
         topic: 'Rollback test',
         status: 'RUNNING',
@@ -361,7 +361,7 @@ describe('caseStore', () => {
     store.setHeadlines([
       {
         id: 'head-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         content: 'Signal',
         source: 'Desk',
         timestamp: '2026-04-03T00:00:00.000Z',
@@ -371,9 +371,9 @@ describe('caseStore', () => {
       },
     ]);
 
-    const saved = await store.archiveReport({
+    const saved = await store.saveArtifact({
       id: 'rep-1',
-      caseId: 'case-1',
+      workspaceId: 'case-1',
       topic: 'Signal Follow-up',
       createdAt: 1,
       summary: 'Summary',
@@ -389,7 +389,7 @@ describe('caseStore', () => {
     });
 
     expect(saved.id).toBe('rep-1');
-    expect(CaseRepository.createReport).toHaveBeenCalledWith(
+    expect(WorkspaceRepository.createArtifact).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'rep-1',
         config: expect.objectContaining({
@@ -397,7 +397,7 @@ describe('caseStore', () => {
         }),
       })
     );
-    expect(useWorkspaceStore.getState().headlines[0].linkedReportId).toBe('rep-1');
+    expect(useWorkspaceStore.getState().headlines[0].linkedArtifactId).toBe('rep-1');
   });
 
   it('should backfill artifact lineage from the source run when the report input is partial', async () => {
@@ -408,7 +408,7 @@ describe('caseStore', () => {
     store.setArtifacts([
       {
         id: 'rep-parent',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         topic: 'Parent Artifact',
         createdAt: 1,
         summary: 'Parent summary',
@@ -422,7 +422,7 @@ describe('caseStore', () => {
     store.setHeadlines([
       {
         id: 'head-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         content: 'Signal',
         source: 'Desk',
         timestamp: '2026-04-03T00:00:00.000Z',
@@ -446,7 +446,7 @@ describe('caseStore', () => {
       },
     ]);
 
-    const saved = await store.archiveReport({
+    const saved = await store.saveArtifact({
       id: 'rep-child',
       topic: 'Child Artifact',
       summary: 'Child summary',
@@ -460,7 +460,7 @@ describe('caseStore', () => {
       },
     });
 
-    expect(saved.caseId).toBe('case-1');
+    expect(saved.workspaceId).toBe('case-1');
     expect(saved.config).toEqual(
       expect.objectContaining({
         sourceRunId: 'run-1',
@@ -616,7 +616,7 @@ describe('caseStore', () => {
     store.setArtifacts([
       {
         id: 'rep-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         topic: 'A1',
         summary: '',
         agendas: [],
@@ -627,7 +627,7 @@ describe('caseStore', () => {
       },
       {
         id: 'rep-2',
-        caseId: 'case-2',
+        workspaceId: 'case-2',
         topic: 'B1',
         summary: '',
         agendas: [],
@@ -650,7 +650,7 @@ describe('caseStore', () => {
     store.setHeadlines([
       {
         id: 'h-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         content: 'alpha',
         source: 'src',
         timestamp: 'now',
@@ -660,7 +660,7 @@ describe('caseStore', () => {
       },
       {
         id: 'h-2',
-        caseId: 'case-2',
+        workspaceId: 'case-2',
         content: 'bravo',
         source: 'src',
         timestamp: 'now',
@@ -815,9 +815,9 @@ describe('caseStore', () => {
       activeChatSessionId: 'chat-1',
     });
 
-    await store.purgeCase('case-1');
+    await store.purgeWorkspace('case-1');
 
-    expect(CaseRepository.purgeCase).toHaveBeenCalledWith('case-1');
+    expect(WorkspaceRepository.purgeWorkspace).toHaveBeenCalledWith('case-1');
     expect(useWorkspaceStore.getState().workspaces.map((c) => c.id)).toEqual(['case-2']);
     expect(useWorkspaceStore.getState().artifacts.map((r) => r.id)).toEqual(['rep-2', 'rep-3']);
     expect(useWorkspaceStore.getState().headlines.map((h) => h.id)).toEqual(['h-2']);
@@ -855,7 +855,7 @@ describe('caseStore', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Alpha',
           summary: 'Summary',
           agendas: [],
@@ -939,7 +939,7 @@ describe('caseStore', () => {
         signals: [
           {
             id: 'head-1',
-            caseId: 'case-1',
+            workspaceId: 'case-1',
             content: 'Signal',
             source: 'Desk',
             timestamp: '2026-04-03T00:00:00.000Z',
@@ -970,7 +970,7 @@ describe('caseStore', () => {
 
     await store.importWorkspaceData(payload);
 
-    expect(CaseRepository.replaceWorkspaceDataBackup).toHaveBeenCalledWith(payload);
+    expect(WorkspaceRepository.replaceWorkspaceDataBackup).toHaveBeenCalledWith(payload);
     expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
     expect(useWorkspaceStore.getState().artifacts).toEqual(payload.artifacts);
     expect(useWorkspaceStore.getState().workspaceRuns).toEqual(payload.runs);
@@ -997,7 +997,7 @@ describe('caseStore', () => {
     store.setArtifacts([
       {
         id: 'rep-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         topic: 'Alpha',
         summary: '',
         agendas: [],
@@ -1034,7 +1034,7 @@ describe('caseStore', () => {
     store.setHeadlines([
       {
         id: 'head-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         content: 'Signal',
         source: 'Desk',
         timestamp: '2026-04-03T00:00:00.000Z',
@@ -1097,7 +1097,7 @@ describe('caseStore', () => {
 
     await store.clearWorkspaceData();
 
-    expect(CaseRepository.clearCaseData).toHaveBeenCalled();
+    expect(WorkspaceRepository.clearWorkspaceData).toHaveBeenCalled();
     expect(useWorkspaceStore.getState().workspaces).toEqual([]);
     expect(useWorkspaceStore.getState().artifacts).toEqual([]);
     expect(useWorkspaceStore.getState().workspaceRuns).toEqual([]);

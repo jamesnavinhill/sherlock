@@ -3,10 +3,10 @@ import { WorkspaceSearchRepository } from './WorkspaceSearchRepository';
 import {
   artifactEvidence,
   artifactSections,
-  cases,
+  workspaces,
   entities,
-  leads,
-  reports,
+  signals,
+  artifacts,
   sources,
   workspaceItems,
 } from '../schema';
@@ -43,7 +43,7 @@ describe('WorkspaceSearchRepository', () => {
     const reportRows = [
       {
         id: 'rep-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         topic: 'Atlas supplier brief',
         dateStr: '2026-04-03',
         summary: 'Atlas is increasing exposure.',
@@ -99,13 +99,13 @@ describe('WorkspaceSearchRepository', () => {
     const headlineRows = [
       {
         id: 'head-1',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         content: 'Atlas supplier risk escalated',
         source: 'Desk',
         type: 'NEWS',
         status: 'PENDING',
         threatLevel: 'CAUTION',
-        linkedReportId: 'rep-1',
+        linkedArtifactId: 'rep-1',
         url: 'https://example.com/signal',
         timestamp: '2026-04-03T09:00:00.000Z',
       },
@@ -133,13 +133,13 @@ describe('WorkspaceSearchRepository', () => {
 
     mockDb.select.mockImplementation(() => ({
       from: (table: unknown) => {
-        if (table === cases) {
+        if (table === workspaces) {
           return {
             where: vi.fn().mockResolvedValue(workspaceRows),
           };
         }
 
-        if (table === reports) {
+        if (table === artifacts) {
           return {
             where: vi.fn(() => ({
               orderBy: vi.fn().mockResolvedValue(reportRows),
@@ -171,7 +171,7 @@ describe('WorkspaceSearchRepository', () => {
           };
         }
 
-        if (table === leads) {
+        if (table === signals) {
           return {
             where: vi.fn(() => ({
               orderBy: vi.fn().mockResolvedValue(headlineRows),
@@ -214,7 +214,7 @@ describe('WorkspaceSearchRepository', () => {
       expect.objectContaining({
         id: 'head-1',
         type: 'NEWS',
-        linkedReportId: 'rep-1',
+        linkedArtifactId: 'rep-1',
       })
     );
     expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-REPORT-rep-1')).toBe(true);

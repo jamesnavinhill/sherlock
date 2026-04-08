@@ -12,7 +12,7 @@ const buildSession = (overrides: Partial<ChatSession>): ChatSession => ({
   workspaceId: overrides.workspaceId || 'case-1',
   title: overrides.title || 'Untitled Chat',
   status: overrides.status || 'ACTIVE',
-  sourceReportId: overrides.sourceReportId,
+  sourceArtifactId: overrides.sourceArtifactId,
   packId: overrides.packId,
   purposeId: overrides.purposeId,
   provider: overrides.provider,
@@ -26,13 +26,13 @@ describe('chat launch context helpers', () => {
   it('compares launch contexts by report, entity, and headline identity', () => {
     expect(
       areChatLaunchContextsEqual(
-        { sourceReportId: 'report-1', entityName: 'Atlas', headlineId: 'headline-1' },
-        { sourceReportId: 'report-1', entityName: 'Atlas', headlineId: 'headline-1' }
+        { sourceArtifactId: 'report-1', entityName: 'Atlas', headlineId: 'headline-1' },
+        { sourceArtifactId: 'report-1', entityName: 'Atlas', headlineId: 'headline-1' }
       )
     ).toBe(true);
 
     expect(
-      areChatLaunchContextsEqual({ sourceReportId: 'report-1' }, { sourceReportId: 'report-2' })
+      areChatLaunchContextsEqual({ sourceArtifactId: 'report-1' }, { sourceArtifactId: 'report-2' })
     ).toBe(false);
   });
 
@@ -40,7 +40,7 @@ describe('chat launch context helpers', () => {
     const request: ChatOpenRequest = {
       workspaceId: 'case-1',
       launchContext: {
-        sourceReportId: 'report-1',
+        sourceArtifactId: 'report-1',
       },
     };
 
@@ -51,10 +51,10 @@ describe('chat launch context helpers', () => {
     const matchingSession = buildSession({
       id: 'matching-session',
       updatedAt: 10,
-      sourceReportId: 'report-1',
+      sourceArtifactId: 'report-1',
       metadata: {
         launchContext: {
-          sourceReportId: 'report-1',
+          sourceArtifactId: 'report-1',
         },
       },
     });
@@ -63,7 +63,7 @@ describe('chat launch context helpers', () => {
       'matching-session'
     );
     expect(getChatLaunchContextFromSession(matchingSession)).toEqual({
-      sourceReportId: 'report-1',
+      sourceArtifactId: 'report-1',
     });
   });
 
@@ -118,7 +118,7 @@ describe('chat launch context helpers', () => {
       reports: [
         {
           id: 'report-1',
-          caseId: 'case-1',
+          workspaceId: 'case-1',
           topic: 'Atlas baseline',
           summary: 'Atlas Holdings appears in the procurement flow.',
           agendas: [],

@@ -28,23 +28,23 @@ import { ProviderModelSelector } from './ProviderModelSelector';
 import { RuntimeConfigBehaviorControls } from './RuntimeConfigBehaviorControls';
 import { RuntimeConfigSummary } from './RuntimeConfigSummary';
 import {
-  type TaskSetupConfigOverride,
-  useTaskSetupState,
-} from './useTaskSetupState';
+  type RunSetupConfigOverride,
+  useRunSetupState,
+} from './useRunSetupState';
 
-export type { TaskSetupConfigOverride } from './useTaskSetupState';
+export type { RunSetupConfigOverride } from './useRunSetupState';
 
-export interface TaskSetupModalProps {
+export interface RunSetupModalProps {
   initialTopic: string;
   initialContext?: { topic: string; summary: string };
   initialScopeId?: string;
-  initialConfigOverride?: TaskSetupConfigOverride;
+  initialConfigOverride?: RunSetupConfigOverride;
   initialDateRangeOverride?: { start?: string; end?: string };
   inheritanceHint?: string;
   onCancel: () => void;
   onStart: (
     topic: string,
-    configOverride: TaskSetupConfigOverride,
+    configOverride: RunSetupConfigOverride,
     preseededEntities?: ManualNode[],
     scope?: InvestigationScope,
     dateRange?: { start?: string; end?: string }
@@ -53,7 +53,7 @@ export interface TaskSetupModalProps {
 
 const STEP_ICONS = [Compass, Target, Lightbulb, Shapes, Globe, UserCog] as const;
 
-export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
+export const RunSetupModal: React.FC<RunSetupModalProps> = ({
   initialTopic,
   initialContext,
   initialScopeId,
@@ -111,7 +111,7 @@ export const TaskSetupModal: React.FC<TaskSetupModalProps> = ({
     templateName,
     templates,
     topic,
-  } = useTaskSetupState({
+  } = useRunSetupState({
     initialTopic,
     initialScopeId,
     initialConfigOverride,

@@ -8,7 +8,7 @@ const buildSession = (overrides: Partial<ChatSession> = {}): ChatSession => ({
   workspaceId: overrides.workspaceId || 'case-1',
   title: overrides.title || 'Workspace Chat',
   status: overrides.status || 'ACTIVE',
-  sourceReportId: overrides.sourceReportId,
+  sourceArtifactId: overrides.sourceArtifactId,
   packId: overrides.packId,
   purposeId: overrides.purposeId,
   provider: overrides.provider || 'OPENAI',
@@ -32,10 +32,10 @@ describe('buildFollowUpRunFromChatMessage', () => {
   it('preserves signal and artifact lineage from the chat session launch context', () => {
     const result = buildFollowUpRunFromChatMessage({
       session: buildSession({
-        sourceReportId: 'rep-1',
+        sourceArtifactId: 'rep-1',
         metadata: {
           launchContext: {
-            sourceReportId: 'rep-1',
+            sourceArtifactId: 'rep-1',
             headlineId: 'sig-1',
           },
         },

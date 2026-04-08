@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CaseRepository } from './CaseRepository';
+import { WorkspaceRepository } from './WorkspaceRepository';
 import { BoardAgentRepository } from './BoardAgentRepository';
 import { ChatRepository } from './ChatRepository';
 import { ManualDataRepository } from './ManualDataRepository';
 import { SettingsRepository } from './SettingsRepository';
-import { TaskRepository } from './TaskRepository';
+import { WorkspaceRunRepository } from './WorkspaceRunRepository';
 import { TemplateRepository } from './TemplateRepository';
 import { WorkspaceBoardRepository } from './WorkspaceBoardRepository';
 import { WorkspaceItemRepository } from './WorkspaceItemRepository';
-import { followUps, leads, reports } from '../schema';
+import { followUps, signals, artifacts } from '../schema';
 
 const { transactionEvents, mockTx, runWriteTransaction } = vi.hoisted(() => {
   const transactionEvents: string[] = [];
@@ -41,7 +41,7 @@ vi.mock('../client', () => ({
   runWriteTransaction,
 }));
 
-describe('CaseRepository', () => {
+describe('WorkspaceRepository', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     transactionEvents.length = 0;
@@ -55,9 +55,9 @@ describe('CaseRepository', () => {
     mockTx.insert.mockReturnValue({ values });
     mockTx.update.mockReturnValue({ set });
 
-    await CaseRepository.createReport({
+    await WorkspaceRepository.createArtifact({
       id: 'rep-1',
-      caseId: 'case-1',
+      workspaceId: 'case-1',
       topic: 'Atlas',
       summary: 'Summary',
       agendas: [],
@@ -82,11 +82,11 @@ describe('CaseRepository', () => {
 
     expect(runWriteTransaction).toHaveBeenCalledTimes(1);
     expect(transactionEvents).toEqual(['begin', 'commit']);
-    expect(mockTx.insert).toHaveBeenCalledWith(reports);
+    expect(mockTx.insert).toHaveBeenCalledWith(artifacts);
     expect(mockTx.insert).toHaveBeenCalledWith(followUps);
-    expect(mockTx.update).toHaveBeenCalledWith(leads);
+    expect(mockTx.update).toHaveBeenCalledWith(signals);
     expect(mockTx.update).toHaveBeenCalledWith(followUps);
-    expect(set).toHaveBeenCalledWith(expect.objectContaining({ linkedReportId: 'rep-1' }));
+    expect(set).toHaveBeenCalledWith(expect.objectContaining({ linkedArtifactId: 'rep-1' }));
     expect(set).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'RESOLVED',
@@ -109,9 +109,9 @@ describe('CaseRepository', () => {
     });
 
     await expect(
-      CaseRepository.createReport({
+      WorkspaceRepository.createArtifact({
         id: 'rep-2',
-        caseId: 'case-1',
+        workspaceId: 'case-1',
         topic: 'Atlas',
         summary: 'Summary',
         agendas: [],
@@ -136,9 +136,9 @@ describe('CaseRepository', () => {
   });
 
   it('reuses the outer transaction across workspace backup restore writes', async () => {
-    vi.spyOn(CaseRepository, 'createCase').mockResolvedValue(undefined);
-    vi.spyOn(CaseRepository, 'createReport').mockResolvedValue(undefined);
-    vi.spyOn(TaskRepository, 'create').mockResolvedValue(undefined);
+    vi.spyOn(WorkspaceRepository, 'createWorkspace').mockResolvedValue(undefined);
+    vi.spyOn(WorkspaceRepository, 'createArtifact').mockResolvedValue(undefined);
+    vi.spyOn(WorkspaceRunRepository, 'create').mockResolvedValue(undefined);
     vi.spyOn(ChatRepository, 'createSession').mockResolvedValue(undefined);
     vi.spyOn(ChatRepository, 'createMessage').mockResolvedValue(undefined);
     vi.spyOn(ChatRepository, 'createAction').mockResolvedValue(undefined);
@@ -151,9 +151,9 @@ describe('CaseRepository', () => {
     vi.spyOn(ManualDataRepository, 'saveAllNodes').mockResolvedValue(undefined);
     vi.spyOn(ManualDataRepository, 'saveAllLinks').mockResolvedValue(undefined);
     vi.spyOn(SettingsRepository, 'setSetting').mockResolvedValue(undefined);
-    vi.spyOn(CaseRepository, 'clearCaseData').mockResolvedValue(undefined);
+    vi.spyOn(WorkspaceRepository, 'clearWorkspaceData').mockResolvedValue(undefined);
 
-    await CaseRepository.replaceWorkspaceDataBackup({
+    await WorkspaceRepository.replaceWorkspaceDataBackup({
       workspaces: [
         {
           id: 'ws-1',
@@ -165,7 +165,7 @@ describe('CaseRepository', () => {
       artifacts: [
         {
           id: 'rep-1',
-          caseId: 'ws-1',
+          workspaceId: 'ws-1',
           topic: 'Atlas',
           summary: 'Summary',
           agendas: [],
@@ -192,16 +192,16 @@ describe('CaseRepository', () => {
 
     expect(runWriteTransaction).toHaveBeenCalledTimes(1);
     expect(transactionEvents).toEqual(['begin', 'commit']);
-    expect(CaseRepository.clearCaseData).toHaveBeenCalledWith(mockTx);
-    expect(CaseRepository.createCase).toHaveBeenCalledWith(
+    expect(WorkspaceRepository.clearWorkspaceData).toHaveBeenCalledWith(mockTx);
+    expect(WorkspaceRepository.createWorkspace).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'ws-1' }),
       mockTx
     );
-    expect(CaseRepository.createReport).toHaveBeenCalledWith(
+    expect(WorkspaceRepository.createArtifact).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'rep-1' }),
       mockTx
     );
-    expect(TaskRepository.create).toHaveBeenCalledWith(
+    expect(WorkspaceRunRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'run-1' }),
       mockTx
     );

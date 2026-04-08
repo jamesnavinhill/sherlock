@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Artifact } from '../../../types';
-import { ReportViewer } from './ReportViewer';
+import { ArtifactViewer } from './ArtifactViewer';
 
 const reportFixture: Artifact = {
   id: 'report-1',
-  caseId: 'case-1',
+  workspaceId: 'case-1',
   topic: 'Atlas Contract Network',
   summary: 'Fallback summary',
   artifactType: 'SYNTHESIS',
@@ -59,13 +59,13 @@ const reportFixture: Artifact = {
   config: {},
 };
 
-describe('ReportViewer', () => {
+describe('ArtifactViewer', () => {
   it('uses a unified report body, hides follow-up sections from the main column, and uses the report details rail open action', async () => {
     const onReportBodySave = vi.fn(async () => undefined);
     const onLeadOpen = vi.fn();
 
     render(
-      <ReportViewer
+      <ArtifactViewer
         report={reportFixture}
         workspaceTitle="Atlas Review"
         navStack={[]}

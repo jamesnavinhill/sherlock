@@ -43,7 +43,7 @@ const mapSession = (row: typeof chatSessions.$inferSelect): ChatSession => ({
   workspaceId: row.workspaceId,
   title: row.title,
   status: row.status as ChatSession['status'],
-  sourceReportId: row.sourceReportId || undefined,
+  sourceArtifactId: row.sourceArtifactId || undefined,
   packId: row.packId || undefined,
   purposeId: row.purposeId || undefined,
   provider: row.provider as ChatSession['provider'],
@@ -129,7 +129,7 @@ export class ChatRepository {
       workspaceId: session.workspaceId,
       title: session.title,
       status: session.status,
-      sourceReportId: session.sourceReportId || null,
+      sourceArtifactId: session.sourceArtifactId || null,
       packId: session.packId || null,
       purposeId: session.purposeId || null,
       provider: session.provider || null,
@@ -150,8 +150,8 @@ export class ChatRepository {
       .set({
         title: patch.title,
         status: patch.status,
-        sourceReportId:
-          patch.sourceReportId === undefined ? undefined : patch.sourceReportId || null,
+        sourceArtifactId:
+          patch.sourceArtifactId === undefined ? undefined : patch.sourceArtifactId || null,
         packId: patch.packId === undefined ? undefined : patch.packId || null,
         purposeId: patch.purposeId === undefined ? undefined : patch.purposeId || null,
         provider: patch.provider === undefined ? undefined : patch.provider || null,

@@ -35,9 +35,9 @@ import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import { Accordion } from '../../ui/Accordion';
 import { getEntityToneClass } from '../../../utils/entityPalette';
-import { buildReportViewerPresentation } from './reportViewerPresentation';
+import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
 
-interface ReportViewerProps {
+interface ArtifactViewerProps {
   report: Artifact | null;
   workspaceTitle?: string | null;
   focusedSectionId?: string;
@@ -53,7 +53,7 @@ interface ReportViewerProps {
   onEntityClick: (entity: Entity) => void;
 }
 
-export const ReportViewer: React.FC<ReportViewerProps> = ({
+export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   report,
   workspaceTitle,
   focusedSectionId,
@@ -204,7 +204,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     provenanceSummary,
     readingHighlights,
     visibleEvidence,
-  } = buildReportViewerPresentation(report, purposeProfile);
+  } = buildArtifactViewerPresentation(report, purposeProfile);
   const focusedEvidence =
     focusedEvidenceId && visibleEvidence.length > 0
       ? visibleEvidence.find((entry) => entry.id === focusedEvidenceId)

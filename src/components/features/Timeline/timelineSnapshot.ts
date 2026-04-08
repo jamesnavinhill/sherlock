@@ -113,7 +113,7 @@ export const buildTimelineSnapshotArtifact = (snapshot: TimelineSnapshot): Artif
   );
 
   return {
-    caseId: snapshot.workspace.id,
+    workspaceId: snapshot.workspace.id,
     topic: `${getWorkspaceDisplayTitle(snapshot.workspace)} Timeline Snapshot`,
     dateStr: new Date(snapshot.metadata.generatedAt).toLocaleDateString(),
     createdAt: Date.parse(snapshot.metadata.generatedAt) || Date.now(),

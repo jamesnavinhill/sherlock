@@ -32,9 +32,9 @@ describe('useOperationViewController', () => {
       addToast: vi.fn(),
       addTemplate: vi.fn(),
       updateArtifactSection: vi.fn(async () => undefined),
-      updateReportTitle: vi.fn(async () => undefined),
-      updateReportSummary: vi.fn(async () => undefined),
-      renameEntityAcrossReports: vi.fn(async () => undefined),
+      updateArtifactTitle: vi.fn(async () => undefined),
+      updateArtifactSummary: vi.fn(async () => undefined),
+      renameEntityAcrossArtifacts: vi.fn(async () => undefined),
       activeWorkspaceId: 'ws-1',
       setActiveWorkspaceId: vi.fn(),
       ensureWorkspaceBoard: vi.fn(async () => ({ id: 'board-1' })),
@@ -112,13 +112,13 @@ describe('useOperationViewController', () => {
   });
 
   it('saves the unified report body to both summary and executive summary section state', async () => {
-    const updateReportSummary = vi.fn(async () => undefined);
+    const updateArtifactSummary = vi.fn(async () => undefined);
     const updateArtifactSection = vi.fn(async () => undefined);
     const addToast = vi.fn();
 
     selectorState.useOperationFeatureState.mockReturnValue({
       ...baseState,
-      updateReportSummary,
+      updateArtifactSummary,
       updateArtifactSection,
       addToast,
     });
@@ -158,7 +158,7 @@ describe('useOperationViewController', () => {
       );
     });
 
-    expect(updateReportSummary).toHaveBeenCalledWith(
+    expect(updateArtifactSummary).toHaveBeenCalledWith(
       'artifact-1',
       'Expanded report body for editing.'
     );

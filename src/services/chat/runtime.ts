@@ -97,7 +97,7 @@ const buildAttachments = (
   return [...workspaceAttachments, ...sourceAttachments];
 };
 
-const createReportAttachment = (
+const createArtifactAttachment = (
   messageId: string,
   report: Pick<Artifact, 'id' | 'topic' | 'summary' | 'artifactType'>
 ): ChatAttachment => ({
@@ -411,7 +411,7 @@ export const fetchArtifactSummaryForChat = async (params: {
       role: 'tool',
       content: `Fetched saved artifact summary for **${report.topic}**.\n\n${report.summary}`,
       status: 'COMPLETED',
-      attachments: [createReportAttachment(messageId, report)],
+      attachments: [createArtifactAttachment(messageId, report)],
       metadata: {
         actionType: 'FETCH_ARTIFACT_SUMMARY',
         reportId: report.id,
@@ -465,7 +465,7 @@ export const fetchFullArtifactTextForChat = async (params: {
       status: 'COMPLETED',
       attachments: [
         {
-          ...createReportAttachment(messageId, report),
+          ...createArtifactAttachment(messageId, report),
           snippet: summarizeText(sectionText || report.rawText || report.summary, 280),
         },
       ],
@@ -582,7 +582,7 @@ export const buildArtifactDraftFromChatMessage = (params: {
   });
   const report: Artifact = {
     id: createLocalId('rep'),
-    caseId: params.workspace.id,
+    workspaceId: params.workspace.id,
     topic: draft.title,
     dateStr: new Date(now).toLocaleDateString(),
     summary: summarizeText(params.message.content, 320),
@@ -722,7 +722,7 @@ export const buildFollowUpRunFromChatMessage = (params: {
     labelProfileId: params.workspace.labelProfileId || pack.labelProfileId,
     launchSource: 'CHAT_FOLLOW_UP',
     sourceSignalId: launchContext?.signalId || launchContext?.headlineId,
-    parentArtifactId: params.session.sourceReportId || launchContext?.sourceReportId,
+    parentArtifactId: params.session.sourceArtifactId || launchContext?.sourceArtifactId,
     switchToView: true,
   };
 

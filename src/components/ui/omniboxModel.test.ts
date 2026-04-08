@@ -23,7 +23,7 @@ describe('omniboxModel', () => {
     };
     const artifact: Artifact = {
       id: 'rep-1',
-      caseId: 'ws-1',
+      workspaceId: 'ws-1',
       topic: 'Atlas Brief',
       summary: 'Brief summary',
       agendas: [],
@@ -142,7 +142,7 @@ describe('omniboxModel', () => {
     };
     const artifact: Artifact = {
       id: 'rep-1',
-      caseId: 'ws-1',
+      workspaceId: 'ws-1',
       topic: 'Atlas Brief',
       summary: 'Brief summary',
       agendas: [],
