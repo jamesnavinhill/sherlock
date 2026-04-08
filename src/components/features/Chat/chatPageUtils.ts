@@ -72,7 +72,7 @@ export const getSessionTitle = (session: ChatSession): string =>
   sanitizeDisplayTitle(session.title.trim() || 'Untitled Chat');
 
 export const LEFT_PANEL_SECTION_SCROLL_CLASS =
-  'max-h-[min(20rem,calc(100svh-21rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+  'min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
 
 export const RIGHT_PANEL_SECTION_SCROLL_CLASS =
   'min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
@@ -176,7 +176,7 @@ export const buildManualSetupSeed = (draft: GuidedRunDraft) => ({
 export const sectionLabelClassName =
   'text-[11px] font-mono uppercase tracking-[0.28em] text-zinc-500';
 
-export const getDefaultLeftPanelOpen = () => false;
-
-export const getDefaultRightPanelOpen = () =>
+export const getDefaultLeftPanelOpen = () =>
   typeof window !== 'undefined' ? window.innerWidth > 1024 : false;
+
+export const getDefaultRightPanelOpen = () => false;

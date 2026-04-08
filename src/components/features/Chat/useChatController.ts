@@ -187,13 +187,8 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 1024) {
-        setLeftPanelOpen(false);
-        setRightPanelOpen(false);
-      } else {
-        setLeftPanelOpen(false);
-        setRightPanelOpen(true);
-      }
+      setLeftPanelOpen(getDefaultLeftPanelOpen());
+      setRightPanelOpen(getDefaultRightPanelOpen());
     };
 
     handleResize();

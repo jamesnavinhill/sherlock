@@ -65,6 +65,28 @@ describe('useChatController', () => {
     });
   });
 
+  it('defaults to the sessions rail open, context rail closed, and all sections collapsed on desktop', () => {
+    const { result } = renderHook(() =>
+      useChatController({
+        onLaunchInvestigation: vi.fn(),
+      })
+    );
+
+    expect(result.current.leftPanelOpen).toBe(true);
+    expect(result.current.rightPanelOpen).toBe(false);
+    expect(result.current.leftPanelSections).toEqual({
+      sessions: false,
+      workspace: false,
+    });
+    expect(result.current.rightPanelSections).toEqual({
+      launchContext: false,
+      recentArtifacts: false,
+      recentSignals: false,
+      latestRetrieval: false,
+      actionLog: false,
+    });
+  });
+
   it('controls new-project modal state through controller menu handlers', () => {
     const { result } = renderHook(() =>
       useChatController({
