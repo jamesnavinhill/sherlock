@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { getWorkspaceDisplayTitle } from '@/domain';
 import type { Artifact, InvestigationLaunchRequest, Workspace } from '@/types';
 import { ModalShell } from '@/components/ui/ModalShell';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -68,8 +69,10 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
         initialContext={
           manualSetupDraft.workspaceIntent === 'CURRENT' && activeWorkspace
             ? {
-                topic: activeWorkspace.title,
-                summary: activeWorkspace.description || `${activeWorkspace.title} workspace`,
+                topic: getWorkspaceDisplayTitle(activeWorkspace),
+                summary:
+                  activeWorkspace.description ||
+                  `${getWorkspaceDisplayTitle(activeWorkspace)} workspace`,
               }
             : undefined
         }

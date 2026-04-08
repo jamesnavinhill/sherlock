@@ -1,4 +1,5 @@
 import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import type {
   AgentAction,
   Artifact,
@@ -100,8 +101,9 @@ export const saveChatMessageAsArtifact = async ({
     message,
   });
   const saved = await archiveReport(report, {
-    topic: activeWorkspace.title,
-    summary: activeWorkspace.description || `${activeWorkspace.title} workspace`,
+    topic: getWorkspaceDisplayTitle(activeWorkspace),
+    summary:
+      activeWorkspace.description || `${getWorkspaceDisplayTitle(activeWorkspace)} workspace`,
   });
   await addChatAction({
     ...action,

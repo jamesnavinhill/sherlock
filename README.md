@@ -134,11 +134,11 @@ npm run check:full
 
 ## Current Validation Snapshot (April 8, 2026)
 
-The current targeted validation for the Workstream 4 and 5 closeout passed on this checkout:
+The current targeted validation for the features/UX productization closeout passed on this checkout:
 
 - `npm run lint`: passes
 - `npm run typecheck`: passes
-- targeted tests for Files, Feed, Live Monitor, Network Graph, Chat, Timeline, workspace-home routing, and workspace-home readiness shaping: pass
+- targeted tests for Files, Feed, Live Monitor, Network Graph, Chat, Timeline, workspace-home routing, workspace-home readiness shaping, and final chat/workspace-identity cleanup: pass
 - `npm run build`: passes
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint

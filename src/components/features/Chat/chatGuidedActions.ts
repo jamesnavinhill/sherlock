@@ -5,6 +5,7 @@ import type {
   InvestigationScope,
   Workspace,
 } from '@/types';
+import { getWorkspaceDisplayTitle } from '@/domain';
 import { createLocalId } from '@/utils/id';
 import {
   buildArtifactDraftFromGuidedDraft,
@@ -170,8 +171,10 @@ export const saveGuidedChatDraft = async ({
         },
     guidedState.draft.workspaceIntent === 'CURRENT' && activeWorkspace
       ? {
-          topic: activeWorkspace.title,
-          summary: activeWorkspace.description || `${activeWorkspace.title} workspace`,
+          topic: getWorkspaceDisplayTitle(activeWorkspace),
+          summary:
+            activeWorkspace.description ||
+            `${getWorkspaceDisplayTitle(activeWorkspace)} workspace`,
         }
       : undefined
   );

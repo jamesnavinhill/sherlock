@@ -160,7 +160,7 @@ export const getGuidedAssistantPrompt = (
 
   switch (state.step) {
     case 'PACK':
-      return `Let's shape this run for **${workspace?.title || labelProfile.workspaceLabel}**.\n\nChoose the pack, purpose, output type, and whether the result should stay in the current workspace or branch into a new one.`;
+      return `Let's shape this run for **${workspace ? getWorkspaceDisplayTitle(workspace) : labelProfile.workspaceLabel}**.\n\nChoose the pack, purpose, output type, and whether the result should stay in the current workspace or branch into a new one.`;
     case 'TARGET':
       return `Now define the core target.\n\nAdd the ${setupCopy.targetLabel.toLowerCase()} so Sherlock knows exactly what question, topic, or entity to work on.`;
     case 'ANGLE':
@@ -304,7 +304,7 @@ export const buildGuidedReviewMarkdown = (
       : 'Open date range';
 
   return [
-    `- Workspace intent: **${draft.workspaceIntent === 'CURRENT' ? workspace?.title || 'Current workspace' : 'New workspace'}**`,
+    `- Workspace intent: **${draft.workspaceIntent === 'CURRENT' ? (workspace ? getWorkspaceDisplayTitle(workspace) : 'Current workspace') : 'New workspace'}**`,
     `- Pack: **${pack.name}**`,
     `- Purpose: **${purpose.name}**`,
     `- Output shape: **${draft.artifactType}**`,

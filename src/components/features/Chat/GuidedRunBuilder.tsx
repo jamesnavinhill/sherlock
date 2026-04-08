@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import type { Workspace, GraphNodeSubtype, InvestigationScope } from '@/types';
 import { getAllScopes } from '../../../data/presets';
-import { getDomainPackForScope, getPurposeProfileById } from '../../../domain';
+import { getDomainPackForScope, getPurposeProfileById, getWorkspaceDisplayTitle } from '../../../domain';
 import {
   buildGuidedReviewMarkdown,
   GUIDED_STEP_ORDER,
@@ -226,7 +226,10 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
             }
             triggerClassName="px-3 py-2 pr-8 text-sm"
             options={[
-              { value: 'CURRENT', label: workspace?.title || 'Current workspace' },
+              {
+                value: 'CURRENT',
+                label: workspace ? getWorkspaceDisplayTitle(workspace) : 'Current workspace',
+              },
               { value: 'NEW', label: 'New workspace' },
             ]}
           />

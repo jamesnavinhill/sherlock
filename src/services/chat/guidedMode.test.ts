@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildLaunchRequestFromGuidedDraft, createDefaultGuidedSessionState } from './guidedMode';
+import {
+  buildGuidedReviewMarkdown,
+  buildLaunchRequestFromGuidedDraft,
+  createDefaultGuidedSessionState,
+  getGuidedAssistantPrompt,
+} from './guidedMode';
 
 describe('guidedMode', () => {
   it('creates a workspace-aware default guided session state', () => {
@@ -75,5 +80,40 @@ describe('guidedMode', () => {
       end: '2025-12-31',
     });
     expect(request.launchSource).toBe('CHAT_GUIDED_RUN');
+  });
+
+  it('uses the resolved workspace display title in guided prompts and review copy', () => {
+    const workspace = {
+      id: 'case-1',
+      title: '[WORKSPACE]: Legacy Atlas',
+      displayTitle: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-03',
+    } as const;
+
+    const prompt = getGuidedAssistantPrompt(
+      {
+        mode: 'GUIDED',
+        step: 'PACK',
+        draft: createDefaultGuidedSessionState(workspace).draft,
+      },
+      [],
+      workspace
+    );
+
+    const review = buildGuidedReviewMarkdown(
+      {
+        ...createDefaultGuidedSessionState(workspace).draft,
+        workspaceIntent: 'CURRENT',
+        topic: 'Atlas procurement anomalies',
+      },
+      [],
+      workspace
+    );
+
+    expect(prompt).toContain('Atlas Workspace');
+    expect(prompt).not.toContain('[WORKSPACE]: Legacy Atlas');
+    expect(review).toContain('Atlas Workspace');
+    expect(review).not.toContain('[WORKSPACE]: Legacy Atlas');
   });
 });
