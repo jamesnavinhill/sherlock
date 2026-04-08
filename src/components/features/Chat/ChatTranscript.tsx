@@ -11,14 +11,13 @@ import {
   PlayCircle,
 } from 'lucide-react';
 
-import type { ChatMentionReference, ChatMessage, ChatSession, Workspace } from '@/types';
+import type { ChatMentionReference, ChatMessage, Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { findMentionMatches } from '@/services/chat/mentions';
 
 type ChatAttachment = NonNullable<ChatMessage['attachments']>[number];
 
 interface ChatTranscriptProps {
-  activeSession: ChatSession | null;
   activeWorkspace: Workspace | null;
   messages: ChatMessage[];
   workspaces: Workspace[];
@@ -42,11 +41,9 @@ interface ChatTranscriptProps {
   handleAppendMessageToArtifact: (message: ChatMessage) => Promise<void>;
   handleLaunchFollowUp: (message: ChatMessage) => Promise<void>;
   handleStartNewWorkspace: () => void;
-  handleCreateSession: () => Promise<void>;
 }
 
 export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
-  activeSession,
   activeWorkspace,
   messages,
   workspaces,
@@ -66,11 +63,22 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
   handleAppendMessageToArtifact,
   handleLaunchFollowUp,
   handleStartNewWorkspace,
-  handleCreateSession,
-}) => (
-  <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-black">
-    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 pb-4">
+}) => {
+  const showWorkspaceEmptyState = !activeWorkspace;
+  const hasMessages = messages.length > 0;
+
+  return (
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-black">
+      <div
+        className={`min-h-0 flex-1 px-4 py-4 sm:px-6 ${
+          showWorkspaceEmptyState || !hasMessages ? 'overflow-hidden' : 'overflow-y-auto'
+        }`}
+      >
+        <div
+          className={`mx-auto flex w-full max-w-4xl flex-col ${
+            hasMessages ? 'gap-4 pb-4' : 'min-h-full justify-center'
+          }`}
+        >
         {!activeWorkspace ? (
           <EmptyState
             icon={MessageSquare}
@@ -87,28 +95,6 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                     onClick: handleStartNewWorkspace,
                   }
                 : undefined
-            }
-            className="px-0 py-6"
-            panelClassName="max-w-3xl px-6 py-8"
-          />
-        ) : messages.length === 0 ? (
-          <EmptyState
-            icon={MessageSquare}
-            title={activeSession ? 'Session Ready' : 'No Chat Session'}
-            description={
-              activeSession
-                ? 'Ask about this workspace to begin the transcript.'
-                : 'Start a workspace chat session or use the composer below to begin a grounded transcript.'
-            }
-            action={
-              activeSession
-                ? undefined
-                : {
-                    label: 'Start New Session',
-                    onClick: () => {
-                      void handleCreateSession();
-                    },
-                  }
             }
             className="px-0 py-6"
             panelClassName="max-w-3xl px-6 py-8"
@@ -323,6 +309,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
 
         <div ref={transcriptEndRef} />
       </div>
-    </div>
-  </section>
-);
+      </div>
+    </section>
+  );
+};

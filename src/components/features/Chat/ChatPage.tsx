@@ -184,7 +184,6 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-black">
           <ChatTranscript
-            activeSession={activeSession}
             activeWorkspace={activeWorkspace}
             messages={messages}
             workspaces={workspaces}
@@ -204,7 +203,6 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             handleAppendMessageToArtifact={handleAppendMessageToArtifact}
             handleLaunchFollowUp={handleLaunchFollowUp}
             handleStartNewWorkspace={handleStartNewProject}
-            handleCreateSession={handleCreateSession}
           />
 
           <ChatComposer

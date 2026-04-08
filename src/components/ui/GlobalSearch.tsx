@@ -67,6 +67,37 @@ const resultLabelByKind: Record<OmniboxResult['kind'], string> = {
   WORKSPACE_ITEM: CANONICAL_NOUNS.item,
 };
 
+const actionMetaById: Record<
+  Exclude<OmniboxActionId, 'OPEN'>,
+  { icon: LucideIcon; label: string; title: string }
+> = {
+  OPEN_IN_CHAT: {
+    icon: MessageSquare,
+    label: 'Chat',
+    title: 'Open in workspace chat',
+  },
+  PLACE_ON_BOARD: {
+    icon: Workflow,
+    label: 'Place',
+    title: 'Place on board',
+  },
+  OPEN_IN_TIMELINE: {
+    icon: Radio,
+    label: 'Timeline',
+    title: 'Open in timeline',
+  },
+  OPEN_IN_NETWORK: {
+    icon: Network,
+    label: 'Network',
+    title: 'Open in network',
+  },
+  OPEN_IN_FILES: {
+    icon: FolderKanban,
+    label: 'Files',
+    title: 'Open in files',
+  },
+};
+
 interface GlobalSearchInlineProps {
   className?: string;
   compact?: boolean;
@@ -369,7 +400,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
             setIsLoading(true);
           }}
           onKeyDown={(event) => void handleKeyDown(event)}
-          placeholder="Search routes, workspaces, artifacts, sections, items, chats, and signals..."
+          placeholder="Global Search"
           className={`flex-1 bg-transparent text-white outline-none placeholder:text-zinc-600 ${
             compact ? 'text-xs' : 'text-sm'
           }`}
@@ -431,46 +462,97 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                 {results.map((result, index) => {
                   const Icon = resultIconByKind[result.kind];
                   const isSelected = index === Math.min(selectedIndex, results.length - 1);
+                  const secondaryActions = result.actions.filter(
+                    (action): action is Exclude<OmniboxActionId, 'OPEN'> => action !== 'OPEN'
+                  );
 
                   return (
-                    <button
+                    <div
                       key={result.id}
-                      onClick={() => void handleAction(result, 'OPEN')}
                       onMouseEnter={() => setSelectedIndex(index)}
-                      className={`w-full border p-3 text-left transition-colors ${
+                      className={`group w-full border p-3 text-left transition-colors ${
                         isSelected
                           ? 'border-osint-primary/30 bg-osint-primary/10'
                           : 'border-transparent hover:bg-zinc-900'
                       }`}
                     >
-                      <div className="flex items-start gap-4">
+                      <button
+                        type="button"
+                        onClick={() => void handleAction(result, 'OPEN')}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded ${
+                              isSelected ? 'text-osint-primary' : 'text-zinc-600'
+                            }`}
+                          >
+                            <Icon size={18} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-1 text-[10px] uppercase tracking-tighter text-zinc-500">
+                              {result.subtitle || resultLabelByKind[result.kind]}
+                            </div>
+                            <div className="line-clamp-1 text-sm text-zinc-200">{result.title}</div>
+                            {result.snippet ? (
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
+                                {result.snippet}
+                              </p>
+                            ) : null}
+                          </div>
+                          <ArrowRight
+                            className={`mt-2 h-4 w-4 transition-all ${
+                              isSelected
+                                ? 'translate-x-0 text-osint-primary opacity-100'
+                                : '-translate-x-2 text-zinc-700 opacity-0'
+                            }`}
+                          />
+                        </div>
+                      </button>
+
+                      {secondaryActions.length > 0 ? (
                         <div
-                          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded ${
-                            isSelected ? 'text-osint-primary' : 'text-zinc-600'
+                          className={`ml-12 mt-3 flex flex-wrap items-center gap-2 transition ${
+                            isSelected
+                              ? 'max-h-24 opacity-100'
+                              : 'max-h-0 overflow-hidden opacity-0'
                           }`}
                         >
-                          <Icon size={18} />
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void handleAction(result, 'OPEN');
+                            }}
+                            className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                          >
+                            <ArrowRight className="h-3 w-3" />
+                            {getOmniboxOpenLabel(result)}
+                          </button>
+
+                          {secondaryActions.map((action) => {
+                            const actionMeta = actionMetaById[action];
+                            const ActionIcon = actionMeta.icon;
+
+                            return (
+                              <button
+                                key={`${result.id}:${action}`}
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void handleAction(result, action);
+                                }}
+                                className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                                title={actionMeta.title}
+                              >
+                                <ActionIcon className="h-3 w-3" />
+                                {actionMeta.label}
+                              </button>
+                            );
+                          })}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-1 text-[10px] uppercase tracking-tighter text-zinc-500">
-                            {result.subtitle || resultLabelByKind[result.kind]}
-                          </div>
-                          <div className="line-clamp-1 text-sm text-zinc-200">{result.title}</div>
-                          {result.snippet ? (
-                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-500">
-                              {result.snippet}
-                            </p>
-                          ) : null}
-                        </div>
-                        <ArrowRight
-                          className={`mt-2 h-4 w-4 transition-all ${
-                            isSelected
-                              ? 'translate-x-0 text-osint-primary opacity-100'
-                              : '-translate-x-2 text-zinc-700 opacity-0'
-                          }`}
-                        />
-                      </div>
-                    </button>
+                      ) : null}
+                    </div>
                   );
                 })}
               </div>
@@ -488,62 +570,16 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
             <div className="flex flex-wrap items-center justify-end gap-2">
               {selectedResult ? (
                 <>
-                  <button
-                    onClick={() => void handleAction(selectedResult, 'OPEN')}
-                    className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                  >
-                    <ArrowRight className="h-3 w-3" />
-                    {getOmniboxOpenLabel(selectedResult)}
-                  </button>
-                  {selectedResult.actions.includes('OPEN_IN_CHAT') ? (
-                    <button
-                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_CHAT')}
-                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                      title="Open in workspace chat"
-                    >
-                      <MessageSquare className="h-3 w-3" />
-                      Chat
-                    </button>
-                  ) : null}
+                  <span className="rounded border border-zinc-800 px-2 py-1">{`Enter ${getOmniboxOpenLabel(
+                    selectedResult
+                  )}`}</span>
                   {selectedResult.actions.includes('PLACE_ON_BOARD') ? (
-                    <button
-                      onClick={() => void handleAction(selectedResult, 'PLACE_ON_BOARD')}
-                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                      title="Place on board"
-                    >
-                      <Workflow className="h-3 w-3" />
-                      Place
-                    </button>
+                    <span className="rounded border border-zinc-800 px-2 py-1">Shift+Enter Place</span>
                   ) : null}
                   {selectedResult.actions.includes('OPEN_IN_TIMELINE') ? (
-                    <button
-                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_TIMELINE')}
-                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                      title="Open in timeline"
-                    >
-                      <Radio className="h-3 w-3" />
-                      Timeline
-                    </button>
-                  ) : null}
-                  {selectedResult.actions.includes('OPEN_IN_NETWORK') ? (
-                    <button
-                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_NETWORK')}
-                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                      title="Open in network"
-                    >
-                      <Network className="h-3 w-3" />
-                      Network
-                    </button>
-                  ) : null}
-                  {selectedResult.actions.includes('OPEN_IN_FILES') ? (
-                    <button
-                      onClick={() => void handleAction(selectedResult, 'OPEN_IN_FILES')}
-                      className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                      title="Open in Files"
-                    >
-                      <FolderKanban className="h-3 w-3" />
-                      Files
-                    </button>
+                    <span className="rounded border border-zinc-800 px-2 py-1">
+                      Alt+Enter Timeline
+                    </span>
                   ) : null}
                 </>
               ) : null}

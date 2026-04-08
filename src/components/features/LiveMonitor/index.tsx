@@ -17,7 +17,9 @@ import { OsintSelect } from '../../ui/OsintSelect';
 import { GlobalSearch } from '../../ui/GlobalSearch';
 import {
   CHROME_HEADER_CLASS,
-  CHROME_TOOLBAR_FIELD_CLASS,
+  CHROME_HEADER_LEADING_GROUP_CLASS,
+  CHROME_HEADER_SELECT_TRIGGER_CLASS,
+  CHROME_HEADER_SELECT_WRAP_CLASS,
   getChromeMenuButtonClass,
 } from '../../ui/chrome';
 import {
@@ -62,7 +64,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
     customScopes,
   } = useWorkspaceStore();
 
-  type FilterType = 'ALL' | 'SOCIAL' | 'NEWS' | 'OFFICIAL';
   type ThreatFilter = 'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL';
 
   // Monitoring State
@@ -71,8 +72,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
   const [streamStatus, setStreamStatus] = useState<'IDLE' | 'SCANNING' | 'RECEIVING'>('IDLE');
 
   // Filter & UI State
-  const [filterType, setFilterType] = useState<FilterType>('ALL');
-  const [filterThreat, setFilterThreat] = useState<ThreatFilter>('ALL');
+  const [selectedLevels, setSelectedLevels] = useState<ThreatFilter[]>(['ALL']);
   const [showSettings, setShowSettings] = useState(false);
 
   // Configuration State
@@ -290,10 +290,13 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
   };
 
   const getFilteredEvents = () => {
-    let filtered = safeEvents;
-    if (filterType !== 'ALL') filtered = filtered.filter((e) => e.type === filterType);
-    if (filterThreat !== 'ALL') filtered = filtered.filter((e) => e.threatLevel === filterThreat);
-    return filtered;
+    if (selectedLevels.includes('ALL') || selectedLevels.length === 0) {
+      return safeEvents;
+    }
+
+    return safeEvents.filter((event) =>
+      selectedLevels.includes(event.threatLevel as Exclude<ThreatFilter, 'ALL'>)
+    );
   };
 
   // --- RENDER ---
@@ -304,74 +307,22 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
       <div className={`${CHROME_HEADER_CLASS} relative px-6`}>
         <div className="flex h-full min-w-0 items-center gap-3">
           {/* Left: Selectors */}
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
             {/* Workspace Selector */}
-            <div className="hidden md:block min-w-[100px] max-w-[220px]">
+            <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
               <OsintSelect
                 ariaLabel={`${labelProfile.workspaceLabel} selector`}
                 value={selectedCaseId || ''}
                 onChange={setSelectedCaseId}
                 disabled={isMonitoring}
                 chrome="toolbar"
-                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate`}
+                triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
                 options={[
                   { value: '', label: 'None Selected' },
                   ...workspaces.map((workspace) => ({
                     value: workspace.id,
                     label: getWorkspaceDisplayTitle(workspace),
                   })),
-                ]}
-              />
-            </div>
-
-            {/* Filter Selector */}
-            <div className="min-w-[132px]">
-              <OsintSelect
-                ariaLabel="Signal filter"
-                value={filterType}
-                onChange={(value) => {
-                  if (
-                    value === 'ALL' ||
-                    value === 'SOCIAL' ||
-                    value === 'NEWS' ||
-                    value === 'OFFICIAL'
-                  ) {
-                    setFilterType(value);
-                  }
-                }}
-                chrome="toolbar"
-                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} rounded-none py-1.5 pl-3 pr-8 text-xs font-mono`}
-                options={[
-                  { value: 'ALL', label: 'All Signals' },
-                  { value: 'SOCIAL', label: 'Social Only' },
-                  { value: 'NEWS', label: 'News Only' },
-                  { value: 'OFFICIAL', label: 'Official Docs' },
-                ]}
-              />
-            </div>
-
-            {/* Threat Filter */}
-            <div className="min-w-[132px]">
-              <OsintSelect
-                ariaLabel="Threat filter"
-                value={filterThreat}
-                onChange={(value) => {
-                  if (
-                    value === 'ALL' ||
-                    value === 'INFO' ||
-                    value === 'CAUTION' ||
-                    value === 'CRITICAL'
-                  ) {
-                    setFilterThreat(value);
-                  }
-                }}
-                chrome="toolbar"
-                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} rounded-none py-1.5 pl-3 pr-8 text-xs font-mono`}
-                options={[
-                  { value: 'ALL', label: 'All Levels' },
-                  { value: 'INFO', label: 'Info Only' },
-                  { value: 'CAUTION', label: 'Caution Only' },
-                  { value: 'CRITICAL', label: 'Critical Only' },
                 ]}
               />
             </div>
@@ -437,6 +388,8 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
             onClose={() => setShowSettings(false)}
             config={feedConfig}
             onConfigChange={setFeedConfig}
+            selectedLevels={selectedLevels}
+            onLevelsChange={setSelectedLevels}
             onClearFeed={handleClearFeed}
             autoSave={autoSave}
             onAutoSaveChange={handleAutoSaveChange}

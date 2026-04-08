@@ -20,6 +20,9 @@
   --osint-border: #27272a;
   --osint-text: #a1a1aa;
   --osint-ink: #f4f4f5;
+  --osint-text-strong: color-mix(in oklab, var(--osint-ink) 44%, var(--osint-text));
+  --osint-text-heading: color-mix(in oklab, var(--osint-ink) 56%, var(--osint-text));
+  --osint-text-action: color-mix(in oklab, var(--osint-ink) 92%, var(--osint-primary) 8%);
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
   --font-label: 'IBM Plex Mono', monospace;
@@ -43,6 +46,9 @@
   --osint-border: #cebea4;
   --osint-text: #3a2c1f;
   --osint-ink: #1f160d;
+  --osint-text-strong: color-mix(in oklab, var(--osint-ink) 74%, var(--osint-text));
+  --osint-text-heading: var(--osint-ink);
+  --osint-text-action: var(--osint-ink);
 
   /* Light mode remap for existing dark-first utility usage */
   --color-zinc-950: color-mix(
@@ -242,6 +248,76 @@ body,
   color: #7a6852 !important;
 }
 
+/*
+ * Dark mode keeps action chrome intentionally crisp, but routine headings
+ * should sit closer to the reading system than pure white.
+ */
+:root:not([data-theme='light']) .text-white,
+:root:not([data-theme='light']) .hover\:text-white:hover,
+:root:not([data-theme='light']) .focus-visible\:text-white:focus-visible {
+  color: var(--osint-text-heading) !important;
+}
+
+:root:not([data-theme='light']) .group:hover .group-hover\:text-white {
+  color: var(--osint-text-heading) !important;
+}
+
+:root:not([data-theme='light']) .text-zinc-700 {
+  color: color-mix(in oklab, var(--osint-text) 34%, var(--osint-dark)) !important;
+}
+
+:root:not([data-theme='light']) .text-zinc-600 {
+  color: color-mix(in oklab, var(--osint-text) 48%, var(--osint-dark)) !important;
+}
+
+:root:not([data-theme='light']) .text-zinc-500 {
+  color: color-mix(in oklab, var(--osint-text) 66%, var(--osint-dark)) !important;
+}
+
+:root:not([data-theme='light']) .text-zinc-400 {
+  color: color-mix(in oklab, var(--osint-text) 84%, var(--osint-ink) 16%) !important;
+}
+
+:root:not([data-theme='light']) .text-zinc-300 {
+  color: color-mix(in oklab, var(--osint-text) 78%, var(--osint-ink) 22%) !important;
+}
+
+:root:not([data-theme='light']) .text-zinc-200 {
+  color: var(--osint-text-strong) !important;
+}
+
+:root:not([data-theme='light']) .font-semibold {
+  font-weight: 560 !important;
+}
+
+:root:not([data-theme='light']) .font-bold {
+  font-weight: 620 !important;
+}
+
+:root:not([data-theme='light']) .font-extrabold {
+  font-weight: 680 !important;
+}
+
+:root:not([data-theme='light'])
+  :is(h1, h2, h3, h4, h5, h6, div, span, p).text-white.uppercase:is(.font-mono, .font-osint-label) {
+  font-weight: 580 !important;
+  letter-spacing: 0.08em !important;
+}
+
+:root:not([data-theme='light'])
+  :is(h1, h2, h3, h4, h5, h6, div, span, p).text-zinc-200.uppercase:is(.font-mono, .font-osint-label),
+:root:not([data-theme='light'])
+  :is(h1, h2, h3, h4, h5, h6, div, span, p).text-zinc-300.uppercase:is(.font-mono, .font-osint-label) {
+  font-weight: 560 !important;
+}
+
+:root:not([data-theme='light'])
+  :is(h1, h2, h3, h4, h5, h6, div, span, p):is(.font-osint-display, .font-osint-label).text-white,
+:root:not([data-theme='light'])
+  :is(h1, h2, h3, h4, h5, h6, div, span, p):is(.font-osint-display, .font-osint-label).text-zinc-200 {
+  font-weight: 600 !important;
+}
+
 :root {
   --osint-primary-soft-bg: color-mix(in oklab, var(--osint-primary) 12%, transparent);
   --osint-primary-soft-bg-strong: color-mix(in oklab, var(--osint-primary) 18%, transparent);
@@ -250,8 +326,9 @@ body,
 
 .osint-button-primary {
   background-color: var(--osint-panel);
-  color: var(--osint-ink);
+  color: var(--osint-text-action);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  font-weight: 700;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -272,6 +349,7 @@ body,
   background-color: var(--osint-primary-soft-bg);
   color: var(--osint-primary);
   border: 1px solid var(--osint-primary-soft-border);
+  font-weight: 700;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -291,6 +369,7 @@ body,
   background-color: transparent;
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  font-weight: 700;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -301,7 +380,7 @@ body,
 .osint-button-chrome:hover,
 .osint-button-chrome:focus-visible {
   background-color: transparent;
-  color: var(--osint-ink);
+  color: var(--osint-text-action);
   border-color: var(--osint-primary-soft-border);
   box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
 }
@@ -310,6 +389,7 @@ body,
   background-color: var(--osint-primary-soft-bg);
   color: var(--osint-primary);
   border: 1px solid var(--osint-primary-soft-border);
+  font-weight: 700;
   box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
 }
 
@@ -333,7 +413,7 @@ body,
 .osint-toolbar-field:hover,
 .osint-toolbar-field:focus-visible,
 .osint-toolbar-field[data-state='open'] {
-  color: var(--osint-ink);
+  color: var(--osint-text-action);
   border-color: var(--osint-primary-soft-border);
   box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
   outline: none;
@@ -372,6 +452,7 @@ body,
   background-color: var(--osint-danger-soft-bg);
   color: var(--color-osint-danger);
   border: 1px solid var(--osint-danger-soft-border);
+  font-weight: 700;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -421,18 +502,18 @@ body,
 }
 
 .osint-empty-state-title {
-  color: color-mix(in oklab, var(--osint-ink) 80%, transparent);
+  color: var(--osint-text-heading);
   font-family: var(--font-mono);
   font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 650;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .osint-empty-state-description {
   margin: 1rem auto 0;
   max-width: 34rem;
-  color: color-mix(in oklab, var(--osint-text) 84%, transparent);
+  color: color-mix(in oklab, var(--osint-text-strong) 84%, var(--osint-text));
   font-family: var(--font-mono);
   font-size: 0.95rem;
   line-height: 1.8;

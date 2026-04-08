@@ -103,7 +103,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
             )}`}
           >
             <Presentation className="h-4 w-4" />
-            {activeBoard.presentationMode ? 'Presentation' : 'Edit Mode'}
+            {activeBoard.presentationMode ? 'Presentation' : 'Edit'}
           </button>
         ) : null}
         <button

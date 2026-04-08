@@ -1,6 +1,7 @@
 import React from 'react';
 import type { MonitorConfig } from '../../../services/runtime';
 import {
+  Check,
   Settings2,
   X,
   Trash2,
@@ -16,6 +17,8 @@ interface SettingsPanelProps {
   onClose: () => void;
   config: MonitorConfig;
   onConfigChange: (config: MonitorConfig) => void;
+  selectedLevels: Array<'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL'>;
+  onLevelsChange: (levels: Array<'ALL' | 'INFO' | 'CAUTION' | 'CRITICAL'>) => void;
   onClearFeed: () => void;
   autoSave: boolean;
   onAutoSaveChange: (value: boolean) => void;
@@ -30,6 +33,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onClose,
   config,
   onConfigChange,
+  selectedLevels,
+  onLevelsChange,
   onClearFeed,
   autoSave,
   onAutoSaveChange,
@@ -39,6 +44,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const updateConfig = (updates: Partial<MonitorConfig>) => {
     onConfigChange({ ...config, ...updates });
   };
+
+  const levelOptions = [
+    { value: 'ALL', label: 'All' },
+    { value: 'INFO', label: 'Info' },
+    { value: 'CAUTION', label: 'Caution' },
+    { value: 'CRITICAL', label: 'Critical' },
+  ] as const;
 
   return (
     <div className="absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
@@ -104,6 +116,50 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               />
               <span className="text-xs font-mono w-4 text-right">{config.officialCount}</span>
             </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-[10px] text-zinc-500 font-mono uppercase mb-3">
+            Levels
+          </label>
+          <div className="flex flex-wrap gap-3">
+            {levelOptions.map((option) => {
+              const checked = selectedLevels.includes(option.value);
+
+              return (
+                <label key={option.value} className="flex items-center gap-2 cursor-pointer group">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (option.value === 'ALL') {
+                        onLevelsChange(['ALL']);
+                        return;
+                      }
+
+                      const withoutAll = selectedLevels.filter((value) => value !== 'ALL');
+                      const nextLevels = withoutAll.includes(option.value)
+                        ? withoutAll.filter((value) => value !== option.value)
+                        : [...withoutAll, option.value];
+
+                      onLevelsChange(
+                        nextLevels.length > 0
+                          ? (nextLevels as Array<'INFO' | 'CAUTION' | 'CRITICAL'>)
+                          : ['ALL']
+                      );
+                    }}
+                    aria-pressed={checked}
+                    data-state={checked ? 'on' : 'off'}
+                    className="osint-check-toggle h-4 w-4 group-hover:border-zinc-500"
+                  >
+                    {checked ? <Check className="h-3 w-3" /> : null}
+                  </button>
+                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-300">
+                    {option.label}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </div>
 

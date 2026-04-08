@@ -9,6 +9,7 @@ import {
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
+  CHROME_HEADER_SELECT_WRAP_CLASS,
   getChromeMenuButtonClass,
   getChromeToggleButtonClass,
 } from '@/components/ui/chrome';
@@ -89,7 +90,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
           <Briefcase className="h-4 w-4" />
         </button>
 
-        <div className="w-full min-w-[180px] max-w-[220px] shrink-0">
+        <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
           <OsintSelect
             ariaLabel="Timeline workspace"
             value={activeWorkspace?.id || ''}

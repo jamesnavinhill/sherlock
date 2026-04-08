@@ -149,6 +149,9 @@ describe('Chat page', () => {
       </MemoryRouter>
     );
 
+    expect(screen.queryByText(/no chat session/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /start new session/i })).not.toBeInTheDocument();
+
     fireEvent.change(screen.getByPlaceholderText(/ask about atlas workspace/i), {
       target: { value: 'What changed this week?' },
     });
