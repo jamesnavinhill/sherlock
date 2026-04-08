@@ -101,6 +101,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             <button
               onClick={() => setIsNewCaseModalOpen(true)}
               className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
+              aria-label={`New ${workspaceLabel}`}
             >
               <Plus className="h-4 w-4" />
               <span>New</span>
