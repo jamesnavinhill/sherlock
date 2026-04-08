@@ -111,34 +111,14 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
       </div>
 
       <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-        <div className="relative shrink-0" ref={exportMenuRef}>
-          <button
-            onClick={onToggleExportMenu}
-            disabled={!timelineSnapshotAvailable}
-            className={getChromeMenuButtonClass(showExportMenu)}
-            title="Export or save the current timeline snapshot"
-          >
-            <Download className="mr-1 h-4 w-4" />
-            <span className="hidden lg:inline">Export</span>
-            <ChevronDown className="ml-1 h-3 w-3" />
-          </button>
-          {showExportMenu && timelineSnapshotAvailable ? (
-            <TimelineExportMenu
-              onExportMarkdown={onExportTimelineMarkdown}
-              onExportJson={onExportTimelineJson}
-              onSaveSnapshot={onSaveTimelineArtifact}
-            />
-          ) : null}
-        </div>
-
         <div className="relative shrink-0" ref={filterMenuRef}>
           <button
             onClick={onToggleFilters}
-            className={getChromeMenuButtonClass(showFilters)}
+            className={`${getChromeMenuButtonClass(showFilters)} justify-center px-2.5`}
             aria-label="Timeline filters"
+            title="Timeline filters"
           >
             <Filter className="h-4 w-4" />
-            <span className="hidden lg:inline">Filters</span>
           </button>
 
           {showFilters ? (
@@ -171,6 +151,26 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
           <BookmarkPlus className="mr-1 h-4 w-4" />
           <span className="hidden lg:inline">Save View</span>
         </button>
+
+        <div className="relative shrink-0" ref={exportMenuRef}>
+          <button
+            onClick={onToggleExportMenu}
+            disabled={!timelineSnapshotAvailable}
+            className={getChromeMenuButtonClass(showExportMenu)}
+            title="Export or save the current timeline snapshot"
+          >
+            <Download className="mr-1 h-4 w-4" />
+            <span className="hidden lg:inline">Export</span>
+            <ChevronDown className="ml-1 h-3 w-3" />
+          </button>
+          {showExportMenu && timelineSnapshotAvailable ? (
+            <TimelineExportMenu
+              onExportMarkdown={onExportTimelineMarkdown}
+              onExportJson={onExportTimelineJson}
+              onSaveSnapshot={onSaveTimelineArtifact}
+            />
+          ) : null}
+        </div>
 
         <button
           onClick={onToggleRightPanel}
