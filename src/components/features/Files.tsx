@@ -131,15 +131,15 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             </div>
           </div>
 
-          <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
-            <GlobalSearch compact className="mx-auto w-full" />
+          <div className="flex min-w-0 flex-1 items-center justify-center">
+            <GlobalSearch compact className="mx-auto w-full max-w-[38rem]" />
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+          <div className="flex shrink-0 items-center justify-end gap-3">
             <div
               role="group"
               aria-label="Files layout"
-              className={`${CHROME_TOOLBAR_GROUP_CLASS} flex items-stretch overflow-hidden`}
+              className={`${CHROME_TOOLBAR_GROUP_CLASS} flex shrink-0 items-stretch overflow-hidden`}
             >
               <button
                 onClick={() => setViewMode('LIST')}

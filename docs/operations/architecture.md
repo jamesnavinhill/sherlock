@@ -412,9 +412,10 @@ Routed workflow surfaces now share a baseline chrome/panel contract rather than 
 - DossierPanel
 - ArtifactViewer
 - InspectorPanel
-- `useOperationViewController.ts` now owns route-level selection state, handoff commands, template-save flow, and board/chat orchestration while `index.tsx` stays focused on layout and modal composition
+- `useOperationViewController.ts` now owns route-level selection state, template-save flow, and high-level board/chat orchestration while `useOperationViewInspectorState.ts` owns right-rail selection plus report/entity/headline handoff commands and `index.tsx` stays focused on layout and modal composition
 - `OperationViewDialogs.tsx` now holds the lead follow-through modal, new-workspace modal, and protocol-template save dialog so workflow copy and launch boundaries live outside the page shell
 - saved artifact routes can now carry `focusSectionId`, `focusEvidenceId`, and `inspector=REPORT`, which lets omnibox/search hits reopen the reader on a precise section/evidence target while defaulting the right rail to a current-artifact inspector
+- `operationWorkspacePanelData.ts` now keeps the dossier-side workspace aggregation model on canonical workspace naming instead of the older case-labelled helper shape
 
 Supports deep dives, follow-up execution, signal follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
@@ -433,7 +434,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - presentation mode plus manual-first AI actions for selection summaries and drafted board notes
 - Sherlock-owned board-agent groundwork under `src/services/workspace/agent/*`, including pure snapshot parsing and prompt-part context assembly for selected, visible, and linked board state
 - a board-agent runtime wrapper that turns persisted board state plus bounded prompt parts into provider-router `BOARD_AGENT` requests
-- a board-agent session runner and action registry that persist planned actions into `board_agent_actions`, pause for approval-first review, then execute safe board actions plus Sherlock-aware canonical writes against the live `tldraw` editor while persisting `AWAITING_APPROVAL`, `SKIPPED`, `COMPLETED`, and `FAILED` audit state transitions
+- a board-agent session runner plus `sessionLifecycle.ts` helper seam that persist planned actions into `board_agent_actions`, pause for approval-first review, then execute safe board actions plus Sherlock-aware canonical writes against the live `tldraw` editor while persisting `AWAITING_APPROVAL`, `SKIPPED`, `COMPLETED`, and `FAILED` audit state transitions
 - board inspector request entry, starter-intent menu, low-risk auto-approve toggle, review-sheet previews, todo tracking, cancellation, and action receipt/history for the latest board-agent session
 - cross-surface placement handoff respects presentation mode rather than mutating readonly boards
 - inspector actions back into artifacts, workspace chat, timeline, network graph, source links, and promoted-item provenance
@@ -467,7 +468,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - contextual handoff from Operation View, Files, and Network Graph into the same session backend, with artifact/entity/signal grounding persisted on the target chat session
 - workspace-item handoff now persists `workspaceItemId` in chat launch context so Files and omnibox item opens can pin the item itself, not just its provenance fallback
 - `ChatHeader.tsx`, `ChatSessionRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatContextRail.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
-- controller responsibilities are split across `chatSessionLifecycle.ts`, `chatStreaming.ts`, `chatGuidedActions.ts`, and `chatTranscriptActions.ts` so the routed chat controller no longer carries every session, streaming, and transcript workflow inline
+- controller responsibilities are split across `useChatViewState.ts`, `useChatWorkspaceState.ts`, `chatSessionLifecycle.ts`, `chatStreaming.ts`, `chatGuidedActions.ts`, and `chatTranscriptActions.ts` so the routed chat controller no longer carries every local state declaration, workspace/session derivation, streaming flow, and transcript workflow inline
 
 `ArtifactViewer` now renders:
 
@@ -486,7 +487,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 
 - D3 canvas rendering
 - `src/components/features/NetworkGraph/useNetworkGraphController.ts` now owns inspector selection, graph mutations, board/chat handoffs, and modal state while `index.tsx` stays focused on composing the control bar, canvas, dossier, and inspector surfaces
-- case/report/entity node inspection
+- report/entity node inspection
 - launch-into-chat handoff for inspected artifacts, entities, and headlines
 - board handoff for inspected artifacts, entities, and headlines
 - omnibox entity results can now focus the active network surface in place by reopening the entity inspector and recentering the graph instead of forcing a redundant route change
@@ -496,7 +497,8 @@ Operation View now also includes board handoff for the active artifact plus insp
 - broader manual node semantics for concepts and sources alongside legacy people and organizations
 - hidden/flagged filters
 - entity resolution workflow
-- `useNetworkGraphUiState.ts`, `useNetworkGraphInspectorState.ts`, and `networkGraphWorkspaceHandoffs.ts` now split controller concerns across UI state, inspector selection, and board/chat handoff helpers
+- `useNetworkGraphUiState.ts`, `useNetworkGraphInspectorState.ts`, `useNetworkGraphNodeActions.ts`, and `networkGraphWorkspaceHandoffs.ts` now split controller concerns across UI state, inspector selection, mutation flows, and board/chat handoff helpers
+- the feature layer now uses canonical workspace-filter naming and treats artifact-backed graph records as report nodes, while `networkGraphNodeIds.ts` keeps legacy persisted graph identifiers stable behind the helper boundary
 - `NetworkGraphDialogs.tsx` and `NetworkGraphAddNodeOverlay.tsx` now isolate add-node, resolution, delete-confirm, and lead-investigation workflow UI from the main route shell
 
 ### Live Monitor

@@ -2,7 +2,7 @@
 
 Date: April 8, 2026
 
-Status: In Progress (Streams 1-4 completed; Stream 5 in progress)
+Status: In Progress (Streams 1-5 completed; Stream 6 next)
 
 Related inputs:
 
@@ -167,10 +167,10 @@ Confirmed current legacy-named active files:
 ```text
 src/components/features/Archives.tsx
 src/components/features/Archives.launch.test.tsx
-src/components/features/OperationView/ReportViewer.tsx
-src/components/features/OperationView/ReportViewer.test.tsx
-src/components/features/OperationView/operationCasePanelData.ts
-src/components/features/OperationView/reportViewerPresentation.ts
+src/components/features/OperationView/ArtifactViewer.tsx
+src/components/features/OperationView/ArtifactViewer.test.tsx
+src/components/features/OperationView/operationWorkspacePanelData.ts
+src/components/features/OperationView/artifactViewerPresentation.ts
 src/components/features/Runs/TaskSetupModal.tsx
 src/components/features/Runs/taskSetupUtils.ts
 src/components/features/Runs/useTaskSetupState.ts
@@ -731,7 +731,7 @@ Docs to update on landing:
 
 ### Landing Status
 
-In progress as of April 8, 2026.
+Completed on April 8, 2026.
 
 Landed in this Stream 5 session:
 
@@ -747,12 +747,18 @@ Landed in this Stream 5 session:
 - added focused handoff-parity tests for `workspaceHandoffs.ts`, NetworkGraph handoff adapters, OperationView controller handoffs, and the Workspace Board inspector chat bridge
 - added focused OperationView inspector-hook tests and cleaned the touched `launchPropagation.test.tsx` `act(...)` warning path while keeping the existing grounding expectations explicit
 - added focused board extraction tests for the new Workspace Board library and inspector hooks plus the updated controller seam
+- split Chat controller seams further by moving local panel/dialog/ref state into `src/components/features/Chat/useChatViewState.ts` and workspace/session derivation into `src/components/features/Chat/useChatWorkspaceState.ts`, reducing `useChatController.ts` owner-file load while keeping `ChatPage.tsx` route wiring stable
+- split Network Graph node mutation flow into `src/components/features/NetworkGraph/useNetworkGraphNodeActions.ts`, keeping `useNetworkGraphController.ts` focused on routed composition, handoffs, and selector orchestration
+- cleaned lingering Network Graph product-language drift by standardizing workspace-filter naming, treating report nodes as `REPORT` nodes in the feature layer, and renaming the touched OperationView support model from `OperationCasePanelData` to `OperationWorkspacePanelData`
+- split repeated board-agent session patching and pending-action persistence into `src/services/workspace/agent/sessionLifecycle.ts`, so `session.ts` now reads as the session runner while lifecycle helpers own metadata merging and approval-stage action persistence
+- added focused hook coverage for `useChatViewState.ts` and `useChatWorkspaceState.ts` while keeping the existing controller and board-agent session tests as seam-level integration coverage
 
-Intentionally deferred within Stream 5:
+Validation run for Stream 5 closeout:
 
-- deeper Chat / Network controller extraction plus any remaining OperationView or Workspace Board controller shrink beyond the new extracted seams
-- board-agent runtime/session/action cleanup
-- remaining product-language cleanup in operation, board, and network support modules
+- `npm run test -- src/components/features/Chat/useChatViewState.test.ts src/components/features/Chat/useChatWorkspaceState.test.ts src/components/features/Chat/useChatController.test.ts src/components/features/NetworkGraph/useNetworkGraphController.test.ts src/services/workspace/agent/session.test.ts`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
 
 ## Stream 6. Provider, Model Catalog, And Runtime Subsystem Extraction
 
