@@ -14,6 +14,7 @@ import { RunSetupModal } from '../Runs/RunSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { EmptyState } from '../../ui/EmptyState';
 import { OsintSelect } from '../../ui/OsintSelect';
+import { GlobalSearch } from '../../ui/GlobalSearch';
 import { CHROME_HEADER_CLASS, getChromeMenuButtonClass } from '../../ui/chrome';
 import {
   getDomainPackForScope,
@@ -296,138 +297,144 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
   return (
     <div className="h-screen w-full flex flex-col bg-black text-zinc-200 overflow-hidden relative">
       {/* Unified Top Toolbar */}
-      <div className={`${CHROME_HEADER_CLASS} relative flex items-center justify-between px-6`}>
-        {/* Left: Selectors */}
-        <div className="flex items-center space-x-6">
-          {/* Workspace Selector */}
-          <div className="hidden md:block min-w-[100px] max-w-[250px]">
-            <OsintSelect
-              ariaLabel={`${labelProfile.workspaceLabel} selector`}
-              value={selectedCaseId || ''}
-              onChange={setSelectedCaseId}
-              disabled={isMonitoring}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
-              options={[
-                { value: '', label: 'None Selected' },
-                ...workspaces.map((workspace) => ({
-                  value: workspace.id,
-                  label: getWorkspaceDisplayTitle(workspace),
-                })),
-              ]}
-            />
+      <div className={`${CHROME_HEADER_CLASS} relative px-6`}>
+        <div className="flex h-full min-w-0 items-center gap-3">
+          {/* Left: Selectors */}
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            {/* Workspace Selector */}
+            <div className="hidden md:block min-w-[100px] max-w-[220px]">
+              <OsintSelect
+                ariaLabel={`${labelProfile.workspaceLabel} selector`}
+                value={selectedCaseId || ''}
+                onChange={setSelectedCaseId}
+                disabled={isMonitoring}
+                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+                options={[
+                  { value: '', label: 'None Selected' },
+                  ...workspaces.map((workspace) => ({
+                    value: workspace.id,
+                    label: getWorkspaceDisplayTitle(workspace),
+                  })),
+                ]}
+              />
+            </div>
+
+            {/* Filter Selector */}
+            <div className="min-w-[132px]">
+              <OsintSelect
+                ariaLabel="Signal filter"
+                value={filterType}
+                onChange={(value) => {
+                  if (
+                    value === 'ALL' ||
+                    value === 'SOCIAL' ||
+                    value === 'NEWS' ||
+                    value === 'OFFICIAL'
+                  ) {
+                    setFilterType(value);
+                  }
+                }}
+                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
+                options={[
+                  { value: 'ALL', label: 'All Signals' },
+                  { value: 'SOCIAL', label: 'Social Only' },
+                  { value: 'NEWS', label: 'News Only' },
+                  { value: 'OFFICIAL', label: 'Official Docs' },
+                ]}
+              />
+            </div>
+
+            {/* Threat Filter */}
+            <div className="min-w-[132px]">
+              <OsintSelect
+                ariaLabel="Threat filter"
+                value={filterThreat}
+                onChange={(value) => {
+                  if (
+                    value === 'ALL' ||
+                    value === 'INFO' ||
+                    value === 'CAUTION' ||
+                    value === 'CRITICAL'
+                  ) {
+                    setFilterThreat(value);
+                  }
+                }}
+                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
+                options={[
+                  { value: 'ALL', label: 'All Levels' },
+                  { value: 'INFO', label: 'Info Only' },
+                  { value: 'CAUTION', label: 'Caution Only' },
+                  { value: 'CRITICAL', label: 'Critical Only' },
+                ]}
+              />
+            </div>
           </div>
 
-          {/* Filter Selector */}
-          <div className="min-w-[150px]">
-            <OsintSelect
-              ariaLabel="Signal filter"
-              value={filterType}
-              onChange={(value) => {
-                if (
-                  value === 'ALL' ||
-                  value === 'SOCIAL' ||
-                  value === 'NEWS' ||
-                  value === 'OFFICIAL'
-                ) {
-                  setFilterType(value);
-                }
-              }}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
-              options={[
-                { value: 'ALL', label: 'All Signals' },
-                { value: 'SOCIAL', label: 'Social Only' },
-                { value: 'NEWS', label: 'News Only' },
-                { value: 'OFFICIAL', label: 'Official Docs' },
-              ]}
-            />
+          <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
+            <GlobalSearch compact className="mx-auto w-full" />
           </div>
 
-          {/* Threat Filter */}
-          <div className="min-w-[150px]">
-            <OsintSelect
-              ariaLabel="Threat filter"
-              value={filterThreat}
-              onChange={(value) => {
-                if (
-                  value === 'ALL' ||
-                  value === 'INFO' ||
-                  value === 'CAUTION' ||
-                  value === 'CRITICAL'
-                ) {
-                  setFilterThreat(value);
-                }
-              }}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
-              options={[
-                { value: 'ALL', label: 'All Levels' },
-                { value: 'INFO', label: 'Info Only' },
-                { value: 'CAUTION', label: 'Caution Only' },
-                { value: 'CRITICAL', label: 'Critical Only' },
-              ]}
-            />
-          </div>
-        </div>
-
-        {/* Right: Controls & Status */}
-        <div className="flex items-center space-x-6">
-          {/* Compact Stats */}
-          <div className="hidden lg:flex space-x-4 text-xs font-mono text-zinc-500 border-r border-zinc-800 pr-6">
-            <div className="flex items-center space-x-2">
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${isMonitoring ? 'bg-osint-primary animate-pulse' : 'bg-zinc-600'}`}
-              ></span>
-              <span>
-                STATUS:{' '}
-                <span className={isMonitoring ? 'text-osint-primary font-bold' : 'text-zinc-400'}>
-                  {streamStatus}
+          {/* Right: Controls & Status */}
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
+            {/* Compact Stats */}
+            <div className="hidden xl:flex space-x-4 text-xs font-mono text-zinc-500 border-r border-zinc-800 pr-4">
+              <div className="flex items-center space-x-2">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${isMonitoring ? 'bg-osint-primary animate-pulse' : 'bg-zinc-600'}`}
+                ></span>
+                <span>
+                  STATUS:{' '}
+                  <span className={isMonitoring ? 'text-osint-primary font-bold' : 'text-zinc-400'}>
+                    {streamStatus}
+                  </span>
                 </span>
-              </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-1.5 h-1.5 bg-zinc-600 rounded-full"></span>
+                <span>
+                  EVENTS: <span className="text-white font-bold">{safeEvents.length}</span>
+                </span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-1.5 h-1.5 bg-zinc-600 rounded-full"></span>
-              <span>
-                EVENTS: <span className="text-white font-bold">{safeEvents.length}</span>
-              </span>
-            </div>
+
+            {/* Settings Toggle */}
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className={getChromeMenuButtonClass(showSettings)}
+              title="Configure Feed Parameters"
+            >
+              <Settings2 className="w-4 h-4" />
+              <span className="hidden lg:inline ml-1">Config</span>
+            </button>
+
+            {selectedCaseId && (
+              <button
+                onClick={isMonitoring ? stopMonitoring : runBatchScan}
+                className={`flex items-center px-4 py-1.5 text-xs font-bold font-mono transition-all border uppercase ${
+                  isMonitoring ? 'osint-button-danger' : 'osint-button-primary'
+                }`}
+              >
+                {isMonitoring ? (
+                  <Pause className="w-3 h-3 mr-2" />
+                ) : (
+                  <Play className="w-3 h-3 mr-2" />
+                )}
+                {isMonitoring ? 'STOP SCAN' : 'SCAN'}
+              </button>
+            )}
           </div>
 
-          {/* Settings Toggle */}
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className={getChromeMenuButtonClass(showSettings)}
-            title="Configure Feed Parameters"
-          >
-            <Settings2 className="w-4 h-4" />
-            <span className="hidden lg:inline ml-1">Config</span>
-          </button>
-
-          {selectedCaseId && (
-            <button
-              onClick={isMonitoring ? stopMonitoring : runBatchScan}
-              className={`flex items-center px-4 py-1.5 text-xs font-bold font-mono transition-all border uppercase ${
-                isMonitoring ? 'osint-button-danger' : 'osint-button-primary'
-              }`}
-            >
-              {isMonitoring ? (
-                <Pause className="w-3 h-3 mr-2" />
-              ) : (
-                <Play className="w-3 h-3 mr-2" />
-              )}
-              {isMonitoring ? 'STOP SCAN' : 'SCAN'}
-            </button>
-          )}
+          {/* Settings Panel */}
+          <SettingsPanel
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            config={feedConfig}
+            onConfigChange={setFeedConfig}
+            onClearFeed={handleClearFeed}
+            autoSave={autoSave}
+            onAutoSaveChange={handleAutoSaveChange}
+          />
         </div>
-
-        {/* Settings Panel */}
-        <SettingsPanel
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          config={feedConfig}
-          onConfigChange={setFeedConfig}
-          onClearFeed={handleClearFeed}
-          autoSave={autoSave}
-          onAutoSaveChange={handleAutoSaveChange}
-        />
       </div>
 
       {/* Main Monitor Area */}

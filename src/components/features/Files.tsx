@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type { Artifact, ChatOpenRequest, InvestigationLaunchRequest, WorkspaceItem } from '../../types';
+import type {
+  Artifact,
+  ChatOpenRequest,
+  InvestigationLaunchRequest,
+  WorkspaceItem,
+} from '../../types';
 import {
   ArrowRight,
   ChevronDown,
@@ -23,6 +28,7 @@ import { RunSetupModal } from './Runs/RunSetupModal';
 import { EmptyState } from '../ui/EmptyState';
 import { OsintSelect } from '../ui/OsintSelect';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { GlobalSearch } from '../ui/GlobalSearch';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { exportCaseAsHtml, exportCaseAsJson, exportCaseAsMarkdown } from '../../utils/exportUtils';
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../domain';
@@ -54,11 +60,7 @@ interface FilesProps {
 type FilesViewMode = 'GRID' | 'LIST';
 type RecordFilter = 'ALL' | 'ARTIFACT' | 'ITEM';
 
-export const Files: React.FC<FilesProps> = ({
-  onSelectReport,
-  onStartNewCase,
-  onOpenChat,
-}) => {
+export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, onOpenChat }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const routeState = parseFilesRouteState(searchParams);
@@ -99,10 +101,9 @@ export const Files: React.FC<FilesProps> = ({
   const artifactLabel = CANONICAL_NOUNS.artifact;
   const artifactLabelLower = artifactLabel.toLowerCase();
   const artifactLabelPlural = CANONICAL_NOUNS.artifactPlural;
-  const focusedItem =
-    routeState.focusItemId
-      ? workspaceItems.find((item) => item.id === routeState.focusItemId) || null
-      : null;
+  const focusedItem = routeState.focusItemId
+    ? workspaceItems.find((item) => item.id === routeState.focusItemId) || null
+    : null;
   const requestedCaseId = focusedItem?.workspaceId || routeState.workspaceId || selectedCaseId;
   const effectiveRecordFilter: RecordFilter = focusedItem ? 'ALL' : recordFilter;
 
@@ -154,7 +155,8 @@ export const Files: React.FC<FilesProps> = ({
     });
   }, [currentPage, effectiveRecordFilter, effectiveSelectedCaseId, focusedItem?.id, viewMode]);
 
-  const getCaseReports = (workspaceId: string) => artifacts.filter((artifact) => artifact.workspaceId === workspaceId);
+  const getCaseReports = (workspaceId: string) =>
+    artifacts.filter((artifact) => artifact.workspaceId === workspaceId);
   const getCaseItems = (workspaceId: string) =>
     workspaceItems.filter((item) => item.workspaceId === workspaceId);
   const getUnassignedReports = () => artifacts.filter((artifact) => !artifact.workspaceId);
@@ -317,7 +319,9 @@ export const Files: React.FC<FilesProps> = ({
                         <FileText className="mr-2 h-4 w-4" />
                         {fileCount} {fileCount === 1 ? artifactLabel : artifactLabelPlural}
                       </span>
-                      <span>{itemCount} {CANONICAL_NOUNS.itemPlural.toLowerCase()}</span>
+                      <span>
+                        {itemCount} {CANONICAL_NOUNS.itemPlural.toLowerCase()}
+                      </span>
                     </span>
                     <div className="flex space-x-1">
                       <button
@@ -517,7 +521,9 @@ export const Files: React.FC<FilesProps> = ({
         ? Math.floor(
             Math.max(
               0,
-              records.findIndex((record) => record.kind === 'ITEM' && record.item.id === focusedItem.id)
+              records.findIndex(
+                (record) => record.kind === 'ITEM' && record.item.id === focusedItem.id
+              )
             ) / itemsPerPage
           ) + 1
         : null;
@@ -606,7 +612,9 @@ export const Files: React.FC<FilesProps> = ({
                         <FileText className="h-6 w-6" />
                       </div>
                       <div>
-                        <div className="text-[10px] font-mono uppercase text-zinc-500">Artifact</div>
+                        <div className="text-[10px] font-mono uppercase text-zinc-500">
+                          Artifact
+                        </div>
                         <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-white">
                           {record.artifact.topic}
                         </h3>
@@ -633,7 +641,9 @@ export const Files: React.FC<FilesProps> = ({
                       ) : null}
                       {record.artifact.workspaceId && record.artifact.id ? (
                         <button
-                          onClick={(event) => void handlePlaceArtifactOnBoard(event, record.artifact)}
+                          onClick={(event) =>
+                            void handlePlaceArtifactOnBoard(event, record.artifact)
+                          }
                           className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
                           title="Place artifact on board"
                         >
@@ -783,7 +793,9 @@ export const Files: React.FC<FilesProps> = ({
                         ) : null}
                         {record.artifact.workspaceId && record.artifact.id ? (
                           <button
-                            onClick={(event) => void handlePlaceArtifactOnBoard(event, record.artifact)}
+                            onClick={(event) =>
+                              void handlePlaceArtifactOnBoard(event, record.artifact)
+                            }
                             className="text-zinc-500 transition hover:text-white"
                             title="Place artifact on board"
                           >
@@ -873,145 +885,160 @@ export const Files: React.FC<FilesProps> = ({
 
   return (
     <div className="relative min-h-screen h-full w-full bg-black">
-      <div className={`${CHROME_HEADER_CLASS} flex items-center justify-between px-6`}>
-        <div className="flex items-center space-x-6">
-          <button
-            onClick={() => setIsNewCaseModalOpen(true)}
-            className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
-          </button>
-          <div className="hidden min-w-[200px] max-w-[300px] md:block">
-            <OsintSelect
-              ariaLabel={`View ${workspaceLabel}`}
-              value={effectiveSelectedCaseId || 'ALL'}
-              onChange={handleCaseSelect}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
-              options={[
-                { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
-                ...workspaces.map((workspace) => ({
-                  value: workspace.id,
-                  label: getWorkspaceDisplayTitle(workspace),
-                })),
-                ...(getUnassignedReports().length > 0
-                  ? [{ value: 'unassigned', label: `Unassigned ${artifactLabelPlural}` }]
-                  : []),
-              ]}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <div className="hidden items-center border border-zinc-800 bg-zinc-950/70 p-0.5 md:flex">
+      <div className={`${CHROME_HEADER_CLASS} px-6`}>
+        <div className="flex h-full min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
             <button
-              onClick={() => setViewMode('LIST')}
-              className={getChromeSegmentButtonClass(viewMode === 'LIST')}
-              title="Show dense list view"
+              onClick={() => setIsNewCaseModalOpen(true)}
+              className="osint-button-primary inline-flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase"
             >
-              <List className="mr-1 h-3.5 w-3.5" />
-              List
+              <Plus className="h-4 w-4" />
+              <span className="hidden lg:inline">{`New ${workspaceLabel}`}</span>
             </button>
-            <button
-              onClick={() => setViewMode('GRID')}
-              className={getChromeSegmentButtonClass(viewMode === 'GRID')}
-              title="Show grid view"
-            >
-              <LayoutGrid className="mr-1 h-3.5 w-3.5" />
-              Grid
-            </button>
-          </div>
-
-          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
-            <div className="hidden items-center rounded border border-zinc-800 bg-zinc-950/70 p-1 md:flex">
-              {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
-                <button
-                  key={value}
-                  onClick={() => {
-                    setRecordFilter(value);
-                    setCurrentPage(1);
-                  }}
-                  className={getChromeSegmentButtonClass(recordFilter === value)}
-                >
-                  {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
-                </button>
-              ))}
+            <div className="hidden min-w-[180px] max-w-[240px] md:block">
+              <OsintSelect
+                ariaLabel={`View ${workspaceLabel}`}
+                value={effectiveSelectedCaseId || 'ALL'}
+                onChange={handleCaseSelect}
+                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+                options={[
+                  { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
+                  ...workspaces.map((workspace) => ({
+                    value: workspace.id,
+                    label: getWorkspaceDisplayTitle(workspace),
+                  })),
+                  ...(getUnassignedReports().length > 0
+                    ? [{ value: 'unassigned', label: `Unassigned ${artifactLabelPlural}` }]
+                    : []),
+                ]}
+              />
             </div>
-          ) : null}
+          </div>
 
-          {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
-            ? (() => {
-                const currentWorkspace = workspaces.find(
-                  (workspace) => workspace.id === effectiveSelectedCaseId
-                );
-                if (!currentWorkspace) return null;
+          <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
+            <GlobalSearch compact className="mx-auto w-full" />
+          </div>
 
-                return (
-                  <div className="relative" ref={exportMenuRef}>
-                    <button
-                      onClick={() => setShowExportMenu((current) => !current)}
-                      className={getChromeMenuButtonClass(showExportMenu)}
-                    >
-                      <Download className="mr-1 h-4 w-4" />
-                      <span className="hidden lg:inline">Export</span>
-                      <ChevronDown className="ml-1 h-3 w-3" />
-                    </button>
-                    {showExportMenu ? (
-                      <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
-                        <button
-                          onClick={() => {
-                            exportCaseAsHtml(currentWorkspace, getCaseReports(currentWorkspace.id));
-                            setShowExportMenu(false);
-                          }}
-                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
-                          title={`Exports a formatted printable ${workspaceLabelLower}`}
-                        >
-                          <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                          <div>
-                            <div className="font-bold">{`${workspaceLabel} HTML`}</div>
-                            <div className="text-[10px] text-zinc-500">
-                              {`Formatted printable ${workspaceLabelLower}`}
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+            <div className="hidden items-center border border-zinc-800 bg-zinc-950/70 p-0.5 md:flex">
+              <button
+                onClick={() => setViewMode('LIST')}
+                className={getChromeSegmentButtonClass(viewMode === 'LIST')}
+                title="Show dense list view"
+              >
+                <List className="mr-1 h-3.5 w-3.5" />
+                List
+              </button>
+              <button
+                onClick={() => setViewMode('GRID')}
+                className={getChromeSegmentButtonClass(viewMode === 'GRID')}
+                title="Show grid view"
+              >
+                <LayoutGrid className="mr-1 h-3.5 w-3.5" />
+                Grid
+              </button>
+            </div>
+
+            {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
+              <div className="hidden items-center rounded border border-zinc-800 bg-zinc-950/70 p-1 md:flex">
+                {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
+                  <button
+                    key={value}
+                    onClick={() => {
+                      setRecordFilter(value);
+                      setCurrentPage(1);
+                    }}
+                    className={getChromeSegmentButtonClass(recordFilter === value)}
+                  >
+                    {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
+              ? (() => {
+                  const currentWorkspace = workspaces.find(
+                    (workspace) => workspace.id === effectiveSelectedCaseId
+                  );
+                  if (!currentWorkspace) return null;
+
+                  return (
+                    <div className="relative" ref={exportMenuRef}>
+                      <button
+                        onClick={() => setShowExportMenu((current) => !current)}
+                        className={getChromeMenuButtonClass(showExportMenu)}
+                      >
+                        <Download className="mr-1 h-4 w-4" />
+                        <span className="hidden lg:inline">Export</span>
+                        <ChevronDown className="ml-1 h-3 w-3" />
+                      </button>
+                      {showExportMenu ? (
+                        <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
+                          <button
+                            onClick={() => {
+                              exportCaseAsHtml(
+                                currentWorkspace,
+                                getCaseReports(currentWorkspace.id)
+                              );
+                              setShowExportMenu(false);
+                            }}
+                            className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                            title={`Exports a formatted printable ${workspaceLabelLower}`}
+                          >
+                            <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                            <div>
+                              <div className="font-bold">{`${workspaceLabel} HTML`}</div>
+                              <div className="text-[10px] text-zinc-500">
+                                {`Formatted printable ${workspaceLabelLower}`}
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            exportCaseAsJson(currentWorkspace, getCaseReports(currentWorkspace.id));
-                            setShowExportMenu(false);
-                          }}
-                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
-                          title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
-                        >
-                          <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                          <div>
-                            <div className="font-bold">{`${workspaceLabel} JSON`}</div>
-                            <div className="text-[10px] text-zinc-500">
-                              {`Raw ${workspaceLabelLower} data for backup`}
+                          </button>
+                          <button
+                            onClick={() => {
+                              exportCaseAsJson(
+                                currentWorkspace,
+                                getCaseReports(currentWorkspace.id)
+                              );
+                              setShowExportMenu(false);
+                            }}
+                            className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                            title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
+                          >
+                            <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                            <div>
+                              <div className="font-bold">{`${workspaceLabel} JSON`}</div>
+                              <div className="text-[10px] text-zinc-500">
+                                {`Raw ${workspaceLabelLower} data for backup`}
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            exportCaseAsMarkdown(currentWorkspace, getCaseReports(currentWorkspace.id));
-                            setShowExportMenu(false);
-                          }}
-                          className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
-                          title={`Exports ${workspaceLabelLower} as Markdown`}
-                        >
-                          <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                          <div>
-                            <div className="font-bold">{`${workspaceLabel} Markdown`}</div>
-                            <div className="text-[10px] text-zinc-500">
-                              {`${workspaceLabel} narrative package`}
+                          </button>
+                          <button
+                            onClick={() => {
+                              exportCaseAsMarkdown(
+                                currentWorkspace,
+                                getCaseReports(currentWorkspace.id)
+                              );
+                              setShowExportMenu(false);
+                            }}
+                            className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-xs font-mono text-zinc-300"
+                            title={`Exports ${workspaceLabelLower} as Markdown`}
+                          >
+                            <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                            <div>
+                              <div className="font-bold">{`${workspaceLabel} Markdown`}</div>
+                              <div className="text-[10px] text-zinc-500">
+                                {`${workspaceLabel} narrative package`}
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })()
-            : null}
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })()
+              : null}
+          </div>
         </div>
       </div>
 
@@ -1045,7 +1072,9 @@ export const Files: React.FC<FilesProps> = ({
       ) : null}
 
       <div className="relative z-10 h-full w-full overflow-y-auto p-6">
-        {effectiveSelectedCaseId ? renderWorkspaceRecords(effectiveSelectedCaseId) : renderWorkspaceOverview()}
+        {effectiveSelectedCaseId
+          ? renderWorkspaceRecords(effectiveSelectedCaseId)
+          : renderWorkspaceOverview()}
       </div>
     </div>
   );

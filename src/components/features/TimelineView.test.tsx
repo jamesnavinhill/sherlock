@@ -11,7 +11,12 @@ vi.mock('../ui/BackgroundMatrixRain', () => ({
 
 const LocationProbe = () => {
   const location = useLocation();
-  return <div data-testid="location">{location.pathname}{location.search}</div>;
+  return (
+    <div data-testid="location">
+      {location.pathname}
+      {location.search}
+    </div>
+  );
 };
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
@@ -78,7 +83,9 @@ describe('TimelineView route state', () => {
       </MemoryRouter>
     );
 
-    const searchInput = screen.getByRole('textbox');
+    fireEvent.click(screen.getByLabelText('Timeline filters'));
+
+    const searchInput = screen.getByLabelText('Timeline search');
     expect(searchInput).toHaveValue('alpha signal');
 
     fireEvent.change(searchInput, { target: { value: 'beta timeline' } });

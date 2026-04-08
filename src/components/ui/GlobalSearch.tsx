@@ -25,11 +25,11 @@ import type { LucideIcon } from 'lucide-react';
 import { CANONICAL_NOUNS } from '@/domain';
 import { WorkspaceSearchRepository } from '@/services/db/repositories/WorkspaceSearchRepository';
 import { useWorkspaceStore } from '@/store/workspaceStore';
-import { getAllTimelineSavedViews, type TimelineSavedView } from '@/components/features/Timeline/timelineSavedViews';
 import {
-  getStoredOmniboxRecents,
-  setStoredOmniboxRecents,
-} from '@/utils/localStorage';
+  getAllTimelineSavedViews,
+  type TimelineSavedView,
+} from '@/components/features/Timeline/timelineSavedViews';
+import { getStoredOmniboxRecents, setStoredOmniboxRecents } from '@/utils/localStorage';
 import {
   buildOmniboxResults,
   createStoredOmniboxRecent,
@@ -68,12 +68,16 @@ const resultLabelByKind: Record<OmniboxResult['kind'], string> = {
 };
 
 interface GlobalSearchInlineProps {
+  className?: string;
+  compact?: boolean;
   isOpen: boolean;
   onClose: () => void;
   onOpen: () => void;
 }
 
 const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
+  className,
+  compact = false,
   isOpen,
   onClose,
   onOpen,
@@ -252,9 +256,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
     setStoredRecents((current) => {
       const next = [
         recent,
-        ...current.filter(
-          (entry) => !(entry.kind === recent.kind && entry.refId === recent.refId)
-        ),
+        ...current.filter((entry) => !(entry.kind === recent.kind && entry.refId === recent.refId)),
       ].slice(0, 12);
       setStoredOmniboxRecents(next);
       return next;
@@ -324,15 +326,22 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   };
 
   return (
-    <div ref={rootRef} className="relative w-full max-w-3xl">
+    <div
+      ref={rootRef}
+      className={`relative w-full ${compact ? 'max-w-[30rem]' : 'max-w-3xl'} ${className || ''}`}
+    >
       <div
-        className={`flex items-center gap-3 border px-4 py-3 transition-colors ${
+        className={`flex items-center border transition-colors ${
           isOpen
             ? 'border-osint-primary/40 bg-zinc-950 text-white shadow-[0_0_0_1px_rgba(231,255,77,0.18)]'
             : 'border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:border-zinc-600'
-        }`}
+        } ${compact ? 'gap-2 px-3 py-2' : 'gap-3 px-4 py-3'}`}
       >
-        <Search className={`h-4 w-4 ${isOpen ? 'text-osint-primary' : 'text-zinc-500'}`} />
+        <Search
+          className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
+            isOpen ? 'text-osint-primary' : 'text-zinc-500'
+          }`}
+        />
         <input
           ref={inputRef}
           type="text"
@@ -352,9 +361,15 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
           }}
           onKeyDown={(event) => void handleKeyDown(event)}
           placeholder="Search routes, workspaces, artifacts, sections, items, chats, and signals..."
-          className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-zinc-600"
+          className={`flex-1 bg-transparent text-white outline-none placeholder:text-zinc-600 ${
+            compact ? 'text-xs' : 'text-sm'
+          }`}
         />
-        {isLoading ? <Loader2 className="h-4 w-4 animate-spin text-zinc-500" /> : null}
+        {isLoading ? (
+          <Loader2
+            className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} animate-spin text-zinc-500`}
+          />
+        ) : null}
         <button
           type="button"
           onClick={() => {
@@ -365,7 +380,9 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
               inputRef.current?.focus();
             }
           }}
-          className="hidden rounded border border-zinc-800 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 md:inline-flex"
+          className={`hidden rounded border border-zinc-800 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 ${
+            compact ? 'xl:inline-flex' : 'md:inline-flex'
+          }`}
           aria-label="Focus omnibox"
         >
           Ctrl K
@@ -530,11 +547,18 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   );
 };
 
-export const GlobalSearch: React.FC = () => {
+interface GlobalSearchProps {
+  className?: string;
+  compact?: boolean;
+}
+
+export const GlobalSearch: React.FC<GlobalSearchProps> = ({ className, compact = false }) => {
   const { showGlobalSearch, setShowGlobalSearch } = useWorkspaceStore();
 
   return (
     <GlobalSearchInline
+      className={className}
+      compact={compact}
       isOpen={showGlobalSearch}
       onOpen={() => setShowGlobalSearch(true)}
       onClose={() => setShowGlobalSearch(false)}
