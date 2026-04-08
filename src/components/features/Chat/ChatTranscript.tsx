@@ -14,6 +14,7 @@ import {
 import type { ChatMentionReference, ChatMessage, Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { findMentionMatches } from '@/services/chat/mentions';
+import { getWorkspaceDisplayTitle } from '@/domain';
 
 type ChatAttachment = NonNullable<ChatMessage['attachments']>[number];
 
@@ -66,17 +67,21 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
 }) => {
   const showWorkspaceEmptyState = !activeWorkspace;
   const hasMessages = messages.length > 0;
+  const showAssistantPrimer = !!activeWorkspace && !hasMessages;
+  const assistantPrimerBody = activeWorkspace
+    ? buildAssistantPrimerBody(activeWorkspace)
+    : '';
 
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-black">
       <div
         className={`min-h-0 flex-1 px-4 py-4 sm:px-6 ${
-          showWorkspaceEmptyState || !hasMessages ? 'overflow-hidden' : 'overflow-y-auto'
+          showWorkspaceEmptyState ? 'overflow-hidden' : 'overflow-y-auto'
         }`}
       >
         <div
           className={`mx-auto flex w-full max-w-4xl flex-col ${
-            hasMessages ? 'gap-4 pb-4' : 'min-h-full justify-center'
+            hasMessages ? 'gap-4 pb-4' : showAssistantPrimer ? 'gap-4 py-6' : 'min-h-full justify-center'
           }`}
         >
         {!activeWorkspace ? (
@@ -99,6 +104,21 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
             className="px-0 py-6"
             panelClassName="max-w-3xl px-6 py-8"
           />
+        ) : null}
+
+        {showAssistantPrimer ? (
+          <article className="w-full max-w-3xl self-start border border-zinc-800 bg-zinc-900/80 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className={`flex items-center gap-2 ${sectionLabelClassName}`}>
+                <Bot className="h-4 w-4 text-osint-primary" />
+                assistant
+              </div>
+              <div className="osint-body-quiet">Ready in workspace</div>
+            </div>
+            <div className={messageBodyClassName} data-testid="chat-assistant-primer">
+              <ReactMarkdown>{assistantPrimerBody}</ReactMarkdown>
+            </div>
+          </article>
         ) : null}
 
         {messages.map((message) => {
@@ -312,4 +332,25 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
       </div>
     </section>
   );
+};
+
+const buildAssistantPrimerBody = (workspace: Workspace): string => {
+  const workspaceTitle = getWorkspaceDisplayTitle(workspace);
+  const workspaceDescription = workspace.description?.trim();
+
+  return `You are back in **${workspaceTitle}**.${workspaceDescription ? ` I already have this workspace framing in view: _${workspaceDescription}_.` : ' I can work from the artifacts, signals, prior sessions, and linked context already saved here.'}
+
+I can help you:
+- summarize the current state of the workspace
+- compare artifacts, signals, runs, and prior chat threads
+- trace what changed, what matters, and what still looks thin
+- turn an answer into a draft, append it to an existing artifact, or tee up a follow-up run
+
+A few good ways to start:
+- "Give me the current state of play in five bullets."
+- "What changed since the latest artifact or signal?"
+- "Compare the strongest evidence we have and call out the gaps."
+- "Draft the next investigation steps from what is already in this workspace."
+
+You can also mention saved records with \`@\` if you want me to focus on a specific artifact, signal, entity, or board item.`;
 };

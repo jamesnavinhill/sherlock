@@ -195,6 +195,73 @@ describe('Chat page', () => {
     expect(onLaunchInvestigation).not.toHaveBeenCalled();
   });
 
+  it('shows an assistant-style primer when a workspace is active but no chat has started yet', () => {
+    useWorkspaceStore.setState({
+      workspaces: [
+        {
+          id: 'case-1',
+          title: 'Atlas Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-03',
+          description: 'Procurement activity',
+        },
+      ],
+      activeWorkspaceId: 'case-1',
+      activeChatSessionId: null,
+      chatSessions: [],
+      chatMessagesBySessionId: {},
+      createChatSession: vi.fn(async () => {
+        throw new Error('not used');
+      }),
+      createWorkspaceItem: vi.fn(async () => undefined),
+      updateChatSession: vi.fn(async () => undefined),
+      addChatAction: vi.fn(async () => undefined),
+      addChatMessage: vi.fn(async () => undefined),
+      addToast: vi.fn(),
+      saveArtifact: vi.fn(async () => ({
+        id: 'report-1',
+        topic: 'Draft',
+        summary: 'Draft summary',
+        agendas: [],
+        leads: [],
+        entities: [],
+        sources: [],
+        rawText: 'draft',
+      })),
+      appendSectionToArtifact: vi.fn(async () => undefined),
+      customScopes: [],
+      deleteChatSession: vi.fn(async () => undefined),
+      ensureWorkspaceBoard: vi.fn(async () => ({
+        id: 'board-1',
+        workspaceId: 'case-1',
+        name: 'Atlas Board',
+        sortOrder: 0,
+        createdAt: 1,
+        updatedAt: 1,
+      })),
+      headlines: [],
+      partialAssistantOutput: '',
+      queueBoardPlacement: vi.fn(),
+      renameChatSession: vi.fn(async () => undefined),
+      setActiveWorkspaceId: vi.fn(),
+      setActiveChatSessionId: vi.fn(),
+      setChatGenerationStatus: vi.fn(),
+      setPartialAssistantOutput: vi.fn(),
+      updateChatMessage: vi.fn(async () => undefined),
+    });
+
+    render(
+      <MemoryRouter future={routerFuture}>
+        <Chat onLaunchInvestigation={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('chat-assistant-primer')).toBeInTheDocument();
+    expect(screen.getByText(/you are back in/i)).toHaveTextContent('Atlas Workspace');
+    expect(screen.getByText(/procurement activity/i)).toBeInTheDocument();
+    expect(screen.getByText(/give me the current state of play in five bullets/i)).toBeInTheDocument();
+  });
+
   it('uses non-inverted markdown prose in light mode', () => {
     useWorkspaceStore.setState({
       workspaces: [
