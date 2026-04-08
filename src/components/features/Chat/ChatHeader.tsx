@@ -17,6 +17,11 @@ import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import {
   CHROME_HEADER_CLASS,
   CHROME_HEADER_ROW_CLASS,
+  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  CHROME_HEADER_LEADING_GROUP_CLASS,
+  CHROME_HEADER_PRIMARY_ACTION_CLASS,
+  CHROME_HEADER_SELECT_TRIGGER_CLASS,
+  CHROME_HEADER_SELECT_WRAP_CLASS,
   getChromeMenuButtonClass,
   getChromeToggleButtonClass,
 } from '@/components/ui/chrome';
@@ -72,10 +77,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 }) => (
   <header className={`${CHROME_HEADER_CLASS} px-4 sm:px-6`}>
     <div className={`${CHROME_HEADER_ROW_CLASS} gap-4`}>
-      <div className="flex min-w-0 flex-1 items-center gap-4">
+      <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:flex ${getChromeToggleButtonClass(leftPanelOpen)}`}
+          className={`hidden md:flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(leftPanelOpen)}`}
           title="Toggle Sessions Panel"
         >
           <Briefcase className="h-4 w-4" />
@@ -83,12 +88,12 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         <div className="relative" ref={newMenuRef}>
           <button
             onClick={onToggleNewMenu}
-            className="osint-button-primary flex items-center px-3 py-1.5 font-mono text-xs font-bold uppercase"
+            className={`${CHROME_HEADER_PRIMARY_ACTION_CLASS} pr-3`}
             title="Create a new chat item"
           >
-            <Plus className="mr-1 h-4 w-4" />
+            <Plus className="h-4 w-4" />
             <span className="hidden lg:inline">New</span>
-            <ChevronDown className="ml-1 h-3 w-3" />
+            <ChevronDown className="h-3 w-3 opacity-80" />
           </button>
           {showNewMenu ? (
             <div className="osint-menu-panel absolute left-0 top-full z-50 mt-1 min-w-[220px] border border-zinc-700 bg-zinc-900">
@@ -136,13 +141,14 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </div>
           ) : null}
         </div>
-        <div className="hidden w-72 min-w-0 flex-1 md:block lg:max-w-md xl:max-w-xl">
+        <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
           <OsintSelect
             ariaLabel="Chat workspace"
             value={activeWorkspaceId || ''}
             onChange={(value) => onSelectWorkspace(value || null)}
             placeholder="Select workspace"
-            triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
+            chrome="toolbar"
+            triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
             options={workspaces.map((workspace) => ({
               value: workspace.id,
               label: workspace.title,

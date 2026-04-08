@@ -6,6 +6,9 @@ import { OsintSelect } from '@/components/ui/OsintSelect';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import {
   CHROME_HEADER_CLASS,
+  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  CHROME_HEADER_LEADING_GROUP_CLASS,
+  CHROME_HEADER_SELECT_TRIGGER_CLASS,
   getChromeMenuButtonClass,
   getChromeToggleButtonClass,
 } from '@/components/ui/chrome';
@@ -77,22 +80,23 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
 }) => (
   <header className={`${CHROME_HEADER_CLASS} px-6`}>
     <div className="flex h-full min-w-0 items-center gap-3">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
         <button
           onClick={onToggleLeftPanel}
-          className={`flex shrink-0 ${getChromeToggleButtonClass(leftPanelOpen)}`}
+          className={`flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(leftPanelOpen)}`}
           title="Toggle timeline dossier"
         >
           <Briefcase className="h-4 w-4" />
         </button>
 
-        <div className="w-full min-w-[180px] max-w-[240px] shrink-0">
+        <div className="w-full min-w-[180px] max-w-[220px] shrink-0">
           <OsintSelect
             ariaLabel="Timeline workspace"
             value={activeWorkspace?.id || ''}
             onChange={(value) => onWorkspaceChange(value || null)}
             placeholder={`Select ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
-            triggerClassName="py-1.5 pl-3 pr-8 text-xs font-mono"
+            chrome="toolbar"
+            triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
             options={workspaces.map((workspace) => ({
               value: workspace.id,
               label: getWorkspaceDisplayTitle(workspace),

@@ -4,7 +4,15 @@ import { Briefcase, FolderPlus, PanelRight, Presentation } from 'lucide-react';
 import type { WorkspaceBoard } from '@/types';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { OsintSelect } from '@/components/ui/OsintSelect';
-import { CHROME_HEADER_CLASS, getChromeToggleButtonClass } from '@/components/ui/chrome';
+import {
+  CHROME_HEADER_CLASS,
+  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  CHROME_HEADER_LEADING_GROUP_CLASS,
+  CHROME_HEADER_PRIMARY_ACTION_CLASS,
+  CHROME_HEADER_SELECT_TRIGGER_CLASS,
+  CHROME_HEADER_SELECT_WRAP_CLASS,
+  getChromeToggleButtonClass,
+} from '@/components/ui/chrome';
 import { getWorkspaceDisplayTitle } from '@/domain';
 
 interface BoardTopBarProps {
@@ -38,26 +46,27 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
 }) => (
   <header className={`${CHROME_HEADER_CLASS} z-40 px-6`}>
     <div className="flex h-full min-w-0 items-center gap-3">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
         <button
           onClick={onToggleLeftPanel}
-          className={`hidden md:inline-flex ${getChromeToggleButtonClass(leftPanelOpen)}`}
+          className={`hidden md:inline-flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(leftPanelOpen)}`}
         >
           <Briefcase className="h-4 w-4" />
         </button>
         <button
           onClick={onCreateBoard}
-          className="osint-button-primary inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 text-xs font-mono uppercase"
+          className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
         >
           <FolderPlus className="h-4 w-4" />
           New
         </button>
-        <div className="relative z-50 hidden min-w-[170px] max-w-[210px] md:block">
+        <div className={`relative z-50 ${CHROME_HEADER_SELECT_WRAP_CLASS}`}>
           <OsintSelect
             ariaLabel="Select workspace"
             value={activeWorkspaceId}
             onChange={onSelectWorkspace}
-            triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+            chrome="toolbar"
+            triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
             menuClassName="z-[60]"
             options={workspaces.map((workspace) => ({
               value: workspace.id,
@@ -72,12 +81,13 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
       </div>
 
       <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-        <div className="relative z-50 hidden min-w-[170px] max-w-[210px] md:block">
+        <div className={`relative z-50 ${CHROME_HEADER_SELECT_WRAP_CLASS}`}>
           <OsintSelect
             ariaLabel="Select board"
             value={activeBoard?.id || ''}
             onChange={onSelectBoard}
-            triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+            chrome="toolbar"
+            triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
             menuClassName="z-[60]"
             options={availableBoards.map((board) => ({
               value: board.id,

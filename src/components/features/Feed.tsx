@@ -19,7 +19,11 @@ import { OsintSelect } from '../ui/OsintSelect';
 import { GlobalSearch } from '../ui/GlobalSearch';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
-import { CHROME_HEADER_CLASS, getChromeMenuButtonClass } from '../ui/chrome';
+import {
+  CHROME_HEADER_CLASS,
+  CHROME_TOOLBAR_FIELD_CLASS,
+  getChromeMenuButtonClass,
+} from '../ui/chrome';
 
 interface FeedProps {
   onInvestigate: (request: InvestigationLaunchRequest) => void;
@@ -296,7 +300,8 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 ariaLabel="Feed category"
                 value={filterCategory}
                 onChange={setFilterCategory}
-                triggerClassName="py-1.5 pl-7 pr-8 text-xs font-mono"
+                chrome="toolbar"
+                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} py-1.5 pl-7 pr-8 text-xs font-mono`}
                 options={categories.map((category) => ({
                   value: category,
                   label: category,
@@ -312,7 +317,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 value={filterRegion}
                 onChange={(e) => setFilterRegion(e.target.value)}
                 placeholder="Region"
-                className="w-full bg-black border border-zinc-700 text-zinc-300 text-xs pl-7 py-1.5 font-mono focus:border-osint-primary outline-none hover:border-osint-primary"
+                className={`${CHROME_TOOLBAR_FIELD_CLASS} w-full pl-7 py-1.5 text-xs font-mono placeholder:text-zinc-600`}
               />
             </div>
 

@@ -6,6 +6,10 @@ import { GlobalSearch } from '../../ui/GlobalSearch';
 import { OsintSelect } from '../../ui/OsintSelect';
 import {
   CHROME_HEADER_CLASS,
+  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  CHROME_HEADER_LEADING_GROUP_CLASS,
+  CHROME_HEADER_SELECT_TRIGGER_CLASS,
+  CHROME_HEADER_SELECT_WRAP_CLASS,
   getChromeMenuButtonClass,
   getChromeToggleButtonClass,
 } from '../../ui/chrome';
@@ -42,19 +46,20 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   return (
     <div className={`${CHROME_HEADER_CLASS} px-6`}>
       <div className="flex h-full min-w-0 items-center gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
           <button
             onClick={onToggleLeftPanel}
-            className={`hidden md:flex ${getChromeToggleButtonClass(showLeftPanel)}`}
+            className={`hidden md:flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(showLeftPanel)}`}
           >
             <Briefcase className="w-4 h-4" />
           </button>
-          <div className="hidden md:block min-w-[180px] max-w-[220px]">
+          <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
             <OsintSelect
               ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
               value={filterCaseId || ''}
               onChange={onCaseChange}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+              chrome="toolbar"
+              triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
               options={[
                 { value: '', label: `Select ${CANONICAL_NOUNS.workspace}` },
                 ...workspaces.map((workspace) => ({

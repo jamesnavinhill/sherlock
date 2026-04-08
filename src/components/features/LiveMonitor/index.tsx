@@ -15,7 +15,11 @@ import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
 import { EmptyState } from '../../ui/EmptyState';
 import { OsintSelect } from '../../ui/OsintSelect';
 import { GlobalSearch } from '../../ui/GlobalSearch';
-import { CHROME_HEADER_CLASS, getChromeMenuButtonClass } from '../../ui/chrome';
+import {
+  CHROME_HEADER_CLASS,
+  CHROME_TOOLBAR_FIELD_CLASS,
+  getChromeMenuButtonClass,
+} from '../../ui/chrome';
 import {
   getDomainPackForScope,
   getLabelProfileById,
@@ -308,7 +312,8 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
                 value={selectedCaseId || ''}
                 onChange={setSelectedCaseId}
                 disabled={isMonitoring}
-                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+                chrome="toolbar"
+                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate`}
                 options={[
                   { value: '', label: 'None Selected' },
                   ...workspaces.map((workspace) => ({
@@ -334,7 +339,8 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
                     setFilterType(value);
                   }
                 }}
-                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
+                chrome="toolbar"
+                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} rounded-none py-1.5 pl-3 pr-8 text-xs font-mono`}
                 options={[
                   { value: 'ALL', label: 'All Signals' },
                   { value: 'SOCIAL', label: 'Social Only' },
@@ -359,7 +365,8 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
                     setFilterThreat(value);
                   }
                 }}
-                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono"
+                chrome="toolbar"
+                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} rounded-none py-1.5 pl-3 pr-8 text-xs font-mono`}
                 options={[
                   { value: 'ALL', label: 'All Levels' },
                   { value: 'INFO', label: 'Info Only' },

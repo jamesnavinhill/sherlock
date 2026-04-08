@@ -34,8 +34,13 @@ import { exportCaseAsHtml, exportCaseAsJson, exportCaseAsMarkdown } from '../../
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../domain';
 import {
   CHROME_HEADER_CLASS,
+  CHROME_HEADER_LEADING_GROUP_CLASS,
+  CHROME_HEADER_PRIMARY_ACTION_CLASS,
+  CHROME_HEADER_SELECT_TRIGGER_CLASS,
+  CHROME_HEADER_SELECT_WRAP_CLASS,
+  CHROME_TOOLBAR_GROUP_CLASS,
   getChromeMenuButtonClass,
-  getChromeSegmentButtonClass,
+  getChromeToolbarSegmentButtonClass,
 } from '../ui/chrome';
 import {
   clearStoredActiveWorkspaceId,
@@ -887,20 +892,21 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     <div className="relative min-h-screen h-full w-full bg-black">
       <div className={`${CHROME_HEADER_CLASS} px-6`}>
         <div className="flex h-full min-w-0 items-center gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
+          <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
             <button
               onClick={() => setIsNewCaseModalOpen(true)}
-              className="osint-button-primary inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 text-xs font-mono uppercase"
+              className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
             >
               <Plus className="h-4 w-4" />
               <span>New</span>
             </button>
-            <div className="hidden min-w-[180px] max-w-[240px] md:block">
+            <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
               <OsintSelect
                 ariaLabel={`View ${workspaceLabel}`}
                 value={effectiveSelectedCaseId || 'ALL'}
                 onChange={handleCaseSelect}
-                triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+                chrome="toolbar"
+                triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
                 options={[
                   { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
                   ...workspaces.map((workspace) => ({
@@ -1037,10 +1043,10 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
 
       <div className="relative z-10 h-full w-full overflow-y-auto p-6">
         <div className="mb-5 flex flex-wrap items-center justify-end gap-3">
-          <div className="flex items-center border border-zinc-800 bg-zinc-950/70 p-0.5">
+          <div className={`flex items-center p-0.5 ${CHROME_TOOLBAR_GROUP_CLASS}`}>
             <button
               onClick={() => setViewMode('LIST')}
-              className={getChromeSegmentButtonClass(viewMode === 'LIST')}
+              className={getChromeToolbarSegmentButtonClass(viewMode === 'LIST')}
               title="Show dense list view"
             >
               <List className="mr-1 h-3.5 w-3.5" />
@@ -1048,7 +1054,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             </button>
             <button
               onClick={() => setViewMode('GRID')}
-              className={getChromeSegmentButtonClass(viewMode === 'GRID')}
+              className={getChromeToolbarSegmentButtonClass(viewMode === 'GRID')}
               title="Show grid view"
             >
               <LayoutGrid className="mr-1 h-3.5 w-3.5" />
@@ -1057,7 +1063,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           </div>
 
           {effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned' ? (
-            <div className="flex items-center rounded border border-zinc-800 bg-zinc-950/70 p-1">
+            <div className={`flex items-center rounded p-1 ${CHROME_TOOLBAR_GROUP_CLASS}`}>
               {(['ALL', 'ARTIFACT', 'ITEM'] as const).map((value) => (
                 <button
                   key={value}
@@ -1065,7 +1071,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                     setRecordFilter(value);
                     setCurrentPage(1);
                   }}
-                  className={getChromeSegmentButtonClass(recordFilter === value)}
+                  className={getChromeToolbarSegmentButtonClass(recordFilter === value)}
                 >
                   {value === 'ALL' ? 'All' : value === 'ARTIFACT' ? 'Artifacts' : 'Items'}
                 </button>

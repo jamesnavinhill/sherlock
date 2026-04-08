@@ -14,6 +14,11 @@ import {
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import {
   CHROME_HEADER_CLASS,
+  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  CHROME_HEADER_LEADING_GROUP_CLASS,
+  CHROME_HEADER_PRIMARY_ACTION_CLASS,
+  CHROME_HEADER_SELECT_TRIGGER_CLASS,
+  CHROME_HEADER_SELECT_WRAP_CLASS,
   getChromeMenuButtonClass,
   getChromeToggleButtonClass,
 } from '../../ui/chrome';
@@ -90,10 +95,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   return (
     <div className={`${CHROME_HEADER_CLASS} px-6`}>
       <div className="flex h-full min-w-0 items-center gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
           <button
             onClick={onToggleLeftPanel}
-            className={`hidden md:flex ${getChromeToggleButtonClass(leftPanelOpen)}`}
+            className={`hidden md:flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(leftPanelOpen)}`}
             title="Toggle workspace panel (D)"
             aria-label="Toggle workspace panel"
           >
@@ -101,7 +106,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </button>
           <button
             onClick={onToggleLeftPanel}
-            className={`md:hidden ${getChromeToggleButtonClass(leftPanelOpen)}`}
+            className={`md:hidden ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(leftPanelOpen)}`}
             title="Toggle workspace panel (D)"
             aria-label="Toggle workspace panel"
           >
@@ -109,17 +114,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </button>
           <button
             onClick={onStartNewCase}
-            className="osint-button-primary inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 text-xs font-mono uppercase"
+            className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
           >
             <Plus className="w-4 h-4" />
             <span>New</span>
           </button>
-          <div className="hidden md:block min-w-[170px] max-w-[210px]">
+          <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
             <OsintSelect
               ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
               value={selectedCaseId || 'ALL'}
               onChange={onSelectCase}
-              triggerClassName="rounded-none py-1.5 pl-3 pr-8 text-xs font-mono truncate"
+              chrome="toolbar"
+              triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
               options={[
                 { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
                 ...allCases.map((workspace) => ({

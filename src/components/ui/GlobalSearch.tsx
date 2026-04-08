@@ -331,11 +331,20 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
       className={`relative w-full ${compact ? 'max-w-[30rem]' : 'max-w-3xl'} ${className || ''}`}
     >
       <div
-        className={`flex items-center border transition-colors ${
+        data-state={isOpen ? 'open' : 'closed'}
+        className={`osint-toolbar-field flex items-center border transition-colors ${
           isOpen
-            ? 'border-osint-primary/40 bg-zinc-950 text-white shadow-[0_0_0_1px_rgba(231,255,77,0.18)]'
-            : 'border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:border-zinc-600'
+            ? 'border-[color:var(--osint-primary-soft-border)] text-white'
+            : 'text-zinc-300 hover:text-white'
         } ${compact ? 'gap-2 px-3 py-2' : 'gap-3 px-4 py-3'}`}
+        style={
+          isOpen
+            ? {
+                boxShadow:
+                  '0 0 0 1px color-mix(in oklab, var(--osint-primary) 26%, transparent)',
+              }
+            : undefined
+        }
       >
         <Search
           className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${
@@ -380,7 +389,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
               inputRef.current?.focus();
             }
           }}
-          className={`hidden rounded border border-zinc-800 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 ${
+          className={`osint-button-chrome hidden rounded px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] ${
             compact ? 'xl:inline-flex' : 'md:inline-flex'
           }`}
           aria-label="Focus omnibox"
@@ -474,10 +483,9 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                 <Hash className="h-3 w-3" />
                 {results.length} {query.trim() ? 'results' : 'recents'}
               </span>
-              {selectedResult ? <span>{selectedResult.title}</span> : null}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               {selectedResult ? (
                 <>
                   <button

@@ -11,6 +11,7 @@ interface OsintSelectProps {
   value: string;
   options: OsintSelectOption[];
   onChange: (value: string) => void;
+  chrome?: 'default' | 'toolbar';
   triggerClassName?: string;
   menuClassName?: string;
   optionClassName?: string;
@@ -49,6 +50,7 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
   value,
   options,
   onChange,
+  chrome = 'default',
   triggerClassName,
   menuClassName,
   optionClassName,
@@ -71,6 +73,10 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
 
   const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : null;
   const displayLabel = selectedOption?.label ?? placeholder ?? '';
+  const triggerBaseClass =
+    chrome === 'toolbar'
+      ? 'osint-toolbar-field w-full border text-left text-zinc-300 outline-none transition disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-osint-primary'
+      : 'w-full border border-zinc-700 bg-black text-left text-zinc-300 outline-none transition hover:border-osint-primary focus-visible:border-osint-primary disabled:cursor-not-allowed disabled:opacity-40';
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -217,10 +223,8 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
         disabled={disabled || options.length === 0}
         onClick={() => (isOpen ? closeMenu() : openMenu())}
         onKeyDown={handleTriggerKeyDown}
-        className={cx(
-          'w-full border border-zinc-700 bg-black text-left text-zinc-300 outline-none transition hover:border-osint-primary focus-visible:border-osint-primary disabled:cursor-not-allowed disabled:opacity-40',
-          triggerClassName
-        )}
+        data-state={isOpen ? 'open' : 'closed'}
+        className={cx(triggerBaseClass, triggerClassName)}
       >
         <span className="block truncate">{displayLabel}</span>
         <ChevronDown
