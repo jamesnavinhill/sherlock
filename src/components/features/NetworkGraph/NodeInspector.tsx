@@ -28,6 +28,9 @@ import {
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_NESTED_ITEM_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
 } from '../../ui/chrome';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneClass } from '../../../utils/entityPalette';
@@ -201,30 +204,30 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     (flaggedNodeIds.has(selectedNode.id) || flaggedNodeIds.has(selectedNode.label));
   const isSelectedNodeHidden =
     !!selectedNode && (hiddenNodeIds.has(selectedNode.id) || hiddenNodeIds.has(selectedNode.label));
-  const selectedNodeDeleteLabel = selectedNode?.isManual ? 'Delete Node' : 'Remove From Graph';
+  const selectedNodeDeleteLabel = selectedNode?.isManual ? 'Delete node' : 'Remove from network';
   const reportActions: InspectorActionItem[] = selectedReport
     ? [
         {
           id: 'report-chat',
-          label: 'Open In Chat',
+          label: 'Chat',
           icon: MessageSquare,
           onClick: () => onOpenReportChat(selectedReport),
         },
         {
           id: 'report-open',
-          label: 'Open Full Report',
+          label: 'Open',
           icon: FolderOpen,
           onClick: () => onOpenReport(selectedReport),
         },
         {
           id: 'report-board',
-          label: 'Place On Board',
+          label: 'Canvas',
           icon: Shapes,
           onClick: () => onPlaceReportOnBoard(selectedReport),
         },
         {
           id: 'report-search',
-          label: 'Search Report Topic',
+          label: 'Google',
           icon: Search,
           href: `https://www.google.com/search?q=${encodeURIComponent(selectedReport.topic)}`,
           target: '_blank',
@@ -232,8 +235,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
         {
           id: 'report-flag',
-          label: isSelectedNodeFlagged ? 'Unstar Node' : 'Star Node',
+          label: isSelectedNodeFlagged ? 'Unstar node' : 'Star node',
           icon: Star,
+          iconOnly: true,
           onClick: onToggleFlag,
           iconClassName: isSelectedNodeFlagged ? 'fill-current' : undefined,
           className: isSelectedNodeFlagged
@@ -242,8 +246,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
         {
           id: 'report-hide',
-          label: isSelectedNodeHidden ? 'Unhide Node' : 'Hide Node',
+          label: isSelectedNodeHidden ? 'Unhide node' : 'Hide node',
           icon: EyeOff,
+          iconOnly: true,
           onClick: onToggleHide,
           className: isSelectedNodeHidden
             ? 'border-zinc-500 bg-zinc-900/50 text-white hover:border-white hover:text-white'
@@ -253,6 +258,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           id: 'report-delete',
           label: selectedNodeDeleteLabel,
           icon: Trash2,
+          iconOnly: true,
           onClick: onDeleteNode,
           className:
             'osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]',
@@ -263,7 +269,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     ? [
         {
           id: 'headline-chat',
-          label: 'Open In Chat',
+          label: 'Chat',
           icon: MessageSquare,
           onClick: () => {
             onOpenHeadlineChat(selectedHeadline);
@@ -272,7 +278,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
         {
           id: 'headline-board',
-          label: 'Place On Board',
+          label: 'Canvas',
           icon: Shapes,
           onClick: () => {
             onPlaceHeadlineOnBoard(selectedHeadline);
@@ -281,7 +287,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
         {
           id: 'headline-investigate',
-          label: 'Launch Investigation',
+          label: 'Run',
           icon: Microscope,
           onClick: () => {
             onInvestigate(selectedHeadline.content);
@@ -294,19 +300,19 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     ? [
         {
           id: 'entity-chat',
-          label: 'Open In Chat',
+          label: 'Chat',
           icon: MessageSquare,
           onClick: () => onOpenEntityChat(selectedEntity),
         },
         {
           id: 'entity-investigate',
-          label: selectedNodeType === 'SOURCE' ? 'Explore Source' : 'Investigate Entity',
+          label: 'Run',
           icon: Microscope,
           onClick: () => onInvestigate(selectedEntity),
         },
         {
           id: 'entity-search',
-          label: 'Search Google',
+          label: 'Google',
           icon: Search,
           href: `https://www.google.com/search?q=${encodeURIComponent(selectedEntity)}`,
           target: '_blank',
@@ -314,14 +320,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
         {
           id: 'entity-board',
-          label: 'Place On Board',
+          label: 'Canvas',
           icon: Shapes,
           onClick: () => onPlaceEntityOnBoard(selectedEntity),
         },
         {
           id: 'entity-flag',
-          label: isSelectedNodeFlagged ? 'Unstar Node' : 'Star Node',
+          label: isSelectedNodeFlagged ? 'Unstar node' : 'Star node',
           icon: Star,
+          iconOnly: true,
           onClick: onToggleFlag,
           iconClassName: isSelectedNodeFlagged ? 'fill-current' : undefined,
           className: isSelectedNodeFlagged
@@ -330,8 +337,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
         {
           id: 'entity-hide',
-          label: isSelectedNodeHidden ? 'Unhide Node' : 'Hide Node',
+          label: isSelectedNodeHidden ? 'Unhide node' : 'Hide node',
           icon: EyeOff,
+          iconOnly: true,
           onClick: onToggleHide,
           className: isSelectedNodeHidden
             ? 'border-zinc-500 bg-zinc-900/50 text-white hover:border-white hover:text-white'
@@ -341,6 +349,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           id: 'entity-delete',
           label: selectedNodeDeleteLabel,
           icon: Trash2,
+          iconOnly: true,
           onClick: onDeleteNode,
           className:
             'osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]',
@@ -462,7 +471,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
             <InspectorActionRow actions={reportActions} />
           </div>
 
-          <div className="flex-1 overflow-y-auto p-2 space-y-2">
+          <div className={`${CHROME_RAIL_BODY_CLASS} p-2`}>
             <div className={CHROME_NESTED_ITEM_CLASS}>
               <h4 className="osint-meta-label mb-2">Executive Summary</h4>
               <p className="osint-body-small line-clamp-6">
@@ -476,6 +485,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               icon={User}
               isOpen={inspectorAccordions.reportEntities}
               onToggle={() => toggleAccordion('reportEntities')}
+              className={getRailAccordionClassName(inspectorAccordions.reportEntities)}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="grid grid-cols-2 gap-1">
                 {selectedReport.entities.length === 0 && (
@@ -507,6 +518,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               icon={Lightbulb}
               isOpen={inspectorAccordions.reportLeads}
               onToggle={() => toggleAccordion('reportLeads')}
+              className={getRailAccordionClassName(inspectorAccordions.reportLeads)}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-1">
                 {(!selectedReport.leads || selectedReport.leads.length === 0) && (
@@ -537,6 +550,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               icon={Globe}
               isOpen={inspectorAccordions.reportSources}
               onToggle={() => toggleAccordion('reportSources')}
+              className={getRailAccordionClassName(inspectorAccordions.reportSources)}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-1">
                 {(!selectedReport.sources || selectedReport.sources.length === 0) && (
@@ -608,7 +623,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
             <InspectorActionRow actions={entityActions} />
           </div>
 
-          <div className="flex-1 overflow-y-auto p-2 space-y-2">
+          <div className={`${CHROME_RAIL_BODY_CLASS} p-2`}>
             {(() => {
               const details = getEntityDetails(selectedEntity);
               return (
@@ -642,6 +657,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               icon={FileText}
               isOpen={inspectorAccordions.mentions}
               onToggle={() => toggleAccordion('mentions')}
+              className={getRailAccordionClassName(inspectorAccordions.mentions)}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-1">
                 {getEntityMentions(selectedEntity).length > 0 ? (
@@ -666,6 +683,8 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               icon={Network}
               isOpen={inspectorAccordions.connections}
               onToggle={() => toggleAccordion('connections')}
+              className={getRailAccordionClassName(inspectorAccordions.connections)}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-1">
                 {getEntityConnections(selectedEntity).length > 0 ? (

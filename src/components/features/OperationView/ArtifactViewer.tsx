@@ -920,7 +920,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   const findingOriginSectionId = finding.originSectionId;
 
                   return (
-                    <article key={finding.id} className="border border-zinc-800 bg-black/40 p-4">
+                    <article key={finding.id} className="border border-zinc-800 p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="osint-meta-label">{`Finding ${index + 1}`}</div>

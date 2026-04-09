@@ -6,6 +6,7 @@ export interface InspectorActionItem {
   id: string;
   label: string;
   icon: LucideIcon;
+  iconOnly?: boolean;
   iconClassName?: string;
   onClick?: () => void;
   href?: string;
@@ -43,10 +44,15 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
     >
       {actions.map((action) => {
         const Icon = action.icon;
+        const showActionLabel = showLabels && !action.iconOnly;
         const sharedProps = {
           className: cx(
             CHROME_ACTION_BUTTON_CLASS,
-            layout === 'wrap' ? 'shrink-0' : 'w-full',
+            layout === 'wrap'
+              ? action.iconOnly
+                ? 'w-9 shrink-0 px-0'
+                : 'shrink-0'
+              : 'w-full',
             action.className
           ),
           title: action.label,
@@ -63,7 +69,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
               {...sharedProps}
             >
               <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
-              {showLabels ? <span>{action.label}</span> : null}
+              {showActionLabel ? <span>{action.label}</span> : null}
             </a>
           );
         }
@@ -71,7 +77,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
         return (
           <button key={action.id} type="button" onClick={action.onClick} {...sharedProps}>
             <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
-            {showLabels ? <span>{action.label}</span> : null}
+            {showActionLabel ? <span>{action.label}</span> : null}
           </button>
         );
       })}

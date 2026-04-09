@@ -43,7 +43,7 @@ export const buildBoardInspectorActions = ({
   if (selectedArtifact) {
     inspectorActions.push({
       id: 'board-open-report',
-      label: 'Open Artifact',
+      label: 'Open',
       icon: FileText,
       onClick: () => onOpenReport(selectedArtifact),
     });
@@ -52,7 +52,7 @@ export const buildBoardInspectorActions = ({
   if (selectedEntries.length > 0) {
     inspectorActions.push({
       id: 'board-open-chat',
-      label: 'Open In Chat',
+      label: 'Chat',
       icon: MessageSquare,
       onClick: onOpenSelectedChat,
     });
@@ -78,7 +78,7 @@ export const buildBoardInspectorActions = ({
     if (sourceReport) {
       inspectorActions.push({
         id: 'board-open-source-report',
-        label: 'Source Report',
+        label: 'Source',
         icon: FileText,
         onClick: () => onOpenReport(sourceReport),
       });
@@ -88,7 +88,7 @@ export const buildBoardInspectorActions = ({
   if (selectedPrimaryEntry?.url || typeof selectedPrimaryEntry?.metadata?.url === 'string') {
     inspectorActions.push({
       id: 'board-open-link',
-      label: 'Open Link',
+      label: 'Link',
       icon: Link2,
       href:
         selectedPrimaryEntry.url ||
@@ -109,7 +109,7 @@ export const buildBoardInspectorActions = ({
     });
     inspectorActions.push({
       id: 'board-open-network',
-      label: 'Network Graph',
+      label: 'Network',
       icon: Network,
       onClick: () => void onNavigateNetwork(),
     });

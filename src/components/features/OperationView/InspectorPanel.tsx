@@ -76,19 +76,19 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     ? [
         {
           id: 'entity-chat',
-          label: 'Open In Chat',
+          label: 'Chat',
           icon: MessageSquare,
           onClick: () => onOpenEntityChat(entity.name),
         },
         {
           id: 'entity-investigate',
-          label: 'Investigate Entity',
+          label: 'Run',
           icon: Microscope,
           onClick: () => onInvestigateEntity(entity.name),
         },
         {
           id: 'entity-google',
-          label: 'Search Google',
+          label: 'Google',
           icon: Search,
           href: `https://www.google.com/search?q=${encodeURIComponent(entity.name)}`,
           target: '_blank',
@@ -96,13 +96,14 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         },
         {
           id: 'entity-flag',
-          label: 'Flag Entity',
+          label: 'Star',
           icon: Star,
+          iconOnly: true,
           onClick: () => onFlagEntity(entity.name),
         },
         {
           id: 'entity-board',
-          label: 'Place On Board',
+          label: 'Canvas',
           icon: Shapes,
           onClick: () => onPlaceEntityOnBoard(entity.name),
         },
@@ -112,19 +113,19 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     ? [
         {
           id: 'headline-chat',
-          label: 'Open In Chat',
+          label: 'Chat',
           icon: MessageSquare,
           onClick: onOpenHeadlineChat,
         },
         {
           id: 'headline-board',
-          label: 'Place On Board',
+          label: 'Canvas',
           icon: Shapes,
           onClick: onPlaceHeadlineOnBoard,
         },
         {
           id: 'headline-investigate',
-          label: 'Launch Investigation',
+          label: 'Run',
           icon: Microscope,
           onClick: onInvestigateHeadline,
         },
@@ -134,13 +135,13 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     ? [
         {
           id: 'report-chat',
-          label: 'Open In Chat',
+          label: 'Chat',
           icon: MessageSquare,
           onClick: onOpenReportChat,
         },
         {
           id: 'report-board',
-          label: 'Place On Board',
+          label: 'Canvas',
           icon: Shapes,
           onClick: onPlaceReportOnBoard,
         },
