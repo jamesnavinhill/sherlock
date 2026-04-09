@@ -29,10 +29,12 @@ export const LibraryRailShell: React.FC<LibraryRailShellProps> = ({
   className = '',
 }) => (
   <aside
+    aria-hidden={!isOpen}
+    data-state={isOpen ? 'open' : 'closed'}
     className={`osint-panel-shell absolute left-0 top-0 z-30 flex h-full flex-col overflow-hidden border-r border-zinc-800 bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
       isOpen
         ? `${widthClassName} translate-x-0`
-        : `${widthClassName} -translate-x-full lg:w-0 lg:border-r-0`
+        : `${widthClassName} pointer-events-none -translate-x-full lg:w-0 lg:border-r-0`
     } ${className}`}
   >
     <LibraryRailHeader

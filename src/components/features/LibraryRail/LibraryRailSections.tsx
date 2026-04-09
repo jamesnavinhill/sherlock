@@ -24,6 +24,7 @@ export const LibraryRailSections: React.FC<LibraryRailSectionsProps> = ({ sectio
           onToggle={section.onToggle}
           className={section.className || getRailAccordionClassName(section.isOpen)}
           headerClassName={section.headerClassName}
+          chevronClassName={section.chevronClassName}
           contentClassName={section.contentClassName || CHROME_RAIL_SECTION_SCROLL_CLASS}
         >
           {section.content ? (

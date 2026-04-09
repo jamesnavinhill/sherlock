@@ -4,12 +4,14 @@ import { Search } from 'lucide-react';
 interface LibraryRailSearchProps {
   onChange: (value: string) => void;
   placeholder?: string;
+  ariaLabel?: string;
   value: string;
 }
 
 export const LibraryRailSearch: React.FC<LibraryRailSearchProps> = ({
   onChange,
   placeholder = 'Search library...',
+  ariaLabel = 'Search library',
   value,
 }) => (
   <div className="relative">
@@ -19,6 +21,7 @@ export const LibraryRailSearch: React.FC<LibraryRailSearchProps> = ({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
+      aria-label={ariaLabel}
       className="osint-input-field w-full px-10 py-2 text-sm"
     />
   </div>

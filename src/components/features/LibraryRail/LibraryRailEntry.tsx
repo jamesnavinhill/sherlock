@@ -4,7 +4,6 @@ import {
   CHROME_NESTED_ITEM_BODY_CLASS,
   CHROME_NESTED_ITEM_META_ROW_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
-  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
   CHROME_THIN_NESTED_ITEM_CLASS,
   getChromeThinActionRowClassName,
 } from '@/components/ui/chrome';
@@ -31,126 +30,77 @@ export const LibraryRailEntry: React.FC<LibraryRailEntryProps> = ({ entry }) => 
   const wrapperClassName =
     entry.variant === 'card' ? 'osint-panel-item p-3' : CHROME_THIN_NESTED_ITEM_CLASS;
 
-  const interactiveClassName =
-    entry.variant === 'card' ? 'w-full text-left' : CHROME_THIN_NESTED_ITEM_BUTTON_CLASS;
+  const interactiveClassName = [
+    'block w-full text-left',
+    entry.isActive ? 'text-osint-primary' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-  if (entry.href) {
-    return (
-      <a
-        href={entry.href}
-        target={entry.target}
-        rel={entry.rel}
-        className={`${wrapperClassName} block ${entry.isActive ? 'border-osint-primary/40' : ''}`.trim()}
-      >
-        {headerContent}
-        {entry.actions?.length ? (
-          <div className={getChromeThinActionRowClassName(Math.min(entry.actions.length, 2))}>
-            {entry.actions.map((action) => {
-              const ActionIcon = action.icon;
+  const actionCount = Math.min(entry.actions?.length ?? 0, 2);
 
-              return (
-                <span
-                  key={action.id}
-                  className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full ${action.className || ''}`.trim()}
-                >
-                  {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-                  {action.label}
-                </span>
-              );
-            })}
-          </div>
-        ) : null}
-      </a>
-    );
-  }
+  const actions = entry.actions?.length ? (
+    <div className={getChromeThinActionRowClassName(actionCount)}>
+      {entry.actions.map((action) => {
+        const ActionIcon = action.icon;
+        const sharedClassName =
+          `${CHROME_THIN_ACTION_BUTTON_CLASS} w-full ${action.className || ''}`.trim();
 
-  if (entry.onClick) {
-    return (
-      <div className={wrapperClassName}>
-        <button
-          type="button"
-          onClick={entry.onClick}
-          className={`${interactiveClassName} ${entry.isActive ? 'border-osint-primary/40 text-osint-primary' : ''}`.trim()}
-        >
-          {headerContent}
-        </button>
-        {entry.actions?.length ? (
-          <div className={getChromeThinActionRowClassName(Math.min(entry.actions.length, 2))}>
-            {entry.actions.map((action) => {
-              const ActionIcon = action.icon;
-              const sharedClassName = `${CHROME_THIN_ACTION_BUTTON_CLASS} w-full ${action.className || ''}`.trim();
+        if (action.href) {
+          return (
+            <a
+              key={action.id}
+              href={action.href}
+              target={action.target}
+              rel={action.rel}
+              className={sharedClassName}
+            >
+              {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
+              {action.label}
+            </a>
+          );
+        }
 
-              if (action.href) {
-                return (
-                  <a
-                    key={action.id}
-                    href={action.href}
-                    target={action.target}
-                    rel={action.rel}
-                    className={sharedClassName}
-                  >
-                    {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-                    {action.label}
-                  </a>
-                );
-              }
+        return (
+          <button
+            key={action.id}
+            type="button"
+            onClick={action.onClick}
+            className={sharedClassName}
+          >
+            {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
+            {action.label}
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
 
-              return (
-                <button
-                  key={action.id}
-                  type="button"
-                  onClick={action.onClick}
-                  className={sharedClassName}
-                >
-                  {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-                  {action.label}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
+  const primaryContent = entry.href ? (
+    <a
+      href={entry.href}
+      target={entry.target}
+      rel={entry.rel}
+      className={interactiveClassName}
+    >
+      {headerContent}
+    </a>
+  ) : entry.onClick ? (
+    <button
+      type="button"
+      onClick={entry.onClick}
+      className={interactiveClassName}
+    >
+      {headerContent}
+    </button>
+  ) : (
+    headerContent
+  );
 
   return (
-    <div className={wrapperClassName}>
-      {headerContent}
-      {entry.actions?.length ? (
-        <div className={getChromeThinActionRowClassName(Math.min(entry.actions.length, 2))}>
-          {entry.actions.map((action) => {
-            const ActionIcon = action.icon;
-            const sharedClassName = `${CHROME_THIN_ACTION_BUTTON_CLASS} w-full ${action.className || ''}`.trim();
-
-            if (action.href) {
-              return (
-                <a
-                  key={action.id}
-                  href={action.href}
-                  target={action.target}
-                  rel={action.rel}
-                  className={sharedClassName}
-                >
-                  {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-                  {action.label}
-                </a>
-              );
-            }
-
-            return (
-              <button
-                key={action.id}
-                type="button"
-                onClick={action.onClick}
-                className={sharedClassName}
-              >
-                {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-                {action.label}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+    <div className={`${wrapperClassName} ${entry.isActive ? 'border-osint-primary/40' : ''}`.trim()}>
+      {primaryContent}
+      {actions}
     </div>
   );
 };

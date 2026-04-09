@@ -38,4 +38,13 @@ describe('GlobalInspectorPanel', () => {
     expect(screen.getByRole('button', { name: 'Open' })).toBeInTheDocument();
     expect(screen.getByText('No Item Selected')).toBeInTheDocument();
   });
+
+  it('marks the shell as hidden when closed', () => {
+    render(<GlobalInspectorPanel isOpen={false} title="Atlas Holdings" />);
+
+    const panel = screen.getByText('Atlas Holdings').closest('aside');
+    expect(panel).toHaveAttribute('aria-hidden', 'true');
+    expect(panel?.getAttribute('data-state')).toBe('closed');
+    expect(panel?.className).toContain('pointer-events-none');
+  });
 });

@@ -42,4 +42,5 @@ export interface LibraryRailSection {
   className?: string;
   contentClassName?: string;
   headerClassName?: string;
+  chevronClassName?: string;
 }
