@@ -96,6 +96,7 @@ export const APP_ICON_OPTIONS = APP_ICON_IDS.map((id) => ({
 }));
 
 const iconDataUrlCache = new Map<string, string>();
+const CSS_VAR_PATTERN = /var\((--[^),\s]+)(?:,[^)]+)?\)/g;
 
 export const isAppIconId = (value: string | null | undefined): value is AppIconId =>
   !!value && value in APP_ICON_REGISTRY;
@@ -165,6 +166,23 @@ export const getDefaultWorkspaceLibraryIconId = (input: {
   }
 };
 
+export const resolveAppIconColor = (
+  color: string | null | undefined,
+  root: Element | null = typeof document !== 'undefined' ? document.documentElement : null
+) => {
+  const trimmed = color?.trim();
+  if (!trimmed) return '#e4e4e7';
+  if (!trimmed.includes('var(')) return trimmed;
+  if (typeof window === 'undefined' || !root) return '#e4e4e7';
+
+  const resolved = trimmed.replace(CSS_VAR_PATTERN, (_, variableName: string) => {
+    const value = window.getComputedStyle(root).getPropertyValue(variableName).trim();
+    return value || '#e4e4e7';
+  });
+
+  return resolved.includes('var(') ? '#e4e4e7' : resolved;
+};
+
 export const buildAppIconSvgDataUrl = (
   iconId: string | null | undefined,
   input?: {
@@ -174,7 +192,7 @@ export const buildAppIconSvgDataUrl = (
   }
 ) => {
   const resolvedId = isAppIconId(iconId) ? iconId : getDefaultWorkspaceIconId();
-  const color = input?.color || '#e4e4e7';
+  const color = resolveAppIconColor(input?.color);
   const size = input?.size || 24;
   const strokeWidth = input?.strokeWidth || 1.8;
   const cacheKey = `${resolvedId}:${color}:${size}:${strokeWidth}`;
