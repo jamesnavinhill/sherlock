@@ -2,363 +2,413 @@
 
 ## Goal
 
-Combine the global inspector cutover and library rail unification work into one coordinated execution plan that can be delivered steadily with limited parallelism, low merge risk, and a clear final cleanup pass.
+Unify Sherlock's right-side inspector surfaces and left-side library rails behind the shared panel systems that now exist in the codebase, then finish the remaining route migrations, remove obsolete bespoke shells, and land one clean parity pass with docs and validation in sync.
 
-This epic is intended to replace ad hoc implementation sequencing with a deliberate rollout:
-
-1. build shared foundations first
-2. harden foundations in a short second pass
-3. execute route-level migrations in small parallel pairs
-4. finish with a cleanup, audit, and docs sync pass
-
-This plan complements, rather than replaces, the more detailed design docs:
+This epic remains the execution-level companion to:
 
 - [13-global-inspector-cutover-plan.md](C:/Users/james/projects/sherlock/docs/plans/13-global-inspector-cutover-plan.md)
 - [14-library-rail-unification-plan.md](C:/Users/james/projects/sherlock/docs/plans/14-library-rail-unification-plan.md)
 
-## Guiding Strategy
+## Audit Snapshot
 
-The safest way to run this work is:
+Date audited: 2026-04-09
 
-- one solid shared-foundation slice first
-- one short hardening pass over that foundation
-- then only two route/surface streams in parallel at a time
-- one final audit and documentation pass at the end
+Overall status: In progress, with shared foundations landed and partial route adoption complete.
 
-The main rule is:
+Current read:
 
-Do not split work by `inspector` versus `library` once implementation starts.
+- shared inspector foundations are implemented
+- shared library rail foundations are implemented
+- OperationView, NetworkGraph, Timeline, and the ArtifactViewer detail sidebar are consuming the new shared foundations in meaningful ways
+- Chat and WorkspaceBoard still rely on bespoke panel shells and custom section-state wiring
+- final cleanup, full parity normalization, and legacy deletion are not complete
 
-Instead, split work by surface after the foundations are in place:
+## What Landed
 
-- OperationView + NetworkGraph
-- Timeline
-- Chat
-- WorkspaceBoard
+### Shared Inspector Foundation
 
-That keeps each agent mostly inside its own route files and avoids constant conflicts in page entry files.
+Implemented:
 
-## Why This Structure Works
+- [src/components/features/Inspector/GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/Inspector/GlobalInspectorHeader.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorHeader.tsx)
+- [src/components/features/Inspector/GlobalInspectorSections.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorSections.tsx)
+- [src/components/features/Inspector/GlobalInspectorTabs.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorTabs.tsx)
+- [src/components/features/Inspector/globalInspectorTypes.ts](C:/Users/james/projects/sherlock/src/components/features/Inspector/globalInspectorTypes.ts)
+- [src/components/features/Inspector/sharedInspectorSectionBuilders.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/sharedInspectorSectionBuilders.tsx)
 
-The inspector and library plans overlap in several high-friction areas:
+What this means:
 
-- shared chrome primitives in [src/components/ui/chrome.ts](C:/Users/james/projects/sherlock/src/components/ui/chrome.ts)
-- shared action/list rendering patterns
-- the same route entry files
-- the same controller hooks
-- the same panel open/close behavior
+- the canonical shared right-panel shell exists
+- shared tab treatment exists
+- shared section rendering exists
+- reusable entity/headline section builders exist
 
-If two agents independently attack `inspector` and `library` on the same route at the same time, they will likely collide in:
+### Shared Library Rail Foundation
 
-- [src/components/features/OperationView/index.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/index.tsx)
-- [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx)
-- [src/components/features/TimelineView.tsx](C:/Users/james/projects/sherlock/src/components/features/TimelineView.tsx)
-- [src/components/features/Chat/ChatPage.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatPage.tsx)
-- [src/components/features/NetworkGraph/index.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/index.tsx)
+Implemented:
 
-That is why the post-foundation work should be parallelized by route, not by panel type.
+- [src/components/features/LibraryRail/LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx)
+- [src/components/features/LibraryRail/LibraryRailHeader.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailHeader.tsx)
+- [src/components/features/LibraryRail/LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+- [src/components/features/LibraryRail/LibraryRailEntry.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailEntry.tsx)
+- [src/components/features/LibraryRail/LibraryRailSearch.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSearch.tsx)
+- [src/components/features/LibraryRail/libraryRailTypes.ts](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/libraryRailTypes.ts)
 
-## Epic Phases
+What this means:
 
-## Phase 0: Pre-Flight Alignment
+- the canonical shared left-panel shell exists
+- shared header, search, section, and entry rendering exists
+- thin nested actions and card-style entries are supported centrally
 
-Before implementation starts:
+### Shared Section-State Foundation
 
-- treat [13-global-inspector-cutover-plan.md](C:/Users/james/projects/sherlock/docs/plans/13-global-inspector-cutover-plan.md) and [14-library-rail-unification-plan.md](C:/Users/james/projects/sherlock/docs/plans/14-library-rail-unification-plan.md) as the design source docs
-- use this epic as the execution sequence
-- agree on file ownership before each session
-- keep all work additive and adapter-oriented at first
+Implemented:
+
+- [src/components/features/shared/useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
+
+What this means:
+
+- the intended exclusive section toggle primitive exists
+- Timeline, NetworkGraph, OperationView, and ArtifactViewer are using it
+- Chat and WorkspaceBoard have not been migrated onto it yet
+
+### Shared Chrome Hardening
+
+Implemented:
+
+- [src/components/ui/chrome.ts](C:/Users/james/projects/sherlock/src/components/ui/chrome.ts)
+- [src/components/ui/InspectorActionRow.tsx](C:/Users/james/projects/sherlock/src/components/ui/InspectorActionRow.tsx)
+
+What this means:
+
+- thin action-row density landed
+- grid and wrap layouts landed
+- shared tab button styling landed
+- the shared action-row foundation is stable enough for remaining route migrations
+
+## Phase Status
 
 ## Phase 1: Shared Foundation Slice
 
-One agent owns the shared foundations.
+Status: Complete
 
-### Scope
+Notes:
 
-Build the shared primitives needed by both the inspector and library rail families.
-
-### Likely files
-
-- [src/components/ui/chrome.ts](C:/Users/james/projects/sherlock/src/components/ui/chrome.ts)
-- [src/components/ui/InspectorActionRow.tsx](C:/Users/james/projects/sherlock/src/components/ui/InspectorActionRow.tsx)
-- `src/components/features/Inspector/*`
-- `src/components/features/LibraryRail/*`
-- `src/components/features/shared/useExclusivePanelSections.ts`
-
-### Goals
-
-- shared global inspector shell
-- shared inspector types and utilities
-- shared library rail shell
-- shared library rail section and entry renderers
-- shared thin button and action row support
-- shared panel tab treatment
-- shared section toggle helpers
-
-### Constraints
-
-- do not migrate route-level pages yet unless needed for smoke wiring
-- do not remove legacy implementations yet
-- prioritize additive shared infrastructure first
+- the shared inspector feature area exists
+- the shared library rail feature area exists
+- the exclusive section-state hook exists
+- the shared chrome/action-row pass exists
 
 ## Phase 2: Foundation Hardening Pass
 
-A second focused pass over the shared layer should happen before route migrations spread.
+Status: Largely complete
 
-### Purpose
+Evidence:
 
-This pass exists to reduce churn before multiple route streams begin.
+- focused tests exist for shared inspector, shared library rail, shared section-state, and action row
+- thin action density, grid layout, and tab treatment are all present in shared code
 
-### Goals
+Still open:
 
-- smooth rough edges in shared APIs
-- normalize naming
-- verify action-row density and tab sizing
-- tighten render contracts for inspector subjects and library sections
-- add or update focused shared tests
-
-### Likely files
-
-- [src/components/ui/chrome.ts](C:/Users/james/projects/sherlock/src/components/ui/chrome.ts)
-- [src/components/ui/InspectorActionRow.tsx](C:/Users/james/projects/sherlock/src/components/ui/InspectorActionRow.tsx)
-- shared `Inspector` files
-- shared `LibraryRail` files
-
-### Exit criteria
-
-Shared primitives should feel stable enough that route agents mostly consume them instead of reshaping them.
+- there is not yet one final naming and cleanup pass across all route adapters
+- Chat and WorkspaceBoard still expose old local panel state APIs rather than consuming the shared section-state hook
 
 ## Phase 3: Parallel Pair A
 
-Run two route/surface streams in parallel.
-
 ### Stream A1: OperationView + NetworkGraph
 
-Primary files:
+Status: Mostly complete, not cleanup-complete
 
-- [src/components/features/OperationView/index.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/index.tsx)
-- [src/components/features/OperationView/useOperationViewInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/OperationView/useOperationViewInspectorState.ts)
-- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
-- [src/components/features/OperationView/ArtifactViewer.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/ArtifactViewer.tsx)
-- [src/components/features/NetworkGraph/index.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/index.tsx)
-- [src/components/features/NetworkGraph/NodeInspector.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx)
-- [src/components/features/NetworkGraph/useNetworkGraphInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/useNetworkGraphInspectorState.ts)
+Implemented:
 
-Goals:
+- [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx) is now a shared-inspector adapter over [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx) is now a shared-library adapter over [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx) and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+- [src/components/features/NetworkGraph/NodeInspector.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx) is now a shared-inspector adapter over [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/NetworkGraph/index.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/index.tsx) reuses [DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
 
-- migrate archive viewer inspector to the shared global inspector
-- migrate operation/network dossier usage to the shared library rail system
-- extract artifact sidebar/detail rail patterns where feasible
-- keep archive center artifact reader intact
-- leave legacy components only as wrappers temporarily if helpful
+Still open:
+
+- the route still keeps legacy wrapper names instead of consolidating on shared route adapters
+- OperationView and NetworkGraph are functionally migrated, but final legacy deletion and API cleanup did not happen
 
 ### Stream A2: Timeline
 
-Primary files:
+Status: Mostly complete, closest route to clean cutover
 
-- [src/components/features/TimelineView.tsx](C:/Users/james/projects/sherlock/src/components/features/TimelineView.tsx)
-- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx)
-- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
-- [src/components/features/Timeline/useTimelineViewController.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/useTimelineViewController.ts)
-- [src/components/features/Timeline/timelineDetailActions.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/timelineDetailActions.ts)
-- [src/components/features/Timeline/timelineViewUtils.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/timelineViewUtils.ts)
+Implemented:
 
-Goals:
+- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx) renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx) renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx)
+- [src/components/features/Timeline/useTimelineViewController.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/useTimelineViewController.ts) uses [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
 
-- replace timeline detail rail with the shared global inspector
-- replace timeline dossier rail with the shared library rail shell
-- preserve focus and reference navigation semantics
+Still open:
 
-### Why these two can run together
-
-They overlap very little once the shared foundation is stable. Timeline stays inside timeline files, while operation/network shares a route family.
+- component names still reflect the legacy rail model
+- the final route-level cleanup and deletion pass did not happen
 
 ## Phase 4: Parallel Pair B
 
-Run the next two route/surface streams in parallel.
-
 ### Stream B1: Chat
 
-Primary files:
+Status: Not started for shared-panel cutover
 
-- [src/components/features/Chat/ChatPage.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatPage.tsx)
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
-- [src/components/features/Chat/useChatController.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatController.ts)
-- [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts)
-- [src/components/features/Chat/useChatWorkspaceState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatWorkspaceState.ts)
+Current state:
 
-Goals:
+- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx) is still a bespoke left rail built directly with `aside` + `Accordion`
+- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx) is still a bespoke right rail built directly with `aside` + `Accordion`
+- [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts) still uses custom exclusive-toggle logic instead of [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
 
-- replace chat context rail with the shared global inspector
-- replace chat session rail with the shared library rail shell
-- preserve session selection, launch context, retrieval actions, and action log behavior
+What remains:
+
+- migrate the left rail onto the shared library shell
+- migrate the right rail onto the shared global inspector
+- adapt launch context, recent artifacts, recent signals, retrieval, and action log into shared section contracts
+- preserve session selection, rename/delete flows, fetch actions, and launch context behavior
 
 ### Stream B2: WorkspaceBoard
 
-Primary files:
+Status: Partially prepared, not cut over
 
-- [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx)
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
-- [src/components/features/WorkspaceBoard/useWorkspaceBoardController.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardController.ts)
-- [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts)
-- [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts)
-- [src/components/features/WorkspaceBoard/boardInspectorActions.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/boardInspectorActions.ts)
-- [src/components/features/WorkspaceBoard/workspaceBoardUtils.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/workspaceBoardUtils.ts)
+Current state:
 
-Goals:
+- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx) is still a bespoke left rail
+- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx) is still a bespoke inspector body
+- [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx) still owns a route-specific right-panel shell and tab strip
+- [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts) and [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts) still use local exclusive-toggle state
 
-- replace board inspector rail with the shared global inspector
-- replace board library rail with the shared library rail shell
-- preserve board search/create/upload affordances
-- fold AI quick actions into the shared top action treatment
-- keep board Agent as a sibling tab
+What is already aligned:
 
-### Why these two can run together
+- board inspector actions already use [InspectorActionRow.tsx](C:/Users/james/projects/sherlock/src/components/ui/InspectorActionRow.tsx)
+- the board still preserves the intended `Agent` sibling surface
 
-Chat and board are largely isolated by route after the shared foundation pass, even though both consume the new shared panel systems.
+What remains:
+
+- move the left rail onto the shared library shell, header, search, and entry system
+- move the inspector onto the shared global inspector
+- move inspector/agent tabs onto the shared tab shell
+- fold AI actions into the shared top action treatment
+- preserve create, upload, search, and add-to-board affordances
 
 ## Phase 5: Final Integration Audit
 
-After both parallel rounds land, run a final single-owner integration pass.
+Status: Not started
 
-### Purpose
+Not done yet:
 
-This is where the product gets tightened up into one coherent system instead of four independently migrated routes.
-
-### Goals
-
-- remove legacy panel implementations that are no longer needed
-- collapse temporary wrappers where possible
-- normalize tab behavior
-- normalize panel action density and spacing
-- normalize section heading language where appropriate
-- check panel open/close behavior across breakpoints
-- resolve any final API awkwardness in shared inspector and library rail layers
-
-### Likely deletion or cleanup targets
-
-- [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
-- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx)
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
-- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
-- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
+- legacy wrapper/component cleanup
+- naming normalization
+- final API cleanup in route adapters
+- cross-route spacing and section-language normalization
+- breakpoint and open/close behavior audit across all routes after Chat and Board migrate
 
 ## Phase 6: Documentation and Final Verification
 
-Once the code is stable, do one final doc and validation pass.
+Status: In progress
 
-### Docs to review
+Current validation on 2026-04-09:
+
+- `npm run check` passed
+- `npm run build` passed
+- `npm test` is not green yet
+
+Current failing test:
+
+- [src/services/workspace/agent/actions/registry.test.ts](C:/Users/james/projects/sherlock/src/services/workspace/agent/actions/registry.test.ts)
+
+Failure shape:
+
+- `editor.createAssets is not a function`
+- thrown from [src/services/workspace/boardShapes.ts](C:/Users/james/projects/sherlock/src/services/workspace/boardShapes.ts)
+
+Interpretation:
+
+- the main app build is healthy
+- the full suite is close but not fully green
+- the remaining red test is board-adjacent and should be resolved before calling the epic done
+
+## Route-by-Route Status
+
+### OperationView
+
+Status: Shared inspector and shared library adopted
+
+Still remaining:
+
+- convert legacy wrapper naming into final route-level shared-adapter naming if desired
+- include route in the final cleanup/deletion pass
+
+### NetworkGraph
+
+Status: Shared inspector adopted, shared dossier rail reused
+
+Still remaining:
+
+- reduce `NodeInspector` to a thinner final adapter if possible
+- include route in the final cleanup/deletion pass
+
+### Timeline
+
+Status: Shared inspector and shared library adopted
+
+Still remaining:
+
+- cleanup-only pass
+
+### ArtifactViewer Detail Sidebar
+
+Status: Partially unified
+
+Implemented:
+
+- [src/components/features/OperationView/artifactViewerDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/artifactViewerDetailRail.tsx) builds shared library-rail sections
+- [src/components/features/OperationView/ArtifactViewer.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/ArtifactViewer.tsx) uses [LibraryRailHeader.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailHeader.tsx) and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+
+Still remaining:
+
+- decide whether this is finished as an intentionally specialized consumer, or should be moved fully onto [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx)
+- document that decision in the final architecture sync
+
+### Chat
+
+Status: Legacy rails still active
+
+### WorkspaceBoard
+
+Status: Legacy rails still active, shared action-row pieces only
+
+## Remaining Work For Clean Cutover
+
+This is the smallest clean path to full parity from the current repo state.
+
+### Workstream 1: Finish Chat Cutover
+
+Owner surface:
+
+- [src/components/features/Chat/ChatPage.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatPage.tsx)
+- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
+- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
+- [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts)
+
+Deliverables:
+
+- replace `ChatSessionRail` with a shared `LibraryRailShell` consumer
+- replace `ChatContextRail` with a shared `GlobalInspectorPanel` consumer
+- migrate left/right section state to [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
+- keep launch context, recent artifacts, recent signals, retrieval actions, rename/delete, and action log parity intact
+
+Exit criteria:
+
+- no bespoke chat panel shell remains
+- shared panel sections fully represent current chat context behavior
+
+### Workstream 2: Finish WorkspaceBoard Left Rail
+
+Owner surface:
+
+- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
+- [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts)
+- [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx)
+
+Deliverables:
+
+- move header, actions, search, and grouped sections onto the shared library rail system
+- preserve create note, create link, file upload, nested disclosure items, delete, and add-to-board actions
+- migrate section state to [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts) where applicable
+
+Exit criteria:
+
+- no bespoke board left rail shell remains
+
+### Workstream 3: Finish WorkspaceBoard Right Rail And Tabs
+
+Owner surface:
+
+- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
+- [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx)
+- [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts)
+
+Deliverables:
+
+- render board inspector content through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- move `Inspector` and `Agent` tabs onto the shared tab shell
+- normalize AI actions into the shared top action treatment instead of a dedicated accordion section
+- preserve provenance, selection rendering, delete-board affordance, and agent sibling behavior
+
+Exit criteria:
+
+- board becomes the canonical proof that shared tabs work for `Inspector` + `Agent`
+
+### Workstream 4: Cleanup And Parity Pass
+
+Owner surface:
+
+- [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
+- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
+- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx)
+- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
+- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
+- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
+- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
+- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
+
+Deliverables:
+
+- delete obsolete bespoke shells where they are no longer meaningful
+- keep only thin adapters where route-specific data shaping is still valuable
+- normalize section labels, action density, and tab behavior across all routes
+- make an explicit final decision on whether ArtifactViewer remains a specialized shared consumer or moves fully onto `LibraryRailShell`
+
+Exit criteria:
+
+- panel architecture is coherent across all major routes
+- legacy rail implementations are removed or reduced to trivial adapters
+
+### Workstream 5: Final Docs And Verification
+
+Owner surface:
 
 - [README.md](C:/Users/james/projects/sherlock/README.md)
 - [docs/operations/ARCHITECTURE.md](C:/Users/james/projects/sherlock/docs/operations/ARCHITECTURE.md)
+- [docs/plans/15-ui-panel-unification-epic.md](C:/Users/james/projects/sherlock/docs/plans/15-ui-panel-unification-epic.md)
 
-Update only if the new shared panel architecture materially changes the documented structure.
+Deliverables:
 
-### Validation expectations
+- sync architecture language with the final shared-panel structure
+- resolve the remaining red test in [registry.test.ts](C:/Users/james/projects/sherlock/src/services/workspace/agent/actions/registry.test.ts)
+- rerun:
+  - `npm run check`
+  - `npm test`
+  - `npm run build`
 
-At minimum:
+Exit criteria:
 
-- `npm run lint`
-- `npm run typecheck`
-- targeted tests covering touched routes and shared panel systems
-- `npm run build`
+- docs reflect the final architecture, not the intermediate state
+- validation is fully green
 
-If the cumulative churn across routes becomes broad enough, run:
+## Recommended Finish Order
 
-- `npm run test`
+The cleanest close-out order from here is:
 
-Use the full suite if targeted coverage starts to feel misleading after all phases land.
+1. finish Chat cutover
+2. finish WorkspaceBoard left rail
+3. finish WorkspaceBoard inspector + shared tabs
+4. run the cleanup/deletion pass across all routes
+5. fix the remaining failing board-agent test
+6. sync docs and rerun full validation
 
-## Parallel Execution Rules
+## Definition Of Done Status
 
-When running multiple agents, use these rules:
+Current status against the epic definition:
 
-### Rule 1: Shared foundations are single-owner
-
-Only one agent at a time should own:
-
-- [src/components/ui/chrome.ts](C:/Users/james/projects/sherlock/src/components/ui/chrome.ts)
-- [src/components/ui/InspectorActionRow.tsx](C:/Users/james/projects/sherlock/src/components/ui/InspectorActionRow.tsx)
-- `src/components/features/Inspector/*`
-- `src/components/features/LibraryRail/*`
-- `src/components/features/shared/useExclusivePanelSections.ts`
-
-### Rule 2: After foundations, split by route family
-
-Good route ownership:
-
-- Agent 1: OperationView + NetworkGraph
-- Agent 2: Timeline
-- Agent 3: Chat
-- Agent 4: WorkspaceBoard
-
-### Rule 3: Agents should know other work is in flight, but ownership matters more
-
-It is useful to prime agents that neighboring work is happening, but that alone is not enough. File ownership must be explicit.
-
-### Rule 4: Do not divide concurrent work by `inspector` vs `library`
-
-That split will collide too often in the same route entry and controller files.
-
-## Recommended Session Cadence
-
-This matches the intended steady, controlled rollout:
-
-### Session 1
-
-- foundation slice
-
-### Session 2
-
-- foundation hardening pass
-
-### Session 3
-
-- parallel pair A
-- OperationView + NetworkGraph
-- Timeline
-
-### Session 4
-
-- continue or finish parallel pair A
-
-### Session 5
-
-- parallel pair B
-- Chat
-- WorkspaceBoard
-
-### Session 6
-
-- continue or finish parallel pair B
-
-### Session 7
-
-- final audit
-- cleanup
-- docs update
-- full verification
-
-This keeps momentum high without trying to move too many risky surfaces at once.
-
-## Definition of Done
-
-The epic is complete when:
-
-- all inspector rails use the shared global inspector system
-- all left-side library rails use the shared library rail system where appropriate
-- artifact sidebar/detail rail behavior is moved into the shared panel family
-- board Agent tab remains intact inside the unified panel shell
-- route-specific behaviors are preserved
-- legacy custom panel implementations are removed or reduced to trivial wrappers
-- docs are updated if architecture changed materially
-- validation passes cleanly
+- all inspector rails use the shared global inspector system: not yet
+- all left-side library rails use the shared library rail system where appropriate: not yet
+- artifact sidebar/detail rail behavior is moved into the shared panel family: mostly yes, final shell decision still open
+- board Agent tab remains intact inside the unified panel shell: not yet
+- route-specific behaviors are preserved: yes on migrated routes, still pending Chat and Board cutover
+- legacy custom panel implementations are removed or reduced to trivial wrappers: not yet
+- docs are updated if architecture changed materially: in progress
+- validation passes cleanly: not yet
 
 ## Summary
 
-The best execution model is one shared-foundation pass, one short hardening pass, then two small rounds of route-based parallel migration, followed by a final audit and documentation pass. This keeps the work steady instead of chaotic, limits merge conflicts, and gives the panel systems a real chance to settle into a coherent unified architecture.
+The epic is past the risky foundation stage and into the final conversion stage. Shared inspector and library systems are real and already powering OperationView, NetworkGraph, Timeline, and the ArtifactViewer detail sidebar. The remaining path to full parity is now straightforward: finish Chat, finish WorkspaceBoard, do one deliberate cleanup pass, fix the remaining red test, and then lock docs and validation together.
