@@ -159,7 +159,7 @@ export const SHERLOCK_ROUTE_DEFINITIONS: Record<SherlockRouteId, SherlockRouteDe
     storeState: [
       'dossier and inspector panel visibility',
       'entity or signal inspector selection',
-      'task setup modal state',
+      'run setup modal state',
     ],
   },
   WORKSPACE_CHAT: {

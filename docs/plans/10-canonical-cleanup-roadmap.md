@@ -171,11 +171,7 @@ src/components/features/OperationView/ArtifactViewer.tsx
 src/components/features/OperationView/ArtifactViewer.test.tsx
 src/components/features/OperationView/operationWorkspacePanelData.ts
 src/components/features/OperationView/artifactViewerPresentation.ts
-src/components/features/Runs/TaskSetupModal.tsx
-src/components/features/Runs/taskSetupUtils.ts
-src/components/features/Runs/useTaskSetupState.ts
 src/components/ui/TaskManager.tsx
-src/components/ui/TaskSetupModal.tsx
 src/services/db/repositories/CaseRepository.ts
 src/services/db/repositories/CaseRepository.test.ts
 src/services/db/repositories/TaskRepository.ts
@@ -1014,9 +1010,9 @@ Landed in this Stream 7 session:
 
 - added `src/components/features/Runs/runtimeConfigState.ts` and focused coverage in `src/components/features/Runs/runtimeConfigState.test.ts` so shared runtime-config load/save shaping now lives in one place for Settings, run setup, template authoring, and other runtime-config consumers
 - routed `useSettingsRuntimeState.ts`, `useSettingsController.ts`, `TemplateGallery.tsx`, and `useRunSetupState.ts` through the shared runtime-config helpers so provider/model/default-runtime behavior now stays aligned across Settings, run setup, template creation, and launch mapping
-- removed the remaining active `TaskSetup` naming drift in the run-setup selector and controller input naming, leaving the active run-launch surface on `RunSetup*` naming that matches the actual file layout
+- removed the remaining active legacy run-setup naming drift in the selector, controller input naming, and active docs so the live run-launch surface now matches the current `RunSetup*` file layout
 - reran the previously noted warning-owner tests (`OperationView/launchPropagation.test.tsx`, `OperationView/useOperationViewController.test.ts`, and `Timeline/useTimelineViewController.test.ts`) with the current router future-flag setup and did not reproduce the earlier non-failing React `act(...)` or React Router future-flag warning output in the targeted validation pass
-- updated active docs so they now point to the current `RunSetup*` files, the current `Settings -> Runtime` UI labels, and the shared runtime-config contract rather than retired `TaskSetup*` or `System Config -> AI` wording
+- updated active docs so they now point to the current `RunSetup*` files, the current `Settings -> Runtime` UI labels, and the shared runtime-config contract rather than retired older run-setup or pre-cleanup settings wording
 
 Intentionally deferred in this session:
 

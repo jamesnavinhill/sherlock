@@ -22,6 +22,25 @@ const { useSettingsThemeState } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/config/systemConfig', () => ({
+  DEFAULT_SYSTEM_CONFIG: {
+    provider: 'OPENAI',
+    modelId: 'gpt-test',
+    searchDepth: 'STANDARD',
+    generationMode: 'SINGLE_PASS',
+    thinkingBudget: 1024,
+    persona: 'general-investigator',
+    autoNormalizeEntities: true,
+    quietMode: false,
+    openRouter: {
+      webSearchEnabled: true,
+      engine: 'auto',
+      maxResults: 5,
+      maxTotalResults: 15,
+      searchContextSize: 'medium',
+      allowedDomains: [],
+      excludedDomains: [],
+    },
+  },
   loadSystemConfig: () => ({
     provider: 'OPENAI',
     modelId: 'gpt-test',
