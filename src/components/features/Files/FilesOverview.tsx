@@ -16,7 +16,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import type { FilesOverviewViewModel, FilesViewMode } from './filesViewModel';
 
 interface FilesOverviewProps {
-  artifactLabel: string;
   artifactLabelPlural: string;
   currentPage: number;
   onChangePage: (page: number) => void;
@@ -60,8 +59,13 @@ const renderPagination = (input: {
     </div>
   ) : null;
 
+const WORKSPACE_ACTION_BUTTON_CLASS =
+  'inline-flex h-8 w-8 items-center justify-center border border-zinc-800 bg-black/40 text-zinc-500 transition hover:border-zinc-700 hover:text-white';
+
+const getWorkspaceOverviewSummary = (workspaceLabelLower: string, workspace: Workspace) =>
+  workspace.description || `Open this ${workspaceLabelLower} to inspect artifacts, items, and saved history.`;
+
 export const FilesOverview: React.FC<FilesOverviewProps> = ({
-  artifactLabel,
   artifactLabelPlural,
   currentPage,
   onChangePage,
@@ -77,6 +81,58 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
   workspaceLabel,
   workspaceLabelLower,
 }) => {
+  const renderWorkspaceActions = (workspace: Workspace) => (
+    <>
+      <button
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpenWorkspaceChat(workspace.id);
+        }}
+        className={WORKSPACE_ACTION_BUTTON_CLASS}
+        title={`Open ${workspaceLabelLower} in workspace chat`}
+      >
+        <MessageSquare className="h-4 w-4" />
+      </button>
+      <button
+        onClick={(event) => {
+          event.stopPropagation();
+          onExportWorkspaceHtml(workspace);
+        }}
+        className={WORKSPACE_ACTION_BUTTON_CLASS}
+        title={`Export formatted printable ${workspaceLabelLower} (HTML)`}
+      >
+        <Download className="h-4 w-4" />
+      </button>
+      <button
+        onClick={(event) => {
+          event.stopPropagation();
+          onExportWorkspaceJson(workspace);
+        }}
+        className={WORKSPACE_ACTION_BUTTON_CLASS}
+        title={`Export raw ${workspaceLabelLower} data for backup (JSON)`}
+      >
+        <FileJson className="h-4 w-4" />
+      </button>
+      <button
+        onClick={(event) => {
+          event.stopPropagation();
+          onExportWorkspaceMarkdown(workspace);
+        }}
+        className={WORKSPACE_ACTION_BUTTON_CLASS}
+        title={`Export ${workspaceLabelLower} as Markdown (.md)`}
+      >
+        <FileText className="h-4 w-4" />
+      </button>
+      <button
+        onClick={(event) => onPurgeWorkspace(workspace.id, event)}
+        className={`${WORKSPACE_ACTION_BUTTON_CLASS} hover:text-osint-danger`}
+        title={`Permanently Purge ${workspaceLabel}`}
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </>
+  );
+
   if (viewModel.paginatedWorkspaces.length === 0 && viewModel.unassignedArtifactCount === 0) {
     return (
       <EmptyState
@@ -100,7 +156,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             <div
               key={workspace.id}
               onClick={() => onSelectWorkspace(workspace.id)}
-              className="group relative cursor-pointer overflow-hidden border border-zinc-800 bg-osint-panel/80 p-6 backdrop-blur-sm transition-all hover:border-osint-primary"
+              className="group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden border border-zinc-800 bg-osint-panel/80 p-6 backdrop-blur-sm transition-all hover:border-osint-primary"
             >
               <div className="absolute right-0 top-0 p-4 opacity-20 transition-opacity group-hover:opacity-40">
                 <Folder className="h-24 w-24 text-white" />
@@ -120,66 +176,30 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
               <h3 className="osint-title-card relative z-10 mb-1 truncate transition-colors group-hover:text-zinc-300">
                 {displayTitle}
               </h3>
-              <p className="osint-body-quiet mb-4">{workspace.dateOpened}</p>
+              <p className="osint-body-quiet">{workspace.dateOpened}</p>
+              <p className="relative z-10 mt-4 line-clamp-4 osint-body-quiet">
+                {getWorkspaceOverviewSummary(workspaceLabelLower, workspace)}
+              </p>
 
-              <div className="osint-meta-label relative z-10 flex items-center justify-between border-t border-zinc-800 pt-4">
-                <span className="flex items-center gap-3">
-                  <span className="flex items-center">
-                    <FileText className="mr-2 h-4 w-4" />
-                    {artifactCount} {artifactCount === 1 ? artifactLabel : artifactLabelPlural}
-                  </span>
-                  <span>
-                    {itemCount} {CANONICAL_NOUNS.itemPlural.toLowerCase()}
-                  </span>
-                </span>
-                <div className="flex space-x-1">
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onOpenWorkspaceChat(workspace.id);
-                    }}
-                    className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
-                    title={`Open ${workspaceLabelLower} in workspace chat`}
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onExportWorkspaceHtml(workspace);
-                    }}
-                    className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
-                    title={`Export formatted printable ${workspaceLabelLower} (HTML)`}
-                  >
-                    <Download className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onExportWorkspaceJson(workspace);
-                    }}
-                    className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
-                    title={`Export raw ${workspaceLabelLower} data for backup (JSON)`}
-                  >
-                    <FileJson className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onExportWorkspaceMarkdown(workspace);
-                    }}
-                    className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
-                    title={`Export ${workspaceLabelLower} as Markdown (.md)`}
-                  >
-                    <FileText className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(event) => onPurgeWorkspace(workspace.id, event)}
-                    className="p-1 opacity-0 transition-colors group-hover:opacity-100 hover:text-osint-danger"
-                    title={`Permanently Purge ${workspaceLabel}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+              <div className="relative z-10 mt-auto pt-6">
+                <div className="grid grid-cols-2 gap-3 border-t border-zinc-800 pt-4">
+                  <div className="min-w-0 border border-zinc-800 bg-black/30 px-3 py-2">
+                    <div className="osint-meta-label">Artifacts</div>
+                    <div className="mt-1 flex items-center gap-2 osint-meta-value">
+                      <FileText className="h-4 w-4 text-zinc-500" />
+                      <span>{artifactCount}</span>
+                    </div>
+                  </div>
+                  <div className="min-w-0 border border-zinc-800 bg-black/30 px-3 py-2">
+                    <div className="osint-meta-label">Items</div>
+                    <div className="mt-1 osint-meta-value">{itemCount}</div>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-zinc-800 pt-4">
+                  <div className="flex flex-wrap gap-2">
+                    {renderWorkspaceActions(workspace)}
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
                 </div>
               </div>
             </div>
@@ -208,55 +228,42 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
         </div>
       ) : (
         <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
-          <div className="osint-meta-label grid grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
+          <div className="osint-meta-label grid grid-cols-[minmax(0,1.2fr)_auto_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
             <span>Workspace</span>
             <span>Artifacts</span>
             <span>Items</span>
-            <span className="text-right">Actions</span>
+            <span className="text-right">Open</span>
           </div>
           <div className="divide-y divide-zinc-800">
             {viewModel.paginatedWorkspaces.map(({ workspace, artifactCount, itemCount, displayTitle }) => (
               <div
                 key={workspace.id}
                 onClick={() => onSelectWorkspace(workspace.id)}
-                className="grid cursor-pointer grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                className="cursor-pointer px-4 py-4 transition hover:bg-zinc-900/70"
               >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <div className="osint-title-inline">{displayTitle}</div>
-                    <span
-                      className={`osint-meta-label border px-2 py-0.5 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
-                    >
-                      {workspace.status}
-                    </span>
+                <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto_auto] items-start gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="osint-title-inline">{displayTitle}</div>
+                      <span
+                        className={`osint-meta-label border px-2 py-0.5 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
+                      >
+                        {workspace.status}
+                      </span>
+                    </div>
+                    <div className="osint-meta-label mt-1">{workspace.dateOpened}</div>
+                    <p className="osint-body-quiet mt-2 line-clamp-2 max-w-4xl">
+                      {getWorkspaceOverviewSummary(workspaceLabelLower, workspace)}
+                    </p>
                   </div>
-                  <div className="osint-meta-label mt-1">{workspace.dateOpened}</div>
-                  <p className="osint-body-quiet mt-2 line-clamp-2">
-                    {workspace.description ||
-                      'Open this workspace to inspect artifacts, items, and saved history.'}
-                  </p>
+                  <div className="osint-meta-value self-center text-right">{artifactCount}</div>
+                  <div className="osint-meta-value self-center text-right">{itemCount}</div>
+                  <div className="flex items-center justify-end self-center">
+                    <ArrowRight className="h-4 w-4 text-zinc-600" />
+                  </div>
                 </div>
-                <div className="osint-meta-value self-center text-right">{artifactCount}</div>
-                <div className="osint-meta-value self-center text-right">{itemCount}</div>
-                <div className="flex items-center justify-end gap-2 self-center">
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onOpenWorkspaceChat(workspace.id);
-                    }}
-                    className="text-zinc-500 transition hover:text-white"
-                    title={`Open ${workspaceLabelLower} in workspace chat`}
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(event) => onPurgeWorkspace(workspace.id, event)}
-                    className="text-zinc-500 transition hover:text-osint-danger"
-                    title={`Permanently Purge ${workspaceLabel}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                  <ArrowRight className="h-4 w-4 text-zinc-600" />
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-zinc-800 pt-3">
+                  {renderWorkspaceActions(workspace)}
                 </div>
               </div>
             ))}
@@ -264,7 +271,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             {viewModel.unassignedArtifactCount > 0 ? (
               <div
                 onClick={() => onSelectWorkspace('unassigned')}
-                className="grid cursor-pointer grid-cols-[minmax(0,1.6fr)_auto_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                className="grid cursor-pointer grid-cols-[minmax(0,1.2fr)_auto_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
               >
                 <div className="min-w-0">
                   <div className="osint-title-inline text-zinc-300">Unassigned</div>

@@ -42,7 +42,6 @@ interface FilesProps {
 export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, onOpenChat }) => {
   const controller = useFilesController({ onOpenChat, onSelectReport });
   const {
-    artifactLabel,
     artifactLabelLower,
     artifactLabelPlural,
     closeWorkspacePurgeDialog,
@@ -330,7 +329,6 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           />
         ) : (
           <FilesOverview
-            artifactLabel={artifactLabel}
             artifactLabelPlural={artifactLabelPlural}
             currentPage={currentPage}
             onChangePage={setCurrentPage}
