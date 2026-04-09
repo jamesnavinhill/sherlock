@@ -106,6 +106,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
     const gRef = useRef<SVGGElement | null>(null);
     const nodePositionsRef = useRef<Record<string, Pick<GraphNode, 'x' | 'y' | 'fx' | 'fy'>>>({});
     const zoomTransformRef = useRef<d3.ZoomTransform | null>(null);
+    const dragPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
 
     // D3 Refs
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -462,6 +463,17 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
       const nodesById = new Map(filteredNodes.map((node) => [node.id, node]));
       const resolveNodeId = (node: string | GraphNode) => (typeof node === 'string' ? node : node.id);
+      const neighborIdsByNode = new Map<string, Set<string>>();
+      filteredLinks.forEach((linkDatum) => {
+        const sourceId = resolveNodeId(linkDatum.source);
+        const targetId = resolveNodeId(linkDatum.target);
+
+        if (!neighborIdsByNode.has(sourceId)) neighborIdsByNode.set(sourceId, new Set());
+        if (!neighborIdsByNode.has(targetId)) neighborIdsByNode.set(targetId, new Set());
+
+        neighborIdsByNode.get(sourceId)?.add(targetId);
+        neighborIdsByNode.get(targetId)?.add(sourceId);
+      });
       const getLayoutTarget = (node: GraphNode) =>
         layoutTargets[node.id] ?? {
           x: width / 2,
@@ -493,6 +505,44 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         const labelRadius = Math.min(node.label.length, 18) * 0.65;
         return baseRadius + connectionRadius + labelRadius;
       };
+      const getPositionalStrength = (node: GraphNode) => {
+        if (node.fx != null || node.fy != null) return 0;
+        if (node.type === 'REPORT') return 0.1;
+        if (node.connections <= 1) return 0.028;
+        if (node.connections === 2) return 0.045;
+        return 0.065;
+      };
+      const moveTrailingNeighbors = (draggedNode: GraphNode, deltaX: number, deltaY: number) => {
+        const immediateNeighbors = Array.from(neighborIdsByNode.get(draggedNode.id) ?? []);
+
+        immediateNeighbors.forEach((neighborId) => {
+          const neighbor = nodesById.get(neighborId);
+          if (!neighbor || neighbor.fx != null || neighbor.fy != null) return;
+
+          const followStrength = neighbor.connections <= 1 ? 0.82 : 0.46;
+          neighbor.x = (neighbor.x ?? getLayoutTarget(neighbor).x) + deltaX * followStrength;
+          neighbor.y = (neighbor.y ?? getLayoutTarget(neighbor).y) + deltaY * followStrength;
+
+          if (neighbor.connections > 1) return;
+
+          const secondaryNeighbors = Array.from(neighborIdsByNode.get(neighbor.id) ?? []);
+          secondaryNeighbors.forEach((secondaryNeighborId) => {
+            if (secondaryNeighborId === draggedNode.id) return;
+            const secondaryNeighbor = nodesById.get(secondaryNeighborId);
+            if (!secondaryNeighbor || secondaryNeighbor.fx != null || secondaryNeighbor.fy != null) {
+              return;
+            }
+
+            const secondaryStrength = secondaryNeighbor.connections <= 1 ? 0.34 : 0.2;
+            secondaryNeighbor.x =
+              (secondaryNeighbor.x ?? getLayoutTarget(secondaryNeighbor).x) +
+              deltaX * secondaryStrength;
+            secondaryNeighbor.y =
+              (secondaryNeighbor.y ?? getLayoutTarget(secondaryNeighbor).y) +
+              deltaY * secondaryStrength;
+          });
+        });
+      };
 
       const simulation = d3
         .forceSimulation(filteredNodes)
@@ -515,13 +565,13 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
           'x',
           d3
             .forceX<GraphNode>((node) => getLayoutTarget(node).x)
-            .strength((node) => (node.type === 'REPORT' ? 0.14 : 0.1))
+            .strength((node) => getPositionalStrength(node))
         )
         .force(
           'y',
           d3
             .forceY<GraphNode>((node) => getLayoutTarget(node).y)
-            .strength((node) => (node.type === 'REPORT' ? 0.14 : 0.1))
+            .strength((node) => getPositionalStrength(node))
         )
         .force(
           'collide',
@@ -561,6 +611,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
               'start',
               (event: d3.D3DragEvent<SVGGElement, GraphNode, GraphNode>, d: GraphNode) => {
                 if (!event.active) simulation.alphaTarget(0.3).restart();
+                dragPositionsRef.current[d.id] = {
+                  x: d.x ?? event.x,
+                  y: d.y ?? event.y,
+                };
                 d.fx = d.x ?? null;
                 d.fy = d.y ?? null;
               }
@@ -568,12 +622,25 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             .on(
               'drag',
               (event: d3.D3DragEvent<SVGGElement, GraphNode, GraphNode>, d: GraphNode) => {
+                const previousDragPosition = dragPositionsRef.current[d.id] ?? {
+                  x: d.fx ?? d.x ?? event.x,
+                  y: d.fy ?? d.y ?? event.y,
+                };
+                const deltaX = event.x - previousDragPosition.x;
+                const deltaY = event.y - previousDragPosition.y;
                 d.fx = event.x;
                 d.fy = event.y;
+                dragPositionsRef.current[d.id] = {
+                  x: event.x,
+                  y: event.y,
+                };
+
+                moveTrailingNeighbors(d, deltaX, deltaY);
               }
             )
             .on('end', (event: d3.D3DragEvent<SVGGElement, GraphNode, GraphNode>, d: GraphNode) => {
               if (!event.active) simulation.alphaTarget(0);
+              delete dragPositionsRef.current[d.id];
               d.fx = null;
               d.fy = null;
             })
