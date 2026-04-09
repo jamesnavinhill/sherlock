@@ -42,7 +42,7 @@ export const FilesFiltersPanel: React.FC<FilesFiltersPanelProps> = ({
             type="button"
             onClick={() => onViewModeChange('LIST')}
             aria-pressed={viewMode === 'LIST'}
-            className={`${getChromeSegmentButtonClass(viewMode === 'LIST')} flex min-w-[38px] items-center justify-center border-r border-zinc-800 px-2.5 py-1.5`}
+            className={`${getChromeSegmentButtonClass(viewMode === 'LIST')} flex-1 basis-0 items-center justify-center border-r border-zinc-800 px-2.5 py-1.5`}
             title="Show dense list view"
             aria-label="Show dense list view"
           >
@@ -52,7 +52,7 @@ export const FilesFiltersPanel: React.FC<FilesFiltersPanelProps> = ({
             type="button"
             onClick={() => onViewModeChange('GRID')}
             aria-pressed={viewMode === 'GRID'}
-            className={`${getChromeSegmentButtonClass(viewMode === 'GRID')} flex min-w-[38px] items-center justify-center px-2.5 py-1.5`}
+            className={`${getChromeSegmentButtonClass(viewMode === 'GRID')} flex-1 basis-0 items-center justify-center px-2.5 py-1.5`}
             title="Show grid view"
             aria-label="Show grid view"
           >

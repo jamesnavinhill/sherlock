@@ -46,7 +46,7 @@ export const EntityBadge: React.FC<EntityBadgeProps> = ({
     return (
       <button
         onClick={onClick}
-        className={`text-left p-2 bg-zinc-900/30 hover:bg-zinc-800 text-[10px] font-mono text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-600 truncate ${className}`}
+        className={`osint-entity-chip text-left p-2 text-[10px] font-mono text-zinc-400 truncate ${className}`}
         title={name}
       >
         <span className={`${toneClass} entity-tone-text font-bold mr-1`}>{config.prefix}</span>
@@ -59,7 +59,7 @@ export const EntityBadge: React.FC<EntityBadgeProps> = ({
     <button
       onClick={onClick}
       className={`flex items-center gap-2 px-3 py-2 rounded-sm border transition-colors
-                ${toneClass} entity-tone-chip hover:bg-zinc-800 hover:border-zinc-600
+                ${toneClass} entity-tone-chip osint-entity-chip
                 text-xs font-mono ${className}`}
       title={name}
     >

@@ -75,8 +75,8 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
   const displayLabel = selectedOption?.label ?? placeholder ?? '';
   const triggerBaseClass =
     chrome === 'toolbar'
-      ? 'osint-toolbar-field osint-meta-value w-full border text-left outline-none transition disabled:cursor-not-allowed disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-osint-primary'
-      : 'osint-meta-value w-full border border-zinc-700 bg-black text-left outline-none transition hover:border-osint-primary focus-visible:border-osint-primary disabled:cursor-not-allowed disabled:opacity-40';
+      ? 'osint-toolbar-field osint-meta-value w-full border text-left outline-none transition disabled:cursor-not-allowed disabled:opacity-40'
+      : 'osint-input-field osint-meta-value w-full text-left outline-none disabled:cursor-not-allowed disabled:opacity-40';
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -268,12 +268,12 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
                 className={cx(
                   'osint-menu-item osint-meta-value flex w-full items-center justify-between gap-3 border-b border-zinc-800 px-3 py-2 text-left outline-none last:border-b-0',
                   !option.disabled &&
-                    'hover:bg-[var(--osint-primary-soft-bg)] hover:text-[var(--osint-ink)] focus-visible:bg-[var(--osint-primary-soft-bg)] focus-visible:text-[var(--osint-ink)]',
+                    'hover:bg-[var(--osint-interaction-hover-bg)] hover:text-[var(--osint-ink)] focus-visible:bg-[var(--osint-interaction-hover-bg)] focus-visible:text-[var(--osint-ink)]',
                   isSelected &&
-                    'bg-[var(--osint-primary-soft-bg-strong)] text-[var(--osint-primary)]',
+                    'bg-[var(--osint-interaction-active-bg)] text-[var(--osint-text-action)]',
                   isActive &&
                     !option.disabled &&
-                    'bg-[var(--osint-primary-soft-bg)] text-[var(--osint-ink)]',
+                    'bg-[var(--osint-interaction-hover-bg)] text-[var(--osint-ink)]',
                   option.disabled && 'cursor-not-allowed opacity-40',
                   optionClassName
                 )}

@@ -135,7 +135,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
             placeholder="Search scopes..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full bg-black border border-zinc-700 pl-10 pr-4 py-2 osint-body-small focus:border-osint-primary outline-none transition-colors"
+            className="osint-input-field w-full pl-10 pr-4 py-2 osint-body-small"
           />
         </div>
         <button
@@ -165,7 +165,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
               value={formName}
               onChange={(event) => setFormName(event.target.value)}
               placeholder="e.g., Supply Chain Analysis"
-              className="w-full bg-zinc-900 border border-zinc-700 p-2 osint-body-small text-white focus:border-osint-primary outline-none"
+              className="osint-input-field w-full p-2 osint-body-small"
             />
           </div>
 
@@ -175,7 +175,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
               value={formDescription}
               onChange={(event) => setFormDescription(event.target.value)}
               placeholder="Brief description of this scope or pack..."
-              className="w-full h-16 bg-zinc-900 border border-zinc-700 p-2 osint-body-small text-white focus:border-osint-primary outline-none resize-none"
+              className="osint-input-field h-16 w-full resize-none p-2 osint-body-small"
             />
           </div>
 
@@ -186,7 +186,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
               value={formCategories}
               onChange={(event) => setFormCategories(event.target.value)}
               placeholder="e.g., Finance, Contracts, Compliance"
-              className="w-full bg-zinc-900 border border-zinc-700 p-2 osint-body-small text-white focus:border-osint-primary outline-none"
+              className="osint-input-field w-full p-2 osint-body-small"
             />
           </div>
 
@@ -196,14 +196,14 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
               value={formDomainContext}
               onChange={(event) => setFormDomainContext(event.target.value)}
               placeholder="Provide context about this domain, workflow, or monitoring area..."
-              className="w-full h-20 bg-zinc-900 border border-zinc-700 p-2 osint-body-small text-white focus:border-osint-primary outline-none resize-none"
+              className="osint-input-field h-20 w-full resize-none p-2 osint-body-small"
             />
           </div>
 
           <div className="flex justify-end space-x-2 pt-2">
             <button
               onClick={resetForm}
-              className="px-4 py-2 border border-zinc-700 osint-meta-label text-zinc-400 hover:text-white hover:border-white transition-colors"
+              className="osint-surface-button px-4 py-2 osint-meta-label text-zinc-400"
             >
               Cancel
             </button>
@@ -316,7 +316,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                         {activeScopeId !== scope.id && (
                           <button
                             onClick={() => setActiveScope(scope.id)}
-                            className="flex items-center border border-zinc-700 px-2 py-1 osint-meta-label text-zinc-400 hover:text-white hover:border-zinc-500"
+                            className="osint-surface-button flex items-center px-2 py-1 osint-meta-label text-zinc-400"
                           >
                             <Check className="w-3 h-3 mr-1" />
                             Set Active
@@ -325,7 +325,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                         {defaultScopeId !== scope.id && (
                           <button
                             onClick={() => setDefaultScope(scope.id)}
-                            className="flex items-center border border-zinc-700 px-2 py-1 osint-meta-label text-zinc-400 hover:text-osint-primary hover:border-osint-primary"
+                            className="osint-surface-button flex items-center px-2 py-1 osint-meta-label text-zinc-400"
                           >
                             <Star className="w-3 h-3 mr-1" />
                             Set Default

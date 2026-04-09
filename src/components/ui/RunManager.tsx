@@ -150,11 +150,10 @@ export const RunManager: React.FC<RunManagerProps> = ({
         disabled={!isCollapsed && workspaceRuns.length === 0}
         title={isCollapsed ? 'Ops' : undefined}
         aria-label={isCollapsed ? 'Expand Ops' : isExpanded ? 'Collapse Ops' : 'Expand Ops'}
-        className={`relative w-full grid grid-cols-[5rem_minmax(0,1fr)] items-center py-4 text-left group transition-all border-l outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${
-          isExpanded
-            ? 'bg-zinc-900 border-osint-primary text-osint-primary'
-            : 'border-transparent hover:bg-zinc-900 hover:border-zinc-700'
-        } ${!isCollapsed && workspaceRuns.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
+        className={`osint-sidebar-nav-item relative w-full grid grid-cols-[5rem_minmax(0,1fr)] items-center border-l py-4 text-left group outline-none ${
+          !isCollapsed && workspaceRuns.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'
+        }`}
+        data-active={isExpanded ? 'true' : 'false'}
       >
         <div className="relative flex items-center justify-center">
           <div className="relative">

@@ -61,9 +61,9 @@
   --osint-dark: var(--osint-dark-lightmode);
   --osint-panel: var(--osint-panel-lightmode);
   --osint-surface: var(--osint-surface-lightmode);
-  --osint-border: #cebea4;
-  --osint-text: #3a2c1f;
-  --osint-ink: #1f160d;
+  --osint-border: #c6ccd6;
+  --osint-text: #424954;
+  --osint-ink: #171b22;
   --osint-text-strong: color-mix(in oklab, var(--osint-ink) 74%, var(--osint-text));
   --osint-text-heading: var(--osint-ink);
   --osint-text-action: var(--osint-ink);
@@ -79,13 +79,13 @@
   );
   --color-zinc-900: var(--osint-dark-lightmode);
   --color-zinc-800: var(--osint-surface-lightmode);
-  --color-zinc-700: #eadfc9;
-  --color-zinc-600: #d6c6ac;
-  --color-zinc-500: #9f8d70;
-  --color-zinc-400: #7f6d52;
-  --color-zinc-300: #6a583f;
-  --color-zinc-200: #fdf9f0;
-  --color-black: #1f160d;
+  --color-zinc-700: #d8dde5;
+  --color-zinc-600: #c2c9d3;
+  --color-zinc-500: #939daa;
+  --color-zinc-400: #6e7783;
+  --color-zinc-300: #4f5966;
+  --color-zinc-200: #1f2630;
+  --color-black: #171b22;
   --color-white: #fffdf8;
 }
 
@@ -136,17 +136,17 @@ body,
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--osint-dark);
+  background: var(--osint-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--osint-border);
+  background: var(--osint-scrollbar-thumb);
   border-radius: 0px;
-  border: 1px solid var(--osint-dark);
+  border: 1px solid var(--osint-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--osint-surface);
+  background: var(--osint-scrollbar-thumb-hover);
 }
 
 /* CRT Scanline Effect Overlay */
@@ -227,23 +227,23 @@ body,
 }
 
 :root[data-theme='light'] .text-zinc-700 {
-  color: #87755d !important;
+  color: #828b97 !important;
 }
 
 :root[data-theme='light'] .text-zinc-600 {
-  color: #766550 !important;
+  color: #707a87 !important;
 }
 :root[data-theme='light'] .text-zinc-500 {
-  color: #665743 !important;
+  color: #5f6977 !important;
 }
 :root[data-theme='light'] .text-zinc-400 {
-  color: #564836 !important;
+  color: #4d5866 !important;
 }
 :root[data-theme='light'] .text-zinc-300 {
-  color: #463a2a !important;
+  color: #3b4654 !important;
 }
 :root[data-theme='light'] .text-zinc-200 {
-  color: #312619 !important;
+  color: #242d38 !important;
 }
 
 :root[data-theme='light'] .text-emerald-200,
@@ -280,33 +280,54 @@ body,
 :root[data-theme='light'] .hover\:border-white:hover,
 :root[data-theme='light'] .border-white,
 :root[data-theme='light'] .focus-visible\:border-white:focus-visible {
-  border-color: #b9aa93 !important;
+  border-color: #bcc4cf !important;
 }
 
 :root[data-theme='light'] .hover\:bg-zinc-200:hover {
-  background-color: #f1e6d4 !important;
+  background-color: color-mix(in oklab, var(--osint-surface) 86%, white 14%) !important;
 }
 :root[data-theme='light'] .hover\:bg-zinc-700:hover {
-  background-color: #e2d3bd !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 52%, var(--osint-surface) 48%) !important;
 }
 :root[data-theme='light'] .hover\:bg-zinc-800:hover {
-  background-color: #ecdfcb !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 64%, var(--osint-surface) 36%) !important;
 }
 :root[data-theme='light'] .hover\:bg-zinc-900:hover {
-  background-color: #f3e8d7 !important;
+  background-color: color-mix(in oklab, var(--osint-panel) 74%, var(--osint-surface) 26%) !important;
 }
 
 :root[data-theme='light'] input.bg-black,
 :root[data-theme='light'] select.bg-black,
 :root[data-theme='light'] textarea.bg-black {
-  background-color: color-mix(in oklab, var(--osint-panel) 92%, white) !important;
-  border-color: #bdaa8f !important;
-  color: #312416 !important;
+  background-color: var(--osint-input-surface) !important;
+  border-color: var(--osint-input-border) !important;
+  color: var(--osint-text-heading) !important;
+  box-shadow: none !important;
 }
 
 :root[data-theme='light'] input.bg-black::placeholder,
 :root[data-theme='light'] textarea.bg-black::placeholder {
-  color: #7a6852 !important;
+  color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-panel)) !important;
+}
+
+:root[data-theme='light'] input.bg-black:hover,
+:root[data-theme='light'] select.bg-black:hover,
+:root[data-theme='light'] textarea.bg-black:hover,
+:root[data-theme='light'] input.bg-black:focus,
+:root[data-theme='light'] select.bg-black:focus,
+:root[data-theme='light'] textarea.bg-black:focus,
+:root[data-theme='light'] input.bg-black:focus-visible,
+:root[data-theme='light'] select.bg-black:focus-visible,
+:root[data-theme='light'] textarea.bg-black:focus-visible {
+  background-color: var(--osint-input-surface-hover) !important;
+  border-color: var(--osint-input-border-strong) !important;
+  outline: none !important;
+}
+
+:root[data-theme='light'] .focus-visible\:ring-osint-primary:focus-visible,
+:root[data-theme='light'] .focus\:ring-osint-primary:focus,
+:root[data-theme='light'] .focus-visible\:ring-2:focus-visible {
+  --tw-ring-color: var(--osint-interaction-focus-ring) !important;
 }
 
 /*
@@ -452,6 +473,28 @@ body,
   --osint-primary-soft-bg: color-mix(in oklab, var(--osint-primary) 12%, transparent);
   --osint-primary-soft-bg-strong: color-mix(in oklab, var(--osint-primary) 18%, transparent);
   --osint-primary-soft-border: color-mix(in oklab, var(--osint-primary) 48%, transparent);
+  --osint-interaction-bg: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
+  --osint-interaction-hover-bg: color-mix(
+    in oklab,
+    var(--osint-dark) 86%,
+    var(--osint-panel) 14%
+  );
+  --osint-interaction-active-bg: color-mix(
+    in oklab,
+    var(--osint-dark) 82%,
+    var(--osint-panel) 18%
+  );
+  --osint-interaction-border: color-mix(in oklab, var(--osint-border) 92%, transparent);
+  --osint-interaction-border-strong: color-mix(in oklab, var(--osint-border) 100%, transparent);
+  --osint-interaction-focus-ring: color-mix(in oklab, var(--osint-border) 70%, transparent);
+  --osint-interaction-shadow: 0 14px 26px -24px rgba(0, 0, 0, 0.62);
+  --osint-input-surface: color-mix(in oklab, var(--osint-panel) 92%, var(--osint-dark));
+  --osint-input-surface-hover: color-mix(in oklab, var(--osint-panel) 88%, var(--osint-dark));
+  --osint-input-border: color-mix(in oklab, var(--osint-border) 92%, transparent);
+  --osint-input-border-strong: color-mix(in oklab, var(--osint-border) 100%, transparent);
+  --osint-scrollbar-track: var(--osint-dark);
+  --osint-scrollbar-thumb: color-mix(in oklab, var(--osint-border) 88%, var(--osint-dark));
+  --osint-scrollbar-thumb-hover: color-mix(in oklab, var(--osint-surface) 76%, var(--osint-dark));
 }
 
 .osint-button-primary {
@@ -496,9 +539,9 @@ body,
 }
 
 .osint-button-chrome {
-  background-color: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
+  background-color: var(--osint-interaction-bg);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
-  border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  border: 1px solid var(--osint-interaction-border);
   font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
@@ -509,18 +552,21 @@ body,
 
 .osint-button-chrome:hover,
 .osint-button-chrome:focus-visible {
-  background-color: color-mix(in oklab, var(--osint-dark) 86%, var(--osint-panel) 14%);
+  background-color: var(--osint-interaction-hover-bg);
   color: var(--osint-text-action);
-  border-color: var(--osint-primary-soft-border);
-  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
+  border-color: var(--osint-interaction-border-strong);
+  box-shadow: var(--osint-interaction-shadow);
+  outline: none;
 }
 
 .osint-button-chrome-active {
-  background-color: var(--osint-primary-soft-bg);
-  color: var(--osint-primary);
-  border: 1px solid var(--osint-primary-soft-border);
+  background-color: var(--osint-interaction-active-bg);
+  color: var(--osint-text-action);
+  border: 1px solid var(--osint-interaction-border-strong);
   font-weight: var(--font-weight-bold);
-  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
+  box-shadow:
+    inset 2px 0 0 color-mix(in oklab, var(--osint-primary) 40%, transparent),
+    var(--osint-interaction-shadow);
 }
 
 .osint-button-chrome:disabled {
@@ -530,9 +576,9 @@ body,
 }
 
 .osint-toolbar-field {
-  background-color: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
+  background-color: var(--osint-input-surface);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
-  border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  border: 1px solid var(--osint-input-border);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -543,24 +589,25 @@ body,
 .osint-toolbar-field:hover,
 .osint-toolbar-field:focus-visible,
 .osint-toolbar-field[data-state='open'] {
+  background-color: var(--osint-input-surface-hover);
   color: var(--osint-text-action);
-  border-color: var(--osint-primary-soft-border);
-  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--osint-primary) 24%, transparent);
+  border-color: var(--osint-input-border-strong);
+  box-shadow: var(--osint-interaction-shadow);
   outline: none;
 }
 
 .osint-toolbar-search-field {
-  background-color: color-mix(in oklab, var(--osint-panel) 92%, var(--osint-dark));
+  background-color: var(--osint-input-surface);
 }
 
 .osint-toolbar-group {
-  background-color: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
-  border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  background-color: var(--osint-interaction-bg);
+  border: 1px solid var(--osint-interaction-border);
 }
 
 .osint-menu-panel {
   box-shadow:
-    0 0 14px -10px color-mix(in oklab, var(--osint-primary) 46%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--osint-border) 18%, transparent),
     0 18px 40px -28px rgba(0, 0, 0, 0.72);
 }
 
@@ -573,13 +620,13 @@ body,
 
 .osint-menu-item:hover,
 .osint-menu-item:focus-visible {
-  background-color: var(--osint-primary-soft-bg);
+  background-color: var(--osint-interaction-hover-bg);
   color: var(--osint-ink);
 }
 
 .osint-menu-item:hover .osint-menu-item-icon,
 .osint-menu-item:focus-visible .osint-menu-item-icon {
-  color: var(--osint-primary) !important;
+  color: var(--osint-text-action) !important;
 }
 
 .osint-filter-option {
@@ -838,8 +885,9 @@ body,
 .osint-link-list-item:hover,
 .osint-link-list-item:focus-visible {
   color: var(--osint-ink);
-  background-color: var(--osint-primary-soft-bg);
-  border-color: var(--osint-primary-soft-border);
+  background-color: var(--osint-interaction-active-bg);
+  border-color: var(--osint-interaction-border-strong);
+  box-shadow: inset 2px 0 0 color-mix(in oklab, var(--osint-primary) 40%, transparent);
 }
 
 .entity-tone-person {
@@ -872,20 +920,111 @@ body,
 
 .entity-tone-chip {
   color: var(--entity-tone);
-  background-color: color-mix(in oklab, var(--entity-tone) 12%, transparent);
-  border-color: color-mix(in oklab, var(--entity-tone) 34%, transparent);
+  background-color: color-mix(in oklab, var(--entity-tone) 8%, var(--osint-interaction-bg));
+  border-color: color-mix(in oklab, var(--entity-tone) 18%, var(--osint-interaction-border));
 }
 
 .entity-tone-icon-panel {
   color: var(--entity-tone);
-  background-color: color-mix(in oklab, var(--entity-tone) 16%, var(--osint-panel));
-  border-color: color-mix(in oklab, var(--entity-tone) 30%, var(--osint-border));
+  background-color: color-mix(in oklab, var(--entity-tone) 10%, var(--osint-input-surface));
+  border-color: color-mix(in oklab, var(--entity-tone) 16%, var(--osint-input-border));
 }
 
 .entity-tone-toggle-active {
   color: var(--entity-tone);
-  background-color: color-mix(in oklab, var(--entity-tone) 12%, transparent);
-  border-color: color-mix(in oklab, var(--entity-tone) 34%, transparent);
+  background-color: color-mix(in oklab, var(--entity-tone) 10%, var(--osint-interaction-active-bg));
+  border-color: color-mix(in oklab, var(--entity-tone) 18%, var(--osint-interaction-border));
+}
+
+.osint-input-field {
+  background-color: var(--osint-input-surface);
+  border: 1px solid var(--osint-input-border);
+  color: var(--osint-text-heading);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-input-field::placeholder {
+  color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-panel));
+}
+
+.osint-input-field:hover,
+.osint-input-field:focus,
+.osint-input-field:focus-visible {
+  background-color: var(--osint-input-surface-hover);
+  border-color: var(--osint-input-border-strong);
+  box-shadow: var(--osint-interaction-shadow);
+  outline: none;
+}
+
+.osint-surface-button {
+  background-color: var(--osint-interaction-bg);
+  border: 1px solid var(--osint-interaction-border);
+  color: var(--osint-text-strong);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-surface-button:hover,
+.osint-surface-button:focus-visible {
+  background-color: var(--osint-interaction-hover-bg);
+  border-color: var(--osint-interaction-border-strong);
+  color: var(--osint-text-action);
+  box-shadow: var(--osint-interaction-shadow);
+  outline: none;
+}
+
+.osint-sidebar-nav-item {
+  color: var(--osint-text-meta);
+  border-left-color: transparent;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-sidebar-nav-item:hover,
+.osint-sidebar-nav-item:focus-visible {
+  background-color: var(--osint-interaction-hover-bg);
+  border-left-color: var(--osint-interaction-border-strong);
+  color: var(--osint-text-action);
+  box-shadow: var(--osint-interaction-shadow);
+  outline: none;
+}
+
+.osint-sidebar-nav-item[data-active='true'] {
+  background-color: var(--osint-interaction-active-bg);
+  border-left-color: color-mix(in oklab, var(--osint-primary) 44%, transparent);
+  color: var(--osint-text-action);
+  box-shadow:
+    inset 2px 0 0 color-mix(in oklab, var(--osint-primary) 44%, transparent),
+    var(--osint-interaction-shadow);
+}
+
+.osint-entity-chip {
+  background-color: var(--osint-interaction-bg);
+  border: 1px solid var(--osint-interaction-border);
+  color: var(--osint-text-strong);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-entity-chip:hover,
+.osint-entity-chip:focus-visible {
+  background-color: var(--osint-interaction-hover-bg);
+  border-color: var(--osint-interaction-border-strong);
+  color: var(--osint-text-action);
+  box-shadow: var(--osint-interaction-shadow);
+  outline: none;
 }
 
 .osint-header-shadow {
@@ -1195,12 +1334,45 @@ body,
   color: color-mix(in oklab, var(--osint-primary) 66%, var(--osint-ink));
 }
 
+:root[data-theme='light'] {
+  --osint-interaction-bg: color-mix(in oklab, var(--osint-panel) 88%, var(--osint-surface) 12%);
+  --osint-interaction-hover-bg: color-mix(
+    in oklab,
+    var(--osint-panel) 66%,
+    var(--osint-surface) 34%
+  );
+  --osint-interaction-active-bg: color-mix(
+    in oklab,
+    var(--osint-panel) 48%,
+    var(--osint-surface) 52%
+  );
+  --osint-interaction-border: color-mix(in oklab, var(--osint-border) 72%, white 28%);
+  --osint-interaction-border-strong: color-mix(
+    in oklab,
+    var(--osint-border) 82%,
+    var(--osint-ink) 18%
+  );
+  --osint-interaction-focus-ring: color-mix(in oklab, var(--osint-ink) 16%, transparent);
+  --osint-interaction-shadow: 0 12px 24px -24px rgba(31, 22, 13, 0.22);
+  --osint-input-surface: color-mix(in oklab, var(--osint-panel) 84%, var(--osint-surface) 16%);
+  --osint-input-surface-hover: color-mix(
+    in oklab,
+    var(--osint-panel) 70%,
+    var(--osint-surface) 30%
+  );
+  --osint-input-border: color-mix(in oklab, var(--osint-border) 68%, white 32%);
+  --osint-input-border-strong: color-mix(in oklab, var(--osint-border) 80%, var(--osint-ink) 20%);
+  --osint-scrollbar-track: color-mix(in oklab, var(--osint-panel) 92%, var(--osint-dark));
+  --osint-scrollbar-thumb: color-mix(in oklab, var(--osint-border) 60%, var(--osint-surface));
+  --osint-scrollbar-thumb-hover: color-mix(in oklab, var(--osint-border) 76%, var(--osint-surface));
+}
+
 :root[data-theme='light'] .osint-header-shadow {
-  box-shadow: 0 10px 22px -20px rgba(118, 96, 58, 0.18);
+  box-shadow: 0 10px 22px -20px rgba(28, 36, 48, 0.12);
 }
 
 :root[data-theme='light'] .osint-section-shadow {
-  box-shadow: 0 18px 32px -26px rgba(118, 96, 58, 0.18);
+  box-shadow: 0 18px 32px -26px rgba(28, 36, 48, 0.12);
 }
 
 /* Custom Utility Animations (compatible with animate-in pattern) */

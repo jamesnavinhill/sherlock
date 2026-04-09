@@ -23,7 +23,7 @@ const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
 const baseActionClassName =
-  'inline-flex h-9 items-center justify-center border border-zinc-700 bg-transparent text-zinc-400 transition-colors hover:border-osint-primary hover:text-osint-primary';
+  'osint-surface-button inline-flex h-9 items-center justify-center text-zinc-400';
 
 export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
   actions,

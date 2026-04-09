@@ -47,10 +47,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     : 'opacity-100 -translate-x-4';
 
   const btnClass = (isActive: boolean) =>
-    `grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center rounded-none border-l py-3 text-left transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary ${
-      isActive
-        ? 'bg-zinc-900 text-osint-primary border-osint-primary shadow-[inset_10px_0_20px_-10px_rgba(0,0,0,0.5)]'
-        : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300 border-transparent'
+    `osint-sidebar-nav-item grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center rounded-none border-l py-3 text-left outline-none ${
+      isActive ? '' : 'text-zinc-500'
     }`;
 
   const navItems = [
@@ -104,6 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.view}
                 onClick={() => onChangeView(item.view)}
                 className={btnClass(currentView === item.view)}
+                data-active={currentView === item.view ? 'true' : 'false'}
                 title={isCollapsed ? item.label : undefined}
                 aria-label={item.label}
               >
@@ -135,7 +134,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="border-t border-zinc-800 flex-shrink-0">
           <button
             onClick={onToggleTheme}
-            className="grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center border-l border-transparent py-4 text-left text-zinc-500 transition-all duration-200 outline-none hover:bg-zinc-900 hover:text-zinc-300 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-osint-primary"
+            className="osint-sidebar-nav-item grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center border-l py-4 text-left text-zinc-500 outline-none"
+            data-active="false"
             title={isCollapsed ? (themeMode === 'dark' ? 'Light' : 'Dark') : undefined}
             aria-label={themeMode === 'dark' ? 'Light' : 'Dark'}
           >
@@ -157,6 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => onChangeView(AppView.SETTINGS)}
             className={`${btnClass(currentView === AppView.SETTINGS)} py-4`}
+            data-active={currentView === AppView.SETTINGS ? 'true' : 'false'}
             title={isCollapsed ? 'Settings' : undefined}
             aria-label="Settings"
           >

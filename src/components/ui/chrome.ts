@@ -16,7 +16,7 @@ export const CHROME_HEADER_PRIMARY_ACTION_CLASS =
   'osint-button-primary osint-meta-label-strong inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-1.5';
 
 export const CHROME_TOOLBAR_FIELD_CLASS =
-  'osint-toolbar-field border text-zinc-300 outline-none focus-visible:ring-2 focus-visible:ring-osint-primary';
+  'osint-toolbar-field border text-zinc-300 outline-none';
 
 export const CHROME_TOOLBAR_GROUP_CLASS = 'osint-toolbar-group overflow-hidden';
 
@@ -27,7 +27,7 @@ export const CHROME_HEADER_SELECT_TRIGGER_CLASS =
   `${CHROME_TOOLBAR_FIELD_CLASS} osint-meta-value rounded-none py-1.5 pl-3 pr-8 truncate`;
 
 export const getChromeToggleButtonClass = (active: boolean) =>
-  `osint-meta-label inline-flex items-center justify-center border p-2 transition outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${
+  `osint-meta-label inline-flex items-center justify-center border p-2 transition outline-none ${
     active ? 'osint-button-chrome-active' : 'osint-button-chrome'
   }`;
 

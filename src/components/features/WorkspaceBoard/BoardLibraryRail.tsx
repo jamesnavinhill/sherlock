@@ -120,7 +120,7 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Search library..."
-          className="w-full border border-zinc-700 bg-black px-10 py-2 text-sm text-white outline-none transition focus:border-osint-primary"
+          className="osint-input-field w-full px-10 py-2 text-sm"
         />
       </div>
     </div>
