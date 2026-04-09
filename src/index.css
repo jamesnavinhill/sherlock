@@ -605,38 +605,26 @@ body,
 
 .osint-panel-shell {
   border-color: color-mix(in oklab, var(--osint-border) 88%, transparent);
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--osint-border) 14%, transparent),
-    0 18px 40px -30px rgba(0, 0, 0, 0.72);
+  box-shadow: none;
 }
 
 .osint-raised-surface,
 .osint-raised-surface-section,
 .osint-panel-item,
 .osint-filter-option {
-  background-color: color-mix(in oklab, var(--osint-panel) 82%, var(--osint-surface) 18%);
   border: 1px solid color-mix(in oklab, var(--osint-border) 74%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in oklab, var(--osint-ink) 5%, transparent),
-    0 12px 24px -26px rgba(0, 0, 0, 0.72);
+  box-shadow: none;
   transition:
-    background-color 180ms ease,
     border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+    color 180ms ease;
 }
 
 .osint-raised-surface-subtle {
-  background-color: color-mix(in oklab, var(--osint-panel) 88%, var(--osint-surface) 12%);
   border: 1px solid color-mix(in oklab, var(--osint-border) 66%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in oklab, var(--osint-ink) 4%, transparent),
-    0 10px 20px -28px rgba(0, 0, 0, 0.72);
+  box-shadow: none;
   transition:
-    background-color 180ms ease,
     border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+    color 180ms ease;
 }
 
 .osint-raised-surface:hover,
@@ -645,19 +633,14 @@ body,
 .osint-raised-surface-section:focus-visible,
 .osint-filter-option:hover,
 .osint-filter-option:focus-visible {
-  background-color: var(--osint-interaction-hover-bg);
   border-color: var(--osint-interaction-border-strong);
-  box-shadow: var(--osint-interaction-shadow);
   outline: none;
 }
 
 .osint-raised-surface[data-active='true'],
 .osint-filter-option[data-active='true'] {
-  background-color: var(--osint-interaction-active-bg);
   border-color: color-mix(in oklab, var(--osint-primary) 44%, transparent);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 28%, transparent),
-    var(--osint-interaction-shadow);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 28%, transparent);
 }
 
 .osint-filter-option {
@@ -700,25 +683,21 @@ body,
 }
 
 .osint-filter-option {
-  background-color: var(--osint-panel);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
   color: var(--osint-text-strong);
   transition:
-    background-color 180ms ease,
     border-color 180ms ease,
     color 180ms ease;
 }
 
 .osint-filter-option:hover,
 .osint-filter-option:focus-visible {
-  background-color: color-mix(in oklab, var(--osint-panel) 82%, var(--osint-dark) 18%);
   border-color: color-mix(in oklab, var(--osint-border) 100%, transparent);
   color: var(--osint-text-action);
   outline: none;
 }
 
 .osint-filter-option[data-active='true'] {
-  background-color: color-mix(in oklab, var(--osint-panel) 76%, var(--osint-dark) 24%);
   border-color: color-mix(in oklab, var(--osint-border) 100%, transparent);
   color: var(--osint-text-action);
 }
@@ -1055,20 +1034,15 @@ body,
 
 .osint-panel-item:hover,
 .osint-panel-item:focus-visible {
-  background-color: var(--osint-interaction-hover-bg);
   border-color: var(--osint-interaction-border-strong);
   color: var(--osint-text-heading);
-  box-shadow: var(--osint-interaction-shadow);
   outline: none;
 }
 
 .osint-panel-item[data-active='true'] {
-  background-color: var(--osint-interaction-active-bg);
   border-color: color-mix(in oklab, var(--osint-primary) 44%, transparent);
   color: var(--osint-text-action);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 28%, transparent),
-    var(--osint-interaction-shadow);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 28%, transparent);
 }
 
 .osint-sidebar-nav-item {
@@ -1484,24 +1458,18 @@ body,
 }
 
 :root[data-theme='light'] .osint-panel-shell {
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--osint-border) 28%, white 12%),
-    0 16px 34px -28px rgba(28, 36, 48, 0.12);
+  box-shadow: none;
 }
 
 :root[data-theme='light'] .osint-raised-surface,
 :root[data-theme='light'] .osint-raised-surface-section,
 :root[data-theme='light'] .osint-panel-item,
 :root[data-theme='light'] .osint-filter-option {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 10px 20px -26px rgba(28, 36, 48, 0.12);
+  box-shadow: none;
 }
 
 :root[data-theme='light'] .osint-raised-surface-subtle {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    0 8px 18px -26px rgba(28, 36, 48, 0.1);
+  box-shadow: none;
 }
 
 /* Custom Utility Animations (compatible with animate-in pattern) */
