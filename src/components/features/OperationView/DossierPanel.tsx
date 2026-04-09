@@ -14,7 +14,7 @@ import { Accordion } from '../../ui/Accordion';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import {
-  CHROME_ACTION_BUTTON_CLASS,
+  CHROME_COMPACT_ACTION_BUTTON_CLASS,
   CHROME_NESTED_ITEM_BUTTON_CLASS,
   CHROME_NESTED_ITEM_DOT_CLASS,
   CHROME_PANEL_CLASS,
@@ -186,7 +186,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   <div className="flex">
                     <button
                       onClick={() => onLeadClick(lead)}
-                      className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
+                      className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
                     >
                       Open
                     </button>
@@ -253,10 +253,12 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="osint-link-list-item osint-meta-value block truncate border-b border-zinc-900 p-2 last:border-0"
+                  className="osint-link-list-item block truncate border-b border-zinc-900 p-2 last:border-0"
                 >
-                  <Link2 className="w-3 h-3 inline mr-1" />
-                  {s.title}
+                  <Link2 className="inline h-3 w-3 mr-1" />
+                  <span className="osint-body-quiet text-zinc-400">
+                    {s.title || s.url}
+                  </span>
                 </a>
               ))
             )}

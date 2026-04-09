@@ -140,14 +140,16 @@ describe('ArtifactViewer', () => {
     fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
     expect(screen.getByText('Trace shared directors across the vendor cluster.')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Provenance/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Sources/i }));
     expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Entities/i }));
     expect(screen.getAllByText('Atlas Holdings').length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
-    fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+    const openFollowUpButton = screen.getByRole('button', { name: 'Open' });
+    expect(openFollowUpButton).toHaveClass('h-6');
+    fireEvent.click(openFollowUpButton);
     expect(onLeadOpen).toHaveBeenCalledWith(
       expect.objectContaining({
         actionText: 'Trace shared directors across the vendor cluster.',

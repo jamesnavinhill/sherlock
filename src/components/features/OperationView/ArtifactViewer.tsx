@@ -45,7 +45,13 @@ import { EmptyState } from '../../ui/EmptyState';
 import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import { Accordion } from '../../ui/Accordion';
-import { CHROME_ACTION_BUTTON_CLASS } from '../../ui/chrome';
+import {
+  CHROME_ACTION_BUTTON_CLASS,
+  CHROME_COMPACT_ACTION_BUTTON_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
+} from '../../ui/chrome';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
 
@@ -69,8 +75,6 @@ interface ArtifactViewerProps {
   onEntityClick: (entity: Entity) => void;
 }
 
-const DETAIL_SECTION_SCROLL_CLASS =
-  'max-h-[min(24rem,calc(100svh-20rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
 const REPORT_BODY_EDIT_KEY = '__artifact-report-body__';
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
@@ -1097,16 +1101,16 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-zinc-900/10 p-2 custom-scrollbar">
+          <div className={`${CHROME_RAIL_BODY_CLASS} bg-zinc-900/10 custom-scrollbar`}>
             <Accordion
               title="Key Findings"
               count={canonicalFindings.length}
               icon={AlertTriangle}
               isOpen={openSidebarSection === 'findings'}
               onToggle={() => toggleSidebarAccordion('findings')}
-              className="mb-2"
+              className={getRailAccordionClassName(openSidebarSection === 'findings')}
               headerClassName="text-osint-primary"
-              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {canonicalFindings.length === 0 ? (
@@ -1159,9 +1163,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               icon={Target}
               isOpen={openSidebarSection === 'followUps'}
               onToggle={() => toggleSidebarAccordion('followUps')}
-              className="mb-2"
+              className={getRailAccordionClassName(openSidebarSection === 'followUps')}
               headerClassName="text-osint-primary"
-              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {visibleFollowUps.length === 0 ? (
@@ -1199,7 +1203,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           <button
                             type="button"
                             onClick={() => onLeadOpen(followUp)}
-                            className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
+                            className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
                           >
                             Open
                           </button>
@@ -1211,7 +1215,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                                   jumpToSection(followUp.originSectionId);
                                 }
                               }}
-                              className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
+                              className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
                             >
                               Jump To Section
                             </button>
@@ -1230,8 +1234,8 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               icon={Users}
               isOpen={openSidebarSection === 'entities'}
               onToggle={() => toggleSidebarAccordion('entities')}
-              className="mb-2"
-              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+              className={getRailAccordionClassName(openSidebarSection === 'entities')}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               {reportEntities.length === 0 ? (
                 <p className="px-2 py-1 osint-body-quiet italic">No entities detected.</p>
@@ -1268,17 +1272,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </Accordion>
 
             <Accordion
-              title="Provenance"
-              count={
-                reportSources.length +
-                visibleEvidence.length +
-                (report.provenance?.warnings?.length || 0)
-              }
+              title="Sources"
+              count={reportSources.length}
               icon={Globe}
               isOpen={openSidebarSection === 'resources'}
               onToggle={() => toggleSidebarAccordion('resources')}
-              className="mb-2"
-              contentClassName={DETAIL_SECTION_SCROLL_CLASS}
+              className={getRailAccordionClassName(openSidebarSection === 'resources')}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
                 {[
@@ -1350,7 +1350,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       <button
                         type="button"
                         onClick={() => jumpToEvidence(evidence.id)}
-                        className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
+                        className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
                       >
                         Open Evidence
                       </button>
@@ -1362,7 +1362,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                               jumpToSection(evidence.sectionId);
                             }
                           }}
-                          className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
+                          className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
                         >
                           Jump To Section
                         </button>

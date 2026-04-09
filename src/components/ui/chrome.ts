@@ -20,6 +20,8 @@ export const CHROME_RAIL_SECTION_SCROLL_CLASS =
 export const CHROME_ACTION_BUTTON_CLASS =
   'osint-surface-button inline-flex h-9 items-center justify-center gap-2 px-3 osint-meta-label-strong text-zinc-300';
 
+export const CHROME_COMPACT_ACTION_BUTTON_CLASS = `${CHROME_ACTION_BUTTON_CLASS} h-6 px-2`;
+
 export const CHROME_NESTED_ITEM_CLASS = 'osint-panel-item p-3';
 
 export const CHROME_NESTED_ITEM_BUTTON_CLASS = `${CHROME_NESTED_ITEM_CLASS} w-full text-left`;

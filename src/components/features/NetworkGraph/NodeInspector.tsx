@@ -24,7 +24,7 @@ import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
 import {
-  CHROME_ACTION_BUTTON_CLASS,
+  CHROME_COMPACT_ACTION_BUTTON_CLASS,
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_NESTED_ITEM_CLASS,
@@ -521,7 +521,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                           onInvestigate(lead);
                           onClose();
                         }}
-                        className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
+                        className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
                       >
                         Investigate
                       </button>

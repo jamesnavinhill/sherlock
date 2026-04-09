@@ -75,4 +75,41 @@ describe('DossierPanel', () => {
     expect(screen.queryByText('1 Entities')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /procurement file/i })).toBeInTheDocument();
   });
+
+  it('uses the compact action styling for follow-up buttons', () => {
+    const workspace: Workspace = {
+      id: 'workspace-1',
+      title: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-08',
+    };
+
+    render(
+      <DossierPanel
+        isOpen
+        activeCase={workspace}
+        labelProfile={labelProfile}
+        reports={[]}
+        entities={[]}
+        leads={['Trace shared directors across the vendor cluster.']}
+        sources={[]}
+        headlines={[]}
+        openSections={{
+          reports: false,
+          entities: false,
+          leads: true,
+          evidence: false,
+          sources: false,
+          headlines: false,
+        }}
+        toggleSection={vi.fn()}
+        onNavigate={vi.fn()}
+        onEntityClick={vi.fn()}
+        onLeadClick={vi.fn()}
+        onHeadlineClick={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('h-6');
+  });
 });
