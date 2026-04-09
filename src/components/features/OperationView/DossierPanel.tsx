@@ -15,7 +15,8 @@ import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain'
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import {
   CHROME_COMPACT_ACTION_BUTTON_CLASS,
-  CHROME_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_COMPACT_NESTED_ITEM_CLASS,
   CHROME_NESTED_ITEM_DOT_CLASS,
   CHROME_PANEL_CLASS,
   CHROME_PANEL_HEADER_CLASS,
@@ -123,7 +124,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={r.id || r.topic}
                   onClick={() => r.id && onNavigate(r.id)}
-                  className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-3`}
+                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-3`}
                   data-active={activeReportId === r.id}
                   title={sanitizeDisplayTitle(r.topic)}
                 >
@@ -148,12 +149,12 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
             className={getRailAccordionClassName(openSections.entities)}
             contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
-            <div className="grid grid-cols-2 gap-1">
+            <div className="space-y-1">
               {entities.map((e, idx) => (
                 <button
                   key={idx}
                   onClick={() => onEntityClick(e)}
-                  className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2 truncate`}
+                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
                   title={e.name}
                 >
                   <span
@@ -181,8 +182,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
               <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
             ) : (
               leads.map((lead, idx) => (
-                <div key={idx} className="mb-1 border border-zinc-800/50 bg-zinc-900/20 p-2">
-                  <p className="mb-2 osint-meta-value leading-snug text-zinc-300">{lead}</p>
+                <div key={idx} className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} space-y-2`}>
+                  <p className="osint-meta-value leading-snug text-zinc-300">{lead}</p>
                   <div className="flex">
                     <button
                       onClick={() => onLeadClick(lead)}
@@ -220,7 +221,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   <button
                     key={`${report.id}-${evidence.id}`}
                     onClick={() => report.id && onNavigate(report.id)}
-                    className="w-full border border-zinc-800 bg-zinc-900/30 p-2 text-left transition hover:border-osint-primary"
+                    className={CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS}
                   >
                     <div className="osint-meta-label">{evidence.kind}</div>
                     <div className="mt-1 osint-meta-value">{evidence.title}</div>
@@ -253,9 +254,10 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="osint-link-list-item block truncate border-b border-zinc-900 p-2 last:border-0"
+                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} block`}
+                  title={s.title || s.url}
                 >
-                  <Link2 className="inline h-3 w-3 mr-1" />
+                  <Link2 className="mr-1 inline h-3 w-3" />
                   <span className="osint-body-quiet text-zinc-400">
                     {s.title || s.url}
                   </span>
@@ -283,7 +285,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={h.id}
                   onClick={() => onHeadlineClick(h)}
-                  className="w-full border border-zinc-800/50 bg-zinc-900/20 p-2 text-left transition-colors hover:border-zinc-700 hover:bg-zinc-900 group"
+                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} group`}
                 >
                   <p className="line-clamp-2 osint-body-quiet text-zinc-300 group-hover:text-white">
                     {h.content}

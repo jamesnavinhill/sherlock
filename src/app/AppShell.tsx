@@ -22,7 +22,10 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex min-h-screen bg-osint-dark text-osint-text font-sans selection:bg-osint-primary selection:text-black overflow-hidden">
+    <div
+      className="osint-app-shell flex min-h-screen overflow-hidden bg-osint-dark font-sans text-osint-text selection:bg-osint-primary selection:text-black"
+      data-header-hidden={controller.shouldHideRouteHeader ? 'true' : 'false'}
+    >
       {controller.showApiKeyPrompt && (
         <ApiKeyModal
           onKeySet={controller.handleApiKeySet}

@@ -127,6 +127,11 @@ describe('ArtifactViewer', () => {
     expect(screen.queryByText('Source Index')).not.toBeInTheDocument();
     expect(screen.queryByText('Follow-Up Questions')).not.toBeInTheDocument();
     expect(screen.queryByText('Award timing clusters across overlapping vendors.')).not.toBeInTheDocument();
+    expect(
+      screen
+        .getByRole('button', { name: /Entities/i })
+        .compareDocumentPosition(screen.getByRole('button', { name: /Investigative Leads/i }))
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
 
     fireEvent.click(screen.getByRole('button', { name: 'Collapse Artifact Details' }));
     expect(screen.getByRole('button', { name: 'Expand Artifact Details' })).toBeInTheDocument();

@@ -47,6 +47,8 @@ import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import { Accordion } from '../../ui/Accordion';
 import {
   CHROME_ACTION_BUTTON_CLASS,
+  CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_COMPACT_NESTED_ITEM_CLASS,
   CHROME_COMPACT_ACTION_BUTTON_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
@@ -177,7 +179,7 @@ const FollowUpDetailRow: React.FC<FollowUpDetailRowProps> = ({
   const questionText = normalizeText(body) || normalizeText(title);
 
   return (
-    <article className={cx('border border-zinc-800/50 bg-zinc-950/70 p-3', className)}>
+    <article className={cx('border border-zinc-800/50 bg-zinc-950/70 px-3 py-2', className)}>
       <div className="osint-meta-value leading-snug text-zinc-300">{questionText}</div>
       {children}
     </article>
@@ -751,7 +753,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
   return (
     <div className="relative flex flex-1 overflow-hidden bg-black animate-in fade-in duration-500">
-      <div className={mainColumnClassName}>
+      <div className={mainColumnClassName} data-app-scroll-region>
         <div className="z-20 border-b border-zinc-800 bg-black/90 px-6 py-4 osint-header-shadow">
           <div className="mb-2 flex flex-col justify-between md:flex-row md:items-center">
             <Breadcrumbs items={navStack} onNavigate={onNavigate} />
@@ -1158,6 +1160,49 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </Accordion>
 
             <Accordion
+              title="Entities"
+              count={reportEntities.length}
+              icon={Users}
+              isOpen={openSidebarSection === 'entities'}
+              onToggle={() => toggleSidebarAccordion('entities')}
+              className={getRailAccordionClassName(openSidebarSection === 'entities')}
+              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
+            >
+              {reportEntities.length === 0 ? (
+                <p className="px-2 py-1 osint-body-quiet italic">No entities detected.</p>
+              ) : (
+                <div className="space-y-1">
+                  {reportEntities.map((entity, index) => {
+                    const normalizedEntity =
+                      typeof entity === 'string'
+                        ? { name: entity, type: 'UNKNOWN' as const }
+                        : entity;
+
+                    return (
+                      <button
+                        key={`${normalizedEntity.name}-${index}`}
+                        type="button"
+                        onClick={() => onEntityClick(normalizedEntity)}
+                        className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
+                        title={normalizedEntity.name}
+                      >
+                        <span
+                          className={cx(
+                            'h-1.5 w-1.5 rounded-full entity-tone-dot',
+                            getEntityToneClass(normalizedEntity.type)
+                          )}
+                        />
+                        <span className="truncate osint-meta-value text-zinc-300">
+                          {normalizedEntity.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </Accordion>
+
+            <Accordion
               title={labelProfile.followUpLabel}
               count={visibleFollowUps.length}
               icon={Target}
@@ -1180,7 +1225,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     return (
                       <FollowUpDetailRow
                         key={followUp.id}
-                        className="border border-zinc-800/50 bg-zinc-950/70 p-3"
+                        className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} border-zinc-800/50 bg-zinc-950/70`}
                         eyebrow={`${followUp.kind.replace(/_/g, ' ')} · ${followUp.status.replace(/_/g, ' ')}`}
                         title={questionText}
                         body={getFollowUpText(followUp)}
@@ -1226,49 +1271,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   })
                 )}
               </div>
-            </Accordion>
-
-            <Accordion
-              title="Entities"
-              count={reportEntities.length}
-              icon={Users}
-              isOpen={openSidebarSection === 'entities'}
-              onToggle={() => toggleSidebarAccordion('entities')}
-              className={getRailAccordionClassName(openSidebarSection === 'entities')}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              {reportEntities.length === 0 ? (
-                <p className="px-2 py-1 osint-body-quiet italic">No entities detected.</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-1">
-                  {reportEntities.map((entity, index) => {
-                    const normalizedEntity =
-                      typeof entity === 'string'
-                        ? { name: entity, type: 'UNKNOWN' as const }
-                        : entity;
-
-                    return (
-                      <button
-                        key={`${normalizedEntity.name}-${index}`}
-                        type="button"
-                        onClick={() => onEntityClick(normalizedEntity)}
-                        className="flex items-center gap-2 border border-zinc-800/50 bg-zinc-900/20 p-2 text-left transition hover:border-osint-primary hover:bg-zinc-900"
-                        title={normalizedEntity.name}
-                      >
-                        <span
-                          className={cx(
-                            'h-1.5 w-1.5 rounded-full entity-tone-dot',
-                            getEntityToneClass(normalizedEntity.type)
-                          )}
-                        />
-                        <span className="truncate osint-meta-value text-zinc-300">
-                          {normalizedEntity.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </Accordion>
 
             <Accordion
@@ -1384,7 +1386,8 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="osint-link-list-item block truncate border-b border-zinc-900 p-2 last:border-0"
+                      className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} block truncate`}
+                      title={source.title || source.url}
                     >
                       <Link2 className="mr-1 inline h-3 w-3" />
                       <span className="osint-body-quiet text-zinc-400">

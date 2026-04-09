@@ -50,7 +50,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
   onOpenWorkspaceChat,
 }) => (
   <main className="flex min-w-0 flex-1 flex-col overflow-hidden border-r border-zinc-800 bg-black/70">
-    <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
+    <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar" data-app-scroll-region>
       {!activeWorkspace ? (
         <EmptyState
           icon={Clock3}

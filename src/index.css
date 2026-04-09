@@ -1067,6 +1067,13 @@ body,
   box-shadow: 0 12px 26px -24px rgba(0, 0, 0, 0.78);
 }
 
+.osint-app-shell[data-header-hidden='true'] .osint-app-header {
+  margin-bottom: -5rem;
+  opacity: 0.98;
+  pointer-events: none;
+  transform: translateY(calc(-100% - 1px));
+}
+
 .osint-section-shadow {
   box-shadow: 0 22px 40px -34px rgba(0, 0, 0, 0.68);
 }

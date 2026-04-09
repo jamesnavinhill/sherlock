@@ -311,7 +311,10 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
         />
       ) : null}
 
-      <div className="relative z-10 h-full w-full overflow-y-auto p-6">
+      <div
+        className="relative z-10 h-full w-full overflow-y-auto p-6"
+        data-app-scroll-region
+      >
         {recordsViewModel && effectiveSelectedCaseId ? (
           <FilesRecords
             focusedItem={focusedItem}

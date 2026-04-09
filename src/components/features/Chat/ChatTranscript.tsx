@@ -78,6 +78,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
         className={`min-h-0 flex-1 px-4 py-4 sm:px-6 ${
           showWorkspaceEmptyState ? 'overflow-hidden' : 'overflow-y-auto'
         }`}
+        data-app-scroll-region
       >
         <div
           className={`mx-auto flex w-full max-w-4xl flex-col ${

@@ -1,5 +1,5 @@
 export const CHROME_HEADER_CLASS =
-  'sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 backdrop-blur-md osint-header-shadow';
+  'osint-app-header sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 backdrop-blur-md osint-header-shadow transition-[transform,margin-bottom,opacity] duration-200 ease-out will-change-transform';
 
 export const CHROME_HEADER_ROW_CLASS = 'flex h-full min-w-0 items-center justify-between gap-3';
 
@@ -25,6 +25,11 @@ export const CHROME_COMPACT_ACTION_BUTTON_CLASS = `${CHROME_ACTION_BUTTON_CLASS}
 export const CHROME_NESTED_ITEM_CLASS = 'osint-panel-item p-3';
 
 export const CHROME_NESTED_ITEM_BUTTON_CLASS = `${CHROME_NESTED_ITEM_CLASS} w-full text-left`;
+
+export const CHROME_COMPACT_NESTED_ITEM_CLASS = 'osint-panel-item px-3 py-2';
+
+export const CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS =
+  `${CHROME_COMPACT_NESTED_ITEM_CLASS} w-full text-left`;
 
 export const CHROME_NESTED_ITEM_HEADER_CLASS = 'flex items-start justify-between gap-3';
 

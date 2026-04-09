@@ -31,8 +31,10 @@ export const useKeyboardShortcuts = (
       // Don't trigger shortcuts when typing in input fields
       const target = event.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        // Allow Escape to still work in inputs
-        if (event.key !== 'Escape') return;
+        const allowInInput =
+          event.key === 'Escape' ||
+          (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey));
+        if (!allowInInput) return;
       }
 
       for (const shortcut of shortcuts) {

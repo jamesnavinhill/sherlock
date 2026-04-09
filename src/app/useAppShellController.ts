@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { AppView } from '@/types';
 import type {
   ChatOpenRequest,
   FollowUp,
   InvestigationLaunchRequest,
   Artifact,
-  AppView,
   InvestigationScope,
   WorkspaceRun,
 } from '@/types';
@@ -37,6 +37,7 @@ import { openWorkspaceChatRequest } from '@/app/openChatRequest';
 import { requestOmniboxFocus } from '@/components/ui/omniboxFocus';
 import { useAppShellLaunch } from '@/app/useAppShellLaunch';
 import { useAppShellNavigation } from '@/app/useAppShellNavigation';
+import { useHeaderAutoHide } from '@/app/useHeaderAutoHide';
 
 export interface AppShellController {
   activeChatSessionId: string | null;
@@ -85,6 +86,7 @@ export interface AppShellController {
   setThemeMode: (mode: 'dark' | 'light') => void;
   setThemeSurfaceSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeSurfaceSettings'];
   showGlobalSearch: boolean;
+  shouldHideRouteHeader: boolean;
   showHelpModal: boolean;
   themeColor: string;
   themeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['themeFontSettings'];
@@ -240,6 +242,12 @@ export function useAppShellController(): AppShellController {
     themeSurfaceSettings,
   });
 
+  const { isHeaderHidden } = useHeaderAutoHide({
+    enabled: routeCurrentView !== AppView.SETTINGS,
+    forcedVisible: showGlobalSearch,
+    routeKey: location.pathname,
+  });
+
   const { launchInvestigation, handleBatchInvestigate } = useAppShellLaunch({
     navigate,
     locationPathRef,
@@ -334,6 +342,7 @@ export function useAppShellController(): AppShellController {
     setThemeMode,
     setThemeSurfaceSettings,
     showGlobalSearch,
+    shouldHideRouteHeader: isHeaderHidden,
     showHelpModal,
     themeColor,
     themeFontSettings,
