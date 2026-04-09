@@ -111,6 +111,7 @@ export const Settings: React.FC<SettingsProps> = ({
           {activeTab === 'DATA' ? (
             <SettingsDataTab
               autoResolve={data.autoResolve}
+              dataSections={data.dataSections}
               quietMode={data.quietMode}
               fileInputRef={data.fileInputRef}
               onExportData={data.handleExportData}
@@ -118,6 +119,7 @@ export const Settings: React.FC<SettingsProps> = ({
               onRequestClearData={data.requestClearData}
               onToggleAutoResolve={() => data.setAutoResolve((current) => !current)}
               onToggleQuietMode={() => data.setQuietMode((current) => !current)}
+              toggleDataSection={data.toggleDataSection}
             />
           ) : null}
 

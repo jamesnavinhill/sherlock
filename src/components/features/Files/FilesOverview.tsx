@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  ArrowRight,
   Download,
   FileJson,
   FileText,
@@ -60,7 +59,7 @@ const renderPagination = (input: {
   ) : null;
 
 const WORKSPACE_ACTION_BUTTON_CLASS =
-  'inline-flex h-8 w-8 items-center justify-center border border-zinc-800 bg-black/40 text-zinc-500 transition hover:border-zinc-700 hover:text-white';
+  'osint-button-chrome inline-flex h-8 w-8 shrink-0 items-center justify-center p-0';
 
 const getWorkspaceOverviewSummary = (workspaceLabelLower: string, workspace: Workspace) =>
   workspace.description || `Open this ${workspaceLabelLower} to inspect artifacts, items, and saved history.`;
@@ -195,11 +194,8 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                     <div className="mt-1 osint-meta-value">{itemCount}</div>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between gap-3 border-t border-zinc-800 pt-4">
-                  <div className="flex flex-wrap gap-2">
-                    {renderWorkspaceActions(workspace)}
-                  </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-zinc-600 transition-colors group-hover:text-osint-primary" />
+                <div className="mt-4 flex items-center gap-2 border-t border-zinc-800 pt-4">
+                  {renderWorkspaceActions(workspace)}
                 </div>
               </div>
             </div>
@@ -228,11 +224,10 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
         </div>
       ) : (
         <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
-          <div className="osint-meta-label grid grid-cols-[minmax(0,1.2fr)_auto_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
+          <div className="osint-meta-label grid grid-cols-[minmax(0,1.2fr)_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
             <span>Workspace</span>
             <span>Artifacts</span>
             <span>Items</span>
-            <span className="text-right">Open</span>
           </div>
           <div className="divide-y divide-zinc-800">
             {viewModel.paginatedWorkspaces.map(({ workspace, artifactCount, itemCount, displayTitle }) => (
@@ -241,7 +236,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                 onClick={() => onSelectWorkspace(workspace.id)}
                 className="cursor-pointer px-4 py-4 transition hover:bg-zinc-900/70"
               >
-                <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto_auto] items-start gap-4">
+                <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto] items-start gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <div className="osint-title-inline">{displayTitle}</div>
@@ -258,9 +253,6 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                   </div>
                   <div className="osint-meta-value self-center text-right">{artifactCount}</div>
                   <div className="osint-meta-value self-center text-right">{itemCount}</div>
-                  <div className="flex items-center justify-end self-center">
-                    <ArrowRight className="h-4 w-4 text-zinc-600" />
-                  </div>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-zinc-800 pt-3">
                   {renderWorkspaceActions(workspace)}
@@ -271,7 +263,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             {viewModel.unassignedArtifactCount > 0 ? (
               <div
                 onClick={() => onSelectWorkspace('unassigned')}
-                className="grid cursor-pointer grid-cols-[minmax(0,1.2fr)_auto_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                className="grid cursor-pointer grid-cols-[minmax(0,1.2fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
               >
                 <div className="min-w-0">
                   <div className="osint-title-inline text-zinc-300">Unassigned</div>
@@ -281,9 +273,6 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                   {viewModel.unassignedArtifactCount}
                 </div>
                 <div className="osint-meta-value self-center text-right text-zinc-500">0</div>
-                <div className="flex items-center justify-end">
-                  <ArrowRight className="h-4 w-4 text-zinc-600" />
-                </div>
               </div>
             ) : null}
           </div>

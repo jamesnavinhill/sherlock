@@ -58,7 +58,6 @@ describe('FilesOverview', () => {
   it('renders list workspace actions separately from the counts row', () => {
     render(<FilesOverview {...baseProps} viewMode="LIST" />);
 
-    expect(screen.getByText('Open')).toBeInTheDocument();
     expect(screen.getByTitle(/workspace chat/i)).toBeInTheDocument();
     expect(screen.getByTitle(/\(HTML\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/\(JSON\)/i)).toBeInTheDocument();

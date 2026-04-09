@@ -9,14 +9,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
-  Info,
   Search,
   Cpu,
   Target,
   Lightbulb,
   Compass,
   Layout,
-  Sparkles,
 } from 'lucide-react';
 import { BUILTIN_SCOPES, getAllScopes } from '../../../data/presets';
 import { DEFAULT_MODEL_ID } from '../../../config/aiModels';
@@ -24,7 +22,6 @@ import { loadSystemConfig } from '../../../config/systemConfig';
 import { createLocalId } from '../../../utils/id';
 import {
   getDomainPackForScope,
-  getLabelProfileById,
   getPurposeProfileById,
   getStarterTemplates,
 } from '../../../domain';
@@ -92,15 +89,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     () => getDomainPackForScope(starterScope, customScopes),
     [starterScope, customScopes]
   );
-  const starterLabelProfile = useMemo(
-    () => getLabelProfileById(starterPack.labelProfileId),
-    [starterPack]
-  );
   const starterPurpose = useMemo(
     () => getPurposeProfileById(starterPack.defaultPurposeId),
     [starterPack]
   );
-  const starterTemplates = useMemo(() => {
+  const starterTemplates = useMemo<WorkspaceTemplate[]>(() => {
     const baseConfig = loadSystemConfig();
     const baseModel = baseConfig.modelId || DEFAULT_MODEL_ID;
 
@@ -131,15 +124,26 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
             artifactType: starter.artifactType,
           }),
           scopeId: starterScope.id,
+          packId: starterPack.id,
+          purposeId: starter.purposeId,
+          artifactType: starter.artifactType,
+          labelProfileId: starterPack.labelProfileId,
           createdAt: 0,
         }) satisfies WorkspaceTemplate
     );
   }, [customScopes, starterPack, starterPurpose, starterScope]);
 
-  const filteredTemplates = templates.filter(
-    (t) =>
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.topic.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTemplates = useMemo(
+    () =>
+      [
+        ...starterTemplates.map((template) => ({ isStarter: true, template })),
+        ...templates.map((template) => ({ isStarter: false, template })),
+      ].filter(
+        ({ template }) =>
+          template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          template.topic.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [searchQuery, starterTemplates, templates]
   );
 
   useEffect(() => {
@@ -263,117 +267,53 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         </button>
       </div>
 
-      {starterTemplates.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="osint-eyebrow flex items-center">
-              <Sparkles className="w-3 h-3 mr-2 text-osint-primary" />
-              Built-in Starters
-            </div>
-            <div className="osint-eyebrow text-zinc-600">{starterPack.name}</div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {starterTemplates.slice(0, 4).map((template) => (
-              <div
-                key={template.id}
-                className="group bg-zinc-950/70 border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col"
-              >
-                <div className="p-4 flex-1">
-                  <div className="flex items-center justify-between mb-2 gap-3">
-                    <span className="osint-meta-label-strong text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30">
-                      Starter
-                    </span>
-                    <span className="osint-meta-label">
-                      {template.config.purposeId}
-                    </span>
-                  </div>
-                  <h3 className="osint-meta-value mb-2 line-clamp-2">
-                    {template.name}
-                  </h3>
-                  <p className="osint-body-small mb-4 line-clamp-3">
-                    {template.description}
-                  </p>
-                  <div className="osint-eyebrow border-t border-zinc-800 pt-3 text-zinc-600">
-                    {starterLabelProfile.workspaceLabel} starter
-                  </div>
-                </div>
-                <button
-                  onClick={() => onApply(template)}
-                  className="osint-button-primary flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
-                >
-                  <Play className="w-3 h-3 mr-2" />
-                  Launch Starter
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {filteredTemplates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 border border-dashed border-zinc-800 bg-zinc-900/20">
-          <Layout className="w-12 h-12 text-zinc-700 mb-4 opacity-30" />
-          <h3 className="osint-meta-value mb-1 text-zinc-500">No Templates Found</h3>
-          <p className="osint-body-quiet">
-            Save pack and purpose-aware launch setups to reuse them here.
-          </p>
-        </div>
-      ) : (
+      {filteredTemplates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {filteredTemplates.map((t) => (
+          {filteredTemplates.map(({ isStarter, template }) => (
             <div
-              key={t.id}
+              key={template.id}
               className="group bg-zinc-950/70 border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col"
             >
               <div className="p-4 flex-1">
                 <div className="flex items-center justify-between mb-2 gap-3">
                   <span className="osint-meta-label-strong text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30">
-                    Protocol
+                    {isStarter ? 'Starter' : 'Protocol'}
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="osint-meta-label">
-                      {t.config.purposeId || t.purposeId || 'custom'}
+                      {template.config.purposeId || template.purposeId || 'custom'}
                     </span>
-                    <button
-                      onClick={() => {
-                        void deleteTemplate(t.id);
-                      }}
-                      className="text-zinc-700 transition-colors hover:text-osint-danger"
-                      title="Delete Template"
-                      aria-label={`Delete template ${t.name}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    {!isStarter ? (
+                      <button
+                        onClick={() => {
+                          void deleteTemplate(template.id);
+                        }}
+                        className="text-zinc-700 transition-colors hover:text-osint-danger"
+                        title="Delete Template"
+                        aria-label={`Delete template ${template.name}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
                   </div>
                 </div>
-                <h3 className="osint-meta-value mb-2 line-clamp-2">
-                  {t.name}
-                </h3>
-                <p className="osint-body-small mb-4 line-clamp-3">
-                  {t.description || t.topic}
+                <h3 className="osint-meta-value mb-2 line-clamp-2">{template.name}</h3>
+                <p className="osint-body-small line-clamp-3">
+                  {template.description || template.topic}
                 </p>
-                <div className="osint-eyebrow border-t border-zinc-800 pt-3 text-zinc-600">
-                  Saved template
-                </div>
               </div>
 
               <button
-                onClick={() => onApply(t)}
+                onClick={() => onApply(template)}
                 className="osint-button-primary flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
               >
                 <Play className="w-3 h-3 mr-2" />
-                Launch Template
+                {isStarter ? 'Launch Starter' : 'Launch Template'}
               </button>
             </div>
           ))}
         </div>
-      )}
-
-      <p className="osint-body-small flex items-start bg-zinc-900/30 p-3 border border-zinc-800/50">
-        <Info className="w-3 h-3 mr-2 flex-shrink-0 text-osint-primary" />
-        Templates now capture pack, purpose, artifact, and model context. Applying one launches the
-        matching workspace flow with those defaults prefilled.
-      </p>
+      ) : null}
 
       {showCreateModal && (
         <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">

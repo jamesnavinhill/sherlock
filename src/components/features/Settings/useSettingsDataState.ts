@@ -20,6 +20,10 @@ export interface SettingsDataState {
   closePurgeDialog: () => void;
   confirmClearData: () => Promise<void>;
   confirmImportData: () => Promise<void>;
+  dataSections: {
+    preferences: boolean;
+    workspaceData: boolean;
+  };
   feedbackDialog: FeedbackDialogState | null;
   fileInputRef: RefObject<HTMLInputElement | null>;
   handleExportData: () => void;
@@ -31,6 +35,7 @@ export interface SettingsDataState {
   setAutoResolve: Dispatch<SetStateAction<boolean>>;
   setQuietMode: Dispatch<SetStateAction<boolean>>;
   showPurgeDialog: boolean;
+  toggleDataSection: (section: 'preferences' | 'workspaceData') => void;
 }
 
 interface UseSettingsDataStateInput {
@@ -65,6 +70,10 @@ export const useSettingsDataState = ({
 
   const [autoResolve, setAutoResolve] = useState(initialAutoResolve);
   const [quietMode, setQuietMode] = useState(initialQuietMode);
+  const [dataSections, setDataSections] = useState({
+    preferences: true,
+    workspaceData: true,
+  });
   const [showPurgeDialog, setShowPurgeDialog] = useState(false);
   const [pendingImportData, setPendingImportData] =
     useState<ReturnType<typeof normalizeWorkspaceDataBackup> | null>(null);
@@ -162,6 +171,7 @@ export const useSettingsDataState = ({
     closePurgeDialog: () => setShowPurgeDialog(false),
     confirmClearData,
     confirmImportData,
+    dataSections,
     feedbackDialog,
     fileInputRef,
     handleExportData,
@@ -173,5 +183,7 @@ export const useSettingsDataState = ({
     setAutoResolve,
     setQuietMode,
     showPurgeDialog,
+    toggleDataSection: (section) =>
+      setDataSections((current) => ({ ...current, [section]: !current[section] })),
   };
 };
