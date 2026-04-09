@@ -13,6 +13,16 @@ const reportFixture: Artifact = {
   agendas: ['Award timing clusters across overlapping vendors.'],
   leads: [],
   followUps: [],
+  keyFindings: [
+    {
+      id: 'finding-1',
+      title: 'Award timing irregularity',
+      summary: 'Coordinated contract awards cluster around the same vendor network.',
+      supportRefs: ['Registry'],
+      originSectionId: 'section-executive_summary-0',
+      order: 0,
+    },
+  ],
   entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
   sources: [{ title: 'Registry', url: 'https://example.com/registry' }],
   evidence: [
@@ -61,7 +71,7 @@ const reportFixture: Artifact = {
 };
 
 describe('ArtifactViewer', () => {
-  it('uses a unified report body, hides follow-up sections from the main column, and uses the report details rail open action', async () => {
+  it('renders canonical findings in both the document body and details rail, hides legacy follow-up sections, and preserves detail-rail actions', async () => {
     const onReportBodySave = vi.fn(async () => undefined);
     const onLeadOpen = vi.fn();
 
@@ -84,16 +94,23 @@ describe('ArtifactViewer', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: /Synthesis/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Executive Summary/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Key Findings/i })).toBeInTheDocument();
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
-    expect(screen.getByText('Synthesis Reading Pattern')).toBeInTheDocument();
+    expect(screen.queryByText('Synthesis Reading Pattern')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Award timing irregularity').length).toBeGreaterThan(1);
+    expect(
+      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
+        .length
+    ).toBeGreaterThan(1);
     expect(screen.queryByText(/\[RUN_ANGLE\]/)).not.toBeInTheDocument();
     expect(screen.queryByText(/\[PRIORITY_SOURCES\]/)).not.toBeInTheDocument();
     expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();
     expect(screen.getAllByText('Registry').length).toBeGreaterThan(0);
     expect(screen.queryByText('Follow-Up Questions')).not.toBeInTheDocument();
+    expect(screen.queryByText('Award timing clusters across overlapping vendors.')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Collapse Artifact Details' }));
     expect(screen.getByRole('button', { name: 'Expand Artifact Details' })).toBeInTheDocument();
@@ -104,22 +121,18 @@ describe('ArtifactViewer', () => {
       screen.queryByText('Trace shared directors across the vendor cluster.')
     ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Investigative Leads (1)' }));
+    fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
     expect(
-      screen.getByText('Trace shared directors across the vendor cluster.')
-    ).toBeInTheDocument();
-    expect(screen.queryByText('Atlas Holdings')).not.toBeInTheDocument();
+      screen.getAllByText('Trace shared directors across the vendor cluster.').length
+    ).toBeGreaterThan(1);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Provenance (2)' }));
+    fireEvent.click(screen.getByRole('button', { name: /Provenance/i }));
     expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Entities (1)' }));
-    expect(screen.getByText('Atlas Holdings')).toBeInTheDocument();
-    expect(
-      screen.queryByText('Trace shared directors across the vendor cluster.')
-    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Entities/i }));
+    expect(screen.getAllByText('Atlas Holdings').length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Investigative Leads (1)' }));
+    fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
     fireEvent.click(screen.getByRole('button', { name: 'Open' }));
     expect(onLeadOpen).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -135,7 +148,10 @@ describe('ArtifactViewer', () => {
     await waitFor(() => {
       expect(onReportBodySave).toHaveBeenCalledWith(
         'Expanded report body for editing.',
-        'section-executive_summary-0'
+        'section-executive_summary-0',
+        {
+          syncSummary: true,
+        }
       );
     });
   });

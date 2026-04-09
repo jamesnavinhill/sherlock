@@ -172,6 +172,70 @@ describe('useOperationViewController', () => {
     expect(addToast).toHaveBeenCalledWith('Artifact updated.', 'SUCCESS');
   });
 
+  it('saves non-summary document sections without overwriting the artifact summary', async () => {
+    const updateArtifactSummary = vi.fn(async () => undefined);
+    const updateArtifactSection = vi.fn(async () => undefined);
+    const addToast = vi.fn();
+
+    selectorState.useOperationFeatureState.mockReturnValue({
+      ...baseState,
+      updateArtifactSummary,
+      updateArtifactSection,
+      addToast,
+    });
+
+    const { result } = renderHook(() =>
+      useOperationViewController({
+        onNavigate: vi.fn(),
+        onOpenChat: vi.fn(),
+        task: null,
+        reportOverride: {
+          id: 'artifact-1',
+          topic: 'Atlas Report',
+          summary: 'Summary',
+          agendas: [],
+          leads: [],
+          entities: [],
+          sources: [],
+          rawText: 'raw',
+          sections: [
+            {
+              id: 'section-executive_summary-0',
+              kind: 'EXECUTIVE_SUMMARY',
+              title: 'Executive Summary',
+              content: 'Summary',
+              order: 0,
+            },
+            {
+              id: 'section-methodology-1',
+              kind: 'METHODOLOGY',
+              title: 'Methodology',
+              content: 'Method notes',
+              order: 1,
+            },
+          ],
+          config: {},
+        },
+      })
+    );
+
+    await act(async () => {
+      await result.current.handleReportBodySave('Expanded methodology details.', 'section-methodology-1', {
+        syncSummary: false,
+      });
+    });
+
+    expect(updateArtifactSummary).not.toHaveBeenCalled();
+    expect(updateArtifactSection).toHaveBeenCalledWith(
+      'artifact-1',
+      'section-methodology-1',
+      {
+        content: 'Expanded methodology details.',
+      }
+    );
+    expect(addToast).toHaveBeenCalledWith('Artifact updated.', 'SUCCESS');
+  });
+
   it('uses canonical chat and board handoff payloads for report and headline actions', async () => {
     const onOpenChat = vi.fn();
     const queueBoardPlacement = vi.fn();

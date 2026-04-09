@@ -268,10 +268,16 @@ export function useOperationViewController({
     if (report.id) onNavigate(report.id);
   };
 
-  const handleReportBodySave = async (summary: string, sectionId?: string) => {
+  const handleReportBodySave = async (
+    summary: string,
+    sectionId?: string,
+    options?: { syncSummary?: boolean }
+  ) => {
     if (!report?.id) return;
 
-    await updateArtifactSummary(report.id, summary);
+    if (options?.syncSummary ?? true) {
+      await updateArtifactSummary(report.id, summary);
+    }
     if (sectionId) {
       await updateArtifactSection(report.id, sectionId, {
         content: summary,

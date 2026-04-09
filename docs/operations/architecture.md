@@ -499,14 +499,12 @@ Operation View now also includes board handoff for the active artifact plus insp
 
 `ArtifactViewer` now renders:
 
-- artifact-type-aware reading highlights before the main body so briefs, syntheses, comparisons, monitor snapshots, and timelines foreground different first-pass questions
-- a provenance summary strip with artifact type, source/evidence/citation counts, and warning visibility before the deeper accordion detail rail
-- inline section-level evidence/source cues for sections that have explicit evidence linkage
-- typed summary sections
-- supplemental sections such as findings, methodology, implications, or timeline, with findings rendered from canonical `Artifact.keyFindings` records rather than legacy mixed-duty `agendas`
-- compatibility-mapped lead and anomaly sections for legacy artifacts
-- purpose-ordered section layouts with dedicated timeline and findings treatments
-- pack-aware section titles that map legacy labels into broader workspace terminology
+- a document-first reader with the executive summary as the main body entry point instead of a top dashboard strip
+- canonical `Artifact.keyFindings` records as a dedicated `Key Findings` block near the top of the document body and again in the details rail
+- inline section-level evidence jump cues plus detail-rail evidence jumps for findings, sections, and provenance rows
+- section-level editing for the executive summary plus substantive content sections such as methodology
+- purpose-ordered supplemental sections such as methodology, implications, anomalies, or timeline with pack-aware section titles
+- a rebuilt details rail where findings, follow-ups, entities, and provenance use one related item-row family rather than separate local treatments
 
 ### Network Graph
 
