@@ -154,7 +154,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="border-t border-zinc-800 bg-black/95 px-4 pb-4 pt-3 sm:px-6"
+      className="bg-black/95 px-4 pb-4 pt-3 sm:px-6"
     >
       <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
         <div className="relative border-b border-zinc-800">

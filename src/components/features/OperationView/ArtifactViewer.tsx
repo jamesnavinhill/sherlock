@@ -751,7 +751,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   return (
     <div className="relative flex flex-1 overflow-hidden bg-black animate-in fade-in duration-500">
       <div className={mainColumnClassName}>
-        <div className="sticky top-0 z-20 border-b border-zinc-800 bg-black/90 px-6 py-4 backdrop-blur-md osint-header-shadow">
+        <div className="z-20 border-b border-zinc-800 bg-black/90 px-6 py-4 osint-header-shadow">
           <div className="mb-2 flex flex-col justify-between md:flex-row md:items-center">
             <Breadcrumbs items={navStack} onNavigate={onNavigate} />
             <div className="mt-2 flex items-center gap-3 md:mt-0">
@@ -776,13 +776,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               value={report.topic}
               displayValue={reportDisplayTitle}
               onSave={onTitleSave}
-              className="font-osint-display osint-title-page truncate uppercase"
-              inputClassName="font-osint-display osint-title-page uppercase"
+              className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] truncate uppercase"
+              inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
             />
           </div>
         </div>
 
-        <div className="space-y-8 p-6">
+        <div className="space-y-8 px-6 pb-6 pt-4">
           {visibleReportBody.trim().length > 0 ? (
             <section
               ref={(node) => {
