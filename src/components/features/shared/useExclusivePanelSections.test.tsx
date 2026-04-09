@@ -68,4 +68,41 @@ describe('useExclusivePanelSections', () => {
       sources: false,
     });
   });
+
+  it('does not reopen the initial section after the user intentionally closes everything', () => {
+    const { result, rerender } = renderHook(
+      ({
+        sections,
+        initialOpenSection,
+      }: {
+        sections: Array<'reports' | 'entities' | 'sources'>;
+        initialOpenSection?: 'reports' | 'entities' | 'sources' | null;
+      }) => useExclusivePanelSections(sections, { initialOpenSection }),
+      {
+        initialProps: {
+          sections: ['reports', 'entities', 'sources'],
+          initialOpenSection: 'reports',
+        },
+      }
+    );
+
+    expect(result.current.openSection).toBe('reports');
+
+    act(() => {
+      result.current.closeAllSections();
+    });
+
+    expect(result.current.openSection).toBeNull();
+
+    rerender({
+      sections: ['reports', 'sources'],
+      initialOpenSection: 'reports',
+    });
+
+    expect(result.current.openSection).toBeNull();
+    expect(result.current.state).toEqual({
+      reports: false,
+      sources: false,
+    });
+  });
 });

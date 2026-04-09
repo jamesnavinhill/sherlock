@@ -13,6 +13,39 @@ interface LibraryRailEntryProps {
   entry: LibraryRailEntryModel;
 }
 
+const renderEntryAction = (action: NonNullable<LibraryRailEntryModel['actions']>[number]) => {
+  const ActionIcon = action.icon;
+  const sharedClassName =
+    `${CHROME_THIN_ACTION_BUTTON_CLASS} w-full ${action.className || ''}`.trim();
+
+  if (action.href) {
+    return (
+      <a
+        key={action.id}
+        href={action.href}
+        target={action.target}
+        rel={action.rel}
+        className={sharedClassName}
+      >
+        {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
+        {action.label}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      key={action.id}
+      type="button"
+      onClick={action.onClick}
+      className={sharedClassName}
+    >
+      {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
+      {action.label}
+    </button>
+  );
+};
+
 export const LibraryRailEntry: React.FC<LibraryRailEntryProps> = ({ entry }) => {
   const headerContent = (
     <>
@@ -41,38 +74,7 @@ export const LibraryRailEntry: React.FC<LibraryRailEntryProps> = ({ entry }) => 
 
   const actions = entry.actions?.length ? (
     <div className={getChromeThinActionRowClassName(actionCount)}>
-      {entry.actions.map((action) => {
-        const ActionIcon = action.icon;
-        const sharedClassName =
-          `${CHROME_THIN_ACTION_BUTTON_CLASS} w-full ${action.className || ''}`.trim();
-
-        if (action.href) {
-          return (
-            <a
-              key={action.id}
-              href={action.href}
-              target={action.target}
-              rel={action.rel}
-              className={sharedClassName}
-            >
-              {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-              {action.label}
-            </a>
-          );
-        }
-
-        return (
-          <button
-            key={action.id}
-            type="button"
-            onClick={action.onClick}
-            className={sharedClassName}
-          >
-            {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-            {action.label}
-          </button>
-        );
-      })}
+      {entry.actions.map(renderEntryAction)}
     </div>
   ) : null;
 
