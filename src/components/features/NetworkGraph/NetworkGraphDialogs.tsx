@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type { EntityAliasMap, GraphNodeSubtype, InvestigationLaunchRequest } from '@/types';
+import type { AppIconId } from '@/lib/appIcons';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { RunSetupModal } from '../Runs/RunSetupModal';
 import { EntityResolution } from './EntityResolution';
@@ -27,6 +28,7 @@ interface NetworkGraphDialogsProps {
   aliases: EntityAliasMap;
   allEntityNames: string[];
   newNodeLabel: string;
+  newNodeIconId: AppIconId | null;
   newNodeSubtype: GraphNodeSubtype;
   newNodeType: 'ENTITY' | 'REPORT';
   nodePendingDeletion: PendingNodeDeletion | null;
@@ -38,6 +40,7 @@ interface NetworkGraphDialogsProps {
   onCreateNode: () => void;
   onInvestigateEntity: (request: InvestigationLaunchRequest) => void;
   onNodeLabelChange: (value: string) => void;
+  onNodeIconChange: (value: AppIconId | null) => void;
   onNodeSubtypeChange: (value: GraphNodeSubtype) => void;
   onNodeTypeChange: (value: 'ENTITY' | 'REPORT') => void;
   onSaveAliases: (aliases: EntityAliasMap) => void;
@@ -52,6 +55,7 @@ export const NetworkGraphDialogs: React.FC<NetworkGraphDialogsProps> = ({
   aliases,
   allEntityNames,
   newNodeLabel,
+  newNodeIconId,
   newNodeSubtype,
   newNodeType,
   nodePendingDeletion,
@@ -63,6 +67,7 @@ export const NetworkGraphDialogs: React.FC<NetworkGraphDialogsProps> = ({
   onCreateNode,
   onInvestigateEntity,
   onNodeLabelChange,
+  onNodeIconChange,
   onNodeSubtypeChange,
   onNodeTypeChange,
   onSaveAliases,
@@ -75,12 +80,14 @@ export const NetworkGraphDialogs: React.FC<NetworkGraphDialogsProps> = ({
     <NetworkGraphAddNodeOverlay
       show={showAddNodeUI}
       newNodeLabel={newNodeLabel}
+      newNodeIconId={newNodeIconId}
       newNodeSubtype={newNodeSubtype}
       newNodeType={newNodeType}
       subtypeOptions={subtypeOptions}
       onClose={onCloseAddNode}
       onCreateNode={onCreateNode}
       onNodeLabelChange={onNodeLabelChange}
+      onNodeIconChange={onNodeIconChange}
       onNodeSubtypeChange={onNodeSubtypeChange}
       onNodeTypeChange={onNodeTypeChange}
     />

@@ -27,6 +27,7 @@ export const workspaces = sqliteTable('workspaces', {
   packId: text('pack_id'),
   purposeId: text('purpose_id'),
   labelProfileId: text('label_profile_id'),
+  iconId: text('icon_id'),
   metadataJson: text('metadata_json'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
@@ -349,6 +350,7 @@ export const manualNodes = sqliteTable('manual_nodes', {
   label: text('label').notNull(),
   type: text('type').notNull(), // 'CASE' | 'ENTITY'
   subtype: text('subtype'),
+  iconId: text('icon_id'),
   timestamp: integer('timestamp').notNull(),
 });
 

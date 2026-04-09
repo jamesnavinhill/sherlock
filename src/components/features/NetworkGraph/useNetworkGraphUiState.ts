@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import type { AppIconId } from '@/lib/appIcons';
 import type { GraphNode } from './GraphCanvas';
 import type { GraphNodeSubtype } from '@/types';
 
@@ -13,6 +14,7 @@ export const useNetworkGraphUiState = () => {
   const [linkSourceNode, setLinkSourceNode] = useState<GraphNode | null>(null);
   const [showAddNodeUI, setShowAddNodeUI] = useState(false);
   const [newNodeLabel, setNewNodeLabel] = useState('');
+  const [newNodeIconId, setNewNodeIconId] = useState<AppIconId | null>(null);
   const [newNodeType, setNewNodeType] = useState<'ENTITY' | 'REPORT'>('ENTITY');
   const [newNodeSubtype, setNewNodeSubtype] = useState<GraphNodeSubtype>('PERSON');
   const [showResolutionModal, setShowResolutionModal] = useState(false);
@@ -51,6 +53,7 @@ export const useNetworkGraphUiState = () => {
     isLocked,
     linkSourceNode,
     newNodeLabel,
+    newNodeIconId,
     newNodeSubtype,
     newNodeType,
     nodePendingDeletion,
@@ -59,6 +62,7 @@ export const useNetworkGraphUiState = () => {
     setIsLocked,
     setLinkSourceNode,
     setNewNodeLabel,
+    setNewNodeIconId,
     setNewNodeSubtype,
     setNewNodeType,
     setNodePendingDeletion,

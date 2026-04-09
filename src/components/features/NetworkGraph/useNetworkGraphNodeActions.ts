@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import type { Artifact, GraphNodeSubtype, ManualConnection, ManualNode, Workspace } from '@/types';
+import type { AppIconId } from '@/lib/appIcons';
 import type { GraphNode } from './GraphCanvas';
 import {
   getDeletedNodeToken,
@@ -18,6 +19,7 @@ interface UseNetworkGraphNodeActionsInput {
   manualLinks: ManualConnection[];
   manualNodes: ManualNode[];
   newNodeLabel: string;
+  newNodeIconId: AppIconId | null;
   newNodeSubtype: GraphNodeSubtype;
   newNodeType: 'ENTITY' | 'REPORT';
   selectedNode: GraphNode | null;
@@ -28,6 +30,7 @@ interface UseNetworkGraphNodeActionsInput {
   setManualLinks: (links: ManualConnection[]) => Promise<void> | void;
   setManualNodes: (nodes: ManualNode[]) => Promise<void> | void;
   setNewNodeLabel: (value: string) => void;
+  setNewNodeIconId: (value: AppIconId | null) => void;
   setNodePendingDeletion: (node: GraphNode | null) => void;
   setSelectedEntityName: (value: string | null) => void;
   setSelectedLeadForAnalysis: (value: { text: string; context?: { topic: string; summary: string } } | null) => void;
@@ -50,6 +53,7 @@ export const useNetworkGraphNodeActions = ({
   manualLinks,
   manualNodes,
   newNodeLabel,
+  newNodeIconId,
   newNodeSubtype,
   newNodeType,
   selectedNode,
@@ -60,6 +64,7 @@ export const useNetworkGraphNodeActions = ({
   setManualLinks,
   setManualNodes,
   setNewNodeLabel,
+  setNewNodeIconId,
   setNodePendingDeletion,
   setSelectedEntityName,
   setSelectedLeadForAnalysis,
@@ -96,18 +101,22 @@ export const useNetworkGraphNodeActions = ({
       type: newNodeType === 'REPORT' ? 'CASE' : 'ENTITY',
       timestamp: Date.now(),
       subtype: newNodeType === 'ENTITY' ? newNodeSubtype : 'UNKNOWN',
+      iconId: newNodeIconId || undefined,
     };
 
     void setManualNodes([...manualNodes, newNode]);
     setShowAddNodeUI(false);
     setNewNodeLabel('');
+    setNewNodeIconId(null);
   }, [
     manualNodes,
     newNodeLabel,
+    newNodeIconId,
     newNodeSubtype,
     newNodeType,
     setManualNodes,
     setNewNodeLabel,
+    setNewNodeIconId,
     setShowAddNodeUI,
   ]);
 
@@ -310,6 +319,25 @@ export const useNetworkGraphNodeActions = ({
     setNodePendingDeletion(selectedNode);
   }, [selectedNode, setNodePendingDeletion]);
 
+  const handleSetSelectedNodeIcon = useCallback(
+    async (iconId: AppIconId | null) => {
+      if (!selectedNode?.isManual) return;
+
+      const nextIconId = iconId || undefined;
+      await setManualNodes(
+        manualNodes.map((node) =>
+          node.id === selectedNode.id ? { ...node, iconId: nextIconId } : node
+        )
+      );
+      setSelectedNode({
+        ...selectedNode,
+        iconId: nextIconId,
+      });
+      addToast(`Updated icon for ${selectedNode.label}.`, 'SUCCESS');
+    },
+    [addToast, manualNodes, selectedNode, setManualNodes, setSelectedNode]
+  );
+
   return {
     confirmDeleteNode,
     handleCreateManualLink,
@@ -318,6 +346,7 @@ export const useNetworkGraphNodeActions = ({
     handleEntitySave,
     handleLeadInvestigate,
     handleReportSave,
+    handleSetSelectedNodeIcon,
     handleToggleFlag,
     handleToggleHide,
   };

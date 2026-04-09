@@ -24,6 +24,7 @@ export const createWorkspaceActions = (
   { persistWorkspaceDataBackup }: WorkspaceActionDependencies
 ): Pick<
   WorkspaceState,
+  | 'updateWorkspace'
   | 'deleteWorkspace'
   | 'purgeWorkspace'
   | 'ensureWorkspaceBoard'
@@ -37,6 +38,20 @@ export const createWorkspaceActions = (
   | 'importWorkspaceData'
   | 'clearWorkspaceData'
 > => ({
+  updateWorkspace: async (workspaceId, patch) => {
+    await WorkspaceRepository.updateWorkspace(workspaceId, patch);
+    set((state) => ({
+      workspaces: state.workspaces.map((workspace) =>
+        workspace.id === workspaceId
+          ? {
+              ...workspace,
+              ...patch,
+              updatedAt: Date.now(),
+            }
+          : workspace
+      ),
+    }));
+  },
   deleteWorkspace: async (workspaceId) => {
     await WorkspaceRepository.unassignArtifactsFromWorkspace(workspaceId);
     await WorkspaceRepository.deleteWorkspace(workspaceId);

@@ -7,6 +7,7 @@ import type {
   WorkspaceBoardItemReference,
   WorkspaceItem,
 } from '@/types';
+import { getDefaultWorkspaceLibraryIconId, type AppIconId } from '@/lib/appIcons';
 import { cleanEntityName } from '../../utils/text';
 import {
   buildWorkspaceItemContextText,
@@ -29,6 +30,7 @@ export interface WorkspaceLibraryEntry extends WorkspaceBoardItemReference {
   contextText?: string;
   url?: string;
   previewUrl?: string;
+  iconId?: AppIconId;
 }
 
 const slugify = (value: string) => value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -94,6 +96,7 @@ export const buildWorkspaceEntityReference = (
   metadata: {
     entityType: entity.type,
     role: entity.role,
+    iconId: entity.iconId,
   },
 });
 
@@ -139,6 +142,7 @@ export const buildWorkspaceLibraryEntries = (input: {
       subtitle: artifact.artifactType || 'Artifact',
       contextText: [artifact.summary, artifact.rawText].filter(Boolean).join('\n\n') || artifact.topic,
       searchText: [artifact.topic, artifact.summary, artifact.rawText].filter(Boolean).join(' '),
+      iconId: getDefaultWorkspaceLibraryIconId({ kind: 'ARTIFACT' }),
     }));
 
   const findingEntries = input.artifacts.flatMap((artifact) =>
@@ -153,6 +157,7 @@ export const buildWorkspaceLibraryEntries = (input: {
         searchText: [finding.title, finding.summary, ...(finding.supportRefs || [])]
           .filter(Boolean)
           .join(' '),
+        iconId: getDefaultWorkspaceLibraryIconId({ kind: 'FINDING' }),
       }))
   );
 
@@ -182,6 +187,9 @@ export const buildWorkspaceLibraryEntries = (input: {
     subtitle: entity.type,
     contextText: [entity.name, entity.type, entity.role || ''].filter(Boolean).join(' | '),
     searchText: [entity.name, entity.type, entity.role || ''].filter(Boolean).join(' '),
+    iconId:
+      entity.iconId ||
+      getDefaultWorkspaceLibraryIconId({ kind: 'ENTITY', entityType: entity.type }),
   }));
 
   const sourceMap = new Map<string, Source>();
@@ -202,6 +210,7 @@ export const buildWorkspaceLibraryEntries = (input: {
     contextText: [source.title, source.url].filter(Boolean).join('\n'),
     searchText: [source.title, source.url].join(' '),
     url: source.url,
+    iconId: getDefaultWorkspaceLibraryIconId({ kind: 'SOURCE' }),
   }));
 
   const signalEntries = (input.signals || input.headlines || []).map((signal) => ({
@@ -212,6 +221,7 @@ export const buildWorkspaceLibraryEntries = (input: {
     contextText: [signal.content, signal.source, signal.url || ''].filter(Boolean).join('\n'),
     searchText: [signal.source, signal.content, signal.type].filter(Boolean).join(' '),
     url: signal.url,
+    iconId: getDefaultWorkspaceLibraryIconId({ kind: 'SIGNAL' }),
   }));
 
   const workspaceItemEntries = input.workspaceItems.map((item) => ({
@@ -223,6 +233,10 @@ export const buildWorkspaceLibraryEntries = (input: {
     searchText: buildWorkspaceItemSearchText(item),
     url: item.url,
     previewUrl: item.previewUrl,
+    iconId: getDefaultWorkspaceLibraryIconId({
+      kind: item.kind,
+      workspaceItemKind: item.kind,
+    }),
   }));
 
   return [

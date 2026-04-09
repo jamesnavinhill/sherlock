@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { Accordion } from '@/components/ui/Accordion';
+import { AppIcon } from '@/lib/appIcons';
 import {
   CHROME_ACTION_BUTTON_CLASS,
   CHROME_PANEL_HEADER_CLASS,
@@ -155,6 +156,14 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
               entries.map((entry) => {
                 const entryKey = boardRefKey(entry);
                 const isEntryOpen = !!libraryItemSections[entryKey];
+                const entryTitle = (
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+                      <AppIcon iconId={entry.iconId} size={15} strokeWidth={1.9} />
+                    </span>
+                    <span className="truncate">{entry.title}</span>
+                  </span>
+                );
 
                 return (
                   <div
@@ -168,7 +177,7 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                   }
                   >
                     <Accordion
-                      title={entry.title}
+                      title={entryTitle}
                       isOpen={isEntryOpen}
                       onToggle={() => onToggleLibraryEntrySection(entryKey)}
                     >

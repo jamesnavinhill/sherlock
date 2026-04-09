@@ -66,6 +66,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     handlePlaceHeadlineOnBoard,
     handlePlaceReportOnBoard,
     handleReportSave,
+    handleSetSelectedNodeIcon,
     handleToggleFlag,
     handleToggleHide,
     hiddenNodeIds,
@@ -77,6 +78,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     manualLinks,
     manualNodes,
     newNodeLabel,
+    newNodeIconId,
     newNodeSubtype,
     newNodeType,
     nodePendingDeletion,
@@ -92,6 +94,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     setIsLocked,
     setLinkSourceNode,
     setNewNodeLabel,
+    setNewNodeIconId,
     setNewNodeSubtype,
     setNewNodeType,
     setNodePendingDeletion,
@@ -249,6 +252,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           onToggleFlag={handleToggleFlag}
           onToggleHide={handleToggleHide}
           onDeleteNode={handleDeleteNode}
+          onSetManualNodeIcon={handleSetSelectedNodeIcon}
           onInvestigate={handleLeadInvestigate}
           onOpenReport={onOpenReport}
           onOpenEntityChat={handleOpenEntityChat}
@@ -271,6 +275,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         activeScopeId={activeScopeId}
         showAddNodeUI={showAddNodeUI}
         newNodeLabel={newNodeLabel}
+        newNodeIconId={newNodeIconId}
         newNodeType={newNodeType}
         newNodeSubtype={newNodeSubtype}
         subtypeOptions={subtypeOptions}
@@ -283,6 +288,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         onCloseAddNode={() => setShowAddNodeUI(false)}
         onCreateNode={handleCreateNode}
         onNodeLabelChange={setNewNodeLabel}
+        onNodeIconChange={setNewNodeIconId}
         onNodeTypeChange={setNewNodeType}
         onNodeSubtypeChange={setNewNodeSubtype}
         onCloseResolution={() => setShowResolutionModal(false)}

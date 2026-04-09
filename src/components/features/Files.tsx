@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ChevronDown,
   Download,
@@ -8,7 +8,7 @@ import {
   Plus,
   Upload,
 } from 'lucide-react';
-import type { Artifact, ChatOpenRequest, InvestigationLaunchRequest } from '@/types';
+import type { Artifact, ChatOpenRequest, InvestigationLaunchRequest, Workspace } from '@/types';
 import { CANONICAL_NOUNS } from '@/domain';
 import {
   exportWorkspaceAsHtml,
@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/chrome';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
+import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { WorkspaceDocumentUploadDialog } from '@/components/ui/WorkspaceDocumentUploadDialog';
 import { RunSetupModal } from '@/components/features/Runs/RunSetupModal';
@@ -41,6 +42,7 @@ interface FilesProps {
 
 export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, onOpenChat }) => {
   const controller = useFilesController({ onOpenChat, onSelectReport });
+  const [workspaceIconTarget, setWorkspaceIconTarget] = useState<Workspace | null>(null);
   const {
     artifactLabelLower,
     artifactLabelPlural,
@@ -60,6 +62,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     handlePlaceArtifactOnBoard,
     handlePlaceItemOnBoard,
     handlePurgeWorkspace,
+    handleWorkspaceIconUpdate,
     handleWorkspaceSelect,
     handleFileUpload,
     isNewCaseModalOpen,
@@ -335,6 +338,10 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             artifactLabelPlural={artifactLabelPlural}
             currentPage={currentPage}
             onChangePage={setCurrentPage}
+            onEditWorkspaceIcon={(workspace, event) => {
+              event.stopPropagation();
+              setWorkspaceIconTarget(workspace);
+            }}
             onExportWorkspaceHtml={(workspace) =>
               exportWorkspaceAsHtml(workspace, getWorkspaceArtifacts(workspace.id))
             }
@@ -355,6 +362,21 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           />
         )}
       </div>
+
+      <IconPickerOverlay
+        isOpen={!!workspaceIconTarget}
+        title="Workspace Icon"
+        description="Choose the icon used across Files, boards, and linked workspace surfaces."
+        selectedIconId={workspaceIconTarget?.iconId || null}
+        allowDefault
+        defaultLabel="Use Default Folder"
+        onClose={() => setWorkspaceIconTarget(null)}
+        onSelect={(iconId) => {
+          if (!workspaceIconTarget) return;
+          void handleWorkspaceIconUpdate(workspaceIconTarget.id, iconId);
+          setWorkspaceIconTarget(null);
+        }}
+      />
     </div>
   );
 };

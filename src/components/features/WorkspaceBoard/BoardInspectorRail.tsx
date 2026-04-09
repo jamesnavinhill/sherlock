@@ -4,6 +4,7 @@ import { Bot, Clock3, Shapes, Sparkles, Trash2 } from 'lucide-react';
 import type { WorkspaceBoard, WorkspaceItem } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import { AppIcon } from '@/lib/appIcons';
 import {
   CHROME_ACTION_BUTTON_CLASS,
   CHROME_PANEL_ACTION_ROW_CLASS,
@@ -57,12 +58,20 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
       : selectedEntries.length > 1
         ? `${selectedEntries.length} Items Selected`
         : activeBoard?.name || 'Board Selection';
+  const primaryEntry = selectedEntries.length === 1 ? selectedEntries[0] : null;
 
   return (
     <>
       <div className={CHROME_PANEL_HEADER_CLASS}>
         <div className="osint-eyebrow">Inspector</div>
-        <div className="mt-1 osint-panel-title">{title}</div>
+        <div className="mt-1 flex items-center gap-3">
+          {primaryEntry ? (
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+              <AppIcon iconId={primaryEntry.iconId} size={18} strokeWidth={1.9} />
+            </span>
+          ) : null}
+          <div className="osint-panel-title min-w-0 truncate">{title}</div>
+        </div>
       </div>
       {inspectorActions.length > 0 ? (
         <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
@@ -91,10 +100,17 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
                 key={boardRefKey(entry)}
                 className="osint-panel-item p-3 text-zinc-200"
               >
-                <div className="osint-title-inline">{entry.title}</div>
-                {entry.description ? (
-                  <div className="mt-2 osint-body-quiet">{entry.description}</div>
-                ) : null}
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+                    <AppIcon iconId={entry.iconId} size={16} strokeWidth={1.9} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="osint-title-inline">{entry.title}</div>
+                    {entry.description ? (
+                      <div className="mt-2 osint-body-quiet">{entry.description}</div>
+                    ) : null}
+                  </div>
+                </div>
               </div>
             ))
           )}

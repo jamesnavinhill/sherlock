@@ -144,6 +144,90 @@ Tool-native history commands may be useful as supplemental import or debugging h
 - raw output should remain available for auditability
 - final-answer extraction must degrade gracefully to transcript capture rather than pretending certainty where there is none
 
+### 8. Initial repository-shape decision
+
+- the bridge should live as a repo-local package at the root, not under `src/`
+- browser-only code and Node-only bridge code must not import each other directly
+- shared runtime contracts should live in a small shared module or contract package that both sides can consume
+- the existing browser app remains a Vite app; the bridge is a separate local process with its own lifecycle
+
+### 9. Scope boundary decision
+
+Included in this roadmap:
+
+- embedded terminal surface
+- local shell execution
+- Codex and Gemini first-class adapters
+- optional Amp adapter
+- canonical run/session persistence
+- ingest into chat, artifact, note, and follow-up flows
+- explicit pairing and LAN-friendly connectivity
+
+Explicitly out of scope for this roadmap:
+
+- board mutation or board-agent execution from terminal output
+- general public multi-user bridge hosting
+- server-side storage of third-party terminal agent credentials
+- replacing Sherlock chat with terminal agents as the only interaction model
+
+## Remaining Ambiguity Resolved
+
+This section closes the main ambiguities from the report so implementation can start from one coherent plan.
+
+### Bridge host shape
+
+Resolved:
+
+- use a repo-local service package, not a separate ad hoc app and not a desktop wrapper first
+
+Reason:
+
+- it gives Sherlock one coherent codebase and test surface while preserving the option to bundle the bridge later in Electron, Tauri, or another wrapper if the local workflow proves valuable
+
+### Canonical history source
+
+Resolved:
+
+- Sherlock-owned terminal/session/run persistence is canonical
+- shell history and tool-native history remain optional supporting inputs only
+
+Reason:
+
+- the product needs one stable audit and ingest model that does not depend on which shell or CLI happened to be used
+
+### Parsing ownership
+
+Resolved:
+
+- Sherlock owns final-answer extraction and confidence scoring
+- adapters can expose tool-specific signals, but the product contract remains Sherlock-owned
+
+Reason:
+
+- the UI and persistence model need one normalized result contract across manual shells, Codex, Gemini, and future tools
+
+### Remote-connect posture
+
+Resolved:
+
+- LAN-first is the required support level
+- tunnel-friendly is a design constraint, not a launch requirement
+
+Reason:
+
+- this preserves the "use Sherlock from the phone while the home machine is online" path without expanding the first release into public bridge hosting
+
+### First-class adapter scope
+
+Resolved:
+
+- Codex and Gemini are mandatory
+- Amp is conditional on CLI stability during implementation and must not delay the rest of the roadmap
+
+Reason:
+
+- this keeps the first build focused while still leaving a clear slot for Amp
+
 ## Bridge Packaging Options
 
 This section explains the main packaging choices and why the roadmap selects the repo-local service package.
@@ -298,6 +382,62 @@ Recommended storage rule:
 - explicit command runs and explicit agent launches get durable transcript capture
 - ambient manual terminal noise can remain session-local unless the user saves or promotes it
 
+### Recommended initial persistence shape
+
+The exact column names can change during implementation, but the first schema cut should plan for these record boundaries:
+
+- `terminal_sessions`
+- `terminal_command_runs`
+- `terminal_captures`
+- `agent_bridge_profiles`
+
+Recommended minimum fields:
+
+- `terminal_sessions`
+  - `id`
+  - `workspace_id` nullable
+  - `profile_id`
+  - `session_kind` such as `SHELL` or `AGENT`
+  - `title`
+  - `status`
+  - `created_at`
+  - `updated_at`
+- `terminal_command_runs`
+  - `id`
+  - `session_id`
+  - `adapter_kind` nullable
+  - `initiated_by` such as `USER` or `SHERLOCK`
+  - `command_text`
+  - `prompt_text` nullable
+  - `status`
+  - `started_at`
+  - `completed_at` nullable
+  - `exit_code` nullable
+  - `final_answer_text` nullable
+  - `normalized_output_text` nullable
+  - `parser_confidence` nullable
+  - `metadata_json`
+- `terminal_captures`
+  - `id`
+  - `run_id`
+  - `stream_kind` such as `STDOUT`, `STDERR`, or `MERGED`
+  - `content_text`
+  - `sequence_number`
+  - `created_at`
+- `agent_bridge_profiles`
+  - `id`
+  - `kind` such as `POWERSHELL`, `CMD`, `GIT_BASH`, `CODEX`, `GEMINI`, `AMP`
+  - `label`
+  - `command`
+  - `args_json`
+  - `cwd_strategy`
+  - `env_policy`
+  - `metadata_json`
+
+Design rule:
+
+- transcript payloads can be chunked for storage, but the product should present them as one coherent capture per run
+
 ### Tool-native history
 
 Each CLI tool may have its own history or local state commands.
@@ -371,6 +511,34 @@ When confidence is moderate or low:
 - show the normalized transcript result
 - avoid pretending there is a clean final answer if the tool did not really provide one
 
+### Normalized run result contract
+
+The implementation should converge on one shared result shape equivalent to:
+
+```ts
+type NormalizedTerminalRunResult = {
+  runId: string;
+  sessionId: string;
+  adapterKind?: 'CODEX' | 'GEMINI' | 'AMP';
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  finalAnswer?: string;
+  normalizedContent: string;
+  warnings?: string[];
+  parser: {
+    strategy:
+      | 'STRUCTURED_OUTPUT'
+      | 'MARKER_BLOCK'
+      | 'TOOL_PATTERN'
+      | 'TAIL_EXTRACTION'
+      | 'FULL_TRANSCRIPT';
+    confidence: number;
+  };
+  metadata?: Record<string, unknown>;
+};
+```
+
+The exact type location can change, but the browser app, persistence layer, and bridge should all align on one equivalent contract.
+
 ## Local, LAN, And Tunnel-Friendly Pairing
 
 The first implementation only needs to work well on the same machine or LAN.
@@ -395,6 +563,83 @@ However, the protocol should not be painted into a corner.
 - multi-user bridge hosting
 - hosted bridge infrastructure
 - automatic NAT traversal
+
+### Pairing model recommendation
+
+The initial bridge should use:
+
+- explicit bridge enablement by the local user
+- one-time pairing token generation
+- origin allowlist checks
+- short-lived authenticated browser sessions on successful pair
+
+Do not rely on "it is on localhost so it is safe" as the only trust boundary.
+
+## Shell Profiles And Session Model
+
+The terminal subsystem should support both generic shells and named agent launch profiles.
+
+### Day-one shell profiles
+
+- PowerShell / `pwsh` when available
+- `cmd.exe`
+- Git Bash if installed and configured
+
+### Session model
+
+There are two valid session styles:
+
+- persistent shell sessions for manual usage
+- tracked run sessions for agent-oriented invocations
+
+Recommended rule:
+
+- the UI can expose a persistent shell pane for normal use
+- explicit Sherlock-triggered command launches should still create tracked run records inside that session context
+
+### Working-directory behavior
+
+Default working-directory rule:
+
+- use the current Sherlock project root when the user is working inside this repository
+- allow future workspace-specific cwd behavior through profile config
+
+### Environment policy
+
+Profiles should define whether they:
+
+- inherit the parent process environment
+- add or override specific env vars
+- require preflight checks for executable discovery
+
+## Browser And Bridge Protocol Model
+
+The bridge protocol should not be left implicit.
+
+### Browser-to-bridge event families
+
+- connection and pairing
+- terminal session create/attach/detach
+- terminal input
+- terminal resize
+- tracked run launch
+- tracked run cancel
+- transcript fetch
+- profile discovery
+
+### Bridge-to-browser event families
+
+- connection status
+- pairing required / pairing accepted
+- terminal output chunk
+- run status update
+- normalized result available
+- session closed
+- bridge error
+
+Design rule:
+
+- manual terminal streaming and tracked agent runs may share transport, but they must remain distinct at the event-model level
 
 ## Agent Adapter Strategy
 
@@ -434,14 +679,33 @@ Requirements:
 - only ship as first-class if local CLI behavior and invocation contract are stable enough during implementation
 - otherwise leave the generic terminal surface ready for it and add the adapter immediately after the core contract lands
 
+### Adapter implementation rules
+
+- adapters must declare how they accept prompts
+- adapters must declare whether they support machine-readable or quiet output modes
+- adapters must expose their parser strategy
+- adapters must not leak tool-specific noise into the normalized Sherlock contract when a cleaner extraction is available
+- adapters may still preserve full raw output for audit and debugging
+
 ## Architecture Shape In This Repo
 
 Recommended repository additions:
 
 - a new bridge package directory at repo root, for example `agent-bridge/`
+- a shared contract module or package for browser/bridge types
 - shared browser-side terminal service code under `src/services/terminal/`
 - new Chat layout and terminal components under `src/components/features/Chat/`
 - persistence types and repository support under existing `src/services/db/` and `src/types/`
+
+Recommended bridge package internals:
+
+- transport server
+- PTY session manager
+- shell profile registry
+- agent adapter registry
+- parsing/normalization helpers
+- pairing/auth helpers
+- platform detection helpers
 
 ### Browser-side responsibilities
 
@@ -479,8 +743,10 @@ Recommended order:
 1. contracts and persistence
 2. bridge package and pairing
 3. Chat surface refactor and terminal UI
-4. adapter layer and ingest workflows
-5. polish, remote-friendly hardening, and docs closeout
+4. manual terminal workflow and tracked run model
+5. adapter layer and parsing
+6. ingest workflows
+7. polish, remote-friendly hardening, and docs closeout
 
 ## Stream 1. Contracts And Persistence Foundation
 
@@ -585,18 +851,46 @@ Exit criteria:
 - the terminal feels native to Sherlock
 - the layout remains usable on desktop and mobile
 
-## Stream 4. Agent Adapters, Parsing, And Ingest Workflows
+## Stream 4. Manual Terminal Workflow And Tracked Run Model
 
 Purpose:
 
-- make the terminal useful as an agent workspace rather than just a raw shell view
+- make the embedded terminal useful even before adapter-specific intelligence is layered on top
+- ensure manual shell usage and Sherlock-tracked runs can coexist cleanly
+
+Primary targets:
+
+- browser-side terminal client state
+- bridge-side session manager
+- persistence integration for sessions and tracked runs
+
+Execution checklist:
+
+1. Support persistent shell attachment in the UI.
+2. Distinguish ambient shell streaming from explicit tracked runs.
+3. Persist tracked commands and their transcript captures.
+4. Add run status surfaces to the Chat terminal pane.
+5. Add session restart, reconnect, and disconnect behavior.
+6. Make manual terminal use feel first-class rather than a hidden support feature.
+
+Exit criteria:
+
+- the embedded terminal is valuable even with no agent-specific adapter selected
+- the product can distinguish a passive shell session from a deliberate tracked run
+- the persistence model is exercised by real terminal usage before adapter-specific work lands
+
+## Stream 5. Agent Adapters And Parsing
+
+Purpose:
+
+- make the terminal useful as an agent workspace with first-class adapter semantics
 
 Primary targets:
 
 - bridge adapter modules for Codex and Gemini
 - optional Amp adapter
-- browser-side ingest actions
-- chat/artifact/workspace integration helpers
+- parsing and normalization helpers
+- normalized run result contract
 
 Execution checklist:
 
@@ -605,17 +899,43 @@ Execution checklist:
 3. Add Amp if the local invocation contract is stable enough.
 4. Implement normalized result objects across adapters.
 5. Implement final-answer extraction with confidence metadata.
-6. Add save-as-chat, save-as-artifact, save-as-note, and extract-follow-ups flows.
-7. Preserve raw transcript access for every tracked run.
-8. Keep Sherlock-owned history canonical instead of depending on tool-native history.
+6. Preserve raw transcript access for every tracked run.
+7. Keep Sherlock-owned history canonical instead of depending on tool-native history.
 
 Exit criteria:
 
 - Codex and Gemini feel first-class inside Sherlock
-- outputs can be ingested into the existing workspace system cleanly
+- parsing behavior is adapter-aware and predictable
 - raw and normalized results both remain available
 
-## Stream 5. Remote-Friendly Hardening, Quality Sweep, And Documentation Closeout
+## Stream 6. Ingest Workflows And Workspace Integration
+
+Purpose:
+
+- connect terminal and adapter results back into Sherlock's existing product model
+
+Primary targets:
+
+- browser-side ingest actions
+- chat/artifact/workspace integration helpers
+- persistence links between runs and promoted records
+
+Execution checklist:
+
+1. Add save-as-chat flow.
+2. Add save-as-artifact-draft flow.
+3. Add save-as-workspace-note or excerpt flow.
+4. Add follow-up extraction flow.
+5. Preserve linkage from saved record back to the originating terminal run.
+6. Make transcript review available wherever a normalized result is surfaced.
+
+Exit criteria:
+
+- outputs can be ingested into the existing workspace system cleanly
+- users can move from terminal result to Sherlock record without copy-paste glue work
+- raw and normalized results both remain available
+
+## Stream 7. Remote-Friendly Hardening, Quality Sweep, And Documentation Closeout
 
 Purpose:
 
@@ -660,6 +980,7 @@ Additional validation expectations for this roadmap:
 - repository tests for terminal and agent persistence
 - bridge protocol tests where feasible
 - adapter-level parsing tests for Codex and Gemini
+- ingest-flow tests linking terminal runs to chat/artifact/note/follow-up actions
 
 Do not rely on manual smoke testing alone for parsing or persistence correctness.
 

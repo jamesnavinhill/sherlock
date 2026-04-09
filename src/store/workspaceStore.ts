@@ -209,6 +209,28 @@ export interface WorkspaceState {
   setDefaultScope: (id: string) => void;
   addScope: (scope: InvestigationScope) => void;
   deleteScope: (id: string) => void;
+  updateWorkspace: (
+    workspaceId: string,
+    patch: Partial<
+      Pick<
+        Workspace,
+        | 'title'
+        | 'displayTitle'
+        | 'launchTopic'
+        | 'launchAngle'
+        | 'prioritySourcesSummary'
+        | 'description'
+        | 'status'
+        | 'scopeId'
+        | 'mode'
+        | 'packId'
+        | 'purposeId'
+        | 'labelProfileId'
+        | 'iconId'
+        | 'metadata'
+      >
+    >
+  ) => Promise<void>;
 
   addWorkspaceRun: (workspaceRun: WorkspaceRun) => Promise<void>;
   addRun: (run: WorkspaceRun) => Promise<void>;

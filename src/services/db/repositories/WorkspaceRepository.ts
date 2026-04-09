@@ -48,6 +48,7 @@ import {
 } from '../../../utils/textNormalization';
 import { createLocalId } from '../../../utils/id';
 import { getWorkspaceDataSignals } from '../../maintenance/workspaceData';
+import { isAppIconId } from '@/lib/appIcons';
 import {
   mapRowsSafely,
   parseStoredJson,
@@ -185,6 +186,7 @@ const mapWorkspaceRow = (row: typeof workspaces.$inferSelect): Workspace => {
     packId: row.packId || undefined,
     purposeId: row.purposeId || undefined,
     labelProfileId: row.labelProfileId || undefined,
+    iconId: isAppIconId(row.iconId) ? row.iconId : undefined,
     metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
       row.metadataJson,
       `workspace metadata ${row.id}`
@@ -236,10 +238,69 @@ export class WorkspaceRepository {
       packId: workspace.packId,
       purposeId: workspace.purposeId,
       labelProfileId: workspace.labelProfileId,
+      iconId: workspace.iconId,
       metadataJson: serializeStoredJsonOrNull(workspace.metadata),
       createdAt,
       updatedAt,
     });
+  }
+
+  static async updateWorkspace(
+    id: string,
+    patch: Partial<
+      Pick<
+        Workspace,
+        | 'title'
+        | 'displayTitle'
+        | 'launchTopic'
+        | 'launchAngle'
+        | 'prioritySourcesSummary'
+        | 'description'
+        | 'status'
+        | 'scopeId'
+        | 'mode'
+        | 'packId'
+        | 'purposeId'
+        | 'labelProfileId'
+        | 'iconId'
+        | 'metadata'
+      >
+    >,
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
+    const current = await this.getWorkspaceById(id);
+    if (!current) return;
+
+    const merged = {
+      ...current,
+      ...patch,
+      metadata:
+        patch.metadata === undefined
+          ? current.metadata
+          : patch.metadata,
+    };
+    const identity = resolveWorkspaceIdentity(merged);
+
+    await db
+      .update(workspaces)
+      .set({
+        scopeId: merged.scopeId,
+        title: merged.title,
+        displayTitle: identity.displayTitle,
+        launchTopic: identity.launchTopic,
+        launchAngle: identity.launchAngle,
+        prioritySourcesSummary: identity.prioritySourcesSummary,
+        status: merged.status,
+        description: merged.description,
+        mode: merged.mode,
+        packId: merged.packId,
+        purposeId: merged.purposeId,
+        labelProfileId: merged.labelProfileId,
+        iconId: merged.iconId,
+        metadataJson: serializeStoredJsonOrNull(merged.metadata),
+        updatedAt: Date.now(),
+      })
+      .where(eq(workspaces.id, id));
   }
 
   // --- ARTIFACTS ---

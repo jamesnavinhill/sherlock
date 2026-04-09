@@ -1,4 +1,5 @@
 import type { AIProvider } from '../config/aiModels';
+import type { AppIconId } from '../lib/appIcons';
 
 export interface Source {
   title: string;
@@ -190,6 +191,7 @@ export interface Workspace {
   packId?: string;
   purposeId?: string;
   labelProfileId?: string;
+  iconId?: AppIconId;
   metadata?: Record<string, unknown>;
 }
 
@@ -200,6 +202,7 @@ export interface Entity {
   type: EntityType;
   role?: string;
   sentiment?: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+  iconId?: AppIconId;
 }
 
 export interface ManualConnection {
@@ -215,6 +218,7 @@ export interface ManualNode {
   label: string;
   type: 'CASE' | 'ENTITY';
   subtype?: GraphNodeSubtype;
+  iconId?: AppIconId;
   timestamp: number;
 }
 

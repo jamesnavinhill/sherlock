@@ -12,6 +12,11 @@ import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneCssVar } from '../../../utils/entityPalette';
 import { getReportGraphNodeId } from './networkGraphNodeIds';
 import { computeStructuredGraphLayout } from './graphLayout';
+import {
+  buildAppIconSvgDataUrl,
+  getDefaultGraphNodeIconId,
+  type AppIconId,
+} from '@/lib/appIcons';
 
 // Graph Types
 export interface GraphNode extends d3.SimulationNodeDatum {
@@ -22,6 +27,7 @@ export interface GraphNode extends d3.SimulationNodeDatum {
   data?: Artifact;
   connections: number;
   isManual?: boolean;
+  iconId?: AppIconId;
   x?: number;
   y?: number;
   fx?: number | null;
@@ -140,6 +146,14 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         .each((d: GraphNode, index: number, nodes: ArrayLike<SVGGElement>) => {
           const group = d3.select(nodes[index]);
           const isLinkSource = !!selectedSourceId && d.id === selectedSourceId;
+          const iconColor =
+            d.type === 'REPORT'
+              ? isLinkSource
+                ? '#f87171'
+                : '#ffffff'
+              : isLinkSource
+                ? '#ffffff'
+                : getEntityStrokeColor(d.subtype);
 
           group
             .select('circle')
@@ -158,16 +172,21 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             .attr('stroke-width', isLinkSource ? 3 : 1.5);
 
           group
-            .selectAll('path')
+            .selectAll<SVGImageElement, GraphNode>('.node-icon-image')
             .attr(
-              'stroke',
-              d.type === 'REPORT'
-                ? isLinkSource
-                  ? '#f87171'
-                  : '#fff'
-                : isLinkSource
-                  ? '#fff'
-                  : getEntityStrokeColor(d.subtype)
+              'href',
+              buildAppIconSvgDataUrl(
+                d.iconId ||
+                  getDefaultGraphNodeIconId({
+                    type: d.type,
+                    subtype: d.subtype,
+                  }),
+                {
+                  color: iconColor,
+                  size: 24,
+                  strokeWidth: 1.9,
+                }
+              )
             );
         });
     }, [linkSourceNode]);
@@ -257,7 +276,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         label: string,
         reportData?: Artifact,
         isManual: boolean = false,
-        subtype?: GraphNodeSubtype
+        subtype?: GraphNodeSubtype,
+        iconId?: AppIconId
       ) => {
         if (isNodeDeleted(id, label) || (isNodeHidden(id, label) && !showHiddenNodes)) return null;
         if (!rawNodes.has(id)) {
@@ -276,18 +296,29 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             data: data,
             connections: 0,
             isManual,
+            iconId,
             x: previousPosition?.x,
             y: previousPosition?.y,
             fx: previousPosition?.fx ?? null,
             fy: previousPosition?.fy ?? null,
           });
+        } else if (iconId && !rawNodes.get(id)?.iconId) {
+          rawNodes.get(id)!.iconId = iconId;
         }
         return rawNodes.get(id) ?? null;
       };
 
       // Build Graph from Manual Nodes
       manualNodes.forEach((mn) =>
-        getOrCreateNode(mn.id, mn.type === 'CASE' ? 'REPORT' : mn.type, mn.label, undefined, true, mn.subtype)
+        getOrCreateNode(
+          mn.id,
+          mn.type === 'CASE' ? 'REPORT' : mn.type,
+          mn.label,
+          undefined,
+          true,
+          mn.subtype,
+          mn.iconId
+        )
       );
 
       // Build Graph from Reports
@@ -310,11 +341,12 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         report.entities.forEach((e) => {
           const name = typeof e === 'string' ? e : e.name;
           const type = typeof e === 'string' ? 'UNKNOWN' : e.type;
+          const iconId = typeof e === 'string' ? undefined : e.iconId;
           const clean = cleanEntityName(name);
           if (!clean) return;
           const display = resolveEntityName(clean);
           const eId = `entity-${normalizeId(display)}`;
-          const eNode = getOrCreateNode(eId, 'ENTITY', display, undefined, false, type);
+          const eNode = getOrCreateNode(eId, 'ENTITY', display, undefined, false, type, iconId);
           if (!eNode) return;
 
           if (type !== 'UNKNOWN' && eNode.subtype === 'UNKNOWN') eNode.subtype = type;
@@ -648,41 +680,27 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
           d.type === 'REPORT' ? 20 : Math.min(6 + d.connections * 2, 20)
         );
 
-      // Icons
-      node.each((d: GraphNode, index: number, nodes: ArrayLike<SVGGElement>) => {
-        const g = d3.select(nodes[index]);
-        let iconPath = '';
-        if (d.type === 'REPORT') {
-          iconPath =
-            'M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8';
-        } else if (d.subtype === 'PERSON') {
-          iconPath = 'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z';
-        } else if (d.subtype === 'ORGANIZATION') {
-          iconPath =
-            'M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2 M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2 M10 6h4 M10 10h4 M10 14h4 M10 18h4';
-        } else if (d.subtype === 'SOURCE') {
-          iconPath = 'M3 6h18 M6 3v6 M18 3v6 M4 10h16v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9z';
-        } else if (d.subtype === 'CONCEPT') {
-          iconPath = 'M12 2 4 7v10l8 5 8-5V7l-8-5z M12 12l8-5 M12 12 4 7 M12 12v10';
-        } else {
-          iconPath =
-            'M12 22c5.523 0 10-5 10-10S17.523 2 12 2 2 6.5 2 12s4.477 10 10 10z M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01';
-        }
-
-        g.append('path')
-          .attr('d', iconPath)
-          .attr('fill', 'transparent')
-          .attr('stroke', d.type === 'REPORT' ? '#000' : getEntityStrokeColor(d.subtype))
-          .attr('stroke-width', 2)
-          .attr('stroke-linecap', 'round')
-          .attr('stroke-linejoin', 'round')
-          .attr('transform', 'translate(-7, -7) scale(0.6)');
-
-        g.selectAll('path').attr(
-          'stroke',
-          d.type === 'REPORT' ? '#fff' : getEntityStrokeColor(d.subtype)
+      node
+        .append('image')
+        .attr('class', 'node-icon-image')
+        .attr('x', -7)
+        .attr('y', -7)
+        .attr('width', 14)
+        .attr('height', 14)
+        .attr('href', (d: GraphNode) =>
+          buildAppIconSvgDataUrl(
+            d.iconId ||
+              getDefaultGraphNodeIconId({
+                type: d.type,
+                subtype: d.subtype,
+              }),
+            {
+              color: d.type === 'REPORT' ? '#ffffff' : getEntityStrokeColor(d.subtype),
+              size: 24,
+              strokeWidth: 1.9,
+            }
+          )
         );
-      });
 
       node
         .append('text')

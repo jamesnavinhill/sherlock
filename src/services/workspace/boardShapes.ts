@@ -1,10 +1,13 @@
 import {
+  AssetRecordType,
   createShapeId,
   toRichText,
   type Editor,
   type TLGeoShape,
+  type TLImageShape,
 } from 'tldraw';
 import type { WorkspaceBoardItemReference } from '@/types';
+import { buildAppIconSvgDataUrl } from '@/lib/appIcons';
 import type { WorkspaceLibraryEntry } from './library';
 
 export const BOARD_REF_META_KEY = 'sherlockRefJson';
@@ -30,6 +33,7 @@ export interface BoardCardSpec {
   color: BoardCardColor;
   content: string;
   h: number;
+  iconId?: WorkspaceLibraryEntry['iconId'];
   w: number;
 }
 
@@ -126,6 +130,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 420,
         h: 520,
+        iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.contextText,
           560
@@ -136,6 +141,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 340,
         h: 260,
+        iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.contextText,
           280
@@ -147,6 +153,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 300,
         h: 420,
+        iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.contextText,
           360
@@ -158,6 +165,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 300,
         h: 220,
+        iconId: entry.iconId,
         content: meta ? `${entry.title}\n\n${meta}` : entry.title,
       };
     }
@@ -167,6 +175,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 320,
         h: 260,
+        iconId: entry.iconId,
         content: entry.title,
       };
     case 'NOTE':
@@ -175,6 +184,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 340,
         h: 280,
+        iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.contextText || entry.description,
           300
@@ -186,6 +196,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 320,
         h: 220,
+        iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.subtitle,
           180
@@ -196,6 +207,7 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         color: getShapeColor(entry),
         w: 320,
         h: 240,
+        iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.contextText,
           220
@@ -217,6 +229,7 @@ export const placeEntryOnBoard = (
   const shapeMeta = {
     [BOARD_REF_META_KEY]: serializeBoardReference(entry),
   };
+  const cardShapeIds: string[] = [shapeId];
 
   editor.createShape<TLGeoShape>({
     id: shapeId,
@@ -239,9 +252,66 @@ export const placeEntryOnBoard = (
       font: 'sans',
       align: 'start',
       verticalAlign: 'start',
-      richText: toRichText(card.content),
+      richText: toRichText(card.iconId ? ` \n${card.content}` : card.content),
     },
   });
+
+  if (card.iconId) {
+    const iconAssetId = AssetRecordType.createId(`${entry.refKind}-${entry.refId}-${shapeId}-icon`);
+    const iconShapeId = createShapeId();
+    const iconSize = 28;
+    const iconOffset = 14;
+    editor.createAssets([
+      {
+        id: iconAssetId,
+        typeName: 'asset',
+        type: 'image',
+        props: {
+          name: `${entry.title} icon`,
+          src: buildAppIconSvgDataUrl(card.iconId, {
+            color: themeMode === 'light' ? '#111827' : '#f4f4f5',
+            size: 24,
+            strokeWidth: 1.9,
+          }),
+          w: 24,
+          h: 24,
+          mimeType: 'image/svg+xml',
+          isAnimated: false,
+        },
+        meta: {},
+      },
+    ]);
+
+    editor.createShape<TLImageShape>({
+      id: iconShapeId,
+      type: 'image',
+      x: x + card.w - iconSize - iconOffset,
+      y: y + iconOffset,
+      meta: shapeMeta,
+      props: {
+        w: iconSize,
+        h: iconSize,
+        assetId: iconAssetId,
+        playing: true,
+        url: '',
+        crop: null,
+        flipX: false,
+        flipY: false,
+        altText: `${entry.title} icon`,
+      },
+    });
+
+    cardShapeIds.push(iconShapeId as string);
+    if (cardShapeIds.length > 1) {
+      const groupId = createShapeId();
+      editor.groupShapes(cardShapeIds as never[], { groupId });
+      editor.setSelectedShapes([groupId]);
+      return {
+        shapeId: groupId as string,
+        card,
+      };
+    }
+  }
 
   editor.setSelectedShapes([shapeId]);
 

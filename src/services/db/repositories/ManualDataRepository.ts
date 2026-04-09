@@ -18,6 +18,7 @@ export class ManualDataRepository {
         label: row.label,
         type: row.type as 'CASE' | 'ENTITY',
         subtype: row.subtype as ManualNode['subtype'],
+        iconId: row.iconId as ManualNode['iconId'],
         timestamp: row.timestamp,
       }),
     });
@@ -33,11 +34,12 @@ export class ManualDataRepository {
       if (nodes.length > 0) {
         for (const node of nodes) {
           await executor.insert(manualNodes).values({
-          id: node.id,
-          label: node.label,
-          type: node.type,
-          subtype: node.subtype,
-          timestamp: node.timestamp,
+            id: node.id,
+            label: node.label,
+            type: node.type,
+            subtype: node.subtype,
+            iconId: node.iconId,
+            timestamp: node.timestamp,
           });
         }
       }
@@ -51,6 +53,7 @@ export class ManualDataRepository {
       label: node.label,
       type: node.type,
       subtype: node.subtype,
+      iconId: node.iconId,
       timestamp: node.timestamp,
     });
   }
@@ -116,6 +119,7 @@ export class ManualDataRepository {
           label: node.label,
           type: node.type as 'CASE' | 'ENTITY',
           subtype: node.subtype as ManualNode['subtype'],
+          iconId: node.iconId as ManualNode['iconId'],
           timestamp: node.timestamp,
         })),
         db

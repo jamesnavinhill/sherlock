@@ -3,21 +3,22 @@ import {
   Download,
   FileJson,
   FileText,
-  Folder,
-  FolderClosed,
   FolderOpen,
   MessageSquare,
+  Pencil,
   Trash2,
 } from 'lucide-react';
 import { CANONICAL_NOUNS } from '@/domain';
 import type { Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { AppIcon, getDefaultWorkspaceIconId } from '@/lib/appIcons';
 import type { FilesOverviewViewModel, FilesViewMode } from './filesViewModel';
 
 interface FilesOverviewProps {
   artifactLabelPlural: string;
   currentPage: number;
   onChangePage: (page: number) => void;
+  onEditWorkspaceIcon: (workspace: Workspace, event: React.MouseEvent) => void;
   onExportWorkspaceHtml: (workspace: Workspace) => void;
   onExportWorkspaceJson: (workspace: Workspace) => void;
   onExportWorkspaceMarkdown: (workspace: Workspace) => void;
@@ -68,6 +69,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
   artifactLabelPlural,
   currentPage,
   onChangePage,
+  onEditWorkspaceIcon,
   onExportWorkspaceHtml,
   onExportWorkspaceJson,
   onExportWorkspaceMarkdown,
@@ -158,12 +160,36 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
               className="osint-raised-surface group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden p-6 backdrop-blur-sm transition-all hover:border-osint-primary"
             >
               <div className="absolute right-0 top-0 p-4 opacity-20 transition-opacity group-hover:opacity-40">
-                <Folder className="h-24 w-24 text-white" />
+                <AppIcon
+                  iconId={workspace.iconId || getDefaultWorkspaceIconId()}
+                  className="h-24 w-24 text-white"
+                  size={96}
+                  strokeWidth={1.5}
+                />
               </div>
 
               <div className="relative z-10 mb-4 flex items-start justify-between">
-                <div className="border border-zinc-700 bg-zinc-900 p-3 text-white">
-                  <FolderClosed className="h-8 w-8" />
+                <div className="flex items-start gap-2">
+                  <div className="border border-zinc-700 bg-zinc-900 p-3 text-white">
+                    <AppIcon
+                      iconId={workspace.iconId || getDefaultWorkspaceIconId()}
+                      className="h-8 w-8"
+                      size={32}
+                      strokeWidth={1.85}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onEditWorkspaceIcon(workspace, event);
+                    }}
+                    className="osint-button-chrome inline-flex h-8 w-8 items-center justify-center p-0 opacity-0 transition group-hover:opacity-100"
+                    title={`Customize ${workspaceLabelLower} icon`}
+                    aria-label={`Customize ${workspaceLabelLower} icon`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
                 </div>
                 <span
                   className={`osint-meta-label border px-2 py-1 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/50 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
@@ -239,6 +265,14 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                 <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto] items-start gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
+                      <div className="border border-zinc-800 bg-zinc-950/70 p-1.5 text-zinc-300">
+                        <AppIcon
+                          iconId={workspace.iconId || getDefaultWorkspaceIconId()}
+                          className="h-4 w-4"
+                          size={16}
+                          strokeWidth={1.9}
+                        />
+                      </div>
                       <div className="osint-title-inline">{displayTitle}</div>
                       <span
                         className={`osint-meta-label border px-2 py-0.5 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
@@ -255,6 +289,18 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                   <div className="osint-meta-value self-center text-right">{itemCount}</div>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-zinc-800 pt-3">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onEditWorkspaceIcon(workspace, event);
+                    }}
+                    className={WORKSPACE_ACTION_BUTTON_CLASS}
+                    title={`Customize ${workspaceLabelLower} icon`}
+                    aria-label={`Customize ${workspaceLabelLower} icon`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
                   {renderWorkspaceActions(workspace)}
                 </div>
               </div>

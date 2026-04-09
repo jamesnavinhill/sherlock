@@ -18,6 +18,7 @@ import {
   queueWorkspaceReferenceOnBoard,
 } from '@/services/workspace/workspaceHandoffs';
 import type { Artifact, ChatOpenRequest, WorkspaceItem } from '@/types';
+import type { AppIconId } from '@/lib/appIcons';
 import {
   buildFilesOverviewViewModel,
   buildFilesRecordsViewModel,
@@ -49,6 +50,7 @@ export const useFilesController = ({
     queueBoardPlacement,
     saveArtifact,
     setActiveWorkspaceId,
+    updateWorkspace,
   } = useWorkspaceStore();
 
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
@@ -242,6 +244,12 @@ export const useFilesController = ({
     applyWorkspaceSelection(id);
   };
 
+  const handleWorkspaceIconUpdate = async (workspaceId: string, iconId: AppIconId | null) => {
+    await updateWorkspace(workspaceId, {
+      iconId: iconId || undefined,
+    });
+  };
+
   const handlePurgeWorkspace = (workspaceId: string, event?: ReactMouseEvent) => {
     event?.stopPropagation();
 
@@ -291,6 +299,7 @@ export const useFilesController = ({
     handlePlaceArtifactOnBoard,
     handlePlaceItemOnBoard,
     handlePurgeWorkspace,
+    handleWorkspaceIconUpdate,
     handleWorkspaceSelect,
     handleFileUpload,
     isNewCaseModalOpen,

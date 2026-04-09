@@ -31,6 +31,7 @@ const baseProps = {
   artifactLabelPlural: 'Artifacts',
   currentPage: 1,
   onChangePage: vi.fn(),
+  onEditWorkspaceIcon: vi.fn(),
   onExportWorkspaceHtml: vi.fn(),
   onExportWorkspaceJson: vi.fn(),
   onExportWorkspaceMarkdown: vi.fn(),
@@ -80,6 +81,25 @@ describe('FilesOverview', () => {
     fireEvent.click(screen.getByTitle(/workspace chat/i));
 
     expect(onOpenWorkspaceChat).toHaveBeenCalledWith('ws-1');
+    expect(onSelectWorkspace).not.toHaveBeenCalled();
+  });
+
+  it('opens the workspace icon picker without triggering row navigation', () => {
+    const onEditWorkspaceIcon = vi.fn();
+    const onSelectWorkspace = vi.fn();
+
+    render(
+      <FilesOverview
+        {...baseProps}
+        viewMode="GRID"
+        onEditWorkspaceIcon={onEditWorkspaceIcon}
+        onSelectWorkspace={onSelectWorkspace}
+      />
+    );
+
+    fireEvent.click(screen.getByTitle(/Customize workspace icon/i));
+
+    expect(onEditWorkspaceIcon).toHaveBeenCalled();
     expect(onSelectWorkspace).not.toHaveBeenCalled();
   });
 });

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS "workspaces" (
 	"pack_id" text,
 	"purpose_id" text,
 	"label_profile_id" text,
+	"icon_id" text,
 	"metadata_json" text,
 	"created_at" integer NOT NULL,
 	"updated_at" integer NOT NULL,
@@ -320,6 +321,7 @@ CREATE TABLE IF NOT EXISTS "manual_nodes" (
 	"label" text NOT NULL,
 	"type" text NOT NULL,
 	"subtype" text,
+	"icon_id" text,
 	"timestamp" integer NOT NULL
 );
 --> statement-breakpoint

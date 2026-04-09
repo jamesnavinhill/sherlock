@@ -72,6 +72,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
   const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
   const reportArtifactTypeLabel = report ? getArtifactTypeLabel(report.artifactType) : '';
+  const entityTypeLabel = entity ? entity.type.replace(/_/g, ' ') : 'UNKNOWN';
   const entityActions: InspectorActionItem[] = entity
     ? [
         {
@@ -218,14 +219,18 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 {entity.type === 'UNKNOWN' && <Network className="w-5 h-5" />}
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="osint-eyebrow">Inspector</div>
+                <div className="flex items-center gap-2">
+                  <div className="osint-eyebrow">Inspector</div>
+                  <span className="rounded-sm border border-zinc-700 bg-zinc-900/70 px-1.5 py-0.5 osint-meta-label text-zinc-300">
+                    {entityTypeLabel}
+                  </span>
+                </div>
                 <EditableTitle
                   value={entity.name}
                   onSave={onEntitySave}
                   className="mt-1 osint-panel-title text-white leading-tight"
                   inputClassName="mt-1 osint-panel-title text-white leading-tight"
                 />
-                <div className="mt-2 osint-meta-label">{entity.type} Entity</div>
               </div>
             </div>
             <button

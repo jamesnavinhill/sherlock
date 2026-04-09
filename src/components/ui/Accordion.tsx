@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface AccordionProps {
-  title: string;
+  title: React.ReactNode;
   count?: number;
   icon?: LucideIcon;
   isOpen: boolean;
@@ -40,7 +40,7 @@ export const Accordion: React.FC<AccordionProps> = ({
       >
         <span className="flex min-w-0 items-center gap-2">
           {Icon && <Icon className="w-4 h-4 mr-2 text-zinc-500" />}
-          <span className="truncate">{title}</span>
+          <span className="min-w-0 truncate">{title}</span>
           {typeof count === 'number' ? (
             <span className="rounded border border-zinc-700 px-1.5 py-0.5 osint-meta-label text-zinc-500">
               {count}

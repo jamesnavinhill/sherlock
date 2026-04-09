@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
-  User,
   Building2,
-  Network,
   X,
   Star,
   Search,
@@ -16,13 +14,18 @@ import {
   Microscope,
   Link2,
   MessageSquare,
+  Network,
   Shapes,
   Trash2,
+  User,
 } from 'lucide-react';
 import type { Entity, Headline, Artifact } from '../../../types';
+import type { AppIconId } from '@/lib/appIcons';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
+import { AppIcon, getDefaultGraphNodeIconId } from '@/lib/appIcons';
+import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
 import {
   CHROME_COMPACT_ACTION_BUTTON_CLASS,
   CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS,
@@ -63,6 +66,7 @@ interface NodeInspectorProps {
   onToggleFlag: () => void;
   onToggleHide: () => void;
   onDeleteNode: () => void;
+  onSetManualNodeIcon: (iconId: AppIconId | null) => void;
   onInvestigate: (topic: string, context?: InvestigationContext) => void; // Trigger modal or immediate
   onOpenReport: (report: Artifact) => void;
   onOpenEntityChat: (entityName: string) => void;
@@ -89,6 +93,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   onToggleFlag,
   onToggleHide,
   onDeleteNode,
+  onSetManualNodeIcon,
   onInvestigate,
   onOpenReport,
   onOpenEntityChat,
@@ -106,6 +111,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     reportLeads: false,
     reportSources: false,
   });
+  const [showIconPicker, setShowIconPicker] = useState(false);
 
   const toggleAccordion = (section: string) => {
     setInspectorAccordions((prev) =>
@@ -220,6 +226,12 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   const isSelectedNodeHidden =
     !!selectedNode && (hiddenNodeIds.has(selectedNode.id) || hiddenNodeIds.has(selectedNode.label));
   const selectedNodeDeleteLabel = selectedNode?.isManual ? 'Delete node' : 'Remove from network';
+  const selectedNodeResolvedIconId =
+    selectedNode?.iconId ||
+    getDefaultGraphNodeIconId({
+      type: selectedNode?.type || (mode === 'REPORT' ? 'REPORT' : 'ENTITY'),
+      subtype: selectedNode?.subtype || (mode === 'ENTITY' ? selectedNodeType : undefined),
+    });
   const reportActions: InspectorActionItem[] = selectedReport
     ? [
         {
@@ -465,7 +477,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           <div className={`${CHROME_PANEL_HEADER_CLASS} flex justify-between items-start flex-shrink-0`}>
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className="p-2 border flex-shrink-0 bg-zinc-800/50 text-white border-zinc-700">
-                <FileText className="w-5 h-5" />
+                <AppIcon iconId={selectedNodeResolvedIconId} size={20} strokeWidth={1.9} />
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <div className="osint-eyebrow">Inspector</div>
@@ -476,6 +488,16 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                   inputClassName="mt-1 osint-panel-title leading-tight"
                 />
                 <div className="mt-2 osint-meta-label">Artifact</div>
+                {selectedNode?.isManual ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowIconPicker(true)}
+                    className="mt-2 inline-flex items-center gap-2 border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-400 transition hover:border-zinc-600 hover:text-white"
+                  >
+                    <Shapes className="h-3.5 w-3.5" />
+                    Icon
+                  </button>
+                ) : null}
               </div>
             </div>
             <button onClick={onClose} className="text-zinc-500 hover:text-white">
@@ -603,15 +625,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               <div
                 className={`p-2 border flex-shrink-0 ${selectedEntityToneClass} entity-tone-icon-panel`}
               >
-                {selectedNodeType === 'PERSON' ? (
-                  <User className="w-5 h-5" />
-                ) : selectedNodeType === 'ORGANIZATION' ? (
-                  <Building2 className="w-5 h-5" />
-                ) : selectedNodeType === 'SOURCE' ? (
-                  <Globe className="w-5 h-5" />
-                ) : (
-                  <Network className="w-5 h-5" />
-                )}
+                <AppIcon iconId={selectedNodeResolvedIconId} size={20} strokeWidth={1.9} />
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <div className="osint-eyebrow">Inspector</div>
@@ -628,6 +642,16 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                       ? 'Knowledge Node'
                       : `${selectedNodeType} Entity`}
                 </div>
+                {selectedNode?.isManual ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowIconPicker(true)}
+                    className="mt-2 inline-flex items-center gap-2 border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-400 transition hover:border-zinc-600 hover:text-white"
+                  >
+                    <Shapes className="h-3.5 w-3.5" />
+                    Icon
+                  </button>
+                ) : null}
               </div>
             </div>
             <button
@@ -744,6 +768,20 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           </div>
         </div>
       )}
+
+      <IconPickerOverlay
+        isOpen={showIconPicker && !!selectedNode?.isManual}
+        title="Manual Node Icon"
+        description="Choose an icon override for this manual node. Reset to default anytime."
+        selectedIconId={selectedNode?.iconId || null}
+        allowDefault
+        defaultLabel="Use Default Node Icon"
+        onClose={() => setShowIconPicker(false)}
+        onSelect={(iconId) => {
+          onSetManualNodeIcon(iconId);
+          setShowIconPicker(false);
+        }}
+      />
     </div>
   );
 };
