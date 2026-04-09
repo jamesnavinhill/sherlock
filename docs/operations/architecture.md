@@ -221,6 +221,7 @@ Key responsibilities:
 App-facing runtime facade:
 
 - `src/services/runtime.ts`
+- `src/services/runtime/*`
 
 Provider router and adapters:
 
@@ -258,6 +259,8 @@ Key behavior:
 - `src/config/aiModels/openRouterCatalog.ts` now owns OpenRouter catalog refresh, cache hydration, bundled snapshot fallback, and curated quick-pick shaping
 - `src/config/aiModels/modelSelection.ts` now owns provider/model lookup, capability derivation, recent selection persistence, and manual OpenRouter slug support
 - `aiModels.ts` remains the stable public barrel for feature/runtime imports while the model-catalog/runtime-config seam is internally split into smaller canonical modules
+- `src/services/runtime/providerOperations.ts` now owns the app-facing investigate/feed/live/TTS router wrappers, while `src/services/runtime/providerKeys.ts` owns active-provider key orchestration and Gemini client reset behavior
+- `src/services/runtime.ts` remains the stable public barrel for app-facing runtime imports while the runtime/config seam is internally split into smaller canonical modules
 - router enforces provider/model alignment and capability checks
 - `routerContext.ts` now owns provider execution setup, capability gating, runtime logging, and shared scope/pack/purpose resolution for router entrypoints
 - router resolves a pack and purpose profile for each run without repeating workspace/scope fallback logic in every operation handler

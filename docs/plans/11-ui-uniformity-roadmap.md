@@ -97,7 +97,18 @@ These are not open questions anymore. Stream work should treat them as the basel
 - Apply that pattern to findings, follow-ups, entities, context rows, history rows, and other meaningful panel items.
 - Keep top-level section headers simpler; do not give every row the same visual weight as the item rows inside it.
 
-### 5. Main report direction
+### 5. Canonical interaction-state split
+
+- Sherlock should use two primary hover and active languages for almost all routine UI states.
+- The neutral surface treatment is the default browse-and-select language.
+- Use the neutral surface treatment for sidebar items, list rows, section rows, cards, filter options, selectable panels, and other non-destructive navigational or structural items.
+- This treatment should read like a raised surface or shaded surface shift, not like an accent glow.
+- The accent action treatment is the default do-and-launch language.
+- Use the accent action treatment for toolbar controls, action buttons, follow-up prompts, board actions, inspector actions, and other controls that imply execution rather than browsing.
+- This treatment should keep the current subtle accent tint and border emphasis rather than introducing a separate hover vocabulary.
+- These two families should cover the vast majority of hover, active, and selected states; exceptions should be intentional and rare.
+
+### 6. Main report direction
 
 - Remove the current top summary or reading-pattern block from the main report view.
 - Do not fill the main report with small summary cards.
@@ -108,13 +119,13 @@ These are not open questions anymore. Stream work should treat them as the basel
 - Entities should use a two-column layout inspired by the library, but with the dot treatment from the details panel instead of icon-heavy rows.
 - Sources and provenance rows should use the lighter viewer-library text treatment.
 
-### 6. Motion and overlay direction
+### 7. Motion and overlay direction
 
 - Motion should stay minimal, utilitarian, and restrained.
 - Avoid text-heavy entrance animation.
 - Keep already-good modals and popups mostly intact and sweep only obvious inconsistencies.
 
-### 7. First-class findings are required
+### 8. First-class findings are required
 
 - Do not ship a viewer-only `Key Findings` implementation that still piggybacks on `agendas`, generic `SECTION` snippets, or arbitrary metadata blobs.
 - The product should have one canonical structured finding contract.
@@ -238,6 +249,7 @@ Execution shape:
 5. Fix the Board library top-scroll issue so the rail feels as crisp as the Chat context panel.
 6. Remove unnecessary header icons and repeated context nouns where the title already carries context.
 7. Apply the canonical item hover and active treatment to meaningful panel items where the shell work already touches them.
+8. Keep neutral surface states and accent action states distinct while landing shared rail and panel primitives.
 
 Exit criteria:
 
@@ -493,16 +505,18 @@ Primary targets:
 ### Execution Checklist
 
 1. Apply the canonical panel-item hover treatment wherever meaningful item rows still diverge.
-2. Normalize section-title shadow treatment where appropriate.
-3. Normalize sublabels, helper text, and provenance copy weight.
-4. Bring remaining buttons, selectors, and panel-local controls into the existing subtle accent system.
-5. Reduce entrance and close motion to the smallest useful set.
-6. Sweep obvious popup or menu outliers in border, radius, and hover behavior.
-7. Preserve intentional exceptions such as destructive actions, toasts, badges, and entity-color semantics.
+2. Normalize the neutral surface hover treatment across navigational, structural, and selectable surfaces.
+3. Normalize the accent action hover treatment across toolbar controls, launch actions, and panel-local execution controls.
+4. Normalize section-title shadow treatment where appropriate.
+5. Normalize sublabels, helper text, and provenance copy weight.
+6. Reduce entrance and close motion to the smallest useful set.
+7. Sweep obvious popup or menu outliers in border, radius, and hover behavior.
+8. Preserve intentional exceptions such as destructive actions, toasts, badges, and entity-color semantics.
 
 Exit criteria:
 
 - hover, active, and selected states no longer feel fragmented
+- neutral surface states and accent action states cover nearly all routine interaction feedback
 - secondary copy reads from a small, intentional set of roles
 - motion feels polished and restrained rather than decorative
 - menus and popups align without unnecessary redesign

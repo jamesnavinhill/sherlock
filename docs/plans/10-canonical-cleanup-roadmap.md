@@ -795,6 +795,10 @@ src/config/aiModels.ts
 src/config/systemConfig.ts
 src/config/systemConfig.test.ts
 src/services/runtime.ts
+src/services/runtime/providerKeys.ts
+src/services/runtime/providerKeys.test.ts
+src/services/runtime/providerOperations.ts
+src/services/runtime/providerOperations.test.ts
 src/services/chat/runtime.ts
 src/services/chat/runtime.test.ts
 src/services/providers/index.ts
@@ -864,12 +868,15 @@ Landed in this Stream 6 session:
 - extracted shared chat/guided runtime profile resolution and provider-router request shaping into `src/services/chat/runtimeContext.ts`, so `src/services/chat/runtime.ts` and `src/services/chat/guidedMode.ts` now share the same scope/pack/purpose/label fallback behavior instead of carrying parallel copies
 - extracted shared simulated scan/live fallback builders into `src/services/providers/shared/fallbacks.ts`, so Gemini, OpenAI, Anthropic, and OpenRouter no longer repeat the same feed/live placeholder payload logic in each adapter
 - extracted shared scan/live normalization and simulated-fallback control flow into `src/services/providers/shared/situationalIntel.ts`, so provider adapters now reuse the same parsed-payload normalization and `MISSING_API_KEY` fallback handling instead of duplicating that wrapper logic per provider
+- split the remaining `src/services/runtime.ts` seam into `src/services/runtime/providerOperations.ts` and `src/services/runtime/providerKeys.ts`, keeping the stable public runtime barrel while separating app-facing router entrypoints from active-provider key orchestration
+- routed both `src/components/ui/ApiKeyModal.tsx` and `src/components/features/Settings/useSettingsRuntimeState.ts` through the shared runtime key helper so Gemini key save/clear flows consistently reset cached Gemini provider state instead of leaving Settings on a stale-client path
 - added focused catalog/selection coverage in `src/config/aiModels.test.ts` so OpenRouter snapshot fallback, live refresh normalization, and manual slug persistence are locked at the extracted boundary
 - added router regression coverage in `src/services/providers/router.test.ts` for workspace-default and explicit pack/purpose override routing through the shared context path
 - added focused shared-transport regression coverage in `src/services/providers/shared/directTransport.test.ts` and preserved adapter contract coverage in `src/services/providers/adapters.contract.test.ts` for the extracted direct-provider path
 - added focused chat-runtime boundary coverage in `src/services/chat/runtimeContext.test.ts`, while preserving `src/services/chat/runtime.test.ts` and `src/services/chat/guidedMode.test.ts` coverage for launch-lineage and guided-mode behavior
 - added focused fallback-helper coverage in `src/services/providers/shared/fallbacks.test.ts` while preserving `src/services/providers/adapters.contract.test.ts` coverage for provider-level investigate/scan/live contracts
 - added focused situational-intel helper coverage in `src/services/providers/shared/situationalIntel.test.ts` while preserving `src/services/providers/adapters.contract.test.ts` coverage for provider scan/live behavior
+- added focused runtime-boundary coverage in `src/services/runtime/providerOperations.test.ts` and `src/services/runtime/providerKeys.test.ts`, including regression coverage for the shared Gemini key-reset path
 
 Validation run for this Stream 6 session:
 
@@ -878,6 +885,7 @@ Validation run for this Stream 6 session:
 - `npm run test -- src/services/chat/runtimeContext.test.ts src/services/chat/runtime.test.ts src/services/chat/guidedMode.test.ts`
 - `npm run test -- src/services/providers/shared/fallbacks.test.ts src/services/providers/adapters.contract.test.ts`
 - `npm run test -- src/services/providers/shared/situationalIntel.test.ts src/services/providers/shared/fallbacks.test.ts src/services/providers/adapters.contract.test.ts`
+- `npm run test -- src/services/runtime/providerOperations.test.ts src/services/runtime/providerKeys.test.ts`
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`

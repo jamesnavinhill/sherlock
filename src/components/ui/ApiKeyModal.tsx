@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { setApiKey } from '../../services/runtime';
+import { getActiveProvider, setApiKey } from '../../services/runtime';
 import { Key, ShieldCheck, Lock, ArrowRight, AlertTriangle } from 'lucide-react';
 import type { AIProvider } from '../../config/aiModels';
 import { AI_PROVIDERS } from '../../config/aiModels';
-import { loadSystemConfig } from '../../config/systemConfig';
 import { validateApiKey } from '../../services/providers/keys';
 import { OsintSelect } from './OsintSelect';
 
@@ -13,9 +12,7 @@ interface ApiKeyModalProps {
 }
 
 export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onKeySet, onBypass }) => {
-  const [selectedProvider, setSelectedProvider] = useState<AIProvider>(
-    () => loadSystemConfig().provider
-  );
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>(() => getActiveProvider());
   const [inputKey, setInputKey] = useState('');
   const [error, setError] = useState('');
 

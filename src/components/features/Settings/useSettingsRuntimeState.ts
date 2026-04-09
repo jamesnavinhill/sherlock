@@ -4,10 +4,12 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { AIProvider } from '@/config/aiModels';
 import { loadSystemConfig } from '@/config/systemConfig';
 import {
-  clearApiKey as clearProviderApiKey,
+  clearRuntimeApiKey,
+  setRuntimeApiKey,
+} from '@/services/runtime/providerKeys';
+import {
   getStoredApiKey,
   hasApiKey as hasProviderApiKey,
-  setApiKey as setProviderApiKey,
   validateApiKey,
 } from '@/services/providers/keys';
 import { useRuntimeConfigForm } from '@/components/features/Runs/useRuntimeConfigForm';
@@ -104,7 +106,7 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
   );
 
   const handleClearProviderKey = (provider: AIProvider) => {
-    clearProviderApiKey(provider);
+    clearRuntimeApiKey(provider);
 
     if (provider === 'GEMINI') setGeminiKey('');
     if (provider === 'OPENROUTER') setOpenRouterKey('');
@@ -136,11 +138,11 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
     }
 
     for (const candidate of candidateKeys) {
-      clearProviderApiKey(candidate.provider);
+      clearRuntimeApiKey(candidate.provider);
 
       if (!candidate.key) continue;
 
-      const saveResult = setProviderApiKey(candidate.provider, candidate.key);
+      const saveResult = setRuntimeApiKey(candidate.key, candidate.provider);
       if (!saveResult.isValid) {
         return saveResult.message || `Failed to store ${candidate.provider} API key.`;
       }
