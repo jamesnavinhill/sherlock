@@ -114,6 +114,30 @@ That module currently centralizes:
 
 Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
 
+### Shared icon contract
+
+Sherlock now uses one curated application-icon registry for user-selectable record icons instead of letting each surface persist raw `lucide-react` component names or invent local icon mappings.
+
+Primary icon-system files:
+
+- `src/lib/appIcons.tsx`
+- `src/components/ui/IconPickerOverlay.tsx`
+
+Current icon-system rules:
+
+- `src/lib/appIcons.tsx` is the single registry for approved icon ids, labels, fallback helpers, and board-safe SVG data-url generation
+- persistence stores typed icon ids, not raw component imports or display labels
+- `Workspace.iconId` is the source of truth for customizable workspace icons in Files and other workspace-facing surfaces
+- `ManualNode.iconId` is the source of truth for manual network-node overrides
+- `WorkspaceLibraryEntry.iconId` is derived data and should be rendered as-is by board/library surfaces rather than recomputed locally
+- add/change flows should reuse `IconPickerOverlay` so icon selection stays visually and behaviorally consistent across Files, Board, and Network surfaces
+
+Fallback behavior stays simple:
+
+- workspace-facing surfaces fall back to the default folder icon
+- manual network nodes fall back to the built-in report/entity subtype mapping
+- artifact-derived entities may optionally carry `Entity.iconId`, but subtype-driven defaults remain the normal path when no explicit icon is present
+
 ### Workspace-home readiness contract
 
 This round still stops short of a full dashboard-style global home, but it now leaves behind the runtime contract the next round will build on:
@@ -299,7 +323,7 @@ Entry points:
 
 The active schema now uses canonical table and column names that mirror the runtime vocabulary:
 
-- `workspaces` hold workspace-oriented metadata such as `displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`, `mode`, `packId`, `purposeId`, and `labelProfileId`
+- `workspaces` hold workspace-oriented metadata such as `displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`, `mode`, `packId`, `purposeId`, `labelProfileId`, and optional `iconId`
 - `artifacts` store `artifactType`, pack/purpose references, label profiles, config snapshots, and metadata JSON including provider provenance
 - `key_findings` persist first-class findings with stable ids, origin artifact/section linkage, support refs, ordering, and finding-local metadata
 - `follow_ups` now persist first-class actionable follow-up records linked to artifacts and lineage refs such as `sourceSignalId` and `resolvedByArtifactId`
@@ -310,6 +334,7 @@ The active schema now uses canonical table and column names that mirror the runt
 - `workspace_items` persist canonical workspace-native notes, links, files/media, and promoted excerpts with provenance
 - `workspace_boards` persist named board/page shells per workspace
 - `workspace_board_documents` persist tldraw board snapshots separately from canonical research records
+- `manual_nodes` persist manual graph-node labels, subtype, and optional `iconId`
 - `board_agent_sessions` and `board_agent_actions` persist board-agent task state plus action audit trails for workspace boards
 
 Artifact persistence now lands in the canonical `artifacts` table, while `key_findings`, `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the flattened compatibility fields still written for import/export continuity. `Artifact.keyFindings` is the source of truth for findings, and `KEY_FINDINGS` sections are derived presentation. `configJson` carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
@@ -454,6 +479,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - route-backed workspace/board/library/session derivation centralized in `src/components/features/WorkspaceBoard/workspaceBoardViewModel.ts`
 - multiple named boards/pages per workspace with persisted board snapshots
 - canonical library drawer for artifacts, entities, sources, signals, notes, links, files/media, and promoted excerpts
+- board/library records now carry derived `iconId` metadata so rails and placed cards render from one shared icon source of truth
 - drag/drop or click-to-place flows from canonical library into the active board
 - omnibox board handoff now reuses the same queue/place path, but prefers focusing an existing linked card on the active board before placing a duplicate
 - presentation mode plus manual-first AI actions for selection summaries and drafted board notes
@@ -518,6 +544,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - omnibox entity results can now focus the active network surface in place by reopening the entity inspector and recentering the graph instead of forcing a redundant route change
 - omnibox, chat mentions, and timeline actions now share the same routed focus contract for item-in-Files, report-section/report-evidence, and network-entity reopening
 - manual node/link creation
+- manual node creation and inspector editing now support optional icon overrides, while default report/entity subtype icons remain the fallback path
 - source nodes derived from artifact sources for non-investigation graph work
 - broader manual node semantics for concepts and sources alongside legacy people and organizations
 - hidden/flagged filters
@@ -546,6 +573,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - plain `/files` now lands on the all-workspaces overview in grid mode instead of restoring the last workspace as the default home surface
 - workspace/file browsing now mixes saved artifacts with canonical workspace items instead of treating items as board-only records
 - shell-level Files copy now uses the canonical `Workspace` / `Artifact` nouns instead of label-profile drift
+- workspace cards and related workspace-facing surfaces now resolve `Workspace.iconId` through the shared icon registry instead of hardcoded folder glyphs
 - selected-workspace browsing supports `All`, `Artifacts`, and `Items` filtering over the same workspace-scoped list
 - artifact rows still route into saved artifact detail and now share the same chat and board handoff verbs exposed by the omnibox
 - item opens now resolve through `/files?workspaceId=...&focusItemId=...`, which gives canonical workspace items a stable focusable destination for omnibox, chat-mention, and timeline handoffs

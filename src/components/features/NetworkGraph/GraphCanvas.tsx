@@ -302,8 +302,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             fx: previousPosition?.fx ?? null,
             fy: previousPosition?.fy ?? null,
           });
-        } else if (iconId && !rawNodes.get(id)?.iconId) {
-          rawNodes.get(id)!.iconId = iconId;
+        } else if (iconId) {
+          const existingNode = rawNodes.get(id);
+          if (existingNode && !existingNode.iconId) {
+            existingNode.iconId = iconId;
+          }
         }
         return rawNodes.get(id) ?? null;
       };

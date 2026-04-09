@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
@@ -26,7 +27,6 @@ import {
   Lightbulb,
   Link2,
   Lock,
-  LucideIcon,
   Map as MapIcon,
   MessageSquare,
   Microscope,
@@ -42,6 +42,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 const APP_ICON_REGISTRY = {
   folder: { label: 'Folder', icon: Folder },
@@ -195,6 +196,10 @@ export const AppIcon: React.FC<{
   size?: number;
   strokeWidth?: number;
 }> = ({ className, iconId, size = 18, strokeWidth = 1.8 }) => {
-  const Icon = getAppIconComponent(iconId);
-  return <Icon className={className} size={size} strokeWidth={strokeWidth} aria-hidden="true" />;
+  return React.createElement(getAppIconComponent(iconId), {
+    className,
+    size,
+    strokeWidth,
+    'aria-hidden': true,
+  });
 };
