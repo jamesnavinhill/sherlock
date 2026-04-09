@@ -31,9 +31,12 @@ export const useKeyboardShortcuts = (
       // Don't trigger shortcuts when typing in input fields
       const target = event.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        const isGlobalSearchInput = target.hasAttribute('data-global-search-input');
         const allowInInput =
           event.key === 'Escape' ||
-          (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey));
+          ((event.key.toLowerCase() === 'k' || event.key.toLowerCase() === 'x') &&
+            (event.ctrlKey || event.metaKey) &&
+            isGlobalSearchInput);
         if (!allowInInput) return;
       }
 
@@ -69,6 +72,7 @@ export const createAppShortcuts = (handlers: {
   onCloseModal?: () => void;
   onShowHelp?: () => void;
   onGlobalSearch?: () => void;
+  onToggleHeader?: () => void;
 }): KeyboardShortcut[] => {
   const shortcuts: KeyboardShortcut[] = [];
 
@@ -96,6 +100,15 @@ export const createAppShortcuts = (handlers: {
       ctrl: true,
       action: handlers.onGlobalSearch,
       description: 'Global Search',
+    });
+  }
+
+  if (handlers.onToggleHeader) {
+    shortcuts.push({
+      key: 'x',
+      ctrl: true,
+      action: handlers.onToggleHeader,
+      description: 'Toggle Header',
     });
   }
 

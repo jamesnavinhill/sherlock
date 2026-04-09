@@ -155,7 +155,7 @@ export const useSettingsDataState = ({
     clearStoredActiveWorkspaceId();
     setShowPurgeDialog(false);
     setFeedbackDialog({
-      title: 'Workspace Data Purged',
+      title: 'Workspace Data Deleted',
       description:
         'All saved workspace data was removed. Provider keys, theme settings, and device-local defaults were left untouched.',
     });

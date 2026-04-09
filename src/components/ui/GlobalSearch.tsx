@@ -386,6 +386,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
         />
         <input
           ref={inputRef}
+          data-global-search-input
           type="text"
           value={query}
           onFocus={onOpen}

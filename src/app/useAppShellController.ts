@@ -166,6 +166,7 @@ export function useAppShellController(): AppShellController {
     () => !hasApiKey() && !hasDismissedApiKeyPrompt()
   );
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [isHeaderManuallyHidden, setIsHeaderManuallyHidden] = useState(false);
 
   const handleApiKeySet = useCallback(() => {
     clearApiKeyPromptDismissed();
@@ -227,8 +228,14 @@ export function useAppShellController(): AppShellController {
         setShowGlobalSearch(false);
         return;
       }
+      setIsHeaderManuallyHidden(false);
       setShowGlobalSearch(true);
       requestOmniboxFocus();
+    },
+    onToggleHeader: () => {
+      if (routeCurrentView === AppView.SETTINGS) return;
+      setShowGlobalSearch(false);
+      setIsHeaderManuallyHidden((current) => !current);
     },
   });
 
@@ -243,7 +250,7 @@ export function useAppShellController(): AppShellController {
   });
 
   const { isHeaderHidden } = useHeaderAutoHide({
-    enabled: routeCurrentView !== AppView.SETTINGS,
+    enabled: routeCurrentView !== AppView.SETTINGS && !isHeaderManuallyHidden,
     forcedVisible: showGlobalSearch,
     routeKey: location.pathname,
   });
@@ -342,7 +349,9 @@ export function useAppShellController(): AppShellController {
     setThemeMode,
     setThemeSurfaceSettings,
     showGlobalSearch,
-    shouldHideRouteHeader: isHeaderHidden,
+    shouldHideRouteHeader:
+      routeCurrentView !== AppView.SETTINGS &&
+      ((isHeaderManuallyHidden && !showGlobalSearch) || isHeaderHidden),
     showHelpModal,
     themeColor,
     themeFontSettings,

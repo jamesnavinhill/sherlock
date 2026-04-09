@@ -39,9 +39,9 @@ export const SettingsDialogs: React.FC<SettingsDialogsProps> = ({
 
     {showPurgeDialog ? (
       <ConfirmDialog
-        title="Purge Workspace Data"
+        title="Delete Workspace Data"
         description="Permanently delete all saved workspace data, including artifacts, runs, chat history, research boards, workspace library items, graph data, templates, and saved signals? Local theme settings, provider defaults, and API keys will stay untouched."
-        confirmLabel="Purge Data"
+        confirmLabel="Delete Data"
         tone="danger"
         onClose={onClosePurgeDialog}
         onConfirm={() => void onConfirmPurge()}
