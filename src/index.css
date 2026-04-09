@@ -978,8 +978,8 @@ body,
 }
 
 .osint-panel-item {
-  background-color: var(--osint-interaction-bg);
-  border: 1px solid transparent;
+  background-color: color-mix(in oklab, var(--osint-panel) 82%, var(--osint-dark) 18%);
+  border: 1px solid color-mix(in oklab, var(--osint-border) 72%, transparent);
   color: var(--osint-text-strong);
   transition:
     background-color 180ms ease,

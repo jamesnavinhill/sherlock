@@ -25,6 +25,8 @@ import { Accordion } from '../../ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
 import {
   CHROME_COMPACT_ACTION_BUTTON_CLASS,
+  CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_COMPACT_NESTED_ITEM_CLASS,
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_NESTED_ITEM_CLASS,
@@ -34,6 +36,7 @@ import {
 } from '../../ui/chrome';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneClass } from '../../../utils/entityPalette';
+import { getArtifactFollowUps, getFollowUpText, getLabelProfileById } from '../../../domain';
 import type { GraphNode } from './GraphCanvas';
 
 type InvestigationContext = { topic: string; summary: string };
@@ -197,6 +200,18 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   const selectedEntityToneClass = selectedEntity
     ? getEntityToneClass(getNodeType(selectedEntity))
     : getEntityToneClass('UNKNOWN');
+  const selectedReportLabelProfile = getLabelProfileById(
+    selectedReport?.labelProfileId || selectedReport?.config?.labelProfileId
+  );
+  const selectedReportFollowUps = selectedReport
+    ? (() => {
+        const canonicalFollowUps = getArtifactFollowUps(selectedReport);
+        if (canonicalFollowUps.length > 0) {
+          return canonicalFollowUps.map(getFollowUpText);
+        }
+        return selectedReport.leads || [];
+      })()
+    : [];
 
   const selectedNodeType = selectedEntity ? getNodeType(selectedEntity) : 'UNKNOWN';
   const isSelectedNodeFlagged =
@@ -479,100 +494,103 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               </p>
             </div>
 
-            {/* Entities */}
-            <Accordion
-              title={`Entities (${selectedReport.entities.length})`}
-              icon={User}
-              isOpen={inspectorAccordions.reportEntities}
-              onToggle={() => toggleAccordion('reportEntities')}
-              className={getRailAccordionClassName(inspectorAccordions.reportEntities)}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="grid grid-cols-2 gap-1">
-                {selectedReport.entities.length === 0 && (
-                  <p className="osint-body-quiet col-span-2 px-2 py-1">No entities found.</p>
-                )}
-                {selectedReport.entities.map((e, idx) => {
-                  const normalizedEntity =
-                    typeof e === 'string' ? { name: e, type: 'UNKNOWN' as const } : e;
-                  return (
-                    <button
-                      key={idx}
-                      disabled
-                      className="flex w-full cursor-default items-center gap-2 border border-zinc-800/50 bg-zinc-900/20 p-2 text-left"
-                      title={normalizedEntity.name}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${getEntityToneClass(normalizedEntity.type)} entity-tone-dot`}
-                      />
-                      <span className="truncate osint-meta-value">{normalizedEntity.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </Accordion>
-
-            {/* Leads */}
-            <Accordion
-              title={`Leads (${selectedReport.leads?.length || 0})`}
-              icon={Lightbulb}
-              isOpen={inspectorAccordions.reportLeads}
-              onToggle={() => toggleAccordion('reportLeads')}
-              className={getRailAccordionClassName(inspectorAccordions.reportLeads)}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="space-y-1">
-                {(!selectedReport.leads || selectedReport.leads.length === 0) && (
-                  <p className="osint-body-quiet px-2 py-1">No leads found.</p>
-                )}
-                {selectedReport.leads?.map((lead, idx) => (
-                  <div key={idx} className="mb-1 border border-zinc-800/50 bg-zinc-900/20 p-2">
-                    <p className="mb-2 osint-meta-value leading-snug text-zinc-300">{lead}</p>
-                    <div className="flex">
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+              <Accordion
+                title="Entities"
+                count={selectedReport.entities.length}
+                icon={User}
+                isOpen={inspectorAccordions.reportEntities}
+                onToggle={() => toggleAccordion('reportEntities')}
+                className={getRailAccordionClassName(inspectorAccordions.reportEntities)}
+                contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
+              >
+                <div className="space-y-1">
+                  {selectedReport.entities.length === 0 && (
+                    <p className="osint-body-quiet px-2 py-1">No entities found.</p>
+                  )}
+                  {selectedReport.entities.map((e, idx) => {
+                    const normalizedEntity =
+                      typeof e === 'string' ? { name: e, type: 'UNKNOWN' as const } : e;
+                    return (
                       <button
-                        onClick={() => {
-                          onInvestigate(lead);
-                          onClose();
-                        }}
-                        className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                        key={idx}
+                        disabled
+                        className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex cursor-default items-center gap-2`}
+                        title={normalizedEntity.name}
                       >
-                        Investigate
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${getEntityToneClass(normalizedEntity.type)} entity-tone-dot`}
+                        />
+                        <span className="truncate osint-meta-value">{normalizedEntity.name}</span>
                       </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Accordion>
+                    );
+                  })}
+                </div>
+              </Accordion>
 
-            {/* Sources */}
-            <Accordion
-              title={`Sources (${selectedReport.sources?.length || 0})`}
-              icon={Globe}
-              isOpen={inspectorAccordions.reportSources}
-              onToggle={() => toggleAccordion('reportSources')}
-              className={getRailAccordionClassName(inspectorAccordions.reportSources)}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="space-y-1">
-                {(!selectedReport.sources || selectedReport.sources.length === 0) && (
-                  <p className="osint-body-quiet px-2 py-1">No sources found.</p>
-                )}
-                {selectedReport.sources?.map((s, idx) => (
-                  <a
-                    key={idx}
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="osint-link-list-item block truncate border-b border-zinc-900 p-2 last:border-0"
-                  >
-                    <Link2 className="inline h-3 w-3 mr-1" />
-                    <span className="osint-body-quiet text-zinc-400">
-                      {s.title || s.url}
-                    </span>
-                  </a>
-                ))}
-              </div>
-            </Accordion>
+              <Accordion
+                title={selectedReportLabelProfile.followUpLabel}
+                count={selectedReportFollowUps.length}
+                icon={Lightbulb}
+                isOpen={inspectorAccordions.reportLeads}
+                onToggle={() => toggleAccordion('reportLeads')}
+                className={getRailAccordionClassName(inspectorAccordions.reportLeads)}
+                contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
+              >
+                <div className="space-y-1">
+                  {selectedReportFollowUps.length === 0 && (
+                    <p className="osint-body-quiet px-2 py-1">{`No ${selectedReportLabelProfile.followUpLabel.toLowerCase()} found.`}</p>
+                  )}
+                  {selectedReportFollowUps.map((followUp, idx) => (
+                    <div key={idx} className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} space-y-2`}>
+                      <p className="osint-meta-value leading-snug text-zinc-300">{followUp}</p>
+                      <div className="flex">
+                        <button
+                          onClick={() => {
+                            onInvestigate(followUp);
+                            onClose();
+                          }}
+                          className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                        >
+                          Investigate
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Accordion>
+
+              <Accordion
+                title="Sources"
+                count={selectedReport.sources?.length || 0}
+                icon={Globe}
+                isOpen={inspectorAccordions.reportSources}
+                onToggle={() => toggleAccordion('reportSources')}
+                className={getRailAccordionClassName(inspectorAccordions.reportSources)}
+                contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
+              >
+                <div className="space-y-1">
+                  {(!selectedReport.sources || selectedReport.sources.length === 0) && (
+                    <p className="osint-body-quiet px-2 py-1">No sources found.</p>
+                  )}
+                  {selectedReport.sources?.map((s, idx) => (
+                    <a
+                      key={idx}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} block truncate`}
+                      title={s.title || s.url}
+                    >
+                      <Link2 className="mr-1 inline h-3 w-3" />
+                      <span className="osint-body-quiet text-zinc-400">
+                        {s.title || s.url}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </Accordion>
+            </div>
           </div>
         </div>
       )}
@@ -652,78 +670,77 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               );
             })()}
 
-            <Accordion
-              title="Report Mentions"
-              icon={FileText}
-              isOpen={inspectorAccordions.mentions}
-              onToggle={() => toggleAccordion('mentions')}
-              className={getRailAccordionClassName(inspectorAccordions.mentions)}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="space-y-1">
-                {getEntityMentions(selectedEntity).length > 0 ? (
-                  getEntityMentions(selectedEntity).map((r) => (
-                    <button
-                      key={r.id}
-                      onClick={() => onOpenReport(r)}
-                      className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group"
-                    >
-                      <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
-                      <span className="osint-meta-value truncate">{r.topic}</span>
-                    </button>
-                  ))
-                ) : (
-                  <p className="osint-body-quiet p-2">No direct mentions found.</p>
-                )}
-              </div>
-            </Accordion>
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+              <Accordion
+                title="Report Mentions"
+                icon={FileText}
+                isOpen={inspectorAccordions.mentions}
+                onToggle={() => toggleAccordion('mentions')}
+                className={getRailAccordionClassName(inspectorAccordions.mentions)}
+                contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
+              >
+                <div className="space-y-1">
+                  {getEntityMentions(selectedEntity).length > 0 ? (
+                    getEntityMentions(selectedEntity).map((r) => (
+                      <button
+                        key={r.id}
+                        onClick={() => onOpenReport(r)}
+                        className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} group flex items-center gap-2`}
+                      >
+                        <FileText className="osint-menu-item-icon h-3 w-3 text-zinc-600 group-hover:text-osint-primary" />
+                        <span className="truncate osint-meta-value">{r.topic}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="osint-body-quiet p-2">No direct mentions found.</p>
+                  )}
+                </div>
+              </Accordion>
 
-            <Accordion
-              title="Network Connections"
-              icon={Network}
-              isOpen={inspectorAccordions.connections}
-              onToggle={() => toggleAccordion('connections')}
-              className={getRailAccordionClassName(inspectorAccordions.connections)}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="space-y-1">
-                {getEntityConnections(selectedEntity).length > 0 ? (
-                  getEntityConnections(selectedEntity).map((conn, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 bg-zinc-900/20 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-900/40"
-                    >
-                      <div className="flex items-center truncate max-w-[70%]">
-                        {conn.entity.type === 'PERSON' ? (
-                          <User
-                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                          />
-                        ) : conn.entity.type === 'ORGANIZATION' ? (
-                          <Building2
-                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                          />
-                        ) : (
-                          <Shapes
-                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                          />
-                        )}
-                        <span
-                          className="osint-meta-value truncate"
-                          title={conn.entity.name}
-                        >
-                          {conn.entity.name}
+              <Accordion
+                title="Network Connections"
+                icon={Network}
+                isOpen={inspectorAccordions.connections}
+                onToggle={() => toggleAccordion('connections')}
+                className={getRailAccordionClassName(inspectorAccordions.connections)}
+                contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
+              >
+                <div className="space-y-1">
+                  {getEntityConnections(selectedEntity).length > 0 ? (
+                    getEntityConnections(selectedEntity).map((conn, idx) => (
+                      <div
+                        key={idx}
+                        className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} flex items-center justify-between gap-3`}
+                      >
+                        <div className="flex max-w-[70%] items-center truncate">
+                          {conn.entity.type === 'PERSON' ? (
+                            <User
+                              className={`mr-2 h-3 w-3 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                            />
+                          ) : conn.entity.type === 'ORGANIZATION' ? (
+                            <Building2
+                              className={`mr-2 h-3 w-3 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                            />
+                          ) : (
+                            <Shapes
+                              className={`mr-2 h-3 w-3 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                            />
+                          )}
+                          <span className="truncate osint-meta-value" title={conn.entity.name}>
+                            {conn.entity.name}
+                          </span>
+                        </div>
+                        <span className="osint-meta-label rounded-sm bg-zinc-800 px-1.5 py-0.5">
+                          {conn.count} Links
                         </span>
                       </div>
-                      <span className="osint-meta-label rounded-sm bg-zinc-800 px-1.5 py-0.5">
-                        {conn.count} Links
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="osint-body-quiet p-2">No connections established.</p>
-                )}
-              </div>
-            </Accordion>
+                    ))
+                  ) : (
+                    <p className="osint-body-quiet p-2">No connections established.</p>
+                  )}
+                </div>
+              </Accordion>
+            </div>
           </div>
         </div>
       )}

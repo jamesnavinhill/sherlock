@@ -37,7 +37,6 @@ import { openWorkspaceChatRequest } from '@/app/openChatRequest';
 import { requestOmniboxFocus } from '@/components/ui/omniboxFocus';
 import { useAppShellLaunch } from '@/app/useAppShellLaunch';
 import { useAppShellNavigation } from '@/app/useAppShellNavigation';
-import { useHeaderAutoHide } from '@/app/useHeaderAutoHide';
 
 export interface AppShellController {
   activeChatSessionId: string | null;
@@ -249,12 +248,6 @@ export function useAppShellController(): AppShellController {
     themeSurfaceSettings,
   });
 
-  const { isHeaderHidden } = useHeaderAutoHide({
-    enabled: routeCurrentView !== AppView.SETTINGS && !isHeaderManuallyHidden,
-    forcedVisible: showGlobalSearch,
-    routeKey: location.pathname,
-  });
-
   const { launchInvestigation, handleBatchInvestigate } = useAppShellLaunch({
     navigate,
     locationPathRef,
@@ -350,8 +343,7 @@ export function useAppShellController(): AppShellController {
     setThemeSurfaceSettings,
     showGlobalSearch,
     shouldHideRouteHeader:
-      routeCurrentView !== AppView.SETTINGS &&
-      ((isHeaderManuallyHidden && !showGlobalSearch) || isHeaderHidden),
+      routeCurrentView !== AppView.SETTINGS && isHeaderManuallyHidden && !showGlobalSearch,
     showHelpModal,
     themeColor,
     themeFontSettings,
