@@ -107,7 +107,7 @@ describe('ArtifactViewer', () => {
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Award timing irregularity').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);
     expect(
       screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
         .length

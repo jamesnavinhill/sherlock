@@ -147,7 +147,8 @@ const DetailRow: React.FC<DetailRowProps> = ({
     {body ? (
       <div
         className={cx(
-          'mt-2 max-w-none osint-body-small prose prose-invert prose-p:my-0',
+          title ? 'mt-2' : 'mt-1',
+          'max-w-none osint-body-small text-zinc-300 prose prose-invert prose-p:my-0',
           tone === 'WARNING' && 'osint-danger-text'
         )}
       >
@@ -1126,7 +1127,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       <DetailRow
                         key={finding.id}
                         eyebrow={`Finding ${index + 1}`}
-                        title={finding.title}
                         body={finding.summary}
                       >
                         {matchingSources.length > 0 ? (
