@@ -23,6 +23,10 @@ import type { Entity, Headline, Artifact } from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
+import {
+  CHROME_PANEL_ACTION_ROW_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+} from '../../ui/chrome';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import type { GraphNode } from './GraphCanvas';
@@ -96,7 +100,11 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
   });
 
   const toggleAccordion = (section: string) => {
-    setInspectorAccordions((prev) => ({ ...prev, [section]: !prev[section] }));
+    setInspectorAccordions((prev) =>
+      Object.fromEntries(
+        Object.keys(prev).map((key) => [key, key === section ? !prev[section] : false])
+      ) as typeof prev
+    );
   };
 
   // --- Helpers ---
@@ -249,6 +257,37 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
       ]
     : [];
+  const headlineActions: InspectorActionItem[] = selectedHeadline
+    ? [
+        {
+          id: 'headline-chat',
+          label: 'Open In Chat',
+          icon: MessageSquare,
+          onClick: () => {
+            onOpenHeadlineChat(selectedHeadline);
+            onClose();
+          },
+        },
+        {
+          id: 'headline-board',
+          label: 'Place On Board',
+          icon: Shapes,
+          onClick: () => {
+            onPlaceHeadlineOnBoard(selectedHeadline);
+            onClose();
+          },
+        },
+        {
+          id: 'headline-investigate',
+          label: 'Launch Investigation',
+          icon: Microscope,
+          onClick: () => {
+            onInvestigate(selectedHeadline.content);
+            onClose();
+          },
+        },
+      ]
+    : [];
   const entityActions: InspectorActionItem[] = selectedEntity
     ? [
         {
@@ -306,9 +345,6 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
         },
       ]
     : [];
-  const footerActionClassName =
-    'osint-meta-label-strong inline-flex w-full items-center justify-center border border-zinc-700 px-4 py-3 text-zinc-300 transition-colors hover:border-osint-primary hover:text-white';
-
   return (
     <div
       className={`${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl z-20`}
@@ -336,31 +372,34 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
       {/* --- HEADLINE MODE --- */}
       {mode === 'HEADLINE' && selectedHeadline && (
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
+          <div className={`${CHROME_PANEL_HEADER_CLASS} flex justify-between items-start flex-shrink-0`}>
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className="p-2 border flex-shrink-0 bg-zinc-800/50 text-white border-zinc-700">
                 <Newspaper className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="osint-meta-label">
-                    {selectedHeadline.type} INTEL
-                  </span>
-                  <span className="osint-meta-label-strong border border-green-900 bg-green-900/20 px-1.5 py-0.5 text-green-500">
-                    LIVE
-                  </span>
-                </div>
+                <div className="osint-eyebrow">Inspector</div>
                 <h3
-                  className="osint-panel-title truncate"
+                  className="mt-1 osint-panel-title truncate"
                   title={selectedHeadline.source}
                 >
                   {selectedHeadline.source}
                 </h3>
+                <div className="mt-2 flex items-center space-x-2">
+                  <span className="osint-meta-label">{selectedHeadline.type} Signal</span>
+                  <span className="osint-meta-label-strong border border-green-900 bg-green-900/20 px-1.5 py-0.5 text-green-500">
+                    Live
+                  </span>
+                </div>
               </div>
             </div>
             <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
               <X className="w-6 h-6" />
             </button>
+          </div>
+
+          <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
+            <InspectorActionRow actions={headlineActions} />
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
@@ -391,63 +430,33 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
             )}
           </div>
 
-          <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
-            <button
-              onClick={() => {
-                onOpenHeadlineChat(selectedHeadline);
-                onClose();
-              }}
-              className={footerActionClassName}
-            >
-              <MessageSquare className="w-4 h-4 mr-2" /> Open In Chat
-            </button>
-            <button
-              onClick={() => {
-                onPlaceHeadlineOnBoard(selectedHeadline);
-                onClose();
-              }}
-              className={footerActionClassName}
-            >
-              <Shapes className="w-4 h-4 mr-2" /> Place On Board
-            </button>
-            <button
-              onClick={() => {
-                onInvestigate(selectedHeadline.content);
-                onClose();
-              }}
-              className="osint-button-primary osint-meta-label-strong inline-flex w-full items-center justify-center px-4 py-3"
-            >
-              <Microscope className="w-4 h-4 mr-2" /> Launch Investigation
-            </button>
-          </div>
         </div>
       )}
 
       {/* --- REPORT MODE --- */}
       {mode === 'REPORT' && selectedReport && (
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
+          <div className={`${CHROME_PANEL_HEADER_CLASS} flex justify-between items-start flex-shrink-0`}>
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className="p-2 border flex-shrink-0 bg-zinc-800/50 text-white border-zinc-700">
                 <FileText className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="osint-meta-label">Investigation Report</span>
-                </div>
+                <div className="osint-eyebrow">Inspector</div>
                 <EditableTitle
                   value={selectedReport.topic}
                   onSave={(newTitle) => onReportSave(selectedReport, newTitle)}
-                  className="osint-panel-title leading-tight"
-                  inputClassName="osint-panel-title leading-tight"
+                  className="mt-1 osint-panel-title leading-tight"
+                  inputClassName="mt-1 osint-panel-title leading-tight"
                 />
+                <div className="mt-2 osint-meta-label">Artifact</div>
               </div>
             </div>
             <button onClick={onClose} className="text-zinc-500 hover:text-white">
               <X className="w-6 h-6" />
             </button>
           </div>
-          <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+          <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
             <InspectorActionRow actions={reportActions} />
           </div>
 
@@ -545,7 +554,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
       {/* --- ENTITY MODE --- */}
       {mode === 'ENTITY' && selectedEntity && (
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
+          <div className={`${CHROME_PANEL_HEADER_CLASS} flex justify-between items-start flex-shrink-0`}>
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div
                 className={`p-2 border flex-shrink-0 ${selectedEntityToneClass} entity-tone-icon-panel`}
@@ -561,21 +570,20 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 )}
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="osint-meta-label">
-                    {selectedNodeType === 'SOURCE'
-                      ? 'SOURCE NODE'
-                      : selectedNodeType === 'UNKNOWN'
-                        ? 'KNOWLEDGE NODE'
-                        : `${selectedNodeType} ENTITY`}
-                  </span>
-                </div>
+                <div className="osint-eyebrow">Inspector</div>
                 <EditableTitle
                   value={selectedEntity}
                   onSave={(newName) => onEntitySave(selectedEntity, newName)}
-                  className="osint-panel-title leading-tight"
-                  inputClassName="osint-panel-title leading-tight"
+                  className="mt-1 osint-panel-title leading-tight"
+                  inputClassName="mt-1 osint-panel-title leading-tight"
                 />
+                <div className="mt-2 osint-meta-label">
+                  {selectedNodeType === 'SOURCE'
+                    ? 'Source Node'
+                    : selectedNodeType === 'UNKNOWN'
+                      ? 'Knowledge Node'
+                      : `${selectedNodeType} Entity`}
+                </div>
               </div>
             </div>
             <button
@@ -585,7 +593,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               <X className="w-6 h-6" />
             </button>
           </div>
-          <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+          <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
             <InspectorActionRow actions={entityActions} />
           </div>
 

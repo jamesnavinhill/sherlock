@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { BoardLibraryRail } from './BoardLibraryRail';
 
 describe('BoardLibraryRail', () => {
-  it('renders separators below the title and above search controls', () => {
+  it('renders the unified library header and separators', () => {
     render(
       <BoardLibraryRail
         isOpen
@@ -39,6 +39,8 @@ describe('BoardLibraryRail', () => {
       />
     );
 
+    expect(screen.getByText('Library')).toBeInTheDocument();
+    expect(screen.queryByText('Canonical Library')).not.toBeInTheDocument();
     expect(screen.getByTestId('board-library-title-divider')).toBeInTheDocument();
     expect(screen.getByTestId('board-library-search-divider')).toBeInTheDocument();
   });

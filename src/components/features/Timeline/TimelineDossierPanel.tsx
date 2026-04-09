@@ -11,8 +11,13 @@ import {
 import type { TimelineEvent } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import {
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
+} from '@/components/ui/chrome';
+import {
   getFocusedButtonClass,
-  LEFT_PANEL_SECTION_SCROLL_CLASS,
   TRACK_OPTIONS,
   type DossierSections,
 } from './timelineViewUtils';
@@ -65,19 +70,20 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
         : 'w-[min(20rem,calc(100vw-1rem))] -translate-x-full border-r border-zinc-800 lg:w-0 lg:border-r-0'
     }`}
   >
-    <div className="border-b border-zinc-800 px-4 py-3">
-      <div className="osint-meta-label">Timeline Dossier</div>
-      <div className="mt-1 osint-meta-label-strong text-white">{workspaceTitle}</div>
+    <div className={CHROME_PANEL_HEADER_CLASS}>
+      <div className="osint-eyebrow">Library</div>
+      <div className="mt-1 osint-panel-title">{workspaceTitle}</div>
     </div>
 
-    <div className="h-[calc(100%-72px)] overflow-y-auto p-3 custom-scrollbar">
+    <div className={CHROME_RAIL_BODY_CLASS}>
       <Accordion
         title="Events"
         icon={Clock3}
         count={allTimelineEvents.length}
         isOpen={dossierSections.events}
         onToggle={() => onToggleSection('events')}
-        contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+        className={getRailAccordionClassName(dossierSections.events)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-2">
           <button
@@ -104,7 +110,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
         count={runItems.length}
         isOpen={dossierSections.runs}
         onToggle={() => onToggleSection('runs')}
-        contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+        className={getRailAccordionClassName(dossierSections.runs)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-2">
           {runItems.length === 0 ? (
@@ -134,7 +141,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
         count={artifactItems.length}
         isOpen={dossierSections.artifacts}
         onToggle={() => onToggleSection('artifacts')}
-        contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+        className={getRailAccordionClassName(dossierSections.artifacts)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-2">
           {artifactItems.length === 0 ? (
@@ -164,7 +172,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
         count={signalItems.length}
         isOpen={dossierSections.signals}
         onToggle={() => onToggleSection('signals')}
-        contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+        className={getRailAccordionClassName(dossierSections.signals)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-2">
           {signalItems.length === 0 ? (
@@ -194,7 +203,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
         count={entityItems.length}
         isOpen={dossierSections.entities}
         onToggle={() => onToggleSection('entities')}
-        contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+        className={getRailAccordionClassName(dossierSections.entities)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-2">
           {entityItems.length === 0 ? (
@@ -224,7 +234,8 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
         count={chatSessionItems.length}
         isOpen={dossierSections.chats}
         onToggle={() => onToggleSection('chats')}
-        contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+        className={getRailAccordionClassName(dossierSections.chats)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-2">
           {chatSessionItems.length === 0 ? (

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { CHROME_ACTION_BUTTON_CLASS } from './chrome';
 
 export interface InspectorActionItem {
   id: string;
@@ -17,18 +18,17 @@ interface InspectorActionRowProps {
   actions: InspectorActionItem[];
   className?: string;
   layout?: 'grid' | 'wrap';
+  showLabels?: boolean;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
-const baseActionClassName =
-  'osint-surface-button inline-flex h-9 items-center justify-center text-zinc-400';
-
 export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
   actions,
   className,
-  layout = 'grid',
+  layout = 'wrap',
+  showLabels = true,
 }) => {
   if (actions.length === 0) return null;
 
@@ -45,8 +45,8 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
         const Icon = action.icon;
         const sharedProps = {
           className: cx(
-            baseActionClassName,
-            layout === 'wrap' ? 'w-9 shrink-0' : 'w-full',
+            CHROME_ACTION_BUTTON_CLASS,
+            layout === 'wrap' ? 'shrink-0' : 'w-full',
             action.className
           ),
           title: action.label,
@@ -62,14 +62,16 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
               rel={action.rel}
               {...sharedProps}
             >
-              <Icon className={cx('h-4 w-4', action.iconClassName)} />
+              <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
+              {showLabels ? <span>{action.label}</span> : null}
             </a>
           );
         }
 
         return (
           <button key={action.id} type="button" onClick={action.onClick} {...sharedProps}>
-            <Icon className={cx('h-4 w-4', action.iconClassName)} />
+            <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
+            {showLabels ? <span>{action.label}</span> : null}
           </button>
         );
       })}

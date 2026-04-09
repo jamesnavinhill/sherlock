@@ -979,6 +979,35 @@ body,
   outline: none;
 }
 
+.osint-panel-item {
+  background-color: var(--osint-interaction-bg);
+  border: 1px solid transparent;
+  color: var(--osint-text-strong);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-panel-item:hover,
+.osint-panel-item:focus-visible {
+  background-color: var(--osint-interaction-hover-bg);
+  border-color: var(--osint-interaction-border-strong);
+  color: var(--osint-text-heading);
+  box-shadow: var(--osint-interaction-shadow);
+  outline: none;
+}
+
+.osint-panel-item[data-active='true'] {
+  background-color: var(--osint-interaction-active-bg);
+  border-color: color-mix(in oklab, var(--osint-primary) 44%, transparent);
+  color: var(--osint-text-action);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 28%, transparent),
+    var(--osint-interaction-shadow);
+}
+
 .osint-sidebar-nav-item {
   color: var(--osint-text-meta);
   border-left-color: transparent;

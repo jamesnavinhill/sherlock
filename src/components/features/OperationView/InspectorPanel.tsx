@@ -18,6 +18,10 @@ import type { Entity, Headline, Artifact } from '../../../types';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
+import {
+  CHROME_PANEL_ACTION_ROW_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+} from '../../ui/chrome';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { sanitizeDisplayTitle } from '../../../domain';
 import { getArtifactTypeLabel } from './artifactViewerPresentation';
@@ -149,7 +153,11 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   });
 
   const toggleAccordion = (section: keyof typeof inspectorAccordions) => {
-    setInspectorAccordions((prev) => ({ ...prev, [section]: !prev[section] }));
+    setInspectorAccordions((prev) =>
+      Object.fromEntries(
+        Object.keys(prev).map((key) => [key, key === section ? !prev[section] : false])
+      ) as typeof prev
+    );
   };
 
   // --- Helper Logic (Moved from Parent) ---
@@ -201,7 +209,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
       {/* --- ENTITY INSPECTOR MODE --- */}
       {mode === 'ENTITY' && entity && (
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
+          <div className={`${CHROME_PANEL_HEADER_CLASS} flex justify-between items-start flex-shrink-0`}>
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className={`p-2 border flex-shrink-0 ${entityToneClass} entity-tone-icon-panel`}>
                 {entity.type === 'PERSON' && <User className="w-5 h-5" />}
@@ -209,17 +217,14 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 {entity.type === 'UNKNOWN' && <Network className="w-5 h-5" />}
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="osint-meta-label">
-                    {entity.type} ENTITY
-                  </span>
-                </div>
+                <div className="osint-eyebrow">Inspector</div>
                 <EditableTitle
                   value={entity.name}
                   onSave={onEntitySave}
-                  className="osint-panel-title text-white leading-tight"
-                  inputClassName="osint-panel-title text-white leading-tight"
+                  className="mt-1 osint-panel-title text-white leading-tight"
+                  inputClassName="mt-1 osint-panel-title text-white leading-tight"
                 />
+                <div className="mt-2 osint-meta-label">{entity.type} Entity</div>
               </div>
             </div>
             <button
@@ -230,7 +235,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </button>
           </div>
 
-          <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+          <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
             <InspectorActionRow actions={entityActions} />
           </div>
 
@@ -336,26 +341,25 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
       {/* --- HEADLINE INSPECTOR MODE --- */}
       {mode === 'HEADLINE' && headline && (
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-zinc-800 flex justify-between items-start bg-zinc-900/30 flex-shrink-0">
+          <div className={`${CHROME_PANEL_HEADER_CLASS} flex justify-between items-start flex-shrink-0`}>
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className="p-2 border flex-shrink-0 bg-zinc-800/50 text-white border-zinc-700">
                 <Newspaper className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="osint-meta-label">
-                    {headline.type} INTEL
-                  </span>
-                  <span className="border border-green-900 bg-green-900/20 px-1.5 py-0.5 osint-meta-label text-green-500">
-                    LIVE
-                  </span>
-                </div>
+                <div className="osint-eyebrow">Inspector</div>
                 <h3
-                  className="truncate osint-panel-title text-white"
+                  className="mt-1 truncate osint-panel-title text-white"
                   title={headline.source}
                 >
                   {headline.source}
                 </h3>
+                <div className="mt-2 flex items-center space-x-2">
+                  <span className="osint-meta-label">{headline.type} Signal</span>
+                  <span className="border border-green-900 bg-green-900/20 px-1.5 py-0.5 osint-meta-label text-green-500">
+                    Live
+                  </span>
+                </div>
               </div>
             </div>
             <button
@@ -366,7 +370,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </button>
           </div>
 
-          <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+          <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
             <InspectorActionRow actions={headlineActions} />
           </div>
 
@@ -399,31 +403,22 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             )}
           </div>
 
-          <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 mt-auto space-y-3">
-            <button
-              onClick={onInvestigateHeadline}
-              className="osint-button-primary flex w-full items-center justify-center py-3 osint-meta-label-strong"
-            >
-              Launch Investigation
-            </button>
-          </div>
         </div>
       )}
 
       {mode === 'REPORT' && report && (
         <div className="flex h-full flex-col">
-          <div className="flex items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4 flex-shrink-0">
+          <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-start justify-between flex-shrink-0`}>
             <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className="p-2 border flex-shrink-0 bg-zinc-800/50 text-white border-zinc-700">
                 <FileText className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0 pr-2">
-                <div className="mb-1 osint-meta-label">
-                  Current Artifact
-                </div>
+                <div className="osint-eyebrow">Inspector</div>
                 <h3 className="osint-panel-title text-white leading-tight">
                   {reportDisplayTitle}
                 </h3>
+                <div className="mt-2 osint-meta-label">Current Artifact</div>
               </div>
             </div>
             <button
@@ -434,7 +429,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </button>
           </div>
 
-          <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+          <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
             <InspectorActionRow actions={reportActions} />
           </div>
 
@@ -484,9 +479,9 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
       {!mode && (
         <div className="flex h-full flex-col">
-          <div className="flex items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4 flex-shrink-0">
+          <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-start justify-between flex-shrink-0`}>
             <div className="min-w-0 pr-3">
-              <div className="mb-1 osint-meta-label">Inspector</div>
+              <div className="osint-eyebrow">Inspector</div>
               <h3 className="osint-panel-title text-white">No Item Selected</h3>
             </div>
             <button

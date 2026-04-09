@@ -238,6 +238,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
 
         <ChatContextRail
           rightPanelOpen={rightPanelOpen}
+          workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : undefined}
           rightPanelSections={rightPanelSections}
           launchContextSummary={launchContextSummary}
           workspaceReports={workspaceReports}

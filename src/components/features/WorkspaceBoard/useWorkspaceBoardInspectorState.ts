@@ -76,10 +76,11 @@ export const useWorkspaceBoardInspectorState = ({
   });
 
   const toggleInspectorSection = useCallback((section: keyof typeof inspectorSections) => {
-    setInspectorSections((current) => ({
-      ...current,
-      [section]: !current[section],
-    }));
+    setInspectorSections((current) =>
+      Object.fromEntries(
+        Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
+      ) as typeof current
+    );
   }, []);
 
   const handleGenerateSummary = useCallback(async () => {

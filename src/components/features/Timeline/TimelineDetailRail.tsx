@@ -16,6 +16,13 @@ import type {
 import { Accordion } from '@/components/ui/Accordion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import {
+  CHROME_PANEL_ACTION_ROW_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
+} from '@/components/ui/chrome';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '@/domain';
 import { getMetadataValue, type DetailSections } from './timelineViewUtils';
 
@@ -65,21 +72,19 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
         : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full border-l border-zinc-800 lg:w-0 lg:border-l-0'
     }`}
   >
-    <div className="border-b border-zinc-800 px-4 py-3">
-      <div className="osint-meta-label">
-        Event Details
-      </div>
-      <div className="mt-1 osint-meta-label-strong">
-        {selectedEvent ? selectedEvent.title : 'No event selected'}
+    <div className={CHROME_PANEL_HEADER_CLASS}>
+      <div className="osint-eyebrow">Details</div>
+      <div className="mt-1 osint-panel-title">
+        {selectedEvent ? selectedEvent.title : 'No Event Selected'}
       </div>
     </div>
     {selectedEvent && detailActions.length > 0 ? (
-      <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
+      <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
         <InspectorActionRow actions={detailActions} />
       </div>
     ) : null}
 
-    <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+    <div className={CHROME_RAIL_BODY_CLASS}>
       {!selectedEvent ? (
         <EmptyState
           icon={MessageSquare}
@@ -95,6 +100,8 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
             icon={Clock3}
             isOpen={detailSections.summary}
             onToggle={onToggleSummary}
+            className={getRailAccordionClassName(detailSections.summary)}
+            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-3 px-1 py-1 osint-meta-value">
               <div>
@@ -123,6 +130,8 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
             icon={Workflow}
             isOpen={detailSections.context}
             onToggle={onToggleContext}
+            className={getRailAccordionClassName(detailSections.context)}
+            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-3 px-1 py-1 osint-meta-value">
               <div>

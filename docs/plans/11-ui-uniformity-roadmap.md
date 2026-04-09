@@ -366,8 +366,8 @@ Execution checklist:
 5. Normalize follow-up rows to one shared pattern.
 6. Restyle entities as a two-column library-like layout with the details-panel dot treatment.
 7. Use the lighter viewer-library treatment for sources and provenance rows.
-8. Prefer chips and inline links over miniature summary cards.
-9. Preserve editability and evidence-jump affordances.
+8. Prefer chips and inline links for entity/source mentions.
+9. Preserve+expand editability and evidence-jump affordances.
 
 Exit criteria:
 

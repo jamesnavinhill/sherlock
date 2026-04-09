@@ -223,16 +223,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
           selectedChatAction={selectedChatAction}
           labelProfile={labelProfile}
           onToggleSummary={() =>
-            setDetailSections((current) => ({
-              ...current,
-              summary: !current.summary,
-            }))
+            setDetailSections((current) => toggleExclusiveSection(current, 'summary'))
           }
           onToggleContext={() =>
-            setDetailSections((current) => ({
-              ...current,
-              context: !current.context,
-            }))
+            setDetailSections((current) => toggleExclusiveSection(current, 'context'))
           }
         />
       </div>

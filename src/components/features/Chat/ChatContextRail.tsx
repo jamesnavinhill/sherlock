@@ -9,6 +9,13 @@ import {
 
 import type { AgentAction, Artifact, ChatMessage, Signal } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
+import {
+  CHROME_ACTION_BUTTON_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
+} from '@/components/ui/chrome';
 
 interface LaunchContextSummary {
   label: string;
@@ -18,6 +25,7 @@ interface LaunchContextSummary {
 
 interface ChatContextRailProps {
   rightPanelOpen: boolean;
+  workspaceTitle?: string;
   rightPanelSections: {
     launchContext: boolean;
     recentArtifacts: boolean;
@@ -42,6 +50,7 @@ interface ChatContextRailProps {
 
 export const ChatContextRail: React.FC<ChatContextRailProps> = ({
   rightPanelOpen,
+  workspaceTitle,
   rightPanelSections,
   launchContextSummary,
   workspaceReports,
@@ -57,25 +66,25 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
   onFetchFullArtifact,
   onFetchRecentSignals,
 }) => {
-  const getAccordionClassName = (isOpen: boolean) =>
-    isOpen ? 'mb-0 flex min-h-0 flex-1 flex-col' : 'mb-0 shrink-0';
+  const railSectionScrollClassName = sectionScrollClassName || CHROME_RAIL_SECTION_SCROLL_CLASS;
 
   return (
     <aside
       className={`${rightPanelOpen ? 'translate-x-0' : 'translate-x-full xl:w-0 xl:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 overflow-hidden border-l border-zinc-800 bg-black/95 shadow-2xl transition-all duration-300 xl:relative xl:z-0 xl:flex xl:flex-shrink-0 xl:flex-col xl:shadow-none ${rightPanelOpen ? 'xl:w-96' : 'xl:w-0'} backdrop-blur-md`}
     >
-      <div className="border-b border-zinc-800 bg-zinc-900/30 p-4">
-        <h2 className="osint-meta-value">Context</h2>
+      <div className={CHROME_PANEL_HEADER_CLASS}>
+        <div className="osint-eyebrow">Context</div>
+        <h2 className="mt-1 osint-panel-title">{workspaceTitle || 'Workspace Chat'}</h2>
       </div>
-      <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden bg-black/20 p-2">
+      <div className={`${CHROME_RAIL_BODY_CLASS} bg-black/20`}>
       {launchContextSummary ? (
         <Accordion
           title={launchContextSummary.label}
           icon={FileText}
           isOpen={rightPanelSections.launchContext}
           onToggle={() => onToggleSection('launchContext')}
-          className={getAccordionClassName(rightPanelSections.launchContext)}
-          contentClassName={sectionScrollClassName}
+          className={getRailAccordionClassName(rightPanelSections.launchContext)}
+          contentClassName={railSectionScrollClassName}
         >
           <div className="space-y-2 px-2 py-1">
             <div className="osint-meta-value">{launchContextSummary.title}</div>
@@ -90,8 +99,8 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
         icon={FileText}
         isOpen={rightPanelSections.recentArtifacts}
         onToggle={() => onToggleSection('recentArtifacts')}
-        className={getAccordionClassName(rightPanelSections.recentArtifacts)}
-        contentClassName={sectionScrollClassName}
+        className={getRailAccordionClassName(rightPanelSections.recentArtifacts)}
+        contentClassName={railSectionScrollClassName}
       >
         <div className="space-y-2">
           {workspaceReports.slice(0, 4).length === 0 ? (
@@ -104,7 +113,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
               const isExpanded = !!expandedArtifactIds[artifactKey];
 
               return (
-                <div key={artifactKey} className="border border-zinc-800 bg-zinc-900/20 p-2">
+                <div key={artifactKey} className="osint-panel-item p-2">
                   <button
                     type="button"
                     onClick={() => onToggleArtifactCard(artifactKey)}
@@ -123,14 +132,14 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
                       <div className="mt-2 flex gap-3">
                         <button
                           onClick={() => artifact.id && onFetchArtifactSummary(artifact.id)}
-                          className="inline-flex items-center gap-1 osint-meta-label text-zinc-500 transition hover:text-osint-primary"
+                          className={CHROME_ACTION_BUTTON_CLASS}
                         >
                           <FileText className="h-3 w-3" />
                           Summary
                         </button>
                         <button
                           onClick={() => artifact.id && onFetchFullArtifact(artifact.id)}
-                          className="inline-flex items-center gap-1 osint-meta-label text-zinc-500 transition hover:text-osint-primary"
+                          className={CHROME_ACTION_BUTTON_CLASS}
                         >
                           <FileSearch className="h-3 w-3" />
                           Full Text
@@ -151,14 +160,14 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
         icon={FileSearch}
         isOpen={rightPanelSections.recentSignals}
         onToggle={() => onToggleSection('recentSignals')}
-        className={getAccordionClassName(rightPanelSections.recentSignals)}
-        contentClassName={sectionScrollClassName}
+        className={getRailAccordionClassName(rightPanelSections.recentSignals)}
+        contentClassName={railSectionScrollClassName}
       >
         <div className="space-y-2">
           <div className="flex justify-end">
             <button
               onClick={onFetchRecentSignals}
-              className="inline-flex items-center gap-1 osint-meta-label text-zinc-500 transition hover:text-osint-primary"
+              className={CHROME_ACTION_BUTTON_CLASS}
             >
               <FileSearch className="h-3 w-3" />
               Pin To Chat
@@ -170,7 +179,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
             </p>
           ) : (
             workspaceSignals.slice(0, 4).map((signal) => (
-              <div key={signal.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
+              <div key={signal.id} className="osint-panel-item p-2">
                 <div className="osint-meta-value">{signal.source || signal.type}</div>
                 <p className="mt-1 osint-body-muted">{signal.content}</p>
               </div>
@@ -186,12 +195,12 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           icon={FileSearch}
           isOpen={rightPanelSections.latestRetrieval}
           onToggle={() => onToggleSection('latestRetrieval')}
-          className={getAccordionClassName(rightPanelSections.latestRetrieval)}
-          contentClassName={sectionScrollClassName}
+          className={getRailAccordionClassName(rightPanelSections.latestRetrieval)}
+          contentClassName={railSectionScrollClassName}
         >
           <div className="space-y-2">
             {latestAssistantMessage.attachments.map((attachment) => (
-              <div key={attachment.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
+              <div key={attachment.id} className="osint-panel-item p-2">
                 <div className="osint-meta-value">{attachment.title}</div>
                 {attachment.snippet ? (
                   <p className="mt-1 osint-body-muted">{attachment.snippet}</p>
@@ -208,8 +217,8 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
         icon={Workflow}
         isOpen={rightPanelSections.actionLog}
         onToggle={() => onToggleSection('actionLog')}
-        className={getAccordionClassName(rightPanelSections.actionLog)}
-        contentClassName={sectionScrollClassName}
+        className={getRailAccordionClassName(rightPanelSections.actionLog)}
+        contentClassName={railSectionScrollClassName}
       >
         <div className="space-y-2">
           {sessionActions.length === 0 ? (
@@ -218,7 +227,7 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
             </p>
           ) : (
             sessionActions.slice(0, 8).map((action) => (
-              <div key={action.id} className="border border-zinc-800 bg-zinc-900/20 p-2">
+              <div key={action.id} className="osint-panel-item p-2">
                 <div className="osint-meta-label-strong text-zinc-300">{action.type}</div>
                 <div className="mt-1 osint-body-quiet">{formatDateTime(action.createdAt)}</div>
               </div>

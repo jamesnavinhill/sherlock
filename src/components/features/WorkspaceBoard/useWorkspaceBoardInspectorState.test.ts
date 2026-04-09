@@ -4,6 +4,64 @@ import { describe, expect, it, vi } from 'vitest';
 import { useWorkspaceBoardInspectorState } from './useWorkspaceBoardInspectorState';
 
 describe('useWorkspaceBoardInspectorState', () => {
+  it('keeps board inspector sections exclusive', () => {
+    const { result } = renderHook(() =>
+      useWorkspaceBoardInspectorState({
+        activeBoard: {
+          id: 'board-1',
+          workspaceId: 'ws-1',
+          name: 'Primary Board',
+          sortOrder: 0,
+          presentationMode: false,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+        activeWorkspace: {
+          id: 'ws-1',
+          title: 'Atlas Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-08',
+        },
+        addToast: vi.fn(),
+        createWorkspaceItem: vi.fn(async () => undefined),
+        handleDropEntry: vi.fn(),
+        navigate: vi.fn(),
+        onOpenChat: vi.fn(),
+        onOpenReport: vi.fn(),
+        persistCurrentBoardDocument: vi.fn(async () => undefined),
+        setAiBusy: vi.fn(),
+        setAiSummary: vi.fn(),
+        selectedArtifact: null,
+        selectedEntries: [],
+        selectedHeadline: null,
+        selectedPrimaryEntry: null,
+        selectedWorkspaceItem: null,
+        workspaceArtifacts: [],
+        workspaceHeadlines: [],
+      })
+    );
+
+    act(() => {
+      result.current.toggleInspectorSection('selection');
+    });
+
+    expect(result.current.inspectorSections).toEqual({
+      selection: true,
+      aiActions: false,
+      provenance: false,
+    });
+
+    act(() => {
+      result.current.toggleInspectorSection('provenance');
+    });
+
+    expect(result.current.inspectorSections).toEqual({
+      selection: false,
+      aiActions: false,
+      provenance: true,
+    });
+  });
+
   it('opens selected workspace items in item-grounded chat', () => {
     const onOpenChat = vi.fn();
 

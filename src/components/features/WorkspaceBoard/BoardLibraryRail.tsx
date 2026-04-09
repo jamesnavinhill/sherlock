@@ -6,11 +6,17 @@ import {
   Network,
   Radio,
   Search,
-  Shapes,
   Trash2,
 } from 'lucide-react';
 
 import { Accordion } from '@/components/ui/Accordion';
+import {
+  CHROME_ACTION_BUTTON_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
+} from '@/components/ui/chrome';
 import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
 import { serializeBoardReference } from '@/services/workspace/boardShapes';
 
@@ -68,12 +74,9 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
         : 'w-[min(23rem,calc(100vw-1rem))] -translate-x-full xl:w-0 xl:border-r-0'
     }`}
   >
-    <div className="border-b border-zinc-800 px-4 py-4">
-      <div className="osint-eyebrow flex items-center gap-2">
-        <Shapes className="h-4 w-4 text-osint-primary" />
-        Canonical Library
-      </div>
-      <div className="mt-1 osint-meta-value">{workspaceTitle}</div>
+    <div className={CHROME_PANEL_HEADER_CLASS}>
+      <div className="osint-eyebrow">Library</div>
+      <div className="mt-1 osint-panel-title">{workspaceTitle}</div>
       <div
         aria-hidden="true"
         data-testid="board-library-title-divider"
@@ -82,21 +85,21 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
       <div className="mt-3 flex gap-2">
         <button
           onClick={onCreateNote}
-          className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 px-3 py-2"
+          className={CHROME_ACTION_BUTTON_CLASS}
         >
           <FilePlus2 className="h-4 w-4" />
           Note
         </button>
         <button
           onClick={onCreateLink}
-          className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 px-3 py-2"
+          className={CHROME_ACTION_BUTTON_CLASS}
         >
           <Link2 className="h-4 w-4" />
           Link
         </button>
         <button
           onClick={onTriggerFileUpload}
-          className="osint-button-primary osint-meta-label-strong inline-flex items-center gap-2 px-3 py-2"
+          className={CHROME_ACTION_BUTTON_CLASS}
         >
           <Radio className="h-4 w-4" />
           File
@@ -125,7 +128,7 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
       </div>
     </div>
 
-    <div className="flex-1 min-h-0 overflow-hidden p-3">
+    <div className={CHROME_RAIL_BODY_CLASS}>
       {(
         [
           ['created', 'Created Items', groupedEntries.created, FilePlus2],
@@ -142,7 +145,8 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
           icon={icon}
           isOpen={librarySections[key]}
           onToggle={() => onToggleLibrarySection(key)}
-          contentClassName={sectionScrollClassName}
+          className={getRailAccordionClassName(librarySections[key])}
+          contentClassName={sectionScrollClassName || CHROME_RAIL_SECTION_SCROLL_CLASS}
         >
           <div className="space-y-2">
             {entries.length === 0 ? (
@@ -193,7 +197,7 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                             <button
                               type="button"
                               onClick={() => onAddToBoard(entry)}
-                              className="osint-button-primary px-3 py-1.5 osint-meta-label-strong"
+                              className={CHROME_ACTION_BUTTON_CLASS}
                             >
                               Add To Board
                             </button>

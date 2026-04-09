@@ -8,6 +8,18 @@ export const CHROME_PANEL_CLASS = 'border-zinc-800 bg-black/95 backdrop-blur-md'
 export const CHROME_PANEL_HEADER_CLASS =
   'border-b border-zinc-800 bg-zinc-900/30 px-4 py-3';
 
+export const CHROME_PANEL_ACTION_ROW_CLASS =
+  'border-b border-zinc-800 bg-zinc-900/10 px-4 py-3';
+
+export const CHROME_RAIL_BODY_CLASS =
+  'flex flex-1 min-h-0 flex-col gap-2 overflow-hidden p-3';
+
+export const CHROME_RAIL_SECTION_SCROLL_CLASS =
+  'min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+
+export const CHROME_ACTION_BUTTON_CLASS =
+  'osint-surface-button inline-flex h-9 items-center justify-center gap-2 px-3 osint-meta-label-strong text-zinc-300';
+
 export const CHROME_HEADER_LEADING_GROUP_CLASS = 'flex min-w-0 flex-1 items-center gap-3';
 
 export const CHROME_HEADER_ICON_BUTTON_SIZE_CLASS = 'shrink-0 p-1.5';
@@ -47,3 +59,6 @@ export const getChromeSegmentButtonClass = (active: boolean) =>
       ? 'bg-osint-primary/10 text-osint-primary'
       : 'text-zinc-500 hover:text-white'
   }`;
+
+export const getRailAccordionClassName = (isOpen: boolean) =>
+  isOpen ? 'mb-0 flex min-h-0 flex-1 flex-col' : 'mb-0 shrink-0';

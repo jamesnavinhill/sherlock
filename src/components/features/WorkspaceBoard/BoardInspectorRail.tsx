@@ -4,6 +4,14 @@ import { Bot, Clock3, Shapes, Sparkles, Trash2 } from 'lucide-react';
 import type { WorkspaceBoard, WorkspaceItem } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import {
+  CHROME_ACTION_BUTTON_CLASS,
+  CHROME_PANEL_ACTION_ROW_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
+} from '@/components/ui/chrome';
 import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
 
 interface BoardInspectorRailProps {
@@ -42,21 +50,35 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
   onShowAgentAndGenerateSummary,
   onShowAgentAndGenerateNote,
   onDeleteBoard,
-}) => (
-  <>
-    {inspectorActions.length > 0 ? (
-      <div className="border-b border-zinc-800 bg-zinc-900/10 px-4 py-3">
-        <InspectorActionRow actions={inspectorActions} layout="wrap" />
-      </div>
-    ) : null}
+}) => {
+  const title =
+    selectedEntries.length === 1
+      ? selectedEntries[0].title
+      : selectedEntries.length > 1
+        ? `${selectedEntries.length} Items Selected`
+        : activeBoard?.name || 'Board Selection';
 
-    <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+  return (
+    <>
+      <div className={CHROME_PANEL_HEADER_CLASS}>
+        <div className="osint-eyebrow">Inspector</div>
+        <div className="mt-1 osint-panel-title">{title}</div>
+      </div>
+      {inspectorActions.length > 0 ? (
+        <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
+          <InspectorActionRow actions={inspectorActions} />
+        </div>
+      ) : null}
+
+      <div className={CHROME_RAIL_BODY_CLASS}>
       <Accordion
         title="Selection"
         icon={Shapes}
         count={selectedEntries.length}
         isOpen={inspectorSections.selection}
         onToggle={onToggleSelection}
+        className={getRailAccordionClassName(inspectorSections.selection)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-2">
           {selectedEntries.length === 0 ? (
@@ -67,7 +89,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
             selectedEntries.map((entry) => (
               <div
                 key={boardRefKey(entry)}
-                className="border border-zinc-800 bg-zinc-900/40 p-3 text-zinc-200"
+                className="osint-panel-item p-3 text-zinc-200"
               >
                 <div className="osint-title-inline">{entry.title}</div>
                 {entry.description ? (
@@ -84,12 +106,14 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
         icon={Bot}
         isOpen={inspectorSections.aiActions}
         onToggle={onToggleAiActions}
+        className={getRailAccordionClassName(inspectorSections.aiActions)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-3">
           <button
             onClick={onShowAgentAndGenerateSummary}
             disabled={selectedEntries.length === 0 || aiBusy}
-            className="osint-button-primary osint-meta-label-strong inline-flex w-full items-center justify-center gap-2 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+            className={`${CHROME_ACTION_BUTTON_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-40`}
           >
             <Sparkles className="h-4 w-4" />
             Summarize Selection
@@ -97,7 +121,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
           <button
             onClick={onShowAgentAndGenerateNote}
             disabled={selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode}
-            className="osint-button-primary osint-meta-label-strong inline-flex w-full items-center justify-center gap-2 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+            className={`${CHROME_ACTION_BUTTON_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-40`}
           >
             <Bot className="h-4 w-4" />
             Draft Note Card
@@ -111,6 +135,8 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
         icon={Clock3}
         isOpen={inspectorSections.provenance}
         onToggle={onToggleProvenance}
+        className={getRailAccordionClassName(inspectorSections.provenance)}
+        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-3 px-1 py-1 osint-meta-value">
           {selectedWorkspaceItem ? (
@@ -159,9 +185,10 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
           )}
         </div>
       </Accordion>
+      </div>
 
       {activeBoard ? (
-        <div className="mt-3 border border-zinc-800 bg-zinc-900/20 p-3">
+        <div className="border-t border-zinc-800 bg-black/20 p-3">
           <button
             onClick={onDeleteBoard}
             disabled={availableBoardsLength <= 1}
@@ -172,6 +199,6 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
           </button>
         </div>
       ) : null}
-    </div>
-  </>
-);
+    </>
+  );
+};

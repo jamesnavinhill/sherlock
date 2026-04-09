@@ -102,10 +102,8 @@ export const getEventTone = (event: TimelineEvent) => {
 };
 
 export const getFocusedButtonClass = (isActive: boolean) =>
-  `w-full text-left px-3 py-2 text-xs font-mono transition-colors ${
-    isActive
-      ? 'bg-zinc-800 text-white border border-osint-primary/40'
-      : 'text-zinc-400 border border-transparent hover:border-zinc-700 hover:bg-zinc-900 hover:text-white'
+  `osint-panel-item w-full px-3 py-2 text-left text-xs font-mono ${
+    isActive ? 'border-osint-primary/40 text-osint-primary' : 'text-zinc-300'
   }`;
 
 export const toUniqueItems = (events: TimelineEvent[], track: TimelineTrack) => {

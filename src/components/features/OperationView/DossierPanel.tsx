@@ -13,10 +13,13 @@ import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from
 import { Accordion } from '../../ui/Accordion';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
-import { CHROME_PANEL_CLASS } from '../../ui/chrome';
-
-const LEFT_PANEL_SECTION_SCROLL_CLASS =
-  'max-h-[min(20rem,calc(100svh-22rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
+import {
+  CHROME_PANEL_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_RAIL_SECTION_SCROLL_CLASS,
+  getRailAccordionClassName,
+} from '../../ui/chrome';
 
 interface DossierPanelProps {
   isOpen: boolean;
@@ -71,11 +74,12 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
       className={`${isOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-80 border-r overflow-hidden flex flex-col shadow-2xl transition-all duration-300 ${CHROME_PANEL_CLASS} ${desktopLayoutClass} ${isOpen ? 'pointer-events-auto' : 'pointer-events-none lg:pointer-events-none'} ${overlayOnDesktop ? 'lg:shadow-2xl' : 'lg:shadow-none'}`}
     >
       {activeCase && (
-        <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
-          <h2 className="osint-meta-value mb-2 leading-tight">
+        <div className={CHROME_PANEL_HEADER_CLASS}>
+          <div className="osint-eyebrow">Library</div>
+          <h2 className="mt-1 osint-panel-title leading-tight">
             {getWorkspaceDisplayTitle(activeCase)}
           </h2>
-          <div className="osint-meta-label flex items-center space-x-3">
+          <div className="mt-3 osint-meta-label flex items-center space-x-3">
             <span className="flex items-center">
               <FileText className="w-3 h-3 mr-1" />
               {reports.length} {labelProfile.artifactLabelPlural}
@@ -88,13 +92,14 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         </div>
       )}
       {!activeCase && (
-        <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
-          <h2 className="osint-meta-value text-zinc-500">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
+        <div className={CHROME_PANEL_HEADER_CLASS}>
+          <div className="osint-eyebrow">Library</div>
+          <h2 className="mt-1 osint-panel-title text-zinc-500">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
           <p className="osint-body-quiet mt-1">{`Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`}</p>
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto bg-black/20 p-2 custom-scrollbar">
+      <div className={`${CHROME_RAIL_BODY_CLASS} bg-black/20`}>
         {/* Reports */}
         {reports.length > 0 && (
           <Accordion
@@ -103,14 +108,16 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
             icon={FileText}
             isOpen={openSections.reports}
             onToggle={() => toggleSection('reports')}
-            contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+            className={getRailAccordionClassName(openSections.reports)}
+            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-1">
               {reports.map((r) => (
                 <button
                   key={r.id || r.topic}
                   onClick={() => r.id && onNavigate(r.id)}
-                  className={`osint-meta-value flex w-full items-center truncate border-l-2 p-2 text-left text-zinc-400 hover:bg-zinc-900 hover:text-white ${activeReportId === r.id ? 'border-osint-primary bg-zinc-900/50' : 'border-transparent hover:border-osint-primary'}`}
+                  className="osint-panel-item osint-meta-value flex w-full items-center truncate p-2 text-left"
+                  data-active={activeReportId === r.id}
                   title={sanitizeDisplayTitle(r.topic)}
                 >
                   <div className="w-1.5 h-1.5 bg-zinc-700 rounded-full mr-2"></div>{' '}
@@ -129,14 +136,15 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
             icon={User}
             isOpen={openSections.entities}
             onToggle={() => toggleSection('entities')}
-            contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+            className={getRailAccordionClassName(openSections.entities)}
+            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
             <div className="grid grid-cols-2 gap-1">
               {entities.map((e, idx) => (
                 <button
                   key={idx}
                   onClick={() => onEntityClick(e)}
-                  className="osint-meta-value truncate border border-zinc-800 bg-zinc-900/30 p-2 text-left text-zinc-400 hover:border-zinc-600 hover:bg-zinc-800 hover:text-white"
+                  className="osint-panel-item osint-meta-value truncate p-2 text-left"
                   title={e.name}
                 >
                   {e.type === 'PERSON' && (
@@ -167,7 +175,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           icon={Lightbulb}
           isOpen={openSections.leads}
           onToggle={() => toggleSection('leads')}
-          contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+          className={getRailAccordionClassName(openSections.leads)}
+          contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
         >
           <div className="space-y-1">
             {leads.length === 0 ? (
@@ -195,7 +204,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
             icon={Globe}
             isOpen={openSections.evidence}
             onToggle={() => toggleSection('evidence')}
-            contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+            className={getRailAccordionClassName(openSections.evidence)}
+            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-1">
               {reports
@@ -227,7 +237,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           icon={Globe}
           isOpen={openSections.sources}
           onToggle={() => toggleSection('sources')}
-          contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+          className={getRailAccordionClassName(openSections.sources)}
+          contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
         >
           <div className="space-y-1">
             {sources.length === 0 ? (
@@ -256,7 +267,8 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           icon={Newspaper}
           isOpen={openSections.headlines}
           onToggle={() => toggleSection('headlines')}
-          contentClassName={LEFT_PANEL_SECTION_SCROLL_CLASS}
+          className={getRailAccordionClassName(openSections.headlines)}
+          contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
         >
           <div className="space-y-1">
             {headlines.length === 0 ? (
