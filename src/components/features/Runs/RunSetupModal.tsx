@@ -126,7 +126,6 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
           <Compass className="w-3 h-3 mr-2" />
           Domain Pack
         </label>
-        <p className="mb-3 osint-body-quiet">{setupCopy.scopeDescription}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pr-1">
           {allScopes.map((scope) => (
             <button
@@ -156,7 +155,6 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             <Sparkles className="w-3 h-3 mr-2" />
             {setupCopy.purposeLabel}
           </label>
-          <p className="mb-3 osint-body-quiet">{setupCopy.purposeDescription}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             {supportedPurposes.map((purpose) => (
               <button
@@ -184,7 +182,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
       <div className="pt-3 border-t border-zinc-800">
         <label className="mb-2 flex items-center osint-meta-label">
           <Calendar className="w-3 h-3 mr-2" />
-          Temporal Scope (Optional)
+          Temporal Scope
         </label>
         <div className="flex gap-3">
           <div className="flex-1">
@@ -505,7 +503,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             </button>
           </div>
 
-          <div className="px-6 pt-4 pb-2">
+          <div className="px-6 pt-2 pb-2">
             <div className="flex items-center justify-between gap-2">
               {steps.map((step, index) => (
                 <React.Fragment key={step.id}>
