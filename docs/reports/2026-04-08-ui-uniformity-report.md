@@ -2,11 +2,16 @@
 
 Date: 2026-04-08
 
-Status: Folded Into Active Plan
+Status: Historical Input Folded Into Active Plan
 
 Active plan:
 
 - `docs/plans/11-ui-uniformity-roadmap.md`
+
+Current note:
+
+- treat this report as historical input from the original April 8 review
+- use `docs/plans/11-ui-uniformity-roadmap.md` as the rebased execution document after the canonical cleanup work landed
 
 Related inputs:
 
