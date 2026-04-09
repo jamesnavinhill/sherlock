@@ -41,6 +41,7 @@ describe('ChatSessionRail', () => {
     expect(screen.getByText('Procurement Review')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /rename/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
+    expect(screen.getAllByText('Workspace Summary')).toHaveLength(1);
     expect(screen.getByText(/weekly procurement and vendor review/i)).toBeInTheDocument();
   });
 });

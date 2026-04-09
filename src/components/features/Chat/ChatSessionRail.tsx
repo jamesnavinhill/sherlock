@@ -141,7 +141,6 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
         >
           <div className="space-y-2">
             <div className="osint-panel-item p-3">
-              <div className="osint-title-inline">Workspace Summary</div>
               <p className={CHROME_NESTED_ITEM_BODY_CLASS}>
                 {workspaceDescription || 'No workspace summary saved yet.'}
               </p>

@@ -134,9 +134,6 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
                   >
                     <div className="min-w-0 flex-1">
                       <div className="truncate osint-title-inline text-zinc-200">{artifact.topic}</div>
-                      <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
-                        <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>Artifact</span>
-                      </div>
                     </div>
                     {isExpanded ? (
                       <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
