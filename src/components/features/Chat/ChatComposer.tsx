@@ -154,7 +154,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-black/95 px-4 pb-4 pt-3 sm:px-6"
+      className="shrink-0 px-4 pb-3 pt-2 sm:px-6"
     >
       <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
         <div className="relative border-b border-zinc-800">
@@ -197,7 +197,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
                 ? `Ask about ${getWorkspaceDisplayTitle(activeWorkspace)}...`
                 : 'Select a workspace to begin chatting...'
             }
-            className="min-h-[132px] w-full resize-none bg-transparent px-4 py-4 osint-body-small text-white outline-none transition"
+            className="min-h-[72px] w-full resize-none bg-transparent px-4 py-3 osint-body-small text-white outline-none transition"
           />
 
           {mentionState?.results.length ? (
@@ -243,7 +243,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-3 px-3 py-3">
+        <div className="flex items-center justify-between gap-3 px-3 py-2">
           <div className="flex items-center gap-2">
             <button
               type="button"

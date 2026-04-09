@@ -73,10 +73,10 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
     : '';
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-black">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
       <div
         className={`min-h-0 flex-1 px-4 py-4 sm:px-6 ${
-          showWorkspaceEmptyState ? 'overflow-hidden' : 'overflow-y-auto'
+          showWorkspaceEmptyState ? 'overflow-hidden' : 'overflow-y-auto overscroll-contain'
         }`}
         data-app-scroll-region
       >
