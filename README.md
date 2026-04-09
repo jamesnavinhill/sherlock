@@ -165,6 +165,7 @@ The current targeted validation for the Files-as-home routing update passed on t
 - `docs/operations/CONTRIBUTING.md`
 - `docs/plans/10-canonical-cleanup-roadmap.md`
 - `docs/plans/11-ui-uniformity-roadmap.md`
+- `docs/plans/12-agent-terminal-roadmap.md`
 - `docs/reports/2026-04-08-ui-uniformity-report.md`
 
 Historical plans and reports live under `docs/_legacy/`.

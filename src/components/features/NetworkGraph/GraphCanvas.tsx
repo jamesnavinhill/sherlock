@@ -107,7 +107,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
     const nodePositionsRef = useRef<Record<string, Pick<GraphNode, 'x' | 'y' | 'fx' | 'fy'>>>({});
     const zoomTransformRef = useRef<d3.ZoomTransform | null>(null);
     const dragPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
-
+    const pinnedNodeIdsRef = useRef<Set<string>>(new Set());
     // D3 Refs
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
     const simulationRef = useRef<d3.Simulation<GraphNode, undefined> | null>(null);
@@ -463,17 +463,6 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
       const nodesById = new Map(filteredNodes.map((node) => [node.id, node]));
       const resolveNodeId = (node: string | GraphNode) => (typeof node === 'string' ? node : node.id);
-      const neighborIdsByNode = new Map<string, Set<string>>();
-      filteredLinks.forEach((linkDatum) => {
-        const sourceId = resolveNodeId(linkDatum.source);
-        const targetId = resolveNodeId(linkDatum.target);
-
-        if (!neighborIdsByNode.has(sourceId)) neighborIdsByNode.set(sourceId, new Set());
-        if (!neighborIdsByNode.has(targetId)) neighborIdsByNode.set(targetId, new Set());
-
-        neighborIdsByNode.get(sourceId)?.add(targetId);
-        neighborIdsByNode.get(targetId)?.add(sourceId);
-      });
       const getLayoutTarget = (node: GraphNode) =>
         layoutTargets[node.id] ?? {
           x: width / 2,
@@ -505,55 +494,35 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         const labelRadius = Math.min(node.label.length, 18) * 0.65;
         return baseRadius + connectionRadius + labelRadius;
       };
-      const getPositionalStrength = (node: GraphNode) => {
+      const getPositionalStrength = (node: GraphNode, released: boolean) => {
         if (node.fx != null || node.fy != null) return 0;
-        if (node.type === 'REPORT') return 0.1;
-        if (node.connections <= 1) return 0.028;
-        if (node.connections === 2) return 0.045;
-        return 0.065;
+        if (released) {
+          if (node.type === 'REPORT') return 0.014;
+          if (node.connections <= 1) return 0.0015;
+          if (node.connections === 2) return 0.004;
+          return 0.008;
+        }
+
+        if (node.type === 'REPORT') return 0.08;
+        if (node.connections <= 1) return 0.016;
+        if (node.connections === 2) return 0.03;
+        return 0.045;
       };
-      const moveTrailingNeighbors = (draggedNode: GraphNode, deltaX: number, deltaY: number) => {
-        const immediateNeighbors = Array.from(neighborIdsByNode.get(draggedNode.id) ?? []);
-
-        immediateNeighbors.forEach((neighborId) => {
-          const neighbor = nodesById.get(neighborId);
-          if (!neighbor || neighbor.fx != null || neighbor.fy != null) return;
-
-          const followStrength = neighbor.connections <= 1 ? 0.82 : 0.46;
-          neighbor.x = (neighbor.x ?? getLayoutTarget(neighbor).x) + deltaX * followStrength;
-          neighbor.y = (neighbor.y ?? getLayoutTarget(neighbor).y) + deltaY * followStrength;
-
-          if (neighbor.connections > 1) return;
-
-          const secondaryNeighbors = Array.from(neighborIdsByNode.get(neighbor.id) ?? []);
-          secondaryNeighbors.forEach((secondaryNeighborId) => {
-            if (secondaryNeighborId === draggedNode.id) return;
-            const secondaryNeighbor = nodesById.get(secondaryNeighborId);
-            if (!secondaryNeighbor || secondaryNeighbor.fx != null || secondaryNeighbor.fy != null) {
-              return;
-            }
-
-            const secondaryStrength = secondaryNeighbor.connections <= 1 ? 0.34 : 0.2;
-            secondaryNeighbor.x =
-              (secondaryNeighbor.x ?? getLayoutTarget(secondaryNeighbor).x) +
-              deltaX * secondaryStrength;
-            secondaryNeighbor.y =
-              (secondaryNeighbor.y ?? getLayoutTarget(secondaryNeighbor).y) +
-              deltaY * secondaryStrength;
-          });
-        });
-      };
+      const linkForce = d3
+        .forceLink<GraphNode, GraphLink>(filteredLinks)
+        .id((d) => d.id)
+        .distance((linkDatum) => getLinkDistance(linkDatum))
+        .strength((linkDatum) => (linkDatum.isManual ? 0.2 : 0.1));
+      const xForce = d3
+        .forceX<GraphNode>((node) => getLayoutTarget(node).x)
+        .strength((node) => getPositionalStrength(node, false));
+      const yForce = d3
+        .forceY<GraphNode>((node) => getLayoutTarget(node).y)
+        .strength((node) => getPositionalStrength(node, false));
 
       const simulation = d3
         .forceSimulation(filteredNodes)
-        .force(
-          'link',
-          d3
-            .forceLink<GraphNode, GraphLink>(filteredLinks)
-            .id((d) => d.id)
-            .distance((linkDatum) => getLinkDistance(linkDatum))
-            .strength((linkDatum) => (linkDatum.isManual ? 0.24 : 0.12))
-        )
+        .force('link', linkForce)
         .force(
           'charge',
           d3
@@ -561,18 +530,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             .strength((node) => -170 - Math.min(node.connections, 9) * 26)
             .distanceMax(620)
         )
-        .force(
-          'x',
-          d3
-            .forceX<GraphNode>((node) => getLayoutTarget(node).x)
-            .strength((node) => getPositionalStrength(node))
-        )
-        .force(
-          'y',
-          d3
-            .forceY<GraphNode>((node) => getLayoutTarget(node).y)
-            .strength((node) => getPositionalStrength(node))
-        )
+        .force('x', xForce)
+        .force('y', yForce)
         .force(
           'collide',
           d3
@@ -586,6 +545,14 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       if (isLocked) {
         simulation.stop();
       }
+
+      const releaseStructuredForces = () => {
+        xForce.strength((node) => getPositionalStrength(node, true));
+        yForce.strength((node) => getPositionalStrength(node, true));
+        linkForce.strength((linkDatum) => (linkDatum.isManual ? 0.18 : 0.075));
+        simulation.alpha(Math.max(simulation.alpha(), 0.08)).restart();
+      };
+      const releaseTimer = window.setTimeout(releaseStructuredForces, 900);
 
       simulationRef.current = simulation;
 
@@ -622,25 +589,33 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             .on(
               'drag',
               (event: d3.D3DragEvent<SVGGElement, GraphNode, GraphNode>, d: GraphNode) => {
-                const previousDragPosition = dragPositionsRef.current[d.id] ?? {
-                  x: d.fx ?? d.x ?? event.x,
-                  y: d.fy ?? d.y ?? event.y,
-                };
-                const deltaX = event.x - previousDragPosition.x;
-                const deltaY = event.y - previousDragPosition.y;
                 d.fx = event.x;
                 d.fy = event.y;
-                dragPositionsRef.current[d.id] = {
-                  x: event.x,
-                  y: event.y,
-                };
-
-                moveTrailingNeighbors(d, deltaX, deltaY);
               }
             )
             .on('end', (event: d3.D3DragEvent<SVGGElement, GraphNode, GraphNode>, d: GraphNode) => {
               if (!event.active) simulation.alphaTarget(0);
+              const dragStart = dragPositionsRef.current[d.id];
+              const movedDistance = dragStart
+                ? Math.hypot(event.x - dragStart.x, event.y - dragStart.y)
+                : 0;
+              const shouldPinNode = movedDistance > 4 || pinnedNodeIdsRef.current.has(d.id);
+
               delete dragPositionsRef.current[d.id];
+
+              if (shouldPinNode) {
+                pinnedNodeIdsRef.current.add(d.id);
+                d.fx = event.x;
+                d.fy = event.y;
+                nodePositionsRef.current[d.id] = {
+                  x: event.x,
+                  y: event.y,
+                  fx: event.x,
+                  fy: event.y,
+                };
+                return;
+              }
+
               d.fx = null;
               d.fy = null;
             })
@@ -738,6 +713,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
       });
 
       return () => {
+        window.clearTimeout(releaseTimer);
         simulation.stop();
       };
     }, [
