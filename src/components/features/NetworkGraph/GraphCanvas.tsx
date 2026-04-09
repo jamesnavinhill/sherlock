@@ -11,6 +11,7 @@ import type {
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneCssVar } from '../../../utils/entityPalette';
 import { getReportGraphNodeId } from './networkGraphNodeIds';
+import { computeStructuredGraphLayout } from './graphLayout';
 
 // Graph Types
 export interface GraphNode extends d3.SimulationNodeDatum {
@@ -274,8 +275,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             data: data,
             connections: 0,
             isManual,
-            x: previousPosition?.x ?? width / 2 + (Math.random() - 0.5) * 50,
-            y: previousPosition?.y ?? height / 2 + (Math.random() - 0.5) * 50,
+            x: previousPosition?.x,
+            y: previousPosition?.y,
             fx: previousPosition?.fx ?? null,
             fy: previousPosition?.fy ?? null,
           });
@@ -405,6 +406,33 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         filteredLinks = linksArray;
       }
 
+      const layoutTargets = computeStructuredGraphLayout(
+        filteredNodes.map((node) => ({
+          id: node.id,
+          type: node.type,
+          connections: node.connections,
+        })),
+        filteredLinks.map((link) => ({
+          source: typeof link.source === 'string' ? link.source : link.source.id,
+          target: typeof link.target === 'string' ? link.target : link.target.id,
+        })),
+        width,
+        height
+      );
+
+      filteredNodes.forEach((node) => {
+        const previousPosition = nodePositionsRef.current[node.id];
+        const target = layoutTargets[node.id] ?? {
+          x: width / 2,
+          y: height / 2,
+        };
+
+        node.x = previousPosition?.x ?? target.x;
+        node.y = previousPosition?.y ?? target.y;
+        node.fx = previousPosition?.fx ?? node.fx ?? null;
+        node.fy = previousPosition?.fy ?? node.fy ?? null;
+      });
+
       // Update Stats to Parent
       onStatsUpdate({
         workspaces: activeReports.length,
@@ -432,6 +460,40 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         svg.call(zoom.transform, zoomTransformRef.current);
       }
 
+      const nodesById = new Map(filteredNodes.map((node) => [node.id, node]));
+      const resolveNodeId = (node: string | GraphNode) => (typeof node === 'string' ? node : node.id);
+      const getLayoutTarget = (node: GraphNode) =>
+        layoutTargets[node.id] ?? {
+          x: width / 2,
+          y: height / 2,
+          tier: 0,
+          componentIndex: 0,
+          hubId: null,
+        };
+      const getLinkDistance = (linkDatum: GraphLink) => {
+        const sourceNode = nodesById.get(resolveNodeId(linkDatum.source));
+        const targetNode = nodesById.get(resolveNodeId(linkDatum.target));
+        if (!sourceNode || !targetNode) return 100;
+
+        const sourceTarget = getLayoutTarget(sourceNode);
+        const targetTarget = getLayoutTarget(targetNode);
+        const tierGap = Math.abs(sourceTarget.tier - targetTarget.tier);
+        const componentGap = sourceTarget.componentIndex === targetTarget.componentIndex ? 0 : 30;
+        const leafBias =
+          Math.min(sourceNode.connections, targetNode.connections) <= 1 ? 22 : 0;
+        const reportBias =
+          sourceNode.type === 'REPORT' || targetNode.type === 'REPORT' ? -10 : 6;
+        const manualBias = linkDatum.isManual ? -12 : 0;
+
+        return Math.max(72, 86 + tierGap * 18 + componentGap + leafBias + reportBias + manualBias);
+      };
+      const getCollisionRadius = (node: GraphNode) => {
+        const baseRadius = node.type === 'REPORT' ? 34 : 20;
+        const connectionRadius = Math.min(node.connections, 8) * 2;
+        const labelRadius = Math.min(node.label.length, 18) * 0.65;
+        return baseRadius + connectionRadius + labelRadius;
+      };
+
       const simulation = d3
         .forceSimulation(filteredNodes)
         .force(
@@ -439,14 +501,37 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
           d3
             .forceLink<GraphNode, GraphLink>(filteredLinks)
             .id((d) => d.id)
-            .distance(100)
+            .distance((linkDatum) => getLinkDistance(linkDatum))
+            .strength((linkDatum) => (linkDatum.isManual ? 0.24 : 0.12))
         )
-        .force('charge', d3.forceManyBody().strength(-300).distanceMax(500)) // distanceMax for performance
-        .force('x', d3.forceX(width / 2).strength(0.08))
-        .force('y', d3.forceY(height / 2).strength(0.08))
-        .force('collide', d3.forceCollide().radius(30).iterations(1)) // reduce iterations
-        .alphaDecay(0.05) // faster cooling
-        .velocityDecay(0.4); // higher friction
+        .force(
+          'charge',
+          d3
+            .forceManyBody<GraphNode>()
+            .strength((node) => -170 - Math.min(node.connections, 9) * 26)
+            .distanceMax(620)
+        )
+        .force(
+          'x',
+          d3
+            .forceX<GraphNode>((node) => getLayoutTarget(node).x)
+            .strength((node) => (node.type === 'REPORT' ? 0.14 : 0.1))
+        )
+        .force(
+          'y',
+          d3
+            .forceY<GraphNode>((node) => getLayoutTarget(node).y)
+            .strength((node) => (node.type === 'REPORT' ? 0.14 : 0.1))
+        )
+        .force(
+          'collide',
+          d3
+            .forceCollide<GraphNode>()
+            .radius((node) => getCollisionRadius(node))
+            .iterations(2)
+        )
+        .alphaDecay(0.04)
+        .velocityDecay(0.32);
 
       if (isLocked) {
         simulation.stop();
