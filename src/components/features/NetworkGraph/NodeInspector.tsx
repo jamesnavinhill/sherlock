@@ -24,8 +24,15 @@ import { EditableTitle } from '../../ui/EditableTitle';
 import { Accordion } from '../../ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '../../ui/InspectorActionRow';
 import {
+  CHROME_ACTION_BUTTON_CLASS,
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
+  CHROME_NESTED_ITEM_ACTION_ROW_CLASS,
+  CHROME_NESTED_ITEM_BADGE_CLASS,
+  CHROME_NESTED_ITEM_BODY_CLASS,
+  CHROME_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_NESTED_ITEM_CLASS,
+  CHROME_NESTED_ITEM_HEADER_CLASS,
 } from '../../ui/chrome';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneClass } from '../../../utils/entityPalette';
@@ -461,7 +468,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
-            <div className="bg-zinc-900/50 p-4 border border-zinc-800">
+            <div className={CHROME_NESTED_ITEM_CLASS}>
               <h4 className="osint-meta-label mb-2">Executive Summary</h4>
               <p className="osint-body-small line-clamp-6">
                 {selectedReport.summary.substring(0, 300)}...
@@ -485,9 +492,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     <button
                       key={idx}
                       disabled
-                      className="osint-meta-value w-full cursor-default truncate p-2 text-left hover:bg-zinc-900 hover:text-white"
+                      className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} cursor-default truncate`}
                     >
-                      {name}
+                      <span className="osint-meta-value">{name}</span>
                     </button>
                   );
                 })}
@@ -506,17 +513,20 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                   <p className="osint-body-quiet px-2 py-1">No leads found.</p>
                 )}
                 {selectedReport.leads?.map((lead, idx) => (
-                  <div key={idx} className="p-2 bg-zinc-900/20 border border-zinc-800/50 mb-1">
-                    <p className="osint-body-quiet mb-2 line-clamp-2">{lead}</p>
-                    <button
-                      onClick={() => {
-                        onInvestigate(lead);
-                        onClose();
-                      }}
-                      className="osint-button-primary osint-meta-label-strong w-full py-1 text-center"
-                    >
-                      Investigate
-                    </button>
+                  <div key={idx} className={CHROME_NESTED_ITEM_CLASS}>
+                    <div className="osint-title-inline">Lead</div>
+                    <p className={`${CHROME_NESTED_ITEM_BODY_CLASS} line-clamp-3`}>{lead}</p>
+                    <div className={CHROME_NESTED_ITEM_ACTION_ROW_CLASS}>
+                      <button
+                        onClick={() => {
+                          onInvestigate(lead);
+                          onClose();
+                        }}
+                        className={`${CHROME_ACTION_BUTTON_CLASS} w-full`}
+                      >
+                        Investigate
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -539,10 +549,15 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="osint-link-list-item osint-meta-value block truncate border-b border-zinc-900 p-2 last:border-0"
+                    className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} osint-link-list-item block`}
                   >
-                    <Link2 className="w-3 h-3 inline mr-1" />
-                    {s.title}
+                    <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate osint-title-inline">{s.title}</div>
+                        {s.url ? <div className={CHROME_NESTED_ITEM_BODY_CLASS}>{s.url}</div> : null}
+                      </div>
+                      <Link2 className="mt-0.5 h-4 w-4 shrink-0" />
+                    </div>
                   </a>
                 ))}
               </div>
@@ -638,10 +653,17 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     <button
                       key={r.id}
                       onClick={() => onOpenReport(r)}
-                      className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group"
+                      className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} group`}
                     >
-                      <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
-                      <span className="osint-meta-value truncate">{r.topic}</span>
+                      <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate osint-title-inline text-zinc-200">{r.topic}</div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>Artifact</span>
+                          </div>
+                        </div>
+                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500 group-hover:text-osint-primary" />
+                      </div>
                     </button>
                   ))
                 ) : (
@@ -661,32 +683,37 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                   getEntityConnections(selectedEntity).map((conn, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2 bg-zinc-900/20 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-900/40"
+                      className={CHROME_NESTED_ITEM_CLASS}
                     >
-                      <div className="flex items-center truncate max-w-[70%]">
-                        {conn.entity.type === 'PERSON' ? (
-                          <User
-                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                          />
-                        ) : conn.entity.type === 'ORGANIZATION' ? (
-                          <Building2
-                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                          />
-                        ) : (
-                          <Shapes
-                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                          />
-                        )}
-                        <span
-                          className="osint-meta-value truncate"
-                          title={conn.entity.name}
-                        >
-                          {conn.entity.name}
-                        </span>
+                      <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
+                        <div className="min-w-0 flex flex-1 items-start gap-2">
+                          {conn.entity.type === 'PERSON' ? (
+                            <User
+                              className={`mt-0.5 h-3 w-3 shrink-0 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                            />
+                          ) : conn.entity.type === 'ORGANIZATION' ? (
+                            <Building2
+                              className={`mt-0.5 h-3 w-3 shrink-0 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                            />
+                          ) : (
+                            <Shapes
+                              className={`mt-0.5 h-3 w-3 shrink-0 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div
+                              className="truncate osint-title-inline text-zinc-200"
+                              title={conn.entity.name}
+                            >
+                              {conn.entity.name}
+                            </div>
+                            <div className={CHROME_NESTED_ITEM_BODY_CLASS}>
+                              Shared report appearances with {selectedEntity}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>{conn.count} Links</span>
                       </div>
-                      <span className="osint-meta-label rounded-sm bg-zinc-800 px-1.5 py-0.5">
-                        {conn.count} Links
-                      </span>
                     </div>
                   ))
                 ) : (

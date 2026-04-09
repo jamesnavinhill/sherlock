@@ -3,6 +3,16 @@ import { MessageSquare, Pencil, Trash2, FileText } from 'lucide-react';
 
 import type { ChatMessage, ChatSession } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
+import {
+  CHROME_ACTION_BUTTON_CLASS,
+  CHROME_NESTED_ITEM_ACTION_ROW_CLASS,
+  CHROME_NESTED_ITEM_BODY_CLASS,
+  CHROME_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_NESTED_ITEM_META_ROW_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+  getRailAccordionClassName,
+} from '@/components/ui/chrome';
 
 interface ChatSessionRailProps {
   activeSessionId: string | null;
@@ -44,27 +54,25 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
   onRenameSession,
   onDeleteSession,
 }) => {
-  const getAccordionClassName = (isOpen: boolean) =>
-    isOpen ? 'mb-0 flex min-h-0 flex-1 flex-col' : 'mb-0 shrink-0';
-
   return (
     <aside
       className={`${leftPanelOpen ? 'translate-x-0' : '-translate-x-full lg:w-0 lg:-translate-x-0 lg:border-r-0'} fixed inset-y-0 left-0 z-30 w-80 overflow-hidden border-r border-zinc-800 bg-black/95 shadow-2xl transition-all duration-300 lg:relative lg:z-0 lg:flex lg:flex-shrink-0 lg:flex-col lg:shadow-none ${leftPanelOpen ? 'lg:w-80' : 'lg:w-0'} backdrop-blur-md`}
     >
-      <div className="border-b border-zinc-800 bg-zinc-900/30 p-4">
-        <h2 className="osint-panel-title">{workspaceTitle}</h2>
+      <div className={CHROME_PANEL_HEADER_CLASS}>
+        <div className="osint-eyebrow">Library</div>
+        <h2 className="mt-1 osint-panel-title">{workspaceTitle || 'Workspace Chat'}</h2>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden bg-black/20 p-2">
+      <div className={`${CHROME_RAIL_BODY_CLASS} bg-black/20`}>
         <Accordion
           title="Sessions"
           count={workspaceSessions.length}
           icon={MessageSquare}
           isOpen={leftPanelSections.sessions}
           onToggle={onToggleSessions}
-          className={getAccordionClassName(leftPanelSections.sessions)}
+          className={getRailAccordionClassName(leftPanelSections.sessions)}
           contentClassName={sectionScrollClassName}
         >
-          <div className="space-y-1">
+          <div className="space-y-2">
             {workspaceSessions.length === 0 ? (
               <p className="osint-body-quiet px-2 py-1 italic">
                 No chat history for this workspace yet.
@@ -77,35 +85,42 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
                 return (
                   <div
                     key={session.id}
-                    className={`border-l-2 ${
-                      activeSessionId === session.id
-                        ? 'border-osint-primary bg-zinc-900/50'
-                        : 'border-transparent bg-zinc-900/20 hover:border-zinc-600'
-                    }`}
+                    className={CHROME_NESTED_ITEM_BUTTON_CLASS}
+                    data-active={activeSessionId === session.id}
                   >
                     <button
+                      type="button"
                       onClick={() => onSelectSession(session)}
-                      className="w-full px-2 py-2 text-left"
+                      className="w-full text-left"
                     >
-                      <div className="osint-body-small line-clamp-2">{getSessionTitle(session)}</div>
-                      <div className="osint-meta-label mt-1">
-                        {sessionGuidedState ? 'Guided' : 'Chat'} / {sessionMessageCount} messages
+                      <div className="osint-title-inline line-clamp-2 text-zinc-200">
+                        {getSessionTitle(session)}
                       </div>
-                      <div className="osint-body-quiet mt-1">{formatDateTime(session.updatedAt)}</div>
+                      <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
+                        <span className="osint-meta-label">
+                          {sessionGuidedState ? 'Guided' : 'Chat'}
+                        </span>
+                        <span className="osint-meta-label">{sessionMessageCount} messages</span>
+                      </div>
+                      <div className={CHROME_NESTED_ITEM_BODY_CLASS}>
+                        Updated {formatDateTime(session.updatedAt)}
+                      </div>
                     </button>
-                    <div className="flex gap-3 px-2 pb-2">
+                    <div className={CHROME_NESTED_ITEM_ACTION_ROW_CLASS}>
                       <button
+                        type="button"
                         onClick={() => onRenameSession(session)}
-                        className="osint-meta-label inline-flex items-center gap-1 transition hover:text-white"
+                        className={CHROME_ACTION_BUTTON_CLASS}
                       >
-                        <Pencil className="h-3 w-3" />
+                        <Pencil className="h-4 w-4" />
                         Rename
                       </button>
                       <button
+                        type="button"
                         onClick={() => onDeleteSession(session)}
-                        className="osint-meta-label inline-flex items-center gap-1 osint-danger-inline"
+                        className={`${CHROME_ACTION_BUTTON_CLASS} osint-danger-inline`}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-4 w-4" />
                         Delete
                       </button>
                     </div>
@@ -121,12 +136,17 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
           icon={FileText}
           isOpen={leftPanelSections.workspace}
           onToggle={onToggleWorkspace}
-          className={getAccordionClassName(leftPanelSections.workspace)}
+          className={getRailAccordionClassName(leftPanelSections.workspace)}
           contentClassName={sectionScrollClassName}
         >
-          <p className="osint-body-small px-2 py-1">
-            {workspaceDescription || 'No workspace summary saved yet.'}
-          </p>
+          <div className="space-y-2">
+            <div className="osint-panel-item p-3">
+              <div className="osint-title-inline">Workspace Summary</div>
+              <p className={CHROME_NESTED_ITEM_BODY_CLASS}>
+                {workspaceDescription || 'No workspace summary saved yet.'}
+              </p>
+            </div>
+          </div>
         </Accordion>
       </div>
     </aside>

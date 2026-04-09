@@ -157,6 +157,13 @@ These are still the baseline unless a later doc explicitly revises them.
 - The rail container itself should not become the awkward second scrollbar.
 - The Board library may keep richer nested rows, but it does not get to keep a divergent shell contract.
 
+Implementation clarification:
+
+- Treat the expanded section as pinned cleanly to the bottom edge of the rail, with the collapsed sections above it.
+- The open section owns the inline scroll region; the overall rail should stay visually locked and crisp.
+- This pinned-bottom behavior is the standard for all rails, including Board, Chat, Timeline, Network, and viewer-side detail panels.
+- The Board library keeps its richer dropdown/info anatomy, but its expanded section still needs to stop cleanly within the rail instead of pushing the top area into a second scrollbar.
+
 ### 3. Interaction-state split
 
 - Neutral surface treatment is the default browse-and-select language.
@@ -164,7 +171,34 @@ These are still the baseline unless a later doc explicitly revises them.
 - These two families should cover almost all routine hover, active, and selected states.
 - Exceptions should stay explicit and rare.
 
-### 4. Main report direction
+Implementation clarification:
+
+- Top-level section items use the neutral browse/select family.
+- Action buttons, launch buttons, and mode toggles use the accent action family.
+- Section item hover/active states should inherit the same accent-system treatment already used in header/toolbar controls.
+- Existing approved exceptions remain: destructive actions, toasts, accent-system badges, entity colors, and other already-systematized semantic states.
+
+### 4. Header anatomy
+
+- Eyebrows should be plain text only and should not carry decorative icons.
+- The eyebrow should identify only the panel role, not the surface or parent object.
+- The title should carry the meaningful subject: the workspace name, selected artifact title, selected entity, selected event, and so on.
+- For now, keep the language simple and literal:
+  - left-side rails: `Library`
+  - right-side rails: `Details`, `Context`, or `Inspector`
+- Remove labels such as `Canonical Library`, `Timeline Dossier`, `Workspace Context`, and similar compound headers.
+- Specifically remove the icon from the current canvas/canonical library eyebrow and collapse that label to `Library`.
+
+### 5. Action-row placement
+
+- Panel-level actions should sit directly beneath the header, above the accordion/section stack.
+- These actions should use the same visual language as header/toolbar controls:
+  - light outline by default
+  - accent hover state
+  - accent active/selected state
+- Do not bury primary panel actions inside lower sections when they are panel-scoped controls.
+
+### 6. Main report direction
 
 - Remove the current top summary / reading-pattern block from the main report view.
 - Keep panels for scanning and actions.
@@ -172,11 +206,58 @@ These are still the baseline unless a later doc explicitly revises them.
 - `Key Findings` belongs near the top of the document body.
 - Findings should also remain visible in the details rail.
 
-### 5. Clean cutovers over indefinite bridges
+### 7. Clean cutovers over indefinite bridges
 
 - Do not ship a viewer-only `Key Findings` feature that still depends on `agendas`, generic `SECTION` snippets, or arbitrary metadata blobs as the real source of truth.
 - Do not introduce long-lived UI compatibility shims just to preserve old local panel behavior.
 - If a temporary bridge is required, it needs explicit removal criteria in this roadmap.
+
+## Panel-Specific Target Clarifications
+
+These targets further specify the streams below and should be treated as implementation criteria, not optional design ideas.
+
+### 1. Artifact details and `Key Findings`
+
+- The Artifact details rail becomes the canonical pattern for report-side detail presentation.
+- `Key Findings` in the details rail should follow that report-details layout rather than a separate card/grid idiom.
+- Follow-up questions triggered from findings should use one shared hover and expanded-row anatomy.
+- All follow-up questions should use the same nested layout as the report details panel rather than surface-specific variants.
+
+### 2. Entities presentation
+
+- Entities should combine:
+  - the two-column density and scanning rhythm of the full workspace library
+  - the dot-based row marker treatment used in the report details panel
+- Do not use the older icon-heavy entity-row treatment in this converged layout.
+
+### 3. Sources and provenance presentation
+
+- Sources/provenance rows should use the lighter viewer-library font treatment.
+- This text should read slightly lighter/subtler than the section label, not heavier.
+- Preserve readability, but keep it clearly in the supporting-information role.
+
+### 4. Board, Chat, session, and signal nested rows
+
+- The Board library keeps its richer dropdown/info panels and add-to-board flows.
+- The richer Board nested anatomy becomes the baseline reference for other actionable contextual rows.
+- Chat context items should converge toward the Board library artifact-row pattern:
+  - same row layout
+  - same supporting text treatment
+  - same nested info rhythm
+  - same button styling, with product-appropriate actions such as `Summary` / `Full` instead of `Add to Board`
+- Chat sessions and signal-like left/right side panels should likely follow this same actionable nested pattern where items expose actions and contextual drill-in.
+
+### 5. Network library simplification
+
+- The Network library should stop behaving like a special-case surface where that difference is only cosmetic.
+- Remove the extra counter-row treatment when it does not add real value.
+- Standardize it to the same global header model: eyebrow plus title, with the shared shell and section behavior.
+
+### 6. Section-title and item-state behavior
+
+- Section titles should consistently use the simple depth/shadow treatment already present on the stronger surfaces.
+- Section items should adopt the same hover/active treatment family as header and toolbar buttons, expressed through the accent system.
+- Any remaining selectors or buttons that sit outside the existing accent system should be brought into it unless they are a deliberate semantic exception.
 
 ## Stream 2 Decision Lock
 
@@ -275,17 +356,21 @@ Execution checklist:
 
 1. Extract or codify one shared rail header anatomy.
 2. Standardize eyebrows to `Library`, `Details`, `Context`, or `Inspector`.
-3. Remove `Canonical Library`, `Timeline Dossier`, and similar off-contract labels.
-4. Place shared action rows directly beneath the header across affected right rails.
-5. Make the expanded top-level section flex into remaining height and scroll inline.
-6. Keep the Board library rich in nested content without preserving a divergent shell.
-7. Split top-level section-header styling from meaningful selectable row styling.
-8. Normalize browse/select rows and launch/action controls into the two canonical interaction families.
+3. Remove eyebrow icons and labels such as `Canonical Library`, `Timeline Dossier`, and similar off-contract headers.
+4. Place shared action rows directly beneath the header across affected rails wherever the actions are panel-scoped.
+5. Make the expanded top-level section flex into remaining height, pin cleanly to the bottom of the rail, and scroll inline.
+6. Eliminate top-level double-scroll behavior so the rail container itself stays visually stable.
+7. Keep the Board library rich in nested content without preserving a divergent shell.
+8. Split top-level section-header styling from meaningful selectable row styling.
+9. Normalize browse/select rows and launch/action controls into the two canonical interaction families.
 
 Exit criteria:
 
 - major rails share one obvious shell contract
 - left and right rail vocabulary is consistent
+- headers use the same plain-text eyebrow and title anatomy
+- panel-scoped actions appear in the same location
+- expanded sections feel pinned and crisp instead of stretching the rail awkwardly
 - the Board library no longer feels like a structurally separate subsystem
 
 ## Stream 2. First-Class `Key Findings` Contract And Persistence
@@ -362,17 +447,18 @@ Execution checklist:
 1. Remove the top reading-pattern / summary block.
 2. Rebuild the main column around substantive document sections.
 3. Render `Key Findings` from canonical finding records near the top of the document body.
-4. Keep findings visible in the details rail using the canonical item-row treatment.
-5. Normalize follow-up rows to one shared pattern.
-6. Restyle entities as a two-column library-like layout with the details-panel dot treatment.
-7. Use the lighter viewer-library treatment for sources and provenance rows.
+4. Keep findings visible in the details rail using the report-details panel anatomy as the canonical layout.
+5. Normalize follow-up question rows, hover states, and expanded nested content to one shared details-panel pattern.
+6. Restyle entities as a two-column library-like layout with the details-panel dot treatment replacing the older icon-heavy row marker.
+7. Use the lighter viewer-library treatment for sources and provenance rows so supporting text reads slightly lighter than the section label.
 8. Prefer chips and inline links for entity/source mentions.
-9. Preserve+expand editability and evidence-jump affordances.
+9. Preserve and expand editability and evidence-jump affordances.
 
 Exit criteria:
 
 - the main report reads like a document, not a dashboard
 - findings, follow-ups, entities, and provenance read as one family
+- the details rail feels like the canonical report-side nested layout rather than a collection of local patterns
 
 ## Stream 4. Actionable Nested-Item Parity Across Viewer, Board, Chat, Timeline, And Network
 
@@ -394,14 +480,19 @@ Primary targets:
 Execution checklist:
 
 1. Treat the strongest Board nested-item anatomy as the baseline for actionable contextual rows.
-2. Replace ad hoc Chat row actions such as `Summary` and `Full Text` with the shared action family.
-3. Align Timeline and Network inspector rows where they diverge from the shared item contract.
-4. Carry Stream 2 finding support into downstream rows only where the chosen finding contract requires it.
-5. Keep Board library richness where it adds value, but remove purely local visual language.
+2. Align Chat context rows to the Board artifact-row pattern, including supporting text, nested info layout, and action-button styling.
+3. Replace ad hoc Chat row actions such as `Summary` and `Full Text` with the shared action family while preserving their product-specific function.
+4. Apply the same actionable nested-row model to chat session/signal-style side panels where the items expose context and actions.
+5. Align Timeline and Network inspector rows where they diverge from the shared item contract.
+6. Simplify the Network library by removing non-essential counter-row chrome and standardizing it to the shared header/shell model.
+7. Carry Stream 2 finding support into downstream rows only where the chosen finding contract requires it.
+8. Keep Board library richness where it adds value, but remove purely local visual language.
 
 Exit criteria:
 
 - actionable context rows across Board, Chat, Timeline, and Network feel clearly related
+- Chat session/context and Board nested rows read as variants of the same actionable pattern
+- the Network library no longer feels like an odd cosmetic outlier
 - the remaining differences are functional, not accidental
 
 ## Stream 5. Typography, State, Motion, And Overlay Closeout
@@ -421,14 +512,16 @@ Execution checklist:
 
 1. Normalize the neutral browse/select state family across structural and navigational items.
 2. Normalize the accent action state family across launch and execution controls.
-3. Normalize section-title shadow treatment and secondary-copy roles.
-4. Reduce motion to the smallest useful set.
-5. Sweep obvious popup, menu, and modal outliers only after the main panel language is stable.
+3. Normalize section-title shadow treatment and secondary-copy roles, including the lighter sources/provenance typography.
+4. Ensure section items inherit the header/toolbar accent-system hover and active treatment where appropriate.
+5. Reduce motion to the smallest useful set.
+6. Sweep obvious popup, menu, and modal outliers only after the main panel language is stable.
 
 Exit criteria:
 
 - hover, active, and selected states no longer feel fragmented
 - secondary copy and panel typography come from a small intentional set of roles
+- section titles and actionable rows share one consistent state language
 - motion feels restrained and utilitarian rather than decorative
 
 ## Completion Standard

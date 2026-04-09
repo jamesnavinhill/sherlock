@@ -21,6 +21,9 @@ import {
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
+  CHROME_NESTED_ITEM_BADGE_CLASS,
+  CHROME_NESTED_ITEM_BODY_CLASS,
+  CHROME_NESTED_ITEM_CLASS,
   getRailAccordionClassName,
 } from '@/components/ui/chrome';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '@/domain';
@@ -104,11 +107,11 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
             contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-3 px-1 py-1 osint-meta-value">
-              <div>
+              <div className={CHROME_NESTED_ITEM_CLASS}>
                 <div className="osint-meta-label">Type</div>
                 <div className="mt-1">{selectedEvent.type}</div>
               </div>
-              <div>
+              <div className={CHROME_NESTED_ITEM_CLASS}>
                 <div className="osint-meta-label">Occurred</div>
                 <div className="mt-1">
                   {selectedEvent.occurredAt > 0
@@ -117,9 +120,9 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               </div>
               {selectedEvent.summary ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Summary</div>
-                  <div className="mt-1 osint-body-muted">{selectedEvent.summary}</div>
+                  <div className={CHROME_NESTED_ITEM_BODY_CLASS}>{selectedEvent.summary}</div>
                 </div>
               ) : null}
             </div>
@@ -134,44 +137,44 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
             contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
           >
             <div className="space-y-3 px-1 py-1 osint-meta-value">
-              <div>
+              <div className={CHROME_NESTED_ITEM_CLASS}>
                 <div className="osint-meta-label">Workspace</div>
                 <div className="mt-1">
                   {activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : 'Unknown'}
                 </div>
               </div>
               {selectedWorkspaceItem ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Workspace Item</div>
                   <div className="mt-1">{selectedWorkspaceItem.title}</div>
                 </div>
               ) : null}
               {selectedChatSession ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Chat Session</div>
                   <div className="mt-1">{selectedChatSession.title || 'Workspace Chat'}</div>
                 </div>
               ) : null}
               {selectedWorkspaceItem?.url ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Linked Source</div>
                   <div className="mt-1 break-all">{selectedWorkspaceItem.url}</div>
                 </div>
               ) : null}
               {selectedWorkspaceItem?.provenance?.source ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Item Provenance</div>
                   <div className="mt-1">{selectedWorkspaceItem.provenance.source}</div>
                 </div>
               ) : null}
               {selectedEntityName ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Entity</div>
                   <div className="mt-1">{selectedEntityName}</div>
                 </div>
               ) : null}
               {selectedArtifact ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">
                     Related {labelProfile.artifactLabel}
                   </div>
@@ -179,7 +182,7 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
               {parentArtifact ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">
                     Parent {labelProfile.artifactLabel}
                   </div>
@@ -187,31 +190,31 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
               {relatedSignal ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Origin Signal</div>
-                  <div className="mt-1">{relatedSignal.content}</div>
+                  <div className={CHROME_NESTED_ITEM_BODY_CLASS}>{relatedSignal.content}</div>
                 </div>
               ) : null}
               {selectedRun ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Source Run</div>
                   <div className="mt-1">{sanitizeDisplayTitle(selectedRun.topic)}</div>
                 </div>
               ) : null}
               {selectedChatLaunchContext?.entityName ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Pinned Entity</div>
                   <div className="mt-1">{selectedChatLaunchContext.entityName}</div>
                 </div>
               ) : null}
               {typeof getMetadataValue<number>(selectedEvent, 'mentionCount') === 'number' ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Artifact Mentions</div>
                   <div className="mt-1">{getMetadataValue<number>(selectedEvent, 'mentionCount')}</div>
                 </div>
               ) : null}
               {typeof getMetadataValue<number>(selectedEvent, 'threshold') === 'number' ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Milestone Threshold</div>
                   <div className="mt-1">
                     {getMetadataValue<number>(selectedEvent, 'threshold')} mentions
@@ -219,7 +222,7 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
               {getMetadataValue<string>(selectedEvent, 'daysSincePrevious') ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Gap Since Previous</div>
                   <div className="mt-1">
                     {getMetadataValue<string>(selectedEvent, 'daysSincePrevious')}
@@ -227,19 +230,19 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
               {typeof selectedChatAction?.input?.query === 'string' ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Workspace Query</div>
                   <div className="mt-1">{selectedChatAction.input.query}</div>
                 </div>
               ) : null}
               {typeof selectedChatAction?.input?.topic === 'string' ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Requested Topic</div>
                   <div className="mt-1">{selectedChatAction.input.topic}</div>
                 </div>
               ) : null}
               {typeof getMetadataValue<number>(selectedEvent, 'citedSnippetCount') === 'number' ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Citations Used</div>
                   <div className="mt-1">
                     {getMetadataValue<number>(selectedEvent, 'citedSnippetCount')}
@@ -247,13 +250,13 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
               {getMetadataValue<string>(selectedEvent, 'source') ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Source</div>
                   <div className="mt-1">{getMetadataValue<string>(selectedEvent, 'source')}</div>
                 </div>
               ) : null}
               {getMetadataValue<string>(selectedEvent, 'launchSource') ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Launch Source</div>
                   <div className="mt-1">
                     {getMetadataValue<string>(selectedEvent, 'launchSource')}
@@ -261,13 +264,13 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
               {selectedEvent.badges?.length ? (
-                <div>
+                <div className={CHROME_NESTED_ITEM_CLASS}>
                   <div className="osint-meta-label">Tags</div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {selectedEvent.badges.map((badge) => (
                       <span
                         key={`${selectedEvent.id}-detail-${badge}`}
-                        className="border border-zinc-700 bg-black px-2 py-1 osint-meta-label"
+                        className={CHROME_NESTED_ITEM_BADGE_CLASS}
                       >
                         {badge}
                       </span>

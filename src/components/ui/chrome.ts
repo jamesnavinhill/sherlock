@@ -20,6 +20,25 @@ export const CHROME_RAIL_SECTION_SCROLL_CLASS =
 export const CHROME_ACTION_BUTTON_CLASS =
   'osint-surface-button inline-flex h-9 items-center justify-center gap-2 px-3 osint-meta-label-strong text-zinc-300';
 
+export const CHROME_NESTED_ITEM_CLASS = 'osint-panel-item p-3';
+
+export const CHROME_NESTED_ITEM_BUTTON_CLASS = `${CHROME_NESTED_ITEM_CLASS} w-full text-left`;
+
+export const CHROME_NESTED_ITEM_HEADER_CLASS = 'flex items-start justify-between gap-3';
+
+export const CHROME_NESTED_ITEM_META_ROW_CLASS = 'mt-2 flex flex-wrap items-center gap-2';
+
+export const CHROME_NESTED_ITEM_BODY_CLASS = 'mt-2 osint-body-muted';
+
+export const CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS = 'mt-2 osint-body-quiet';
+
+export const CHROME_NESTED_ITEM_ACTION_ROW_CLASS = 'mt-3 flex flex-wrap items-center gap-2';
+
+export const CHROME_NESTED_ITEM_BADGE_CLASS =
+  'rounded-none border border-zinc-800 bg-black/40 px-2 py-1 osint-meta-label text-zinc-500';
+
+export const CHROME_NESTED_ITEM_DOT_CLASS = 'mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-600';
+
 export const CHROME_HEADER_LEADING_GROUP_CLASS = 'flex min-w-0 flex-1 items-center gap-3';
 
 export const CHROME_HEADER_ICON_BUTTON_SIZE_CLASS = 'shrink-0 p-1.5';

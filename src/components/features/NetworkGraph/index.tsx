@@ -157,6 +157,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         <DossierPanel
           isOpen={showLeftPanel}
           overlayOnDesktop
+          showHeaderSummary={false}
           activeCase={workspaces.find((workspace) => workspace.id === filterWorkspaceId) || null}
           labelProfile={dossierLabelProfile}
           reports={dossierData.reports}

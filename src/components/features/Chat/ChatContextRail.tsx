@@ -11,6 +11,13 @@ import type { AgentAction, Artifact, ChatMessage, Signal } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import {
   CHROME_ACTION_BUTTON_CLASS,
+  CHROME_NESTED_ITEM_ACTION_ROW_CLASS,
+  CHROME_NESTED_ITEM_BADGE_CLASS,
+  CHROME_NESTED_ITEM_BODY_CLASS,
+  CHROME_NESTED_ITEM_CLASS,
+  CHROME_NESTED_ITEM_HEADER_CLASS,
+  CHROME_NESTED_ITEM_META_ROW_CLASS,
+  CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
@@ -87,8 +94,10 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
           contentClassName={railSectionScrollClassName}
         >
           <div className="space-y-2 px-2 py-1">
-            <div className="osint-meta-value">{launchContextSummary.title}</div>
-            <p className="osint-body-muted">{launchContextSummary.body}</p>
+            <div className={CHROME_NESTED_ITEM_CLASS}>
+              <div className="osint-title-inline">{launchContextSummary.title}</div>
+              <p className={CHROME_NESTED_ITEM_BODY_CLASS}>{launchContextSummary.body}</p>
+            </div>
           </div>
         </Accordion>
       ) : null}
@@ -113,13 +122,22 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
               const isExpanded = !!expandedArtifactIds[artifactKey];
 
               return (
-                <div key={artifactKey} className="osint-panel-item p-2">
+                <div
+                  key={artifactKey}
+                  className={CHROME_NESTED_ITEM_CLASS}
+                  data-active={isExpanded}
+                >
                   <button
                     type="button"
                     onClick={() => onToggleArtifactCard(artifactKey)}
-                    className="flex w-full items-start justify-between gap-3 text-left"
+                    className={`w-full text-left ${CHROME_NESTED_ITEM_HEADER_CLASS}`}
                   >
-                    <div className="osint-meta-value">{artifact.topic}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate osint-title-inline text-zinc-200">{artifact.topic}</div>
+                      <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
+                        <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>Artifact</span>
+                      </div>
+                    </div>
                     {isExpanded ? (
                       <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
                     ) : (
@@ -128,8 +146,8 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
                   </button>
                   {isExpanded ? (
                     <>
-                      <p className="mt-1 osint-body-muted">{artifact.summary}</p>
-                      <div className="mt-2 flex gap-3">
+                      <p className={CHROME_NESTED_ITEM_BODY_CLASS}>{artifact.summary}</p>
+                      <div className={CHROME_NESTED_ITEM_ACTION_ROW_CLASS}>
                         <button
                           onClick={() => artifact.id && onFetchArtifactSummary(artifact.id)}
                           className={CHROME_ACTION_BUTTON_CLASS}
@@ -179,9 +197,18 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
             </p>
           ) : (
             workspaceSignals.slice(0, 4).map((signal) => (
-              <div key={signal.id} className="osint-panel-item p-2">
-                <div className="osint-meta-value">{signal.source || signal.type}</div>
-                <p className="mt-1 osint-body-muted">{signal.content}</p>
+              <div key={signal.id} className={CHROME_NESTED_ITEM_CLASS}>
+                <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate osint-title-inline text-zinc-200">
+                      {signal.source || signal.type}
+                    </div>
+                    <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
+                      <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>{signal.type}</span>
+                    </div>
+                  </div>
+                </div>
+                <p className={CHROME_NESTED_ITEM_BODY_CLASS}>{signal.content}</p>
               </div>
             ))
           )}
@@ -200,10 +227,10 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
         >
           <div className="space-y-2">
             {latestAssistantMessage.attachments.map((attachment) => (
-              <div key={attachment.id} className="osint-panel-item p-2">
-                <div className="osint-meta-value">{attachment.title}</div>
+              <div key={attachment.id} className={CHROME_NESTED_ITEM_CLASS}>
+                <div className="osint-title-inline text-zinc-200">{attachment.title}</div>
                 {attachment.snippet ? (
-                  <p className="mt-1 osint-body-muted">{attachment.snippet}</p>
+                  <p className={CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS}>{attachment.snippet}</p>
                 ) : null}
               </div>
             ))}
@@ -227,9 +254,11 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
             </p>
           ) : (
             sessionActions.slice(0, 8).map((action) => (
-              <div key={action.id} className="osint-panel-item p-2">
-                <div className="osint-meta-label-strong text-zinc-300">{action.type}</div>
-                <div className="mt-1 osint-body-quiet">{formatDateTime(action.createdAt)}</div>
+              <div key={action.id} className={CHROME_NESTED_ITEM_CLASS}>
+                <div className="osint-title-inline text-zinc-200">{action.type}</div>
+                <div className={CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS}>
+                  {formatDateTime(action.createdAt)}
+                </div>
               </div>
             ))
           )}
