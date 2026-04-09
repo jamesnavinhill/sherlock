@@ -275,7 +275,7 @@ Execution checklist:
 3. Move shared action rows directly beneath the header across affected rails.
 4. Make one-open-at-a-time section behavior the default for rail stacks.
 5. Make the expanded section flex into remaining height and scroll inline.
-6. Fix the Board library top-scroll issue so the rail feels as crisp as the Chat context panel.
+6. Fix the top-scroll issues so the rails feels as crisp as the Chat context panel.
 7. Remove unnecessary header icons or extra label clutter where the panel role is already obvious.
 
 Exit criteria:
