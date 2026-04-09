@@ -41,4 +41,33 @@ describe('InspectorActionRow', () => {
     expect(screen.getByRole('button', { name: 'Chat' })).toBeInTheDocument();
     expect(screen.queryByText('Chat')).not.toBeInTheDocument();
   });
+
+  it('supports thin grid layouts with explicit columns', () => {
+    const { container } = render(
+      <InspectorActionRow
+        actions={[
+          {
+            id: 'chat',
+            label: 'Chat',
+            icon: MessageSquare,
+            onClick: vi.fn(),
+          },
+          {
+            id: 'open',
+            label: 'Open',
+            icon: MessageSquare,
+            onClick: vi.fn(),
+          },
+        ]}
+        layout="grid"
+        density="thin"
+        gridColumns={3}
+      />
+    );
+
+    expect(container.firstChild).toHaveStyle({
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    });
+    expect(screen.getByRole('button', { name: 'Chat' }).className).toContain('h-6');
+  });
 });

@@ -25,6 +25,8 @@ export const CHROME_COMPACT_ACTION_BUTTON_CLASS = `${CHROME_ACTION_BUTTON_CLASS}
 export const CHROME_THIN_ACTION_BUTTON_CLASS =
   'osint-surface-button inline-flex h-6 items-center justify-center gap-1.5 px-2 osint-meta-label-strong text-[11px] text-zinc-300';
 
+export const CHROME_PANEL_TAB_ROW_CLASS = 'flex w-full justify-start gap-2';
+
 export const CHROME_NESTED_ITEM_CLASS = 'osint-panel-item p-3';
 
 export const CHROME_RAISED_SURFACE_CLASS = 'osint-raised-surface';
@@ -110,3 +112,15 @@ export const getRailAccordionClassName = (isOpen: boolean) =>
 
 export const getChromeThinActionRowClassName = (count: number) =>
   count > 1 ? 'mt-3 grid grid-cols-2 gap-2' : 'mt-3 flex';
+
+export const getChromePanelTabButtonClass = (
+  active: boolean,
+  density: 'default' | 'thin' = 'thin'
+) =>
+  `inline-flex flex-1 items-center justify-center border font-mono uppercase transition ${
+    density === 'thin' ? 'h-6 px-2.5 text-[11px]' : 'h-9 px-4 text-xs'
+  } ${
+    active
+      ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
+      : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
+  }`;

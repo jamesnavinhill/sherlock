@@ -1,6 +1,6 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { CHROME_ACTION_BUTTON_CLASS } from './chrome';
+import { CHROME_ACTION_BUTTON_CLASS, CHROME_THIN_ACTION_BUTTON_CLASS } from './chrome';
 
 export interface InspectorActionItem {
   id: string;
@@ -20,6 +20,8 @@ interface InspectorActionRowProps {
   className?: string;
   layout?: 'grid' | 'wrap';
   showLabels?: boolean;
+  density?: 'default' | 'thin';
+  gridColumns?: number;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
@@ -30,15 +32,21 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
   className,
   layout = 'wrap',
   showLabels = true,
+  density = 'default',
+  gridColumns,
 }) => {
   if (actions.length === 0) return null;
+  const buttonClassName =
+    density === 'thin' ? CHROME_THIN_ACTION_BUTTON_CLASS : CHROME_ACTION_BUTTON_CLASS;
+  const resolvedGridColumns =
+    typeof gridColumns === 'number' && gridColumns > 0 ? gridColumns : actions.length;
 
   return (
     <div
       className={cx(layout === 'wrap' ? 'flex flex-wrap justify-start gap-2' : 'grid gap-2', className)}
       style={
         layout === 'grid'
-          ? { gridTemplateColumns: `repeat(${actions.length}, minmax(0, 1fr))` }
+          ? { gridTemplateColumns: `repeat(${resolvedGridColumns}, minmax(0, 1fr))` }
           : undefined
       }
     >
@@ -47,10 +55,12 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
         const showActionLabel = showLabels && !action.iconOnly;
         const sharedProps = {
           className: cx(
-            CHROME_ACTION_BUTTON_CLASS,
+            buttonClassName,
             layout === 'wrap'
               ? action.iconOnly
-                ? 'w-9 shrink-0 px-0'
+                ? density === 'thin'
+                  ? 'min-w-8 shrink-0 px-0'
+                  : 'w-9 shrink-0 px-0'
                 : 'shrink-0'
               : 'w-full',
             action.className

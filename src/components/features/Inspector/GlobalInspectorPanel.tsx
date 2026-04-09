@@ -1,0 +1,116 @@
+import React from 'react';
+
+import { EmptyState } from '@/components/ui/EmptyState';
+import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import {
+  CHROME_PANEL_ACTION_ROW_CLASS,
+  CHROME_RAIL_BODY_CLASS,
+} from '@/components/ui/chrome';
+import { GlobalInspectorHeader } from './GlobalInspectorHeader';
+import { GlobalInspectorSections } from './GlobalInspectorSections';
+import { GlobalInspectorTabs } from './GlobalInspectorTabs';
+import type {
+  GlobalInspectorEmptyState,
+  GlobalInspectorSection,
+  GlobalInspectorTab,
+} from './globalInspectorTypes';
+
+interface GlobalInspectorPanelProps {
+  isOpen: boolean;
+  eyebrow?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  headerIcon?: React.ReactNode;
+  headerActions?: React.ReactNode;
+  onClose?: () => void;
+  tabs?: GlobalInspectorTab[];
+  activeTabId?: string;
+  onTabChange?: (tabId: string) => void;
+  actionItems?: InspectorActionItem[];
+  actionRowLayout?: 'grid' | 'wrap';
+  actionRowDensity?: 'default' | 'thin';
+  actionRowGridColumns?: number;
+  sections?: GlobalInspectorSection[];
+  emptyState?: GlobalInspectorEmptyState;
+  children?: React.ReactNode;
+  widthClassName?: string;
+  className?: string;
+}
+
+export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
+  isOpen,
+  eyebrow,
+  title,
+  subtitle,
+  headerIcon,
+  headerActions,
+  onClose,
+  tabs = [],
+  activeTabId,
+  onTabChange,
+  actionItems = [],
+  actionRowLayout = 'grid',
+  actionRowDensity = 'thin',
+  actionRowGridColumns = 3,
+  sections = [],
+  emptyState,
+  children,
+  widthClassName = 'w-[min(24rem,calc(100vw-1rem))]',
+  className = '',
+}) => {
+  const bodyContent =
+    children ||
+    (sections.length > 0 ? (
+      <GlobalInspectorSections sections={sections} />
+    ) : emptyState ? (
+      <EmptyState
+        icon={emptyState.icon}
+        title={emptyState.title}
+        description={emptyState.description}
+        className="px-0 py-10"
+        panelClassName="max-w-none px-6 py-8"
+      />
+    ) : null);
+
+  return (
+    <aside
+      className={`osint-panel-shell absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
+        isOpen
+          ? `${widthClassName} translate-x-0`
+          : `${widthClassName} translate-x-full lg:w-0 lg:border-l-0`
+      } ${className}`}
+    >
+      <GlobalInspectorHeader
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        icon={headerIcon}
+        onClose={onClose}
+        actions={headerActions}
+      />
+
+      {tabs.length > 0 && activeTabId && onTabChange ? (
+        <div className="border-b border-zinc-800 bg-zinc-900/30 px-4 py-2">
+          <GlobalInspectorTabs
+            tabs={tabs}
+            activeTabId={activeTabId}
+            onTabChange={onTabChange}
+          />
+        </div>
+      ) : null}
+
+      {actionItems.length > 0 ? (
+        <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
+          <InspectorActionRow
+            actions={actionItems}
+            layout={actionRowLayout}
+            density={actionRowDensity}
+            gridColumns={actionRowGridColumns}
+          />
+        </div>
+      ) : null}
+
+      <div className={CHROME_RAIL_BODY_CLASS}>{bodyContent}</div>
+    </aside>
+  );
+};
