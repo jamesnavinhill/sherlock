@@ -110,6 +110,8 @@ describe('DossierPanel', () => {
       />
     );
 
+    expect(screen.queryByText('0 Files')).not.toBeInTheDocument();
+    expect(screen.queryByText('0 Entities')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('h-6');
   });
 });

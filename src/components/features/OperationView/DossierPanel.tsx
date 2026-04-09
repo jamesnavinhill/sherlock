@@ -64,7 +64,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
   onHeadlineClick,
   activeReportId,
   overlayOnDesktop = false,
-  showHeaderSummary = true,
+  showHeaderSummary = false,
 }) => {
   const desktopLayoutClass = overlayOnDesktop
     ? isOpen

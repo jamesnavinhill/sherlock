@@ -80,7 +80,7 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
       <div
         aria-hidden="true"
         data-testid="board-library-title-divider"
-        className="mt-3 border-t border-zinc-800/80"
+        className="-mx-4 mt-3 border-t border-zinc-800/80"
       />
       <div className="mt-3 flex gap-2">
         <button

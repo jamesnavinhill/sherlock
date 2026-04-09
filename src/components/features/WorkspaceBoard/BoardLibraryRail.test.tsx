@@ -41,7 +41,7 @@ describe('BoardLibraryRail', () => {
 
     expect(screen.getByText('Library')).toBeInTheDocument();
     expect(screen.queryByText('Canonical Library')).not.toBeInTheDocument();
-    expect(screen.getByTestId('board-library-title-divider')).toBeInTheDocument();
+    expect(screen.getByTestId('board-library-title-divider')).toHaveClass('-mx-4');
     expect(screen.getByTestId('board-library-search-divider')).toBeInTheDocument();
   });
 });
