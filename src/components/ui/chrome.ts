@@ -22,6 +22,9 @@ export const CHROME_ACTION_BUTTON_CLASS =
 
 export const CHROME_COMPACT_ACTION_BUTTON_CLASS = `${CHROME_ACTION_BUTTON_CLASS} h-6 px-2`;
 
+export const CHROME_THIN_ACTION_BUTTON_CLASS =
+  'osint-surface-button inline-flex h-6 items-center justify-center gap-1.5 px-2 osint-meta-label-strong text-[11px] text-zinc-300';
+
 export const CHROME_NESTED_ITEM_CLASS = 'osint-panel-item p-3';
 
 export const CHROME_RAISED_SURFACE_CLASS = 'osint-raised-surface';
@@ -35,6 +38,13 @@ export const CHROME_COMPACT_NESTED_ITEM_CLASS = 'osint-panel-item px-3 py-2';
 export const CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS =
   `${CHROME_COMPACT_NESTED_ITEM_CLASS} w-full text-left`;
 
+export const CHROME_THIN_NESTED_ITEM_CLASS = 'osint-panel-item px-2.5 py-1.5';
+
+export const CHROME_THIN_NESTED_ITEM_BUTTON_CLASS =
+  `${CHROME_THIN_NESTED_ITEM_CLASS} w-full text-left text-[11px]`;
+
+export const CHROME_THIN_ACCORDION_TRIGGER_CLASS = 'px-2.5 py-1.5 text-[11px]';
+
 export const CHROME_NESTED_ITEM_HEADER_CLASS = 'flex items-start justify-between gap-3';
 
 export const CHROME_NESTED_ITEM_META_ROW_CLASS = 'mt-2 flex flex-wrap items-center gap-2';
@@ -45,6 +55,8 @@ export const CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS = 'mt-2 osint-body-quiet';
 
 export const CHROME_NESTED_ITEM_ACTION_ROW_CLASS = 'mt-3 flex flex-wrap items-center gap-2';
 
+export const CHROME_THIN_ACTION_STACK_CLASS = 'flex flex-col gap-2';
+
 export const CHROME_NESTED_ITEM_BADGE_CLASS =
   'rounded-none border border-zinc-800 bg-black/40 px-2 py-1 osint-meta-label text-zinc-500';
 
@@ -52,13 +64,16 @@ export const CHROME_NESTED_ITEM_DOT_CLASS = 'mt-1.5 h-1.5 w-1.5 shrink-0 rounded
 
 export const CHROME_HEADER_LEADING_GROUP_CLASS = 'flex min-w-0 flex-1 items-center gap-3';
 
-export const CHROME_HEADER_ICON_BUTTON_SIZE_CLASS = 'shrink-0 p-1.5';
+export const CHROME_HEADER_CONTROL_HEIGHT_CLASS = 'h-[30px]';
+
+export const CHROME_HEADER_ICON_BUTTON_SIZE_CLASS =
+  `${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-[30px] shrink-0 p-0`;
 
 export const CHROME_HEADER_PRIMARY_ACTION_CLASS =
-  'osint-button-primary osint-meta-label-strong inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-1.5';
+  `osint-button-primary osint-meta-label-strong inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} shrink-0 items-center gap-2 whitespace-nowrap px-3`;
 
 export const CHROME_TOOLBAR_FIELD_CLASS =
-  'osint-toolbar-field border text-zinc-300 outline-none';
+  `osint-toolbar-field border text-zinc-300 outline-none ${CHROME_HEADER_CONTROL_HEIGHT_CLASS}`;
 
 export const CHROME_TOOLBAR_GROUP_CLASS = 'osint-toolbar-group overflow-hidden';
 
@@ -66,15 +81,15 @@ export const CHROME_HEADER_SELECT_WRAP_CLASS =
   'hidden min-w-[180px] max-w-[220px] shrink-0 md:block';
 
 export const CHROME_HEADER_SELECT_TRIGGER_CLASS =
-  `${CHROME_TOOLBAR_FIELD_CLASS} osint-meta-value rounded-none py-1.5 pl-3 pr-8 truncate`;
+  `${CHROME_TOOLBAR_FIELD_CLASS} osint-meta-value flex items-center rounded-none pl-3 pr-8 truncate`;
 
 export const getChromeToggleButtonClass = (active: boolean) =>
-  `osint-meta-label inline-flex items-center justify-center border p-2 transition outline-none ${
+  `osint-meta-label inline-flex items-center justify-center border transition outline-none ${
     active ? 'osint-button-chrome-active' : 'osint-button-chrome'
   }`;
 
 export const getChromeMenuButtonClass = (active: boolean) =>
-  `osint-meta-label-strong inline-flex items-center px-3 py-1.5 ${
+  `osint-meta-label-strong inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center px-3 ${
     active ? 'osint-button-chrome-active' : 'osint-button-chrome'
   }`;
 
@@ -92,3 +107,6 @@ export const getChromeSegmentButtonClass = (active: boolean) =>
 
 export const getRailAccordionClassName = (isOpen: boolean) =>
   isOpen ? 'mb-0 flex min-h-0 flex-1 flex-col' : 'mb-0 shrink-0';
+
+export const getChromeThinActionRowClassName = (count: number) =>
+  count > 1 ? 'mt-3 grid grid-cols-2 gap-2' : 'mt-3 flex';

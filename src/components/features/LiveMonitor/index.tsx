@@ -16,6 +16,7 @@ import { EmptyState } from '../../ui/EmptyState';
 import { OsintSelect } from '../../ui/OsintSelect';
 import { GlobalSearch } from '../../ui/GlobalSearch';
 import {
+  CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
@@ -347,7 +348,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
             {selectedCaseId && (
               <button
                 onClick={isMonitoring ? stopMonitoring : runBatchScan}
-                className={`flex items-center px-4 py-1.5 text-xs font-bold font-mono transition-all border uppercase ${
+                className={`flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center px-4 text-xs font-bold font-mono transition-all border uppercase ${
                   isMonitoring ? 'osint-button-danger' : 'osint-button-primary'
                 }`}
               >

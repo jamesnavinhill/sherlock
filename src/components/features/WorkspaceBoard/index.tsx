@@ -251,6 +251,10 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
                 setRightPanelView('AGENT');
                 void handleGenerateNote();
               }}
+              onOpenAgentStarterIntent={(prompt) => {
+                setBoardAgentPrompt(prompt);
+                setRightPanelView('AGENT');
+              }}
               onDeleteBoard={handleDeleteBoard}
             />
           ) : (

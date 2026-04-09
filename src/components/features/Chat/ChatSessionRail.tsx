@@ -4,13 +4,13 @@ import { MessageSquare, Pencil, Trash2, FileText } from 'lucide-react';
 import type { ChatMessage, ChatSession } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import {
-  CHROME_ACTION_BUTTON_CLASS,
-  CHROME_NESTED_ITEM_ACTION_ROW_CLASS,
   CHROME_NESTED_ITEM_BODY_CLASS,
   CHROME_NESTED_ITEM_BUTTON_CLASS,
   CHROME_NESTED_ITEM_META_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
+  CHROME_THIN_ACTION_BUTTON_CLASS,
+  getChromeThinActionRowClassName,
   getRailAccordionClassName,
 } from '@/components/ui/chrome';
 
@@ -106,11 +106,11 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
                         Updated {formatDateTime(session.updatedAt)}
                       </div>
                     </button>
-                    <div className={CHROME_NESTED_ITEM_ACTION_ROW_CLASS}>
+                    <div className={getChromeThinActionRowClassName(2)}>
                       <button
                         type="button"
                         onClick={() => onRenameSession(session)}
-                        className={CHROME_ACTION_BUTTON_CLASS}
+                        className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
                       >
                         <Pencil className="h-4 w-4" />
                         Rename
@@ -118,7 +118,7 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
                       <button
                         type="button"
                         onClick={() => onDeleteSession(session)}
-                        className={`${CHROME_ACTION_BUTTON_CLASS} osint-danger-inline`}
+                        className={`${CHROME_THIN_ACTION_BUTTON_CLASS} osint-danger-inline w-full`}
                       >
                         <Trash2 className="h-4 w-4" />
                         Delete

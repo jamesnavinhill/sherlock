@@ -2,10 +2,7 @@ import React from 'react';
 import {
   FileText,
   Users,
-  Lightbulb,
   Globe,
-  Newspaper,
-  User,
   ChevronRight,
   Link2,
 } from 'lucide-react';
@@ -14,16 +11,17 @@ import { Accordion } from '../../ui/Accordion';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import {
-  CHROME_COMPACT_ACTION_BUTTON_CLASS,
-  CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_COMPACT_NESTED_ITEM_CLASS,
   CHROME_NESTED_ITEM_DOT_CLASS,
   CHROME_PANEL_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
+  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ITEM_CLASS,
+  CHROME_THIN_ACTION_BUTTON_CLASS,
   getRailAccordionClassName,
 } from '../../ui/chrome';
+import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
 
 interface DossierPanelProps {
   isOpen: boolean;
@@ -113,7 +111,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           <Accordion
             title={labelProfile.artifactLabelPlural}
             count={reports.length}
-            icon={FileText}
+            icon={PANEL_SECTION_ICONS.artifacts}
             isOpen={openSections.reports}
             onToggle={() => toggleSection('reports')}
             className={getRailAccordionClassName(openSections.reports)}
@@ -124,7 +122,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={r.id || r.topic}
                   onClick={() => r.id && onNavigate(r.id)}
-                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-3`}
+                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-3`}
                   data-active={activeReportId === r.id}
                   title={sanitizeDisplayTitle(r.topic)}
                 >
@@ -143,7 +141,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
           <Accordion
             title="Identified Entities"
             count={entities.length}
-            icon={User}
+            icon={PANEL_SECTION_ICONS.entities}
             isOpen={openSections.entities}
             onToggle={() => toggleSection('entities')}
             className={getRailAccordionClassName(openSections.entities)}
@@ -154,7 +152,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={idx}
                   onClick={() => onEntityClick(e)}
-                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
+                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
                   title={e.name}
                 >
                   <span
@@ -171,7 +169,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         <Accordion
           title={labelProfile.followUpLabel}
           count={leads.length}
-          icon={Lightbulb}
+          icon={PANEL_SECTION_ICONS.followUps}
           isOpen={openSections.leads}
           onToggle={() => toggleSection('leads')}
           className={getRailAccordionClassName(openSections.leads)}
@@ -182,12 +180,12 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
               <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
             ) : (
               leads.map((lead, idx) => (
-                <div key={idx} className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} space-y-2`}>
+                <div key={idx} className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
                   <p className="osint-meta-value leading-snug text-zinc-300">{lead}</p>
                   <div className="flex">
                     <button
                       onClick={() => onLeadClick(lead)}
-                      className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                      className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                     >
                       Open
                     </button>
@@ -221,7 +219,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   <button
                     key={`${report.id}-${evidence.id}`}
                     onClick={() => report.id && onNavigate(report.id)}
-                    className={CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS}
+                    className={CHROME_THIN_NESTED_ITEM_BUTTON_CLASS}
                   >
                     <div className="osint-meta-label">{evidence.kind}</div>
                     <div className="mt-1 osint-meta-value">{evidence.title}</div>
@@ -238,7 +236,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         <Accordion
           title="Sources"
           count={sources.length}
-          icon={Globe}
+          icon={PANEL_SECTION_ICONS.sources}
           isOpen={openSections.sources}
           onToggle={() => toggleSection('sources')}
           className={getRailAccordionClassName(openSections.sources)}
@@ -254,7 +252,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} block`}
+                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block`}
                   title={s.title || s.url}
                 >
                   <Link2 className="mr-1 inline h-3 w-3" />
@@ -271,7 +269,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
         <Accordion
           title="Saved Signals"
           count={headlines.length}
-          icon={Newspaper}
+          icon={PANEL_SECTION_ICONS.signals}
           isOpen={openSections.headlines}
           onToggle={() => toggleSection('headlines')}
           className={getRailAccordionClassName(openSections.headlines)}
@@ -285,7 +283,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={h.id}
                   onClick={() => onHeadlineClick(h)}
-                  className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} group`}
+                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} group`}
                 >
                   <p className="line-clamp-2 osint-body-quiet text-zinc-300 group-hover:text-white">
                     {h.content}

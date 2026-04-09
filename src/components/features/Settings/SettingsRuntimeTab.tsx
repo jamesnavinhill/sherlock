@@ -1,5 +1,4 @@
 import React from 'react';
-import { Cpu, Key } from 'lucide-react';
 
 import type { AIProvider } from '@/config/aiModels';
 import { ProviderModelSelector } from '@/components/features/Runs/ProviderModelSelector';
@@ -66,7 +65,6 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
       <div className="space-y-4">
         <Accordion
           title="Runtime Profile"
-          icon={Cpu}
           isOpen={runtime.runtimeSections.runtime}
           onToggle={() => runtime.toggleRuntimeSection('runtime')}
           className="bg-zinc-900/40"
@@ -112,7 +110,6 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
         <Accordion
           title="Access Credentials"
           count={configuredKeyCount}
-          icon={Key}
           isOpen={runtime.runtimeSections.apiKeys}
           onToggle={() => runtime.toggleRuntimeSection('apiKeys')}
           className="bg-zinc-900/40"

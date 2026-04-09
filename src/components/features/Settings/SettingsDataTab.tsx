@@ -1,16 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, RefObject } from 'react';
 import {
-  AlertTriangle,
   ChevronDown,
-  Database,
   FileJson,
-  Shield,
   Trash2,
   Upload,
 } from 'lucide-react';
 
 import { Accordion } from '@/components/ui/Accordion';
+import { CHROME_HEADER_CONTROL_HEIGHT_CLASS } from '@/components/ui/chrome';
 
 interface SettingsDataTabProps {
   autoResolve: boolean;
@@ -29,7 +27,7 @@ interface SettingsDataTabProps {
 }
 
 const SETTINGS_ACTION_BUTTON_CLASS =
-  'inline-flex h-14 w-full items-center justify-between gap-4 px-5 text-left osint-meta-label-strong';
+  `inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-full items-center justify-between gap-4 px-5 text-left osint-meta-label-strong`;
 
 const PreferenceCard: React.FC<{
   checked: boolean;
@@ -87,7 +85,6 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
       <div className="space-y-4">
         <Accordion
           title="Operational Preferences"
-          icon={Shield}
           isOpen={dataSections.preferences}
           onToggle={() => toggleDataSection('preferences')}
           className="bg-zinc-900/40"
@@ -111,7 +108,6 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
 
         <Accordion
           title="Workspace Data"
-          icon={Database}
           isOpen={dataSections.workspaceData}
           onToggle={() => toggleDataSection('workspaceData')}
           className="bg-zinc-900/40"
@@ -119,10 +115,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
         >
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <section className="osint-raised-surface flex h-full flex-col p-8">
-              <div className="flex items-center gap-3">
-                <Database className="h-5 w-5 text-osint-primary" />
-                <h3 className="osint-meta-value">Data Management</h3>
-              </div>
+              <h3 className="osint-meta-value">Data Management</h3>
               <p className="mt-5 max-w-xl osint-body-small">
                 Sherlock keeps workspace data local to this browser. Backups include workspaces,
                 artifacts, runs, chats, saved signals, graph data, templates, boards, and library
@@ -181,10 +174,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
             </section>
 
             <section className="osint-danger-panel osint-panel-shell flex h-full flex-col border p-8">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 osint-danger-text" />
-                <h3 className="osint-meta-value osint-danger-text">Delete Data</h3>
-              </div>
+              <h3 className="osint-meta-value osint-danger-text">Delete Data</h3>
               <p className="mt-5 max-w-xl osint-body-small osint-danger-text">
                 Permanently delete all local workspace data, including runs, chats, saved signals,
                 templates, research boards, workspace library items, and manual graph data. This

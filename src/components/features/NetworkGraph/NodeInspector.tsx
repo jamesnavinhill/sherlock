@@ -8,7 +8,6 @@ import {
   Newspaper,
   Globe,
   ExternalLink,
-  Lightbulb,
   FolderOpen,
   EyeOff,
   Microscope,
@@ -27,16 +26,16 @@ import { InspectorActionRow, type InspectorActionItem } from '../../ui/Inspector
 import { AppIcon, getDefaultGraphNodeIconId } from '@/lib/appIcons';
 import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
 import {
-  CHROME_COMPACT_ACTION_BUTTON_CLASS,
-  CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_COMPACT_NESTED_ITEM_CLASS,
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
-  CHROME_NESTED_ITEM_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
+  CHROME_THIN_ACTION_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ITEM_CLASS,
   getRailAccordionClassName,
 } from '../../ui/chrome';
+import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
 import { cleanEntityName } from '../../../utils/text';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { getArtifactFollowUps, getFollowUpText, getLabelProfileById } from '../../../domain';
@@ -509,7 +508,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           </div>
 
           <div className={`${CHROME_RAIL_BODY_CLASS} p-2`}>
-            <div className={CHROME_NESTED_ITEM_CLASS}>
+            <div className={CHROME_THIN_NESTED_ITEM_CLASS}>
               <h4 className="osint-meta-label mb-2">Executive Summary</h4>
               <p className="osint-body-small line-clamp-6">
                 {selectedReport.summary.substring(0, 300)}...
@@ -520,7 +519,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               <Accordion
                 title="Entities"
                 count={selectedReport.entities.length}
-                icon={User}
+                icon={PANEL_SECTION_ICONS.entities}
                 isOpen={inspectorAccordions.reportEntities}
                 onToggle={() => toggleAccordion('reportEntities')}
                 className={getRailAccordionClassName(inspectorAccordions.reportEntities)}
@@ -537,7 +536,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                       <button
                         key={idx}
                         disabled
-                        className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex cursor-default items-center gap-2`}
+                        className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex cursor-default items-center gap-2`}
                         title={normalizedEntity.name}
                       >
                         <span
@@ -553,7 +552,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               <Accordion
                 title={selectedReportLabelProfile.followUpLabel}
                 count={selectedReportFollowUps.length}
-                icon={Lightbulb}
+                icon={PANEL_SECTION_ICONS.followUps}
                 isOpen={inspectorAccordions.reportLeads}
                 onToggle={() => toggleAccordion('reportLeads')}
                 className={getRailAccordionClassName(inspectorAccordions.reportLeads)}
@@ -564,7 +563,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     <p className="osint-body-quiet px-2 py-1">{`No ${selectedReportLabelProfile.followUpLabel.toLowerCase()} found.`}</p>
                   )}
                   {selectedReportFollowUps.map((followUp, idx) => (
-                    <div key={idx} className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} space-y-2`}>
+                    <div key={idx} className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
                       <p className="osint-meta-value leading-snug text-zinc-300">{followUp}</p>
                       <div className="flex">
                         <button
@@ -572,7 +571,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                             onInvestigate(followUp);
                             onClose();
                           }}
-                          className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                          className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                         >
                           Investigate
                         </button>
@@ -585,7 +584,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               <Accordion
                 title="Sources"
                 count={selectedReport.sources?.length || 0}
-                icon={Globe}
+                icon={PANEL_SECTION_ICONS.sources}
                 isOpen={inspectorAccordions.reportSources}
                 onToggle={() => toggleAccordion('reportSources')}
                 className={getRailAccordionClassName(inspectorAccordions.reportSources)}
@@ -601,7 +600,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} block truncate`}
+                      className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
                       title={s.title || s.url}
                     >
                       <Link2 className="mr-1 inline h-3 w-3" />
@@ -709,7 +708,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                       <button
                         key={r.id}
                         onClick={() => onOpenReport(r)}
-                        className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} group flex items-center gap-2`}
+                        className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} group flex items-center gap-2`}
                       >
                         <FileText className="osint-menu-item-icon h-3 w-3 text-zinc-600 group-hover:text-osint-primary" />
                         <span className="truncate osint-meta-value">{r.topic}</span>
@@ -734,7 +733,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                     getEntityConnections(selectedEntity).map((conn, idx) => (
                       <div
                         key={idx}
-                        className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} flex items-center justify-between gap-3`}
+                        className={`${CHROME_THIN_NESTED_ITEM_CLASS} flex items-center justify-between gap-3`}
                       >
                         <div className="flex max-w-[70%] items-center truncate">
                           {conn.entity.type === 'PERSON' ? (

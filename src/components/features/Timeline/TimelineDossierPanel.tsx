@@ -2,10 +2,7 @@ import React from 'react';
 import {
   Activity,
   Clock3,
-  FileText,
-  Fingerprint,
   MessageSquare,
-  Radio,
 } from 'lucide-react';
 
 import type { TimelineEvent } from '@/types';
@@ -22,6 +19,7 @@ import {
   type DossierSections,
 } from './timelineViewUtils';
 import { getTrackCount } from './timelineEvents';
+import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 
 interface LabelProfileLike {
   artifactLabel: string;
@@ -125,10 +123,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('RUN', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate osint-meta-label text-zinc-500">
-                  {item.badges?.[0] || 'RUN'}
-                </div>
+                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
               </button>
             ))
           )}
@@ -137,7 +132,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
 
       <Accordion
         title={labelProfile.artifactLabelPlural}
-        icon={FileText}
+        icon={PANEL_SECTION_ICONS.artifacts}
         count={artifactItems.length}
         isOpen={dossierSections.artifacts}
         onToggle={() => onToggleSection('artifacts')}
@@ -156,10 +151,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('ARTIFACT', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate osint-meta-label text-zinc-500">
-                  {item.badges?.join(' / ') || labelProfile.artifactLabel}
-                </div>
+                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
               </button>
             ))
           )}
@@ -168,7 +160,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
 
       <Accordion
         title="Signals"
-        icon={Radio}
+        icon={PANEL_SECTION_ICONS.signals}
         count={signalItems.length}
         isOpen={dossierSections.signals}
         onToggle={() => onToggleSection('signals')}
@@ -187,10 +179,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('SIGNAL', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate osint-meta-label text-zinc-500">
-                  {item.badges?.join(' / ') || 'Signal'}
-                </div>
+                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
               </button>
             ))
           )}
@@ -199,7 +188,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
 
       <Accordion
         title="Entities"
-        icon={Fingerprint}
+        icon={PANEL_SECTION_ICONS.entities}
         count={entityItems.length}
         isOpen={dossierSections.entities}
         onToggle={() => onToggleSection('entities')}
@@ -218,10 +207,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('ENTITY', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate osint-meta-label text-zinc-500">
-                  {item.badges?.join(' / ') || 'ENTITY'}
-                </div>
+                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
               </button>
             ))
           )}
@@ -249,10 +235,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
                 onClick={() => item.refId && onFocusReference('CHAT', item.refId)}
                 className={getFocusedButtonClass(focusedRefId === item.refId)}
               >
-                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
-                <div className="mt-1 truncate osint-meta-label text-zinc-500">
-                  {item.badges?.join(' / ') || 'CHAT'}
-                </div>
+                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
               </button>
             ))
           )}

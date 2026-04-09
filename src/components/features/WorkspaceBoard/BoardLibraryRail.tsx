@@ -1,9 +1,7 @@
 import React from 'react';
 import {
   FilePlus2,
-  FileText,
   Link2,
-  Network,
   Radio,
   Search,
   Trash2,
@@ -16,8 +14,13 @@ import {
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
+  CHROME_THIN_ACCORDION_TRIGGER_CLASS,
+  CHROME_THIN_ACTION_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ITEM_CLASS,
+  getChromeThinActionRowClassName,
   getRailAccordionClassName,
 } from '@/components/ui/chrome';
+import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
 import { serializeBoardReference } from '@/services/workspace/boardShapes';
 
@@ -133,10 +136,10 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
       {(
         [
           ['created', 'Created Items', groupedEntries.created, FilePlus2],
-          ['artifacts', 'Artifacts', groupedEntries.artifacts, FileText],
-          ['entities', 'Entities', groupedEntries.entities, Network],
-          ['sources', 'Sources', groupedEntries.sources, Link2],
-          ['signals', 'Signals', groupedEntries.signals, Radio],
+          ['artifacts', 'Artifacts', groupedEntries.artifacts, PANEL_SECTION_ICONS.artifacts],
+          ['entities', 'Entities', groupedEntries.entities, PANEL_SECTION_ICONS.entities],
+          ['sources', 'Sources', groupedEntries.sources, PANEL_SECTION_ICONS.sources],
+          ['signals', 'Signals', groupedEntries.signals, PANEL_SECTION_ICONS.signals],
         ] as const
       ).map(([key, title, entries, icon]) => (
         <Accordion
@@ -158,8 +161,8 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                 const isEntryOpen = !!libraryItemSections[entryKey];
                 const entryTitle = (
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
-                      <AppIcon iconId={entry.iconId} size={15} strokeWidth={1.9} />
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+                      <AppIcon iconId={entry.iconId} size={13} strokeWidth={1.9} />
                     </span>
                     <span className="truncate">{entry.title}</span>
                   </span>
@@ -180,10 +183,12 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                       title={entryTitle}
                       isOpen={isEntryOpen}
                       onToggle={() => onToggleLibraryEntrySection(entryKey)}
+                      variant="nested"
+                      headerClassName={CHROME_THIN_ACCORDION_TRIGGER_CLASS}
                     >
-                      <div className="space-y-3">
+                      <div className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
                         <div
-                          className={`osint-body-quiet ${
+                          className={`osint-body-quiet text-zinc-500 ${
                             key === 'sources' ? 'line-clamp-2 break-all' : ''
                           }`}
                         >
@@ -192,12 +197,17 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                         </div>
                         <div className="flex items-center justify-between gap-3">
                           <div className="osint-meta-label">{entry.kind}</div>
-                          <div className="flex items-center gap-2">
+                        </div>
+                        <div
+                          className={getChromeThinActionRowClassName(
+                            key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? 2 : 1
+                          )}
+                        >
                             {key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? (
                               <button
                                 type="button"
                                 onClick={() => onDeleteCreatedItem(entry)}
-                                className="inline-flex items-center gap-1 border border-zinc-700 px-3 py-1.5 osint-meta-label-strong text-zinc-400 transition hover:border-red-400/50 hover:text-red-300"
+                                className={`${CHROME_THIN_ACTION_BUTTON_CLASS} osint-danger-inline w-full`}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                                 Delete
@@ -206,11 +216,10 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                             <button
                               type="button"
                               onClick={() => onAddToBoard(entry)}
-                              className={CHROME_ACTION_BUTTON_CLASS}
+                              className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
                             >
                               Add To Board
                             </button>
-                          </div>
                         </div>
                       </div>
                     </Accordion>

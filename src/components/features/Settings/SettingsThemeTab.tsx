@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Palette, Type } from 'lucide-react';
 
 import { Accordion } from '@/components/ui/Accordion';
 import { AccentPicker } from '@/components/ui/AccentPicker';
@@ -573,7 +572,6 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-6 pb-12">
       <Accordion
         title="Accent"
-        icon={Palette}
         isOpen={themeSections.accent}
         onToggle={() => toggleThemeSection('accent')}
         className="mb-0"
@@ -615,7 +613,6 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
 
       <Accordion
         title="Fonts"
-        icon={Type}
         isOpen={themeSections.fonts}
         onToggle={() => toggleThemeSection('fonts')}
         className="mb-0"
@@ -625,7 +622,6 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
 
       <Accordion
         title="Surface System"
-        icon={Palette}
         isOpen={themeSections.surfaces}
         onToggle={() => toggleThemeSection('surfaces')}
         className="mb-0"

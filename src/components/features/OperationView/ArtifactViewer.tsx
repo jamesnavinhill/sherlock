@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
-  AlertTriangle,
   Check,
   ExternalLink,
   FileText,
@@ -12,8 +11,6 @@ import {
   Pencil,
   ShieldAlert,
   StopCircle,
-  Target,
-  Users,
   Volume2,
   X,
 } from 'lucide-react';
@@ -46,14 +43,15 @@ import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import { Accordion } from '../../ui/Accordion';
 import {
-  CHROME_ACTION_BUTTON_CLASS,
-  CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_COMPACT_NESTED_ITEM_CLASS,
-  CHROME_COMPACT_ACTION_BUTTON_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
+  CHROME_THIN_ACTION_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ITEM_CLASS,
+  getChromeThinActionRowClassName,
   getRailAccordionClassName,
 } from '../../ui/chrome';
+import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
 
@@ -346,7 +344,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const mainColumnClassName = isDetailSidebarOpen
     ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
     : 'flex-1 h-full overflow-y-auto custom-scrollbar';
-  const detailActionButtonClassName = `${CHROME_ACTION_BUTTON_CLASS} h-8 px-2.5`;
+  const detailActionButtonClassName = CHROME_THIN_ACTION_BUTTON_CLASS;
   useEffect(() => {
     const nextTarget =
       (highlightedEvidenceId ? evidenceRefs.current[highlightedEvidenceId] : null) ||
@@ -1108,7 +1106,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <Accordion
               title="Key Findings"
               count={canonicalFindings.length}
-              icon={AlertTriangle}
+              icon={PANEL_SECTION_ICONS.keyFindings}
               isOpen={openSidebarSection === 'findings'}
               onToggle={() => toggleSidebarAccordion('findings')}
               className={getRailAccordionClassName(openSidebarSection === 'findings')}
@@ -1143,11 +1141,11 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                             {renderEvidenceButtons(relatedEvidence)}
                           </div>
                         ) : null}
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className={getChromeThinActionRowClassName(1)}>
                           <button
                             type="button"
                             onClick={() => jumpToSection(finding.originSectionId || keyFindingsAnchorId)}
-                            className={detailActionButtonClassName}
+                            className={`${detailActionButtonClassName} w-full`}
                           >
                             Open In Document
                           </button>
@@ -1162,7 +1160,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <Accordion
               title="Entities"
               count={reportEntities.length}
-              icon={Users}
+              icon={PANEL_SECTION_ICONS.entities}
               isOpen={openSidebarSection === 'entities'}
               onToggle={() => toggleSidebarAccordion('entities')}
               className={getRailAccordionClassName(openSidebarSection === 'entities')}
@@ -1183,7 +1181,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         key={`${normalizedEntity.name}-${index}`}
                         type="button"
                         onClick={() => onEntityClick(normalizedEntity)}
-                        className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
+                        className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
                         title={normalizedEntity.name}
                       >
                         <span
@@ -1205,7 +1203,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <Accordion
               title={labelProfile.followUpLabel}
               count={visibleFollowUps.length}
-              icon={Target}
+              icon={PANEL_SECTION_ICONS.followUps}
               isOpen={openSidebarSection === 'followUps'}
               onToggle={() => toggleSidebarAccordion('followUps')}
               className={getRailAccordionClassName(openSidebarSection === 'followUps')}
@@ -1225,7 +1223,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     return (
                       <FollowUpDetailRow
                         key={followUp.id}
-                        className={`${CHROME_COMPACT_NESTED_ITEM_CLASS} border-zinc-800/50 bg-zinc-950/70`}
+                        className={`${CHROME_THIN_NESTED_ITEM_CLASS} border-zinc-800/50 bg-zinc-950/70`}
                         eyebrow={`${followUp.kind.replace(/_/g, ' ')} · ${followUp.status.replace(/_/g, ' ')}`}
                         title={questionText}
                         body={getFollowUpText(followUp)}
@@ -1244,11 +1242,15 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                               : renderReferenceChips(followUp.sourceRefs, 'SOURCE')}
                           </div>
                         ) : null}
-                        <div className="mt-3 space-y-1">
+                        <div
+                          className={getChromeThinActionRowClassName(
+                            followUp.originSectionId ? 2 : 1
+                          )}
+                        >
                           <button
                             type="button"
                             onClick={() => onLeadOpen(followUp)}
-                            className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                           >
                             Open
                           </button>
@@ -1260,7 +1262,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                                   jumpToSection(followUp.originSectionId);
                                 }
                               }}
-                              className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                              className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                             >
                               Jump To Section
                             </button>
@@ -1276,7 +1278,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <Accordion
               title="Sources"
               count={reportSources.length}
-              icon={Globe}
+              icon={PANEL_SECTION_ICONS.sources}
               isOpen={openSidebarSection === 'resources'}
               onToggle={() => toggleSidebarAccordion('resources')}
               className={getRailAccordionClassName(openSidebarSection === 'resources')}
@@ -1348,11 +1350,15 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         {evidence.sourceTitle || evidence.sourceUrl}
                       </div>
                     ) : null}
-                    <div className="mt-3 space-y-1">
+                    <div
+                      className={getChromeThinActionRowClassName(
+                        evidence.sectionId ? 2 : 1
+                      )}
+                    >
                       <button
                         type="button"
                         onClick={() => jumpToEvidence(evidence.id)}
-                        className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                        className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                       >
                         Open Evidence
                       </button>
@@ -1364,7 +1370,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                               jumpToSection(evidence.sectionId);
                             }
                           }}
-                          className={`${CHROME_COMPACT_ACTION_BUTTON_CLASS} w-full justify-center`}
+                          className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                         >
                           Jump To Section
                         </button>
@@ -1386,7 +1392,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`${CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS} block truncate`}
+                      className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
                       title={source.title || source.url}
                     >
                       <Link2 className="mr-1 inline h-3 w-3" />

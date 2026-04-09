@@ -21,6 +21,8 @@ import { InspectorActionRow, type InspectorActionItem } from '../../ui/Inspector
 import {
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
+  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ITEM_CLASS,
 } from '../../ui/chrome';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { sanitizeDisplayTitle } from '../../../domain';
@@ -280,7 +282,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     <button
                       key={r.id || r.topic}
                       onClick={() => r.id && onNavigate(r.id)}
-                      className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group"
+                      className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} border-l-2 border-transparent text-zinc-400 transition-all hover:border-osint-primary hover:bg-zinc-900 hover:text-white group flex items-center`}
                       title={sanitizeDisplayTitle(r.topic)}
                     >
                       <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
@@ -307,7 +309,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                   getEntityConnections(entity.name).map((conn, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2 bg-zinc-900/20 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-900/40"
+                      className={`${CHROME_THIN_NESTED_ITEM_CLASS} flex items-center justify-between gap-3 border-b border-zinc-800/50 bg-zinc-900/20 last:border-0 hover:bg-zinc-900/40`}
                     >
                       <div className="flex items-center truncate max-w-[70%]">
                         {conn.entity.type === 'PERSON' ? (

@@ -5,6 +5,7 @@ import type { WorkspaceBoard } from '@/types';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import {
+  CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
@@ -98,7 +99,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         {activeBoard ? (
           <button
             onClick={onTogglePresentationMode}
-            className={`inline-flex items-center gap-2 px-3 py-2 ${getChromeToggleButtonClass(
+            className={`inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center gap-2 px-3 ${getChromeToggleButtonClass(
               !!activeBoard.presentationMode
             )}`}
           >
@@ -108,7 +109,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         ) : null}
         <button
           onClick={onToggleRightPanel}
-          className={`hidden xl:inline-flex ${getChromeToggleButtonClass(rightPanelOpen)}`}
+          className={`hidden xl:inline-flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(rightPanelOpen)}`}
           title="Toggle Inspector Panel"
         >
           <PanelRight className="h-4 w-4" />

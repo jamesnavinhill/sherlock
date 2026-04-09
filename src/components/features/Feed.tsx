@@ -20,6 +20,7 @@ import { GlobalSearch } from '../ui/GlobalSearch';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 import {
+  CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_TOOLBAR_FIELD_CLASS,
   getChromeMenuButtonClass,
@@ -301,7 +302,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 value={filterCategory}
                 onChange={setFilterCategory}
                 chrome="toolbar"
-                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} truncate rounded-none py-1.5 pl-7 pr-8 text-xs font-mono`}
+                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} flex items-center truncate rounded-none pl-7 pr-8 text-xs font-mono`}
                 options={categories.map((category) => ({
                   value: category,
                   label: category,
@@ -317,7 +318,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 value={filterRegion}
                 onChange={(e) => setFilterRegion(e.target.value)}
                 placeholder="Region"
-                className={`${CHROME_TOOLBAR_FIELD_CLASS} w-full rounded-none py-1.5 pl-7 pr-3 text-xs font-mono placeholder:text-zinc-600`}
+                className={`${CHROME_TOOLBAR_FIELD_CLASS} w-full rounded-none pl-7 pr-3 text-xs font-mono placeholder:text-zinc-600`}
               />
             </div>
 
@@ -326,7 +327,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               <button
                 type="button"
                 onClick={() => setShowDatePicker(!showDatePicker)}
-                className="osint-button-chrome osint-meta-label w-full flex items-center truncate px-2 py-1.5"
+                className={`osint-button-chrome osint-meta-label ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-full flex items-center truncate px-2`}
               >
                 <Calendar className="w-3 h-3 mr-2 text-zinc-300" />
                 <span className="truncate">
@@ -406,7 +407,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             <button
               onClick={loadFeed}
               disabled={loading}
-              className="osint-button-chrome flex items-center px-4 py-1.5 osint-meta-label-strong"
+              className={`osint-button-chrome ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} flex items-center px-4 osint-meta-label-strong`}
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>

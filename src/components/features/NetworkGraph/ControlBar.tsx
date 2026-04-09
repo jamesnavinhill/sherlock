@@ -113,7 +113,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
             </button>
             <button
               onClick={onToggleRightPanel}
-              className={getChromeToggleButtonClass(showRightPanel)}
+              className={`${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(showRightPanel)}`}
               title="Toggle Inspector Panel"
               aria-label="Toggle Inspector Panel"
             >

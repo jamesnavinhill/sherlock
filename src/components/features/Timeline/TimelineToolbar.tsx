@@ -5,6 +5,7 @@ import type { TimelineRange, TimelineTrack, Workspace } from '@/types';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import {
+  CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
@@ -131,7 +132,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
         <button
           onClick={onSaveView}
           disabled={!canSaveCurrentView}
-          className={`inline-flex shrink-0 items-center px-3 py-1.5 osint-meta-label-strong transition ${
+          className={`inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} shrink-0 items-center px-3 osint-meta-label-strong transition ${
             canSaveCurrentView
               ? 'osint-button-chrome'
               : 'cursor-not-allowed border border-zinc-800 bg-zinc-950 text-zinc-600'
@@ -168,7 +169,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
 
         <button
           onClick={onToggleRightPanel}
-          className={`flex shrink-0 ${getChromeToggleButtonClass(rightPanelOpen)}`}
+          className={`flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(rightPanelOpen)}`}
           title="Toggle event details"
         >
           <PanelRight className="h-4 w-4" />

@@ -12,7 +12,12 @@ import { SettingsScopesTab } from './SettingsScopesTab';
 import { SettingsTemplatesTab } from './SettingsTemplatesTab';
 import { SettingsThemeTab } from './SettingsThemeTab';
 import { SettingsDialogs } from './SettingsDialogs';
-import { CHROME_HEADER_CLASS, getChromeSegmentButtonClass } from '@/components/ui/chrome';
+import {
+  CHROME_HEADER_CLASS,
+  CHROME_HEADER_CONTROL_HEIGHT_CLASS,
+  CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  getChromeSegmentButtonClass,
+} from '@/components/ui/chrome';
 
 interface SettingsProps {
   themeColor: string;
@@ -84,7 +89,7 @@ export const Settings: React.FC<SettingsProps> = ({
           <button
             onClick={handleSaveConfiguration}
             disabled={isSaving || !canSaveActiveTab}
-            className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-40 disabled:cursor-not-allowed"
+            className={`osint-button-primary ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} flex items-center px-4 osint-meta-label-strong disabled:cursor-not-allowed disabled:opacity-40`}
           >
             {isSaving ? (
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -97,11 +102,11 @@ export const Settings: React.FC<SettingsProps> = ({
           </button>
           <button
             onClick={onClose}
-            className="osint-button-chrome p-2 text-zinc-500 hover:border-[color:var(--osint-danger-soft-border)] hover:text-[color:var(--color-osint-danger)] focus-visible:border-[color:var(--osint-danger-soft-border)] focus-visible:text-[color:var(--color-osint-danger)] focus-visible:ring-2 focus-visible:ring-osint-primary"
+            className={`osint-button-chrome ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} flex items-center justify-center text-zinc-500 hover:border-[color:var(--osint-danger-soft-border)] hover:text-[color:var(--color-osint-danger)] focus-visible:border-[color:var(--osint-danger-soft-border)] focus-visible:text-[color:var(--color-osint-danger)] focus-visible:ring-2 focus-visible:ring-osint-primary`}
             title="Close Settings"
             aria-label="Close Settings"
           >
-            <X className="w-5 h-5" />
+            <X className="h-4 w-4 shrink-0" />
           </button>
         </div>
       </header>

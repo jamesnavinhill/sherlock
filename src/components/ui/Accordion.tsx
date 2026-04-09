@@ -13,6 +13,7 @@ interface AccordionProps {
   headerClassName?: string;
   chevronClassName?: string;
   contentClassName?: string;
+  variant?: 'section' | 'nested';
 }
 
 /**
@@ -30,13 +31,27 @@ export const Accordion: React.FC<AccordionProps> = ({
   headerClassName = '',
   chevronClassName = '',
   contentClassName = '',
+  variant = 'section',
 }) => {
+  const wrapperClassName =
+    variant === 'nested'
+      ? `osint-panel-item mb-2 ${className}`
+      : `osint-raised-surface-section mb-2 ${className}`;
+  const headerBaseClassName =
+    variant === 'nested'
+      ? 'osint-meta-label-strong flex min-h-[34px] w-full items-center justify-between gap-3 px-2.5 py-1.5 text-left text-[11px] text-zinc-300 transition-colors hover:bg-[color:var(--osint-interaction-hover-bg)]'
+      : 'osint-meta-label-strong flex min-h-[44px] w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-zinc-300 transition-colors hover:bg-[color:var(--osint-interaction-hover-bg)]';
+  const contentBaseClassName =
+    variant === 'nested'
+      ? 'border-t border-zinc-800/70 p-1.5'
+      : 'border-t border-zinc-800/80 p-2';
+
   return (
-    <div className={`osint-raised-surface-section mb-2 ${className}`}>
+    <div className={wrapperClassName}>
       <button
         type="button"
         onClick={onToggle}
-        className={`osint-meta-label-strong flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-zinc-300 transition-colors hover:bg-[color:var(--osint-interaction-hover-bg)] ${headerClassName}`}
+        className={`${headerBaseClassName} ${headerClassName}`}
       >
         <span className="flex min-w-0 items-center gap-2">
           {Icon && <Icon className="w-4 h-4 mr-2 text-zinc-500" />}
@@ -53,7 +68,7 @@ export const Accordion: React.FC<AccordionProps> = ({
           <ChevronRight className={`w-4 h-4 ${chevronClassName}`} />
         )}
       </button>
-      {isOpen && <div className={`border-t border-zinc-800/80 p-2 ${contentClassName}`}>{children}</div>}
+      {isOpen && <div className={`${contentBaseClassName} ${contentClassName}`}>{children}</div>}
     </div>
   );
 };

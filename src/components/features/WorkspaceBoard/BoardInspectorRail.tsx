@@ -1,16 +1,19 @@
 import React from 'react';
-import { Bot, Clock3, Shapes, Sparkles, Trash2 } from 'lucide-react';
+import { Bot, Clock3, Shapes, Trash2 } from 'lucide-react';
 
 import type { WorkspaceBoard, WorkspaceItem } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
 import { AppIcon } from '@/lib/appIcons';
+import { BOARD_AGENT_STARTER_INTENTS } from '@/services/workspace/agent';
 import {
-  CHROME_ACTION_BUTTON_CLASS,
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
+  CHROME_THIN_ACTION_BUTTON_CLASS,
+  CHROME_THIN_ACTION_STACK_CLASS,
+  CHROME_THIN_NESTED_ITEM_CLASS,
   getRailAccordionClassName,
 } from '@/components/ui/chrome';
 import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
@@ -33,6 +36,7 @@ interface BoardInspectorRailProps {
   onToggleProvenance: () => void;
   onShowAgentAndGenerateSummary: () => void;
   onShowAgentAndGenerateNote: () => void;
+  onOpenAgentStarterIntent: (prompt: string) => void;
   onDeleteBoard: () => void;
 }
 
@@ -50,6 +54,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
   onToggleProvenance,
   onShowAgentAndGenerateSummary,
   onShowAgentAndGenerateNote,
+  onOpenAgentStarterIntent,
   onDeleteBoard,
 }) => {
   const title =
@@ -59,6 +64,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
         ? `${selectedEntries.length} Items Selected`
         : activeBoard?.name || 'Board Selection';
   const primaryEntry = selectedEntries.length === 1 ? selectedEntries[0] : null;
+  const starterIntents = BOARD_AGENT_STARTER_INTENTS.filter((intent) => intent.id !== 'draft-note');
 
   return (
     <>
@@ -98,7 +104,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
             selectedEntries.map((entry) => (
               <div
                 key={boardRefKey(entry)}
-                className="osint-panel-item p-3 text-zinc-200"
+                className={`${CHROME_THIN_NESTED_ITEM_CLASS} text-zinc-200`}
               >
                 <div className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
@@ -126,22 +132,34 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
         contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
       >
         <div className="space-y-3">
+          <div className={CHROME_THIN_ACTION_STACK_CLASS}>
           <button
             onClick={onShowAgentAndGenerateSummary}
             disabled={selectedEntries.length === 0 || aiBusy}
-            className={`${CHROME_ACTION_BUTTON_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-40`}
+            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-40`}
           >
-            <Sparkles className="h-4 w-4" />
             Summarize Selection
           </button>
           <button
             onClick={onShowAgentAndGenerateNote}
             disabled={selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode}
-            className={`${CHROME_ACTION_BUTTON_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-40`}
+            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-40`}
           >
-            <Bot className="h-4 w-4" />
             Draft Note Card
           </button>
+            {starterIntents.map((intent) => (
+              <button
+                key={intent.id}
+                type="button"
+                onClick={() => onOpenAgentStarterIntent(intent.prompt)}
+                disabled={aiBusy}
+                className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full disabled:cursor-not-allowed disabled:opacity-40`}
+                title={intent.description}
+              >
+                {intent.label}
+              </button>
+            ))}
+          </div>
           {aiSummary ? (
             <div className="osint-raised-surface-subtle p-3 osint-body-small">{aiSummary}</div>
           ) : null}
@@ -158,7 +176,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
       >
         <div className="space-y-3 px-1 py-1 osint-meta-value">
           {selectedWorkspaceItem ? (
-            <div className="osint-raised-surface-subtle space-y-3 p-3">
+            <div className={`${CHROME_THIN_NESTED_ITEM_CLASS} osint-raised-surface-subtle space-y-3`}>
               <div>
                 <div className="osint-meta-label">Source</div>
                 <div className="mt-1">{selectedWorkspaceItem.provenance?.source || 'USER'}</div>

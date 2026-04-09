@@ -319,7 +319,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               {onToggleRightPanel && (
                 <button
                   onClick={onToggleRightPanel}
-                  className={`hidden lg:flex ${getChromeToggleButtonClass(rightPanelOpen)}`}
+                  className={`hidden lg:flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(rightPanelOpen)}`}
                   title="Toggle Inspector Panel"
                   aria-label="Toggle Inspector Panel"
                 >

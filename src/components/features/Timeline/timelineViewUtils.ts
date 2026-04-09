@@ -1,14 +1,13 @@
 import {
   Activity,
   Clock3,
-  FileText,
-  Fingerprint,
   FolderKanban,
   MessageSquare,
-  Radio,
 } from 'lucide-react';
 
 import type { TimelineEvent, TimelineFilters, TimelineTrack } from '@/types';
+import { CHROME_THIN_NESTED_ITEM_BUTTON_CLASS } from '@/components/ui/chrome';
+import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 
 export type DossierSections = {
   events: boolean;
@@ -30,13 +29,17 @@ export const DEFAULT_FILTERS: TimelineFilters = {
 };
 
 export const TRACK_OPTIONS = [
-  { track: 'SIGNAL', label: 'Signals', icon: Radio },
+  { track: 'SIGNAL', label: 'Signals', icon: PANEL_SECTION_ICONS.signals },
   { track: 'RUN', label: 'Runs', icon: Activity },
-  { track: 'ARTIFACT', label: 'Artifacts', icon: FileText },
+  { track: 'ARTIFACT', label: 'Artifacts', icon: PANEL_SECTION_ICONS.artifacts },
   { track: 'ITEM', label: 'Items', icon: FolderKanban },
-  { track: 'ENTITY', label: 'Entities', icon: Fingerprint },
+  { track: 'ENTITY', label: 'Entities', icon: PANEL_SECTION_ICONS.entities },
   { track: 'CHAT', label: 'Chats', icon: MessageSquare },
-] as const satisfies Array<{ track: TimelineTrack; label: string; icon: typeof Radio }>;
+] as const satisfies Array<{
+  track: TimelineTrack;
+  label: string;
+  icon: typeof PANEL_SECTION_ICONS.signals;
+}>;
 
 export const LEFT_PANEL_SECTION_SCROLL_CLASS =
   'max-h-[min(20rem,calc(100svh-21rem))] overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
@@ -52,15 +55,15 @@ export const formatEventTime = (value: number) =>
 export const getEventIcon = (event: TimelineEvent) => {
   switch (event.track) {
     case 'SIGNAL':
-      return Radio;
+      return PANEL_SECTION_ICONS.signals;
     case 'RUN':
       return Activity;
     case 'ARTIFACT':
-      return FileText;
+      return PANEL_SECTION_ICONS.artifacts;
     case 'ITEM':
       return FolderKanban;
     case 'ENTITY':
-      return Fingerprint;
+      return PANEL_SECTION_ICONS.entities;
     case 'CHAT':
       return MessageSquare;
     default:
@@ -102,7 +105,7 @@ export const getEventTone = (event: TimelineEvent) => {
 };
 
 export const getFocusedButtonClass = (isActive: boolean) =>
-  `osint-panel-item w-full px-3 py-2 text-left text-xs font-mono ${
+  `${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} font-mono ${
     isActive ? 'border-osint-primary/40 text-osint-primary' : 'text-zinc-300'
   }`;
 
