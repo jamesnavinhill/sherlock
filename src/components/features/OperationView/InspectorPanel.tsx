@@ -21,11 +21,6 @@ import { InspectorActionRow, type InspectorActionItem } from '../../ui/Inspector
 import {
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
-  CHROME_NESTED_ITEM_BADGE_CLASS,
-  CHROME_NESTED_ITEM_BODY_CLASS,
-  CHROME_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_NESTED_ITEM_CLASS,
-  CHROME_NESTED_ITEM_HEADER_CLASS,
 } from '../../ui/chrome';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { sanitizeDisplayTitle } from '../../../domain';
@@ -279,20 +274,13 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     <button
                       key={r.id || r.topic}
                       onClick={() => r.id && onNavigate(r.id)}
-                      className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} group`}
+                      className="w-full text-left p-2 hover:bg-zinc-900 text-zinc-400 hover:text-white hover:border-osint-primary border-transparent border-l-2 transition-all flex items-center group"
                       title={sanitizeDisplayTitle(r.topic)}
                     >
-                      <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate osint-title-inline text-zinc-200">
-                            {sanitizeDisplayTitle(r.topic)}
-                          </div>
-                          <div className="mt-2 flex items-center gap-2">
-                            <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>Artifact</span>
-                          </div>
-                        </div>
-                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500 group-hover:text-osint-primary" />
-                      </div>
+                      <FileText className="w-3 h-3 mr-2 text-zinc-600 group-hover:text-osint-primary" />
+                      <span className="truncate osint-meta-value text-zinc-300 group-hover:text-white">
+                        {sanitizeDisplayTitle(r.topic)}
+                      </span>
                     </button>
                   ))
                 ) : (
@@ -313,34 +301,32 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                   getEntityConnections(entity.name).map((conn, idx) => (
                     <div
                       key={idx}
-                      className={CHROME_NESTED_ITEM_CLASS}
+                      className="flex items-center justify-between p-2 bg-zinc-900/20 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-900/40"
                     >
-                      <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-                        <div className="min-w-0 flex flex-1 items-start gap-2">
-                          {conn.entity.type === 'PERSON' ? (
-                            <User
-                              className={`mt-0.5 h-3 w-3 shrink-0 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                            />
-                          ) : conn.entity.type === 'ORGANIZATION' ? (
-                            <Building2
-                              className={`mt-0.5 h-3 w-3 shrink-0 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                            />
-                          ) : (
-                            <Shapes
-                              className={`mt-0.5 h-3 w-3 shrink-0 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate osint-title-inline text-zinc-200" title={conn.entity.name}>
-                              {conn.entity.name}
-                            </div>
-                            <div className={CHROME_NESTED_ITEM_BODY_CLASS}>
-                              Shared report appearances with {entity.name}
-                            </div>
-                          </div>
-                        </div>
-                        <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>{conn.count} Links</span>
+                      <div className="flex items-center truncate max-w-[70%]">
+                        {conn.entity.type === 'PERSON' ? (
+                          <User
+                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                          />
+                        ) : conn.entity.type === 'ORGANIZATION' ? (
+                          <Building2
+                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                          />
+                        ) : (
+                          <Shapes
+                            className={`w-3 h-3 mr-2 ${getEntityToneClass(conn.entity.type)} entity-tone-text`}
+                          />
+                        )}
+                        <span
+                          className="truncate osint-meta-value text-zinc-400"
+                          title={conn.entity.name}
+                        >
+                          {conn.entity.name}
+                        </span>
                       </div>
+                      <span className="rounded-sm bg-zinc-800 px-1.5 py-0.5 osint-meta-label text-zinc-500">
+                        {conn.count} Links
+                      </span>
                     </div>
                   ))
                 ) : (
@@ -389,7 +375,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            <div className={`${CHROME_NESTED_ITEM_CLASS} relative group`}>
+            <div className="bg-zinc-900/50 p-6 border border-zinc-800 relative group">
               <h4 className="mb-2 osint-meta-label">Captured Content</h4>
               <p className="osint-body-small text-zinc-300">
                 &quot;{headline.content}&quot;
@@ -404,7 +390,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 href={headline.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} group flex items-center justify-between`}
+                className="flex items-center justify-between p-4 bg-zinc-900/30 border border-zinc-700 hover:border-osint-primary hover:bg-zinc-900 transition-all group"
               >
                 <div className="flex items-center overflow-hidden">
                   <Globe className="w-4 h-4 text-zinc-500 mr-3 group-hover:text-osint-primary" />
@@ -448,7 +434,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24 custom-scrollbar">
-            <div className={`${CHROME_NESTED_ITEM_CLASS} space-y-3`}>
+            <div className="border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
               {workspaceTitle ? (
                 <div>
                   <div className="mb-1 osint-meta-label">Workspace</div>
@@ -470,19 +456,19 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className={CHROME_NESTED_ITEM_CLASS}>
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
                 <div className="mb-1 osint-meta-label">Sections</div>
                 <div className="osint-meta-value text-lg text-white">{report.sections?.length || 0}</div>
               </div>
-              <div className={CHROME_NESTED_ITEM_CLASS}>
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
                 <div className="mb-1 osint-meta-label">Evidence</div>
                 <div className="osint-meta-value text-lg text-white">{report.evidence?.length || 0}</div>
               </div>
-              <div className={CHROME_NESTED_ITEM_CLASS}>
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
                 <div className="mb-1 osint-meta-label">Entities</div>
                 <div className="osint-meta-value text-lg text-white">{report.entities?.length || 0}</div>
               </div>
-              <div className={CHROME_NESTED_ITEM_CLASS}>
+              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
                 <div className="mb-1 osint-meta-label">Sources</div>
                 <div className="osint-meta-value text-lg text-white">{report.sources?.length || 0}</div>
               </div>

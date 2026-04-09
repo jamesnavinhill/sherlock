@@ -154,6 +154,31 @@ const DetailRow: React.FC<DetailRowProps> = ({
   </article>
 );
 
+interface FollowUpDetailRowProps {
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  children?: React.ReactNode;
+  className?: string;
+}
+
+const FollowUpDetailRow: React.FC<FollowUpDetailRowProps> = ({
+  eyebrow: _eyebrow,
+  title,
+  body,
+  children,
+  className,
+}) => {
+  const questionText = normalizeText(body) || normalizeText(title);
+
+  return (
+    <article className={cx('border border-zinc-800/50 bg-zinc-950/70 p-3', className)}>
+      <div className="osint-meta-value leading-snug text-zinc-300">{questionText}</div>
+      {children}
+    </article>
+  );
+};
+
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   report,
   workspaceTitle,
@@ -253,8 +278,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const detailPanelTitle = workspaceTitle?.trim()
     ? workspaceTitle.trim()
     : navStack.find((item) => item.type === 'CASE')?.label || labelProfile.workspaceLabel;
-  const { artifactTypeLabel, evidenceBySectionId, orderedSections, visibleEvidence } =
-    buildArtifactViewerPresentation(report, purposeProfile);
+  const { evidenceBySectionId, orderedSections, visibleEvidence } = buildArtifactViewerPresentation(
+    report,
+    purposeProfile
+  );
   const canonicalFindings = report ? getArtifactKeyFindings(report) : [];
   const focusedEvidence =
     focusedEvidenceId && visibleEvidence.length > 0
@@ -313,13 +340,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
     : 'flex-1 h-full overflow-y-auto custom-scrollbar';
   const detailActionButtonClassName = `${CHROME_ACTION_BUTTON_CLASS} h-8 px-2.5`;
-  const summaryMetaChips = [
-    artifactTypeLabel,
-    report?.config?.generationMode,
-    report?.provenance?.provider,
-    report?.provenance?.modelId,
-  ].filter((value): value is string => normalizeText(value).length > 0);
-
   useEffect(() => {
     const nextTarget =
       (highlightedEvidenceId ? evidenceRefs.current[highlightedEvidenceId] : null) ||
@@ -471,7 +491,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             href={source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-body-quiet text-zinc-400 transition hover:border-osint-primary hover:text-white"
           >
             <Link2 className="h-3 w-3" />
             <span>{source.title || source.url}</span>
@@ -630,7 +650,12 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-4">
           <div className="min-w-0">
             {options?.eyebrow ? <div className="osint-eyebrow">{options.eyebrow}</div> : null}
-            <h2 className="mt-2 font-osint-display osint-title-section">
+            <h2
+              className={cx(
+                'font-osint-display osint-title-section',
+                options?.eyebrow ? 'mt-2' : undefined
+              )}
+            >
               {getArtifactSectionTitle(section.kind, labelProfile, section.title)}
             </h2>
           </div>
@@ -769,34 +794,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               <div className="absolute -right-16 -top-16 h-32 w-32 rounded-bl-full bg-white/5 transition-all" />
               <div className="relative z-10 flex items-start justify-between gap-4 border-b border-zinc-800 pb-4">
                 <div className="min-w-0">
-                  <div className="osint-eyebrow">{artifactTypeLabel}</div>
-                  <h2 className="mt-2 font-osint-display osint-title-section">
-                    Executive Summary
-                  </h2>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {summaryMetaChips.map((chip) => (
-                      <span
-                        key={chip}
-                        className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300"
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                    <span className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
-                      {`${canonicalFindings.length} findings`}
-                    </span>
-                    <span className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
-                      {`${reportSources.length} sources`}
-                    </span>
-                    <span className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
-                      {`${visibleEvidence.length} evidence rows`}
-                    </span>
-                    {(report.provenance?.warnings?.length || 0) > 0 ? (
-                      <span className="inline-flex items-center border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] px-2 py-1 osint-meta-label osint-danger-text">
-                        {`${report.provenance?.warnings?.length || 0} warnings`}
-                      </span>
-                    ) : null}
-                  </div>
+                  <h2 className="font-osint-display osint-title-section">Executive Summary</h2>
                 </div>
                 <div className="flex items-center gap-2">
                   {editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
@@ -905,8 +903,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             >
               <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
                 <div>
-                  <div className="osint-eyebrow">Structured Findings</div>
-                  <h2 className="mt-2 font-osint-display osint-title-section">Key Findings</h2>
+                  <h2 className="font-osint-display osint-title-section">Key Findings</h2>
                 </div>
                 <div className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
                   {`${canonicalFindings.length} records`}
@@ -991,7 +988,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <div className="space-y-6">
               {supplementalSections.map((section) =>
                 renderDocumentSection(section, {
-                  eyebrow: 'Document Section',
                   editable: Boolean(section.content),
                   saveSectionId: section.content ? section.id : undefined,
                   syncSummary: false,
@@ -1085,7 +1081,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         <div className="flex h-full w-1/4 flex-col overflow-hidden bg-black/95">
           <div className="flex shrink-0 items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4">
             <div className="min-w-0 pr-3">
-              <div className="mb-1 osint-meta-label">{labelProfile.workspaceLabel} DETAILS</div>
+              <div className="mb-1 osint-meta-label">Details</div>
               <h3 className="truncate font-mono osint-panel-title" title={detailPanelTitle}>
                 {detailPanelTitle}
               </h3>
@@ -1174,13 +1170,15 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </p>
                 ) : (
                   visibleFollowUps.map((followUp) => {
+                    const questionText = normalizeText(getFollowUpText(followUp));
                     const matchingSources = getMatchingSources(followUp.sourceRefs);
 
                     return (
-                      <DetailRow
+                      <FollowUpDetailRow
                         key={followUp.id}
+                        className="border border-zinc-800/50 bg-zinc-950/70 p-3"
                         eyebrow={`${followUp.kind.replace(/_/g, ' ')} · ${followUp.status.replace(/_/g, ' ')}`}
-                        title={followUp.title}
+                        title={questionText}
                         body={getFollowUpText(followUp)}
                       >
                         {followUp.entityRefs && followUp.entityRefs.length > 0 ? (
@@ -1197,11 +1195,11 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                               : renderReferenceChips(followUp.sourceRefs, 'SOURCE')}
                           </div>
                         ) : null}
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-3 space-y-1">
                           <button
                             type="button"
                             onClick={() => onLeadOpen(followUp)}
-                            className={detailActionButtonClassName}
+                            className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
                           >
                             Open
                           </button>
@@ -1213,13 +1211,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                                   jumpToSection(followUp.originSectionId);
                                 }
                               }}
-                              className={detailActionButtonClassName}
+                              className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
                             >
                               Jump To Section
                             </button>
                           ) : null}
                         </div>
-                      </DetailRow>
+                      </FollowUpDetailRow>
                     );
                   })
                 )}
@@ -1238,7 +1236,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               {reportEntities.length === 0 ? (
                 <p className="px-2 py-1 osint-body-quiet italic">No entities detected.</p>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1">
                   {reportEntities.map((entity, index) => {
                     const normalizedEntity =
                       typeof entity === 'string'
@@ -1250,27 +1248,18 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         key={`${normalizedEntity.name}-${index}`}
                         type="button"
                         onClick={() => onEntityClick(normalizedEntity)}
-                        className="border border-zinc-800 bg-zinc-950/70 p-3 text-left transition hover:border-osint-primary hover:bg-zinc-900"
+                        className="flex items-center gap-2 border border-zinc-800/50 bg-zinc-900/20 p-2 text-left transition hover:border-osint-primary hover:bg-zinc-900"
+                        title={normalizedEntity.name}
                       >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={cx(
-                              'h-1.5 w-1.5 rounded-full entity-tone-dot',
-                              getEntityToneClass(normalizedEntity.type)
-                            )}
-                          />
-                          <span className="truncate osint-meta-label-strong text-zinc-200">
-                            {normalizedEntity.name}
-                          </span>
-                        </div>
-                        <div className="mt-2 osint-meta-label text-zinc-500">
-                          {normalizedEntity.type}
-                        </div>
-                        {normalizedEntity.role ? (
-                          <div className="mt-2 line-clamp-2 osint-body-quiet">
-                            {normalizedEntity.role}
-                          </div>
-                        ) : null}
+                        <span
+                          className={cx(
+                            'h-1.5 w-1.5 rounded-full entity-tone-dot',
+                            getEntityToneClass(normalizedEntity.type)
+                          )}
+                        />
+                        <span className="truncate osint-meta-value text-zinc-300">
+                          {normalizedEntity.name}
+                        </span>
                       </button>
                     );
                   })}
@@ -1292,52 +1281,76 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               contentClassName={DETAIL_SECTION_SCROLL_CLASS}
             >
               <div className="space-y-2">
-                <DetailRow
-                  eyebrow="Generation"
-                  title={[report.provenance?.provider, report.provenance?.modelId]
+                {[
+                  [report.provenance?.provider, report.provenance?.modelId]
                     .filter((value): value is string => normalizeText(value).length > 0)
-                    .join(' / ') || 'No provider metadata'}
-                  tone="ACCENT"
-                >
-                  <div className="mt-3 space-y-2 osint-body-small text-zinc-300">
-                    {report.provenance?.generatedAt ? (
-                      <div>{`Generated ${formatTimestamp(report.provenance.generatedAt)}`}</div>
-                    ) : null}
-                    {report.provenance?.search?.webSearchRequests ? (
-                      <div>{`Web search calls: ${report.provenance.search.webSearchRequests}`}</div>
-                    ) : null}
-                    {groundedClaimCount !== undefined || inferredClaimCount !== undefined ? (
-                      <div>{`${groundedClaimCount ?? 0} grounded / ${inferredClaimCount ?? 0} inferred`}</div>
-                    ) : null}
-                  </div>
-                </DetailRow>
-
-                {report.provenance?.warnings?.map((warning, index) => (
-                  <DetailRow
-                    key={`${warning}-${index}`}
-                    eyebrow="Warning"
-                    title={warning}
-                    tone="WARNING"
-                  >
-                    <div className="mt-3 inline-flex items-center gap-2 osint-meta-label osint-danger-text">
-                      <ShieldAlert className="h-3 w-3" />
-                      <span>Review before reuse</span>
+                    .join(' / '),
+                  report.provenance?.generatedAt
+                    ? `Generated ${formatTimestamp(report.provenance.generatedAt)}`
+                    : null,
+                  report.provenance?.search?.webSearchRequests
+                    ? `Web search calls: ${report.provenance.search.webSearchRequests}`
+                    : null,
+                  groundedClaimCount !== undefined || inferredClaimCount !== undefined
+                    ? `${groundedClaimCount ?? 0} grounded / ${inferredClaimCount ?? 0} inferred`
+                    : null,
+                ].some(Boolean) ? (
+                  <div className="border border-zinc-800/50 bg-zinc-900/20 p-3">
+                    <div className="osint-meta-label">Generation</div>
+                    <div className="mt-2 space-y-1 osint-body-quiet text-zinc-400">
+                      {[report.provenance?.provider, report.provenance?.modelId]
+                        .filter((value): value is string => normalizeText(value).length > 0)
+                        .join(' / ') ? (
+                        <div>
+                          {[report.provenance?.provider, report.provenance?.modelId]
+                            .filter((value): value is string => normalizeText(value).length > 0)
+                            .join(' / ')}
+                        </div>
+                      ) : null}
+                      {report.provenance?.generatedAt ? (
+                        <div>{`Generated ${formatTimestamp(report.provenance.generatedAt)}`}</div>
+                      ) : null}
+                      {report.provenance?.search?.webSearchRequests ? (
+                        <div>{`Web search calls: ${report.provenance.search.webSearchRequests}`}</div>
+                      ) : null}
+                      {groundedClaimCount !== undefined || inferredClaimCount !== undefined ? (
+                        <div>{`${groundedClaimCount ?? 0} grounded / ${inferredClaimCount ?? 0} inferred`}</div>
+                      ) : null}
                     </div>
-                  </DetailRow>
-                ))}
+                  </div>
+                ) : null}
+
+                {report.provenance?.warnings?.length ? (
+                  <div className="border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-3">
+                    <div className="osint-meta-label osint-danger-text">Warnings</div>
+                    <div className="mt-2 space-y-1 osint-body-quiet osint-danger-text">
+                      {report.provenance.warnings.map((warning, index) => (
+                        <div key={`${warning}-${index}`} className="flex items-start gap-2">
+                          <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" />
+                          <span>{warning}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 {visibleEvidence.map((evidence) => (
-                  <DetailRow
+                  <div
                     key={evidence.id}
-                    eyebrow={evidence.kind}
-                    title={evidence.title}
-                    body={evidence.summary}
+                    className="border border-zinc-800/50 bg-zinc-900/20 p-3"
                   >
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="osint-meta-label">{evidence.kind}</div>
+                    <div className="mt-1 osint-meta-value text-zinc-300">{evidence.title}</div>
+                    {evidence.sourceTitle || evidence.sourceUrl ? (
+                      <div className="mt-1 osint-body-quiet text-zinc-400">
+                        {evidence.sourceTitle || evidence.sourceUrl}
+                      </div>
+                    ) : null}
+                    <div className="mt-3 space-y-1">
                       <button
                         type="button"
                         onClick={() => jumpToEvidence(evidence.id)}
-                        className={detailActionButtonClassName}
+                        className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
                       >
                         Open Evidence
                       </button>
@@ -1349,13 +1362,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                               jumpToSection(evidence.sectionId);
                             }
                           }}
-                          className={detailActionButtonClassName}
+                          className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
                         >
                           Jump To Section
                         </button>
                       ) : null}
                     </div>
-                  </DetailRow>
+                  </div>
                 ))}
 
                 {reportSources.length === 0 ? (
@@ -1366,23 +1379,18 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   ) : null
                 ) : (
                   reportSources.map((source, index) => (
-                    <DetailRow
+                    <a
                       key={`${source.url}-${index}`}
-                      eyebrow="Source"
-                      title={source.title || source.url}
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="osint-link-list-item block truncate border-b border-zinc-900 p-2 last:border-0"
                     >
-                      <div className="mt-3">
-                        <a
-                          href={source.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                        >
-                          <Link2 className="h-3 w-3" />
-                          <span>{source.url}</span>
-                        </a>
-                      </div>
-                    </DetailRow>
+                      <Link2 className="mr-1 inline h-3 w-3" />
+                      <span className="osint-body-quiet text-zinc-400">
+                        {source.title || source.url}
+                      </span>
+                    </a>
                   ))
                 )}
               </div>

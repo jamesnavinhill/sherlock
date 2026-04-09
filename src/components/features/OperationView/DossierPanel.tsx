@@ -15,14 +15,8 @@ import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain'
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import {
   CHROME_ACTION_BUTTON_CLASS,
-  CHROME_NESTED_ITEM_ACTION_ROW_CLASS,
-  CHROME_NESTED_ITEM_BADGE_CLASS,
-  CHROME_NESTED_ITEM_BODY_CLASS,
   CHROME_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_NESTED_ITEM_CLASS,
   CHROME_NESTED_ITEM_DOT_CLASS,
-  CHROME_NESTED_ITEM_HEADER_CLASS,
-  CHROME_NESTED_ITEM_META_ROW_CLASS,
   CHROME_PANEL_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
@@ -187,17 +181,12 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
               <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
             ) : (
               leads.map((lead, idx) => (
-                <div key={idx} className={CHROME_NESTED_ITEM_CLASS}>
-                  <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-                    <div className="min-w-0 flex-1">
-                      <div className="osint-title-inline">Follow-Up</div>
-                      <p className={`${CHROME_NESTED_ITEM_BODY_CLASS} line-clamp-3`}>{lead}</p>
-                    </div>
-                  </div>
-                  <div className={CHROME_NESTED_ITEM_ACTION_ROW_CLASS}>
+                <div key={idx} className="mb-1 border border-zinc-800/50 bg-zinc-900/20 p-2">
+                  <p className="mb-2 osint-meta-value leading-snug text-zinc-300">{lead}</p>
+                  <div className="flex">
                     <button
                       onClick={() => onLeadClick(lead)}
-                      className={`${CHROME_ACTION_BUTTON_CLASS} w-full`}
+                      className={`${CHROME_ACTION_BUTTON_CLASS} h-7 w-full justify-center px-2`}
                     >
                       Open
                     </button>
@@ -231,19 +220,12 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                   <button
                     key={`${report.id}-${evidence.id}`}
                     onClick={() => report.id && onNavigate(report.id)}
-                    className={CHROME_NESTED_ITEM_BUTTON_CLASS}
+                    className="w-full border border-zinc-800 bg-zinc-900/30 p-2 text-left transition hover:border-osint-primary"
                   >
-                    <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate osint-title-inline">{evidence.title}</div>
-                        <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
-                          <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>{evidence.kind}</span>
-                          <span className="truncate osint-meta-label">
-                            {sanitizeDisplayTitle(report.topic)}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+                    <div className="osint-meta-label">{evidence.kind}</div>
+                    <div className="mt-1 osint-meta-value">{evidence.title}</div>
+                    <div className="mt-1 truncate osint-body-quiet">
+                      {sanitizeDisplayTitle(report.topic)}
                     </div>
                   </button>
                 ))}
@@ -299,19 +281,14 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
                 <button
                   key={h.id}
                   onClick={() => onHeadlineClick(h)}
-                  className={`${CHROME_NESTED_ITEM_BUTTON_CLASS} group`}
+                  className="w-full border border-zinc-800/50 bg-zinc-900/20 p-2 text-left transition-colors hover:border-zinc-700 hover:bg-zinc-900 group"
                 >
-                  <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate osint-title-inline">{h.source || 'Saved Signal'}</div>
-                      <p className={`${CHROME_NESTED_ITEM_BODY_CLASS} line-clamp-2 text-left`}>
-                        {h.content}
-                      </p>
-                    </div>
-                    <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500 group-hover:text-osint-primary" />
-                  </div>
-                  <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
-                    <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>{h.type}</span>
+                  <p className="line-clamp-2 osint-body-quiet text-zinc-300 group-hover:text-white">
+                    {h.content}
+                  </p>
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="osint-meta-label text-zinc-600">{h.source}</span>
+                    <ChevronRight className="h-3 w-3 text-zinc-700 opacity-0 transition-all group-hover:opacity-100 group-hover:text-osint-primary" />
                   </div>
                 </button>
               ))

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Artifact } from '../../../types';
 import { ArtifactViewer } from './ArtifactViewer';
@@ -9,7 +9,7 @@ const reportFixture: Artifact = {
   topic:
     '[Atlas Contract Network] [RUN_ANGLE]: trace unusual award timing [PRIORITY_SOURCES]: registry.example',
   summary: 'Fallback summary',
-  artifactType: 'SYNTHESIS',
+  artifactType: 'BRIEF',
   agendas: ['Award timing clusters across overlapping vendors.'],
   leads: [],
   followUps: [],
@@ -66,6 +66,13 @@ const reportFixture: Artifact = {
       items: ['The award sequence suggests centralized coordination.'],
       order: 2,
     },
+    {
+      id: 'section-custom-3',
+      kind: 'CUSTOM',
+      title: 'Appendix',
+      content: 'Supporting notes for the case team.',
+      order: 3,
+    },
   ],
   config: {},
 };
@@ -96,10 +103,10 @@ describe('ArtifactViewer', () => {
 
     expect(screen.getByRole('heading', { name: /Executive Summary/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Key Findings/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Appendix/i })).toBeInTheDocument();
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
-    expect(screen.queryByText('Synthesis Reading Pattern')).not.toBeInTheDocument();
     expect(screen.getAllByText('Award timing irregularity').length).toBeGreaterThan(1);
     expect(
       screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
@@ -108,6 +115,13 @@ describe('ArtifactViewer', () => {
     expect(screen.queryByText(/\[RUN_ANGLE\]/)).not.toBeInTheDocument();
     expect(screen.queryByText(/\[PRIORITY_SOURCES\]/)).not.toBeInTheDocument();
     expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Brief$/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Structured Findings')).not.toBeInTheDocument();
+    expect(screen.queryByText('Document Section')).not.toBeInTheDocument();
+    expect(screen.queryByText('1 findings')).not.toBeInTheDocument();
+    expect(screen.queryByText('1 sources')).not.toBeInTheDocument();
+    expect(screen.queryByText('1 evidence rows')).not.toBeInTheDocument();
+    expect(screen.queryByText('1 warnings')).not.toBeInTheDocument();
     expect(screen.getAllByText('Registry').length).toBeGreaterThan(0);
     expect(screen.queryByText('Entity Index')).not.toBeInTheDocument();
     expect(screen.queryByText('Source Index')).not.toBeInTheDocument();
@@ -124,9 +138,7 @@ describe('ArtifactViewer', () => {
     ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
-    expect(
-      screen.getAllByText('Trace shared directors across the vendor cluster.').length
-    ).toBeGreaterThan(1);
+    expect(screen.getByText('Trace shared directors across the vendor cluster.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Provenance/i }));
     expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();
@@ -142,7 +154,12 @@ describe('ArtifactViewer', () => {
       })
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    const executiveSummarySection = screen
+      .getByRole('heading', { name: /Executive Summary/i })
+      .closest('section');
+    expect(executiveSummarySection).not.toBeNull();
+
+    fireEvent.click(within(executiveSummarySection as HTMLElement).getByRole('button', { name: 'Edit' }));
     const textarea = await screen.findByRole('textbox');
     fireEvent.change(textarea, { target: { value: 'Expanded report body for editing.' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));

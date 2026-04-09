@@ -11,17 +11,13 @@ import {
 import type { TimelineEvent } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
 import {
-  CHROME_NESTED_ITEM_BADGE_CLASS,
-  CHROME_NESTED_ITEM_BODY_CLASS,
-  CHROME_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_NESTED_ITEM_HEADER_CLASS,
-  CHROME_NESTED_ITEM_META_ROW_CLASS,
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
   getRailAccordionClassName,
 } from '@/components/ui/chrome';
 import {
+  getFocusedButtonClass,
   TRACK_OPTIONS,
   type DossierSections,
 } from './timelineViewUtils';
@@ -66,51 +62,20 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
   onToggleSection,
   onSetTrackFocus,
   onFocusReference,
-}) => {
-  const renderReferenceItem = (
-    item: TimelineEvent,
-    track: 'RUN' | 'ARTIFACT' | 'SIGNAL' | 'ENTITY' | 'CHAT',
-    fallbackLabel: string
-  ) => (
-    <button
-      key={item.refId || item.id}
-      type="button"
-      onClick={() => item.refId && onFocusReference(track, item.refId)}
-      className={CHROME_NESTED_ITEM_BUTTON_CLASS}
-      data-active={focusedRefId === item.refId}
-    >
-      <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-        <div className="min-w-0 flex-1">
-          <div className="truncate osint-title-inline text-zinc-200">{item.title}</div>
-          <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
-            {(item.badges?.length ? item.badges : [fallbackLabel]).map((badge) => (
-              <span key={`${item.id}-${badge}`} className={CHROME_NESTED_ITEM_BADGE_CLASS}>
-                {badge}
-              </span>
-            ))}
-          </div>
-          {item.summary ? (
-            <div className={`${CHROME_NESTED_ITEM_BODY_CLASS} line-clamp-2`}>{item.summary}</div>
-          ) : null}
-        </div>
-      </div>
-    </button>
-  );
+}) => (
+  <aside
+    className={`absolute left-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
+      isOpen
+        ? 'w-[min(20rem,calc(100vw-1rem))] translate-x-0 border-r border-zinc-800'
+        : 'w-[min(20rem,calc(100vw-1rem))] -translate-x-full border-r border-zinc-800 lg:w-0 lg:border-r-0'
+    }`}
+  >
+    <div className={CHROME_PANEL_HEADER_CLASS}>
+      <div className="osint-eyebrow">Library</div>
+      <div className="mt-1 osint-panel-title">{workspaceTitle}</div>
+    </div>
 
-  return (
-    <aside
-      className={`absolute left-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
-        isOpen
-          ? 'w-[min(20rem,calc(100vw-1rem))] translate-x-0 border-r border-zinc-800'
-          : 'w-[min(20rem,calc(100vw-1rem))] -translate-x-full border-r border-zinc-800 lg:w-0 lg:border-r-0'
-      }`}
-    >
-      <div className={CHROME_PANEL_HEADER_CLASS}>
-        <div className="osint-eyebrow">Library</div>
-        <div className="mt-1 osint-panel-title">{workspaceTitle}</div>
-      </div>
-
-      <div className={CHROME_RAIL_BODY_CLASS}>
+    <div className={CHROME_RAIL_BODY_CLASS}>
       <Accordion
         title="Events"
         icon={Clock3}
@@ -122,40 +87,18 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
       >
         <div className="space-y-2">
           <button
-            type="button"
             onClick={() => onSetTrackFocus('ALL')}
-            className={CHROME_NESTED_ITEM_BUTTON_CLASS}
-            data-active={focusedTrack === 'ALL' && !focusedRefId}
+            className={getFocusedButtonClass(focusedTrack === 'ALL' && !focusedRefId)}
           >
-            <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-              <div className="min-w-0 flex-1">
-                <div className="osint-title-inline text-zinc-200">All Activity</div>
-                <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
-                  <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>
-                    {allTimelineEvents.length} Events
-                  </span>
-                </div>
-              </div>
-            </div>
+            All Activity
           </button>
           {TRACK_OPTIONS.map((option) => (
             <button
               key={option.track}
-              type="button"
               onClick={() => onSetTrackFocus(option.track)}
-              className={CHROME_NESTED_ITEM_BUTTON_CLASS}
-              data-active={focusedTrack === option.track && !focusedRefId}
+              className={getFocusedButtonClass(focusedTrack === option.track && !focusedRefId)}
             >
-              <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
-                <div className="min-w-0 flex-1">
-                  <div className="osint-title-inline text-zinc-200">{option.label}</div>
-                  <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
-                    <span className={CHROME_NESTED_ITEM_BADGE_CLASS}>
-                      {getTrackCount(allTimelineEvents, option.track)} items
-                    </span>
-                  </div>
-                </div>
-              </div>
+              {option.label} ({getTrackCount(allTimelineEvents, option.track)})
             </button>
           ))}
         </div>
@@ -176,7 +119,18 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
               No workspace runs available yet.
             </div>
           ) : (
-            runItems.map((item) => renderReferenceItem(item, 'RUN', 'RUN'))
+            runItems.map((item) => (
+              <button
+                key={item.refId}
+                onClick={() => item.refId && onFocusReference('RUN', item.refId)}
+                className={getFocusedButtonClass(focusedRefId === item.refId)}
+              >
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
+                  {item.badges?.[0] || 'RUN'}
+                </div>
+              </button>
+            ))
           )}
         </div>
       </Accordion>
@@ -196,9 +150,18 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
               No saved {labelProfile.artifactLabelPlural.toLowerCase()} yet.
             </div>
           ) : (
-            artifactItems.map((item) =>
-              renderReferenceItem(item, 'ARTIFACT', labelProfile.artifactLabel)
-            )
+            artifactItems.map((item) => (
+              <button
+                key={item.refId}
+                onClick={() => item.refId && onFocusReference('ARTIFACT', item.refId)}
+                className={getFocusedButtonClass(focusedRefId === item.refId)}
+              >
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
+                  {item.badges?.join(' / ') || labelProfile.artifactLabel}
+                </div>
+              </button>
+            ))
           )}
         </div>
       </Accordion>
@@ -218,7 +181,18 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
               No saved signals in this workspace yet.
             </div>
           ) : (
-            signalItems.map((item) => renderReferenceItem(item, 'SIGNAL', 'Signal'))
+            signalItems.map((item) => (
+              <button
+                key={item.refId}
+                onClick={() => item.refId && onFocusReference('SIGNAL', item.refId)}
+                className={getFocusedButtonClass(focusedRefId === item.refId)}
+              >
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
+                  {item.badges?.join(' / ') || 'Signal'}
+                </div>
+              </button>
+            ))
           )}
         </div>
       </Accordion>
@@ -238,7 +212,18 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
               No entity milestones in this workspace yet.
             </div>
           ) : (
-            entityItems.map((item) => renderReferenceItem(item, 'ENTITY', 'ENTITY'))
+            entityItems.map((item) => (
+              <button
+                key={item.refId}
+                onClick={() => item.refId && onFocusReference('ENTITY', item.refId)}
+                className={getFocusedButtonClass(focusedRefId === item.refId)}
+              >
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
+                  {item.badges?.join(' / ') || 'ENTITY'}
+                </div>
+              </button>
+            ))
           )}
         </div>
       </Accordion>
@@ -258,11 +243,21 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
               No workspace chats available yet.
             </div>
           ) : (
-            chatSessionItems.map((item) => renderReferenceItem(item, 'CHAT', 'CHAT'))
+            chatSessionItems.map((item) => (
+              <button
+                key={item.refId}
+                onClick={() => item.refId && onFocusReference('CHAT', item.refId)}
+                className={getFocusedButtonClass(focusedRefId === item.refId)}
+              >
+                <div className="truncate osint-panel-title text-zinc-200">{item.title}</div>
+                <div className="mt-1 truncate osint-meta-label text-zinc-500">
+                  {item.badges?.join(' / ') || 'CHAT'}
+                </div>
+              </button>
+            ))
           )}
         </div>
       </Accordion>
-      </div>
-    </aside>
-  );
-};
+    </div>
+  </aside>
+);
