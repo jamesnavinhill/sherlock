@@ -7,7 +7,6 @@ import { buildWorkspaceTimelinePath } from '@/app/routes';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import { useTimelineViewController } from './Timeline/useTimelineViewController';
-import { toggleExclusiveSection } from './Timeline/timelineViewUtils';
 import { TimelineToolbar } from './Timeline/TimelineToolbar';
 import { TimelineDossierPanel } from './Timeline/TimelineDossierPanel';
 import { TimelineEventList } from './Timeline/TimelineEventList';
@@ -63,8 +62,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     selectedEvent,
     selectedRun,
     selectedWorkspaceItem,
-    setDetailSections,
-    setDossierSections,
     setLeftPanelOpen,
     setRightPanelOpen,
     setSelectedEventId,
@@ -77,6 +74,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     signalItems,
     signalTitleById,
     timelineSnapshot,
+    toggleDetailSection,
+    toggleDossierSection,
     toggleTrackFilter,
     updateTimelineQuery,
     visibleEvents,
@@ -179,9 +178,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
           chatSessionItems={chatSessionItems}
           focusedTrack={focusedTrack}
           focusedRefId={focusedRefId}
-          onToggleSection={(section) =>
-            setDossierSections((current) => toggleExclusiveSection(current, section))
-          }
+          onToggleSection={toggleDossierSection}
           onSetTrackFocus={setTrackFocus}
           onFocusReference={focusReference}
         />
@@ -222,12 +219,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
           selectedChatLaunchContext={selectedChatLaunchContext}
           selectedChatAction={selectedChatAction}
           labelProfile={labelProfile}
-          onToggleSummary={() =>
-            setDetailSections((current) => toggleExclusiveSection(current, 'summary'))
-          }
-          onToggleContext={() =>
-            setDetailSections((current) => toggleExclusiveSection(current, 'context'))
-          }
+          onToggleSummary={() => toggleDetailSection('summary')}
+          onToggleContext={() => toggleDetailSection('context')}
         />
       </div>
     </div>

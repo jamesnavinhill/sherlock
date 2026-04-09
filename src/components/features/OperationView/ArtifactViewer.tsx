@@ -9,7 +9,6 @@ import {
   Loader2,
   PanelRight,
   Pencil,
-  ShieldAlert,
   StopCircle,
   Volume2,
   X,
@@ -22,13 +21,11 @@ import type {
   Entity,
   FollowUp,
   KeyFinding,
-  Source,
 } from '../../../types';
 import {
   getArtifactFollowUps,
   getArtifactKeyFindings,
   getArtifactSectionTitle,
-  getFollowUpText,
   getLabelProfileById,
   getPurposeProfileById,
   getSectionByKinds,
@@ -41,19 +38,12 @@ import { EditableTitle } from '../../ui/EditableTitle';
 import { EmptyState } from '../../ui/EmptyState';
 import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
-import { Accordion } from '../../ui/Accordion';
-import {
-  CHROME_RAIL_BODY_CLASS,
-  CHROME_RAIL_SECTION_SCROLL_CLASS,
-  CHROME_THIN_ACTION_BUTTON_CLASS,
-  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_THIN_NESTED_ITEM_CLASS,
-  getChromeThinActionRowClassName,
-  getRailAccordionClassName,
-} from '../../ui/chrome';
-import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
-import { getEntityToneClass } from '../../../utils/entityPalette';
+import { CHROME_RAIL_BODY_CLASS, CHROME_THIN_ACTION_BUTTON_CLASS } from '../../ui/chrome';
+import { LibraryRailHeader } from '../LibraryRail/LibraryRailHeader';
+import { LibraryRailSections } from '../LibraryRail/LibraryRailSections';
+import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
+import { buildArtifactViewerDetailRailSections } from './artifactViewerDetailRail';
 
 interface ArtifactViewerProps {
   report: Artifact | null;
@@ -98,92 +88,6 @@ const matchesReference = (reference?: string | null, candidate?: string | null) 
 const dedupeById = <T extends { id: string }>(items: T[]) =>
   Array.from(new Map(items.map((item) => [item.id, item])).values());
 
-const formatTimestamp = (value?: string) => {
-  if (!value) return undefined;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
-};
-
-interface DetailRowProps {
-  eyebrow?: string;
-  title?: string;
-  body?: string;
-  tone?: 'DEFAULT' | 'ACCENT' | 'WARNING';
-  children?: React.ReactNode;
-}
-
-const DetailRow: React.FC<DetailRowProps> = ({
-  eyebrow,
-  title,
-  body,
-  tone = 'DEFAULT',
-  children,
-}) => (
-  <article
-    className={cx(
-      'border p-3',
-      tone === 'WARNING'
-        ? 'border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)]'
-        : tone === 'ACCENT'
-          ? 'border-osint-primary/30 bg-osint-primary/5'
-          : 'border-zinc-800 bg-zinc-950/70'
-    )}
-  >
-    {eyebrow ? (
-      <div className={cx('osint-meta-label', tone === 'WARNING' && 'osint-danger-text')}>
-        {eyebrow}
-      </div>
-    ) : null}
-    {title ? (
-      <div
-        className={cx(
-          'mt-1 osint-meta-label-strong',
-          tone === 'WARNING' ? 'osint-danger-text' : 'text-white'
-        )}
-      >
-        {title}
-      </div>
-    ) : null}
-    {body ? (
-      <div
-        className={cx(
-          title ? 'mt-2' : 'mt-1',
-          'max-w-none osint-body-small text-zinc-300 prose prose-invert prose-p:my-0',
-          tone === 'WARNING' && 'osint-danger-text'
-        )}
-      >
-        <ReactMarkdown>{body}</ReactMarkdown>
-      </div>
-    ) : null}
-    {children}
-  </article>
-);
-
-interface FollowUpDetailRowProps {
-  eyebrow?: string;
-  title?: string;
-  body?: string;
-  children?: React.ReactNode;
-  className?: string;
-}
-
-const FollowUpDetailRow: React.FC<FollowUpDetailRowProps> = ({
-  eyebrow: _eyebrow,
-  title,
-  body,
-  children,
-  className,
-}) => {
-  const questionText = normalizeText(body) || normalizeText(title);
-
-  return (
-    <article className={cx('border border-zinc-800/50 bg-zinc-950/70 px-3 py-2', className)}>
-      <div className="osint-meta-value leading-snug text-zinc-300">{questionText}</div>
-      {children}
-    </article>
-  );
-};
-
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   report,
   workspaceTitle,
@@ -203,9 +107,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const reportEntities = report?.entities || [];
 
   const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(true);
-  const [openSidebarSection, setOpenSidebarSection] = useState<
-    'findings' | 'followUps' | 'entities' | 'resources' | null
-  >('findings');
   const [editingTargetKey, setEditingTargetKey] = useState<string | null>(null);
   const [editingSectionDraft, setEditingSectionDraft] = useState('');
   const [isSavingSection, setIsSavingSection] = useState(false);
@@ -221,11 +122,12 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
 
-  const toggleSidebarAccordion = (
-    section: 'findings' | 'followUps' | 'entities' | 'resources'
-  ) => {
-    setOpenSidebarSection((current) => (current === section ? null : section));
-  };
+  const {
+    openSection: openDetailRailSection,
+    toggleSection: toggleDetailRailSection,
+  } = useExclusivePanelSections(['findings', 'followUps', 'entities', 'resources'] as const, {
+    initialOpenSection: 'findings',
+  });
 
   useEffect(() => {
     return () => stopAudio();
@@ -485,7 +387,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     return typeof match === 'string' ? { name: match, type: 'UNKNOWN' as const } : match;
   };
 
-  const renderInlineSourceLinks = (sources: Source[]) => {
+  const renderInlineSourceLinks = (sources: { title?: string; url: string }[]) => {
     if (sources.length === 0) return null;
 
     return (
@@ -502,47 +404,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <span>{source.title || source.url}</span>
           </a>
         ))}
-      </div>
-    );
-  };
-
-  const renderReferenceChips = (references: string[] | undefined, kind: 'ENTITY' | 'SOURCE') => {
-    if (!references || references.length === 0) return null;
-
-    return (
-      <div className="mt-3 flex flex-wrap gap-2">
-        {references.map((reference) => {
-          if (kind === 'ENTITY') {
-            const entity = getMatchingEntity(reference);
-            if (entity) {
-              return (
-                <button
-                  key={`${kind}-${reference}`}
-                  type="button"
-                  onClick={() => onEntityClick(entity)}
-                  className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                >
-                  <span
-                    className={cx(
-                      'h-1.5 w-1.5 rounded-full entity-tone-dot',
-                      getEntityToneClass(entity.type)
-                    )}
-                  />
-                  <span>{entity.name}</span>
-                </button>
-              );
-            }
-          }
-
-          return (
-            <span
-              key={`${kind}-${reference}`}
-              className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-400"
-            >
-              {reference}
-            </span>
-          );
-        })}
       </div>
     );
   };
@@ -731,6 +592,28 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
       </section>
     );
   };
+
+  const detailRailSections = buildArtifactViewerDetailRailSections({
+    report,
+    labelProfile,
+    canonicalFindings,
+    reportEntities,
+    reportSources,
+    visibleFollowUps,
+    visibleEvidence,
+    openSection: openDetailRailSection || 'findings',
+    toggleSection: toggleDetailRailSection,
+    keyFindingsAnchorId,
+    groundedClaimCount,
+    inferredClaimCount,
+    onEntityClick,
+    onLeadOpen,
+    jumpToSection,
+    jumpToEvidence,
+    getFindingRelatedEvidence,
+    getMatchingSources,
+    getMatchingEntity,
+  });
 
   if (showPlaceholder || !report) {
     return (
@@ -1084,326 +967,27 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
       {isDetailSidebarOpen ? (
         <div className="flex h-full w-1/4 flex-col overflow-hidden bg-black/95">
-          <div className="flex shrink-0 items-start justify-between border-b border-zinc-800 bg-zinc-900/30 p-4">
-            <div className="min-w-0 pr-3">
-              <div className="mb-1 osint-meta-label">Details</div>
+          <LibraryRailHeader
+            eyebrow="Details"
+            title={
               <h3 className="truncate font-mono osint-panel-title" title={detailPanelTitle}>
                 {detailPanelTitle}
               </h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsDetailSidebarOpen(false)}
-              className="mr-2 shrink-0 text-zinc-500 transition-colors hover:text-white"
-              title="Collapse Artifact Details"
-              aria-label="Collapse Artifact Details"
-            >
-              <PanelRight className="h-4 w-4" />
-            </button>
-          </div>
-
+            }
+            actions={
+              <button
+                type="button"
+                onClick={() => setIsDetailSidebarOpen(false)}
+                className="shrink-0 text-zinc-500 transition-colors hover:text-white"
+                title="Collapse Artifact Details"
+                aria-label="Collapse Artifact Details"
+              >
+                <PanelRight className="h-4 w-4" />
+              </button>
+            }
+          />
           <div className={`${CHROME_RAIL_BODY_CLASS} bg-zinc-900/10 custom-scrollbar`}>
-            <Accordion
-              title="Key Findings"
-              count={canonicalFindings.length}
-              icon={PANEL_SECTION_ICONS.keyFindings}
-              isOpen={openSidebarSection === 'findings'}
-              onToggle={() => toggleSidebarAccordion('findings')}
-              className={getRailAccordionClassName(openSidebarSection === 'findings')}
-              headerClassName="text-osint-primary"
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="space-y-2">
-                {canonicalFindings.length === 0 ? (
-                  <p className="px-2 py-1 osint-body-quiet italic">
-                    No canonical findings were extracted for this artifact.
-                  </p>
-                ) : (
-                  canonicalFindings.map((finding, index) => {
-                    const relatedEvidence = getFindingRelatedEvidence(finding);
-                    const matchingSources = getMatchingSources(finding.supportRefs);
-
-                    return (
-                      <DetailRow
-                        key={finding.id}
-                        eyebrow={`Finding ${index + 1}`}
-                        body={finding.summary}
-                      >
-                        {matchingSources.length > 0 ? (
-                          <div className="mt-3">
-                            <div className="osint-meta-label">Sources</div>
-                            {renderInlineSourceLinks(matchingSources)}
-                          </div>
-                        ) : null}
-                        {relatedEvidence.length > 0 ? (
-                          <div className="mt-3">
-                            <div className="osint-meta-label">Evidence</div>
-                            {renderEvidenceButtons(relatedEvidence)}
-                          </div>
-                        ) : null}
-                        <div className={getChromeThinActionRowClassName(1)}>
-                          <button
-                            type="button"
-                            onClick={() => jumpToSection(finding.originSectionId || keyFindingsAnchorId)}
-                            className={`${detailActionButtonClassName} w-full`}
-                          >
-                            Open
-                          </button>
-                        </div>
-                      </DetailRow>
-                    );
-                  })
-                )}
-              </div>
-            </Accordion>
-
-            <Accordion
-              title="Entities"
-              count={reportEntities.length}
-              icon={PANEL_SECTION_ICONS.entities}
-              isOpen={openSidebarSection === 'entities'}
-              onToggle={() => toggleSidebarAccordion('entities')}
-              className={getRailAccordionClassName(openSidebarSection === 'entities')}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              {reportEntities.length === 0 ? (
-                <p className="px-2 py-1 osint-body-quiet italic">No entities detected.</p>
-              ) : (
-                <div className="space-y-1">
-                  {reportEntities.map((entity, index) => {
-                    const normalizedEntity =
-                      typeof entity === 'string'
-                        ? { name: entity, type: 'UNKNOWN' as const }
-                        : entity;
-
-                    return (
-                      <button
-                        key={`${normalizedEntity.name}-${index}`}
-                        type="button"
-                        onClick={() => onEntityClick(normalizedEntity)}
-                        className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
-                        title={normalizedEntity.name}
-                      >
-                        <span
-                          className={cx(
-                            'h-1.5 w-1.5 rounded-full entity-tone-dot',
-                            getEntityToneClass(normalizedEntity.type)
-                          )}
-                        />
-                        <span className="truncate osint-meta-value text-zinc-300">
-                          {normalizedEntity.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </Accordion>
-
-            <Accordion
-              title={labelProfile.followUpLabel}
-              count={visibleFollowUps.length}
-              icon={PANEL_SECTION_ICONS.followUps}
-              isOpen={openSidebarSection === 'followUps'}
-              onToggle={() => toggleSidebarAccordion('followUps')}
-              className={getRailAccordionClassName(openSidebarSection === 'followUps')}
-              headerClassName="text-osint-primary"
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="space-y-2">
-                {visibleFollowUps.length === 0 ? (
-                  <p className="px-2 py-1 osint-body-quiet italic">
-                    {`No ${labelProfile.followUpLabel.toLowerCase()} extracted for this artifact.`}
-                  </p>
-                ) : (
-                  visibleFollowUps.map((followUp) => {
-                    const questionText = normalizeText(getFollowUpText(followUp));
-                    const matchingSources = getMatchingSources(followUp.sourceRefs);
-
-                    return (
-                      <FollowUpDetailRow
-                        key={followUp.id}
-                        className={`${CHROME_THIN_NESTED_ITEM_CLASS} border-zinc-800/50 bg-zinc-950/70`}
-                        eyebrow={`${followUp.kind.replace(/_/g, ' ')} · ${followUp.status.replace(/_/g, ' ')}`}
-                        title={questionText}
-                        body={getFollowUpText(followUp)}
-                      >
-                        {followUp.entityRefs && followUp.entityRefs.length > 0 ? (
-                          <div className="mt-3">
-                            <div className="osint-meta-label">Entities</div>
-                            {renderReferenceChips(followUp.entityRefs, 'ENTITY')}
-                          </div>
-                        ) : null}
-                        {followUp.sourceRefs && followUp.sourceRefs.length > 0 ? (
-                          <div className="mt-3">
-                            <div className="osint-meta-label">Sources</div>
-                            {matchingSources.length > 0
-                              ? renderInlineSourceLinks(matchingSources)
-                              : renderReferenceChips(followUp.sourceRefs, 'SOURCE')}
-                          </div>
-                        ) : null}
-                        <div
-                          className={getChromeThinActionRowClassName(
-                            followUp.originSectionId ? 2 : 1
-                          )}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => onLeadOpen(followUp)}
-                            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
-                          >
-                            Open
-                          </button>
-                          {followUp.originSectionId ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (followUp.originSectionId) {
-                                  jumpToSection(followUp.originSectionId);
-                                }
-                              }}
-                              className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
-                            >
-                              Jump To Section
-                            </button>
-                          ) : null}
-                        </div>
-                      </FollowUpDetailRow>
-                    );
-                  })
-                )}
-              </div>
-            </Accordion>
-
-            <Accordion
-              title="Sources"
-              count={reportSources.length}
-              icon={PANEL_SECTION_ICONS.sources}
-              isOpen={openSidebarSection === 'resources'}
-              onToggle={() => toggleSidebarAccordion('resources')}
-              className={getRailAccordionClassName(openSidebarSection === 'resources')}
-              contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-            >
-              <div className="space-y-2">
-                {[
-                  [report.provenance?.provider, report.provenance?.modelId]
-                    .filter((value): value is string => normalizeText(value).length > 0)
-                    .join(' / '),
-                  report.provenance?.generatedAt
-                    ? `Generated ${formatTimestamp(report.provenance.generatedAt)}`
-                    : null,
-                  report.provenance?.search?.webSearchRequests
-                    ? `Web search calls: ${report.provenance.search.webSearchRequests}`
-                    : null,
-                  groundedClaimCount !== undefined || inferredClaimCount !== undefined
-                    ? `${groundedClaimCount ?? 0} grounded / ${inferredClaimCount ?? 0} inferred`
-                    : null,
-                ].some(Boolean) ? (
-                  <div className="border border-zinc-800/50 bg-zinc-900/20 p-3">
-                    <div className="osint-meta-label">Generation</div>
-                    <div className="mt-2 space-y-1 osint-body-quiet text-zinc-400">
-                      {[report.provenance?.provider, report.provenance?.modelId]
-                        .filter((value): value is string => normalizeText(value).length > 0)
-                        .join(' / ') ? (
-                        <div>
-                          {[report.provenance?.provider, report.provenance?.modelId]
-                            .filter((value): value is string => normalizeText(value).length > 0)
-                            .join(' / ')}
-                        </div>
-                      ) : null}
-                      {report.provenance?.generatedAt ? (
-                        <div>{`Generated ${formatTimestamp(report.provenance.generatedAt)}`}</div>
-                      ) : null}
-                      {report.provenance?.search?.webSearchRequests ? (
-                        <div>{`Web search calls: ${report.provenance.search.webSearchRequests}`}</div>
-                      ) : null}
-                      {groundedClaimCount !== undefined || inferredClaimCount !== undefined ? (
-                        <div>{`${groundedClaimCount ?? 0} grounded / ${inferredClaimCount ?? 0} inferred`}</div>
-                      ) : null}
-                    </div>
-                  </div>
-                ) : null}
-
-                {report.provenance?.warnings?.length ? (
-                  <div className="border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-3">
-                    <div className="osint-meta-label osint-danger-text">Warnings</div>
-                    <div className="mt-2 space-y-1 osint-body-quiet osint-danger-text">
-                      {report.provenance.warnings.map((warning, index) => (
-                        <div key={`${warning}-${index}`} className="flex items-start gap-2">
-                          <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" />
-                          <span>{warning}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                {visibleEvidence.map((evidence) => (
-                  <div
-                    key={evidence.id}
-                    className="border border-zinc-800/50 bg-zinc-900/20 p-3"
-                  >
-                    <div className="osint-meta-label">{evidence.kind}</div>
-                    <div className="mt-1 osint-meta-value text-zinc-300">{evidence.title}</div>
-                    {evidence.sourceTitle || evidence.sourceUrl ? (
-                      <div className="mt-1 osint-body-quiet text-zinc-400">
-                        {evidence.sourceTitle || evidence.sourceUrl}
-                      </div>
-                    ) : null}
-                    <div
-                      className={getChromeThinActionRowClassName(
-                        evidence.sectionId ? 2 : 1
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => jumpToEvidence(evidence.id)}
-                        className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
-                      >
-                        Open Evidence
-                      </button>
-                      {evidence.sectionId ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (evidence.sectionId) {
-                              jumpToSection(evidence.sectionId);
-                            }
-                          }}
-                          className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
-                        >
-                          Jump To Section
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-
-                {reportSources.length === 0 ? (
-                  visibleEvidence.length === 0 ? (
-                    <p className="px-2 py-1 osint-body-quiet italic">
-                      No sources captured for this report.
-                    </p>
-                  ) : null
-                ) : (
-                  reportSources.map((source, index) => (
-                    <a
-                      key={`${source.url}-${index}`}
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
-                      title={source.title || source.url}
-                    >
-                      <Link2 className="mr-1 inline h-3 w-3" />
-                      <span className="osint-body-quiet text-zinc-400">
-                        {source.title || source.url}
-                      </span>
-                    </a>
-                  ))
-                )}
-              </div>
-            </Accordion>
+            <LibraryRailSections sections={detailRailSections} />
           </div>
         </div>
       ) : null}

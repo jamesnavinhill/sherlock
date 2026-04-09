@@ -29,7 +29,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - `Operation View`: document-first artifact reading with canonical key findings near the top of the body, inline evidence jump cues, section-level editing for substantive document blocks, route-backed section/evidence focus, purpose-ordered typed-section rendering, dossier, and a current-artifact/entity/signal inspector panel
 - `Run Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
 - `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into artifacts, timeline, graph, and chat
-- `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update/reuse events, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
+- `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update/reuse events, opt-in entity milestones, chat sessions, and high-signal chat actions, with shared library/inspector panel foundations, lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
 - `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records that reopen focused workspace surfaces, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Files, and Network Graph
 - `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files; this is real and routed, but it is not yet the global app homepage/dashboard
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for artifacts/entities/signals, and an overlaying dossier rail that no longer shifts graph content
@@ -141,11 +141,11 @@ npm run check:full
 
 `npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
-## Current Validation Snapshot (April 8, 2026)
+## Current Validation Snapshot (April 9, 2026)
 
-The current targeted validation for the Files-as-home routing update passed on this checkout:
+The current targeted validation for the shared panel unification pass passed on this checkout:
 
-- `npm run test -- src/app/routes.test.ts src/app/AppShellRoutes.test.tsx src/components/features/Files.launch.test.tsx src/components/ui/Sidebar.test.tsx`: passes
+- `npm run test -- src/components/features/Timeline/useTimelineViewController.test.ts src/components/features/Timeline/TimelineDossierPanel.test.tsx src/components/features/Timeline/TimelineDetailRail.test.tsx src/components/features/Timeline/timelineViewModel.test.ts src/components/features/OperationView/DossierPanel.test.tsx src/components/features/OperationView/ArtifactViewer.test.tsx src/components/features/OperationView/InspectorPanel.test.tsx src/components/features/NetworkGraph/NodeInspector.test.tsx src/components/features/shared/useExclusivePanelSections.test.tsx src/components/features/Inspector/GlobalInspectorPanel.test.tsx src/components/features/LibraryRail/LibraryRailShell.test.tsx src/components/features/LibraryRail/LibraryRailSections.test.tsx`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes

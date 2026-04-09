@@ -9,19 +9,22 @@ import type { TimelineEvent, TimelineFilters, TimelineTrack } from '@/types';
 import { CHROME_THIN_NESTED_ITEM_BUTTON_CLASS } from '@/components/ui/chrome';
 import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 
-export type DossierSections = {
-  events: boolean;
-  runs: boolean;
-  artifacts: boolean;
-  signals: boolean;
-  entities: boolean;
-  chats: boolean;
-};
+export const TIMELINE_DOSSIER_SECTION_KEYS = [
+  'events',
+  'runs',
+  'artifacts',
+  'signals',
+  'entities',
+  'chats',
+] as const;
 
-export type DetailSections = {
-  summary: boolean;
-  context: boolean;
-};
+export type DossierSectionKey = (typeof TIMELINE_DOSSIER_SECTION_KEYS)[number];
+export type DossierSections = Record<DossierSectionKey, boolean>;
+
+export const TIMELINE_DETAIL_SECTION_KEYS = ['summary', 'context'] as const;
+
+export type DetailSectionKey = (typeof TIMELINE_DETAIL_SECTION_KEYS)[number];
+export type DetailSections = Record<DetailSectionKey, boolean>;
 
 export const DEFAULT_FILTERS: TimelineFilters = {
   range: 'ALL',
@@ -141,11 +144,3 @@ export const getPrimaryRefId = (
 
 export const buildTimelineSearchPlaceholder = (artifactLabelPlural: string) =>
   `Search ${artifactLabelPlural.toLowerCase()}, items, runs, signals, entities, chats...`;
-
-export const toggleExclusiveSection = <T extends Record<string, boolean>>(
-  current: T,
-  section: keyof T
-): T =>
-  Object.fromEntries(
-    Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
-  ) as T;

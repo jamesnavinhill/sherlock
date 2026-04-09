@@ -114,6 +114,27 @@ That module currently centralizes:
 
 Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
 
+### Shared panel foundations
+
+The panel-heavy routed surfaces now also share panel primitives instead of each maintaining separate accordion shells and inspector chrome.
+
+Primary shared panel files:
+
+- `src/components/features/LibraryRail/LibraryRailShell.tsx`
+- `src/components/features/LibraryRail/LibraryRailHeader.tsx`
+- `src/components/features/LibraryRail/LibraryRailSections.tsx`
+- `src/components/features/Inspector/GlobalInspectorPanel.tsx`
+- `src/components/features/Inspector/GlobalInspectorHeader.tsx`
+- `src/components/features/Inspector/GlobalInspectorSections.tsx`
+- `src/components/features/shared/useExclusivePanelSections.ts`
+
+Current panel-system rules:
+
+- route-owned surfaces should keep their own data shaping, actions, and copy while rendering through the shared library-rail or global-inspector shells
+- exclusive open/close behavior for accordion-style panel sections should use `useExclusivePanelSections.ts` rather than per-surface toggle helpers
+- Operation View, Timeline, and Network Graph now all adapt their dossier/inspector content into these shared panel contracts instead of keeping separate shell implementations
+- Timeline-specific panel components remain route-local adapters so timeline focus, selection, and handoff behavior stays owned by the Timeline feature even though the chrome is shared
+
 ### Shared icon contract
 
 Sherlock now uses one curated application-icon registry for user-selectable record icons instead of letting each surface persist raw `lucide-react` component names or invent local icon mappings.
@@ -593,6 +614,9 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
 - `timelineEvents.ts` now composes dedicated `timelineEventBuilders.ts` and `timelineEventUtils.ts` seams instead of keeping all event heuristics inline in one owner file
 - route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
+- `TimelineDossierPanel.tsx` now renders through the shared `LibraryRail` foundation while keeping Timeline-specific focus chips and reference actions in the feature layer
+- `TimelineDetailRail.tsx` now renders through the shared `GlobalInspectorPanel` foundation while keeping Timeline-specific context composition and handoff actions route-owned
+- Timeline section exclusivity now reuses `src/components/features/shared/useExclusivePanelSections.ts` instead of a Timeline-only toggle helper
 - default-on chronology for saved signals, runs, and artifacts
 - default-on `ITEM` track for canonical workspace-item creation, promotion, material-update, and chat-reuse events
 - opt-in secondary `ENTITY` track for first-seen moments, repeated-mention thresholds, and artifact-backed reappearance milestones

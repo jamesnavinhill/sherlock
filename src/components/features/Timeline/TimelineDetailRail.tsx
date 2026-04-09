@@ -13,18 +13,16 @@ import type {
   WorkspaceItem,
   WorkspaceRun,
 } from '@/types';
-import { Accordion } from '@/components/ui/Accordion';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
-import {
-  CHROME_PANEL_ACTION_ROW_CLASS,
-  CHROME_PANEL_HEADER_CLASS,
-  CHROME_RAIL_BODY_CLASS,
-  CHROME_RAIL_SECTION_SCROLL_CLASS,
-  getRailAccordionClassName,
-} from '@/components/ui/chrome';
+import { GlobalInspectorPanel } from '@/components/features/Inspector/GlobalInspectorPanel';
+import type { GlobalInspectorSection } from '@/components/features/Inspector/globalInspectorTypes';
+import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '@/domain';
-import { getMetadataValue, type DetailSections } from './timelineViewUtils';
+import {
+  formatEventTime,
+  getEventIcon,
+  getMetadataValue,
+  type DetailSections,
+} from './timelineViewUtils';
 
 interface TimelineDetailRailProps {
   isOpen: boolean;
@@ -64,46 +62,21 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
   labelProfile,
   onToggleSummary,
   onToggleContext,
-}) => (
-  <aside
-    className={`osint-panel-shell absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
-      isOpen
-        ? 'w-[min(24rem,calc(100vw-1rem))] translate-x-0 border-l border-zinc-800'
-        : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full border-l border-zinc-800 lg:w-0 lg:border-l-0'
-    }`}
-  >
-    <div className={CHROME_PANEL_HEADER_CLASS}>
-      <div className="osint-eyebrow">Details</div>
-      <div className="mt-1 osint-panel-title">
-        {selectedEvent ? selectedEvent.title : 'No Event Selected'}
-      </div>
-    </div>
-    {selectedEvent && detailActions.length > 0 ? (
-      <div className={CHROME_PANEL_ACTION_ROW_CLASS}>
-        <InspectorActionRow actions={detailActions} />
-      </div>
-    ) : null}
-
-    <div className={CHROME_RAIL_BODY_CLASS}>
-      {!selectedEvent ? (
-        <EmptyState
-          icon={MessageSquare}
-          title="Select An Event"
-          description="Pick a signal, run, artifact, entity milestone, or chat event from the chronology to inspect its context and jump into related workspace views."
-          className="px-0 py-10"
-          panelClassName="max-w-none px-6 py-8"
-        />
-      ) : (
-        <>
-          <Accordion
-            title="Summary"
-            icon={Clock3}
-            isOpen={detailSections.summary}
-            onToggle={onToggleSummary}
-            className={getRailAccordionClassName(detailSections.summary)}
-            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-          >
+}) => {
+  const sections: GlobalInspectorSection[] = selectedEvent
+    ? [
+        {
+          id: 'summary',
+          title: 'Summary',
+          icon: Clock3,
+          isOpen: detailSections.summary,
+          onToggle: onToggleSummary,
+          content: (
             <div className="space-y-3 px-1 py-1 osint-meta-value">
+              <div>
+                <div className="osint-meta-label">Track</div>
+                <div className="mt-1">{selectedEvent.track}</div>
+              </div>
               <div>
                 <div className="osint-meta-label">Type</div>
                 <div className="mt-1">{selectedEvent.type}</div>
@@ -123,16 +96,15 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
             </div>
-          </Accordion>
-
-          <Accordion
-            title="Context"
-            icon={Workflow}
-            isOpen={detailSections.context}
-            onToggle={onToggleContext}
-            className={getRailAccordionClassName(detailSections.context)}
-            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-          >
+          ),
+        },
+        {
+          id: 'context',
+          title: 'Event Context',
+          icon: Workflow,
+          isOpen: detailSections.context,
+          onToggle: onToggleContext,
+          content: (
             <div className="space-y-3 px-1 py-1 osint-meta-value">
               <div>
                 <div className="osint-meta-label">Workspace</div>
@@ -172,17 +144,13 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
               ) : null}
               {selectedArtifact ? (
                 <div>
-                  <div className="osint-meta-label">
-                    Related {labelProfile.artifactLabel}
-                  </div>
+                  <div className="osint-meta-label">Related {labelProfile.artifactLabel}</div>
                   <div className="mt-1">{sanitizeDisplayTitle(selectedArtifact.topic)}</div>
                 </div>
               ) : null}
               {parentArtifact ? (
                 <div>
-                  <div className="osint-meta-label">
-                    Parent {labelProfile.artifactLabel}
-                  </div>
+                  <div className="osint-meta-label">Parent {labelProfile.artifactLabel}</div>
                   <div className="mt-1">{sanitizeDisplayTitle(parentArtifact.topic)}</div>
                 </div>
               ) : null}
@@ -276,9 +244,38 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
                 </div>
               ) : null}
             </div>
-          </Accordion>
-        </>
-      )}
-    </div>
-  </aside>
-);
+          ),
+        },
+      ]
+    : [];
+
+  return (
+    <GlobalInspectorPanel
+      isOpen={isOpen}
+      eyebrow="Inspector"
+      title={selectedEvent ? selectedEvent.title : 'No Event Selected'}
+      subtitle={
+        selectedEvent
+          ? `${selectedEvent.track} event${
+              selectedEvent.occurredAt > 0 ? ` - ${formatEventTime(selectedEvent.occurredAt)}` : ''
+            }`
+          : 'Timeline context'
+      }
+      headerIcon={
+        selectedEvent ? (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-200">
+            {React.createElement(getEventIcon(selectedEvent), { className: 'h-4 w-4' })}
+          </div>
+        ) : null
+      }
+      actionItems={selectedEvent ? detailActions : []}
+      sections={sections}
+      emptyState={{
+        icon: MessageSquare,
+        title: 'Select An Event',
+        description:
+          'Pick a signal, run, artifact, entity milestone, or chat event from the chronology to inspect its context and jump into related workspace views.',
+      }}
+    />
+  );
+};

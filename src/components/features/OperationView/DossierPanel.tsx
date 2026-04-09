@@ -1,26 +1,16 @@
 import React from 'react';
-import {
-  FileText,
-  Users,
-  Globe,
-  ChevronRight,
-  Link2,
-} from 'lucide-react';
+import { FileText, Users, Globe } from 'lucide-react';
 import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from '../../../types';
-import { Accordion } from '../../ui/Accordion';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import {
   CHROME_NESTED_ITEM_DOT_CLASS,
-  CHROME_PANEL_CLASS,
-  CHROME_PANEL_HEADER_CLASS,
-  CHROME_RAIL_BODY_CLASS,
-  CHROME_RAIL_SECTION_SCROLL_CLASS,
-  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
   CHROME_THIN_NESTED_ITEM_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
-  getRailAccordionClassName,
 } from '../../ui/chrome';
+import { LibraryRailSections } from '../LibraryRail/LibraryRailSections';
+import { LibraryRailShell } from '../LibraryRail/LibraryRailShell';
+import type { LibraryRailSection } from '../LibraryRail/libraryRailTypes';
 import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
 
 interface DossierPanelProps {
@@ -73,231 +63,180 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
       ? 'lg:relative lg:z-0 lg:w-80 lg:translate-x-0'
       : 'lg:relative lg:z-0 lg:w-0 lg:-translate-x-0 lg:border-r-0';
 
-  return (
-    <div
-      className={`${isOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-80 border-r overflow-hidden flex flex-col shadow-2xl transition-all duration-300 ${CHROME_PANEL_CLASS} ${desktopLayoutClass} ${isOpen ? 'pointer-events-auto' : 'pointer-events-none lg:pointer-events-none'} ${overlayOnDesktop ? 'lg:shadow-2xl' : 'lg:shadow-none'}`}
-    >
-      {activeCase && (
-        <div className={CHROME_PANEL_HEADER_CLASS}>
-          <div className="osint-eyebrow">Library</div>
-          <h2 className="mt-1 osint-panel-title leading-tight">
-            {getWorkspaceDisplayTitle(activeCase)}
-          </h2>
-          {showHeaderSummary ? (
-            <div className="mt-3 osint-meta-label flex items-center space-x-3">
-              <span className="flex items-center">
-                <FileText className="w-3 h-3 mr-1" />
-                {reports.length} {labelProfile.artifactLabelPlural}
-              </span>
-              <span className="flex items-center">
-                <Users className="w-3 h-3 mr-1" />
-                {entities.length} Entities
-              </span>
+  const sections: LibraryRailSection[] = [];
+
+  if (reports.length > 0) {
+    sections.push({
+      id: 'reports',
+      title: labelProfile.artifactLabelPlural,
+      count: reports.length,
+      icon: PANEL_SECTION_ICONS.artifacts,
+      isOpen: openSections.reports,
+      onToggle: () => toggleSection('reports'),
+      entries: reports.map((reportEntry) => ({
+        id: reportEntry.id || reportEntry.topic,
+        title: sanitizeDisplayTitle(reportEntry.topic),
+        onClick: reportEntry.id ? () => onNavigate(reportEntry.id as string) : undefined,
+        isActive: activeReportId === reportEntry.id,
+        icon: <span className={CHROME_NESTED_ITEM_DOT_CLASS} />,
+      })),
+    });
+  }
+
+  if (entities.length > 0) {
+    sections.push({
+      id: 'entities',
+      title: 'Identified Entities',
+      count: entities.length,
+      icon: PANEL_SECTION_ICONS.entities,
+      isOpen: openSections.entities,
+      onToggle: () => toggleSection('entities'),
+      entries: entities.map((entity, index) => ({
+        id: `${entity.name}-${index}`,
+        title: entity.name,
+        onClick: () => onEntityClick(entity),
+        icon: (
+          <span
+            className={`${CHROME_NESTED_ITEM_DOT_CLASS} ${getEntityToneClass(entity.type)} entity-tone-dot`}
+          />
+        ),
+      })),
+    });
+  }
+
+  sections.push({
+    id: 'leads',
+    title: labelProfile.followUpLabel,
+    count: leads.length,
+    icon: PANEL_SECTION_ICONS.followUps,
+    isOpen: openSections.leads,
+    onToggle: () => toggleSection('leads'),
+    content:
+      leads.length === 0 ? (
+        <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
+      ) : (
+        <div className="space-y-1">
+          {leads.map((lead, index) => (
+            <div key={`${lead}-${index}`} className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
+              <p className="osint-meta-value leading-snug text-zinc-300">{lead}</p>
+              <div className="flex">
+                <button
+                  type="button"
+                  onClick={() => onLeadClick(lead)}
+                  className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
+                >
+                  Open
+                </button>
+              </div>
             </div>
-          ) : null}
+          ))}
         </div>
-      )}
-      {!activeCase && (
-        <div className={CHROME_PANEL_HEADER_CLASS}>
-          <div className="osint-eyebrow">Library</div>
-          <h2 className="mt-1 osint-panel-title text-zinc-500">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
-          <p className="osint-body-quiet mt-1">{`Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`}</p>
-        </div>
-      )}
+      ),
+  });
 
-      <div className={`${CHROME_RAIL_BODY_CLASS} bg-black/20`}>
-        {/* Reports */}
-        {reports.length > 0 && (
-          <Accordion
-            title={labelProfile.artifactLabelPlural}
-            count={reports.length}
-            icon={PANEL_SECTION_ICONS.artifacts}
-            isOpen={openSections.reports}
-            onToggle={() => toggleSection('reports')}
-            className={getRailAccordionClassName(openSections.reports)}
-            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-          >
-            <div className="space-y-1">
-              {reports.map((r) => (
-                <button
-                  key={r.id || r.topic}
-                  onClick={() => r.id && onNavigate(r.id)}
-                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-3`}
-                  data-active={activeReportId === r.id}
-                  title={sanitizeDisplayTitle(r.topic)}
-                >
-                  <span className={CHROME_NESTED_ITEM_DOT_CLASS} />
-                  <span className="truncate osint-meta-value">
-                    {sanitizeDisplayTitle(r.topic)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </Accordion>
-        )}
+  if (reports.some((reportEntry) => (reportEntry.evidence || []).length > 0)) {
+    const evidenceEntries = reports
+      .flatMap((reportEntry) =>
+        (reportEntry.evidence || []).slice(0, 2).map((evidence) => ({
+          report: reportEntry,
+          evidence,
+        }))
+      )
+      .slice(0, 8);
 
-        {/* Entities */}
-        {entities.length > 0 && (
-          <Accordion
-            title="Identified Entities"
-            count={entities.length}
-            icon={PANEL_SECTION_ICONS.entities}
-            isOpen={openSections.entities}
-            onToggle={() => toggleSection('entities')}
-            className={getRailAccordionClassName(openSections.entities)}
-            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-          >
-            <div className="space-y-1">
-              {entities.map((e, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => onEntityClick(e)}
-                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
-                  title={e.name}
-                >
-                  <span
-                    className={`${CHROME_NESTED_ITEM_DOT_CLASS} ${getEntityToneClass(e.type)} entity-tone-dot`}
-                  />
-                  <span className="truncate osint-meta-value">{e.name}</span>
-                </button>
-              ))}
-            </div>
-          </Accordion>
-        )}
+    sections.push({
+      id: 'evidence',
+      title: 'Evidence',
+      count: reports.reduce((total, reportEntry) => total + (reportEntry.evidence?.length || 0), 0),
+      icon: Globe,
+      isOpen: openSections.evidence,
+      onToggle: () => toggleSection('evidence'),
+      entries: evidenceEntries.map(({ report: evidenceReport, evidence }) => ({
+        id: `${evidenceReport.id || evidenceReport.topic}-${evidence.id}`,
+        title: evidence.kind,
+        description: evidence.title,
+        meta: sanitizeDisplayTitle(evidenceReport.topic),
+        onClick: evidenceReport.id ? () => onNavigate(evidenceReport.id as string) : undefined,
+        variant: 'card',
+      })),
+    });
+  }
 
-        {/* Leads */}
-        <Accordion
-          title={labelProfile.followUpLabel}
-          count={leads.length}
-          icon={PANEL_SECTION_ICONS.followUps}
-          isOpen={openSections.leads}
-          onToggle={() => toggleSection('leads')}
-          className={getRailAccordionClassName(openSections.leads)}
-          contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-        >
-          <div className="space-y-1">
-            {leads.length === 0 ? (
-              <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
-            ) : (
-              leads.map((lead, idx) => (
-                <div key={idx} className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
-                  <p className="osint-meta-value leading-snug text-zinc-300">{lead}</p>
-                  <div className="flex">
-                    <button
-                      onClick={() => onLeadClick(lead)}
-                      className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
-                    >
-                      Open
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </Accordion>
+  sections.push({
+    id: 'sources',
+    title: 'Sources',
+    count: sources.length,
+    icon: PANEL_SECTION_ICONS.sources,
+    isOpen: openSections.sources,
+    onToggle: () => toggleSection('sources'),
+    entries: sources.map((source, index) => ({
+      id: `${source.url}-${index}`,
+      title: source.title || source.url,
+      description: source.title ? source.url : undefined,
+      href: source.url,
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    })),
+    emptyState: (
+      <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.signalLabel.toLowerCase()} captured yet.`}</p>
+    ),
+  });
 
-        {reports.some((report) => (report.evidence || []).length > 0) && (
-          <Accordion
-            title="Evidence"
-            count={reports.reduce((total, report) => total + (report.evidence?.length || 0), 0)}
-            icon={Globe}
-            isOpen={openSections.evidence}
-            onToggle={() => toggleSection('evidence')}
-            className={getRailAccordionClassName(openSections.evidence)}
-            contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-          >
-            <div className="space-y-1">
-              {reports
-                .flatMap((report) =>
-                  (report.evidence || []).slice(0, 2).map((evidence) => ({
-                    report,
-                    evidence,
-                  }))
-                )
-                .slice(0, 8)
-                .map(({ report, evidence }) => (
-                  <button
-                    key={`${report.id}-${evidence.id}`}
-                    onClick={() => report.id && onNavigate(report.id)}
-                    className={CHROME_THIN_NESTED_ITEM_BUTTON_CLASS}
-                  >
-                    <div className="osint-meta-label">{evidence.kind}</div>
-                    <div className="mt-1 osint-meta-value">{evidence.title}</div>
-                    <div className="mt-1 truncate osint-body-quiet">
-                      {sanitizeDisplayTitle(report.topic)}
-                    </div>
-                  </button>
-                ))}
-            </div>
-          </Accordion>
-        )}
+  sections.push({
+    id: 'headlines',
+    title: 'Saved Signals',
+    count: headlines.length,
+    icon: PANEL_SECTION_ICONS.signals,
+    isOpen: openSections.headlines,
+    onToggle: () => toggleSection('headlines'),
+    entries: headlines.map((headline) => ({
+      id: headline.id,
+      title: headline.source,
+      description: headline.content,
+      meta: `${headline.type} Signal`,
+      onClick: () => onHeadlineClick(headline),
+      variant: 'card',
+    })),
+    emptyState: (
+      <p className="osint-body-quiet px-2 py-1 italic">{`No saved signals linked to this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
+    ),
+  });
 
-        {/* Sources */}
-        <Accordion
-          title="Sources"
-          count={sources.length}
-          icon={PANEL_SECTION_ICONS.sources}
-          isOpen={openSections.sources}
-          onToggle={() => toggleSection('sources')}
-          className={getRailAccordionClassName(openSections.sources)}
-          contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-        >
-          <div className="space-y-1">
-            {sources.length === 0 ? (
-              <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.signalLabel.toLowerCase()} captured yet.`}</p>
-            ) : (
-              sources.map((s, idx) => (
-                <a
-                  key={idx}
-                  href={s.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block`}
-                  title={s.title || s.url}
-                >
-                  <Link2 className="mr-1 inline h-3 w-3" />
-                  <span className="osint-body-quiet text-zinc-400">
-                    {s.title || s.url}
-                  </span>
-                </a>
-              ))
-            )}
-          </div>
-        </Accordion>
-
-        {/* Headlines */}
-        <Accordion
-          title="Saved Signals"
-          count={headlines.length}
-          icon={PANEL_SECTION_ICONS.signals}
-          isOpen={openSections.headlines}
-          onToggle={() => toggleSection('headlines')}
-          className={getRailAccordionClassName(openSections.headlines)}
-          contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-        >
-          <div className="space-y-1">
-            {headlines.length === 0 ? (
-              <p className="osint-body-quiet px-2 py-1 italic">{`No saved signals linked to this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
-            ) : (
-              headlines.map((h) => (
-                <button
-                  key={h.id}
-                  onClick={() => onHeadlineClick(h)}
-                  className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} group`}
-                >
-                  <p className="line-clamp-2 osint-body-quiet text-zinc-300 group-hover:text-white">
-                    {h.content}
-                  </p>
-                  <div className="mt-1 flex items-center justify-between">
-                    <span className="osint-meta-label text-zinc-600">{h.source}</span>
-                    <ChevronRight className="h-3 w-3 text-zinc-700 opacity-0 transition-all group-hover:opacity-100 group-hover:text-osint-primary" />
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        </Accordion>
-      </div>
+  const headerSummary = showHeaderSummary ? (
+    <div className="osint-meta-label flex items-center space-x-3">
+      <span className="flex items-center">
+        <FileText className="mr-1 h-3 w-3" />
+        {reports.length} {labelProfile.artifactLabelPlural}
+      </span>
+      <span className="flex items-center">
+        <Users className="mr-1 h-3 w-3" />
+        {entities.length} Entities
+      </span>
     </div>
+  ) : undefined;
+
+  return (
+    <LibraryRailShell
+      isOpen={isOpen}
+      title={
+        activeCase ? (
+          <h2 className="leading-tight">{getWorkspaceDisplayTitle(activeCase)}</h2>
+        ) : (
+          <h2 className="text-zinc-500">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
+        )
+      }
+      subtitle={
+        activeCase
+          ? undefined
+          : `Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`
+      }
+      summary={headerSummary}
+      widthClassName="w-80"
+      className={`${desktopLayoutClass} ${overlayOnDesktop ? 'lg:shadow-2xl' : 'lg:shadow-none'}`}
+    >
+      <div className="bg-black/20">
+        <LibraryRailSections sections={sections} />
+      </div>
+    </LibraryRailShell>
   );
 };

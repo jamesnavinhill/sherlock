@@ -1,25 +1,13 @@
 import React from 'react';
-import {
-  Activity,
-  Clock3,
-  MessageSquare,
-} from 'lucide-react';
+import { Activity, Clock3, MessageSquare } from 'lucide-react';
 
 import type { TimelineEvent } from '@/types';
-import { Accordion } from '@/components/ui/Accordion';
-import {
-  CHROME_PANEL_HEADER_CLASS,
-  CHROME_RAIL_BODY_CLASS,
-  CHROME_RAIL_SECTION_SCROLL_CLASS,
-  getRailAccordionClassName,
-} from '@/components/ui/chrome';
-import {
-  getFocusedButtonClass,
-  TRACK_OPTIONS,
-  type DossierSections,
-} from './timelineViewUtils';
-import { getTrackCount } from './timelineEvents';
+import { LibraryRailSections } from '@/components/features/LibraryRail/LibraryRailSections';
+import { LibraryRailShell } from '@/components/features/LibraryRail/LibraryRailShell';
+import type { LibraryRailSection } from '@/components/features/LibraryRail/libraryRailTypes';
 import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
+import { getLatestTimelineActivity, getTrackCount } from './timelineEvents';
+import { getFocusedButtonClass, TRACK_OPTIONS, type DossierSections } from './timelineViewUtils';
 
 interface LabelProfileLike {
   artifactLabel: string;
@@ -40,8 +28,8 @@ interface TimelineDossierPanelProps {
   focusedTrack?: string;
   focusedRefId?: string;
   onToggleSection: (section: keyof DossierSections) => void;
-  onSetTrackFocus: (track: 'ALL' | typeof TRACK_OPTIONS[number]['track']) => void;
-  onFocusReference: (track: typeof TRACK_OPTIONS[number]['track'], refId: string) => void;
+  onSetTrackFocus: (track: 'ALL' | (typeof TRACK_OPTIONS)[number]['track']) => void;
+  onFocusReference: (track: (typeof TRACK_OPTIONS)[number]['track'], refId: string) => void;
 }
 
 export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
@@ -60,31 +48,36 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
   onToggleSection,
   onSetTrackFocus,
   onFocusReference,
-}) => (
-  <aside
-    className={`osint-panel-shell absolute left-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
-      isOpen
-        ? 'w-[min(20rem,calc(100vw-1rem))] translate-x-0 border-r border-zinc-800'
-        : 'w-[min(20rem,calc(100vw-1rem))] -translate-x-full border-r border-zinc-800 lg:w-0 lg:border-r-0'
-    }`}
-  >
-    <div className={CHROME_PANEL_HEADER_CLASS}>
-      <div className="osint-eyebrow">Library</div>
-      <div className="mt-1 osint-panel-title">{workspaceTitle}</div>
-    </div>
+}) => {
+  const latestActivity = getLatestTimelineActivity(allTimelineEvents);
 
-    <div className={CHROME_RAIL_BODY_CLASS}>
-      <Accordion
-        title="Events"
-        icon={Clock3}
-        count={allTimelineEvents.length}
-        isOpen={dossierSections.events}
-        onToggle={() => onToggleSection('events')}
-        className={getRailAccordionClassName(dossierSections.events)}
-        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-      >
+  const buildReferenceEntries = (
+    items: TimelineEvent[],
+    track: (typeof TRACK_OPTIONS)[number]['track']
+  ) =>
+    items.map((item) => {
+      const refId = item.refId;
+
+      return {
+        id: `${track}-${refId || item.id}`,
+        title: item.title,
+        onClick: refId ? () => onFocusReference(track, refId) : undefined,
+        isActive: focusedRefId === refId,
+      };
+    });
+
+  const sections: LibraryRailSection[] = [
+    {
+      id: 'events',
+      title: 'Events',
+      icon: Clock3,
+      count: allTimelineEvents.length,
+      isOpen: dossierSections.events,
+      onToggle: () => onToggleSection('events'),
+      content: (
         <div className="space-y-2">
           <button
+            type="button"
             onClick={() => onSetTrackFocus('ALL')}
             className={getFocusedButtonClass(focusedTrack === 'ALL' && !focusedRefId)}
           >
@@ -93,6 +86,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
           {TRACK_OPTIONS.map((option) => (
             <button
               key={option.track}
+              type="button"
               onClick={() => onSetTrackFocus(option.track)}
               className={getFocusedButtonClass(focusedTrack === option.track && !focusedRefId)}
             >
@@ -100,147 +94,90 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
             </button>
           ))}
         </div>
-      </Accordion>
-
-      <Accordion
-        title="Runs"
-        icon={Activity}
-        count={runItems.length}
-        isOpen={dossierSections.runs}
-        onToggle={() => onToggleSection('runs')}
-        className={getRailAccordionClassName(dossierSections.runs)}
-        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-      >
-        <div className="space-y-2">
-          {runItems.length === 0 ? (
-            <div className="px-3 py-2 osint-body-quiet">
-              No workspace runs available yet.
-            </div>
-          ) : (
-            runItems.map((item) => (
-              <button
-                key={item.refId}
-                onClick={() => item.refId && onFocusReference('RUN', item.refId)}
-                className={getFocusedButtonClass(focusedRefId === item.refId)}
-              >
-                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
-              </button>
-            ))
-          )}
+      ),
+    },
+    {
+      id: 'runs',
+      title: 'Runs',
+      icon: Activity,
+      count: runItems.length,
+      isOpen: dossierSections.runs,
+      onToggle: () => onToggleSection('runs'),
+      entries: buildReferenceEntries(runItems, 'RUN'),
+      emptyState: <div className="px-3 py-2 osint-body-quiet">No workspace runs available yet.</div>,
+    },
+    {
+      id: 'artifacts',
+      title: labelProfile.artifactLabelPlural,
+      icon: PANEL_SECTION_ICONS.artifacts,
+      count: artifactItems.length,
+      isOpen: dossierSections.artifacts,
+      onToggle: () => onToggleSection('artifacts'),
+      entries: buildReferenceEntries(artifactItems, 'ARTIFACT'),
+      emptyState: (
+        <div className="px-3 py-2 osint-body-quiet">
+          No saved {labelProfile.artifactLabelPlural.toLowerCase()} yet.
         </div>
-      </Accordion>
-
-      <Accordion
-        title={labelProfile.artifactLabelPlural}
-        icon={PANEL_SECTION_ICONS.artifacts}
-        count={artifactItems.length}
-        isOpen={dossierSections.artifacts}
-        onToggle={() => onToggleSection('artifacts')}
-        className={getRailAccordionClassName(dossierSections.artifacts)}
-        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-      >
-        <div className="space-y-2">
-          {artifactItems.length === 0 ? (
-            <div className="px-3 py-2 osint-body-quiet">
-              No saved {labelProfile.artifactLabelPlural.toLowerCase()} yet.
-            </div>
-          ) : (
-            artifactItems.map((item) => (
-              <button
-                key={item.refId}
-                onClick={() => item.refId && onFocusReference('ARTIFACT', item.refId)}
-                className={getFocusedButtonClass(focusedRefId === item.refId)}
-              >
-                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
-              </button>
-            ))
-          )}
+      ),
+    },
+    {
+      id: 'signals',
+      title: 'Signals',
+      icon: PANEL_SECTION_ICONS.signals,
+      count: signalItems.length,
+      isOpen: dossierSections.signals,
+      onToggle: () => onToggleSection('signals'),
+      entries: buildReferenceEntries(signalItems, 'SIGNAL'),
+      emptyState: (
+        <div className="px-3 py-2 osint-body-quiet">No saved signals in this workspace yet.</div>
+      ),
+    },
+    {
+      id: 'entities',
+      title: 'Entities',
+      icon: PANEL_SECTION_ICONS.entities,
+      count: entityItems.length,
+      isOpen: dossierSections.entities,
+      onToggle: () => onToggleSection('entities'),
+      entries: buildReferenceEntries(entityItems, 'ENTITY'),
+      emptyState: (
+        <div className="px-3 py-2 osint-body-quiet">
+          No entity milestones in this workspace yet.
         </div>
-      </Accordion>
+      ),
+    },
+    {
+      id: 'chats',
+      title: 'Chats',
+      icon: MessageSquare,
+      count: chatSessionItems.length,
+      isOpen: dossierSections.chats,
+      onToggle: () => onToggleSection('chats'),
+      entries: buildReferenceEntries(chatSessionItems, 'CHAT'),
+      emptyState: (
+        <div className="px-3 py-2 osint-body-quiet">No workspace chats available yet.</div>
+      ),
+    },
+  ];
 
-      <Accordion
-        title="Signals"
-        icon={PANEL_SECTION_ICONS.signals}
-        count={signalItems.length}
-        isOpen={dossierSections.signals}
-        onToggle={() => onToggleSection('signals')}
-        className={getRailAccordionClassName(dossierSections.signals)}
-        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-      >
-        <div className="space-y-2">
-          {signalItems.length === 0 ? (
-            <div className="px-3 py-2 osint-body-quiet">
-              No saved signals in this workspace yet.
-            </div>
-          ) : (
-            signalItems.map((item) => (
-              <button
-                key={item.refId}
-                onClick={() => item.refId && onFocusReference('SIGNAL', item.refId)}
-                className={getFocusedButtonClass(focusedRefId === item.refId)}
-              >
-                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
-              </button>
-            ))
-          )}
+  return (
+    <LibraryRailShell
+      isOpen={isOpen}
+      eyebrow="Library"
+      title={workspaceTitle}
+      summary={
+        <div className="space-y-1">
+          <div className="osint-body-quiet">
+            {allTimelineEvents.length} timeline events across runs, artifacts, signals, entities,
+            and chats.
+          </div>
+          {latestActivity ? (
+            <div className="osint-meta-label text-zinc-500">Latest activity {latestActivity}</div>
+          ) : null}
         </div>
-      </Accordion>
-
-      <Accordion
-        title="Entities"
-        icon={PANEL_SECTION_ICONS.entities}
-        count={entityItems.length}
-        isOpen={dossierSections.entities}
-        onToggle={() => onToggleSection('entities')}
-        className={getRailAccordionClassName(dossierSections.entities)}
-        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-      >
-        <div className="space-y-2">
-          {entityItems.length === 0 ? (
-            <div className="px-3 py-2 osint-body-quiet">
-              No entity milestones in this workspace yet.
-            </div>
-          ) : (
-            entityItems.map((item) => (
-              <button
-                key={item.refId}
-                onClick={() => item.refId && onFocusReference('ENTITY', item.refId)}
-                className={getFocusedButtonClass(focusedRefId === item.refId)}
-              >
-                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
-              </button>
-            ))
-          )}
-        </div>
-      </Accordion>
-
-      <Accordion
-        title="Chats"
-        icon={MessageSquare}
-        count={chatSessionItems.length}
-        isOpen={dossierSections.chats}
-        onToggle={() => onToggleSection('chats')}
-        className={getRailAccordionClassName(dossierSections.chats)}
-        contentClassName={CHROME_RAIL_SECTION_SCROLL_CLASS}
-      >
-        <div className="space-y-2">
-          {chatSessionItems.length === 0 ? (
-            <div className="px-3 py-2 osint-body-quiet">
-              No workspace chats available yet.
-            </div>
-          ) : (
-            chatSessionItems.map((item) => (
-              <button
-                key={item.refId}
-                onClick={() => item.refId && onFocusReference('CHAT', item.refId)}
-                className={getFocusedButtonClass(focusedRefId === item.refId)}
-              >
-                <div className="truncate osint-meta-value text-zinc-200">{item.title}</div>
-              </button>
-            ))
-          )}
-        </div>
-      </Accordion>
-    </div>
-  </aside>
-);
+      }
+    >
+      <LibraryRailSections sections={sections} />
+    </LibraryRailShell>
+  );
+};

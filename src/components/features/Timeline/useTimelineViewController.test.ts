@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -106,5 +106,41 @@ describe('useTimelineViewController', () => {
         id: 'artifact-1',
       })
     );
+  });
+
+  it('toggles inspector and library sections exclusively', () => {
+    const { result } = renderHook(
+      () =>
+        useTimelineViewController({
+          onOpenChat: vi.fn(),
+          onOpenReport: vi.fn(),
+        }),
+      {
+        wrapper: ({ children }) =>
+          React.createElement(MemoryRouter, { future: routerFuture }, children),
+      }
+    );
+
+    act(() => {
+      result.current.toggleDossierSection('events');
+    });
+    expect(result.current.dossierSections.events).toBe(true);
+
+    act(() => {
+      result.current.toggleDossierSection('runs');
+    });
+    expect(result.current.dossierSections.events).toBe(false);
+    expect(result.current.dossierSections.runs).toBe(true);
+
+    act(() => {
+      result.current.toggleDetailSection('summary');
+    });
+    expect(result.current.detailSections.summary).toBe(true);
+
+    act(() => {
+      result.current.toggleDetailSection('context');
+    });
+    expect(result.current.detailSections.summary).toBe(false);
+    expect(result.current.detailSections.context).toBe(true);
   });
 });

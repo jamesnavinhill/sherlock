@@ -18,7 +18,10 @@ import {
   type TimelineRouteQueryState,
 } from './timelineRouteState';
 import { buildTimelineViewModel } from './timelineViewModel';
-import type { DetailSections, DossierSections } from './timelineViewUtils';
+import {
+  TIMELINE_DETAIL_SECTION_KEYS,
+  TIMELINE_DOSSIER_SECTION_KEYS,
+} from './timelineViewUtils';
 import {
   clearTimelineQuery,
   focusTimelineReference,
@@ -28,6 +31,7 @@ import {
 import { isTimelineQuerySaveable, saveTimelineSavedView } from './timelineSavedViews';
 import { useTimelinePanelState } from './useTimelinePanelState';
 import { useTimelineWorkspaceActions } from './useTimelineWorkspaceActions';
+import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 
 interface TimelineViewControllerOptions {
   onOpenChat: (request: ChatOpenRequest) => void;
@@ -56,18 +60,8 @@ export function useTimelineViewController({
     workspaces,
   } = useTimelineFeatureState();
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [dossierSections, setDossierSections] = useState<DossierSections>({
-    events: false,
-    runs: false,
-    artifacts: false,
-    signals: false,
-    entities: false,
-    chats: false,
-  });
-  const [detailSections, setDetailSections] = useState<DetailSections>({
-    summary: false,
-    context: false,
-  });
+  const dossierSectionState = useExclusivePanelSections(TIMELINE_DOSSIER_SECTION_KEYS);
+  const detailSectionState = useExclusivePanelSections(TIMELINE_DETAIL_SECTION_KEYS);
   const {
     exportMenuRef,
     filterMenuRef,
@@ -248,8 +242,8 @@ export function useTimelineViewController({
     chatTitleById,
     clearFilters,
     detailActions,
-    detailSections,
-    dossierSections,
+    detailSections: detailSectionState.state,
+    dossierSections: dossierSectionState.state,
     effectiveSelectedEventId,
     entityItems,
     exportMenuRef,
@@ -287,8 +281,6 @@ export function useTimelineViewController({
     selectedEventId,
     selectedRun,
     selectedWorkspaceItem,
-    setDetailSections,
-    setDossierSections,
     setLeftPanelOpen,
     setRightPanelOpen,
     setSelectedEventId,
@@ -301,6 +293,8 @@ export function useTimelineViewController({
     signalItems,
     signalTitleById,
     timelineSnapshot,
+    toggleDetailSection: detailSectionState.toggleSection,
+    toggleDossierSection: dossierSectionState.toggleSection,
     toggleTrackFilter,
     updateTimelineQuery,
     visibleEvents,
