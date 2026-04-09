@@ -55,6 +55,7 @@ describe('workspaceStore', () => {
     vi.spyOn(ManualDataRepository, 'saveAllLinks').mockResolvedValue();
     vi.spyOn(ManualDataRepository, 'removeWorkspaceLinkedData').mockResolvedValue();
     vi.spyOn(ManualDataRepository, 'clearAll').mockResolvedValue();
+    vi.spyOn(ScopeRepository, 'ensureBuiltinScopes').mockResolvedValue();
     vi.spyOn(WorkspaceItemRepository, 'create').mockResolvedValue();
     vi.spyOn(WorkspaceItemRepository, 'update').mockResolvedValue();
     vi.spyOn(WorkspaceItemRepository, 'delete').mockResolvedValue();
@@ -221,6 +222,7 @@ describe('workspaceStore', () => {
 
     await useWorkspaceStore.getState().initializeStore();
 
+    expect(ScopeRepository.ensureBuiltinScopes).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith('/seeds/demo-workspace.json', { cache: 'no-store' });
     expect(WorkspaceRepository.replaceWorkspaceDataBackup).toHaveBeenCalledWith(payload);
     expect(useWorkspaceStore.getState().workspaces).toEqual(payload.workspaces);
@@ -265,6 +267,7 @@ describe('workspaceStore', () => {
 
     await useWorkspaceStore.getState().initializeStore();
 
+    expect(ScopeRepository.ensureBuiltinScopes).toHaveBeenCalledTimes(1);
     expect(useWorkspaceStore.getState().workspaces).toEqual([
       {
         id: 'ws-1',

@@ -64,6 +64,7 @@ export const createBootstrapActions = (
       set({ isLoading: true });
       // Database initialization and pending schema migrations are bootstrap hard failures.
       await initDB();
+      await ScopeRepository.ensureBuiltinScopes();
 
       // Repository/settings reads are recoverable per-resource reads.
       const [

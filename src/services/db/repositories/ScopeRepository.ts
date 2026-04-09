@@ -1,7 +1,8 @@
 import { eq } from 'drizzle-orm';
-import { getDB } from '../client';
+import { getDB, type SherlockWriteExecutor } from '../client';
 import { scopes } from '../schema';
 import type { InvestigationScope } from '@/types';
+import { BUILTIN_SCOPES } from '@/data/presets';
 import { mapRowsSafely, parseStoredJson, serializeStoredJson } from './json';
 
 type StoredScopeConfig = Omit<InvestigationScope, 'id' | 'name' | 'description' | 'isBuiltIn'>;
@@ -12,6 +13,18 @@ const emptyScopeConfig: StoredScopeConfig = {
   suggestedSources: [],
   categories: [],
   personas: [],
+};
+
+const toStoredScopeRecord = (scope: InvestigationScope) => {
+  const { id, name, description, isBuiltIn, ...config } = scope;
+
+  return {
+    id,
+    name,
+    description,
+    type: isBuiltIn ? 'built-in' : 'custom',
+    configJson: serializeStoredJson(config),
+  };
 };
 
 export class ScopeRepository {
@@ -58,14 +71,10 @@ export class ScopeRepository {
 
   static async create(scope: InvestigationScope): Promise<void> {
     const db = getDB();
-    const { id, name, description, isBuiltIn, ...config } = scope;
+    const record = toStoredScopeRecord(scope);
 
     await db.insert(scopes).values({
-      id,
-      name,
-      description,
-      type: isBuiltIn ? 'built-in' : 'custom',
-      configJson: serializeStoredJson(config),
+      ...record,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -73,18 +82,45 @@ export class ScopeRepository {
 
   static async update(scope: InvestigationScope): Promise<void> {
     const db = getDB();
-    const { id, name, description, isBuiltIn, ...config } = scope;
+    const record = toStoredScopeRecord(scope);
 
     await db
       .update(scopes)
       .set({
-        name,
-        description,
-        type: isBuiltIn ? 'built-in' : 'custom',
-        configJson: serializeStoredJson(config),
+        name: record.name,
+        description: record.description,
+        type: record.type,
+        configJson: record.configJson,
         updatedAt: Date.now(),
       })
-      .where(eq(scopes.id, id));
+      .where(eq(scopes.id, record.id));
+  }
+
+  static async ensureBuiltinScopes(
+    db: SherlockWriteExecutor = getDB()
+  ): Promise<void> {
+    for (const scope of BUILTIN_SCOPES) {
+      const record = toStoredScopeRecord(scope);
+      const now = Date.now();
+
+      await db
+        .insert(scopes)
+        .values({
+          ...record,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: scopes.id,
+          set: {
+            name: record.name,
+            description: record.description,
+            type: record.type,
+            configJson: record.configJson,
+            updatedAt: now,
+          },
+        });
+    }
   }
 
   static async delete(id: string): Promise<void> {

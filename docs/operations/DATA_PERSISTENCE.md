@@ -180,6 +180,8 @@ On startup, store initialization now runs one persistence bootstrap entry point:
 
 `initDB()` opens the SQLite database and then runs the canonical migration pipeline in `src/services/db/migrations.ts`.
 
+After the database opens and migrations complete, bootstrap now upserts the code-defined built-in scopes into the SQLite `scopes` table before workspace hydration continues. This keeps `workspaces.scope_id` foreign keys valid after fresh-profile starts, partial browser-storage resets, and older local databases that predate scope persistence.
+
 The migration runner records applied steps in SQLite table `__sherlock_schema_migrations` and currently applies these steps in order:
 
 - canonical storage cutover for legacy table and column names
