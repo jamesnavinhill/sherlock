@@ -20,7 +20,7 @@ interface AppViewNavigationContext {
   activeWorkspaceId?: string | null;
   activeWorkspaceBoardId?: string | null;
   activeChatSessionId?: string | null;
-  activeTaskId?: string | null;
+  activeRunId?: string | null;
   artifacts?: Artifact[];
   pathname?: string;
   search?: string;
@@ -76,7 +76,7 @@ export const buildPathForAppView = (
     activeWorkspaceId,
     activeWorkspaceBoardId,
     activeChatSessionId,
-    activeTaskId,
+    activeRunId,
     artifacts,
     pathname,
     search,
@@ -96,7 +96,7 @@ export const buildPathForAppView = (
     case AppView.SETTINGS:
       return buildSettingsPath();
     case AppView.INVESTIGATION:
-      if (activeTaskId) return buildRunPath(activeTaskId);
+      if (activeRunId) return buildRunPath(activeRunId);
       if (activeWorkspaceId) {
         const landingArtifact = findWorkspaceLandingArtifact(activeWorkspaceId, artifacts);
         if (landingArtifact?.id) {

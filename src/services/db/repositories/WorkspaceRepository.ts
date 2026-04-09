@@ -139,20 +139,20 @@ const toSourceList = (value: unknown): Artifact['sources'] => {
 };
 
 const deleteArtifactDependencies = async (
-  reportIds: string[],
+  artifactIds: string[],
   db: SherlockWriteExecutor = getDB()
 ) => {
-  if (reportIds.length === 0) return;
-  for (const reportId of reportIds) {
-    await db.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
-    await db.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
-    await db.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
-    await db.delete(entities).where(eq(entities.reportId, reportId));
-    await db.delete(sources).where(eq(sources.reportId, reportId));
+  if (artifactIds.length === 0) return;
+  for (const artifactId of artifactIds) {
+    await db.delete(followUpRows).where(eq(followUpRows.artifactId, artifactId));
+    await db.delete(artifactSections).where(eq(artifactSections.artifactId, artifactId));
+    await db.delete(artifactEvidence).where(eq(artifactEvidence.artifactId, artifactId));
+    await db.delete(entities).where(eq(entities.artifactId, artifactId));
+    await db.delete(sources).where(eq(sources.artifactId, artifactId));
   }
 };
 
-const mapCaseRow = (row: typeof workspaces.$inferSelect): Workspace => {
+const mapWorkspaceRow = (row: typeof workspaces.$inferSelect): Workspace => {
   const identity = resolveWorkspaceIdentity({
     title: row.title,
     displayTitle: row.displayTitle || undefined,
@@ -186,7 +186,7 @@ const mapCaseRow = (row: typeof workspaces.$inferSelect): Workspace => {
 };
 
 export class WorkspaceRepository {
-  // --- CASES ---
+  // --- WORKSPACES ---
   static async getAllWorkspaces(): Promise<Workspace[]> {
     const db = getDB();
     const rows = await db.select().from(workspaces).orderBy(desc(workspaces.updatedAt));
@@ -194,7 +194,7 @@ export class WorkspaceRepository {
     return mapRowsSafely(rows, {
       label: 'workspace row',
       getRowId: (row) => row.id,
-      mapRow: mapCaseRow,
+      mapRow: mapWorkspaceRow,
     });
   }
 
@@ -204,45 +204,45 @@ export class WorkspaceRepository {
 
     if (result.length === 0) return null;
 
-    return mapCaseRow(result[0]);
+    return mapWorkspaceRow(result[0]);
   }
 
   static async createWorkspace(
-    caseData: Workspace,
+    workspace: Workspace,
     db: SherlockWriteExecutor = getDB()
   ): Promise<void> {
-    const createdAt = caseData.createdAt ?? Date.now();
-    const updatedAt = caseData.updatedAt ?? createdAt;
-    const identity = resolveWorkspaceIdentity(caseData);
+    const createdAt = workspace.createdAt ?? Date.now();
+    const updatedAt = workspace.updatedAt ?? createdAt;
+    const identity = resolveWorkspaceIdentity(workspace);
     await db.insert(workspaces).values({
-      id: caseData.id,
-      scopeId: caseData.scopeId,
-      title: caseData.title,
+      id: workspace.id,
+      scopeId: workspace.scopeId,
+      title: workspace.title,
       displayTitle: identity.displayTitle,
       launchTopic: identity.launchTopic,
       launchAngle: identity.launchAngle,
       prioritySourcesSummary: identity.prioritySourcesSummary,
-      status: caseData.status,
-      dateOpened: caseData.dateOpened,
-      description: caseData.description,
-      mode: caseData.mode,
-      packId: caseData.packId,
-      purposeId: caseData.purposeId,
-      labelProfileId: caseData.labelProfileId,
-      metadataJson: serializeStoredJsonOrNull(caseData.metadata),
+      status: workspace.status,
+      dateOpened: workspace.dateOpened,
+      description: workspace.description,
+      mode: workspace.mode,
+      packId: workspace.packId,
+      purposeId: workspace.purposeId,
+      labelProfileId: workspace.labelProfileId,
+      metadataJson: serializeStoredJsonOrNull(workspace.metadata),
       createdAt,
       updatedAt,
     });
   }
 
-  // --- REPORTS ---
+  // --- ARTIFACTS ---
   static async getAllArtifacts(): Promise<Artifact[]> {
     const db = getDB();
     // Join artifacts with entities and sources would be ideal, but for now we fetch artifacts and hydrate
     // Drizzle's with query is powerful for this if relationships are defined, but here we'll keep it simple for now
 
-    // Fetch all reports
-    const reportRows = await db.select().from(artifacts).orderBy(desc(artifacts.createdAt));
+    // Fetch all artifacts
+    const artifactRows = await db.select().from(artifacts).orderBy(desc(artifacts.createdAt));
 
     // This N+1 query pattern is inefficient for large datasets, but okay for MVP client-side DB
     // Optimization: Use separate queries to fetch all entities/sources and map them in memory
@@ -252,14 +252,14 @@ export class WorkspaceRepository {
     const allSections = await db.select().from(artifactSections);
     const allEvidence = await db.select().from(artifactEvidence);
 
-    return mapRowsSafely(reportRows, {
+    return mapRowsSafely(artifactRows, {
       label: 'artifact row',
       getRowId: (row) => row.id,
       mapRow: (row) => {
       const rawPayload = parseRawReportPayload(row.rawText);
 
-      const reportEntities = allEntities
-        .filter((e) => e.reportId === row.id)
+      const artifactEntities = allEntities
+        .filter((e) => e.artifactId === row.id)
         .map((e) => ({
           name: e.name,
           type: e.type as Entity['type'],
@@ -268,8 +268,8 @@ export class WorkspaceRepository {
         }));
       const parsedEntities = toEntityList(rawPayload.entities);
 
-      const reportSources = allSources
-        .filter((s) => s.reportId === row.id)
+      const artifactSources = allSources
+        .filter((s) => s.artifactId === row.id)
         .map((s) => ({
           title: s.title,
           url: s.url,
@@ -318,7 +318,7 @@ export class WorkspaceRepository {
               workspaceId: row.workspaceId || undefined,
             });
       const reportSections = allSections
-        .filter((section) => section.reportId === row.id)
+        .filter((section) => section.artifactId === row.id)
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map((section) => ({
           id: section.id,
@@ -339,7 +339,7 @@ export class WorkspaceRepository {
           )
         : undefined;
       const evidenceRows = allEvidence
-        .filter((evidence) => evidence.reportId === row.id)
+        .filter((evidence) => evidence.artifactId === row.id)
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map((evidence) => ({
           id: evidence.id,
@@ -387,8 +387,8 @@ export class WorkspaceRepository {
           row.configJson,
           `artifact config ${row.id}`
         ),
-        entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
-        sources: reportSources.length > 0 ? reportSources : parsedSources,
+        entities: artifactEntities.length > 0 ? artifactEntities : parsedEntities,
+        sources: artifactSources.length > 0 ? artifactSources : parsedSources,
         agendas: parsedAgendas,
         leads: toFollowUpTexts(canonicalFollowUps),
         sections,
@@ -417,8 +417,8 @@ export class WorkspaceRepository {
               Object.entries(metadataPayload).filter(([key]) => key !== 'provenance')
             )
           : undefined,
-        entities: reportEntities.length > 0 ? reportEntities : parsedEntities,
-        sources: reportSources.length > 0 ? reportSources : parsedSources,
+        entities: artifactEntities.length > 0 ? artifactEntities : parsedEntities,
+        sources: artifactSources.length > 0 ? artifactSources : parsedSources,
         agendas: legacyArrays.agendas,
         leads: legacyArrays.leads,
         followUps: legacyArrays.followUps,
@@ -436,9 +436,9 @@ export class WorkspaceRepository {
 
       const now = report.createdAt ?? Date.now();
       if (!report.id) {
-        throw new Error('Report must have an id before persistence.');
+        throw new Error('Artifact must have an id before persistence.');
       }
-      const reportId = report.id;
+      const artifactId = report.id;
       const normalizedTopic = normalizeTopicText(report.topic);
       const normalizedSummary = normalizeHumanText(report.summary, {
         includePriority: false,
@@ -447,7 +447,7 @@ export class WorkspaceRepository {
       const canonicalFollowUps = buildArtifactFollowUps({
         existing: report.followUps,
         leads: report.leads,
-        artifactId: reportId,
+        artifactId,
         workspaceId: report.workspaceId,
         sourceSignalId: report.config?.sourceSignalId,
         createdAt: now,
@@ -462,7 +462,7 @@ export class WorkspaceRepository {
           : undefined;
 
       await executor.insert(artifacts).values({
-        id: reportId,
+        id: artifactId,
         workspaceId: report.workspaceId,
         topic: normalizedTopic,
         dateStr: report.dateStr,
@@ -477,125 +477,128 @@ export class WorkspaceRepository {
         createdAt: now,
       });
 
-    // Insert Entities
-    if (report.entities && report.entities.length > 0) {
-      for (const entity of report.entities) {
-        const entityObj =
-          typeof entity === 'string' ? { name: entity, type: 'UNKNOWN' as const } : entity;
+      // Insert entities
+      if (report.entities && report.entities.length > 0) {
+        for (const entity of report.entities) {
+          const entityObj =
+            typeof entity === 'string' ? { name: entity, type: 'UNKNOWN' as const } : entity;
 
-        await executor.insert(entities).values({
-          id: createLocalId('ent'),
-          reportId,
-          name: entityObj.name,
-          type: entityObj.type,
-          role: entityObj.role,
-          sentiment: entityObj.sentiment,
-        });
+          await executor.insert(entities).values({
+            id: createLocalId('ent'),
+            artifactId,
+            name: entityObj.name,
+            type: entityObj.type,
+            role: entityObj.role,
+            sentiment: entityObj.sentiment,
+          });
+        }
       }
-    }
 
-    // Insert Sources
-    if (report.sources && report.sources.length > 0) {
-      for (const source of report.sources) {
-        await executor.insert(sources).values({
-          id: createLocalId('src'),
-          reportId,
-          title: source.title,
-          url: source.url,
-        });
+      // Insert sources
+      if (report.sources && report.sources.length > 0) {
+        for (const source of report.sources) {
+          await executor.insert(sources).values({
+            id: createLocalId('src'),
+            artifactId,
+            title: source.title,
+            url: source.url,
+          });
+        }
       }
-    }
 
-    if (canonicalFollowUps.length > 0) {
-      for (const [index, followUp] of canonicalFollowUps.entries()) {
-        await executor.insert(followUpRows).values({
-          id: followUp.id,
-          workspaceId: followUp.workspaceId || report.workspaceId,
-          artifactId: reportId,
-          sectionId: followUp.originSectionId,
-          sourceSignalId: followUp.sourceSignalId || report.config?.sourceSignalId,
-          kind: followUp.kind,
-          title: followUp.title,
-          actionText: followUp.actionText,
-          status: followUp.status,
-          entityRefsJson: serializeStoredJsonOrNull(followUp.entityRefs),
-          sourceRefsJson: serializeStoredJsonOrNull(followUp.sourceRefs),
-          resolvedByArtifactId: followUp.resolvedByArtifactId,
-          metadataJson: serializeStoredJsonOrNull(followUp.metadata),
-          sortOrder: index,
-          createdAt: followUp.createdAt ?? now,
-          updatedAt: followUp.updatedAt ?? now,
-        });
+      if (canonicalFollowUps.length > 0) {
+        for (const [index, followUp] of canonicalFollowUps.entries()) {
+          await executor.insert(followUpRows).values({
+            id: followUp.id,
+            workspaceId: followUp.workspaceId || report.workspaceId,
+            artifactId,
+            sectionId: followUp.originSectionId,
+            sourceSignalId: followUp.sourceSignalId || report.config?.sourceSignalId,
+            kind: followUp.kind,
+            title: followUp.title,
+            actionText: followUp.actionText,
+            status: followUp.status,
+            entityRefsJson: serializeStoredJsonOrNull(followUp.entityRefs),
+            sourceRefsJson: serializeStoredJsonOrNull(followUp.sourceRefs),
+            resolvedByArtifactId: followUp.resolvedByArtifactId,
+            metadataJson: serializeStoredJsonOrNull(followUp.metadata),
+            sortOrder: index,
+            createdAt: followUp.createdAt ?? now,
+            updatedAt: followUp.updatedAt ?? now,
+          });
+        }
       }
-    }
 
-    if (report.sections && report.sections.length > 0) {
-      for (const [index, section] of report.sections.entries()) {
-        await executor.insert(artifactSections).values({
-          id: section.id || `sec-${reportId}-${index}`,
-          reportId,
-          kind: section.kind,
-          title: section.title,
-          content: section.content,
-          itemsJson: serializeStoredJsonOrNull(section.items),
-          sortOrder: typeof section.order === 'number' ? section.order : index,
-        });
+      if (report.sections && report.sections.length > 0) {
+        for (const [index, section] of report.sections.entries()) {
+          await executor.insert(artifactSections).values({
+            id: section.id || `sec-${artifactId}-${index}`,
+            artifactId,
+            kind: section.kind,
+            title: section.title,
+            content: section.content,
+            itemsJson: serializeStoredJsonOrNull(section.items),
+            sortOrder: typeof section.order === 'number' ? section.order : index,
+          });
+        }
       }
-    }
 
-    if (report.evidence && report.evidence.length > 0) {
-      for (const [index, evidence] of report.evidence.entries()) {
-        await executor.insert(artifactEvidence).values({
-          id: evidence.id || `evidence-${reportId}-${index}`,
-          reportId,
-          kind: evidence.kind,
-          title: evidence.title,
-          summary: evidence.summary,
-          quote: evidence.quote,
-          sourceTitle: evidence.sourceTitle,
-          sourceUrl: evidence.sourceUrl,
-          sectionId: evidence.sectionId,
-          tagsJson: serializeStoredJsonOrNull(evidence.tags),
-          metadataJson: serializeStoredJsonOrNull(evidence.metadata),
-          sortOrder: typeof evidence.order === 'number' ? evidence.order : index,
-        });
+      if (report.evidence && report.evidence.length > 0) {
+        for (const [index, evidence] of report.evidence.entries()) {
+          await executor.insert(artifactEvidence).values({
+            id: evidence.id || `evidence-${artifactId}-${index}`,
+            artifactId,
+            kind: evidence.kind,
+            title: evidence.title,
+            summary: evidence.summary,
+            quote: evidence.quote,
+            sourceTitle: evidence.sourceTitle,
+            sourceUrl: evidence.sourceUrl,
+            sectionId: evidence.sectionId,
+            tagsJson: serializeStoredJsonOrNull(evidence.tags),
+            metadataJson: serializeStoredJsonOrNull(evidence.metadata),
+            sortOrder: typeof evidence.order === 'number' ? evidence.order : index,
+          });
+        }
       }
-    }
 
-    if (report.config?.sourceSignalId) {
-      await executor
-        .update(signals)
-        .set({ linkedArtifactId: reportId })
-        .where(eq(signals.id, report.config.sourceSignalId));
-    }
+      if (report.config?.sourceSignalId) {
+        await executor
+          .update(signals)
+          .set({ linkedArtifactId: artifactId })
+          .where(eq(signals.id, report.config.sourceSignalId));
+      }
 
-    if (report.config?.sourceFollowUpId) {
-      await executor
-        .update(followUpRows)
-        .set({
-          status: 'RESOLVED',
-          resolvedByArtifactId: reportId,
-          updatedAt: now,
-        })
-        .where(eq(followUpRows.id, report.config.sourceFollowUpId));
-    }
+      if (report.config?.sourceFollowUpId) {
+        await executor
+          .update(followUpRows)
+          .set({
+            status: 'RESOLVED',
+            resolvedByArtifactId: artifactId,
+            updatedAt: now,
+          })
+          .where(eq(followUpRows.id, report.config.sourceFollowUpId));
+      }
 
-    // Update parent case timestamp
-    if (report.workspaceId) {
-      await executor.update(workspaces).set({ updatedAt: now }).where(eq(workspaces.id, report.workspaceId));
-    }
+      // Update parent workspace timestamp
+      if (report.workspaceId) {
+        await executor
+          .update(workspaces)
+          .set({ updatedAt: now })
+          .where(eq(workspaces.id, report.workspaceId));
+      }
     }, db);
   }
 
-  static async updateArtifactTopic(reportId: string, topic: string): Promise<void> {
+  static async updateArtifactTopic(artifactId: string, topic: string): Promise<void> {
     const db = getDB();
     await db
       .update(artifacts)
       .set({ topic: normalizeTopicText(topic) })
-      .where(eq(artifacts.id, reportId));
+      .where(eq(artifacts.id, artifactId));
   }
 
-  static async updateArtifactSummary(reportId: string, summary: string): Promise<void> {
+  static async updateArtifactSummary(artifactId: string, summary: string): Promise<void> {
     const db = getDB();
     await db
       .update(artifacts)
@@ -605,11 +608,11 @@ export class WorkspaceRepository {
           fallback: 'Analysis pending...',
         }),
       })
-      .where(eq(artifacts.id, reportId));
+      .where(eq(artifacts.id, artifactId));
   }
 
   static async updateArtifactSection(
-    reportId: string,
+    artifactId: string,
     sectionId: string,
     patch: Partial<Pick<ArtifactSection, 'title' | 'content' | 'items' | 'order'>>
   ): Promise<void> {
@@ -617,7 +620,7 @@ export class WorkspaceRepository {
     const reportRows = await db
       .select({ workspaceId: artifacts.workspaceId })
       .from(artifacts)
-      .where(eq(artifacts.id, reportId));
+      .where(eq(artifacts.id, artifactId));
 
     await db
       .update(artifactSections)
@@ -628,7 +631,7 @@ export class WorkspaceRepository {
           patch.items !== undefined ? serializeStoredJsonOrNull(patch.items) : undefined,
         sortOrder: typeof patch.order === 'number' ? patch.order : undefined,
       })
-      .where(and(eq(artifactSections.reportId, reportId), eq(artifactSections.id, sectionId)));
+      .where(and(eq(artifactSections.artifactId, artifactId), eq(artifactSections.id, sectionId)));
 
     const workspaceId = reportRows[0]?.workspaceId;
     if (workspaceId) {
@@ -636,16 +639,19 @@ export class WorkspaceRepository {
     }
   }
 
-  static async appendSectionToArtifact(reportId: string, section: ArtifactSection): Promise<void> {
+  static async appendSectionToArtifact(
+    artifactId: string,
+    section: ArtifactSection
+  ): Promise<void> {
     const db = getDB();
     const existingSections = await db
       .select({ sortOrder: artifactSections.sortOrder })
       .from(artifactSections)
-      .where(eq(artifactSections.reportId, reportId));
+      .where(eq(artifactSections.artifactId, artifactId));
     const reportRows = await db
       .select({ workspaceId: artifacts.workspaceId })
       .from(artifacts)
-      .where(eq(artifacts.id, reportId));
+      .where(eq(artifacts.id, artifactId));
     const nextSortOrder =
       existingSections.length > 0
         ? Math.max(...existingSections.map((entry) => entry.sortOrder)) + 1
@@ -653,7 +659,7 @@ export class WorkspaceRepository {
 
     await db.insert(artifactSections).values({
       id: section.id,
-      reportId,
+      artifactId,
       kind: section.kind,
       title: section.title,
       content: section.content,
@@ -687,15 +693,15 @@ export class WorkspaceRepository {
       .where(eq(followUpRows.id, followUpId));
   }
 
-  static async deleteArtifact(reportId: string, db?: SherlockWriteExecutor): Promise<void> {
+  static async deleteArtifact(artifactId: string, db?: SherlockWriteExecutor): Promise<void> {
     return runWriteTransaction(async (tx) => {
       const executor = db ?? tx;
-      await executor.delete(followUpRows).where(eq(followUpRows.artifactId, reportId));
-      await executor.delete(artifactSections).where(eq(artifactSections.reportId, reportId));
-      await executor.delete(artifactEvidence).where(eq(artifactEvidence.reportId, reportId));
-      await executor.delete(entities).where(eq(entities.reportId, reportId));
-      await executor.delete(sources).where(eq(sources.reportId, reportId));
-      await executor.delete(artifacts).where(eq(artifacts.id, reportId));
+      await executor.delete(followUpRows).where(eq(followUpRows.artifactId, artifactId));
+      await executor.delete(artifactSections).where(eq(artifactSections.artifactId, artifactId));
+      await executor.delete(artifactEvidence).where(eq(artifactEvidence.artifactId, artifactId));
+      await executor.delete(entities).where(eq(entities.artifactId, artifactId));
+      await executor.delete(sources).where(eq(sources.artifactId, artifactId));
+      await executor.delete(artifacts).where(eq(artifacts.id, artifactId));
     }, db);
   }
 
@@ -725,15 +731,15 @@ export class WorkspaceRepository {
       .select({ id: artifacts.id })
       .from(artifacts)
       .where(eq(artifacts.workspaceId, workspaceId));
-      const reportIds = reportRows.map((row) => row.id);
+      const artifactIds = reportRows.map((row) => row.id);
 
-      await deleteArtifactDependencies(reportIds, executor);
+      await deleteArtifactDependencies(artifactIds, executor);
       await ChatRepository.deleteSessionsForWorkspace(workspaceId, executor);
       await BoardAgentRepository.deleteSessionsForWorkspace(workspaceId, executor);
       await WorkspaceRunRepository.deleteByWorkspace(workspaceId, executor);
       await WorkspaceBoardRepository.deleteByWorkspace(workspaceId, executor);
       await WorkspaceItemRepository.deleteByWorkspace(workspaceId, executor);
-      await ManualDataRepository.removeWorkspaceLinkedData(workspaceId, reportIds, executor);
+      await ManualDataRepository.removeWorkspaceLinkedData(workspaceId, artifactIds, executor);
       await executor.delete(artifacts).where(eq(artifacts.workspaceId, workspaceId));
       await executor.delete(signals).where(eq(signals.workspaceId, workspaceId));
       await executor.delete(workspaces).where(eq(workspaces.id, workspaceId));
@@ -761,14 +767,17 @@ export class WorkspaceRepository {
     }, db);
   }
 
-  static async importCasesAndReports(caseData: Workspace[], reportData: Artifact[]): Promise<void> {
+  static async replaceWorkspacesAndArtifacts(
+    workspaces: Workspace[],
+    artifacts: Artifact[]
+  ): Promise<void> {
     await runWriteTransaction(async (tx) => {
       await this.clearWorkspaceData(tx);
-      for (const item of caseData) {
-        await this.createWorkspace(item, tx);
+      for (const workspace of workspaces) {
+        await this.createWorkspace(workspace, tx);
       }
-      for (const report of reportData) {
-        await this.createArtifact(report, tx);
+      for (const artifact of artifacts) {
+        await this.createArtifact(artifact, tx);
       }
     });
   }
@@ -824,7 +833,7 @@ export class WorkspaceRepository {
     });
   }
 
-  // --- LEADS ---
+  // --- SIGNALS ---
   static async getSignals(): Promise<Signal[]> {
     const db = getDB();
     const rows = await db.select().from(signals);
@@ -879,16 +888,5 @@ export class WorkspaceRepository {
           timestamp: signal.timestamp,
         },
       });
-  }
-
-  static async getHeadlines(): Promise<Signal[]> {
-    return this.getSignals();
-  }
-
-  static async createHeadline(
-    headline: Signal,
-    db: SherlockWriteExecutor = getDB()
-  ): Promise<void> {
-    await this.createSignal(headline, db);
   }
 }

@@ -515,12 +515,12 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
     setManualSetupDraft(guidedState.draft);
   };
 
-  const handleFetchArtifactSummary = async (reportId: string) => {
-    await addToolMessageResult((session) => fetchArtifactSummaryForChat({ session, reportId }));
+  const handleFetchArtifactSummary = async (artifactId: string) => {
+    await addToolMessageResult((session) => fetchArtifactSummaryForChat({ session, artifactId }));
   };
 
-  const handleFetchFullArtifact = async (reportId: string) => {
-    await addToolMessageResult((session) => fetchFullArtifactTextForChat({ session, reportId }));
+  const handleFetchFullArtifact = async (artifactId: string) => {
+    await addToolMessageResult((session) => fetchFullArtifactTextForChat({ session, artifactId }));
   };
 
   const handleFetchRecentSignals = async () => {

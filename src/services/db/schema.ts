@@ -11,7 +11,7 @@ export const scopes = sqliteTable('scopes', {
   updatedAt: integer('updated_at').notNull(),
 });
 
-// --- CASES ---
+// --- WORKSPACES ---
 export const workspaces = sqliteTable('workspaces', {
   id: text('id').primaryKey(),
   scopeId: text('scope_id').references(() => scopes.id),
@@ -32,7 +32,7 @@ export const workspaces = sqliteTable('workspaces', {
   updatedAt: integer('updated_at').notNull(),
 });
 
-// --- REPORTS (Investigated Items) ---
+// --- ARTIFACTS ---
 export const artifacts = sqliteTable('artifacts', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id').references(() => workspaces.id),
@@ -74,7 +74,7 @@ export const artifactSections = sqliteTable(
   'artifact_sections',
   {
     id: text('id').notNull(),
-    reportId: text('artifact_id')
+    artifactId: text('artifact_id')
       .notNull()
       .references(() => artifacts.id),
     kind: text('kind').notNull(),
@@ -84,7 +84,7 @@ export const artifactSections = sqliteTable(
     sortOrder: integer('sort_order').notNull(),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.reportId, table.id] }),
+    pk: primaryKey({ columns: [table.artifactId, table.id] }),
   })
 );
 
@@ -92,7 +92,7 @@ export const artifactEvidence = sqliteTable(
   'artifact_evidence',
   {
     id: text('id').notNull(),
-    reportId: text('artifact_id')
+    artifactId: text('artifact_id')
       .notNull()
       .references(() => artifacts.id),
     kind: text('kind').notNull(),
@@ -107,14 +107,14 @@ export const artifactEvidence = sqliteTable(
     sortOrder: integer('sort_order').notNull(),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.reportId, table.id] }),
+    pk: primaryKey({ columns: [table.artifactId, table.id] }),
   })
 );
 
 // --- ENTITIES ---
 export const entities = sqliteTable('entities', {
   id: text('id').primaryKey(),
-  reportId: text('artifact_id').references(() => artifacts.id),
+  artifactId: text('artifact_id').references(() => artifacts.id),
   name: text('name').notNull(),
   type: text('type').notNull(), // 'PERSON' | 'ORGANIZATION' | 'UNKNOWN'
   role: text('role'),
@@ -124,12 +124,12 @@ export const entities = sqliteTable('entities', {
 // --- SOURCES ---
 export const sources = sqliteTable('sources', {
   id: text('id').primaryKey(),
-  reportId: text('artifact_id').references(() => artifacts.id),
+  artifactId: text('artifact_id').references(() => artifacts.id),
   title: text('title').notNull(),
   url: text('url').notNull(),
 });
 
-// --- LEADS ---
+// --- SIGNALS ---
 export const signals = sqliteTable('signals', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id').references(() => workspaces.id),
@@ -143,7 +143,7 @@ export const signals = sqliteTable('signals', {
   timestamp: text('timestamp'),
 });
 
-// --- TASKS (Async Queue) ---
+// --- RUNS (Async Queue) ---
 export const workspaceRuns = sqliteTable('workspace_runs', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id').references(() => workspaces.id),

@@ -41,7 +41,7 @@ interface InspectorPanelProps {
   onPlaceEntityOnBoard: (entityName: string) => void;
   onPlaceHeadlineOnBoard: () => void;
   onPlaceReportOnBoard: () => void;
-  onNavigate: (reportId: string) => void;
+  onNavigate: (artifactId: string) => void;
 }
 
 export const InspectorPanel: React.FC<InspectorPanelProps> = ({

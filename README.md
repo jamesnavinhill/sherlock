@@ -34,7 +34,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files; this is real and routed, but it is not yet the global app homepage/dashboard
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for artifacts/entities/signals, and an overlaying dossier rail that no longer shifts graph content
 - `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
-- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
+- `Files`: workspace browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
 - `Finder`: discovery scanning and analysis launch
 - `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a vertically stacked runtime/theme workbench aligned to the shared chrome contract
 
@@ -110,13 +110,13 @@ Sherlock deploys cleanly to Vercel as a static Vite app.
 - Workspace and artifact data stay in the browser via SQLite over IndexedDB.
 - API keys stay browser-local when users add them through `Settings -> Runtime`.
 - Each origin has its own local data, so Vercel preview URLs do not share storage with production.
-- If `public/seeds/demo-workspace.json` exists, an empty browser profile will import it once on first load for demo browsing. The seed file can be either a full workspace-data backup from `Settings -> Data` or a workspace export JSON produced from archive export actions.
+- If `public/seeds/demo-workspace.json` exists, an empty browser profile will import it once on first load for demo browsing. The seed file can be either a full workspace-data backup from `Settings -> Data` or a canonical single-workspace export JSON with `workspace` and `artifacts` keys.
 
 Recommended flow:
 
 1. Import the GitHub repo into Vercel.
 2. Let Vercel use the repo `vercel.json` or set `npm ci --include=optional`, `npm run build`, and `dist` manually.
-3. Optionally place either a canonical workspace-data backup or a workspace export JSON at `public/seeds/demo-workspace.json` if you want first-time visitors to land in a pre-seeded demo workspace.
+3. Optionally place either a canonical workspace-data backup or a canonical single-workspace export JSON at `public/seeds/demo-workspace.json` if you want first-time visitors to land in a pre-seeded demo workspace.
 4. Leave provider env vars unset in Vercel for public BYOK hosting.
 5. Set `VITE_TLDRAW_LICENSE_KEY` in Vercel if the deployment uses Sherlock's `tldraw 4.x` board.
 6. Deploy and have each user add their own provider key in-app under `Settings -> Runtime` if they want to run new analysis or chat.

@@ -22,7 +22,7 @@ const createWorkspaceState = (overrides: Partial<WorkspaceState> = {}): Workspac
     chatGenerationStatus: 'IDLE',
     partialAssistantOutput: '',
     selectedChatLaunchContext: null,
-    activeTaskId: null,
+    activeRunId: null,
     liveEvents: [],
     headlines: [],
     templates: [],

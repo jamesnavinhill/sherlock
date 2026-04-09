@@ -3,8 +3,8 @@ import { render, screen, within } from '@testing-library/react';
 
 import { AppView } from '@/types';
 
-vi.mock('./RunManager', () => ({
-  RunManager: () => <div>Run Manager</div>,
+vi.mock('./RunQueue', () => ({
+  RunQueue: () => <div>Run Queue</div>,
 }));
 
 import { Sidebar } from './Sidebar';
@@ -18,8 +18,8 @@ describe('Sidebar', () => {
         isCollapsed={false}
         toggleCollapse={vi.fn()}
         workspaceRuns={[]}
-        activeTaskId={null}
-        onSelectTask={vi.fn()}
+        activeRunId={null}
+        onSelectRun={vi.fn()}
         onClearCompleted={vi.fn()}
         themeMode="dark"
         onToggleTheme={vi.fn()}

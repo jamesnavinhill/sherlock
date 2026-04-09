@@ -75,7 +75,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             workspaceRuns={controller.workspaceRuns}
             workspaces={controller.workspaces}
             workspaceBoards={controller.workspaceBoards}
-            setActiveTaskId={controller.setActiveTaskId}
+            setActiveRunId={controller.setActiveRunId}
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             onBack={controller.handleBack}
             onLaunchInvestigation={controller.launchInvestigation}
@@ -102,7 +102,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             workspaceRuns={controller.workspaceRuns}
             workspaces={controller.workspaces}
             workspaceBoards={controller.workspaceBoards}
-            setActiveTaskId={controller.setActiveTaskId}
+            setActiveRunId={controller.setActiveRunId}
             setActiveWorkspaceId={controller.setActiveWorkspaceId}
             onBack={controller.handleBack}
             onLaunchInvestigation={controller.launchInvestigation}

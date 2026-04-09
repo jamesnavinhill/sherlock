@@ -13,7 +13,7 @@ import type {
 import type { useWorkspaceStore } from '@/store/workspaceStore';
 import {
   useAppShellBootstrapState,
-  useAppShellLaunchTaskState,
+  useAppShellLaunchRunState,
   useAppShellLookupState,
   useAppShellRouteState,
   useAppShellThemeUiState,
@@ -40,7 +40,7 @@ import { useAppShellNavigation } from '@/app/useAppShellNavigation';
 
 export interface AppShellController {
   activeChatSessionId: string | null;
-  activeTaskId: string | null;
+  activeRunId: string | null;
   activeWorkspaceBoardId: string | null;
   activeWorkspaceId: string | null;
   accentSettings: {
@@ -60,7 +60,7 @@ export interface AppShellController {
   handleCloseSettings: () => void;
   handleNavigateRecord: (id: string) => void;
   handleNavigateToView: (view: AppView) => void;
-  handleSelectTask: (taskId: string) => void;
+  handleSelectRun: (runId: string) => void;
   handleViewReport: (report: Artifact) => void;
   initializeStore: () => Promise<void>;
   showApiKeyPrompt: boolean;
@@ -72,7 +72,7 @@ export interface AppShellController {
   openChat: (request: ChatOpenRequest) => Promise<void>;
   routeCurrentView: AppView;
   setActiveChatSessionId: (id: string | null) => void;
-  setActiveTaskId: (id: string | null) => void;
+  setActiveRunId: (id: string | null) => void;
   setActiveWorkspaceBoardId: (id: string | null) => void;
   setActiveWorkspaceId: (id: string | null) => void;
   setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
@@ -102,7 +102,7 @@ export function useAppShellController(): AppShellController {
   const lastNonSettingsPathRef = useRef(buildDiscoverPath());
 
   const {
-    activeTaskId,
+    activeRunId,
     addRun,
     addToast,
     saveArtifact,
@@ -112,10 +112,10 @@ export function useAppShellController(): AppShellController {
     customScopes,
     failRun,
     manualNodes,
-    setActiveTaskId,
+    setActiveRunId,
     setManualNodes,
     workspaceRuns,
-  } = useAppShellLaunchTaskState();
+  } = useAppShellLaunchRunState();
   const {
     activeChatSessionId,
     activeWorkspaceBoardId,
@@ -189,7 +189,7 @@ export function useAppShellController(): AppShellController {
     handleCloseSettings,
     handleNavigateRecord,
     handleNavigateToView,
-    handleSelectTask,
+    handleSelectRun,
     handleViewReport,
   } = useAppShellNavigation({
     navigate,
@@ -198,7 +198,7 @@ export function useAppShellController(): AppShellController {
     locationPathRef,
     lastNonSettingsPathRef,
     activeChatSessionId,
-    activeTaskId,
+    activeRunId,
     activeWorkspaceBoardId,
     activeWorkspaceId,
     artifacts,
@@ -206,7 +206,7 @@ export function useAppShellController(): AppShellController {
     workspaceRuns,
     workspaces,
     clearCompletedRuns,
-    setActiveTaskId,
+    setActiveRunId,
     setActiveWorkspaceId,
     setIsSidebarCollapsed,
   });
@@ -253,7 +253,7 @@ export function useAppShellController(): AppShellController {
     failRun,
     manualNodes,
     setManualNodes,
-    setActiveTaskId,
+    setActiveRunId,
     setShowApiKeyPrompt,
   });
 
@@ -293,7 +293,7 @@ export function useAppShellController(): AppShellController {
 
   return {
     activeChatSessionId,
-    activeTaskId,
+    activeRunId,
     activeWorkspaceBoardId,
     activeWorkspaceId,
     accentSettings,
@@ -309,7 +309,7 @@ export function useAppShellController(): AppShellController {
     handleCloseSettings,
     handleNavigateRecord,
     handleNavigateToView,
-    handleSelectTask,
+    handleSelectRun,
     handleViewReport,
     initializeStore,
     showApiKeyPrompt,
@@ -321,7 +321,7 @@ export function useAppShellController(): AppShellController {
     openChat,
     routeCurrentView,
     setActiveChatSessionId,
-    setActiveTaskId,
+    setActiveRunId,
     setActiveWorkspaceBoardId,
     setActiveWorkspaceId,
     setAccentSettings,

@@ -71,7 +71,7 @@ interface InvestigationRouteViewProps {
   workspaceRuns: WorkspaceRun[];
   workspaces: Workspace[];
   workspaceBoards: WorkspaceBoardRecord[];
-  setActiveTaskId: (id: string | null) => void;
+  setActiveRunId: (id: string | null) => void;
   setActiveWorkspaceId: (id: string | null) => void;
   onBack: () => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -136,7 +136,7 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   artifacts,
   workspaceRuns,
   workspaces,
-  setActiveTaskId,
+  setActiveRunId,
   setActiveWorkspaceId,
   onBack,
   onLaunchInvestigation,
@@ -160,8 +160,8 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
   const relatedTask = resolveRelatedRunForArtifact(workspaceRuns, report);
 
   useEffect(() => {
-    setActiveTaskId(relatedTask?.id || null);
-  }, [relatedTask?.id, setActiveTaskId]);
+    setActiveRunId(relatedTask?.id || null);
+  }, [relatedTask?.id, setActiveRunId]);
 
   if (!report || !nextWorkspaceId) {
     return <Navigate to={buildFilesPath()} replace />;
@@ -177,10 +177,10 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
         navStack={buildArtifactRouteBreadcrumbs(report, workspaces, relatedTask?.id || null)}
         onNavigate={onNavigateRecord}
-        onSelectCase={(reportId) => {
-          const foundReport = artifacts.find((artifact) => artifact.id === reportId);
-          if (foundReport) {
-            onViewReport(foundReport);
+        onSelectCase={(artifactId) => {
+          const foundArtifact = artifacts.find((artifact) => artifact.id === artifactId);
+          if (foundArtifact) {
+            onViewReport(foundArtifact);
           }
         }}
         onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
@@ -197,7 +197,7 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   artifacts,
   workspaceRuns,
   workspaces,
-  setActiveTaskId,
+  setActiveRunId,
   setActiveWorkspaceId,
   onBack,
   onLaunchInvestigation,
@@ -214,9 +214,9 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
 
   useEffect(() => {
     if (nextRunId) {
-      setActiveTaskId(nextRunId);
+      setActiveRunId(nextRunId);
     }
-  }, [nextRunId, setActiveTaskId]);
+  }, [nextRunId, setActiveRunId]);
 
   useEffect(() => {
     const workspaceId = report?.workspaceId || task?.workspaceId || null;
@@ -239,10 +239,10 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
         navStack={buildArtifactRouteBreadcrumbs(report, workspaces, task.id)}
         onNavigate={onNavigateRecord}
-        onSelectCase={(reportId) => {
-          const foundReport = artifacts.find((artifact) => artifact.id === reportId);
-          if (foundReport) {
-            onViewReport(foundReport);
+        onSelectCase={(artifactId) => {
+          const foundArtifact = artifacts.find((artifact) => artifact.id === artifactId);
+          if (foundArtifact) {
+            onViewReport(foundArtifact);
           }
         }}
         onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}

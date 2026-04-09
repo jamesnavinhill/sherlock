@@ -4,8 +4,8 @@ import { workspaceRuns } from '../schema';
 import type { ArtifactType, WorkspaceRun } from '@/types';
 import { mapRowsSafely, parseStoredJson, serializeStoredJsonOrNull } from './json';
 
-const mapTaskRow = (row: typeof workspaceRuns.$inferSelect): WorkspaceRun => {
-  const legacyConfig: WorkspaceRun['config'] = {
+const mapRunRow = (row: typeof workspaceRuns.$inferSelect): WorkspaceRun => {
+  const fallbackConfig: WorkspaceRun['config'] = {
     packId: row.packId || undefined,
     purposeId: row.purposeId || undefined,
     artifactType: (row.artifactType as ArtifactType | null) || undefined,
@@ -21,24 +21,28 @@ const mapTaskRow = (row: typeof workspaceRuns.$inferSelect): WorkspaceRun => {
     workspaceId: row.workspaceId || undefined,
     error: row.error || undefined,
     config: row.configJson
-      ? parseStoredJson<WorkspaceRun['config']>(row.configJson, legacyConfig, `task config ${row.id}`)
-      : legacyConfig,
+      ? parseStoredJson<WorkspaceRun['config']>(
+          row.configJson,
+          fallbackConfig,
+          `workspace run config ${row.id}`
+        )
+      : fallbackConfig,
   };
 };
 
-const toTaskInsertRow = (task: WorkspaceRun): typeof workspaceRuns.$inferInsert => ({
-  id: task.id,
-  workspaceId: task.workspaceId || task.report?.workspaceId || null,
-  topic: task.topic,
-  status: task.status,
-  packId: task.config?.packId,
-  purposeId: task.config?.purposeId,
-  artifactType: task.config?.artifactType,
-  labelProfileId: task.config?.labelProfileId,
-  startTime: task.startTime,
-  endTime: task.endTime,
-  error: task.error,
-  configJson: serializeStoredJsonOrNull(task.config),
+const toRunInsertRow = (run: WorkspaceRun): typeof workspaceRuns.$inferInsert => ({
+  id: run.id,
+  workspaceId: run.workspaceId || run.report?.workspaceId || null,
+  topic: run.topic,
+  status: run.status,
+  packId: run.config?.packId,
+  purposeId: run.config?.purposeId,
+  artifactType: run.config?.artifactType,
+  labelProfileId: run.config?.labelProfileId,
+  startTime: run.startTime,
+  endTime: run.endTime,
+  error: run.error,
+  configJson: serializeStoredJsonOrNull(run.config),
 });
 
 export class WorkspaceRunRepository {
@@ -47,14 +51,14 @@ export class WorkspaceRunRepository {
     const rows = await db.select().from(workspaceRuns);
 
     return mapRowsSafely(rows, {
-      label: 'task row',
+      label: 'workspace run row',
       getRowId: (row) => row.id,
-      mapRow: mapTaskRow,
+      mapRow: mapRunRow,
     });
   }
 
-  static async create(task: WorkspaceRun, db: SherlockWriteExecutor = getDB()): Promise<void> {
-    await db.insert(workspaceRuns).values(toTaskInsertRow(task));
+  static async create(run: WorkspaceRun, db: SherlockWriteExecutor = getDB()): Promise<void> {
+    await db.insert(workspaceRuns).values(toRunInsertRow(run));
   }
 
   static async updateStatus(

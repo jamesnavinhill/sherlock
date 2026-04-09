@@ -361,11 +361,11 @@ export const streamWorkspaceChatTurn = async (
 
 export const fetchArtifactSummaryForChat = async (params: {
   session: ChatSession;
-  reportId: string;
+  artifactId: string;
 }): Promise<{ message: ChatMessage; action: AgentAction }> => {
   const report = await WorkspaceSearchRepository.getArtifactSummary(
     params.session.workspaceId,
-    params.reportId
+    params.artifactId
   );
   const now = Date.now();
   const messageId = createLocalId('chat-message');
@@ -406,11 +406,11 @@ export const fetchArtifactSummaryForChat = async (params: {
 
 export const fetchFullArtifactTextForChat = async (params: {
   session: ChatSession;
-  reportId: string;
+  artifactId: string;
 }): Promise<{ message: ChatMessage; action: AgentAction }> => {
   const report = await WorkspaceSearchRepository.getFullArtifactText(
     params.session.workspaceId,
-    params.reportId
+    params.artifactId
   );
   const now = Date.now();
   const messageId = createLocalId('chat-message');

@@ -53,7 +53,7 @@ describe('appShellLaunchHelpers', () => {
     const run = buildWorkspaceRun({
       launchRequest: { topic: 'Atlas' },
       runConfig,
-      taskId: 'task-1',
+      runId: 'task-1',
       timestamp: 100,
     });
 
@@ -101,7 +101,7 @@ describe('appShellLaunchHelpers', () => {
           timestamp: 1,
         },
       ],
-      taskId: 'task-2',
+      runId: 'task-2',
       timestamp: 10,
     });
 
@@ -124,7 +124,7 @@ describe('appShellLaunchHelpers', () => {
           timestamp: 1,
         },
       ],
-      taskId: 'task-2',
+      runId: 'task-2',
       timestamp: 20,
     });
 

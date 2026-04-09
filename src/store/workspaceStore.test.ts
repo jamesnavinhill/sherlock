@@ -87,7 +87,7 @@ describe('workspaceStore', () => {
       hiddenNodeIds: [],
       flaggedNodeIds: [],
       activeWorkspaceId: null,
-      activeTaskId: null,
+      activeRunId: null,
       activeChatSessionId: null,
     });
     store.setTemplates([]);
@@ -97,7 +97,7 @@ describe('workspaceStore', () => {
     const state = useWorkspaceStore.getState();
     expect(state.artifacts).toEqual([]);
     expect(state.workspaces).toEqual([]);
-    expect(state.activeTaskId).toBeNull();
+    expect(state.activeRunId).toBeNull();
   });
 
   it('creates and persists a primary workspace board document', async () => {
@@ -808,7 +808,7 @@ describe('workspaceStore', () => {
       ],
       hiddenNodeIds: ['case-rep-1', 'manual-keep'],
       flaggedNodeIds: ['case-rep-1', 'manual-keep'],
-      activeTaskId: 'run-2',
+      activeRunId: 'run-2',
       activeChatSessionId: 'chat-1',
     });
 
@@ -838,7 +838,7 @@ describe('workspaceStore', () => {
     expect(useWorkspaceStore.getState().workspaceRuns.map((run) => run.id)).toEqual(['run-2']);
     expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual(['manual-keep']);
     expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual(['manual-keep']);
-    expect(useWorkspaceStore.getState().activeTaskId).toBe('run-2');
+    expect(useWorkspaceStore.getState().activeRunId).toBe('run-2');
     expect(useWorkspaceStore.getState().activeChatSessionId).toBeNull();
     expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull();
   });
@@ -1088,7 +1088,7 @@ describe('workspaceStore', () => {
       hiddenNodeIds: ['manual-1'],
       flaggedNodeIds: ['manual-1'],
       activeWorkspaceId: 'case-1',
-      activeTaskId: 'run-1',
+      activeRunId: 'run-1',
       activeChatSessionId: 'chat-1',
     });
 
@@ -1109,7 +1109,7 @@ describe('workspaceStore', () => {
     expect(useWorkspaceStore.getState().hiddenNodeIds).toEqual([]);
     expect(useWorkspaceStore.getState().flaggedNodeIds).toEqual([]);
     expect(useWorkspaceStore.getState().activeWorkspaceId).toBeNull();
-    expect(useWorkspaceStore.getState().activeTaskId).toBeNull();
+    expect(useWorkspaceStore.getState().activeRunId).toBeNull();
     expect(useWorkspaceStore.getState().activeChatSessionId).toBeNull();
   });
 });

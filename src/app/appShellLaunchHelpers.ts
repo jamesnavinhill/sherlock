@@ -52,17 +52,17 @@ export const buildLaunchRunConfig = ({
 interface BuildWorkspaceRunInput {
   launchRequest: InvestigationLaunchRequest;
   runConfig: InvestigationRunConfig;
-  taskId: string;
+  runId: string;
   timestamp?: number;
 }
 
 export const buildWorkspaceRun = ({
   launchRequest,
   runConfig,
-  taskId,
+  runId,
   timestamp,
 }: BuildWorkspaceRunInput): WorkspaceRun => ({
-  id: taskId,
+  id: runId,
   topic: launchRequest.topic,
   status: 'RUNNING',
   startTime: timestamp ?? Date.now(),
@@ -74,27 +74,27 @@ export const buildWorkspaceRun = ({
 export const mergeArchivedReportRunConfig = (
   report: Artifact,
   runConfig: InvestigationRunConfig,
-  taskId: string
+  runId: string
 ): Artifact => ({
   ...report,
   config: {
     ...(report.config || {}),
     ...runConfig,
-    sourceRunId: taskId,
+    sourceRunId: runId,
   },
 });
 
 interface MergePreseededEntitiesInput {
   existingNodes: ManualNode[];
   preseededEntities?: ManualNode[];
-  taskId: string;
+  runId: string;
   timestamp?: number;
 }
 
 export const mergePreseededEntities = ({
   existingNodes,
   preseededEntities,
-  taskId,
+  runId,
   timestamp,
 }: MergePreseededEntitiesInput): ManualNode[] => {
   if (!preseededEntities?.length) {
@@ -105,7 +105,7 @@ export const mergePreseededEntities = ({
   const seededAt = timestamp ?? Date.now();
 
   preseededEntities.forEach((entity, index) => {
-    const nodeId = `seed-${taskId}-${index}`;
+    const nodeId = `seed-${runId}-${index}`;
     if (nextNodes.some((node) => node.id === nodeId)) return;
     nextNodes.push({
       ...entity,

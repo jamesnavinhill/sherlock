@@ -43,7 +43,7 @@ describe('workspaceActionState', () => {
         chatGenerationStatus: 'IDLE',
         partialAssistantOutput: '',
         selectedChatLaunchContext: null,
-        activeTaskId: null,
+        activeRunId: null,
         liveEvents: [],
         headlines: [],
         templates: [],
@@ -130,7 +130,7 @@ describe('workspaceActionState', () => {
         chatGenerationStatus: 'IDLE',
         partialAssistantOutput: '',
         selectedChatLaunchContext: null,
-        activeTaskId: 'run-1',
+        activeRunId: 'run-1',
         liveEvents: [],
         headlines: [],
         templates: [],
@@ -158,6 +158,6 @@ describe('workspaceActionState', () => {
     expect(next.workspaces).toEqual([]);
     expect(next.workspaceRuns).toEqual([]);
     expect(next.manualNodes).toEqual([]);
-    expect(next.activeTaskId).toBeNull();
+    expect(next.activeRunId).toBeNull();
   });
 });

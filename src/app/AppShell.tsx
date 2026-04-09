@@ -36,8 +36,8 @@ export function AppShell() {
         isCollapsed={controller.isSidebarCollapsed}
         toggleCollapse={() => controller.setIsSidebarCollapsed(!controller.isSidebarCollapsed)}
         workspaceRuns={controller.workspaceRuns}
-        activeTaskId={controller.activeTaskId}
-        onSelectTask={controller.handleSelectTask}
+        activeRunId={controller.activeRunId}
+        onSelectRun={controller.handleSelectRun}
         onClearCompleted={controller.handleClearCompleted}
         themeMode={controller.themeMode}
         onToggleTheme={() =>

@@ -10,7 +10,11 @@ import {
 } from 'lucide-react';
 import type { Artifact, ChatOpenRequest, InvestigationLaunchRequest } from '@/types';
 import { CANONICAL_NOUNS } from '@/domain';
-import { exportCaseAsHtml, exportCaseAsJson, exportCaseAsMarkdown } from '@/utils/exportUtils';
+import {
+  exportWorkspaceAsHtml,
+  exportWorkspaceAsJson,
+  exportWorkspaceAsMarkdown,
+} from '@/utils/exportUtils';
 import {
   CHROME_HEADER_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
@@ -209,7 +213,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                       <button
                         onClick={() => {
                           if (!currentWorkspace) return;
-                          exportCaseAsHtml(currentWorkspace, currentWorkspaceArtifacts);
+                          exportWorkspaceAsHtml(currentWorkspace, currentWorkspaceArtifacts);
                           setShowExportMenu(false);
                         }}
                         className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
@@ -226,7 +230,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                       <button
                         onClick={() => {
                           if (!currentWorkspace) return;
-                          exportCaseAsJson(currentWorkspace, currentWorkspaceArtifacts);
+                          exportWorkspaceAsJson(currentWorkspace, currentWorkspaceArtifacts);
                           setShowExportMenu(false);
                         }}
                         className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
@@ -243,7 +247,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                       <button
                         onClick={() => {
                           if (!currentWorkspace) return;
-                          exportCaseAsMarkdown(currentWorkspace, currentWorkspaceArtifacts);
+                          exportWorkspaceAsMarkdown(currentWorkspace, currentWorkspaceArtifacts);
                           setShowExportMenu(false);
                         }}
                         className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-zinc-300"
@@ -331,13 +335,13 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             currentPage={currentPage}
             onChangePage={setCurrentPage}
             onExportWorkspaceHtml={(workspace) =>
-              exportCaseAsHtml(workspace, getWorkspaceArtifacts(workspace.id))
+              exportWorkspaceAsHtml(workspace, getWorkspaceArtifacts(workspace.id))
             }
             onExportWorkspaceJson={(workspace) =>
-              exportCaseAsJson(workspace, getWorkspaceArtifacts(workspace.id))
+              exportWorkspaceAsJson(workspace, getWorkspaceArtifacts(workspace.id))
             }
             onExportWorkspaceMarkdown={(workspace) =>
-              exportCaseAsMarkdown(workspace, getWorkspaceArtifacts(workspace.id))
+              exportWorkspaceAsMarkdown(workspace, getWorkspaceArtifacts(workspace.id))
             }
             onOpenWorkspaceChat={(workspaceId) => onOpenChat({ workspaceId })}
             onPurgeWorkspace={handlePurgeWorkspace}

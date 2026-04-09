@@ -118,7 +118,7 @@ export interface WorkspaceState {
   chatGenerationStatus: ChatGenerationStatus;
   partialAssistantOutput: string;
   selectedChatLaunchContext: ChatLaunchContext | null;
-  activeTaskId: string | null;
+  activeRunId: string | null;
   liveEvents: MonitorEvent[];
   headlines: Headline[];
   templates: WorkspaceTemplate[];
@@ -170,7 +170,7 @@ export interface WorkspaceState {
   setChatGenerationStatus: (status: ChatGenerationStatus) => void;
   setPartialAssistantOutput: (value: string) => void;
   setSelectedChatLaunchContext: (context: ChatLaunchContext | null) => void;
-  setActiveTaskId: (id: string | null) => void;
+  setActiveRunId: (id: string | null) => void;
   setLiveEvents: (events: MonitorEvent[] | ((prev: MonitorEvent[]) => MonitorEvent[])) => void;
   setNavStack: (stack: BreadcrumbItem[]) => void;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
@@ -309,7 +309,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   chatGenerationStatus: 'IDLE',
   partialAssistantOutput: '',
   selectedChatLaunchContext: null,
-  activeTaskId: null,
+  activeRunId: null,
   liveEvents: [],
   toasts: [],
   navStack: [],

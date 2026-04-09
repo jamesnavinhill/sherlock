@@ -69,7 +69,7 @@ Repository hydration and serialization now follow a shared helper contract in `s
 
 That helper is the canonical repository pattern for:
 
-- artifact/report saves plus dependent follow-ups, sections, evidence, entities, sources, and lineage updates
+- artifact saves plus dependent follow-ups, sections, evidence, entities, sources, and lineage updates
 - chat message saves plus attachment rows
 - workspace/board/session delete flows that span multiple tables
 - workspace-data restore flows that clear and replay the persisted workspace domain
@@ -149,9 +149,9 @@ The chat implementation adds:
 - `chat_message_attachments` for retrieved context snippets attached to a turn
 - `chat_actions` for auditable retrieval, save, append, and follow-up operations
 
-Artifact save/hydration behavior now treats `Artifact.followUps` as the canonical runtime field. Legacy flattened `leads` arrays are still written and reconstructed as a compatibility surface for readers that have not finished the cutover.
+Artifact save/hydration behavior now treats `Artifact.followUps` as the canonical runtime field. Legacy flattened `leads` arrays are still reconstructed when older persisted artifact payloads need hydration, but new workspace-level export flows now write canonical workspace/artifact keys rather than legacy `case` / `reports` payloads.
 
-Artifact saves are now atomic across the report row, dependent structured rows, source-signal linkage, and source-follow-up resolution so the database does not keep half-saved artifact bundles.
+Artifact saves are now atomic across the artifact row, dependent structured rows, source-signal linkage, and source-follow-up resolution so the database does not keep half-saved artifact bundles.
 
 The research workspace implementation adds:
 
@@ -275,7 +275,7 @@ Store bootstrap now follows an explicit read-failure policy in `src/store/action
 
 Legacy `sherlock_config` parsing during bootstrap now uses the shared JSON helper path (`parseStoredJson`) instead of ad hoc `JSON.parse` blocks so malformed payload warnings and fallbacks are consistent with repository hydration.
 
-Restore/import still accepts older canonical payloads that stored saved signals under `signals.headlines`, plus pre-canonical legacy payloads with top-level `headlines`.
+Restore/import still accepts older canonical payloads that stored saved signals under `signals.headlines`, plus pre-canonical legacy payloads with top-level `headlines`. Those compatibility paths are bounded to restore/import normalization rather than the primary export format.
 
 Workspace-data backups intentionally exclude:
 
@@ -291,7 +291,7 @@ Workspace-data backups intentionally exclude:
 - Clearing browser storage removes the local SQLite database and any browser-stored API keys.
 - The current runtime is browser-local only: there is no shared server database, automatic cross-device sync, or multi-user persistence layer.
 - If `public/seeds/demo-workspace.json` is present, Sherlock will auto-import it once for a browser profile whose workspace-data domain is still empty.
-- The seed file may be either a canonical workspace-data backup or a simpler workspace export JSON with top-level `case` and `reports` keys.
+- The seed file may be either a canonical workspace-data backup or a canonical single-workspace export JSON with top-level `workspace` and `artifacts` keys.
 - The demo bootstrap is device-local and origin-local. Updating the JSON file affects only browsers that have not already applied the seed marker.
 
 Maintenance cleanup behavior:

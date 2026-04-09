@@ -104,9 +104,9 @@ export const buildPurgeWorkspaceState = (
     (workspaceRun) =>
       workspaceRun.workspaceId !== workspaceId && workspaceRun.report?.workspaceId !== workspaceId
   );
-  const activeTaskId =
-    !state.activeTaskId || workspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeTaskId)
-      ? state.activeTaskId
+  const activeRunId =
+    !state.activeRunId || workspaceRuns.some((workspaceRun) => workspaceRun.id === state.activeRunId)
+      ? state.activeRunId
       : null;
   const nextGraph = filterManualGraphForWorkspaceRemoval({
     manualNodes: state.manualNodes,
@@ -157,7 +157,7 @@ export const buildPurgeWorkspaceState = (
     manualLinks: nextGraph.manualLinks,
     hiddenNodeIds: nextGraph.hiddenNodeIds,
     flaggedNodeIds: nextGraph.flaggedNodeIds,
-    activeTaskId,
+    activeRunId,
     activeChatSessionId,
     activeWorkspaceId: state.activeWorkspaceId === workspaceId ? null : state.activeWorkspaceId,
     activeWorkspaceBoardId:
@@ -187,7 +187,7 @@ export const buildImportedWorkspaceDataState = (
   manualLinks: payload.graph.manualLinks,
   hiddenNodeIds: [],
   flaggedNodeIds: [],
-  activeTaskId: null,
+  activeRunId: null,
   activeChatSessionId: null,
   activeWorkspaceId: null,
   activeWorkspaceBoardId: null,
@@ -212,7 +212,7 @@ export const buildClearedWorkspaceDataState = (): Partial<WorkspaceState> => ({
   manualLinks: [],
   hiddenNodeIds: [],
   flaggedNodeIds: [],
-  activeTaskId: null,
+  activeRunId: null,
   activeChatSessionId: null,
   activeWorkspaceId: null,
   activeWorkspaceBoardId: null,

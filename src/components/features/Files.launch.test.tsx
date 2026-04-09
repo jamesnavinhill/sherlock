@@ -18,9 +18,9 @@ vi.mock('./Runs/RunSetupModal', () => ({
 }));
 
 vi.mock('../../utils/exportUtils', () => ({
-  exportCaseAsJson: vi.fn(),
-  exportCaseAsHtml: vi.fn(),
-  exportCaseAsMarkdown: vi.fn(),
+  exportWorkspaceAsJson: vi.fn(),
+  exportWorkspaceAsHtml: vi.fn(),
+  exportWorkspaceAsMarkdown: vi.fn(),
 }));
 
 import { Files } from './Files';

@@ -7,7 +7,7 @@ This document defines Sherlock's practical product boundary in the current codeb
 Sherlock helps analysts and researchers run iterative knowledge workflows by combining:
 
 - AI-generated artifacts
-- workspace-compatible organization built on existing case structures
+- workspace-first organization built on canonical workspace, artifact, run, and signal records
 - entity/link visualization
 - live signal monitoring
 - exportable local-first work products
@@ -17,7 +17,7 @@ Sherlock helps analysts and researchers run iterative knowledge workflows by com
 - browser-based knowledge workspace (single-page app)
 - multi-provider AI routing (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
 - scope-derived domain packs and purpose profiles
-- case/report/headline lifecycle management with compatibility for broader workspace and artifact concepts
+- workspace/artifact/signal/follow-up lifecycle management with compatibility boundaries isolated to import and migration paths
 - graph workflows for entities, concepts, sources, and manual relationships
 - local-first persistence via browser SQLite
 - lightweight operational controls for providers and keys
@@ -39,7 +39,7 @@ Sherlock helps analysts and researchers run iterative knowledge workflows by com
 - Workspace Chat (grounded conversational work inside an active workspace)
 - Network Graph (entity relationship analysis)
 - Live Monitor (event stream and escalation)
-- Case Files (archive and export)
+- Files (workspace browse and export)
 - Settings (providers, scopes, templates, maintenance)
 
 ## Non-Goals for Documentation

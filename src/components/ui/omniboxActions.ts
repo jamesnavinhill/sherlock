@@ -307,7 +307,7 @@ interface ExecuteOmniboxActionInput {
   }) => void;
   result: OmniboxResult;
   setActiveChatSessionId: (id: string | null) => void;
-  setActiveTaskId: (id: string | null) => void;
+  setActiveRunId: (id: string | null) => void;
   setActiveWorkspaceId: (id: string | null) => void;
   workspaceItems: WorkspaceItem[];
   workspaceRuns: WorkspaceRun[];
@@ -333,7 +333,7 @@ export const executeOmniboxAction = async ({
   queueBoardPlacement,
   result,
   setActiveChatSessionId,
-  setActiveTaskId,
+  setActiveRunId,
   setActiveWorkspaceId,
   workspaceItems,
   workspaceRuns,
@@ -558,7 +558,7 @@ export const executeOmniboxAction = async ({
     const artifactId = result.artifactId || result.refId;
     if (artifactId) {
       const existingTask = workspaceRuns.find((entry) => entry.report?.id === artifactId);
-      setActiveTaskId(existingTask?.id || null);
+      setActiveRunId(existingTask?.id || null);
       navigate(
         buildWorkspaceArtifactPath(result.workspaceId, artifactId, resolveArtifactRouteState(result))
       );
@@ -568,7 +568,7 @@ export const executeOmniboxAction = async ({
   }
 
   if (result.kind === 'RUN' && result.refId) {
-    setActiveTaskId(result.refId);
+    setActiveRunId(result.refId);
     navigate(buildRunPath(result.refId));
     onClose();
     return;

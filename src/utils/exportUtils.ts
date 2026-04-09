@@ -25,19 +25,25 @@ const normalizeLabelToken = (label: string) =>
     .replace(/[^A-Z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
 
-const getWorkspaceLabelProfile = (caseObj?: Workspace, reports: Artifact[] = []): LabelProfile => {
+const getWorkspaceLabelProfile = (
+  workspace?: Workspace,
+  artifacts: Artifact[] = []
+): LabelProfile => {
   return getLabelProfileById(
-    caseObj?.labelProfileId || reports[0]?.labelProfileId || reports[0]?.config?.labelProfileId
+    workspace?.labelProfileId ||
+      artifacts[0]?.labelProfileId ||
+      artifacts[0]?.config?.labelProfileId
   );
 };
 
-const getArtifactLabelProfile = (report: Artifact, caseObj?: Workspace): LabelProfile => {
+const getArtifactLabelProfile = (artifact: Artifact, workspace?: Workspace): LabelProfile => {
   return getLabelProfileById(
-    report.labelProfileId || report.config?.labelProfileId || caseObj?.labelProfileId
+    artifact.labelProfileId || artifact.config?.labelProfileId || workspace?.labelProfileId
   );
 };
 
-const getExportFollowUps = (report: Artifact) => getArtifactFollowUps(report).map(getFollowUpText);
+const getExportFollowUps = (artifact: Artifact) =>
+  getArtifactFollowUps(artifact).map(getFollowUpText);
 
 const GOOGLE_FONTS_STYLESHEET_HREF =
   'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700;800&display=swap';
@@ -89,37 +95,37 @@ strong { font-weight: var(--export-font-weight-bold); }
 }
 `;
 
-export const exportCaseAsJson = (caseObj: Workspace, reports: Artifact[]) => {
-  const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
+export const exportWorkspaceAsJson = (workspace: Workspace, artifacts: Artifact[]) => {
+  const labelProfile = getWorkspaceLabelProfile(workspace, artifacts);
   const data = {
-    case: caseObj,
-    reports,
+    workspace,
+    artifacts,
     exportedAt: new Date().toISOString(),
   };
 
   downloadFile(
     JSON.stringify(data, null, 2),
-    `${normalizeLabelToken(labelProfile.workspaceLabel)}_${caseObj.id}_DATA.json`,
+    `${normalizeLabelToken(labelProfile.workspaceLabel)}_${workspace.id}_DATA.json`,
     'application/json'
   );
 };
 
-export const exportReportAsJson = (report: Artifact) => {
-  const labelProfile = getArtifactLabelProfile(report);
+export const exportArtifactAsJson = (artifact: Artifact) => {
+  const labelProfile = getArtifactLabelProfile(artifact);
   const data = {
-    report,
+    artifact,
     exportedAt: new Date().toISOString(),
   };
 
   downloadFile(
     JSON.stringify(data, null, 2),
-    `${normalizeLabelToken(labelProfile.artifactLabel)}_${report.id || 'unknown'}_DATA.json`,
+    `${normalizeLabelToken(labelProfile.artifactLabel)}_${artifact.id || 'unknown'}_DATA.json`,
     'application/json'
   );
 };
 
-export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
-  const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
+export const exportWorkspaceAsHtml = (workspace: Workspace, artifacts: Artifact[]) => {
+  const labelProfile = getWorkspaceLabelProfile(workspace, artifacts);
   const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
 
@@ -127,8 +133,8 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
   const organizations = new Set<string>();
   const allEntityNames = new Set<string>();
 
-  reports.forEach((report) => {
-    (report.entities || []).forEach((entity) => {
+  artifacts.forEach((artifact) => {
+    (artifact.entities || []).forEach((entity) => {
       const name = typeof entity === 'string' ? entity : entity.name;
       const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
       allEntityNames.add(name);
@@ -137,7 +143,7 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
     });
   });
 
-  const allSources = reports.flatMap((report) => report.sources || []);
+  const allSources = artifacts.flatMap((artifact) => artifact.sources || []);
 
   const entityTagsHtml = Array.from(allEntityNames)
     .map((entityName) => {
@@ -154,49 +160,49 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
     })
     .join('');
 
-  const reportsHtml = reports
+  const artifactsHtml = artifacts
     .map(
-      (report, idx) => `
+      (artifact, idx) => `
     <div class="page page-break">
       <div class="report-section">
-        <h3>${labelProfile.artifactLabel.toUpperCase()} #${idx + 1}: ${report.topic}</h3>
-        <div class="meta">DATE: ${report.dateStr || 'Unknown'} | ${artifactToken} ID: ${report.id || 'N/A'}</div>
+        <h3>${labelProfile.artifactLabel.toUpperCase()} #${idx + 1}: ${artifact.topic}</h3>
+        <div class="meta">DATE: ${artifact.dateStr || 'Unknown'} | ${artifactToken} ID: ${artifact.id || 'N/A'}</div>
 
         <div style="margin-bottom: 20px;">
           <strong>Summary:</strong><br/>
-          ${report.summary}
+          ${artifact.summary}
         </div>
 
         ${
-          report.agendas && report.agendas.length > 0
+          artifact.agendas && artifact.agendas.length > 0
             ? `
         <div style="margin-bottom: 20px;">
           <strong>Key Findings:</strong>
           <ul>
-            ${report.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
+            ${artifact.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
           </ul>
         </div>`
             : ''
         }
 
         ${
-          getExportFollowUps(report).length > 0
+          getExportFollowUps(artifact).length > 0
             ? `
         <div style="margin-bottom: 20px;">
           <strong>${labelProfile.followUpLabel}:</strong>
           <ul>
-            ${getExportFollowUps(report).map((lead) => `<li>${lead}</li>`).join('')}
+            ${getExportFollowUps(artifact).map((followUp) => `<li>${followUp}</li>`).join('')}
           </ul>
         </div>`
             : ''
         }
 
         ${
-          report.sources && report.sources.length > 0
+          artifact.sources && artifact.sources.length > 0
             ? `
         <div style="margin-top: 30px; padding-top: 10px; border-top: 1px dashed #ccc;">
           <strong>Source Evidence:</strong>
-          ${report.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
+          ${artifact.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
         </div>`
             : ''
         }
@@ -210,7 +216,7 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>${workspaceToken}: ${caseObj.title}</title>
+      <title>${workspaceToken}: ${workspace.title}</title>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
       <link href="${GOOGLE_FONTS_STYLESHEET_HREF}" rel="stylesheet" />
@@ -220,22 +226,22 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
       <div class="page">
         <div class="header">
           <div>
-            <h1>${caseObj.title}</h1>
+            <h1>${workspace.title}</h1>
             <div class="meta">
-              ${workspaceToken} ID: ${caseObj.id}<br/>
-              INITIATED: ${caseObj.dateOpened}<br/>
-              STATUS: ${caseObj.status}
+              ${workspaceToken} ID: ${workspace.id}<br/>
+              INITIATED: ${workspace.dateOpened}<br/>
+              STATUS: ${workspace.status}
             </div>
           </div>
           <div class="stamp">Sherlock Confidential</div>
         </div>
 
         <h2>Executive Overview</h2>
-        <p>${caseObj.description || 'No description provided.'}</p>
+        <p>${workspace.description || 'No description provided.'}</p>
 
         <div style="display: flex; gap: 20px; margin-top: 30px;">
           <div class="stat-box">
-            <div class="stat-number">${reports.length}</div>
+            <div class="stat-number">${artifacts.length}</div>
             <div class="stat-label">${labelProfile.artifactLabelPlural}</div>
           </div>
           <div class="stat-box">
@@ -252,7 +258,7 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
         <div>${entityTagsHtml}</div>
       </div>
 
-      ${reportsHtml}
+      ${artifactsHtml}
 
       <div class="footer">
         GENERATED BY SHERLOCK AI // ${new Date().toLocaleDateString()} // CLASSIFIED
@@ -261,15 +267,15 @@ export const exportCaseAsHtml = (caseObj: Workspace, reports: Artifact[]) => {
     </html>
   `;
 
-  downloadFile(htmlContent, `${workspaceToken}_${caseObj.id}_DOSSIER.html`, 'text/html');
+  downloadFile(htmlContent, `${workspaceToken}_${workspace.id}_DOSSIER.html`, 'text/html');
 };
 
-export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
-  const labelProfile = getArtifactLabelProfile(report, caseObj);
+export const exportArtifactAsHtml = (artifact: Artifact, workspace?: Workspace) => {
+  const labelProfile = getArtifactLabelProfile(artifact, workspace);
   const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
 
-  const entityTagsHtml = (report.entities || [])
+  const entityTagsHtml = (artifact.entities || [])
     .map((entity) => {
       const name = typeof entity === 'string' ? entity : entity.name;
       const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
@@ -290,7 +296,7 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>${artifactToken}: ${report.topic}</title>
+      <title>${artifactToken}: ${artifact.topic}</title>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
       <link href="${GOOGLE_FONTS_STYLESHEET_HREF}" rel="stylesheet" />
@@ -300,35 +306,35 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
       <div class="page">
         <div class="header">
           <div>
-            <h1>${report.topic}</h1>
+            <h1>${artifact.topic}</h1>
             <div class="meta">
-              ${caseObj ? `${workspaceToken}: ${caseObj.title}<br/>` : ''}
-              DATE: ${report.dateStr || 'Unknown'}<br/>
-              ${artifactToken} ID: ${report.id || 'N/A'}
+              ${workspace ? `${workspaceToken}: ${workspace.title}<br/>` : ''}
+              DATE: ${artifact.dateStr || 'Unknown'}<br/>
+              ${artifactToken} ID: ${artifact.id || 'N/A'}
             </div>
           </div>
           <div class="stamp">Sherlock Confidential</div>
         </div>
 
         <h2>Executive Summary</h2>
-        <p>${report.summary}</p>
+        <p>${artifact.summary}</p>
 
         ${
-          report.agendas && report.agendas.length > 0
+          artifact.agendas && artifact.agendas.length > 0
             ? `
         <h2>Key Findings</h2>
         <ul>
-          ${report.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
+          ${artifact.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
         </ul>`
             : ''
         }
 
         ${
-          getExportFollowUps(report).length > 0
+          getExportFollowUps(artifact).length > 0
             ? `
         <h2>${labelProfile.followUpLabel}</h2>
         <ul>
-          ${getExportFollowUps(report).map((lead) => `<li>${lead}</li>`).join('')}
+          ${getExportFollowUps(artifact).map((followUp) => `<li>${followUp}</li>`).join('')}
         </ul>`
             : ''
         }
@@ -337,11 +343,11 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
         <div>${entityTagsHtml || '<em>No entities detected.</em>'}</div>
 
         ${
-          report.sources && report.sources.length > 0
+          artifact.sources && artifact.sources.length > 0
             ? `
         <h2>Source Evidence</h2>
         <div>
-          ${report.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
+          ${artifact.sources.map((source) => `<a href="${source.url}" class="source-link" target="_blank">[LINK] ${source.title}</a>`).join('')}
         </div>`
             : ''
         }
@@ -354,40 +360,44 @@ export const exportReportAsHtml = (report: Artifact, caseObj?: Workspace) => {
     </html>
   `;
 
-  downloadFile(htmlContent, `${artifactToken}_${report.id || 'unknown'}_DOSSIER.html`, 'text/html');
+  downloadFile(
+    htmlContent,
+    `${artifactToken}_${artifact.id || 'unknown'}_DOSSIER.html`,
+    'text/html'
+  );
 };
 
-const formatReportMarkdown = (report: Artifact, labelProfile: LabelProfile, idx?: number) => {
+const formatArtifactMarkdown = (artifact: Artifact, labelProfile: LabelProfile, idx?: number) => {
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
 
   return `
-### ${idx !== undefined ? `${artifactToken} #${idx + 1}: ` : ''}${report.topic}
-**Date:** ${report.dateStr || 'Unknown'} | **${artifactToken} ID:** ${report.id || 'N/A'}
+### ${idx !== undefined ? `${artifactToken} #${idx + 1}: ` : ''}${artifact.topic}
+**Date:** ${artifact.dateStr || 'Unknown'} | **${artifactToken} ID:** ${artifact.id || 'N/A'}
 
 #### Executive Summary
-${report.summary}
+${artifact.summary}
 
 ${
-  report.agendas?.length
+  artifact.agendas?.length
     ? `#### Key Findings
-${report.agendas.map((agenda) => `- ${agenda}`).join('\n')}`
+${artifact.agendas.map((agenda) => `- ${agenda}`).join('\n')}`
     : ''
 }
 
 ${
-  getExportFollowUps(report).length
+  getExportFollowUps(artifact).length
     ? `#### ${labelProfile.followUpLabel}
-${getExportFollowUps(report).map((lead) => `- ${lead}`).join('\n')}`
+${getExportFollowUps(artifact).map((followUp) => `- ${followUp}`).join('\n')}`
     : ''
 }
 
 #### Entities Detected
-${(report.entities || []).map((entity) => `\`${typeof entity === 'string' ? entity : entity.name}\` (${typeof entity === 'string' ? 'UNKNOWN' : entity.type})`).join(', ') || '*No entities detected.*'}
+${(artifact.entities || []).map((entity) => `\`${typeof entity === 'string' ? entity : entity.name}\` (${typeof entity === 'string' ? 'UNKNOWN' : entity.type})`).join(', ') || '*No entities detected.*'}
 
 ${
-  report.sources?.length
+  artifact.sources?.length
     ? `#### Sources
-${report.sources.map((source) => `- [${source.title}](${source.url})`).join('\n')}`
+${artifact.sources.map((source) => `- [${source.title}](${source.url})`).join('\n')}`
     : ''
 }
 
@@ -395,20 +405,20 @@ ${report.sources.map((source) => `- [${source.title}](${source.url})`).join('\n'
 `;
 };
 
-export const exportCaseAsMarkdown = (caseObj: Workspace, reports: Artifact[]) => {
-  const labelProfile = getWorkspaceLabelProfile(caseObj, reports);
+export const exportWorkspaceAsMarkdown = (workspace: Workspace, artifacts: Artifact[]) => {
+  const labelProfile = getWorkspaceLabelProfile(workspace, artifacts);
   const workspaceToken = normalizeLabelToken(labelProfile.workspaceLabel);
   const markdownContent = `
-# ${workspaceToken} DOSSIER: ${caseObj.title}
-**${workspaceToken} ID:** ${caseObj.id}
-**Initiated:** ${caseObj.dateOpened}
-**Status:** ${caseObj.status}
+# ${workspaceToken} DOSSIER: ${workspace.title}
+**${workspaceToken} ID:** ${workspace.id}
+**Initiated:** ${workspace.dateOpened}
+**Status:** ${workspace.status}
 
 ## Executive Overview
-${caseObj.description || 'No description provided.'}
+${workspace.description || 'No description provided.'}
 
 ## ${labelProfile.artifactLabelPlural}
-${reports.map((report, idx) => formatReportMarkdown(report, labelProfile, idx)).join('\n')}
+${artifacts.map((artifact, idx) => formatArtifactMarkdown(artifact, labelProfile, idx)).join('\n')}
 
 ---
 *Generated by Sherlock AI on ${new Date().toLocaleDateString()}*
@@ -416,25 +426,25 @@ ${reports.map((report, idx) => formatReportMarkdown(report, labelProfile, idx)).
 
   downloadFile(
     markdownContent.trim(),
-    `${workspaceToken}_${caseObj.id}_DOSSIER.md`,
+    `${workspaceToken}_${workspace.id}_DOSSIER.md`,
     'text/markdown'
   );
 };
 
-export const exportReportAsMarkdown = (report: Artifact) => {
-  const labelProfile = getArtifactLabelProfile(report);
+export const exportArtifactAsMarkdown = (artifact: Artifact) => {
+  const labelProfile = getArtifactLabelProfile(artifact);
   const artifactToken = normalizeLabelToken(labelProfile.artifactLabel);
   const markdownContent = `
-# ${artifactToken}: ${report.topic}
+# ${artifactToken}: ${artifact.topic}
 
-${formatReportMarkdown(report, labelProfile)}
+${formatArtifactMarkdown(artifact, labelProfile)}
 
 *Generated by Sherlock AI on ${new Date().toLocaleDateString()}*
 `;
 
   downloadFile(
     markdownContent.trim(),
-    `${artifactToken}_${report.id || 'unknown'}_DOSSIER.md`,
+    `${artifactToken}_${artifact.id || 'unknown'}_DOSSIER.md`,
     'text/markdown'
   );
 };

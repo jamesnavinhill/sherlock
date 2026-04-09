@@ -113,29 +113,29 @@ export class WorkspaceSearchRepository {
       prioritySourcesSummary: workspace.prioritySourcesSummary || undefined,
     });
 
-    const reportRows = await db
+    const artifactRows = await db
       .select()
       .from(artifacts)
       .where(eq(artifacts.workspaceId, workspaceId))
       .orderBy(desc(artifacts.createdAt));
-    const reportIds = reportRows.map((row) => row.id);
-    const sectionRows = reportIds.length
+    const artifactIds = artifactRows.map((row) => row.id);
+    const sectionRows = artifactIds.length
       ? await db
           .select()
           .from(artifactSections)
-          .where(inArray(artifactSections.reportId, reportIds))
+          .where(inArray(artifactSections.artifactId, artifactIds))
       : [];
-    const evidenceRows = reportIds.length
+    const evidenceRows = artifactIds.length
       ? await db
           .select()
           .from(artifactEvidence)
-          .where(inArray(artifactEvidence.reportId, reportIds))
+          .where(inArray(artifactEvidence.artifactId, artifactIds))
       : [];
-    const entityRows = reportIds.length
-      ? await db.select().from(entities).where(inArray(entities.reportId, reportIds))
+    const entityRows = artifactIds.length
+      ? await db.select().from(entities).where(inArray(entities.artifactId, artifactIds))
       : [];
-    const sourceRows = reportIds.length
-      ? await db.select().from(sources).where(inArray(sources.reportId, reportIds))
+    const sourceRows = artifactIds.length
+      ? await db.select().from(sources).where(inArray(sources.artifactId, artifactIds))
       : [];
     const signalRows = await db
       .select()
@@ -148,10 +148,10 @@ export class WorkspaceSearchRepository {
       .where(eq(workspaceItems.workspaceId, workspaceId))
       .orderBy(desc(workspaceItems.updatedAt));
 
-    const reportById = new Map(reportRows.map((row) => [row.id, row]));
+    const artifactById = new Map(artifactRows.map((row) => [row.id, row]));
     const candidates: WorkspaceContextSnippet[] = [];
 
-    reportRows.forEach((row) => {
+    artifactRows.forEach((row) => {
       const content = [row.summary || '', row.rawText || ''].filter(Boolean).join('\n');
       const score = scoreCandidate(
         query,
@@ -177,11 +177,11 @@ export class WorkspaceSearchRepository {
     });
 
     sectionRows.forEach((row) => {
-      const parent = row.reportId ? reportById.get(row.reportId) : undefined;
+      const parent = row.artifactId ? artifactById.get(row.artifactId) : undefined;
       const items = parseStoredJson<string[]>(
         row.itemsJson,
         [],
-        `workspace search section items ${row.reportId || 'unknown'}:${row.id}`
+        `workspace search section items ${row.artifactId || 'unknown'}:${row.id}`
       );
       const content = [row.content || '', ...items].join('\n');
       candidates.push({
@@ -189,7 +189,7 @@ export class WorkspaceSearchRepository {
         kind: 'SECTION',
         title: `${parent?.topic || 'Artifact'}: ${row.title}`,
         snippet: toSnippet(content || row.title),
-        refId: row.reportId || undefined,
+        refId: row.artifactId || undefined,
         refKind: 'REPORT',
         score: scoreCandidate(
           query,
@@ -206,7 +206,7 @@ export class WorkspaceSearchRepository {
     });
 
     evidenceRows.forEach((row) => {
-      const parent = row.reportId ? reportById.get(row.reportId) : undefined;
+      const parent = row.artifactId ? artifactById.get(row.artifactId) : undefined;
       const content = [row.summary, row.quote || '', row.sourceTitle || '', row.sourceUrl || '']
         .filter(Boolean)
         .join('\n');
@@ -215,7 +215,7 @@ export class WorkspaceSearchRepository {
         kind: 'SECTION',
         title: `${parent?.topic || 'Artifact'}: ${row.title}`,
         snippet: toSnippet(content || row.title),
-        refId: row.reportId || undefined,
+        refId: row.artifactId || undefined,
         refKind: 'REPORT',
         score: scoreCandidate(
           query,
@@ -233,14 +233,14 @@ export class WorkspaceSearchRepository {
     });
 
     entityRows.forEach((row) => {
-      const parent = row.reportId ? reportById.get(row.reportId) : undefined;
+      const parent = row.artifactId ? artifactById.get(row.artifactId) : undefined;
       const descriptor = [row.name, row.role || '', row.type].filter(Boolean).join(' | ');
       candidates.push({
         id: `CTX-ENTITY-${row.id}`,
         kind: 'ENTITY',
         title: `${row.name}${parent ? ` (${parent.topic})` : ''}`,
         snippet: descriptor,
-        refId: row.reportId || undefined,
+        refId: row.artifactId || undefined,
         refKind: 'REPORT',
         score: scoreCandidate(
           query,
@@ -258,13 +258,13 @@ export class WorkspaceSearchRepository {
     });
 
     sourceRows.forEach((row) => {
-      const parent = row.reportId ? reportById.get(row.reportId) : undefined;
+      const parent = row.artifactId ? artifactById.get(row.artifactId) : undefined;
       candidates.push({
         id: `CTX-SOURCE-${row.id}`,
         kind: 'SOURCE',
         title: row.title,
         snippet: toSnippet(row.url),
-        refId: row.reportId || undefined,
+        refId: row.artifactId || undefined,
         refKind: 'REPORT',
         score: scoreCandidate(
           query,
@@ -347,7 +347,7 @@ export class WorkspaceSearchRepository {
       .sort((a, b) => b.score - a.score)
       .slice(0, options?.limit ?? 6);
 
-    const recentArtifacts = reportRows.slice(0, 4).map(toRecentArtifact);
+    const recentArtifacts = artifactRows.slice(0, 4).map(toRecentArtifact);
     const recentSignals: Signal[] = signalRows.slice(0, 5).map((row) => ({
       id: row.id,
       workspaceId: row.workspaceId || workspaceId,
@@ -367,7 +367,7 @@ export class WorkspaceSearchRepository {
       workspaceIdentity.prioritySourcesSummary
         ? `Priority sources: ${workspaceIdentity.prioritySourcesSummary}`
         : null,
-      reportRows.length ? `${reportRows.length} saved artifacts` : 'No saved artifacts yet',
+      artifactRows.length ? `${artifactRows.length} saved artifacts` : 'No saved artifacts yet',
       signalRows.length ? `${signalRows.length} saved signals` : 'No saved signals yet',
     ].filter((part): part is string => !!part);
 
@@ -410,20 +410,20 @@ export class WorkspaceSearchRepository {
 
   static async getArtifactSummary(
     workspaceId: string,
-    reportId: string
+    artifactId: string
   ): Promise<Pick<Artifact, 'id' | 'topic' | 'summary' | 'dateStr' | 'artifactType'>> {
-    const report = await this.getWorkspaceReport(workspaceId, reportId);
+    const artifact = await this.getWorkspaceArtifact(workspaceId, artifactId);
     return {
-      id: report.id,
-      topic: report.topic,
-      summary: report.summary,
-      dateStr: report.dateStr,
-      artifactType: report.artifactType,
+      id: artifact.id,
+      topic: artifact.topic,
+      summary: artifact.summary,
+      dateStr: artifact.dateStr,
+      artifactType: artifact.artifactType,
     };
   }
 
-  static async getFullArtifactText(workspaceId: string, reportId: string): Promise<Artifact> {
-    return this.getWorkspaceReport(workspaceId, reportId);
+  static async getFullArtifactText(workspaceId: string, artifactId: string): Promise<Artifact> {
+    return this.getWorkspaceArtifact(workspaceId, artifactId);
   }
 
   static async getRecentSignals(workspaceId: string, limit = 5): Promise<Signal[]> {
@@ -434,17 +434,19 @@ export class WorkspaceSearchRepository {
       .slice(0, limit);
   }
 
-  private static async getWorkspaceReport(
+  private static async getWorkspaceArtifact(
     workspaceId: string,
-    reportId: string
+    artifactId: string
   ): Promise<Artifact> {
     const artifacts = await WorkspaceRepository.getAllArtifacts();
-    const report = artifacts.find((entry) => entry.id === reportId && entry.workspaceId === workspaceId);
+    const artifact = artifacts.find(
+      (entry) => entry.id === artifactId && entry.workspaceId === workspaceId
+    );
 
-    if (!report || !report.id) {
-      throw new Error(`Artifact ${reportId} was not found in workspace ${workspaceId}.`);
+    if (!artifact || !artifact.id) {
+      throw new Error(`Artifact ${artifactId} was not found in workspace ${workspaceId}.`);
     }
 
-    return report;
+    return artifact;
   }
 }

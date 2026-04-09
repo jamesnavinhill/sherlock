@@ -43,7 +43,7 @@ interface ChatDialogsProps {
   onConfirmLaunchFollowUp: () => Promise<void>;
   onConfirmUploadDialog: () => Promise<void>;
   onRenameTitleChange: (value: string) => void;
-  onAppendArtifactChange: (reportId: string) => void;
+  onAppendArtifactChange: (artifactId: string) => void;
   onFollowUpTopicChange: (value: string) => void;
   onUploadArtifactTypeChange: (artifactType: ArtifactType) => void;
   onUploadRouteChange: (route: WorkspaceDocumentUploadRoute) => void;

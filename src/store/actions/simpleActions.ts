@@ -25,7 +25,7 @@ export const createSimpleActions = ({
   | 'setChatGenerationStatus'
   | 'setPartialAssistantOutput'
   | 'setSelectedChatLaunchContext'
-  | 'setActiveTaskId'
+  | 'setActiveRunId'
   | 'setLiveEvents'
   | 'setNavStack'
   | 'setIsSidebarCollapsed'
@@ -76,7 +76,7 @@ export const createSimpleActions = ({
   setChatGenerationStatus: (chatGenerationStatus) => set({ chatGenerationStatus }),
   setPartialAssistantOutput: (partialAssistantOutput) => set({ partialAssistantOutput }),
   setSelectedChatLaunchContext: (selectedChatLaunchContext) => set({ selectedChatLaunchContext }),
-  setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
+  setActiveRunId: (activeRunId) => set({ activeRunId }),
   setLiveEvents: (eventsOrUpdater) => {
     if (typeof eventsOrUpdater === 'function') {
       set((state) => ({ liveEvents: eventsOrUpdater(state.liveEvents) }));

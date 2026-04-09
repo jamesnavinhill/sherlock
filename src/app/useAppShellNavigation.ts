@@ -24,7 +24,7 @@ interface UseAppShellNavigationInput {
   locationPathRef: MutableRefObject<string>;
   lastNonSettingsPathRef: MutableRefObject<string>;
   activeChatSessionId: string | null;
-  activeTaskId: string | null;
+  activeRunId: string | null;
   activeWorkspaceBoardId: string | null;
   activeWorkspaceId: string | null;
   artifacts: Artifact[];
@@ -32,7 +32,7 @@ interface UseAppShellNavigationInput {
   workspaceRuns: WorkspaceRun[];
   workspaces: Workspace[];
   clearCompletedRuns: () => Promise<void>;
-  setActiveTaskId: (id: string | null) => void;
+  setActiveRunId: (id: string | null) => void;
   setActiveWorkspaceId: (id: string | null) => void;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
 }
@@ -44,7 +44,7 @@ export const useAppShellNavigation = ({
   locationPathRef,
   lastNonSettingsPathRef,
   activeChatSessionId,
-  activeTaskId,
+  activeRunId,
   activeWorkspaceBoardId,
   activeWorkspaceId,
   artifacts,
@@ -52,7 +52,7 @@ export const useAppShellNavigation = ({
   workspaceRuns,
   workspaces,
   clearCompletedRuns,
-  setActiveTaskId,
+  setActiveRunId,
   setActiveWorkspaceId,
   setIsSidebarCollapsed,
 }: UseAppShellNavigationInput) => {
@@ -70,7 +70,7 @@ export const useAppShellNavigation = ({
             activeWorkspaceId,
             activeWorkspaceBoardId,
             activeChatSessionId,
-            activeTaskId,
+            activeRunId,
             artifacts,
             pathname: location.pathname,
             search: location.search,
@@ -84,7 +84,7 @@ export const useAppShellNavigation = ({
     },
     [
       activeChatSessionId,
-      activeTaskId,
+      activeRunId,
       activeWorkspaceBoardId,
       activeWorkspaceId,
       artifacts,
@@ -98,9 +98,9 @@ export const useAppShellNavigation = ({
   );
 
   const handleBack = useCallback(() => {
-    setActiveTaskId(null);
+    setActiveRunId(null);
     navigate(buildDiscoverPath());
-  }, [navigate, setActiveTaskId]);
+  }, [navigate, setActiveRunId]);
 
   const handleCloseSettings = useCallback(() => {
     navigate(lastNonSettingsPathRef.current);
@@ -117,7 +117,7 @@ export const useAppShellNavigation = ({
           workspaceRun.report?.topic === artifact.topic
       );
 
-      setActiveTaskId(existingTask?.id || null);
+      setActiveRunId(existingTask?.id || null);
 
       if (artifact.workspaceId && artifact.id) {
         navigate(buildWorkspaceArtifactPath(artifact.workspaceId, artifact.id));
@@ -127,15 +127,15 @@ export const useAppShellNavigation = ({
         navigate(buildFilesPath());
       }
     },
-    [navigate, setActiveTaskId, setActiveWorkspaceId, workspaceRuns]
+    [navigate, setActiveRunId, setActiveWorkspaceId, workspaceRuns]
   );
 
-  const handleSelectTask = useCallback(
-    (taskId: string) => {
-      setActiveTaskId(taskId);
-      navigate(buildRunPath(taskId));
+  const handleSelectRun = useCallback(
+    (runId: string) => {
+      setActiveRunId(runId);
+      navigate(buildRunPath(runId));
     },
-    [navigate, setActiveTaskId]
+    [navigate, setActiveRunId]
   );
 
   const handleNavigateRecord = useCallback(
@@ -166,7 +166,7 @@ export const useAppShellNavigation = ({
       }
 
       if (matchedRecord.kind === 'TASK') {
-        handleSelectTask(matchedRecord.task.id);
+        handleSelectRun(matchedRecord.task.id);
         return;
       }
 
@@ -174,7 +174,7 @@ export const useAppShellNavigation = ({
     },
     [
       artifacts,
-      handleSelectTask,
+      handleSelectRun,
       handleViewReport,
       navigate,
       workspaceBoards,
@@ -184,19 +184,19 @@ export const useAppShellNavigation = ({
   );
 
   const handleClearCompleted = useCallback(async () => {
-    const activeBeforeClear = workspaceRuns.find((workspaceRun) => workspaceRun.id === activeTaskId);
+    const activeBeforeClear = workspaceRuns.find((workspaceRun) => workspaceRun.id === activeRunId);
     await clearCompletedRuns();
 
     if (
       activeBeforeClear &&
       (activeBeforeClear.status === 'COMPLETED' || activeBeforeClear.status === 'FAILED')
     ) {
-      setActiveTaskId(null);
+      setActiveRunId(null);
       if (locationPathRef.current === buildRunPath(activeBeforeClear.id)) {
         navigate(buildFilesPath(), { replace: true });
       }
     }
-  }, [activeTaskId, clearCompletedRuns, locationPathRef, navigate, setActiveTaskId, workspaceRuns]);
+  }, [activeRunId, clearCompletedRuns, locationPathRef, navigate, setActiveRunId, workspaceRuns]);
 
   return {
     handleBack,
@@ -204,7 +204,7 @@ export const useAppShellNavigation = ({
     handleCloseSettings,
     handleNavigateRecord,
     handleNavigateToView,
-    handleSelectTask,
+    handleSelectRun,
     handleViewReport,
   };
 };

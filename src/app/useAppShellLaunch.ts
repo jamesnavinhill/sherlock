@@ -45,7 +45,7 @@ interface UseAppShellLaunchInput {
   failRun: (id: string, error: string) => Promise<void>;
   manualNodes: ManualNode[];
   setManualNodes: (nodes: ManualNode[]) => void;
-  setActiveTaskId: (id: string | null) => void;
+  setActiveRunId: (id: string | null) => void;
   setShowApiKeyPrompt: (value: boolean) => void;
 }
 
@@ -62,7 +62,7 @@ export const useAppShellLaunch = ({
   failRun,
   manualNodes,
   setManualNodes,
-  setActiveTaskId,
+  setActiveRunId,
   setShowApiKeyPrompt,
 }: UseAppShellLaunchInput) => {
   const resolveScopeById = useCallback(
@@ -72,11 +72,11 @@ export const useAppShellLaunch = ({
   );
 
   const addPreseededEntitiesToGraph = useCallback(
-    async (taskId: string, preseededEntities?: InvestigationRunConfig['preseededEntities']) => {
+    async (runId: string, preseededEntities?: InvestigationRunConfig['preseededEntities']) => {
       const nextNodes = mergePreseededEntities({
         existingNodes: manualNodes,
         preseededEntities,
-        taskId,
+        runId,
       });
       if (nextNodes.length !== manualNodes.length) {
         setManualNodes(nextNodes);
@@ -196,10 +196,10 @@ export const useAppShellLaunch = ({
         });
 
         const newTaskId = createLocalId('task');
-        const newTask = buildWorkspaceRun({
+      const newTask = buildWorkspaceRun({
           launchRequest,
           runConfig,
-          taskId: newTaskId,
+          runId: newTaskId,
         });
 
         try {
@@ -209,7 +209,7 @@ export const useAppShellLaunch = ({
           }
 
           if (switchToView) {
-            setActiveTaskId(newTaskId);
+            setActiveRunId(newTaskId);
             navigate(buildRunPath(newTaskId));
           }
 
@@ -218,7 +218,7 @@ export const useAppShellLaunch = ({
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unable to launch run.';
           addToast(message, 'ERROR');
-          setActiveTaskId(null);
+          setActiveRunId(null);
         }
       })();
     },
@@ -229,7 +229,7 @@ export const useAppShellLaunch = ({
       customScopes,
       navigate,
       runInvestigationTask,
-      setActiveTaskId,
+      setActiveRunId,
       setShowApiKeyPrompt,
       workspaceRuns,
     ]

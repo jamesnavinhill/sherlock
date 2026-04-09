@@ -11,19 +11,19 @@ import {
   Trash2,
 } from 'lucide-react';
 
-interface RunManagerProps {
+interface RunQueueProps {
   workspaceRuns: WorkspaceRun[];
-  activeTaskId: string | null;
-  onSelectTask: (taskId: string) => void;
+  activeRunId: string | null;
+  onSelectRun: (runId: string) => void;
   onClearCompleted: () => void;
   isCollapsed: boolean;
   onExpand: () => void;
 }
 
-export const RunManager: React.FC<RunManagerProps> = ({
+export const RunQueue: React.FC<RunQueueProps> = ({
   workspaceRuns,
-  activeTaskId,
-  onSelectTask,
+  activeRunId,
+  onSelectRun,
   onClearCompleted,
   isCollapsed,
   onExpand,
@@ -83,11 +83,11 @@ export const RunManager: React.FC<RunManagerProps> = ({
                     <button
                       key={task.id}
                       onClick={() => {
-                        onSelectTask(task.id);
+                        onSelectRun(task.id);
                         setIsExpanded(false);
                       }}
                       className={`w-full text-left p-2 border cursor-pointer transition-all group relative overflow-hidden flex flex-col ${
-                        activeTaskId === task.id
+                        activeRunId === task.id
                           ? 'bg-zinc-800 border-osint-primary'
                           : 'bg-zinc-900/40 border-zinc-800 hover:bg-zinc-900 hover:border-zinc-600'
                       }`}

@@ -2,8 +2,8 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { useWorkspaceStore, type WorkspaceState } from '../workspaceStore';
 
-export const selectAppShellLaunchTaskState = (state: WorkspaceState) => ({
-  activeTaskId: state.activeTaskId,
+export const selectAppShellLaunchRunState = (state: WorkspaceState) => ({
+  activeRunId: state.activeRunId,
   addRun: state.addRun,
   addToast: state.addToast,
   saveArtifact: state.saveArtifact,
@@ -13,13 +13,13 @@ export const selectAppShellLaunchTaskState = (state: WorkspaceState) => ({
   customScopes: state.customScopes,
   failRun: state.failRun,
   manualNodes: state.manualNodes,
-  setActiveTaskId: state.setActiveTaskId,
+  setActiveRunId: state.setActiveRunId,
   setManualNodes: state.setManualNodes,
   workspaceRuns: state.workspaceRuns,
 });
 
-export const useAppShellLaunchTaskState = () =>
-  useWorkspaceStore(useShallow(selectAppShellLaunchTaskState));
+export const useAppShellLaunchRunState = () =>
+  useWorkspaceStore(useShallow(selectAppShellLaunchRunState));
 
 export const selectAppShellRouteState = (state: WorkspaceState) => ({
   activeChatSessionId: state.activeChatSessionId,

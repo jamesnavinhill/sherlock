@@ -23,12 +23,12 @@ import {
   getChromeToggleButtonClass,
 } from '../../ui/chrome';
 import {
-  exportCaseAsHtml,
-  exportCaseAsJson,
-  exportReportAsHtml,
-  exportReportAsJson,
-  exportCaseAsMarkdown,
-  exportReportAsMarkdown,
+  exportWorkspaceAsHtml,
+  exportWorkspaceAsJson,
+  exportArtifactAsHtml,
+  exportArtifactAsJson,
+  exportWorkspaceAsMarkdown,
+  exportArtifactAsMarkdown,
 } from '../../../utils/exportUtils';
 import { CANONICAL_NOUNS, getWorkspaceDisplayTitle } from '../../../domain';
 import { OsintSelect } from '../../ui/OsintSelect';
@@ -229,7 +229,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">{`Full ${CANONICAL_NOUNS.workspace}`}</div>
                         <button
                           onClick={() => {
-                            exportCaseAsHtml(activeCase, allCaseReports);
+                            exportWorkspaceAsHtml(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
                           className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
@@ -240,7 +240,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportCaseAsMarkdown(activeCase, allCaseReports);
+                            exportWorkspaceAsMarkdown(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
                           className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
@@ -251,7 +251,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportCaseAsJson(activeCase, allCaseReports);
+                            exportWorkspaceAsJson(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
                           className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-2.5 text-left osint-body-small text-zinc-300"
@@ -267,7 +267,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">{`Current ${labelProfile.artifactLabel}`}</div>
                         <button
                           onClick={() => {
-                            exportReportAsHtml(report, activeCase || undefined);
+                            exportArtifactAsHtml(report, activeCase || undefined);
                             setShowExportMenu(false);
                           }}
                           className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
@@ -278,7 +278,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportReportAsMarkdown(report);
+                            exportArtifactAsMarkdown(report);
                             setShowExportMenu(false);
                           }}
                           className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
@@ -289,7 +289,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportReportAsJson(report);
+                            exportArtifactAsJson(report);
                             setShowExportMenu(false);
                           }}
                           className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"

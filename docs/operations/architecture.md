@@ -275,7 +275,7 @@ Key behavior:
 - adapters now share a stronger request/response shape for both chat and artifact generation, including model-aware capability handling and warning surfaces
 - adapters now share a board-agent planning contract that keeps BYOK/model selection aligned with the rest of the app instead of introducing a separate board-only provider stack
 - the board-agent runtime now layers a Sherlock-owned session runner plus action registry on top of the provider router so streamed planning actions can be sanitized, executed, audited, and continued without introducing a second provider subsystem
-- adapters return typed artifact sections plus canonical `followUps`; legacy flattened `agendas` and `leads` fields still exist only for compatibility import/export and older payload hydration
+- adapters return typed artifact sections plus canonical `followUps`; legacy flattened `agendas` and `leads` fields remain only for older payload hydration and bounded compatibility import paths
 - chat adapters accept message arrays plus deterministic workspace retrieval bundles, support streaming output on all active providers, and return structured citations/provenance
 - TTS is only implemented on Gemini adapter
 - OpenRouter uses native message arrays, requests native structured output when available, and enables `openrouter:web_search` by default when the active configuration allows it
@@ -329,11 +329,11 @@ Migration:
 - older local databases still get the `artifact_sections` rebuild when they use the legacy global section-id primary key
 - legacy `sherlock-storage` Zustand payloads are no longer imported during bootstrap; canonical workspace-data backup/import is the supported transfer path
 
-Canonical signal naming now leads the active runtime seams even where compatibility aliases remain:
+Canonical signal naming now leads the active runtime seams even where restore/import compatibility remains:
 
-- repositories expose `getSignals(...)` / `createSignal(...)` as the primary saved-signal API, while `getHeadlines(...)` / `createHeadline(...)` remain compatibility wrappers
+- repositories expose `getSignals(...)` / `createSignal(...)` as the primary saved-signal API
 - chat retrieval attachments, workspace-search snippets, and board/library refs now prefer `SIGNAL` as the ref/attachment kind
-- backup payloads now write canonical signal snapshots under `signals.signals`, while legacy `signals.headlines` snapshots are still accepted during restore/import
+- backup payloads now write canonical signal snapshots under `signals.signals`, while legacy `signals.headlines` snapshots are still accepted during restore/import normalization
 
 ## 6. State Layer
 
@@ -515,7 +515,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - hidden/flagged filters
 - entity resolution workflow
 - `useNetworkGraphUiState.ts`, `useNetworkGraphInspectorState.ts`, `useNetworkGraphNodeActions.ts`, and `networkGraphWorkspaceHandoffs.ts` now split controller concerns across UI state, inspector selection, mutation flows, and board/chat handoff helpers
-- the feature layer now uses canonical workspace-filter naming and treats artifact-backed graph records as report nodes, while `networkGraphNodeIds.ts` keeps legacy persisted graph identifiers stable behind the helper boundary
+- the feature layer now uses canonical workspace-filter naming, while `networkGraphNodeIds.ts` keeps legacy persisted graph identifiers stable behind the helper boundary for existing graph references
 - `NetworkGraphDialogs.tsx` and `NetworkGraphAddNodeOverlay.tsx` now isolate add-node, resolution, delete-confirm, and lead-investigation workflow UI from the main route shell
 
 ### Live Monitor
@@ -665,7 +665,7 @@ Slice 7 closes with a documented bundle-review checkpoint instead of relying on 
 
 - Timeline is now a live feature surface with exportable timeline snapshots, while secondary chronology remains intentionally curated and lower-signal graph/chat audit traces stay out of the main stream.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
-- Active UI labels, export surfaces, and archive selection now follow the resolved label profile; remaining legacy investigation names are confined to compatibility-oriented internal types, table names, and migration paths.
+- Active UI labels and export surfaces now follow the resolved label profile; remaining legacy investigation names are confined to bounded compatibility-oriented internal types, migration paths, and persisted graph-id shims.
 - `Ctrl+N` now navigates to `/files` and opens the new-workspace modal rather than relying on old shell state.
 - Current lint/test status is tracked in `README.md` and `docs/operations/LINTING.md`.
 - Static hosting on Vercel is supported because runtime state, provider access, and persistence are browser-local; each origin keeps its own IndexedDB SQLite database and local BYOK settings, so preview URLs and the production domain do not share persisted data.

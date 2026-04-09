@@ -150,7 +150,7 @@ export const appendChatMessageToArtifact = async ({
   addChatAction: (action: AgentAction) => Promise<unknown>;
   addToast: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
   appendArtifactDialog: { message: ChatMessage; selectedReportId: string } | null;
-  appendSectionToArtifact: (reportId: string, section: ArtifactSection) => Promise<unknown>;
+  appendSectionToArtifact: (artifactId: string, section: ArtifactSection) => Promise<unknown>;
   appendableWorkspaceReports: Array<Artifact & { id: string }>;
   setAppendArtifactDialog: (value: null) => void;
 }) => {

@@ -60,7 +60,7 @@ describe('WorkspaceSearchRepository', () => {
     const sectionRows = [
       {
         id: 'sec-1',
-        reportId: 'rep-1',
+        artifactId: 'rep-1',
         kind: 'KEY_FINDINGS',
         title: 'Exposure',
         content: 'Atlas exposure increased.',
@@ -70,7 +70,7 @@ describe('WorkspaceSearchRepository', () => {
     const evidenceRows = [
       {
         id: 'ev-1',
-        reportId: 'rep-1',
+        artifactId: 'rep-1',
         kind: 'CLAIM',
         title: 'Supplier concentration evidence',
         summary: 'Atlas exposure increased through a smaller vendor pool.',
@@ -82,7 +82,7 @@ describe('WorkspaceSearchRepository', () => {
     const entityRows = [
       {
         id: 'ent-1',
-        reportId: 'rep-1',
+        artifactId: 'rep-1',
         name: 'Atlas Holdings',
         role: 'Supplier',
         type: 'ORGANIZATION',
@@ -91,7 +91,7 @@ describe('WorkspaceSearchRepository', () => {
     const sourceRows = [
       {
         id: 'src-1',
-        reportId: 'rep-1',
+        artifactId: 'rep-1',
         title: 'Registry filing',
         url: 'https://example.com/filing',
       },

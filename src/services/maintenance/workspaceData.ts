@@ -41,6 +41,22 @@ type LegacyWorkspaceDataBackup = Partial<{
   exportedAt: unknown;
 }>;
 
+type CanonicalWorkspaceExportPayload = Partial<{
+  workspace: unknown;
+  artifacts: unknown;
+  exportedAt: unknown;
+}>;
+
+const isCanonicalWorkspaceExportPayload = (
+  value: Partial<WorkspaceDataBackup> & CanonicalWorkspaceExportPayload
+): value is Partial<WorkspaceDataBackup> & Required<Pick<CanonicalWorkspaceExportPayload, 'workspace' | 'artifacts'>> =>
+  !!value.workspace && Array.isArray(value.artifacts);
+
+const isLegacyWorkspaceExportPayload = (
+  value: Partial<WorkspaceDataBackup> & LegacyWorkspaceDataBackup
+): value is Partial<WorkspaceDataBackup> & Required<Pick<LegacyWorkspaceDataBackup, 'case' | 'reports'>> =>
+  !!value.case && Array.isArray(value.reports);
+
 const asArray = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
 
 const flattenSessionRecord = <T extends { sessionId: string }>(value: unknown): T[] => {
@@ -187,89 +203,104 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
   }
 
   const payload = value as Partial<WorkspaceDataBackup> & LegacyWorkspaceDataBackup;
+  const legacyPayload = payload as LegacyWorkspaceDataBackup;
+  const exportPayload = payload as LegacyWorkspaceDataBackup & CanonicalWorkspaceExportPayload;
   const metadata = payload.metadata;
   const looksCanonical = Array.isArray(payload.workspaces) && Array.isArray(payload.artifacts);
   const looksLegacy = Array.isArray(payload.cases) && Array.isArray(payload.archives);
-  const looksWorkspaceExport = !!payload.case && Array.isArray(payload.reports);
+  const looksCanonicalWorkspaceExport = isCanonicalWorkspaceExportPayload(payload);
+  const looksLegacyWorkspaceExport = isLegacyWorkspaceExportPayload(payload);
 
-  if (!looksCanonical && !looksLegacy && !looksWorkspaceExport) {
+  if (
+    !looksCanonical &&
+    !looksLegacy &&
+    !looksCanonicalWorkspaceExport &&
+    !looksLegacyWorkspaceExport
+  ) {
     throw new Error('Invalid workspace-data backup format.');
   }
 
   const workspaces: WorkspaceDataBackup['workspaces'] = looksCanonical
     ? asArray<WorkspaceDataBackup['workspaces'][number]>(payload.workspaces)
-    : looksWorkspaceExport
-      ? [payload.case as WorkspaceDataBackup['workspaces'][number]].filter(Boolean)
+    : looksCanonicalWorkspaceExport
+      ? [payload.workspace as WorkspaceDataBackup['workspaces'][number]].filter(Boolean)
+      : looksLegacyWorkspaceExport
+        ? [payload.case as WorkspaceDataBackup['workspaces'][number]].filter(Boolean)
       : asArray<WorkspaceDataBackup['workspaces'][number]>(payload.cases);
   const artifacts = looksCanonical
     ? asArray<Artifact>(payload.artifacts)
-    : looksWorkspaceExport
-      ? asArray<Artifact>(payload.reports)
+    : looksCanonicalWorkspaceExport
+      ? asArray<Artifact>(payload.artifacts)
+      : looksLegacyWorkspaceExport
+        ? asArray<Artifact>(payload.reports)
       : asArray<Artifact>(payload.archives);
   const runs = (
     looksCanonical
       ? asArray<WorkspaceRun>(payload.runs)
-      : looksWorkspaceExport
+      : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
         ? []
         : asArray<WorkspaceRun>(payload.tasks)
   ).map(withWorkspaceLink);
   const sessions = looksCanonical
     ? asArray<ChatSession>(payload.chat?.sessions)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : asArray<ChatSession>(payload.chatSessions);
   const messages = looksCanonical
     ? asArray<ChatMessage>(payload.chat?.messages)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : flattenSessionRecord<ChatMessage>(payload.chatMessagesBySessionId);
   const actions = looksCanonical
     ? asArray<AgentAction>(payload.chat?.actions)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : flattenSessionRecord<AgentAction>(payload.chatActionsBySessionId);
   const boardAgentSessions = looksCanonical
     ? asArray<BoardAgentSession>(payload.boardAgent?.sessions)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : asArray<BoardAgentSession>(payload.boardAgentSessions);
   const boardAgentActions = looksCanonical
     ? asArray<BoardAgentAction>(payload.boardAgent?.actions)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : flattenSessionRecord<BoardAgentAction>(payload.boardAgentActionsBySessionId);
   const signals = looksCanonical
     ? getWorkspaceDataSignals(payload.signals)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : asArray<Signal>(payload.headlines);
   const manualNodes = looksCanonical
     ? asArray<ManualNode>(payload.graph?.manualNodes)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : asArray<ManualNode>(payload.manualNodes);
   const manualLinks = looksCanonical
     ? asArray<ManualConnection>(payload.graph?.manualLinks)
-    : looksWorkspaceExport
+    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
       ? []
       : asArray<ManualConnection>(payload.manualLinks);
   const workspaceItems = looksCanonical
     ? asArray<WorkspaceItem>(payload.workspaceSurface?.items)
-    : asArray<WorkspaceItem>(payload.workspaceItems);
+    : asArray<WorkspaceItem>(legacyPayload.workspaceItems);
   const workspaceBoards = looksCanonical
     ? asArray<WorkspaceBoard>(payload.workspaceSurface?.boards)
-    : asArray<WorkspaceBoard>(payload.workspaceBoards);
+    : asArray<WorkspaceBoard>(legacyPayload.workspaceBoards);
   const workspaceBoardDocuments = looksCanonical
     ? asArray<WorkspaceBoardDocument>(payload.workspaceSurface?.boardDocuments)
-    : asArray<WorkspaceBoardDocument>(payload.workspaceBoardDocuments);
-  const templates = looksWorkspaceExport ? [] : asArray<WorkspaceTemplate>(payload.templates);
+    : asArray<WorkspaceBoardDocument>(legacyPayload.workspaceBoardDocuments);
+  const templates =
+    looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
+      ? []
+      : asArray<WorkspaceTemplate>(payload.templates);
   const exportedAt =
     typeof metadata?.exportedAt === 'string'
       ? metadata.exportedAt
-      : typeof payload.exportedAt === 'string'
-        ? payload.exportedAt
-        : typeof payload.timestamp === 'string'
-          ? payload.timestamp
+      : typeof exportPayload.exportedAt === 'string'
+        ? exportPayload.exportedAt
+        : typeof legacyPayload.timestamp === 'string'
+          ? legacyPayload.timestamp
           : new Date().toISOString();
 
   return {

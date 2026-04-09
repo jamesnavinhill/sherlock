@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import type { WorkspaceRun } from '../../types';
 import { AppView } from '../../types';
-import { RunManager } from './RunManager';
+import { RunQueue } from './RunQueue';
 
 interface SidebarProps {
   currentView: AppView;
@@ -23,8 +23,8 @@ interface SidebarProps {
   isCollapsed: boolean;
   toggleCollapse: () => void;
   workspaceRuns: WorkspaceRun[];
-  activeTaskId: string | null;
-  onSelectTask: (taskId: string) => void;
+  activeRunId: string | null;
+  onSelectRun: (runId: string) => void;
   onClearCompleted: () => void;
   themeMode: 'dark' | 'light';
   onToggleTheme: () => void;
@@ -36,8 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   toggleCollapse,
   workspaceRuns,
-  activeTaskId,
-  onSelectTask,
+  activeRunId,
+  onSelectRun,
   onClearCompleted,
   themeMode,
   onToggleTheme,
@@ -121,11 +121,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Task Manager - Now blends seamlessly as a bottom nav section */}
-        <RunManager
+        {/* Run queue - Now blends seamlessly as a bottom nav section */}
+        <RunQueue
           workspaceRuns={workspaceRuns}
-          activeTaskId={activeTaskId}
-          onSelectTask={onSelectTask}
+          activeRunId={activeRunId}
+          onSelectRun={onSelectRun}
           onClearCompleted={onClearCompleted}
           isCollapsed={isCollapsed}
           onExpand={() => isCollapsed && toggleCollapse()}

@@ -5,8 +5,8 @@ export const normalizeGraphId = (value: string) => value.toLowerCase().replace(/
 export const getEntityGraphNodeId = (entityName: string) =>
   `entity-${normalizeGraphId(cleanEntityName(entityName))}`;
 
-// Keep report-node ids stable for existing hidden/flagged graph references.
-export const getReportGraphNodeId = (reportId: string) => `case-${reportId}`;
+// Keep artifact-node ids stable for existing hidden/flagged graph references.
+export const getReportGraphNodeId = (artifactId: string) => `case-${artifactId}`;
 
 export const getDeletedNodeToken = (nodeId: string) => `deleted:${nodeId}`;
 
