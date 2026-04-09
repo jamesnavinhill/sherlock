@@ -374,7 +374,7 @@ Exit criteria:
 - the main report reads like a document, not a dashboard
 - findings, follow-ups, entities, and provenance read as one family
 
-## Stream 4. Actionable Nested-Item Parity Across Board, Chat, Timeline, And Network
+## Stream 4. Actionable Nested-Item Parity Across Viewer, Board, Chat, Timeline, And Network
 
 Purpose:
 
