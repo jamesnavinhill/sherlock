@@ -1147,7 +1147,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                             onClick={() => jumpToSection(finding.originSectionId || keyFindingsAnchorId)}
                             className={`${detailActionButtonClassName} w-full`}
                           >
-                            Open In Document
+                            Open
                           </button>
                         </div>
                       </DetailRow>

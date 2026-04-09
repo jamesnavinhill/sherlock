@@ -39,8 +39,12 @@ describe('ChatSessionRail', () => {
     expect(screen.getByText('Library')).toBeInTheDocument();
     expect(screen.getByText('Atlas Workspace')).toBeInTheDocument();
     expect(screen.getByText('Procurement Review')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /rename/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
+    const renameButton = screen.getByRole('button', { name: /rename/i });
+    const deleteButton = screen.getByRole('button', { name: /delete/i });
+    expect(renameButton).toBeInTheDocument();
+    expect(deleteButton).toBeInTheDocument();
+    expect(renameButton.querySelector('svg')).toBeNull();
+    expect(deleteButton.querySelector('svg')).toBeNull();
     expect(screen.getAllByText('Workspace Summary')).toHaveLength(1);
     expect(screen.getByText(/weekly procurement and vendor review/i)).toBeInTheDocument();
   });

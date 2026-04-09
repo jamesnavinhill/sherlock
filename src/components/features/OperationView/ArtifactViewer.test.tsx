@@ -118,6 +118,7 @@ describe('ArtifactViewer', () => {
     expect(screen.queryByText(/^Brief$/)).not.toBeInTheDocument();
     expect(screen.queryByText('Structured Findings')).not.toBeInTheDocument();
     expect(screen.queryByText('Document Section')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Open In Document/i })).not.toBeInTheDocument();
     expect(screen.queryByText('1 findings')).not.toBeInTheDocument();
     expect(screen.queryByText('1 sources')).not.toBeInTheDocument();
     expect(screen.queryByText('1 evidence rows')).not.toBeInTheDocument();

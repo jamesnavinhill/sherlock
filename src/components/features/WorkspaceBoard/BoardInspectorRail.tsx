@@ -57,6 +57,9 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
   onOpenAgentStarterIntent,
   onDeleteBoard,
 }) => {
+  const shouldWrapSelectionDescription = (entry: WorkspaceLibraryEntry) =>
+    entry.kind === 'SOURCE' || entry.kind === 'LINK' || typeof entry.url === 'string';
+
   const title =
     selectedEntries.length === 1
       ? selectedEntries[0].title
@@ -113,7 +116,13 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
                   <div className="min-w-0">
                     <div className="osint-title-inline">{entry.title}</div>
                     {entry.description ? (
-                      <div className="mt-2 osint-body-quiet">{entry.description}</div>
+                      <div
+                        className={`mt-2 osint-body-quiet ${
+                          shouldWrapSelectionDescription(entry) ? 'break-all' : ''
+                        }`}
+                      >
+                        {entry.description}
+                      </div>
                     ) : null}
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Pencil, Trash2, FileText } from 'lucide-react';
+import { MessageSquare, FileText } from 'lucide-react';
 
 import type { ChatMessage, ChatSession } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
@@ -112,7 +112,6 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
                         onClick={() => onRenameSession(session)}
                         className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
                       >
-                        <Pencil className="h-4 w-4" />
                         Rename
                       </button>
                       <button
@@ -120,7 +119,6 @@ export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
                         onClick={() => onDeleteSession(session)}
                         className={`${CHROME_THIN_ACTION_BUTTON_CLASS} osint-danger-inline w-full`}
                       >
-                        <Trash2 className="h-4 w-4" />
                         Delete
                       </button>
                     </div>

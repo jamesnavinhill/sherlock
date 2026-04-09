@@ -150,14 +150,12 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
                           onClick={() => artifact.id && onFetchArtifactSummary(artifact.id)}
                           className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
                         >
-                          <FileText className="h-3 w-3" />
                           Summary
                         </button>
                         <button
                           onClick={() => artifact.id && onFetchFullArtifact(artifact.id)}
                           className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
                         >
-                          <FileSearch className="h-3 w-3" />
                           Full Text
                         </button>
                       </div>
@@ -185,7 +183,6 @@ export const ChatContextRail: React.FC<ChatContextRailProps> = ({
               onClick={onFetchRecentSignals}
               className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
             >
-              <FileSearch className="h-3 w-3" />
               Pin To Chat
             </button>
           </div>

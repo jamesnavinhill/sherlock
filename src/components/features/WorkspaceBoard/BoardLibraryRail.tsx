@@ -195,9 +195,6 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
                           {entry.description ||
                             'Open this item from the library to place it on the board.'}
                         </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="osint-meta-label">{entry.kind}</div>
-                        </div>
                         <div
                           className={getChromeThinActionRowClassName(
                             key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? 2 : 1

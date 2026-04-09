@@ -573,7 +573,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                           }}
                           className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                         >
-                          Investigate
+                          Open
                         </button>
                       </div>
                     </div>
