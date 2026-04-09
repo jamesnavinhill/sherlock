@@ -888,43 +888,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 )}
               </div>
 
-              {(reportEntities.length > 0 || reportSources.length > 0) &&
-              editingTargetKey !== (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
-                <div className="relative z-10 mt-6 grid gap-4 border-t border-zinc-800 pt-5 lg:grid-cols-2">
-                  <div>
-                    <div className="osint-meta-label">Entity Index</div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {reportEntities.slice(0, 8).map((entity, index) => {
-                        const normalizedEntity =
-                          typeof entity === 'string'
-                            ? { name: entity, type: 'UNKNOWN' as const }
-                            : entity;
-
-                        return (
-                          <button
-                            key={`${normalizedEntity.name}-${index}`}
-                            type="button"
-                            onClick={() => onEntityClick(normalizedEntity)}
-                            className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                          >
-                            <span
-                              className={cx(
-                                'h-1.5 w-1.5 rounded-full entity-tone-dot',
-                                getEntityToneClass(normalizedEntity.type)
-                              )}
-                            />
-                            <span>{normalizedEntity.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="osint-meta-label">Source Index</div>
-                    {renderInlineSourceLinks(reportSources.slice(0, 6))}
-                  </div>
-                </div>
-              ) : null}
             </section>
           ) : null}
 

@@ -109,6 +109,8 @@ describe('ArtifactViewer', () => {
     expect(screen.queryByText(/\[PRIORITY_SOURCES\]/)).not.toBeInTheDocument();
     expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();
     expect(screen.getAllByText('Registry').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Entity Index')).not.toBeInTheDocument();
+    expect(screen.queryByText('Source Index')).not.toBeInTheDocument();
     expect(screen.queryByText('Follow-Up Questions')).not.toBeInTheDocument();
     expect(screen.queryByText('Award timing clusters across overlapping vendors.')).not.toBeInTheDocument();
 
