@@ -10,7 +10,7 @@ Active plan:
 
 Related inputs:
 
-- `docs/reports/2026-04-08-codebase-audit.md`
+- `docs/_legacy/reports/2026-04-08-codebase-audit.md`
 - `docs/plans/10-canonical-cleanup-roadmap.md`
 - `src/components/features/OperationView/ArtifactViewer.tsx`
 - `src/components/features/Chat/ChatContextRail.tsx`

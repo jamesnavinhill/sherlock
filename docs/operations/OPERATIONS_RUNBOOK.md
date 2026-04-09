@@ -18,7 +18,7 @@ Adapters in scope:
 
 ## 1. Fast Triage
 
-1. Open `System Config -> AI` and capture selected `provider` and `model`.
+1. Open `Settings -> Runtime` and capture selected `provider` and `model`.
 2. Verify a key exists for the selected provider.
 3. Reproduce once.
 4. Inspect browser console for `[provider-router]` entries.
@@ -31,7 +31,7 @@ Adapters in scope:
 6. If the run used OpenRouter, also capture:
    - `generationMode`
    - whether OpenRouter web search was enabled
-   - search engine and domain filters from `System Config -> AI`
+   - search engine and domain filters from `Settings -> Runtime`
    - any provenance warnings shown in the artifact or chat response
 
 ## 2. Error Class Reference
@@ -60,7 +60,7 @@ Adapters in scope:
 - Thinking budget: model-gated. Do not assume it is available just because the provider supports some reasoning-capable models.
 - Structured output: model-gated. Sherlock will request native structured output where available and fall back to prompt-shaped JSON when it is not.
 - Web search: capability varies by selected model metadata.
-- OpenRouter web search defaults on, but can be disabled globally in `System Config -> AI`.
+- OpenRouter web search defaults on, but can be disabled globally in `Settings -> Runtime`.
 
 OpenRouter-specific search notes:
 

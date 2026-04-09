@@ -40,7 +40,7 @@ Sherlock helps analysts and researchers run iterative knowledge workflows by com
 - Network Graph (entity relationship analysis)
 - Live Monitor (event stream and escalation)
 - Case Files (archive and export)
-- System Config (providers, scopes, templates, maintenance)
+- Settings (providers, scopes, templates, maintenance)
 
 ## Non-Goals for Documentation
 

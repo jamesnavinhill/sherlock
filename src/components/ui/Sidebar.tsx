@@ -52,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }`;
 
   const navItems = [
+    { view: AppView.FILES, label: 'Files', icon: FolderClosed },
     { view: AppView.INVESTIGATION, label: 'Viewer', icon: FileText },
     { view: AppView.WORKSPACE, label: 'Canvas', icon: Shapes },
     { view: AppView.CHAT, label: 'Chat', icon: MessageSquare },
@@ -59,7 +60,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { view: AppView.TIMELINE, label: 'Timeline', icon: Clock3 },
     { view: AppView.LIVE_MONITOR, label: 'Monitor', icon: Radio },
     { view: AppView.DASHBOARD, label: 'Discovery', icon: LayoutDashboard },
-    { view: AppView.FILES, label: 'Files', icon: FolderClosed },
   ] as const;
 
   return (

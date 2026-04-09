@@ -52,6 +52,7 @@ npm run check:full
 - TypeScript + React function components
 - Prefer explicit types for shared contracts (`src/types/index.ts`)
 - Keep provider logic behind router/adapters (`src/services/providers/*`)
+- Prefer the shared runtime-config helpers in `src/components/features/Runs/*` for provider/model/search-depth/thinking-budget/OpenRouter state instead of feature-local copies
 - Use store/repository actions for persisted state changes
 - Prefer path alias imports via `@/` where already used in a module area
 

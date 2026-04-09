@@ -19,10 +19,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { BUILTIN_SCOPES, getAllScopes } from '../../../data/presets';
-import {
-  DEFAULT_MODEL_ID,
-  getModelProvider,
-} from '../../../config/aiModels';
+import { DEFAULT_MODEL_ID } from '../../../config/aiModels';
 import { loadSystemConfig } from '../../../config/systemConfig';
 import { createLocalId } from '../../../utils/id';
 import {
@@ -32,6 +29,7 @@ import {
   getStarterTemplates,
 } from '../../../domain';
 import { buildTemplateRuntimeConfig } from '../Runs/runtimeConfigMapping';
+import { createRuntimeConfigFormInput } from '../Runs/runtimeConfigState';
 import { ProviderModelSelector } from '../Runs/ProviderModelSelector';
 import { RuntimeConfigBehaviorControls } from '../Runs/RuntimeConfigBehaviorControls';
 import { RuntimeConfigSummary } from '../Runs/RuntimeConfigSummary';
@@ -64,13 +62,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
   const [persona, setPersona] = useState('');
   const [selectedPurposeId, setSelectedPurposeId] = useState('');
   const runtimeConfigForm = useRuntimeConfigForm({
-    initialValue: {
-      provider: getModelProvider(DEFAULT_MODEL_ID),
-      modelId: DEFAULT_MODEL_ID,
-      searchDepth: 'STANDARD',
-      generationMode: 'STAGED',
-      thinkingBudget: 0,
-    },
+    initialValue: createRuntimeConfigFormInput(loadSystemConfig()),
   });
 
   const allScopes = useMemo(() => getAllScopes(customScopes), [customScopes]);
@@ -172,11 +164,6 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     const defaultPersona =
       defaultScope?.defaultPersona || defaultScope?.personas[0]?.id || 'general-investigator';
     const parsed = loadSystemConfig();
-    const nextModel = parsed.modelId || DEFAULT_MODEL_ID;
-    const nextDepth: 'STANDARD' | 'DEEP' = parsed.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD';
-    const nextThinking = typeof parsed.thinkingBudget === 'number' ? parsed.thinkingBudget : 0;
-    const nextGenerationMode: 'SINGLE_PASS' | 'STAGED' =
-      parsed.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED';
     const nextPersona =
       parsed.persona && defaultScope?.personas.some((item) => item.id === parsed.persona)
         ? parsed.persona
@@ -191,13 +178,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
     setSelectedPurposeId(
       getDomainPackForScope(defaultScope || allScopes[0], customScopes).defaultPurposeId
     );
-    runtimeConfigForm.reset({
-      provider: getModelProvider(nextModel),
-      modelId: nextModel,
-      searchDepth: nextDepth,
-      generationMode: nextGenerationMode,
-      thinkingBudget: nextThinking,
-    });
+    runtimeConfigForm.reset(createRuntimeConfigFormInput(parsed));
     setPersona(nextPersona);
     setShowCreateModal(true);
   };

@@ -7,7 +7,7 @@ Status: Proposed
 Related inputs:
 
 - `docs/reports/2026-04-08-ui-uniformity-report.md`
-- `docs/reports/2026-04-08-codebase-audit.md`
+- `docs/_legacy/reports/2026-04-08-codebase-audit.md`
 - `docs/plans/10-canonical-cleanup-roadmap.md`
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/DATA_PERSISTENCE.md`

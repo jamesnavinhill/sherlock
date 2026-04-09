@@ -227,7 +227,7 @@ export const SHERLOCK_ROUTE_DEFINITIONS: Record<SherlockRouteId, SherlockRouteDe
   },
 };
 
-export const DEFAULT_APP_ROUTE_ID: SherlockRouteId = 'DISCOVER';
+export const DEFAULT_APP_ROUTE_ID: SherlockRouteId = 'FILES';
 export const DEFAULT_APP_PATH = SHERLOCK_ROUTE_DEFINITIONS[DEFAULT_APP_ROUTE_ID].path;
 
 export const GLOBAL_ROUTE_IDS: readonly SherlockRouteId[] = [

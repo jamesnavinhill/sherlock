@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { buildAccentColor } from '@/utils/accent';
-import { buildDiscoverPath, getRouteDefinition } from '@/app/routes';
+import { DEFAULT_APP_PATH, getRouteDefinition } from '@/app/routes';
 import {
   ArtifactRouteView,
   BoardRouteView,
@@ -32,7 +32,7 @@ interface AppShellRoutesProps {
 export function AppShellRoutes({ controller }: AppShellRoutesProps) {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={buildDiscoverPath()} replace />} />
+      <Route path="/" element={<Navigate to={DEFAULT_APP_PATH} replace />} />
       <Route
         path={getRouteDefinition('DISCOVER').path}
         element={
@@ -208,7 +208,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           />
         }
       />
-      <Route path="*" element={<Navigate to={buildDiscoverPath()} replace />} />
+      <Route path="*" element={<Navigate to={DEFAULT_APP_PATH} replace />} />
     </Routes>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { SystemConfig } from '@/types';
 import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
 import { saveSystemConfig } from '@/config/systemConfig';
+import { serializeOpenRouterSettingsDraft } from '@/components/features/Runs/runtimeConfigState';
 import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
 import type { ThemeFontSettings } from '@/utils/themeFonts';
 import { useSettingsScopeState } from '@/store/selectors/settingsSelectors';
@@ -71,21 +72,15 @@ export const useSettingsController = ({
       searchDepth: runtime.form.effectiveValue.searchDepth,
       thinkingBudget: runtime.form.effectiveValue.thinkingBudget,
       generationMode: runtime.form.effectiveValue.generationMode,
-      openRouter: {
+      openRouter: serializeOpenRouterSettingsDraft({
         webSearchEnabled: runtime.openRouterWebSearchEnabled,
         engine: runtime.openRouterEngine,
         maxResults: runtime.openRouterMaxResults,
         maxTotalResults: runtime.openRouterMaxTotalResults,
         searchContextSize: runtime.openRouterSearchContextSize,
-        allowedDomains: runtime.openRouterAllowedDomains
-          .split(/[\n,]/)
-          .map((entry) => entry.trim())
-          .filter(Boolean),
-        excludedDomains: runtime.openRouterExcludedDomains
-          .split(/[\n,]/)
-          .map((entry) => entry.trim())
-          .filter(Boolean),
-      },
+        allowedDomains: runtime.openRouterAllowedDomains,
+        excludedDomains: runtime.openRouterExcludedDomains,
+      }),
       persona: initialConfig.persona || 'general-investigator',
       autoNormalizeEntities: data.autoResolve,
       quietMode: data.quietMode,

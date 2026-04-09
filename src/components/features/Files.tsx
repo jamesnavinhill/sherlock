@@ -157,7 +157,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                     viewMode={viewMode}
                     onClearFilters={() => {
                       setRecordFilter('ALL');
-                      setViewMode('LIST');
+                      setViewMode('GRID');
                       setCurrentPage(1);
                     }}
                     onClose={() => setShowFilters(false)}

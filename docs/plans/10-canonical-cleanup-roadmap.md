@@ -2,11 +2,11 @@
 
 Date: April 8, 2026
 
-Status: In Progress (Streams 1-5 completed; Stream 6 model-catalog lane underway)
+Status: Completed (Streams 1-7 landed; active runtime-config/docs cleanup closed on April 8, 2026)
 
 Related inputs:
 
-- `docs/reports/2026-04-08-codebase-audit.md`
+- `docs/_legacy/reports/2026-04-08-codebase-audit.md`
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/DATA_PERSISTENCE.md`
@@ -911,7 +911,7 @@ Primary targets:
 
 Execution shape:
 
-- finish shared runtime-config form/state/UI extraction across Settings, task setup, and guided flows
+- finish shared runtime-config form/state/UI extraction across Settings, run setup, and guided flows
 - remove leftover re-export shims and naming leftovers
 - burn down React `act(...)` warnings and router future-flag warnings still present after earlier streams
 - update README and operations docs so they point only to active current files
@@ -936,22 +936,24 @@ src/components/features/Settings/useSettingsRuntimeState.ts
 src/components/features/Settings/useSettingsThemeState.ts
 src/components/features/Runs/OpenRouterSearchControls.tsx
 src/components/features/Runs/ProviderModelSelector.tsx
+src/components/features/Runs/RunSetupModal.tsx
 src/components/features/Runs/RuntimeConfigBehaviorControls.tsx
 src/components/features/Runs/RuntimeConfigSummary.tsx
-src/components/features/Runs/TaskSetupModal.tsx
 src/components/features/Runs/ThinkingBudgetControl.tsx
 src/components/features/Runs/runtimeConfigMapping.ts
 src/components/features/Runs/runtimeConfigMapping.test.ts
 src/components/features/Runs/runtimeConfigOptions.ts
-src/components/features/Runs/taskSetupUtils.ts
+src/components/features/Runs/runtimeConfigState.ts
+src/components/features/Runs/runtimeConfigState.test.ts
+src/components/features/Runs/runSetupUtils.ts
+src/components/features/Runs/useRunSetupState.ts
 src/components/features/Runs/useRuntimeConfigForm.ts
 src/components/features/Runs/useRuntimeConfigForm.test.ts
-src/components/features/Runs/useTaskSetupState.ts
 src/components/features/Chat/GuidedRunBuilder.tsx
 src/components/ui/ApiKeyModal.tsx
 src/components/ui/OpenRouterModelBrowser.tsx
 src/components/ui/ScopeManager.tsx
-src/components/ui/TaskSetupModal.tsx
+src/store/selectors/runSetupSelectors.ts
 src/config/systemConfig.ts
 src/config/systemConfig.test.ts
 src/services/providers/keys.ts
@@ -962,15 +964,19 @@ src/components/features/Timeline/useTimelineViewController.test.ts
 src/index.tsx
 README.md
 docs/operations/ARCHITECTURE.md
+docs/operations/BROAD_SCOPE.md
 docs/operations/DATA_PERSISTENCE.md
+docs/operations/DEPLOYMENT.md
 docs/operations/OPERATIONS_RUNBOOK.md
+docs/operations/SCOPES.md
+docs/operations/SOURCES.md
 docs/operations/CONTRIBUTING.md
 ```
 
 ### Execution Checklist
 
 1. Finish the shared runtime-config contract across `Settings/*`, `Runs/*`, `GuidedRunBuilder.tsx`, and the supporting UI modules.
-2. Remove re-export shims and naming leftovers such as `src/components/ui/TaskSetupModal.tsx` once the canonical import surface is settled.
+2. Remove leftover task-setup naming drift once the canonical surface is settled on `RunSetupModal` and `useRunSetupState`.
 3. Clean the current warning-owner tests in `OperationView/launchPropagation.test.tsx`, `OperationView/useOperationViewController.test.ts`, and `Timeline/useTimelineViewController.test.ts`.
 4. Confirm `src/index.tsx` and any router-based tests stay aligned on the React Router future flags so warnings do not regress.
 5. Update active docs only after the final runtime-config and warning contract lands.
@@ -992,9 +998,37 @@ Docs to update on landing:
 
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
+- `docs/operations/BROAD_SCOPE.md`
 - `docs/operations/DATA_PERSISTENCE.md`
+- `docs/operations/DEPLOYMENT.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
+- `docs/operations/SCOPES.md`
+- `docs/operations/SOURCES.md`
 - `docs/operations/CONTRIBUTING.md`
+
+### Landing Status
+
+Completed on April 8, 2026.
+
+Landed in this Stream 7 session:
+
+- added `src/components/features/Runs/runtimeConfigState.ts` and focused coverage in `src/components/features/Runs/runtimeConfigState.test.ts` so shared runtime-config load/save shaping now lives in one place for Settings, run setup, template authoring, and other runtime-config consumers
+- routed `useSettingsRuntimeState.ts`, `useSettingsController.ts`, `TemplateGallery.tsx`, and `useRunSetupState.ts` through the shared runtime-config helpers so provider/model/default-runtime behavior now stays aligned across Settings, run setup, template creation, and launch mapping
+- removed the remaining active `TaskSetup` naming drift in the run-setup selector and controller input naming, leaving the active run-launch surface on `RunSetup*` naming that matches the actual file layout
+- reran the previously noted warning-owner tests (`OperationView/launchPropagation.test.tsx`, `OperationView/useOperationViewController.test.ts`, and `Timeline/useTimelineViewController.test.ts`) with the current router future-flag setup and did not reproduce the earlier non-failing React `act(...)` or React Router future-flag warning output in the targeted validation pass
+- updated active docs so they now point to the current `RunSetup*` files, the current `Settings -> Runtime` UI labels, and the shared runtime-config contract rather than retired `TaskSetup*` or `System Config -> AI` wording
+
+Intentionally deferred in this session:
+
+- moving the completed roadmap itself into `docs/_legacy/`; it remains active for now so the landed Stream 7 notes stay in the current planning index
+
+Validation run for this Stream 7 session:
+
+- `npm run test -- src/components/features/Runs/runtimeConfigState.test.ts src/components/features/Runs/useRuntimeConfigForm.test.ts src/components/features/Runs/runtimeConfigMapping.test.ts src/components/features/Settings/useSettingsController.test.ts`
+- `npm run test -- src/components/features/OperationView/launchPropagation.test.tsx src/components/features/OperationView/useOperationViewController.test.ts src/components/features/Timeline/useTimelineViewController.test.ts`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
 
 ## Stream Maintenance Rule
 

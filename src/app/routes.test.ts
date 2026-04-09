@@ -17,8 +17,8 @@ import {
 } from './routes';
 
 describe('route contract', () => {
-  it('keeps discover as the default entry path', () => {
-    expect(DEFAULT_APP_PATH).toBe('/discover');
+  it('keeps files as the default entry path', () => {
+    expect(DEFAULT_APP_PATH).toBe('/files');
   });
 
   it('encodes workspace and artifact ids in generated paths', () => {

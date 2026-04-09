@@ -1,12 +1,7 @@
 import { useState } from 'react';
 
-import { useTaskSetupFeatureState } from '@/store/selectors/runSetupSelectors';
+import { useRunSetupFeatureState } from '@/store/selectors/runSetupSelectors';
 import { BUILTIN_SCOPES, getAllScopes, getScopeById } from '@/data/presets';
-import type { AIProvider } from '@/config/aiModels';
-import {
-  DEFAULT_MODEL_ID,
-  getModelProvider,
-} from '@/config/aiModels';
 import { loadSystemConfig } from '@/config/systemConfig';
 import {
   getDomainPackForScope,
@@ -26,12 +21,12 @@ import type {
 } from '@/types';
 
 import { createTemplateMetadata } from './runSetupUtils';
-import { getFallbackRuntimeModel } from './runtimeConfigOptions';
+import { createRuntimeConfigFormInput } from './runtimeConfigState';
 import { useRuntimeConfigForm } from './useRuntimeConfigForm';
 
 export type RunSetupConfigOverride = Partial<SystemConfig> & Partial<InvestigationRunConfig>;
 
-interface UseTaskSetupStateInput {
+interface UseRunSetupStateInput {
   initialTopic: string;
   initialScopeId?: string;
   initialConfigOverride?: RunSetupConfigOverride;
@@ -57,8 +52,8 @@ export const useRunSetupState = ({
   initialConfigOverride,
   initialDateRangeOverride,
   onStart,
-}: UseTaskSetupStateInput) => {
-  const { templates, addTemplate, customScopes, defaultScopeId } = useTaskSetupFeatureState();
+}: UseRunSetupStateInput) => {
+  const { templates, addTemplate, customScopes, defaultScopeId } = useRunSetupFeatureState();
   const storedConfig = loadSystemConfig();
   const allScopes = getAllScopes(customScopes);
 
@@ -105,28 +100,11 @@ export const useRunSetupState = ({
   const effectivePersona = selectedScope.personas.some((candidate) => candidate.id === persona)
     ? persona
     : defaultPersona;
-  const initialModelId = initialConfigOverride?.modelId || storedConfig.modelId || DEFAULT_MODEL_ID;
-  const initialProvider = (initialConfigOverride?.provider ||
-    getModelProvider(initialModelId)) as AIProvider;
   const runtimeConfigForm = useRuntimeConfigForm({
-    initialValue: {
-      provider: initialProvider,
-      modelId: initialModelId,
-      searchDepth:
-        (initialConfigOverride?.searchDepth || storedConfig.searchDepth) === 'DEEP'
-          ? 'DEEP'
-          : 'STANDARD',
-      generationMode:
-        initialConfigOverride?.generationMode === 'SINGLE_PASS'
-          ? 'SINGLE_PASS'
-          : storedConfig.generationMode === 'SINGLE_PASS'
-            ? 'SINGLE_PASS'
-            : 'STAGED',
-      thinkingBudget:
-        typeof initialConfigOverride?.thinkingBudget === 'number'
-          ? initialConfigOverride.thinkingBudget
-          : (storedConfig.thinkingBudget ?? 0),
-    },
+    initialValue: createRuntimeConfigFormInput({
+      ...storedConfig,
+      ...(initialConfigOverride || {}),
+    }),
   });
 
   const steps = [
@@ -147,8 +125,6 @@ export const useRunSetupState = ({
     const nextPack = getDomainPackForScope(nextScope, customScopes);
     const nextPurposeId =
       template.config.purposeId || template.purposeId || nextPack.defaultPurposeId;
-    const templateProvider = (template.config.provider ||
-      getModelProvider(template.config.modelId || runtimeConfigForm.activeModelId)) as AIProvider;
 
     setTopic(template.topic);
     setSelectedScopeId(nextScope.id);
@@ -159,13 +135,7 @@ export const useRunSetupState = ({
         nextScope.personas[0]?.id ||
         'general-investigator'
     );
-    runtimeConfigForm.reset({
-      provider: templateProvider,
-      modelId: template.config.modelId || getFallbackRuntimeModel(templateProvider),
-      searchDepth: template.config.searchDepth === 'DEEP' ? 'DEEP' : 'STANDARD',
-      generationMode: template.config.generationMode === 'SINGLE_PASS' ? 'SINGLE_PASS' : 'STAGED',
-      thinkingBudget: template.config.thinkingBudget ?? 0,
-    });
+    runtimeConfigForm.reset(createRuntimeConfigFormInput(template.config));
   };
 
   const applyStarter = (starter: StarterPromptTemplate) => {

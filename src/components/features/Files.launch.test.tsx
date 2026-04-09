@@ -109,12 +109,25 @@ describe('Files chat launch propagation', () => {
     const listToggle = screen.getByRole('button', { name: /show dense list view/i });
     const gridToggle = screen.getByRole('button', { name: /show grid view/i });
 
-    expect(listToggle).toHaveAttribute('aria-pressed', 'true');
-    expect(gridToggle).toHaveAttribute('aria-pressed', 'false');
-
-    fireEvent.click(gridToggle);
-
     expect(listToggle).toHaveAttribute('aria-pressed', 'false');
     expect(gridToggle).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(listToggle);
+
+    expect(listToggle).toHaveAttribute('aria-pressed', 'true');
+    expect(gridToggle).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('shows the all-workspaces overview on plain files routes even with a stored active workspace', () => {
+    localStorage.setItem('sherlock_active_workspace_id', 'case-1');
+
+    render(
+      <MemoryRouter future={routerFuture}>
+        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Atlas')).toBeInTheDocument();
+    expect(screen.queryByTitle(/artifact context in workspace chat/i)).not.toBeInTheDocument();
   });
 });

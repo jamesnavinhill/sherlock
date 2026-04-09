@@ -18,6 +18,8 @@ Responsibilities:
 - wires lazy-loaded route pages and route wrappers
 - applies theme/accent/font runtime CSS variables
 
+`/` and unknown routes currently redirect to `/files`, making Files the temporary app home while Discovery remains available as a specialist surface and Workspace Home remains workspace-scoped.
+
 Primary route-backed surfaces:
 
 - `Feed` at `/discover`
@@ -114,11 +116,12 @@ Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, W
 
 ### Workspace-home readiness contract
 
-This round still stops short of a full dashboard-style workspace home, but it now leaves behind the runtime contract the next round will build on:
+This round still stops short of a full dashboard-style global home, but it now leaves behind the runtime contract the next round will build on:
 
 - `selectWorkspaceHomeReadinessState` in `src/store/selectors/workspaceHomeSelectors.ts` exposes the canonical workspace-home input slice
 - `src/services/workspace/home.ts` derives summary counts, board state, recent activity, and saved-view summaries
 - `src/components/features/WorkspaceHome/index.tsx` uses that readiness model to render the canonical workspace landing route without introducing a second persistence path
+- the resulting page is a real lightweight workspace overview at `/workspaces/:workspaceId`, not the app-wide homepage/dashboard
 
 ### Feature extraction contract
 
@@ -522,7 +525,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - batch scan runs
 - source/threat filters
 - optional auto-save to headlines
-- launch into task setup from events
+- launch into run setup from events
 
 Live monitor requests now resolve through the active scope's derived pack and default purpose.
 
@@ -532,6 +535,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 - `src/components/features/Files/useFilesController.ts` now owns selection state, route-focus recovery, export/purge menu state, and board/chat handoff commands while `Files.tsx` stays focused on shell chrome, dialogs, and top-level menu wiring
 - `src/components/features/Files/FilesOverview.tsx` and `src/components/features/Files/FilesRecords.tsx` now own the workspace-overview and selected-workspace record sections instead of keeping both grid/list render trees inline
+- plain `/files` now lands on the all-workspaces overview in grid mode instead of restoring the last workspace as the default home surface
 - workspace/file browsing now mixes saved artifacts with canonical workspace items instead of treating items as board-only records
 - shell-level Files copy now uses the canonical `Workspace` / `Artifact` nouns instead of label-profile drift
 - selected-workspace browsing supports `All`, `Artifacts`, and `Items` filtering over the same workspace-scoped list
@@ -585,7 +589,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 
 Finder still uses the existing UI, but scan requests now resolve through the selected scope's derived pack and default purpose.
 
-Task setup and template flows now expose:
+Run-setup and template flows now expose:
 
 - domain pack selection
 - purpose selection
@@ -595,8 +599,8 @@ Task setup and template flows now expose:
 - model-aware capability messaging instead of provider-wide assumptions
 - compact OpenRouter quick picks plus a dedicated browser modal for full catalog/manual slug entry
 - template persistence for scope, pack, purpose, artifact type, and label profile metadata
-- wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useTaskSetupState.ts`
-- shared runtime-config behavior now routes through `useRuntimeConfigForm.ts`, `ProviderModelSelector.tsx`, `RuntimeConfigBehaviorControls.tsx`, `RuntimeConfigSummary.tsx`, and `OpenRouterSearchControls.tsx`, with launch-field shaping centralized in `runtimeConfigMapping.ts`
+- wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useRunSetupState.ts`
+- shared runtime-config behavior now routes through `runtimeConfigState.ts`, `useRuntimeConfigForm.ts`, `ProviderModelSelector.tsx`, `RuntimeConfigBehaviorControls.tsx`, `RuntimeConfigSummary.tsx`, and `OpenRouterSearchControls.tsx`, with launch-field shaping centralized in `runtimeConfigMapping.ts`
 - the run-setup implementation now lives with the run-launch feature under `src/components/features/Runs/RunSetupModal.tsx`
 
 ### Settings
@@ -607,13 +611,14 @@ Task setup and template flows now expose:
 - `SettingsRuntimeTab.tsx`, `SettingsDataTab.tsx`, `SettingsScopesTab.tsx`, `SettingsTemplatesTab.tsx`, and `SettingsThemeTab.tsx` own the major tab render trees
 - `useSettingsController.ts` is now a small facade over `useSettingsRuntimeState.ts`, `useSettingsDataState.ts`, and `useSettingsThemeState.ts`
 - `SettingsDialogs.tsx` owns backup restore, purge confirmation, and import feedback boundaries instead of leaving those workflows inline in the page root
-- the Runtime tab now reuses the same shared runtime-config modules used by task setup, guided chat, template authoring, and launch mapping
+- the Runtime tab now reuses the same shared runtime-config modules used by run setup, guided chat, template authoring, and launch mapping
 
 ### Files
 
 `src/components/features/Files.tsx`
 
 - workspace/artifact navigation
+- grid-first all-workspaces landing for the default app home
 - launch directly into workspace chat from workspace cards and saved artifacts
 - deletion workflows
 - exports (HTML/Markdown/JSON)

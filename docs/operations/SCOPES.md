@@ -40,10 +40,10 @@ Each scope defines:
 
 ## Runtime Behavior
 
-- scopes are selectable in `TaskSetupModal` pack setup
+- scopes are selectable in `RunSetupModal` pack setup
 - purpose selection is constrained by the selected scope's supported purpose IDs
 - scope affects categories, persona defaults, prompt context, starter suggestions, and setup copy
-- task setup adapts target, angle, entity, and source labels by the resolved purpose and label profile
+- run setup adapts target, angle, entity, and source labels by the resolved purpose and label profile
 - scope now also acts as the backing definition for a derived domain pack
 - feed category options are derived from active scope categories
 - custom scopes are persisted and merged with built-ins
@@ -69,13 +69,13 @@ This means a built-in scope influences:
 - default purpose profile
 - default artifact type
 - supported purposes for the run
-- built-in starter prompts shown in task setup and template creation
+- built-in starter prompts shown in run setup and template creation
 
 ## Custom Scope Management
 
 Custom scopes are managed in:
 
-- `System Config -> Scopes`
+- `Settings -> Scopes`
 - persisted via `ScopeRepository`
 
 Helper functions:

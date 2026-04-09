@@ -8,6 +8,10 @@ import {
   setRuntimeApiKey,
 } from '@/services/runtime/providerKeys';
 import {
+  createOpenRouterSettingsDraft,
+  createRuntimeConfigFormInput,
+} from '@/components/features/Runs/runtimeConfigState';
+import {
   getStoredApiKey,
   hasApiKey as hasProviderApiKey,
   validateApiKey,
@@ -60,14 +64,9 @@ export interface SettingsRuntimeState {
 export const useSettingsRuntimeState = (): SettingsRuntimeState => {
   const initialConfig = loadSystemConfig();
   const form = useRuntimeConfigForm({
-    initialValue: {
-      provider: initialConfig.provider,
-      modelId: initialConfig.modelId,
-      searchDepth: initialConfig.searchDepth,
-      generationMode: initialConfig.generationMode,
-      thinkingBudget: initialConfig.thinkingBudget,
-    },
+    initialValue: createRuntimeConfigFormInput(initialConfig),
   });
+  const initialOpenRouterSettings = createOpenRouterSettingsDraft(initialConfig);
 
   const [geminiKey, setGeminiKey] = useState(() => getStoredApiKey('GEMINI') ?? '');
   const [openRouterKey, setOpenRouterKey] = useState(() => getStoredApiKey('OPENROUTER') ?? '');
@@ -84,25 +83,25 @@ export const useSettingsRuntimeState = (): SettingsRuntimeState => {
   });
 
   const [openRouterWebSearchEnabled, setOpenRouterWebSearchEnabled] = useState(
-    initialConfig.openRouter?.webSearchEnabled !== false
+    initialOpenRouterSettings.webSearchEnabled
   );
   const [openRouterEngine, setOpenRouterEngine] = useState<
     'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel'
-  >(initialConfig.openRouter?.engine || 'auto');
+  >(initialOpenRouterSettings.engine);
   const [openRouterMaxResults, setOpenRouterMaxResults] = useState(
-    initialConfig.openRouter?.maxResults || 5
+    initialOpenRouterSettings.maxResults
   );
   const [openRouterMaxTotalResults, setOpenRouterMaxTotalResults] = useState(
-    initialConfig.openRouter?.maxTotalResults || 15
+    initialOpenRouterSettings.maxTotalResults
   );
   const [openRouterSearchContextSize, setOpenRouterSearchContextSize] = useState<
     'low' | 'medium' | 'high'
-  >(initialConfig.openRouter?.searchContextSize || 'medium');
+  >(initialOpenRouterSettings.searchContextSize);
   const [openRouterAllowedDomains, setOpenRouterAllowedDomains] = useState(
-    (initialConfig.openRouter?.allowedDomains || []).join(', ')
+    initialOpenRouterSettings.allowedDomains
   );
   const [openRouterExcludedDomains, setOpenRouterExcludedDomains] = useState(
-    (initialConfig.openRouter?.excludedDomains || []).join(', ')
+    initialOpenRouterSettings.excludedDomains
   );
 
   const handleClearProviderKey = (provider: AIProvider) => {

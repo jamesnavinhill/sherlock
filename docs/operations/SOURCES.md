@@ -4,8 +4,8 @@ This catalog aligns with built-in scopes in `src/data/presets.ts`.
 
 Use these sources as seed inputs for:
 
-- task setup `Priority Sources`
-- task setup starter templates that prefill source priorities for selected packs/purposes
+- run setup `Priority Sources`
+- run-setup starter templates that prefill source priorities for selected packs/purposes
 - Discovery Feed source hints
 - Live Monitor source targeting
 
@@ -134,6 +134,6 @@ Open Investigation is intentionally unconstrained and does not ship with a fixed
 ## Notes
 
 - these are guidance sources, not enforced allowlists
-- task setup appends these as suggestion chips and users can mix them with custom domains, publications, authors, or handles
+- run setup appends these as suggestion chips and users can mix them with custom domains, publications, authors, or handles
 - provider output still requires human verification and cross-checking
 - keep source additions aligned with `src/data/presets.ts` to avoid prompt/doc drift

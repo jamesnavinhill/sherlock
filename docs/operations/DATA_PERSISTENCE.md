@@ -212,7 +212,7 @@ Durable saved timeline views do not use browser storage. They persist through th
 Values still kept there:
 
 - provider keys (for selected providers)
-- `sherlock_config` (system config object)
+- `sherlock_config` (shared runtime defaults, OpenRouter search settings, and browser-local app preferences)
 - `sherlock_openrouter_model_catalog_v1` (cached OpenRouter catalog snapshot/live refresh payload)
 - `sherlock_recent_model_ids_v1` (recent model selections for compact selectors and browser defaults)
 - `sherlock_omnibox_recents_v1` (durable recent workspace/artifact/chat/run/item destinations for the header omnibox)

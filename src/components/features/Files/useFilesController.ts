@@ -51,15 +51,12 @@ export const useFilesController = ({
     setActiveWorkspaceId,
   } = useWorkspaceStore();
 
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
-    const activeWorkspaceId = getStoredActiveWorkspaceId();
-    return activeWorkspaceId && activeWorkspaceId !== 'ALL' ? activeWorkspaceId : null;
-  });
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [recordFilter, setRecordFilter] = useState<RecordFilter>('ALL');
-  const [viewMode, setViewMode] = useState<FilesViewMode>('LIST');
+  const [viewMode, setViewMode] = useState<FilesViewMode>('GRID');
   const [workspacePendingPurge, setWorkspacePendingPurge] = useState<{
     id: string;
     name: string;

@@ -12,6 +12,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Executes Sherlock board-agent sessions through an approval-first review sheet that previews planned actions, supports an auto-approve toggle for low-risk organization moves, and leaves auditable action receipts for completed, skipped, failed, and queued follow-up work
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
 - Maintains a unified launch pipeline across Finder, Operation View, Live Monitor, Network Graph, and chat follow-up flows
+- Uses `Files` as the current app home/entry surface, opening to the all-workspaces overview while the future global dashboard remains unwired
 - Keeps `/workspaces/:workspaceId` as a lightweight workspace-home overview with canonical counts, recent activity, saved timeline views, and direct handoff links into artifact/chat/board/timeline/network/files workflows
 - Resolves built-in domain packs and purpose profiles into run metadata and prompt behavior
 - Stores workspace/artifact/workspace-run data in browser-persistent SQLite (wa-sqlite + IndexedDB)
@@ -26,14 +27,14 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 ## UI Areas
 
 - `Operation View`: artifact reading with artifact-type-aware summary highlights, provenance-at-a-glance strip, inline evidence cues, route-backed section/evidence focus, purpose-ordered typed-section rendering, dossier, and a current-artifact/entity/signal inspector panel
-- `Task Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
+- `Run Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
 - `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into artifacts, timeline, graph, and chat
 - `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update/reuse events, opt-in entity milestones, chat sessions, and high-signal chat actions, with lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
 - `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records that reopen focused workspace surfaces, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Files, and Network Graph
-- `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files
+- `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files; this is real and routed, but it is not yet the global app homepage/dashboard
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for artifacts/entities/signals, and an overlaying dossier rail that no longer shifts graph content
 - `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
-- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
+- `Files`: workspace/archive browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
 - `Finder`: discovery scanning and analysis launch
 - `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a vertically stacked runtime/theme workbench aligned to the shared chrome contract
 
@@ -142,9 +143,9 @@ npm run check:full
 
 ## Current Validation Snapshot (April 8, 2026)
 
-The current targeted validation for the completed Stream 4 search/files/timeline cleanup passed on this checkout:
+The current targeted validation for the Files-as-home routing update passed on this checkout:
 
-- `npm run test -- src/services/workspace/workspaceHandoffs.test.ts src/services/chat/launchContext.test.ts src/components/features/Chat/chatPageUtils.test.ts src/app/appShellOpenChatHelpers.test.ts src/app/openChatRequest.test.ts src/components/features/Files.launch.test.tsx src/components/ui/omniboxModel.test.ts src/components/features/Timeline/timelineEvents.test.ts src/components/features/Timeline/useTimelineViewController.test.ts src/services/workspace/library.test.ts`: passes
+- `npm run test -- src/app/routes.test.ts src/app/AppShellRoutes.test.tsx src/components/features/Files.launch.test.tsx src/components/ui/Sidebar.test.tsx`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes
@@ -163,7 +164,8 @@ The current targeted validation for the completed Stream 4 search/files/timeline
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
 - `docs/plans/10-canonical-cleanup-roadmap.md`
-- `docs/reports/2026-04-08-codebase-audit.md`
+- `docs/plans/11-ui-uniformity-roadmap.md`
+- `docs/reports/2026-04-08-ui-uniformity-report.md`
 
 Historical plans and reports live under `docs/_legacy/`.
 
