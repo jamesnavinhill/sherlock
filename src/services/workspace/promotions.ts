@@ -35,7 +35,13 @@ export const buildWorkspaceExcerptItemFromAttachment = (input: {
       sourceMessageId: input.message.id,
       sourceSessionId: input.sessionId,
       sourceArtifactId:
-        input.attachment.kind === 'REPORT' ? input.attachment.refId : undefined,
+        input.attachment.kind === 'REPORT'
+          ? input.attachment.refId
+          : input.attachment.kind === 'FINDING' &&
+              typeof input.attachment.metadata?.originArtifactId === 'string'
+            ? input.attachment.metadata.originArtifactId
+            : undefined,
+      sourceFindingId: input.attachment.kind === 'FINDING' ? input.attachment.refId : undefined,
       sourceSignalId:
         input.attachment.kind === 'SIGNAL' || input.attachment.kind === 'HEADLINE'
           ? input.attachment.refId

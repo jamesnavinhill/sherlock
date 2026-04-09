@@ -64,6 +64,8 @@ export const mapMentionToWorkspaceContextSnippet = (
   kind:
     mention.kind === 'ARTIFACT'
       ? 'REPORT'
+      : mention.kind === 'KEY_FINDING'
+        ? 'FINDING'
       : mention.kind === 'ENTITY'
         ? 'ENTITY'
         : mention.kind === 'SIGNAL'
@@ -76,6 +78,8 @@ export const mapMentionToWorkspaceContextSnippet = (
   refKind:
     mention.kind === 'ARTIFACT'
       ? 'REPORT'
+      : mention.kind === 'KEY_FINDING'
+        ? 'KEY_FINDING'
       : mention.kind === 'ENTITY'
         ? 'ENTITY'
         : mention.kind === 'SIGNAL'

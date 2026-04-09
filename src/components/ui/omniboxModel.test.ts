@@ -26,6 +26,15 @@ describe('omniboxModel', () => {
       workspaceId: 'ws-1',
       topic: 'Atlas Brief',
       summary: 'Brief summary',
+      keyFindings: [
+        {
+          id: 'finding-1',
+          workspaceId: 'ws-1',
+          originArtifactId: 'rep-1',
+          title: 'Atlas exposure is rising',
+          summary: 'Supplier concentration increased.',
+        },
+      ],
       agendas: [],
       leads: [],
       entities: [],
@@ -99,6 +108,28 @@ describe('omniboxModel', () => {
     expect(results.some((result) => result.kind === 'SAVED_VIEW')).toBe(true);
     expect(results.some((result) => result.kind === 'ARTIFACT')).toBe(true);
     expect(results.some((result) => result.kind === 'ROUTE')).toBe(true);
+
+    const findingResult = mapWorkspaceSnippetToOmniboxResult(
+      {
+        id: 'CTX-FINDING-finding-1',
+        kind: 'FINDING',
+        title: 'Atlas exposure is rising',
+        snippet: 'Supplier concentration increased.',
+        refId: 'finding-1',
+        refKind: 'KEY_FINDING',
+        score: 88,
+        timestamp: 101,
+        metadata: {
+          originArtifactId: 'rep-1',
+          originSectionId: 'sec-1',
+        },
+      },
+      'ws-1'
+    );
+
+    expect(findingResult.kind).toBe('FINDING');
+    expect(findingResult.actions).toContain('OPEN_IN_CHAT');
+    expect(findingResult.actions).toContain('PLACE_ON_BOARD');
   });
 
   it('resolves mention queries and applies the selected mention', () => {
@@ -145,6 +176,15 @@ describe('omniboxModel', () => {
       workspaceId: 'ws-1',
       topic: 'Atlas Brief',
       summary: 'Brief summary',
+      keyFindings: [
+        {
+          id: 'finding-1',
+          workspaceId: 'ws-1',
+          originArtifactId: 'rep-1',
+          title: 'Atlas exposure is rising',
+          summary: 'Supplier concentration increased.',
+        },
+      ],
       agendas: [],
       leads: [],
       entities: [],
@@ -187,6 +227,9 @@ describe('omniboxModel', () => {
     expect(resolveDraftMentions('Review @Atlas Filing Note with @Atlas Brief', candidates)).toEqual([
       expect.objectContaining({ refId: 'item-1', kind: 'WORKSPACE_ITEM' }),
       expect.objectContaining({ refId: 'rep-1', kind: 'ARTIFACT' }),
+    ]);
+    expect(resolveDraftMentions('Review @Atlas exposure is rising', candidates)).toEqual([
+      expect.objectContaining({ refId: 'finding-1', kind: 'KEY_FINDING' }),
     ]);
 
     const recentRecord = createStoredOmniboxRecent({

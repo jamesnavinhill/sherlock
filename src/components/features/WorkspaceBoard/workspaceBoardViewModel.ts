@@ -110,7 +110,10 @@ export const buildWorkspaceBoardViewModel = ({
   };
 
   const selectedArtifactRef =
-    selectedEntries.find((entry) => entry.refKind === 'ARTIFACT')?.refId || null;
+    selectedEntries.find((entry) => entry.refKind === 'ARTIFACT')?.refId ||
+    (selectedEntries.find((entry) => entry.refKind === 'KEY_FINDING')?.metadata
+      ?.originArtifactId as string | undefined) ||
+    null;
   const selectedArtifact =
     workspaceArtifacts.find((artifact) => artifact.id === selectedArtifactRef) || null;
 

@@ -6,6 +6,7 @@ import {
 } from '../client';
 import {
   artifactEvidence,
+  keyFindings as keyFindingRows,
   artifactSections,
   workspaces,
   artifacts,
@@ -16,6 +17,7 @@ import {
 } from '../schema';
 import {
   buildArtifactFollowUps,
+  buildArtifactKeyFindings,
   buildArtifactSections,
   resolveWorkspaceIdentity,
   toFollowUpTexts,
@@ -27,6 +29,7 @@ import type {
   Artifact,
   Entity,
   FollowUp,
+  KeyFinding,
   Signal,
   WorkspaceDataBackup,
 } from '@/types';
@@ -56,9 +59,12 @@ interface RawReportPayload {
   summary?: string;
   entities?: unknown;
   sources?: unknown;
+  keyFindings?: unknown;
   agendas?: unknown;
   leads?: unknown;
   sections?: unknown;
+  followUps?: unknown;
+  methodology?: unknown;
 }
 
 interface ReportMetadataPayload {
@@ -145,6 +151,7 @@ const deleteArtifactDependencies = async (
   if (artifactIds.length === 0) return;
   for (const artifactId of artifactIds) {
     await db.delete(followUpRows).where(eq(followUpRows.artifactId, artifactId));
+    await db.delete(keyFindingRows).where(eq(keyFindingRows.artifactId, artifactId));
     await db.delete(artifactSections).where(eq(artifactSections.artifactId, artifactId));
     await db.delete(artifactEvidence).where(eq(artifactEvidence.artifactId, artifactId));
     await db.delete(entities).where(eq(entities.artifactId, artifactId));
@@ -249,6 +256,7 @@ export class WorkspaceRepository {
     const allEntities = await db.select().from(entities);
     const allSources = await db.select().from(sources);
     const allFollowUps = await db.select().from(followUpRows);
+    const allKeyFindings = await db.select().from(keyFindingRows);
     const allSections = await db.select().from(artifactSections);
     const allEvidence = await db.select().from(artifactEvidence);
 
@@ -305,6 +313,30 @@ export class WorkspaceRepository {
             updatedAt: followUp.updatedAt,
           })
         );
+      const artifactKeyFindings = allKeyFindings
+        .filter((finding) => finding.artifactId === row.id)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map(
+          (finding): KeyFinding => ({
+            id: finding.id,
+            workspaceId: finding.workspaceId || undefined,
+            originArtifactId: finding.artifactId,
+            originSectionId: finding.sectionId || undefined,
+            title: finding.title,
+            summary: finding.summary,
+            supportRefs: parseStoredJsonOrUndefined<string[]>(
+              finding.supportRefsJson,
+              `key finding support refs ${finding.id}`
+            ),
+            metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
+              finding.metadataJson,
+              `key finding metadata ${finding.id}`
+            ),
+            createdAt: finding.createdAt,
+            updatedAt: finding.updatedAt,
+            order: finding.sortOrder,
+          })
+        );
       const parsedSources = toSourceList(rawPayload.sources);
       const parsedAgendas = toStringList(rawPayload.agendas);
       const parsedLeads = toStringList(rawPayload.leads);
@@ -331,6 +363,17 @@ export class WorkspaceRepository {
           ),
           order: section.sortOrder,
         }));
+      const canonicalKeyFindings =
+        artifactKeyFindings.length > 0
+          ? artifactKeyFindings
+          : buildArtifactKeyFindings({
+              keyFindings: rawPayload.keyFindings,
+              sections: reportSections,
+              legacyAgendas: parsedAgendas,
+              artifactId: row.id,
+              workspaceId: row.workspaceId || undefined,
+              createdAt: row.createdAt,
+            });
       const metadataPayload = row.metadataJson
         ? parseStoredJson<ReportMetadataPayload>(
             row.metadataJson,
@@ -366,6 +409,7 @@ export class WorkspaceRepository {
         summary: normalizeHumanText(row.summary, { includePriority: false }),
         agendas: parsedAgendas,
         leads: parsedLeads,
+        keyFindings: canonicalKeyFindings,
         followUps: canonicalFollowUps,
         methodology:
           typeof (rawPayload as { methodology?: unknown }).methodology === 'string'
@@ -391,6 +435,7 @@ export class WorkspaceRepository {
         sources: artifactSources.length > 0 ? artifactSources : parsedSources,
         agendas: parsedAgendas,
         leads: toFollowUpTexts(canonicalFollowUps),
+        keyFindings: canonicalKeyFindings,
         sections,
         followUps: canonicalFollowUps,
         artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
@@ -419,6 +464,7 @@ export class WorkspaceRepository {
           : undefined,
         entities: artifactEntities.length > 0 ? artifactEntities : parsedEntities,
         sources: artifactSources.length > 0 ? artifactSources : parsedSources,
+        keyFindings: canonicalKeyFindings,
         agendas: legacyArrays.agendas,
         leads: legacyArrays.leads,
         followUps: legacyArrays.followUps,
@@ -451,6 +497,24 @@ export class WorkspaceRepository {
         workspaceId: report.workspaceId,
         sourceSignalId: report.config?.sourceSignalId,
         createdAt: now,
+      });
+      const canonicalKeyFindings = buildArtifactKeyFindings({
+        existing: report.keyFindings,
+        sections: report.sections,
+        legacyAgendas: report.agendas,
+        artifactId,
+        workspaceId: report.workspaceId,
+        createdAt: now,
+      });
+      const canonicalSections = buildArtifactSections({
+        sections: report.sections,
+        summary: normalizedSummary,
+        agendas: report.agendas,
+        leads: report.leads,
+        keyFindings: canonicalKeyFindings,
+        followUps: canonicalFollowUps,
+        evidence: report.evidence,
+        artifactType: report.artifactType,
       });
 
       const metadataPayload: ReportMetadataPayload | undefined =
@@ -529,8 +593,26 @@ export class WorkspaceRepository {
         }
       }
 
-      if (report.sections && report.sections.length > 0) {
-        for (const [index, section] of report.sections.entries()) {
+      if (canonicalKeyFindings.length > 0) {
+        for (const [index, finding] of canonicalKeyFindings.entries()) {
+          await executor.insert(keyFindingRows).values({
+            id: finding.id,
+            workspaceId: finding.workspaceId || report.workspaceId,
+            artifactId,
+            sectionId: finding.originSectionId,
+            title: finding.title,
+            summary: finding.summary,
+            supportRefsJson: serializeStoredJsonOrNull(finding.supportRefs),
+            metadataJson: serializeStoredJsonOrNull(finding.metadata),
+            sortOrder: typeof finding.order === 'number' ? finding.order : index,
+            createdAt: finding.createdAt ?? now,
+            updatedAt: finding.updatedAt ?? now,
+          });
+        }
+      }
+
+      if (canonicalSections && canonicalSections.length > 0) {
+        for (const [index, section] of canonicalSections.entries()) {
           await executor.insert(artifactSections).values({
             id: section.id || `sec-${artifactId}-${index}`,
             artifactId,
@@ -697,6 +779,7 @@ export class WorkspaceRepository {
     return runWriteTransaction(async (tx) => {
       const executor = db ?? tx;
       await executor.delete(followUpRows).where(eq(followUpRows.artifactId, artifactId));
+      await executor.delete(keyFindingRows).where(eq(keyFindingRows.artifactId, artifactId));
       await executor.delete(artifactSections).where(eq(artifactSections.artifactId, artifactId));
       await executor.delete(artifactEvidence).where(eq(artifactEvidence.artifactId, artifactId));
       await executor.delete(entities).where(eq(entities.artifactId, artifactId));
@@ -757,6 +840,7 @@ export class WorkspaceRepository {
       await WorkspaceItemRepository.clearAll(executor);
       await ManualDataRepository.clearAll(executor);
       await executor.delete(followUpRows);
+      await executor.delete(keyFindingRows);
       await executor.delete(artifactSections);
       await executor.delete(artifactEvidence);
       await executor.delete(entities);

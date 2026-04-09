@@ -25,6 +25,8 @@ import {
   buildArtifactChatOpenRequest,
   buildEntityBoardReference,
   buildEntityChatOpenRequest,
+  buildKeyFindingBoardReference,
+  buildKeyFindingChatOpenRequest,
   buildSignalBoardReference,
   buildSignalChatOpenRequest,
   buildSourceBoardReference,
@@ -77,6 +79,7 @@ const resolveTimelineFocus = (
 ): { track: 'SIGNAL' | 'RUN' | 'ARTIFACT' | 'CHAT' | 'ENTITY' | 'ITEM'; refId?: string } | null => {
   switch (result.kind) {
     case 'ARTIFACT':
+    case 'FINDING':
     case 'SECTION':
     case 'SOURCE':
       return {
@@ -117,6 +120,28 @@ const resolveTimelineFocus = (
 };
 
 const resolveArtifactRouteState = (result: OmniboxResult): ArtifactRouteState | undefined => {
+  if (result.kind !== 'ARTIFACT' && result.kind !== 'SECTION' && result.kind !== 'SOURCE') {
+    if (result.kind !== 'FINDING') {
+      return undefined;
+    }
+  }
+
+  if (result.kind === 'FINDING') {
+    const focusSectionId =
+      typeof result.metadata?.originSectionId === 'string'
+        ? result.metadata.originSectionId
+        : typeof result.metadata?.sectionId === 'string'
+          ? result.metadata.sectionId
+          : undefined;
+
+    return focusSectionId
+      ? {
+          focusSectionId,
+          inspector: 'REPORT',
+        }
+      : undefined;
+  }
+
   if (result.kind !== 'ARTIFACT' && result.kind !== 'SECTION' && result.kind !== 'SOURCE') {
     return undefined;
   }
@@ -172,6 +197,28 @@ const buildChatOpenRequestForResult = (input: {
     });
   }
 
+  if (result.kind === 'FINDING' && result.refId) {
+    return buildKeyFindingChatOpenRequest({
+      id: result.refId,
+      workspaceId: result.workspaceId,
+      originArtifactId:
+        typeof result.metadata?.originArtifactId === 'string'
+          ? result.metadata.originArtifactId
+          : result.artifactId,
+      originSectionId:
+        typeof result.metadata?.originSectionId === 'string'
+          ? result.metadata.originSectionId
+          : undefined,
+      title: result.title,
+      summary: result.snippet || result.title,
+      supportRefs:
+        Array.isArray(result.metadata?.supportRefs) &&
+        result.metadata.supportRefs.every((entry) => typeof entry === 'string')
+          ? (result.metadata.supportRefs as string[])
+          : undefined,
+    });
+  }
+
   if (result.kind === 'SIGNAL' && result.refId) {
     const signal = headlines.find((entry) => entry.id === result.refId);
     return signal
@@ -222,6 +269,28 @@ const resolveBoardPlacementReference = (input: {
     const artifactId = result.artifactId || result.refId;
     const artifact = artifacts.find((entry) => entry.id === artifactId);
     return artifact ? buildArtifactBoardReference(artifact) : null;
+  }
+
+  if (result.kind === 'FINDING' && result.refId) {
+    return buildKeyFindingBoardReference({
+      id: result.refId,
+      workspaceId: result.workspaceId,
+      originArtifactId:
+        typeof result.metadata?.originArtifactId === 'string'
+          ? result.metadata.originArtifactId
+          : result.artifactId,
+      originSectionId:
+        typeof result.metadata?.originSectionId === 'string'
+          ? result.metadata.originSectionId
+          : undefined,
+      title: result.title,
+      summary: result.snippet || result.title,
+      supportRefs:
+        Array.isArray(result.metadata?.supportRefs) &&
+        result.metadata.supportRefs.every((entry) => typeof entry === 'string')
+          ? (result.metadata.supportRefs as string[])
+          : undefined,
+    });
   }
 
   if (result.kind === 'WORKSPACE_ITEM') {
@@ -551,11 +620,14 @@ export const executeOmniboxAction = async ({
   }
 
   if (
-    (result.kind === 'ARTIFACT' || result.kind === 'SECTION' || result.kind === 'SOURCE') &&
+    (result.kind === 'ARTIFACT' ||
+      result.kind === 'FINDING' ||
+      result.kind === 'SECTION' ||
+      result.kind === 'SOURCE') &&
     result.workspaceId &&
     (result.artifactId || result.refId)
   ) {
-    const artifactId = result.artifactId || result.refId;
+    const artifactId = result.kind === 'FINDING' ? result.artifactId : result.artifactId || result.refId;
     if (artifactId) {
       const existingTask = workspaceRuns.find((entry) => entry.report?.id === artifactId);
       setActiveRunId(existingTask?.id || null);

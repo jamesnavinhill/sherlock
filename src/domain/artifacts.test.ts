@@ -29,7 +29,7 @@ describe('artifacts domain helpers', () => {
   it('keeps derived section ids stable when they are already unique', () => {
     const sections = buildArtifactSections({
       summary: 'Summary',
-      findings: ['Finding'],
+      keyFindings: ['Finding'],
       leads: ['Lead'],
     });
 

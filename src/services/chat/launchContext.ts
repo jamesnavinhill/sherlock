@@ -5,6 +5,7 @@ import type {
   ChatOpenRequest,
   ChatSession,
   Artifact,
+  KeyFinding,
   Signal,
   WorkspaceItem,
 } from '@/types';
@@ -53,6 +54,22 @@ const createSignalAttachment = (messageId: string, signal: Signal): ChatAttachme
   createdAt: Date.now(),
 });
 
+const createKeyFindingAttachment = (messageId: string, finding: KeyFinding): ChatAttachment => ({
+  id: createLocalId('chat-attachment'),
+  messageId,
+  kind: 'FINDING',
+  title: finding.title,
+  refId: finding.id,
+  refKind: 'KEY_FINDING',
+  snippet: finding.summary,
+  metadata: {
+    originArtifactId: finding.originArtifactId,
+    originSectionId: finding.originSectionId,
+    supportRefs: finding.supportRefs,
+  },
+  createdAt: Date.now(),
+});
+
 const createWorkspaceItemAttachment = (
   messageId: string,
   item: WorkspaceItem
@@ -73,6 +90,20 @@ const createWorkspaceItemAttachment = (
   createdAt: Date.now(),
 });
 
+const findArtifactKeyFinding = (
+  reports: Artifact[],
+  keyFindingId: string
+): { artifact: Artifact; finding: KeyFinding } | null => {
+  for (const artifact of reports) {
+    const finding = (artifact.keyFindings || []).find((entry) => entry.id === keyFindingId);
+    if (finding) {
+      return { artifact, finding };
+    }
+  }
+
+  return null;
+};
+
 export const isChatLaunchContext = (value: unknown): value is ChatLaunchContext => {
   if (!value || typeof value !== 'object') return false;
 
@@ -80,6 +111,7 @@ export const isChatLaunchContext = (value: unknown): value is ChatLaunchContext 
   return (
     (candidate.workspaceItemId === undefined || typeof candidate.workspaceItemId === 'string') &&
     (candidate.sourceArtifactId === undefined || typeof candidate.sourceArtifactId === 'string') &&
+    (candidate.keyFindingId === undefined || typeof candidate.keyFindingId === 'string') &&
     (candidate.entityName === undefined || typeof candidate.entityName === 'string') &&
     (candidate.signalId === undefined || typeof candidate.signalId === 'string') &&
     (candidate.headlineId === undefined || typeof candidate.headlineId === 'string')
@@ -92,6 +124,7 @@ export const areChatLaunchContextsEqual = (
 ): boolean =>
   (left?.workspaceItemId || '') === (right?.workspaceItemId || '') &&
   (left?.sourceArtifactId || '') === (right?.sourceArtifactId || '') &&
+  (left?.keyFindingId || '') === (right?.keyFindingId || '') &&
   (left?.entityName || '') === (right?.entityName || '') &&
   (left?.signalId || '') === (right?.signalId || '') &&
   (left?.headlineId || '') === (right?.headlineId || '');
@@ -183,6 +216,27 @@ export const buildLaunchContextPrimer = (params: {
       content: `Pinned workspace ${item.kind.toLowerCase()} context for **${item.title}**.\n\n${summary}`,
       status: 'COMPLETED',
       attachments: [attachment],
+      metadata: {
+        actionType: 'PIN_LAUNCH_CONTEXT',
+        launchContext: params.launchContext,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  if (params.launchContext.keyFindingId) {
+    const findingMatch = findArtifactKeyFinding(params.reports, params.launchContext.keyFindingId);
+    if (!findingMatch) return null;
+
+    const { artifact, finding } = findingMatch;
+    return {
+      id: messageId,
+      sessionId: params.session.id,
+      role: 'tool',
+      content: `Pinned finding context for **${finding.title}**.\n\n${finding.summary}${artifact.topic ? `\n\nSource artifact: **${artifact.topic}**.` : ''}`,
+      status: 'COMPLETED',
+      attachments: [createKeyFindingAttachment(messageId, finding)],
       metadata: {
         actionType: 'PIN_LAUNCH_CONTEXT',
         launchContext: params.launchContext,

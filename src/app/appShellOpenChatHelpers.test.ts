@@ -22,7 +22,7 @@ import {
 } from './appShellOpenChatHelpers';
 
 describe('appShellOpenChatHelpers', () => {
-  it('resolves session titles from launch context report or entity details', () => {
+  it('resolves session titles from launch context report, finding, item, or entity details', () => {
     expect(
       resolveLaunchContextSessionTitle(
         [
@@ -30,6 +30,13 @@ describe('appShellOpenChatHelpers', () => {
             id: 'artifact-1',
             topic: 'Atlas Report',
             summary: 'Summary',
+            keyFindings: [
+              {
+                id: 'finding-1',
+                title: 'Atlas exposure is rising',
+                summary: 'Supplier concentration increased.',
+              },
+            ],
             agendas: [],
             leads: [],
             entities: [],
@@ -41,6 +48,32 @@ describe('appShellOpenChatHelpers', () => {
         []
       )
     ).toBe('Atlas Report');
+
+    expect(
+      resolveLaunchContextSessionTitle(
+        [
+          {
+            id: 'artifact-1',
+            topic: 'Atlas Report',
+            summary: 'Summary',
+            keyFindings: [
+              {
+                id: 'finding-1',
+                title: 'Atlas exposure is rising',
+                summary: 'Supplier concentration increased.',
+              },
+            ],
+            agendas: [],
+            leads: [],
+            entities: [],
+            sources: [],
+            rawText: 'raw',
+          },
+        ],
+        { keyFindingId: 'finding-1', sourceArtifactId: 'artifact-1' },
+        []
+      )
+    ).toBe('Atlas exposure is rising');
 
     expect(
       resolveLaunchContextSessionTitle([], { workspaceItemId: 'item-1' }, [

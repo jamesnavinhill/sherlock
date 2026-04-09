@@ -36,6 +36,27 @@ export const buildMentionCandidates = (input: {
       },
     }));
 
+  const findingCandidates = input.artifacts
+    .filter((artifact) => artifact.workspaceId === input.workspaceId)
+    .flatMap((artifact) =>
+      (artifact.keyFindings || [])
+        .filter((finding) => typeof finding.id === 'string' && finding.id.length > 0)
+        .map((finding) => ({
+          id: `finding:${finding.id}`,
+          workspaceId: input.workspaceId,
+          kind: 'KEY_FINDING' as const,
+          refId: finding.id,
+          title: sanitizeDisplayTitle(finding.title),
+          subtitle: 'Finding',
+          snippet: finding.summary,
+          metadata: {
+            originArtifactId: finding.originArtifactId || artifact.id,
+            originSectionId: finding.originSectionId,
+            supportRefs: finding.supportRefs,
+          },
+        }))
+    );
+
   const entityCandidates = new Map<string, ChatMentionReference>();
   input.artifacts
     .filter((artifact) => artifact.workspaceId === input.workspaceId)
@@ -94,12 +115,20 @@ export const buildMentionCandidates = (input: {
     }));
 
   return dedupeResults(
-    [...itemCandidates, ...artifactCandidates, ...Array.from(entityCandidates.values()), ...signalCandidates].map(
+    [
+      ...itemCandidates,
+      ...artifactCandidates,
+      ...findingCandidates,
+      ...Array.from(entityCandidates.values()),
+      ...signalCandidates,
+    ].map(
       (candidate, index) => ({
         id: candidate.id,
         kind:
           candidate.kind === 'ARTIFACT'
             ? ('ARTIFACT' as const)
+            : candidate.kind === 'KEY_FINDING'
+              ? ('FINDING' as const)
             : candidate.kind === 'ENTITY'
               ? ('ENTITY' as const)
               : candidate.kind === 'SIGNAL'
@@ -121,6 +150,8 @@ export const buildMentionCandidates = (input: {
     kind:
       candidate.kind === 'ARTIFACT'
         ? 'ARTIFACT'
+        : candidate.kind === 'FINDING'
+          ? 'KEY_FINDING'
         : candidate.kind === 'ENTITY'
           ? 'ENTITY'
           : candidate.kind === 'SIGNAL'

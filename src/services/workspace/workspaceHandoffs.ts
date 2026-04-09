@@ -2,6 +2,7 @@ import { buildWorkspaceBoardDocumentPath } from '@/app/routes';
 import {
   buildWorkspaceArtifactReference,
   buildWorkspaceEntityReference,
+  buildWorkspaceKeyFindingReference,
   buildWorkspaceItemReference,
   buildWorkspaceSignalReference,
   buildWorkspaceSourceReference,
@@ -10,6 +11,7 @@ import type {
   Artifact,
   ChatOpenRequest,
   Headline,
+  KeyFinding,
   Source,
   WorkspaceBoardItemReference,
   WorkspaceItem,
@@ -22,6 +24,18 @@ export const buildArtifactChatOpenRequest = (artifact: Artifact): ChatOpenReques
     workspaceId: artifact.workspaceId,
     launchContext: {
       sourceArtifactId: artifact.id,
+    },
+  };
+};
+
+export const buildKeyFindingChatOpenRequest = (finding: KeyFinding): ChatOpenRequest | null => {
+  if (!finding.workspaceId) return null;
+
+  return {
+    workspaceId: finding.workspaceId,
+    launchContext: {
+      keyFindingId: finding.id,
+      sourceArtifactId: finding.originArtifactId,
     },
   };
 };
@@ -61,6 +75,7 @@ export const buildWorkspaceItemChatOpenRequest = (item: WorkspaceItem): ChatOpen
     launchContext: {
       workspaceItemId: item.id,
       sourceArtifactId: item.provenance?.sourceArtifactId,
+      keyFindingId: item.provenance?.sourceFindingId,
       signalId,
       headlineId: signalId,
     },
@@ -71,6 +86,11 @@ export const buildArtifactBoardReference = (artifact: Artifact): WorkspaceBoardI
   artifact.workspaceId && artifact.id
     ? buildWorkspaceArtifactReference(artifact.workspaceId, { ...artifact, id: artifact.id })
     : null;
+
+export const buildKeyFindingBoardReference = (
+  finding: KeyFinding
+): WorkspaceBoardItemReference | null =>
+  finding.workspaceId ? buildWorkspaceKeyFindingReference(finding.workspaceId, finding) : null;
 
 export const buildSignalBoardReference = (signal: Headline): WorkspaceBoardItemReference | null =>
   signal.workspaceId ? buildWorkspaceSignalReference(signal.workspaceId, signal) : null;

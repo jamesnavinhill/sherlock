@@ -4,7 +4,13 @@
  */
 
 import type { Workspace, ChatMessage, ChatSession, Artifact, LabelProfile } from '../types';
-import { getArtifactFollowUps, getFollowUpText, getLabelProfileById } from '../domain';
+import {
+  getArtifactFollowUps,
+  getArtifactKeyFindings,
+  getFollowUpText,
+  getKeyFindingText,
+  getLabelProfileById,
+} from '../domain';
 import { buildThemeFontCssVars, DEFAULT_THEME_FONT_SETTINGS } from './themeFonts';
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
@@ -44,6 +50,9 @@ const getArtifactLabelProfile = (artifact: Artifact, workspace?: Workspace): Lab
 
 const getExportFollowUps = (artifact: Artifact) =>
   getArtifactFollowUps(artifact).map(getFollowUpText);
+
+const getExportKeyFindings = (artifact: Artifact) =>
+  getArtifactKeyFindings(artifact).map(getKeyFindingText);
 
 const GOOGLE_FONTS_STYLESHEET_HREF =
   'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700;800&display=swap';
@@ -174,12 +183,12 @@ export const exportWorkspaceAsHtml = (workspace: Workspace, artifacts: Artifact[
         </div>
 
         ${
-          artifact.agendas && artifact.agendas.length > 0
+          getExportKeyFindings(artifact).length > 0
             ? `
         <div style="margin-bottom: 20px;">
           <strong>Key Findings:</strong>
           <ul>
-            ${artifact.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
+            ${getExportKeyFindings(artifact).map((finding) => `<li>${finding}</li>`).join('')}
           </ul>
         </div>`
             : ''
@@ -320,11 +329,11 @@ export const exportArtifactAsHtml = (artifact: Artifact, workspace?: Workspace) 
         <p>${artifact.summary}</p>
 
         ${
-          artifact.agendas && artifact.agendas.length > 0
+          getExportKeyFindings(artifact).length > 0
             ? `
         <h2>Key Findings</h2>
         <ul>
-          ${artifact.agendas.map((agenda) => `<li>${agenda}</li>`).join('')}
+          ${getExportKeyFindings(artifact).map((finding) => `<li>${finding}</li>`).join('')}
         </ul>`
             : ''
         }
@@ -378,9 +387,9 @@ const formatArtifactMarkdown = (artifact: Artifact, labelProfile: LabelProfile, 
 ${artifact.summary}
 
 ${
-  artifact.agendas?.length
+  getExportKeyFindings(artifact).length
     ? `#### Key Findings
-${artifact.agendas.map((agenda) => `- ${agenda}`).join('\n')}`
+${getExportKeyFindings(artifact).map((finding) => `- ${finding}`).join('\n')}`
     : ''
 }
 

@@ -301,6 +301,7 @@ The active schema now uses canonical table and column names that mirror the runt
 
 - `workspaces` hold workspace-oriented metadata such as `displayTitle`, `launchTopic`, `launchAngle`, `prioritySourcesSummary`, `mode`, `packId`, `purposeId`, and `labelProfileId`
 - `artifacts` store `artifactType`, pack/purpose references, label profiles, config snapshots, and metadata JSON including provider provenance
+- `key_findings` persist first-class findings with stable ids, origin artifact/section linkage, support refs, ordering, and finding-local metadata
 - `follow_ups` now persist first-class actionable follow-up records linked to artifacts and lineage refs such as `sourceSignalId` and `resolvedByArtifactId`
 - `artifact_sections` persists typed section rows separately from the legacy flattened artifact fields, with section ids scoped per artifact rather than globally across the table
 - `artifact_evidence` persists first-class evidence rows for artifact claims, citations, quotes, and source hints
@@ -311,7 +312,7 @@ The active schema now uses canonical table and column names that mirror the runt
 - `workspace_board_documents` persist tldraw board snapshots separately from canonical research records
 - `board_agent_sessions` and `board_agent_actions` persist board-agent task state plus action audit trails for workspace boards
 
-Artifact persistence now lands in the canonical `artifacts` table, while `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the flattened compatibility fields still written for import/export continuity. `configJson` carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
+Artifact persistence now lands in the canonical `artifacts` table, while `key_findings`, `follow_ups`, `artifact_sections`, and `artifact_evidence` carry richer structured output alongside the flattened compatibility fields still written for import/export continuity. `Artifact.keyFindings` is the source of truth for findings, and `KEY_FINDINGS` sections are derived presentation. `configJson` carries explicit lineage refs and generation-mode snapshots that Timeline and other runtime surfaces use directly.
 
 Repository write paths that span multiple tables now use the shared `runWriteTransaction(...)` helper from `src/services/db/client.ts` so artifact saves, chat attachment saves, workspace deletes, demo-seed imports, and workspace-data restore flows commit atomically instead of relying on sequential best effort. Repository helpers may join an existing transaction, but must not silently open a nested one.
 
@@ -327,6 +328,7 @@ Migration:
 - `src/services/db/migrations.ts` applies the ordered SQLite migration pipeline: canonical table/column cutover, schema bootstrap from `src/services/db/migrations_sql.ts`, and additive schema repairs for older local databases
 - the migration runner records applied steps in SQLite table `__sherlock_schema_migrations`
 - older local databases still get the `artifact_sections` rebuild when they use the legacy global section-id primary key
+- the findings cutover backfills canonical `key_findings` rows from structured payload `keyFindings`, then existing `KEY_FINDINGS` sections, then legacy mixed-duty `agendas` as a bounded fallback
 - legacy `sherlock-storage` Zustand payloads are no longer imported during bootstrap; canonical workspace-data backup/import is the supported transfer path
 
 Canonical signal naming now leads the active runtime seams even where restore/import compatibility remains:
@@ -334,6 +336,13 @@ Canonical signal naming now leads the active runtime seams even where restore/im
 - repositories expose `getSignals(...)` / `createSignal(...)` as the primary saved-signal API
 - chat retrieval attachments, workspace-search snippets, and board/library refs now prefer `SIGNAL` as the ref/attachment kind
 - backup payloads now write canonical signal snapshots under `signals.signals`, while legacy `signals.headlines` snapshots are still accepted during restore/import normalization
+
+Canonical finding naming now also leads the active runtime seams:
+
+- providers normalize explicit `keyFindings` payloads into `Artifact.keyFindings`
+- workspace search indexes `key_findings` rows directly as finding-native context snippets instead of reconstructing findings from generic section text
+- chat mentions, chat launch context, chat attachments, and board refs can target a finding id directly
+- the default left library still stays artifact/item/source-oriented; findings are directly searchable and placeable without becoming a passive browse category
 
 ## 6. State Layer
 
@@ -474,7 +483,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - streaming grounded answers backed by deterministic workspace retrieval
 - stop/cancel handling for in-flight assistant turns
 - bounded retrieval actions for artifact summaries, full artifact text, and recent signals
-- `@` mention autocomplete for canonical workspace artifacts, items, entities, and saved signals from the active workspace
+- `@` mention autocomplete for canonical workspace artifacts, key findings, items, entities, and saved signals from the active workspace
 - resolved mention refs persist on the user turn metadata, feed an explicit mentioned-record context block into retrieval, and render back out of the transcript as reopenable inline tokens
 - save-as-artifact, append-to-artifact, and follow-up-run actions with persisted `chat_actions`
 - retrieval attachments can now be promoted into canonical workspace excerpts and optionally placed directly onto the research board
@@ -482,6 +491,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - guided conversational run builder that maps into the same launch request shape used by `src/components/features/Runs/RunSetupModal.tsx`
 - context drawer with recent artifacts, recent signals, pinned launch context, last-turn retrieval snippets, and action log
 - contextual handoff from Operation View, Files, and Network Graph into the same session backend, with artifact/entity/signal grounding persisted on the target chat session
+- finding-aware chat launch context can pin a specific finding and carry its origin artifact/section provenance into the session primer and attachment metadata
 - workspace-item handoff now persists `workspaceItemId` in chat launch context so Files and omnibox item opens can pin the item itself, not just its provenance fallback
 - `ChatHeader.tsx`, `ChatSessionRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatContextRail.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
 - controller responsibilities are split across `useChatViewState.ts`, `useChatWorkspaceState.ts`, `chatSessionLifecycle.ts`, `chatStreaming.ts`, `chatGuidedActions.ts`, and `chatTranscriptActions.ts` so the routed chat controller no longer carries every local state declaration, workspace/session derivation, streaming flow, and transcript workflow inline
@@ -493,7 +503,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - a provenance summary strip with artifact type, source/evidence/citation counts, and warning visibility before the deeper accordion detail rail
 - inline section-level evidence/source cues for sections that have explicit evidence linkage
 - typed summary sections
-- supplemental sections such as findings, methodology, implications, or timeline
+- supplemental sections such as findings, methodology, implications, or timeline, with findings rendered from canonical `Artifact.keyFindings` records rather than legacy mixed-duty `agendas`
 - compatibility-mapped lead and anomaly sections for legacy artifacts
 - purpose-ordered section layouts with dedicated timeline and findings treatments
 - pack-aware section titles that map legacy labels into broader workspace terminology
@@ -575,7 +585,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 `src/components/ui/GlobalSearch.tsx`
 
 - the omnibox runtime contract remains centered on `src/components/ui/omniboxModel.ts`, but that module now delegates to smaller result-builder, recents, mention, and scoring helpers instead of keeping all ranking and shaping logic in one 900-line file
-- route results, workspace results, saved timeline views, run/chat results, and workspace-search snippets still converge into one result list so search/navigation behavior remains one shared spine
+- route results, workspace results, saved timeline views, run/chat results, finding-native workspace-search snippets, and other workspace-search snippets still converge into one result list so search/navigation behavior remains one shared spine
 - `GlobalSearch.tsx` stays responsible for UI state and async repository lookups while the pure omnibox shaping logic now lives in dedicated helper modules
 
 ### Feed

@@ -29,12 +29,14 @@ describe('chat launch context helpers', () => {
         {
           workspaceItemId: 'item-1',
           sourceArtifactId: 'report-1',
+          keyFindingId: 'finding-1',
           entityName: 'Atlas',
           headlineId: 'headline-1',
         },
         {
           workspaceItemId: 'item-1',
           sourceArtifactId: 'report-1',
+          keyFindingId: 'finding-1',
           entityName: 'Atlas',
           headlineId: 'headline-1',
         }
@@ -134,6 +136,7 @@ describe('chat launch context helpers', () => {
           workspaceId: 'case-1',
           topic: 'Atlas baseline',
           summary: 'Atlas Holdings appears in the procurement flow.',
+          keyFindings: [],
           agendas: [],
           leads: [],
           entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
@@ -178,6 +181,51 @@ describe('chat launch context helpers', () => {
         refId: 'item-1',
         refKind: 'WORKSPACE_ITEM',
         title: 'Atlas Note',
+      }),
+    ]);
+  });
+
+  it('builds a primer for finding launches with a finding attachment', () => {
+    const primer = buildLaunchContextPrimer({
+      session: buildSession({ id: 'chat-finding' }),
+      launchContext: {
+        keyFindingId: 'finding-1',
+        sourceArtifactId: 'report-1',
+      },
+      reports: [
+        {
+          id: 'report-1',
+          workspaceId: 'case-1',
+          topic: 'Atlas baseline',
+          summary: 'Atlas Holdings appears in the procurement flow.',
+          keyFindings: [
+            {
+              id: 'finding-1',
+              workspaceId: 'case-1',
+              originArtifactId: 'report-1',
+              originSectionId: 'sec-1',
+              title: 'Atlas exposure is rising',
+              summary: 'Supplier concentration increased.',
+            },
+          ],
+          agendas: [],
+          leads: [],
+          entities: [],
+          sources: [],
+          rawText: 'Atlas report body.',
+        },
+      ],
+      headlines: [],
+      workspaceItems: [],
+    });
+
+    expect(primer?.content).toContain('Pinned finding context');
+    expect(primer?.attachments).toEqual([
+      expect.objectContaining({
+        kind: 'FINDING',
+        refId: 'finding-1',
+        refKind: 'KEY_FINDING',
+        title: 'Atlas exposure is rising',
       }),
     ]);
   });

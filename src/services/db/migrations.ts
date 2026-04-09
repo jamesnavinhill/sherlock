@@ -1,4 +1,6 @@
 import { SCHEMA_SQL } from './migrations_sql';
+import { buildArtifactKeyFindings } from '../../domain';
+import type { ArtifactSection } from '../../types';
 
 type SQLiteExecCallback = (row: unknown[], columns?: string[]) => void;
 
@@ -25,6 +27,171 @@ export const ARTIFACT_SECTIONS_TABLE_SQL = `CREATE TABLE IF NOT EXISTS "artifact
     PRIMARY KEY ("artifact_id", "id"),
     FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );`;
+
+export const KEY_FINDINGS_TABLE_SQL = `CREATE TABLE IF NOT EXISTS "key_findings" (
+    "id" text PRIMARY KEY NOT NULL,
+    "workspace_id" text,
+    "artifact_id" text NOT NULL,
+    "section_id" text,
+    "title" text NOT NULL,
+    "summary" text NOT NULL,
+    "support_refs_json" text,
+    "metadata_json" text,
+    "sort_order" integer NOT NULL,
+    "created_at" integer NOT NULL,
+    "updated_at" integer NOT NULL,
+    FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
+    FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
+);`;
+
+const safeParseJson = <T>(value: string | null | undefined, fallback: T): T => {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+};
+
+const normalizeMigrationText = (value: unknown): string => {
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeMigrationText(entry)).filter(Boolean).join(' ').trim();
+  }
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return normalizeMigrationText(
+      record.text ?? record.content ?? record.summary ?? record.title ?? record.label
+    );
+  }
+  return '';
+};
+
+const toMigrationStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.map((entry) => normalizeMigrationText(entry)).filter((entry) => entry.length > 0);
+};
+
+const escapeSqlString = (value: string) => value.replace(/'/g, "''");
+
+const toSqlText = (value: string | null | undefined) =>
+  value === null || value === undefined ? 'NULL' : `'${escapeSqlString(value)}'`;
+
+const toSqlInteger = (value: number | null | undefined) =>
+  typeof value === 'number' && Number.isFinite(value) ? String(Math.trunc(value)) : 'NULL';
+
+const toSqlJson = (value: unknown) => {
+  if (value === null || value === undefined) return 'NULL';
+  return toSqlText(JSON.stringify(value));
+};
+
+const runKeyFindingsCutover = async (api: SQLiteMigrationApi, db: number): Promise<void> => {
+  await api.exec(db, KEY_FINDINGS_TABLE_SQL);
+
+  const artifactRows: Array<{
+    id: string;
+    workspaceId: string | null;
+    rawText: string | null;
+    createdAt: number | null;
+  }> = [];
+  const sectionsByArtifactId = new Map<string, ArtifactSection[]>();
+  const existingArtifactIds = new Set<string>();
+
+  await api.exec(
+    db,
+    `SELECT "id", "workspace_id", "raw_text", "created_at" FROM "artifacts";`,
+    (row: unknown[]) => {
+      const id = typeof row[0] === 'string' ? row[0] : '';
+      if (!id) return;
+      artifactRows.push({
+        id,
+        workspaceId: typeof row[1] === 'string' ? row[1] : null,
+        rawText: typeof row[2] === 'string' ? row[2] : null,
+        createdAt: typeof row[3] === 'number' ? row[3] : null,
+      });
+    }
+  );
+
+  await api.exec(
+    db,
+    `SELECT "artifact_id", "id", "kind", "title", "content", "items_json", "sort_order"
+     FROM "artifact_sections"
+     WHERE "kind" = 'KEY_FINDINGS';`,
+    (row: unknown[]) => {
+      const artifactId = typeof row[0] === 'string' ? row[0] : '';
+      if (!artifactId) return;
+      const current = sectionsByArtifactId.get(artifactId) || [];
+      current.push({
+        id: typeof row[1] === 'string' ? row[1] : `section-key_findings-${current.length}`,
+        kind: 'KEY_FINDINGS',
+        title: typeof row[3] === 'string' ? row[3] : 'Key Findings',
+        content: typeof row[4] === 'string' ? row[4] : undefined,
+        items: safeParseJson<string[]>(typeof row[5] === 'string' ? row[5] : null, []),
+        order: typeof row[6] === 'number' ? row[6] : current.length,
+      });
+      sectionsByArtifactId.set(artifactId, current);
+    }
+  );
+
+  await api.exec(
+    db,
+    `SELECT DISTINCT "artifact_id" FROM "key_findings";`,
+    (row: unknown[]) => {
+      const artifactId = typeof row[0] === 'string' ? row[0] : '';
+      if (artifactId) {
+        existingArtifactIds.add(artifactId);
+      }
+    }
+  );
+
+  for (const artifact of artifactRows) {
+    if (existingArtifactIds.has(artifact.id)) {
+      continue;
+    }
+
+    const rawPayload = safeParseJson<Record<string, unknown>>(artifact.rawText, {});
+    const keyFindings = buildArtifactKeyFindings({
+      keyFindings: rawPayload.keyFindings,
+      sections: sectionsByArtifactId.get(artifact.id) || [],
+      legacyAgendas: toMigrationStringList(rawPayload.agendas),
+      artifactId: artifact.id,
+      workspaceId: artifact.workspaceId || undefined,
+      createdAt: artifact.createdAt ?? Date.now(),
+    });
+
+    for (const [index, finding] of keyFindings.entries()) {
+      await api.exec(
+        db,
+        `INSERT OR IGNORE INTO "key_findings" (
+          "id",
+          "workspace_id",
+          "artifact_id",
+          "section_id",
+          "title",
+          "summary",
+          "support_refs_json",
+          "metadata_json",
+          "sort_order",
+          "created_at",
+          "updated_at"
+        ) VALUES (
+          ${toSqlText(finding.id)},
+          ${toSqlText(finding.workspaceId)},
+          ${toSqlText(finding.originArtifactId || artifact.id)},
+          ${toSqlText(finding.originSectionId)},
+          ${toSqlText(finding.title)},
+          ${toSqlText(finding.summary)},
+          ${toSqlJson(finding.supportRefs)},
+          ${toSqlJson(finding.metadata)},
+          ${toSqlInteger(finding.order ?? index)},
+          ${toSqlInteger(finding.createdAt ?? artifact.createdAt ?? Date.now())},
+          ${toSqlInteger(finding.updatedAt ?? artifact.createdAt ?? Date.now())}
+        );`
+      );
+    }
+  }
+};
 
 export const artifactSectionsTableRequiresUpgrade = (
   tableSql: string | null | undefined
@@ -190,6 +357,11 @@ const DB_MIGRATIONS: readonly DbMigration[] = [
     id: 3,
     name: 'additive-schema-repairs',
     apply: runAdditiveSchemaRepairs,
+  },
+  {
+    id: 4,
+    name: 'key-findings-cutover',
+    apply: runKeyFindingsCutover,
   },
 ];
 

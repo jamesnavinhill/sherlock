@@ -1,6 +1,7 @@
 import type {
   Artifact,
   Entity,
+  KeyFinding,
   Signal,
   Source,
   WorkspaceBoardItemReference,
@@ -14,7 +15,14 @@ import {
 } from './workspaceItemText';
 
 export interface WorkspaceLibraryEntry extends WorkspaceBoardItemReference {
-  kind: 'ARTIFACT' | 'ENTITY' | 'SOURCE' | 'SIGNAL' | 'HEADLINE' | WorkspaceItem['kind'];
+  kind:
+    | 'ARTIFACT'
+    | 'FINDING'
+    | 'ENTITY'
+    | 'SOURCE'
+    | 'SIGNAL'
+    | 'HEADLINE'
+    | WorkspaceItem['kind'];
   description?: string;
   subtitle?: string;
   searchText: string;
@@ -42,6 +50,21 @@ export const buildWorkspaceArtifactReference = (
   title: artifact.topic,
   metadata: {
     artifactType: artifact.artifactType,
+  },
+});
+
+export const buildWorkspaceKeyFindingReference = (
+  workspaceId: string,
+  finding: KeyFinding
+): WorkspaceBoardItemReference => ({
+  workspaceId,
+  refKind: 'KEY_FINDING',
+  refId: finding.id,
+  title: finding.title,
+  metadata: {
+    originArtifactId: finding.originArtifactId,
+    originSectionId: finding.originSectionId,
+    supportRefs: finding.supportRefs,
   },
 });
 
@@ -118,6 +141,21 @@ export const buildWorkspaceLibraryEntries = (input: {
       searchText: [artifact.topic, artifact.summary, artifact.rawText].filter(Boolean).join(' '),
     }));
 
+  const findingEntries = input.artifacts.flatMap((artifact) =>
+    (artifact.keyFindings || [])
+      .filter((finding) => typeof finding.id === 'string' && finding.id.length > 0)
+      .map((finding) => ({
+        ...buildWorkspaceKeyFindingReference(input.workspaceId, finding),
+        kind: 'FINDING' as const,
+        description: finding.summary,
+        subtitle: 'Finding',
+        contextText: [finding.summary, ...(finding.supportRefs || [])].filter(Boolean).join('\n'),
+        searchText: [finding.title, finding.summary, ...(finding.supportRefs || [])]
+          .filter(Boolean)
+          .join(' '),
+      }))
+  );
+
   const entityMap = new Map<string, Entity>();
   input.artifacts.forEach((artifact) => {
     artifact.entities.forEach((entity) => {
@@ -190,6 +228,7 @@ export const buildWorkspaceLibraryEntries = (input: {
   return [
     ...workspaceItemEntries,
     ...artifactEntries,
+    ...findingEntries,
     ...entityEntries,
     ...sourceEntries,
     ...signalEntries,

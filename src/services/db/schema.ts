@@ -70,6 +70,22 @@ export const followUps = sqliteTable('follow_ups', {
   updatedAt: integer('updated_at').notNull(),
 });
 
+export const keyFindings = sqliteTable('key_findings', {
+  id: text('id').primaryKey(),
+  workspaceId: text('workspace_id').references(() => workspaces.id),
+  artifactId: text('artifact_id')
+    .notNull()
+    .references(() => artifacts.id),
+  sectionId: text('section_id'),
+  title: text('title').notNull(),
+  summary: text('summary').notNull(),
+  supportRefsJson: text('support_refs_json'),
+  metadataJson: text('metadata_json'),
+  sortOrder: integer('sort_order').notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
 export const artifactSections = sqliteTable(
   'artifact_sections',
   {

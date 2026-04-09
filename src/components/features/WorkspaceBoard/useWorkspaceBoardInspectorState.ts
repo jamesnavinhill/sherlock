@@ -19,6 +19,7 @@ import {
 import {
   buildArtifactChatOpenRequest,
   buildEntityChatOpenRequest,
+  buildKeyFindingChatOpenRequest,
   buildSignalChatOpenRequest,
   buildWorkspaceItemChatOpenRequest,
 } from '@/services/workspace/workspaceHandoffs';
@@ -162,6 +163,32 @@ export const useWorkspaceBoardInspectorState = ({
 
     if (selectedArtifact?.id) {
       const request = buildArtifactChatOpenRequest(selectedArtifact);
+      if (!request) return;
+      onOpenChat(request);
+      return;
+    }
+
+    const selectedFinding = selectedEntries.find((entry) => entry.refKind === 'KEY_FINDING');
+    if (selectedFinding) {
+      const request = buildKeyFindingChatOpenRequest({
+        id: selectedFinding.refId,
+        workspaceId: activeWorkspace.id,
+        originArtifactId:
+          typeof selectedFinding.metadata?.originArtifactId === 'string'
+            ? selectedFinding.metadata.originArtifactId
+            : undefined,
+        originSectionId:
+          typeof selectedFinding.metadata?.originSectionId === 'string'
+            ? selectedFinding.metadata.originSectionId
+            : undefined,
+        title: selectedFinding.title,
+        summary: selectedFinding.description || selectedFinding.contextText || selectedFinding.title,
+        supportRefs:
+          Array.isArray(selectedFinding.metadata?.supportRefs) &&
+          selectedFinding.metadata.supportRefs.every((entry) => typeof entry === 'string')
+            ? (selectedFinding.metadata.supportRefs as string[])
+            : undefined,
+      });
       if (!request) return;
       onOpenChat(request);
       return;

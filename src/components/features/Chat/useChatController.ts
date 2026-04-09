@@ -348,6 +348,31 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
       return;
     }
 
+    if (mention.kind === 'KEY_FINDING') {
+      const artifactId =
+        typeof mention.metadata?.originArtifactId === 'string'
+          ? mention.metadata.originArtifactId
+          : typeof mention.metadata?.sourceArtifactId === 'string'
+            ? mention.metadata.sourceArtifactId
+            : undefined;
+      if (!artifactId) {
+        return;
+      }
+
+      navigate(
+        buildWorkspaceArtifactPath(mention.workspaceId, artifactId, {
+          focusSectionId:
+            typeof mention.metadata?.originSectionId === 'string'
+              ? mention.metadata.originSectionId
+              : typeof mention.metadata?.sectionId === 'string'
+                ? mention.metadata.sectionId
+                : undefined,
+          inspector: 'REPORT',
+        })
+      );
+      return;
+    }
+
     if (mention.kind === 'ENTITY') {
       const entityName =
         typeof mention.metadata?.entityName === 'string' ? mention.metadata.entityName : mention.title;

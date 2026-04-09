@@ -168,6 +168,7 @@ export const buildStructuredArtifactResponseInstruction = (
 {
   "summary": "string",
   "entities": [{ "name": "string", "type": "PERSON|ORGANIZATION|UNKNOWN", "role": "string", "sentiment": "POSITIVE|NEGATIVE|NEUTRAL" }],
+  "keyFindings": [{ "title": "string", "summary": "string", "supportRefs": ["optional strings"] }],
   "agendas": ["string"],
   "leads": ["string"],
   "followUps": ["string"],
@@ -176,7 +177,7 @@ export const buildStructuredArtifactResponseInstruction = (
   "evidence": [{ "kind": "SOURCE|QUOTE|FINDING|DATA_POINT|TIMELINE_EVENT|METHOD", "title": "string", "summary": "string", "quote": "optional string", "sourceTitle": "optional string", "sourceUrl": "optional https://..." }],
   "sections": [{ "kind": "EXECUTIVE_SUMMARY|KEY_FINDINGS|ANOMALIES|LEADS|EVIDENCE|TIMELINE|METHODOLOGY|LITERATURE_REVIEW|IMPLICATIONS|NEXT_STEPS|CUSTOM", "title": "string", "content": "optional string", "items": ["optional strings"] }]
 }
-Use agendas for ${labelProfile.anomalyLabel.toLowerCase()} and leads/followUps for ${labelProfile.followUpLabel.toLowerCase()} even when they are questions, comparisons, monitoring actions, or recommendations. Include ${followUpCount} follow-up items when possible. Include 3-8 unique sources. Include 3-8 evidence records tied to specific claims or observations whenever possible. ${generationMode === 'STAGED' ? 'Assume this output is part of a deeper research workflow, so emphasize evidence quality, methodology transparency, and reusable sections.' : 'Keep the output decisive but still evidence-backed and structured.'}`;
+Use keyFindings for the main substantive findings you want a teammate to reuse elsewhere in the workspace. Use agendas only for ${labelProfile.anomalyLabel.toLowerCase()} such as discrepancies, risk flags, outliers, or unresolved concerns. Use leads/followUps for ${labelProfile.followUpLabel.toLowerCase()} even when they are questions, comparisons, monitoring actions, or recommendations. Include 3-6 key findings and ${followUpCount} follow-up items when possible. Include 3-8 unique sources. Include 3-8 evidence records tied to specific claims or observations whenever possible. ${generationMode === 'STAGED' ? 'Assume this output is part of a deeper research workflow, so emphasize evidence quality, methodology transparency, and reusable sections.' : 'Keep the output decisive but still evidence-backed and structured.'}`;
 };
 
 export const buildAnomalyPrompt = (params: {

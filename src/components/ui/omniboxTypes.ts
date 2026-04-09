@@ -14,6 +14,7 @@ export type OmniboxResultKind =
   | 'WORKSPACE'
   | 'SAVED_VIEW'
   | 'ARTIFACT'
+  | 'FINDING'
   | 'SECTION'
   | 'SOURCE'
   | 'ENTITY'

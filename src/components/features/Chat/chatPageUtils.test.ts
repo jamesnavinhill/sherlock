@@ -36,6 +36,7 @@ describe('chatPageUtils', () => {
         workspaceId: 'ws-1',
         topic: 'Atlas Procurement Review',
         summary: 'Summary',
+        keyFindings: [],
         agendas: [],
         leads: [],
         entities: [{ name: 'Atlas Group', type: 'ORGANIZATION' }],
@@ -47,6 +48,7 @@ describe('chatPageUtils', () => {
         workspaceId: 'ws-1',
         topic: 'Satellite Filing',
         summary: 'Summary',
+        keyFindings: [],
         agendas: [],
         leads: [],
         entities: ['Atlas Group'] as unknown as Artifact['entities'],
@@ -119,6 +121,42 @@ describe('chatPageUtils', () => {
       label: 'Pinned Item',
       title: 'Atlas Note',
       body: 'Saved workspace note body.',
+    });
+  });
+
+  it('summarizes pinned findings from canonical artifact findings', () => {
+    expect(
+      getLaunchContextSummary({
+        launchContext: { keyFindingId: 'finding-1', sourceArtifactId: 'artifact-1' },
+        reports: [
+          {
+            id: 'artifact-1',
+            workspaceId: 'ws-1',
+            topic: 'Atlas Procurement Review',
+            summary: 'Summary',
+            keyFindings: [
+              {
+                id: 'finding-1',
+                workspaceId: 'ws-1',
+                originArtifactId: 'artifact-1',
+                title: 'Atlas exposure is rising',
+                summary: 'Supplier concentration increased.',
+              },
+            ],
+            agendas: [],
+            leads: [],
+            entities: [],
+            sources: [],
+            rawText: 'artifact body',
+          },
+        ],
+        signals: [],
+        workspaceItems: [],
+      })
+    ).toEqual({
+      label: 'Pinned Finding',
+      title: 'Atlas exposure is rising',
+      body: 'Supplier concentration increased.',
     });
   });
 

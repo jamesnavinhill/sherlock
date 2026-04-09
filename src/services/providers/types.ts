@@ -181,6 +181,7 @@ export interface ProviderMessage {
 export interface StructuredArtifactPayload {
   summary?: unknown;
   entities?: unknown;
+  keyFindings?: unknown;
   agendas?: unknown;
   leads?: unknown;
   followUps?: unknown;

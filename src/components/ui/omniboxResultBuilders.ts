@@ -12,6 +12,8 @@ const mapSnippetKindToResultKind = (
   switch (snippet.kind) {
     case 'REPORT':
       return 'ARTIFACT';
+    case 'FINDING':
+      return 'FINDING';
     case 'SECTION':
       return 'SECTION';
     case 'SOURCE':
@@ -266,13 +268,20 @@ export const mapWorkspaceSnippetToOmniboxResult = (
   if (
     kind === 'WORKSPACE_ITEM' ||
     kind === 'ARTIFACT' ||
+    kind === 'FINDING' ||
     kind === 'SECTION' ||
     kind === 'SIGNAL' ||
     kind === 'ENTITY'
   ) {
     actions.push('OPEN_IN_CHAT');
   }
-  if (kind === 'ARTIFACT' || kind === 'SECTION' || kind === 'SIGNAL' || kind === 'ENTITY') {
+  if (
+    kind === 'ARTIFACT' ||
+    kind === 'FINDING' ||
+    kind === 'SECTION' ||
+    kind === 'SIGNAL' ||
+    kind === 'ENTITY'
+  ) {
     actions.push('OPEN_IN_TIMELINE');
   }
   if (kind === 'ENTITY') {
@@ -280,6 +289,7 @@ export const mapWorkspaceSnippetToOmniboxResult = (
   }
   if (
     kind === 'ARTIFACT' ||
+    kind === 'FINDING' ||
     kind === 'ENTITY' ||
     kind === 'SIGNAL' ||
     kind === 'SOURCE' ||
@@ -300,6 +310,8 @@ export const mapWorkspaceSnippetToOmniboxResult = (
         ? String(snippet.metadata?.workspaceItemKind || 'Item')
         : kind === 'ARTIFACT'
           ? 'Artifact'
+          : kind === 'FINDING'
+            ? 'Finding'
           : kind === 'SECTION'
             ? 'Section'
             : kind === 'SOURCE'
@@ -312,6 +324,8 @@ export const mapWorkspaceSnippetToOmniboxResult = (
     artifactId:
       kind === 'ARTIFACT' || kind === 'SECTION' || kind === 'SOURCE'
         ? snippet.refId
+        : kind === 'FINDING' && typeof snippet.metadata?.originArtifactId === 'string'
+          ? snippet.metadata.originArtifactId
         : typeof snippet.metadata?.linkedArtifactId === 'string'
           ? snippet.metadata.linkedArtifactId
           : undefined,

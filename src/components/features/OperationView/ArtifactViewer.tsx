@@ -235,7 +235,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const visibleAnomalies =
     report?.agendas && report.agendas.length > 0
       ? report.agendas
-      : getSectionItemsByKinds(orderedSections, ['ANOMALIES', 'KEY_FINDINGS']);
+      : getSectionItemsByKinds(orderedSections, ['ANOMALIES']);
   const hiddenSectionKinds = new Set(
     [
         primarySummarySection?.kind,

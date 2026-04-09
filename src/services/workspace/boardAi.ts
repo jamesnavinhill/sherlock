@@ -17,6 +17,8 @@ const toAttachmentKind = (kind: WorkspaceLibraryEntry['kind']): ChatAttachmentKi
   switch (kind) {
     case 'ARTIFACT':
       return 'REPORT';
+    case 'FINDING':
+      return 'FINDING';
     case 'ENTITY':
     case 'SOURCE':
     case 'SIGNAL':

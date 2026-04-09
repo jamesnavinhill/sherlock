@@ -1,4 +1,9 @@
-import { buildArtifactFollowUps, buildArtifactSections, toFollowUpTexts } from '../../../domain';
+import {
+  buildArtifactFollowUps,
+  buildArtifactKeyFindings,
+  buildArtifactSections,
+  toFollowUpTexts,
+} from '../../../domain';
 import type { Artifact, ArtifactEvidence, ArtifactProvenance } from '../../../types';
 import type { ArtifactNormalizationOptions, StructuredArtifactPayload } from '../types';
 import { toDisplayText } from './jsonParsing';
@@ -107,6 +112,20 @@ export const buildArtifactFromPayload = (
     leads,
     followUps: followUpTexts,
   });
+  const canonicalKeyFindings = buildArtifactKeyFindings({
+    keyFindings: payload.keyFindings,
+    sections: buildArtifactSections({
+      sections: payload.sections,
+      summary,
+      agendas,
+      leads,
+      followUps: canonicalFollowUps,
+      evidence,
+      methodology,
+      artifactType: options.artifactType,
+    }),
+    legacyAgendas: agendas,
+  });
   const legacyFollowUpTexts = toFollowUpTexts(canonicalFollowUps);
 
   const sources = dedupeSources([
@@ -121,6 +140,7 @@ export const buildArtifactFromPayload = (
     summary,
     agendas,
     leads,
+    keyFindings: canonicalKeyFindings,
     followUps: canonicalFollowUps,
     evidence,
     methodology,
@@ -143,6 +163,7 @@ export const buildArtifactFromPayload = (
     topic: options.topic,
     dateStr: new Date().toLocaleDateString(),
     summary,
+    keyFindings: canonicalKeyFindings,
     entities: normalizeEntities(payload.entities),
     agendas,
     leads: legacyFollowUpTexts.length > 0 ? legacyFollowUpTexts : leads,

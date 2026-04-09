@@ -5,6 +5,7 @@ import type {
   ArtifactType,
   Artifact,
   FollowUp,
+  KeyFinding,
   LabelProfile,
   PurposeProfile,
 } from '../types';
@@ -77,6 +78,8 @@ const inferFollowUpKind = (value: string): FollowUp['kind'] => {
 
 export const getFollowUpText = (followUp: FollowUp): string => followUp.actionText || followUp.title;
 
+export const getKeyFindingText = (finding: KeyFinding): string => finding.summary || finding.title;
+
 export const getArtifactFollowUps = (artifact: Pick<Artifact, 'followUps' | 'leads'>): FollowUp[] => {
   if (artifact.followUps && artifact.followUps.length > 0) {
     return artifact.followUps;
@@ -93,6 +96,11 @@ export const getArtifactFollowUps = (artifact: Pick<Artifact, 'followUps' | 'lea
 
 export const toFollowUpTexts = (followUps: FollowUp[] | undefined): string[] =>
   (followUps || []).map(getFollowUpText).filter((entry) => entry.trim().length > 0);
+
+export const toKeyFindingTexts = (keyFindings: KeyFinding[] | undefined): string[] =>
+  (keyFindings || [])
+    .map(getKeyFindingText)
+    .filter((entry) => entry.trim().length > 0);
 
 export const buildArtifactFollowUps = (options: {
   leads?: string[];
@@ -150,6 +158,150 @@ export const buildArtifactFollowUps = (options: {
     createdAt: options.createdAt,
     updatedAt: options.createdAt,
   }));
+};
+
+const normalizeSupportRefs = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => normalizeText(entry))
+    .filter((entry) => entry.length > 0);
+};
+
+const normalizeKeyFindingRecord = (value: unknown, index: number): KeyFinding | null => {
+  if (typeof value === 'string') {
+    const text = value.trim();
+    if (!text) return null;
+    return {
+      id: createLocalId('finding'),
+      title: text.slice(0, 96),
+      summary: text,
+      order: index,
+    };
+  }
+
+  if (!value || typeof value !== 'object') return null;
+
+  const record = value as Record<string, unknown>;
+  const title =
+    normalizeText(record.title ?? record.label ?? record.heading ?? record.name) ||
+    normalizeText(record.summary ?? record.content ?? record.text);
+  const summary =
+    normalizeText(record.summary ?? record.content ?? record.text ?? record.description ?? record.finding) ||
+    title;
+
+  if (!title && !summary) return null;
+
+  return {
+    id: normalizeText(record.id) || createLocalId('finding'),
+    workspaceId: normalizeText(record.workspaceId) || undefined,
+    originArtifactId: normalizeText(record.originArtifactId ?? record.artifactId) || undefined,
+    originSectionId: normalizeText(record.originSectionId ?? record.sectionId) || undefined,
+    title: title || summary.slice(0, 96),
+    summary: summary || title,
+    supportRefs: normalizeSupportRefs(record.supportRefs ?? record.supportingRefs ?? record.support),
+    createdAt: typeof record.createdAt === 'number' ? record.createdAt : undefined,
+    updatedAt: typeof record.updatedAt === 'number' ? record.updatedAt : undefined,
+    order: typeof record.order === 'number' ? record.order : index,
+    metadata:
+      record.metadata && typeof record.metadata === 'object'
+        ? (record.metadata as Record<string, unknown>)
+        : undefined,
+  };
+};
+
+const buildKeyFindingSectionFallbacks = (
+  sections: ArtifactSection[] | undefined,
+  legacyAgendas: string[] | undefined
+): Array<string | Record<string, unknown>> => {
+  const findingSection = getSectionByKinds(sections, ['KEY_FINDINGS']);
+  if (findingSection) {
+    const sectionItems = (findingSection.items || []).map((item) => item.trim()).filter(Boolean);
+    if (sectionItems.length > 0) {
+      return sectionItems;
+    }
+    if (findingSection.content?.trim()) {
+      return [
+        {
+          title: findingSection.title,
+          summary: findingSection.content.trim(),
+          sectionId: findingSection.id,
+        },
+      ];
+    }
+  }
+
+  return (legacyAgendas || []).map((entry) => entry.trim()).filter(Boolean);
+};
+
+export const buildArtifactKeyFindings = (options: {
+  keyFindings?: unknown;
+  existing?: KeyFinding[] | unknown[];
+  sections?: ArtifactSection[];
+  legacyAgendas?: string[];
+  artifactId?: string;
+  workspaceId?: string;
+  createdAt?: number;
+}): KeyFinding[] => {
+  const existingKeyFindings =
+    options.existing?.filter(
+      (finding): finding is KeyFinding =>
+        !!finding && typeof finding === 'object' && !Array.isArray(finding)
+    ) || [];
+  const useExistingKeyFindings = !Array.isArray(options.keyFindings) && existingKeyFindings.length > 0;
+
+  const explicitRecords = Array.isArray(options.keyFindings)
+    ? options.keyFindings
+    : useExistingKeyFindings
+      ? existingKeyFindings
+      : buildKeyFindingSectionFallbacks(options.sections, options.legacyAgendas);
+
+  return explicitRecords
+    .map((entry, index) =>
+      useExistingKeyFindings
+        ? ({
+            ...entry,
+            id:
+              entry.id ||
+              (options.artifactId
+                ? `${options.artifactId}-finding-${index}`
+                : createLocalId('finding')),
+            workspaceId: entry.workspaceId || options.workspaceId,
+            originArtifactId: entry.originArtifactId || options.artifactId,
+            createdAt: entry.createdAt ?? options.createdAt,
+            updatedAt: entry.updatedAt ?? options.createdAt,
+            order: entry.order ?? index,
+          } satisfies KeyFinding)
+        : normalizeKeyFindingRecord(entry, index)
+    )
+    .filter((finding): finding is KeyFinding => !!finding)
+    .map((finding, index) => ({
+      ...finding,
+      id:
+        finding.id ||
+        (options.artifactId
+          ? `${options.artifactId}-finding-${index}`
+          : createLocalId('finding')),
+      workspaceId: finding.workspaceId || options.workspaceId,
+      originArtifactId: finding.originArtifactId || options.artifactId,
+      title: finding.title || getKeyFindingText(finding).slice(0, 96),
+      summary: getKeyFindingText(finding),
+      createdAt: finding.createdAt ?? options.createdAt,
+      updatedAt: finding.updatedAt ?? options.createdAt,
+      order: finding.order ?? index,
+    }));
+};
+
+export const getArtifactKeyFindings = (
+  artifact: Pick<Artifact, 'keyFindings' | 'sections' | 'agendas'>
+): KeyFinding[] => {
+  if (artifact.keyFindings && artifact.keyFindings.length > 0) {
+    return artifact.keyFindings;
+  }
+
+  return buildArtifactKeyFindings({
+    sections: artifact.sections,
+    legacyAgendas: artifact.agendas,
+  });
 };
 
 const ensureUniqueSectionIds = (sections: ArtifactSection[]): ArtifactSection[] => {
@@ -256,7 +408,7 @@ export const buildArtifactSections = (options: {
   followUps?: string[] | FollowUp[];
   methodology?: string;
   evidence?: ArtifactEvidence[];
-  findings?: string[];
+  keyFindings?: string[] | KeyFinding[];
   artifactType?: ArtifactType;
 }): ArtifactSection[] => {
   const followUpTexts = Array.isArray(options.followUps)
@@ -264,10 +416,40 @@ export const buildArtifactSections = (options: {
       ? (options.followUps as string[])
       : toFollowUpTexts(options.followUps as FollowUp[])
     : [];
+  const keyFindingTexts = Array.isArray(options.keyFindings)
+    ? typeof options.keyFindings[0] === 'string'
+      ? (options.keyFindings as string[])
+      : toKeyFindingTexts(options.keyFindings as KeyFinding[])
+    : [];
   const normalizedSections = normalizeArtifactSections(options.sections);
   if (normalizedSections.length > 0) {
     const existingKinds = new Set(normalizedSections.map((section) => section.kind));
     const augmentedSections = [...normalizedSections];
+
+    if (keyFindingTexts.length > 0) {
+      const findingSectionIndex = augmentedSections.findIndex((section) => section.kind === 'KEY_FINDINGS');
+      const findingSectionOrder =
+        findingSectionIndex >= 0
+          ? (augmentedSections[findingSectionIndex].order ?? findingSectionIndex)
+          : augmentedSections.length;
+      const findingSection =
+        createSection('KEY_FINDINGS', findingSectionOrder, {
+          title:
+            findingSectionIndex >= 0
+              ? augmentedSections[findingSectionIndex].title
+              : undefined,
+          items: keyFindingTexts,
+        }) || null;
+
+      if (findingSection) {
+        if (findingSectionIndex >= 0) {
+          findingSection.id = augmentedSections[findingSectionIndex].id;
+          augmentedSections[findingSectionIndex] = findingSection;
+        } else {
+          augmentedSections.push(findingSection);
+        }
+      }
+    }
 
     if (!existingKinds.has('EXECUTIVE_SUMMARY') && options.summary?.trim()) {
       const section = createSection('EXECUTIVE_SUMMARY', augmentedSections.length, {
@@ -310,7 +492,7 @@ export const buildArtifactSections = (options: {
 
   const derivedSections = [
     createSection('EXECUTIVE_SUMMARY', 0, { content: options.summary }),
-    createSection('KEY_FINDINGS', 1, { items: options.findings }),
+    createSection('KEY_FINDINGS', 1, { items: keyFindingTexts }),
     createSection('ANOMALIES', 2, { items: options.agendas }),
     createSection('LEADS', 3, { items: options.leads }),
     createSection('EVIDENCE', 4, {
@@ -411,7 +593,7 @@ export const toLegacyReportArrays = (
   report: Artifact
 ): Pick<Artifact, 'agendas' | 'leads' | 'followUps'> => {
   const leadItems = getSectionItemsByKinds(report.sections, ['LEADS', 'NEXT_STEPS']);
-  const anomalyItems = getSectionItemsByKinds(report.sections, ['ANOMALIES', 'KEY_FINDINGS']);
+  const anomalyItems = getSectionItemsByKinds(report.sections, ['ANOMALIES']);
   const canonicalFollowUps = getArtifactFollowUps(report);
   const followUpTexts = toFollowUpTexts(canonicalFollowUps);
 

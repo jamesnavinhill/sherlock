@@ -85,6 +85,8 @@ const getShapeColor = (entry: WorkspaceLibraryEntry): BoardCardColor => {
   switch (entry.kind) {
     case 'ARTIFACT':
       return 'blue';
+    case 'FINDING':
+      return 'violet';
     case 'ENTITY':
       return 'grey';
     case 'SOURCE':
@@ -127,6 +129,16 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.contextText,
           560
+        )}`,
+      };
+    case 'FINDING':
+      return {
+        color: getShapeColor(entry),
+        w: 340,
+        h: 260,
+        content: `${entry.title}\n\n${clipBoardCardText(
+          entry.description || entry.contextText,
+          280
         )}`,
       };
     case 'SIGNAL':

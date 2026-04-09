@@ -11,6 +11,11 @@ import type {
 import { hasLaunchContextPrimer } from '@/services/chat/launchContext';
 import { buildChatSessionMetadata } from '@/services/chat/launchContext';
 
+const findArtifactKeyFinding = (artifacts: Artifact[], keyFindingId: string) =>
+  artifacts
+    .flatMap((artifact) => artifact.keyFindings || [])
+    .find((finding) => finding.id === keyFindingId);
+
 export const resolveLaunchContextSessionTitle = (
   artifacts: Artifact[],
   launchContext?: ChatLaunchContext,
@@ -20,6 +25,10 @@ export const resolveLaunchContextSessionTitle = (
 
   if (launchContext.workspaceItemId) {
     return workspaceItems.find((entry) => entry.id === launchContext.workspaceItemId)?.title;
+  }
+
+  if (launchContext.keyFindingId) {
+    return findArtifactKeyFinding(artifacts, launchContext.keyFindingId)?.title;
   }
 
   if (launchContext.sourceArtifactId) {

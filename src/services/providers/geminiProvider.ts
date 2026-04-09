@@ -150,6 +150,21 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
                         required: ['name', 'type', 'role', 'sentiment'],
                       },
                     },
+                    keyFindings: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          title: { type: Type.STRING },
+                          summary: { type: Type.STRING },
+                          supportRefs: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING },
+                          },
+                        },
+                        required: ['title', 'summary'],
+                      },
+                    },
                     agendas: {
                       type: Type.ARRAY,
                       items: { type: Type.STRING },
@@ -186,7 +201,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
                       },
                     },
                   },
-                  required: ['summary', 'entities', 'agendas', 'leads', 'sources'],
+                  required: ['summary', 'entities', 'keyFindings', 'agendas', 'leads', 'sources'],
                 },
               }
             : {}),

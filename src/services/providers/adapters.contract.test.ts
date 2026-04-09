@@ -97,8 +97,11 @@ const makeFetchResponse = (body: string, status = 200): Response =>
 
 const assertRenderSafeReport = (report: Awaited<ReturnType<typeof openAIProvider.investigate>>) => {
   expect(typeof report.summary).toBe('string');
+  expect(Array.isArray(report.keyFindings)).toBe(true);
   expect(Array.isArray(report.agendas)).toBe(true);
   expect(Array.isArray(report.leads)).toBe(true);
+  expect(report.keyFindings?.every((entry) => typeof entry.title === 'string')).toBe(true);
+  expect(report.keyFindings?.every((entry) => typeof entry.summary === 'string')).toBe(true);
   expect(report.agendas.every((entry) => typeof entry === 'string')).toBe(true);
   expect(report.leads.every((entry) => typeof entry === 'string')).toBe(true);
   expect(report.entities.length).toBeGreaterThan(0);

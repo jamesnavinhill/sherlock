@@ -111,6 +111,22 @@ CREATE TABLE IF NOT EXISTS "follow_ups" (
 	FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "key_findings" (
+	"id" text PRIMARY KEY NOT NULL,
+	"workspace_id" text,
+	"artifact_id" text NOT NULL,
+	"section_id" text,
+	"title" text NOT NULL,
+	"summary" text NOT NULL,
+	"support_refs_json" text,
+	"metadata_json" text,
+	"sort_order" integer NOT NULL,
+	"created_at" integer NOT NULL,
+	"updated_at" integer NOT NULL,
+	FOREIGN KEY ("workspace_id") REFERENCES "workspaces"("id") ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY ("artifact_id") REFERENCES "artifacts"("id") ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "scopes" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,

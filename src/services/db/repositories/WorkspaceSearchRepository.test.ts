@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WorkspaceSearchRepository } from './WorkspaceSearchRepository';
 import {
   artifactEvidence,
+  keyFindings,
   artifactSections,
   workspaces,
   entities,
@@ -77,6 +78,21 @@ describe('WorkspaceSearchRepository', () => {
         quote: 'Supplier concentration increased',
         sourceTitle: 'Registry filing',
         sourceUrl: 'https://example.com/filing',
+      },
+    ];
+    const keyFindingRows = [
+      {
+        id: 'finding-1',
+        workspaceId: 'case-1',
+        artifactId: 'rep-1',
+        sectionId: 'sec-1',
+        title: 'Atlas exposure is rising',
+        summary: 'Atlas now depends on a narrower supplier base with weaker disclosure.',
+        supportRefsJson: JSON.stringify(['Registry filing']),
+        metadataJson: JSON.stringify({ confidence: 'high' }),
+        sortOrder: 0,
+        createdAt: Date.parse('2026-04-03T10:00:00.000Z'),
+        updatedAt: Date.parse('2026-04-03T10:00:00.000Z'),
       },
     ];
     const entityRows = [
@@ -159,6 +175,12 @@ describe('WorkspaceSearchRepository', () => {
           };
         }
 
+        if (table === keyFindings) {
+          return {
+            where: vi.fn().mockResolvedValue(keyFindingRows),
+          };
+        }
+
         if (table === entities) {
           return {
             where: vi.fn().mockResolvedValue(entityRows),
@@ -218,6 +240,7 @@ describe('WorkspaceSearchRepository', () => {
       })
     );
     expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-REPORT-rep-1')).toBe(true);
+    expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-FINDING-finding-1')).toBe(true);
     expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-EVIDENCE-ev-1')).toBe(true);
     expect(bundle.snippets.some((snippet) => snippet.id === 'CTX-WORKSPACE-ITEM-item-1')).toBe(
       true

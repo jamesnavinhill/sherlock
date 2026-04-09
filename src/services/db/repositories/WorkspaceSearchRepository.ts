@@ -14,6 +14,7 @@ import {
 import { getDB } from '../client';
 import {
   artifactEvidence,
+  keyFindings,
   artifactSections,
   workspaces,
   entities,
@@ -131,6 +132,9 @@ export class WorkspaceSearchRepository {
           .from(artifactEvidence)
           .where(inArray(artifactEvidence.artifactId, artifactIds))
       : [];
+    const keyFindingRows = artifactIds.length
+      ? await db.select().from(keyFindings).where(inArray(keyFindings.artifactId, artifactIds))
+      : [];
     const entityRows = artifactIds.length
       ? await db.select().from(entities).where(inArray(entities.artifactId, artifactIds))
       : [];
@@ -228,6 +232,36 @@ export class WorkspaceSearchRepository {
           evidenceId: row.id,
           evidenceKind: row.kind,
           sourceUrl: row.sourceUrl || undefined,
+        },
+      });
+    });
+
+    keyFindingRows.forEach((row) => {
+      const parent = row.artifactId ? artifactById.get(row.artifactId) : undefined;
+      const supportRefs = parseStoredJsonOrUndefined<string[]>(
+        row.supportRefsJson,
+        `workspace search finding support refs ${row.id}`
+      );
+      const content = [row.summary, ...(supportRefs || [])].filter(Boolean).join('\n');
+
+      candidates.push({
+        id: `CTX-FINDING-${row.id}`,
+        kind: 'FINDING',
+        title: row.title,
+        snippet: toSnippet(content || row.title),
+        refId: row.id,
+        refKind: 'KEY_FINDING',
+        score: scoreCandidate(
+          query,
+          [row.title, row.summary, ...(supportRefs || []), parent?.topic || ''],
+          parent?.createdAt || row.createdAt || 0,
+          row.title
+        ),
+        timestamp: parent?.createdAt || row.createdAt || undefined,
+        metadata: {
+          originArtifactId: row.artifactId,
+          originSectionId: row.sectionId || undefined,
+          supportRefs,
         },
       });
     });

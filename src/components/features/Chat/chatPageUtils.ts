@@ -118,6 +118,27 @@ export const getLaunchContextSummary = (params: {
     };
   }
 
+  if (params.launchContext.keyFindingId) {
+    const findingMatch = params.reports
+      .flatMap((artifact) =>
+        (artifact.keyFindings || []).map((finding) => ({
+          artifact,
+          finding,
+        }))
+      )
+      .find((entry) => entry.finding.id === params.launchContext?.keyFindingId);
+
+    if (!findingMatch) return null;
+
+    return {
+      label: 'Pinned Finding',
+      title: findingMatch.finding.title,
+      body:
+        findingMatch.finding.summary ||
+        `Saved finding from ${sanitizeDisplayTitle(findingMatch.artifact.topic)}.`,
+    };
+  }
+
   if (params.launchContext.sourceArtifactId) {
     const report = params.reports.find(
       (entry) => entry.id === params.launchContext?.sourceArtifactId

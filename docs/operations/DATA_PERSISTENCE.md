@@ -16,6 +16,7 @@ Defined in `src/services/db/schema.ts`:
 - `scopes`
 - `workspaces`
 - `artifacts`
+- `key_findings`
 - `follow_ups`
 - `artifact_sections`
 - `artifact_evidence`
@@ -69,7 +70,7 @@ Repository hydration and serialization now follow a shared helper contract in `s
 
 That helper is the canonical repository pattern for:
 
-- artifact saves plus dependent follow-ups, sections, evidence, entities, sources, and lineage updates
+- artifact saves plus dependent key findings, follow-ups, sections, evidence, entities, sources, and lineage updates
 - chat message saves plus attachment rows
 - workspace/board/session delete flows that span multiple tables
 - workspace-data restore flows that clear and replay the persisted workspace domain
@@ -79,9 +80,10 @@ That helper is the canonical repository pattern for:
 Runtime code now treats persisted records as:
 
 - `Workspace` -> stored in `workspaces`
-- `Artifact` -> stored in `artifacts` plus `follow_ups`, `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
+- `Artifact` -> stored in `artifacts` plus `key_findings`, `follow_ups`, `artifact_sections`, `artifact_evidence`, `entities`, and `sources`
 - `WorkspaceRun` -> stored in `workspace_runs`
 - `Signal` -> stored in `signals`
+- `KeyFinding` -> stored in `key_findings`
 - `FollowUp` -> stored in `follow_ups`
 - `WorkspaceItem` -> stored in `workspace_items`
 - `WorkspaceBoard` and `WorkspaceBoardDocument` -> stored in `workspace_boards` and `workspace_board_documents`
@@ -125,9 +127,11 @@ Runtime code now treats those workspace identity fields as distinct concerns:
 - `artifact_type`
 - `label_profile_id`
 
+`key_findings` persists first-class findings linked to an origin artifact and optional originating section, with stable ids, sort ordering, support refs, and finding-local metadata. Runtime code treats `Artifact.keyFindings` as the canonical findings field.
+
 `follow_ups` persists first-class actionable records linked to their origin artifact, optional originating section, optional source signal, entity/source references, and resolution metadata. Follow-up lineage can now connect `Signal -> Run -> Artifact -> FollowUp -> Run -> Artifact` without relying only on compatibility arrays.
 
-`artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility. Section ids are unique within an artifact, and the table uses a composite primary key of `artifact_id + id` so repeated section labels from different artifacts do not collide.
+`artifact_sections` persists typed section rows for richer artifacts while legacy `summary`, `agendas`, and `leads` fields remain available for compatibility. Section ids are unique within an artifact, and the table uses a composite primary key of `artifact_id + id` so repeated section labels from different artifacts do not collide. `KEY_FINDINGS` rows in this table are a presentation projection of canonical `key_findings` records rather than the source of truth.
 
 `artifact_evidence` persists first-class evidence rows with:
 
@@ -149,9 +153,9 @@ The chat implementation adds:
 - `chat_message_attachments` for retrieved context snippets attached to a turn
 - `chat_actions` for auditable retrieval, save, append, and follow-up operations
 
-Artifact save/hydration behavior now treats `Artifact.followUps` as the canonical runtime field. Legacy flattened `leads` arrays are still reconstructed when older persisted artifact payloads need hydration, but new workspace-level export flows now write canonical workspace/artifact keys rather than legacy `case` / `reports` payloads.
+Artifact save/hydration behavior now treats `Artifact.keyFindings` and `Artifact.followUps` as canonical runtime fields. Legacy flattened `leads` arrays are still reconstructed when older persisted artifact payloads need hydration, but new workspace-level export flows now write canonical workspace/artifact keys rather than legacy `case` / `reports` payloads.
 
-Artifact saves are now atomic across the artifact row, dependent structured rows, source-signal linkage, and source-follow-up resolution so the database does not keep half-saved artifact bundles.
+Artifact saves are now atomic across the artifact row, dependent key-finding/follow-up/section/evidence rows, source-signal linkage, and source-follow-up resolution so the database does not keep half-saved artifact bundles.
 
 The research workspace implementation adds:
 
@@ -181,6 +185,7 @@ The migration runner records applied steps in SQLite table `__sherlock_schema_mi
 - canonical storage cutover for legacy table and column names
 - canonical schema bootstrap from `src/services/db/migrations_sql.ts`
 - additive schema repairs for missing columns plus the `artifact_sections` composite-primary-key rebuild
+- key-findings cutover that backfills first-class finding rows for older saved artifacts
 
 That keeps schema evolution inside SQLite itself rather than layering a second localStorage-to-SQLite import bridge on top of database initialization.
 
@@ -190,6 +195,7 @@ Existing local databases are upgraded through that pipeline:
 - legacy foreign-key columns such as `case_id`, `report_id`, `linked_report_id`, and `source_report_id` are renamed to canonical `workspace_id`, `artifact_id`, `linked_artifact_id`, and `source_artifact_id`
 - missing canonical columns such as workspace launch metadata and run/artifact pack metadata are added in place
 - `artifact_sections` still gets an in-place rebuild when older installs used a global primary key on `id`
+- older artifacts get a one-time findings backfill that prefers structured payload `keyFindings`, then existing `KEY_FINDINGS` section content, and finally legacy mixed-duty `agendas` as a bounded fallback
 
 Legacy `sherlock-storage` Zustand payloads are no longer imported during bootstrap. Workspace maintenance flows now treat canonical workspace-data backup/import as the supported structured transfer path.
 
@@ -251,6 +257,7 @@ Workspace-data backups include:
 
 - workspaces (`workspaces`)
 - artifacts (`artifacts`, `artifact_sections`, `artifact_evidence`, `entities`, `sources`)
+- artifact key findings (`key_findings`, also reflected canonically on artifact payloads)
 - artifact follow-ups (`follow_ups`, also reflected canonically on artifact payloads)
 - runs (`workspace_runs`)
 - chat sessions, messages, attachments, and actions

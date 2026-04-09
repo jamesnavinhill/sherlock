@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildArtifactChatOpenRequest,
   buildEntityChatOpenRequest,
+  buildKeyFindingBoardReference,
+  buildKeyFindingChatOpenRequest,
   buildSignalChatOpenRequest,
   buildWorkspaceItemChatOpenRequest,
   queueWorkspaceReferenceOnBoard,
@@ -90,6 +92,31 @@ describe('workspaceHandoffs', () => {
         sourceArtifactId: undefined,
       },
     });
+
+    expect(
+      buildWorkspaceItemChatOpenRequest({
+        id: 'item-4',
+        workspaceId: 'ws-1',
+        kind: 'NOTE',
+        title: 'Atlas finding note',
+        createdAt: 100,
+        updatedAt: 100,
+        provenance: {
+          source: 'CHAT',
+          sourceArtifactId: 'rep-1',
+          sourceFindingId: 'finding-1',
+        },
+      })
+    ).toEqual({
+      workspaceId: 'ws-1',
+      launchContext: {
+        workspaceItemId: 'item-4',
+        sourceArtifactId: 'rep-1',
+        keyFindingId: 'finding-1',
+        signalId: undefined,
+        headlineId: undefined,
+      },
+    });
   });
 
   it('builds entity and signal chat requests for shared surface handoffs', () => {
@@ -123,6 +150,46 @@ describe('workspaceHandoffs', () => {
       launchContext: {
         signalId: 'signal-1',
         headlineId: 'signal-1',
+      },
+    });
+
+    expect(
+      buildKeyFindingChatOpenRequest({
+        id: 'finding-1',
+        workspaceId: 'ws-1',
+        originArtifactId: 'rep-1',
+        title: 'Atlas exposure is rising',
+        summary: 'Supplier concentration increased.',
+      })
+    ).toEqual({
+      workspaceId: 'ws-1',
+      launchContext: {
+        keyFindingId: 'finding-1',
+        sourceArtifactId: 'rep-1',
+      },
+    });
+  });
+
+  it('builds finding board references for direct placement flows', () => {
+    expect(
+      buildKeyFindingBoardReference({
+        id: 'finding-1',
+        workspaceId: 'ws-1',
+        originArtifactId: 'rep-1',
+        originSectionId: 'sec-1',
+        title: 'Atlas exposure is rising',
+        summary: 'Supplier concentration increased.',
+        supportRefs: ['Registry filing'],
+      })
+    ).toEqual({
+      workspaceId: 'ws-1',
+      refKind: 'KEY_FINDING',
+      refId: 'finding-1',
+      title: 'Atlas exposure is rising',
+      metadata: {
+        originArtifactId: 'rep-1',
+        originSectionId: 'sec-1',
+        supportRefs: ['Registry filing'],
       },
     });
   });

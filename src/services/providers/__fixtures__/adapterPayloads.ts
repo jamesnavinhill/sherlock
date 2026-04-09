@@ -1,5 +1,12 @@
 export const REPORT_PAYLOAD = {
   summary: { text: 'Investigation summary from fixture.' },
+  keyFindings: [
+    {
+      title: 'Layered vendor chain obscures beneficial ownership',
+      summary: 'Atlas relies on intermediary entities that complicate direct ownership tracing.',
+      supportRefs: ['Public Contract Registry'],
+    },
+  ],
   agendas: ['Potential shell-company layering', { content: 'Watch procurement anomalies' }],
   leads: ['Trace vendor ownership chain', { text: 'Cross-check payment timing' }],
   entities: [

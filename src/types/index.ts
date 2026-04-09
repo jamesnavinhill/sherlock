@@ -155,6 +155,20 @@ export interface FollowUp {
   metadata?: Record<string, unknown>;
 }
 
+export interface KeyFinding {
+  id: string;
+  workspaceId?: string;
+  originArtifactId?: string;
+  originSectionId?: string;
+  title: string;
+  summary: string;
+  supportRefs?: string[];
+  createdAt?: number;
+  updatedAt?: number;
+  order?: number;
+  metadata?: Record<string, unknown>;
+}
+
 export type Headline = Signal;
 export type LeadStatus = SignalStatus;
 
@@ -206,6 +220,7 @@ export interface ManualNode {
 
 export type WorkspaceCanonicalRefKind =
   | 'ARTIFACT'
+  | 'KEY_FINDING'
   | 'ENTITY'
   | 'SOURCE'
   | 'SIGNAL'
@@ -219,6 +234,7 @@ export interface WorkspaceItemProvenance {
   sourceMessageId?: string;
   sourceSessionId?: string;
   sourceArtifactId?: string;
+  sourceFindingId?: string;
   sourceSignalId?: string;
   sourceHeadlineId?: string;
   sourceBoardId?: string;
@@ -263,7 +279,12 @@ export interface WorkspaceBoardDocument {
   updatedAt: number;
 }
 
-export type ChatMentionKind = 'ARTIFACT' | 'ENTITY' | 'SIGNAL' | 'WORKSPACE_ITEM';
+export type ChatMentionKind =
+  | 'ARTIFACT'
+  | 'KEY_FINDING'
+  | 'ENTITY'
+  | 'SIGNAL'
+  | 'WORKSPACE_ITEM';
 
 export interface ChatMentionReference {
   id: string;
@@ -464,6 +485,7 @@ export type ChatAttachmentKind =
   | 'WORKSPACE'
   | 'REPORT'
   | 'SECTION'
+  | 'FINDING'
   | 'ENTITY'
   | 'SIGNAL'
   | 'HEADLINE'
@@ -554,6 +576,7 @@ export interface ChatDraftArtifact {
 export interface ChatLaunchContext {
   workspaceItemId?: string;
   sourceArtifactId?: string;
+  keyFindingId?: string;
   entityName?: string;
   signalId?: string;
   headlineId?: string;
@@ -732,6 +755,7 @@ export interface Artifact {
   summary: string;
   agendas: string[];
   leads: string[];
+  keyFindings?: KeyFinding[];
   sections?: ArtifactSection[];
   followUps?: FollowUp[];
   artifactType?: ArtifactType;
