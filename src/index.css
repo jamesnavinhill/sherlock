@@ -564,9 +564,7 @@ body,
   color: var(--osint-text-action);
   border: 1px solid var(--osint-interaction-border-strong);
   font-weight: var(--font-weight-bold);
-  box-shadow:
-    inset 2px 0 0 color-mix(in oklab, var(--osint-primary) 40%, transparent),
-    var(--osint-interaction-shadow);
+  box-shadow: var(--osint-interaction-shadow);
 }
 
 .osint-button-chrome:disabled {
@@ -1021,7 +1019,6 @@ body,
 .osint-sidebar-nav-item:hover,
 .osint-sidebar-nav-item:focus-visible {
   background-color: var(--osint-interaction-hover-bg);
-  border-left-color: var(--osint-interaction-border-strong);
   color: var(--osint-text-action);
   box-shadow: var(--osint-interaction-shadow);
   outline: none;
@@ -1029,28 +1026,21 @@ body,
 
 .osint-sidebar-nav-item[data-active='true'] {
   background-color: var(--osint-interaction-active-bg);
-  border-left-color: color-mix(in oklab, var(--osint-primary) 44%, transparent);
   color: var(--osint-text-action);
-  box-shadow:
-    inset 2px 0 0 color-mix(in oklab, var(--osint-primary) 44%, transparent),
-    var(--osint-interaction-shadow);
+  box-shadow: var(--osint-interaction-shadow);
 }
 
 :root:not([data-theme='light']) .osint-sidebar-nav-item:hover,
 :root:not([data-theme='light']) .osint-sidebar-nav-item:focus-visible {
   background-color: var(--osint-surface);
-  border-left-color: color-mix(in oklab, var(--osint-border) 92%, transparent);
   color: var(--osint-text-strong);
-  box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--osint-interaction-shadow);
 }
 
 :root:not([data-theme='light']) .osint-sidebar-nav-item[data-active='true'] {
   background-color: color-mix(in oklab, var(--osint-surface) 86%, var(--osint-panel) 14%);
-  border-left-color: color-mix(in oklab, var(--osint-primary) 64%, transparent);
   color: var(--osint-primary);
-  box-shadow:
-    inset 2px 0 0 color-mix(in oklab, var(--osint-primary) 64%, transparent),
-    inset 10px 0 20px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--osint-interaction-shadow);
 }
 
 .osint-entity-chip {
