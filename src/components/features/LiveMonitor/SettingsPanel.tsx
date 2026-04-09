@@ -55,7 +55,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     'osint-meta-value w-full border border-zinc-700 bg-black p-2 outline-none focus:border-osint-primary';
 
   return (
-    <div className="absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
+    <div className="osint-panel-shell absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
       <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-black">
         <h3 className="osint-panel-title flex items-center">
           <Settings2 className="w-4 h-4 mr-2 text-osint-primary" />

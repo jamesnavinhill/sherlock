@@ -127,7 +127,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/50 p-4 border border-zinc-800">
+      <div className="osint-panel-shell flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/50 p-4 border border-zinc-800">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
@@ -148,7 +148,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
       </div>
 
       {showCreateForm && (
-        <div className="bg-black border border-zinc-700 p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="osint-panel-shell bg-black border border-zinc-700 p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between">
             <h4 className="osint-meta-value">
               {editingScope ? 'Edit Scope' : 'Create Custom Scope'}
@@ -227,7 +227,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
             return (
               <div
                 key={scope.id}
-                className={`overflow-hidden border bg-zinc-950/60 transition-all ${
+                className={`osint-raised-surface overflow-hidden transition-all ${
                   activeScopeId === scope.id
                     ? 'border-osint-primary/50 bg-osint-primary/5'
                     : 'border-zinc-800 hover:border-zinc-600'

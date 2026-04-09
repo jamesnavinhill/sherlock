@@ -129,7 +129,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   key={preset.id}
                   type="button"
                   onClick={() => handleApplySurfacePreset(preset.settings)}
-                  className={`rounded border p-4 text-left transition-colors ${
+                  className={`osint-raised-surface rounded border p-4 text-left transition-colors ${
                     isActive
                       ? 'border-osint-primary bg-osint-primary/8'
                       : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-600'
@@ -155,7 +155,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
         </div>
 
-        <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="osint-meta-label">Surface Workbench</div>
@@ -183,7 +183,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
 
           <div className="mt-6 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
             <div className="space-y-4">
-              <div className="rounded border border-zinc-800 bg-black p-4">
+              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
                 <div className="osint-meta-label">Surface Preview</div>
                 <div
                   className="mt-4 rounded border p-4"
@@ -236,7 +236,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 </div>
               </div>
 
-              <div className="rounded border border-zinc-800 bg-black p-4">
+              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
                 <div className="osint-meta-label">Surface Targets</div>
                 <div className="mt-3 grid gap-2">
                   {(Object.keys(SURFACE_LABELS) as Array<keyof ThemeSurfaceScale>).map((surfaceKey) => {
@@ -271,7 +271,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             </div>
 
             <div className="space-y-5">
-              <div className="rounded border border-zinc-800 bg-black p-4">
+              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="osint-meta-label">Selected Surface</div>
@@ -317,7 +317,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 </div>
               </div>
 
-              <div className="rounded border border-zinc-800 bg-black p-4">
+              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
                 <div className="osint-meta-label">Quick Adjust</div>
                 <div className="mt-4 space-y-2">
                   <button
@@ -381,10 +381,10 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </button>
       </div>
 
-      <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+      <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
         <div className="grid gap-3 md:grid-cols-2">
           {fontSelections.map((role) => (
-            <label key={role.key} className="rounded border border-zinc-800 bg-black/50 p-3">
+            <label key={role.key} className="osint-raised-surface rounded border border-zinc-800 bg-black/50 p-3">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="osint-title-inline">{role.label}</span>
                 <span className="osint-meta-label">
@@ -413,7 +413,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
           <div className="flex items-baseline justify-between gap-3">
             <div>
               <div className="osint-meta-label">Global Size Scale</div>
@@ -425,7 +425,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               {activeSizeProfile.label}
             </span>
           </div>
-          <div className="mt-4 rounded border border-zinc-800 bg-black/50 p-4">
+          <div className="osint-raised-surface-subtle mt-4 rounded border border-zinc-800 bg-black/50 p-4">
             <input
               type="range"
               min={-1}
@@ -448,7 +448,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
         </div>
 
-        <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
           <div className="flex items-baseline justify-between gap-3">
             <div>
               <div className="osint-meta-label">Global Weight Profile</div>
@@ -460,7 +460,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               {activeWeightProfile.label}
             </span>
           </div>
-          <div className="mt-4 rounded border border-zinc-800 bg-black/50 p-4">
+          <div className="osint-raised-surface-subtle mt-4 rounded border border-zinc-800 bg-black/50 p-4">
             <input
               type="range"
               min={-1}
@@ -484,7 +484,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </div>
       </div>
 
-      <div className="rounded border border-zinc-800 bg-black/60 p-5">
+      <div className="osint-raised-surface rounded border border-zinc-800 bg-black/60 p-5">
         <div
           className="osint-meta-label"
           style={{
@@ -516,7 +516,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           still feel like part of the same system.
         </p>
         <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
+          <div className="osint-raised-surface-subtle rounded border border-zinc-800 bg-zinc-950/70 p-4">
             <div
               className="osint-meta-label"
               style={{
@@ -543,7 +543,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               ))}
             </div>
           </div>
-          <div className="rounded border border-zinc-800 bg-zinc-950/70 p-4">
+          <div className="osint-raised-surface-subtle rounded border border-zinc-800 bg-zinc-950/70 p-4">
             <div
               className="osint-meta-label"
               style={{
@@ -579,7 +579,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         className="mb-0"
       >
         <div className="space-y-6 px-3 pb-3 pt-1">
-          <div className="rounded border border-zinc-800 bg-zinc-950/50 p-4">
+          <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex min-w-0 items-center gap-3">
                 <div

@@ -147,7 +147,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
   }, [feedConfig.autoRefresh, feedConfig.refreshInterval, loading, loadFeed]);
 
   const renderSettingsPanel = () => (
-    <div className="absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
+    <div className="osint-panel-shell absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
       <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-black">
         <h3 className="osint-meta-label-strong text-white flex items-center">
           <Settings2 className="w-4 h-4 mr-2 text-osint-primary" />
@@ -417,7 +417,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
           {/* Mobile Filter Panel Overlay */}
           {showFilters && (
-            <div className="absolute top-20 left-0 right-0 z-40 bg-osint-panel border-b border-zinc-700 p-4 md:hidden shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
+            <div className="osint-panel-shell absolute top-20 left-0 right-0 z-40 bg-osint-panel border-b border-zinc-700 p-4 md:hidden shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="osint-meta-label-strong text-white flex items-center">
                   <Filter className="w-4 h-4 mr-2 text-osint-primary" />
@@ -516,7 +516,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             : feedItems.map((item) => (
                 <div
                   key={item.id}
-                  className="h-full bg-osint-panel border border-zinc-800 p-5 hover:border-osint-primary transition-all cursor-pointer group flex flex-col hover:bg-zinc-900/80 animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-sm"
+                  className="osint-raised-surface h-full p-5 transition-all cursor-pointer group flex flex-col hover:border-osint-primary hover:bg-zinc-900/80 animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-sm"
                   onClick={() => setSelectedItem(item)}
                 >
                   <div className="flex justify-between items-start mb-4">

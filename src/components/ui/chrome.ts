@@ -3,7 +3,7 @@ export const CHROME_HEADER_CLASS =
 
 export const CHROME_HEADER_ROW_CLASS = 'flex h-full min-w-0 items-center justify-between gap-3';
 
-export const CHROME_PANEL_CLASS = 'border-zinc-800 bg-black/95 backdrop-blur-md';
+export const CHROME_PANEL_CLASS = 'osint-panel-shell border-zinc-800 bg-black/95 backdrop-blur-md';
 
 export const CHROME_PANEL_HEADER_CLASS =
   'border-b border-zinc-800 bg-zinc-900/30 px-4 py-3';
@@ -23,6 +23,10 @@ export const CHROME_ACTION_BUTTON_CLASS =
 export const CHROME_COMPACT_ACTION_BUTTON_CLASS = `${CHROME_ACTION_BUTTON_CLASS} h-6 px-2`;
 
 export const CHROME_NESTED_ITEM_CLASS = 'osint-panel-item p-3';
+
+export const CHROME_RAISED_SURFACE_CLASS = 'osint-raised-surface';
+
+export const CHROME_RAISED_SURFACE_SUBTLE_CLASS = 'osint-raised-surface-subtle';
 
 export const CHROME_NESTED_ITEM_BUTTON_CLASS = `${CHROME_NESTED_ITEM_CLASS} w-full text-left`;
 

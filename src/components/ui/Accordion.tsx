@@ -32,11 +32,11 @@ export const Accordion: React.FC<AccordionProps> = ({
   contentClassName = '',
 }) => {
   return (
-    <div className={`mb-2 border border-zinc-800 bg-black/90 ${className}`}>
+    <div className={`osint-raised-surface-section mb-2 ${className}`}>
       <button
         type="button"
         onClick={onToggle}
-        className={`osint-meta-label-strong flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-zinc-300 transition-colors hover:bg-zinc-800/90 ${headerClassName}`}
+        className={`osint-meta-label-strong flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-zinc-300 transition-colors hover:bg-[color:var(--osint-interaction-hover-bg)] ${headerClassName}`}
       >
         <span className="flex min-w-0 items-center gap-2">
           {Icon && <Icon className="w-4 h-4 mr-2 text-zinc-500" />}

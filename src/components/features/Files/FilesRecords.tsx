@@ -72,7 +72,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
 }) => (
   <div className="animate-in fade-in slide-in-from-right-4 duration-300">
     {focusedItem && !viewModel.isUnassigned && focusedItem.workspaceId ? (
-      <div className="mb-6 border border-osint-primary/40 bg-osint-primary/10 p-5">
+      <div className="osint-raised-surface mb-6 border-osint-primary/40 bg-osint-primary/10 p-5">
         <div className="osint-meta-label text-osint-primary">Focused Item</div>
         <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -116,7 +116,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
     {viewMode === 'GRID' ? (
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {viewModel.records.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center border border-dashed border-zinc-800 bg-zinc-900/20 py-20 animate-in fade-in">
+          <div className="osint-raised-surface-subtle col-span-full flex flex-col items-center justify-center border border-dashed border-zinc-800 bg-zinc-900/20 py-20 animate-in fade-in">
             <FileText className="mb-4 h-12 w-12 text-zinc-800" />
             <div className="osint-meta-label italic text-zinc-600">
               NO_WORKSPACE_RECORDS_MATCH_FILTER
@@ -128,7 +128,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
               <div
                 key={record.artifact.id || index}
                 onClick={() => onSelectArtifact(record.artifact)}
-                className="group flex cursor-pointer items-center justify-between border border-zinc-800 bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:border-osint-primary hover:bg-zinc-900"
+                className="osint-raised-surface group flex cursor-pointer items-center justify-between p-6 backdrop-blur-sm transition-all hover:border-osint-primary hover:bg-zinc-900"
               >
                 <div className="flex items-center space-x-4">
                   <div className="border border-zinc-800 bg-black p-3 text-white group-hover:border-zinc-600">
@@ -187,10 +187,10 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                       }
                     : undefined
                 }
-                className={`group flex items-center justify-between border bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:bg-zinc-900 ${
+                className={`osint-raised-surface group flex items-center justify-between border bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:bg-zinc-900 ${
                   focusedItem?.id === record.item.id
                     ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.28)]'
-                    : 'border-zinc-800 hover:border-zinc-600'
+                    : 'hover:border-zinc-600'
                 }`}
               >
                 <div className="flex min-w-0 items-center space-x-4">
@@ -250,7 +250,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
         )}
       </div>
     ) : (
-      <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
+      <div className="osint-panel-shell overflow-hidden border border-zinc-800 bg-zinc-950/70">
         <div className="osint-meta-label grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
           <span>Type</span>
           <span>Record</span>
@@ -268,7 +268,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                 <div
                   key={record.artifact.id || index}
                   onClick={() => onSelectArtifact(record.artifact)}
-                  className="grid cursor-pointer grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                  className="osint-raised-surface-subtle grid cursor-pointer grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
                 >
                   <div className="self-start border border-zinc-800 bg-black p-3 text-white">
                     <FileText className="h-4 w-4" />
@@ -318,7 +318,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
               ) : (
                 <div
                   key={record.item.id}
-                  className="grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                  className="osint-raised-surface-subtle grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
                 >
                   <div className="self-start border border-zinc-800 bg-black p-3 text-white">
                     <FileText className="h-4 w-4" />

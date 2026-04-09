@@ -155,7 +155,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             <div
               key={workspace.id}
               onClick={() => onSelectWorkspace(workspace.id)}
-              className="group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden border border-zinc-800 bg-osint-panel/80 p-6 backdrop-blur-sm transition-all hover:border-osint-primary"
+              className="osint-raised-surface group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden p-6 backdrop-blur-sm transition-all hover:border-osint-primary"
             >
               <div className="absolute right-0 top-0 p-4 opacity-20 transition-opacity group-hover:opacity-40">
                 <Folder className="h-24 w-24 text-white" />
@@ -182,14 +182,14 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
 
               <div className="relative z-10 mt-auto pt-6">
                 <div className="grid grid-cols-2 gap-3 border-t border-zinc-800 pt-4">
-                  <div className="min-w-0 border border-zinc-800 bg-black/30 px-3 py-2">
+                  <div className="osint-raised-surface-subtle min-w-0 px-3 py-2">
                     <div className="osint-meta-label">Artifacts</div>
                     <div className="mt-1 flex items-center gap-2 osint-meta-value">
                       <FileText className="h-4 w-4 text-zinc-500" />
                       <span>{artifactCount}</span>
                     </div>
                   </div>
-                  <div className="min-w-0 border border-zinc-800 bg-black/30 px-3 py-2">
+                  <div className="osint-raised-surface-subtle min-w-0 px-3 py-2">
                     <div className="osint-meta-label">Items</div>
                     <div className="mt-1 osint-meta-value">{itemCount}</div>
                   </div>
@@ -204,7 +204,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
           {viewModel.unassignedArtifactCount > 0 ? (
             <div
               onClick={() => onSelectWorkspace('unassigned')}
-              className="cursor-pointer border border-dashed border-zinc-800 bg-zinc-900/30 p-6 backdrop-blur-sm transition-all hover:border-zinc-500"
+              className="osint-raised-surface-subtle cursor-pointer border-dashed p-6 backdrop-blur-sm transition-all hover:border-zinc-500"
             >
               <div className="mb-4 flex justify-between">
                 <div className="bg-zinc-900 p-3 text-zinc-500">
@@ -223,7 +223,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
           ) : null}
         </div>
       ) : (
-        <div className="overflow-hidden border border-zinc-800 bg-zinc-950/70">
+        <div className="osint-panel-shell overflow-hidden border border-zinc-800 bg-zinc-950/70">
           <div className="osint-meta-label grid grid-cols-[minmax(0,1.2fr)_auto_auto] gap-4 border-b border-zinc-800 px-4 py-3">
             <span>Workspace</span>
             <span>Artifacts</span>
@@ -234,7 +234,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
               <div
                 key={workspace.id}
                 onClick={() => onSelectWorkspace(workspace.id)}
-                className="cursor-pointer px-4 py-4 transition hover:bg-zinc-900/70"
+                className="osint-raised-surface-subtle cursor-pointer px-4 py-4 transition hover:bg-zinc-900/70"
               >
                 <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto] items-start gap-4">
                   <div className="min-w-0">
@@ -263,7 +263,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             {viewModel.unassignedArtifactCount > 0 ? (
               <div
                 onClick={() => onSelectWorkspace('unassigned')}
-                className="grid cursor-pointer grid-cols-[minmax(0,1.2fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                className="osint-raised-surface-subtle grid cursor-pointer grid-cols-[minmax(0,1.2fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
               >
                 <div className="min-w-0">
                   <div className="osint-title-inline text-zinc-300">Unassigned</div>

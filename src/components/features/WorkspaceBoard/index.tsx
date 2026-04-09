@@ -204,7 +204,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         />
 
         <aside
-          className={`absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-black transition-all duration-200 xl:relative xl:translate-x-0 ${
+          className={`osint-panel-shell absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-black transition-all duration-200 xl:relative xl:translate-x-0 ${
             rightPanelOpen
               ? 'w-[min(24rem,calc(100vw-1rem))] translate-x-0'
               : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full xl:w-0 xl:border-l-0'

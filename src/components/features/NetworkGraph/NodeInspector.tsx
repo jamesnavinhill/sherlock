@@ -373,7 +373,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
     : [];
   return (
     <div
-      className={`${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl z-20`}
+      className={`osint-panel-shell ${isOpen ? 'w-96' : 'w-0'} transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 flex-shrink-0 overflow-hidden flex flex-col shadow-2xl z-20`}
     >
       {!mode && (
         <div className="flex h-full flex-col">
@@ -385,7 +385,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           </div>
 
           <div className="flex flex-1 items-center justify-center p-6">
-            <div className="max-w-xs border border-zinc-800 bg-zinc-900/40 p-5 text-center">
+            <div className="osint-raised-surface max-w-xs p-5 text-center">
               <div className="osint-meta-label mb-3">Inspector Ready</div>
               <p className="osint-body-small">
                 Select a node, report, or saved signal to inspect details here.
@@ -429,7 +429,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
-            <div className="bg-zinc-900/50 p-4 border border-zinc-800 relative group">
+            <div className="osint-raised-surface p-4 relative group">
               <h4 className="osint-meta-label mb-2">Captured Content</h4>
               <p className="osint-body-small">
                 &quot;{selectedHeadline.content}&quot;
@@ -443,7 +443,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 href={selectedHeadline.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-4 bg-zinc-900/30 border border-zinc-700 hover:border-osint-primary hover:bg-zinc-900 transition-all group"
+                className="osint-raised-surface flex items-center justify-between p-4 hover:border-osint-primary hover:bg-zinc-900 transition-all group"
               >
                 <div className="flex items-center overflow-hidden">
                   <Globe className="w-4 h-4 text-zinc-500 mr-3 group-hover:text-osint-primary" />
@@ -647,7 +647,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
               return (
                 <>
                   {(details?.role || details?.sentiment) && (
-                    <div className="bg-zinc-900/50 p-4 border border-zinc-800 space-y-3">
+                    <div className="osint-raised-surface p-4 space-y-3">
                       {details.role && (
                         <div>
                           <div className="osint-meta-label mb-1">Role</div>

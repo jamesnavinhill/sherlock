@@ -68,7 +68,7 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
   onAddToBoard,
 }) => (
   <aside
-    className={`absolute left-0 top-0 z-30 flex h-full flex-col overflow-hidden border-r border-zinc-800 bg-black/95 transition-all duration-200 xl:relative xl:translate-x-0 ${
+    className={`osint-panel-shell absolute left-0 top-0 z-30 flex h-full flex-col overflow-hidden border-r border-zinc-800 bg-black/95 transition-all duration-200 xl:relative xl:translate-x-0 ${
       isOpen
         ? 'w-[min(23rem,calc(100vw-1rem))] translate-x-0'
         : 'w-[min(23rem,calc(100vw-1rem))] -translate-x-full xl:w-0 xl:border-r-0'

@@ -22,7 +22,7 @@ export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
   onRangeChange,
   onToggleTrackFilter,
 }) => (
-  <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
+  <div className="osint-panel-shell absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
     <div className="border-b border-zinc-800 bg-black px-4 py-3">
       <h3 className="osint-meta-label-strong text-white">Timeline Filters</h3>
     </div>

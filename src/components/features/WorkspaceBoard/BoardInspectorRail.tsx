@@ -126,7 +126,9 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
             <Bot className="h-4 w-4" />
             Draft Note Card
           </button>
-          {aiSummary ? <div className="bg-black/40 p-3 osint-body-small">{aiSummary}</div> : null}
+          {aiSummary ? (
+            <div className="osint-raised-surface-subtle p-3 osint-body-small">{aiSummary}</div>
+          ) : null}
         </div>
       </Accordion>
 
@@ -140,7 +142,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
       >
         <div className="space-y-3 px-1 py-1 osint-meta-value">
           {selectedWorkspaceItem ? (
-            <>
+            <div className="osint-raised-surface-subtle space-y-3 p-3">
               <div>
                 <div className="osint-meta-label">Source</div>
                 <div className="mt-1">{selectedWorkspaceItem.provenance?.source || 'USER'}</div>
@@ -177,7 +179,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
                   <div className="mt-1">{selectedWorkspaceItem.provenance.sourceHeadlineId}</div>
                 </div>
               ) : null}
-            </>
+            </div>
           ) : (
             <p className="px-2 py-1 osint-body-quiet italic">
               Select a promoted excerpt, note, link, file, or media item to inspect its origin.

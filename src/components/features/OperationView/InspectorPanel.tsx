@@ -205,7 +205,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
   return (
     <div
-      className={`${isOpen ? 'translate-x-0' : 'translate-x-full lg:w-0 lg:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-96' : 'lg:w-0'}`}
+      className={`osint-panel-shell ${isOpen ? 'translate-x-0' : 'translate-x-full lg:w-0 lg:translate-x-0'} fixed inset-y-0 right-0 z-30 w-96 lg:relative lg:z-0 lg:flex-shrink-0 transition-all duration-300 bg-black/95 backdrop-blur-md border-l border-zinc-800 overflow-hidden flex flex-col shadow-2xl lg:shadow-none ${isOpen ? 'lg:w-96' : 'lg:w-0'}`}
     >
       {/* --- ENTITY INSPECTOR MODE --- */}
       {mode === 'ENTITY' && entity && (
@@ -242,7 +242,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
           <div className="flex-1 overflow-y-auto p-2 space-y-2 pb-24 custom-scrollbar">
             {(entity.role || entity.sentiment) && (
-              <div className="bg-zinc-900/50 p-4 border border-zinc-800 space-y-3">
+            <div className="osint-raised-surface p-4 space-y-3">
                 {entity.role && (
                   <div>
                     <div className="mb-1 osint-meta-label">Role</div>
@@ -376,7 +376,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            <div className="bg-zinc-900/50 p-6 border border-zinc-800 relative group">
+            <div className="osint-raised-surface p-6 relative group">
               <h4 className="mb-2 osint-meta-label">Captured Content</h4>
               <p className="osint-body-small text-zinc-300">
                 &quot;{headline.content}&quot;
@@ -391,7 +391,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 href={headline.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-4 bg-zinc-900/30 border border-zinc-700 hover:border-osint-primary hover:bg-zinc-900 transition-all group"
+                className="osint-raised-surface flex items-center justify-between p-4 hover:border-osint-primary hover:bg-zinc-900 transition-all group"
               >
                 <div className="flex items-center overflow-hidden">
                   <Globe className="w-4 h-4 text-zinc-500 mr-3 group-hover:text-osint-primary" />
@@ -435,7 +435,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-24 custom-scrollbar">
-            <div className="border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
+            <div className="osint-raised-surface p-4 space-y-3">
               {workspaceTitle ? (
                 <div>
                   <div className="mb-1 osint-meta-label">Workspace</div>
@@ -457,19 +457,19 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+              <div className="osint-raised-surface-subtle p-3">
                 <div className="mb-1 osint-meta-label">Sections</div>
                 <div className="osint-meta-value text-lg text-white">{report.sections?.length || 0}</div>
               </div>
-              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+              <div className="osint-raised-surface-subtle p-3">
                 <div className="mb-1 osint-meta-label">Evidence</div>
                 <div className="osint-meta-value text-lg text-white">{report.evidence?.length || 0}</div>
               </div>
-              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+              <div className="osint-raised-surface-subtle p-3">
                 <div className="mb-1 osint-meta-label">Entities</div>
                 <div className="osint-meta-value text-lg text-white">{report.entities?.length || 0}</div>
               </div>
-              <div className="border border-zinc-800 bg-zinc-900/30 p-3">
+              <div className="osint-raised-surface-subtle p-3">
                 <div className="mb-1 osint-meta-label">Sources</div>
                 <div className="osint-meta-value text-lg text-white">{report.sources?.length || 0}</div>
               </div>
@@ -494,7 +494,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </div>
 
           <div className="flex-1 p-6 flex items-center justify-center">
-            <div className="max-w-xs border border-zinc-800 bg-zinc-900/40 p-5 text-center">
+            <div className="osint-raised-surface max-w-xs p-5 text-center">
               <div className="mb-3 osint-meta-label">Inspector Ready</div>
               <p className="osint-body-small text-zinc-300">
                 Select an entity, saved signal, or reopen the current artifact inspector here.

@@ -77,7 +77,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <div
-      className={`bg-black/80 backdrop-blur-sm border p-5 flex flex-col gap-3 animate-in slide-in-from-top-4 fade-in duration-500 transition-all shadow-lg ${
+      className={`osint-raised-surface backdrop-blur-sm p-5 flex flex-col gap-3 animate-in slide-in-from-top-4 fade-in duration-500 transition-all shadow-lg ${
         isExpanded
           ? 'border-osint-primary bg-zinc-900/95 md:col-span-2 2xl:col-span-1'
           : 'border-zinc-800 hover:border-osint-primary hover:bg-zinc-900/90 cursor-pointer group'
@@ -133,7 +133,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Expanded View */}
       {isExpanded && (
-        <div className="pt-4 border-t border-zinc-700 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="pt-4 border-t border-zinc-700 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Source Link */}
           {event.url && (
             <a

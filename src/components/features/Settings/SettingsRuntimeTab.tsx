@@ -22,7 +22,7 @@ const ProviderKeyField: React.FC<{
   provider: AIProvider;
   showValue: boolean;
 }> = ({ keyValue, label, onChange, onClear, onToggleVisibility, provider, showValue }) => (
-  <div className="space-y-2">
+  <div className="osint-raised-surface-subtle space-y-2 p-4">
     <label className="block osint-meta-label">{label}</label>
     <div className="flex flex-col sm:flex-row gap-2">
       <input

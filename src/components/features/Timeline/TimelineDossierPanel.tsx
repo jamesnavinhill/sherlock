@@ -64,7 +64,7 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
   onFocusReference,
 }) => (
   <aside
-    className={`absolute left-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
+    className={`osint-panel-shell absolute left-0 top-0 z-30 h-full overflow-hidden bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
       isOpen
         ? 'w-[min(20rem,calc(100vw-1rem))] translate-x-0 border-r border-zinc-800'
         : 'w-[min(20rem,calc(100vw-1rem))] -translate-x-full border-r border-zinc-800 lg:w-0 lg:border-r-0'

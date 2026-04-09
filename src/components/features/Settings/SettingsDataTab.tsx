@@ -37,7 +37,7 @@ const PreferenceCard: React.FC<{
   title: string;
   onToggle: () => void;
 }> = ({ checked, description, title, onToggle }) => (
-  <div className="border border-zinc-800 bg-zinc-900/40 p-6">
+  <div className="osint-raised-surface p-6">
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-2">
         <div className="osint-meta-value">{title}</div>
@@ -118,7 +118,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
           contentClassName="p-4 sm:p-6"
         >
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <section className="flex h-full flex-col border border-zinc-800 bg-zinc-900/40 p-8">
+            <section className="osint-raised-surface flex h-full flex-col p-8">
               <div className="flex items-center gap-3">
                 <Database className="h-5 w-5 text-osint-primary" />
                 <h3 className="osint-meta-value">Data Management</h3>
@@ -180,7 +180,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
               </div>
             </section>
 
-            <section className="osint-danger-panel flex h-full flex-col border p-8">
+            <section className="osint-danger-panel osint-panel-shell flex h-full flex-col border p-8">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 osint-danger-text" />
                 <h3 className="osint-meta-value osint-danger-text">Delete Data</h3>

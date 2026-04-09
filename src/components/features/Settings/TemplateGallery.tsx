@@ -247,7 +247,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/50 p-4 border border-zinc-800">
+      <div className="osint-panel-shell flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/50 p-4 border border-zinc-800">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
@@ -272,7 +272,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
           {filteredTemplates.map(({ isStarter, template }) => (
             <div
               key={template.id}
-              className="group bg-zinc-950/70 border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col"
+              className="osint-raised-surface group bg-zinc-950/70 border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col"
             >
               <div className="p-4 flex-1">
                 <div className="flex items-center justify-between mb-2 gap-3">
@@ -317,7 +317,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
       {showCreateModal && (
         <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-4xl bg-black border border-zinc-700 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+          <div className="osint-panel-shell w-full max-w-4xl bg-black border border-zinc-700 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
             <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-950 flex items-start justify-between gap-4">
               <div>
                 <h3 className="osint-panel-title">Create Protocol Template</h3>
@@ -341,7 +341,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 return (
                   <div
                     key={step.id}
-                    className={`flex items-center whitespace-nowrap border px-3 py-2 osint-meta-label ${isActive ? 'border-osint-primary text-osint-primary bg-osint-primary/10' : isDone ? 'border-zinc-700 text-zinc-300 bg-zinc-900' : 'border-zinc-800 text-zinc-500 bg-black'}`}
+                  className={`osint-raised-surface-subtle flex items-center whitespace-nowrap border px-3 py-2 osint-meta-label ${isActive ? 'border-osint-primary text-osint-primary bg-osint-primary/10' : isDone ? 'border-zinc-700 text-zinc-300 bg-zinc-900' : 'border-zinc-800 text-zinc-500 bg-black'}`}
                   >
                     {isDone ? (
                       <Check className="w-3 h-3 mr-2" />
@@ -395,7 +395,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={scope.id}
                           onClick={() => setSelectedScopeId(scope.id)}
-                          className={`p-3 border text-left transition-all ${selectedScopeId === scope.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`osint-raised-surface p-3 border text-left transition-all ${selectedScopeId === scope.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="flex items-start gap-2">
                             <span className="text-lg">{scope.icon || '🔍'}</span>
@@ -420,7 +420,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={purpose.id}
                           onClick={() => setSelectedPurposeId(purpose.id)}
-                          className={`p-3 border text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`osint-raised-surface p-3 border text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <div className="osint-meta-value truncate">{purpose.name}</div>
@@ -478,7 +478,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={item.id}
                           onClick={() => setPersona(item.id)}
-                          className={`p-3 border text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`osint-raised-surface p-3 border text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="osint-meta-value">{item.label}</div>
                           <div className="osint-body-quiet mt-1 line-clamp-2">

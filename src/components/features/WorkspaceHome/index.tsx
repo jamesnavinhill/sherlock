@@ -310,7 +310,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                 {countCards.map((card) => (
                   <div
                     key={card.label}
-                    className="border border-zinc-800 bg-zinc-950/60 px-4 py-3"
+                    className="osint-raised-surface px-4 py-3"
                   >
                     <div className="osint-meta-label">
                       {card.label}
@@ -334,11 +334,11 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     <Link
                       key={action.label}
                       to={action.href}
-                      className="group border border-zinc-800 bg-zinc-950/60 p-4 transition-colors hover:border-osint-primary/60"
+                      className="osint-raised-surface group p-4 transition-colors hover:border-osint-primary/60"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3">
-                          <div className="mt-0.5 rounded-sm border border-zinc-800 bg-black/70 p-2 text-osint-primary">
+                          <div className="osint-raised-surface-subtle mt-0.5 rounded-sm p-2 text-osint-primary">
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
@@ -372,7 +372,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     {snapshot.recentActivity.map((entry) => (
                       <div
                         key={entry.id}
-                        className={`border border-zinc-800 border-l-2 bg-zinc-950/60 p-4 ${activityAccentClass[entry.kind]}`}
+                        className={`osint-raised-surface border-l-2 p-4 ${activityAccentClass[entry.kind]}`}
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
@@ -397,7 +397,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     ))}
                   </div>
                 ) : (
-                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 osint-body-muted">
+                  <div className="osint-raised-surface-subtle border-dashed p-6 osint-body-muted">
                     Recent workspace activity will appear here as artifacts, items, signals, runs,
                     chats, and boards are updated.
                   </div>
@@ -470,7 +470,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
               </div>
               <div className="p-4">
                 {savedViewsPending ? (
-                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 text-sm text-zinc-500">
+                  <div className="osint-raised-surface-subtle border-dashed p-6 text-sm text-zinc-500">
                     Loading saved timeline views...
                   </div>
                 ) : snapshot.savedViews.length > 0 ? (
@@ -483,7 +483,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                           savedViews.find((entry) => entry.id === view.id)?.query ||
                             DEFAULT_TIMELINE_ROUTE_QUERY
                         )}
-                        className="block border border-zinc-800 bg-zinc-950/60 p-4 transition-colors hover:border-osint-primary/60"
+                        className="osint-raised-surface block p-4 transition-colors hover:border-osint-primary/60"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -500,7 +500,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     ))}
                   </div>
                 ) : (
-                  <div className="border border-dashed border-zinc-800 bg-zinc-950/40 p-6 osint-body-muted">
+                  <div className="osint-raised-surface-subtle border-dashed p-6 osint-body-muted">
                     Save filtered timeline states to make this workspace home jump directly into
                     recurring chronology views.
                   </div>
