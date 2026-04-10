@@ -57,12 +57,8 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
   showHeaderSummary = false,
 }) => {
   const desktopLayoutClass = overlayOnDesktop
-    ? isOpen
-      ? 'lg:absolute lg:inset-y-0 lg:left-0 lg:z-20 lg:w-80 lg:translate-x-0'
-      : 'lg:absolute lg:inset-y-0 lg:left-0 lg:z-20 lg:w-80 lg:-translate-x-full'
-    : isOpen
-      ? 'lg:relative lg:z-0 lg:w-80 lg:translate-x-0'
-      : 'lg:relative lg:z-0 lg:w-0 lg:-translate-x-0 lg:border-r-0';
+    ? 'lg:absolute lg:inset-y-0 lg:left-0 lg:z-20'
+    : 'lg:relative lg:z-0';
 
   const sections: LibraryRailSection[] = [];
 
@@ -236,6 +232,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
   return (
     <LibraryRailShell
       isOpen={isOpen}
+      overlayOnDesktop={overlayOnDesktop}
       title={
         activeCase ? (
           <h2 className="truncate whitespace-nowrap leading-tight">

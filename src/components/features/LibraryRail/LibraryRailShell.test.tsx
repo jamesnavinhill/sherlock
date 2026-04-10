@@ -20,6 +20,7 @@ describe('LibraryRailShell', () => {
     expect(panel).toHaveAttribute('aria-hidden', 'true');
     expect(panel?.getAttribute('data-state')).toBe('closed');
     expect(panel?.className).toContain('pointer-events-none');
+    expect(panel?.className).toContain('lg:relative');
     expect(
       screen.getByRole('searchbox', { name: 'Search library', hidden: true })
     ).toBeInTheDocument();

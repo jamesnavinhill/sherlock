@@ -25,4 +25,44 @@ describe('GraphViewportControls', () => {
     expect(group?.className).not.toContain(' border ');
     expect(group?.className).not.toContain('border ');
   });
+
+  it('positions the viewport toolbar close to the top edge of the graph', () => {
+    const { container } = render(
+      <GraphViewportControls
+        isLocked={false}
+        showHiddenNodes={false}
+        showSingletons={true}
+        showFlaggedOnly={false}
+        onToggleHiddenNodes={vi.fn()}
+        onToggleLock={vi.fn()}
+        onToggleSingletons={vi.fn()}
+        onToggleFlaggedOnly={vi.fn()}
+        onZoom={vi.fn()}
+      />
+    );
+
+    const wrapper = container.firstElementChild;
+    expect(wrapper).toHaveClass('top-1');
+  });
+
+  it('uses tighter natural spacing between viewport buttons', () => {
+    const { container } = render(
+      <GraphViewportControls
+        isLocked={false}
+        showHiddenNodes={false}
+        showSingletons={true}
+        showFlaggedOnly={false}
+        onToggleHiddenNodes={vi.fn()}
+        onToggleLock={vi.fn()}
+        onToggleSingletons={vi.fn()}
+        onToggleFlaggedOnly={vi.fn()}
+        onZoom={vi.fn()}
+      />
+    );
+
+    const hideSingletonsButton = screen.getByTitle('Hide Singletons');
+    expect(hideSingletonsButton).toHaveClass('px-2');
+    const divider = container.querySelector('.mx-0\\.5');
+    expect(divider).toBeTruthy();
+  });
 });

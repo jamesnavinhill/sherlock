@@ -49,7 +49,9 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
           <button
             onClick={onToggleLeftPanel}
-            className={`hidden md:flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(showLeftPanel)}`}
+            className={`${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(showLeftPanel)}`}
+            title="Toggle Library Panel"
+            aria-label="Toggle Library Panel"
           >
             <Briefcase className="w-4 h-4" />
           </button>

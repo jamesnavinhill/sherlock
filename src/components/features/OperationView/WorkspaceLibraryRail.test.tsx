@@ -234,4 +234,85 @@ describe('WorkspaceLibraryRail', () => {
     expect(screen.getByRole('link', { name: 'Registry' })).toBeInTheDocument();
     expect(screen.queryByText('https://example.com/registry')).not.toBeInTheDocument();
   });
+
+  it('does not keep desktop width classes when the overlay rail is closed', () => {
+    const workspace: Workspace = {
+      id: 'workspace-1',
+      title: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-08',
+    };
+
+    render(
+      <WorkspaceLibraryRail
+        isOpen={false}
+        activeCase={workspace}
+        labelProfile={labelProfile}
+        reports={[]}
+        entities={[]}
+        leads={[]}
+        sources={[]}
+        headlines={[]}
+        openSections={{
+          reports: false,
+          entities: false,
+          leads: false,
+          evidence: false,
+          sources: false,
+          headlines: false,
+        }}
+        toggleSection={vi.fn()}
+        onNavigate={vi.fn()}
+        onEntityClick={vi.fn()}
+        onLeadClick={vi.fn()}
+        onHeadlineClick={vi.fn()}
+        overlayOnDesktop
+      />
+    );
+
+    const panel = screen.getByText('Atlas Workspace').closest('aside');
+    expect(panel).toHaveAttribute('aria-hidden', 'true');
+    expect(panel?.className).toContain('lg:w-0');
+    expect(panel?.className).not.toContain('lg:w-80 lg:-translate-x-full');
+  });
+
+  it('uses absolute desktop positioning when overlayOnDesktop is enabled', () => {
+    const workspace: Workspace = {
+      id: 'workspace-1',
+      title: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-08',
+    };
+
+    render(
+      <WorkspaceLibraryRail
+        isOpen
+        activeCase={workspace}
+        labelProfile={labelProfile}
+        reports={[]}
+        entities={[]}
+        leads={[]}
+        sources={[]}
+        headlines={[]}
+        openSections={{
+          reports: false,
+          entities: false,
+          leads: false,
+          evidence: false,
+          sources: false,
+          headlines: false,
+        }}
+        toggleSection={vi.fn()}
+        onNavigate={vi.fn()}
+        onEntityClick={vi.fn()}
+        onLeadClick={vi.fn()}
+        onHeadlineClick={vi.fn()}
+        overlayOnDesktop
+      />
+    );
+
+    const panel = screen.getByText('Atlas Workspace').closest('aside');
+    expect(panel?.className).toContain('lg:absolute');
+    expect(panel?.className).not.toContain('lg:relative');
+  });
 });

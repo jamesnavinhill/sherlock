@@ -99,4 +99,43 @@ describe('WorkspaceBoardLibraryRail', () => {
     expect(screen.getByText('Add To Board')).toBeInTheDocument();
     expect(screen.queryByText('ARTIFACT')).not.toBeInTheDocument();
   });
+
+  it('keeps relative desktop positioning for the board library rail', () => {
+    render(
+      <WorkspaceBoardLibraryRail
+        isOpen
+        workspaceTitle="Agentic A.I."
+        search=""
+        groupedEntries={{
+          created: [],
+          artifacts: [],
+          entities: [],
+          sources: [],
+          signals: [],
+        }}
+        librarySections={{
+          created: false,
+          artifacts: false,
+          entities: false,
+          sources: false,
+          signals: false,
+        }}
+        libraryItemSections={{}}
+        fileInputRef={{ current: null }}
+        sectionScrollClassName=""
+        onSearchChange={vi.fn()}
+        onCreateNote={vi.fn()}
+        onCreateLink={vi.fn()}
+        onTriggerFileUpload={vi.fn()}
+        onFileUpload={vi.fn()}
+        onToggleLibrarySection={vi.fn()}
+        onToggleLibraryEntrySection={vi.fn()}
+        onDeleteCreatedItem={vi.fn()}
+        onAddToBoard={vi.fn()}
+      />
+    );
+
+    const panel = screen.getByText('Agentic A.I.').closest('aside');
+    expect(panel?.className).toContain('lg:relative');
+  });
 });

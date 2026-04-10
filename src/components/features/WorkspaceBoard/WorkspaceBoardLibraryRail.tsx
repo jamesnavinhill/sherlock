@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  FilePlus2,
-  Link2,
-  Radio,
-  Trash2,
-} from 'lucide-react';
+import { FilePlus2, Link2, Radio, Trash2 } from 'lucide-react';
 
 import { LibraryRailSearch } from '@/components/features/LibraryRail/LibraryRailSearch';
 import { LibraryRailSections } from '@/components/features/LibraryRail/LibraryRailSections';
@@ -171,6 +166,7 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
     <LibraryRailShell
       isOpen={isOpen}
       title={workspaceTitle}
+      className="lg:relative lg:z-0"
       actions={
         <div className="flex gap-2">
           <button type="button" onClick={onCreateNote} className={CHROME_ACTION_BUTTON_CLASS}>

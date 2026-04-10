@@ -154,9 +154,9 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="shrink-0 border-t border-zinc-800 px-4 pb-4 pt-0 sm:px-6"
+      className="shrink-0 px-4 pb-4 pt-2 sm:px-6"
     >
-      <div className="mx-auto w-full max-w-4xl border border-t-0 border-zinc-800 bg-black/20">
+      <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
         <div className="relative border-b border-zinc-800">
           <textarea
             ref={textareaRef}
@@ -248,7 +248,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
+              className="inline-flex h-9 w-9 items-center justify-center p-0 text-zinc-500 transition hover:text-white focus-visible:text-white focus-visible:outline-none"
               title="Attach files to the workspace library"
               aria-label="Attach files"
             >
@@ -257,7 +257,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             <button
               type="button"
               onClick={onOpenManualSetup}
-              className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
+              className="inline-flex h-9 w-9 items-center justify-center p-0 text-zinc-500 transition hover:text-white focus-visible:text-white focus-visible:outline-none"
               title="Open run configuration"
               aria-label="Open run configuration"
             >
@@ -288,7 +288,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
               disabled={!activeWorkspace || !draft.trim() || isBusy}
               aria-label="Send message"
               title="Send message"
-              className="osint-button-primary inline-flex h-10 w-10 items-center justify-center p-0 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 w-10 items-center justify-center p-0 text-zinc-500 transition hover:text-white focus-visible:text-white focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>
