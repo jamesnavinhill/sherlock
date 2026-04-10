@@ -8,6 +8,10 @@ vi.mock('@/components/features/Files', () => ({
   Files: () => <div>Files View</div>,
 }));
 
+vi.mock('@/components/features/LandingPage', () => ({
+  LandingPage: () => <div>Landing View</div>,
+}));
+
 import { AppShellRoutes } from './AppShellRoutes';
 
 const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
@@ -25,6 +29,7 @@ const buildControllerStub = () =>
     chatSessions: [],
     handleBack: vi.fn(),
     handleCloseSettings: vi.fn(),
+    handleLandingOpenWorkspace: vi.fn(),
     handleNavigateRecord: vi.fn(),
     handleSelectRun: vi.fn(),
     handleViewReport: vi.fn(),
@@ -40,6 +45,7 @@ const buildControllerStub = () =>
     setThemeColor: vi.fn(),
     setThemeFontSettings: vi.fn(),
     setThemeSurfaceSettings: vi.fn(),
+    showLandingApiKeyPrompt: false,
     themeColor: '#000000',
     themeFontSettings: {},
     themeMode: 'dark',
@@ -50,7 +56,7 @@ const buildControllerStub = () =>
   }) as unknown as AppShellController;
 
 describe('AppShellRoutes', () => {
-  it('redirects the root path to files', async () => {
+  it('redirects the root path to welcome', async () => {
     render(
       <MemoryRouter future={routerFuture} initialEntries={['/']}>
         <Suspense fallback={<div>Loading...</div>}>
@@ -61,12 +67,12 @@ describe('AppShellRoutes', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('location')).toHaveTextContent('/files');
-      expect(screen.getByText('Files View')).toBeInTheDocument();
+      expect(screen.getByTestId('location')).toHaveTextContent('/welcome');
+      expect(screen.getByText('Landing View')).toBeInTheDocument();
     });
   });
 
-  it('redirects unknown paths to files', async () => {
+  it('redirects unknown paths to welcome', async () => {
     render(
       <MemoryRouter future={routerFuture} initialEntries={['/missing']}>
         <Suspense fallback={<div>Loading...</div>}>
@@ -77,8 +83,8 @@ describe('AppShellRoutes', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('location')).toHaveTextContent('/files');
-      expect(screen.getByText('Files View')).toBeInTheDocument();
+      expect(screen.getByTestId('location')).toHaveTextContent('/welcome');
+      expect(screen.getByText('Landing View')).toBeInTheDocument();
     });
   });
 });

@@ -12,7 +12,8 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 - Executes Sherlock board-agent sessions through an approval-first review sheet that previews planned actions, supports an auto-approve toggle for low-risk organization moves, and leaves auditable action receipts for completed, skipped, failed, and queued follow-up work
 - Supports OpenRouter server-side web search via `openrouter:web_search` with configurable engine, result limits, context size, and domain filters
 - Maintains a unified launch pipeline across Finder, Operation View, Live Monitor, Network Graph, and chat follow-up flows
-- Uses `Files` as the current app home/entry surface, opening to the all-workspaces overview while the future global dashboard remains unwired
+- Opens new visitors on a public `/welcome` landing page, then routes into `Files` after the existing BYOK-or-browse onboarding modal
+- Uses `Files` as the current in-app home surface, opening to the all-workspaces overview while the future global dashboard remains unwired
 - Keeps `/workspaces/:workspaceId` as a lightweight workspace-home overview with canonical counts, recent activity, saved timeline views, and direct handoff links into artifact/chat/board/timeline/network/files workflows
 - Resolves built-in domain packs and purpose profiles into run metadata and prompt behavior
 - Stores workspace/artifact/workspace-run data in browser-persistent SQLite (wa-sqlite + IndexedDB)
@@ -54,7 +55,7 @@ Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investig
 
 - Node.js 18+
 - npm
-- At least one provider key (Gemini/OpenRouter/OpenAI/Anthropic)
+- At least one provider key (Gemini/OpenRouter/OpenAI/Anthropic) if you want to run AI investigations; browsing works without one
 
 ### Install and Run
 
@@ -64,6 +65,8 @@ npm run dev
 ```
 
 Dev server defaults to `http://localhost:3000`.
+
+The root route opens the public welcome page first. From there, `Open Workspace` launches the existing API key modal, and users can either authenticate or skip into the Files workspace browser.
 
 If you hit a Rollup native package error because an optional native package was skipped, delete `node_modules` and repair the local install with:
 

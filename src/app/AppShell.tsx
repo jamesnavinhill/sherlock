@@ -42,6 +42,12 @@ export function AppShell() {
         >
           <AppShellRoutes controller={controller} />
         </Suspense>
+        {controller.showApiKeyPrompt && controller.showLandingApiKeyPrompt && (
+          <ApiKeyModal
+            onKeySet={controller.handleApiKeySet}
+            onBypass={controller.handleApiKeyPromptBypass}
+          />
+        )}
         <ToastContainer />
       </div>
     );

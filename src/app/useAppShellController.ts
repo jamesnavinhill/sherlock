@@ -58,6 +58,7 @@ export interface AppShellController {
   handleApiKeySet: () => void;
   handleClearCompleted: () => Promise<void>;
   handleCloseSettings: () => void;
+  handleLandingOpenWorkspace: () => void;
   handleNavigateRecord: (id: string) => void;
   handleNavigateToView: (view: AppView) => void;
   handleSelectRun: (runId: string) => void;
@@ -84,6 +85,7 @@ export interface AppShellController {
   setThemeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeFontSettings'];
   setThemeMode: (mode: 'dark' | 'light') => void;
   setThemeSurfaceSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeSurfaceSettings'];
+  showLandingApiKeyPrompt: boolean;
   showGlobalSearch: boolean;
   shouldHideRouteHeader: boolean;
   showHelpModal: boolean;
@@ -164,18 +166,40 @@ export function useAppShellController(): AppShellController {
   const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(
     () => !hasApiKey() && !hasDismissedApiKeyPrompt()
   );
+  const [showLandingApiKeyPrompt, setShowLandingApiKeyPrompt] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [isHeaderManuallyHidden, setIsHeaderManuallyHidden] = useState(false);
 
   const handleApiKeySet = useCallback(() => {
     clearApiKeyPromptDismissed();
     setShowApiKeyPrompt(false);
-  }, []);
+    if (showLandingApiKeyPrompt) {
+      setShowLandingApiKeyPrompt(false);
+      navigate(buildFilesPath());
+    }
+  }, [navigate, showLandingApiKeyPrompt]);
 
   const handleApiKeyPromptBypass = useCallback(() => {
     markApiKeyPromptDismissed();
     setShowApiKeyPrompt(false);
-  }, []);
+    if (showLandingApiKeyPrompt) {
+      setShowLandingApiKeyPrompt(false);
+      navigate(buildFilesPath());
+    }
+  }, [navigate, showLandingApiKeyPrompt]);
+
+  const handleLandingOpenWorkspace = useCallback(() => {
+    if (hasApiKey()) {
+      clearApiKeyPromptDismissed();
+      setShowApiKeyPrompt(false);
+      setShowLandingApiKeyPrompt(false);
+      navigate(buildFilesPath());
+      return;
+    }
+
+    setShowLandingApiKeyPrompt(true);
+    setShowApiKeyPrompt(true);
+  }, [navigate]);
 
   useTrackAppShellLocation({
     pathname: location.pathname,
@@ -315,6 +339,7 @@ export function useAppShellController(): AppShellController {
     handleBatchInvestigate,
     handleClearCompleted,
     handleCloseSettings,
+    handleLandingOpenWorkspace,
     handleNavigateRecord,
     handleNavigateToView,
     handleSelectRun,
@@ -341,6 +366,7 @@ export function useAppShellController(): AppShellController {
     setThemeFontSettings,
     setThemeMode,
     setThemeSurfaceSettings,
+    showLandingApiKeyPrompt,
     showGlobalSearch,
     shouldHideRouteHeader:
       routeCurrentView !== AppView.SETTINGS && isHeaderManuallyHidden && !showGlobalSearch,

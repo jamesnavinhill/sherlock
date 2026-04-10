@@ -1,8 +1,8 @@
 import { lazy } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { buildAccentColor } from '@/utils/accent';
-import { DEFAULT_APP_PATH, getRouteDefinition } from '@/app/routes';
+import { buildLandingPath, getRouteDefinition } from '@/app/routes';
 import {
   ArtifactRouteView,
   BoardRouteView,
@@ -33,11 +33,9 @@ interface AppShellRoutesProps {
 }
 
 export function AppShellRoutes({ controller }: AppShellRoutesProps) {
-  const navigate = useNavigate();
-
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={DEFAULT_APP_PATH} replace />} />
+      <Route path="/" element={<Navigate to={buildLandingPath()} replace />} />
       <Route
         path={getRouteDefinition('LANDING').path}
         element={
@@ -46,7 +44,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
             onToggleTheme={() =>
               controller.setThemeMode(controller.themeMode === 'dark' ? 'light' : 'dark')
             }
-            onGetStarted={() => navigate(DEFAULT_APP_PATH)}
+            onGetStarted={controller.handleLandingOpenWorkspace}
           />
         }
       />
@@ -225,7 +223,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
           />
         }
       />
-      <Route path="*" element={<Navigate to={DEFAULT_APP_PATH} replace />} />
+      <Route path="*" element={<Navigate to={buildLandingPath()} replace />} />
     </Routes>
   );
 }

@@ -18,10 +18,11 @@ Responsibilities:
 - wires lazy-loaded route pages and route wrappers
 - applies theme/accent/font runtime CSS variables
 
-`/` and unknown routes currently redirect to `/files`, making Files the temporary app home while Discovery remains available as a specialist surface and Workspace Home remains workspace-scoped.
+`/` and unknown routes now redirect to `/welcome`, giving first-time visitors a public landing page before they enter the main app shell. The welcome CTA reuses the existing API key modal and only routes into `/files` after the user authenticates or explicitly chooses to browse without a key.
 
 Primary route-backed surfaces:
 
+- `LandingPage` at `/welcome`
 - `Feed` at `/discover`
 - `Files` at `/files`
 - `LiveMonitor` at `/monitor`
@@ -65,6 +66,7 @@ The app-shell controller now also relies on dedicated helper seams:
 
 Canonical path inventory:
 
+- `/welcome`
 - `/discover`
 - `/monitor`
 - `/files`
