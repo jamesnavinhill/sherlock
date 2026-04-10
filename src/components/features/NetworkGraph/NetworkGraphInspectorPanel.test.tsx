@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { Artifact } from '@/types';
 import type { GraphNode } from './GraphCanvas';
-import { NodeInspector } from './NodeInspector';
+import { NetworkGraphInspectorPanel } from './NetworkGraphInspectorPanel';
 
-describe('NodeInspector', () => {
+describe('NetworkGraphInspectorPanel', () => {
   it('labels report follow-up actions as open', () => {
     const report: Artifact = {
       id: 'report-1',
@@ -28,7 +28,7 @@ describe('NodeInspector', () => {
     };
 
     render(
-      <NodeInspector
+      <NetworkGraphInspectorPanel
         isOpen
         onClose={vi.fn()}
         mode="REPORT"

@@ -3,10 +3,10 @@ import React from 'react';
 import type { InvestigationLaunchRequest } from '@/types';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import { useChatController } from './useChatController';
-import { ChatSessionRail } from './ChatSessionRail';
+import { ChatLibraryRail } from './ChatLibraryRail';
 import { ChatTranscript } from './ChatTranscript';
 import { ChatComposer } from './ChatComposer';
-import { ChatContextRail } from './ChatContextRail';
+import { ChatInspectorPanel } from './ChatInspectorPanel';
 import { ChatDialogs } from './ChatDialogs';
 import { ChatHeader } from './ChatHeader';
 
@@ -165,7 +165,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
           />
         ) : null}
 
-        <ChatSessionRail
+        <ChatLibraryRail
           activeSessionId={activeSession?.id || null}
           leftPanelOpen={leftPanelOpen}
           leftPanelSections={leftPanelSections}
@@ -236,7 +236,7 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
           />
         </div>
 
-        <ChatContextRail
+        <ChatInspectorPanel
           rightPanelOpen={rightPanelOpen}
           workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : undefined}
           rightPanelSections={rightPanelSections}

@@ -13,9 +13,9 @@ import { getWorkspaceDisplayTitle } from '@/domain';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
-import { DossierPanel } from './DossierPanel';
+import { WorkspaceLibraryRail } from './WorkspaceLibraryRail';
 import { ArtifactViewer } from './ArtifactViewer';
-import { InspectorPanel } from './InspectorPanel';
+import { OperationInspectorPanel } from './OperationInspectorPanel';
 import { useOperationViewController } from './useOperationViewController';
 import { OperationViewDialogs } from './OperationViewDialogs';
 
@@ -200,7 +200,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
       {/* 3-PANEL LAYOUT */}
       <div className="flex-1 flex overflow-hidden relative z-10">
         {/* Left Panel: Dossier */}
-        <DossierPanel
+        <WorkspaceLibraryRail
           isOpen={leftPanelOpen}
           activeCase={activeCase}
           labelProfile={labelProfile}
@@ -236,7 +236,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
         />
 
         {/* Right Panel: Inspector */}
-        <InspectorPanel
+        <OperationInspectorPanel
           isOpen={rightPanelOpen}
           onClose={() => setRightPanelOpen(false)}
           mode={inspectorMode}

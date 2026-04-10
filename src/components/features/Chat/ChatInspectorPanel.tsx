@@ -30,7 +30,7 @@ interface LaunchContextSummary {
   body: string;
 }
 
-interface ChatContextRailProps {
+interface ChatInspectorPanelProps {
   rightPanelOpen: boolean;
   workspaceTitle?: string;
   rightPanelSections: {
@@ -48,14 +48,14 @@ interface ChatContextRailProps {
   expandedArtifactIds: Record<string, boolean>;
   sectionScrollClassName: string;
   formatDateTime: (value: number) => string;
-  onToggleSection: (section: keyof ChatContextRailProps['rightPanelSections']) => void;
+  onToggleSection: (section: keyof ChatInspectorPanelProps['rightPanelSections']) => void;
   onToggleArtifactCard: (artifactKey: string) => void;
   onFetchArtifactSummary: (artifactId: string) => void;
   onFetchFullArtifact: (artifactId: string) => void;
   onFetchRecentSignals: () => void;
 }
 
-export const ChatContextRail: React.FC<ChatContextRailProps> = ({
+export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
   rightPanelOpen,
   workspaceTitle,
   rightPanelSections,

@@ -1,15 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { BoardInspectorRail } from './BoardInspectorRail';
+import { WorkspaceBoardInspectorPanel } from './WorkspaceBoardInspectorPanel';
 
-describe('BoardInspectorRail', () => {
+describe('WorkspaceBoardInspectorPanel', () => {
   it('wraps long source descriptions inside the selection panel', () => {
     const sourceUrl =
       'https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUzIYQGmurMWV4gNGnsgCdxK7Fq5HVLH0RsQ0MPWwCKieJJD5woLoa0zQtywWtSnxV7sJVXtEaf8KCmELOP22OpEJ7EPftjp9-Lc=';
 
     render(
-      <BoardInspectorRail
+      <WorkspaceBoardInspectorPanel
         isOpen
         tabs={[
           { id: 'AGENT', label: 'Agent' },

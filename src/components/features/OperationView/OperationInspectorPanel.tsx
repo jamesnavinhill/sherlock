@@ -26,7 +26,7 @@ import {
 import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 import { getArtifactTypeLabel } from './artifactViewerPresentation';
 
-interface InspectorPanelProps {
+interface OperationInspectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'ENTITY' | 'HEADLINE' | 'REPORT' | null;
@@ -54,7 +54,7 @@ const renderEntityIcon = (entityType: Entity['type']) => {
   return <Network className="h-5 w-5" />;
 };
 
-export const InspectorPanel: React.FC<InspectorPanelProps> = ({
+export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = ({
   isOpen,
   onClose,
   mode,

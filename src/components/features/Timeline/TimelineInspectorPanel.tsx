@@ -24,7 +24,7 @@ import {
   type DetailSections,
 } from './timelineViewUtils';
 
-interface TimelineDetailRailProps {
+interface TimelineInspectorPanelProps {
   isOpen: boolean;
   selectedEvent: TimelineEvent | null;
   detailSections: DetailSections;
@@ -44,7 +44,7 @@ interface TimelineDetailRailProps {
   onToggleContext: () => void;
 }
 
-export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
+export const TimelineInspectorPanel: React.FC<TimelineInspectorPanelProps> = ({
   isOpen,
   selectedEvent,
   detailSections,

@@ -39,7 +39,7 @@ import type { GraphNode } from './GraphCanvas';
 
 type InvestigationContext = { topic: string; summary: string };
 
-interface NodeInspectorProps {
+interface NetworkGraphInspectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'ENTITY' | 'HEADLINE' | 'REPORT' | null;
@@ -66,7 +66,7 @@ interface NodeInspectorProps {
   onPlaceHeadlineOnBoard: (headline: Headline) => void;
 }
 
-export const NodeInspector: React.FC<NodeInspectorProps> = ({
+export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProps> = ({
   isOpen,
   onClose,
   mode,

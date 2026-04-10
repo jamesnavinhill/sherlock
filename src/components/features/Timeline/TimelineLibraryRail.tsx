@@ -14,7 +14,7 @@ interface LabelProfileLike {
   artifactLabelPlural: string;
 }
 
-interface TimelineDossierPanelProps {
+interface TimelineLibraryRailProps {
   isOpen: boolean;
   workspaceTitle: string;
   labelProfile: LabelProfileLike;
@@ -32,7 +32,7 @@ interface TimelineDossierPanelProps {
   onFocusReference: (track: (typeof TRACK_OPTIONS)[number]['track'], refId: string) => void;
 }
 
-export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
+export const TimelineLibraryRail: React.FC<TimelineLibraryRailProps> = ({
   isOpen,
   workspaceTitle,
   labelProfile,

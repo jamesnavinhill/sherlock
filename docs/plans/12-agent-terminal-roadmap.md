@@ -15,8 +15,8 @@ Related inputs:
 - `src/components/features/Chat/useChatController.ts`
 - `src/components/features/Chat/ChatTranscript.tsx`
 - `src/components/features/Chat/ChatComposer.tsx`
-- `src/components/features/Chat/ChatSessionRail.tsx`
-- `src/components/features/Chat/ChatContextRail.tsx`
+- `src/components/features/Chat/ChatLibraryRail.tsx`
+- `src/components/features/Chat/ChatInspectorPanel.tsx`
 - `src/services/chat/runtime.ts`
 - `src/services/workspace/agent/actions/registry.ts`
 - `src/services/db/client.ts`

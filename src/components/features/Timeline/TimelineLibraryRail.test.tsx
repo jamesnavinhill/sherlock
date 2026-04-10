@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { TimelineEvent } from '@/types';
-import { TimelineDossierPanel } from './TimelineDossierPanel';
+import { TimelineLibraryRail } from './TimelineLibraryRail';
 
 const buildEvent = (overrides: Partial<TimelineEvent>): TimelineEvent => ({
   id: overrides.id || 'event-1',
@@ -14,14 +14,14 @@ const buildEvent = (overrides: Partial<TimelineEvent>): TimelineEvent => ({
   ...overrides,
 });
 
-describe('TimelineDossierPanel', () => {
+describe('TimelineLibraryRail', () => {
   it('renders shared library sections and preserves focus navigation actions', () => {
     const onToggleSection = vi.fn();
     const onSetTrackFocus = vi.fn();
     const onFocusReference = vi.fn();
 
     render(
-      <TimelineDossierPanel
+      <TimelineLibraryRail
         isOpen
         workspaceTitle="Atlas Workspace"
         labelProfile={{ artifactLabel: 'Artifact', artifactLabelPlural: 'Artifacts' }}

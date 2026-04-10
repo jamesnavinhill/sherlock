@@ -18,13 +18,13 @@ Related inputs:
 - `docs/_legacy/reports/2026-04-08-codebase-audit.md`
 - `docs/plans/10-canonical-cleanup-roadmap.md`
 - `src/components/features/OperationView/ArtifactViewer.tsx`
-- `src/components/features/Chat/ChatContextRail.tsx`
-- `src/components/features/Timeline/TimelineDossierPanel.tsx`
-- `src/components/features/Timeline/TimelineDetailRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardInspectorRail.tsx`
-- `src/components/features/NetworkGraph/NodeInspector.tsx`
-- `src/components/features/OperationView/InspectorPanel.tsx`
+- `src/components/features/Chat/ChatInspectorPanel.tsx`
+- `src/components/features/Timeline/TimelineLibraryRail.tsx`
+- `src/components/features/Timeline/TimelineInspectorPanel.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx`
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx`
+- `src/components/features/OperationView/OperationInspectorPanel.tsx`
 - `src/components/ui/Accordion.tsx`
 - `src/components/ui/InspectorActionRow.tsx`
 - `src/components/ui/chrome.ts`
@@ -265,13 +265,13 @@ Primary targets:
 - `src/components/ui/Accordion.tsx`
 - `src/components/ui/InspectorActionRow.tsx`
 - `src/components/ui/chrome.ts`
-- `src/components/features/Chat/ChatContextRail.tsx`
-- `src/components/features/Timeline/TimelineDossierPanel.tsx`
-- `src/components/features/Timeline/TimelineDetailRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardInspectorRail.tsx`
-- `src/components/features/OperationView/InspectorPanel.tsx`
-- `src/components/features/NetworkGraph/NodeInspector.tsx`
+- `src/components/features/Chat/ChatInspectorPanel.tsx`
+- `src/components/features/Timeline/TimelineLibraryRail.tsx`
+- `src/components/features/Timeline/TimelineInspectorPanel.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx`
+- `src/components/features/OperationView/OperationInspectorPanel.tsx`
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx`
 
 Execution checklist:
 
@@ -580,8 +580,8 @@ Purpose:
 
 Primary targets:
 
-- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
-- `src/components/features/Chat/ChatContextRail.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx`
+- `src/components/features/Chat/ChatInspectorPanel.tsx`
 - Chat history and session-side panel components touched by `src/components/features/Chat/*`
 - any signal or session panel rows that currently use thinner one-off item anatomy
 

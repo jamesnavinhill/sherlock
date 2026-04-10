@@ -3,7 +3,7 @@ import { FileText } from 'lucide-react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { LabelProfile, TimelineEvent } from '@/types';
-import { TimelineDetailRail } from './TimelineDetailRail';
+import { TimelineInspectorPanel } from './TimelineInspectorPanel';
 
 const baseEvent: TimelineEvent = {
   id: 'artifact-evt',
@@ -36,10 +36,10 @@ const labelProfile: LabelProfile = {
   archiveLabel: 'Archive',
 };
 
-describe('TimelineDetailRail', () => {
+describe('TimelineInspectorPanel', () => {
   it('renders timeline metadata inside the shared global inspector', () => {
     render(
-      <TimelineDetailRail
+      <TimelineInspectorPanel
         isOpen
         selectedEvent={baseEvent}
         detailSections={{ summary: true, context: true }}
@@ -123,7 +123,7 @@ describe('TimelineDetailRail', () => {
 
   it('shows the shared inspector empty state when no event is selected', () => {
     render(
-      <TimelineDetailRail
+      <TimelineInspectorPanel
         isOpen
         selectedEvent={null}
         detailSections={{ summary: false, context: false }}

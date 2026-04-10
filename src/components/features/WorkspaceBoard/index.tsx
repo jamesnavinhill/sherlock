@@ -18,8 +18,8 @@ import { getWorkspaceDisplayTitle } from '@/domain';
 import type { GlobalInspectorTab } from '@/components/features/Inspector/globalInspectorTypes';
 import { LEFT_PANEL_SECTION_SCROLL_CLASS, type RightPanelView } from './workspaceBoardUtils';
 import { useWorkspaceBoardController } from './useWorkspaceBoardController';
-import { BoardLibraryRail } from './BoardLibraryRail';
-import { BoardInspectorRail } from './BoardInspectorRail';
+import { WorkspaceBoardLibraryRail } from './WorkspaceBoardLibraryRail';
+import { WorkspaceBoardInspectorPanel } from './WorkspaceBoardInspectorPanel';
 import { BoardAgentRail } from './BoardAgentRail';
 import { BoardDialogs } from './BoardDialogs';
 import { BoardTopBar } from './BoardTopBar';
@@ -185,7 +185,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           />
         ) : null}
 
-        <BoardLibraryRail
+        <WorkspaceBoardLibraryRail
           isOpen={leftPanelOpen}
           workspaceTitle={getWorkspaceDisplayTitle(activeWorkspace)}
           search={search}
@@ -213,7 +213,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         />
 
         {rightPanelView === 'INSPECTOR' ? (
-          <BoardInspectorRail
+          <WorkspaceBoardInspectorPanel
             isOpen={rightPanelOpen}
             tabs={rightPanelTabs}
             activeTabId={rightPanelView}

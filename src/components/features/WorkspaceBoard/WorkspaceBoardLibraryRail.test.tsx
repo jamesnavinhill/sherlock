@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { BoardLibraryRail } from './BoardLibraryRail';
+import { WorkspaceBoardLibraryRail } from './WorkspaceBoardLibraryRail';
 
-describe('BoardLibraryRail', () => {
+describe('WorkspaceBoardLibraryRail', () => {
   it('renders the shared library rail header and actions', () => {
     render(
-      <BoardLibraryRail
+      <WorkspaceBoardLibraryRail
         isOpen
         workspaceTitle="Agentic A.I."
         search=""
@@ -49,7 +49,7 @@ describe('BoardLibraryRail', () => {
 
   it('does not repeat the item kind inside expanded library entries', () => {
     render(
-      <BoardLibraryRail
+      <WorkspaceBoardLibraryRail
         isOpen
         workspaceTitle="Agentic A.I."
         search=""

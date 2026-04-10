@@ -17,7 +17,7 @@ import {
 import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
 import type { RightPanelView } from './workspaceBoardUtils';
 
-interface BoardInspectorRailProps {
+interface WorkspaceBoardInspectorPanelProps {
   isOpen: boolean;
   tabs: GlobalInspectorTab[];
   activeTabId: RightPanelView;
@@ -40,7 +40,7 @@ interface BoardInspectorRailProps {
   onDeleteBoard: () => void;
 }
 
-export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
+export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanelProps> = ({
   isOpen,
   tabs,
   activeTabId,

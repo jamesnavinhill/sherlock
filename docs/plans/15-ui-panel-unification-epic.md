@@ -120,15 +120,14 @@ Status: Mostly complete, not cleanup-complete
 
 Implemented:
 
-- [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx) is now a shared-inspector adapter over [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
-- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx) is now a shared-library adapter over [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx) and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
-- [src/components/features/NetworkGraph/NodeInspector.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx) is now a shared-inspector adapter over [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
-- [src/components/features/NetworkGraph/index.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/index.tsx) reuses [DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
+- [src/components/features/OperationView/OperationInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/OperationInspectorPanel.tsx) is now a shared-inspector adapter over [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/OperationView/WorkspaceLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.tsx) is now a shared-library adapter over [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx) and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+- [src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx) is now a shared-inspector adapter over [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/NetworkGraph/index.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/index.tsx) reuses [WorkspaceLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.tsx)
 
 Still open:
 
-- the route still keeps legacy wrapper names instead of consolidating on shared route adapters
-- OperationView and NetworkGraph are functionally migrated, but final legacy deletion and API cleanup did not happen
+- final route-level deletion and API cleanup did not happen
 
 ### Stream A2: Timeline
 
@@ -136,13 +135,12 @@ Status: Mostly complete, closest route to clean cutover
 
 Implemented:
 
-- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx) renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
-- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx) renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx)
+- [src/components/features/Timeline/TimelineInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineInspectorPanel.tsx) renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/Timeline/TimelineLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineLibraryRail.tsx) renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx)
 - [src/components/features/Timeline/useTimelineViewController.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/useTimelineViewController.ts) uses [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
 
 Still open:
 
-- component names still reflect the legacy rail model
 - the final route-level cleanup and deletion pass did not happen
 
 ## Phase 4: Parallel Pair B
@@ -153,8 +151,8 @@ Status: Mostly complete, not cleanup-complete
 
 Current state:
 
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx) now renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx) and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx) now renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/Chat/ChatLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.tsx) now renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx) and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+- [src/components/features/Chat/ChatInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatInspectorPanel.tsx) now renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
 - [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts) now uses [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
 
 What remains:
@@ -165,12 +163,12 @@ What remains:
 
 ### Stream B2: WorkspaceBoard
 
-Status: Mostly complete, not cleanup-complete
+Status: Mostly complete, cleanup naming largely complete
 
 Current state:
 
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx) now renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx), [LibraryRailSearch.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSearch.tsx), and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx) now renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx) now renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx), [LibraryRailSearch.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSearch.tsx), and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx) now renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
 - [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx) now uses the shared tab shell for `Agent` and `Inspector`
 - [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts) and [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts) now use [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts) for top-level panel sections
 
@@ -229,7 +227,6 @@ Status: Shared inspector and shared library adopted
 
 Still remaining:
 
-- convert legacy wrapper naming into final route-level shared-adapter naming if desired
 - include route in the final cleanup/deletion pass
 
 ### NetworkGraph
@@ -238,7 +235,6 @@ Status: Shared inspector adopted, shared dossier rail reused
 
 Still remaining:
 
-- reduce `NodeInspector` to a thinner final adapter if possible
 - include route in the final cleanup/deletion pass
 
 ### Timeline
@@ -269,11 +265,11 @@ Decision:
 
 ### Chat
 
-Status: Shared inspector and shared library adopted, cleanup still pending
+Status: Shared inspector and shared library adopted, naming normalized
 
 ### WorkspaceBoard
 
-Status: Shared rails and shared tabs adopted, cleanup still pending
+Status: Shared rails and shared tabs adopted, naming normalized
 
 ## Remaining Work For Clean Cutover
 
@@ -284,8 +280,8 @@ This is the smallest clean path to full parity from the current repo state.
 Owner surface:
 
 - [src/components/features/Chat/ChatPage.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatPage.tsx)
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
+- [src/components/features/Chat/ChatLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.tsx)
+- [src/components/features/Chat/ChatInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatInspectorPanel.tsx)
 - [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts)
 
 Deliverables:
@@ -303,7 +299,7 @@ Exit criteria:
 
 Owner surface:
 
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx)
 - [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts)
 - [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx)
 
@@ -321,7 +317,7 @@ Exit criteria:
 
 Owner surface:
 
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx)
 - [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx)
 - [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts)
 
@@ -340,14 +336,14 @@ Exit criteria:
 
 Owner surface:
 
-- [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
-- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
-- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx)
-- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
+- [src/components/features/OperationView/OperationInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/OperationInspectorPanel.tsx)
+- [src/components/features/OperationView/WorkspaceLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.tsx)
+- [src/components/features/Timeline/TimelineInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineInspectorPanel.tsx)
+- [src/components/features/Timeline/TimelineLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineLibraryRail.tsx)
+- [src/components/features/Chat/ChatInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatInspectorPanel.tsx)
+- [src/components/features/Chat/ChatLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx)
 
 Deliverables:
 
@@ -367,6 +363,13 @@ Current progress:
 - Chat and WorkspaceBoard route-level right-panel toggles and mobile overlays are normalized to the shared `lg` breakpoint behavior
 - OperationView dossier copy and section treatment are normalized with the other shared library rails
 - ArtifactViewer has an explicit final-shell decision and remains a specialized shared consumer
+- route adapter names are normalized to canonical shared-panel language across OperationView, Timeline, Chat, WorkspaceBoard, and NetworkGraph
+- exact obsolete panel file references are removed from active `src/` and non-legacy `docs/`
+
+Status:
+
+- Workstream 4 is complete for the shared-panel cutover
+- remaining work is verification/documentation follow-through, not route-panel architecture churn
 
 ### Workstream 5: Final Docs And Verification
 
@@ -389,6 +392,12 @@ Exit criteria:
 
 - docs reflect the final architecture, not the intermediate state
 - validation is fully green
+
+Current progress:
+
+- active architecture and planning docs now use the canonical shared-panel file names and route-adapter language
+- targeted shared-panel validation is green, including lint, typecheck, build, and focused component/controller tests
+- the repo still has the pre-existing unrelated full-suite failure in [registry.test.ts](C:/Users/james/projects/sherlock/src/services/workspace/agent/actions/registry.test.ts), so Workstream 5 is not fully closed yet
 
 ## Recommended Finish Order
 

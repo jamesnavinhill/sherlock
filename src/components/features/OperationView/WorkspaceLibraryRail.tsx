@@ -13,7 +13,7 @@ import { LibraryRailShell } from '../LibraryRail/LibraryRailShell';
 import type { LibraryRailSection } from '../LibraryRail/libraryRailTypes';
 import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
 
-interface DossierPanelProps {
+interface WorkspaceLibraryRailProps {
   isOpen: boolean;
   activeCase: Workspace | null;
   labelProfile: LabelProfile;
@@ -36,7 +36,7 @@ interface DossierPanelProps {
   showHeaderSummary?: boolean;
 }
 
-export const DossierPanel: React.FC<DossierPanelProps> = ({
+export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
   isOpen,
   activeCase,
   labelProfile,

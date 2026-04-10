@@ -2,9 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Artifact, Entity } from '@/types';
-import { InspectorPanel } from './InspectorPanel';
+import { OperationInspectorPanel } from './OperationInspectorPanel';
 
-describe('InspectorPanel', () => {
+describe('OperationInspectorPanel', () => {
   it('renders entity details through the shared inspector shell and preserves mention navigation', () => {
     const entity: Entity = {
       name: 'Atlas Holdings',
@@ -26,7 +26,7 @@ describe('InspectorPanel', () => {
     const onNavigate = vi.fn();
 
     render(
-      <InspectorPanel
+      <OperationInspectorPanel
         isOpen
         onClose={vi.fn()}
         mode="ENTITY"

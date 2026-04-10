@@ -7,7 +7,7 @@ import { LibraryRailShell } from '@/components/features/LibraryRail/LibraryRailS
 import type { LibraryRailSection } from '@/components/features/LibraryRail/libraryRailTypes';
 import { CHROME_NESTED_ITEM_BODY_CLASS } from '@/components/ui/chrome';
 
-interface ChatSessionRailProps {
+interface ChatLibraryRailProps {
   activeSessionId: string | null;
   leftPanelOpen: boolean;
   leftPanelSections: {
@@ -29,7 +29,7 @@ interface ChatSessionRailProps {
   onDeleteSession: (session: ChatSession) => void;
 }
 
-export const ChatSessionRail: React.FC<ChatSessionRailProps> = ({
+export const ChatLibraryRail: React.FC<ChatLibraryRailProps> = ({
   activeSessionId,
   leftPanelOpen,
   leftPanelSections,

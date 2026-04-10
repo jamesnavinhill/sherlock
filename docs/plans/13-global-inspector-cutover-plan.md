@@ -8,7 +8,7 @@ This cutover should preserve one dedicated artifact details reading surface in t
 
 ## Current Read
 
-The best current base is the network graph inspector in [src/components/features/NetworkGraph/NodeInspector.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx). It already handles:
+The best current base is the network graph inspector in [src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx). It already handles:
 
 - entities
 - artifacts
@@ -18,12 +18,12 @@ The best current base is the network graph inspector in [src/components/features
 - empty states
 - shared chrome primitives
 
-The duplication around it lives in these route-specific right rails:
+The duplication around it lives in these route-specific right-side inspectors:
 
-- Archive viewer inspector: [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
-- Board inspector: [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
-- Timeline details rail: [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx)
-- Chat context rail: [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
+- Archive viewer inspector: [src/components/features/OperationView/OperationInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/OperationInspectorPanel.tsx)
+- Board inspector: [src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx)
+- Timeline inspector: [src/components/features/Timeline/TimelineInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineInspectorPanel.tsx)
+- Chat inspector: [src/components/features/Chat/ChatInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatInspectorPanel.tsx)
 
 All of these use the same visual language from [src/components/ui/chrome.ts](C:/Users/james/projects/sherlock/src/components/ui/chrome.ts) and the shared action row in [src/components/ui/InspectorActionRow.tsx](C:/Users/james/projects/sherlock/src/components/ui/InspectorActionRow.tsx), but each one rebuilt its own shell, section structure, and page-specific data rendering.
 
@@ -84,7 +84,7 @@ Each subject should provide only the data the shared panel needs to render its h
 
 ### 3. Extract reusable rendering logic from the network graph inspector
 
-Lift the reusable logic from [src/components/features/NetworkGraph/NodeInspector.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx) into shared inspector helpers and section renderers:
+Lift the reusable logic from [src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx) into shared inspector helpers and section renderers:
 
 - entity header treatment
 - artifact header treatment
@@ -141,13 +141,13 @@ Replace the far-right inspector in the archive viewer first.
 
 Primary files:
 
-- [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
+- [src/components/features/OperationView/OperationInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/OperationInspectorPanel.tsx)
 - [src/components/features/OperationView/useOperationViewInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/OperationView/useOperationViewInspectorState.ts)
 - [src/components/features/OperationView/index.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/index.tsx)
 
 Plan:
 
-- replace `InspectorPanel` usage with the new shared `GlobalInspectorPanel`
+- replace `OperationInspectorPanel` usage with the new shared `GlobalInspectorPanel`
 - keep operation-view inspector state logic, but adapt selected entity, headline, and artifact data into shared inspector subjects
 - preserve the center artifact viewer in [src/components/features/OperationView/ArtifactViewer.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/ArtifactViewer.tsx)
 - keep archive workflow behavior unchanged while removing the legacy far-right implementation
@@ -156,11 +156,11 @@ This is the safest first migration because the surface already maps well to the 
 
 ### Phase 2: Timeline cutover
 
-Replace the timeline detail rail next.
+Replace the timeline inspector next.
 
 Primary files:
 
-- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx)
+- [src/components/features/Timeline/TimelineInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineInspectorPanel.tsx)
 - [src/components/features/Timeline/useTimelineViewController.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/useTimelineViewController.ts)
 - [src/components/features/Timeline/timelineViewModel.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/timelineViewModel.ts)
 - [src/components/features/Timeline/timelineDetailActions.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/timelineDetailActions.ts)
@@ -172,17 +172,17 @@ Plan:
 - adapt timeline event selections into shared inspector subjects
 - move timeline metadata into shared section blocks, likely under an `Event Context` or `Summary` grouping
 - preserve timeline-specific actions through the existing action builder model
-- keep open/focus/jump behaviors intact while removing the dedicated detail rail component
+- keep open/focus/jump behaviors intact while removing the dedicated timeline inspector implementation
 
 Timeline is a good second migration because its rail is mostly contextual data already, and that data can live comfortably inside the global inspector.
 
 ### Phase 3: Chat cutover
 
-Replace the chat context rail with the shared global inspector.
+Replace the chat inspector with the shared global inspector.
 
 Primary files:
 
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
+- [src/components/features/Chat/ChatInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatInspectorPanel.tsx)
 - [src/components/features/Chat/ChatPage.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatPage.tsx)
 - [src/components/features/Chat/useChatController.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatController.ts)
 - [src/components/features/Chat/useChatWorkspaceState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatWorkspaceState.ts)
@@ -203,7 +203,7 @@ Replace the board inspector rail after chat and timeline are stable.
 
 Primary files:
 
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx)
 - [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts)
 - [src/components/features/WorkspaceBoard/boardInspectorActions.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/boardInspectorActions.ts)
 - [src/components/features/WorkspaceBoard/workspaceBoardViewModel.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/workspaceBoardViewModel.ts)
@@ -227,13 +227,13 @@ Move the source implementation over last.
 
 Primary files:
 
-- [src/components/features/NetworkGraph/NodeInspector.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.tsx)
+- [src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx)
 - [src/components/features/NetworkGraph/useNetworkGraphInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/useNetworkGraphInspectorState.ts)
 - [src/components/features/NetworkGraph/index.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/index.tsx)
 
 Plan:
 
-- convert `NodeInspector` into a thin adapter over `GlobalInspectorPanel`
+- convert `NetworkGraphInspectorPanel` into a thin adapter over `GlobalInspectorPanel`
 - keep graph selection state intact
 - keep graph-only actions and capabilities available through subject/action injection
 - remove duplicated rendering logic that was previously extracted
@@ -263,10 +263,10 @@ After each route is migrated and stable, remove the obsolete custom rail impleme
 
 Primary deletion targets:
 
-- [src/components/features/OperationView/InspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/InspectorPanel.tsx)
-- [src/components/features/Timeline/TimelineDetailRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDetailRail.tsx)
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx)
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx)
+- [src/components/features/OperationView/OperationInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/OperationInspectorPanel.tsx)
+- [src/components/features/Timeline/TimelineInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineInspectorPanel.tsx)
+- [src/components/features/Chat/ChatInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatInspectorPanel.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx)
 
 Additional cleanup:
 
@@ -309,9 +309,9 @@ Expected validation:
 
 Likely test files to update as the cutover proceeds:
 
-- [src/components/features/NetworkGraph/NodeInspector.test.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NodeInspector.test.tsx)
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.test.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.test.tsx)
-- [src/components/features/Chat/ChatContextRail.test.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.test.tsx)
+- [src/components/features/NetworkGraph/NetworkGraphInspectorPanel.test.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/NetworkGraphInspectorPanel.test.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.test.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.test.tsx)
+- [src/components/features/Chat/ChatInspectorPanel.test.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatInspectorPanel.test.tsx)
 - operation-view inspector/controller tests
 - timeline controller and action-builder tests
 

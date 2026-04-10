@@ -12,10 +12,10 @@ Sherlock currently has a family of left-side browse surfaces and sidebars that a
 
 The strongest members of this family are:
 
-- Operation/network dossier rail: [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
-- Timeline dossier rail: [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
-- Board library rail: [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
-- Chat session rail: [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
+- Operation/network workspace library rail: [src/components/features/OperationView/WorkspaceLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.tsx)
+- Timeline library rail: [src/components/features/Timeline/TimelineLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineLibraryRail.tsx)
+- Board library rail: [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx)
+- Chat library rail: [src/components/features/Chat/ChatLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.tsx)
 - Artifact details sidebar patterns inside [src/components/features/OperationView/ArtifactViewer.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/ArtifactViewer.tsx)
 
 There is also a related but less directly matching records-browsing surface in Files:
@@ -165,8 +165,8 @@ This reduces repeated boilerplate before the visual migration is even finished.
 
 These should share the most implementation:
 
-- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
+- [src/components/features/OperationView/WorkspaceLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx)
 - artifact detail/sidebar portions of [src/components/features/OperationView/ArtifactViewer.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/ArtifactViewer.tsx)
 
 Common traits:
@@ -180,8 +180,8 @@ Common traits:
 
 These should share shell and section rendering, but use different builders:
 
-- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
+- [src/components/features/Timeline/TimelineLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineLibraryRail.tsx)
+- [src/components/features/Chat/ChatLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.tsx)
 
 Common traits:
 
@@ -264,7 +264,7 @@ Goals:
 
 Primary files:
 
-- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
+- [src/components/features/OperationView/WorkspaceLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.tsx)
 - [src/components/features/OperationView/index.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/index.tsx)
 - [src/components/features/NetworkGraph/index.tsx](C:/Users/james/projects/sherlock/src/components/features/NetworkGraph/index.tsx)
 
@@ -278,7 +278,7 @@ This is the best first real consumer because:
 
 Primary files:
 
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx)
 - [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts)
 - [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx)
 
@@ -290,21 +290,21 @@ This phase should prove:
 - route-specific row actions like `Add To Board`
 - create/upload affordances living in the rail header without becoming special-case UI
 
-### Phase 4: Migrate the timeline dossier rail
+### Phase 4: Migrate the timeline library rail
 
 Primary files:
 
-- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
+- [src/components/features/Timeline/TimelineLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineLibraryRail.tsx)
 - [src/components/features/Timeline/timelineViewUtils.ts](C:/Users/james/projects/sherlock/src/components/features/Timeline/timelineViewUtils.ts)
 - [src/components/features/TimelineView.tsx](C:/Users/james/projects/sherlock/src/components/features/TimelineView.tsx)
 
 This phase should prove the shared rail works for focus/navigation semantics, not just browse/open semantics.
 
-### Phase 5: Migrate the chat session rail
+### Phase 5: Migrate the chat library rail
 
 Primary files:
 
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
+- [src/components/features/Chat/ChatLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.tsx)
 - [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts)
 - [src/components/features/Chat/ChatPage.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatPage.tsx)
 
@@ -347,10 +347,10 @@ Recommendation:
 
 Once migrations are stable, remove or shrink the custom rail implementations:
 
-- [src/components/features/OperationView/DossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.tsx)
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx)
-- [src/components/features/Timeline/TimelineDossierPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineDossierPanel.tsx)
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx)
+- [src/components/features/OperationView/WorkspaceLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx)
+- [src/components/features/Timeline/TimelineLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Timeline/TimelineLibraryRail.tsx)
+- [src/components/features/Chat/ChatLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.tsx)
 
 Also clean up:
 
@@ -378,9 +378,9 @@ Expected validation for implementation phases:
 
 Likely tests to update:
 
-- [src/components/features/OperationView/DossierPanel.test.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/DossierPanel.test.tsx)
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.test.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.test.tsx)
-- [src/components/features/Chat/ChatSessionRail.test.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.test.tsx)
+- [src/components/features/OperationView/WorkspaceLibraryRail.test.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/WorkspaceLibraryRail.test.tsx)
+- [src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.test.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.test.tsx)
+- [src/components/features/Chat/ChatLibraryRail.test.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatLibraryRail.test.tsx)
 - [src/components/features/OperationView/ArtifactViewer.test.tsx](C:/Users/james/projects/sherlock/src/components/features/OperationView/ArtifactViewer.test.tsx)
 - board library state tests in [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.test.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.test.ts)
 

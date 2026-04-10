@@ -199,7 +199,7 @@ Naming is intentionally literal rather than clever:
 - `useSettingsController`
 - `useNetworkGraphController`
 - `buildTimelineViewModel`
-- `TimelineDetailRail`
+- `TimelineInspectorPanel`
 - `WorkspaceBoardDialogs`
 
 This contract is meant to keep future slice work consistent: controller for orchestration, view-model for pure derivation, sections for presentation, and shared modules only where overlap is already real.
@@ -480,9 +480,9 @@ Routed workflow surfaces now share a baseline chrome/panel contract rather than 
 `src/components/features/OperationView/*`
 
 - Toolbar
-- DossierPanel
+- WorkspaceLibraryRail
 - ArtifactViewer
-- InspectorPanel
+- OperationInspectorPanel
 - `useOperationViewController.ts` now owns route-level selection state, template-save flow, and high-level board/chat orchestration while `useOperationViewInspectorState.ts` owns right-rail selection plus report/entity/headline handoff commands and `index.tsx` stays focused on layout and modal composition
 - `OperationViewDialogs.tsx` now holds the lead follow-through modal, new-workspace modal, and protocol-template save dialog so workflow copy and launch boundaries live outside the page shell
 - saved artifact routes can now carry `focusSectionId`, `focusEvidenceId`, and `inspector=REPORT`, which lets omnibox/search hits reopen the reader on a precise section/evidence target while defaulting the right rail to a current-artifact inspector
@@ -511,10 +511,10 @@ Operation View now also includes board handoff for the active artifact plus insp
 - cross-surface placement handoff respects presentation mode rather than mutating readonly boards
 - inspector actions back into artifacts, workspace chat, timeline, network graph, source links, and promoted-item provenance
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system
-- `BoardTopBar.tsx`, `BoardCanvasPane.tsx`, `BoardLibraryRail.tsx`, `BoardInspectorRail.tsx`, `BoardAgentRail.tsx`, and `BoardDialogs.tsx` now isolate the major board sections from the route shell
+- `BoardTopBar.tsx`, `BoardCanvasPane.tsx`, `WorkspaceBoardLibraryRail.tsx`, `WorkspaceBoardInspectorPanel.tsx`, `BoardAgentRail.tsx`, and `BoardDialogs.tsx` now isolate the major board sections from the route shell
 - controller responsibilities are split further across `useBoardCanvasPersistence.ts`, `workspaceBoardItemActions.ts`, `boardInspectorActions.ts`, and `workspaceBoardAgent.ts` so the public controller stays focused on orchestration
 
-`ArtifactViewer` and `DossierPanel` now also surface:
+`ArtifactViewer` and `WorkspaceLibraryRail` now also surface:
 
 - evidence records as first-class report content
 - methodology sections when present
@@ -540,7 +540,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - contextual handoff from Operation View, Files, and Network Graph into the same session backend, with artifact/entity/signal grounding persisted on the target chat session
 - finding-aware chat launch context can pin a specific finding and carry its origin artifact/section provenance into the session primer and attachment metadata
 - workspace-item handoff now persists `workspaceItemId` in chat launch context so Files and omnibox item opens can pin the item itself, not just its provenance fallback
-- `ChatHeader.tsx`, `ChatSessionRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatContextRail.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
+- `ChatHeader.tsx`, `ChatLibraryRail.tsx`, `ChatTranscript.tsx`, `ChatComposer.tsx`, `ChatInspectorPanel.tsx`, and `ChatDialogs.tsx` now keep the routed page shell focused on header/layout wiring rather than the full transcript and modal tree
 - controller responsibilities are split across `useChatViewState.ts`, `useChatWorkspaceState.ts`, `chatSessionLifecycle.ts`, `chatStreaming.ts`, `chatGuidedActions.ts`, and `chatTranscriptActions.ts` so the routed chat controller no longer carries every local state declaration, workspace/session derivation, streaming flow, and transcript workflow inline
 - `src/services/chat/runtimeContext.ts` now owns shared chat/guided runtime profile resolution plus provider-router request shaping so `runtime.ts` and `guidedMode.ts` reuse the same scope/pack/purpose/label fallback rules
 
@@ -614,8 +614,8 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - normalized `TimelineEvent` derivation in `src/components/features/Timeline/timelineEvents.ts`
 - `timelineEvents.ts` now composes dedicated `timelineEventBuilders.ts` and `timelineEventUtils.ts` seams instead of keeping all event heuristics inline in one owner file
 - route-backed chronology derivation and related selection state are centralized in `src/components/features/Timeline/timelineViewModel.ts`
-- `TimelineDossierPanel.tsx` now renders through the shared `LibraryRail` foundation while keeping Timeline-specific focus chips and reference actions in the feature layer
-- `TimelineDetailRail.tsx` now renders through the shared `GlobalInspectorPanel` foundation while keeping Timeline-specific context composition and handoff actions route-owned
+- `TimelineLibraryRail.tsx` now renders through the shared `LibraryRail` foundation while keeping Timeline-specific focus chips and reference actions in the feature layer
+- `TimelineInspectorPanel.tsx` now renders through the shared `GlobalInspectorPanel` foundation while keeping Timeline-specific context composition and handoff actions route-owned
 - Timeline section exclusivity now reuses `src/components/features/shared/useExclusivePanelSections.ts` instead of a Timeline-only toggle helper
 - default-on chronology for saved signals, runs, and artifacts
 - default-on `ITEM` track for canonical workspace-item creation, promotion, material-update, and chat-reuse events
@@ -627,7 +627,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - click-through into saved artifacts and exact workspace chat sessions from timeline events
 - board handoff for timeline-selected artifacts, entities, signals, and focused workspace items
 - timeline snapshot export in JSON/Markdown plus save-as-artifact support for `artifactType: TIMELINE`
-- `TimelineToolbar.tsx`, `TimelineFiltersPanel.tsx`, `TimelineExportMenu.tsx`, `TimelineDossierPanel.tsx`, `TimelineEventList.tsx`, and `TimelineDetailRail.tsx` now own the major timeline sections so the route shell mainly coordinates route state and layout
+- `TimelineToolbar.tsx`, `TimelineFiltersPanel.tsx`, `TimelineExportMenu.tsx`, `TimelineLibraryRail.tsx`, `TimelineEventList.tsx`, and `TimelineInspectorPanel.tsx` now own the major timeline sections so the route shell mainly coordinates route state and layout
 - query updates and detail action shaping now live in `timelineQueryHelpers.ts` and `timelineDetailActions.ts`, keeping the view controller focused on orchestration
 
 ### Omnibox

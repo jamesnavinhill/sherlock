@@ -11,8 +11,8 @@ import { ControlBar } from './ControlBar';
 import type { GraphCanvasRef } from './GraphCanvas';
 import { GraphCanvas } from './GraphCanvas';
 import { GraphViewportControls } from './GraphViewportControls';
-import { NodeInspector } from './NodeInspector';
-import { DossierPanel } from '../OperationView/DossierPanel'; // REUSE
+import { NetworkGraphInspectorPanel } from './NetworkGraphInspectorPanel';
+import { WorkspaceLibraryRail } from '../OperationView/WorkspaceLibraryRail';
 import { useNetworkGraphController } from './useNetworkGraphController';
 import { NetworkGraphDialogs } from './NetworkGraphDialogs';
 import { getEntityGraphNodeId } from './networkGraphNodeIds';
@@ -157,7 +157,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
       <div className="flex-1 flex overflow-hidden relative z-10">
         {/* Dossier Panel (Reused) */}
-        <DossierPanel
+        <WorkspaceLibraryRail
           isOpen={showLeftPanel}
           overlayOnDesktop
           showHeaderSummary={false}
@@ -236,7 +236,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         </div>
 
         {/* Right Panel: Inspector */}
-        <NodeInspector
+        <NetworkGraphInspectorPanel
           isOpen={showRightPanel}
           onClose={() => setShowRightPanel(false)}
           mode={inspectorMode}

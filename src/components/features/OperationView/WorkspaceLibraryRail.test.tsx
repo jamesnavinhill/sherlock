@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Artifact, Entity, LabelProfile, Workspace } from '@/types';
-import { DossierPanel } from './DossierPanel';
+import { WorkspaceLibraryRail } from './WorkspaceLibraryRail';
 
 const labelProfile: LabelProfile = {
   id: 'default',
@@ -17,7 +17,7 @@ const labelProfile: LabelProfile = {
   archiveLabel: 'Archive',
 };
 
-describe('DossierPanel', () => {
+describe('WorkspaceLibraryRail', () => {
   it('can suppress the header summary row for network-style library use', () => {
     const workspace: Workspace = {
       id: 'workspace-1',
@@ -43,7 +43,7 @@ describe('DossierPanel', () => {
     };
 
     render(
-      <DossierPanel
+      <WorkspaceLibraryRail
         isOpen
         activeCase={workspace}
         labelProfile={labelProfile}
@@ -85,7 +85,7 @@ describe('DossierPanel', () => {
     };
 
     render(
-      <DossierPanel
+      <WorkspaceLibraryRail
         isOpen
         activeCase={workspace}
         labelProfile={labelProfile}
@@ -124,7 +124,7 @@ describe('DossierPanel', () => {
     };
 
     render(
-      <DossierPanel
+      <WorkspaceLibraryRail
         isOpen
         activeCase={workspace}
         labelProfile={labelProfile}

@@ -8,9 +8,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import { useTimelineViewController } from './Timeline/useTimelineViewController';
 import { TimelineToolbar } from './Timeline/TimelineToolbar';
-import { TimelineDossierPanel } from './Timeline/TimelineDossierPanel';
+import { TimelineLibraryRail } from './Timeline/TimelineLibraryRail';
 import { TimelineEventList } from './Timeline/TimelineEventList';
-import { TimelineDetailRail } from './Timeline/TimelineDetailRail';
+import { TimelineInspectorPanel } from './Timeline/TimelineInspectorPanel';
 
 interface TimelineViewProps {
   onOpenReport: (report: Artifact) => void;
@@ -165,7 +165,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
       ) : null}
 
       <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden">
-        <TimelineDossierPanel
+        <TimelineLibraryRail
           isOpen={leftPanelOpen}
           workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : 'Workspace'}
           labelProfile={labelProfile}
@@ -203,7 +203,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
           onOpenWorkspaceChat={openWorkspaceChat}
         />
 
-        <TimelineDetailRail
+        <TimelineInspectorPanel
           isOpen={rightPanelOpen}
           selectedEvent={selectedEvent}
           detailSections={detailSections}

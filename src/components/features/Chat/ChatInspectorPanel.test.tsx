@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Artifact, Signal } from '@/types';
-import { ChatContextRail } from './ChatContextRail';
+import { ChatInspectorPanel } from './ChatInspectorPanel';
 
-describe('ChatContextRail', () => {
+describe('ChatInspectorPanel', () => {
   it('renders text-only artifact and signal action buttons', () => {
     const artifact: Artifact = {
       id: 'artifact-1',
@@ -29,7 +29,7 @@ describe('ChatContextRail', () => {
     };
 
     render(
-      <ChatContextRail
+      <ChatInspectorPanel
         rightPanelOpen
         workspaceTitle="Atlas Workspace"
         rightPanelSections={{

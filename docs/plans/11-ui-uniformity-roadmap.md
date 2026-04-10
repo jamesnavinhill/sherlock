@@ -13,13 +13,13 @@ Related inputs:
 - `docs/operations/DATA_PERSISTENCE.md`
 - `src/components/features/OperationView/ArtifactViewer.tsx`
 - `src/components/features/OperationView/artifactViewerPresentation.ts`
-- `src/components/features/Chat/ChatContextRail.tsx`
-- `src/components/features/Timeline/TimelineDossierPanel.tsx`
-- `src/components/features/Timeline/TimelineDetailRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardInspectorRail.tsx`
-- `src/components/features/NetworkGraph/NodeInspector.tsx`
-- `src/components/features/OperationView/InspectorPanel.tsx`
+- `src/components/features/Chat/ChatInspectorPanel.tsx`
+- `src/components/features/Timeline/TimelineLibraryRail.tsx`
+- `src/components/features/Timeline/TimelineInspectorPanel.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx`
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx`
+- `src/components/features/OperationView/OperationInspectorPanel.tsx`
 - `src/components/ui/Accordion.tsx`
 - `src/components/ui/InspectorActionRow.tsx`
 - `src/components/ui/chrome.ts`
@@ -75,24 +75,22 @@ The original roadmap is now stale in two directions:
 
 ### What still does not satisfy the roadmap
 
-#### 1. Rail vocabulary and shell behavior are still inconsistent
+#### 1. Rail vocabulary and shell behavior are now mostly aligned
+
+Status in active code:
+
+- the shared `LibraryRail` and `GlobalInspectorPanel` cutovers have now landed across Operation View, Timeline, Chat, WorkspaceBoard, and NetworkGraph
+- `WorkspaceLibraryRail.tsx`, `TimelineLibraryRail.tsx`, `ChatLibraryRail.tsx`, and `WorkspaceBoardLibraryRail.tsx` now carry the left-rail vocabulary through shared shells
+- `OperationInspectorPanel.tsx`, `TimelineInspectorPanel.tsx`, `ChatInspectorPanel.tsx`, `WorkspaceBoardInspectorPanel.tsx`, and `NetworkGraphInspectorPanel.tsx` now carry the right-panel vocabulary through the shared inspector shell
+- the remaining risk is drift in specialized exceptions such as `ArtifactViewer.tsx`, not missing panel infrastructure
+
+#### 2. Action and row styling still need parity maintenance
 
 Examples in active code:
 
-- `BoardLibraryRail.tsx` still uses `Canonical Library` plus an icon-heavy eyebrow
-- `TimelineDossierPanel.tsx` still uses `Timeline Dossier` instead of `Library`
-- `TimelineDetailRail.tsx` still uses `Event Details` instead of the simplified role vocabulary
-- `ChatContextRail.tsx` has the cleanest pinned-bottom shell behavior, but its header anatomy is not yet the shared primitive for the other rails
-- `InspectorPanel.tsx` and `NodeInspector.tsx` still use bespoke inspector layouts rather than one obvious right-rail contract
-
-#### 2. Action and row styling still split by surface
-
-Examples in active code:
-
-- `InspectorActionRow.tsx` is icon-only and reads differently from the text-forward Board and Chat action buttons
-- `ChatContextRail.tsx` still uses ad hoc inline `Summary` and `Full Text` buttons
-- `BoardLibraryRail.tsx` and `BoardInspectorRail.tsx` rely on `osint-button-primary` in places where the roadmap calls for one shared light-outline action language
-- `Accordion.tsx` still carries a single generic header treatment rather than a clear split between top-level section headers and meaningful selectable item rows
+- `InspectorActionRow.tsx` is now the shared top-action treatment, but future route-specific actions still need to stay inside that contract instead of reintroducing bespoke button rows
+- `Accordion.tsx` remains the shared section shell, so item-row versus section-header distinctions should continue to flow through the shared panel adapters
+- specialized readers such as `ArtifactViewer.tsx` still need periodic parity audits so their local affordances do not drift away from the shared panel language
 
 #### 3. The Artifact viewer is still only partially aligned with the document-first direction
 
@@ -344,13 +342,13 @@ Primary targets:
 - `src/components/ui/Accordion.tsx`
 - `src/components/ui/InspectorActionRow.tsx`
 - `src/components/ui/chrome.ts`
-- `src/components/features/Chat/ChatContextRail.tsx`
-- `src/components/features/Timeline/TimelineDossierPanel.tsx`
-- `src/components/features/Timeline/TimelineDetailRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardInspectorRail.tsx`
-- `src/components/features/OperationView/InspectorPanel.tsx`
-- `src/components/features/NetworkGraph/NodeInspector.tsx`
+- `src/components/features/Chat/ChatInspectorPanel.tsx`
+- `src/components/features/Timeline/TimelineLibraryRail.tsx`
+- `src/components/features/Timeline/TimelineInspectorPanel.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx`
+- `src/components/features/OperationView/OperationInspectorPanel.tsx`
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx`
 
 Execution checklist:
 
@@ -468,14 +466,14 @@ Purpose:
 
 Primary targets:
 
-- `src/components/features/WorkspaceBoard/BoardLibraryRail.tsx`
-- `src/components/features/WorkspaceBoard/BoardInspectorRail.tsx`
-- `src/components/features/Chat/ChatContextRail.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardLibraryRail.tsx`
+- `src/components/features/WorkspaceBoard/WorkspaceBoardInspectorPanel.tsx`
+- `src/components/features/Chat/ChatInspectorPanel.tsx`
 - relevant chat session/history side-panel components
-- `src/components/features/Timeline/TimelineDossierPanel.tsx`
-- `src/components/features/Timeline/TimelineDetailRail.tsx`
-- `src/components/features/NetworkGraph/NodeInspector.tsx`
-- `src/components/features/OperationView/InspectorPanel.tsx`
+- `src/components/features/Timeline/TimelineLibraryRail.tsx`
+- `src/components/features/Timeline/TimelineInspectorPanel.tsx`
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx`
+- `src/components/features/OperationView/OperationInspectorPanel.tsx`
 
 Execution checklist:
 

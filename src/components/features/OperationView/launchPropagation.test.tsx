@@ -19,8 +19,8 @@ vi.mock('./Toolbar', () => ({
   ),
 }));
 
-vi.mock('./DossierPanel', () => ({
-  DossierPanel: ({
+vi.mock('./WorkspaceLibraryRail', () => ({
+  WorkspaceLibraryRail: ({
     onHeadlineClick,
   }: {
     onHeadlineClick: (headline: {
@@ -83,8 +83,8 @@ vi.mock('./ArtifactViewer', () => ({
   ),
 }));
 
-vi.mock('./InspectorPanel', () => ({
-  InspectorPanel: ({
+vi.mock('./OperationInspectorPanel', () => ({
+  OperationInspectorPanel: ({
     onInvestigateEntity,
     onInvestigateHeadline,
     onOpenEntityChat,

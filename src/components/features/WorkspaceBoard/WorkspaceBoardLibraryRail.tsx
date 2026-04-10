@@ -33,7 +33,7 @@ interface GroupedEntries {
   signals: WorkspaceLibraryEntry[];
 }
 
-interface BoardLibraryRailProps {
+interface WorkspaceBoardLibraryRailProps {
   isOpen: boolean;
   workspaceTitle: string;
   search: string;
@@ -53,7 +53,7 @@ interface BoardLibraryRailProps {
   onAddToBoard: (entry: WorkspaceLibraryEntry) => void;
 }
 
-export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
+export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps> = ({
   isOpen,
   workspaceTitle,
   search,

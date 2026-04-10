@@ -31,12 +31,12 @@ vi.mock('./EntityResolution', () => ({
   detectEntityClusters: () => [],
 }));
 
-vi.mock('../OperationView/DossierPanel', () => ({
-  DossierPanel: () => null,
+vi.mock('../OperationView/WorkspaceLibraryRail', () => ({
+  WorkspaceLibraryRail: () => null,
 }));
 
-vi.mock('./NodeInspector', () => ({
-  NodeInspector: ({
+vi.mock('./NetworkGraphInspectorPanel', () => ({
+  NetworkGraphInspectorPanel: ({
     onInvestigate,
     onOpenEntityChat,
   }: {

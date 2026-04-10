@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { ChatSession } from '@/types';
-import { ChatSessionRail } from './ChatSessionRail';
+import { ChatLibraryRail } from './ChatLibraryRail';
 
-describe('ChatSessionRail', () => {
+describe('ChatLibraryRail', () => {
   it('renders the library header and board-style session actions', () => {
     const session: ChatSession = {
       id: 'session-1',
@@ -16,7 +16,7 @@ describe('ChatSessionRail', () => {
     };
 
     render(
-      <ChatSessionRail
+      <ChatLibraryRail
         activeSessionId={session.id}
         leftPanelOpen
         leftPanelSections={{ sessions: true, workspace: true }}
