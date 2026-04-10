@@ -173,7 +173,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
 
               <div className="relative z-10 mb-4 flex items-start justify-between">
                 <div className="flex items-start gap-2">
-                  <div className="p-3 text-white">
+                  <div className="p-3 text-osint-primary">
                     <AppIcon
                       iconId={workspace.iconId || getDefaultWorkspaceIconId()}
                       className="h-8 w-8"
@@ -214,7 +214,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                   <div className="osint-raised-surface-subtle min-w-0 px-3 py-2">
                     <div className="osint-meta-label">Artifacts</div>
                     <div className="mt-1 flex items-center gap-2 osint-meta-value">
-                      <FileText className="h-4 w-4 text-zinc-500" />
+                      <FileText className="h-4 w-4 text-osint-primary" />
                       <span>{artifactCount}</span>
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                 <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto] items-start gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 text-zinc-300">
+                      <div className="p-1.5 text-osint-primary">
                         <AppIcon
                           iconId={workspace.iconId || getDefaultWorkspaceIconId()}
                           className="h-4 w-4"
