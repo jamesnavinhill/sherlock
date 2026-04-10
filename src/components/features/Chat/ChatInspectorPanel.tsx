@@ -114,15 +114,11 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
             const isExpanded = !!expandedArtifactIds[artifactKey];
 
             return (
-              <div
-                key={artifactKey}
-                className={CHROME_THIN_NESTED_ITEM_CLASS}
-                data-active={isExpanded}
-              >
+              <div key={artifactKey} className="osint-panel-item">
                 <button
                   type="button"
                   onClick={() => onToggleArtifactCard(artifactKey)}
-                  className="flex w-full items-start justify-between gap-2 text-left"
+                  className="osint-rail-item-trigger osint-meta-label-strong flex min-h-[34px] w-full items-start justify-between gap-2 px-2.5 py-1.5 text-left text-[11px] text-zinc-300"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="truncate osint-body-quiet leading-5 text-zinc-300">
@@ -136,7 +132,7 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
                   )}
                 </button>
                 {isExpanded ? (
-                  <>
+                  <div className="border-t border-zinc-800/70 p-1.5">
                     <p className={CHROME_NESTED_ITEM_BODY_CLASS}>{artifact.summary}</p>
                     <div className={getChromeThinActionRowClassName(2)}>
                       <button
@@ -154,7 +150,7 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
                         Full Text
                       </button>
                     </div>
-                  </>
+                  </div>
                 ) : null}
               </div>
             );

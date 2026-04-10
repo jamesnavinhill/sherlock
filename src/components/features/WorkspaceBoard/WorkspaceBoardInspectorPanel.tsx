@@ -237,8 +237,9 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
       tabsPlacement="header"
       headerActionsPlacement="top"
       actionItems={actionItems}
-      actionRowLayout="wrap"
+      actionRowLayout="grid"
       actionRowDensity="thin"
+      actionRowGridColumns={2}
       sections={sections}
       footer={
         activeBoard ? (

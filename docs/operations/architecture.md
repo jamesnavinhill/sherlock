@@ -141,7 +141,7 @@ Current panel-system rules:
 
 ### Shared icon contract
 
-Sherlock now uses one curated application-icon registry for user-selectable record icons instead of letting each surface persist raw `lucide-react` component names or invent local icon mappings.
+Sherlock now uses one curated local application-icon registry for user-selectable record icons instead of letting each surface persist raw third-party component names or invent local icon mappings.
 
 Primary icon-system files:
 
@@ -150,12 +150,14 @@ Primary icon-system files:
 
 Current icon-system rules:
 
-- `src/lib/appIcons.tsx` is the single registry for approved icon ids, labels, fallback helpers, and board-safe SVG data-url generation
+- `src/lib/appIcons.tsx` is the single registry for approved icon ids, pack metadata, fallback helpers, and board-safe SVG data-url generation
+- the registry can mix multiple local icon packs behind one typed `AppIconId` contract; current packs include Sherlock's original Lucide defaults plus Tabler and Pixelarticons selections
 - persistence stores typed icon ids, not raw component imports or display labels
 - `Workspace.iconId` is the source of truth for customizable workspace icons in Files and other workspace-facing surfaces
 - `ManualNode.iconId` is the source of truth for manual network-node overrides
 - `WorkspaceLibraryEntry.iconId` is derived data and should be rendered as-is by board/library surfaces rather than recomputed locally
 - add/change flows should reuse `IconPickerOverlay` so icon selection stays visually and behaviorally consistent across Files, Board, and Network surfaces
+- board placement keeps using generated SVG data URLs for icon assets so tldraw export paths remain self-contained
 
 Fallback behavior stays simple:
 

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildAppIconSvgDataUrl, resolveAppIconColor } from './appIcons';
+import {
+  APP_ICON_OPTIONS,
+  buildAppIconSvgDataUrl,
+  getAppIconPack,
+  isAppIconId,
+  resolveAppIconColor,
+} from './appIcons';
 
 describe('appIcons', () => {
   it('resolves css variable colors before generating icon svg data urls', () => {
@@ -21,5 +27,41 @@ describe('appIcons', () => {
 
     expect(svgMarkup).toContain('#38bdf8');
     expect(svgMarkup).not.toContain('var(--entity-person)');
+  });
+
+  it('supports icons from the new local tabler and pixel-art packs', () => {
+    expect(isAppIconId('tabler:world')).toBe(true);
+    expect(isAppIconId('pixel:robot')).toBe(true);
+    expect(getAppIconPack('tabler:world')).toBe('tabler');
+    expect(getAppIconPack('pixel:robot')).toBe('pixelart');
+
+    const tablerMarkup = decodeURIComponent(
+      buildAppIconSvgDataUrl('tabler:world', {
+        color: '#f4f4f5',
+        size: 24,
+        strokeWidth: 1.75,
+      }).split(',')[1] || ''
+    );
+    const pixelMarkup = decodeURIComponent(
+      buildAppIconSvgDataUrl('pixel:robot', {
+        color: '#f4f4f5',
+        size: 24,
+      }).split(',')[1] || ''
+    );
+
+    expect(tablerMarkup).toContain('<svg');
+    expect(tablerMarkup).toContain('#f4f4f5');
+    expect(pixelMarkup).toContain('<svg');
+    expect(pixelMarkup).toContain('#f4f4f5');
+  });
+
+  it('publishes searchable option metadata for the picker', () => {
+    const tablerRobot = APP_ICON_OPTIONS.find((option) => option.id === 'tabler:robot');
+    const pixelRobot = APP_ICON_OPTIONS.find((option) => option.id === 'pixel:robot-face');
+
+    expect(tablerRobot?.searchText).toContain('tabler');
+    expect(tablerRobot?.searchText).toContain('agent');
+    expect(pixelRobot?.searchText).toContain('pixel art');
+    expect(pixelRobot?.searchText).toContain('assistant');
   });
 });

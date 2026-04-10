@@ -93,6 +93,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                   const sessionId =
                     getPrimaryRefId(event, 'CHAT_SESSION') ||
                     getMetadataValue<string>(event, 'sessionId');
+                  const isActive = effectiveSelectedEventId === event.id;
 
                   return (
                     <div
@@ -107,10 +108,11 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                       }}
                       role="button"
                       tabIndex={0}
-                      className={`w-full border p-4 text-left transition ${
-                        effectiveSelectedEventId === event.id
+                      data-active={isActive ? 'true' : undefined}
+                      className={`osint-raised-surface group w-full p-4 text-left ${
+                        isActive
                           ? 'border-osint-primary bg-zinc-900/90'
-                          : 'border-zinc-800 bg-zinc-950/80 hover:border-zinc-600 hover:bg-zinc-900/80'
+                          : 'bg-zinc-950/80 hover:border-zinc-600 hover:bg-zinc-900/70'
                       }`}
                     >
                       <div className="flex flex-col gap-3">

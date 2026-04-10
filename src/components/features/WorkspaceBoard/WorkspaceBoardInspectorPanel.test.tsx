@@ -19,7 +19,7 @@ describe('WorkspaceBoardInspectorPanel', () => {
         onTabChange={vi.fn()}
         inspectorActions={[]}
         inspectorSections={{
-          quickActions: false,
+          quickActions: true,
           selection: true,
           provenance: false,
         }}
@@ -132,5 +132,54 @@ describe('WorkspaceBoardInspectorPanel', () => {
       'Organize evidence',
       'Find contradictions',
     ]);
+  });
+
+  it('renders the primary inspector action row as fill-width grid buttons', () => {
+    render(
+      <WorkspaceBoardInspectorPanel
+        isOpen
+        tabs={[
+          { id: 'AGENT', label: 'Agent' },
+          { id: 'INSPECTOR', label: 'Inspector' },
+        ]}
+        activeTabId="INSPECTOR"
+        onTabChange={vi.fn()}
+        inspectorActions={[
+          { id: 'open', label: 'Open', onClick: vi.fn() },
+          { id: 'chat', label: 'Chat', onClick: vi.fn() },
+          { id: 'timeline', label: 'Timeline', onClick: vi.fn() },
+          { id: 'network', label: 'Network', onClick: vi.fn() },
+        ]}
+        inspectorSections={{
+          quickActions: false,
+          selection: false,
+          provenance: false,
+        }}
+        selectedEntries={[]}
+        selectedWorkspaceItem={null}
+        activeBoard={{
+          id: 'board-1',
+          workspaceId: 'ws-1',
+          name: 'Primary Board',
+          sortOrder: 0,
+          createdAt: 1,
+          updatedAt: 1,
+        }}
+        availableBoardsLength={2}
+        aiBusy={false}
+        onToggleQuickActions={vi.fn()}
+        onToggleSelection={vi.fn()}
+        onToggleProvenance={vi.fn()}
+        onShowAgentAndGenerateSummary={vi.fn()}
+        onShowAgentAndGenerateNote={vi.fn()}
+        onOpenAgentStarterIntent={vi.fn()}
+        onDeleteBoard={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('w-full');
+    expect(screen.getByRole('button', { name: 'Chat' })).toHaveClass('w-full');
+    expect(screen.getByRole('button', { name: 'Timeline' })).toHaveClass('w-full');
+    expect(screen.getByRole('button', { name: 'Network' })).toHaveClass('w-full');
   });
 });
