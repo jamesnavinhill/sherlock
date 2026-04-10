@@ -22,7 +22,7 @@ interface BuildEntityInspectorSectionsArgs {
   mentionsTitle: string;
   mentions: Artifact[];
   connections: InspectorEntityConnection[];
-  openSection: 'details' | 'mentions' | 'connections';
+  openSection: 'details' | 'mentions' | 'connections' | null;
   toggleSection: (sectionId: 'details' | 'mentions' | 'connections') => void;
   onOpenMention: (report: Artifact) => void;
   getMentionLabel: (report: Artifact) => string;
@@ -30,7 +30,7 @@ interface BuildEntityInspectorSectionsArgs {
 
 interface BuildHeadlineInspectorSectionsArgs {
   headline: Headline;
-  openSection: 'content' | 'source';
+  openSection: 'content' | 'source' | null;
   toggleSection: (sectionId: 'content' | 'source') => void;
 }
 

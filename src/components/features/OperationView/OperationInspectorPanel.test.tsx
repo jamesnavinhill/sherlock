@@ -49,13 +49,52 @@ describe('OperationInspectorPanel', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: 'Chat' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Run' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open Workspace Chat' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Launch Investigation' })).toBeInTheDocument();
     expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Artifact Mentions/i }));
     fireEvent.click(screen.getByRole('button', { name: /Atlas Contract Network/i }));
 
     expect(onNavigate).toHaveBeenCalledWith('artifact-1');
+  });
+
+  it('allows the entity summary accordion to collapse fully', () => {
+    const entity: Entity = {
+      name: 'Atlas Holdings',
+      type: 'ORGANIZATION',
+      role: 'Procurement intermediary',
+      sentiment: 'NEGATIVE',
+    };
+
+    render(
+      <OperationInspectorPanel
+        isOpen
+        onClose={vi.fn()}
+        mode="ENTITY"
+        report={null}
+        workspaceTitle={null}
+        entity={entity}
+        headline={null}
+        reports={[]}
+        onEntitySave={vi.fn()}
+        onFlagEntity={vi.fn()}
+        onInvestigateEntity={vi.fn()}
+        onInvestigateHeadline={vi.fn()}
+        onOpenEntityChat={vi.fn()}
+        onOpenHeadlineChat={vi.fn()}
+        onOpenReportChat={vi.fn()}
+        onPlaceEntityOnBoard={vi.fn()}
+        onPlaceHeadlineOnBoard={vi.fn()}
+        onPlaceReportOnBoard={vi.fn()}
+        onNavigate={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Entity Summary/i }));
+
+    expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();
   });
 });

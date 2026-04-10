@@ -234,7 +234,7 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
           mentionsTitle: 'Artifact Mentions',
           mentions: entityMentions,
           connections: entityConnections,
-          openSection: entitySectionState.openSection || 'details',
+          openSection: entitySectionState.openSection,
           toggleSection: entitySectionState.toggleSection,
           onOpenMention: (matchedReport) => {
             if (matchedReport.id) {
@@ -249,7 +249,7 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
     mode === 'HEADLINE' && headline
       ? buildHeadlineInspectorSections({
           headline,
-          openSection: headlineSectionState.openSection || 'content',
+          openSection: headlineSectionState.openSection,
           toggleSection: headlineSectionState.toggleSection,
         })
       : [];

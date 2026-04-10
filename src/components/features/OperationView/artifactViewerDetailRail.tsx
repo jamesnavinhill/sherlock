@@ -281,26 +281,6 @@ export const buildArtifactViewerDetailRailSections = ({
     );
   };
 
-  const renderEvidenceButtons = (evidenceRows: ArtifactEvidence[]) => {
-    if (evidenceRows.length === 0) return null;
-
-    return (
-      <div className="mt-4 flex flex-wrap gap-2">
-        {evidenceRows.map((evidence) => (
-          <button
-            key={evidence.id}
-            type="button"
-            onClick={() => jumpToEvidence(evidence.id)}
-            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
-          >
-            <Globe className="h-3 w-3" />
-            <span>{evidence.sourceTitle || evidence.title}</span>
-          </button>
-        ))}
-      </div>
-    );
-  };
-
   return [
     {
       id: 'findings',

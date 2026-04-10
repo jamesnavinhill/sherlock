@@ -403,7 +403,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
           mentionsTitle: 'Report Mentions',
           mentions: selectedEntityMentions,
           connections: selectedEntityConnections,
-          openSection: entitySectionState.openSection || 'details',
+          openSection: entitySectionState.openSection,
           toggleSection: entitySectionState.toggleSection,
           onOpenMention: onOpenReport,
           getMentionLabel: (report) => report.topic,
@@ -414,7 +414,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
     mode === 'HEADLINE' && selectedHeadline
       ? buildHeadlineInspectorSections({
           headline: selectedHeadline,
-          openSection: headlineSectionState.openSection || 'content',
+          openSection: headlineSectionState.openSection,
           toggleSection: headlineSectionState.toggleSection,
         })
       : [];
