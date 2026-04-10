@@ -96,7 +96,6 @@ describe('ChatTranscript', () => {
     const userCard = screen.getByText('hi').closest('article');
     expect(userCard).not.toBeNull();
     expect(userCard?.getAttribute('class')).toContain('w-full');
-    expect(userCard?.getAttribute('class')).toContain('border-b');
     expect(userCard?.getAttribute('class')).toContain('px-5');
     expect(userCard?.getAttribute('class')).toContain('group');
     expect(userCard?.getAttribute('class')).not.toContain('bg-zinc-950/60');

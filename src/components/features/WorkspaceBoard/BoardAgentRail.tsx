@@ -363,7 +363,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                       {userTranscriptMessage}
                     </div>
 
-                    <div className="mt-0 max-h-0 overflow-hidden opacity-0 transition-all duration-150 group-hover:mt-4 group-hover:max-h-10 group-hover:opacity-100 group-focus-within:mt-4 group-focus-within:max-h-10 group-focus-within:opacity-100">
+                    <div className="mt-4 min-h-5 opacity-0 transition-opacity duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
                       <div className="flex items-center justify-end gap-3 osint-body-quiet">
                         <button
                           type="button"
@@ -390,7 +390,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                   <article className="group w-full px-5 py-4">
                     <div className="mb-3 space-y-2">
                       <div className="flex items-center justify-between gap-3">
-                        <div className={`flex items-center gap-2 ${sectionLabelClassName} justify-start`}>
+                        <div
+                          className={`flex items-center gap-2 ${sectionLabelClassName} justify-start`}
+                        >
                           <Bot className="h-4 w-4 text-osint-primary" />
                           assistant
                         </div>
@@ -408,7 +410,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                       <ReactMarkdown>{assistantTranscriptDisplayMessage}</ReactMarkdown>
                     </div>
 
-                    <div className="mt-0 max-h-0 overflow-hidden opacity-0 transition-all duration-150 group-hover:mt-4 group-hover:max-h-10 group-hover:opacity-100 group-focus-within:mt-4 group-focus-within:max-h-10 group-focus-within:opacity-100">
+                    <div className="mt-4 min-h-5 opacity-0 transition-opacity duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
                       <div className="flex items-center justify-start gap-3 osint-body-quiet">
                         {assistantTranscriptTimestamp ? (
                           <span>{formatTimestamp(assistantTranscriptTimestamp)}</span>
@@ -470,7 +472,6 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 </div>
               </Accordion>
             ) : null}
-
           </div>
         </div>
 
@@ -511,7 +512,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
               </div>
             ) : null}
             {aiSummary ? (
-              <div className={`osint-raised-surface-subtle p-3 osint-body-small ${headerToneSurfaceClassName}`}>
+              <div
+                className={`osint-raised-surface-subtle p-3 osint-body-small ${headerToneSurfaceClassName}`}
+              >
                 {aiSummary}
               </div>
             ) : null}
@@ -544,7 +547,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                   title="Starter prompts"
                 >
                   <Sparkles
-                    className={starterMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName}
+                    className={
+                      starterMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName
+                    }
                   />
                 </button>
                 {starterMenuOpen ? (
@@ -580,7 +585,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                   title="Session history"
                 >
                   <Clock3
-                    className={sessionMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName}
+                    className={
+                      sessionMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName
+                    }
                   />
                 </button>
                 {sessionMenuOpen ? (
@@ -594,10 +601,12 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                           <div className="osint-meta-value">{sessionDisplayTitle}</div>
                           <div
                             className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
-                              visibleBoardAgentSession.requestState || visibleBoardAgentSession.status
+                              visibleBoardAgentSession.requestState ||
+                                visibleBoardAgentSession.status
                             )}`}
                           >
-                            {visibleBoardAgentSession.requestState || visibleBoardAgentSession.status}
+                            {visibleBoardAgentSession.requestState ||
+                              visibleBoardAgentSession.status}
                           </div>
                         </div>
                         <div className="mt-2 osint-body-quiet">
@@ -697,16 +706,18 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 <Paperclip className={hoverToolbarIconClassName} />
               </button>
               <button
-                  type="button"
-                  onClick={onToggleActions}
-                  className={`${composerToolButtonClassName} ${
-                    agentSections.actions ? 'text-osint-primary' : ''
-                  }`}
+                type="button"
+                onClick={onToggleActions}
+                className={`${composerToolButtonClassName} ${
+                  agentSections.actions ? 'text-osint-primary' : ''
+                }`}
                 aria-label="Toggle agent details"
                 title="Toggle agent details"
               >
                 <SlidersHorizontal
-                  className={agentSections.actions ? activeToolbarIconClassName : hoverToolbarIconClassName}
+                  className={
+                    agentSections.actions ? activeToolbarIconClassName : hoverToolbarIconClassName
+                  }
                 />
               </button>
             </div>
