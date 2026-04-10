@@ -14,6 +14,21 @@ import {
   getWorkspaceItemRecordSummary,
 } from './filesViewModel';
 
+const RECORD_ACTION_BUTTON_CLASS =
+  'osint-icon-button-plain inline-flex h-9 w-9 items-center justify-center p-2';
+
+const RECORD_ACTION_REVEAL_BUTTON_CLASS =
+  `${RECORD_ACTION_BUTTON_CLASS} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100`;
+
+const RECORD_ACTION_DANGER_REVEAL_BUTTON_CLASS =
+  'osint-icon-button-plain-danger inline-flex h-9 w-9 items-center justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100';
+
+const RECORD_LIST_ACTION_BUTTON_CLASS =
+  'osint-icon-button-plain inline-flex h-8 w-8 items-center justify-center p-0';
+
+const RECORD_LIST_ACTION_DANGER_BUTTON_CLASS =
+  'osint-icon-button-plain-danger inline-flex h-8 w-8 items-center justify-center p-0';
+
 interface FilesRecordsProps {
   focusedItem: WorkspaceItem | null;
   focusedItemRowRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -152,7 +167,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                         event.stopPropagation();
                         onOpenArtifactChat(record.artifact);
                       }}
-                      className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                      className={RECORD_ACTION_REVEAL_BUTTON_CLASS}
                       title="Open artifact context in workspace chat"
                     >
                       <MessageSquare className="h-5 w-5" />
@@ -161,7 +176,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                   {record.artifact.workspaceId && record.artifact.id ? (
                     <button
                       onClick={(event) => void onPlaceArtifactOnBoard(event, record.artifact)}
-                      className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                      className={RECORD_ACTION_REVEAL_BUTTON_CLASS}
                       title="Place artifact on board"
                     >
                       <Workflow className="h-5 w-5" />
@@ -169,7 +184,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                   ) : null}
                   <button
                     onClick={(event) => onDeleteArtifact(event, record.artifact.id)}
-                    className="osint-danger-inline p-2 text-zinc-600 opacity-0 group-hover:opacity-100"
+                    className={RECORD_ACTION_DANGER_REVEAL_BUTTON_CLASS}
                     title="Delete Artifact"
                   >
                     <Trash2 className="h-5 w-5" />
@@ -218,14 +233,14 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                       event.stopPropagation();
                       onOpenItemChat(record.item);
                     }}
-                    className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                    className={RECORD_ACTION_REVEAL_BUTTON_CLASS}
                     title="Open workspace chat"
                   >
                     <MessageSquare className="h-5 w-5" />
                   </button>
                   <button
                     onClick={(event) => void onPlaceItemOnBoard(event, record.item)}
-                    className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                    className={RECORD_ACTION_REVEAL_BUTTON_CLASS}
                     title="Place item on board"
                   >
                     <Workflow className="h-5 w-5" />
@@ -236,7 +251,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                         event.stopPropagation();
                         onOpenItemSource(record.item);
                       }}
-                      className="p-2 text-zinc-600 opacity-0 transition-colors group-hover:opacity-100 hover:text-white"
+                      className={RECORD_ACTION_REVEAL_BUTTON_CLASS}
                       title="Open linked source"
                     >
                       <Link2 className="h-5 w-5" />
@@ -290,7 +305,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                           event.stopPropagation();
                           onOpenArtifactChat(record.artifact);
                         }}
-                        className="text-zinc-500 transition hover:text-white"
+                        className={RECORD_LIST_ACTION_BUTTON_CLASS}
                         title="Open artifact context in workspace chat"
                       >
                         <MessageSquare className="h-4 w-4" />
@@ -299,7 +314,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                     {record.artifact.workspaceId && record.artifact.id ? (
                       <button
                         onClick={(event) => void onPlaceArtifactOnBoard(event, record.artifact)}
-                        className="text-zinc-500 transition hover:text-white"
+                        className={RECORD_LIST_ACTION_BUTTON_CLASS}
                         title="Place artifact on board"
                       >
                         <Workflow className="h-4 w-4" />
@@ -307,7 +322,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                     ) : null}
                     <button
                       onClick={(event) => onDeleteArtifact(event, record.artifact.id)}
-                      className="text-zinc-500 transition hover:text-osint-danger"
+                      className={RECORD_LIST_ACTION_DANGER_BUTTON_CLASS}
                       title="Delete Artifact"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -339,14 +354,14 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                         event.stopPropagation();
                         onOpenItemChat(record.item);
                       }}
-                      className="text-zinc-500 transition hover:text-white"
+                      className={RECORD_LIST_ACTION_BUTTON_CLASS}
                       title="Open workspace chat"
                     >
                       <MessageSquare className="h-4 w-4" />
                     </button>
                     <button
                       onClick={(event) => void onPlaceItemOnBoard(event, record.item)}
-                      className="text-zinc-500 transition hover:text-white"
+                      className={RECORD_LIST_ACTION_BUTTON_CLASS}
                       title="Place item on board"
                     >
                       <Workflow className="h-4 w-4" />
@@ -357,7 +372,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                           event.stopPropagation();
                           onOpenItemSource(record.item);
                         }}
-                        className="text-zinc-500 transition hover:text-white"
+                        className={RECORD_LIST_ACTION_BUTTON_CLASS}
                         title="Open linked source"
                       >
                         <Link2 className="h-4 w-4" />

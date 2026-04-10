@@ -473,6 +473,14 @@ body,
   --osint-primary-soft-bg: color-mix(in oklab, var(--osint-primary) 12%, transparent);
   --osint-primary-soft-bg-strong: color-mix(in oklab, var(--osint-primary) 18%, transparent);
   --osint-primary-soft-border: color-mix(in oklab, var(--osint-primary) 48%, transparent);
+  --osint-menu-selection-bg: color-mix(in oklab, var(--osint-primary) 10%, transparent);
+  --osint-menu-selection-bg-strong: color-mix(in oklab, var(--osint-primary) 14%, transparent);
+  --osint-menu-selection-color: color-mix(
+    in oklab,
+    var(--osint-text) 84%,
+    var(--osint-ink) 16%
+  );
+  --osint-menu-selection-icon: var(--osint-primary);
   --osint-accent-outline-bg: color-mix(in oklab, var(--osint-panel) 18%, transparent);
   --osint-accent-outline-border: color-mix(in oklab, var(--osint-border) 72%, transparent);
   --osint-accent-outline-shadow:
@@ -746,14 +754,45 @@ body,
 }
 
 .osint-menu-item:hover,
-.osint-menu-item:focus-visible {
-  background-color: var(--osint-interaction-hover-bg);
-  color: var(--osint-ink);
+.osint-menu-item:focus-visible,
+.osint-menu-item[data-active='true'],
+.osint-menu-item[aria-selected='true'] {
+  background-color: var(--osint-menu-selection-bg);
+  color: var(--osint-menu-selection-color);
+  outline: none;
+}
+
+.osint-menu-item:active {
+  background-color: var(--osint-menu-selection-bg-strong);
+  color: var(--osint-menu-selection-color);
+}
+
+.osint-menu-item-icon {
+  transition: color 180ms ease;
 }
 
 .osint-menu-item:hover .osint-menu-item-icon,
-.osint-menu-item:focus-visible .osint-menu-item-icon {
-  color: var(--osint-text-action) !important;
+.osint-menu-item:focus-visible .osint-menu-item-icon,
+.osint-menu-item:active .osint-menu-item-icon,
+.osint-menu-item[data-active='true'] .osint-menu-item-icon,
+.osint-menu-item[aria-selected='true'] .osint-menu-item-icon {
+  color: var(--osint-menu-selection-icon) !important;
+}
+
+.osint-menu-item:disabled,
+.osint-menu-item:disabled:hover,
+.osint-menu-item:disabled:focus-visible,
+.osint-menu-item:disabled:active {
+  background-color: transparent;
+  color: var(--osint-text-meta);
+  outline: none;
+}
+
+.osint-menu-item:disabled .osint-menu-item-icon,
+.osint-menu-item:disabled:hover .osint-menu-item-icon,
+.osint-menu-item:disabled:focus-visible .osint-menu-item-icon,
+.osint-menu-item:disabled:active .osint-menu-item-icon {
+  color: color-mix(in oklab, var(--osint-text) 42%, var(--osint-ink) 58%) !important;
 }
 
 .osint-filter-option {
@@ -1048,7 +1087,10 @@ body,
 }
 
 .osint-icon-button-plain:hover,
-.osint-icon-button-plain:focus-visible {
+.osint-icon-button-plain:focus-visible,
+.osint-icon-button-plain:active,
+.osint-icon-button-plain[data-active='true'],
+.osint-icon-button-plain[aria-pressed='true'] {
   color: var(--osint-primary);
 }
 
@@ -1068,7 +1110,10 @@ body,
 }
 
 .osint-icon-button-plain-danger:hover,
-.osint-icon-button-plain-danger:focus-visible {
+.osint-icon-button-plain-danger:focus-visible,
+.osint-icon-button-plain-danger:active,
+.osint-icon-button-plain-danger[data-active='true'],
+.osint-icon-button-plain-danger[aria-pressed='true'] {
   color: color-mix(in oklab, var(--color-osint-danger) 82%, var(--osint-ink) 18%);
 }
 
@@ -1088,7 +1133,10 @@ body,
 }
 
 .osint-icon-button-plain-success:hover,
-.osint-icon-button-plain-success:focus-visible {
+.osint-icon-button-plain-success:focus-visible,
+.osint-icon-button-plain-success:active,
+.osint-icon-button-plain-success[data-active='true'],
+.osint-icon-button-plain-success[aria-pressed='true'] {
   color: #bbf7d0;
 }
 

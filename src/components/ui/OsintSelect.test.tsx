@@ -50,4 +50,31 @@ describe('OsintSelect', () => {
 
     expect(onChange).toHaveBeenCalledWith('anthropic');
   });
+
+  it('marks active and selected options so shared accent menu styling can apply', () => {
+    render(
+      <OsintSelect
+        ariaLabel="Workspace"
+        value="alpha"
+        onChange={vi.fn()}
+        triggerClassName="px-3 py-2 font-mono text-xs"
+        options={[
+          { value: 'alpha', label: 'Alpha Workspace' },
+          { value: 'beta', label: 'Beta Workspace' },
+        ]}
+      />
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Workspace' });
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+
+    expect(screen.getByRole('option', { name: 'Alpha Workspace' })).toHaveAttribute(
+      'data-active',
+      'true'
+    );
+    expect(screen.getByRole('option', { name: 'Alpha Workspace' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+  });
 });

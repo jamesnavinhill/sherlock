@@ -60,7 +60,10 @@ const renderPagination = (input: {
   ) : null;
 
 const WORKSPACE_ACTION_BUTTON_CLASS =
-  'inline-flex h-8 w-8 shrink-0 items-center justify-center p-0 text-zinc-500 transition hover:text-white';
+  'osint-icon-button-plain inline-flex h-8 w-8 shrink-0 items-center justify-center p-0';
+
+const WORKSPACE_HOVER_REVEAL_ACTION_BUTTON_CLASS =
+  `${WORKSPACE_ACTION_BUTTON_CLASS} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100`;
 
 const getWorkspaceOverviewSummary = (workspaceLabelLower: string, workspace: Workspace) =>
   workspace.description || `Open this ${workspaceLabelLower} to inspect artifacts, items, and saved history.`;
@@ -126,7 +129,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
       </button>
       <button
         onClick={(event) => onPurgeWorkspace(workspace.id, event)}
-        className={`${WORKSPACE_ACTION_BUTTON_CLASS} hover:text-osint-danger`}
+        className="osint-icon-button-plain-danger inline-flex h-8 w-8 shrink-0 items-center justify-center p-0"
         title={`Permanently Purge ${workspaceLabel}`}
       >
         <Trash2 className="h-4 w-4" />
@@ -184,7 +187,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                       event.stopPropagation();
                       onEditWorkspaceIcon(workspace, event);
                     }}
-                    className="inline-flex h-8 w-8 items-center justify-center p-0 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:text-white"
+                    className={WORKSPACE_HOVER_REVEAL_ACTION_BUTTON_CLASS}
                     title={`Customize ${workspaceLabelLower} icon`}
                     aria-label={`Customize ${workspaceLabelLower} icon`}
                   >

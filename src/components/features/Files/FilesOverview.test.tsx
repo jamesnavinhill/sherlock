@@ -49,20 +49,23 @@ describe('FilesOverview', () => {
     render(<FilesOverview {...baseProps} viewMode="GRID" />);
 
     expect(screen.getByText('Workspace summary copy for layout coverage.')).toBeInTheDocument();
-    expect(screen.getByTitle(/workspace chat/i)).toBeInTheDocument();
+    expect(screen.getByTitle(/workspace chat/i)).toHaveClass('osint-icon-button-plain');
     expect(screen.getByTitle(/\(HTML\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/\(JSON\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/Markdown \(\.md\)/i)).toBeInTheDocument();
-    expect(screen.getByTitle(/Permanently Purge Workspace/i)).toBeInTheDocument();
+    expect(screen.getByTitle(/Permanently Purge Workspace/i)).toHaveClass(
+      'osint-icon-button-plain-danger'
+    );
   });
 
   it('renders list workspace actions separately from the counts row', () => {
     render(<FilesOverview {...baseProps} viewMode="LIST" />);
 
-    expect(screen.getByTitle(/workspace chat/i)).toBeInTheDocument();
+    expect(screen.getByTitle(/workspace chat/i)).toHaveClass('osint-icon-button-plain');
     expect(screen.getByTitle(/\(HTML\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/\(JSON\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/Markdown \(\.md\)/i)).toBeInTheDocument();
+    expect(screen.getByTitle(/Customize workspace icon/i)).toHaveClass('osint-icon-button-plain');
   });
 
   it('opens workspace chat from the action row without triggering row navigation', () => {

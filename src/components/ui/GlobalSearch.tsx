@@ -479,8 +479,8 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                       onMouseEnter={() => setSelectedIndex(index)}
                       className={`group w-full border-b text-left transition-all ${
                         isSelected
-                          ? 'bg-osint-primary/8'
-                          : `${rowToneClass} hover:bg-black/30`
+                          ? 'bg-[var(--osint-menu-selection-bg-strong)]'
+                          : `${rowToneClass} hover:bg-[var(--osint-menu-selection-bg)]`
                       }`}
                       style={dividerStyle}
                     >

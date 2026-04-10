@@ -261,19 +261,13 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
                 type="button"
                 role="option"
                 aria-selected={isSelected}
+                data-active={isActive ? 'true' : 'false'}
                 disabled={option.disabled}
                 onClick={() => !option.disabled && commitSelection(option.value)}
                 onMouseEnter={() => !option.disabled && setActiveIndex(index)}
                 onKeyDown={handleOptionKeyDown}
                 className={cx(
                   'osint-menu-item osint-meta-value flex w-full items-center justify-between gap-3 border-b border-zinc-800 px-3 py-2 text-left outline-none last:border-b-0',
-                  !option.disabled &&
-                    'hover:bg-[var(--osint-interaction-hover-bg)] hover:text-[var(--osint-ink)] focus-visible:bg-[var(--osint-interaction-hover-bg)] focus-visible:text-[var(--osint-ink)]',
-                  isSelected &&
-                    'bg-[var(--osint-interaction-active-bg)] text-[var(--osint-text-action)]',
-                  isActive &&
-                    !option.disabled &&
-                    'bg-[var(--osint-interaction-hover-bg)] text-[var(--osint-ink)]',
                   option.disabled && 'cursor-not-allowed opacity-40',
                   optionClassName
                 )}
