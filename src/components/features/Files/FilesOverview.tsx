@@ -160,7 +160,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             <div
               key={workspace.id}
               onClick={() => onSelectWorkspace(workspace.id)}
-              className="osint-raised-surface group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden p-6 backdrop-blur-sm transition-all hover:border-osint-primary"
+              className="osint-raised-surface group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden p-6 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
             >
               <div className="absolute right-0 top-0 p-4 opacity-20 transition-opacity group-hover:opacity-40">
                 <AppIcon
@@ -201,7 +201,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                 </span>
               </div>
 
-              <h3 className="osint-title-card relative z-10 mb-1 truncate transition-colors group-hover:text-zinc-300">
+              <h3 className="osint-title-card relative z-10 mb-1 truncate transition-colors group-hover:text-osint-primary">
                 {displayTitle}
               </h3>
               <p className="osint-body-quiet">{workspace.dateOpened}</p>
@@ -233,14 +233,14 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
           {viewModel.unassignedArtifactCount > 0 ? (
             <div
               onClick={() => onSelectWorkspace('unassigned')}
-              className="osint-raised-surface-subtle cursor-pointer border-dashed p-6 backdrop-blur-sm transition-all hover:border-zinc-500"
+              className="osint-raised-surface-subtle group cursor-pointer border-dashed p-6 transition-all duration-200 hover:border-zinc-500 hover:bg-[var(--osint-rail-interaction-hover-bg)]"
             >
               <div className="mb-4 flex justify-between">
                 <div className="bg-zinc-900 p-3 text-zinc-500">
                   <FolderOpen className="h-8 w-8" />
                 </div>
               </div>
-              <h3 className="osint-title-card mb-1 text-zinc-400 transition-colors hover:text-white">
+              <h3 className="osint-title-card mb-1 text-zinc-400 transition-colors group-hover:text-osint-primary">
                 Unassigned
               </h3>
               <p className="osint-body-quiet mb-4">{`Loose ${artifactLabelPlural}`}</p>
@@ -263,7 +263,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
               <div
                 key={workspace.id}
                 onClick={() => onSelectWorkspace(workspace.id)}
-                className="osint-raised-surface-subtle cursor-pointer px-4 py-4 transition hover:bg-zinc-900/70"
+                className="osint-raised-surface-subtle group cursor-pointer px-4 py-4 transition-all duration-200 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
               >
                 <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto] items-start gap-4">
                   <div className="min-w-0">
@@ -276,7 +276,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                           strokeWidth={1.9}
                         />
                       </div>
-                      <div className="osint-title-inline">{displayTitle}</div>
+                      <div className="osint-title-inline transition-colors group-hover:text-osint-primary">{displayTitle}</div>
                       <span
                         className={`osint-meta-label border px-2 py-0.5 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
                       >
@@ -312,10 +312,10 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             {viewModel.unassignedArtifactCount > 0 ? (
               <div
                 onClick={() => onSelectWorkspace('unassigned')}
-                className="osint-raised-surface-subtle grid cursor-pointer grid-cols-[minmax(0,1.2fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                className="osint-raised-surface-subtle group grid cursor-pointer grid-cols-[minmax(0,1.2fr)_auto_auto] gap-4 px-4 py-4 transition-all duration-200 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
               >
                 <div className="min-w-0">
-                  <div className="osint-title-inline text-zinc-300">Unassigned</div>
+                  <div className="osint-title-inline text-zinc-300 transition-colors group-hover:text-osint-primary">Unassigned</div>
                   <div className="osint-meta-label mt-1">Loose {artifactLabelPlural}</div>
                 </div>
                 <div className="osint-meta-value self-center text-right">

@@ -87,11 +87,11 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
 }) => (
   <div className="animate-in fade-in slide-in-from-right-4 duration-300">
     {focusedItem && !viewModel.isUnassigned && focusedItem.workspaceId ? (
-      <div className="osint-raised-surface mb-6 border-osint-primary/40 bg-osint-primary/10 p-5">
+      <div className="mb-6 border-l-2 border-osint-primary bg-[var(--osint-rail-interaction-active-bg)] p-5 shadow-[var(--osint-rail-interaction-shadow)]">
         <div className="osint-meta-label text-osint-primary">Focused Item</div>
         <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="osint-title-card">{focusedItem.title}</div>
+            <div className="osint-title-card text-osint-primary">{focusedItem.title}</div>
             <div className="osint-body-small mt-2 max-w-3xl">
               {getWorkspaceItemRecordSummary(focusedItem)}
             </div>
@@ -143,7 +143,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
               <div
                 key={record.artifact.id || index}
                 onClick={() => onSelectArtifact(record.artifact)}
-                className="osint-raised-surface group flex cursor-pointer items-center justify-between p-6 backdrop-blur-sm transition-all hover:border-osint-primary hover:bg-zinc-900"
+                className="osint-raised-surface group flex cursor-pointer items-center justify-between p-6 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
               >
                 <div className="flex items-center space-x-4">
                   <div className="p-3 text-osint-primary">
@@ -151,7 +151,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                   </div>
                   <div>
                     <div className="osint-meta-label">Artifact</div>
-                    <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-white">
+                    <h3 className="font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-osint-primary">
                       {record.artifact.topic}
                     </h3>
                     <div className="osint-meta-label mt-1">
@@ -202,10 +202,10 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                       }
                     : undefined
                 }
-                className={`osint-raised-surface group flex items-center justify-between border bg-zinc-900/70 p-6 backdrop-blur-sm transition-all hover:bg-zinc-900 ${
+                className={`osint-raised-surface group flex items-center justify-between border p-6 transition-all duration-200 ${
                   focusedItem?.id === record.item.id
-                    ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.28)]'
-                    : 'hover:border-zinc-600'
+                    ? 'bg-[var(--osint-rail-interaction-active-bg)] shadow-[var(--osint-rail-interaction-shadow)] border-l-2 border-osint-primary'
+                    : 'hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)] hover:border-zinc-600'
                 }`}
               >
                 <div className="flex min-w-0 items-center space-x-4">
@@ -214,7 +214,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                   </div>
                   <div className="min-w-0">
                     <div className="osint-meta-label">{record.item.kind}</div>
-                    <h3 className="truncate font-sans text-base font-normal leading-7 tracking-normal text-zinc-200 transition-colors group-hover:text-white">
+                    <h3 className={`truncate font-sans text-base font-normal leading-7 tracking-normal transition-colors ${focusedItem?.id === record.item.id ? 'text-osint-primary' : 'text-zinc-200 group-hover:text-osint-primary'}`}>
                       {record.item.title}
                     </h3>
                     <div className="osint-body-quiet mt-1 line-clamp-2">
@@ -283,14 +283,14 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                 <div
                   key={record.artifact.id || index}
                   onClick={() => onSelectArtifact(record.artifact)}
-                className="osint-raised-surface-subtle grid cursor-pointer grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
-              >
+                  className="osint-raised-surface-subtle group grid cursor-pointer grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition-all duration-200 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
+                >
                   <div className="self-start p-3 text-osint-primary">
                     <FileText className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
                     <div className="osint-meta-label">Artifact</div>
-                    <h3 className="osint-title-inline mt-1 truncate">{record.artifact.topic}</h3>
+                    <h3 className="osint-title-inline mt-1 truncate transition-colors group-hover:text-osint-primary">{record.artifact.topic}</h3>
                     <p className="osint-body-quiet mt-2 line-clamp-2">
                       {getArtifactRecordSummary(record.artifact)}
                     </p>
@@ -333,14 +333,14 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
               ) : (
                 <div
                   key={record.item.id}
-                  className="osint-raised-surface-subtle grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+                  className="osint-raised-surface-subtle group grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition-all duration-200 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
                 >
                   <div className="self-start p-3 text-osint-primary">
                     <FileText className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
                     <div className="osint-meta-label">{record.item.kind}</div>
-                    <h3 className="osint-title-inline mt-1 truncate">{record.item.title}</h3>
+                    <h3 className="osint-title-inline mt-1 truncate transition-colors group-hover:text-osint-primary">{record.item.title}</h3>
                     <p className="osint-body-quiet mt-2 line-clamp-2">
                       {getWorkspaceItemRecordSummary(record.item)}
                     </p>

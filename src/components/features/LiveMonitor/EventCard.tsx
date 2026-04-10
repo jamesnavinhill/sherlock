@@ -77,10 +77,10 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <div
-      className={`osint-raised-surface backdrop-blur-sm p-5 flex flex-col gap-3 animate-in slide-in-from-top-4 fade-in duration-500 transition-all shadow-lg ${
+      className={`osint-raised-surface p-5 flex flex-col gap-3 animate-in slide-in-from-top-4 fade-in duration-500 transition-all ${
         isExpanded
-          ? 'border-osint-primary bg-zinc-900/95 md:col-span-2 2xl:col-span-1'
-          : 'border-zinc-800 hover:border-osint-primary hover:bg-zinc-900/90 cursor-pointer group'
+          ? 'bg-[var(--osint-rail-interaction-active-bg)] shadow-[var(--osint-rail-interaction-shadow)] border-osint-primary md:col-span-2 2xl:col-span-1'
+          : 'hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)] hover:border-osint-primary cursor-pointer group'
       }`}
       onClick={() => !isExpanded && onToggle()}
     >
@@ -123,7 +123,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Content */}
       <div className="flex-1">
-        <h4 className="osint-title-inline mb-2 truncate">{event.sourceName}</h4>
+        <h4 className={`osint-title-inline mb-2 truncate transition-colors ${isExpanded ? 'text-osint-primary' : 'group-hover:text-osint-primary'}`}>{event.sourceName}</h4>
         <p
           className={`osint-body-small ${isExpanded ? '' : 'line-clamp-3'}`}
         >

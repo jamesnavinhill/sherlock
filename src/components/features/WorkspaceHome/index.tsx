@@ -310,7 +310,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                 {countCards.map((card) => (
                   <div
                     key={card.label}
-                    className="osint-raised-surface px-4 py-3"
+                    className="border border-zinc-900/50 bg-zinc-900/20 px-4 py-3 shadow-sm transition-all duration-200"
                   >
                     <div className="osint-meta-label">
                       {card.label}
@@ -334,7 +334,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     <Link
                       key={action.label}
                       to={action.href}
-                      className="osint-raised-surface group p-4 transition-colors hover:border-osint-primary/60"
+                      className="group p-4 transition-all duration-200 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3">
@@ -342,7 +342,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
-                            <div className="osint-panel-title">{action.label}</div>
+                            <div className="osint-panel-title transition-colors group-hover:text-osint-primary">{action.label}</div>
                             <div className="mt-1 osint-body-muted">{action.detail}</div>
                           </div>
                         </div>
@@ -372,14 +372,14 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                     {snapshot.recentActivity.map((entry) => (
                       <div
                         key={entry.id}
-                        className={`osint-raised-surface border-l-2 p-4 ${activityAccentClass[entry.kind]}`}
+                        className={`group border-l-2 p-4 transition-all duration-200 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)] ${activityAccentClass[entry.kind]}`}
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
                             <div className="osint-meta-label">
                               {activityLabel[entry.kind]}
                             </div>
-                            <div className="mt-1 truncate osint-panel-title">
+                            <div className="mt-1 truncate osint-panel-title transition-colors group-hover:text-osint-primary">
                               {entry.title}
                             </div>
                             <div className="mt-1 osint-body-muted">{entry.subtitle}</div>
@@ -483,13 +483,13 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
                           savedViews.find((entry) => entry.id === view.id)?.query ||
                             DEFAULT_TIMELINE_ROUTE_QUERY
                         )}
-                        className="osint-raised-surface block p-4 transition-colors hover:border-osint-primary/60"
+                        className="group block p-4 transition-all duration-200 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="truncate osint-panel-title">
-                              {view.title}
-                            </div>
+                             <div className="truncate osint-panel-title transition-colors group-hover:text-osint-primary">
+                                {view.title}
+                              </div>
                             <div className="mt-1 osint-body-muted">{view.snippet}</div>
                           </div>
                           <div className="shrink-0 osint-body-quiet">

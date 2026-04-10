@@ -109,10 +109,10 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                       role="button"
                       tabIndex={0}
                       data-active={isActive ? 'true' : undefined}
-                      className={`osint-raised-surface group w-full p-4 text-left ${
+                      className={`osint-raised-surface group w-full p-4 text-left transition-all duration-200 ${
                         isActive
-                          ? 'border-osint-primary bg-zinc-900/90'
-                          : 'bg-zinc-950/80 hover:border-zinc-600 hover:bg-zinc-900/70'
+                          ? 'border-osint-primary bg-[var(--osint-rail-interaction-active-bg)] shadow-[var(--osint-rail-interaction-shadow)]'
+                          : 'hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]'
                       }`}
                     >
                       <div className="flex flex-col gap-3">
@@ -136,7 +136,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                               </span>
                             ))}
                           </div>
-                          <div className="mt-3 osint-title-inline">{event.title}</div>
+                          <div className={`mt-3 osint-title-inline transition-colors ${isActive ? 'text-osint-primary' : 'group-hover:text-osint-primary'}`}>{event.title}</div>
                           {event.summary ? (
                             <p className="mt-2 osint-body-small">{event.summary}</p>
                           ) : null}
