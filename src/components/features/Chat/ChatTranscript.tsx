@@ -157,22 +157,6 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
               }`}
             >
                 <div className={`${isUser ? 'mb-2' : 'mb-3'} space-y-2`}>
-                  <div className="flex items-center justify-end gap-3 osint-body-quiet">
-                    <span>{formatTimestamp(message.createdAt)}</span>
-                    <button
-                      onClick={() =>
-                        void copyToClipboard(
-                          formatMessageWithCitations(message),
-                          'Message copied to clipboard.'
-                        )
-                      }
-                      className="inline-flex items-center gap-1 transition hover:text-white"
-                    >
-                      <Clipboard className="h-3.5 w-3.5" />
-                      Copy
-                    </button>
-                  </div>
-                  <div className="border-b border-zinc-800/80" />
                   <div
                     className={`flex items-center gap-2 ${sectionLabelClassName} ${
                       isUser ? 'justify-end text-right' : 'justify-start'
@@ -335,6 +319,30 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                 {message.error ? (
                   <div className="osint-danger-banner mt-3 border-t pt-3 text-sm">{message.error}</div>
                 ) : null}
+
+                <div className="mt-4 space-y-2">
+                  <div className="border-b border-zinc-800/80" />
+                  <div
+                    className={`flex items-center gap-3 osint-body-quiet ${
+                      isUser ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    {isUser ? null : <span>{formatTimestamp(message.createdAt)}</span>}
+                    <button
+                      onClick={() =>
+                        void copyToClipboard(
+                          formatMessageWithCitations(message),
+                          'Message copied to clipboard.'
+                        )
+                      }
+                      className="inline-flex items-center gap-1 transition hover:text-white"
+                    >
+                      <Clipboard className="h-3.5 w-3.5" />
+                      Copy
+                    </button>
+                    {isUser ? <span>{formatTimestamp(message.createdAt)}</span> : null}
+                  </div>
+                </div>
             </article>
           );
         })}

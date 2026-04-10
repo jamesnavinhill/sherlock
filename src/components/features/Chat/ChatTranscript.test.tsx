@@ -102,6 +102,55 @@ describe('ChatTranscript', () => {
     expect(userCard?.getAttribute('class')).not.toContain('bg-zinc-900/80');
     expect(screen.getByText('user').closest('div')?.getAttribute('class')).toContain('justify-end');
     expect(screen.getByText('hi').getAttribute('class')).toContain('text-right');
-    expect(userCard?.querySelector('.border-b.border-zinc-800\\/80')).not.toBeNull();
+    const footerDivider = userCard?.querySelector('.mt-4.space-y-2 .border-b.border-zinc-800\\/80');
+    const footerMeta = userCard?.querySelector('.mt-4.space-y-2 .osint-body-quiet');
+    expect(footerDivider).not.toBeNull();
+    expect(footerMeta).not.toBeNull();
+  });
+
+  it('left aligns assistant metadata while keeping user metadata right aligned', () => {
+    const userMessage: ChatMessage = {
+      id: 'message-2',
+      sessionId: 'session-1',
+      role: 'user',
+      content: 'hi',
+      createdAt: 2,
+      updatedAt: 2,
+      status: 'COMPLETED',
+    };
+
+    render(
+      <ChatTranscript
+        activeWorkspace={workspace}
+        messages={[message, userMessage]}
+        workspaces={[workspace]}
+        workingAssistantMessageId={null}
+        workingSessionId={null}
+        partialAssistantOutput=""
+        messageBodyClassName="osint-body-small"
+        sectionLabelClassName="osint-meta-label"
+        transcriptEndRef={createRef<HTMLDivElement>()}
+        splitCollapsedFollowUpBlock={(body) => ({ primaryBody: body, collapsedBody: '' })}
+        formatTimestamp={() => '12:00'}
+        copyToClipboard={vi.fn(async () => undefined)}
+        formatMessageWithCitations={(entry) => entry.content}
+        handleOpenMention={vi.fn()}
+        handlePromoteAttachment={vi.fn(async () => undefined)}
+        handleSaveMessageAsArtifact={vi.fn(async () => undefined)}
+        handleAppendMessageToArtifact={vi.fn(async () => undefined)}
+        handleLaunchFollowUp={vi.fn(async () => undefined)}
+        handleStartNewWorkspace={vi.fn()}
+      />
+    );
+
+    const assistantCard = screen.getByText('Latest workspace update.').closest('article');
+    const userCard = screen.getByText('hi').closest('article');
+    const assistantFooter = assistantCard?.querySelector('.mt-4.space-y-2 .osint-body-quiet');
+    const userFooter = userCard?.querySelector('.mt-4.space-y-2 .osint-body-quiet');
+
+    expect(assistantFooter?.getAttribute('class')).toContain('justify-start');
+    expect(userFooter?.getAttribute('class')).toContain('justify-end');
+    expect(assistantFooter?.textContent).toBe('12:00Copy');
+    expect(userFooter?.textContent).toBe('Copy12:00');
   });
 });
