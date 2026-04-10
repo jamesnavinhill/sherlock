@@ -38,6 +38,22 @@ describe('provider parsing utilities', () => {
     expect(parseJsonWithFallback(raw)).toEqual([{ id: 'evt-1', type: 'NEWS' }]);
   });
 
+  it('repairs trailing commas in otherwise valid JSON payloads', () => {
+    const raw = [
+      '```json',
+      '{',
+      '  "summary": "ready",',
+      '  "leads": ["A",],',
+      '}',
+      '```',
+    ].join('\n');
+
+    expect(parseJsonWithFallback(raw)).toEqual({
+      summary: 'ready',
+      leads: ['A'],
+    });
+  });
+
   it('throws a parse error when no JSON candidate is valid', () => {
     expect(() => parseJsonWithFallback('no json structure here')).toThrow(/PARSE_ERROR/i);
   });

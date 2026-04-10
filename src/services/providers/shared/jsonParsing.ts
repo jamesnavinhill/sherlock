@@ -82,8 +82,52 @@ const extractBalancedJsonCandidates = (text: string): string[] => {
   return candidates;
 };
 
+const stripTrailingCommas = (text: string): string => {
+  let result = '';
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+
+    if (inString) {
+      result += ch;
+
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      result += ch;
+      continue;
+    }
+
+    if (ch === ',') {
+      let lookahead = i + 1;
+      while (lookahead < text.length && /\s/.test(text[lookahead])) {
+        lookahead += 1;
+      }
+
+      if (text[lookahead] === '}' || text[lookahead] === ']') {
+        continue;
+      }
+    }
+
+    result += ch;
+  }
+
+  return result;
+};
+
 export const parseJsonWithFallback = (raw: string): unknown => {
-  const trimmed = raw.trim();
+  const trimmed = raw.replace(/^\uFEFF/, '').trim();
   const candidates = [
     trimmed,
     extractJSON(trimmed),
@@ -94,10 +138,16 @@ export const parseJsonWithFallback = (raw: string): unknown => {
   ].filter(Boolean);
 
   for (const candidate of candidates) {
-    try {
-      return JSON.parse(candidate);
-    } catch {
-      // Try next candidate.
+    const parseAttempts = [candidate, stripTrailingCommas(candidate)].filter(
+      (attempt, index, values) => attempt && values.indexOf(attempt) === index
+    );
+
+    for (const attempt of parseAttempts) {
+      try {
+        return JSON.parse(attempt);
+      } catch {
+        // Try next candidate or repair pass.
+      }
     }
   }
 

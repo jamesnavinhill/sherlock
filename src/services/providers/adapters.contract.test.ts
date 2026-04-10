@@ -5,6 +5,7 @@ import {
   GEMINI_FIXTURES,
   OPENAI_FIXTURES,
   OPENROUTER_FIXTURES,
+  REPORT_PAYLOAD,
 } from './__fixtures__/adapterPayloads';
 
 const { mockGeminiGenerateContent, mockGeminiGenerateContentStream } = vi.hoisted(() => ({
@@ -183,6 +184,37 @@ describe('provider adapter contracts', () => {
 
     assertRenderSafeReport(report);
     assertNormalizedFeedAndLive(feed, live);
+  });
+
+  it('recovers Gemini 2.5 investigate responses wrapped in markdown with trailing commas', async () => {
+    const messyReportJson = JSON.stringify(REPORT_PAYLOAD, null, 2).replace(/\n}$/, ',\n}');
+    mockGeminiGenerateContent.mockResolvedValueOnce({
+      text: ['Investigation complete.', '```json', messyReportJson, '```', 'End of report.'].join(
+        '\n'
+      ),
+      candidates: GEMINI_FIXTURES.investigate.candidates,
+    });
+
+    const config = makeConfig('GEMINI', 'gemini-2.5-flash');
+
+    const report = await geminiProvider.investigate({
+      topic: 'Atlas Holdings',
+      parentContext: { topic: 'Procurement Workspace', summary: 'Prior signals' },
+      config,
+      scope: scopeFixture,
+      pack: packFixture,
+      purpose: purposeFixture,
+      artifactType: 'REPORT',
+      labelProfileId: 'investigation',
+    });
+
+    assertRenderSafeReport(report);
+
+    expect(mockGeminiGenerateContent).toHaveBeenCalledTimes(1);
+    expect(mockGeminiGenerateContent.mock.calls[0]?.[0]?.config?.responseMimeType).toBeUndefined();
+    expect(String(mockGeminiGenerateContent.mock.calls[0]?.[0]?.contents)).toContain(
+      'FINAL OUTPUT RULE: Return ONLY the JSON object.'
+    );
   });
 
   it('validates OpenRouter investigate/scan/live contracts with fixture payloads', async () => {

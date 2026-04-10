@@ -116,6 +116,10 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
         request.labelProfileId,
         generationMode
       )}`;
+      if (!useStructuredOutput) {
+        basePrompt +=
+          '\nFINAL OUTPUT RULE: Return ONLY the JSON object. Do not wrap it in markdown fences. Do not add commentary before or after the JSON.';
+      }
 
       const response = await ai.models.generateContent({
         model: config.modelId,
@@ -210,7 +214,7 @@ const investigate = async (request: InvestigationRequest): Promise<Artifact> => 
       });
 
       const rawText = response.text || '{}';
-      const parsedData = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
+      const parsedData = parseJsonWithFallback(rawText);
 
       const data =
         parsedData && typeof parsedData === 'object'
@@ -471,7 +475,7 @@ Each item must have: id (string), title (string), category (string), riskLevel (
           });
 
           const rawText = response.text || '[]';
-          const parsed = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
+          const parsed = parseJsonWithFallback(rawText);
 
           return normalizeScanResultPayload(parsed, scope);
         },
@@ -557,7 +561,7 @@ const getLiveIntel = async (request: LiveIntelRequest): Promise<MonitorEvent[]> 
           });
 
           const rawText = response.text || '[]';
-          const parsed = useStructuredOutput ? JSON.parse(rawText) : parseJsonWithFallback(rawText);
+          const parsed = parseJsonWithFallback(rawText);
           return normalizeLiveIntelPayload(parsed);
         },
         {
