@@ -29,6 +29,11 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
   const resolvedEyebrow = eyebrow === undefined ? 'Inspector' : eyebrow;
   const topActions = actions && actionsPlacement === 'top' ? actions : null;
   const bottomActions = actions && actionsPlacement === 'bottom' ? actions : null;
+  const hasTitle =
+    title !== null &&
+    title !== undefined &&
+    !(typeof title === 'string' && title.trim().length === 0);
+  const hasHeaderContent = (resolvedEyebrow !== null && resolvedEyebrow !== undefined) || hasTitle;
 
   return (
     <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-start justify-between gap-2.5`}>
@@ -36,14 +41,22 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
         {icon ? <div className="shrink-0 text-zinc-300">{icon}</div> : null}
         <div className="min-w-0 flex-1">
           {topActions ? (
-            <div className="mb-2 border-b border-zinc-800 pb-2">{topActions}</div>
+            <div className={hasHeaderContent ? 'mb-2 border-b border-zinc-800 pb-2' : ''}>
+              {topActions}
+            </div>
           ) : null}
           {resolvedEyebrow ? (
             <div className="min-w-0 osint-eyebrow">{resolvedEyebrow}</div>
           ) : null}
-          <div className={`min-w-0 truncate whitespace-nowrap osint-panel-title ${resolvedEyebrow ? 'mt-1' : ''}`}>
-            {title}
-          </div>
+          {hasTitle ? (
+            <div
+              className={`min-w-0 truncate whitespace-nowrap osint-panel-title ${
+                resolvedEyebrow ? 'mt-1' : ''
+              }`}
+            >
+              {title}
+            </div>
+          ) : null}
           {bottomActions ? <div className="mt-2">{bottomActions}</div> : null}
         </div>
       </div>

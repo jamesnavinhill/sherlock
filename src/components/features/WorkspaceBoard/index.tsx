@@ -245,8 +245,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         ) : (
           <GlobalInspectorPanel
             isOpen={rightPanelOpen}
-            eyebrow="Agent"
-            title={activeBoard?.name || 'Board Agent'}
+            eyebrow={null}
+            title={null}
             tabs={rightPanelTabs}
             activeTabId={rightPanelView}
             onTabChange={(tabId) => handleRightPanelTabChange(tabId as RightPanelView)}
