@@ -91,6 +91,7 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
           entries.map((entry) => {
             const entryKey = boardRefKey(entry);
             const isEntryOpen = !!libraryItemSections[entryKey];
+            const showSourceIcon = key === 'sources';
 
             return (
               <div
@@ -111,10 +112,14 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                     onClick={() => onToggleLibraryEntrySection(entryKey)}
                     className="osint-rail-item-trigger flex w-full items-start justify-between gap-2 px-0 text-left text-[11px] text-zinc-300"
                   >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
-                        <AppIcon iconId={entry.iconId} size={11} strokeWidth={1.9} />
-                      </span>
+                    <span
+                      className={`flex min-w-0 items-center ${showSourceIcon ? 'gap-2' : 'pl-2.5'}`}
+                    >
+                      {showSourceIcon ? (
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center text-zinc-400">
+                          <AppIcon iconId={entry.iconId} size={11} strokeWidth={1.9} />
+                        </span>
+                      ) : null}
                       <span className="truncate osint-body-quiet leading-5 text-zinc-300">
                         {entry.title}
                       </span>

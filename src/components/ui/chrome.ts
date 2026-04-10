@@ -45,7 +45,7 @@ export const CHROME_THIN_NESTED_ITEM_CLASS = 'osint-panel-item px-2.5 py-1.5';
 export const CHROME_THIN_NESTED_ITEM_BUTTON_CLASS =
   `${CHROME_THIN_NESTED_ITEM_CLASS} w-full text-left text-[11px]`;
 
-export const CHROME_THIN_NESTED_SECTION_CLASS = 'osint-raised-surface-section px-2.5 py-1.5';
+export const CHROME_THIN_NESTED_SECTION_CLASS = 'osint-raised-surface-section';
 
 export const CHROME_THIN_ACCORDION_TRIGGER_CLASS = 'px-2.5 py-1.5 text-[11px]';
 
