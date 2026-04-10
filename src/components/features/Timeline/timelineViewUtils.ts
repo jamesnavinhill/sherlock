@@ -109,7 +109,7 @@ export const getEventTone = (event: TimelineEvent) => {
 
 export const getFocusedButtonClass = (isActive: boolean) =>
   `${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} font-mono ${
-    isActive ? 'border-osint-primary/40 text-osint-primary' : 'text-zinc-300'
+    isActive ? '' : 'text-zinc-300'
   }`;
 
 export const toUniqueItems = (events: TimelineEvent[], track: TimelineTrack) => {

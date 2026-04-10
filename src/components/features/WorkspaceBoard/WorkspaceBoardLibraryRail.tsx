@@ -10,7 +10,7 @@ import {
   CHROME_ACTION_BUTTON_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
-  CHROME_THIN_NESTED_ITEM_CLASS,
+  CHROME_THIN_NESTED_SECTION_CLASS,
   getChromeThinActionRowClassName,
   getRailAccordionClassName,
 } from '@/components/ui/chrome';
@@ -104,13 +104,12 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                 }
               >
                 <div
-                  className={CHROME_THIN_NESTED_ITEM_CLASS}
-                  data-active={isEntryOpen ? 'true' : undefined}
+                  className={CHROME_THIN_NESTED_SECTION_CLASS}
                 >
                   <button
                     type="button"
                     onClick={() => onToggleLibraryEntrySection(entryKey)}
-                    className="flex w-full items-start justify-between gap-2 text-left"
+                    className="osint-rail-item-trigger flex w-full items-start justify-between gap-2 px-0 text-left text-[11px] text-zinc-300"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">

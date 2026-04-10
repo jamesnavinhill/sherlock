@@ -35,12 +35,12 @@ export const Accordion: React.FC<AccordionProps> = ({
 }) => {
   const wrapperClassName =
     variant === 'nested'
-      ? `osint-panel-item mb-2 ${className}`
+      ? `osint-raised-surface-section mb-2 ${className}`
       : `osint-raised-surface-section mb-2 ${className}`;
   const headerBaseClassName =
     variant === 'nested'
-      ? 'osint-meta-label-strong flex min-h-[34px] w-full items-center justify-between gap-3 px-2.5 py-1.5 text-left text-[11px] text-zinc-300 transition-colors hover:bg-[color:var(--osint-interaction-hover-bg)]'
-      : 'osint-meta-label-strong flex min-h-[44px] w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-zinc-300 transition-colors hover:bg-[color:var(--osint-interaction-hover-bg)]';
+      ? 'osint-rail-item-trigger osint-meta-label-strong flex min-h-[34px] w-full items-center justify-between gap-3 px-2.5 py-1.5 text-left text-[11px] text-zinc-300'
+      : 'osint-rail-section-trigger osint-meta-label-strong flex min-h-[44px] w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-zinc-300';
   const contentBaseClassName =
     variant === 'nested'
       ? 'border-t border-zinc-800/70 p-1.5'
@@ -52,6 +52,7 @@ export const Accordion: React.FC<AccordionProps> = ({
         type="button"
         onClick={onToggle}
         className={`${headerBaseClassName} ${headerClassName}`}
+        data-active={variant === 'section' && isOpen ? 'true' : undefined}
       >
         <span className="flex min-w-0 items-center gap-2">
           {Icon && <Icon className="w-4 h-4 mr-2 text-zinc-500" />}

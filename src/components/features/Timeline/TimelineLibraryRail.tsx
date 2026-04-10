@@ -80,6 +80,7 @@ export const TimelineLibraryRail: React.FC<TimelineLibraryRailProps> = ({
             type="button"
             onClick={() => onSetTrackFocus('ALL')}
             className={getFocusedButtonClass(focusedTrack === 'ALL' && !focusedRefId)}
+            data-active={focusedTrack === 'ALL' && !focusedRefId ? 'true' : undefined}
           >
             All Activity
           </button>
@@ -89,6 +90,9 @@ export const TimelineLibraryRail: React.FC<TimelineLibraryRailProps> = ({
               type="button"
               onClick={() => onSetTrackFocus(option.track)}
               className={getFocusedButtonClass(focusedTrack === option.track && !focusedRefId)}
+              data-active={
+                focusedTrack === option.track && !focusedRefId ? 'true' : undefined
+              }
             >
               {option.label} ({getTrackCount(allTimelineEvents, option.track)})
             </button>
