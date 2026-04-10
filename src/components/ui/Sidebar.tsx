@@ -110,12 +110,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-label={item.label}
               >
                 <div className="flex items-center justify-center">
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <Icon className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0" />
                 </div>
                 <div
                   className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
                 >
-                  <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
+                  <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
                     {item.label}
                   </span>
                 </div>
@@ -144,15 +144,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center justify-center">
               {themeMode === 'dark' ? (
-                <Sun className="h-5 w-5 flex-shrink-0 text-osint-primary" />
+                <Sun className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0 text-osint-primary" />
               ) : (
-                <Moon className="h-5 w-5 flex-shrink-0 text-osint-primary" />
+                <Moon className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0 text-osint-primary" />
               )}
             </div>
             <div
               className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
             >
-              <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
+              <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
                 {themeMode === 'dark' ? 'Light' : 'Dark'}
               </span>
             </div>
@@ -165,12 +165,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label="Settings"
           >
             <div className="flex items-center justify-center">
-              <Settings className="h-5 w-5 flex-shrink-0" />
+              <Settings className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0" />
             </div>
             <div
               className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
             >
-              <span className="font-osint-label font-medium text-sm uppercase tracking-wide">
+              <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
                 Settings
               </span>
             </div>

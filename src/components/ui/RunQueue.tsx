@@ -158,7 +158,7 @@ export const RunQueue: React.FC<RunQueueProps> = ({
         <div className="relative flex items-center justify-center">
           <div className="relative">
             <Activity
-              className={`w-5 h-5 ${runningTasks.length > 0 ? 'text-osint-primary' : 'text-zinc-500 group-hover:text-zinc-300'}`}
+              className={`osint-sidebar-nav-icon w-5 h-5 ${runningTasks.length > 0 ? 'text-osint-primary' : 'text-zinc-500 group-hover:text-osint-primary'}`}
             />
             {runningTasks.length > 0 && (
               <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
@@ -173,8 +173,8 @@ export const RunQueue: React.FC<RunQueueProps> = ({
             className={`block truncate font-osint-label text-sm font-medium uppercase tracking-wide ${
               runningTasks.length > 0 || isExpanded
                 ? 'text-osint-primary'
-                : 'text-zinc-500 group-hover:text-zinc-300'
-            }`}
+                : 'text-zinc-500 group-hover:text-osint-primary'
+            } osint-sidebar-nav-label`}
           >
             Ops
           </span>
@@ -186,7 +186,7 @@ export const RunQueue: React.FC<RunQueueProps> = ({
         </div>
 
         {!isCollapsed && workspaceRuns.length > 0 && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 group-hover:text-zinc-400">
+          <div className="osint-sidebar-nav-icon absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 group-hover:text-osint-primary">
             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </div>
         )}
