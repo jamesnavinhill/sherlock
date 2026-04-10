@@ -12,6 +12,7 @@ import {
   BOARD_REF_META_KEY,
   parseBoardReference,
 } from '@/services/workspace/boardShapes';
+import { useExclusivePanelSections } from '@/components/features/shared/useExclusivePanelSections';
 import { buildWorkspaceItemFromCreateModal } from './workspaceBoardItemActions';
 import type { CreateModalState } from './workspaceBoardUtils';
 
@@ -33,30 +34,18 @@ export const useWorkspaceBoardLibraryState = ({
   handleDropEntry,
 }: UseWorkspaceBoardLibraryStateInput) => {
   const [createModal, setCreateModal] = useState<CreateModalState>(null);
-  const [librarySections, setLibrarySections] = useState({
-    created: false,
-    artifacts: false,
-    entities: false,
-    sources: false,
-    signals: false,
-  });
   const [libraryItemSections, setLibraryItemSections] = useState<Record<string, boolean>>({});
   const [libraryItemPendingDeletion, setLibraryItemPendingDeletion] =
     useState<WorkspaceLibraryEntry | null>(null);
+  const librarySectionState = useExclusivePanelSections(
+    ['created', 'artifacts', 'entities', 'sources', 'signals'] as const
+  );
 
   const toggleLibraryEntrySection = useCallback((entryKey: string) => {
     setLibraryItemSections((current) => ({
       ...current,
       [entryKey]: !current[entryKey],
     }));
-  }, []);
-
-  const toggleLibrarySection = useCallback((section: keyof typeof librarySections) => {
-    setLibrarySections((current) =>
-      Object.fromEntries(
-        Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
-      ) as typeof current
-    );
   }, []);
 
   const handleSubmitCreateModal = useCallback(async () => {
@@ -119,10 +108,10 @@ export const useWorkspaceBoardLibraryState = ({
     handleSubmitCreateModal,
     libraryItemPendingDeletion,
     libraryItemSections,
-    librarySections,
+    librarySections: librarySectionState.state,
     setCreateModal,
     setLibraryItemPendingDeletion,
     toggleLibraryEntrySection,
-    toggleLibrarySection,
+    toggleLibrarySection: librarySectionState.toggleSection,
   };
 };

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { BoardLibraryRail } from './BoardLibraryRail';
 
 describe('BoardLibraryRail', () => {
-  it('renders the unified library header and separators', () => {
+  it('renders the shared library rail header and actions', () => {
     render(
       <BoardLibraryRail
         isOpen
@@ -40,9 +40,11 @@ describe('BoardLibraryRail', () => {
     );
 
     expect(screen.getByText('Library')).toBeInTheDocument();
-    expect(screen.queryByText('Canonical Library')).not.toBeInTheDocument();
-    expect(screen.getByTestId('board-library-title-divider')).toHaveClass('-mx-4');
-    expect(screen.getByTestId('board-library-search-divider')).toBeInTheDocument();
+    expect(screen.getByText('Agentic A.I.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Note' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Link' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'File' })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Search library' })).toBeInTheDocument();
   });
 
   it('does not repeat the item kind inside expanded library entries', () => {

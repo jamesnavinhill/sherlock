@@ -47,7 +47,6 @@ describe('useWorkspaceBoardInspectorState', () => {
 
     expect(result.current.inspectorSections).toEqual({
       selection: true,
-      aiActions: false,
       provenance: false,
     });
 
@@ -57,7 +56,6 @@ describe('useWorkspaceBoardInspectorState', () => {
 
     expect(result.current.inspectorSections).toEqual({
       selection: false,
-      aiActions: false,
       provenance: true,
     });
   });

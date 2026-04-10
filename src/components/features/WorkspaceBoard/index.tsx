@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shapes } from 'lucide-react';
+import { Bot, Shapes } from 'lucide-react';
 import 'tldraw/tldraw.css';
 
 import type {
@@ -12,9 +12,11 @@ import {
   buildFilesPath,
   buildWorkspaceBoardDocumentPath,
 } from '@/app/routes';
+import { GlobalInspectorPanel } from '@/components/features/Inspector/GlobalInspectorPanel';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getWorkspaceDisplayTitle } from '@/domain';
-import { LEFT_PANEL_SECTION_SCROLL_CLASS } from './workspaceBoardUtils';
+import type { GlobalInspectorTab } from '@/components/features/Inspector/globalInspectorTypes';
+import { LEFT_PANEL_SECTION_SCROLL_CLASS, type RightPanelView } from './workspaceBoardUtils';
 import { useWorkspaceBoardController } from './useWorkspaceBoardController';
 import { BoardLibraryRail } from './BoardLibraryRail';
 import { BoardInspectorRail } from './BoardInspectorRail';
@@ -84,7 +86,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     librarySections,
     persistCurrentBoardDocument,
     rightPanelOpen,
-    rightPanelTabButtonClass,
     rightPanelView,
     search,
     selectedEntries,
@@ -132,6 +133,14 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
       </div>
     );
   }
+
+  const rightPanelTabs: GlobalInspectorTab[] = [
+    { id: 'AGENT', label: 'Agent' },
+    { id: 'INSPECTOR', label: 'Inspector' },
+  ];
+  const handleRightPanelTabChange = (tabId: RightPanelView) => {
+    setRightPanelView(tabId);
+  };
 
   return (
     <div className="workspace-board-page flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100 isolate">
@@ -203,61 +212,46 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           onEditorMount={handleEditorMount}
         />
 
-        <aside
-          className={`osint-panel-shell absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-black transition-all duration-200 xl:relative xl:translate-x-0 ${
-            rightPanelOpen
-              ? 'w-[min(24rem,calc(100vw-1rem))] translate-x-0'
-              : 'w-[min(24rem,calc(100vw-1rem))] translate-x-full xl:w-0 xl:border-l-0'
-          }`}
-        >
-          <div className="border-b border-zinc-800 bg-zinc-900/30 px-4 py-3">
-            <div className="flex w-full justify-start gap-2">
-              {(
-                [
-                  ['AGENT', 'Agent'],
-                  ['INSPECTOR', 'Inspector'],
-                ] as const
-              ).map(([view, label]) => (
-                <button
-                  key={view}
-                  type="button"
-                  onClick={() => setRightPanelView(view)}
-                  className={rightPanelTabButtonClass(view)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {rightPanelView === 'INSPECTOR' ? (
-            <BoardInspectorRail
-              inspectorActions={inspectorActions}
-              inspectorSections={inspectorSections}
-              selectedEntries={selectedEntries}
-              selectedWorkspaceItem={selectedWorkspaceItem}
-              activeBoard={activeBoard}
-              availableBoardsLength={availableBoards.length}
-              aiBusy={aiBusy}
-              aiSummary={aiSummary}
-              onToggleSelection={() => toggleInspectorSection('selection')}
-              onToggleAiActions={() => toggleInspectorSection('aiActions')}
-              onToggleProvenance={() => toggleInspectorSection('provenance')}
-              onShowAgentAndGenerateSummary={() => {
-                setRightPanelView('AGENT');
-                void handleGenerateSummary();
-              }}
-              onShowAgentAndGenerateNote={() => {
-                setRightPanelView('AGENT');
-                void handleGenerateNote();
-              }}
-              onOpenAgentStarterIntent={(prompt) => {
-                setBoardAgentPrompt(prompt);
-                setRightPanelView('AGENT');
-              }}
-              onDeleteBoard={handleDeleteBoard}
-            />
-          ) : (
+        {rightPanelView === 'INSPECTOR' ? (
+          <BoardInspectorRail
+            isOpen={rightPanelOpen}
+            tabs={rightPanelTabs}
+            activeTabId={rightPanelView}
+            onTabChange={handleRightPanelTabChange}
+            inspectorActions={inspectorActions}
+            inspectorSections={inspectorSections}
+            selectedEntries={selectedEntries}
+            selectedWorkspaceItem={selectedWorkspaceItem}
+            activeBoard={activeBoard}
+            availableBoardsLength={availableBoards.length}
+            aiBusy={aiBusy}
+            onToggleSelection={() => toggleInspectorSection('selection')}
+            onToggleProvenance={() => toggleInspectorSection('provenance')}
+            onShowAgentAndGenerateSummary={() => {
+              setRightPanelView('AGENT');
+              void handleGenerateSummary();
+            }}
+            onShowAgentAndGenerateNote={() => {
+              setRightPanelView('AGENT');
+              void handleGenerateNote();
+            }}
+            onOpenAgentStarterIntent={(prompt) => {
+              setBoardAgentPrompt(prompt);
+              setRightPanelView('AGENT');
+            }}
+            onDeleteBoard={handleDeleteBoard}
+          />
+        ) : (
+          <GlobalInspectorPanel
+            isOpen={rightPanelOpen}
+            eyebrow="Agent"
+            title={activeBoard?.name || 'Board Agent'}
+            subtitle="Board agent workspace"
+            headerIcon={<Bot className="h-5 w-5 text-zinc-300" />}
+            tabs={rightPanelTabs}
+            activeTabId={rightPanelView}
+            onTabChange={(tabId) => handleRightPanelTabChange(tabId as RightPanelView)}
+          >
             <BoardAgentRail
               agentSections={agentSections}
               selectedEntries={selectedEntries}
@@ -292,8 +286,8 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               onCancelAgent={handleCancelBoardAgent}
               onKeyDown={handleBoardAgentComposerKeyDown}
             />
-          )}
-        </aside>
+          </GlobalInspectorPanel>
+        )}
       </div>
 
       <BoardDialogs

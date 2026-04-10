@@ -166,14 +166,14 @@ What remains:
 
 ### Stream B2: WorkspaceBoard
 
-Status: Partially prepared, not cut over
+Status: Mostly complete, not cleanup-complete
 
 Current state:
 
-- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx) is still a bespoke left rail
-- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx) is still a bespoke inspector body
-- [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx) still owns a route-specific right-panel shell and tab strip
-- [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts) and [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts) still use local exclusive-toggle state
+- [src/components/features/WorkspaceBoard/BoardLibraryRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardLibraryRail.tsx) now renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx), [LibraryRailSearch.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSearch.tsx), and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+- [src/components/features/WorkspaceBoard/BoardInspectorRail.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/BoardInspectorRail.tsx) now renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/WorkspaceBoard/index.tsx](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/index.tsx) now uses the shared tab shell for `Agent` and `Inspector`
+- [src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardLibraryState.ts) and [src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts](C:/Users/james/projects/sherlock/src/components/features/WorkspaceBoard/useWorkspaceBoardInspectorState.ts) now use [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts) for top-level panel sections
 
 What is already aligned:
 
@@ -182,11 +182,8 @@ What is already aligned:
 
 What remains:
 
-- move the left rail onto the shared library shell, header, search, and entry system
-- move the inspector onto the shared global inspector
-- move inspector/agent tabs onto the shared tab shell
-- fold AI actions into the shared top action treatment
-- preserve create, upload, search, and add-to-board affordances
+- preserve and polish route-level behavior now that both board rails run through the shared shells
+- include WorkspaceBoard in the final cross-route spacing, naming, and breakpoint audit
 
 ## Phase 5: Final Integration Audit
 

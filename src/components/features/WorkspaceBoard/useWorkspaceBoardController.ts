@@ -208,13 +208,6 @@ export const useWorkspaceBoardController = ({
       .filter((action): action is NonNullable<typeof action> => !!action);
   }, [boardAgentActionsBySessionId, boardAgentReviewState]);
 
-  const rightPanelTabButtonClass = (view: RightPanelView) =>
-    `inline-flex h-9 flex-1 items-center justify-center border px-4 text-xs font-mono uppercase transition ${
-      rightPanelView === view
-        ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-        : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
-    }`;
-
   const { editorRef, handleEditorMount, hydratedSnapshot, persistCurrentBoardDocument } =
     useBoardCanvasPersistence({
       activeBoard,
@@ -799,7 +792,6 @@ export const useWorkspaceBoardController = ({
     librarySections,
     persistCurrentBoardDocument,
     rightPanelOpen,
-    rightPanelTabButtonClass,
     rightPanelView,
     search,
     selectedArtifact,

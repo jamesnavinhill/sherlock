@@ -4,6 +4,48 @@ import { describe, expect, it, vi } from 'vitest';
 import { useWorkspaceBoardLibraryState } from './useWorkspaceBoardLibraryState';
 
 describe('useWorkspaceBoardLibraryState', () => {
+  it('keeps board library sections exclusive through shared panel state', () => {
+    const { result } = renderHook(() =>
+      useWorkspaceBoardLibraryState({
+        activeWorkspace: {
+          id: 'ws-1',
+          title: 'Atlas Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-08',
+        },
+        addToast: vi.fn(),
+        createWorkspaceItem: vi.fn(async () => undefined),
+        deleteWorkspaceItem: vi.fn(async () => undefined),
+        editorRef: { current: null },
+        handleDropEntry: vi.fn(),
+      })
+    );
+
+    act(() => {
+      result.current.toggleLibrarySection('created');
+    });
+
+    expect(result.current.librarySections).toEqual({
+      created: true,
+      artifacts: false,
+      entities: false,
+      sources: false,
+      signals: false,
+    });
+
+    act(() => {
+      result.current.toggleLibrarySection('signals');
+    });
+
+    expect(result.current.librarySections).toEqual({
+      created: false,
+      artifacts: false,
+      entities: false,
+      sources: false,
+      signals: true,
+    });
+  });
+
   it('creates a board note through the extracted library workflow', async () => {
     const createWorkspaceItem = vi.fn(async () => undefined);
     const handleDropEntry = vi.fn();

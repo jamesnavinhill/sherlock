@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type {
   Artifact,
@@ -23,6 +23,7 @@ import {
   buildSignalChatOpenRequest,
   buildWorkspaceItemChatOpenRequest,
 } from '@/services/workspace/workspaceHandoffs';
+import { useExclusivePanelSections } from '@/components/features/shared/useExclusivePanelSections';
 import { buildBoardInspectorActions } from './boardInspectorActions';
 import {
   createWorkspaceSelectionNote,
@@ -70,19 +71,7 @@ export const useWorkspaceBoardInspectorState = ({
   workspaceArtifacts,
   workspaceHeadlines,
 }: UseWorkspaceBoardInspectorStateInput) => {
-  const [inspectorSections, setInspectorSections] = useState({
-    selection: false,
-    aiActions: false,
-    provenance: false,
-  });
-
-  const toggleInspectorSection = useCallback((section: keyof typeof inspectorSections) => {
-    setInspectorSections((current) =>
-      Object.fromEntries(
-        Object.keys(current).map((key) => [key, key === section ? !current[section] : false])
-      ) as typeof current
-    );
-  }, []);
+  const inspectorSectionState = useExclusivePanelSections(['selection', 'provenance'] as const);
 
   const handleGenerateSummary = useCallback(async () => {
     if (!activeWorkspace || selectedEntries.length === 0) return;
@@ -265,7 +254,7 @@ export const useWorkspaceBoardInspectorState = ({
     handleGenerateSummary,
     handleOpenSelectedChat,
     inspectorActions,
-    inspectorSections,
-    toggleInspectorSection,
+    inspectorSections: inspectorSectionState.state,
+    toggleInspectorSection: inspectorSectionState.toggleSection,
   };
 };

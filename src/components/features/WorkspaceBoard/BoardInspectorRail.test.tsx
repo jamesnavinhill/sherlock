@@ -10,10 +10,16 @@ describe('BoardInspectorRail', () => {
 
     render(
       <BoardInspectorRail
+        isOpen
+        tabs={[
+          { id: 'AGENT', label: 'Agent' },
+          { id: 'INSPECTOR', label: 'Inspector' },
+        ]}
+        activeTabId="INSPECTOR"
+        onTabChange={vi.fn()}
         inspectorActions={[]}
         inspectorSections={{
           selection: true,
-          aiActions: false,
           provenance: false,
         }}
         selectedEntries={[
@@ -40,9 +46,7 @@ describe('BoardInspectorRail', () => {
         }}
         availableBoardsLength={2}
         aiBusy={false}
-        aiSummary={null}
         onToggleSelection={vi.fn()}
-        onToggleAiActions={vi.fn()}
         onToggleProvenance={vi.fn()}
         onShowAgentAndGenerateSummary={vi.fn()}
         onShowAgentAndGenerateNote={vi.fn()}
@@ -52,5 +56,7 @@ describe('BoardInspectorRail', () => {
     );
 
     expect(screen.getByText(sourceUrl)).toHaveClass('break-all');
+    expect(screen.getByRole('button', { name: 'Agent' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Inspector' })).toBeInTheDocument();
   });
 });

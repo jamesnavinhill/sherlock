@@ -8,6 +8,7 @@ export interface InspectorActionItem {
   icon: LucideIcon;
   iconOnly?: boolean;
   iconClassName?: string;
+  disabled?: boolean;
   onClick?: () => void;
   href?: string;
   target?: string;
@@ -63,13 +64,14 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
                   : 'w-9 shrink-0 px-0'
                 : 'shrink-0'
               : 'w-full',
+            action.disabled && 'cursor-not-allowed opacity-40',
             action.className
           ),
           title: action.label,
           'aria-label': action.label,
         };
 
-        if (action.href) {
+        if (action.href && !action.disabled) {
           return (
             <a
               key={action.id}
@@ -85,7 +87,13 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
         }
 
         return (
-          <button key={action.id} type="button" onClick={action.onClick} {...sharedProps}>
+          <button
+            key={action.id}
+            type="button"
+            onClick={action.onClick}
+            disabled={action.disabled}
+            {...sharedProps}
+          >
             <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
             {showActionLabel ? <span>{action.label}</span> : null}
           </button>
