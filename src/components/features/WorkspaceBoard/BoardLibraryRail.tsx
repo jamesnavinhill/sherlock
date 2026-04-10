@@ -77,10 +77,10 @@ export const BoardLibraryRail: React.FC<BoardLibraryRailProps> = ({
         ? 'w-[min(23rem,calc(100vw-1rem))] translate-x-0'
         : 'w-[min(23rem,calc(100vw-1rem))] -translate-x-full xl:w-0 xl:border-r-0'
     }`}
-  >
+    >
     <div className={CHROME_PANEL_HEADER_CLASS}>
       <div className="osint-eyebrow">Library</div>
-      <div className="mt-1 osint-panel-title">{workspaceTitle}</div>
+      <div className="mt-1 truncate whitespace-nowrap osint-panel-title">{workspaceTitle}</div>
       <div
         aria-hidden="true"
         data-testid="board-library-title-divider"

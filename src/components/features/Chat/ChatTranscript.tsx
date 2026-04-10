@@ -82,7 +82,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
       >
         <div
           className={`mx-auto flex w-full max-w-4xl flex-col ${
-            hasMessages ? 'gap-4 pb-4' : showAssistantPrimer ? 'gap-4 py-6' : 'min-h-full justify-center'
+            hasMessages ? 'gap-4 pb-0' : showAssistantPrimer ? 'gap-4 py-6' : 'min-h-full justify-center'
           }`}
         >
         {!activeWorkspace ? (

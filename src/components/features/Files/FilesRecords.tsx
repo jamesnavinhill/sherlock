@@ -131,7 +131,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                 className="osint-raised-surface group flex cursor-pointer items-center justify-between p-6 backdrop-blur-sm transition-all hover:border-osint-primary hover:bg-zinc-900"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="border border-zinc-800 bg-black p-3 text-white group-hover:border-zinc-600">
+                  <div className="p-3 text-white">
                     <FileText className="h-6 w-6" />
                   </div>
                   <div>
@@ -194,7 +194,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                 }`}
               >
                 <div className="flex min-w-0 items-center space-x-4">
-                  <div className="border border-zinc-800 bg-black p-3 text-white group-hover:border-zinc-600">
+                  <div className="p-3 text-white">
                     <FileText className="h-6 w-6" />
                   </div>
                   <div className="min-w-0">
@@ -268,9 +268,9 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                 <div
                   key={record.artifact.id || index}
                   onClick={() => onSelectArtifact(record.artifact)}
-                  className="osint-raised-surface-subtle grid cursor-pointer grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
-                >
-                  <div className="self-start border border-zinc-800 bg-black p-3 text-white">
+                className="osint-raised-surface-subtle grid cursor-pointer grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
+              >
+                  <div className="self-start p-3 text-white">
                     <FileText className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
@@ -320,7 +320,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                   key={record.item.id}
                   className="osint-raised-surface-subtle grid grid-cols-[auto_minmax(0,1.4fr)_auto_auto] gap-4 px-4 py-4 transition hover:bg-zinc-900/70"
                 >
-                  <div className="self-start border border-zinc-800 bg-black p-3 text-white">
+                  <div className="self-start p-3 text-white">
                     <FileText className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">

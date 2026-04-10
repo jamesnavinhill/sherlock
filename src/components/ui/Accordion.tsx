@@ -57,7 +57,7 @@ export const Accordion: React.FC<AccordionProps> = ({
           {Icon && <Icon className="w-4 h-4 mr-2 text-zinc-500" />}
           <span className="min-w-0 truncate">{title}</span>
           {typeof count === 'number' ? (
-            <span className="rounded border border-zinc-700 px-1.5 py-0.5 osint-meta-label text-zinc-500">
+            <span className="shrink-0 osint-meta-label text-zinc-500">
               {count}
             </span>
           ) : null}

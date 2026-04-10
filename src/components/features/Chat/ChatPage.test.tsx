@@ -24,6 +24,10 @@ vi.mock('./GuidedRunBuilder', () => ({
   GuidedRunBuilder: () => <div data-testid="guided-run-builder" />,
 }));
 
+vi.mock('@/components/ui/GlobalSearch', () => ({
+  GlobalSearch: () => null,
+}));
+
 vi.mock('../Runs/RunSetupModal', () => ({
   RunSetupModal: ({ onStart }: { onStart: (...args: unknown[]) => void }) => (
     <div data-testid="task-setup-modal">

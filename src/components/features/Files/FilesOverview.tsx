@@ -60,7 +60,7 @@ const renderPagination = (input: {
   ) : null;
 
 const WORKSPACE_ACTION_BUTTON_CLASS =
-  'osint-button-chrome inline-flex h-8 w-8 shrink-0 items-center justify-center p-0';
+  'inline-flex h-8 w-8 shrink-0 items-center justify-center p-0 text-zinc-500 transition hover:text-white';
 
 const getWorkspaceOverviewSummary = (workspaceLabelLower: string, workspace: Workspace) =>
   workspace.description || `Open this ${workspaceLabelLower} to inspect artifacts, items, and saved history.`;
@@ -170,7 +170,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
 
               <div className="relative z-10 mb-4 flex items-start justify-between">
                 <div className="flex items-start gap-2">
-                  <div className="border border-zinc-700 bg-zinc-900 p-3 text-white">
+                  <div className="p-3 text-white">
                     <AppIcon
                       iconId={workspace.iconId || getDefaultWorkspaceIconId()}
                       className="h-8 w-8"
@@ -184,7 +184,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                       event.stopPropagation();
                       onEditWorkspaceIcon(workspace, event);
                     }}
-                    className="osint-button-chrome inline-flex h-8 w-8 items-center justify-center p-0 opacity-0 transition group-hover:opacity-100"
+                    className="inline-flex h-8 w-8 items-center justify-center p-0 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:text-white"
                     title={`Customize ${workspaceLabelLower} icon`}
                     aria-label={`Customize ${workspaceLabelLower} icon`}
                   >
@@ -265,7 +265,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                 <div className="grid grid-cols-[minmax(0,1.2fr)_auto_auto] items-start gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="border border-zinc-800 bg-zinc-950/70 p-1.5 text-zinc-300">
+                      <div className="p-1.5 text-zinc-300">
                         <AppIcon
                           iconId={workspace.iconId || getDefaultWorkspaceIconId()}
                           className="h-4 w-4"

@@ -19,8 +19,8 @@ Current read:
 
 - shared inspector foundations are implemented
 - shared library rail foundations are implemented
-- OperationView, NetworkGraph, Timeline, and the ArtifactViewer detail sidebar are consuming the new shared foundations in meaningful ways
-- Chat and WorkspaceBoard still rely on bespoke panel shells and custom section-state wiring
+- OperationView, NetworkGraph, Timeline, Chat, and the ArtifactViewer detail sidebar are consuming the new shared foundations in meaningful ways
+- WorkspaceBoard still relies on bespoke panel shells and custom section-state wiring
 - final cleanup, full parity normalization, and legacy deletion are not complete
 
 ## What Landed
@@ -150,20 +150,19 @@ Still open:
 
 ### Stream B1: Chat
 
-Status: Not started for shared-panel cutover
+Status: Mostly complete, not cleanup-complete
 
 Current state:
 
-- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx) is still a bespoke left rail built directly with `aside` + `Accordion`
-- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx) is still a bespoke right rail built directly with `aside` + `Accordion`
-- [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts) still uses custom exclusive-toggle logic instead of [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
+- [src/components/features/Chat/ChatSessionRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatSessionRail.tsx) now renders through [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx) and [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx)
+- [src/components/features/Chat/ChatContextRail.tsx](C:/Users/james/projects/sherlock/src/components/features/Chat/ChatContextRail.tsx) now renders through [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx)
+- [src/components/features/Chat/useChatViewState.ts](C:/Users/james/projects/sherlock/src/components/features/Chat/useChatViewState.ts) now uses [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
 
 What remains:
 
-- migrate the left rail onto the shared library shell
-- migrate the right rail onto the shared global inspector
-- adapt launch context, recent artifacts, recent signals, retrieval, and action log into shared section contracts
-- preserve session selection, rename/delete flows, fetch actions, and launch context behavior
+- preserve and polish route-level behavior now that the shared shells are in place
+- decide whether the remaining route wrappers should stay as thin adapters or be renamed during the cleanup pass
+- include Chat in the final cross-route spacing, terminology, and breakpoint audit
 
 ### Stream B2: WorkspaceBoard
 
@@ -270,7 +269,7 @@ Still remaining:
 
 ### Chat
 
-Status: Legacy rails still active
+Status: Shared inspector and shared library adopted, cleanup still pending
 
 ### WorkspaceBoard
 
@@ -291,14 +290,13 @@ Owner surface:
 
 Deliverables:
 
-- replace `ChatSessionRail` with a shared `LibraryRailShell` consumer
-- replace `ChatContextRail` with a shared `GlobalInspectorPanel` consumer
-- migrate left/right section state to [useExclusivePanelSections.ts](C:/Users/james/projects/sherlock/src/components/features/shared/useExclusivePanelSections.ts)
-- keep launch context, recent artifacts, recent signals, retrieval actions, rename/delete, and action log parity intact
+- complete any final parity polish on the new shared-shell chat rails
+- verify launch context, recent artifacts, recent signals, retrieval actions, rename/delete, and action log behavior remain clean across breakpoints
+- decide whether to keep the current route adapters or rename them during the cleanup pass
 
 Exit criteria:
 
-- no bespoke chat panel shell remains
+- no meaningful bespoke chat panel shell remains
 - shared panel sections fully represent current chat context behavior
 
 ### Workstream 2: Finish WorkspaceBoard Left Rail

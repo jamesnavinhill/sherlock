@@ -56,7 +56,10 @@ describe('TimelineDossierPanel', () => {
     );
 
     expect(screen.getByText('Atlas Workspace')).toBeInTheDocument();
-    expect(screen.getByText(/timeline events across runs, artifacts, signals, entities, and chats/i)).toBeInTheDocument();
+    expect(screen.getByText(/latest activity/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/timeline events across runs, artifacts, signals, entities, and chats/i)
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Runs \(1\)/i }));
     expect(onSetTrackFocus).toHaveBeenCalledWith('RUN');

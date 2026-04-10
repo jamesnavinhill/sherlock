@@ -10,8 +10,8 @@ import type { GuidedRunDraft } from '@/services/chat/guidedMode';
 import {
   getDefaultLeftPanelOpen,
   getDefaultRightPanelOpen,
-  toggleExclusiveSection,
 } from './chatPageUtils';
+import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 
 export interface RenameSessionDialogState {
   session: ChatSession;
@@ -58,17 +58,10 @@ export const useChatViewState = ({ activeWorkspaceId }: UseChatViewStateInput) =
     expanded: {},
     workspaceId: null,
   });
-  const [leftPanelSections, setLeftPanelSections] = useState({
-    sessions: false,
-    workspace: false,
-  });
-  const [rightPanelSections, setRightPanelSections] = useState({
-    launchContext: false,
-    recentArtifacts: false,
-    recentSignals: false,
-    latestRetrieval: false,
-    actionLog: false,
-  });
+  const leftPanelSectionState = useExclusivePanelSections(['sessions', 'workspace'] as const);
+  const rightPanelSectionState = useExclusivePanelSections(
+    ['launchContext', 'recentArtifacts', 'recentSignals', 'latestRetrieval', 'actionLog'] as const
+  );
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamedAnswerRef = useRef('');
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
@@ -100,14 +93,6 @@ export const useChatViewState = ({ activeWorkspaceId }: UseChatViewStateInput) =
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const toggleLeftPanelSection = (section: keyof typeof leftPanelSections) => {
-    setLeftPanelSections((current) => toggleExclusiveSection(current, section));
-  };
-
-  const toggleRightPanelSection = (section: keyof typeof rightPanelSections) => {
-    setRightPanelSections((current) => toggleExclusiveSection(current, section));
-  };
-
   const toggleArtifactCard = (artifactId: string) => {
     setArtifactCardState((current) => {
       const baseExpanded =
@@ -132,12 +117,12 @@ export const useChatViewState = ({ activeWorkspaceId }: UseChatViewStateInput) =
     exportMenuRef,
     followUpDialog,
     leftPanelOpen,
-    leftPanelSections,
+    leftPanelSections: leftPanelSectionState.state,
     manualSetupDraft,
     newMenuRef,
     renameSessionDialog,
     rightPanelOpen,
-    rightPanelSections,
+    rightPanelSections: rightPanelSectionState.state,
     setAppendArtifactDialog,
     setDeleteSessionDialog,
     setDraft,
@@ -156,8 +141,8 @@ export const useChatViewState = ({ activeWorkspaceId }: UseChatViewStateInput) =
     showNewProjectModal,
     streamedAnswerRef,
     toggleArtifactCard,
-    toggleLeftPanelSection,
-    toggleRightPanelSection,
+    toggleLeftPanelSection: leftPanelSectionState.toggleSection,
+    toggleRightPanelSection: rightPanelSectionState.toggleSection,
     transcriptEndRef,
     workingAssistantMessageId,
     workingSessionId,

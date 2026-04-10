@@ -319,7 +319,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         }
         subtitle={entityTypeLabel}
         headerIcon={
-          <div className={`border p-2 ${entityToneClass} entity-tone-icon-panel`}>
+          <div className={`p-2 ${entityToneClass} entity-tone-icon-panel`}>
             {renderEntityIcon(entity.type)}
           </div>
         }
@@ -346,7 +346,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           </span>
         }
         headerIcon={
-          <div className="border border-zinc-700 bg-zinc-800/50 p-2 text-white">
+          <div className="p-2 text-white">
             <Newspaper className="h-5 w-5" />
           </div>
         }
@@ -366,7 +366,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         title={reportDisplayTitle}
         subtitle="Current Artifact"
         headerIcon={
-          <div className="border border-zinc-700 bg-zinc-800/50 p-2 text-white">
+          <div className="p-2 text-white">
             <FileText className="h-5 w-5" />
           </div>
         }

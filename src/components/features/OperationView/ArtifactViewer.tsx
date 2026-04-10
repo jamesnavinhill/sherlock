@@ -88,6 +88,12 @@ const matchesReference = (reference?: string | null, candidate?: string | null) 
 const dedupeById = <T extends { id: string }>(items: T[]) =>
   Array.from(new Map(items.map((item) => [item.id, item])).values());
 
+const PLAIN_ICON_BUTTON_CLASS =
+  'inline-flex h-9 w-9 items-center justify-center text-zinc-400 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60';
+
+const PLAIN_SUCCESS_ICON_BUTTON_CLASS =
+  'inline-flex h-9 w-9 items-center justify-center text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60';
+
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   report,
   workspaceTitle,
@@ -533,7 +539,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     type="button"
                     onClick={handleSaveSection}
                     disabled={isSavingSection}
-                    className="inline-flex h-9 w-9 items-center justify-center border border-green-500/40 bg-green-500/10 text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className={PLAIN_SUCCESS_ICON_BUTTON_CLASS}
                     title="Save artifact text"
                     aria-label="Save"
                   >
@@ -547,7 +553,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     type="button"
                     onClick={handleCancelEditing}
                     disabled={isSavingSection}
-                    className="inline-flex h-9 w-9 items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className={PLAIN_ICON_BUTTON_CLASS}
                     title="Cancel editing"
                     aria-label="Cancel"
                   >
@@ -555,19 +561,19 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </button>
                 </>
               ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    startEditingSection(
-                      section.content || '',
-                      saveSectionId,
-                      options?.syncSummary ?? false
-                    )
-                  }
-                  className="inline-flex h-9 w-9 items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-white hover:text-white"
-                  title="Edit artifact text"
-                  aria-label="Edit"
-                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      startEditingSection(
+                        section.content || '',
+                        saveSectionId,
+                        options?.syncSummary ?? false
+                      )
+                    }
+                    className={PLAIN_ICON_BUTTON_CLASS}
+                    title="Edit artifact text"
+                    aria-label="Edit"
+                  >
                   <Pencil className="h-4 w-4" />
                 </button>
               )}
@@ -673,14 +679,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 sectionRefs.current[summaryAnchorId] = node;
               }}
               className={cx(
-                'relative overflow-hidden border bg-osint-panel/90 p-8 backdrop-blur-md osint-section-shadow transition-colors',
+                'border bg-zinc-950/70 p-8 transition-colors',
                 highlightedSectionId === summaryAnchorId
                   ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-                  : 'border-zinc-700'
+                  : 'border-zinc-800'
               )}
             >
-              <div className="absolute -right-16 -top-16 h-32 w-32 rounded-bl-full bg-white/5 transition-all" />
-              <div className="relative z-10 flex items-start justify-between gap-4 border-b border-zinc-800 pb-4">
+              <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-4">
                 <div className="min-w-0">
                   <h2 className="font-osint-display osint-title-section">Executive Summary</h2>
                 </div>
@@ -691,7 +696,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         type="button"
                         onClick={handleSaveSection}
                         disabled={isSavingSection}
-                        className="inline-flex h-9 w-9 items-center justify-center border border-green-500/40 bg-green-500/10 text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        className={PLAIN_SUCCESS_ICON_BUTTON_CLASS}
                         title="Save artifact text"
                         aria-label="Save"
                       >
@@ -705,7 +710,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         type="button"
                         onClick={handleCancelEditing}
                         disabled={isSavingSection}
-                        className="inline-flex h-9 w-9 items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        className={PLAIN_ICON_BUTTON_CLASS}
                         title="Cancel editing"
                         aria-label="Cancel"
                       >
@@ -718,7 +723,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       onClick={() =>
                         startEditingSection(visibleReportBody, primarySummarySection?.id, true)
                       }
-                      className="inline-flex h-9 w-9 items-center justify-center border border-zinc-700 bg-zinc-900 text-zinc-400 transition-colors hover:border-white hover:text-white"
+                      className={PLAIN_ICON_BUTTON_CLASS}
                       title="Edit artifact text"
                       aria-label="Edit"
                     >
@@ -730,10 +735,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     onClick={handlePlayBriefing}
                     disabled={isAudioLoading}
                     className={cx(
-                      'inline-flex h-9 w-9 items-center justify-center border transition-all',
+                      'inline-flex h-9 w-9 items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                       isPlaying
-                        ? 'osint-button-danger animate-pulse'
-                        : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-white hover:text-white'
+                        ? 'animate-pulse text-osint-danger'
+                        : 'text-zinc-400 hover:text-white'
                     )}
                     aria-label={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
                     title={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
@@ -750,7 +755,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
 
               {(focusedEvidenceId || focusedSectionId) && editingTargetKey !== (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
-                <div className="relative z-10 mt-4 inline-flex items-center border border-osint-primary/40 bg-osint-primary/10 px-2 py-1 osint-meta-label text-osint-primary">
+                <div className="mt-4 inline-flex items-center px-2 py-1 osint-meta-label text-osint-primary">
                   Focused Reading Target
                 </div>
               ) : null}
@@ -759,7 +764,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 ? renderEvidenceButtons(evidenceBySectionId[primarySummarySection?.id || ''])
                 : null}
 
-              <div className="relative z-10 mt-6">
+              <div className="mt-6">
                 {editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
                   <textarea
                     value={editingSectionDraft}
@@ -793,7 +798,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 <div>
                   <h2 className="font-osint-display osint-title-section">Key Findings</h2>
                 </div>
-                <div className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
+                <div className="osint-meta-label text-zinc-300">
                   {`${canonicalFindings.length} records`}
                 </div>
               </div>

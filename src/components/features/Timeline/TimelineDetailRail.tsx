@@ -263,7 +263,7 @@ export const TimelineDetailRail: React.FC<TimelineDetailRailProps> = ({
       }
       headerIcon={
         selectedEvent ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-zinc-200">
+          <div className="flex h-8 w-8 items-center justify-center text-zinc-200">
             {React.createElement(getEventIcon(selectedEvent), { className: 'h-4 w-4' })}
           </div>
         ) : null

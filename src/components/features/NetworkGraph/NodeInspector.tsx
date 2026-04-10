@@ -554,7 +554,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
                 : `${selectedNodeType} Entity`
           }
           headerIcon={
-            <div className={`border p-2 ${selectedEntityToneClass} entity-tone-icon-panel`}>
+            <div className={`p-2 ${selectedEntityToneClass} entity-tone-icon-panel`}>
               <AppIcon iconId={selectedNodeResolvedIconId} size={20} strokeWidth={1.9} />
             </div>
           }
@@ -578,7 +578,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
             </span>
           }
           headerIcon={
-            <div className="border border-zinc-700 bg-zinc-800/50 p-2 text-white">
+            <div className="p-2 text-white">
               <Newspaper className="h-5 w-5" />
             </div>
           }
@@ -601,7 +601,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({
           }
           subtitle="Artifact"
           headerIcon={
-            <div className="border border-zinc-700 bg-zinc-800/50 p-2 text-white">
+            <div className="p-2 text-white">
               <AppIcon iconId={selectedNodeResolvedIconId} size={20} strokeWidth={1.9} />
             </div>
           }

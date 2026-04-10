@@ -166,15 +166,9 @@ export const TimelineDossierPanel: React.FC<TimelineDossierPanelProps> = ({
       eyebrow="Library"
       title={workspaceTitle}
       summary={
-        <div className="space-y-1">
-          <div className="osint-body-quiet">
-            {allTimelineEvents.length} timeline events across runs, artifacts, signals, entities,
-            and chats.
-          </div>
-          {latestActivity ? (
-            <div className="osint-meta-label text-zinc-500">Latest activity {latestActivity}</div>
-          ) : null}
-        </div>
+        latestActivity ? (
+          <div className="osint-meta-label text-zinc-500">Latest activity {latestActivity}</div>
+        ) : undefined
       }
     >
       <LibraryRailSections sections={sections} />

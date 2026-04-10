@@ -75,7 +75,7 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
         <div className="osint-eyebrow">Inspector</div>
         <div className="mt-1 flex items-center gap-3">
           {primaryEntry ? (
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center text-zinc-300">
               <AppIcon iconId={primaryEntry.iconId} size={18} strokeWidth={1.9} />
             </span>
           ) : null}

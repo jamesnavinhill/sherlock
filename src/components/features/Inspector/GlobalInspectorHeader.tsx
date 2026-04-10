@@ -22,10 +22,10 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
 }) => (
   <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-start justify-between gap-3`}>
     <div className="flex min-w-0 flex-1 items-start gap-3">
-      {icon ? <div className="shrink-0">{icon}</div> : null}
+      {icon ? <div className="shrink-0 text-zinc-300">{icon}</div> : null}
       <div className="min-w-0 flex-1">
         <div className="osint-eyebrow">{eyebrow}</div>
-        <div className="mt-1 min-w-0 osint-panel-title">{title}</div>
+        <div className="mt-1 min-w-0 truncate whitespace-nowrap osint-panel-title">{title}</div>
         {subtitle ? <div className="mt-2 osint-meta-label">{subtitle}</div> : null}
         {actions ? <div className="mt-3">{actions}</div> : null}
       </div>

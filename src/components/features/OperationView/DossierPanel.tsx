@@ -220,9 +220,13 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
       isOpen={isOpen}
       title={
         activeCase ? (
-          <h2 className="leading-tight">{getWorkspaceDisplayTitle(activeCase)}</h2>
+          <h2 className="truncate whitespace-nowrap leading-tight">
+            {getWorkspaceDisplayTitle(activeCase)}
+          </h2>
         ) : (
-          <h2 className="text-zinc-500">{`No ${labelProfile.workspaceLabel} Selected`}</h2>
+          <h2 className="truncate whitespace-nowrap text-zinc-500">
+            {`No ${labelProfile.workspaceLabel} Selected`}
+          </h2>
         )
       }
       subtitle={

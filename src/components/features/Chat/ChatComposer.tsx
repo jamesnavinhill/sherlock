@@ -154,9 +154,9 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="shrink-0 px-4 pb-3 pt-2 sm:px-6"
+      className="shrink-0 border-t border-zinc-800 px-4 pb-4 pt-0 sm:px-6"
     >
-      <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
+      <div className="mx-auto w-full max-w-4xl border border-t-0 border-zinc-800 bg-black/20">
         <div className="relative border-b border-zinc-800">
           <textarea
             ref={textareaRef}
