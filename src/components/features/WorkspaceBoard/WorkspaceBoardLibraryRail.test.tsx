@@ -100,6 +100,58 @@ describe('WorkspaceBoardLibraryRail', () => {
     expect(screen.queryByText('ARTIFACT')).not.toBeInTheDocument();
   });
 
+  it('uses the shared thin rail spacing for board entries', () => {
+    render(
+      <WorkspaceBoardLibraryRail
+        isOpen
+        workspaceTitle="Agentic A.I."
+        search=""
+        groupedEntries={{
+          created: [],
+          artifacts: [],
+          entities: [
+            {
+              workspaceId: 'ws-1',
+              refKind: 'ENTITY',
+              refId: 'entity-1',
+              title: 'Letta',
+              kind: 'ENTITY',
+              description: 'Entity description',
+              searchText: 'Letta',
+              iconId: 'users',
+            },
+          ],
+          sources: [],
+          signals: [],
+        }}
+        librarySections={{
+          created: false,
+          artifacts: false,
+          entities: true,
+          sources: false,
+          signals: false,
+        }}
+        libraryItemSections={{}}
+        fileInputRef={{ current: null }}
+        sectionScrollClassName=""
+        onSearchChange={vi.fn()}
+        onCreateNote={vi.fn()}
+        onCreateLink={vi.fn()}
+        onTriggerFileUpload={vi.fn()}
+        onFileUpload={vi.fn()}
+        onToggleLibrarySection={vi.fn()}
+        onToggleLibraryEntrySection={vi.fn()}
+        onDeleteCreatedItem={vi.fn()}
+        onAddToBoard={vi.fn()}
+      />
+    );
+
+    const entryButton = screen.getByRole('button', { name: /Letta/i });
+    expect(entryButton.className).toContain('min-h-[34px]');
+    expect(entryButton.className).toContain('px-2.5');
+    expect(entryButton.className).not.toContain('px-0');
+  });
+
   it('keeps relative desktop positioning for the board library rail', () => {
     render(
       <WorkspaceBoardLibraryRail

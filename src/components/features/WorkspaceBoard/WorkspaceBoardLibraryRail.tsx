@@ -9,7 +9,6 @@ import { AppIcon } from '@/lib/appIcons';
 import {
   CHROME_RAIL_SECTION_SCROLL_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
-  CHROME_THIN_NESTED_SECTION_CLASS,
   getChromeThinActionRowClassName,
   getRailAccordionClassName,
 } from '@/components/ui/chrome';
@@ -103,13 +102,11 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                   )
                 }
               >
-                <div
-                  className={CHROME_THIN_NESTED_SECTION_CLASS}
-                >
+                <div className="osint-panel-item">
                   <button
                     type="button"
                     onClick={() => onToggleLibraryEntrySection(entryKey)}
-                    className="osint-rail-item-trigger flex w-full items-start justify-between gap-2 px-0 text-left text-[11px] text-zinc-300"
+                    className="osint-rail-item-trigger osint-meta-label-strong flex min-h-[34px] w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left text-[11px] text-zinc-300"
                   >
                     <span
                       className={`flex min-w-0 items-center ${showSourceIcon ? 'gap-2' : 'pl-2.5'}`}
@@ -130,7 +127,7 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                     )}
                   </button>
                   {isEntryOpen ? (
-                    <div className="mt-1 border-t border-zinc-800/70 pt-1.5">
+                    <div className="border-t border-zinc-800/70 p-1.5">
                       <div className="space-y-2">
                         <div
                           className={`osint-body-quiet text-zinc-500 ${

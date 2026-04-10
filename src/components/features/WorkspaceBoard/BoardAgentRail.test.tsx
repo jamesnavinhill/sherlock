@@ -49,5 +49,9 @@ describe('BoardAgentRail', () => {
     expect(screen.queryByText('Plan')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Agent Context/i })).toHaveClass('min-h-[34px]');
     expect(screen.getByText('Entire board in view')).toBeInTheDocument();
+    const contextSection = screen
+      .getByRole('button', { name: /Agent Context/i })
+      .closest('.osint-raised-surface-section');
+    expect(contextSection?.nextElementSibling?.querySelector('textarea')).toBeTruthy();
   });
 });

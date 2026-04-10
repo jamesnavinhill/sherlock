@@ -225,6 +225,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             activeBoard={activeBoard}
             availableBoardsLength={availableBoards.length}
             aiBusy={aiBusy}
+            onToggleQuickActions={() => toggleInspectorSection('quickActions')}
             onToggleSelection={() => toggleInspectorSection('selection')}
             onToggleProvenance={() => toggleInspectorSection('provenance')}
             onShowAgentAndGenerateSummary={() => {

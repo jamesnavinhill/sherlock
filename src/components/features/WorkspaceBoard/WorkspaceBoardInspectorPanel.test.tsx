@@ -19,6 +19,7 @@ describe('WorkspaceBoardInspectorPanel', () => {
         onTabChange={vi.fn()}
         inspectorActions={[]}
         inspectorSections={{
+          quickActions: false,
           selection: true,
           provenance: false,
         }}
@@ -46,6 +47,7 @@ describe('WorkspaceBoardInspectorPanel', () => {
         }}
         availableBoardsLength={2}
         aiBusy={false}
+        onToggleQuickActions={vi.fn()}
         onToggleSelection={vi.fn()}
         onToggleProvenance={vi.fn()}
         onShowAgentAndGenerateSummary={vi.fn()}
@@ -58,5 +60,77 @@ describe('WorkspaceBoardInspectorPanel', () => {
     expect(screen.getByText(sourceUrl)).toHaveClass('break-all');
     expect(screen.getByRole('button', { name: 'Agent' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Inspector' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Agent Quick Actions/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Generate Summary' })).toHaveClass('w-full');
+    expect(screen.getByRole('button', { name: 'Generate Summary' }).querySelector('svg')).toBeNull();
+  });
+
+  it('orders board agent quick actions in the requested top-to-bottom sequence', () => {
+    render(
+      <WorkspaceBoardInspectorPanel
+        isOpen
+        tabs={[
+          { id: 'AGENT', label: 'Agent' },
+          { id: 'INSPECTOR', label: 'Inspector' },
+        ]}
+        activeTabId="INSPECTOR"
+        onTabChange={vi.fn()}
+        inspectorActions={[]}
+        inspectorSections={{
+          quickActions: true,
+          selection: false,
+          provenance: false,
+        }}
+        selectedEntries={[
+          {
+            workspaceId: 'ws-1',
+            refKind: 'ENTITY',
+            refId: 'entity-1',
+            title: 'Atlas',
+            kind: 'ENTITY',
+            searchText: 'Atlas',
+            iconId: 'users',
+          },
+        ]}
+        selectedWorkspaceItem={null}
+        activeBoard={{
+          id: 'board-1',
+          workspaceId: 'ws-1',
+          name: 'Primary Board',
+          sortOrder: 0,
+          createdAt: 1,
+          updatedAt: 1,
+        }}
+        availableBoardsLength={2}
+        aiBusy={false}
+        onToggleQuickActions={vi.fn()}
+        onToggleSelection={vi.fn()}
+        onToggleProvenance={vi.fn()}
+        onShowAgentAndGenerateSummary={vi.fn()}
+        onShowAgentAndGenerateNote={vi.fn()}
+        onOpenAgentStarterIntent={vi.fn()}
+        onDeleteBoard={vi.fn()}
+      />
+    );
+
+    const actionButtons = screen.getAllByRole('button').filter((button) =>
+      [
+        'Generate Summary',
+        'Draft Note',
+        'Prep briefing',
+        'Cluster sources',
+        'Organize evidence',
+        'Find contradictions',
+      ].includes(button.getAttribute('aria-label') || '')
+    );
+
+    expect(actionButtons.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Generate Summary',
+      'Draft Note',
+      'Prep briefing',
+      'Cluster sources',
+      'Organize evidence',
+      'Find contradictions',
+    ]);
   });
 });

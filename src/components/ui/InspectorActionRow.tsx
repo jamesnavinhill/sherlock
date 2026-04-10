@@ -6,7 +6,7 @@ export interface InspectorActionItem {
   id: string;
   label: string;
   shortLabel?: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   iconOnly?: boolean;
   iconClassName?: string;
   disabled?: boolean;
@@ -82,7 +82,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
               rel={action.rel}
               {...sharedProps}
             >
-              <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
+              {Icon ? <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} /> : null}
               {showActionLabel ? <span>{visibleLabel}</span> : null}
             </a>
           );
@@ -96,7 +96,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
             disabled={action.disabled}
             {...sharedProps}
           >
-            <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
+            {Icon ? <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} /> : null}
             {showActionLabel ? <span>{visibleLabel}</span> : null}
           </button>
         );

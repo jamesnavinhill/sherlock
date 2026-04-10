@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Clock3, FilePlus2, Shapes, Sparkles, Trash2 } from 'lucide-react';
+import { Bot, Clock3, Shapes, Trash2 } from 'lucide-react';
 
 import type { WorkspaceBoard, WorkspaceItem } from '@/types';
 import { GlobalInspectorPanel } from '@/components/features/Inspector/GlobalInspectorPanel';
@@ -7,8 +7,8 @@ import type {
   GlobalInspectorSection,
   GlobalInspectorTab,
 } from '@/components/features/Inspector/globalInspectorTypes';
+import { InspectorActionRow } from '@/components/ui/InspectorActionRow';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
-import { INSPECTOR_ACTION_SHORT_LABELS } from '@/components/ui/inspectorActionLabels';
 import { AppIcon } from '@/lib/appIcons';
 import { BOARD_AGENT_STARTER_INTENTS } from '@/services/workspace/agent';
 import {
@@ -25,6 +25,7 @@ interface WorkspaceBoardInspectorPanelProps {
   onTabChange: (tabId: RightPanelView) => void;
   inspectorActions: InspectorActionItem[];
   inspectorSections: {
+    quickActions: boolean;
     selection: boolean;
     provenance: boolean;
   };
@@ -33,6 +34,7 @@ interface WorkspaceBoardInspectorPanelProps {
   activeBoard: WorkspaceBoard | null;
   availableBoardsLength: number;
   aiBusy: boolean;
+  onToggleQuickActions: () => void;
   onToggleSelection: () => void;
   onToggleProvenance: () => void;
   onShowAgentAndGenerateSummary: () => void;
@@ -53,6 +55,7 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
   activeBoard,
   availableBoardsLength,
   aiBusy,
+  onToggleQuickActions,
   onToggleSelection,
   onToggleProvenance,
   onShowAgentAndGenerateSummary,
@@ -69,35 +72,60 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
       : selectedEntries.length > 1
         ? `${selectedEntries.length} Items Selected`
         : activeBoard?.name || 'Board Selection';
-  const starterIntents = BOARD_AGENT_STARTER_INTENTS.filter((intent) => intent.id !== 'draft-note');
-  const actionItems: InspectorActionItem[] = [
-    ...inspectorActions,
+  const starterIntentById = new Map(
+    BOARD_AGENT_STARTER_INTENTS.filter((intent) => intent.id !== 'draft-note').map((intent) => [
+      intent.id,
+      intent,
+    ])
+  );
+  const orderedStarterIntents = [
+    starterIntentById.get('prep-briefing'),
+    starterIntentById.get('cluster-sources'),
+    starterIntentById.get('organize-evidence'),
+    starterIntentById.get('find-contradictions'),
+  ].filter((intent): intent is NonNullable<typeof intent> => !!intent);
+  const boardAgentQuickActions: InspectorActionItem[] = [
     {
       id: 'board-ai-summary',
       label: 'Generate Summary',
-      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.summary,
-      icon: Sparkles,
       onClick: onShowAgentAndGenerateSummary,
       disabled: selectedEntries.length === 0 || aiBusy,
     },
     {
       id: 'board-ai-note',
       label: 'Draft Note',
-      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.note,
-      icon: FilePlus2,
       onClick: onShowAgentAndGenerateNote,
       disabled: selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode,
     },
-    ...starterIntents.map<InspectorActionItem>((intent) => ({
+    ...orderedStarterIntents.map<InspectorActionItem>((intent) => ({
       id: `board-ai-${intent.id}`,
       label: intent.label,
-      icon: Bot,
       onClick: () => onOpenAgentStarterIntent(intent.prompt),
       disabled: aiBusy,
       className: 'shrink-0',
     })),
   ];
+  const actionItems: InspectorActionItem[] = [...inspectorActions];
   const sections: GlobalInspectorSection[] = [
+    {
+      id: 'quick-actions',
+      title: 'Agent Quick Actions',
+      icon: Bot,
+      count: boardAgentQuickActions.length,
+      isOpen: inspectorSections.quickActions,
+      onToggle: onToggleQuickActions,
+      className: 'mb-0 shrink-0',
+      content: (
+        <div className="px-1 py-1">
+          <InspectorActionRow
+            actions={boardAgentQuickActions}
+            layout="grid"
+            density="thin"
+            gridColumns={1}
+          />
+        </div>
+      ),
+    },
     {
       id: 'selection',
       title: 'Selection',

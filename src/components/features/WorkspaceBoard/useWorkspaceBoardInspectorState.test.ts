@@ -46,6 +46,7 @@ describe('useWorkspaceBoardInspectorState', () => {
     });
 
     expect(result.current.inspectorSections).toEqual({
+      quickActions: false,
       selection: true,
       provenance: false,
     });
@@ -55,6 +56,7 @@ describe('useWorkspaceBoardInspectorState', () => {
     });
 
     expect(result.current.inspectorSections).toEqual({
+      quickActions: false,
       selection: false,
       provenance: true,
     });

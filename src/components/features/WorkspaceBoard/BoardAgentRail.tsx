@@ -132,7 +132,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
     <div className="-mx-3 -mb-3 flex min-h-0 flex-1 flex-col bg-black">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="flex min-h-full flex-col justify-end gap-4 pt-3">
+          <div className="flex min-h-full flex-col gap-4 pt-3 pb-3">
             {boardAgentReviewState ? (
               <div className="osint-panel-shell border border-zinc-800 bg-black/30 shadow-[0_18px_48px_rgba(0,0,0,0.24)]">
                 <div className="border-b border-zinc-800 px-4 py-4">
@@ -373,51 +373,52 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
               </Accordion>
             ) : null}
 
-            <Accordion
-              title="Agent Context"
-              icon={Shapes}
-              count={selectedEntries.length || undefined}
-              isOpen={agentSections.context}
-              onToggle={onToggleContext}
-              variant="nested"
-              className="mb-0"
-              headerClassName="px-4 py-2"
-              contentClassName="px-4 py-3"
-            >
-              <div className="osint-raised-surface-subtle space-y-3 p-3 osint-body-small">
-                <div className="osint-meta-value">
-                  {selectedEntries.length > 0
-                    ? `${selectedEntries.length} selected item${selectedEntries.length === 1 ? '' : 's'}`
-                    : 'Entire board in view'}
-                </div>
-                {selectedEntries.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedEntries.slice(0, 4).map((entry) => (
-                      <span
-                        key={`${entry.refKind}:${entry.refId}`}
-                        className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-title-inline text-zinc-300"
-                      >
-                        {entry.title}
-                      </span>
-                    ))}
-                    {selectedEntries.length > 4 ? (
-                      <span className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-body-quiet">
-                        +{selectedEntries.length - 4} more
-                      </span>
-                    ) : null}
-                  </div>
-                ) : null}
-                {aiSummary ? (
-                  <div className="osint-raised-surface-subtle p-3 osint-body-small">
-                    {aiSummary}
-                  </div>
-                ) : null}
-              </div>
-            </Accordion>
           </div>
         </div>
 
-        <div className="border-t border-zinc-800/80">
+        <Accordion
+          title="Agent Context"
+          icon={Shapes}
+          count={selectedEntries.length || undefined}
+          isOpen={agentSections.context}
+          onToggle={onToggleContext}
+          variant="nested"
+          className="mb-0"
+          headerClassName="px-4 py-2"
+          contentClassName="px-4 py-3"
+        >
+          <div className="osint-raised-surface-subtle space-y-3 p-3 osint-body-small">
+            <div className="osint-meta-value">
+              {selectedEntries.length > 0
+                ? `${selectedEntries.length} selected item${selectedEntries.length === 1 ? '' : 's'}`
+                : 'Entire board in view'}
+            </div>
+            {selectedEntries.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {selectedEntries.slice(0, 4).map((entry) => (
+                  <span
+                    key={`${entry.refKind}:${entry.refId}`}
+                    className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-title-inline text-zinc-300"
+                  >
+                    {entry.title}
+                  </span>
+                ))}
+                {selectedEntries.length > 4 ? (
+                  <span className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-body-quiet">
+                    +{selectedEntries.length - 4} more
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+            {aiSummary ? (
+              <div className="osint-raised-surface-subtle p-3 osint-body-small">
+                {aiSummary}
+              </div>
+            ) : null}
+          </div>
+        </Accordion>
+
+        <div>
           <textarea
             value={boardAgentPrompt}
             onChange={(event) => onPromptChange(event.target.value)}
