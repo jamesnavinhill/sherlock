@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import {
-  Bot,
   CheckCircle2,
   Clipboard,
   Clock3,
-  MessageSquare,
   Paperclip,
   Send,
   Shapes,
@@ -16,6 +14,7 @@ import ReactMarkdown from 'react-markdown';
 
 import type { BoardAgentAction, BoardAgentSession } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
+import { TranscriptRoleIcon } from '@/components/features/Chat/TranscriptRoleIcon';
 import {
   formatDateTime,
   formatTimestamp,
@@ -353,7 +352,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                       <div
                         className={`flex items-center gap-2 ${sectionLabelClassName} justify-end text-right`}
                       >
-                        <MessageSquare className="h-4 w-4 text-zinc-400" />
+                        <TranscriptRoleIcon role="user" />
                         user
                       </div>
                     </div>
@@ -392,7 +391,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                         <div
                           className={`flex items-center gap-2 ${sectionLabelClassName} justify-start`}
                         >
-                          <Bot className="h-4 w-4 text-osint-primary" />
+                          <TranscriptRoleIcon role="assistant" />
                           assistant
                         </div>
                         {showAssistantStatusChip ? (

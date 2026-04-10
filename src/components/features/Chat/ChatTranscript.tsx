@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
-  Bot,
   ChevronDown,
   Clipboard,
   FilePlus2,
@@ -15,6 +14,7 @@ import type { ChatMentionReference, ChatMessage, Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { findMentionMatches } from '@/services/chat/mentions';
 import { getWorkspaceDisplayTitle } from '@/domain';
+import { TranscriptRoleIcon } from '@/components/features/Chat/TranscriptRoleIcon';
 
 type ChatAttachment = NonNullable<ChatMessage['attachments']>[number];
 
@@ -120,7 +120,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
               <article className="w-full px-5 py-4 sm:px-6">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className={`flex items-center gap-2 ${sectionLabelClassName}`}>
-                    <Bot className="h-4 w-4 text-osint-primary" />
+                    <TranscriptRoleIcon role="assistant" />
                     assistant
                   </div>
                   <div className="osint-body-quiet">Ready in workspace</div>
@@ -164,9 +164,9 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                       }`}
                     >
                       {isAssistant ? (
-                        <Bot className="h-4 w-4 text-osint-primary" />
+                        <TranscriptRoleIcon role="assistant" />
                       ) : (
-                        <MessageSquare className="h-4 w-4 text-zinc-400" />
+                        <TranscriptRoleIcon role="user" />
                       )}
                       {message.role}
                     </div>

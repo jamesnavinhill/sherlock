@@ -55,7 +55,11 @@ describe('ChatTranscript', () => {
     expect(scrollRegion).not.toBeNull();
     expect(scrollRegion).toHaveClass('custom-scrollbar');
     expect(scrollRegion?.getAttribute('class')).toContain('[scrollbar-gutter:stable_both-edges]');
-    expect(screen.getByTestId('chat-transcript-stack')).toHaveClass('min-h-full', 'justify-end', 'py-4');
+    expect(screen.getByTestId('chat-transcript-stack')).toHaveClass(
+      'min-h-full',
+      'justify-end',
+      'py-4'
+    );
   });
 
   it('renders user messages as natural rows inside the shared transcript pane', () => {
@@ -151,5 +155,44 @@ describe('ChatTranscript', () => {
     expect(userFooter?.getAttribute('class')).toContain('justify-end');
     expect(assistantFooter?.textContent).toBe('12:00Copy');
     expect(userFooter?.textContent).toBe('Copy12:00');
+  });
+
+  it('uses the Sherlock mark for assistant rows and the accent person icon for user rows', () => {
+    const userMessage: ChatMessage = {
+      id: 'message-2',
+      sessionId: 'session-1',
+      role: 'user',
+      content: 'hi',
+      createdAt: 2,
+      updatedAt: 2,
+      status: 'COMPLETED',
+    };
+
+    const { container } = render(
+      <ChatTranscript
+        activeWorkspace={workspace}
+        messages={[message, userMessage]}
+        workspaces={[workspace]}
+        workingAssistantMessageId={null}
+        workingSessionId={null}
+        partialAssistantOutput=""
+        messageBodyClassName="osint-body-small"
+        sectionLabelClassName="osint-meta-label"
+        transcriptEndRef={createRef<HTMLDivElement>()}
+        splitCollapsedFollowUpBlock={(body) => ({ primaryBody: body, collapsedBody: '' })}
+        formatTimestamp={() => '12:00'}
+        copyToClipboard={vi.fn(async () => undefined)}
+        formatMessageWithCitations={(entry) => entry.content}
+        handleOpenMention={vi.fn()}
+        handlePromoteAttachment={vi.fn(async () => undefined)}
+        handleSaveMessageAsArtifact={vi.fn(async () => undefined)}
+        handleAppendMessageToArtifact={vi.fn(async () => undefined)}
+        handleLaunchFollowUp={vi.fn(async () => undefined)}
+        handleStartNewWorkspace={vi.fn()}
+      />
+    );
+
+    expect(container.querySelector('img[src="/logo-dark.jpg"]')).not.toBeNull();
+    expect(container.querySelector('svg.lucide-user.text-osint-primary')).not.toBeNull();
   });
 });

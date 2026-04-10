@@ -59,7 +59,7 @@ describe('BoardAgentRail', () => {
   });
 
   it('renders a full-width transcript block for the visible board-agent session', () => {
-    render(
+    const { container } = render(
       <BoardAgentRail
         agentSections={{
           context: false,
@@ -117,6 +117,8 @@ describe('BoardAgentRail', () => {
     expect(
       screen.getByText('Here is the latest board readout.').closest('.prose')?.className
     ).toContain('prose-invert');
+    expect(container.querySelector('img[src="/logo-dark.jpg"]')).not.toBeNull();
+    expect(container.querySelector('svg.lucide-user.text-osint-primary')).not.toBeNull();
 
     const userCard = screen.getByText('Cluster the visible evidence.').closest('article');
     const assistantCard = screen.getByText('Here is the latest board readout.').closest('article');
