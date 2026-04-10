@@ -17,7 +17,7 @@ import type {
 
 interface GlobalInspectorPanelProps {
   isOpen: boolean;
-  eyebrow?: string;
+  eyebrow?: React.ReactNode;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   headerIcon?: React.ReactNode;
@@ -26,6 +26,7 @@ interface GlobalInspectorPanelProps {
   tabs?: GlobalInspectorTab[];
   activeTabId?: string;
   onTabChange?: (tabId: string) => void;
+  tabsPlacement?: 'header' | 'section';
   actionItems?: InspectorActionItem[];
   actionRowLayout?: 'grid' | 'wrap';
   actionRowDensity?: 'default' | 'thin';
@@ -34,6 +35,7 @@ interface GlobalInspectorPanelProps {
   emptyState?: GlobalInspectorEmptyState;
   children?: React.ReactNode;
   footer?: React.ReactNode;
+  headerActionsPlacement?: 'top' | 'bottom';
   widthClassName?: string;
   className?: string;
 }
@@ -49,6 +51,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   tabs = [],
   activeTabId,
   onTabChange,
+  tabsPlacement = 'section',
   actionItems = [],
   actionRowLayout = 'grid',
   actionRowDensity = 'thin',
@@ -57,9 +60,28 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   emptyState,
   children,
   footer,
+  headerActionsPlacement = 'bottom',
   widthClassName = 'w-[min(24rem,calc(100vw-1rem))]',
   className = '',
 }) => {
+  const tabControls =
+    tabs.length > 0 && activeTabId && onTabChange ? (
+      <GlobalInspectorTabs
+        tabs={tabs}
+        activeTabId={activeTabId}
+        onTabChange={onTabChange}
+      />
+    ) : null;
+  const mergedHeaderActions =
+    tabsPlacement === 'header' && tabControls ? (
+      headerActions ? (
+        <div className="flex w-full flex-col items-stretch gap-2">{tabControls}{headerActions}</div>
+      ) : (
+        <div className="w-full">{tabControls}</div>
+      )
+    ) : (
+      headerActions
+    );
   const bodyContent =
     children ?? (
       sections.length > 0 ? (
@@ -91,16 +113,13 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
         subtitle={subtitle}
         icon={headerIcon}
         onClose={onClose}
-        actions={headerActions}
+        actions={mergedHeaderActions}
+        actionsPlacement={headerActionsPlacement}
       />
 
-      {tabs.length > 0 && activeTabId && onTabChange ? (
+      {tabsPlacement === 'section' && tabControls ? (
         <div className="border-b border-zinc-800 bg-zinc-900/30 px-4 py-2">
-          <GlobalInspectorTabs
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabChange={onTabChange}
-          />
+          {tabControls}
         </div>
       ) : null}
 

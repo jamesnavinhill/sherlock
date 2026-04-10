@@ -8,6 +8,7 @@ interface LibraryRailHeaderProps {
   subtitle?: React.ReactNode;
   summary?: React.ReactNode;
   actions?: React.ReactNode;
+  actionsPlacement?: 'top' | 'bottom';
   search?: React.ReactNode;
 }
 
@@ -17,14 +18,18 @@ export const LibraryRailHeader: React.FC<LibraryRailHeaderProps> = ({
   subtitle,
   summary,
   actions,
+  actionsPlacement = 'bottom',
   search,
 }) => (
   <div className={CHROME_PANEL_HEADER_CLASS}>
-    <div className="osint-eyebrow">{eyebrow}</div>
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0 osint-eyebrow">{eyebrow}</div>
+      {actions && actionsPlacement === 'top' ? <div className="shrink-0">{actions}</div> : null}
+    </div>
     <div className="mt-1 min-w-0 truncate whitespace-nowrap osint-panel-title">{title}</div>
     {subtitle ? <div className="mt-2 osint-body-quiet">{subtitle}</div> : null}
     {summary ? <div className="mt-3">{summary}</div> : null}
-    {actions ? <div className="mt-3">{actions}</div> : null}
+    {actions && actionsPlacement === 'bottom' ? <div className="mt-3">{actions}</div> : null}
     {search ? <div className="mt-4">{search}</div> : null}
   </div>
 );

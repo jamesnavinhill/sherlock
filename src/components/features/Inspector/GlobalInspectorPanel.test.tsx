@@ -59,4 +59,24 @@ describe('GlobalInspectorPanel', () => {
 
     expect(screen.getByText('Footer Actions')).toBeInTheDocument();
   });
+
+  it('can place tabs in the header action slot', () => {
+    render(
+      <GlobalInspectorPanel
+        isOpen
+        title="Atlas Holdings"
+        tabs={[
+          { id: 'inspector', label: 'Inspector' },
+          { id: 'agent', label: 'Agent' },
+        ]}
+        activeTabId="inspector"
+        onTabChange={vi.fn()}
+        tabsPlacement="header"
+        headerActionsPlacement="top"
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Inspector' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Agent' })).toBeInTheDocument();
+  });
 });

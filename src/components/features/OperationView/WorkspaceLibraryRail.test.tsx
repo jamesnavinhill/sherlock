@@ -76,6 +76,50 @@ describe('WorkspaceLibraryRail', () => {
     expect(screen.getByRole('button', { name: /procurement file/i })).toBeInTheDocument();
   });
 
+  it('renders entity rows with the thin detail-panel treatment and identifier dot', () => {
+    const workspace: Workspace = {
+      id: 'workspace-1',
+      title: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-08',
+    };
+
+    const entity: Entity = {
+      name: 'Atlas Holdings',
+      type: 'ORGANIZATION',
+    };
+
+    render(
+      <WorkspaceLibraryRail
+        isOpen
+        activeCase={workspace}
+        labelProfile={labelProfile}
+        reports={[]}
+        entities={[entity]}
+        leads={[]}
+        sources={[]}
+        headlines={[]}
+        openSections={{
+          reports: false,
+          entities: true,
+          leads: false,
+          evidence: false,
+          sources: false,
+          headlines: false,
+        }}
+        toggleSection={vi.fn()}
+        onNavigate={vi.fn()}
+        onEntityClick={vi.fn()}
+        onLeadClick={vi.fn()}
+        onHeadlineClick={vi.fn()}
+      />
+    );
+
+    const entityButton = screen.getByRole('button', { name: 'Atlas Holdings' });
+    expect(entityButton).toBeInTheDocument();
+    expect(entityButton.querySelector('.entity-tone-dot')).not.toBeNull();
+  });
+
   it('uses the compact action styling for follow-up buttons', () => {
     const workspace: Workspace = {
       id: 'workspace-1',
@@ -151,5 +195,43 @@ describe('WorkspaceLibraryRail', () => {
 
     expect(screen.getByText('Signal')).toBeInTheDocument();
     expect(screen.getByText('No sources captured yet.')).toBeInTheDocument();
+  });
+
+  it('renders source rows without raw url subtext when a source title exists', () => {
+    const workspace: Workspace = {
+      id: 'workspace-1',
+      title: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-08',
+    };
+
+    render(
+      <WorkspaceLibraryRail
+        isOpen
+        activeCase={workspace}
+        labelProfile={labelProfile}
+        reports={[]}
+        entities={[]}
+        leads={[]}
+        sources={[{ title: 'Registry', url: 'https://example.com/registry' }]}
+        headlines={[]}
+        openSections={{
+          reports: false,
+          entities: false,
+          leads: false,
+          evidence: false,
+          sources: true,
+          headlines: false,
+        }}
+        toggleSection={vi.fn()}
+        onNavigate={vi.fn()}
+        onEntityClick={vi.fn()}
+        onLeadClick={vi.fn()}
+        onHeadlineClick={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('link', { name: 'Registry' })).toBeInTheDocument();
+    expect(screen.queryByText('https://example.com/registry')).not.toBeInTheDocument();
   });
 });

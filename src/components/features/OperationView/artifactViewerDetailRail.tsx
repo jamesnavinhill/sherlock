@@ -34,7 +34,7 @@ interface BuildArtifactViewerDetailRailSectionsArgs {
   reportSources: Source[];
   visibleFollowUps: FollowUp[];
   visibleEvidence: ArtifactEvidence[];
-  openSection: ArtifactDetailRailSectionId;
+  openSection: ArtifactDetailRailSectionId | null;
   toggleSection: (sectionId: ArtifactDetailRailSectionId) => void;
   keyFindingsAnchorId: string;
   groundedClaimCount?: number;
@@ -52,12 +52,6 @@ const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
 const normalizeText = (value?: string | null) => value?.replace(/\s+/g, ' ').trim() || '';
-
-const formatTimestamp = (value?: string) => {
-  if (!value) return undefined;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
-};
 
 interface DetailRowProps {
   eyebrow?: string;
@@ -148,8 +142,6 @@ export const buildArtifactViewerDetailRailSections = ({
   openSection,
   toggleSection,
   keyFindingsAnchorId,
-  groundedClaimCount,
-  inferredClaimCount,
   onEntityClick,
   onLeadOpen,
   jumpToSection,
@@ -401,45 +393,6 @@ export const buildArtifactViewerDetailRailSections = ({
       onToggle: () => toggleSection('resources'),
       content: (
         <div className="space-y-2">
-          {[
-            [report?.provenance?.provider, report?.provenance?.modelId]
-              .filter((value): value is string => normalizeText(value).length > 0)
-              .join(' / '),
-            report?.provenance?.generatedAt
-              ? `Generated ${formatTimestamp(report.provenance.generatedAt)}`
-              : null,
-            report?.provenance?.search?.webSearchRequests
-              ? `Web search calls: ${report.provenance.search.webSearchRequests}`
-              : null,
-            groundedClaimCount !== undefined || inferredClaimCount !== undefined
-              ? `${groundedClaimCount ?? 0} grounded / ${inferredClaimCount ?? 0} inferred`
-              : null,
-          ].some(Boolean) ? (
-            <div className="border border-zinc-800/50 bg-zinc-900/20 p-3">
-              <div className="osint-meta-label">Generation</div>
-              <div className="mt-2 space-y-1 osint-body-quiet text-zinc-400">
-                {[report?.provenance?.provider, report?.provenance?.modelId]
-                  .filter((value): value is string => normalizeText(value).length > 0)
-                  .join(' / ') ? (
-                  <div>
-                    {[report?.provenance?.provider, report?.provenance?.modelId]
-                      .filter((value): value is string => normalizeText(value).length > 0)
-                      .join(' / ')}
-                  </div>
-                ) : null}
-                {report?.provenance?.generatedAt ? (
-                  <div>{`Generated ${formatTimestamp(report.provenance.generatedAt)}`}</div>
-                ) : null}
-                {report?.provenance?.search?.webSearchRequests ? (
-                  <div>{`Web search calls: ${report.provenance.search.webSearchRequests}`}</div>
-                ) : null}
-                {groundedClaimCount !== undefined || inferredClaimCount !== undefined ? (
-                  <div>{`${groundedClaimCount ?? 0} grounded / ${inferredClaimCount ?? 0} inferred`}</div>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-
           {report?.provenance?.warnings?.length ? (
             <div className="border border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)] p-3">
               <div className="osint-meta-label osint-danger-text">Warnings</div>

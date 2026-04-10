@@ -10,6 +10,7 @@ interface LibraryRailShellProps {
   subtitle?: React.ReactNode;
   summary?: React.ReactNode;
   actions?: React.ReactNode;
+  actionsPlacement?: 'top' | 'bottom';
   search?: React.ReactNode;
   children: React.ReactNode;
   widthClassName?: string;
@@ -23,6 +24,7 @@ export const LibraryRailShell: React.FC<LibraryRailShellProps> = ({
   subtitle,
   summary,
   actions,
+  actionsPlacement,
   search,
   children,
   widthClassName = 'w-[min(20rem,calc(100vw-1rem))]',
@@ -43,6 +45,7 @@ export const LibraryRailShell: React.FC<LibraryRailShellProps> = ({
       subtitle={subtitle}
       summary={summary}
       actions={actions}
+      actionsPlacement={actionsPlacement}
       search={search}
     />
     <div className={CHROME_RAIL_BODY_CLASS}>{children}</div>

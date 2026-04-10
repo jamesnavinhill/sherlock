@@ -17,6 +17,7 @@ import { sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { EditableTitle } from '../../ui/EditableTitle';
 import type { InspectorActionItem } from '../../ui/InspectorActionRow';
+import { INSPECTOR_ACTION_SHORT_LABELS } from '../../ui/inspectorActionLabels';
 import { GlobalInspectorPanel } from '../Inspector/GlobalInspectorPanel';
 import type { GlobalInspectorSection } from '../Inspector/globalInspectorTypes';
 import {
@@ -94,19 +95,22 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
     ? [
         {
           id: 'entity-chat',
-          label: 'Chat',
+          label: 'Open Workspace Chat',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.chat,
           icon: MessageSquare,
           onClick: () => onOpenEntityChat(entity.name),
         },
         {
           id: 'entity-investigate',
-          label: 'Run',
+          label: 'Launch Investigation',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.run,
           icon: Microscope,
           onClick: () => onInvestigateEntity(entity.name),
         },
         {
           id: 'entity-google',
-          label: 'Google',
+          label: 'Search Google',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.google,
           icon: Search,
           href: `https://www.google.com/search?q=${encodeURIComponent(entity.name)}`,
           target: '_blank',
@@ -121,7 +125,8 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
         },
         {
           id: 'entity-board',
-          label: 'Canvas',
+          label: 'Place On Board',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.board,
           icon: Shapes,
           onClick: () => onPlaceEntityOnBoard(entity.name),
         },
@@ -132,19 +137,22 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
     ? [
         {
           id: 'headline-chat',
-          label: 'Chat',
+          label: 'Open Workspace Chat',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.chat,
           icon: MessageSquare,
           onClick: onOpenHeadlineChat,
         },
         {
           id: 'headline-board',
-          label: 'Canvas',
+          label: 'Place On Board',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.board,
           icon: Shapes,
           onClick: onPlaceHeadlineOnBoard,
         },
         {
           id: 'headline-investigate',
-          label: 'Run',
+          label: 'Launch Investigation',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.run,
           icon: Microscope,
           onClick: onInvestigateHeadline,
         },
@@ -155,13 +163,15 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
     ? [
         {
           id: 'report-chat',
-          label: 'Chat',
+          label: 'Open Workspace Chat',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.chat,
           icon: MessageSquare,
           onClick: onOpenReportChat,
         },
         {
           id: 'report-board',
-          label: 'Canvas',
+          label: 'Place On Board',
+          shortLabel: INSPECTOR_ACTION_SHORT_LABELS.board,
           icon: Shapes,
           onClick: onPlaceReportOnBoard,
         },

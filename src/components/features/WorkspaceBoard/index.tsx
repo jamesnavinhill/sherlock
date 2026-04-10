@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Shapes } from 'lucide-react';
+import { Shapes } from 'lucide-react';
 import 'tldraw/tldraw.css';
 
 import type {
@@ -246,11 +246,11 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
             isOpen={rightPanelOpen}
             eyebrow="Agent"
             title={activeBoard?.name || 'Board Agent'}
-            subtitle="Board agent workspace"
-            headerIcon={<Bot className="h-5 w-5 text-zinc-300" />}
             tabs={rightPanelTabs}
             activeTabId={rightPanelView}
             onTabChange={(tabId) => handleRightPanelTabChange(tabId as RightPanelView)}
+            tabsPlacement="header"
+            headerActionsPlacement="top"
           >
             <BoardAgentRail
               agentSections={agentSections}

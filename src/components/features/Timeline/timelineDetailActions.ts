@@ -12,6 +12,7 @@ import {
 
 import type { Artifact, TimelineEvent, TimelineTrack, WorkspaceItem } from '@/types';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import { INSPECTOR_ACTION_SHORT_LABELS } from '@/components/ui/inspectorActionLabels';
 
 interface BuildTimelineDetailActionsInput {
   focusReference: (track: TimelineTrack, refId?: string) => void;
@@ -58,12 +59,14 @@ export const buildTimelineDetailActions = ({
     {
       id: 'timeline-chat',
       label: selectedChatSessionId ? 'Open Chat Session' : 'Open Workspace Chat',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.chat,
       icon: MessageSquare,
       onClick: () => onOpenWorkspaceChat(selectedEvent),
     },
     {
       id: 'timeline-board-open',
       label: 'Open Board',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.board,
       icon: Workflow,
       onClick: () => void onOpenWorkspaceBoard(),
     },
@@ -72,7 +75,8 @@ export const buildTimelineDetailActions = ({
   if (selectedArtifact?.id || relatedSignalId || selectedEntityName || selectedWorkspaceItem) {
     actions.push({
       id: 'timeline-board-place',
-      label: 'Place On Board',
+      label: 'Add To Board',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.add,
       icon: Save,
       onClick: () => void onPlaceReferenceOnBoard(),
     });
@@ -82,6 +86,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-item-open',
       label: 'Open Item',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.item,
       icon: FolderKanban,
       onClick: onOpenWorkspaceItem,
     });
@@ -90,6 +95,7 @@ export const buildTimelineDetailActions = ({
       actions.push({
         id: 'timeline-item-source',
         label: 'Open Source URL',
+        shortLabel: INSPECTOR_ACTION_SHORT_LABELS.source,
         icon: ExternalLink,
         onClick: onOpenItemSource,
       });
@@ -100,6 +106,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-report',
       label: `Open ${labelArtifactLabel}`,
+      shortLabel: labelArtifactLabel,
       icon: FileText,
       onClick: () => onOpenArtifact(selectedArtifact.id),
     });
@@ -109,6 +116,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-run',
       label: 'Focus Source Run',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.run,
       icon: Activity,
       onClick: () => focusReference('RUN', selectedRunId),
     });
@@ -118,6 +126,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-signal',
       label: 'Focus Origin Signal',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.signal,
       icon: Radio,
       onClick: () => focusReference('SIGNAL', relatedSignalId),
     });
@@ -127,6 +136,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-entity',
       label: 'Focus Entity Milestones',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.entity,
       icon: Fingerprint,
       onClick: () => focusReference('ENTITY', selectedEntityName),
     });
@@ -136,6 +146,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-chat-focus',
       label: 'Focus Chat Session',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.session,
       icon: MessageSquare,
       onClick: () => focusReference('CHAT', selectedChatSessionId),
     });
@@ -145,6 +156,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-parent',
       label: `Focus Parent ${labelArtifactLabel}`,
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.parent,
       icon: FileText,
       onClick: () => focusReference('ARTIFACT', parentArtifactId),
     });
@@ -154,6 +166,7 @@ export const buildTimelineDetailActions = ({
     actions.push({
       id: 'timeline-previous',
       label: `Focus Previous ${labelArtifactLabel}`,
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.previous,
       icon: FileText,
       onClick: () => focusReference('ARTIFACT', previousArtifactId),
     });

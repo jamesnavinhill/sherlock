@@ -2,6 +2,7 @@ import { Clock3, FileText, Link2, MessageSquare, Network } from 'lucide-react';
 
 import type { Artifact, ChatOpenRequest, WorkspaceItem, WorkspaceBoardItemReference } from '@/types';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import { INSPECTOR_ACTION_SHORT_LABELS } from '@/components/ui/inspectorActionLabels';
 
 interface WorkspaceLibraryEntryLike {
   metadata?: Record<string, unknown>;
@@ -43,7 +44,8 @@ export const buildBoardInspectorActions = ({
   if (selectedArtifact) {
     inspectorActions.push({
       id: 'board-open-report',
-      label: 'Open',
+      label: 'Open Report',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.open,
       icon: FileText,
       onClick: () => onOpenReport(selectedArtifact),
     });
@@ -52,7 +54,8 @@ export const buildBoardInspectorActions = ({
   if (selectedEntries.length > 0) {
     inspectorActions.push({
       id: 'board-open-chat',
-      label: 'Chat',
+      label: 'Open Workspace Chat',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.chat,
       icon: MessageSquare,
       onClick: onOpenSelectedChat,
     });
@@ -61,7 +64,8 @@ export const buildBoardInspectorActions = ({
   if (selectedWorkspaceItem?.provenance?.sourceSessionId) {
     inspectorActions.push({
       id: 'board-open-chat-session',
-      label: 'Source Chat',
+      label: 'Open Source Chat',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.source,
       icon: MessageSquare,
       onClick: () =>
         onOpenChat({
@@ -78,7 +82,8 @@ export const buildBoardInspectorActions = ({
     if (sourceReport) {
       inspectorActions.push({
         id: 'board-open-source-report',
-        label: 'Source',
+        label: 'Open Source Report',
+        shortLabel: INSPECTOR_ACTION_SHORT_LABELS.source,
         icon: FileText,
         onClick: () => onOpenReport(sourceReport),
       });
@@ -88,7 +93,8 @@ export const buildBoardInspectorActions = ({
   if (selectedPrimaryEntry?.url || typeof selectedPrimaryEntry?.metadata?.url === 'string') {
     inspectorActions.push({
       id: 'board-open-link',
-      label: 'Link',
+      label: 'Open Link',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.link,
       icon: Link2,
       href:
         selectedPrimaryEntry.url ||
@@ -103,13 +109,15 @@ export const buildBoardInspectorActions = ({
   if (activeWorkspaceId) {
     inspectorActions.push({
       id: 'board-open-timeline',
-      label: 'Timeline',
+      label: 'Open Timeline',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.timeline,
       icon: Clock3,
       onClick: () => void onNavigateTimeline(),
     });
     inspectorActions.push({
       id: 'board-open-network',
-      label: 'Network',
+      label: 'Open Network',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.network,
       icon: Network,
       onClick: () => void onNavigateNetwork(),
     });

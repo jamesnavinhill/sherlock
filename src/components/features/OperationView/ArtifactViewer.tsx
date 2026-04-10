@@ -240,15 +240,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         (section.items && section.items.length > 0))
   );
   const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
-  const provenanceMetadata = (report?.provenance?.metadata || {}) as Record<string, unknown>;
-  const groundedClaimCount =
-    typeof provenanceMetadata.groundedClaimCount === 'number'
-      ? provenanceMetadata.groundedClaimCount
-      : undefined;
-  const inferredClaimCount =
-    typeof provenanceMetadata.inferredClaimCount === 'number'
-      ? provenanceMetadata.inferredClaimCount
-      : undefined;
   const mainColumnClassName = isDetailSidebarOpen
     ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
     : 'flex-1 h-full overflow-y-auto custom-scrollbar';
@@ -607,11 +598,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     reportSources,
     visibleFollowUps,
     visibleEvidence,
-    openSection: openDetailRailSection || 'findings',
+    openSection: openDetailRailSection,
     toggleSection: toggleDetailRailSection,
     keyFindingsAnchorId,
-    groundedClaimCount,
-    inferredClaimCount,
     onEntityClick,
     onLeadOpen,
     jumpToSection,
@@ -979,6 +968,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 {detailPanelTitle}
               </h3>
             }
+            actionsPlacement="top"
             actions={
               <button
                 type="button"

@@ -139,6 +139,11 @@ describe('ArtifactViewer', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Expand Artifact Details' }));
     expect(screen.getByRole('button', { name: 'Collapse Artifact Details' })).toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: /Key Findings/i }));
+    expect(
+      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
+    ).toHaveLength(1);
+
     expect(
       screen.queryByText('Trace shared directors across the vendor cluster.')
     ).not.toBeInTheDocument();
@@ -148,6 +153,8 @@ describe('ArtifactViewer', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Sources/i }));
     expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();
+    expect(screen.queryByText('Generation')).not.toBeInTheDocument();
+    expect(screen.queryByText('OPENAI / gpt-test')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Entities/i }));
     expect(screen.getAllByText('Atlas Holdings').length).toBeGreaterThan(0);

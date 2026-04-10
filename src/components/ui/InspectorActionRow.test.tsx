@@ -70,4 +70,24 @@ describe('InspectorActionRow', () => {
     });
     expect(screen.getByRole('button', { name: 'Chat' }).className).toContain('h-6');
   });
+
+  it('renders a short visible label while preserving the full accessible label', () => {
+    render(
+      <InspectorActionRow
+        actions={[
+          {
+            id: 'open-chat',
+            label: 'Open Workspace Chat',
+            shortLabel: 'Chat',
+            icon: MessageSquare,
+            onClick: vi.fn(),
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Open Workspace Chat' })).toBeInTheDocument();
+    expect(screen.getByText('Chat')).toBeInTheDocument();
+    expect(screen.queryByText('Open Workspace Chat')).not.toBeInTheDocument();
+  });
 });

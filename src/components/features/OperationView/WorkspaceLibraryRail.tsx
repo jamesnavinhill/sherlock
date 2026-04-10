@@ -1,10 +1,11 @@
 import React from 'react';
-import { FileText, Users, Globe } from 'lucide-react';
+import { FileText, Globe, Link2, Users } from 'lucide-react';
 import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from '../../../types';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import {
   CHROME_NESTED_ITEM_DOT_CLASS,
+  CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
   CHROME_THIN_NESTED_ITEM_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
 } from '../../ui/chrome';
@@ -91,16 +92,24 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
       icon: PANEL_SECTION_ICONS.entities,
       isOpen: openSections.entities,
       onToggle: () => toggleSection('entities'),
-      entries: entities.map((entity, index) => ({
-        id: `${entity.name}-${index}`,
-        title: entity.name,
-        onClick: () => onEntityClick(entity),
-        icon: (
-          <span
-            className={`${CHROME_NESTED_ITEM_DOT_CLASS} ${getEntityToneClass(entity.type)} entity-tone-dot`}
-          />
-        ),
-      })),
+      content: (
+        <div className="space-y-1">
+          {entities.map((entity, index) => (
+            <button
+              key={`${entity.name}-${index}`}
+              type="button"
+              onClick={() => onEntityClick(entity)}
+              className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
+              title={entity.name}
+            >
+              <span
+                className={`${CHROME_NESTED_ITEM_DOT_CLASS} ${getEntityToneClass(entity.type)} entity-tone-dot`}
+              />
+              <span className="truncate osint-meta-value text-zinc-300">{entity.name}</span>
+            </button>
+          ))}
+        </div>
+      ),
     });
   }
 
@@ -169,17 +178,26 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
     icon: PANEL_SECTION_ICONS.sources,
     isOpen: openSections.sources,
     onToggle: () => toggleSection('sources'),
-    entries: sources.map((source, index) => ({
-      id: `${source.url}-${index}`,
-      title: source.title || source.url,
-      description: source.title ? source.url : undefined,
-      href: source.url,
-      target: '_blank',
-      rel: 'noopener noreferrer',
-    })),
-    emptyState: (
-      <p className="osint-body-quiet px-2 py-1 italic">No sources captured yet.</p>
-    ),
+    content:
+      sources.length === 0 ? (
+        <p className="osint-body-quiet px-2 py-1 italic">No sources captured yet.</p>
+      ) : (
+        <div className="space-y-1">
+          {sources.map((source, index) => (
+            <a
+              key={`${source.url}-${index}`}
+              href={source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
+              title={source.title || source.url}
+            >
+              <Link2 className="mr-1 inline h-3 w-3" />
+              <span className="osint-body-quiet text-zinc-400">{source.title || source.url}</span>
+            </a>
+          ))}
+        </div>
+      ),
   });
 
   sections.push({

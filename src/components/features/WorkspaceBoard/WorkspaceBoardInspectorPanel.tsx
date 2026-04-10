@@ -8,6 +8,7 @@ import type {
   GlobalInspectorTab,
 } from '@/components/features/Inspector/globalInspectorTypes';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
+import { INSPECTOR_ACTION_SHORT_LABELS } from '@/components/ui/inspectorActionLabels';
 import { AppIcon } from '@/lib/appIcons';
 import { BOARD_AGENT_STARTER_INTENTS } from '@/services/workspace/agent';
 import {
@@ -68,13 +69,13 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
       : selectedEntries.length > 1
         ? `${selectedEntries.length} Items Selected`
         : activeBoard?.name || 'Board Selection';
-  const primaryEntry = selectedEntries.length === 1 ? selectedEntries[0] : null;
   const starterIntents = BOARD_AGENT_STARTER_INTENTS.filter((intent) => intent.id !== 'draft-note');
   const actionItems: InspectorActionItem[] = [
     ...inspectorActions,
     {
       id: 'board-ai-summary',
-      label: 'Summarize',
+      label: 'Generate Summary',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.summary,
       icon: Sparkles,
       onClick: onShowAgentAndGenerateSummary,
       disabled: selectedEntries.length === 0 || aiBusy,
@@ -82,6 +83,7 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
     {
       id: 'board-ai-note',
       label: 'Draft Note',
+      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.note,
       icon: FilePlus2,
       onClick: onShowAgentAndGenerateNote,
       disabled: selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode,
@@ -202,16 +204,11 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
       isOpen={isOpen}
       eyebrow="Inspector"
       title={title}
-      headerIcon={
-        primaryEntry ? (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center text-zinc-300">
-            <AppIcon iconId={primaryEntry.iconId} size={18} strokeWidth={1.9} />
-          </span>
-        ) : undefined
-      }
       tabs={tabs}
       activeTabId={activeTabId}
       onTabChange={(tabId) => onTabChange(tabId as RightPanelView)}
+      tabsPlacement="header"
+      headerActionsPlacement="top"
       actionItems={actionItems}
       actionRowLayout="wrap"
       actionRowDensity="thin"

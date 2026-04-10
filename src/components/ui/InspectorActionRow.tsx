@@ -5,6 +5,7 @@ import { CHROME_ACTION_BUTTON_CLASS, CHROME_THIN_ACTION_BUTTON_CLASS } from './c
 export interface InspectorActionItem {
   id: string;
   label: string;
+  shortLabel?: string;
   icon: LucideIcon;
   iconOnly?: boolean;
   iconClassName?: string;
@@ -54,6 +55,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
       {actions.map((action) => {
         const Icon = action.icon;
         const showActionLabel = showLabels && !action.iconOnly;
+        const visibleLabel = action.shortLabel || action.label;
         const sharedProps = {
           className: cx(
             buttonClassName,
@@ -81,7 +83,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
               {...sharedProps}
             >
               <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
-              {showActionLabel ? <span>{action.label}</span> : null}
+              {showActionLabel ? <span>{visibleLabel}</span> : null}
             </a>
           );
         }
@@ -95,7 +97,7 @@ export const InspectorActionRow: React.FC<InspectorActionRowProps> = ({
             {...sharedProps}
           >
             <Icon className={cx('h-4 w-4 shrink-0', action.iconClassName)} />
-            {showActionLabel ? <span>{action.label}</span> : null}
+            {showActionLabel ? <span>{visibleLabel}</span> : null}
           </button>
         );
       })}
