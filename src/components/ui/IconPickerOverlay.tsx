@@ -79,7 +79,7 @@ const OpenIconPickerOverlay: React.FC<IconPickerOverlayProps> = ({
           </button>
         ) : null}
 
-        <div className="space-y-3 border border-zinc-800 bg-black/40 p-3">
+        <div className="space-y-3 border border-zinc-800 bg-zinc-950/40 p-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative min-w-0 flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
@@ -89,7 +89,7 @@ const OpenIconPickerOverlay: React.FC<IconPickerOverlayProps> = ({
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder="Search icons, packs, or themes"
                 aria-label="Search icons"
-                className="w-full border border-zinc-800 bg-zinc-950 py-2 pl-10 pr-3 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 focus:border-osint-primary"
+                className="w-full border border-zinc-800 bg-zinc-950/40 py-2 pl-10 pr-3 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 focus:border-osint-primary"
               />
             </div>
 
@@ -100,7 +100,7 @@ const OpenIconPickerOverlay: React.FC<IconPickerOverlayProps> = ({
                 className={`border px-3 py-2 text-[10px] font-mono uppercase tracking-[0.18em] transition ${
                   packFilter === 'all'
                     ? 'border-osint-primary bg-osint-primary/10 text-white'
-                    : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-white'
+                    : 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:border-zinc-600 hover:text-white'
                 }`}
               >
                 All Packs
@@ -113,7 +113,7 @@ const OpenIconPickerOverlay: React.FC<IconPickerOverlayProps> = ({
                   className={`border px-3 py-2 text-[10px] font-mono uppercase tracking-[0.18em] transition ${
                     packFilter === pack.id
                       ? 'border-osint-primary bg-osint-primary/10 text-white'
-                      : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-white'
+                      : 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:border-zinc-600 hover:text-white'
                   }`}
                   title={pack.description}
                 >

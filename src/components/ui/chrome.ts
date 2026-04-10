@@ -23,7 +23,7 @@ export const CHROME_ACTION_BUTTON_CLASS =
 export const CHROME_COMPACT_ACTION_BUTTON_CLASS = `${CHROME_ACTION_BUTTON_CLASS} h-6 px-2`;
 
 export const CHROME_THIN_ACTION_BUTTON_CLASS =
-  'osint-surface-button inline-flex h-6 items-center justify-center gap-1.5 px-2 osint-meta-label-strong text-[11px] text-zinc-300';
+  'osint-rail-button inline-flex h-6 items-center justify-center gap-1.5 px-2 osint-meta-label-strong text-[11px] text-zinc-300';
 
 export const CHROME_PANEL_TAB_ROW_CLASS = 'flex w-full justify-start gap-2';
 
@@ -43,7 +43,7 @@ export const CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS =
   `${CHROME_COMPACT_NESTED_ACTION_ITEM_CLASS} w-full text-left`;
 
 export const CHROME_THIN_NESTED_ITEM_CLASS = 'osint-panel-item px-2.5 py-1.5';
-export const CHROME_THIN_NESTED_ACTION_ITEM_CLASS = 'osint-panel-action-item px-2.5 py-1.5';
+export const CHROME_THIN_NESTED_ACTION_ITEM_CLASS = 'osint-rail-button px-2.5 py-1.5';
 
 export const CHROME_THIN_NESTED_ITEM_BUTTON_CLASS =
   `${CHROME_THIN_NESTED_ACTION_ITEM_CLASS} w-full text-left text-[11px]`;

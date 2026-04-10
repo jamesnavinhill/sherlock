@@ -1265,12 +1265,44 @@ body,
   outline: none;
 }
 
+.osint-rail-button {
+  background-color: transparent;
+  border: 1px solid var(--osint-raised-outline);
+  color: var(--osint-text-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-rail-button:hover,
+.osint-rail-button:focus-visible,
+.osint-rail-button[data-active='true'],
+.osint-rail-button[aria-pressed='true'] {
+  background-color: var(--osint-accent-outline-hover-bg);
+  border-color: var(--osint-accent-outline-hover-border);
+  color: var(--osint-accent-outline-hover-color);
+  box-shadow: var(--osint-accent-outline-glow);
+  outline: none;
+}
+
+.osint-rail-button:active,
+.osint-rail-button[data-active='true'],
+.osint-rail-button[aria-pressed='true'] {
+  background-color: var(--osint-accent-outline-active-bg);
+  border-color: var(--osint-accent-outline-active-border);
+  color: var(--osint-accent-outline-active-color);
+  box-shadow: var(--osint-accent-outline-glow);
+  outline: none;
+}
+
 .osint-raised-surface-section,
 .osint-panel-item {
   background-color: transparent;
   color: var(--osint-text-strong);
   transition:
-    background-color 180ms ease,
     border-color 180ms ease,
     color 180ms ease,
     box-shadow 180ms ease;

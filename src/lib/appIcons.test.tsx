@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { icons as pixelartIconSet } from '@iconify-json/pixelarticons';
 
 import {
   APP_ICON_OPTIONS,
@@ -63,5 +64,15 @@ describe('appIcons', () => {
     expect(tablerRobot?.searchText).toContain('agent');
     expect(pixelRobot?.searchText).toContain('pixel art');
     expect(pixelRobot?.searchText).toContain('assistant');
+  });
+
+  it('ships the full pixel-art pack and a large tabler catalogue', () => {
+    const pixelArtCount = APP_ICON_OPTIONS.filter((option) => option.pack === 'pixelart').length;
+    const tablerCount = APP_ICON_OPTIONS.filter((option) => option.pack === 'tabler').length;
+
+    expect(pixelArtCount).toBeGreaterThanOrEqual(Object.keys(pixelartIconSet.icons).length);
+    expect(tablerCount).toBeGreaterThanOrEqual(100);
+    expect(APP_ICON_OPTIONS.some((option) => option.id === 'pixel:ai-user-circle')).toBe(true);
+    expect(APP_ICON_OPTIONS.some((option) => option.id === 'tabler:timeline-event')).toBe(true);
   });
 });
