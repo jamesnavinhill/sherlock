@@ -49,9 +49,58 @@ describe('ChatTranscript', () => {
     );
 
     expect(screen.getByText('Latest workspace update.')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-transcript-shell')).toHaveClass('border-x', 'border-t');
     const scrollRegion = container.querySelector('[data-app-scroll-region]');
     expect(scrollRegion).not.toBeNull();
     expect(scrollRegion).toHaveClass('custom-scrollbar');
     expect(scrollRegion?.getAttribute('class')).toContain('[scrollbar-gutter:stable_both-edges]');
+    expect(screen.getByTestId('chat-transcript-stack')).toHaveClass('min-h-full', 'justify-end', 'py-4');
+  });
+
+  it('renders user messages as natural rows inside the shared transcript pane', () => {
+    const userMessage: ChatMessage = {
+      id: 'message-2',
+      sessionId: 'session-1',
+      role: 'user',
+      content: 'hi',
+      createdAt: 2,
+      updatedAt: 2,
+      status: 'COMPLETED',
+    };
+
+    render(
+      <ChatTranscript
+        activeWorkspace={workspace}
+        messages={[userMessage]}
+        workspaces={[workspace]}
+        workingAssistantMessageId={null}
+        workingSessionId={null}
+        partialAssistantOutput=""
+        messageBodyClassName="osint-body-small"
+        sectionLabelClassName="osint-meta-label"
+        transcriptEndRef={createRef<HTMLDivElement>()}
+        splitCollapsedFollowUpBlock={(body) => ({ primaryBody: body, collapsedBody: '' })}
+        formatTimestamp={() => '12:01'}
+        copyToClipboard={vi.fn(async () => undefined)}
+        formatMessageWithCitations={(entry) => entry.content}
+        handleOpenMention={vi.fn()}
+        handlePromoteAttachment={vi.fn(async () => undefined)}
+        handleSaveMessageAsArtifact={vi.fn(async () => undefined)}
+        handleAppendMessageToArtifact={vi.fn(async () => undefined)}
+        handleLaunchFollowUp={vi.fn(async () => undefined)}
+        handleStartNewWorkspace={vi.fn()}
+      />
+    );
+
+    const userCard = screen.getByText('hi').closest('article');
+    expect(userCard).not.toBeNull();
+    expect(userCard?.getAttribute('class')).toContain('w-full');
+    expect(userCard?.getAttribute('class')).toContain('border-b');
+    expect(userCard?.getAttribute('class')).toContain('px-5');
+    expect(userCard?.getAttribute('class')).not.toContain('bg-zinc-950/60');
+    expect(userCard?.getAttribute('class')).not.toContain('bg-zinc-900/80');
+    expect(screen.getByText('user').closest('div')?.getAttribute('class')).toContain('justify-end');
+    expect(screen.getByText('hi').getAttribute('class')).toContain('text-right');
+    expect(userCard?.querySelector('.border-b.border-zinc-800\\/80')).not.toBeNull();
   });
 });
