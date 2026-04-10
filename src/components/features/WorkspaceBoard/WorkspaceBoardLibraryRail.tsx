@@ -180,19 +180,27 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
       title={workspaceTitle}
       className="lg:relative lg:z-0"
       actions={
-        <div className="flex gap-2">
-          <button type="button" onClick={onCreateNote} className={CHROME_THIN_ACTION_BUTTON_CLASS}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(4.5rem,1fr))] gap-2">
+          <button
+            type="button"
+            onClick={onCreateNote}
+            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+          >
             <FilePlus2 className="h-3.5 w-3.5" />
             Note
           </button>
-          <button type="button" onClick={onCreateLink} className={CHROME_THIN_ACTION_BUTTON_CLASS}>
+          <button
+            type="button"
+            onClick={onCreateLink}
+            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+          >
             <Link2 className="h-3.5 w-3.5" />
             Link
           </button>
           <button
             type="button"
             onClick={onAddIcon}
-            className={CHROME_THIN_ACTION_BUTTON_CLASS}
+            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
             title="Add icon to board"
             aria-label="Add icon to board"
           >
@@ -202,7 +210,7 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
           <button
             type="button"
             onClick={onTriggerFileUpload}
-            className={CHROME_THIN_ACTION_BUTTON_CLASS}
+            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
           >
             <Radio className="h-3.5 w-3.5" />
             File

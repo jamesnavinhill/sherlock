@@ -92,6 +92,56 @@ describe('WorkspaceBoardLibraryRail', () => {
     expect(onAddIcon).toHaveBeenCalledTimes(1);
   });
 
+  it('renders the rail action row as width-filling buttons', () => {
+    render(
+      <WorkspaceBoardLibraryRail
+        isOpen
+        workspaceTitle="Agentic A.I."
+        search=""
+        groupedEntries={{
+          created: [],
+          artifacts: [],
+          entities: [],
+          sources: [],
+          signals: [],
+        }}
+        librarySections={{
+          created: false,
+          artifacts: false,
+          entities: false,
+          sources: false,
+          signals: false,
+        }}
+        libraryItemSections={{}}
+        fileInputRef={{ current: null }}
+        sectionScrollClassName=""
+        onSearchChange={vi.fn()}
+        onCreateNote={vi.fn()}
+        onCreateLink={vi.fn()}
+        onAddIcon={vi.fn()}
+        onTriggerFileUpload={vi.fn()}
+        onFileUpload={vi.fn()}
+        onToggleLibrarySection={vi.fn()}
+        onToggleLibraryEntrySection={vi.fn()}
+        onDeleteCreatedItem={vi.fn()}
+        onAddToBoard={vi.fn()}
+      />
+    );
+
+    const noteButton = screen.getByRole('button', { name: 'Note' });
+    const linkButton = screen.getByRole('button', { name: 'Link' });
+    const iconButton = screen.getByRole('button', { name: 'Add icon to board' });
+    const fileButton = screen.getByRole('button', { name: 'File' });
+    const actionRow = noteButton.parentElement;
+
+    expect(actionRow?.className).toContain('grid');
+    expect(actionRow?.className).toContain('grid-cols-[repeat(auto-fit,minmax(4.5rem,1fr))]');
+    expect(noteButton).toHaveClass('w-full');
+    expect(linkButton).toHaveClass('w-full');
+    expect(iconButton).toHaveClass('w-full');
+    expect(fileButton).toHaveClass('w-full');
+  });
+
   it('does not repeat the item kind inside expanded library entries', () => {
     render(
       <WorkspaceBoardLibraryRail
