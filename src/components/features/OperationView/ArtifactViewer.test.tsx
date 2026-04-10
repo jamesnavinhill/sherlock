@@ -168,7 +168,10 @@ describe('ArtifactViewer', () => {
     ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
-    expect(screen.getByText('Trace shared directors across the vendor cluster.')).toBeInTheDocument();
+    const followUpText = screen.getByText('Trace shared directors across the vendor cluster.');
+    expect(followUpText).toBeInTheDocument();
+    expect(followUpText).toHaveClass('osint-body-quiet');
+    expect(followUpText).not.toHaveClass('osint-meta-value');
 
     fireEvent.click(screen.getByRole('button', { name: /Sources/i }));
     expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();

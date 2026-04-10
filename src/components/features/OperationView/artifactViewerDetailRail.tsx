@@ -71,7 +71,7 @@ const FollowUpDetailRow: React.FC<FollowUpDetailRowProps> = ({
 
   return (
     <article className={cx('border border-zinc-800/50 bg-zinc-950/70 px-3 py-2', className)}>
-      <div className="osint-meta-value leading-snug text-zinc-300">{questionText}</div>
+      <p className="osint-body-quiet leading-5 text-zinc-300">{questionText}</p>
       {children}
     </article>
   );
