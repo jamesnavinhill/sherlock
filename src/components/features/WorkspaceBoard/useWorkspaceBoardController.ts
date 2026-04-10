@@ -326,6 +326,14 @@ export const useWorkspaceBoardController = ({
     setBoardAgentMessage(latestSessionMessage);
   }, [boardAgentBusy, visibleBoardAgentSession]);
 
+  const copyToClipboard = useCallback(
+    async (value: string, successMessage: string) => {
+      await navigator.clipboard.writeText(value);
+      addToast(successMessage, 'SUCCESS');
+    },
+    [addToast]
+  );
+
   useEffect(
     () => () => {
       boardAgentAbortRef.current?.abort();
@@ -793,6 +801,7 @@ export const useWorkspaceBoardController = ({
     boardAgentReviewSelections,
     boardAgentReviewState,
     boardAgentTodoItems,
+    boardSessionsForBoard,
     boardPendingDeletion,
     confirmDeleteCreatedItem,
     createModal,
@@ -841,6 +850,7 @@ export const useWorkspaceBoardController = ({
     setUploadTargetWorkspaceId,
     setBoardAgentAutoApproveOrganizationActions:
       handleBoardAgentAutoApproveOrganizationActionsChange,
+    setBoardAgentActiveSessionId,
     setBoardAgentPrompt,
     setBoardPendingDeletion,
     setCreateModal,
@@ -865,6 +875,7 @@ export const useWorkspaceBoardController = ({
     workspaces,
     closeUploadDialog,
     confirmUploadDialog,
+    copyToClipboard,
     LEFT_PANEL_SECTION_SCROLL_CLASS,
   };
 };

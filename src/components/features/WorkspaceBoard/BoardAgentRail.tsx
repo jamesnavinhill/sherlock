@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import {
   Bot,
   CheckCircle2,
+  Clipboard,
   Clock3,
+  MessageSquare,
   Paperclip,
   Send,
   Shapes,
@@ -10,9 +12,15 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 import type { BoardAgentAction, BoardAgentSession } from '@/types';
 import { Accordion } from '@/components/ui/Accordion';
+import {
+  formatDateTime,
+  formatTimestamp,
+  sectionLabelClassName,
+} from '@/components/features/Chat/chatPageUtils';
 import {
   BOARD_AGENT_STARTER_INTENTS,
   buildBoardAgentActionPresentation,
@@ -30,7 +38,6 @@ interface BoardAgentReviewState {
 interface BoardAgentRailProps {
   agentSections: {
     context: boolean;
-    session: boolean;
     actions: boolean;
   };
   selectedEntries: Array<{ title: string; refId: string; refKind: string }>;
@@ -43,11 +50,13 @@ interface BoardAgentRailProps {
   boardAgentTodoItems: BoardAgentTodoItem[];
   boardAgentBusy: boolean;
   boardAgentPrompt: string;
+  boardSessionsForBoard: BoardAgentSession[];
   visibleBoardAgentActions: BoardAgentAction[];
   visibleBoardAgentSession: BoardAgentSession | null;
+  copyToClipboard: (value: string, successMessage: string) => Promise<void>;
+  onSelectSession: (sessionId: string) => void;
   onPromptChange: (value: string) => void;
   onToggleContext: () => void;
-  onToggleSession: () => void;
   onToggleActions: () => void;
   onAttachFiles: () => void;
   onRunAgent: () => void;
@@ -104,11 +113,13 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
   boardAgentTodoItems,
   boardAgentBusy,
   boardAgentPrompt,
+  boardSessionsForBoard,
   visibleBoardAgentActions,
   visibleBoardAgentSession,
+  copyToClipboard,
+  onSelectSession,
   onPromptChange,
   onToggleContext,
-  onToggleSession,
   onToggleActions,
   onAttachFiles,
   onRunAgent,
@@ -121,6 +132,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
   onKeyDown,
 }) => {
   const [starterMenuOpen, setStarterMenuOpen] = useState(false);
+  const [sessionMenuOpen, setSessionMenuOpen] = useState(false);
   const selectedReviewCount = boardAgentReviewState
     ? boardAgentReviewState.actionIds.filter((actionId) => boardAgentReviewSelections[actionId])
         .length
@@ -133,6 +145,54 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
     'h-4 w-4 [fill:var(--osint-primary)] [color:var(--osint-primary)]';
   const composerToolButtonClassName =
     'group inline-flex h-9 w-9 items-center justify-center text-zinc-500 transition hover:text-osint-primary focus-visible:text-osint-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
+  const boardTranscriptBodyClassName =
+    'prose prose-invert max-w-none text-sm leading-7 text-zinc-200 prose-p:my-2 prose-ul:my-2 prose-headings:my-3 [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_p]:text-inherit [&_li]:text-inherit [&_ol]:text-inherit [&_ul]:text-inherit [&_strong]:text-inherit [&_em]:text-inherit [&_code]:text-inherit [&_blockquote]:text-inherit';
+  const latestPersistedMessage =
+    typeof visibleBoardAgentSession?.metadata?.latestMessage === 'string'
+      ? visibleBoardAgentSession.metadata.latestMessage
+      : '';
+  const assistantTranscriptMessage = (boardAgentMessage || latestPersistedMessage || '').trim();
+  const userTranscriptMessage = visibleBoardAgentSession?.request.trim() || '';
+  const sessionRequestState = visibleBoardAgentSession?.requestState || null;
+  const sessionStatus = visibleBoardAgentSession?.status || null;
+  const assistantTranscriptFallbackMessage =
+    assistantTranscriptMessage.length > 0
+      ? ''
+      : visibleBoardAgentSession?.lastError?.trim() ||
+        (sessionRequestState === 'QUEUED'
+          ? 'Queued to start the board-agent pass.'
+          : sessionRequestState === 'ASSEMBLING_CONTEXT'
+            ? 'Assembling the visible board context.'
+            : sessionRequestState === 'STREAMING'
+              ? 'Thinking through the board context.'
+              : sessionRequestState === 'EXECUTING_ACTIONS'
+                ? 'Applying the approved board actions.'
+                : sessionRequestState === 'AWAITING_APPROVAL'
+                  ? 'Waiting for plan approval before making board changes.'
+                  : sessionStatus === 'FAILED'
+                    ? 'Board-agent run failed before it returned a response.'
+                    : sessionStatus === 'CANCELLED'
+                      ? 'Board-agent run cancelled.'
+                      : '');
+  const assistantTranscriptDisplayMessage =
+    assistantTranscriptMessage || assistantTranscriptFallbackMessage;
+  const showTranscript =
+    userTranscriptMessage.length > 0 || assistantTranscriptDisplayMessage.length > 0;
+  const userTranscriptTimestamp =
+    visibleBoardAgentSession?.startedAt || visibleBoardAgentSession?.createdAt || null;
+  const assistantTranscriptTimestamp =
+    visibleBoardAgentSession?.completedAt || visibleBoardAgentSession?.updatedAt || null;
+  const showAssistantStatusChip = !!sessionRequestState && sessionRequestState !== 'COMPLETED';
+  const sessionDisplayTitle =
+    visibleBoardAgentSession &&
+    visibleBoardAgentSession.title.trim() &&
+    visibleBoardAgentSession.title.trim() !== visibleBoardAgentSession.request.trim()
+      ? visibleBoardAgentSession.title
+      : 'Board agent';
+  const getSessionDisplayTitle = (session: BoardAgentSession) =>
+    session.title.trim() && session.title.trim() !== session.request.trim()
+      ? session.title
+      : 'Board agent';
 
   return (
     <div className="-mx-3 -mb-3 flex min-h-0 flex-1 flex-col">
@@ -283,78 +343,94 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
               </div>
             ) : null}
 
-            {boardAgentMessage ? (
-              <div
-                className={`osint-panel-shell p-4 shadow-[0_18px_48px_rgba(0,0,0,0.24)] ${headerToneSurfaceClassName}`}
+            {showTranscript ? (
+              <section
+                className="w-full overflow-hidden border-x border-zinc-800 bg-black"
+                data-testid="board-agent-transcript-shell"
               >
-                <div className="osint-eyebrow flex items-center gap-2">
-                  <Bot className="h-3.5 w-3.5 text-osint-primary" />
-                  Agent Response
-                </div>
-                <div className="mt-3 whitespace-pre-wrap osint-body-small">{boardAgentMessage}</div>
-              </div>
-            ) : null}
-
-            {visibleBoardAgentSession || boardAgentTodoItems.length > 0 ? (
-              <Accordion
-                title="Session"
-                icon={Clock3}
-                isOpen={agentSections.session}
-                onToggle={onToggleSession}
-              >
-                <div
-                  className={`osint-raised-surface-subtle space-y-3 p-4 ${headerToneSurfaceClassName} border-t-0`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="osint-meta-value">
-                      {visibleBoardAgentSession?.title || 'Board agent'}
-                    </div>
-                    {visibleBoardAgentSession ? (
+                {userTranscriptMessage ? (
+                  <article className="group w-full px-5 py-3.5">
+                    <div className="mb-2 space-y-2">
                       <div
-                        className={`rounded-none border px-2.5 py-1 osint-meta-label-strong ${getStatusClassName(visibleBoardAgentSession.requestState || visibleBoardAgentSession.status)}`}
+                        className={`flex items-center gap-2 ${sectionLabelClassName} justify-end text-right`}
                       >
-                        {visibleBoardAgentSession.requestState}
+                        <MessageSquare className="h-4 w-4 text-zinc-400" />
+                        user
                       </div>
-                    ) : null}
-                  </div>
-                  {visibleBoardAgentSession ? (
-                    <div className="space-y-1 osint-body-quiet">
-                      <div>
-                        {visibleBoardAgentSession.provider || 'Provider pending'}
-                        {visibleBoardAgentSession.modelId
-                          ? ` - ${visibleBoardAgentSession.modelId}`
-                          : ''}
-                      </div>
-                      <div>Status: {visibleBoardAgentSession.status}</div>
                     </div>
-                  ) : null}
-                  {boardAgentBusy ? (
-                    <div>
-                      <button
-                        type="button"
-                        onClick={onCancelAgent}
-                        className="inline-flex items-center gap-1 rounded-none border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 osint-meta-label-strong text-red-200 transition hover:bg-red-500/20 hover:text-white"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                        Cancel
-                      </button>
+
+                    <div className="whitespace-pre-wrap text-right osint-body-small leading-6 text-zinc-100">
+                      {userTranscriptMessage}
                     </div>
-                  ) : null}
-                  {boardAgentTodoItems.length > 0 ? (
-                    <div className="space-y-2">
-                      {boardAgentTodoItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className={`osint-raised-surface-subtle flex items-start justify-between gap-3 px-3 py-2 ${headerToneSurfaceClassName}`}
+
+                    <div className="mt-0 max-h-0 overflow-hidden opacity-0 transition-all duration-150 group-hover:mt-4 group-hover:max-h-10 group-hover:opacity-100 group-focus-within:mt-4 group-focus-within:max-h-10 group-focus-within:opacity-100">
+                      <div className="flex items-center justify-end gap-3 osint-body-quiet">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void copyToClipboard(
+                              userTranscriptMessage,
+                              'Board-agent request copied to clipboard.'
+                            )
+                          }
+                          className="inline-flex items-center gap-1 transition hover:text-white"
                         >
-                          <div className="osint-body-small">{item.text}</div>
-                          <div className="shrink-0 osint-meta-label">{item.status}</div>
-                        </div>
-                      ))}
+                          <Clipboard className="h-3.5 w-3.5" />
+                          Copy
+                        </button>
+                        {userTranscriptTimestamp ? (
+                          <span>{formatTimestamp(userTranscriptTimestamp)}</span>
+                        ) : null}
+                      </div>
                     </div>
-                  ) : null}
-                </div>
-              </Accordion>
+                  </article>
+                ) : null}
+
+                {assistantTranscriptDisplayMessage ? (
+                  <article className="group w-full px-5 py-4">
+                    <div className="mb-3 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className={`flex items-center gap-2 ${sectionLabelClassName} justify-start`}>
+                          <Bot className="h-4 w-4 text-osint-primary" />
+                          assistant
+                        </div>
+                        {showAssistantStatusChip ? (
+                          <span
+                            className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(sessionRequestState || 'PENDING')}`}
+                          >
+                            {sessionRequestState}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className={boardTranscriptBodyClassName}>
+                      <ReactMarkdown>{assistantTranscriptDisplayMessage}</ReactMarkdown>
+                    </div>
+
+                    <div className="mt-0 max-h-0 overflow-hidden opacity-0 transition-all duration-150 group-hover:mt-4 group-hover:max-h-10 group-hover:opacity-100 group-focus-within:mt-4 group-focus-within:max-h-10 group-focus-within:opacity-100">
+                      <div className="flex items-center justify-start gap-3 osint-body-quiet">
+                        {assistantTranscriptTimestamp ? (
+                          <span>{formatTimestamp(assistantTranscriptTimestamp)}</span>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void copyToClipboard(
+                              assistantTranscriptDisplayMessage,
+                              'Board-agent response copied to clipboard.'
+                            )
+                          }
+                          className="inline-flex items-center gap-1 transition hover:text-white"
+                        >
+                          <Clipboard className="h-3.5 w-3.5" />
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ) : null}
+              </section>
             ) : null}
 
             {visibleBoardAgentActions.length > 0 ? (
@@ -457,7 +533,10 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setStarterMenuOpen((current) => !current)}
+                  onClick={() => {
+                    setStarterMenuOpen((current) => !current);
+                    setSessionMenuOpen(false);
+                  }}
                   className={`${composerToolButtonClassName} ${
                     starterMenuOpen ? 'text-osint-primary' : ''
                   }`}
@@ -484,6 +563,127 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                         <div className="mt-1 osint-body-quiet">{intent.description}</div>
                       </button>
                     ))}
+                  </div>
+                ) : null}
+              </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSessionMenuOpen((current) => !current);
+                    setStarterMenuOpen(false);
+                  }}
+                  className={`${composerToolButtonClassName} ${
+                    sessionMenuOpen ? 'text-osint-primary' : ''
+                  }`}
+                  aria-label="Session history"
+                  title="Session history"
+                >
+                  <Clock3
+                    className={sessionMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName}
+                  />
+                </button>
+                {sessionMenuOpen ? (
+                  <div className="absolute bottom-11 left-0 z-20 w-80 border border-zinc-800 bg-black shadow-2xl">
+                    <div className="border-b border-zinc-800 px-3 py-2 osint-menu-section-label">
+                      Session History
+                    </div>
+                    {visibleBoardAgentSession ? (
+                      <div className="border-b border-zinc-800 px-3 py-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="osint-meta-value">{sessionDisplayTitle}</div>
+                          <div
+                            className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
+                              visibleBoardAgentSession.requestState || visibleBoardAgentSession.status
+                            )}`}
+                          >
+                            {visibleBoardAgentSession.requestState || visibleBoardAgentSession.status}
+                          </div>
+                        </div>
+                        <div className="mt-2 osint-body-quiet">
+                          {formatDateTime(visibleBoardAgentSession.updatedAt)}
+                        </div>
+                        <div className="mt-1 osint-body-quiet">
+                          {visibleBoardAgentSession.provider || 'Provider pending'}
+                          {visibleBoardAgentSession.modelId
+                            ? ` - ${visibleBoardAgentSession.modelId}`
+                            : ''}
+                        </div>
+                        {boardAgentBusy ? (
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onCancelAgent();
+                                setSessionMenuOpen(false);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-none border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 osint-meta-label-strong text-red-200 transition hover:bg-red-500/20 hover:text-white"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                              Cancel
+                            </button>
+                          </div>
+                        ) : null}
+                        {boardAgentTodoItems.length > 0 ? (
+                          <div className="mt-3 space-y-2 border-t border-zinc-800 pt-3">
+                            {boardAgentTodoItems.slice(0, 4).map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-start justify-between gap-3 border border-zinc-800 bg-zinc-950/80 px-3 py-2"
+                              >
+                                <div className="osint-body-small">{item.text}</div>
+                                <div className="shrink-0 osint-meta-label">{item.status}</div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="border-b border-zinc-800 px-3 py-3 osint-body-quiet">
+                        No board-agent sessions yet.
+                      </div>
+                    )}
+
+                    {boardSessionsForBoard.length > 0 ? (
+                      <div className="max-h-72 overflow-y-auto py-1">
+                        {boardSessionsForBoard.slice(0, 8).map((session) => {
+                          const isActive = session.id === visibleBoardAgentSession?.id;
+                          return (
+                            <button
+                              key={session.id}
+                              type="button"
+                              disabled={boardAgentBusy}
+                              onClick={() => {
+                                onSelectSession(session.id);
+                                setSessionMenuOpen(false);
+                              }}
+                              className={`block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 ${
+                                isActive ? 'bg-zinc-950/80' : 'hover:bg-zinc-900/80'
+                              } disabled:cursor-not-allowed disabled:opacity-60`}
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="osint-meta-value text-zinc-200">
+                                  {getSessionDisplayTitle(session)}
+                                </div>
+                                <div
+                                  className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
+                                    session.requestState || session.status
+                                  )}`}
+                                >
+                                  {session.requestState || session.status}
+                                </div>
+                              </div>
+                              <div className="mt-1 truncate osint-body-quiet">
+                                {session.request.trim() || 'No request saved.'}
+                              </div>
+                              <div className="mt-1 osint-body-quiet">
+                                {formatDateTime(session.updatedAt)}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

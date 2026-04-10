@@ -98,14 +98,14 @@ describe('ChatTranscript', () => {
     expect(userCard?.getAttribute('class')).toContain('w-full');
     expect(userCard?.getAttribute('class')).toContain('border-b');
     expect(userCard?.getAttribute('class')).toContain('px-5');
+    expect(userCard?.getAttribute('class')).toContain('group');
     expect(userCard?.getAttribute('class')).not.toContain('bg-zinc-950/60');
     expect(userCard?.getAttribute('class')).not.toContain('bg-zinc-900/80');
     expect(screen.getByText('user').closest('div')?.getAttribute('class')).toContain('justify-end');
     expect(screen.getByText('hi').getAttribute('class')).toContain('text-right');
-    const footerDivider = userCard?.querySelector('.mt-4.space-y-2 .border-b.border-zinc-800\\/80');
-    const footerMeta = userCard?.querySelector('.mt-4.space-y-2 .osint-body-quiet');
-    expect(footerDivider).not.toBeNull();
+    const footerMeta = userCard?.querySelector('.osint-body-quiet');
     expect(footerMeta).not.toBeNull();
+    expect(footerMeta?.parentElement?.getAttribute('class')).toContain('group-hover:opacity-100');
   });
 
   it('left aligns assistant metadata while keeping user metadata right aligned', () => {
@@ -145,8 +145,8 @@ describe('ChatTranscript', () => {
 
     const assistantCard = screen.getByText('Latest workspace update.').closest('article');
     const userCard = screen.getByText('hi').closest('article');
-    const assistantFooter = assistantCard?.querySelector('.mt-4.space-y-2 .osint-body-quiet');
-    const userFooter = userCard?.querySelector('.mt-4.space-y-2 .osint-body-quiet');
+    const assistantFooter = assistantCard?.querySelector('.osint-body-quiet');
+    const userFooter = userCard?.querySelector('.osint-body-quiet');
 
     expect(assistantFooter?.getAttribute('class')).toContain('justify-start');
     expect(userFooter?.getAttribute('class')).toContain('justify-end');

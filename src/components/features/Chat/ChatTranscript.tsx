@@ -150,7 +150,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
           return (
             <article
               key={message.id}
-              className={`w-full border-b px-5 ${
+              className={`group w-full border-b px-5 ${
                 isUser ? 'py-3.5' : 'py-4'
               } sm:px-6 ${
                 isTool ? 'border-osint-primary/30' : 'border-zinc-800/80'
@@ -320,8 +320,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                   <div className="osint-danger-banner mt-3 border-t pt-3 text-sm">{message.error}</div>
                 ) : null}
 
-                <div className="mt-4 space-y-2">
-                  <div className="border-b border-zinc-800/80" />
+                <div className="mt-0 max-h-0 overflow-hidden opacity-0 transition-all duration-150 group-hover:mt-4 group-hover:max-h-10 group-hover:opacity-100 group-focus-within:mt-4 group-focus-within:max-h-10 group-focus-within:opacity-100">
                   <div
                     className={`flex items-center gap-3 osint-body-quiet ${
                       isUser ? 'justify-end' : 'justify-start'

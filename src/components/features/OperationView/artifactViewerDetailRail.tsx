@@ -95,7 +95,7 @@ const FindingDetailList: React.FC<FindingDetailListProps> = ({
   getMatchingSources,
 }) => {
   const [openFindingId, setOpenFindingId] = React.useState<string | null>(
-    canonicalFindings[0]?.id ?? null
+    null
   );
 
   const renderSourceLinks = (sources: Source[]) => {

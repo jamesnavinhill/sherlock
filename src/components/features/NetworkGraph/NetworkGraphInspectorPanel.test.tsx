@@ -68,7 +68,7 @@ describe('NetworkGraphInspectorPanel', () => {
     expect(screen.queryByRole('button', { name: 'Investigate' })).not.toBeInTheDocument();
   });
 
-  it('allows the node summary accordion to collapse fully', () => {
+  it('starts the node summary accordion collapsed and still allows it to close fully after opening', () => {
     const entity: Entity = {
       name: 'Atlas Holdings',
       type: 'ORGANIZATION',
@@ -123,8 +123,10 @@ describe('NetworkGraphInspectorPanel', () => {
       />
     );
 
-    expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
+    expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: /Node Summary/i }));
+    expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Node Summary/i }));
 
     expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();

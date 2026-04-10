@@ -72,8 +72,7 @@ export const useWorkspaceBoardInspectorState = ({
   workspaceHeadlines,
 }: UseWorkspaceBoardInspectorStateInput) => {
   const inspectorSectionState = useExclusivePanelSections(
-    ['quickActions', 'selection', 'provenance'] as const,
-    { initialOpenSection: 'quickActions' }
+    ['quickActions', 'selection', 'provenance'] as const
   );
 
   const handleGenerateSummary = useCallback(async () => {

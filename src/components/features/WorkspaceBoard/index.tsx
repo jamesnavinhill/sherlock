@@ -54,11 +54,13 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     boardAgentReviewSelections,
     boardAgentReviewState,
     boardAgentTodoItems,
+    boardSessionsForBoard,
     boardPendingDeletion,
     closeUploadDialog,
     confirmUploadDialog,
     confirmDeleteCreatedItem,
     createModal,
+    copyToClipboard,
     deleteWorkspaceBoard,
     fileInputRef,
     groupedEntries,
@@ -97,6 +99,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     setUploadRoute,
     setUploadTargetWorkspaceId,
     setBoardAgentAutoApproveOrganizationActions,
+    setBoardAgentActiveSessionId,
     setBoardAgentPrompt,
     setBoardPendingDeletion,
     setCreateModal,
@@ -271,15 +274,17 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
               boardAgentTodoItems={boardAgentTodoItems}
               boardAgentBusy={boardAgentBusy}
               boardAgentPrompt={boardAgentPrompt}
+              boardSessionsForBoard={boardSessionsForBoard}
+              copyToClipboard={copyToClipboard}
               visibleBoardAgentActions={visibleBoardAgentActions}
               visibleBoardAgentSession={visibleBoardAgentSession}
+              onSelectSession={setBoardAgentActiveSessionId}
               onApprovePlan={handleApproveBoardAgentPlan}
               onPromptChange={setBoardAgentPrompt}
               onReviewSelectionChange={handleBoardAgentReviewSelectionChange}
               onSelectStarterIntent={setBoardAgentPrompt}
               onSkipPlan={handleSkipBoardAgentPlan}
               onToggleContext={() => toggleAgentSection('context')}
-              onToggleSession={() => toggleAgentSection('session')}
               onToggleActions={() => toggleAgentSection('actions')}
               onToggleAutoApproveOrganizationActions={
                 setBoardAgentAutoApproveOrganizationActions

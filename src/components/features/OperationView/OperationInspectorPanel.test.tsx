@@ -51,15 +51,17 @@ describe('OperationInspectorPanel', () => {
 
     expect(screen.getByRole('button', { name: 'Open Workspace Chat' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Launch Investigation' })).toBeInTheDocument();
-    expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
+    expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: /Entity Summary/i }));
+    expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Artifact Mentions/i }));
     fireEvent.click(screen.getByRole('button', { name: /Atlas Contract Network/i }));
 
     expect(onNavigate).toHaveBeenCalledWith('artifact-1');
   });
 
-  it('allows the entity summary accordion to collapse fully', () => {
+  it('starts the entity summary accordion collapsed and still allows it to close fully after opening', () => {
     const entity: Entity = {
       name: 'Atlas Holdings',
       type: 'ORGANIZATION',
@@ -91,8 +93,10 @@ describe('OperationInspectorPanel', () => {
       />
     );
 
-    expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
+    expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: /Entity Summary/i }));
+    expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Entity Summary/i }));
 
     expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();

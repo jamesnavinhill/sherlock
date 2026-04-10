@@ -41,6 +41,12 @@ describe('useWorkspaceBoardInspectorState', () => {
       })
     );
 
+    expect(result.current.inspectorSections).toEqual({
+      quickActions: false,
+      selection: false,
+      provenance: false,
+    });
+
     act(() => {
       result.current.toggleInspectorSection('selection');
     });

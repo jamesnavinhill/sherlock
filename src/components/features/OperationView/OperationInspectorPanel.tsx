@@ -76,15 +76,9 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
   onPlaceReportOnBoard,
   onNavigate,
 }) => {
-  const entitySectionState = useExclusivePanelSections(['details', 'mentions', 'connections'] as const, {
-    initialOpenSection: 'details',
-  });
-  const headlineSectionState = useExclusivePanelSections(['content', 'source'] as const, {
-    initialOpenSection: 'content',
-  });
-  const reportSectionState = useExclusivePanelSections(['overview', 'metrics'] as const, {
-    initialOpenSection: 'overview',
-  });
+  const entitySectionState = useExclusivePanelSections(['details', 'mentions', 'connections'] as const);
+  const headlineSectionState = useExclusivePanelSections(['content', 'source'] as const);
+  const reportSectionState = useExclusivePanelSections(['overview', 'metrics'] as const);
 
   const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
   const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';

@@ -94,17 +94,10 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
   onPlaceHeadlineOnBoard,
 }) => {
   const [showIconPicker, setShowIconPicker] = useState(false);
-  const entitySectionState = useExclusivePanelSections(['details', 'mentions', 'connections'] as const, {
-    initialOpenSection: 'details',
-  });
-  const headlineSectionState = useExclusivePanelSections(['content', 'source'] as const, {
-    initialOpenSection: 'content',
-  });
+  const entitySectionState = useExclusivePanelSections(['details', 'mentions', 'connections'] as const);
+  const headlineSectionState = useExclusivePanelSections(['content', 'source'] as const);
   const reportSectionState = useExclusivePanelSections(
-    ['summary', 'entities', 'followUps', 'sources'] as const,
-    {
-      initialOpenSection: 'summary',
-    }
+    ['summary', 'entities', 'followUps', 'sources'] as const
   );
 
   const getEntityDetails = (entityName: string): Entity | null => {

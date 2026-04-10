@@ -107,7 +107,7 @@ describe('ArtifactViewer', () => {
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Atlas Review').length).toBeGreaterThan(1);
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Award timing irregularity').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);
     const findingCard = screen.getByRole('heading', { name: 'Award timing irregularity' }).closest('article');
     expect(findingCard).not.toBeNull();
     const findingSourceLink = within(findingCard as HTMLElement).getByRole('link', {
@@ -118,19 +118,18 @@ describe('ArtifactViewer', () => {
     const findingSupportReference = within(findingCard as HTMLElement).getAllByText('Registry')[1];
     expect(findingSupportReference.className).toContain('osint-inline-reference');
     expect(findingSupportReference.className).not.toContain('border-zinc-700');
+    fireEvent.click(screen.getByRole('button', { name: /Key Findings/i }));
     const findingDisclosure = screen.getByRole('button', {
       name: /1\s*Award timing irregularity/i,
     });
     expect(findingDisclosure).toBeInTheDocument();
+    expect(screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')).toHaveLength(1);
+    fireEvent.click(findingDisclosure);
     expect(
-      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
-        .length
+      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.').length
     ).toBeGreaterThan(1);
     fireEvent.click(findingDisclosure);
-    expect(
-      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
-    ).toHaveLength(1);
-    fireEvent.click(findingDisclosure);
+    expect(screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')).toHaveLength(1);
     expect(screen.queryByText(/\[RUN_ANGLE\]/)).not.toBeInTheDocument();
     expect(screen.queryByText(/\[PRIORITY_SOURCES\]/)).not.toBeInTheDocument();
     expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();
@@ -157,11 +156,6 @@ describe('ArtifactViewer', () => {
     expect(screen.getByRole('button', { name: 'Expand Artifact Details' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Expand Artifact Details' }));
     expect(screen.getByRole('button', { name: 'Collapse Artifact Details' })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Key Findings/i }));
-    expect(
-      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
-    ).toHaveLength(1);
 
     expect(
       screen.queryByText('Trace shared directors across the vendor cluster.')

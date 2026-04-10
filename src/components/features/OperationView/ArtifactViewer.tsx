@@ -132,9 +132,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const {
     openSection: openDetailRailSection,
     toggleSection: toggleDetailRailSection,
-  } = useExclusivePanelSections(['findings', 'followUps', 'entities', 'resources'] as const, {
-    initialOpenSection: 'findings',
-  });
+  } = useExclusivePanelSections(['findings', 'followUps', 'entities', 'resources'] as const);
 
   useEffect(() => {
     return () => stopAudio();
