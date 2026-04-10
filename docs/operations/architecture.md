@@ -132,8 +132,10 @@ Current panel-system rules:
 
 - route-owned surfaces should keep their own data shaping, actions, and copy while rendering through the shared library-rail or global-inspector shells
 - exclusive open/close behavior for accordion-style panel sections should use `useExclusivePanelSections.ts` rather than per-surface toggle helpers
-- Operation View, Timeline, and Network Graph now all adapt their dossier/inspector content into these shared panel contracts instead of keeping separate shell implementations
-- Timeline-specific panel components remain route-local adapters so timeline focus, selection, and handoff behavior stays owned by the Timeline feature even though the chrome is shared
+- Operation View, Timeline, Network Graph, Chat, and WorkspaceBoard now all render their routed rail/inspector chrome through these shared panel contracts instead of keeping separate shell implementations
+- WorkspaceBoard also uses the shared tab shell for its `Inspector` and `Agent` right-panel views
+- ArtifactViewer's detail sidebar is an intentionally specialized shared consumer that composes `LibraryRailHeader.tsx` and `LibraryRailSections.tsx` directly rather than adopting `LibraryRailShell.tsx`, because it is a right-side reader support surface inside the artifact view
+- route-local panel components remain the intended adapter layer so focus, selection, handoff behavior, and surface-specific copy stay owned by their feature even though the chrome is shared
 
 ### Shared icon contract
 

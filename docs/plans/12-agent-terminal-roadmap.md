@@ -1,999 +1,533 @@
 # Agent Terminal Roadmap
 
-Date: April 9, 2026
+Date audited: April 10, 2026
 
-Status: Active (Decision-Locked Roadmap)
+Status: Refreshed roadmap against the live codebase; terminal work is still not started in `src/`
 
 Related inputs:
 
 - `docs/reports/2026-04-09-AGENT-TERMINAL-REPORT.MD`
+- `docs/plans/15-ui-panel-unification-epic.md`
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/DATA_PERSISTENCE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
 - `src/components/features/Chat/ChatPage.tsx`
 - `src/components/features/Chat/useChatController.ts`
-- `src/components/features/Chat/ChatTranscript.tsx`
-- `src/components/features/Chat/ChatComposer.tsx`
+- `src/components/features/Chat/useChatViewState.ts`
 - `src/components/features/Chat/ChatLibraryRail.tsx`
 - `src/components/features/Chat/ChatInspectorPanel.tsx`
+- `src/components/features/Chat/ChatTranscript.tsx`
+- `src/components/features/Chat/chatTranscriptActions.ts`
 - `src/services/chat/runtime.ts`
-- `src/services/workspace/agent/actions/registry.ts`
-- `src/services/db/client.ts`
 - `src/services/db/schema.ts`
-- `src/services/db/repositories/WorkspaceRepository.ts`
+- `src/services/db/repositories/ChatRepository.ts`
+- `src/components/features/Timeline/timelineEventBuilders.ts`
+- `src/services/workspace/home.ts`
+- `src/components/ui/omniboxResultBuilders.ts`
 
-## Intent
+## Goal
 
-This roadmap turns the April 9, 2026 agent terminal report into an execution plan with the major product and architecture decisions folded in.
+Turn Chat into Sherlock's in-app command-and-agent workspace by adding a real embedded terminal, a local shell bridge, first-class agent adapters, and durable ingest paths that fit the current workspace model.
 
-The target is not a toy console and not a generic CLI bolt-on.
+This refresh replaces the earlier April 9 version's "decision-locked" framing with a codebase-aware execution plan.
 
-The target is:
+The product direction is still the same.
 
-- a real embedded terminal inside Sherlock
-- a Chat surface that treats human chat and terminal-agent work as equal first-class modes
-- a local-first bridge that can run real shells and installed agent CLIs
-- a durable ingest path that turns useful terminal output into canonical Sherlock records
+The starting point is not.
 
-This roadmap is intentionally decision-forward.
+## Audit Snapshot
 
-It does not optimize for the smallest possible MVP if that would force immediate refactors.
-It optimizes for a solid first implementation that can remain the long-term foundation.
+### Current read
 
-## Product North Star
+- There is still no terminal subsystem in the app.
+- There is no bridge package in the repo.
+- There are no `xterm.js`, `@xterm/*`, or `node-pty` dependencies in the current package.
+- The app is still a browser-first Vite app with browser-local SQLite via wa-sqlite + IndexedDB.
+- A real shell still cannot run inside the deployed browser app without a companion process.
 
-By the end of this roadmap, the Chat route should feel like Sherlock's command-and-agent workspace:
+### What is already true in the code now
 
-- the left rail still manages workspace/session history
-- the right rail still manages context and related records
-- the center becomes a resizable split workspace
-- one side is the normal Sherlock transcript/composer surface
-- one side is a real terminal surface backed by a local shell
-- either side can be expanded, collapsed, or used alone
+- Chat is a route-backed workspace surface at `/workspaces/:workspaceId/chat` and `/workspaces/:workspaceId/chat/:sessionId`.
+- Chat already has durable sessions, messages, attachments, actions, guided flows, artifact-save flows, follow-up launch flows, and workspace-item promotion hooks.
+- Chat now sits on the shared panel foundations:
+  - `ChatLibraryRail.tsx` renders through `LibraryRailShell.tsx`
+  - `ChatInspectorPanel.tsx` renders through `GlobalInspectorPanel.tsx`
+  - `useChatViewState.ts` uses `useExclusivePanelSections.ts`
+- Timeline, Workspace Home, and the omnibox already surface chat sessions, workspace runs, items, and recent activity as first-class workspace records.
+- Board automation already has an approval-first action layer, which is useful precedent for future agent workflows, but terminal-driven board mutation is still out of scope for this roadmap.
+
+### What changed since the April 9 plan
+
+- The Chat surface no longer needs a panel-foundation migration before terminal work can begin.
+- The current app has stronger controller/view-state seams than the earlier roadmap assumed.
+- Cross-surface integration matters more now because Timeline, Workspace Home, and omnibox are already live and should understand terminal activity once it exists.
+- The repository is still a single-package app, so landing a repo-local bridge now also requires explicit package/script/tooling decisions rather than assuming a package layout already exists.
+
+### Important non-blocker
+
+The cleanup work referenced in `docs/plans/15-ui-panel-unification-epic.md` may rename or trim thin adapters, but it does not materially change the terminal findings in this roadmap.
+
+## North Star
+
+By the end of this roadmap, the Chat route should feel like Sherlock's command workspace:
+
+- the left rail still manages workspace chat/session history
+- the right rail still manages workspace context and related records
+- the center becomes a split workspace
+- one side is the existing Sherlock transcript/composer flow
+- one side is a real embedded terminal backed by a local shell
+- either side can be focused, collapsed, or used alone
 - Sherlock can send context into the terminal
-- Sherlock can ingest useful terminal output back into the workspace
-- the same terminal subsystem supports both manual usage and agent-driven usage
+- Sherlock can ingest useful terminal output back into canonical Sherlock records
+- terminal activity can surface back out through Timeline, Workspace Home, and omnibox without becoming a separate disconnected subsystem
 
-Board control is explicitly deferred.
-The terminal foundation should make future board-agent integration easier, but the first full build stops at shell, agent, and ingest workflows.
+Board control remains explicitly deferred.
 
 ## Locked Decisions
 
 ### 1. Surface decision
 
-- The terminal lives inside the Chat route.
-- The existing left and right rails remain.
-- The central column in `ChatPage.tsx` becomes a split workspace.
-- Default desktop layout is a 50/50 split between chat and terminal.
-- The split is draggable, resizable, and collapsible.
-- Supported desktop modes are:
+- The terminal belongs inside the Chat route.
+- The existing left and right rails stay.
+- The center of `ChatPage.tsx` becomes a split chat-and-terminal workspace.
+- Default desktop mode is a 50/50 split.
+- Supported main-pane modes are:
   - split
   - chat-only
   - terminal-only
 
-### 2. Terminal implementation decision
+### 2. Terminal renderer decision
 
-- Use `xterm.js` for the browser terminal surface.
+- Use `xterm.js`.
 - Do not build a terminal renderer from scratch.
-- Use a real PTY-backed shell host rather than a fake command box.
+- Do not ship a fake command box.
 
-### 3. Bridge packaging decision
+### 3. Shell host decision
 
-Chosen direction:
+- Use a repo-local companion service.
+- The bridge owns PTY creation and shell lifecycle.
+- The browser app talks to that bridge over an explicit transport.
+- The first implementation is still local-first and companion-process based, not desktop-wrapper first.
 
-- build the bridge as a service package inside this repository
-- run it as a local companion process on the user's machine
-- keep the package independently runnable
-- do not require a desktop wrapper for the first full implementation
+### 4. Repo packaging decision
 
-This means the bridge is not embedded into the static Vite app itself, but it is also not a disconnected external project.
+- The bridge should live in this repository as a dedicated package or package-like directory at the repo root.
+- When that lands, the repo should gain the minimal workspace/script wiring needed so install, lint, typecheck, and dev flows stop assuming `src/` is the only code surface.
+- Browser-only code and Node-only bridge code must stay on opposite sides of a small shared contract layer.
 
-Recommended shape:
+### 5. Adapter scope decision
 
-- add a dedicated bridge package directory in the repo
-- give it its own `package.json`
-- keep shared types/contracts in the Sherlock codebase or in a small shared contract module
-
-### 4. Agent adapter decision
-
-Day-one adapters:
+Day-one first-class adapters:
 
 - Codex
 - Gemini CLI
 
-Bonus adapter in the same stream if its contract is stable enough:
+Conditional bonus adapter:
 
 - Amp
 
-The adapter layer must be generic enough that other CLI or SDK-backed agents can be added later without reworking the terminal foundation.
-
-### 5. Pairing and remote-access decision
-
-- LAN support is sufficient for the first full build.
-- The design must be tunnel-friendly by construction.
-- Do not hardcode assumptions that only `localhost` can ever be used.
-- Do not make public multi-user hosting a requirement.
-
-Practical meaning:
-
-- the bridge should support explicit origin allowlists
-- the connection protocol should use an explicit pairing token
-- the transport and auth model should still make sense if the user later exposes the bridge through a tunnel, VPN, or reverse proxy
+Amp should not delay the rest of the delivery.
 
 ### 6. Persistence decision
 
-Terminal and agent runs are first-class records.
+Terminal activity should become first-class Sherlock data.
 
 Sherlock should persist:
 
 - terminal sessions
-- command runs
-- normalized agent runs
-- saved terminal captures
-- extracted outputs that become chat turns, artifact drafts, workspace notes, or follow-ups
+- explicit tracked terminal runs
+- terminal captures/transcripts
+- terminal profiles
 
-Sherlock should not rely on the CLI tool's own shell history as the canonical record.
+Sherlock should not treat the shell's own history file or a tool's local history command as the canonical system of record.
 
-Tool-native history commands may be useful as supplemental import or debugging helpers, but Sherlock-owned run history is the source of truth.
+### 7. Ingest decision
 
-### 7. Output parsing decision
+- Terminal output should reuse the existing Sherlock ingest destinations rather than inventing a second artifact/note/follow-up system.
+- The existing Chat and workspace-item flows are a strength to build on, not something to bypass.
 
-- extraction of useful output is owned by Sherlock
-- parsing should be adapter-aware
-- raw output should remain available for auditability
-- final-answer extraction must degrade gracefully to transcript capture rather than pretending certainty where there is none
+### 8. Cross-surface integration decision
 
-### 8. Initial repository-shape decision
+- Terminal should not become a new top-level app noun or route in the first pass.
+- Explicit tracked terminal runs should feed the existing workspace chronology and search surfaces.
+- First pass should prefer extending the existing `RUN` and Chat-adjacent surfaces over inventing a brand-new top-level `TERMINAL` track everywhere.
 
-- the bridge should live as a repo-local package at the root, not under `src/`
-- browser-only code and Node-only bridge code must not import each other directly
-- shared runtime contracts should live in a small shared module or contract package that both sides can consume
-- the existing browser app remains a Vite app; the bridge is a separate local process with its own lifecycle
+### 9. URL/state ownership decision
 
-### 9. Scope boundary decision
+- Workspace id and chat session id stay URL-owned, as they are today.
+- Split ratio, focused pane, bridge connection state, selected profile, and live terminal attachment state should remain component/store-owned in the first pass.
+- Do not put terminal split mechanics into the URL before the contract is stable.
 
-Included in this roadmap:
+### 10. Remote-connect posture
+
+- Same-machine support is required.
+- LAN pairing is required.
+- Tunnel-friendly design is required.
+- Public multi-user bridge hosting is not required.
+
+### 11. Board boundary decision
+
+Included:
 
 - embedded terminal surface
 - local shell execution
-- Codex and Gemini first-class adapters
-- optional Amp adapter
-- canonical run/session persistence
-- ingest into chat, artifact, note, and follow-up flows
-- explicit pairing and LAN-friendly connectivity
+- Codex and Gemini CLI adapters
+- durable terminal records
+- ingest into chat, artifact, workspace item, and follow-up flows
 
-Explicitly out of scope for this roadmap:
+Deferred:
 
-- board mutation or board-agent execution from terminal output
-- general public multi-user bridge hosting
-- server-side storage of third-party terminal agent credentials
+- terminal-driven board mutation
+- public hosted bridge infrastructure
+- storing third-party CLI credentials in Sherlock
 - replacing Sherlock chat with terminal agents as the only interaction model
 
-## Remaining Ambiguity Resolved
+## Current Architecture Fit
 
-This section closes the main ambiguities from the report so implementation can start from one coherent plan.
+### Chat is ready to host the terminal
 
-### Bridge host shape
+The current Chat route already has the right high-level shape:
 
-Resolved:
+- route-backed session selection
+- a dedicated controller in `useChatController.ts`
+- a feature-local view-state seam in `useChatViewState.ts`
+- shared left and right rails
+- durable transcript/actions/attachments
 
-- use a repo-local service package, not a separate ad hoc app and not a desktop wrapper first
+Terminal work should layer onto that structure instead of reworking it.
 
-Reason:
+### Sherlock already has strong ingest destinations
 
-- it gives Sherlock one coherent codebase and test surface while preserving the option to bundle the bridge later in Electron, Tauri, or another wrapper if the local workflow proves valuable
+Useful terminal output should be able to land in the same destinations Chat already supports today:
 
-### Canonical history source
+- save as artifact draft
+- append to an existing artifact
+- promote excerpts into workspace items
+- launch follow-up runs
 
-Resolved:
+The existing logic in `chatTranscriptActions.ts` and `src/services/chat/runtime.ts` is strong evidence that ingest can be consistent across chat and terminal flows.
 
-- Sherlock-owned terminal/session/run persistence is canonical
-- shell history and tool-native history remain optional supporting inputs only
+### Sherlock already has places to surface terminal history
 
-Reason:
+Once terminal records exist, they should feed:
 
-- the product needs one stable audit and ingest model that does not depend on which shell or CLI happened to be used
+- Timeline via the existing event builders
+- Workspace Home recent activity and counts
+- omnibox search/results
 
-### Parsing ownership
+That is now a real requirement because those surfaces already exist in active code.
 
-Resolved:
+### Repo structure needs to be part of the implementation
 
-- Sherlock owns final-answer extraction and confidence scoring
-- adapters can expose tool-specific signals, but the product contract remains Sherlock-owned
+The current repo is still one `package.json` with scripts that assume front-end-only code:
 
-Reason:
+- `lint` only targets `src/`
+- `typecheck` only covers the current TS app
+- there is no workspace package wiring yet
 
-- the UI and persistence model need one normalized result contract across manual shells, Codex, Gemini, and future tools
+The bridge stream therefore has to include repo-tooling work, not just runtime code.
 
-### Remote-connect posture
+## Additional Design Clarifications
 
-Resolved:
+### Host-local shell profiles, not Windows-only assumptions
 
-- LAN-first is the required support level
-- tunnel-friendly is a design constraint, not a launch requirement
+The old report correctly emphasized PowerShell, `cmd.exe`, and Git Bash for Windows-hosted usage.
 
-Reason:
+The refreshed plan adds one important constraint:
 
-- this preserves the "use Sherlock from the phone while the home machine is online" path without expanding the first release into public bridge hosting
+- the bridge must treat shell profiles as host-local
+- if the bridge is running under WSL/Linux/macOS, a POSIX shell profile such as `bash` should be a valid first-class profile
+- adapter invocation must not assume the bridge always runs as a Windows-native process
 
-### First-class adapter scope
+That keeps the architecture honest for both local development and future non-Windows use.
 
-Resolved:
+### Explicit tracked runs versus ambient shell noise
 
-- Codex and Gemini are mandatory
-- Amp is conditional on CLI stability during implementation and must not delay the rest of the roadmap
+The terminal pane should support a persistent shell session.
 
-Reason:
-
-- this keeps the first build focused while still leaving a clear slot for Amp
-
-## Bridge Packaging Options
-
-This section explains the main packaging choices and why the roadmap selects the repo-local service package.
-
-### Option A. Tiny Node app outside the repo
-
-What it is:
-
-- a small separate local service, likely in another repo or folder, that the browser app connects to
-
-Technical advantages:
-
-- fastest path to a proof of concept
-- minimal coupling to the main build
-- can evolve independently of the front-end release cadence
-
-Technical costs:
-
-- duplicated contracts or awkward cross-repo syncing
-- easier for the browser app and bridge to drift
-- shared types, data contracts, and ingest logic become harder to keep aligned
-- more friction for tests and docs
-
-Practical advantages:
-
-- simple mental model for hacking locally
-- easy to restart and debug independently
-
-Practical costs:
-
-- feels like "another thing" the project depends on
-- worse onboarding
-- higher chance the bridge becomes a personal sidecar rather than a supported product feature
-
-Verdict:
-
-- good for a spike
-- not the best choice for the intended productized implementation
-
-### Option B. Desktop companion app first
-
-What it is:
-
-- an Electron, Tauri, or similar desktop shell that hosts or bundles the bridge
-
-Technical advantages:
-
-- easier access to local OS features
-- clearer installer/autostart/tray/system integration story
-- smoother future path for deep local integrations
-
-Technical costs:
-
-- packaging complexity
-- code-signing and update complexity
-- larger build and release surface
-- distracts the project into desktop-app concerns before the terminal contract itself is stable
-
-Practical advantages:
-
-- polished local-user experience
-- one obvious install target
-
-Practical costs:
-
-- much heavier build commitment
-- more maintenance overhead
-- slower iteration on the actual agent-terminal workflows
-
-Verdict:
-
-- a viable later wrapper if the bridge proves valuable
-- not the right first implementation shape
-
-### Option C. Service package in the repo
-
-What it is:
-
-- a dedicated local bridge package that lives in this repository, runs independently, and shares contracts cleanly with the app
-
-Technical advantages:
-
-- one codebase
-- shared contracts and types stay close to the feature
-- docs, persistence, parsing, and ingest logic can evolve together
-- easier to test end to end
-- still flexible enough to be wrapped later in a desktop shell if desired
-
-Technical costs:
-
-- introduces a multi-process local development story
-- requires a little more repo structure than the current single-app setup
-- needs careful contract boundaries so the browser app does not accidentally depend on Node-only code
-
-Practical advantages:
-
-- feels like part of Sherlock, not a bolt-on
-- easier install and onboarding story
-- can remain local-first without committing to desktop packaging yet
-
-Practical costs:
-
-- users still need to run one extra local process
-- local bridge lifecycle and status need to be visible in the app
-
-Verdict:
-
-- best fit for this project now
-- chosen direction for this roadmap
-
-## History, Persistence, And Auditability
-
-The right persistence model is not "save whatever scrollback happens to exist."
-It is "persist meaningful terminal and agent activity as structured Sherlock records, while preserving the raw transcript when useful."
-
-### Canonical persistence scope
-
-Persist these as first-class entities:
-
-- `TerminalSession`
-- `TerminalCommandRun`
-- `AgentBridgeProfile`
-- `TerminalCapture`
-
-Recommended semantic split:
-
-- `TerminalSession`: the long-lived shell session or logical connection
-- `TerminalCommandRun`: one explicit command invocation or tracked agent launch
-- `TerminalCapture`: the persisted transcript bundle for a run or selected terminal range
-- `AgentBridgeProfile`: shell profile or agent profile metadata
-
-### What should always be stored
-
-- session id
-- run id
-- command or launch request metadata
-- shell or adapter profile used
-- start time and end time
-- completion status
-- normalized extracted output when available
-- raw output reference or raw transcript payload
-- user-vs-agent initiation metadata
-
-### What should be optional or bounded
-
-- full continuous scrollback for long manual shell sessions
-- noisy background output that never becomes a deliberate run
-- extremely large raw outputs that should be capped or chunked
-
-Recommended storage rule:
-
-- explicit command runs and explicit agent launches get durable transcript capture
-- ambient manual terminal noise can remain session-local unless the user saves or promotes it
-
-### Recommended initial persistence shape
-
-The exact column names can change during implementation, but the first schema cut should plan for these record boundaries:
-
-- `terminal_sessions`
-- `terminal_command_runs`
-- `terminal_captures`
-- `agent_bridge_profiles`
-
-Recommended minimum fields:
-
-- `terminal_sessions`
-  - `id`
-  - `workspace_id` nullable
-  - `profile_id`
-  - `session_kind` such as `SHELL` or `AGENT`
-  - `title`
-  - `status`
-  - `created_at`
-  - `updated_at`
-- `terminal_command_runs`
-  - `id`
-  - `session_id`
-  - `adapter_kind` nullable
-  - `initiated_by` such as `USER` or `SHERLOCK`
-  - `command_text`
-  - `prompt_text` nullable
-  - `status`
-  - `started_at`
-  - `completed_at` nullable
-  - `exit_code` nullable
-  - `final_answer_text` nullable
-  - `normalized_output_text` nullable
-  - `parser_confidence` nullable
-  - `metadata_json`
-- `terminal_captures`
-  - `id`
-  - `run_id`
-  - `stream_kind` such as `STDOUT`, `STDERR`, or `MERGED`
-  - `content_text`
-  - `sequence_number`
-  - `created_at`
-- `agent_bridge_profiles`
-  - `id`
-  - `kind` such as `POWERSHELL`, `CMD`, `GIT_BASH`, `CODEX`, `GEMINI`, `AMP`
-  - `label`
-  - `command`
-  - `args_json`
-  - `cwd_strategy`
-  - `env_policy`
-  - `metadata_json`
-
-Design rule:
-
-- transcript payloads can be chunked for storage, but the product should present them as one coherent capture per run
-
-### Tool-native history
-
-Each CLI tool may have its own history or local state commands.
-Those can help with support or secondary import workflows, but they should not define Sherlock's primary history model.
-
-Why:
-
-- tool-native history formats vary
-- some tools do not expose clean structured history
-- some sessions are interactive rather than run-oriented
-- Sherlock needs one unified record model across shells and agents
-
-## Output Normalization And Final-Answer Extraction
-
-The parsing system should favor clarity, auditability, and adapter-specific confidence.
-
-### Parsing principles
-
-- keep the raw stream
-- normalize the run
-- extract the best answer only when the signal is strong enough
-- never discard the raw transcript in favor of an overconfident summary
-
-### Parsing model
-
-For every tracked run, store:
-
-- raw stdout stream
-- raw stderr stream
-- structured lifecycle events where available
-- normalized `content`
-- optional `finalAnswer`
-- optional `warnings`
-- parser confidence metadata
-
-### Extraction priority order
-
-1. Adapter-provided structured output
-2. Explicit final-answer markers or machine-readable blocks
-3. Recognized tool-specific response conventions
-4. Clean tail-section extraction from the transcript
-5. Fallback to full normalized transcript with no special final-answer claim
-
-### Adapter-specific behavior
-
-Codex adapter should support:
-
-- machine-readable mode if available
-- explicit prompt framing from Sherlock
-- capture of the final assistant answer separately from progress chatter when possible
-
-Gemini adapter should support:
-
-- machine-readable or quiet/plain modes if available
-- adapter-level extraction rules for known Gemini CLI output patterns
-
-Amp adapter should support:
-
-- the same contract as the others
-- ship only if its local CLI behavior is stable enough to normalize without hacks
-
-### Seamless product behavior
-
-When the parser has high confidence:
-
-- show the extracted answer as the primary result
-- keep a "view transcript" affordance
-
-When confidence is moderate or low:
-
-- show the normalized transcript result
-- avoid pretending there is a clean final answer if the tool did not really provide one
-
-### Normalized run result contract
-
-The implementation should converge on one shared result shape equivalent to:
-
-```ts
-type NormalizedTerminalRunResult = {
-  runId: string;
-  sessionId: string;
-  adapterKind?: 'CODEX' | 'GEMINI' | 'AMP';
-  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
-  finalAnswer?: string;
-  normalizedContent: string;
-  warnings?: string[];
-  parser: {
-    strategy:
-      | 'STRUCTURED_OUTPUT'
-      | 'MARKER_BLOCK'
-      | 'TOOL_PATTERN'
-      | 'TAIL_EXTRACTION'
-      | 'FULL_TRANSCRIPT';
-    confidence: number;
-  };
-  metadata?: Record<string, unknown>;
-};
-```
-
-The exact type location can change, but the browser app, persistence layer, and bridge should all align on one equivalent contract.
-
-## Local, LAN, And Tunnel-Friendly Pairing
-
-The first implementation only needs to work well on the same machine or LAN.
-However, the protocol should not be painted into a corner.
-
-### First-class supported modes
-
-- same-machine local connection
-- LAN pairing on a trusted network
-
-### Tunnel-friendly by design means
-
-- no assumption that the browser origin must equal the bridge origin
-- explicit origin allowlist support
-- explicit pairing token or session token
-- no hardcoded localhost-only URL logic in the app
-- transport abstractions that still make sense behind a tunnel or reverse proxy
-
-### What is not required initially
-
-- public internet exposure by default
-- multi-user bridge hosting
-- hosted bridge infrastructure
-- automatic NAT traversal
-
-### Pairing model recommendation
-
-The initial bridge should use:
-
-- explicit bridge enablement by the local user
-- one-time pairing token generation
-- origin allowlist checks
-- short-lived authenticated browser sessions on successful pair
-
-Do not rely on "it is on localhost so it is safe" as the only trust boundary.
-
-## Shell Profiles And Session Model
-
-The terminal subsystem should support both generic shells and named agent launch profiles.
-
-### Day-one shell profiles
-
-- PowerShell / `pwsh` when available
-- `cmd.exe`
-- Git Bash if installed and configured
-
-### Session model
-
-There are two valid session styles:
-
-- persistent shell sessions for manual usage
-- tracked run sessions for agent-oriented invocations
+It should not persist every byte of ambient scrollback as a first-class run.
 
 Recommended rule:
 
-- the UI can expose a persistent shell pane for normal use
-- explicit Sherlock-triggered command launches should still create tracked run records inside that session context
+- Sherlock-triggered launches always create tracked terminal runs
+- user-invoked "tracked command" actions create tracked runs
+- ambient manual shell output can remain session-local unless the user saves or promotes it
 
-### Working-directory behavior
+### Simpler terminal record naming
 
-Default working-directory rule:
+Use simple product nouns in the new terminal model:
 
-- use the current Sherlock project root when the user is working inside this repository
-- allow future workspace-specific cwd behavior through profile config
+- `TerminalSession`
+- `TerminalRun`
+- `TerminalCapture`
+- `TerminalProfile`
 
-### Environment policy
+The old `TerminalCommandRun` and `AgentBridgeProfile` wording is workable, but the simpler names fit the current codebase better and cover both manual shell runs and agent launches cleanly.
 
-Profiles should define whether they:
+## Phase Status
 
-- inherit the parent process environment
-- add or override specific env vars
-- require preflight checks for executable discovery
+### Phase 0: Foundations Already Landed
 
-## Browser And Bridge Protocol Model
+Status: Complete
 
-The bridge protocol should not be left implicit.
+What this phase means in today's code:
 
-### Browser-to-bridge event families
+- Chat already has durable sessions/messages/actions and good controller seams.
+- Chat already uses the shared library-rail and shared inspector foundations.
+- Chat already has promotion, artifact-save, append, and follow-up launch actions.
+- Timeline, Workspace Home, and omnibox already expose adjacent workspace record types.
 
-- connection and pairing
-- terminal session create/attach/detach
-- terminal input
-- terminal resize
-- tracked run launch
-- tracked run cancel
-- transcript fetch
-- profile discovery
+This phase is the reason the roadmap can now focus on terminal-specific work.
 
-### Bridge-to-browser event families
+### Phase 1: Terminal Domain Model And Persistence
 
-- connection status
-- pairing required / pairing accepted
-- terminal output chunk
-- run status update
-- normalized result available
-- session closed
-- bridge error
-
-Design rule:
-
-- manual terminal streaming and tracked agent runs may share transport, but they must remain distinct at the event-model level
-
-## Agent Adapter Strategy
-
-The bridge needs two related but separate layers:
-
-- terminal shell execution
-- agent adapter execution
-
-The terminal must still work even if no agent adapters are installed.
-
-### Day-one first-class adapters
-
-#### Codex
-
-Requirements:
-
-- launch installed CLI
-- pass prompt/context reliably
-- capture stdout/stderr cleanly
-- normalize final answer and transcript
-- support Sherlock-owned ingest actions
-
-#### Gemini CLI
-
-Requirements:
-
-- same contract as Codex
-- support installed local auth flow
-- adapter-specific extraction rules where needed
-
-### Bonus adapter
-
-#### Amp
-
-Requirements:
-
-- only ship as first-class if local CLI behavior and invocation contract are stable enough during implementation
-- otherwise leave the generic terminal surface ready for it and add the adapter immediately after the core contract lands
-
-### Adapter implementation rules
-
-- adapters must declare how they accept prompts
-- adapters must declare whether they support machine-readable or quiet output modes
-- adapters must expose their parser strategy
-- adapters must not leak tool-specific noise into the normalized Sherlock contract when a cleaner extraction is available
-- adapters may still preserve full raw output for audit and debugging
-
-## Architecture Shape In This Repo
-
-Recommended repository additions:
-
-- a new bridge package directory at repo root, for example `agent-bridge/`
-- a shared contract module or package for browser/bridge types
-- shared browser-side terminal service code under `src/services/terminal/`
-- new Chat layout and terminal components under `src/components/features/Chat/`
-- persistence types and repository support under existing `src/services/db/` and `src/types/`
-
-Recommended bridge package internals:
-
-- transport server
-- PTY session manager
-- shell profile registry
-- agent adapter registry
-- parsing/normalization helpers
-- pairing/auth helpers
-- platform detection helpers
-
-### Browser-side responsibilities
-
-- render terminal UI with `xterm.js`
-- maintain split-pane state and panel focus state
-- connect to the bridge over websocket
-- send keystrokes, resize events, and run requests
-- show run state, session state, and adapter state
-- ingest saved outputs into canonical Sherlock records
-
-### Bridge responsibilities
-
-- own PTY creation and shell lifecycle
-- spawn PowerShell, `cmd`, Git Bash, and agent CLIs
-- manage pairing, origins, and connection auth
-- emit terminal stream events
-- emit normalized run lifecycle events
-- expose agent adapter actions on top of raw terminal execution
-
-### Shared-contract responsibilities
-
-- define terminal session and run types
-- define normalized adapter result shapes
-- define ingest request and response shapes
-- define parser confidence and extraction metadata
-
-## Delivery Model
-
-This is a full-build roadmap, not a throwaway prototype ladder.
-
-Streams are still useful for sequencing, but each stream should land in a durable shape that the final product keeps.
-
-Recommended order:
-
-1. contracts and persistence
-2. bridge package and pairing
-3. Chat surface refactor and terminal UI
-4. manual terminal workflow and tracked run model
-5. adapter layer and parsing
-6. ingest workflows
-7. polish, remote-friendly hardening, and docs closeout
-
-## Stream 1. Contracts And Persistence Foundation
+Status: Not started
 
 Purpose:
 
-- introduce the canonical record model for terminal and agent activity
-- create the contracts that both the browser app and bridge will share
+- add a canonical terminal data model before any browser or bridge code depends on it
 
 Primary targets:
 
 - `src/types/index.ts`
 - `src/services/db/schema.ts`
-- `src/services/db/migrations.ts`
 - `src/services/db/migrations_sql.ts`
-- `src/services/db/repositories/*`
-- `src/services/chat/runtime.ts`
-- any new `src/services/terminal/*` contract modules
+- new terminal repositories under `src/services/db/repositories/`
+- `docs/operations/DATA_PERSISTENCE.md`
 
-Execution checklist:
+Recommended additions:
 
-1. Add the terminal and agent record types.
-2. Define run status, session status, initiation source, and adapter metadata.
-3. Add persistence support for sessions, runs, captures, and profile metadata.
-4. Define transcript storage rules and any chunking or size-limit rules.
-5. Define the normalized extracted-output shape.
-6. Add repository helpers for create, update, attach capture, and ingest flows.
-7. Keep the persistence model aligned with existing chat, artifact, and workspace patterns.
+- `TerminalSession`
+- `TerminalRun`
+- `TerminalCapture`
+- `TerminalProfile`
+
+Recommended modeling rules:
+
+- keep terminal records separate from `WorkspaceRun`
+- link terminal records back to `workspaceId` when applicable
+- distinguish `runKind` such as `COMMAND` or `AGENT`
+- distinguish `initiatedBy` such as `USER` or `SHERLOCK`
+- preserve normalized result data and raw capture references together
 
 Exit criteria:
 
-- terminal and agent runs have a stable persisted contract
-- Sherlock can store both normalized results and raw capture references
-- the data model is ready before the UI and bridge bind to it
+- terminal records have a stable persisted contract
+- raw transcript storage rules are defined
+- browser and bridge work can share one clear model
 
-Docs to update on landing:
+### Phase 2: Repo-Local Bridge Package And Tooling
 
-- `docs/operations/DATA_PERSISTENCE.md`
-- `docs/operations/ARCHITECTURE.md`
-
-## Stream 2. Local Bridge Package And Pairing
+Status: Not started
 
 Purpose:
 
-- build the real local companion process that owns the shell and agent execution environment
+- add the real local companion process and the repo shape needed to support it
 
 Primary targets:
 
-- new repo-local bridge package
-- shared contracts used by both app and bridge
-- run scripts and local-dev wiring
+- new root bridge package or equivalent root service directory
+- shared contract module between app and bridge
+- root script/tooling updates
 
-Execution checklist:
+Execution notes:
 
-1. Create the repo-local bridge package.
-2. Add websocket transport for terminal streams and run lifecycle events.
-3. Add PTY support through `node-pty`.
-4. Support PowerShell, `cmd`, and Git Bash shell profiles.
-5. Add explicit bridge status and pairing state.
-6. Add origin allowlist support.
-7. Add pairing-token or equivalent session-auth mechanism.
-8. Keep the protocol LAN-friendly and tunnel-safe by design.
+- add websocket transport for streaming, status, and control events
+- add PTY support through `node-pty`
+- support host-local shell profiles
+- add explicit origin allowlists
+- add explicit pairing token or equivalent session-auth mechanism
+- update repo scripts so validation covers both browser and bridge code once the bridge lands
 
 Exit criteria:
 
-- Sherlock can connect to a local bridge reliably
-- the bridge can host real PTY-backed shell sessions
-- pairing is explicit and not implicitly trusted
+- Sherlock can connect to a real local bridge
+- the bridge can host PTY-backed shell sessions
+- the repo has a coherent install/dev/validation story for both sides
 
-Docs to update on landing:
+Docs to update when this lands:
 
+- `README.md`
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
-- `README.md`
 
-## Stream 3. Chat Surface Refactor And Embedded Terminal UI
+### Phase 3: Browser Terminal Client And Chat Split Workspace
+
+Status: Not started
 
 Purpose:
 
-- reshape Chat into the dual-surface command workspace without bolting the terminal on as a side modal
+- embed the terminal into the current Chat route without undoing the now-landed shared panel architecture
 
 Primary targets:
 
 - `src/components/features/Chat/ChatPage.tsx`
-- `src/components/features/Chat/useChatController.ts`
-- new split layout components under `src/components/features/Chat/`
-- new browser-side terminal client service under `src/services/terminal/`
+- `src/components/features/Chat/useChatViewState.ts` or a new sibling terminal-view-state hook
+- new chat terminal/split components under `src/components/features/Chat/`
+- new browser-side terminal client code under `src/services/terminal/`
 
-Execution checklist:
+Execution notes:
 
-1. Preserve the left and right rails.
-2. Replace the center chat column with a split workspace layout.
-3. Add drag-resize behavior for desktop split panes.
-4. Add chat-only and terminal-only focus modes.
-5. Add responsive behavior for smaller screens without destroying access to either surface.
-6. Add bridge connection state and shell/profile controls.
-7. Add visible terminal session and run state in the UI.
-8. Keep the surface visually aligned with Sherlock chrome rather than dropping in a generic developer-console look.
+- preserve `ChatLibraryRail.tsx` and `ChatInspectorPanel.tsx`
+- replace the center single-column layout with a split workspace
+- add pane resize, collapse, and focus modes
+- add bridge connection state and profile controls
+- keep responsive behavior usable on narrow screens
+- keep terminal pane state out of the URL in the first pass
 
 Exit criteria:
 
-- Chat works as a split command workspace
-- the terminal feels native to Sherlock
-- the layout remains usable on desktop and mobile
+- Chat can render transcript/composer and terminal side by side
+- the terminal feels native to Sherlock chrome
+- the existing rails continue to behave correctly
 
-## Stream 4. Manual Terminal Workflow And Tracked Run Model
+### Phase 4: Manual Shell Workflow And Run Tracking
+
+Status: Not started
 
 Purpose:
 
-- make the embedded terminal useful even before adapter-specific intelligence is layered on top
-- ensure manual shell usage and Sherlock-tracked runs can coexist cleanly
+- make the terminal useful before adapter-specific intelligence is layered on top
 
 Primary targets:
 
-- browser-side terminal client state
-- bridge-side session manager
-- persistence integration for sessions and tracked runs
+- browser terminal client state
+- bridge session manager
+- terminal repositories
 
-Execution checklist:
+Execution notes:
 
-1. Support persistent shell attachment in the UI.
-2. Distinguish ambient shell streaming from explicit tracked runs.
-3. Persist tracked commands and their transcript captures.
-4. Add run status surfaces to the Chat terminal pane.
-5. Add session restart, reconnect, and disconnect behavior.
-6. Make manual terminal use feel first-class rather than a hidden support feature.
+- support persistent shell attachment
+- allow attach/detach/reconnect behavior
+- distinguish ambient shell output from explicit tracked runs
+- surface run status and capture affordances in the terminal pane
+- support saving or promoting useful output even before adapter-specific parsing exists
 
 Exit criteria:
 
-- the embedded terminal is valuable even with no agent-specific adapter selected
-- the product can distinguish a passive shell session from a deliberate tracked run
-- the persistence model is exercised by real terminal usage before adapter-specific work lands
+- the embedded terminal is useful even without agent adapters
+- explicit runs can be persisted and reopened cleanly
+- reconnect and disconnect behavior is clear to the user
 
-## Stream 5. Agent Adapters And Parsing
+### Phase 5: Agent Adapters And Parsing
+
+Status: Not started
 
 Purpose:
 
-- make the terminal useful as an agent workspace with first-class adapter semantics
+- make the terminal a first-class agent workspace rather than only a manual shell pane
 
 Primary targets:
 
-- bridge adapter modules for Codex and Gemini
+- bridge adapter modules for Codex and Gemini CLI
 - optional Amp adapter
 - parsing and normalization helpers
-- normalized run result contract
+- shared normalized run-result contract
 
-Execution checklist:
+Execution notes:
 
-1. Add the Codex adapter.
-2. Add the Gemini CLI adapter.
-3. Add Amp if the local invocation contract is stable enough.
-4. Implement normalized result objects across adapters.
-5. Implement final-answer extraction with confidence metadata.
-6. Preserve raw transcript access for every tracked run.
-7. Keep Sherlock-owned history canonical instead of depending on tool-native history.
+- adapters must declare prompt/input strategy
+- adapters must declare whether they support machine-readable or quiet output
+- Sherlock owns the normalized result contract
+- raw transcript remains available for auditability
+- fallback parsing should degrade to transcript capture when confidence is low
 
 Exit criteria:
 
-- Codex and Gemini feel first-class inside Sherlock
-- parsing behavior is adapter-aware and predictable
-- raw and normalized results both remain available
+- Codex and Gemini work through one normalized Sherlock contract
+- final-answer extraction is adapter-aware but not overconfident
+- manual shell and adapter-driven runs can coexist cleanly
 
-## Stream 6. Ingest Workflows And Workspace Integration
+### Phase 6: Ingest And Cross-Surface Integration
+
+Status: Not started
 
 Purpose:
 
-- connect terminal and adapter results back into Sherlock's existing product model
+- connect terminal output back into Sherlock's existing workspace flows
 
 Primary targets:
 
-- browser-side ingest actions
-- chat/artifact/workspace integration helpers
-- persistence links between runs and promoted records
+- terminal ingest actions in Chat
+- Timeline event builders
+- Workspace Home recent-activity/count derivation
+- omnibox result builders and open actions
 
-Execution checklist:
+Execution notes:
 
-1. Add save-as-chat flow.
-2. Add save-as-artifact-draft flow.
-3. Add save-as-workspace-note or excerpt flow.
-4. Add follow-up extraction flow.
-5. Preserve linkage from saved record back to the originating terminal run.
-6. Make transcript review available wherever a normalized result is surfaced.
+- reuse existing artifact-draft, append, workspace-item, and follow-up pathways
+- route terminal open actions back through the Chat route rather than inventing a terminal route
+- first pass should surface tracked terminal runs through existing run-oriented chronology/search surfaces
+- add detail affordances for transcript/capture access where useful
 
 Exit criteria:
 
-- outputs can be ingested into the existing workspace system cleanly
-- users can move from terminal result to Sherlock record without copy-paste glue work
-- raw and normalized results both remain available
+- a useful terminal result can become a chat turn, artifact draft, workspace item, or follow-up
+- terminal activity is discoverable in Timeline, Workspace Home, and omnibox
+- the feature feels integrated with Sherlock rather than bolted beside it
 
-## Stream 7. Remote-Friendly Hardening, Quality Sweep, And Documentation Closeout
+### Phase 7: Hardening, Remote-Friendly Pairing, Docs, And Validation
+
+Status: Not started
 
 Purpose:
 
-- finish the system in a durable state without turning the first implementation into a one-off local hack
+- finish the bridge and terminal feature in a supportable, documented shape
 
 Primary targets:
 
-- bridge security and pairing hardening
-- connection UX
-- docs and operational guidance
+- pairing/auth hardening
+- reconnect/error handling
+- docs and validation scripts
 
-Execution checklist:
+Execution notes:
 
-1. Harden origin allowlist behavior and pairing lifecycle.
-2. Confirm the design remains compatible with LAN and optional tunnel use.
-3. Normalize connection, reconnect, and bridge-offline states in the UI.
-4. Add operational guidance for local bridge usage.
-5. Add architecture documentation for app-to-bridge boundaries.
-6. Add persistence documentation for terminal and agent records.
-7. Document any platform-specific shell profile setup behavior for Windows.
+- confirm LAN pairing behavior
+- confirm tunnel-friendly origin/session assumptions
+- document local-bridge setup and troubleshooting
+- expand validation so bridge code is no longer outside the normal repo gate
 
 Exit criteria:
 
-- the feature is clearly documented
-- local use is reliable
-- remote use is not blocked by brittle localhost-only assumptions
-- the user can understand what is running where
+- same-machine and LAN pairing are solid
+- the remote-pairing posture is explicit and auditable
+- docs describe the real install/run/troubleshooting flow
 
-## Validation Standard
+## Implementation Order
 
-Default expectation per stream:
+Recommended order:
 
-- `npm run lint`
-- `npm run typecheck`
-- the most relevant targeted test command(s)
-- `npm run build` when shipped app code or shared runtime behavior changes
+1. Phase 1: terminal domain model and persistence
+2. Phase 2: bridge package and repo tooling
+3. Phase 3: browser terminal client and Chat split workspace
+4. Phase 4: manual shell workflow and tracked runs
+5. Phase 5: Codex and Gemini adapters plus parsing
+6. Phase 6: ingest and cross-surface integration
+7. Phase 7: hardening, docs, and closeout
 
-Additional validation expectations for this roadmap:
+This ordering still holds because the current app already has strong product surfaces to integrate into, and those surfaces will be cleaner to wire once the terminal contract exists first.
 
-- browser-side component tests for the Chat split layout
-- terminal client state tests
-- repository tests for terminal and agent persistence
-- bridge protocol tests where feasible
-- adapter-level parsing tests for Codex and Gemini
-- ingest-flow tests linking terminal runs to chat/artifact/note/follow-up actions
+## Acceptance Criteria For The Full Roadmap
 
-Do not rely on manual smoke testing alone for parsing or persistence correctness.
+The roadmap is done when all of these are true:
 
-## Completion Standard
+- Chat hosts a real embedded terminal backed by a local bridge
+- Sherlock can run both manual shells and first-class agent adapters from that surface
+- terminal sessions and explicit runs persist as canonical Sherlock records
+- useful terminal output can be promoted into existing workspace flows
+- Timeline, Workspace Home, and omnibox can discover meaningful terminal activity
+- pairing is explicit, origin-aware, and tunnel-friendly by design
+- board control is still deferred rather than leaking in as accidental scope creep
 
-This roadmap is complete only when:
+## Summary
 
-1. Chat is a real split workspace with embedded terminal support
-2. the terminal is PTY-backed and supports real local shells
-3. Codex and Gemini are first-class adapters
-4. Amp is either shipped or intentionally deferred behind an explicit post-roadmap note
-5. terminal and agent runs persist as canonical Sherlock records
-6. normalized extracted results and raw transcripts are both available
-7. the bridge is local-first, explicitly paired, and LAN-friendly
-8. the architecture is tunnel-friendly by design even if public remote use is not the default
-9. the new runtime boundary is documented clearly in Sherlock's operational docs
+The main update is simple:
+
+- the product direction from April 9 still holds
+- the codebase is better prepared than that first roadmap assumed
+- the next work should focus on terminal contracts, bridge boundaries, and integrated workspace behavior rather than on pre-terminal Chat cleanup
+
+Sherlock no longer needs a terminal plan that starts from "refactor Chat until it is ready."
+
+It needs a terminal plan that starts from "Chat is ready enough, so now design the terminal to fit the real workspace architecture we already have."
