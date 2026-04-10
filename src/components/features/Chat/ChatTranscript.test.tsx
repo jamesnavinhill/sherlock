@@ -49,7 +49,8 @@ describe('ChatTranscript', () => {
     );
 
     expect(screen.getByText('Latest workspace update.')).toBeInTheDocument();
-    expect(screen.getByTestId('chat-transcript-shell')).toHaveClass('border-x', 'border-t');
+    expect(container.firstChild).toHaveClass('pt-2');
+    expect(screen.getByTestId('chat-transcript-shell')).toHaveClass('border');
     const scrollRegion = container.querySelector('[data-app-scroll-region]');
     expect(scrollRegion).not.toBeNull();
     expect(scrollRegion).toHaveClass('custom-scrollbar');

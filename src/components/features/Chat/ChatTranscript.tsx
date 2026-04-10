@@ -75,9 +75,9 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
     : 'min-h-full justify-end';
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black px-4 sm:px-6">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black px-4 pt-2 sm:px-6">
       <div
-        className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border-x border-t border-zinc-800"
+        className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border border-zinc-800"
         data-testid="chat-transcript-shell"
       >
         <div
