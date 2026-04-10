@@ -336,7 +336,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   toasts: [],
   navStack: [],
   isSidebarCollapsed: true,
-  themeMode: 'dark',
+  themeMode: 'light',
   themeColor: buildAccentColor(DEFAULT_ACCENT_SETTINGS),
   accentSettings: DEFAULT_ACCENT_SETTINGS,
   themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,

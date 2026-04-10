@@ -81,26 +81,34 @@ interface InvestigationRouteViewProps {
 }
 
 interface ChatRouteViewProps {
+  activeChatSessionId: string | null;
+  activeWorkspaceId: string | null;
   setActiveWorkspaceId: (id: string | null) => void;
   setActiveChatSessionId: (id: string | null) => void;
   chatSessions: ChatSession[];
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
+  workspaces: Workspace[];
 }
 
 interface BoardRouteViewProps {
+  activeWorkspaceBoardId: string | null;
+  activeWorkspaceId: string | null;
   setActiveWorkspaceId: (id: string | null) => void;
   setActiveWorkspaceBoardId: (id: string | null) => void;
   workspaceBoards: WorkspaceBoardRecord[];
   onViewReport: (report: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
+  workspaces: Workspace[];
 }
 
 interface WorkspaceScopedRouteViewProps {
+  activeWorkspaceId: string | null;
   setActiveWorkspaceId: (id: string | null) => void;
   onViewReport: (report: Artifact) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
+  workspaces: Workspace[];
 }
 
 interface WorkspaceHomeRouteViewProps {
@@ -256,10 +264,13 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
 };
 
 export const ChatRouteView: React.FC<ChatRouteViewProps> = ({
+  activeChatSessionId,
+  activeWorkspaceId,
   setActiveWorkspaceId,
   setActiveChatSessionId,
   chatSessions,
   onLaunchInvestigation,
+  workspaces,
 }) => {
   const { workspaceId, sessionId } = useParams();
   const nextWorkspaceId = workspaceId || '';
@@ -277,8 +288,20 @@ export const ChatRouteView: React.FC<ChatRouteViewProps> = ({
     setActiveChatSessionId(matchedSession?.id || null);
   }, [matchedSession?.id, nextWorkspaceId, setActiveChatSessionId, setActiveWorkspaceId]);
 
+  if (!nextWorkspaceId || !workspaceExistsForRoute(workspaces, nextWorkspaceId)) {
+    return <Navigate to={buildFilesPath()} replace />;
+  }
+
   if (sessionId && !matchedSession) {
     return <Navigate to={buildWorkspaceChatPath(nextWorkspaceId)} replace />;
+  }
+
+  const expectedSessionId = matchedSession?.id || null;
+  const workspaceReady = activeWorkspaceId === nextWorkspaceId;
+  const sessionReady = activeChatSessionId === expectedSessionId;
+
+  if (!workspaceReady || !sessionReady) {
+    return <RouteViewFallback />;
   }
 
   return (
@@ -293,12 +316,15 @@ export const ChatRouteView: React.FC<ChatRouteViewProps> = ({
 };
 
 export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
+  activeWorkspaceBoardId,
+  activeWorkspaceId,
   setActiveWorkspaceId,
   setActiveWorkspaceBoardId,
   workspaceBoards,
   onViewReport,
   onOpenChat,
   onLaunchInvestigation,
+  workspaces,
 }) => {
   const { workspaceId, boardId } = useParams();
   const nextWorkspaceId = workspaceId || '';
@@ -315,6 +341,10 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
     setActiveWorkspaceBoardId(matchedBoard?.id || null);
   }, [matchedBoard?.id, nextWorkspaceId, setActiveWorkspaceBoardId, setActiveWorkspaceId]);
 
+  if (!nextWorkspaceId || !workspaceExistsForRoute(workspaces, nextWorkspaceId)) {
+    return <Navigate to={buildFilesPath()} replace />;
+  }
+
   if (redirectBoardId) {
     return (
       <Navigate
@@ -322,6 +352,13 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
         replace
       />
     );
+  }
+
+  const workspaceReady = activeWorkspaceId === nextWorkspaceId;
+  const boardReady = activeWorkspaceBoardId === (matchedBoard?.id || null);
+
+  if (!workspaceReady || !boardReady) {
+    return <RouteViewFallback />;
   }
 
   return (
@@ -336,9 +373,11 @@ export const BoardRouteView: React.FC<BoardRouteViewProps> = ({
 };
 
 export const TimelineRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
+  activeWorkspaceId,
   setActiveWorkspaceId,
   onViewReport,
   onOpenChat,
+  workspaces,
 }) => {
   const { workspaceId } = useParams();
   const nextWorkspaceId = workspaceId || '';
@@ -349,6 +388,14 @@ export const TimelineRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
     }
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
+  if (!nextWorkspaceId || !workspaceExistsForRoute(workspaces, nextWorkspaceId)) {
+    return <Navigate to={buildFilesPath()} replace />;
+  }
+
+  if (activeWorkspaceId !== nextWorkspaceId) {
+    return <RouteViewFallback />;
+  }
+
   return (
     <Suspense fallback={<RouteViewFallback />}>
       <TimelineView onOpenReport={onViewReport} onOpenChat={onOpenChat} />
@@ -357,10 +404,12 @@ export const TimelineRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
 };
 
 export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
+  activeWorkspaceId,
   setActiveWorkspaceId,
   onViewReport,
   onOpenChat,
   onLaunchInvestigation,
+  workspaces,
 }) => {
   const { workspaceId } = useParams();
   const [searchParams] = useSearchParams();
@@ -372,6 +421,14 @@ export const NetworkRouteView: React.FC<WorkspaceScopedRouteViewProps> = ({
       setActiveWorkspaceId(nextWorkspaceId);
     }
   }, [nextWorkspaceId, setActiveWorkspaceId]);
+
+  if (!nextWorkspaceId || !workspaceExistsForRoute(workspaces, nextWorkspaceId)) {
+    return <Navigate to={buildFilesPath()} replace />;
+  }
+
+  if (activeWorkspaceId !== nextWorkspaceId) {
+    return <RouteViewFallback />;
+  }
 
   return (
     <Suspense fallback={<RouteViewFallback />}>

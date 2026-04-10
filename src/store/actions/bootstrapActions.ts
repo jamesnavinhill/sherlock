@@ -240,7 +240,7 @@ export const createBootstrapActions = (
         const resolvedThemeMode =
           storedThemeMode === 'light' || storedThemeMode === 'dark'
             ? storedThemeMode
-            : (legacyThemeMode ?? 'dark');
+            : (legacyThemeMode ?? 'light');
         const resolvedThemeSurfaceSettings =
           parseThemeSurfaceSettings(storedThemeSurfaceSettings) ||
           legacyThemeSurfaceSettings ||

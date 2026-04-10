@@ -24,7 +24,10 @@ const LocationProbe = () => {
 const buildControllerStub = () =>
   ({
     accentSettings: { hue: 0, lightness: 0, chroma: 0 },
+    activeChatSessionId: null,
     activeRunId: null,
+    activeWorkspaceBoardId: null,
+    activeWorkspaceId: null,
     artifacts: [],
     chatSessions: [],
     handleBack: vi.fn(),

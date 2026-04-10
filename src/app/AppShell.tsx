@@ -6,6 +6,7 @@ import { HelpModal } from '@/components/ui/HelpModal';
 import { Sidebar } from '@/components/ui/Sidebar';
 import { ToastContainer } from '@/components/ui/Toast';
 import { AppShellRoutes } from '@/app/AppShellRoutes';
+import { RouteErrorBoundary } from '@/app/RouteErrorBoundary';
 import { useAppShellController } from '@/app/useAppShellController';
 
 export function AppShell() {
@@ -31,17 +32,19 @@ export function AppShell() {
         className="osint-app-shell min-h-screen bg-osint-dark font-sans text-osint-text selection:bg-osint-primary selection:text-black"
         data-header-hidden="false"
       >
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center h-screen bg-black">
-              <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
-                LOADING_PROTOCOL...
+        <RouteErrorBoundary resetKey={controller.locationPathname}>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-screen bg-black">
+                <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
+                  LOADING_PROTOCOL...
+                </div>
               </div>
-            </div>
-          }
-        >
-          <AppShellRoutes controller={controller} />
-        </Suspense>
+            }
+          >
+            <AppShellRoutes controller={controller} />
+          </Suspense>
+        </RouteErrorBoundary>
         {controller.showApiKeyPrompt && controller.showLandingApiKeyPrompt && (
           <ApiKeyModal
             onKeySet={controller.handleApiKeySet}
@@ -84,17 +87,19 @@ export function AppShell() {
         className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${controller.isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}
       >
         <div className="flex-1 overflow-hidden relative w-full">
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center h-full bg-black">
-                <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
-                  LOADING_PROTOCOL...
+          <RouteErrorBoundary resetKey={controller.locationPathname}>
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center h-full bg-black">
+                  <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
+                    LOADING_PROTOCOL...
+                  </div>
                 </div>
-              </div>
-            }
-          >
-            <AppShellRoutes controller={controller} />
-          </Suspense>
+              }
+            >
+              <AppShellRoutes controller={controller} />
+            </Suspense>
+          </RouteErrorBoundary>
         </div>
       </main>
       {controller.showHelpModal && <HelpModal onClose={() => controller.setShowHelpModal(false)} />}

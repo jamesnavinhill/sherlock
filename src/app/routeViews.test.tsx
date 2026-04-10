@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
@@ -78,10 +79,13 @@ describe('route views', () => {
             element={
               <>
                 <ChatRouteView
+                  activeWorkspaceId="ws-1"
+                  activeChatSessionId={null}
                   setActiveWorkspaceId={setActiveWorkspaceId}
                   setActiveChatSessionId={setActiveChatSessionId}
                   chatSessions={[sessionFixture]}
                   onLaunchInvestigation={vi.fn()}
+                  workspaces={[workspaceFixture]}
                 />
                 <LocationProbe />
               </>
@@ -108,10 +112,13 @@ describe('route views', () => {
             element={
               <>
                 <ChatRouteView
+                  activeWorkspaceId={null}
+                  activeChatSessionId={null}
                   setActiveWorkspaceId={vi.fn()}
                   setActiveChatSessionId={vi.fn()}
                   chatSessions={[sessionFixture]}
                   onLaunchInvestigation={vi.fn()}
+                  workspaces={[workspaceFixture]}
                 />
                 <LocationProbe />
               </>
@@ -136,12 +143,15 @@ describe('route views', () => {
             element={
               <>
                 <BoardRouteView
+                  activeWorkspaceId={null}
+                  activeWorkspaceBoardId={null}
                   setActiveWorkspaceId={vi.fn()}
                   setActiveWorkspaceBoardId={vi.fn()}
                   workspaceBoards={[boardFixture]}
                   onViewReport={vi.fn()}
                   onOpenChat={vi.fn()}
                   onLaunchInvestigation={vi.fn()}
+                  workspaces={[workspaceFixture]}
                 />
                 <LocationProbe />
               </>
@@ -166,12 +176,15 @@ describe('route views', () => {
             element={
               <>
                 <BoardRouteView
+                  activeWorkspaceId={null}
+                  activeWorkspaceBoardId={null}
                   setActiveWorkspaceId={vi.fn()}
                   setActiveWorkspaceBoardId={vi.fn()}
                   workspaceBoards={[boardFixture]}
                   onViewReport={vi.fn()}
                   onOpenChat={vi.fn()}
                   onLaunchInvestigation={vi.fn()}
+                  workspaces={[workspaceFixture]}
                 />
                 <LocationProbe />
               </>
@@ -264,6 +277,43 @@ describe('route views', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('location')).toHaveTextContent('/files');
+    });
+  });
+
+  it('holds the chat route on a loading fallback until store-backed route state syncs', async () => {
+    const SyncedChatRoute = () => {
+      const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+      const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>('stale-session');
+
+      return (
+        <>
+          <ChatRouteView
+            activeWorkspaceId={activeWorkspaceId}
+            activeChatSessionId={activeChatSessionId}
+            setActiveWorkspaceId={setActiveWorkspaceId}
+            setActiveChatSessionId={setActiveChatSessionId}
+            chatSessions={[sessionFixture]}
+            onLaunchInvestigation={vi.fn()}
+            workspaces={[workspaceFixture]}
+          />
+          <LocationProbe />
+        </>
+      );
+    };
+
+    render(
+      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/ws-1/chat']}>
+        <Routes>
+          <Route path="/workspaces/:workspaceId/chat" element={<SyncedChatRoute />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Loading workspace view')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('Chat View')).toBeInTheDocument();
+      expect(screen.getByTestId('location')).toHaveTextContent('/workspaces/ws-1/chat');
     });
   });
 });
