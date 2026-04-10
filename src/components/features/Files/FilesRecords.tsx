@@ -21,13 +21,13 @@ const RECORD_ACTION_REVEAL_BUTTON_CLASS =
   `${RECORD_ACTION_BUTTON_CLASS} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100`;
 
 const RECORD_ACTION_DANGER_REVEAL_BUTTON_CLASS =
-  'osint-icon-button-plain-danger inline-flex h-9 w-9 items-center justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100';
+  'osint-icon-button-hover-danger inline-flex h-9 w-9 items-center justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100';
 
 const RECORD_LIST_ACTION_BUTTON_CLASS =
   'osint-icon-button-plain inline-flex h-8 w-8 items-center justify-center p-0';
 
 const RECORD_LIST_ACTION_DANGER_BUTTON_CLASS =
-  'osint-icon-button-plain-danger inline-flex h-8 w-8 items-center justify-center p-0';
+  'osint-icon-button-hover-danger inline-flex h-8 w-8 items-center justify-center p-0';
 
 interface FilesRecordsProps {
   focusedItem: WorkspaceItem | null;

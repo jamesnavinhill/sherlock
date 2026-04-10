@@ -5,9 +5,9 @@ export interface AccentSettings {
 }
 
 export const DEFAULT_ACCENT_SETTINGS: AccentSettings = {
-  hue: 264,
-  lightness: 0.62,
-  chroma: 0.05,
+  hue: 340,
+  lightness: 0.57,
+  chroma: 0.09,
 };
 
 export const buildAccentColor = ({ hue, lightness, chroma }: AccentSettings): string =>

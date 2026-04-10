@@ -16,7 +16,6 @@ import {
   CHROME_HEADER_CLASS,
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
-  getChromeSegmentButtonClass,
 } from '@/components/ui/chrome';
 
 interface SettingsProps {
@@ -76,12 +75,11 @@ export const Settings: React.FC<SettingsProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`font-osint-label flex h-full items-center gap-2 ${getChromeSegmentButtonClass(
-                activeTab === tab.id
-              )}`}
+              data-active={activeTab === tab.id ? 'true' : undefined}
+              className="osint-settings-nav-item osint-meta-label font-osint-label flex h-full items-center gap-2 px-4"
             >
-              <tab.icon className="w-3 h-3" />
-              <span>{tab.label}</span>
+              <tab.icon className="osint-settings-nav-icon h-3 w-3 shrink-0" />
+              <span className="osint-settings-nav-label">{tab.label}</span>
             </button>
           ))}
         </div>

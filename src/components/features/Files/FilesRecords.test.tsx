@@ -66,7 +66,7 @@ describe('FilesRecords', () => {
     expect(screen.getByTitle('Open artifact context in workspace chat')).toHaveClass(
       'osint-icon-button-plain'
     );
-    expect(screen.getByTitle('Delete Artifact')).toHaveClass('osint-icon-button-plain-danger');
+    expect(screen.getByTitle('Delete Artifact')).toHaveClass('osint-icon-button-hover-danger');
     expect(screen.getByTitle('Open linked source')).toHaveClass('osint-icon-button-plain');
   });
 
@@ -76,7 +76,7 @@ describe('FilesRecords', () => {
     expect(screen.getByTitle('Open artifact context in workspace chat')).toHaveClass(
       'osint-icon-button-plain'
     );
-    expect(screen.getByTitle('Delete Artifact')).toHaveClass('osint-icon-button-plain-danger');
+    expect(screen.getByTitle('Delete Artifact')).toHaveClass('osint-icon-button-hover-danger');
     expect(screen.getByTitle('Open linked source')).toHaveClass('osint-icon-button-plain');
   });
 });

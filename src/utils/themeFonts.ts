@@ -239,8 +239,8 @@ const THEME_FONT_WEIGHT_STOPS: ThemeFontWeightStop[] = [
 ];
 
 export const DEFAULT_THEME_FONT_SETTINGS: ThemeFontSettings = {
-  ui: 'space-grotesk',
-  display: 'space-grotesk',
+  ui: 'work-sans',
+  display: 'work-sans',
   label: 'ibm-plex-mono',
   mono: 'ibm-plex-mono',
   size: -1,

@@ -54,7 +54,7 @@ describe('FilesOverview', () => {
     expect(screen.getByTitle(/\(JSON\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/Markdown \(\.md\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/Permanently Purge Workspace/i)).toHaveClass(
-      'osint-icon-button-plain-danger'
+      'osint-icon-button-hover-danger'
     );
   });
 

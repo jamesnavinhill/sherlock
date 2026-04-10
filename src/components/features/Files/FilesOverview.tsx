@@ -129,7 +129,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
       </button>
       <button
         onClick={(event) => onPurgeWorkspace(workspace.id, event)}
-        className="osint-icon-button-plain-danger inline-flex h-8 w-8 shrink-0 items-center justify-center p-0"
+        className="osint-icon-button-hover-danger inline-flex h-8 w-8 shrink-0 items-center justify-center p-0"
         title={`Permanently Purge ${workspaceLabel}`}
       >
         <Trash2 className="h-4 w-4" />

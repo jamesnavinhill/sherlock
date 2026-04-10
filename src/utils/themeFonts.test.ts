@@ -38,7 +38,14 @@ describe('themeFonts', () => {
         size: 'compact',
         weight: 'regular',
       })
-    ).toEqual(DEFAULT_THEME_FONT_SETTINGS);
+    ).toEqual({
+      ui: 'space-grotesk',
+      display: 'space-grotesk',
+      label: 'ibm-plex-mono',
+      mono: 'ibm-plex-mono',
+      size: -1,
+      weight: -1,
+    });
   });
 
   it('hydrates legacy stored font settings with compact regular defaults', () => {
@@ -49,7 +56,14 @@ describe('themeFonts', () => {
         label: 'ibm-plex-mono',
         mono: 'ibm-plex-mono',
       })
-    ).toEqual(DEFAULT_THEME_FONT_SETTINGS);
+    ).toEqual({
+      ui: 'space-grotesk',
+      display: 'space-grotesk',
+      label: 'ibm-plex-mono',
+      mono: 'ibm-plex-mono',
+      size: -1,
+      weight: -1,
+    });
   });
 
   it('rejects invalid mono selections', () => {
@@ -72,8 +86,8 @@ describe('themeFonts', () => {
 
   it('builds css vars for runtime application', () => {
     expect(buildThemeFontCssVars(DEFAULT_THEME_FONT_SETTINGS)).toMatchObject({
-      '--font-sans': "'Space Grotesk', sans-serif",
-      '--font-display': "'Space Grotesk', sans-serif",
+      '--font-sans': "'Work Sans', sans-serif",
+      '--font-display': "'Work Sans', sans-serif",
       '--font-label': "'IBM Plex Mono', monospace",
       '--font-mono': "'IBM Plex Mono', monospace",
       '--font-size-base': '0.9375rem',

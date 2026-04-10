@@ -2,7 +2,7 @@
 @config "../tailwind.config.js";
 
 :root {
-  --osint-primary: oklch(0.62 0.05 264);
+  --osint-primary: oklch(0.57 0.09 340);
   --entity-person: oklch(0.62 0.1 236);
   --entity-organization: oklch(0.62 0.1 300);
   --entity-concept: oklch(0.62 0.1 348);
@@ -26,8 +26,8 @@
   --osint-text-meta: color-mix(in oklab, var(--osint-text) 72%, var(--osint-dark));
   --osint-text-muted: color-mix(in oklab, var(--osint-text) 84%, var(--osint-ink) 16%);
   --osint-text-quiet: color-mix(in oklab, var(--osint-text) 70%, var(--osint-dark));
-  --font-sans: 'Space Grotesk', sans-serif;
-  --font-display: 'Space Grotesk', sans-serif;
+  --font-sans: 'Work Sans', sans-serif;
+  --font-display: 'Work Sans', sans-serif;
   --font-label: 'IBM Plex Mono', monospace;
   --font-mono: 'IBM Plex Mono', monospace;
   --font-size-2xs: 0.625rem;
@@ -1117,6 +1117,29 @@ body,
   color: color-mix(in oklab, var(--color-osint-danger) 82%, var(--osint-ink) 18%);
 }
 
+.osint-icon-button-hover-danger,
+.osint-icon-button-hover-danger:hover,
+.osint-icon-button-hover-danger:focus-visible,
+.osint-icon-button-hover-danger:active {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.osint-icon-button-hover-danger {
+  color: var(--osint-text-meta);
+  transition: color 180ms ease;
+}
+
+.osint-icon-button-hover-danger:hover,
+.osint-icon-button-hover-danger:focus-visible,
+.osint-icon-button-hover-danger:active,
+.osint-icon-button-hover-danger[data-active='true'],
+.osint-icon-button-hover-danger[aria-pressed='true'] {
+  color: var(--color-osint-danger);
+}
+
 .osint-icon-button-plain-success,
 .osint-icon-button-plain-success:hover,
 .osint-icon-button-plain-success:focus-visible,
@@ -1381,6 +1404,62 @@ body,
 }
 
 .osint-sidebar-nav-item[data-active='true'] {
+  background-color: var(--osint-rail-interaction-active-bg);
+  color: var(--osint-rail-interaction-active-color);
+  box-shadow: var(--osint-rail-interaction-shadow);
+}
+
+.osint-settings-nav-item {
+  color: var(--osint-text-meta);
+  transition:
+    background-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.osint-settings-nav-icon,
+.osint-settings-nav-label {
+  transition:
+    color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.osint-settings-nav-icon {
+  transform: translateX(0);
+}
+
+.osint-settings-nav-label {
+  transform: translateX(0);
+}
+
+.osint-settings-nav-item:hover,
+.osint-settings-nav-item:focus-visible {
+  background-color: var(--osint-rail-interaction-hover-bg);
+  color: var(--osint-primary);
+  box-shadow: var(--osint-rail-interaction-shadow);
+  outline: none;
+}
+
+.osint-settings-nav-item:hover .osint-settings-nav-icon,
+.osint-settings-nav-item:hover .osint-settings-nav-label,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-icon,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-label,
+.osint-settings-nav-item[data-active='true'] .osint-settings-nav-icon,
+.osint-settings-nav-item[data-active='true'] .osint-settings-nav-label {
+  color: var(--osint-primary);
+}
+
+.osint-settings-nav-item:hover .osint-settings-nav-icon,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-icon {
+  transform: translateX(2px);
+}
+
+.osint-settings-nav-item:hover .osint-settings-nav-label,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-label {
+  transform: translateX(3px);
+}
+
+.osint-settings-nav-item[data-active='true'] {
   background-color: var(--osint-rail-interaction-active-bg);
   color: var(--osint-rail-interaction-active-color);
   box-shadow: var(--osint-rail-interaction-shadow);
