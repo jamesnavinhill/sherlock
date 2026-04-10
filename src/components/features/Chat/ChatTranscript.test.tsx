@@ -18,6 +18,7 @@ const message: ChatMessage = {
   role: 'assistant',
   content: 'Latest workspace update.',
   createdAt: 1,
+  updatedAt: 1,
   status: 'COMPLETED',
 };
 
