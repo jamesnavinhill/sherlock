@@ -125,16 +125,24 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
     ? boardAgentReviewState.actionIds.filter((actionId) => boardAgentReviewSelections[actionId])
         .length
     : 0;
+  const headerToneSurfaceClassName = 'border border-zinc-800 bg-zinc-900/30';
+  const headerToneChipClassName = 'rounded-none border border-zinc-800 bg-zinc-900/30';
+  const hoverToolbarIconClassName =
+    'h-4 w-4 fill-transparent text-current transition-[fill,color] group-hover:[fill:var(--osint-primary)] group-hover:[color:var(--osint-primary)] group-focus-visible:[fill:var(--osint-primary)] group-focus-visible:[color:var(--osint-primary)]';
+  const activeToolbarIconClassName =
+    'h-4 w-4 [fill:var(--osint-primary)] [color:var(--osint-primary)]';
   const composerToolButtonClassName =
-    'inline-flex h-9 w-9 items-center justify-center text-zinc-500 transition hover:text-white focus-visible:text-white focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
+    'group inline-flex h-9 w-9 items-center justify-center text-zinc-500 transition hover:text-osint-primary focus-visible:text-osint-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
 
   return (
-    <div className="-mx-3 -mb-3 flex min-h-0 flex-1 flex-col bg-black">
+    <div className="-mx-3 -mb-3 flex min-h-0 flex-1 flex-col">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="flex min-h-full flex-col gap-4 pt-3 pb-3">
             {boardAgentReviewState ? (
-              <div className="osint-panel-shell border border-zinc-800 bg-black/30 shadow-[0_18px_48px_rgba(0,0,0,0.24)]">
+              <div
+                className={`osint-panel-shell ${headerToneSurfaceClassName} shadow-[0_18px_48px_rgba(0,0,0,0.24)]`}
+              >
                 <div className="border-b border-zinc-800 px-4 py-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -153,11 +161,13 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     </div>
                   </div>
                   {boardAgentReviewState.message ? (
-                    <div className="mt-3 border border-zinc-800 bg-black/40 p-3 osint-body-small">
+                    <div className={`mt-3 p-3 osint-body-small ${headerToneSurfaceClassName}`}>
                       {boardAgentReviewState.message}
                     </div>
                   ) : null}
-                  <label className="mt-4 flex items-start gap-3 border border-zinc-800 bg-black/40 p-3 osint-body-small">
+                  <label
+                    className={`mt-4 flex items-start gap-3 p-3 osint-body-small ${headerToneSurfaceClassName}`}
+                  >
                     <input
                       type="checkbox"
                       checked={boardAgentAutoApproveOrganizationActions}
@@ -185,7 +195,10 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     const isSelected = !!boardAgentReviewSelections[action.id];
 
                     return (
-                      <div key={action.id} className="osint-raised-surface-subtle p-3">
+                      <div
+                        key={action.id}
+                        className={`osint-raised-surface-subtle p-3 ${headerToneSurfaceClassName}`}
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex min-w-0 flex-1 items-start gap-3">
                             <input
@@ -217,7 +230,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                                   {presentation.expectedWrites.map((write) => (
                                     <span
                                       key={write}
-                                      className="rounded-none border border-zinc-800 bg-black/70 px-2 py-1 osint-meta-label text-zinc-400"
+                                      className={`${headerToneChipClassName} px-2 py-1 osint-meta-label text-zinc-400`}
                                     >
                                       {write}
                                     </span>
@@ -271,7 +284,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
             ) : null}
 
             {boardAgentMessage ? (
-              <div className="osint-panel-shell border border-zinc-800 bg-black/30 p-4 shadow-[0_18px_48px_rgba(0,0,0,0.24)]">
+              <div
+                className={`osint-panel-shell p-4 shadow-[0_18px_48px_rgba(0,0,0,0.24)] ${headerToneSurfaceClassName}`}
+              >
                 <div className="osint-eyebrow flex items-center gap-2">
                   <Bot className="h-3.5 w-3.5 text-osint-primary" />
                   Agent Response
@@ -287,7 +302,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 isOpen={agentSections.session}
                 onToggle={onToggleSession}
               >
-                <div className="osint-raised-surface-subtle space-y-3 border border-t-0 border-zinc-800 p-4">
+                <div
+                  className={`osint-raised-surface-subtle space-y-3 p-4 ${headerToneSurfaceClassName} border-t-0`}
+                >
                   <div className="flex items-center justify-between gap-3">
                     <div className="osint-meta-value">
                       {visibleBoardAgentSession?.title || 'Board agent'}
@@ -328,7 +345,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                       {boardAgentTodoItems.map((item) => (
                         <div
                           key={item.id}
-                          className="osint-raised-surface-subtle flex items-start justify-between gap-3 px-3 py-2"
+                          className={`osint-raised-surface-subtle flex items-start justify-between gap-3 px-3 py-2 ${headerToneSurfaceClassName}`}
                         >
                           <div className="osint-body-small">{item.text}</div>
                           <div className="shrink-0 osint-meta-label">{item.status}</div>
@@ -347,11 +364,16 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 isOpen={agentSections.actions}
                 onToggle={onToggleActions}
               >
-                <div className="osint-raised-surface-subtle space-y-2 border border-t-0 border-zinc-800 p-4">
+                <div
+                  className={`osint-raised-surface-subtle space-y-2 p-4 ${headerToneSurfaceClassName} border-t-0`}
+                >
                   {visibleBoardAgentActions.slice(0, 8).map((action) => {
                     const presentation = buildBoardAgentActionPresentation(action);
                     return (
-                      <div key={action.id} className="osint-raised-surface-subtle px-3 py-3">
+                      <div
+                        key={action.id}
+                        className={`osint-raised-surface-subtle px-3 py-3 ${headerToneSurfaceClassName}`}
+                      >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="osint-title-inline">{presentation.title}</div>
                           <div
@@ -387,7 +409,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
           headerClassName="px-4 py-2"
           contentClassName="px-4 py-3"
         >
-          <div className="osint-raised-surface-subtle space-y-3 p-3 osint-body-small">
+          <div
+            className={`osint-raised-surface-subtle space-y-3 p-3 osint-body-small ${headerToneSurfaceClassName}`}
+          >
             <div className="osint-meta-value">
               {selectedEntries.length > 0
                 ? `${selectedEntries.length} selected item${selectedEntries.length === 1 ? '' : 's'}`
@@ -398,27 +422,27 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 {selectedEntries.slice(0, 4).map((entry) => (
                   <span
                     key={`${entry.refKind}:${entry.refId}`}
-                    className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-title-inline text-zinc-300"
+                    className={`${headerToneChipClassName} px-2.5 py-1 osint-title-inline text-zinc-300`}
                   >
                     {entry.title}
                   </span>
                 ))}
                 {selectedEntries.length > 4 ? (
-                  <span className="rounded-none border border-zinc-800 bg-black/80 px-2.5 py-1 osint-body-quiet">
+                  <span className={`${headerToneChipClassName} px-2.5 py-1 osint-body-quiet`}>
                     +{selectedEntries.length - 4} more
                   </span>
                 ) : null}
               </div>
             ) : null}
             {aiSummary ? (
-              <div className="osint-raised-surface-subtle p-3 osint-body-small">
+              <div className={`osint-raised-surface-subtle p-3 osint-body-small ${headerToneSurfaceClassName}`}>
                 {aiSummary}
               </div>
             ) : null}
           </div>
         </Accordion>
 
-        <div>
+        <div className="bg-black">
           <textarea
             value={boardAgentPrompt}
             onChange={(event) => onPromptChange(event.target.value)}
@@ -426,19 +450,23 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
             placeholder="Ask the board agent to organize evidence, flag contradictions, or draft a note."
             className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-zinc-300 outline-none placeholder:text-zinc-600"
           />
-          <div className="flex items-center justify-between gap-3 border-t border-zinc-800/80 px-4 py-2.5">
+          <div
+            className={`flex items-center justify-between gap-3 border-t border-zinc-800/80 px-4 py-2.5 ${headerToneSurfaceClassName}`}
+          >
             <div className="flex items-center gap-1">
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setStarterMenuOpen((current) => !current)}
                   className={`${composerToolButtonClassName} ${
-                    starterMenuOpen ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'
+                    starterMenuOpen ? 'text-osint-primary' : ''
                   }`}
                   aria-label="Starter prompts"
                   title="Starter prompts"
                 >
-                  <Sparkles className="h-4 w-4" />
+                  <Sparkles
+                    className={starterMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName}
+                  />
                 </button>
                 {starterMenuOpen ? (
                   <div className="absolute bottom-11 left-0 z-20 w-72 border border-zinc-800 bg-black shadow-2xl">
@@ -466,29 +494,31 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 aria-label="Attach files"
                 title="Attach files"
               >
-                <Paperclip className="h-4 w-4" />
+                <Paperclip className={hoverToolbarIconClassName} />
               </button>
               <button
-                type="button"
-                onClick={onToggleActions}
-                className={`${composerToolButtonClassName} ${
-                  agentSections.actions ? 'text-osint-primary' : 'text-zinc-500 hover:text-white'
-                }`}
+                  type="button"
+                  onClick={onToggleActions}
+                  className={`${composerToolButtonClassName} ${
+                    agentSections.actions ? 'text-osint-primary' : ''
+                  }`}
                 aria-label="Toggle agent details"
                 title="Toggle agent details"
               >
-                <SlidersHorizontal className="h-4 w-4" />
+                <SlidersHorizontal
+                  className={agentSections.actions ? activeToolbarIconClassName : hoverToolbarIconClassName}
+                />
               </button>
             </div>
             <button
               type="button"
               onClick={onRunAgent}
               disabled={boardAgentBusy || !boardAgentPrompt.trim()}
-              className={`${composerToolButtonClassName} text-zinc-300`}
+              className={composerToolButtonClassName}
               aria-label={boardAgentBusy ? 'Agent running' : 'Run agent'}
               title={boardAgentBusy ? 'Agent running' : 'Run agent'}
             >
-              <Send className="h-4 w-4" />
+              <Send className={hoverToolbarIconClassName} />
             </button>
           </div>
         </div>

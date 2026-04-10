@@ -101,7 +101,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
               <span
                 className={`${CHROME_NESTED_ITEM_DOT_CLASS} ${getEntityToneClass(entity.type)} entity-tone-dot`}
               />
-              <span className="truncate osint-body-quiet leading-5 text-zinc-300">
+              <span className="truncate osint-body-quiet leading-5" style={{ color: 'inherit' }}>
                 {entity.name}
               </span>
             </button>
@@ -189,8 +189,10 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
               className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
               title={source.title || source.url}
             >
-              <Link2 className="mr-1 inline h-3 w-3" />
-              <span className="osint-body-quiet text-zinc-400">{source.title || source.url}</span>
+              <Link2 className="mr-1 inline h-3 w-3 text-current opacity-70" />
+              <span className="osint-body-quiet" style={{ color: 'inherit' }}>
+                {source.title || source.url}
+              </span>
             </a>
           ))}
         </div>

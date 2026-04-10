@@ -4,8 +4,8 @@ import { Building2, FileText, Globe, Network, Shapes, User } from 'lucide-react'
 import type { Artifact, Entity, Headline } from '@/types';
 import { getEntityToneClass } from '@/utils/entityPalette';
 import {
+  CHROME_THIN_NESTED_ACTION_ITEM_CLASS,
   CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
-  CHROME_THIN_NESTED_ITEM_CLASS,
 } from '@/components/ui/chrome';
 import type { GlobalInspectorSection } from './globalInspectorTypes';
 
@@ -120,8 +120,8 @@ export const buildEntityInspectorSections = ({
               className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} flex items-center gap-2`}
               title={getMentionLabel(report)}
             >
-              <FileText className="h-3 w-3 text-zinc-600" />
-              <span className="truncate osint-body-quiet leading-5 text-zinc-300">
+              <FileText className="h-3 w-3 text-current opacity-70" />
+              <span className="truncate osint-body-quiet leading-5" style={{ color: 'inherit' }}>
                 {getMentionLabel(report)}
               </span>
             </button>
@@ -145,12 +145,13 @@ export const buildEntityInspectorSections = ({
           connections.map((connection, index) => (
             <div
               key={`${entityName}-${connection.entity.name}-${index}`}
-              className={`${CHROME_THIN_NESTED_ITEM_CLASS} flex items-center justify-between gap-3`}
+              className={`${CHROME_THIN_NESTED_ACTION_ITEM_CLASS} flex items-center justify-between gap-3`}
             >
               <div className="flex max-w-[70%] items-center truncate">
                 {renderConnectionIcon(connection.entity.type)}
                 <span
-                  className="truncate osint-body-quiet leading-5 text-zinc-300"
+                  className="truncate osint-body-quiet leading-5"
+                  style={{ color: 'inherit' }}
                   title={connection.entity.name}
                 >
                   {connection.entity.name}

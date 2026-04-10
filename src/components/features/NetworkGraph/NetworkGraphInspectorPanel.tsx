@@ -20,6 +20,7 @@ import { EditableTitle } from '../../ui/EditableTitle';
 import type { InspectorActionItem } from '../../ui/InspectorActionRow';
 import {
   CHROME_THIN_ACTION_BUTTON_CLASS,
+  CHROME_THIN_NESTED_ACTION_ITEM_CLASS,
   CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
   CHROME_THIN_NESTED_ITEM_CLASS,
   getChromeThinActionRowClassName,
@@ -453,13 +454,13 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
                     return (
                       <div
                         key={`${normalizedEntity.name}-${index}`}
-                        className={`${CHROME_THIN_NESTED_ITEM_CLASS} flex items-center gap-2`}
+                        className={`${CHROME_THIN_NESTED_ACTION_ITEM_CLASS} flex items-center gap-2`}
                         title={normalizedEntity.name}
                       >
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${getEntityToneClass(normalizedEntity.type)} entity-tone-dot`}
                         />
-                        <span className="truncate osint-body-quiet leading-5 text-zinc-300">
+                        <span className="truncate osint-body-quiet leading-5" style={{ color: 'inherit' }}>
                           {normalizedEntity.name}
                         </span>
                       </div>
@@ -523,8 +524,10 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
                       className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
                       title={source.title || source.url}
                     >
-                      <Link2 className="mr-1 inline h-3 w-3" />
-                      <span className="osint-body-quiet text-zinc-400">{source.title || source.url}</span>
+                      <Link2 className="mr-1 inline h-3 w-3 text-current opacity-70" />
+                      <span className="osint-body-quiet" style={{ color: 'inherit' }}>
+                        {source.title || source.url}
+                      </span>
                     </a>
                   ))
                 )}
