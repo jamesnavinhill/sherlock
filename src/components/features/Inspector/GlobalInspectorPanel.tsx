@@ -33,6 +33,7 @@ interface GlobalInspectorPanelProps {
   sections?: GlobalInspectorSection[];
   emptyState?: GlobalInspectorEmptyState;
   children?: React.ReactNode;
+  footer?: React.ReactNode;
   widthClassName?: string;
   className?: string;
 }
@@ -55,6 +56,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   sections = [],
   emptyState,
   children,
+  footer,
   widthClassName = 'w-[min(24rem,calc(100vw-1rem))]',
   className = '',
 }) => {
@@ -114,6 +116,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
       ) : null}
 
       <div className={CHROME_RAIL_BODY_CLASS}>{bodyContent}</div>
+      {footer}
     </aside>
   );
 };

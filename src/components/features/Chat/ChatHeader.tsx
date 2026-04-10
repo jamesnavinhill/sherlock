@@ -216,7 +216,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             setShowExportMenu(false);
             onToggleRightPanel();
           }}
-          className={`hidden xl:flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(rightPanelOpen)}`}
+          className={`hidden lg:flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(rightPanelOpen)}`}
           title="Toggle Context Panel"
         >
           <PanelRight className="h-4 w-4" />

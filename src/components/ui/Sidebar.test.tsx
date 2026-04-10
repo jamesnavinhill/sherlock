@@ -33,4 +33,40 @@ describe('Sidebar', () => {
 
     expect(labels.slice(0, 2)).toEqual(['Files', 'Viewer']);
   });
+
+  it('uses the matching brand logo for the active theme', () => {
+    const { rerender } = render(
+      <Sidebar
+        currentView={AppView.FILES}
+        onChangeView={vi.fn()}
+        isCollapsed={false}
+        toggleCollapse={vi.fn()}
+        workspaceRuns={[]}
+        activeRunId={null}
+        onSelectRun={vi.fn()}
+        onClearCompleted={vi.fn()}
+        themeMode="dark"
+        onToggleTheme={vi.fn()}
+      />
+    );
+
+    expect(screen.getByAltText('Sherlock AI logo')).toHaveAttribute('src', '/logo-dark.jpg');
+
+    rerender(
+      <Sidebar
+        currentView={AppView.FILES}
+        onChangeView={vi.fn()}
+        isCollapsed={false}
+        toggleCollapse={vi.fn()}
+        workspaceRuns={[]}
+        activeRunId={null}
+        onSelectRun={vi.fn()}
+        onClearCompleted={vi.fn()}
+        themeMode="light"
+        onToggleTheme={vi.fn()}
+      />
+    );
+
+    expect(screen.getByAltText('Sherlock AI logo')).toHaveAttribute('src', '/logo-light.jpg');
+  });
 });

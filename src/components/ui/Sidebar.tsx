@@ -4,7 +4,6 @@ import {
   Radio,
   FileText,
   Settings,
-  ShieldAlert,
   FolderClosed,
   Network,
   Sun,
@@ -62,6 +61,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { view: AppView.DASHBOARD, label: 'Discovery', icon: LayoutDashboard },
   ] as const;
 
+  const brandLogoSrc = themeMode === 'dark' ? '/logo-dark.jpg' : '/logo-light.jpg';
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -81,8 +82,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           title="Toggle Sidebar"
         >
           <div className="flex items-center justify-center">
-            <ShieldAlert
-              className={`h-8 w-8 text-osint-primary transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
+            <img
+              src={brandLogoSrc}
+              alt="Sherlock AI logo"
+              className={`h-10 w-10 rounded-md object-cover ring-1 ring-white/10 transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
             />
           </div>
           <div
@@ -181,7 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         className={`osint-button-primary md:hidden fixed bottom-6 right-6 z-50 p-4 rounded-full transition-transform focus:ring-4 focus:ring-white/20 outline-none ${!isCollapsed ? 'scale-0' : 'scale-100'}`}
         aria-label={isCollapsed ? 'Open Sidebar' : 'Close Sidebar'}
       >
-        <ShieldAlert className="w-6 h-6" />
+        <img src={brandLogoSrc} alt="" className="h-6 w-6 rounded-sm object-cover" aria-hidden="true" />
       </button>
     </>
   );

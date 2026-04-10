@@ -47,4 +47,16 @@ describe('GlobalInspectorPanel', () => {
     expect(panel?.getAttribute('data-state')).toBe('closed');
     expect(panel?.className).toContain('pointer-events-none');
   });
+
+  it('renders a shared footer when provided', () => {
+    render(
+      <GlobalInspectorPanel
+        isOpen
+        title="Atlas Holdings"
+        footer={<div>Footer Actions</div>}
+      />
+    );
+
+    expect(screen.getByText('Footer Actions')).toBeInTheDocument();
+  });
 });

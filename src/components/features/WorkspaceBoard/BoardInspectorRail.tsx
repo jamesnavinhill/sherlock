@@ -3,7 +3,6 @@ import { Bot, Clock3, FilePlus2, Shapes, Sparkles, Trash2 } from 'lucide-react';
 
 import type { WorkspaceBoard, WorkspaceItem } from '@/types';
 import { GlobalInspectorPanel } from '@/components/features/Inspector/GlobalInspectorPanel';
-import { GlobalInspectorSections } from '@/components/features/Inspector/GlobalInspectorSections';
 import type {
   GlobalInspectorSection,
   GlobalInspectorTab,
@@ -216,12 +215,9 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
       actionItems={actionItems}
       actionRowLayout="wrap"
       actionRowDensity="thin"
-    >
-      <div className="flex min-h-0 flex-1 flex-col gap-2">
-        <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <GlobalInspectorSections sections={sections} />
-        </div>
-        {activeBoard ? (
+      sections={sections}
+      footer={
+        activeBoard ? (
           <div className="border-t border-zinc-800 bg-black/20 p-3">
             <button
               type="button"
@@ -233,8 +229,8 @@ export const BoardInspectorRail: React.FC<BoardInspectorRailProps> = ({
               Delete Board
             </button>
           </div>
-        ) : null}
-      </div>
-    </GlobalInspectorPanel>
+        ) : null
+      }
+    />
   );
 };

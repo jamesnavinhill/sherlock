@@ -109,7 +109,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         ) : null}
         <button
           onClick={onToggleRightPanel}
-          className={`hidden xl:inline-flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(rightPanelOpen)}`}
+          className={`hidden lg:inline-flex ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${getChromeToggleButtonClass(rightPanelOpen)}`}
           title="Toggle Inspector Panel"
         >
           <PanelRight className="h-4 w-4" />

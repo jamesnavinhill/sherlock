@@ -114,4 +114,42 @@ describe('DossierPanel', () => {
     expect(screen.queryByText('0 Entities')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('h-6');
   });
+
+  it('uses normalized source and signal labels in the shared dossier rail', () => {
+    const workspace: Workspace = {
+      id: 'workspace-1',
+      title: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-08',
+    };
+
+    render(
+      <DossierPanel
+        isOpen
+        activeCase={workspace}
+        labelProfile={labelProfile}
+        reports={[]}
+        entities={[]}
+        leads={[]}
+        sources={[]}
+        headlines={[]}
+        openSections={{
+          reports: false,
+          entities: false,
+          leads: false,
+          evidence: false,
+          sources: true,
+          headlines: true,
+        }}
+        toggleSection={vi.fn()}
+        onNavigate={vi.fn()}
+        onEntityClick={vi.fn()}
+        onLeadClick={vi.fn()}
+        onHeadlineClick={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Signal')).toBeInTheDocument();
+    expect(screen.getByText('No sources captured yet.')).toBeInTheDocument();
+  });
 });

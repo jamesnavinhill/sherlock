@@ -11,7 +11,7 @@ This epic remains the execution-level companion to:
 
 ## Audit Snapshot
 
-Date audited: 2026-04-09
+Date audited: 2026-04-10
 
 Overall status: In progress, with shared foundations landed and partial route adoption complete.
 
@@ -20,7 +20,7 @@ Current read:
 - shared inspector foundations are implemented
 - shared library rail foundations are implemented
 - OperationView, NetworkGraph, Timeline, Chat, and the ArtifactViewer detail sidebar are consuming the new shared foundations in meaningful ways
-- WorkspaceBoard still relies on bespoke panel shells and custom section-state wiring
+- WorkspaceBoard now rides the shared panel shells and shared section-state primitives
 - final cleanup, full parity normalization, and legacy deletion are not complete
 
 ## What Landed
@@ -69,8 +69,7 @@ Implemented:
 What this means:
 
 - the intended exclusive section toggle primitive exists
-- Timeline, NetworkGraph, OperationView, and ArtifactViewer are using it
-- Chat and WorkspaceBoard have not been migrated onto it yet
+- Timeline, NetworkGraph, OperationView, ArtifactViewer, Chat, and WorkspaceBoard are using it in migrated panel state
 
 ### Shared Chrome Hardening
 
@@ -111,7 +110,7 @@ Evidence:
 Still open:
 
 - there is not yet one final naming and cleanup pass across all route adapters
-- Chat and WorkspaceBoard still expose old local panel state APIs rather than consuming the shared section-state hook
+- there is not yet one final breakpoint, terminology, and adapter cleanup pass across all routes
 
 ## Phase 3: Parallel Pair A
 
@@ -187,7 +186,7 @@ What remains:
 
 ## Phase 5: Final Integration Audit
 
-Status: Not started
+Status: In progress
 
 Not done yet:
 
@@ -261,8 +260,12 @@ Implemented:
 
 Still remaining:
 
-- decide whether this is finished as an intentionally specialized consumer, or should be moved fully onto [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx)
-- document that decision in the final architecture sync
+- document the final architecture decision in the architecture sync
+
+Decision:
+
+- ArtifactViewer remains an intentionally specialized shared consumer rather than moving fully onto [LibraryRailShell.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailShell.tsx)
+- the sidebar is right-side reading support rather than a canonical left library rail, so the current [LibraryRailHeader.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailHeader.tsx) plus [LibraryRailSections.tsx](C:/Users/james/projects/sherlock/src/components/features/LibraryRail/LibraryRailSections.tsx) composition is the correct final shell geometry
 
 ### Chat
 
@@ -270,7 +273,7 @@ Status: Shared inspector and shared library adopted, cleanup still pending
 
 ### WorkspaceBoard
 
-Status: Legacy rails still active, shared action-row pieces only
+Status: Shared rails and shared tabs adopted, cleanup still pending
 
 ## Remaining Work For Clean Cutover
 
@@ -357,6 +360,13 @@ Exit criteria:
 
 - panel architecture is coherent across all major routes
 - legacy rail implementations are removed or reduced to trivial adapters
+
+Current progress:
+
+- WorkspaceBoard inspector now uses [GlobalInspectorPanel.tsx](C:/Users/james/projects/sherlock/src/components/features/Inspector/GlobalInspectorPanel.tsx) as a thinner adapter with shared footer support instead of route-local section rendering composition
+- Chat and WorkspaceBoard route-level right-panel toggles and mobile overlays are normalized to the shared `lg` breakpoint behavior
+- OperationView dossier copy and section treatment are normalized with the other shared library rails
+- ArtifactViewer has an explicit final-shell decision and remains a specialized shared consumer
 
 ### Workstream 5: Final Docs And Verification
 

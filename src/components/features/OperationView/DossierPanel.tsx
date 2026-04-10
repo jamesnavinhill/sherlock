@@ -178,13 +178,13 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
       rel: 'noopener noreferrer',
     })),
     emptyState: (
-      <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.signalLabel.toLowerCase()} captured yet.`}</p>
+      <p className="osint-body-quiet px-2 py-1 italic">No sources captured yet.</p>
     ),
   });
 
   sections.push({
     id: 'headlines',
-    title: 'Saved Signals',
+    title: labelProfile.signalLabel,
     count: headlines.length,
     icon: PANEL_SECTION_ICONS.signals,
     isOpen: openSections.headlines,
@@ -238,9 +238,7 @@ export const DossierPanel: React.FC<DossierPanelProps> = ({
       widthClassName="w-80"
       className={`${desktopLayoutClass} ${overlayOnDesktop ? 'lg:shadow-2xl' : 'lg:shadow-none'}`}
     >
-      <div className="bg-black/20">
-        <LibraryRailSections sections={sections} />
-      </div>
+      <LibraryRailSections sections={sections} />
     </LibraryRailShell>
   );
 };
