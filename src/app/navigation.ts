@@ -3,6 +3,7 @@ import { AppView, type Artifact } from '@/types';
 import {
   buildDiscoverPath,
   buildFilesPath,
+  buildLandingPath,
   buildMonitorPath,
   buildRunPath,
   buildSettingsPath,
@@ -37,6 +38,7 @@ const WORKSPACE_HOME_ROUTE = /^\/workspaces\/[^/]+$/;
 const RUN_ROUTE = /^\/runs\/[^/]+$/;
 
 export const getAppViewForPath = (pathname: string): AppView => {
+  if (pathname === '/welcome') return AppView.LANDING;
   if (pathname === '/settings') return AppView.SETTINGS;
   if (pathname === '/discover' || pathname === '/') return AppView.DASHBOARD;
   if (pathname === '/monitor') return AppView.LIVE_MONITOR;
@@ -87,6 +89,8 @@ export const buildPathForAppView = (
   }
 
   switch (view) {
+    case AppView.LANDING:
+      return buildLandingPath();
     case AppView.DASHBOARD:
       return buildDiscoverPath();
     case AppView.LIVE_MONITOR:

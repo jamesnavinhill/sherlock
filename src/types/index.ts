@@ -613,6 +613,7 @@ export interface WorkspaceContextBundle {
 }
 
 export enum AppView {
+  LANDING = 'LANDING',
   DASHBOARD = 'DASHBOARD',
   INVESTIGATION = 'INVESTIGATION',
   WORKSPACE = 'WORKSPACE',

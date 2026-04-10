@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { buildAccentColor } from '@/utils/accent';
 import { DEFAULT_APP_PATH, getRouteDefinition } from '@/app/routes';
@@ -24,15 +24,32 @@ const Settings = lazy(() =>
   import('@/components/features/Settings').then((m) => ({ default: m.Settings }))
 );
 const Feed = lazy(() => import('@/components/features/Feed').then((m) => ({ default: m.Feed })));
+const LandingPage = lazy(() =>
+  import('@/components/features/LandingPage').then((m) => ({ default: m.LandingPage }))
+);
 
 interface AppShellRoutesProps {
   controller: AppShellController;
 }
 
 export function AppShellRoutes({ controller }: AppShellRoutesProps) {
+  const navigate = useNavigate();
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to={DEFAULT_APP_PATH} replace />} />
+      <Route
+        path={getRouteDefinition('LANDING').path}
+        element={
+          <LandingPage
+            themeMode={controller.themeMode}
+            onToggleTheme={() =>
+              controller.setThemeMode(controller.themeMode === 'dark' ? 'light' : 'dark')
+            }
+            onGetStarted={() => navigate(DEFAULT_APP_PATH)}
+          />
+        }
+      />
       <Route
         path={getRouteDefinition('DISCOVER').path}
         element={

@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 
+import { AppView } from '@/types';
 import { ApiKeyModal } from '@/components/ui/ApiKeyModal';
 import { HelpModal } from '@/components/ui/HelpModal';
 import { Sidebar } from '@/components/ui/Sidebar';
@@ -17,6 +18,31 @@ export function AppShell() {
           <div className="w-8 h-8 border-4 border-zinc-600 border-t-zinc-200 rounded-full animate-spin" />
           <p>Initializing Secure Database...</p>
         </div>
+      </div>
+    );
+  }
+
+  const isLanding = controller.routeCurrentView === AppView.LANDING;
+
+  /* Landing page renders full-viewport without the sidebar chrome */
+  if (isLanding) {
+    return (
+      <div
+        className="osint-app-shell min-h-screen bg-osint-dark font-sans text-osint-text selection:bg-osint-primary selection:text-black"
+        data-header-hidden="false"
+      >
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center h-screen bg-black">
+              <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
+                LOADING_PROTOCOL...
+              </div>
+            </div>
+          }
+        >
+          <AppShellRoutes controller={controller} />
+        </Suspense>
+        <ToastContainer />
       </div>
     );
   }

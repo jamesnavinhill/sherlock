@@ -34,7 +34,7 @@ describe('Sidebar', () => {
     expect(labels.slice(0, 2)).toEqual(['Files', 'Viewer']);
   });
 
-  it('uses the matching brand logo for the active theme', () => {
+  it('uses the brand logo for both themes', () => {
     const { rerender } = render(
       <Sidebar
         currentView={AppView.FILES}
@@ -67,6 +67,6 @@ describe('Sidebar', () => {
       />
     );
 
-    expect(screen.getByAltText('Sherlock AI logo')).toHaveAttribute('src', '/logo-light.jpg');
+    expect(screen.getByAltText('Sherlock AI logo')).toHaveAttribute('src', '/logo-dark.jpg');
   });
 });

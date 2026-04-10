@@ -1,4 +1,5 @@
 export type SherlockRouteId =
+  | 'LANDING'
   | 'DISCOVER'
   | 'MONITOR'
   | 'FILES'
@@ -95,6 +96,15 @@ const buildWorkspaceBasePath = (workspaceId: string): string =>
   `/workspaces/${encodeRouteSegment(workspaceId)}`;
 
 export const SHERLOCK_ROUTE_DEFINITIONS: Record<SherlockRouteId, SherlockRouteDefinition> = {
+  LANDING: {
+    id: 'LANDING',
+    path: '/welcome',
+    scope: 'GLOBAL',
+    description: 'Public landing page for first-time visitors.',
+    urlParams: [],
+    urlQuery: [],
+    storeState: [],
+  },
   DISCOVER: {
     id: 'DISCOVER',
     path: '/discover',
@@ -231,6 +241,7 @@ export const DEFAULT_APP_ROUTE_ID: SherlockRouteId = 'FILES';
 export const DEFAULT_APP_PATH = SHERLOCK_ROUTE_DEFINITIONS[DEFAULT_APP_ROUTE_ID].path;
 
 export const GLOBAL_ROUTE_IDS: readonly SherlockRouteId[] = [
+  'LANDING',
   'DISCOVER',
   'MONITOR',
   'FILES',
@@ -248,6 +259,8 @@ export const WORKSPACE_ROUTE_IDS: readonly SherlockRouteId[] = [
   'WORKSPACE_TIMELINE',
   'WORKSPACE_NETWORK',
 ];
+
+export const buildLandingPath = (): string => SHERLOCK_ROUTE_DEFINITIONS.LANDING.path;
 
 export const buildDiscoverPath = (): string => SHERLOCK_ROUTE_DEFINITIONS.DISCOVER.path;
 

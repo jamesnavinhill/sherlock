@@ -61,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { view: AppView.DASHBOARD, label: 'Discovery', icon: LayoutDashboard },
   ] as const;
 
-  const brandLogoSrc = themeMode === 'dark' ? '/logo-dark.jpg' : '/logo-light.jpg';
+  const brandLogoSrc = '/logo-dark.jpg';
 
   return (
     <>
@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <img
               src={brandLogoSrc}
               alt="Sherlock AI logo"
-              className={`h-10 w-10 rounded-md object-cover ring-1 ring-white/10 transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
+              className={`h-10 w-10 rounded-md object-cover transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
             />
           </div>
           <div
