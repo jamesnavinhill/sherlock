@@ -108,10 +108,19 @@ describe('ArtifactViewer', () => {
     expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);
+    const findingDisclosure = screen.getByRole('button', {
+      name: /1 Award timing irregularity/i,
+    });
+    expect(findingDisclosure).toBeInTheDocument();
     expect(
       screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
         .length
     ).toBeGreaterThan(1);
+    fireEvent.click(findingDisclosure);
+    expect(
+      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')
+    ).toHaveLength(1);
+    fireEvent.click(findingDisclosure);
     expect(screen.queryByText(/\[RUN_ANGLE\]/)).not.toBeInTheDocument();
     expect(screen.queryByText(/\[PRIORITY_SOURCES\]/)).not.toBeInTheDocument();
     expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();

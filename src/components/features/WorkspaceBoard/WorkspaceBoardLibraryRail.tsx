@@ -1,16 +1,14 @@
 import React from 'react';
-import { FilePlus2, Link2, Radio, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, FilePlus2, Link2, Radio, Trash2 } from 'lucide-react';
 
 import { LibraryRailSearch } from '@/components/features/LibraryRail/LibraryRailSearch';
 import { LibraryRailSections } from '@/components/features/LibraryRail/LibraryRailSections';
 import { LibraryRailShell } from '@/components/features/LibraryRail/LibraryRailShell';
 import type { LibraryRailSection } from '@/components/features/LibraryRail/libraryRailTypes';
-import { Accordion } from '@/components/ui/Accordion';
 import { AppIcon } from '@/lib/appIcons';
 import {
   CHROME_ACTION_BUTTON_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
-  CHROME_THIN_ACCORDION_TRIGGER_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
   CHROME_THIN_NESTED_ITEM_CLASS,
   getChromeThinActionRowClassName,
@@ -86,21 +84,13 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
     className: getRailAccordionClassName(librarySections[key]),
     contentClassName: railSectionScrollClassName,
     content: (
-      <div className="space-y-2">
+      <div className="space-y-1">
         {entries.length === 0 ? (
           <p className="px-2 py-1 osint-body-quiet italic">No matching items in this section.</p>
         ) : (
           entries.map((entry) => {
             const entryKey = boardRefKey(entry);
             const isEntryOpen = !!libraryItemSections[entryKey];
-            const entryTitle = (
-              <span className="flex min-w-0 items-center gap-2">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
-                  <AppIcon iconId={entry.iconId} size={13} strokeWidth={1.9} />
-                </span>
-                <span className="truncate">{entry.title}</span>
-              </span>
-            );
 
             return (
               <div
@@ -113,47 +103,67 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                   )
                 }
               >
-                <Accordion
-                  title={entryTitle}
-                  isOpen={isEntryOpen}
-                  onToggle={() => onToggleLibraryEntrySection(entryKey)}
-                  variant="nested"
-                  headerClassName={CHROME_THIN_ACCORDION_TRIGGER_CLASS}
+                <div
+                  className={CHROME_THIN_NESTED_ITEM_CLASS}
+                  data-active={isEntryOpen ? 'true' : undefined}
                 >
-                  <div className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
-                    <div
-                      className={`osint-body-quiet text-zinc-500 ${
-                        key === 'sources' ? 'line-clamp-2 break-all' : ''
-                      }`}
-                    >
-                      {entry.description ||
-                        'Open this item from the library to place it on the board.'}
-                    </div>
-                    <div
-                      className={getChromeThinActionRowClassName(
-                        key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? 2 : 1
-                      )}
-                    >
-                      {key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? (
-                        <button
-                          type="button"
-                          onClick={() => onDeleteCreatedItem(entry)}
-                          className={`${CHROME_THIN_ACTION_BUTTON_CLASS} osint-danger-inline w-full`}
+                  <button
+                    type="button"
+                    onClick={() => onToggleLibraryEntrySection(entryKey)}
+                    className="flex w-full items-start justify-between gap-2 text-left"
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+                        <AppIcon iconId={entry.iconId} size={11} strokeWidth={1.9} />
+                      </span>
+                      <span className="truncate osint-body-quiet leading-5 text-zinc-300">
+                        {entry.title}
+                      </span>
+                    </span>
+                    {isEntryOpen ? (
+                      <ChevronDown className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-500" />
+                    ) : (
+                      <ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-500" />
+                    )}
+                  </button>
+                  {isEntryOpen ? (
+                    <div className="mt-1 border-t border-zinc-800/70 pt-1.5">
+                      <div className="space-y-2">
+                        <div
+                          className={`osint-body-quiet text-zinc-500 ${
+                            key === 'sources' ? 'line-clamp-2 break-all' : ''
+                          }`}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Delete
-                        </button>
-                      ) : null}
-                      <button
-                        type="button"
-                        onClick={() => onAddToBoard(entry)}
-                        className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
-                      >
-                        Add To Board
-                      </button>
+                          {entry.description ||
+                            'Open this item from the library to place it on the board.'}
+                        </div>
+                        <div
+                          className={getChromeThinActionRowClassName(
+                            key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? 2 : 1
+                          )}
+                        >
+                          {key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? (
+                            <button
+                              type="button"
+                              onClick={() => onDeleteCreatedItem(entry)}
+                              className={`${CHROME_THIN_ACTION_BUTTON_CLASS} osint-danger-inline w-full`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => onAddToBoard(entry)}
+                            className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+                          >
+                            Add To Board
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Accordion>
+                  ) : null}
+                </div>
               </div>
             );
           })

@@ -30,7 +30,7 @@ export const LibraryRailSections: React.FC<LibraryRailSectionsProps> = ({ sectio
           {section.content ? (
             section.content
           ) : section.entries?.length ? (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {section.entries.map((entry) => (
                 <LibraryRailEntry key={entry.id} entry={entry} />
               ))}

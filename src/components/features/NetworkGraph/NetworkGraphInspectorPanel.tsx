@@ -459,7 +459,9 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${getEntityToneClass(normalizedEntity.type)} entity-tone-dot`}
                         />
-                        <span className="truncate osint-meta-value">{normalizedEntity.name}</span>
+                        <span className="truncate osint-body-quiet leading-5 text-zinc-300">
+                          {normalizedEntity.name}
+                        </span>
                       </div>
                     );
                   })
@@ -481,7 +483,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
                 ) : (
                   selectedReportFollowUps.map((followUp, index) => (
                     <div key={`${followUp}-${index}`} className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
-                      <p className="osint-meta-value leading-snug text-zinc-300">{followUp}</p>
+                      <p className="osint-body-quiet leading-5 text-zinc-300">{followUp}</p>
                       <div className={getChromeThinActionRowClassName(1)}>
                         <button
                           type="button"

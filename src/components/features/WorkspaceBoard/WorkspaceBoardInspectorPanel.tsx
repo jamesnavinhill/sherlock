@@ -107,26 +107,25 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
       onToggle: onToggleSelection,
       contentClassName: CHROME_RAIL_SECTION_SCROLL_CLASS,
       content: (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {selectedEntries.length === 0 ? (
             <p className="px-2 py-1 osint-body-quiet italic">
               Select one or more board items to inspect linked Sherlock records.
             </p>
           ) : (
             selectedEntries.map((entry) => (
-              <div
-                key={boardRefKey(entry)}
-                className={`${CHROME_THIN_NESTED_ITEM_CLASS} text-zinc-200`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
-                    <AppIcon iconId={entry.iconId} size={16} strokeWidth={1.9} />
+              <div key={boardRefKey(entry)} className={CHROME_THIN_NESTED_ITEM_CLASS}>
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+                    <AppIcon iconId={entry.iconId} size={11} strokeWidth={1.9} />
                   </span>
                   <div className="min-w-0">
-                    <div className="osint-title-inline">{entry.title}</div>
+                    <div className="truncate osint-body-quiet leading-5 text-zinc-300">
+                      {entry.title}
+                    </div>
                     {entry.description ? (
                       <div
-                        className={`mt-2 osint-body-quiet ${
+                        className={`mt-1 osint-body-quiet ${
                           shouldWrapSelectionDescription(entry) ? 'break-all' : ''
                         }`}
                       >

@@ -1,8 +1,6 @@
 import React from 'react';
 
 import {
-  CHROME_NESTED_ITEM_BODY_CLASS,
-  CHROME_NESTED_ITEM_META_ROW_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
   CHROME_THIN_NESTED_ITEM_CLASS,
   getChromeThinActionRowClassName,
@@ -49,19 +47,22 @@ const renderEntryAction = (action: NonNullable<LibraryRailEntryModel['actions']>
 export const LibraryRailEntry: React.FC<LibraryRailEntryProps> = ({ entry }) => {
   const headerContent = (
     <>
-      <div className="flex min-w-0 items-start gap-3">
+      <div className="flex min-w-0 items-start gap-2">
         {entry.icon ? <div className="shrink-0">{entry.icon}</div> : null}
         <div className="min-w-0 flex-1">
-          <div className="truncate osint-meta-value text-zinc-200">{entry.title}</div>
-          {entry.meta ? <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>{entry.meta}</div> : null}
-          {entry.description ? <div className={CHROME_NESTED_ITEM_BODY_CLASS}>{entry.description}</div> : null}
+          <div className="truncate osint-body-quiet leading-5 text-zinc-300">{entry.title}</div>
+          {entry.meta ? (
+            <div className="mt-1 flex flex-wrap items-center gap-2">{entry.meta}</div>
+          ) : null}
+          {entry.description ? (
+            <div className="mt-1 osint-body-quiet text-zinc-500">{entry.description}</div>
+          ) : null}
         </div>
       </div>
     </>
   );
 
-  const wrapperClassName =
-    entry.variant === 'card' ? 'osint-panel-item p-3' : CHROME_THIN_NESTED_ITEM_CLASS;
+  const wrapperClassName = CHROME_THIN_NESTED_ITEM_CLASS;
 
   const interactiveClassName = [
     'block w-full text-left',
@@ -100,7 +101,10 @@ export const LibraryRailEntry: React.FC<LibraryRailEntryProps> = ({ entry }) => 
   );
 
   return (
-    <div className={`${wrapperClassName} ${entry.isActive ? 'border-osint-primary/40' : ''}`.trim()}>
+    <div
+      className={`${wrapperClassName} ${entry.isActive ? 'border-osint-primary/40' : ''}`.trim()}
+      data-active={entry.isActive ? 'true' : undefined}
+    >
       {primaryContent}
       {actions}
     </div>

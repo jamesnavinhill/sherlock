@@ -121,7 +121,7 @@ export const buildEntityInspectorSections = ({
               title={getMentionLabel(report)}
             >
               <FileText className="h-3 w-3 text-zinc-600" />
-              <span className="truncate osint-meta-value text-zinc-300">
+              <span className="truncate osint-body-quiet leading-5 text-zinc-300">
                 {getMentionLabel(report)}
               </span>
             </button>
@@ -149,7 +149,10 @@ export const buildEntityInspectorSections = ({
             >
               <div className="flex max-w-[70%] items-center truncate">
                 {renderConnectionIcon(connection.entity.type)}
-                <span className="truncate osint-meta-value text-zinc-400" title={connection.entity.name}>
+                <span
+                  className="truncate osint-body-quiet leading-5 text-zinc-300"
+                  title={connection.entity.name}
+                >
                   {connection.entity.name}
                 </span>
               </div>

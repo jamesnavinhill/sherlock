@@ -14,7 +14,6 @@ import type { GlobalInspectorSection } from '@/components/features/Inspector/glo
 import {
   CHROME_NESTED_ITEM_BADGE_CLASS,
   CHROME_NESTED_ITEM_BODY_CLASS,
-  CHROME_NESTED_ITEM_HEADER_CLASS,
   CHROME_NESTED_ITEM_META_ROW_CLASS,
   CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
@@ -85,9 +84,9 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
       onToggle: () => onToggleSection('launchContext'),
       contentClassName: railSectionScrollClassName,
       content: (
-        <div className="space-y-2 px-2 py-1">
+        <div className="space-y-1 px-2 py-1">
           <div className={CHROME_THIN_NESTED_ITEM_CLASS}>
-            <div className="osint-title-inline">{launchContextSummary.title}</div>
+            <div className="osint-body-quiet leading-5 text-zinc-300">{launchContextSummary.title}</div>
             <p className={CHROME_NESTED_ITEM_BODY_CLASS}>{launchContextSummary.body}</p>
           </div>
         </div>
@@ -104,7 +103,7 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
     onToggle: () => onToggleSection('recentArtifacts'),
     contentClassName: railSectionScrollClassName,
     content: (
-      <div className="space-y-2">
+      <div className="space-y-1">
         {workspaceReports.slice(0, 4).length === 0 ? (
           <p className="px-2 py-1 osint-body-quiet italic">
             No saved artifacts for this workspace yet.
@@ -123,15 +122,17 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
                 <button
                   type="button"
                   onClick={() => onToggleArtifactCard(artifactKey)}
-                  className={`w-full text-left ${CHROME_NESTED_ITEM_HEADER_CLASS}`}
+                  className="flex w-full items-start justify-between gap-2 text-left"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="truncate osint-meta-value text-zinc-200">{artifact.topic}</div>
+                    <div className="truncate osint-body-quiet leading-5 text-zinc-300">
+                      {artifact.topic}
+                    </div>
                   </div>
                   {isExpanded ? (
-                    <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
+                    <ChevronDown className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-zinc-500" />
                   ) : (
-                    <ChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-zinc-500" />
+                    <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-zinc-500" />
                   )}
                 </button>
                 {isExpanded ? (
@@ -172,7 +173,7 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
     onToggle: () => onToggleSection('recentSignals'),
     contentClassName: railSectionScrollClassName,
     content: (
-      <div className="space-y-2">
+      <div className="space-y-1">
         <div className="flex">
           <button
             type="button"
@@ -189,9 +190,9 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
         ) : (
           workspaceSignals.slice(0, 4).map((signal) => (
             <div key={signal.id} className={CHROME_THIN_NESTED_ITEM_CLASS}>
-              <div className={CHROME_NESTED_ITEM_HEADER_CLASS}>
+              <div className="flex min-w-0 items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate osint-meta-value text-zinc-200">
+                  <div className="truncate osint-body-quiet leading-5 text-zinc-300">
                     {signal.source || signal.type}
                   </div>
                   <div className={CHROME_NESTED_ITEM_META_ROW_CLASS}>
@@ -217,10 +218,10 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
       onToggle: () => onToggleSection('latestRetrieval'),
       contentClassName: railSectionScrollClassName,
       content: (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {latestAssistantMessage.attachments.map((attachment) => (
             <div key={attachment.id} className={CHROME_THIN_NESTED_ITEM_CLASS}>
-              <div className="osint-meta-value text-zinc-200">{attachment.title}</div>
+              <div className="osint-body-quiet leading-5 text-zinc-300">{attachment.title}</div>
               {attachment.snippet ? (
                 <p className={CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS}>{attachment.snippet}</p>
               ) : null}
@@ -240,13 +241,13 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
     onToggle: () => onToggleSection('actionLog'),
     contentClassName: railSectionScrollClassName,
     content: (
-      <div className="space-y-2">
+      <div className="space-y-1">
         {sessionActions.length === 0 ? (
           <p className="px-2 py-1 osint-body-quiet italic">No chat actions recorded yet.</p>
         ) : (
           sessionActions.slice(0, 8).map((action) => (
             <div key={action.id} className={CHROME_THIN_NESTED_ITEM_CLASS}>
-              <div className="osint-meta-value text-zinc-200">{action.type}</div>
+              <div className="osint-body-quiet leading-5 text-zinc-300">{action.type}</div>
               <div className={CHROME_NESTED_ITEM_SUPPORTING_BODY_CLASS}>
                 {formatDateTime(action.createdAt)}
               </div>

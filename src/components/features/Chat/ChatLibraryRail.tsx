@@ -5,7 +5,7 @@ import type { ChatMessage, ChatSession } from '@/types';
 import { LibraryRailSections } from '@/components/features/LibraryRail/LibraryRailSections';
 import { LibraryRailShell } from '@/components/features/LibraryRail/LibraryRailShell';
 import type { LibraryRailSection } from '@/components/features/LibraryRail/libraryRailTypes';
-import { CHROME_NESTED_ITEM_BODY_CLASS } from '@/components/ui/chrome';
+import { CHROME_THIN_NESTED_ITEM_CLASS } from '@/components/ui/chrome';
 
 interface ChatLibraryRailProps {
   activeSessionId: string | null;
@@ -72,7 +72,6 @@ export const ChatLibraryRail: React.FC<ChatLibraryRailProps> = ({
           description: `Updated ${formatDateTime(session.updatedAt)}`,
           onClick: () => onSelectSession(session),
           isActive: activeSessionId === session.id,
-          variant: 'card' as const,
           actions: [
             {
               id: `${session.id}-rename`,
@@ -100,9 +99,9 @@ export const ChatLibraryRail: React.FC<ChatLibraryRailProps> = ({
       onToggle: onToggleWorkspace,
       contentClassName: sectionScrollClassName,
       content: (
-        <div className="space-y-2">
-          <div className="osint-panel-item p-3">
-            <p className={CHROME_NESTED_ITEM_BODY_CLASS}>
+        <div className="space-y-1">
+          <div className={CHROME_THIN_NESTED_ITEM_CLASS}>
+            <p className="osint-body-quiet text-zinc-500">
               {workspaceDescription || 'No workspace summary saved yet.'}
             </p>
           </div>

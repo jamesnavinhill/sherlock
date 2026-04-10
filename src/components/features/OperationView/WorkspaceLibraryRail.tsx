@@ -101,7 +101,9 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
               <span
                 className={`${CHROME_NESTED_ITEM_DOT_CLASS} ${getEntityToneClass(entity.type)} entity-tone-dot`}
               />
-              <span className="truncate osint-meta-value text-zinc-300">{entity.name}</span>
+              <span className="truncate osint-body-quiet leading-5 text-zinc-300">
+                {entity.name}
+              </span>
             </button>
           ))}
         </div>
@@ -123,7 +125,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
         <div className="space-y-1">
           {leads.map((lead, index) => (
             <div key={`${lead}-${index}`} className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
-              <p className="osint-meta-value leading-snug text-zinc-300">{lead}</p>
+              <p className="osint-body-quiet leading-5 text-zinc-300">{lead}</p>
               <div className="flex">
                 <button
                   type="button"
@@ -162,7 +164,6 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
         description: evidence.title,
         meta: sanitizeDisplayTitle(evidenceReport.topic),
         onClick: evidenceReport.id ? () => onNavigate(evidenceReport.id as string) : undefined,
-        variant: 'card',
       })),
     });
   }
@@ -209,7 +210,6 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
       description: headline.content,
       meta: `${headline.type} Signal`,
       onClick: () => onHeadlineClick(headline),
-      variant: 'card',
     })),
     emptyState: (
       <p className="osint-body-quiet px-2 py-1 italic">{`No saved signals linked to this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>

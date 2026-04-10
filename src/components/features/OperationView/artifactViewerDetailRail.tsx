@@ -20,6 +20,7 @@ import {
   CHROME_THIN_NESTED_ITEM_CLASS,
   getChromeThinActionRowClassName,
 } from '@/components/ui/chrome';
+import { Accordion } from '@/components/ui/Accordion';
 import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 import { getEntityToneClass } from '@/utils/entityPalette';
 import type { LibraryRailSection } from '../LibraryRail/libraryRailTypes';
@@ -53,61 +54,6 @@ const cx = (...classes: Array<string | false | null | undefined>) =>
 
 const normalizeText = (value?: string | null) => value?.replace(/\s+/g, ' ').trim() || '';
 
-interface DetailRowProps {
-  eyebrow?: string;
-  title?: string;
-  body?: string;
-  tone?: 'DEFAULT' | 'ACCENT' | 'WARNING';
-  children?: React.ReactNode;
-}
-
-const DetailRow: React.FC<DetailRowProps> = ({
-  eyebrow,
-  title,
-  body,
-  tone = 'DEFAULT',
-  children,
-}) => (
-  <article
-    className={cx(
-      'border p-3',
-      tone === 'WARNING'
-        ? 'border-[color:var(--osint-danger-border)] bg-[color:var(--osint-danger-soft-bg)]'
-        : tone === 'ACCENT'
-          ? 'border-osint-primary/30 bg-osint-primary/5'
-          : 'border-zinc-800 bg-zinc-950/70'
-    )}
-  >
-    {eyebrow ? (
-      <div className={cx('osint-meta-label', tone === 'WARNING' && 'osint-danger-text')}>
-        {eyebrow}
-      </div>
-    ) : null}
-    {title ? (
-      <div
-        className={cx(
-          'mt-1 osint-meta-label-strong',
-          tone === 'WARNING' ? 'osint-danger-text' : 'text-white'
-        )}
-      >
-        {title}
-      </div>
-    ) : null}
-    {body ? (
-      <div
-        className={cx(
-          title ? 'mt-2' : 'mt-1',
-          'max-w-none osint-body-small text-zinc-300 prose prose-invert prose-p:my-0',
-          tone === 'WARNING' && 'osint-danger-text'
-        )}
-      >
-        <ReactMarkdown>{body}</ReactMarkdown>
-      </div>
-    ) : null}
-    {children}
-  </article>
-);
-
 interface FollowUpDetailRowProps {
   title?: string;
   body?: string;
@@ -128,6 +74,129 @@ const FollowUpDetailRow: React.FC<FollowUpDetailRowProps> = ({
       <div className="osint-meta-value leading-snug text-zinc-300">{questionText}</div>
       {children}
     </article>
+  );
+};
+
+interface FindingDetailListProps {
+  canonicalFindings: KeyFinding[];
+  keyFindingsAnchorId: string;
+  jumpToSection: (sectionId: string) => void;
+  jumpToEvidence: (evidenceId: string) => void;
+  getFindingRelatedEvidence: (finding: KeyFinding) => ArtifactEvidence[];
+  getMatchingSources: (references?: string[]) => Source[];
+}
+
+const FindingDetailList: React.FC<FindingDetailListProps> = ({
+  canonicalFindings,
+  keyFindingsAnchorId,
+  jumpToSection,
+  jumpToEvidence,
+  getFindingRelatedEvidence,
+  getMatchingSources,
+}) => {
+  const [openFindingId, setOpenFindingId] = React.useState<string | null>(
+    canonicalFindings[0]?.id ?? null
+  );
+
+  const renderSourceLinks = (sources: Source[]) => {
+    if (sources.length === 0) return null;
+
+    return (
+      <div className="mt-2 space-y-1.5">
+        {sources.map((source) => (
+          <a
+            key={`${source.url}-${source.title}`}
+            href={source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-w-0 items-center gap-1.5 font-sans text-[11px] leading-5 text-[color:var(--osint-text-quiet)] transition-colors hover:text-osint-primary"
+            title={source.title || source.url}
+          >
+            <Link2 className="h-3 w-3 shrink-0" />
+            <span className="truncate whitespace-nowrap">{source.title || source.url}</span>
+          </a>
+        ))}
+      </div>
+    );
+  };
+
+  const renderEvidenceButtons = (evidenceRows: ArtifactEvidence[]) => {
+    if (evidenceRows.length === 0) return null;
+
+    return (
+      <div className="mt-3 flex flex-wrap gap-2">
+        {evidenceRows.map((evidence) => (
+          <button
+            key={evidence.id}
+            type="button"
+            onClick={() => jumpToEvidence(evidence.id)}
+            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+          >
+            <Globe className="h-3 w-3" />
+            <span>{evidence.sourceTitle || evidence.title}</span>
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {canonicalFindings.map((finding, index) => {
+        const relatedEvidence = getFindingRelatedEvidence(finding);
+        const matchingSources = getMatchingSources(finding.supportRefs);
+        const headerTitle = normalizeText(finding.title) || normalizeText(finding.summary);
+        const isOpen = openFindingId === finding.id;
+
+        return (
+          <Accordion
+            key={finding.id}
+            title={
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="shrink-0 osint-meta-label text-zinc-500">{index + 1}</span>
+                <span className="min-w-0 truncate osint-body-quiet leading-5 text-zinc-200">
+                  {headerTitle}
+                </span>
+              </div>
+            }
+            isOpen={isOpen}
+            onToggle={() => setOpenFindingId((current) => (current === finding.id ? null : finding.id))}
+            variant="nested"
+            className="mb-0"
+            headerClassName="px-2.5 py-1.5"
+            contentClassName="space-y-3 px-2.5 py-2"
+          >
+            <div className="max-w-none osint-body-small text-zinc-300 prose prose-invert prose-p:my-0">
+              <ReactMarkdown>{finding.summary}</ReactMarkdown>
+            </div>
+
+            {matchingSources.length > 0 ? (
+              <div>
+                <div className="osint-meta-label">Sources</div>
+                {renderSourceLinks(matchingSources)}
+              </div>
+            ) : null}
+
+            {relatedEvidence.length > 0 ? (
+              <div>
+                <div className="osint-meta-label">Evidence</div>
+                {renderEvidenceButtons(relatedEvidence)}
+              </div>
+            ) : null}
+
+            <div className={getChromeThinActionRowClassName(1)}>
+              <button
+                type="button"
+                onClick={() => jumpToSection(finding.originSectionId || keyFindingsAnchorId)}
+                className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+              >
+                Open
+              </button>
+            </div>
+          </Accordion>
+        );
+      })}
+    </div>
   );
 };
 
@@ -247,38 +316,15 @@ export const buildArtifactViewerDetailRailSections = ({
             No canonical findings were extracted for this artifact.
           </p>
         ) : (
-          <div className="space-y-2">
-            {canonicalFindings.map((finding, index) => {
-              const relatedEvidence = getFindingRelatedEvidence(finding);
-              const matchingSources = getMatchingSources(finding.supportRefs);
-
-              return (
-                <DetailRow key={finding.id} eyebrow={`Finding ${index + 1}`} body={finding.summary}>
-                  {matchingSources.length > 0 ? (
-                    <div className="mt-3">
-                      <div className="osint-meta-label">Sources</div>
-                      {renderInlineSourceLinks(matchingSources)}
-                    </div>
-                  ) : null}
-                  {relatedEvidence.length > 0 ? (
-                    <div className="mt-3">
-                      <div className="osint-meta-label">Evidence</div>
-                      {renderEvidenceButtons(relatedEvidence)}
-                    </div>
-                  ) : null}
-                  <div className={getChromeThinActionRowClassName(1)}>
-                    <button
-                      type="button"
-                      onClick={() => jumpToSection(finding.originSectionId || keyFindingsAnchorId)}
-                      className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
-                    >
-                      Open
-                    </button>
-                  </div>
-                </DetailRow>
-              );
-            })}
-          </div>
+          <FindingDetailList
+            key={canonicalFindings.map((finding) => finding.id).join('|')}
+            canonicalFindings={canonicalFindings}
+            keyFindingsAnchorId={keyFindingsAnchorId}
+            jumpToSection={jumpToSection}
+            jumpToEvidence={jumpToEvidence}
+            getFindingRelatedEvidence={getFindingRelatedEvidence}
+            getMatchingSources={getMatchingSources}
+          />
         ),
     },
     {
@@ -311,7 +357,7 @@ export const buildArtifactViewerDetailRailSections = ({
                       getEntityToneClass(normalizedEntity.type)
                     )}
                   />
-                  <span className="truncate osint-meta-value text-zinc-300">
+                  <span className="truncate osint-body-quiet leading-5 text-zinc-300">
                     {normalizedEntity.name}
                   </span>
                 </button>
