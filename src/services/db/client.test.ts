@@ -71,4 +71,24 @@ describe('database section schema upgrades', () => {
       expect.stringContaining('CREATE TABLE IF NOT EXISTS "workspaces"')
     );
   });
+
+  it('runs post-repair schema backfill even when earlier repairs were already applied', async () => {
+    const exec = vi.fn(async (_db: number, sql: string, callback?: (row: unknown[]) => void) => {
+      if (sql.includes('SELECT "id" FROM "__sherlock_schema_migrations"')) {
+        callback?.([1]);
+        callback?.([2]);
+        callback?.([3]);
+        callback?.([4]);
+      }
+    });
+
+    await applyPendingDbMigrations({ exec } as never, 1);
+
+    expect(exec).toHaveBeenCalledWith(1, 'ALTER TABLE workspaces ADD COLUMN icon_id text;');
+    expect(exec).toHaveBeenCalledWith(1, 'ALTER TABLE manual_nodes ADD COLUMN icon_id text;');
+    expect(exec).toHaveBeenCalledWith(
+      1,
+      expect.stringContaining('INSERT INTO "__sherlock_schema_migrations" ("id", "name", "applied_at")')
+    );
+  });
 });

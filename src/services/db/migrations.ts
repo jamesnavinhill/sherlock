@@ -344,6 +344,31 @@ const runAdditiveSchemaRepairs = async (api: SQLiteMigrationApi, db: number): Pr
   await ensureArtifactSectionsCompositeKey(api, db);
 };
 
+// Keep this list in a separate follow-up migration so older local databases that already
+// recorded migration 3 can still receive newer additive columns.
+const runPostRepairSchemaBackfill = async (api: SQLiteMigrationApi, db: number): Promise<void> => {
+  const alterStatements = [
+    'ALTER TABLE workspaces ADD COLUMN icon_id text;',
+    'ALTER TABLE manual_nodes ADD COLUMN icon_id text;',
+  ];
+
+  for (const sql of alterStatements) {
+    try {
+      await api.exec(db, sql);
+    } catch (error) {
+      const message = String(error);
+      if (
+        !message.includes('duplicate column name') &&
+        !message.includes('already exists') &&
+        !message.includes('no such table')
+      ) {
+        console.error('Post-repair schema backfill error:', error);
+        throw error;
+      }
+    }
+  }
+};
+
 const DB_MIGRATIONS: readonly DbMigration[] = [
   {
     id: 1,
@@ -364,6 +389,11 @@ const DB_MIGRATIONS: readonly DbMigration[] = [
     id: 4,
     name: 'key-findings-cutover',
     apply: runKeyFindingsCutover,
+  },
+  {
+    id: 5,
+    name: 'post-repair-schema-backfill',
+    apply: runPostRepairSchemaBackfill,
   },
 ];
 
