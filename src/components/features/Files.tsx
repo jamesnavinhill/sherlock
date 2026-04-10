@@ -93,6 +93,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
     workspaces,
     closeUploadDialog,
     confirmUploadDialog,
+    openUploadDialog,
     openUploadPicker,
   } = controller;
 
@@ -177,7 +178,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
               </div>
 
               <button
-                onClick={openUploadPicker}
+                onClick={openUploadDialog}
                 disabled={workspaces.length === 0}
                 className={`${getChromeMenuButtonClass(false)} gap-2`}
                 title={
@@ -310,6 +311,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           onClose={closeUploadDialog}
           onConfirm={() => void confirmUploadDialog()}
           onRouteChange={setUploadRoute}
+          onSelectFiles={openUploadPicker}
           onTargetWorkspaceChange={setUploadTargetWorkspaceId}
         />
       ) : null}

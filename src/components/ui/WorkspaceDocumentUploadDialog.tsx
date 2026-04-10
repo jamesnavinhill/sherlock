@@ -12,6 +12,7 @@ interface WorkspaceDocumentUploadDialogProps {
   onClose: () => void;
   onConfirm: () => Promise<void> | void;
   onRouteChange: (route: WorkspaceDocumentUploadRoute) => void;
+  onSelectFiles?: () => void;
   onTargetWorkspaceChange: (workspaceId: string) => void;
   state: WorkspaceDocumentUploadDialogState;
   workspaces: Workspace[];
@@ -36,7 +37,9 @@ const formatArtifactTypeLabel = (artifactType: ArtifactType) =>
     .join(' ');
 
 const buildConfirmLabel = (state: WorkspaceDocumentUploadDialogState) =>
-  state.route === 'WORKSPACE_ITEM'
+  state.files.length === 0
+    ? 'Select Files'
+    : state.route === 'WORKSPACE_ITEM'
     ? state.files.length === 1
       ? 'Save As Item'
       : `Save ${state.files.length} Items`
@@ -50,12 +53,22 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
   onClose,
   onConfirm,
   onRouteChange,
+  onSelectFiles,
   onTargetWorkspaceChange,
   state,
   workspaces,
 }) => {
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === state.targetWorkspaceId) || null;
   const requiresWorkspaceSelection = workspaces.length > 1 || !selectedWorkspace;
+  const hasFiles = state.files.length > 0;
+  const selectedFilesPanelClassName = onSelectFiles
+    ? `w-full border p-4 text-left transition ${
+        hasFiles
+          ? 'border-zinc-800 bg-black/50 hover:border-zinc-600'
+          : 'border-dashed border-zinc-700 bg-zinc-950/60 hover:border-osint-primary'
+      } ${isSubmitting ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`
+    : 'border border-zinc-800 bg-black/50 p-4';
+  const selectedFilesLabel = hasFiles ? 'Selected Files' : 'Select Files';
 
   return (
     <ModalShell
@@ -74,7 +87,7 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
           </button>
           <button
             onClick={() => void onConfirm()}
-            disabled={isSubmitting || !selectedWorkspace}
+            disabled={isSubmitting || !selectedWorkspace || !hasFiles}
             className="osint-button-primary px-4 py-2 osint-meta-label-strong disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? 'Importing...' : buildConfirmLabel(state)}
@@ -83,24 +96,66 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
       }
     >
       <div className="space-y-5">
-        <div className="border border-zinc-800 bg-black/50 p-4">
-          <div className="osint-meta-label">Selected Files</div>
-          <div className="mt-3 space-y-2">
-            {state.files.slice(0, 4).map((file) => (
-              <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between gap-4">
-                <span className="truncate osint-body-small text-zinc-200">{file.name}</span>
-                <span className="shrink-0 osint-meta-label text-zinc-500">
-                  {file.type || 'Unknown type'}
-                </span>
+        {onSelectFiles ? (
+          <button
+            type="button"
+            onClick={onSelectFiles}
+            disabled={isSubmitting}
+            aria-label={hasFiles ? 'Replace selected files' : 'Select files from device'}
+            className={selectedFilesPanelClassName}
+          >
+            <div className="osint-meta-label">{selectedFilesLabel}</div>
+            {hasFiles ? (
+              <div className="mt-3 space-y-2">
+                {state.files.slice(0, 4).map((file) => (
+                  <div
+                    key={`${file.name}-${file.size}-${file.lastModified}`}
+                    className="flex items-center justify-between gap-4"
+                  >
+                    <span className="truncate osint-body-small text-zinc-200">{file.name}</span>
+                    <span className="shrink-0 osint-meta-label text-zinc-500">
+                      {file.type || 'Unknown type'}
+                    </span>
+                  </div>
+                ))}
+                {state.files.length > 4 ? (
+                  <div className="osint-meta-label text-zinc-500">
+                    +{state.files.length - 4} more file(s)
+                  </div>
+                ) : null}
+                <div className="pt-1 osint-meta-label text-zinc-500">
+                  Click to replace the selected files.
+                </div>
               </div>
-            ))}
-            {state.files.length > 4 ? (
-              <div className="osint-meta-label text-zinc-500">
-                +{state.files.length - 4} more file(s)
+            ) : (
+              <div className="mt-3 osint-body-muted">
+                Open the file system and choose the documents you want to route into this workspace.
               </div>
-            ) : null}
+            )}
+          </button>
+        ) : (
+          <div className={selectedFilesPanelClassName}>
+            <div className="osint-meta-label">Selected Files</div>
+            <div className="mt-3 space-y-2">
+              {state.files.slice(0, 4).map((file) => (
+                <div
+                  key={`${file.name}-${file.size}-${file.lastModified}`}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <span className="truncate osint-body-small text-zinc-200">{file.name}</span>
+                  <span className="shrink-0 osint-meta-label text-zinc-500">
+                    {file.type || 'Unknown type'}
+                  </span>
+                </div>
+              ))}
+              {state.files.length > 4 ? (
+                <div className="osint-meta-label text-zinc-500">
+                  +{state.files.length - 4} more file(s)
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
+        )}
 
         {requiresWorkspaceSelection ? (
           <div>

@@ -93,6 +93,32 @@ describe('Files chat launch propagation', () => {
     expect(screen.getByLabelText(/view workspace/i)).toBeInTheDocument();
   });
 
+  it('opens the upload routing modal before files are selected on the Files page', () => {
+    const { container } = render(
+      <MemoryRouter future={routerFuture}>
+        <Files onSelectReport={vi.fn()} onStartNewCase={vi.fn()} onOpenChat={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /upload/i }));
+
+    expect(screen.getByText(/route uploaded documents/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /select files from device/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^select files$/i })).toBeDisabled();
+
+    const fileInput = container.querySelector('input[type="file"]');
+    expect(fileInput).not.toBeNull();
+
+    fireEvent.change(fileInput as HTMLInputElement, {
+      target: {
+        files: [new File(['logo'], 'logo-dark.jpg', { type: 'image/jpeg' })],
+      },
+    });
+
+    expect(screen.getByText('logo-dark.jpg')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save as item/i })).toBeEnabled();
+  });
+
   it('moves the layout switch into the files filters menu', () => {
     render(
       <MemoryRouter future={routerFuture}>

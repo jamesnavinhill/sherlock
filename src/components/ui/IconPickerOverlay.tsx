@@ -56,6 +56,7 @@ const OpenIconPickerOverlay: React.FC<IconPickerOverlayProps> = ({
       description={description}
       onClose={onClose}
       widthClassName="max-w-6xl"
+      scrollContent
     >
       <div className="space-y-4">
         {allowDefault ? (

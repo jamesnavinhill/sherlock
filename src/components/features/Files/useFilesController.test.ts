@@ -68,6 +68,7 @@ describe('useFilesController', () => {
       confirmUploadDialog: vi.fn(),
       fileInputRef: { current: null },
       handleFileUpload: vi.fn(),
+      openUploadDialog: vi.fn(),
       openUploadPicker: vi.fn(),
       setUploadArtifactType: vi.fn(),
       setUploadRoute: vi.fn(),

@@ -8,7 +8,10 @@ interface ModalShellProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   widthClassName?: string;
+  panelClassName?: string;
+  contentClassName?: string;
   closeOnOverlayClick?: boolean;
+  scrollContent?: boolean;
 }
 
 export const ModalShell: React.FC<ModalShellProps> = ({
@@ -18,7 +21,10 @@ export const ModalShell: React.FC<ModalShellProps> = ({
   children,
   footer,
   widthClassName = 'max-w-xl',
+  panelClassName = '',
+  contentClassName = '',
   closeOnOverlayClick = true,
+  scrollContent = false,
 }) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -41,7 +47,9 @@ export const ModalShell: React.FC<ModalShellProps> = ({
       }}
     >
       <div
-        className={`w-full ${widthClassName} overflow-hidden border border-zinc-700 bg-zinc-950 shadow-2xl`}
+        className={`w-full ${widthClassName} overflow-hidden border border-zinc-700 bg-zinc-950 shadow-2xl ${
+          scrollContent ? 'flex max-h-[calc(100vh-2rem)] flex-col' : ''
+        } ${panelClassName}`.trim()}
       >
         <div className="flex items-start justify-between gap-4 border-b border-zinc-800 bg-black px-6 py-4">
           <div className="min-w-0">
@@ -57,7 +65,11 @@ export const ModalShell: React.FC<ModalShellProps> = ({
           </button>
         </div>
 
-        <div className="p-6">{children}</div>
+        <div
+          className={`${scrollContent ? 'min-h-0 flex-1 overflow-y-auto p-6' : 'p-6'} ${contentClassName}`.trim()}
+        >
+          {children}
+        </div>
 
         {footer ? <div className="border-t border-zinc-800 px-6 py-4">{footer}</div> : null}
       </div>

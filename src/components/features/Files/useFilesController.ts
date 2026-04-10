@@ -142,6 +142,7 @@ export const useFilesController = ({
     confirmUploadDialog,
     fileInputRef,
     handleFileUpload,
+    openUploadDialog,
     openUploadPicker,
     setUploadArtifactType,
     setUploadRoute,
@@ -343,6 +344,7 @@ export const useFilesController = ({
     closeWorkspacePurgeDialog: () => setWorkspacePendingPurge(null),
     confirmPurgeWorkspace,
     confirmUploadDialog,
+    openUploadDialog,
     openUploadPicker,
   };
 };

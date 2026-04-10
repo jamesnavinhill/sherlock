@@ -60,23 +60,31 @@ export const useWorkspaceDocumentUpload = ({
   );
   const [uploadInFlight, setUploadInFlight] = useState(false);
 
+  const buildInitialDialogState = useCallback(
+    (): WorkspaceDocumentUploadDialogState => ({
+      artifactType: defaultArtifactType,
+      files: [],
+      route: 'WORKSPACE_ITEM',
+      targetWorkspaceId: resolveInitialWorkspaceId({
+        initialWorkspaceId,
+        workspaces,
+      }),
+    }),
+    [defaultArtifactType, initialWorkspaceId, workspaces]
+  );
+
   const handleFileUpload = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
       event.target.value = '';
       if (files.length === 0) return;
 
-      setUploadDialogState({
-        artifactType: defaultArtifactType,
+      setUploadDialogState((current) => ({
+        ...(current || buildInitialDialogState()),
         files,
-        route: 'WORKSPACE_ITEM',
-        targetWorkspaceId: resolveInitialWorkspaceId({
-          initialWorkspaceId,
-          workspaces,
-        }),
-      });
+      }));
     },
-    [defaultArtifactType, initialWorkspaceId, workspaces]
+    [buildInitialDialogState]
   );
 
   const closeUploadDialog = useCallback(() => {
@@ -98,6 +106,10 @@ export const useWorkspaceDocumentUpload = ({
 
   const confirmUploadDialog = useCallback(async () => {
     if (!uploadDialogState) return;
+    if (uploadDialogState.files.length === 0) {
+      addToast('Select at least one file before importing documents.', 'ERROR');
+      return;
+    }
 
     const targetWorkspace = workspaces.find(
       (workspace) => workspace.id === uploadDialogState.targetWorkspaceId
@@ -144,6 +156,7 @@ export const useWorkspaceDocumentUpload = ({
     confirmUploadDialog,
     fileInputRef,
     handleFileUpload,
+    openUploadDialog: () => setUploadDialogState(buildInitialDialogState()),
     openUploadPicker: () => fileInputRef.current?.click(),
     setUploadArtifactType,
     setUploadRoute,
