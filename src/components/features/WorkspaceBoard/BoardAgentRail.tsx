@@ -140,9 +140,8 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
   const headerToneSurfaceClassName = 'border border-zinc-800 bg-zinc-900/30';
   const headerToneChipClassName = 'rounded-none border border-zinc-800 bg-zinc-900/30';
   const hoverToolbarIconClassName =
-    'h-4 w-4 fill-transparent text-current transition-[fill,color] group-hover:[fill:var(--osint-primary)] group-hover:[color:var(--osint-primary)] group-focus-visible:[fill:var(--osint-primary)] group-focus-visible:[color:var(--osint-primary)]';
-  const activeToolbarIconClassName =
-    'h-4 w-4 [fill:var(--osint-primary)] [color:var(--osint-primary)]';
+    'h-4 w-4 text-current transition-colors group-hover:[color:var(--osint-primary)] group-focus-visible:[color:var(--osint-primary)]';
+  const activeToolbarIconClassName = 'h-4 w-4 [color:var(--osint-primary)]';
   const composerToolButtonClassName =
     'group inline-flex h-9 w-9 items-center justify-center text-zinc-500 transition hover:text-osint-primary focus-visible:text-osint-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
   const boardTranscriptBodyClassName =
@@ -373,7 +372,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                               'Board-agent request copied to clipboard.'
                             )
                           }
-                          className="inline-flex items-center gap-1 transition hover:text-white"
+                          className="inline-flex items-center gap-1 transition-colors hover:text-osint-primary focus-visible:text-osint-primary"
                         >
                           <Clipboard className="h-3.5 w-3.5" />
                           Copy
@@ -423,7 +422,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                               'Board-agent response copied to clipboard.'
                             )
                           }
-                          className="inline-flex items-center gap-1 transition hover:text-white"
+                          className="inline-flex items-center gap-1 transition-colors hover:text-osint-primary focus-visible:text-osint-primary"
                         >
                           <Clipboard className="h-3.5 w-3.5" />
                           Copy

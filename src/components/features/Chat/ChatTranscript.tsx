@@ -350,7 +350,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                             'Message copied to clipboard.'
                           )
                         }
-                        className="inline-flex items-center gap-1 transition hover:text-white"
+                        className="inline-flex items-center gap-1 transition-colors hover:text-osint-primary focus-visible:text-osint-primary"
                       >
                         <Clipboard className="h-3.5 w-3.5" />
                         Copy
