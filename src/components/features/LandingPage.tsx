@@ -57,32 +57,25 @@ function FeatureCard({
   icon: Icon,
   title,
   description,
-  accent,
 }: {
   icon: React.ElementType;
   title: string;
   description: string;
-  accent?: boolean;
 }) {
   return (
     <div
       className="group relative rounded-lg p-6 transition-all duration-200 hover:-translate-y-0.5"
       style={{
         backgroundColor: 'var(--osint-interaction-bg)',
-        border: `1px solid ${accent ? 'var(--osint-primary-soft-border)' : 'var(--osint-interaction-border)'}`,
-        boxShadow: accent ? 'var(--osint-accent-outline-glow)' : 'none',
+        border: '1px solid var(--osint-interaction-border)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = accent
-          ? 'var(--osint-primary-soft-border)'
-          : 'var(--osint-raised-outline-strong)';
-        e.currentTarget.style.boxShadow = 'var(--osint-interaction-shadow)';
+        e.currentTarget.style.borderColor = 'var(--osint-raised-outline-strong)';
+        e.currentTarget.style.boxShadow = 'var(--osint-rail-interaction-shadow)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = accent
-          ? 'var(--osint-primary-soft-border)'
-          : 'var(--osint-interaction-border)';
-        e.currentTarget.style.boxShadow = accent ? 'var(--osint-accent-outline-glow)' : 'none';
+        e.currentTarget.style.borderColor = 'var(--osint-interaction-border)';
+        e.currentTarget.style.boxShadow = 'none';
       }}
     >
       <div
@@ -174,7 +167,7 @@ function SurfaceCard({
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = 'var(--osint-raised-outline-strong)';
-        e.currentTarget.style.boxShadow = 'var(--osint-interaction-shadow)';
+        e.currentTarget.style.boxShadow = 'var(--osint-rail-interaction-shadow)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = 'var(--osint-interaction-border)';
@@ -384,7 +377,6 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
             icon={Brain}
             title="Multi-Provider AI"
             description="Route analysis through Gemini, OpenRouter, OpenAI, or Anthropic. A capability-aware model registry with dynamic catalog, curated picks, and manual slug entry."
-            accent
           />
           <FeatureCard
             icon={Layers}
@@ -578,7 +570,7 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'var(--osint-raised-outline-strong)';
-                e.currentTarget.style.boxShadow = 'var(--osint-interaction-shadow)';
+                e.currentTarget.style.boxShadow = 'var(--osint-rail-interaction-shadow)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = 'var(--osint-interaction-border)';
