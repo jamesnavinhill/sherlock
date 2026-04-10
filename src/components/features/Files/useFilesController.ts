@@ -39,7 +39,6 @@ export const useFilesController = ({
   const [searchParams] = useSearchParams();
   const routeState = parseFilesRouteState(searchParams);
   const {
-    activeWorkspaceId,
     artifacts,
     workspaces,
     workspaceItems,
@@ -54,9 +53,7 @@ export const useFilesController = ({
     updateWorkspace,
   } = useWorkspaceStore();
 
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(
-    () => getStoredActiveWorkspaceId() || activeWorkspaceId || null
-  );
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -96,8 +93,7 @@ export const useFilesController = ({
   const focusedItem = routeState.focusItemId
     ? workspaceItems.find((item) => item.id === routeState.focusItemId) || null
     : null;
-  const requestedCaseId =
-    focusedItem?.workspaceId || routeState.workspaceId || selectedCaseId || activeWorkspaceId;
+  const requestedCaseId = focusedItem?.workspaceId || routeState.workspaceId || selectedCaseId;
   const effectiveRecordFilter: RecordFilter = focusedItem ? 'ALL' : recordFilter;
   const effectiveSelectedCaseId =
     requestedCaseId &&

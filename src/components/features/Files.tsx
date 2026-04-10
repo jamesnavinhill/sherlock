@@ -179,7 +179,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
               <button
                 onClick={openUploadPicker}
                 disabled={workspaces.length === 0}
-                className={getChromeMenuButtonClass(false)}
+                className={`${getChromeMenuButtonClass(false)} gap-2`}
                 title={
                   workspaces.length === 0
                     ? `Create a ${workspaceLabelLower} before uploading documents`

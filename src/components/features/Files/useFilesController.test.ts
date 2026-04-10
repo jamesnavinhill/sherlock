@@ -2,6 +2,9 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const navigateMock = vi.fn();
+const routerState = vi.hoisted(() => ({
+  searchParamsValue: '',
+}));
 const storeState = vi.hoisted(() => ({
   useWorkspaceStore: vi.fn(),
 }));
@@ -14,7 +17,7 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useNavigate: () => navigateMock,
-    useSearchParams: () => [new URLSearchParams('')],
+    useSearchParams: () => [new URLSearchParams(routerState.searchParamsValue)],
   };
 });
 
@@ -33,6 +36,7 @@ describe('useFilesController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    routerState.searchParamsValue = '';
     setActiveWorkspaceId = vi.fn();
 
     storeState.useWorkspaceStore.mockReturnValue({
@@ -97,7 +101,7 @@ describe('useFilesController', () => {
     expect(setActiveWorkspaceId).toHaveBeenCalledWith(null);
   });
 
-  it('hydrates the selected files workspace from the active workspace state', () => {
+  it('keeps the bare files route on the all-workspaces overview even when a workspace is active', () => {
     storeState.useWorkspaceStore.mockReturnValue({
       activeWorkspaceId: 'ws-1',
       artifacts: [],
@@ -121,6 +125,19 @@ describe('useFilesController', () => {
       setActiveWorkspaceId,
       updateWorkspace: vi.fn(),
     });
+
+    const { result } = renderHook(() =>
+      useFilesController({
+        onOpenChat: vi.fn(),
+        onSelectReport: vi.fn(),
+      })
+    );
+
+    expect(result.current.effectiveSelectedCaseId).toBeNull();
+  });
+
+  it('hydrates the selected files workspace from explicit route state', () => {
+    routerState.searchParamsValue = 'workspaceId=ws-1';
 
     const { result } = renderHook(() =>
       useFilesController({

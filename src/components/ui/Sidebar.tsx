@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <img
               src={brandLogoSrc}
               alt="Sherlock AI logo"
-              className={`h-10 w-10 rounded-md object-cover transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
+              className={`h-16 w-16 rounded-md object-cover transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
             />
           </div>
           <div

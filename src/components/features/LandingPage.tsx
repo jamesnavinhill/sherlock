@@ -237,10 +237,9 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
             : '1px solid transparent',
         }}
       >
-        <div className="flex items-center gap-3">
-          <img src={brandLogoSrc} alt="Sherlock AI" className="h-8 w-8 rounded-md object-cover" />
+        <div className="flex items-center">
           <span
-            className="font-sans text-lg font-bold tracking-widest"
+            className="font-sans text-[1.55rem] font-bold leading-none tracking-[0.19em] md:text-[1.95rem]"
             style={{ color: 'var(--osint-text-heading)' }}
           >
             SHER<span style={{ color: 'var(--osint-primary)' }}>LOCK</span>
