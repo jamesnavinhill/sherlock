@@ -374,7 +374,6 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
         isOpen={isOpen}
         onClose={onClose}
         title={reportDisplayTitle}
-        subtitle="Current Artifact"
         headerIcon={
           <div className="p-2 text-white">
             <FileText className="h-5 w-5" />

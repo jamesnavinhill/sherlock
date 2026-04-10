@@ -40,8 +40,8 @@ import {
   CHROME_RAIL_BODY_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
 } from '../../ui/chrome';
-import { LibraryRailHeader } from '../LibraryRail/LibraryRailHeader';
 import { LibraryRailSections } from '../LibraryRail/LibraryRailSections';
+import { GlobalInspectorHeader } from '../Inspector/GlobalInspectorHeader';
 import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
 import { buildArtifactViewerDetailRailSections } from './artifactViewerDetailRail';
@@ -959,25 +959,17 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
       {isDetailSidebarOpen ? (
         <div className="flex h-full w-1/4 flex-col overflow-hidden bg-black/95">
-          <LibraryRailHeader
+          <GlobalInspectorHeader
             eyebrow="Details"
-            title={
-              <h3 className="truncate font-mono osint-panel-title" title={detailPanelTitle}>
-                {detailPanelTitle}
-              </h3>
+            title={detailPanelTitle}
+            icon={
+              <div className="p-2 text-white">
+                <FileText className="h-5 w-5" />
+              </div>
             }
-            actionsPlacement="top"
-            actions={
-              <button
-                type="button"
-                onClick={() => setIsDetailSidebarOpen(false)}
-                className="osint-icon-button-plain inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 bg-transparent p-0"
-                title="Collapse Artifact Details"
-                aria-label="Collapse Artifact Details"
-              >
-                <PanelRight className="h-4 w-4" />
-              </button>
-            }
+            onClose={() => setIsDetailSidebarOpen(false)}
+            closeIcon={<PanelRight className="h-4 w-4" />}
+            closeLabel="Collapse Artifact Details"
           />
           <div className={`${CHROME_RAIL_BODY_CLASS} bg-zinc-900/10 custom-scrollbar`}>
             <LibraryRailSections sections={detailRailSections} />

@@ -44,7 +44,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   isOpen,
   eyebrow,
   title,
-  subtitle,
+  subtitle: _subtitle,
   headerIcon,
   headerActions,
   onClose,
@@ -110,7 +110,6 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
       <GlobalInspectorHeader
         eyebrow={eyebrow}
         title={title}
-        subtitle={subtitle}
         icon={headerIcon}
         onClose={onClose}
         actions={mergedHeaderActions}

@@ -105,9 +105,9 @@ describe('ArtifactViewer', () => {
     expect(screen.getByRole('heading', { name: /Key Findings/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Appendix/i })).toBeInTheDocument();
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
-    expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
+    expect(screen.getAllByText('Atlas Review').length).toBeGreaterThan(1);
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);
+    expect(screen.getAllByText('Award timing irregularity').length).toBeGreaterThan(1);
     const findingCard = screen.getByRole('heading', { name: 'Award timing irregularity' }).closest('article');
     expect(findingCard).not.toBeNull();
     const findingSourceLink = within(findingCard as HTMLElement).getByRole('link', {
@@ -119,7 +119,7 @@ describe('ArtifactViewer', () => {
     expect(findingSupportReference.className).toContain('osint-inline-reference');
     expect(findingSupportReference.className).not.toContain('border-zinc-700');
     const findingDisclosure = screen.getByRole('button', {
-      name: /1 Award timing irregularity/i,
+      name: /1\s*Award timing irregularity/i,
     });
     expect(findingDisclosure).toBeInTheDocument();
     expect(
