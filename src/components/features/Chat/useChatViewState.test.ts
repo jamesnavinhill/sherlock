@@ -8,7 +8,7 @@ describe('useChatViewState', () => {
     (window as Window & { innerWidth: number }).innerWidth = 1280;
   });
 
-  it('defaults to desktop panel visibility and keeps artifact expansion scoped to the active workspace', () => {
+  it('defaults the session rail collapsed and keeps artifact expansion scoped to the active workspace', () => {
     const { result, rerender } = renderHook(
       ({ activeWorkspaceId }) => useChatViewState({ activeWorkspaceId }),
       {
@@ -18,7 +18,7 @@ describe('useChatViewState', () => {
       }
     );
 
-    expect(result.current.leftPanelOpen).toBe(true);
+    expect(result.current.leftPanelOpen).toBe(false);
     expect(result.current.rightPanelOpen).toBe(false);
 
     act(() => {

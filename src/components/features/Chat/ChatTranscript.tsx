@@ -76,7 +76,9 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
     <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
       <div
         className={`min-h-0 flex-1 px-4 py-4 sm:px-6 ${
-          showWorkspaceEmptyState ? 'overflow-hidden' : 'overflow-y-auto overscroll-contain'
+          showWorkspaceEmptyState
+            ? 'overflow-hidden'
+            : 'overflow-y-auto overscroll-contain custom-scrollbar [scrollbar-gutter:stable_both-edges]'
         }`}
         data-app-scroll-region
       >
@@ -341,13 +343,13 @@ const buildAssistantPrimerBody = (workspace: Workspace): string => {
 
   return `You are back in **${workspaceTitle}**.${workspaceDescription ? ` I already have this workspace framing in view: _${workspaceDescription}_.` : ' I can work from the artifacts, signals, prior sessions, and linked context already saved here.'}
 
-I can help you:
+**I can help you:**
 - summarize the current state of the workspace
 - compare artifacts, signals, runs, and prior chat threads
 - trace what changed, what matters, and what still looks thin
 - turn an answer into a draft, append it to an existing artifact, or tee up a follow-up run
 
-A few good ways to start:
+**A few good ways to start:**
 - "Give me the current state of play in five bullets."
 - "What changed since the latest artifact or signal?"
 - "Compare the strongest evidence we have and call out the gaps."

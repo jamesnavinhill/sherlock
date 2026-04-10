@@ -224,6 +224,6 @@ export const sectionLabelClassName =
   'text-[11px] font-mono uppercase tracking-[0.28em] text-zinc-500';
 
 export const getDefaultLeftPanelOpen = () =>
-  typeof window !== 'undefined' ? window.innerWidth > 1024 : false;
+  false;
 
 export const getDefaultRightPanelOpen = () => false;

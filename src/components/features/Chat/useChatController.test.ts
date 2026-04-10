@@ -67,14 +67,14 @@ describe('useChatController', () => {
     });
   });
 
-  it('defaults to the sessions rail open, context rail closed, and all sections collapsed on desktop', () => {
+  it('defaults to the sessions rail collapsed, context rail closed, and all sections collapsed on desktop', () => {
     const { result } = renderHook(() =>
       useChatController({
         onLaunchInvestigation: vi.fn(),
       })
     );
 
-    expect(result.current.leftPanelOpen).toBe(true);
+    expect(result.current.leftPanelOpen).toBe(false);
     expect(result.current.rightPanelOpen).toBe(false);
     expect(result.current.leftPanelSections).toEqual({
       sessions: false,
