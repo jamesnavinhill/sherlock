@@ -108,6 +108,16 @@ describe('ArtifactViewer', () => {
     expect(screen.getByRole('heading', { name: 'Atlas Review' })).toBeInTheDocument();
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);
+    const findingCard = screen.getByRole('heading', { name: 'Award timing irregularity' }).closest('article');
+    expect(findingCard).not.toBeNull();
+    const findingSourceLink = within(findingCard as HTMLElement).getByRole('link', {
+      name: 'Registry',
+    });
+    expect(findingSourceLink.className).toContain('osint-inline-text-link');
+    expect(findingSourceLink.className).not.toContain('border-zinc-700');
+    const findingSupportReference = within(findingCard as HTMLElement).getAllByText('Registry')[1];
+    expect(findingSupportReference.className).toContain('osint-inline-reference');
+    expect(findingSupportReference.className).not.toContain('border-zinc-700');
     const findingDisclosure = screen.getByRole('button', {
       name: /1 Award timing irregularity/i,
     });

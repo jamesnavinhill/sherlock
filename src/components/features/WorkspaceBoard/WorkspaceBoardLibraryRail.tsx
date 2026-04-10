@@ -7,7 +7,6 @@ import { LibraryRailShell } from '@/components/features/LibraryRail/LibraryRailS
 import type { LibraryRailSection } from '@/components/features/LibraryRail/libraryRailTypes';
 import { AppIcon } from '@/lib/appIcons';
 import {
-  CHROME_ACTION_BUTTON_CLASS,
   CHROME_RAIL_SECTION_SCROLL_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
   CHROME_THIN_NESTED_SECTION_CLASS,
@@ -183,20 +182,20 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
       className="lg:relative lg:z-0"
       actions={
         <div className="flex gap-2">
-          <button type="button" onClick={onCreateNote} className={CHROME_ACTION_BUTTON_CLASS}>
-            <FilePlus2 className="h-4 w-4" />
+          <button type="button" onClick={onCreateNote} className={CHROME_THIN_ACTION_BUTTON_CLASS}>
+            <FilePlus2 className="h-3.5 w-3.5" />
             Note
           </button>
-          <button type="button" onClick={onCreateLink} className={CHROME_ACTION_BUTTON_CLASS}>
-            <Link2 className="h-4 w-4" />
+          <button type="button" onClick={onCreateLink} className={CHROME_THIN_ACTION_BUTTON_CLASS}>
+            <Link2 className="h-3.5 w-3.5" />
             Link
           </button>
           <button
             type="button"
             onClick={onTriggerFileUpload}
-            className={CHROME_ACTION_BUTTON_CLASS}
+            className={CHROME_THIN_ACTION_BUTTON_CLASS}
           >
-            <Radio className="h-4 w-4" />
+            <Radio className="h-3.5 w-3.5" />
             File
           </button>
           <input

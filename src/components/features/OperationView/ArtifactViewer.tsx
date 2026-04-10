@@ -2,10 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   Check,
-  ExternalLink,
   FileText,
   Globe,
-  Link2,
   Loader2,
   PanelRight,
   Pencil,
@@ -38,7 +36,10 @@ import { EditableTitle } from '../../ui/EditableTitle';
 import { EmptyState } from '../../ui/EmptyState';
 import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
-import { CHROME_RAIL_BODY_CLASS, CHROME_THIN_ACTION_BUTTON_CLASS } from '../../ui/chrome';
+import {
+  CHROME_RAIL_BODY_CLASS,
+  CHROME_THIN_ACTION_BUTTON_CLASS,
+} from '../../ui/chrome';
 import { LibraryRailHeader } from '../LibraryRail/LibraryRailHeader';
 import { LibraryRailSections } from '../LibraryRail/LibraryRailSections';
 import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
@@ -89,10 +90,10 @@ const dedupeById = <T extends { id: string }>(items: T[]) =>
   Array.from(new Map(items.map((item) => [item.id, item])).values());
 
 const PLAIN_ICON_BUTTON_CLASS =
-  'inline-flex h-9 w-9 items-center justify-center text-zinc-400 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60';
+  'osint-icon-button-plain inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
 
 const PLAIN_SUCCESS_ICON_BUTTON_CLASS =
-  'inline-flex h-9 w-9 items-center justify-center text-green-300 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60';
+  'osint-icon-button-plain-success inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
 
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   report,
@@ -177,10 +178,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         {...props}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 no-underline transition hover:border-osint-primary hover:text-white"
+        className="osint-inline-text-link osint-body-small text-zinc-300 no-underline"
       >
         {children}
-        <ExternalLink className="h-3 w-3 opacity-70" />
       </a>
     ),
     p: (props) => <p className="mb-4 last:mb-0" {...props} />,
@@ -388,16 +388,15 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     if (sources.length === 0) return null;
 
     return (
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
         {sources.map((source) => (
           <a
             key={`${source.url}-${source.title}`}
             href={source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-body-quiet text-zinc-400 transition hover:border-osint-primary hover:text-white"
+            className="osint-inline-text-link osint-body-quiet"
           >
-            <Link2 className="h-3 w-3" />
             <span>{source.title || source.url}</span>
           </a>
         ))}
@@ -641,7 +640,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsDetailSidebarOpen(true)}
-                  className="shrink-0 text-zinc-500 transition-colors hover:text-white"
+                  className="osint-icon-button-plain inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 bg-transparent p-0"
                   title="Expand Artifact Details"
                   aria-label="Expand Artifact Details"
                 >
@@ -724,10 +723,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     onClick={handlePlayBriefing}
                     disabled={isAudioLoading}
                     className={cx(
-                      'inline-flex h-9 w-9 items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                      'inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 shadow-none transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60',
                       isPlaying
-                        ? 'animate-pulse text-osint-danger'
-                        : 'text-zinc-400 hover:text-white'
+                        ? 'osint-icon-button-plain-danger animate-pulse'
+                        : 'osint-icon-button-plain'
                     )}
                     aria-label={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
                     title={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
@@ -832,11 +831,11 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       {finding.supportRefs && finding.supportRefs.length > 0 ? (
                         <div className="mt-4">
                           <div className="osint-meta-label">Support References</div>
-                          <div className="mt-3 flex flex-wrap gap-2">
+                          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
                             {finding.supportRefs.map((reference) => (
                               <span
                                 key={`${finding.id}-${reference}`}
-                                className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300"
+                                className="osint-inline-reference osint-meta-label"
                               >
                                 {reference}
                               </span>
@@ -939,13 +938,12 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                             href={evidence.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                            className="osint-inline-text-link osint-meta-label"
                           >
-                            <Link2 className="h-3 w-3" />
                             <span>{evidence.sourceTitle || evidence.sourceUrl}</span>
                           </a>
                         ) : (
-                          <span className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
+                          <span className="osint-inline-reference osint-meta-label">
                             {evidence.sourceTitle}
                           </span>
                         )}
@@ -973,7 +971,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDetailSidebarOpen(false)}
-                className="shrink-0 text-zinc-500 transition-colors hover:text-white"
+                className="osint-icon-button-plain inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 bg-transparent p-0"
                 title="Collapse Artifact Details"
                 aria-label="Collapse Artifact Details"
               >

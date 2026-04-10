@@ -59,6 +59,17 @@ const isLegacyWorkspaceExportPayload = (
 
 const asArray = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
 
+const withArtifactWorkspaceLink = (
+  artifact: Artifact | (Artifact & { caseId?: string })
+): Artifact => {
+  const legacyArtifact = artifact as Artifact & { caseId?: string };
+
+  return {
+    ...artifact,
+    workspaceId: artifact.workspaceId || legacyArtifact.caseId || undefined,
+  };
+};
+
 const flattenSessionRecord = <T extends { sessionId: string }>(value: unknown): T[] => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return [];
@@ -228,12 +239,20 @@ export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBacku
         ? [payload.case as WorkspaceDataBackup['workspaces'][number]].filter(Boolean)
       : asArray<WorkspaceDataBackup['workspaces'][number]>(payload.cases);
   const artifacts = looksCanonical
-    ? asArray<Artifact>(payload.artifacts)
+    ? asArray<Artifact | (Artifact & { caseId?: string })>(payload.artifacts).map(
+        withArtifactWorkspaceLink
+      )
     : looksCanonicalWorkspaceExport
-      ? asArray<Artifact>(payload.artifacts)
+      ? asArray<Artifact | (Artifact & { caseId?: string })>(payload.artifacts).map(
+          withArtifactWorkspaceLink
+        )
       : looksLegacyWorkspaceExport
-        ? asArray<Artifact>(payload.reports)
-      : asArray<Artifact>(payload.archives);
+        ? asArray<Artifact | (Artifact & { caseId?: string })>(payload.reports).map(
+            withArtifactWorkspaceLink
+          )
+      : asArray<Artifact | (Artifact & { caseId?: string })>(payload.archives).map(
+          withArtifactWorkspaceLink
+        );
   const runs = (
     looksCanonical
       ? asArray<WorkspaceRun>(payload.runs)

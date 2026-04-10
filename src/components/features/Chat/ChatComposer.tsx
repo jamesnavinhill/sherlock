@@ -248,7 +248,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex h-9 w-9 items-center justify-center p-0 text-zinc-500 transition hover:text-white focus-visible:text-white focus-visible:outline-none"
+              className="osint-ghost-button inline-flex h-9 w-9 items-center justify-center p-0"
               title="Attach files to the workspace library"
               aria-label="Attach files"
             >
@@ -257,7 +257,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             <button
               type="button"
               onClick={onOpenManualSetup}
-              className="inline-flex h-9 w-9 items-center justify-center p-0 text-zinc-500 transition hover:text-white focus-visible:text-white focus-visible:outline-none"
+              className="osint-ghost-button inline-flex h-9 w-9 items-center justify-center p-0"
               title="Open run configuration"
               aria-label="Open run configuration"
             >
@@ -288,7 +288,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
               disabled={!activeWorkspace || !draft.trim() || isBusy}
               aria-label="Send message"
               title="Send message"
-              className="inline-flex h-10 w-10 items-center justify-center p-0 text-zinc-500 transition hover:text-white focus-visible:text-white focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+              className="osint-ghost-button inline-flex h-10 w-10 items-center justify-center p-0 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>

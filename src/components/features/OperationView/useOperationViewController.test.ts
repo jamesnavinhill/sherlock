@@ -236,6 +236,36 @@ describe('useOperationViewController', () => {
     expect(addToast).toHaveBeenCalledWith('Artifact updated.', 'SUCCESS');
   });
 
+  it('does not show the placeholder when a routed artifact is present even if the workspace selector is on ALL', () => {
+    selectorState.useOperationFeatureState.mockReturnValue({
+      ...baseState,
+      activeWorkspaceId: 'ALL',
+    });
+
+    const { result } = renderHook(() =>
+      useOperationViewController({
+        onNavigate: vi.fn(),
+        onOpenChat: vi.fn(),
+        task: null,
+        reportOverride: {
+          id: 'artifact-1',
+          workspaceId: 'ws-1',
+          topic: 'Atlas Report',
+          summary: 'Summary',
+          agendas: [],
+          leads: [],
+          entities: [],
+          sources: [],
+          rawText: 'raw',
+          config: {},
+        },
+      })
+    );
+
+    expect(result.current.showPlaceholder).toBe(false);
+    expect(result.current.report?.id).toBe('artifact-1');
+  });
+
   it('uses canonical chat and board handoff payloads for report and headline actions', async () => {
     const onOpenChat = vi.fn();
     const queueBoardPlacement = vi.fn();

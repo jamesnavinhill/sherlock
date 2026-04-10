@@ -28,22 +28,25 @@ export const CHROME_THIN_ACTION_BUTTON_CLASS =
 export const CHROME_PANEL_TAB_ROW_CLASS = 'flex w-full justify-start gap-2';
 
 export const CHROME_NESTED_ITEM_CLASS = 'osint-panel-item p-3';
+export const CHROME_NESTED_ACTION_ITEM_CLASS = 'osint-panel-action-item p-3';
 
 export const CHROME_RAISED_SURFACE_CLASS = 'osint-raised-surface';
 
 export const CHROME_RAISED_SURFACE_SUBTLE_CLASS = 'osint-raised-surface-subtle';
 
-export const CHROME_NESTED_ITEM_BUTTON_CLASS = `${CHROME_NESTED_ITEM_CLASS} w-full text-left`;
+export const CHROME_NESTED_ITEM_BUTTON_CLASS = `${CHROME_NESTED_ACTION_ITEM_CLASS} w-full text-left`;
 
 export const CHROME_COMPACT_NESTED_ITEM_CLASS = 'osint-panel-item px-3 py-2';
+export const CHROME_COMPACT_NESTED_ACTION_ITEM_CLASS = 'osint-panel-action-item px-3 py-2';
 
 export const CHROME_COMPACT_NESTED_ITEM_BUTTON_CLASS =
-  `${CHROME_COMPACT_NESTED_ITEM_CLASS} w-full text-left`;
+  `${CHROME_COMPACT_NESTED_ACTION_ITEM_CLASS} w-full text-left`;
 
 export const CHROME_THIN_NESTED_ITEM_CLASS = 'osint-panel-item px-2.5 py-1.5';
+export const CHROME_THIN_NESTED_ACTION_ITEM_CLASS = 'osint-panel-action-item px-2.5 py-1.5';
 
 export const CHROME_THIN_NESTED_ITEM_BUTTON_CLASS =
-  `${CHROME_THIN_NESTED_ITEM_CLASS} w-full text-left text-[11px]`;
+  `${CHROME_THIN_NESTED_ACTION_ITEM_CLASS} w-full text-left text-[11px]`;
 
 export const CHROME_THIN_NESTED_SECTION_CLASS = 'osint-raised-surface-section';
 
@@ -72,6 +75,9 @@ export const CHROME_HEADER_CONTROL_HEIGHT_CLASS = 'h-[30px]';
 
 export const CHROME_HEADER_ICON_BUTTON_SIZE_CLASS =
   `${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-[30px] shrink-0 p-0`;
+
+export const CHROME_GHOST_ICON_BUTTON_CLASS =
+  'osint-ghost-button inline-flex h-9 w-9 items-center justify-center';
 
 export const CHROME_HEADER_PRIMARY_ACTION_CLASS =
   `osint-button-primary osint-meta-label-strong inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} shrink-0 items-center gap-2 whitespace-nowrap px-3`;
@@ -103,10 +109,10 @@ export const getChromeToolbarSegmentButtonClass = (active: boolean) =>
   }`;
 
 export const getChromeSegmentButtonClass = (active: boolean) =>
-  `osint-meta-label inline-flex items-center justify-center px-3 py-1.5 transition ${
+  `osint-ghost-button osint-meta-label inline-flex items-center justify-center px-3 py-1.5 transition ${
     active
       ? 'bg-osint-primary/10 text-osint-primary'
-      : 'text-zinc-500 hover:text-white'
+      : 'text-zinc-500'
   }`;
 
 export const getRailAccordionClassName = (isOpen: boolean) =>

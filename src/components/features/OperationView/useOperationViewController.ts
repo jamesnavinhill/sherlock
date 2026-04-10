@@ -310,7 +310,7 @@ export function useOperationViewController({
       ? `SUB-NETWORK: "${task.topic}"`
       : `TARGET: "${task.topic}"`
     : '';
-  const showPlaceholder = !report || (selectedCaseId === 'ALL' && status !== 'RUNNING');
+  const showPlaceholder = !report;
 
   return {
     activeCase,

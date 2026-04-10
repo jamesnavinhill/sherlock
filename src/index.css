@@ -473,6 +473,21 @@ body,
   --osint-primary-soft-bg: color-mix(in oklab, var(--osint-primary) 12%, transparent);
   --osint-primary-soft-bg-strong: color-mix(in oklab, var(--osint-primary) 18%, transparent);
   --osint-primary-soft-border: color-mix(in oklab, var(--osint-primary) 48%, transparent);
+  --osint-accent-outline-bg: color-mix(in oklab, var(--osint-panel) 18%, transparent);
+  --osint-accent-outline-border: color-mix(in oklab, var(--osint-border) 72%, transparent);
+  --osint-accent-outline-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 14%, transparent);
+  --osint-accent-outline-hover-bg: var(--osint-primary-soft-bg);
+  --osint-accent-outline-hover-border: var(--osint-primary-soft-border);
+  --osint-accent-outline-hover-color: var(--osint-primary);
+  --osint-accent-outline-active-bg: var(--osint-primary-soft-bg-strong);
+  --osint-accent-outline-active-border: color-mix(
+    in oklab,
+    var(--osint-primary) 60%,
+    transparent
+  );
+  --osint-accent-outline-active-color: var(--osint-primary);
+  --osint-accent-outline-glow: 0 0 12px -10px color-mix(in oklab, var(--osint-primary) 26%, transparent);
   --osint-interaction-bg: color-mix(in oklab, var(--osint-dark) 90%, var(--osint-panel) 10%);
   --osint-interaction-hover-bg: color-mix(
     in oklab,
@@ -567,24 +582,66 @@ body,
 
 .osint-button-chrome:hover,
 .osint-button-chrome:focus-visible {
-  background-color: var(--osint-interaction-hover-bg);
-  color: var(--osint-text-action);
-  border-color: var(--osint-interaction-border-strong);
-  box-shadow: var(--osint-interaction-shadow);
+  background-color: var(--osint-primary-soft-bg);
+  color: var(--osint-primary);
+  border-color: var(--osint-primary-soft-border);
+  box-shadow: var(--osint-accent-outline-glow);
   outline: none;
 }
 
 .osint-button-chrome-active {
-  background-color: var(--osint-interaction-active-bg);
-  color: var(--osint-text-action);
-  border: 1px solid var(--osint-interaction-border-strong);
+  background-color: var(--osint-primary-soft-bg-strong);
+  color: var(--osint-primary);
+  border: 1px solid color-mix(in oklab, var(--osint-primary) 60%, transparent);
   font-weight: var(--font-weight-bold);
-  box-shadow: var(--osint-interaction-shadow);
+  box-shadow: var(--osint-accent-outline-glow);
 }
 
 .osint-button-chrome:disabled {
   cursor: not-allowed;
   opacity: 0.4;
+  box-shadow: none;
+}
+
+.osint-ghost-button,
+.osint-ghost-button-success {
+  background-color: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.osint-ghost-button {
+  color: var(--osint-text-meta);
+}
+
+.osint-ghost-button-success {
+  color: color-mix(in oklab, #86efac 82%, var(--osint-ink) 18%);
+}
+
+.osint-ghost-button:hover,
+.osint-ghost-button:focus-visible,
+.osint-ghost-button-success:hover,
+.osint-ghost-button-success:focus-visible {
+  background-color: var(--osint-primary-soft-bg);
+  color: var(--osint-primary);
+  border-color: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
+.osint-ghost-button:active,
+.osint-ghost-button[data-active='true'],
+.osint-ghost-button[aria-pressed='true'],
+.osint-ghost-button-success:active,
+.osint-ghost-button-success[data-active='true'],
+.osint-ghost-button-success[aria-pressed='true'] {
+  background-color: var(--osint-primary-soft-bg-strong);
+  border-color: transparent;
+  color: var(--osint-primary);
   box-shadow: none;
 }
 
@@ -626,6 +683,7 @@ body,
 .osint-raised-surface,
 .osint-raised-surface-section,
 .osint-panel-item,
+.osint-panel-action-item,
 .osint-filter-option {
   border: 1px solid var(--osint-raised-outline);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
@@ -955,6 +1013,85 @@ body,
   box-shadow: inset 2px 0 0 color-mix(in oklab, var(--osint-primary) 40%, transparent);
 }
 
+.osint-inline-text-link {
+  color: color-mix(in oklab, var(--osint-text) 82%, var(--osint-ink) 18%);
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    text-decoration-color 180ms ease;
+}
+
+.osint-inline-text-link:hover,
+.osint-inline-text-link:focus-visible {
+  color: var(--osint-primary);
+  text-decoration: none;
+  outline: none;
+}
+
+.osint-inline-reference {
+  color: color-mix(in oklab, var(--osint-text) 60%, var(--osint-ink) 40%);
+}
+
+.osint-icon-button-plain,
+.osint-icon-button-plain:hover,
+.osint-icon-button-plain:focus-visible,
+.osint-icon-button-plain:active {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.osint-icon-button-plain {
+  color: var(--osint-text-meta);
+  transition: color 180ms ease;
+}
+
+.osint-icon-button-plain:hover,
+.osint-icon-button-plain:focus-visible {
+  color: var(--osint-primary);
+}
+
+.osint-icon-button-plain-danger,
+.osint-icon-button-plain-danger:hover,
+.osint-icon-button-plain-danger:focus-visible,
+.osint-icon-button-plain-danger:active {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.osint-icon-button-plain-danger {
+  color: var(--color-osint-danger);
+  transition: color 180ms ease;
+}
+
+.osint-icon-button-plain-danger:hover,
+.osint-icon-button-plain-danger:focus-visible {
+  color: color-mix(in oklab, var(--color-osint-danger) 82%, var(--osint-ink) 18%);
+}
+
+.osint-icon-button-plain-success,
+.osint-icon-button-plain-success:hover,
+.osint-icon-button-plain-success:focus-visible,
+.osint-icon-button-plain-success:active {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.osint-icon-button-plain-success {
+  color: #86efac;
+  transition: color 180ms ease;
+}
+
+.osint-icon-button-plain-success:hover,
+.osint-icon-button-plain-success:focus-visible {
+  color: #bbf7d0;
+}
+
 .entity-tone-person {
   --entity-tone: var(--entity-person);
 }
@@ -1025,9 +1162,10 @@ body,
 }
 
 .osint-surface-button {
-  background-color: var(--osint-interaction-bg);
-  border: 1px solid var(--osint-interaction-border);
+  background-color: var(--osint-accent-outline-bg);
+  border: 1px solid var(--osint-accent-outline-border);
   color: var(--osint-text-strong);
+  box-shadow: var(--osint-accent-outline-shadow);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -1036,11 +1174,23 @@ body,
 }
 
 .osint-surface-button:hover,
-.osint-surface-button:focus-visible {
-  background-color: var(--osint-interaction-hover-bg);
-  border-color: var(--osint-interaction-border-strong);
-  color: var(--osint-text-action);
-  box-shadow: var(--osint-interaction-shadow);
+.osint-surface-button:focus-visible,
+.osint-surface-button[data-active='true'],
+.osint-surface-button[aria-pressed='true'] {
+  background-color: var(--osint-accent-outline-hover-bg);
+  border-color: var(--osint-accent-outline-hover-border);
+  color: var(--osint-accent-outline-hover-color);
+  box-shadow: var(--osint-accent-outline-glow);
+  outline: none;
+}
+
+.osint-surface-button:active,
+.osint-surface-button[data-active='true'],
+.osint-surface-button[aria-pressed='true'] {
+  background-color: var(--osint-accent-outline-active-bg);
+  border-color: var(--osint-accent-outline-active-border);
+  color: var(--osint-accent-outline-active-color);
+  box-shadow: var(--osint-accent-outline-glow);
   outline: none;
 }
 
@@ -1056,7 +1206,8 @@ body,
 }
 
 .osint-panel-item:hover,
-.osint-panel-item:focus-visible {
+.osint-panel-item:focus-visible,
+.osint-panel-item:focus-within {
   color: var(--osint-rail-interaction-hover-color);
   box-shadow: var(--osint-rail-interaction-shadow);
   outline: none;
@@ -1092,15 +1243,40 @@ body,
   box-shadow: var(--osint-rail-interaction-shadow);
 }
 
-.osint-panel-item:hover,
-.osint-panel-item:focus-visible {
-  background-color: var(--osint-rail-interaction-hover-bg);
-}
-
 .osint-panel-item[data-active='true'] {
   color: var(--osint-rail-interaction-active-color);
   box-shadow: var(--osint-rail-interaction-shadow);
   background-color: var(--osint-rail-interaction-active-bg);
+}
+
+.osint-panel-action-item {
+  background-color: var(--osint-accent-outline-bg);
+  border-color: var(--osint-accent-outline-border);
+  color: var(--osint-text-strong);
+  box-shadow: var(--osint-accent-outline-shadow);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-panel-action-item:hover,
+.osint-panel-action-item:focus-visible,
+.osint-panel-action-item:focus-within {
+  background-color: var(--osint-accent-outline-hover-bg);
+  border-color: var(--osint-accent-outline-hover-border);
+  color: var(--osint-accent-outline-hover-color);
+  box-shadow: var(--osint-accent-outline-glow);
+  outline: none;
+}
+
+.osint-panel-action-item:active,
+.osint-panel-action-item[data-active='true'] {
+  background-color: var(--osint-accent-outline-active-bg);
+  border-color: var(--osint-accent-outline-active-border);
+  color: var(--osint-accent-outline-active-color);
+  box-shadow: var(--osint-accent-outline-glow);
 }
 
 .osint-sidebar-nav-item {
@@ -1462,6 +1638,11 @@ body,
 }
 
 :root[data-theme='light'] {
+  --osint-accent-outline-bg: color-mix(in oklab, var(--osint-panel) 52%, white 48%);
+  --osint-accent-outline-border: color-mix(in oklab, var(--osint-border) 62%, white 38%);
+  --osint-accent-outline-shadow:
+    inset 0 0 0 1px color-mix(in oklab, white 38%, transparent);
+  --osint-accent-outline-glow: 0 12px 24px -24px rgba(28, 36, 48, 0.18);
   --osint-interaction-bg: color-mix(in oklab, var(--osint-panel) 88%, var(--osint-surface) 12%);
   --osint-interaction-hover-bg: color-mix(
     in oklab,
@@ -1520,6 +1701,7 @@ body,
 :root[data-theme='light'] .osint-raised-surface,
 :root[data-theme='light'] .osint-raised-surface-section,
 :root[data-theme='light'] .osint-panel-item,
+:root[data-theme='light'] .osint-panel-action-item,
 :root[data-theme='light'] .osint-filter-option {
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 34%, transparent);
 }

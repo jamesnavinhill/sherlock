@@ -29,7 +29,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, onNavigate }) =
               className={`flex items-center space-x-1.5 px-2 py-1 rounded-sm transition-all max-w-[200px] min-w-0 ${
                 index === items.length - 1
                   ? 'bg-zinc-800 text-white cursor-default'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                  : 'osint-ghost-button text-zinc-400'
               }`}
               disabled={index === items.length - 1}
             >

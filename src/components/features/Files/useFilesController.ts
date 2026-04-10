@@ -39,6 +39,7 @@ export const useFilesController = ({
   const [searchParams] = useSearchParams();
   const routeState = parseFilesRouteState(searchParams);
   const {
+    activeWorkspaceId,
     artifacts,
     workspaces,
     workspaceItems,
@@ -53,7 +54,9 @@ export const useFilesController = ({
     updateWorkspace,
   } = useWorkspaceStore();
 
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(
+    () => getStoredActiveWorkspaceId() || activeWorkspaceId || null
+  );
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -67,12 +70,14 @@ export const useFilesController = ({
   const [currentPage, setCurrentPage] = useState(1);
 
   const applyWorkspaceSelection = (id: string) => {
-    if (id === 'ALL') {
+    if (id === 'ALL' || id === 'unassigned') {
       setSelectedCaseId(null);
       clearStoredActiveWorkspaceId();
+      setActiveWorkspaceId(null);
     } else {
       setSelectedCaseId(id);
       setStoredActiveWorkspaceId(id);
+      setActiveWorkspaceId(id);
     }
 
     setCurrentPage(1);
@@ -91,7 +96,8 @@ export const useFilesController = ({
   const focusedItem = routeState.focusItemId
     ? workspaceItems.find((item) => item.id === routeState.focusItemId) || null
     : null;
-  const requestedCaseId = focusedItem?.workspaceId || routeState.workspaceId || selectedCaseId;
+  const requestedCaseId =
+    focusedItem?.workspaceId || routeState.workspaceId || selectedCaseId || activeWorkspaceId;
   const effectiveRecordFilter: RecordFilter = focusedItem ? 'ALL' : recordFilter;
   const effectiveSelectedCaseId =
     requestedCaseId &&

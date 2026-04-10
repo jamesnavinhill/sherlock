@@ -75,7 +75,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   workspaceDisabled,
   workspaces,
 }) => (
-  <header className={`${CHROME_HEADER_CLASS} px-4 sm:px-6`}>
+  <header className={`${CHROME_HEADER_CLASS} z-40 px-4 sm:px-6`}>
     <div className={`${CHROME_HEADER_ROW_CLASS} gap-4`}>
       <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
         <button
@@ -145,7 +145,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </div>
           ) : null}
         </div>
-        <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
+        <div className={`relative z-50 ${CHROME_HEADER_SELECT_WRAP_CLASS}`}>
           <OsintSelect
             ariaLabel="Chat workspace"
             value={activeWorkspaceId || ''}
@@ -153,6 +153,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             placeholder="Select workspace"
             chrome="toolbar"
             triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
+            menuClassName="z-[60]"
             options={workspaces.map((workspace) => ({
               value: workspace.id,
               label: workspace.title,

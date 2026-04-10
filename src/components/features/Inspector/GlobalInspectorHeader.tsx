@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-import { CHROME_PANEL_HEADER_CLASS } from '@/components/ui/chrome';
+import { CHROME_GHOST_ICON_BUTTON_CLASS, CHROME_PANEL_HEADER_CLASS } from '@/components/ui/chrome';
 
 interface GlobalInspectorHeaderProps {
   eyebrow?: React.ReactNode;
@@ -48,7 +48,7 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 text-zinc-500 transition-colors hover:text-white"
+          className={`${CHROME_GHOST_ICON_BUTTON_CLASS} shrink-0`}
           aria-label="Close inspector"
         >
           <X className="h-5 w-5" />

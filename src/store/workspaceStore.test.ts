@@ -232,6 +232,90 @@ describe('workspaceStore', () => {
     expect(localStorage.getItem('sherlock_demo_seed_v1_applied')).toBe('true');
   });
 
+  it('reuses an in-flight bootstrap when initializeStore is called concurrently', async () => {
+    const payload: WorkspaceDataBackup = {
+      workspaces: [
+        {
+          id: 'ws-seed',
+          title: 'Seed Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-04',
+        },
+      ],
+      artifacts: [],
+      runs: [],
+      chat: {
+        sessions: [],
+        messages: [],
+        actions: [],
+      },
+      boardAgent: {
+        sessions: [],
+        actions: [],
+      },
+      signals: {
+        signals: [],
+      },
+      graph: {
+        manualNodes: [],
+        manualLinks: [],
+      },
+      workspaceSurface: {
+        items: [],
+        boards: [],
+        boardDocuments: [],
+      },
+      templates: [],
+      metadata: {
+        kind: 'SHERLOCK_WORKSPACE_DATA',
+        formatVersion: 1,
+        exportedAt: '2026-04-04T00:00:00.000Z',
+      },
+    };
+
+    vi.spyOn(dbClient, 'initDB').mockResolvedValue(
+      {} as Awaited<ReturnType<typeof dbClient.initDB>>
+    );
+    vi.spyOn(WorkspaceRepository, 'getAllWorkspaces').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRepository, 'getAllArtifacts').mockResolvedValue([]);
+    vi.spyOn(ScopeRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRunRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(ChatRepository, 'getAllSessions').mockResolvedValue([]);
+    vi.spyOn(ChatRepository, 'getMessagesBySessionIds').mockResolvedValue({});
+    vi.spyOn(BoardAgentRepository, 'getAllSessions').mockResolvedValue([]);
+    vi.spyOn(WorkspaceRepository, 'getSignals').mockResolvedValue([]);
+    vi.spyOn(TemplateRepository, 'getAll').mockResolvedValue([]);
+    vi.spyOn(ManualDataRepository, 'getAllNodes').mockResolvedValue([]);
+    vi.spyOn(ManualDataRepository, 'getAllLinks').mockResolvedValue([]);
+    vi.spyOn(SettingsRepository, 'getSetting').mockResolvedValue(undefined);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => payload,
+      })
+    );
+
+    let resolvePersist!: () => void;
+    const persistPromise = new Promise<void>((resolve) => {
+      resolvePersist = resolve;
+    });
+    vi.spyOn(WorkspaceRepository, 'replaceWorkspaceDataBackup').mockImplementation(
+      async () => await persistPromise
+    );
+
+    const first = useWorkspaceStore.getState().initializeStore();
+    const second = useWorkspaceStore.getState().initializeStore();
+
+    await vi.waitFor(() => {
+      expect(WorkspaceRepository.replaceWorkspaceDataBackup).toHaveBeenCalledTimes(1);
+    });
+
+    resolvePersist();
+    await Promise.all([first, second]);
+  });
+
   it('keeps bootstrapping when one repository read fails and falls back to empty data', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
