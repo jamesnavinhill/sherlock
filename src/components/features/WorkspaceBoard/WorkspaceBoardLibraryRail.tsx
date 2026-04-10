@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, FilePlus2, Link2, Radio, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, FilePlus2, Link2, Radio, Sparkles, Trash2 } from 'lucide-react';
 
 import { LibraryRailSearch } from '@/components/features/LibraryRail/LibraryRailSearch';
 import { LibraryRailSections } from '@/components/features/LibraryRail/LibraryRailSections';
@@ -36,6 +36,7 @@ interface WorkspaceBoardLibraryRailProps {
   onSearchChange: (value: string) => void;
   onCreateNote: () => void;
   onCreateLink: () => void;
+  onAddIcon: () => void;
   onTriggerFileUpload: () => void;
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onToggleLibrarySection: (section: keyof GroupedEntries) => void;
@@ -56,6 +57,7 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
   onSearchChange,
   onCreateNote,
   onCreateLink,
+  onAddIcon,
   onTriggerFileUpload,
   onFileUpload,
   onToggleLibrarySection,
@@ -186,6 +188,16 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
           <button type="button" onClick={onCreateLink} className={CHROME_THIN_ACTION_BUTTON_CLASS}>
             <Link2 className="h-3.5 w-3.5" />
             Link
+          </button>
+          <button
+            type="button"
+            onClick={onAddIcon}
+            className={CHROME_THIN_ACTION_BUTTON_CLASS}
+            title="Add icon to board"
+            aria-label="Add icon to board"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Icon
           </button>
           <button
             type="button"

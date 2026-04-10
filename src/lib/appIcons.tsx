@@ -659,7 +659,9 @@ const APP_ICON_REGISTRY = {
   ...TABLER_ICON_REGISTRY,
   ...PIXELART_ICON_REGISTRY,
   ...LUCIDE_ICON_REGISTRY,
-} as const;
+} as const satisfies Record<string, AppIconRecord>;
+
+const APP_ICON_REGISTRY_MAP: Record<string, AppIconRecord> = APP_ICON_REGISTRY;
 
 export type AppIconId = string;
 
@@ -691,13 +693,13 @@ export const APP_ICON_PACKS = [
 
 const APP_ICON_PACK_ORDER = APP_ICON_PACKS.map((pack) => pack.id);
 
-export const APP_ICON_IDS = Object.keys(APP_ICON_REGISTRY) as AppIconId[];
+export const APP_ICON_IDS = Object.keys(APP_ICON_REGISTRY_MAP) as AppIconId[];
 
 export const isAppIconId = (value: string | null | undefined): value is AppIconId =>
-  !!value && value in APP_ICON_REGISTRY;
+  !!value && value in APP_ICON_REGISTRY_MAP;
 
 export const getAppIconRecord = (iconId?: string | null) =>
-  isAppIconId(iconId) ? APP_ICON_REGISTRY[iconId] : APP_ICON_REGISTRY.folder;
+  isAppIconId(iconId) ? APP_ICON_REGISTRY_MAP[iconId] : APP_ICON_REGISTRY_MAP.folder;
 
 export const getAppIconLabel = (iconId?: string | null) => getAppIconRecord(iconId).label;
 
@@ -706,25 +708,51 @@ export const getAppIconPack = (iconId?: string | null): AppIconPackId => getAppI
 export const getAppIconPackLabel = (pack: AppIconPackId) =>
   APP_ICON_PACKS.find((option) => option.id === pack)?.label || 'Icons';
 
-export const APP_ICON_OPTIONS = APP_ICON_IDS.map((id) => {
-  const record = APP_ICON_REGISTRY[id];
-  const searchText = [record.label, record.group, getAppIconPackLabel(record.pack), ...(record.searchTerms || [])]
-    .join(' ')
-    .toLowerCase();
-
-  return {
-    id,
-    group: record.group,
-    label: record.label,
-    pack: record.pack,
-    searchText,
-  };
-}).sort((left, right) => {
+const compareAppIconOptions = (
+  left: { id: AppIconId; label: string; pack: AppIconPackId },
+  right: { id: AppIconId; label: string; pack: AppIconPackId }
+) => {
   const packOrder =
     APP_ICON_PACK_ORDER.indexOf(left.pack) - APP_ICON_PACK_ORDER.indexOf(right.pack);
   if (packOrder !== 0) return packOrder;
-  return left.label.localeCompare(right.label);
-});
+
+  const labelOrder = left.label.localeCompare(right.label);
+  if (labelOrder !== 0) return labelOrder;
+
+  return left.id.localeCompare(right.id);
+};
+
+export const APP_ICON_OPTIONS = (() => {
+  const candidates = APP_ICON_IDS.map((id) => {
+    const record = APP_ICON_REGISTRY_MAP[id];
+    const searchText = [
+      record.label,
+      record.group,
+      getAppIconPackLabel(record.pack),
+      ...(record.searchTerms || []),
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    return {
+      id,
+      group: record.group,
+      label: record.label,
+      pack: record.pack,
+      searchText,
+    };
+  }).sort(compareAppIconOptions);
+
+  const deduped = new Map<string, (typeof candidates)[number]>();
+  for (const option of candidates) {
+    const dedupeKey = `${option.pack}:${option.label.toLowerCase()}`;
+    if (!deduped.has(dedupeKey)) {
+      deduped.set(dedupeKey, option);
+    }
+  }
+
+  return Array.from(deduped.values()).sort(compareAppIconOptions);
+})();
 
 const iconDataUrlCache = new Map<string, string>();
 const CSS_VAR_PATTERN = /var\((--[^),\s]+)(?:,[^)]+)?\)/g;

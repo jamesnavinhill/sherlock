@@ -21,6 +21,7 @@ import {
 import {
   buildBoardCardSpec,
   findBoardShapeIdsForReference,
+  placeStandaloneIconOnBoard,
 } from '../../../services/workspace/boardShapes';
 import {
   LEFT_PANEL_SECTION_SCROLL_CLASS,
@@ -359,6 +360,41 @@ export const useWorkspaceBoardController = ({
       navigate(buildFilesPath());
     }
   };
+
+  const handleAddBoardIcon = useCallback(
+    (iconId: string) => {
+      if (!editorRef.current || !activeBoard) return;
+      if (activeBoard.presentationMode) {
+        addToast('Disable presentation mode before editing this board.', 'INFO');
+        return;
+      }
+
+      const viewport = editorRef.current.getViewportPageBounds();
+      const iconSize = 56;
+      const slotWidth = iconSize + 40;
+      const slotHeight = iconSize + 40;
+      const usableWidth = Math.max(slotWidth, viewport.w - 96);
+      const columns = Math.max(1, Math.floor(usableWidth / slotWidth));
+      const placementIndex = autoPlacementRef.current.index;
+      const autoPosition = {
+        x: viewport.x + 48 + (placementIndex % columns) * slotWidth,
+        y: viewport.y + 48 + Math.floor(placementIndex / columns) * slotHeight,
+      };
+
+      autoPlacementRef.current = {
+        boardId: activeBoard.id,
+        index: placementIndex + 1,
+      };
+
+      placeStandaloneIconOnBoard(editorRef.current, {
+        iconId,
+        themeMode,
+        x: autoPosition.x,
+        y: autoPosition.y,
+      });
+    },
+    [activeBoard, addToast, editorRef, themeMode]
+  );
 
   const handleDropEntry = useCallback(
     (entry: WorkspaceLibraryEntry, clientX?: number, clientY?: number) => {
@@ -782,6 +818,7 @@ export const useWorkspaceBoardController = ({
     handleSkipBoardAgentPlan,
     handleSubmitCreateModal,
     handleWorkspaceChange,
+    handleAddBoardIcon,
     hydratedSnapshot,
     inspectorActions,
     inspectorSections,

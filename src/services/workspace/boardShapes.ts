@@ -320,3 +320,68 @@ export const placeEntryOnBoard = (
     card,
   };
 };
+
+export const placeStandaloneIconOnBoard = (
+  editor: Editor,
+  input: {
+    iconId: string;
+    themeMode: BoardThemeMode;
+    x: number;
+    y: number;
+  }
+) => {
+  const assetId = AssetRecordType.createId(`board-icon-${input.iconId}-${Date.now()}`);
+  const shapeId = createShapeId();
+  const shapeSize = 56;
+
+  editor.createAssets([
+    {
+      id: assetId,
+      typeName: 'asset',
+      type: 'image',
+      props: {
+        name: `${input.iconId} board icon`,
+        src: buildAppIconSvgDataUrl(input.iconId, {
+          color: input.themeMode === 'light' ? '#111827' : '#f4f4f5',
+          size: 48,
+          strokeWidth: 1.9,
+        }),
+        w: 48,
+        h: 48,
+        mimeType: 'image/svg+xml',
+        isAnimated: false,
+      },
+      meta: {},
+    },
+  ]);
+
+  editor.createShape<TLImageShape>({
+    id: shapeId,
+    type: 'image',
+    x: input.x,
+    y: input.y,
+    meta: {
+      sherlockDecoration: 'board-icon',
+      iconId: input.iconId,
+    },
+    props: {
+      w: shapeSize,
+      h: shapeSize,
+      assetId,
+      playing: true,
+      url: '',
+      crop: null,
+      flipX: false,
+      flipY: false,
+      altText: `${input.iconId} board icon`,
+    },
+  });
+
+  editor.setSelectedShapes([shapeId]);
+
+  return {
+    shapeId,
+    w: shapeSize,
+    h: shapeSize,
+  };
+};

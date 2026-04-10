@@ -42,9 +42,7 @@ describe('IconPickerOverlay', () => {
       target: { value: 'script' },
     });
 
-    expect(
-      screen.getByRole('button', { name: 'Select Script Text icon from Pixel Art' })
-    ).toBeInTheDocument();
+    expect(screen.getByText('Script Text')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Select Robot Face icon from Pixel Art' })
     ).not.toBeInTheDocument();

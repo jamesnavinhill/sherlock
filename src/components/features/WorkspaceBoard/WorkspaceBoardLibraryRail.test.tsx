@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { WorkspaceBoardLibraryRail } from './WorkspaceBoardLibraryRail';
@@ -30,6 +30,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onSearchChange={vi.fn()}
         onCreateNote={vi.fn()}
         onCreateLink={vi.fn()}
+        onAddIcon={vi.fn()}
         onTriggerFileUpload={vi.fn()}
         onFileUpload={vi.fn()}
         onToggleLibrarySection={vi.fn()}
@@ -43,8 +44,52 @@ describe('WorkspaceBoardLibraryRail', () => {
     expect(screen.getByText('Agentic A.I.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Note' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Link' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add icon to board' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'File' })).toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Search library' })).toBeInTheDocument();
+  });
+
+  it('opens the board icon picker from the rail action row', () => {
+    const onAddIcon = vi.fn();
+
+    render(
+      <WorkspaceBoardLibraryRail
+        isOpen
+        workspaceTitle="Agentic A.I."
+        search=""
+        groupedEntries={{
+          created: [],
+          artifacts: [],
+          entities: [],
+          sources: [],
+          signals: [],
+        }}
+        librarySections={{
+          created: false,
+          artifacts: false,
+          entities: false,
+          sources: false,
+          signals: false,
+        }}
+        libraryItemSections={{}}
+        fileInputRef={{ current: null }}
+        sectionScrollClassName=""
+        onSearchChange={vi.fn()}
+        onCreateNote={vi.fn()}
+        onCreateLink={vi.fn()}
+        onAddIcon={onAddIcon}
+        onTriggerFileUpload={vi.fn()}
+        onFileUpload={vi.fn()}
+        onToggleLibrarySection={vi.fn()}
+        onToggleLibraryEntrySection={vi.fn()}
+        onDeleteCreatedItem={vi.fn()}
+        onAddToBoard={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add icon to board' }));
+
+    expect(onAddIcon).toHaveBeenCalledTimes(1);
   });
 
   it('does not repeat the item kind inside expanded library entries', () => {
@@ -86,6 +131,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onSearchChange={vi.fn()}
         onCreateNote={vi.fn()}
         onCreateLink={vi.fn()}
+        onAddIcon={vi.fn()}
         onTriggerFileUpload={vi.fn()}
         onFileUpload={vi.fn()}
         onToggleLibrarySection={vi.fn()}
@@ -137,6 +183,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onSearchChange={vi.fn()}
         onCreateNote={vi.fn()}
         onCreateLink={vi.fn()}
+        onAddIcon={vi.fn()}
         onTriggerFileUpload={vi.fn()}
         onFileUpload={vi.fn()}
         onToggleLibrarySection={vi.fn()}
@@ -178,6 +225,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onSearchChange={vi.fn()}
         onCreateNote={vi.fn()}
         onCreateLink={vi.fn()}
+        onAddIcon={vi.fn()}
         onTriggerFileUpload={vi.fn()}
         onFileUpload={vi.fn()}
         onToggleLibrarySection={vi.fn()}

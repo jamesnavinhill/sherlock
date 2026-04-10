@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shapes } from 'lucide-react';
 import 'tldraw/tldraw.css';
@@ -14,6 +14,7 @@ import {
 } from '@/app/routes';
 import { GlobalInspectorPanel } from '@/components/features/Inspector/GlobalInspectorPanel';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import type { GlobalInspectorTab } from '@/components/features/Inspector/globalInspectorTypes';
 import { LEFT_PANEL_SECTION_SCROLL_CLASS, type RightPanelView } from './workspaceBoardUtils';
@@ -37,6 +38,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   onLaunchInvestigation,
 }) => {
   const navigate = useNavigate();
+  const [boardIconPickerOpen, setBoardIconPickerOpen] = useState(false);
   const {
     activeBoard,
     activeWorkspace,
@@ -77,6 +79,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     handleSkipBoardAgentPlan,
     handleSubmitCreateModal,
     handleWorkspaceChange,
+    handleAddBoardIcon,
     hydratedSnapshot,
     inspectorActions,
     inspectorSections,
@@ -197,6 +200,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           onSearchChange={setSearch}
           onCreateNote={() => setCreateModal({ type: 'NOTE', title: '', content: '' })}
           onCreateLink={() => setCreateModal({ type: 'LINK', title: '', url: '', description: '' })}
+          onAddIcon={() => setBoardIconPickerOpen(true)}
           onTriggerFileUpload={() => fileInputRef.current?.click()}
           onFileUpload={handleFileUpload}
           onToggleLibrarySection={toggleLibrarySection}
@@ -324,6 +328,18 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         onUploadRouteChange={setUploadRoute}
         onUploadTargetWorkspaceChange={setUploadTargetWorkspaceId}
         workspaces={workspaces}
+      />
+
+      <IconPickerOverlay
+        isOpen={boardIconPickerOpen}
+        title="Add Board Icon"
+        description="Choose an icon to place on the current board as a movable canvas element."
+        onClose={() => setBoardIconPickerOpen(false)}
+        onSelect={(iconId) => {
+          if (!iconId) return;
+          handleAddBoardIcon(iconId);
+          setBoardIconPickerOpen(false);
+        }}
       />
     </div>
   );

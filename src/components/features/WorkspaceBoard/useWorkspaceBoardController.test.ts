@@ -272,6 +272,42 @@ describe('useWorkspaceBoardController', () => {
     expect(createWorkspaceItem).not.toHaveBeenCalled();
   });
 
+  it('places a standalone icon on the active board from the action row picker', () => {
+    const createAssets = vi.fn();
+    const createShape = vi.fn();
+    const setSelectedShapes = vi.fn();
+
+    useBoardCanvasPersistence.mockReturnValue({
+      editorRef: {
+        current: {
+          createAssets,
+          createShape,
+          getViewportPageBounds: () => ({ x: 0, y: 0, w: 1200, h: 800 }),
+          setSelectedShapes,
+        },
+      },
+      handleEditorMount: vi.fn(),
+      hydratedSnapshot: null,
+      persistCurrentBoardDocument: vi.fn(async () => undefined),
+    });
+
+    const { result } = renderHook(() =>
+      useWorkspaceBoardController({
+        onLaunchInvestigation: vi.fn(),
+        onOpenChat: vi.fn(),
+        onOpenReport: vi.fn(),
+      })
+    );
+
+    act(() => {
+      result.current.handleAddBoardIcon('tabler:world');
+    });
+
+    expect(createAssets).toHaveBeenCalledTimes(1);
+    expect(createShape).toHaveBeenCalled();
+    expect(setSelectedShapes).toHaveBeenCalledTimes(1);
+  });
+
   it('routes selected workspace items into item-aware chat handoffs from the board inspector', () => {
     const onOpenChat = vi.fn();
     buildWorkspaceBoardViewModel.mockReturnValue({

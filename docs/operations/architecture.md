@@ -156,7 +156,7 @@ Current icon-system rules:
 - `Workspace.iconId` is the source of truth for customizable workspace icons in Files and other workspace-facing surfaces
 - `ManualNode.iconId` is the source of truth for manual network-node overrides
 - `WorkspaceLibraryEntry.iconId` is derived data and should be rendered as-is by board/library surfaces rather than recomputed locally
-- add/change flows should reuse `IconPickerOverlay` so icon selection stays visually and behaviorally consistent across Files, Board, and Network surfaces
+- Files workspace-icon customization, board icon insertion, and network manual-node overrides should all reuse `IconPickerOverlay` so icon selection stays visually and behaviorally consistent across surfaces
 - board placement keeps using generated SVG data URLs for icon assets so tldraw export paths remain self-contained
 
 Fallback behavior stays simple:

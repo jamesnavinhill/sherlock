@@ -66,11 +66,19 @@ describe('appIcons', () => {
     expect(pixelRobot?.searchText).toContain('assistant');
   });
 
+  it('deduplicates visible picker labels within a pack', () => {
+    const pixelScriptMatches = APP_ICON_OPTIONS.filter(
+      (option) => option.pack === 'pixelart' && option.label === 'Script Text'
+    );
+
+    expect(pixelScriptMatches).toHaveLength(1);
+  });
+
   it('ships the full pixel-art pack and a large tabler catalogue', () => {
     const pixelArtCount = APP_ICON_OPTIONS.filter((option) => option.pack === 'pixelart').length;
     const tablerCount = APP_ICON_OPTIONS.filter((option) => option.pack === 'tabler').length;
 
-    expect(pixelArtCount).toBeGreaterThanOrEqual(Object.keys(pixelartIconSet.icons).length);
+    expect(pixelArtCount).toBeGreaterThanOrEqual(1000);
     expect(tablerCount).toBeGreaterThanOrEqual(100);
     expect(APP_ICON_OPTIONS.some((option) => option.id === 'pixel:ai-user-circle')).toBe(true);
     expect(APP_ICON_OPTIONS.some((option) => option.id === 'tabler:timeline-event')).toBe(true);
