@@ -191,6 +191,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
     session.title.trim() && session.title.trim() !== session.request.trim()
       ? session.title
       : 'Board agent';
+  const sharedSectionSurfaceClassName = `border border-zinc-800 bg-zinc-900/30`;
+  const transcriptSurfaceClassName = 'border-x border-zinc-800 bg-zinc-900/30';
+  const composerShellClassName = `${sharedSectionSurfaceClassName} overflow-hidden`;
 
   return (
     <div className="-mx-3 -mb-3 flex min-h-0 flex-1 flex-col">
@@ -343,7 +346,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
 
             {showTranscript ? (
               <section
-                className="w-full overflow-hidden border-x border-zinc-800 bg-black"
+                className={`w-full overflow-hidden ${transcriptSurfaceClassName}`}
                 data-testid="board-agent-transcript-shell"
               >
                 {userTranscriptMessage ? (
@@ -519,13 +522,13 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
           </div>
         </Accordion>
 
-        <div className="bg-black">
+        <div className={composerShellClassName}>
           <textarea
             value={boardAgentPrompt}
             onChange={(event) => onPromptChange(event.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Ask the board agent to organize evidence, flag contradictions, or draft a note."
-            className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-zinc-300 outline-none placeholder:text-zinc-600"
+            className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-[color:var(--osint-text)] outline-none placeholder:text-[color:var(--osint-text-muted)]"
           />
           <div
             className={`flex items-center justify-between gap-3 border-t border-zinc-800/80 px-4 py-2.5 ${headerToneSurfaceClassName}`}

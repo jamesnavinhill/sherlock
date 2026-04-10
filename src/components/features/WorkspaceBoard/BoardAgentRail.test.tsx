@@ -56,6 +56,9 @@ describe('BoardAgentRail', () => {
       .getByRole('button', { name: /Agent Context/i })
       .closest('.osint-raised-surface-section');
     expect(contextSection?.nextElementSibling?.querySelector('textarea')).toBeTruthy();
+    const composerTextarea = screen.getByPlaceholderText(/ask the board agent/i);
+    expect(composerTextarea.closest('div')).toHaveClass('border', 'border-zinc-800', 'bg-zinc-900/30');
+    expect(composerTextarea).toHaveClass('text-[color:var(--osint-text)]');
   });
 
   it('renders a full-width transcript block for the visible board-agent session', () => {
@@ -110,7 +113,7 @@ describe('BoardAgentRail', () => {
     );
 
     const transcriptShell = screen.getByTestId('board-agent-transcript-shell');
-    expect(transcriptShell).toHaveClass('w-full', 'border-x');
+    expect(transcriptShell).toHaveClass('w-full', 'border-x', 'border-zinc-800', 'bg-zinc-900/30');
     expect(screen.getByText('Cluster the visible evidence.').getAttribute('class')).toContain(
       'text-right'
     );
