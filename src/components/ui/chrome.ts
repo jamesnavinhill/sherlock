@@ -8,6 +8,8 @@ export const CHROME_PANEL_CLASS = 'osint-panel-shell border-zinc-800 bg-black/95
 export const CHROME_PANEL_HEADER_CLASS =
   'border-b border-zinc-800 bg-zinc-900/30 px-4 py-3';
 
+export const CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS = 'min-h-16';
+
 export const CHROME_PANEL_ACTION_ROW_CLASS =
   'border-b border-zinc-800 bg-zinc-900/10 px-4 py-3';
 

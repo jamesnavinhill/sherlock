@@ -1,6 +1,9 @@
 import React from 'react';
 
-import { CHROME_PANEL_HEADER_CLASS } from '@/components/ui/chrome';
+import {
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
+} from '@/components/ui/chrome';
 
 interface LibraryRailHeaderProps {
   eyebrow?: string;
@@ -21,7 +24,7 @@ export const LibraryRailHeader: React.FC<LibraryRailHeaderProps> = ({
   actionsPlacement = 'bottom',
   search,
 }) => (
-  <div className={CHROME_PANEL_HEADER_CLASS}>
+  <div className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}>
     <div className="flex items-center justify-between gap-3">
       <div className="min-w-0 osint-eyebrow">{eyebrow}</div>
       {actions && actionsPlacement === 'top' ? <div className="shrink-0">{actions}</div> : null}

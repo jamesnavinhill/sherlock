@@ -164,5 +164,8 @@ describe('LiveMonitor launch propagation', () => {
     );
 
     expect(screen.getAllByText('SYSTEM_IDLE')).toHaveLength(6);
+    expect(screen.getByTestId('monitor-dot-grid-background')).toBeInTheDocument();
+    expect(screen.getAllByTestId('monitor-skeleton-status-dot')).toHaveLength(18);
+    expect(screen.getAllByTestId('monitor-skeleton-status-dot')[0]).toHaveClass('bg-osint-primary');
   });
 });

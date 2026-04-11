@@ -64,9 +64,18 @@ const MonitorEventCardSkeleton: React.FC<{ active: boolean }> = ({ active }) => 
     <div className="mt-auto flex items-center justify-center border border-zinc-800 bg-zinc-950/50 px-4 py-6">
       <div className="text-center">
         <div className="mb-3 flex items-center justify-center gap-2">
-          <span className={`h-2 w-2 rounded-none ${active ? 'bg-osint-primary animate-pulse' : 'bg-zinc-600'}`} />
-          <span className={`h-2 w-2 rounded-none ${active ? 'bg-osint-primary animate-pulse [animation-delay:120ms]' : 'bg-zinc-600'}`} />
-          <span className={`h-2 w-2 rounded-none ${active ? 'bg-osint-primary animate-pulse [animation-delay:240ms]' : 'bg-zinc-600'}`} />
+          <span
+            data-testid="monitor-skeleton-status-dot"
+            className={`h-2 w-2 rounded-none bg-osint-primary ${active ? 'animate-pulse' : ''}`}
+          />
+          <span
+            data-testid="monitor-skeleton-status-dot"
+            className={`h-2 w-2 rounded-none bg-osint-primary ${active ? 'animate-pulse [animation-delay:120ms]' : ''}`}
+          />
+          <span
+            data-testid="monitor-skeleton-status-dot"
+            className={`h-2 w-2 rounded-none bg-osint-primary ${active ? 'animate-pulse [animation-delay:240ms]' : ''}`}
+          />
         </div>
         <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-300">
           {active ? 'SCANNING_NETWORK' : 'SYSTEM_IDLE'}
@@ -422,6 +431,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
         {/* Background Layer */}
         <div className="absolute inset-0 z-0 bg-black">
           <div
+            data-testid="monitor-dot-grid-background"
             className="absolute inset-0 opacity-20 pointer-events-none"
             style={{
               backgroundImage: 'radial-gradient(#52525b 1px, transparent 1px)',

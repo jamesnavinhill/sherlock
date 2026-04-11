@@ -37,6 +37,8 @@ import { EmptyState } from '../../ui/EmptyState';
 import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import {
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
 } from '../../ui/chrome';
@@ -627,10 +629,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   return (
     <div className="relative flex flex-1 overflow-hidden bg-black animate-in fade-in duration-500">
       <div className={mainColumnClassName} data-app-scroll-region>
-        <div className="z-20 border-b border-zinc-800 bg-black/90 px-6 py-4 osint-header-shadow">
-          <div className="mb-2 flex flex-col justify-between md:flex-row md:items-center">
+        <div
+          data-testid="artifact-viewer-top-header"
+          className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS} z-20 bg-black/95 px-6 osint-header-shadow`}
+        >
+          <div className="flex h-full flex-col justify-center gap-2 md:flex-row md:items-center md:justify-between">
             <Breadcrumbs items={navStack} onNavigate={onNavigate} />
-            <div className="mt-2 flex items-center gap-3 md:mt-0">
+            <div className="flex items-center gap-3">
               {report.dateStr ? (
                 <p className="osint-meta-label whitespace-nowrap">LOG DATE: {report.dateStr}</p>
               ) : null}
@@ -644,28 +649,32 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 >
                   <PanelRight className="h-4 w-4" />
                 </button>
-              ) : null}
+                ) : null}
             </div>
-          </div>
-          <div className="min-w-0">
-            <EditableTitle
-              value={report.topic}
-              displayValue={reportDisplayTitle}
-              onSave={onTitleSave}
-              className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] truncate uppercase"
-              inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
-            />
           </div>
         </div>
 
-        <div className="space-y-8 px-6 pb-6 pt-4">
+        <div
+          data-testid="artifact-viewer-title-surface"
+          className="px-6 py-5"
+        >
+          <EditableTitle
+            value={report.topic}
+            displayValue={reportDisplayTitle}
+            onSave={onTitleSave}
+            className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] leading-tight uppercase"
+            inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
+          />
+        </div>
+
+        <div className="space-y-8 px-6 pb-6 pt-6">
           {visibleReportBody.trim().length > 0 ? (
             <section
               ref={(node) => {
                 sectionRefs.current[summaryAnchorId] = node;
               }}
               className={cx(
-                'border bg-zinc-950/70 p-8 transition-colors',
+                'border bg-zinc-950/70 p-6 transition-colors',
                 highlightedSectionId === summaryAnchorId
                   ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
                   : 'border-zinc-800'

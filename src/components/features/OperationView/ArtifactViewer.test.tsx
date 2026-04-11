@@ -107,6 +107,10 @@ describe('ArtifactViewer', () => {
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Atlas Review').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
+    expect(screen.getByTestId('artifact-viewer-top-header')).toBeInTheDocument();
+    expect(screen.getByTestId('artifact-viewer-top-header')).toHaveClass('min-h-16');
+    expect(screen.getByTestId('artifact-viewer-title-surface')).toBeInTheDocument();
+    expect(screen.getByTestId('artifact-viewer-title-surface')).not.toHaveClass('border-b');
     expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);
     const findingCard = screen.getByRole('heading', { name: 'Award timing irregularity' }).closest('article');
     expect(findingCard).not.toBeNull();
@@ -190,6 +194,7 @@ describe('ArtifactViewer', () => {
       .getByRole('heading', { name: /Executive Summary/i })
       .closest('section');
     expect(executiveSummarySection).not.toBeNull();
+    expect(executiveSummarySection).toHaveClass('p-6');
 
     fireEvent.click(within(executiveSummarySection as HTMLElement).getByRole('button', { name: 'Edit' }));
     const textarea = await screen.findByRole('textbox');

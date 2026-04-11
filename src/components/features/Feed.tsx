@@ -268,7 +268,17 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
   return (
     <div className="flex flex-col h-screen w-full bg-black relative overflow-hidden">
-      {loading ? <BackgroundMatrixRain /> : null}
+      <div className="absolute inset-0 z-0 bg-black">
+        <div
+          data-testid="feed-dot-grid-background"
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(#52525b 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+          }}
+        />
+        {loading ? <BackgroundMatrixRain /> : null}
+      </div>
 
       {/* Investigation Wizard Modal */}
       {selectedItem && (
@@ -291,7 +301,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
       )}
 
       {/* Sticky Header */}
-      <div className={`${CHROME_HEADER_CLASS} px-6`}>
+      <div className={`${CHROME_HEADER_CLASS} relative z-10 px-6`}>
         <div className="flex h-full min-w-0 items-center gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {/* Category Filter */}

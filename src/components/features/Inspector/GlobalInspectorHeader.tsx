@@ -1,7 +1,11 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-import { CHROME_GHOST_ICON_BUTTON_CLASS, CHROME_PANEL_HEADER_CLASS } from '@/components/ui/chrome';
+import {
+  CHROME_GHOST_ICON_BUTTON_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+  CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
+} from '@/components/ui/chrome';
 
 interface GlobalInspectorHeaderProps {
   eyebrow?: React.ReactNode;
@@ -38,7 +42,9 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
   const hasHeaderContent = (resolvedEyebrow !== null && resolvedEyebrow !== undefined) || hasTitle;
 
   return (
-    <div className={`${CHROME_PANEL_HEADER_CLASS} flex items-start justify-between gap-2.5`}>
+    <div
+      className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS} flex items-start justify-between gap-2.5`}
+    >
       <div className="flex min-w-0 flex-1 items-start gap-2.5">
         {icon ? <div className="shrink-0 text-zinc-300">{icon}</div> : null}
         <div className="min-w-0 flex-1">
