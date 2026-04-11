@@ -31,6 +31,8 @@ import { ProviderModelSelector } from '../Runs/ProviderModelSelector';
 import { RuntimeConfigBehaviorControls } from '../Runs/RuntimeConfigBehaviorControls';
 import { RuntimeConfigSummary } from '../Runs/RuntimeConfigSummary';
 import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
+import { Accordion } from '@/components/ui/Accordion';
+import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS } from './settingsUtils';
 
 interface TemplateGalleryProps {
   onApply: (template: WorkspaceTemplate) => void;
@@ -50,6 +52,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createStep, setCreateStep] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(true);
 
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
@@ -267,53 +270,67 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         </button>
       </div>
 
-      {filteredTemplates.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {filteredTemplates.map(({ isStarter, template }) => (
-            <div
-              key={template.id}
-              className="osint-raised-surface group bg-zinc-950/70 border border-zinc-800 hover:border-osint-primary transition-all duration-300 flex flex-col"
-            >
-              <div className="p-4 flex-1">
-                <div className="flex items-center justify-between mb-2 gap-3">
-                  <span className="osint-meta-label-strong text-osint-primary bg-osint-primary/10 px-2 py-0.5 border border-osint-primary/30">
-                    {isStarter ? 'Starter' : 'Protocol'}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="osint-meta-label">
-                      {template.config.purposeId || template.purposeId || 'custom'}
-                    </span>
-                    {!isStarter ? (
-                      <button
-                        onClick={() => {
-                          void deleteTemplate(template.id);
-                        }}
-                        className="text-zinc-700 transition-colors hover:text-osint-danger"
-                        title="Delete Template"
-                        aria-label={`Delete template ${template.name}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    ) : null}
+      <Accordion
+        title="Templates"
+        count={filteredTemplates.length}
+        isOpen={libraryOpen}
+        onToggle={() => setLibraryOpen((current) => !current)}
+        disableActiveHeaderStyle
+      >
+        <div className={SETTINGS_SECTION_BODY_CLASS}>
+          {filteredTemplates.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {filteredTemplates.map(({ isStarter, template }) => (
+                <div
+                  key={template.id}
+                  className={`${SETTINGS_CARD_CLASS} group flex flex-col transition-all duration-300 hover:border-osint-primary`}
+                >
+                  <div className="flex-1 p-4">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <span className="osint-meta-label-strong border border-osint-primary/30 bg-osint-primary/10 px-2 py-0.5 text-osint-primary">
+                        {isStarter ? 'Starter' : 'Protocol'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="osint-meta-label">
+                          {template.config.purposeId || template.purposeId || 'custom'}
+                        </span>
+                        {!isStarter ? (
+                          <button
+                            onClick={() => {
+                              void deleteTemplate(template.id);
+                            }}
+                            className="text-zinc-700 transition-colors hover:text-osint-danger"
+                            title="Delete Template"
+                            aria-label={`Delete template ${template.name}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                    <h3 className="mb-2 osint-meta-value line-clamp-2">{template.name}</h3>
+                    <p className="osint-body-small line-clamp-3">
+                      {template.description || template.topic}
+                    </p>
                   </div>
-                </div>
-                <h3 className="osint-meta-value mb-2 line-clamp-2">{template.name}</h3>
-                <p className="osint-body-small line-clamp-3">
-                  {template.description || template.topic}
-                </p>
-              </div>
 
-              <button
-                onClick={() => onApply(template)}
-                className="osint-button-primary flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
-              >
-                <Play className="w-3 h-3 mr-2" />
-                {isStarter ? 'Launch Starter' : 'Launch Template'}
-              </button>
+                  <button
+                    onClick={() => onApply(template)}
+                    className="osint-button-primary flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
+                  >
+                    <Play className="mr-2 h-3 w-3" />
+                    {isStarter ? 'Launch Starter' : 'Launch Template'}
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className={`${SETTINGS_CARD_CLASS} osint-body-small`}>
+              No templates match the current search.
+            </div>
+          )}
         </div>
-      ) : null}
+      </Accordion>
 
       {showCreateModal && (
         <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
