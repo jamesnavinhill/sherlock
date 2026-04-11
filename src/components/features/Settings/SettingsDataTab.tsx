@@ -129,7 +129,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowExportMenu((current) => !current)}
-                      className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-chrome`}
+                      className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-surface-button`}
                       aria-expanded={showExportMenu}
                       aria-haspopup="menu"
                     >
@@ -160,7 +160,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-chrome`}
+                    className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-surface-button`}
                   >
                     <span className="truncate">Restore Backup</span>
                     <Upload className="h-4 w-4 flex-shrink-0 text-zinc-500" />

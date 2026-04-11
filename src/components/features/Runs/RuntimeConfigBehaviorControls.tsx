@@ -34,18 +34,18 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
         <button
           type="button"
           onClick={() => form.setSearchDepth('STANDARD')}
-          className={`py-2 osint-meta-label-strong ${
-            form.value.searchDepth === 'STANDARD' ? 'osint-button-soft' : 'osint-button-primary'
-          }`}
+          aria-pressed={form.value.searchDepth === 'STANDARD'}
+          data-active={form.value.searchDepth === 'STANDARD' ? 'true' : undefined}
+          className="osint-surface-button py-2 osint-meta-label-strong"
         >
           Standard
         </button>
         <button
           type="button"
           onClick={() => form.setSearchDepth('DEEP')}
-          className={`py-2 osint-meta-label-strong ${
-            form.value.searchDepth === 'DEEP' ? 'osint-button-soft' : 'osint-button-primary'
-          }`}
+          aria-pressed={form.value.searchDepth === 'DEEP'}
+          data-active={form.value.searchDepth === 'DEEP' ? 'true' : undefined}
+          className="osint-surface-button py-2 osint-meta-label-strong"
         >
           Deep
         </button>
@@ -62,20 +62,18 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
         <button
           type="button"
           onClick={() => form.setGenerationMode('SINGLE_PASS')}
-          className={`py-2 osint-meta-label-strong ${
-            form.value.generationMode === 'SINGLE_PASS'
-              ? 'osint-button-soft'
-              : 'osint-button-primary'
-          }`}
+          aria-pressed={form.value.generationMode === 'SINGLE_PASS'}
+          data-active={form.value.generationMode === 'SINGLE_PASS' ? 'true' : undefined}
+          className="osint-surface-button py-2 osint-meta-label-strong"
         >
           Single Pass
         </button>
         <button
           type="button"
           onClick={() => form.setGenerationMode('STAGED')}
-          className={`py-2 osint-meta-label-strong ${
-            form.value.generationMode === 'STAGED' ? 'osint-button-soft' : 'osint-button-primary'
-          }`}
+          aria-pressed={form.value.generationMode === 'STAGED'}
+          data-active={form.value.generationMode === 'STAGED' ? 'true' : undefined}
+          className="osint-surface-button py-2 osint-meta-label-strong"
         >
           Staged
         </button>

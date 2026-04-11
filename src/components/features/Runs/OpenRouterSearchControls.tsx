@@ -93,7 +93,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
           max={25}
           value={maxResults}
           onChange={(event) => setMaxResults(Number(event.target.value) || 1)}
-          className="w-full border border-zinc-700 bg-black px-3 py-3 osint-meta-value outline-none focus:border-osint-primary"
+          className="osint-input-field w-full px-3 py-3 osint-meta-value"
         />
       </label>
       <label className="block">
@@ -104,7 +104,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
           max={50}
           value={maxTotalResults}
           onChange={(event) => setMaxTotalResults(Number(event.target.value) || 1)}
-          className="w-full border border-zinc-700 bg-black px-3 py-3 osint-meta-value outline-none focus:border-osint-primary"
+          className="osint-input-field w-full px-3 py-3 osint-meta-value"
         />
       </label>
     </div>
@@ -115,7 +115,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
         value={allowedDomains}
         onChange={(event) => setAllowedDomains(event.target.value)}
         placeholder="arxiv.org, sec.gov"
-        className="h-20 w-full resize-none border border-zinc-700 bg-black px-3 py-3 osint-meta-value outline-none focus:border-osint-primary"
+        className="osint-input-field h-20 w-full resize-none px-3 py-3 osint-meta-value"
       />
     </label>
 
@@ -125,7 +125,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
         value={excludedDomains}
         onChange={(event) => setExcludedDomains(event.target.value)}
         placeholder="reddit.com"
-        className="h-20 w-full resize-none border border-zinc-700 bg-black px-3 py-3 osint-meta-value outline-none focus:border-osint-primary"
+        className="osint-input-field h-20 w-full resize-none px-3 py-3 osint-meta-value"
       />
     </label>
   </section>

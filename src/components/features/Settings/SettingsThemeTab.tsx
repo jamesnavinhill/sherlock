@@ -131,7 +131,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             <button
               type="button"
               onClick={handleResetThemeSettings}
-              className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
+              className="osint-surface-button px-3 py-1 osint-meta-label-strong"
             >
               Reset Theme
             </button>
@@ -177,17 +177,15 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             <div>
               <div className="osint-meta-label">Surface Workbench</div>
             </div>
-            <div className="inline-flex overflow-hidden rounded border border-zinc-800 bg-zinc-950/50">
+            <div className="inline-flex gap-2">
               {(['dark', 'light'] as Array<keyof ThemeSurfaceSettings>).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setActiveSurfaceMode(mode)}
-                  className={`osint-meta-label px-4 py-2 transition-colors ${
-                    activeSurfaceMode === mode
-                      ? 'bg-osint-primary/12 text-osint-primary'
-                      : 'text-zinc-500 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:text-zinc-200'
-                  }`}
+                  aria-pressed={activeSurfaceMode === mode}
+                  data-active={activeSurfaceMode === mode ? 'true' : undefined}
+                  className="osint-surface-button px-4 py-2 osint-meta-label"
                 >
                   {mode}
                 </button>
@@ -295,7 +293,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   <button
                     type="button"
                     onClick={() => handleResetSurfaceMode(activeSurfaceMode)}
-                    className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
+                    className="osint-surface-button px-3 py-1 osint-meta-label-strong"
                   >
                     Reset {activeSurfaceMode}
                   </button>
@@ -388,7 +386,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <button
           type="button"
           onClick={handleResetFonts}
-          className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
+          className="osint-surface-button px-3 py-1 osint-meta-label-strong"
         >
           Reset Fonts
         </button>
@@ -404,22 +402,21 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   {role.activeOption.label}
                 </span>
               </div>
-              <select
+              <OsintSelect
+                ariaLabel={`${role.label} font family`}
                 value={themeFontSettings[role.key]}
                 onChange={(event) =>
                   onThemeFontSettingsChange({
                     ...themeFontSettings,
-                    [role.key]: event.target.value,
+                    [role.key]: event,
                   })
                 }
-                className="osint-meta-value mt-3 w-full border border-zinc-700 bg-black px-3 py-2.5 text-white outline-none focus:border-osint-primary"
-              >
-                {getThemeFontOptionsForRole(role.key).map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                triggerClassName="mt-3 px-3 py-2.5 pr-8 osint-meta-value"
+                options={getThemeFontOptionsForRole(role.key).map((option) => ({
+                  value: option.id,
+                  label: option.label,
+                }))}
+              />
             </label>
           ))}
         </div>
@@ -599,7 +596,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             </div>
             <button
               onClick={handleResetThemeSettings}
-              className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
+              className="osint-surface-button px-3 py-1 osint-meta-label-strong"
             >
               Reset Theme
             </button>
@@ -642,7 +639,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 updateThemeBackgroundField('dotColor', DEFAULT_THEME_BACKGROUND_SETTINGS.dotColor);
                 updateThemeBackgroundField('dotOpacity', DEFAULT_THEME_BACKGROUND_SETTINGS.dotOpacity);
               }}
-              className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
+              className="osint-surface-button px-3 py-1 osint-meta-label-strong"
             >
               Reset Background
             </button>

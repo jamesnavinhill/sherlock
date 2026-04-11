@@ -95,7 +95,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="border border-zinc-800 p-2 text-zinc-500 transition-colors hover:border-zinc-600 hover:text-white"
+            className="osint-surface-button p-2"
             aria-label="Close OpenRouter model browser"
           >
             <X className="h-4 w-4" />
@@ -148,7 +148,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                 value={manualSlug}
                 onChange={(event) => setManualSlug(event.target.value)}
                 placeholder="e.g. openai/gpt-5.4-mini"
-                className="w-full border border-zinc-700 bg-black px-3 py-2 osint-meta-value text-white outline-none focus:border-osint-primary"
+                className="osint-input-field w-full px-3 py-2 osint-meta-value"
               />
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div className="osint-body-quiet">
@@ -162,7 +162,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     onSelectModel(slug);
                     onClose();
                   }}
-                  className="osint-button-primary px-3 py-2 osint-meta-label-strong"
+                  className="osint-surface-button px-3 py-2 osint-meta-label-strong"
                 >
                   Use slug
                 </button>
@@ -178,7 +178,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search the OpenRouter catalog"
-                  className="w-full border border-zinc-700 bg-black py-2 pl-10 pr-3 osint-meta-value text-white outline-none focus:border-osint-primary"
+                  className="osint-input-field w-full py-2 pl-10 pr-3 osint-meta-value"
                 />
               </label>
               <button
@@ -195,7 +195,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     )
                     .finally(() => setIsRefreshing(false));
                 }}
-                className="inline-flex items-center justify-center gap-2 border border-zinc-700 px-3 py-2 osint-meta-label-strong text-zinc-300 transition-colors hover:border-white hover:text-white"
+                className="osint-surface-button inline-flex items-center justify-center gap-2 px-3 py-2 osint-meta-label-strong"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh

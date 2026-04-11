@@ -34,15 +34,17 @@ const ProviderKeyField: React.FC<{
         data-1p-ignore="true"
         spellCheck={false}
         placeholder={`Enter ${provider} API Key...`}
-        className="flex-1 bg-black border border-zinc-700 p-3 osint-meta-value focus:border-osint-primary outline-none transition-colors"
+        className="osint-input-field flex-1 p-3 osint-meta-value"
       />
       <button
+        type="button"
         onClick={onToggleVisibility}
-        className="px-4 border border-zinc-700 hover:border-white text-zinc-400 hover:text-white transition-colors osint-meta-label-strong"
+        className="osint-surface-button px-4 osint-meta-label-strong"
       >
         {showValue ? 'HIDE' : 'SHOW'}
       </button>
       <button
+        type="button"
         onClick={onClear}
         className="osint-button-danger px-4 osint-meta-label-strong"
         title={`Clear ${provider} key`}

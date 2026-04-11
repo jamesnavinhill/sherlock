@@ -146,7 +146,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong"
+          className="osint-surface-button flex items-center px-4 py-2 osint-meta-label-strong"
         >
           <Plus className="w-3 h-3 mr-1" />
           New Scope
@@ -226,7 +226,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                 <button
                   onClick={handleSave}
                   disabled={!formName.trim()}
-                  className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-50"
+                  className="osint-surface-button flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-50"
                 >
                   <Save className="w-3 h-3 mr-1" />
                   {editingScope ? 'Save Changes' : 'Create Scope'}

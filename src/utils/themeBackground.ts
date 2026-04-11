@@ -8,8 +8,8 @@ export interface ThemeBackgroundSettings {
 
 export const DEFAULT_THEME_BACKGROUND_SETTINGS: ThemeBackgroundSettings = {
   variant: 'grid',
-  dotColor: 26,
-  dotOpacity: 0.2,
+  dotColor: 23,
+  dotOpacity: 0.45,
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));

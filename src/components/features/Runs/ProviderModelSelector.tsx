@@ -93,7 +93,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
               <button
                 type="button"
                 onClick={() => form.setShowOpenRouterBrowser(true)}
-                className="border border-zinc-700 px-3 py-2 osint-meta-label-strong text-zinc-300 transition-colors hover:border-white hover:text-white"
+                className="osint-surface-button px-3 py-2 osint-meta-label-strong"
               >
                 Browse
               </button>

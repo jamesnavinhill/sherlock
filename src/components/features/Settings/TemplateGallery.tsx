@@ -258,12 +258,12 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
             placeholder="Search templates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-black border border-zinc-700 pl-10 pr-4 py-2 osint-body-small focus:border-osint-primary outline-none transition-colors"
+            className="osint-input-field w-full pl-10 pr-4 py-2 osint-body-small"
           />
         </div>
         <button
           onClick={openCreateModal}
-          className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong"
+          className="osint-surface-button flex items-center px-4 py-2 osint-meta-label-strong"
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Template
@@ -316,7 +316,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
                   <button
                     onClick={() => onApply(template)}
-                    className="osint-button-primary flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
+                    className="osint-surface-button flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
                   >
                     <Play className="mr-2 h-3 w-3" />
                     {isStarter ? 'Launch Starter' : 'Launch Template'}
@@ -344,7 +344,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               </div>
               <button
                 onClick={closeCreateModal}
-                className="p-2 border border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors"
+                className="osint-surface-button p-2"
                 aria-label="Close create template modal"
               >
                 <X className="w-4 h-4" />
@@ -383,7 +383,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={templateName}
                       onChange={(event) => setTemplateName(event.target.value)}
                       placeholder="e.g., Corporate Fraud Deep-Dive"
-                      className="w-full bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none placeholder-zinc-600"
+                      className="osint-input-field w-full p-3 osint-body-small"
                       autoFocus
                     />
                   </div>
@@ -395,7 +395,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={templateDescription}
                       onChange={(event) => setTemplateDescription(event.target.value)}
                       placeholder="Describe when and why this protocol should be used."
-                      className="w-full h-28 bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+                      className="osint-input-field w-full h-28 resize-none p-3 osint-body-small"
                     />
                   </div>
                 </div>
@@ -465,7 +465,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={topic}
                       onChange={(event) => setTopic(event.target.value)}
                       placeholder="Enter the question, subject, or topic this template should launch with..."
-                      className="w-full h-32 bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+                      className="osint-input-field w-full h-32 resize-none p-3 osint-body-small"
                     />
                   </div>
                   <div>
@@ -477,7 +477,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={hypothesis}
                       onChange={(event) => setHypothesis(event.target.value)}
                       placeholder="Capture the default lens, hypothesis, or comparison this template should carry."
-                      className="w-full h-24 bg-black border border-zinc-700 p-3 osint-body-small focus:border-osint-primary outline-none resize-none placeholder-zinc-600"
+                      className="osint-input-field w-full h-24 resize-none p-3 osint-body-small"
                     />
                   </div>
                 </div>
@@ -523,14 +523,14 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               <div className="flex items-center gap-2">
                 <button
                   onClick={closeCreateModal}
-                  className="border border-zinc-800 px-4 py-2 osint-meta-label text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors"
+                  className="osint-surface-button px-4 py-2 osint-meta-label"
                 >
                   Cancel
                 </button>
                 {createStep > 0 && (
                   <button
                     onClick={() => setCreateStep((current) => Math.max(0, current - 1))}
-                    className="flex items-center border border-zinc-700 px-4 py-2 osint-meta-label text-zinc-300 hover:text-white hover:border-white transition-colors"
+                    className="osint-surface-button flex items-center px-4 py-2 osint-meta-label"
                   >
                     <ChevronLeft className="w-3 h-3 mr-1" />
                     Back
@@ -544,7 +544,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       }
                     }}
                     disabled={!canProceed()}
-                    className="osint-button-primary flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="osint-surface-button flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                     <ChevronRight className="w-3 h-3 ml-1" />
@@ -555,7 +555,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       void handleCreateTemplate();
                     }}
                     disabled={!canProceed() || isCreating}
-                    className="osint-button-primary px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="osint-surface-button px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCreating ? 'Creating...' : 'Create Template'}
                   </button>

@@ -33,12 +33,12 @@ describe('themeBackground', () => {
     expect(
       buildThemeBackgroundCssVars({
         variant: 'plain',
-        dotColor: 26,
-        dotOpacity: 0.2,
+        dotColor: 23,
+        dotOpacity: 0.45,
       })
     ).toMatchObject({
       '--osint-main-bg-image': 'none',
-      '--osint-main-bg-dot-opacity': '0.2',
+      '--osint-main-bg-dot-opacity': '0.45',
     });
   });
 });
