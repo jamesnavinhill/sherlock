@@ -118,8 +118,9 @@ export const Settings: React.FC<SettingsProps> = ({
       </header>
 
       <main className="flex-1 overflow-y-auto p-8 relative custom-scrollbar">
-        <MainContentDotGrid testId="settings-dot-grid-background" />
-        <div className="relative z-10 w-full">
+        <div className="relative w-full min-h-full">
+          <MainContentDotGrid testId="settings-dot-grid-background" />
+          <div className="relative z-10 w-full">
           {activeTab === 'DATA' ? (
             <SettingsDataTab
               autoResolve={data.autoResolve}
@@ -172,6 +173,7 @@ export const Settings: React.FC<SettingsProps> = ({
               updateSelectedSurfaceField={theme.updateSelectedSurfaceField}
             />
           ) : null}
+          </div>
         </div>
       </main>
 
