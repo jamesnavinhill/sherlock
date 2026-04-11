@@ -14,10 +14,8 @@ interface GraphViewportControlsProps {
 }
 
 const getViewportButtonClass = (active: boolean) =>
-  `inline-flex items-center justify-center px-2 py-2 text-[10px] font-mono uppercase transition outline-none focus-visible:ring-2 focus-visible:ring-osint-primary ${
-    active
-      ? 'bg-osint-primary/10 text-osint-primary'
-      : 'text-zinc-500 hover:bg-osint-primary/8 hover:text-osint-primary'
+  `inline-flex items-center justify-center px-2 py-2 text-[10px] font-mono uppercase transition outline-none focus-visible:text-osint-primary ${
+    active ? 'text-osint-primary' : 'text-zinc-500 hover:text-osint-primary'
   }`;
 
 const VIEWPORT_ICON_CLASS_NAME = 'h-3.5 w-3.5';
@@ -35,7 +33,7 @@ export const GraphViewportControls: React.FC<GraphViewportControlsProps> = ({
 }) => (
   <div className="pointer-events-none absolute right-4 top-1 z-20">
     <div
-      className="pointer-events-auto flex items-center p-0.5 shadow-2xl backdrop-blur-md"
+      className="pointer-events-auto flex items-center p-0.5"
       style={{
         backgroundColor: 'color-mix(in oklab, var(--osint-dark) 96%, transparent)',
       }}

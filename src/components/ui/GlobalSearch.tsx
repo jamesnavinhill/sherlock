@@ -366,18 +366,8 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
       <div
         data-state={isOpen ? 'open' : 'closed'}
         className={`osint-toolbar-field osint-toolbar-search-field flex items-center border transition-colors ${
-          isOpen
-            ? 'border-[color:var(--osint-primary-soft-border)] text-white'
-            : 'text-zinc-300 hover:text-white'
+          isOpen ? 'text-white' : 'text-zinc-300 hover:text-white'
         } ${compact ? 'gap-2 px-3 py-2' : 'gap-3 px-4 py-3'}`}
-        style={
-          isOpen
-            ? {
-                boxShadow:
-                  '0 0 0 1px color-mix(in oklab, var(--osint-primary) 26%, transparent)',
-              }
-            : undefined
-        }
       >
         <Search
           className={`${compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${

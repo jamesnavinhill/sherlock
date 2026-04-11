@@ -1690,9 +1690,9 @@ body,
   --tl-font-mono: var(--font-mono);
   --color-background: var(--osint-dark);
   --color-grid: color-mix(in oklab, var(--osint-border) 84%, transparent);
-  --color-panel: color-mix(in oklab, var(--osint-panel) 96%, var(--osint-dark));
+  --color-panel: var(--osint-panel);
   --color-panel-contrast: color-mix(in oklab, var(--osint-surface) 90%, var(--osint-panel));
-  --color-panel-overlay: color-mix(in oklab, var(--osint-panel) 90%, transparent);
+  --color-panel-overlay: var(--osint-panel);
   --color-panel-transparent: color-mix(in oklab, var(--osint-panel) 0%, transparent);
   --color-overlay: color-mix(in oklab, black 56%, transparent);
   --color-text: var(--osint-ink);
@@ -1716,9 +1716,9 @@ body,
   --color-primary: var(--osint-primary);
   --tl-color-background: var(--osint-dark);
   --tl-color-grid: color-mix(in oklab, var(--osint-border) 84%, transparent);
-  --tl-color-panel: color-mix(in oklab, var(--osint-panel) 96%, var(--osint-dark));
+  --tl-color-panel: var(--osint-panel);
   --tl-color-panel-contrast: color-mix(in oklab, var(--osint-surface) 90%, var(--osint-panel));
-  --tl-color-panel-overlay: color-mix(in oklab, var(--osint-panel) 90%, transparent);
+  --tl-color-panel-overlay: var(--osint-panel);
   --tl-color-text: var(--osint-ink);
   --tl-color-text-0: var(--osint-ink);
   --tl-color-text-1: color-mix(in oklab, var(--osint-ink) 82%, var(--osint-text));
@@ -1781,8 +1781,16 @@ body,
 .sherlock-board-canvas .tlui-menu__group,
 .sherlock-board-canvas .tlui-style-panel,
 .sherlock-board-canvas .tlui-navigation-panel {
+  background-color: var(--osint-panel);
   border: 1px solid color-mix(in oklab, var(--osint-border) 90%, transparent);
   box-shadow: 0 16px 34px -28px rgba(0, 0, 0, 0.72);
+}
+
+.sherlock-board-canvas .tlui-menu-zone,
+.sherlock-board-canvas .tlui-main-toolbar__tools,
+.sherlock-board-canvas .tlui-navigation-panel {
+  background-color: var(--osint-input-surface);
+  border-color: var(--osint-input-border);
 }
 
 .sherlock-board-canvas .tlui-button::after {
@@ -1799,29 +1807,57 @@ body,
   display: none;
 }
 
-.sherlock-board-canvas .tlui-toolbar__tools {
-  border-radius: 1rem;
-  border: 1px solid color-mix(in oklab, var(--osint-border) 90%, transparent);
+.sherlock-board-canvas .tlui-menu-zone {
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-right-style: solid;
+  border-bottom-style: solid;
+  border-bottom-right-radius: 1rem;
   box-shadow: 0 16px 34px -28px rgba(0, 0, 0, 0.72);
 }
 
+.sherlock-board-canvas .tlui-main-toolbar__tools,
+.sherlock-board-canvas .tlui-toolbar__tools {
+  background-color: var(--osint-panel);
+  border-radius: 1rem;
+  border: 1px solid var(--osint-input-border);
+  box-shadow: 0 16px 34px -28px rgba(0, 0, 0, 0.72);
+}
+
+.sherlock-board-canvas .tlui-main-toolbar__tools,
+.sherlock-board-canvas .tlui-toolbar__tools {
+  background-color: var(--osint-input-surface);
+}
+
+.sherlock-board-canvas .tlui-main-toolbar .tlui-button,
+.sherlock-board-canvas .tlui-main-toolbar .tlui-button::after,
 .sherlock-board-canvas .tlui-toolbar .tlui-button,
 .sherlock-board-canvas .tlui-toolbar .tlui-button::after {
   border-radius: 0.75rem;
 }
 
+.sherlock-board-canvas .tlui-main-toolbar .tlui-button__tool[aria-pressed='true'],
 .sherlock-board-canvas .tlui-toolbar .tlui-button__tool[aria-pressed='true'] {
   color: var(--osint-primary);
 }
 
+.sherlock-board-canvas .tlui-main-toolbar .tlui-button__tool[aria-pressed='true']::after,
+.sherlock-board-canvas .tlui-main-toolbar *[data-state='open']::after,
 .sherlock-board-canvas .tlui-toolbar .tlui-button__tool[aria-pressed='true']::after,
-.sherlock-board-canvas .tlui-toolbar *[data-state='open']::after {
+.sherlock-board-canvas .tlui-toolbar *[data-state='open']::after,
+.sherlock-board-canvas .tlui-menu-zone *[data-state='open']::after {
   background: transparent;
   opacity: 0;
 }
 
 @media (hover: hover) {
+  .sherlock-board-canvas .tlui-main-toolbar *[data-state='open']:not(:hover)::after,
   .sherlock-board-canvas .tlui-toolbar *[data-state='open']:not(:hover)::after {
+    background: transparent;
+    opacity: 0;
+  }
+
+  .sherlock-board-canvas .tlui-menu-zone *[data-state='open']:not(:hover)::after {
     background: transparent;
     opacity: 0;
   }
