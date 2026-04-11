@@ -82,6 +82,7 @@ export interface AppShellController {
   setShowHelpModal: (value: boolean) => void;
   setLiveEvents: ReturnType<typeof useWorkspaceStore.getState>['setLiveEvents'];
   setThemeColor: (color: string) => void;
+  setThemeBackgroundSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeBackgroundSettings'];
   setThemeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeFontSettings'];
   setThemeMode: (mode: 'dark' | 'light') => void;
   setThemeSurfaceSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeSurfaceSettings'];
@@ -89,6 +90,7 @@ export interface AppShellController {
   showGlobalSearch: boolean;
   shouldHideRouteHeader: boolean;
   showHelpModal: boolean;
+  themeBackgroundSettings: ReturnType<typeof useWorkspaceStore.getState>['themeBackgroundSettings'];
   themeColor: string;
   themeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['themeFontSettings'];
   themeMode: 'dark' | 'light';
@@ -136,11 +138,13 @@ export function useAppShellController(): AppShellController {
     setLiveEvents,
     setShowGlobalSearch,
     setThemeColor,
+    setThemeBackgroundSettings,
     themeFontSettings,
     setThemeFontSettings,
     setThemeMode,
     setThemeSurfaceSettings,
     showGlobalSearch,
+    themeBackgroundSettings,
     themeColor,
     themeMode,
     themeSurfaceSettings,
@@ -267,6 +271,7 @@ export function useAppShellController(): AppShellController {
   useApplyAppShellTheme({
     accentSettings,
     themeColor,
+    themeBackgroundSettings,
     themeFontSettings,
     themeMode,
     themeSurfaceSettings,
@@ -363,6 +368,7 @@ export function useAppShellController(): AppShellController {
     setShowHelpModal,
     setLiveEvents,
     setThemeColor,
+    setThemeBackgroundSettings,
     setThemeFontSettings,
     setThemeMode,
     setThemeSurfaceSettings,
@@ -371,6 +377,7 @@ export function useAppShellController(): AppShellController {
     shouldHideRouteHeader:
       routeCurrentView !== AppView.SETTINGS && isHeaderManuallyHidden && !showGlobalSearch,
     showHelpModal,
+    themeBackgroundSettings,
     themeColor,
     themeFontSettings,
     themeMode,

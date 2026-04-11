@@ -129,6 +129,8 @@ describe('useSettingsController', () => {
       handleMatchAccentHue: vi.fn(),
       handleAdjustModeChroma: vi.fn(),
       handleAdjustModeSeparation: vi.fn(),
+      handleThemeBackgroundVariantChange: vi.fn(),
+      updateThemeBackgroundField: vi.fn(),
       updateSelectedSurfaceField: vi.fn(),
     });
   });
@@ -163,8 +165,10 @@ describe('useSettingsController', () => {
       useSettingsController({
         accentSettings: { hue: 20, lightness: 60, chroma: 0.2 },
         onAccentChange: vi.fn(),
+        onThemeBackgroundSettingsChange: vi.fn(),
         onThemeFontSettingsChange: vi.fn(),
         onThemeSurfaceSettingsChange: vi.fn(),
+        themeBackgroundSettings: { variant: 'grid', dotColor: 26, dotOpacity: 0.2 },
         themeColor: 'oklch(62% 0.2 20)',
         themeFontSettings: {} as never,
         themeMode: 'dark',
@@ -185,8 +189,10 @@ describe('useSettingsController', () => {
       useSettingsController({
         accentSettings: { hue: 20, lightness: 60, chroma: 0.2 },
         onAccentChange: vi.fn(),
+        onThemeBackgroundSettingsChange: vi.fn(),
         onThemeFontSettingsChange: vi.fn(),
         onThemeSurfaceSettingsChange: vi.fn(),
+        themeBackgroundSettings: { variant: 'grid', dotColor: 26, dotOpacity: 0.2 },
         themeColor: 'oklch(62% 0.2 20)',
         themeFontSettings: {} as never,
         themeMode: 'dark',
@@ -200,6 +206,17 @@ describe('useSettingsController', () => {
     });
 
     expect(saveSystemConfig).toHaveBeenCalledTimes(1);
+    expect(saveSystemConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'OPENAI',
+        modelId: 'gpt-test',
+      }),
+      expect.objectContaining({
+        theme: 'oklch(62% 0.2 20)',
+        themeMode: 'dark',
+        themeBackgroundSettings: { variant: 'grid', dotColor: 26, dotOpacity: 0.2 },
+      })
+    );
     expect(result.current.saveSuccess).toBe(true);
   });
 });

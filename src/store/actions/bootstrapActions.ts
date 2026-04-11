@@ -1,5 +1,9 @@
 import { buildAccentColor, parseOklch, DEFAULT_ACCENT_SETTINGS } from '@/utils/accent';
 import {
+  DEFAULT_THEME_BACKGROUND_SETTINGS,
+  parseThemeBackgroundSettings,
+} from '@/utils/themeBackground';
+import {
   DEFAULT_THEME_SURFACE_SETTINGS,
   parseThemeSurfaceSettings,
 } from '@/utils/themeSurfaces';
@@ -96,6 +100,7 @@ export const createBootstrapActions = (
           storedTheme,
           storedThemeSurfaceSettings,
           storedThemeFontSettings,
+          storedThemeBackgroundSettings,
         ] = await Promise.all([
           loadBootstrapResource('workspaces', () => WorkspaceRepository.getAllWorkspaces(), []),
           loadBootstrapResource('artifacts', () => WorkspaceRepository.getAllArtifacts(), []),
@@ -167,6 +172,11 @@ export const createBootstrapActions = (
             () => SettingsRepository.getSetting('theme_font_settings'),
             null
           ),
+          loadBootstrapResource(
+            'theme background settings',
+            () => SettingsRepository.getSetting('theme_background_settings'),
+            null
+          ),
         ]);
 
         let workspaces = workspacesResult;
@@ -228,6 +238,9 @@ export const createBootstrapActions = (
         const legacyThemeSurfaceSettings = parseThemeSurfaceSettings(
           legacyConfig['themeSurfaceSettings']
         );
+        const legacyThemeBackgroundSettings = parseThemeBackgroundSettings(
+          legacyConfig['themeBackgroundSettings']
+        );
         const legacyThemeFontSettings = parseThemeFontSettings(legacyConfig['themeFontSettings']);
 
         const resolvedAccent =
@@ -249,6 +262,10 @@ export const createBootstrapActions = (
           parseThemeFontSettings(storedThemeFontSettings) ||
           legacyThemeFontSettings ||
           DEFAULT_THEME_FONT_SETTINGS;
+        const resolvedThemeBackgroundSettings =
+          parseThemeBackgroundSettings(storedThemeBackgroundSettings) ||
+          legacyThemeBackgroundSettings ||
+          DEFAULT_THEME_BACKGROUND_SETTINGS;
 
         await SettingsRepository.setSetting('theme_mode', resolvedThemeMode);
         await SettingsRepository.setSetting('accent_settings', resolvedAccent);
@@ -258,6 +275,10 @@ export const createBootstrapActions = (
           resolvedThemeSurfaceSettings
         );
         await SettingsRepository.setSetting('theme_font_settings', resolvedThemeFontSettings);
+        await SettingsRepository.setSetting(
+          'theme_background_settings',
+          resolvedThemeBackgroundSettings
+        );
 
         if (
           !hasExistingWorkspaceData({
@@ -344,6 +365,7 @@ export const createBootstrapActions = (
           themeColor: resolvedTheme,
           themeSurfaceSettings: resolvedThemeSurfaceSettings,
           themeFontSettings: resolvedThemeFontSettings,
+          themeBackgroundSettings: resolvedThemeBackgroundSettings,
           activeWorkspaceId,
           activeWorkspaceBoardId,
           isLoading: false,

@@ -3,6 +3,7 @@ import type { MutableRefObject } from 'react';
 
 import { AppView } from '@/types';
 import { buildEntityPaletteCssVars } from '@/utils/entityPalette';
+import { buildThemeBackgroundCssVars } from '@/utils/themeBackground';
 import { buildThemeFontCssVars } from '@/utils/themeFonts';
 import { buildThemeSurfaceCssVars } from '@/utils/themeSurfaces';
 
@@ -13,6 +14,7 @@ interface ApplyThemeInput {
     chroma: number;
   };
   themeColor: string;
+  themeBackgroundSettings: Parameters<typeof buildThemeBackgroundCssVars>[0];
   themeFontSettings: Parameters<typeof buildThemeFontCssVars>[0];
   themeMode: 'dark' | 'light';
   themeSurfaceSettings: Parameters<typeof buildThemeSurfaceCssVars>[0];
@@ -51,6 +53,7 @@ export const useTrackAppShellLocation = ({
 export const useApplyAppShellTheme = ({
   accentSettings,
   themeColor,
+  themeBackgroundSettings,
   themeFontSettings,
   themeMode,
   themeSurfaceSettings,
@@ -69,6 +72,13 @@ export const useApplyAppShellTheme = ({
       root.style.setProperty(name, value);
     });
   }, [themeSurfaceSettings]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    Object.entries(buildThemeBackgroundCssVars(themeBackgroundSettings)).forEach(([name, value]) => {
+      root.style.setProperty(name, value);
+    });
+  }, [themeBackgroundSettings]);
 
   useEffect(() => {
     const root = document.documentElement;

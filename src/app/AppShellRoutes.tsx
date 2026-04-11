@@ -224,6 +224,8 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
               controller.setAccentSettings(settings);
               controller.setThemeColor(buildAccentColor(settings));
             }}
+            themeBackgroundSettings={controller.themeBackgroundSettings}
+            onThemeBackgroundSettingsChange={controller.setThemeBackgroundSettings}
             themeSurfaceSettings={controller.themeSurfaceSettings}
             onThemeSurfaceSettingsChange={controller.setThemeSurfaceSettings}
             themeFontSettings={controller.themeFontSettings}

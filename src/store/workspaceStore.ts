@@ -36,6 +36,10 @@ import {
 } from '../utils/themeSurfaces';
 import { DEFAULT_THEME_FONT_SETTINGS, type ThemeFontSettings } from '../utils/themeFonts';
 import {
+  DEFAULT_THEME_BACKGROUND_SETTINGS,
+  type ThemeBackgroundSettings,
+} from '../utils/themeBackground';
+import {
   hasAppliedDemoWorkspaceSeed,
 } from '../utils/localStorage';
 import { createBootstrapActions } from './actions/bootstrapActions';
@@ -157,6 +161,7 @@ export interface WorkspaceState {
   };
   themeSurfaceSettings: ThemeSurfaceSettings;
   themeFontSettings: ThemeFontSettings;
+  themeBackgroundSettings: ThemeBackgroundSettings;
   showGlobalSearch: boolean;
 
   setWorkspaces: (workspaces: Workspace[]) => void;
@@ -179,6 +184,7 @@ export interface WorkspaceState {
   setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
   setThemeSurfaceSettings: (settings: ThemeSurfaceSettings) => void;
   setThemeFontSettings: (settings: ThemeFontSettings) => void;
+  setThemeBackgroundSettings: (settings: ThemeBackgroundSettings) => void;
   setShowGlobalSearch: (show: boolean) => void;
   setTemplates: (templates: WorkspaceTemplate[]) => void;
   setHeadlines: (headlines: Headline[]) => void;
@@ -341,6 +347,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   accentSettings: DEFAULT_ACCENT_SETTINGS,
   themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,
   themeFontSettings: DEFAULT_THEME_FONT_SETTINGS,
+  themeBackgroundSettings: DEFAULT_THEME_BACKGROUND_SETTINGS,
   showGlobalSearch: false,
   templates: [],
   headlines: [],

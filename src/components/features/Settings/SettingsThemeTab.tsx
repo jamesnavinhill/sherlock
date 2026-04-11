@@ -3,7 +3,13 @@ import type { Dispatch, SetStateAction } from 'react';
 
 import { Accordion } from '@/components/ui/Accordion';
 import { AccentPicker } from '@/components/ui/AccentPicker';
+import { OsintSelect } from '@/components/ui/OsintSelect';
 import { buildAccentColor } from '@/utils/accent';
+import type { ThemeBackgroundSettings } from '@/utils/themeBackground';
+import {
+  buildThemeBackgroundDotColor,
+  DEFAULT_THEME_BACKGROUND_SETTINGS,
+} from '@/utils/themeBackground';
 import {
   THEME_SURFACE_PRESETS,
   type ThemeSurfaceScale,
@@ -34,6 +40,7 @@ interface SettingsThemeTabProps {
   handleAdjustModeChroma: (mode: keyof ThemeSurfaceSettings, delta: number) => void;
   handleAdjustModeSeparation: (mode: keyof ThemeSurfaceSettings, direction: 1 | -1) => void;
   handleApplySurfacePreset: (preset: ThemeSurfaceSettings) => void;
+  handleThemeBackgroundVariantChange: (variant: ThemeBackgroundSettings['variant']) => void;
   handleMatchAccentHue: (mode: keyof ThemeSurfaceSettings) => void;
   handleResetFonts: () => void;
   handleResetSurfaceMode: (mode: keyof ThemeSurfaceSettings) => void;
@@ -43,6 +50,7 @@ interface SettingsThemeTabProps {
   selectedSurfaceKey: keyof ThemeSurfaceScale;
   setActiveSurfaceMode: Dispatch<SetStateAction<keyof ThemeSurfaceSettings>>;
   setSelectedSurfaceKey: Dispatch<SetStateAction<keyof ThemeSurfaceScale>>;
+  themeBackgroundSettings: ThemeBackgroundSettings;
   themeFontSettings: ThemeFontSettings;
   themeSections: {
     accent: boolean;
@@ -51,6 +59,10 @@ interface SettingsThemeTabProps {
   };
   themeSurfaceSettings: ThemeSurfaceSettings;
   toggleThemeSection: (section: 'accent' | 'fonts' | 'surfaces') => void;
+  updateThemeBackgroundField: (
+    field: Exclude<keyof ThemeBackgroundSettings, 'variant'>,
+    rawValue: number
+  ) => void;
   updateSelectedSurfaceField: (
     field: keyof ThemeSurfaceScale[keyof ThemeSurfaceScale],
     rawValue: number
@@ -64,6 +76,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   handleAdjustModeChroma,
   handleAdjustModeSeparation,
   handleApplySurfacePreset,
+  handleThemeBackgroundVariantChange,
   handleMatchAccentHue,
   handleResetFonts,
   handleResetSurfaceMode,
@@ -73,10 +86,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   selectedSurfaceKey,
   setActiveSurfaceMode,
   setSelectedSurfaceKey,
+  themeBackgroundSettings,
   themeFontSettings,
   themeSections,
   themeSurfaceSettings,
   toggleThemeSection,
+  updateThemeBackgroundField,
   updateSelectedSurfaceField,
 }) => {
   const fontSelections = FONT_ROLE_CARDS.map((role) => ({
@@ -90,6 +105,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const activeWeightProfile = describeThemeFontWeight(themeFontSettings.weight);
   const resolvedSizes = resolveThemeFontSizes(themeFontSettings.size);
   const resolvedWeights = resolveThemeFontWeights(themeFontSettings.weight);
+  const backgroundVariantLabel =
+    themeBackgroundSettings.variant === 'grid' ? 'Dot Grid' : 'Plain';
 
   const renderThemeSurfaceEditor = () => {
     const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
@@ -568,6 +585,132 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
     </div>
   );
 
+  const renderThemeAccentSection = () => (
+    <div className="space-y-6 px-3 pb-3 pt-1">
+      <div className="grid auto-rows-fr gap-6 xl:grid-cols-2">
+        <div className="osint-raised-surface flex h-full flex-col rounded border border-zinc-800 bg-zinc-950/50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div
+                className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                style={{ background: buildAccentColor(accentSettings) }}
+              />
+              <div className="min-w-0">
+                <div className="osint-meta-label block">Custom Accent</div>
+                <div className="osint-meta-value mt-1 truncate">{buildAccentColor(accentSettings)}</div>
+              </div>
+            </div>
+            <button
+              onClick={handleResetThemeSettings}
+              className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
+            >
+              Reset Theme
+            </button>
+          </div>
+          <div className="mt-8 flex-1">
+            <AccentPicker
+              hue={accentSettings.hue}
+              lightness={accentSettings.lightness}
+              chroma={accentSettings.chroma}
+              containerClassName="flex h-full flex-col gap-8 py-3"
+              showPreview={false}
+              onChange={onAccentChange}
+            />
+          </div>
+        </div>
+
+        <div className="osint-raised-surface flex h-full flex-col rounded border border-zinc-800 bg-zinc-950/50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div
+                className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
+                style={{ background: buildThemeBackgroundDotColor(themeBackgroundSettings) }}
+              />
+              <div className="min-w-0">
+                <div className="osint-meta-label block">Background Pattern</div>
+                <div className="osint-meta-value mt-1 truncate">
+                  {backgroundVariantLabel} / {Math.round(themeBackgroundSettings.dotOpacity * 100)}%
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                handleThemeBackgroundVariantChange(DEFAULT_THEME_BACKGROUND_SETTINGS.variant);
+                updateThemeBackgroundField('dotColor', DEFAULT_THEME_BACKGROUND_SETTINGS.dotColor);
+                updateThemeBackgroundField('dotOpacity', DEFAULT_THEME_BACKGROUND_SETTINGS.dotOpacity);
+              }}
+              className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
+            >
+              Reset Background
+            </button>
+          </div>
+
+          <div className="mt-8 flex flex-1 flex-col gap-8 py-3">
+            <label className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="osint-meta-label">Background Image</span>
+                <span className="osint-meta-value">{backgroundVariantLabel}</span>
+              </div>
+              <OsintSelect
+                ariaLabel="Background image"
+                value={themeBackgroundSettings.variant}
+                onChange={(value) =>
+                  handleThemeBackgroundVariantChange(
+                    value as ThemeBackgroundSettings['variant']
+                  )
+                }
+                triggerClassName="h-12 px-4 pr-8 osint-meta-value"
+                options={[
+                  { value: 'plain', label: 'Plain' },
+                  { value: 'grid', label: 'Grid' },
+                ]}
+              />
+            </label>
+
+            <label className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="osint-meta-label">Dot Color</span>
+                <span className="osint-meta-value">{themeBackgroundSettings.dotColor}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={themeBackgroundSettings.dotColor}
+                onChange={(event) =>
+                  updateThemeBackgroundField('dotColor', Number(event.target.value))
+                }
+                className="w-full accent-[var(--osint-primary)]"
+              />
+            </label>
+
+            <label className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="osint-meta-label">Dot Opacity</span>
+                <span className="osint-meta-value">
+                  {Math.round(themeBackgroundSettings.dotOpacity * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={themeBackgroundSettings.dotOpacity}
+                onChange={(event) =>
+                  updateThemeBackgroundField('dotOpacity', Number(event.target.value))
+                }
+                className="w-full accent-[var(--osint-primary)]"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-6 pb-12">
       <Accordion
@@ -577,39 +720,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         className="mb-0"
         disableActiveHeaderStyle
       >
-        <div className="space-y-6 px-3 pb-3 pt-1">
-          <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-3">
-                <div
-                  className="h-4 w-4 rounded-sm border border-zinc-700 shadow-[0_0_8px_rgba(255,255,255,0.08)]"
-                  style={{ background: buildAccentColor(accentSettings) }}
-                />
-                <div className="min-w-0">
-                  <div className="osint-meta-label block">Custom Accent</div>
-                  <div className="osint-meta-value mt-1 truncate">
-                    {buildAccentColor(accentSettings)}
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={handleResetThemeSettings}
-                className="osint-meta-label-strong border border-zinc-700 px-3 py-1 text-zinc-400 transition-colors hover:border-white hover:text-white"
-              >
-                Reset Theme
-              </button>
-            </div>
-            <div className="mt-4">
-              <AccentPicker
-                hue={accentSettings.hue}
-                lightness={accentSettings.lightness}
-                chroma={accentSettings.chroma}
-                showPreview={false}
-                onChange={onAccentChange}
-              />
-            </div>
-          </div>
-        </div>
+        {renderThemeAccentSection()}
       </Accordion>
 
       <Accordion

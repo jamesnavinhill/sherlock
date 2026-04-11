@@ -4,6 +4,7 @@ import type { SystemConfig } from '@/types';
 import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
 import { saveSystemConfig } from '@/config/systemConfig';
 import { serializeOpenRouterSettingsDraft } from '@/components/features/Runs/runtimeConfigState';
+import type { ThemeBackgroundSettings } from '@/utils/themeBackground';
 import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
 import type { ThemeFontSettings } from '@/utils/themeFonts';
 import { useSettingsScopeState } from '@/store/selectors/settingsSelectors';
@@ -14,8 +15,10 @@ import { useSettingsThemeState } from './useSettingsThemeState';
 interface SettingsControllerInput {
   accentSettings: { hue: number; lightness: number; chroma: number };
   onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
+  onThemeBackgroundSettingsChange: (settings: ThemeBackgroundSettings) => void;
   onThemeFontSettingsChange: (settings: ThemeFontSettings) => void;
   onThemeSurfaceSettingsChange: (settings: ThemeSurfaceSettings) => void;
+  themeBackgroundSettings: ThemeBackgroundSettings;
   themeColor: string;
   themeFontSettings: ThemeFontSettings;
   themeMode: 'dark' | 'light';
@@ -25,8 +28,10 @@ interface SettingsControllerInput {
 export const useSettingsController = ({
   accentSettings,
   onAccentChange,
+  onThemeBackgroundSettingsChange,
   onThemeFontSettingsChange,
   onThemeSurfaceSettingsChange,
+  themeBackgroundSettings,
   themeColor,
   themeFontSettings,
   themeMode,
@@ -42,8 +47,10 @@ export const useSettingsController = ({
   const theme = useSettingsThemeState({
     accentSettings,
     onAccentChange,
+    onThemeBackgroundSettingsChange,
     onThemeFontSettingsChange,
     onThemeSurfaceSettingsChange,
+    themeBackgroundSettings,
     themeMode,
     themeSurfaceSettings,
   });
@@ -89,6 +96,7 @@ export const useSettingsController = ({
     saveSystemConfig(config, {
       theme: themeColor,
       themeMode,
+      themeBackgroundSettings,
       themeSurfaceSettings,
       themeFontSettings,
     });

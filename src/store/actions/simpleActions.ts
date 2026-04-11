@@ -34,6 +34,7 @@ export const createSimpleActions = ({
   | 'setAccentSettings'
   | 'setThemeSurfaceSettings'
   | 'setThemeFontSettings'
+  | 'setThemeBackgroundSettings'
   | 'setShowGlobalSearch'
   | 'setTemplates'
   | 'setHeadlines'
@@ -114,6 +115,10 @@ export const createSimpleActions = ({
   setThemeFontSettings: (themeFontSettings) => {
     set({ themeFontSettings });
     void SettingsRepository.setSetting('theme_font_settings', themeFontSettings);
+  },
+  setThemeBackgroundSettings: (themeBackgroundSettings) => {
+    set({ themeBackgroundSettings });
+    void SettingsRepository.setSetting('theme_background_settings', themeBackgroundSettings);
   },
   setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
   setTemplates: (templates) => set({ templates }),

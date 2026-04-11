@@ -2,6 +2,10 @@ import { useState } from 'react';
 
 import { DEFAULT_ACCENT_SETTINGS } from '@/utils/accent';
 import {
+  DEFAULT_THEME_BACKGROUND_SETTINGS,
+  type ThemeBackgroundSettings,
+} from '@/utils/themeBackground';
+import {
   DEFAULT_THEME_SURFACE_SETTINGS,
   type ThemeSurfaceScale,
   type ThemeSurfaceSettings,
@@ -15,8 +19,10 @@ import { clamp, cloneThemeSurfaceSettings } from './settingsUtils';
 interface UseSettingsThemeStateInput {
   accentSettings: { hue: number; lightness: number; chroma: number };
   onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
+  onThemeBackgroundSettingsChange: (settings: ThemeBackgroundSettings) => void;
   onThemeFontSettingsChange: (settings: ThemeFontSettings) => void;
   onThemeSurfaceSettingsChange: (settings: ThemeSurfaceSettings) => void;
+  themeBackgroundSettings: ThemeBackgroundSettings;
   themeMode: 'dark' | 'light';
   themeSurfaceSettings: ThemeSurfaceSettings;
 }
@@ -24,8 +30,10 @@ interface UseSettingsThemeStateInput {
 export const useSettingsThemeState = ({
   accentSettings,
   onAccentChange,
+  onThemeBackgroundSettingsChange,
   onThemeFontSettingsChange,
   onThemeSurfaceSettingsChange,
+  themeBackgroundSettings,
   themeMode,
   themeSurfaceSettings,
 }: UseSettingsThemeStateInput) => {
@@ -48,6 +56,7 @@ export const useSettingsThemeState = ({
 
   const handleResetThemeSettings = () => {
     onAccentChange(DEFAULT_ACCENT_SETTINGS);
+    onThemeBackgroundSettingsChange(DEFAULT_THEME_BACKGROUND_SETTINGS);
     onThemeSurfaceSettingsChange(DEFAULT_THEME_SURFACE_SETTINGS);
   };
 
@@ -216,12 +225,33 @@ export const useSettingsThemeState = ({
     }));
   };
 
+  const handleThemeBackgroundVariantChange = (variant: ThemeBackgroundSettings['variant']) => {
+    onThemeBackgroundSettingsChange({
+      ...themeBackgroundSettings,
+      variant,
+    });
+  };
+
+  const updateThemeBackgroundField = (
+    field: Exclude<keyof ThemeBackgroundSettings, 'variant'>,
+    rawValue: number
+  ) => {
+    onThemeBackgroundSettingsChange({
+      ...themeBackgroundSettings,
+      [field]:
+        field === 'dotColor'
+          ? clamp(Math.round(rawValue), 0, 100)
+          : clamp(Number(rawValue.toFixed(2)), 0, 1),
+    });
+  };
+
   return {
     activeSurfaceMode,
     getSurfaceBounds,
     handleAdjustModeChroma,
     handleAdjustModeSeparation,
     handleApplySurfacePreset,
+    handleThemeBackgroundVariantChange,
     handleMatchAccentHue,
     handleResetFonts,
     handleResetSurfaceMode,
@@ -232,6 +262,7 @@ export const useSettingsThemeState = ({
     setSelectedSurfaceKey,
     themeSections,
     toggleThemeSection,
+    updateThemeBackgroundField,
     updateSelectedSurfaceField,
   };
 };

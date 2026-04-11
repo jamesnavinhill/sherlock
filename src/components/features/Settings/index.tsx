@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, RefreshCw, Save, X } from 'lucide-react';
 
 import type { InvestigationLaunchRequest } from '@/types';
+import type { ThemeBackgroundSettings } from '@/utils/themeBackground';
 import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
 import type { ThemeFontSettings } from '@/utils/themeFonts';
 import { TABS } from './settingsUtils';
@@ -24,6 +25,8 @@ interface SettingsProps {
   themeMode: 'dark' | 'light';
   onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
   accentSettings: { hue: number; lightness: number; chroma: number };
+  themeBackgroundSettings: ThemeBackgroundSettings;
+  onThemeBackgroundSettingsChange: (settings: ThemeBackgroundSettings) => void;
   themeSurfaceSettings: ThemeSurfaceSettings;
   onThemeSurfaceSettingsChange: (settings: ThemeSurfaceSettings) => void;
   themeFontSettings: ThemeFontSettings;
@@ -37,6 +40,8 @@ export const Settings: React.FC<SettingsProps> = ({
   themeMode,
   onAccentChange,
   accentSettings,
+  themeBackgroundSettings,
+  onThemeBackgroundSettingsChange,
   themeSurfaceSettings,
   onThemeSurfaceSettingsChange,
   themeFontSettings,
@@ -59,8 +64,10 @@ export const Settings: React.FC<SettingsProps> = ({
   } = useSettingsController({
     accentSettings,
     onAccentChange,
+    onThemeBackgroundSettingsChange,
     onThemeFontSettingsChange,
     onThemeSurfaceSettingsChange,
+    themeBackgroundSettings,
     themeColor,
     themeFontSettings,
     themeMode,
@@ -142,6 +149,7 @@ export const Settings: React.FC<SettingsProps> = ({
             <SettingsThemeTab
               accentSettings={accentSettings}
               onAccentChange={onAccentChange}
+              themeBackgroundSettings={themeBackgroundSettings}
               themeSurfaceSettings={themeSurfaceSettings}
               themeFontSettings={themeFontSettings}
               onThemeFontSettingsChange={onThemeFontSettingsChange}
@@ -159,6 +167,8 @@ export const Settings: React.FC<SettingsProps> = ({
               handleMatchAccentHue={theme.handleMatchAccentHue}
               handleAdjustModeChroma={theme.handleAdjustModeChroma}
               handleAdjustModeSeparation={theme.handleAdjustModeSeparation}
+              updateThemeBackgroundField={theme.updateThemeBackgroundField}
+              handleThemeBackgroundVariantChange={theme.handleThemeBackgroundVariantChange}
               updateSelectedSurfaceField={theme.updateSelectedSurfaceField}
             />
           ) : null}

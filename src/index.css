@@ -26,6 +26,9 @@
   --osint-text-meta: color-mix(in oklab, var(--osint-text) 72%, var(--osint-dark));
   --osint-text-muted: color-mix(in oklab, var(--osint-text) 84%, var(--osint-ink) 16%);
   --osint-text-quiet: color-mix(in oklab, var(--osint-text) 70%, var(--osint-dark));
+  --osint-main-bg-dot-color: color-mix(in oklab, var(--osint-ink) 26%, var(--osint-border));
+  --osint-main-bg-image: radial-gradient(var(--osint-main-bg-dot-color) 1px, transparent 1px);
+  --osint-main-bg-dot-opacity: 0.2;
   --font-sans: 'Work Sans', sans-serif;
   --font-display: 'Work Sans', sans-serif;
   --font-label: 'IBM Plex Mono', monospace;
