@@ -107,6 +107,9 @@ describe('ArtifactViewer', () => {
     expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Atlas Review').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /Atlas Contract Network/i })).toHaveClass(
+      'osint-breadcrumb-current'
+    );
     expect(screen.getByTestId('artifact-viewer-top-header')).toBeInTheDocument();
     expect(screen.getByTestId('artifact-viewer-top-header')).toHaveClass('min-h-16');
     expect(screen.getByTestId('artifact-viewer-dot-grid-background')).toBeInTheDocument();

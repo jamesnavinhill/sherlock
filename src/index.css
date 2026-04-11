@@ -582,7 +582,7 @@ body,
 .osint-button-chrome {
   background-color: var(--osint-interaction-bg);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
-  border: 1px solid var(--osint-interaction-border);
+  border: 1px solid var(--osint-raised-outline);
   font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
@@ -656,10 +656,17 @@ body,
   box-shadow: none;
 }
 
+.osint-breadcrumb-current {
+  background-color: var(--osint-panel);
+  border: 1px solid var(--osint-raised-outline);
+  color: var(--osint-text-strong);
+  box-shadow: none;
+}
+
 .osint-toolbar-field {
   background-color: var(--osint-input-surface);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
-  border: 1px solid var(--osint-input-border);
+  border: 1px solid var(--osint-raised-outline);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -672,7 +679,7 @@ body,
 .osint-toolbar-field[data-state='open'] {
   background-color: var(--osint-input-surface-hover);
   color: var(--osint-text-action);
-  border-color: var(--osint-input-border-strong);
+  border-color: var(--osint-raised-outline-strong);
   box-shadow: var(--osint-interaction-shadow);
   outline: none;
 }
@@ -683,7 +690,17 @@ body,
 
 .osint-toolbar-group {
   background-color: var(--osint-interaction-bg);
-  border: 1px solid var(--osint-interaction-border);
+  border: 1px solid var(--osint-raised-outline);
+}
+
+/* Keep legacy zinc border utilities aligned with the shared raised-surface outline token. */
+.border-zinc-700,
+.border-zinc-700\/70,
+.border-zinc-800,
+.border-zinc-800\/50,
+.border-zinc-800\/70,
+.border-zinc-800\/80 {
+  border-color: var(--osint-raised-outline);
 }
 
 .osint-panel-shell {
@@ -744,7 +761,7 @@ body,
 
 .osint-menu-panel {
   background-color: color-mix(in oklab, var(--osint-panel) 96%, var(--osint-dark) 4%);
-  border-color: color-mix(in oklab, var(--osint-border) 88%, transparent);
+  border-color: var(--osint-raised-outline);
   backdrop-filter: blur(14px);
   box-shadow:
     0 0 0 1px color-mix(in oklab, var(--osint-border) 18%, transparent),

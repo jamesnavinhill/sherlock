@@ -28,7 +28,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, onNavigate }) =
               onClick={() => onNavigate(item.id)}
               className={`flex items-center space-x-1.5 px-2 py-1 rounded-sm transition-all max-w-[200px] min-w-0 ${
                 index === items.length - 1
-                  ? 'bg-zinc-800 text-white cursor-default'
+                  ? 'osint-breadcrumb-current cursor-default'
                   : 'osint-ghost-button text-zinc-400'
               }`}
               disabled={index === items.length - 1}
