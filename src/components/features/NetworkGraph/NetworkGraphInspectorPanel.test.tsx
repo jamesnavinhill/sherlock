@@ -82,7 +82,13 @@ describe('NetworkGraphInspectorPanel', () => {
       summary: 'Artifact summary',
       agendas: [],
       leads: [],
-      entities: [entity],
+      entities: [
+        entity,
+        {
+          name: 'Letta',
+          type: 'ORGANIZATION',
+        },
+      ],
       sources: [],
       rawText: 'raw text',
       labelProfileId: 'research',
@@ -130,5 +136,70 @@ describe('NetworkGraphInspectorPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /Node Summary/i }));
 
     expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();
+  });
+
+  it('renders network connection counts without the links badge copy', () => {
+    const entity: Entity = {
+      name: 'Atlas Holdings',
+      type: 'ORGANIZATION',
+    };
+    const report: Artifact = {
+      id: 'report-1',
+      workspaceId: 'workspace-1',
+      topic: 'Artifact Topic',
+      summary: 'Artifact summary',
+      agendas: [],
+      leads: [],
+      entities: [
+        entity,
+        {
+          name: 'Letta',
+          type: 'ORGANIZATION',
+        },
+      ],
+      sources: [],
+      rawText: 'raw text',
+      labelProfileId: 'research',
+    };
+    const selectedNode: GraphNode = {
+      id: 'entity-node-1',
+      type: 'ENTITY',
+      label: entity.name,
+      connections: 1,
+    };
+
+    render(
+      <NetworkGraphInspectorPanel
+        isOpen
+        onClose={vi.fn()}
+        mode="ENTITY"
+        selectedNode={selectedNode}
+        selectedEntity={entity.name}
+        selectedHeadline={null}
+        selectedReport={null}
+        reports={[report]}
+        hiddenNodeIds={new Set()}
+        flaggedNodeIds={new Set()}
+        onEntitySave={vi.fn()}
+        onReportSave={vi.fn()}
+        onToggleFlag={vi.fn()}
+        onToggleHide={vi.fn()}
+        onDeleteNode={vi.fn()}
+        onSetManualNodeIcon={vi.fn()}
+        onInvestigate={vi.fn()}
+        onOpenReport={vi.fn()}
+        onOpenEntityChat={vi.fn()}
+        onOpenReportChat={vi.fn()}
+        onOpenHeadlineChat={vi.fn()}
+        onPlaceEntityOnBoard={vi.fn()}
+        onPlaceReportOnBoard={vi.fn()}
+        onPlaceHeadlineOnBoard={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Network Connections/i }));
+
+    expect(screen.getByText('Letta')).toBeInTheDocument();
+    expect(screen.queryByText(/Links/i)).not.toBeInTheDocument();
   });
 });

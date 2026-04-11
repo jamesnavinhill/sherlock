@@ -19,7 +19,13 @@ describe('OperationInspectorPanel', () => {
       summary: 'Artifact summary',
       agendas: [],
       leads: [],
-      entities: [entity],
+      entities: [
+        entity,
+        {
+          name: 'Letta',
+          type: 'ORGANIZATION',
+        },
+      ],
       sources: [],
       rawText: 'raw',
     };
@@ -55,6 +61,9 @@ describe('OperationInspectorPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Entity Summary/i }));
     expect(screen.getByText('Procurement intermediary')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Network Connections/i }));
+    expect(screen.getByText('Letta')).toBeInTheDocument();
+    expect(screen.queryByText(/Links/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Artifact Mentions/i }));
     fireEvent.click(screen.getByRole('button', { name: /Atlas Contract Network/i }));
 

@@ -157,9 +157,7 @@ export const buildEntityInspectorSections = ({
                   {connection.entity.name}
                 </span>
               </div>
-              <span className="rounded-sm bg-zinc-800 px-1.5 py-0.5 osint-meta-label text-zinc-500">
-                {connection.count} Links
-              </span>
+              <span className="osint-meta-label tabular-nums text-zinc-500">{connection.count}</span>
             </div>
           ))
         ) : (
