@@ -11,6 +11,11 @@ export const TABS = [
   { id: 'THEME', label: 'Theme', icon: Palette },
 ] as const;
 
+export const SETTINGS_SECTION_BODY_CLASS = 'space-y-6 px-3 pb-3 pt-1';
+
+export const SETTINGS_CARD_CLASS =
+  'osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4';
+
 export const SURFACE_LABELS: Record<keyof ThemeSurfaceScale, string> = {
   background: 'Workspace Background',
   panel: 'Panel Background',

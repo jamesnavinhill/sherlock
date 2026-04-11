@@ -9,6 +9,7 @@ import {
 
 import { Accordion } from '@/components/ui/Accordion';
 import { CHROME_HEADER_CONTROL_HEIGHT_CLASS } from '@/components/ui/chrome';
+import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS } from './settingsUtils';
 
 interface SettingsDataTabProps {
   autoResolve: boolean;
@@ -35,7 +36,7 @@ const PreferenceCard: React.FC<{
   title: string;
   onToggle: () => void;
 }> = ({ checked, description, title, onToggle }) => (
-  <div className="osint-raised-surface p-6">
+  <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col justify-between`}>
     <div className="flex items-start justify-between gap-4">
       <div className="space-y-2">
         <div className="osint-meta-value">{title}</div>
@@ -87,23 +88,23 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
           title="Operational Preferences"
           isOpen={dataSections.preferences}
           onToggle={() => toggleDataSection('preferences')}
-          className="bg-zinc-900/40"
           disableActiveHeaderStyle
-          contentClassName="p-4 sm:p-6"
         >
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <PreferenceCard
-              title="Auto-Resolve Entities"
-              description="Automatically group nearby variations of entity names during analysis and review."
-              checked={autoResolve}
-              onToggle={onToggleAutoResolve}
-            />
-            <PreferenceCard
-              title="Quiet Mode"
-              description="Suppress non-critical system notifications while leaving core warnings and failures visible."
-              checked={quietMode}
-              onToggle={onToggleQuietMode}
-            />
+          <div className={SETTINGS_SECTION_BODY_CLASS}>
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <PreferenceCard
+                title="Auto-Resolve Entities"
+                description="Automatically group nearby variations of entity names during analysis and review."
+                checked={autoResolve}
+                onToggle={onToggleAutoResolve}
+              />
+              <PreferenceCard
+                title="Quiet Mode"
+                description="Suppress non-critical system notifications while leaving core warnings and failures visible."
+                checked={quietMode}
+                onToggle={onToggleQuietMode}
+              />
+            </div>
           </div>
         </Accordion>
 
@@ -111,89 +112,91 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
           title="Workspace Data"
           isOpen={dataSections.workspaceData}
           onToggle={() => toggleDataSection('workspaceData')}
-          className="bg-zinc-900/40"
           disableActiveHeaderStyle
-          contentClassName="p-4 sm:p-6"
         >
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <section className="osint-raised-surface flex h-full flex-col p-8">
-              <h3 className="osint-meta-value">Data Management</h3>
-              <p className="mt-5 max-w-xl osint-body-small">
-                Sherlock keeps workspace data local to this browser. Backups include workspaces,
-                artifacts, runs, chats, saved signals, graph data, templates, boards, and library
-                items. Theme settings, provider defaults, and API keys stay device-local.
-              </p>
+          <div className={SETTINGS_SECTION_BODY_CLASS}>
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <section className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
+                <h3 className="osint-meta-value">Data Management</h3>
+                <p className="mt-5 max-w-xl osint-body-small">
+                  Sherlock keeps workspace data local to this browser. Backups include workspaces,
+                  artifacts, runs, chats, saved signals, graph data, templates, boards, and library
+                  items. Theme settings, provider defaults, and API keys stay device-local.
+                </p>
 
-              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="relative" ref={exportMenuRef}>
+                <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="relative" ref={exportMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowExportMenu((current) => !current)}
+                      className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-chrome`}
+                      aria-expanded={showExportMenu}
+                      aria-haspopup="menu"
+                    >
+                      <span className="truncate">Export</span>
+                      <ChevronDown className="h-4 w-4 flex-shrink-0 text-zinc-500" />
+                    </button>
+                    {showExportMenu ? (
+                      <div className="osint-menu-panel absolute left-0 top-full z-20 mt-1 min-w-full border border-zinc-700 bg-zinc-900">
+                        <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
+                          Workspace Backup
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onExportData();
+                            setShowExportMenu(false);
+                          }}
+                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          title="Export full local workspace backup data as JSON"
+                        >
+                          <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <span>Workspace Data as JSON Backup</span>
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
                   <button
                     type="button"
-                    onClick={() => setShowExportMenu((current) => !current)}
+                    onClick={() => fileInputRef.current?.click()}
                     className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-chrome`}
-                    aria-expanded={showExportMenu}
-                    aria-haspopup="menu"
                   >
-                    <span className="truncate">Export</span>
-                    <ChevronDown className="h-4 w-4 flex-shrink-0 text-zinc-500" />
+                    <span className="truncate">Restore Backup</span>
+                    <Upload className="h-4 w-4 flex-shrink-0 text-zinc-500" />
                   </button>
-                  {showExportMenu ? (
-                    <div className="osint-menu-panel absolute left-0 top-full z-20 mt-1 min-w-full border border-zinc-700 bg-zinc-900">
-                      <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
-                        Workspace Backup
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onExportData();
-                          setShowExportMenu(false);
-                        }}
-                        className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
-                        title="Export full local workspace backup data as JSON"
-                      >
-                        <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                        <span>Workspace Data as JSON Backup</span>
-                      </button>
-                    </div>
-                  ) : null}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={onImportJSON}
+                    accept=".json"
+                    className="hidden"
+                  />
                 </div>
+              </section>
 
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-chrome`}
-                >
-                  <span className="truncate">Restore Backup</span>
-                  <Upload className="h-4 w-4 flex-shrink-0 text-zinc-500" />
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={onImportJSON}
-                  accept=".json"
-                  className="hidden"
-                />
-              </div>
-            </section>
+              <section
+                className={`${SETTINGS_CARD_CLASS} osint-danger-panel osint-panel-shell flex h-full flex-col`}
+              >
+                <h3 className="osint-meta-value osint-danger-text">Delete Data</h3>
+                <p className="mt-5 max-w-xl osint-body-small osint-danger-text">
+                  Permanently delete all local workspace data, including runs, chats, saved signals,
+                  templates, research boards, workspace library items, and manual graph data. This
+                  action cannot be reversed.
+                </p>
 
-            <section className="osint-danger-panel osint-panel-shell flex h-full flex-col border p-8">
-              <h3 className="osint-meta-value osint-danger-text">Delete Data</h3>
-              <p className="mt-5 max-w-xl osint-body-small osint-danger-text">
-                Permanently delete all local workspace data, including runs, chats, saved signals,
-                templates, research boards, workspace library items, and manual graph data. This
-                action cannot be reversed.
-              </p>
-
-              <div className="mt-8 flex flex-1 items-end">
-                <button
-                  type="button"
-                  onClick={onRequestClearData}
-                  className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-danger sm:max-w-[18rem]`}
-                >
-                  <span className="truncate">Delete Data</span>
-                  <Trash2 className="h-4 w-4 flex-shrink-0" />
-                </button>
-              </div>
-            </section>
+                <div className="mt-8 flex flex-1 items-end">
+                  <button
+                    type="button"
+                    onClick={onRequestClearData}
+                    className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-danger sm:max-w-[18rem]`}
+                  >
+                    <span className="truncate">Delete Data</span>
+                    <Trash2 className="h-4 w-4 flex-shrink-0" />
+                  </button>
+                </div>
+              </section>
+            </div>
           </div>
         </Accordion>
       </div>

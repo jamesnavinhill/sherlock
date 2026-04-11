@@ -4,6 +4,7 @@ import { OsintSelect } from '@/components/ui/OsintSelect';
 
 interface OpenRouterSearchControlsProps {
   allowedDomains: string;
+  className?: string;
   engine: 'auto' | 'native' | 'exa' | 'firecrawl' | 'parallel';
   excludedDomains: string;
   maxResults: number;
@@ -21,6 +22,7 @@ interface OpenRouterSearchControlsProps {
 
 export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> = ({
   allowedDomains,
+  className = 'border border-zinc-800 bg-zinc-900/30 p-4 space-y-4',
   engine,
   excludedDomains,
   maxResults,
@@ -35,7 +37,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
   setWebSearchEnabled,
   webSearchEnabled,
 }) => (
-  <section className="border border-zinc-800 bg-zinc-900/30 p-4 space-y-4">
+  <section className={className}>
     <div className="flex items-center justify-between">
       <label className="osint-meta-label">OpenRouter Web Search</label>
       <button

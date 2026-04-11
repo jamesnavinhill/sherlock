@@ -9,6 +9,8 @@ interface RuntimeConfigBehaviorControlsProps {
   className?: string;
   generationHint?: string;
   searchDepthHint?: string;
+  generationSectionClassName?: string;
+  searchDepthSectionClassName?: string;
   thinkingBudgetClassName?: string;
 }
 
@@ -16,11 +18,13 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
   form,
   className = 'grid gap-4 md:grid-cols-2',
   generationHint = 'Single pass is lighter. Staged favors stronger evidence and reusable sections.',
+  generationSectionClassName = 'border border-zinc-800 bg-zinc-900/30 p-4',
+  searchDepthSectionClassName = 'border border-zinc-800 bg-zinc-900/30 p-4',
   searchDepthHint = 'Controls breadth, synthesis depth, and investigative rigor.',
   thinkingBudgetClassName = 'border border-zinc-800 bg-zinc-900/30 p-4 md:col-span-2',
 }) => (
   <div className={className}>
-    <section className="border border-zinc-800 bg-zinc-900/30 p-4">
+    <section className={searchDepthSectionClassName}>
       <label className="mb-2 flex items-center osint-meta-label">
         <Microscope className="mr-2 h-3 w-3 text-osint-primary" />
         Search Depth
@@ -48,7 +52,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
       </div>
     </section>
 
-    <section className="border border-zinc-800 bg-zinc-900/30 p-4">
+    <section className={generationSectionClassName}>
       <label className="mb-2 flex items-center osint-meta-label">
         <Workflow className="mr-2 h-3 w-3 text-osint-primary" />
         Generation Mode

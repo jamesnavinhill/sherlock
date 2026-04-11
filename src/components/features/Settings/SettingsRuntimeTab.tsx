@@ -5,6 +5,7 @@ import { ProviderModelSelector } from '@/components/features/Runs/ProviderModelS
 import { RuntimeConfigBehaviorControls } from '@/components/features/Runs/RuntimeConfigBehaviorControls';
 import { OpenRouterSearchControls } from '@/components/features/Runs/OpenRouterSearchControls';
 import { Accordion } from '@/components/ui/Accordion';
+import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS } from './settingsUtils';
 import type { SettingsRuntimeState } from './useSettingsRuntimeState';
 
 interface SettingsRuntimeTabProps {
@@ -21,7 +22,7 @@ const ProviderKeyField: React.FC<{
   provider: AIProvider;
   showValue: boolean;
 }> = ({ keyValue, label, onChange, onClear, onToggleVisibility, provider, showValue }) => (
-  <div className="osint-raised-surface-subtle space-y-2 p-4">
+  <div className={`${SETTINGS_CARD_CLASS} space-y-2`}>
     <label className="block osint-meta-label">{label}</label>
     <div className="flex flex-col sm:flex-row gap-2">
       <input
@@ -67,11 +68,9 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
           title="Runtime Profile"
           isOpen={runtime.runtimeSections.runtime}
           onToggle={() => runtime.toggleRuntimeSection('runtime')}
-          className="bg-zinc-900/40"
           disableActiveHeaderStyle
-          contentClassName="p-4 sm:p-6"
         >
-          <div className="space-y-6">
+          <div className={SETTINGS_SECTION_BODY_CLASS}>
             <ProviderModelSelector
               form={runtime.form}
               providerLabel="Active Provider"
@@ -79,16 +78,24 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               modelLabel="Active Model"
               modelAriaLabel="Active model"
               showModelHint={false}
+              providerSectionClassName={SETTINGS_CARD_CLASS}
+              modelSectionClassName={SETTINGS_CARD_CLASS}
             />
 
             <p className="osint-meta-label">
               TTS {runtime.form.providerMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
             </p>
 
-            <RuntimeConfigBehaviorControls form={runtime.form} />
+            <RuntimeConfigBehaviorControls
+              form={runtime.form}
+              searchDepthSectionClassName={SETTINGS_CARD_CLASS}
+              generationSectionClassName={SETTINGS_CARD_CLASS}
+              thinkingBudgetClassName={`${SETTINGS_CARD_CLASS} md:col-span-2`}
+            />
 
             {runtime.form.value.provider === 'OPENROUTER' ? (
               <OpenRouterSearchControls
+                className={SETTINGS_CARD_CLASS}
                 webSearchEnabled={runtime.openRouterWebSearchEnabled}
                 setWebSearchEnabled={runtime.setOpenRouterWebSearchEnabled}
                 engine={runtime.openRouterEngine}
@@ -113,57 +120,57 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
           count={configuredKeyCount}
           isOpen={runtime.runtimeSections.apiKeys}
           onToggle={() => runtime.toggleRuntimeSection('apiKeys')}
-          className="bg-zinc-900/40"
           disableActiveHeaderStyle
-          contentClassName="p-4 sm:p-6"
         >
-          <div className="space-y-4">
-            <ProviderKeyField
-              label="Google Gemini API Key"
-              provider="GEMINI"
-              keyValue={runtime.geminiKey}
-              showValue={runtime.showGeminiKey}
-              onChange={runtime.setGeminiKey}
-              onToggleVisibility={() => runtime.setShowGeminiKey((current) => !current)}
-              onClear={() => runtime.handleClearProviderKey('GEMINI')}
-            />
-            <ProviderKeyField
-              label="OpenRouter API Key"
-              provider="OPENROUTER"
-              keyValue={runtime.openRouterKey}
-              showValue={runtime.showOpenRouterKey}
-              onChange={runtime.setOpenRouterKey}
-              onToggleVisibility={() => runtime.setShowOpenRouterKey((current) => !current)}
-              onClear={() => runtime.handleClearProviderKey('OPENROUTER')}
-            />
-            <ProviderKeyField
-              label="OpenAI API Key"
-              provider="OPENAI"
-              keyValue={runtime.openAIKey}
-              showValue={runtime.showOpenAIKey}
-              onChange={runtime.setOpenAIKey}
-              onToggleVisibility={() => runtime.setShowOpenAIKey((current) => !current)}
-              onClear={() => runtime.handleClearProviderKey('OPENAI')}
-            />
-            <ProviderKeyField
-              label="Anthropic API Key"
-              provider="ANTHROPIC"
-              keyValue={runtime.anthropicKey}
-              showValue={runtime.showAnthropicKey}
-              onChange={runtime.setAnthropicKey}
-              onToggleVisibility={() => runtime.setShowAnthropicKey((current) => !current)}
-              onClear={() => runtime.handleClearProviderKey('ANTHROPIC')}
-            />
+          <div className={SETTINGS_SECTION_BODY_CLASS}>
+            <div className="space-y-6">
+              <ProviderKeyField
+                label="Google Gemini API Key"
+                provider="GEMINI"
+                keyValue={runtime.geminiKey}
+                showValue={runtime.showGeminiKey}
+                onChange={runtime.setGeminiKey}
+                onToggleVisibility={() => runtime.setShowGeminiKey((current) => !current)}
+                onClear={() => runtime.handleClearProviderKey('GEMINI')}
+              />
+              <ProviderKeyField
+                label="OpenRouter API Key"
+                provider="OPENROUTER"
+                keyValue={runtime.openRouterKey}
+                showValue={runtime.showOpenRouterKey}
+                onChange={runtime.setOpenRouterKey}
+                onToggleVisibility={() => runtime.setShowOpenRouterKey((current) => !current)}
+                onClear={() => runtime.handleClearProviderKey('OPENROUTER')}
+              />
+              <ProviderKeyField
+                label="OpenAI API Key"
+                provider="OPENAI"
+                keyValue={runtime.openAIKey}
+                showValue={runtime.showOpenAIKey}
+                onChange={runtime.setOpenAIKey}
+                onToggleVisibility={() => runtime.setShowOpenAIKey((current) => !current)}
+                onClear={() => runtime.handleClearProviderKey('OPENAI')}
+              />
+              <ProviderKeyField
+                label="Anthropic API Key"
+                provider="ANTHROPIC"
+                keyValue={runtime.anthropicKey}
+                showValue={runtime.showAnthropicKey}
+                onChange={runtime.setAnthropicKey}
+                onToggleVisibility={() => runtime.setShowAnthropicKey((current) => !current)}
+                onClear={() => runtime.handleClearProviderKey('ANTHROPIC')}
+              />
 
-            {saveError ? (
-              <div className="osint-danger-banner osint-meta-label border px-3 py-2">
-                {saveError}
-              </div>
-            ) : null}
+              {saveError ? (
+                <div className="osint-danger-banner osint-meta-label border px-3 py-2">
+                  {saveError}
+                </div>
+              ) : null}
 
-            <p className="pt-2 osint-body-quiet italic">
-              Keys are stored locally in your browser.
-            </p>
+              <p className="pt-2 osint-body-quiet italic">
+                Keys are stored locally in your browser.
+              </p>
+            </div>
           </div>
         </Accordion>
       </div>

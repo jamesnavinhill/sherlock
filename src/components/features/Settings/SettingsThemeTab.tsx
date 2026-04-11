@@ -26,6 +26,8 @@ import {
 } from '@/utils/themeFonts';
 import {
   FONT_ROLE_CARDS,
+  SETTINGS_CARD_CLASS,
+  SETTINGS_SECTION_BODY_CLASS,
   SURFACE_LABELS,
   getSurfacePreviewTone,
 } from './settingsUtils';
@@ -109,6 +111,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
     themeBackgroundSettings.variant === 'grid' ? 'Dot Grid' : 'Plain';
   const themeControlSectionClassName =
     'grid min-h-[5.75rem] gap-3 [grid-template-rows:auto_auto_1fr]';
+  const themeWorkbenchActionClassName =
+    'osint-surface-button osint-meta-label-strong w-full px-3 py-2';
 
   const renderThemeSurfaceEditor = () => {
     const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
@@ -118,15 +122,11 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
     const surfaceTone = getSurfacePreviewTone(themeSurfaceSettings[activeSurfaceMode].surface);
 
     return (
-      <div className="space-y-6 px-3 pb-3 pt-1">
+      <div className={SETTINGS_SECTION_BODY_CLASS}>
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="osint-meta-label">Theme Presets</div>
-              <p className="osint-body-small mt-2 max-w-2xl">
-                Start from a whole-system palette, then tune only the one surface that needs it.
-                Full OKLCH values stay available without keeping eighteen sliders on screen.
-              </p>
             </div>
             <button
               type="button"
@@ -147,10 +147,9 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   key={preset.id}
                   type="button"
                   onClick={() => handleApplySurfacePreset(preset.settings)}
-                  className={`osint-raised-surface rounded border p-4 text-left transition-colors ${
-                    isActive
-                      ? 'border-osint-primary bg-osint-primary/8'
-                      : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-600'
+                  data-active={isActive ? 'true' : undefined}
+                  className={`${SETTINGS_CARD_CLASS} text-left transition-colors ${
+                    isActive ? 'bg-osint-primary/6' : 'hover:border-zinc-600'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -173,15 +172,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
         </div>
 
-        <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="osint-meta-label">Surface Workbench</div>
-              <div className="osint-title-card mt-2">
-                {activeSurfaceMode === 'dark' ? 'Dark' : 'Light'} mode
-              </div>
             </div>
-            <div className="inline-flex border border-zinc-800 bg-black">
+            <div className="inline-flex overflow-hidden rounded border border-zinc-800 bg-zinc-950/50">
               {(['dark', 'light'] as Array<keyof ThemeSurfaceSettings>).map((mode) => (
                 <button
                   key={mode}
@@ -190,7 +186,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   className={`osint-meta-label px-4 py-2 transition-colors ${
                     activeSurfaceMode === mode
                       ? 'bg-osint-primary/12 text-osint-primary'
-                      : 'text-zinc-500 hover:text-zinc-200'
+                      : 'text-zinc-500 hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:text-zinc-200'
                   }`}
                 >
                   {mode}
@@ -199,9 +195,9 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             </div>
           </div>
 
-          <div className="mt-6 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
             <div className="space-y-4">
-              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
+              <div className={SETTINGS_CARD_CLASS}>
                 <div className="osint-meta-label">Surface Preview</div>
                 <div
                   className="mt-4 rounded border p-4"
@@ -254,7 +250,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 </div>
               </div>
 
-              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
+              <div className={SETTINGS_CARD_CLASS}>
                 <div className="osint-meta-label">Surface Targets</div>
                 <div className="mt-3 grid gap-2">
                   {(Object.keys(SURFACE_LABELS) as Array<keyof ThemeSurfaceScale>).map((surfaceKey) => {
@@ -264,10 +260,9 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                         key={surfaceKey}
                         type="button"
                         onClick={() => setSelectedSurfaceKey(surfaceKey)}
-                        className={`flex items-center justify-between border px-3 py-2 text-left transition-colors ${
-                          selectedSurfaceKey === surfaceKey
-                            ? 'border-osint-primary bg-osint-primary/10'
-                            : 'border-zinc-800 hover:border-zinc-600'
+                        data-active={selectedSurfaceKey === surfaceKey ? 'true' : undefined}
+                        className={`osint-surface-button flex items-center justify-between px-3 py-2 text-left transition-colors ${
+                          selectedSurfaceKey === surfaceKey ? 'bg-osint-primary/8' : ''
                         }`}
                       >
                         <div>
@@ -289,7 +284,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             </div>
 
             <div className="space-y-5">
-              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
+              <div className={SETTINGS_CARD_CLASS}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="osint-meta-label">Selected Surface</div>
@@ -335,13 +330,13 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 </div>
               </div>
 
-              <div className="osint-raised-surface rounded border border-zinc-800 bg-black p-4">
+              <div className={SETTINGS_CARD_CLASS}>
                 <div className="osint-meta-label">Quick Adjust</div>
                 <div className="mt-4 space-y-2">
                   <button
                     type="button"
                     onClick={() => handleMatchAccentHue(activeSurfaceMode)}
-                    className="osint-meta-label-strong w-full border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                    className={themeWorkbenchActionClassName}
                   >
                     Match Accent Hue
                   </button>
@@ -349,14 +344,14 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     <button
                       type="button"
                       onClick={() => handleAdjustModeChroma(activeSurfaceMode, 0.004)}
-                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className={themeWorkbenchActionClassName}
                     >
                       Increase Chroma
                     </button>
                     <button
                       type="button"
                       onClick={() => handleAdjustModeChroma(activeSurfaceMode, -0.004)}
-                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className={themeWorkbenchActionClassName}
                     >
                       Reduce Chroma
                     </button>
@@ -365,14 +360,14 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     <button
                       type="button"
                       onClick={() => handleAdjustModeSeparation(activeSurfaceMode, 1)}
-                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className={themeWorkbenchActionClassName}
                     >
                       Increase Separation
                     </button>
                     <button
                       type="button"
                       onClick={() => handleAdjustModeSeparation(activeSurfaceMode, -1)}
-                      className="osint-meta-label-strong border border-zinc-800 px-3 py-2 text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                      className={themeWorkbenchActionClassName}
                     >
                       Soften Separation
                     </button>

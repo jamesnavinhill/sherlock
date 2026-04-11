@@ -36,7 +36,7 @@ export const THEME_SURFACE_PRESETS: ThemeSurfacePreset[] = [
   {
     id: 'classic',
     label: 'Classic',
-    description: 'Current Sherlock contrast balance with warm paper light mode.',
+    description: 'Balanced dark chrome with a warm paper light mode.',
     settings: DEFAULT_THEME_SURFACE_SETTINGS,
   },
   {

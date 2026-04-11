@@ -9,9 +9,11 @@ import type { RuntimeConfigFormController } from './useRuntimeConfigForm';
 interface ProviderModelSelectorProps {
   form: RuntimeConfigFormController;
   className?: string;
+  modelSectionClassName?: string;
   modelAriaLabel?: string;
   modelHint?: string;
   modelLabel?: string;
+  providerSectionClassName?: string;
   showModelHint?: boolean;
   providerAriaLabel?: string;
   providerHint?: string;
@@ -22,9 +24,11 @@ interface ProviderModelSelectorProps {
 export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
   form,
   className = 'grid gap-4 md:grid-cols-2',
+  modelSectionClassName = 'border border-zinc-800 bg-zinc-900/30 p-4',
   modelAriaLabel = 'Model',
   modelHint,
   modelLabel = 'Model',
+  providerSectionClassName = 'border border-zinc-800 bg-zinc-900/30 p-4',
   showModelHint = true,
   providerAriaLabel = 'Provider',
   providerHint,
@@ -41,7 +45,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
     <>
       <div className={className}>
         {showProvider ? (
-          <section className="border border-zinc-800 bg-zinc-900/30 p-4">
+          <section className={providerSectionClassName}>
             <label className="mb-2 flex items-center osint-meta-label">
               <Cpu className="mr-2 h-3 w-3 text-osint-primary" />
               {providerLabel}
@@ -62,7 +66,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
           </section>
         ) : null}
 
-        <section className="border border-zinc-800 bg-zinc-900/30 p-4">
+        <section className={modelSectionClassName}>
           <label className="mb-2 flex items-center osint-meta-label">
             <Cpu className="mr-2 h-3 w-3 text-osint-primary" />
             {modelLabel}

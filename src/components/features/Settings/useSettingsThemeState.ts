@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { DEFAULT_ACCENT_SETTINGS } from '@/utils/accent';
 import {
@@ -46,6 +46,10 @@ export const useSettingsThemeState = ({
     useState<keyof ThemeSurfaceSettings>(themeMode);
   const [selectedSurfaceKey, setSelectedSurfaceKey] =
     useState<keyof ThemeSurfaceScale>('panel');
+
+  useEffect(() => {
+    setActiveSurfaceMode(themeMode);
+  }, [themeMode]);
 
   const toggleThemeSection = (section: keyof typeof themeSections) => {
     setThemeSections((current) => ({
