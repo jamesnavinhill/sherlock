@@ -12,9 +12,11 @@ import { getAllScopes, getScopeById } from '../../../data/presets';
 import { Play, Pause, Activity, Settings2, Radar } from 'lucide-react';
 import { RunSetupModal } from '../Runs/RunSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
+import { MainContentDotGrid } from '../../ui/MainContentDotGrid';
 import { OsintSelect } from '../../ui/OsintSelect';
 import { GlobalSearch } from '../../ui/GlobalSearch';
 import { SkeletonPulse } from '../../ui/SkeletonLoaders';
+import { SystemStatusBeacon } from '../../ui/SystemStatusBeacon';
 import {
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
@@ -62,25 +64,7 @@ const MonitorEventCardSkeleton: React.FC<{ active: boolean }> = ({ active }) => 
       <SkeletonPulse className="h-3 w-3/4 rounded-none" />
     </div>
     <div className="mt-auto flex items-center justify-center border border-zinc-800 bg-zinc-950/50 px-4 py-6">
-      <div className="text-center">
-        <div className="mb-3 flex items-center justify-center gap-2">
-          <span
-            data-testid="monitor-skeleton-status-dot"
-            className={`h-2 w-2 rounded-none bg-osint-primary ${active ? 'animate-pulse' : ''}`}
-          />
-          <span
-            data-testid="monitor-skeleton-status-dot"
-            className={`h-2 w-2 rounded-none bg-osint-primary ${active ? 'animate-pulse [animation-delay:120ms]' : ''}`}
-          />
-          <span
-            data-testid="monitor-skeleton-status-dot"
-            className={`h-2 w-2 rounded-none bg-osint-primary ${active ? 'animate-pulse [animation-delay:240ms]' : ''}`}
-          />
-        </div>
-        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-300">
-          {active ? 'SCANNING_NETWORK' : 'SYSTEM_IDLE'}
-        </span>
-      </div>
+      <SystemStatusBeacon active={active} dotTestId="monitor-skeleton-status-dot" />
     </div>
     <div className="mt-auto flex items-center justify-between border-t border-zinc-800 pt-3">
       <SkeletonPulse className="h-3 w-16 rounded-none" />
@@ -430,14 +414,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
       <div className="flex-1 flex overflow-hidden relative">
         {/* Background Layer */}
         <div className="absolute inset-0 z-0 bg-black">
-          <div
-            data-testid="monitor-dot-grid-background"
-            className="absolute inset-0 opacity-20 pointer-events-none"
-            style={{
-              backgroundImage: 'radial-gradient(#52525b 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-            }}
-          ></div>
+          <MainContentDotGrid testId="monitor-dot-grid-background" />
           {isMonitoring || streamStatus !== 'IDLE' ? <BackgroundMatrixRain /> : null}
         </div>
 

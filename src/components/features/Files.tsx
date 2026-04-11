@@ -28,6 +28,7 @@ import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { WorkspaceDocumentUploadDialog } from '@/components/ui/WorkspaceDocumentUploadDialog';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 import { RunSetupModal } from '@/components/features/Runs/RunSetupModal';
 import { FilesFiltersPanel } from '@/components/features/Files/FilesFiltersPanel';
 import { FilesOverview } from '@/components/features/Files/FilesOverview';
@@ -320,48 +321,54 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
         className="relative z-10 h-full w-full overflow-y-auto p-6"
         data-app-scroll-region
       >
+        <MainContentDotGrid testId="files-dot-grid-background" />
+
         {recordsViewModel && effectiveSelectedCaseId ? (
-          <FilesRecords
-            focusedItem={focusedItem}
-            focusedItemRowRef={focusedItemRowRef}
-            onChangePage={setCurrentPage}
-            onDeleteArtifact={handleDeleteReport}
-            onOpenArtifactChat={onOpenArtifactChat}
-            onOpenItemChat={onOpenItemChat}
-            onOpenItemSource={onOpenItemSource}
-            onPlaceArtifactOnBoard={handlePlaceArtifactOnBoard}
-            onSelectArtifact={onSelectArtifact}
-            onPlaceItemOnBoard={handlePlaceItemOnBoard}
-            viewMode={viewMode}
-            viewModel={recordsViewModel}
-          />
+          <div className="relative z-10">
+            <FilesRecords
+              focusedItem={focusedItem}
+              focusedItemRowRef={focusedItemRowRef}
+              onChangePage={setCurrentPage}
+              onDeleteArtifact={handleDeleteReport}
+              onOpenArtifactChat={onOpenArtifactChat}
+              onOpenItemChat={onOpenItemChat}
+              onOpenItemSource={onOpenItemSource}
+              onPlaceArtifactOnBoard={handlePlaceArtifactOnBoard}
+              onSelectArtifact={onSelectArtifact}
+              onPlaceItemOnBoard={handlePlaceItemOnBoard}
+              viewMode={viewMode}
+              viewModel={recordsViewModel}
+            />
+          </div>
         ) : (
-          <FilesOverview
-            artifactLabelPlural={artifactLabelPlural}
-            currentPage={currentPage}
-            onChangePage={setCurrentPage}
-            onEditWorkspaceIcon={(workspace, event) => {
-              event.stopPropagation();
-              setWorkspaceIconTarget(workspace);
-            }}
-            onExportWorkspaceHtml={(workspace) =>
-              exportWorkspaceAsHtml(workspace, getWorkspaceArtifacts(workspace.id))
-            }
-            onExportWorkspaceJson={(workspace) =>
-              exportWorkspaceAsJson(workspace, getWorkspaceArtifacts(workspace.id))
-            }
-            onExportWorkspaceMarkdown={(workspace) =>
-              exportWorkspaceAsMarkdown(workspace, getWorkspaceArtifacts(workspace.id))
-            }
-            onOpenWorkspaceChat={(workspaceId) => onOpenChat({ workspaceId })}
-            onPurgeWorkspace={handlePurgeWorkspace}
-            onSelectWorkspace={handleWorkspaceSelect}
-            onStartNewWorkspace={() => setIsNewCaseModalOpen(true)}
-            viewMode={viewMode}
-            viewModel={overviewViewModel}
-            workspaceLabel={workspaceLabel}
-            workspaceLabelLower={workspaceLabelLower}
-          />
+          <div className="relative z-10">
+            <FilesOverview
+              artifactLabelPlural={artifactLabelPlural}
+              currentPage={currentPage}
+              onChangePage={setCurrentPage}
+              onEditWorkspaceIcon={(workspace, event) => {
+                event.stopPropagation();
+                setWorkspaceIconTarget(workspace);
+              }}
+              onExportWorkspaceHtml={(workspace) =>
+                exportWorkspaceAsHtml(workspace, getWorkspaceArtifacts(workspace.id))
+              }
+              onExportWorkspaceJson={(workspace) =>
+                exportWorkspaceAsJson(workspace, getWorkspaceArtifacts(workspace.id))
+              }
+              onExportWorkspaceMarkdown={(workspace) =>
+                exportWorkspaceAsMarkdown(workspace, getWorkspaceArtifacts(workspace.id))
+              }
+              onOpenWorkspaceChat={(workspaceId) => onOpenChat({ workspaceId })}
+              onPurgeWorkspace={handlePurgeWorkspace}
+              onSelectWorkspace={handleWorkspaceSelect}
+              onStartNewWorkspace={() => setIsNewCaseModalOpen(true)}
+              viewMode={viewMode}
+              viewModel={overviewViewModel}
+              workspaceLabel={workspaceLabel}
+              workspaceLabelLower={workspaceLabelLower}
+            />
+          </div>
         )}
       </div>
 

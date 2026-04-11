@@ -17,6 +17,7 @@ import {
   getDefaultGraphNodeIconId,
   type AppIconId,
 } from '@/lib/appIcons';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 
 // Graph Types
 export interface GraphNode extends d3.SimulationNodeDatum {
@@ -759,6 +760,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
 
     return (
       <div ref={containerRef} className="flex-1 w-full h-full relative z-0 bg-black cursor-move">
+        <MainContentDotGrid testId="network-graph-dot-grid-background" />
         <svg ref={svgRef} className="w-full h-full" onClick={() => onNodeClick(null)} />
       </div>
     );

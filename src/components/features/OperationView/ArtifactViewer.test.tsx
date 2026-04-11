@@ -109,6 +109,7 @@ describe('ArtifactViewer', () => {
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
     expect(screen.getByTestId('artifact-viewer-top-header')).toBeInTheDocument();
     expect(screen.getByTestId('artifact-viewer-top-header')).toHaveClass('min-h-16');
+    expect(screen.getByTestId('artifact-viewer-dot-grid-background')).toBeInTheDocument();
     expect(screen.getByTestId('artifact-viewer-title-surface')).toBeInTheDocument();
     expect(screen.getByTestId('artifact-viewer-title-surface')).not.toHaveClass('border-b');
     expect(screen.getAllByText('Award timing irregularity')).toHaveLength(1);

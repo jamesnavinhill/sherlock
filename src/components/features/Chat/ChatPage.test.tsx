@@ -66,6 +66,7 @@ describe('Chat page', () => {
       </MemoryRouter>
     );
 
+    expect(screen.getByTestId('chat-dot-grid-background')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /start new workspace/i }));
 
     expect(screen.getByTestId('task-setup-modal')).toBeInTheDocument();

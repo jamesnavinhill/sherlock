@@ -17,6 +17,7 @@ import {
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
 } from '@/components/ui/chrome';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 
 interface SettingsProps {
   themeColor: string;
@@ -110,7 +111,8 @@ export const Settings: React.FC<SettingsProps> = ({
       </header>
 
       <main className="flex-1 overflow-y-auto p-8 relative custom-scrollbar">
-        <div className="w-full">
+        <MainContentDotGrid testId="settings-dot-grid-background" />
+        <div className="relative z-10 w-full">
           {activeTab === 'DATA' ? (
             <SettingsDataTab
               autoResolve={data.autoResolve}

@@ -3,6 +3,7 @@ import { Clock3 } from 'lucide-react';
 
 import type { LabelProfile, TimelineEvent, Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 import {
   formatEventTime,
   getEventIcon,
@@ -49,8 +50,12 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
   onOpenArtifact,
   onOpenWorkspaceChat,
 }) => (
-  <main className="flex min-w-0 flex-1 flex-col overflow-hidden border-r border-zinc-800 bg-black/70">
-    <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar" data-app-scroll-region>
+  <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden border-r border-zinc-800 bg-black/70">
+    <MainContentDotGrid testId="timeline-dot-grid-background" />
+    <div
+      className="relative z-10 min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar"
+      data-app-scroll-region
+    >
       {!activeWorkspace ? (
         <EmptyState
           icon={Clock3}

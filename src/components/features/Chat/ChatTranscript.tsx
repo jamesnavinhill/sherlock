@@ -12,6 +12,7 @@ import {
 
 import type { ChatMentionReference, ChatMessage, Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 import { findMentionMatches } from '@/services/chat/mentions';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import { TranscriptRoleIcon } from '@/components/features/Chat/TranscriptRoleIcon';
@@ -72,9 +73,10 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
     showWorkspaceEmptyState || showAssistantPrimer ? 'min-h-full justify-start' : 'min-h-full justify-end';
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black px-4 pt-2 sm:px-6">
+    <section className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black px-4 pt-2 sm:px-6">
+      <MainContentDotGrid testId="chat-dot-grid-background" />
       <div
-        className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border border-zinc-800"
+        className="relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border border-zinc-800"
         data-testid="chat-transcript-shell"
       >
         <div

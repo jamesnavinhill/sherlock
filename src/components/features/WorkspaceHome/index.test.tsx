@@ -154,6 +154,7 @@ describe('WorkspaceHome', () => {
       name: /timeline: supplier watch/i,
     });
 
+    expect(screen.getByTestId('workspace-home-dot-grid-background')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Atlas Workspace' })).toBeInTheDocument();
     expect(screen.getByText('Procurement activity across strategic vendors.')).toBeInTheDocument();
     expect(screen.getByText('Artifacts')).toBeInTheDocument();

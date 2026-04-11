@@ -34,10 +34,10 @@ import { Breadcrumbs } from '../../ui/Breadcrumbs';
 import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { EditableTitle } from '../../ui/EditableTitle';
 import { EmptyState } from '../../ui/EmptyState';
+import { MainContentDotGrid } from '../../ui/MainContentDotGrid';
 import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import {
-  CHROME_PANEL_HEADER_CLASS,
   CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
@@ -95,6 +95,22 @@ const PLAIN_ICON_BUTTON_CLASS =
   'osint-icon-button-plain inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
 
 const PLAIN_SUCCESS_ICON_BUTTON_CLASS =
+  'osint-icon-button-plain-success inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
+
+const ARTIFACT_VIEWER_SECTION_CLASS =
+  'border border-zinc-800 bg-transparent p-6 transition-colors';
+
+const ARTIFACT_VIEWER_SUBSECTION_CLASS =
+  'osint-raised-surface-subtle bg-transparent p-4 transition-colors';
+
+const SECTION_HEADER_CLASS = 'flex items-center justify-between gap-4 border-b border-zinc-800 pb-4';
+
+const SECTION_HEADER_ACTION_GROUP_CLASS = 'flex items-center gap-2';
+
+const SECTION_HEADER_ICON_BUTTON_CLASS =
+  'osint-icon-button-plain inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
+
+const SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS =
   'osint-icon-button-plain-success inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
 
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
@@ -503,13 +519,13 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           sectionRefs.current[displayedSectionId] = node;
         }}
         className={cx(
-          'border bg-zinc-950/70 p-6 transition-colors',
+          ARTIFACT_VIEWER_SECTION_CLASS,
           highlightedSectionId === displayedSectionId
-            ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-            : 'border-zinc-800'
+            ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+            : undefined
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-4">
+        <div className={SECTION_HEADER_CLASS}>
           <div className="min-w-0">
             {options?.eyebrow ? <div className="osint-eyebrow">{options.eyebrow}</div> : null}
             <h2
@@ -522,14 +538,14 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </h2>
           </div>
           {options?.editable && section.content ? (
-            <div className="flex items-center gap-2">
+            <div className={SECTION_HEADER_ACTION_GROUP_CLASS}>
               {isEditing ? (
                 <>
                   <button
                     type="button"
                     onClick={handleSaveSection}
                     disabled={isSavingSection}
-                    className={PLAIN_SUCCESS_ICON_BUTTON_CLASS}
+                    className={SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS}
                     title="Save artifact text"
                     aria-label="Save"
                   >
@@ -543,7 +559,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     type="button"
                     onClick={handleCancelEditing}
                     disabled={isSavingSection}
-                    className={PLAIN_ICON_BUTTON_CLASS}
+                    className={SECTION_HEADER_ICON_BUTTON_CLASS}
                     title="Cancel editing"
                     aria-label="Cancel"
                   >
@@ -560,7 +576,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         options?.syncSummary ?? false
                       )
                     }
-                    className={PLAIN_ICON_BUTTON_CLASS}
+                    className={SECTION_HEADER_ICON_BUTTON_CLASS}
                     title="Edit artifact text"
                     aria-label="Edit"
                   >
@@ -629,69 +645,70 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   return (
     <div className="relative flex flex-1 overflow-hidden bg-black animate-in fade-in duration-500">
       <div className={mainColumnClassName} data-app-scroll-region>
-        <div
-          data-testid="artifact-viewer-top-header"
-          className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS} z-20 bg-black/95 px-6 osint-header-shadow`}
-        >
-          <div className="flex h-full flex-col justify-center gap-2 md:flex-row md:items-center md:justify-between">
-            <Breadcrumbs items={navStack} onNavigate={onNavigate} />
-            <div className="flex items-center gap-3">
-              {report.dateStr ? (
-                <p className="osint-meta-label whitespace-nowrap">LOG DATE: {report.dateStr}</p>
-              ) : null}
-              {!isDetailSidebarOpen ? (
-                <button
-                  type="button"
-                  onClick={() => setIsDetailSidebarOpen(true)}
-                  className="osint-icon-button-plain inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 bg-transparent p-0"
-                  title="Expand Artifact Details"
-                  aria-label="Expand Artifact Details"
-                >
-                  <PanelRight className="h-4 w-4" />
-                </button>
+        <div className="relative">
+          <MainContentDotGrid testId="artifact-viewer-dot-grid-background" />
+          <div
+            data-testid="artifact-viewer-top-header"
+            className={`relative z-10 px-6 pb-2 pt-4 ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}
+          >
+            <div className="flex h-full flex-col justify-center gap-2 md:flex-row md:items-center md:justify-between">
+              <Breadcrumbs items={navStack} onNavigate={onNavigate} />
+              <div className="flex items-center gap-3">
+                {report.dateStr ? (
+                  <p className="osint-meta-label whitespace-nowrap">LOG DATE: {report.dateStr}</p>
                 ) : null}
+                {!isDetailSidebarOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsDetailSidebarOpen(true)}
+                    className="osint-icon-button-plain inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 bg-transparent p-0"
+                    title="Expand Artifact Details"
+                    aria-label="Expand Artifact Details"
+                  >
+                    <PanelRight className="h-4 w-4" />
+                  </button>
+                  ) : null}
+              </div>
             </div>
           </div>
-        </div>
+          <div
+            data-testid="artifact-viewer-title-surface"
+            className="relative z-10 px-6 py-5"
+          >
+            <EditableTitle
+              value={report.topic}
+              displayValue={reportDisplayTitle}
+              onSave={onTitleSave}
+              className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] leading-tight uppercase"
+              inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
+            />
+          </div>
 
-        <div
-          data-testid="artifact-viewer-title-surface"
-          className="px-6 py-5"
-        >
-          <EditableTitle
-            value={report.topic}
-            displayValue={reportDisplayTitle}
-            onSave={onTitleSave}
-            className="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] leading-tight uppercase"
-            inputClassName="font-osint-display osint-title-page text-[clamp(var(--font-size-xl),calc(var(--font-size-lg)+0.8vw),var(--font-size-3xl))] uppercase"
-          />
-        </div>
-
-        <div className="space-y-8 px-6 pb-6 pt-6">
+          <div className="relative z-10 space-y-8 px-6 pb-6 pt-6">
           {visibleReportBody.trim().length > 0 ? (
             <section
               ref={(node) => {
                 sectionRefs.current[summaryAnchorId] = node;
               }}
               className={cx(
-                'border bg-zinc-950/70 p-6 transition-colors',
+                ARTIFACT_VIEWER_SECTION_CLASS,
                 highlightedSectionId === summaryAnchorId
-                  ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-                  : 'border-zinc-800'
+                  ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                  : undefined
               )}
             >
-              <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-4">
+              <div className={SECTION_HEADER_CLASS}>
                 <div className="min-w-0">
                   <h2 className="font-osint-display osint-title-section">Executive Summary</h2>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className={SECTION_HEADER_ACTION_GROUP_CLASS}>
                   {editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
                     <>
                       <button
                         type="button"
                         onClick={handleSaveSection}
                         disabled={isSavingSection}
-                        className={PLAIN_SUCCESS_ICON_BUTTON_CLASS}
+                        className={SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS}
                         title="Save artifact text"
                         aria-label="Save"
                       >
@@ -705,7 +722,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         type="button"
                         onClick={handleCancelEditing}
                         disabled={isSavingSection}
-                        className={PLAIN_ICON_BUTTON_CLASS}
+                        className={SECTION_HEADER_ICON_BUTTON_CLASS}
                         title="Cancel editing"
                         aria-label="Cancel"
                       >
@@ -718,7 +735,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       onClick={() =>
                         startEditingSection(visibleReportBody, primarySummarySection?.id, true)
                       }
-                      className={PLAIN_ICON_BUTTON_CLASS}
+                      className={SECTION_HEADER_ICON_BUTTON_CLASS}
                       title="Edit artifact text"
                       aria-label="Edit"
                     >
@@ -783,10 +800,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 sectionRefs.current[keyFindingsAnchorId] = node;
               }}
               className={cx(
-                'border bg-zinc-950/70 p-6 transition-colors',
+                ARTIFACT_VIEWER_SECTION_CLASS,
                 highlightedSectionId === keyFindingsAnchorId
-                  ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-                  : 'border-zinc-800'
+                  ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                  : undefined
               )}
             >
               <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
@@ -797,14 +814,14 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   {`${canonicalFindings.length} records`}
                 </div>
               </div>
-              <div className="mt-6 space-y-4">
+              <div className="mt-6 divide-y divide-zinc-800">
                 {canonicalFindings.map((finding, index) => {
                   const relatedEvidence = getFindingRelatedEvidence(finding);
                   const matchingSources = getMatchingSources(finding.supportRefs);
                   const findingOriginSectionId = finding.originSectionId;
 
                   return (
-                    <article key={finding.id} className="border border-zinc-800 p-4">
+                    <article key={finding.id} className="py-6 first:pt-0 last:pb-0">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="osint-meta-label">{`Finding ${index + 1}`}</div>
@@ -885,7 +902,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           ) : null}
 
           {visibleEvidence.length > 0 ? (
-            <section className="border border-zinc-800 bg-zinc-950/70 p-6">
+            <section className={ARTIFACT_VIEWER_SECTION_CLASS}>
               <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
                 <div>
                   <div className="osint-eyebrow">Evidence Index</div>
@@ -903,7 +920,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       evidenceRefs.current[evidence.id] = node;
                     }}
                     className={cx(
-                      'border bg-black/40 p-4 transition-colors',
+                      ARTIFACT_VIEWER_SUBSECTION_CLASS,
                       highlightedEvidenceId === evidence.id
                         ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
                         : 'border-zinc-800'
@@ -961,6 +978,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
             </section>
           ) : null}
+          </div>
         </div>
       </div>
 

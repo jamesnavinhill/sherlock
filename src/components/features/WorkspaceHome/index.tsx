@@ -39,6 +39,7 @@ import {
   CHROME_PANEL_HEADER_CLASS,
   getChromeMenuButtonClass,
 } from '@/components/ui/chrome';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 
 interface WorkspaceHomeProps {
   workspaceId: string;
@@ -297,8 +298,9 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6" data-app-scroll-region>
-        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+      <div className="relative flex-1 overflow-y-auto p-6" data-app-scroll-region>
+        <MainContentDotGrid testId="workspace-home-dot-grid-background" />
+        <div className="relative z-10 mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
           <div className="space-y-6">
             <section className={`overflow-hidden border ${CHROME_PANEL_CLASS}`}>
               <div className={CHROME_PANEL_HEADER_CLASS}>

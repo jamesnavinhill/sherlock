@@ -13,6 +13,7 @@ import {
   Settings2,
 } from 'lucide-react';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
+import { MainContentDotGrid } from '../ui/MainContentDotGrid';
 import { RunSetupModal } from './Runs/RunSetupModal';
 import { MatrixCardLoader } from '../ui/MatrixCardLoader';
 import { OsintSelect } from '../ui/OsintSelect';
@@ -268,18 +269,6 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
   return (
     <div className="flex flex-col h-screen w-full bg-black relative overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-black">
-        <div
-          data-testid="feed-dot-grid-background"
-          className="absolute inset-0 opacity-20 pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(#52525b 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
-          }}
-        />
-        {loading ? <BackgroundMatrixRain /> : null}
-      </div>
-
       {/* Investigation Wizard Modal */}
       {selectedItem && (
         <RunSetupModal
@@ -519,8 +508,11 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
         className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden p-6 custom-scrollbar"
         data-app-scroll-region
       >
+        <MainContentDotGrid testId="feed-dot-grid-background" />
+        {loading ? <BackgroundMatrixRain /> : null}
+
         {/* Results Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-20">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-20">
           {feedItems.length === 0
             ? // Placeholder / Empty State or Loading State
               Array.from({ length: 8 }).map((_, i) => <MatrixCardLoader key={i} active={loading} />)

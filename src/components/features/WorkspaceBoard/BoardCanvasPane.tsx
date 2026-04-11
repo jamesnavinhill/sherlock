@@ -5,6 +5,7 @@ import { Shapes } from 'lucide-react';
 import { getTldrawLicenseKey } from '@/config/tldraw';
 import type { WorkspaceBoard } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 import { boardTldrawComponents } from './workspaceBoardUtils';
 
 interface BoardCanvasPaneProps {
@@ -49,6 +50,7 @@ export const BoardCanvasPane: React.FC<BoardCanvasPaneProps> = ({
 }) => {
   return (
     <main className="relative z-0 flex-1 overflow-hidden bg-osint-dark">
+      <MainContentDotGrid testId="workspace-board-dot-grid-background" />
       <div
         className="sherlock-board-canvas absolute inset-0 z-0"
         onDragOver={(event) => event.preventDefault()}

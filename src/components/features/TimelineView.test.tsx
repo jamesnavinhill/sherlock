@@ -85,6 +85,7 @@ describe('TimelineView route state', () => {
 
     fireEvent.click(screen.getByLabelText('Timeline filters'));
 
+    expect(screen.getByTestId('timeline-dot-grid-background')).toBeInTheDocument();
     expect(screen.queryByLabelText('Timeline search')).not.toBeInTheDocument();
     expect(screen.getByText('Date Range')).toBeInTheDocument();
   });
