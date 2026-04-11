@@ -107,6 +107,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const resolvedWeights = resolveThemeFontWeights(themeFontSettings.weight);
   const backgroundVariantLabel =
     themeBackgroundSettings.variant === 'grid' ? 'Dot Grid' : 'Plain';
+  const themeControlSectionClassName =
+    'grid min-h-[5.75rem] gap-3 [grid-template-rows:auto_auto_1fr]';
 
   const renderThemeSurfaceEditor = () => {
     const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
@@ -613,6 +615,11 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               lightness={accentSettings.lightness}
               chroma={accentSettings.chroma}
               containerClassName="flex h-full flex-col gap-8 py-3"
+              sectionClassNames={{
+                hue: themeControlSectionClassName,
+                lightness: themeControlSectionClassName,
+                chroma: themeControlSectionClassName,
+              }}
               showPreview={false}
               onChange={onAccentChange}
             />
@@ -647,7 +654,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
 
           <div className="mt-8 flex flex-1 flex-col gap-8 py-3">
-            <label className="space-y-3">
+            <label className={themeControlSectionClassName}>
               <div className="flex items-center justify-between gap-3">
                 <span className="osint-meta-label">Background Image</span>
                 <span className="osint-meta-value">{backgroundVariantLabel}</span>
@@ -668,7 +675,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               />
             </label>
 
-            <label className="space-y-2">
+            <label className={themeControlSectionClassName}>
               <div className="flex items-center justify-between gap-3">
                 <span className="osint-meta-label">Dot Color</span>
                 <span className="osint-meta-value">{themeBackgroundSettings.dotColor}%</span>
@@ -686,7 +693,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               />
             </label>
 
-            <label className="space-y-2">
+            <label className={themeControlSectionClassName}>
               <div className="flex items-center justify-between gap-3">
                 <span className="osint-meta-label">Dot Opacity</span>
                 <span className="osint-meta-value">

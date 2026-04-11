@@ -7,6 +7,12 @@ interface AccentPickerProps {
   chroma: number;
   onChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
   containerClassName?: string;
+  sectionClassNames?: {
+    hue?: string;
+    lightness?: string;
+    chroma?: string;
+    preview?: string;
+  };
   previewLabel?: string;
   showPreview?: boolean;
   lightnessMin?: number;
@@ -20,6 +26,7 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
   chroma,
   onChange,
   containerClassName,
+  sectionClassNames,
   previewLabel = 'Custom Accent',
   showPreview = true,
   lightnessMin = 0.5,
@@ -74,9 +81,23 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
     ' oklch(0.75 0.15 300) 83.3%,' +
     ' oklch(0.75 0.15 360) 100% )';
 
+  const hueSectionClassName = ['grid gap-3', sectionClassNames?.hue].filter(Boolean).join(' ');
+  const lightnessSectionClassName = ['grid gap-3', sectionClassNames?.lightness]
+    .filter(Boolean)
+    .join(' ');
+  const chromaSectionClassName = ['grid gap-3', sectionClassNames?.chroma]
+    .filter(Boolean)
+    .join(' ');
+  const previewSectionClassName = [
+    'flex items-center gap-3 border-t border-zinc-800 pt-3',
+    sectionClassNames?.preview,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div className={containerClassName ?? 'space-y-4'}>
-      <div className="space-y-3">
+      <div className={hueSectionClassName}>
         <div className="flex items-center justify-between">
           <span className="osint-meta-label">Hue</span>
           <span className="osint-meta-value text-zinc-300">{hue} deg</span>
@@ -131,7 +152,7 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className={lightnessSectionClassName}>
         <div className="flex items-center justify-between">
           <span className="osint-meta-label">Lightness</span>
           <span className="osint-meta-value text-zinc-300">{clampedLightness.toFixed(2)}</span>
@@ -162,7 +183,7 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className={chromaSectionClassName}>
         <div className="flex items-center justify-between">
           <span className="osint-meta-label">Chroma</span>
           <span className="osint-meta-value text-zinc-300">{clampedChroma.toFixed(2)}</span>
@@ -194,7 +215,7 @@ export const AccentPicker: React.FC<AccentPickerProps> = ({
       </div>
 
       {showPreview ? (
-        <div className="flex items-center gap-3 border-t border-zinc-800 pt-3">
+        <div className={previewSectionClassName}>
           <div
             className="h-10 w-10 rounded-xl border border-zinc-700 shadow-[0_0_12px_rgba(255,255,255,0.1)]"
             style={{ background: oklchColor }}
