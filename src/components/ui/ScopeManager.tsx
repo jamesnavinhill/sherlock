@@ -14,6 +14,7 @@ import {
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { BUILTIN_SCOPES, getAllScopes } from '../../data/presets';
 import type { InvestigationScope } from '../../types';
+import { getEntityToneClass } from '../../utils/entityPalette';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Accordion } from './Accordion';
 import {
@@ -27,6 +28,21 @@ import {
 interface ScopeManagerProps {
   onClose?: () => void;
 }
+
+const PERSONA_NODE_TONES = ['PERSON', 'ORGANIZATION', 'CONCEPT', 'SOURCE'] as const;
+
+const getPersonaChipClassName = (
+  personaId: string,
+  defaultPersonaId: string | undefined,
+  index: number
+) => {
+  if (personaId === defaultPersonaId) {
+    return 'border border-osint-primary/40 bg-osint-primary/10 text-osint-primary';
+  }
+
+  const toneClass = getEntityToneClass(PERSONA_NODE_TONES[index % PERSONA_NODE_TONES.length]);
+  return `${toneClass} entity-tone-chip border`;
+};
 
 export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose }) => {
   const {
@@ -293,34 +309,18 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
 
                   {expanded && (
                     <div className="animate-in slide-in-from-top-1 space-y-4 border-t border-zinc-800 px-5 pb-3 pt-4 duration-150">
-                      {scope.categories && scope.categories.length > 0 && (
-                        <div>
-                          <div className="mb-1 osint-meta-label">Categories</div>
-                          <div className="flex flex-wrap gap-1">
-                            {scope.categories.map((category) => (
-                              <span
-                                key={category}
-                                className="bg-zinc-800 px-2 py-0.5 osint-body-quiet text-zinc-300"
-                              >
-                                {category}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
                       {scope.personas && scope.personas.length > 0 && (
                         <div>
                           <div className="mb-1 osint-meta-label">Personas</div>
                           <div className="flex flex-wrap gap-1">
-                            {scope.personas.map((persona) => (
+                            {scope.personas.map((persona, index) => (
                               <span
                                 key={persona.id}
-                                className={`px-2 py-0.5 osint-body-quiet ${
-                                  persona.id === scope.defaultPersona
-                                    ? 'bg-osint-primary/20 text-osint-primary'
-                                    : 'bg-zinc-800 text-zinc-300'
-                                }`}
+                                className={`inline-flex items-center whitespace-nowrap px-2 py-0.5 osint-meta-label ${getPersonaChipClassName(
+                                  persona.id,
+                                  scope.defaultPersona,
+                                  index
+                                )}`}
                               >
                                 {persona.label}
                               </span>
