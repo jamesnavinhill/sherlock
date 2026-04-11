@@ -21,6 +21,7 @@ import { GlobalSearch } from '../ui/GlobalSearch';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 import {
+  CHROME_CARD_SURFACE_CLASS,
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_TOOLBAR_FIELD_CLASS,
@@ -519,7 +520,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
             : feedItems.map((item) => (
                 <div
                   key={item.id}
-                  className="osint-raised-surface h-full p-5 transition-all cursor-pointer group flex flex-col hover:border-osint-primary hover:bg-zinc-900/80 animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-sm"
+                  className={`${CHROME_CARD_SURFACE_CLASS} h-full cursor-pointer group flex flex-col p-5 transition-all animate-in fade-in slide-in-from-bottom-2 duration-500 hover:border-osint-primary hover:bg-zinc-900/80`}
                   onClick={() => setSelectedItem(item)}
                 >
                   <div className="flex justify-between items-start mb-4">

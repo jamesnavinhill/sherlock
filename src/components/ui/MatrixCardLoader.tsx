@@ -1,10 +1,11 @@
 import React from 'react';
 import { SkeletonPulse } from './SkeletonLoaders';
 import { SystemStatusBeacon } from './SystemStatusBeacon';
+import { CHROME_CARD_SURFACE_CLASS } from './chrome';
 
 export const MatrixCardLoader = ({ active }: { active: boolean }) => {
   return (
-    <div className="osint-raised-surface flex h-full min-h-[17rem] flex-col gap-4 p-5 backdrop-blur-sm">
+    <div className={`${CHROME_CARD_SURFACE_CLASS} flex h-full min-h-[17rem] flex-col gap-4 p-5`}>
       <div className="flex items-start justify-between gap-3">
         <SkeletonPulse className="h-5 w-16 rounded-none" />
         <SkeletonPulse className="h-3 w-20 rounded-none" />

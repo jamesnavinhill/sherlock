@@ -1,5 +1,6 @@
 import React from 'react';
 import type { MonitorEvent } from '../../../types';
+import { CHROME_CARD_SURFACE_CLASS } from '../../ui/chrome';
 import {
   AlertCircle,
   MessageSquare,
@@ -77,7 +78,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <div
-      className={`osint-raised-surface p-5 flex flex-col gap-3 animate-in slide-in-from-top-4 fade-in duration-500 transition-all ${
+      className={`${CHROME_CARD_SURFACE_CLASS} flex flex-col gap-3 p-5 transition-all animate-in slide-in-from-top-4 fade-in duration-500 ${
         isExpanded
           ? 'bg-[var(--osint-rail-interaction-active-bg)] shadow-[var(--osint-rail-interaction-shadow)] border-osint-primary md:col-span-2 2xl:col-span-1'
           : 'hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)] hover:border-osint-primary cursor-pointer group'

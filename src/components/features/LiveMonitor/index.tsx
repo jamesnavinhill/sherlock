@@ -18,6 +18,7 @@ import { GlobalSearch } from '../../ui/GlobalSearch';
 import { SkeletonPulse } from '../../ui/SkeletonLoaders';
 import { SystemStatusBeacon } from '../../ui/SystemStatusBeacon';
 import {
+  CHROME_CARD_SURFACE_CLASS,
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
@@ -46,7 +47,7 @@ interface LiveMonitorProps {
 }
 
 const MonitorEventCardSkeleton: React.FC<{ active: boolean }> = ({ active }) => (
-  <div className="osint-raised-surface flex min-h-[17rem] flex-col gap-3 p-5">
+  <div className={`${CHROME_CARD_SURFACE_CLASS} flex min-h-[17rem] flex-col gap-3 p-5`}>
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-center gap-2">
         <SkeletonPulse className="h-4 w-4 rounded-none" />
