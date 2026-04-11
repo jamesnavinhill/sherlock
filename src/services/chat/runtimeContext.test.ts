@@ -106,7 +106,7 @@ describe('chat runtime context', () => {
     const request = buildWorkspaceChatRouterRequest({
       session: {
         provider: 'OPENAI',
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         packId: 'corporate-due-diligence',
         purposeId: 'latest-findings',
       },
@@ -118,7 +118,7 @@ describe('chat runtime context', () => {
 
     expect(request.configOverride).toEqual({
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
     });
     expect(request.packId).toBe('corporate-due-diligence');
     expect(request.purposeId).toBe('latest-findings');

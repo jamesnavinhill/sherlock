@@ -6,8 +6,8 @@ export const DEFAULT_MODEL_ID = 'gemini-3-flash-preview';
 export const DEFAULT_MODELS_BY_PROVIDER: Record<AIProvider, string> = {
   GEMINI: DEFAULT_MODEL_ID,
   OPENROUTER: 'openrouter/free',
-  OPENAI: 'gpt-4.1-mini',
-  ANTHROPIC: 'claude-3-5-haiku-latest',
+  OPENAI: 'gpt-5.4-mini',
+  ANTHROPIC: 'claude-sonnet-4-6',
 };
 
 export const AI_PROVIDERS: AIProviderOption[] = [

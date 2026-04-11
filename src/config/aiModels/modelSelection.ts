@@ -170,7 +170,12 @@ export const resolveModelSelection = (provider: AIProvider, requestedModelId?: s
     return requestedModelId;
   }
 
-  return availableModels[0]?.id || getDefaultModelForProvider(provider);
+  const defaultModelId = getDefaultModelForProvider(provider);
+  if (availableModels.some((model) => model.id === defaultModelId)) {
+    return defaultModelId;
+  }
+
+  return availableModels[0]?.id || defaultModelId;
 };
 
 export const isGeminiModel = (modelId: string): boolean => getModelProvider(modelId) === 'GEMINI';

@@ -14,13 +14,13 @@ describe('useRuntimeConfigForm', () => {
 
   it('infers provider and normalizes defaults from the requested model', () => {
     const value = createRuntimeConfigFormValue({
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
       generationMode: 'SINGLE_PASS',
     });
 
     expect(value).toMatchObject({
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
       searchDepth: 'STANDARD',
       generationMode: 'SINGLE_PASS',
       thinkingBudget: 0,
@@ -33,7 +33,7 @@ describe('useRuntimeConfigForm', () => {
       useRuntimeConfigForm({
         initialValue: {
           provider: 'OPENAI',
-          modelId: 'gpt-4.1-mini',
+          modelId: 'gpt-5.4-mini',
         },
         onChange,
       })
@@ -44,7 +44,7 @@ describe('useRuntimeConfigForm', () => {
     });
 
     expect(result.current.value.provider).toBe('GEMINI');
-    expect(result.current.activeModelId).toBe(getFallbackRuntimeModel('GEMINI', 'gpt-4.1-mini'));
+    expect(result.current.activeModelId).toBe(getFallbackRuntimeModel('GEMINI', 'gpt-5.4-mini'));
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         provider: 'GEMINI',
@@ -71,12 +71,12 @@ describe('useRuntimeConfigForm', () => {
     });
 
     act(() => {
-      result.current.setModelId('gpt-4.1-mini');
+      result.current.setModelId('gpt-5.4-mini');
     });
 
-    expect(recordRecentModelSelection).toHaveBeenCalledWith('gpt-4.1-mini');
+    expect(recordRecentModelSelection).toHaveBeenCalledWith('gpt-5.4-mini');
     expect(result.current.value.provider).toBe('OPENAI');
-    expect(result.current.value.modelId).toBe('gpt-4.1-mini');
+    expect(result.current.value.modelId).toBe('gpt-5.4-mini');
     expect(result.current.supportsThinkingBudget).toBe(false);
     expect(result.current.effectiveValue.thinkingBudget).toBe(0);
   });

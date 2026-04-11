@@ -5,7 +5,6 @@ import {
   GEMINI_FIXTURES,
   OPENAI_FIXTURES,
   OPENROUTER_FIXTURES,
-  REPORT_PAYLOAD,
 } from './__fixtures__/adapterPayloads';
 
 const { mockGeminiGenerateContent, mockGeminiGenerateContentStream } = vi.hoisted(() => ({
@@ -186,14 +185,8 @@ describe('provider adapter contracts', () => {
     assertNormalizedFeedAndLive(feed, live);
   });
 
-  it('recovers Gemini 2.5 investigate responses wrapped in markdown with trailing commas', async () => {
-    const messyReportJson = JSON.stringify(REPORT_PAYLOAD, null, 2).replace(/\n}$/, ',\n}');
-    mockGeminiGenerateContent.mockResolvedValueOnce({
-      text: ['Investigation complete.', '```json', messyReportJson, '```', 'End of report.'].join(
-        '\n'
-      ),
-      candidates: GEMINI_FIXTURES.investigate.candidates,
-    });
+  it('uses structured outputs for Gemini 2.5 investigate requests', async () => {
+    mockGeminiGenerateContent.mockResolvedValueOnce(GEMINI_FIXTURES.investigate);
 
     const config = makeConfig('GEMINI', 'gemini-2.5-flash');
 
@@ -211,8 +204,10 @@ describe('provider adapter contracts', () => {
     assertRenderSafeReport(report);
 
     expect(mockGeminiGenerateContent).toHaveBeenCalledTimes(1);
-    expect(mockGeminiGenerateContent.mock.calls[0]?.[0]?.config?.responseMimeType).toBeUndefined();
-    expect(String(mockGeminiGenerateContent.mock.calls[0]?.[0]?.contents)).toContain(
+    expect(mockGeminiGenerateContent.mock.calls[0]?.[0]?.config?.responseMimeType).toBe(
+      'application/json'
+    );
+    expect(String(mockGeminiGenerateContent.mock.calls[0]?.[0]?.contents)).not.toContain(
       'FINAL OUTPUT RULE: Return ONLY the JSON object.'
     );
   });
@@ -271,7 +266,7 @@ describe('provider adapter contracts', () => {
       .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.scan))
       .mockResolvedValueOnce(makeFetchResponse(OPENAI_FIXTURES.live));
 
-    const config = makeConfig('OPENAI', 'gpt-4.1-mini');
+    const config = makeConfig('OPENAI', 'gpt-5.4-mini');
 
     const report = await openAIProvider.investigate({
       topic: 'Atlas Holdings',
@@ -318,7 +313,7 @@ describe('provider adapter contracts', () => {
       .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.scan))
       .mockResolvedValueOnce(makeFetchResponse(ANTHROPIC_FIXTURES.live));
 
-    const config = makeConfig('ANTHROPIC', 'claude-3-5-haiku-latest');
+    const config = makeConfig('ANTHROPIC', 'claude-sonnet-4-6');
 
     const report = await anthropicProvider.investigate({
       topic: 'Atlas Holdings',

@@ -41,14 +41,14 @@ describe('runtimeConfigMapping', () => {
         searchDepth: 'STANDARD',
       },
       configOverride: {
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
       },
       customScopes: [customScope],
       scopeId: customScope.id,
     });
 
     expect(resolved.effectiveConfig.provider).toBe('OPENAI');
-    expect(resolved.effectiveConfig.modelId).toBe('gpt-4.1-mini');
+    expect(resolved.effectiveConfig.modelId).toBe('gpt-5.4-mini');
     expect(resolved.scope?.id).toBe(customScope.id);
     expect(resolved.pack.id).toBe(customScope.id);
     expect(resolved.purpose.id).toBe('monitor');
@@ -89,7 +89,7 @@ describe('runtimeConfigMapping', () => {
       createdAt: 1,
       scopeId: customScope.id,
       config: {
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         searchDepth: 'DEEP',
       },
     };
@@ -114,7 +114,7 @@ describe('runtimeConfigMapping', () => {
     expect(request.labelProfileId).toBe('monitoring');
     expect(request.configOverride).toMatchObject({
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
       searchDepth: 'DEEP',
     });
   });

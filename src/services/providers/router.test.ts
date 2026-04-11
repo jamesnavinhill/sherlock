@@ -195,28 +195,28 @@ describe('provider router', () => {
       citations: [],
       rawText: '{}',
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
     });
     mockOpenAIStreamChat.mockResolvedValue({
       content: 'ok',
       citations: [],
       rawText: '<answer>ok</answer><citations></citations><title></title>',
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
     });
     mockOpenAIBoardAgent.mockResolvedValue({
       message: 'ok',
       actions: [],
       rawText: '{}',
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
     });
     mockOpenAIStreamBoardAgent.mockResolvedValue({
       message: 'ok',
       actions: [],
       rawText: '<message>ok</message>',
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
     });
     mockAnthropicInvestigate.mockResolvedValue(reportFixture);
     mockAnthropicChat.mockResolvedValue({
@@ -224,28 +224,28 @@ describe('provider router', () => {
       citations: [],
       rawText: '{}',
       provider: 'ANTHROPIC',
-      modelId: 'claude-3-5-haiku-latest',
+      modelId: 'claude-sonnet-4-6',
     });
     mockAnthropicStreamChat.mockResolvedValue({
       content: 'ok',
       citations: [],
       rawText: '<answer>ok</answer><citations></citations><title></title>',
       provider: 'ANTHROPIC',
-      modelId: 'claude-3-5-haiku-latest',
+      modelId: 'claude-sonnet-4-6',
     });
     mockAnthropicBoardAgent.mockResolvedValue({
       message: 'ok',
       actions: [],
       rawText: '{}',
       provider: 'ANTHROPIC',
-      modelId: 'claude-3-5-haiku-latest',
+      modelId: 'claude-sonnet-4-6',
     });
     mockAnthropicStreamBoardAgent.mockResolvedValue({
       message: 'ok',
       actions: [],
       rawText: '<message>ok</message>',
       provider: 'ANTHROPIC',
-      modelId: 'claude-3-5-haiku-latest',
+      modelId: 'claude-sonnet-4-6',
     });
   });
 
@@ -272,7 +272,7 @@ describe('provider router', () => {
       'sherlock_config',
       JSON.stringify({
         provider: 'OPENAI',
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         persona: 'general-investigator',
         searchDepth: 'STANDARD',
         thinkingBudget: 0,
@@ -297,7 +297,7 @@ describe('provider router', () => {
       'sherlock_config',
       JSON.stringify({
         provider: 'OPENAI',
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         persona: 'general-investigator',
         searchDepth: 'STANDARD',
         thinkingBudget: 0,
@@ -353,7 +353,7 @@ describe('provider router', () => {
       'sherlock_config',
       JSON.stringify({
         provider: 'OPENAI',
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         persona: 'general-investigator',
         searchDepth: 'STANDARD',
         thinkingBudget: 0,
@@ -383,7 +383,7 @@ describe('provider router', () => {
       'sherlock_config',
       JSON.stringify({
         provider: 'OPENAI',
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         persona: 'general-investigator',
         searchDepth: 'STANDARD',
         thinkingBudget: 0,
@@ -420,7 +420,7 @@ describe('provider router', () => {
       'sherlock_config',
       JSON.stringify({
         provider: 'ANTHROPIC',
-        modelId: 'claude-3-5-haiku-latest',
+        modelId: 'claude-sonnet-4-6',
         persona: 'general-investigator',
         searchDepth: 'STANDARD',
         thinkingBudget: 0,
@@ -546,7 +546,7 @@ describe('provider router', () => {
       'sherlock_config',
       JSON.stringify({
         provider: 'OPENAI',
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         persona: 'general-investigator',
         searchDepth: 'STANDARD',
         thinkingBudget: 0,

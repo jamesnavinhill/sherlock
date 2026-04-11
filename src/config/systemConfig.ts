@@ -16,7 +16,10 @@ import {
 const LEGACY_MODEL_IDS: Record<string, string> = {
   'gemini-2.5-flash-latest': 'gemini-2.5-flash',
   'gemini-3-flash': 'gemini-3-flash-preview',
-  'gemini-3-pro': 'gemini-3-pro-preview',
+  'gemini-3-pro': 'gemini-3.1-pro-preview',
+  'gemini-3-pro-preview': 'gemini-3.1-pro-preview',
+  'gpt-4.1-mini': 'gpt-5.4-mini',
+  'claude-3-5-haiku-latest': 'claude-haiku-4-5',
 };
 
 export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {

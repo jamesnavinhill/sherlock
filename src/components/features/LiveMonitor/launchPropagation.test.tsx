@@ -36,7 +36,7 @@ vi.mock('../Runs/RunSetupModal', () => ({
           'Live monitor deep dive',
           {
             provider: 'OPENAI',
-            modelId: 'gpt-4.1-mini',
+            modelId: 'gpt-5.4-mini',
             persona: 'general-investigator',
             searchDepth: 'STANDARD',
             thinkingBudget: 0,
@@ -121,7 +121,7 @@ describe('LiveMonitor launch propagation', () => {
         },
         configOverride: expect.objectContaining({
           provider: 'OPENAI',
-          modelId: 'gpt-4.1-mini',
+          modelId: 'gpt-5.4-mini',
         }),
       })
     );

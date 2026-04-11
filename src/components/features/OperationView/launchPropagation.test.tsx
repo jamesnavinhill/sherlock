@@ -134,7 +134,7 @@ vi.mock('../Runs/RunSetupModal', () => ({
           'Entity investigation from modal',
           {
             provider: 'OPENAI',
-            modelId: 'gpt-4.1-mini',
+            modelId: 'gpt-5.4-mini',
             thinkingBudget: 0,
           },
           undefined,
@@ -262,7 +262,7 @@ describe('OperationView launch propagation', () => {
         },
         configOverride: expect.objectContaining({
           provider: 'OPENAI',
-          modelId: 'gpt-4.1-mini',
+          modelId: 'gpt-5.4-mini',
           searchDepth: 'DEEP',
         }),
         scope: expect.objectContaining({ id: 'open-investigation' }),
@@ -335,7 +335,7 @@ describe('OperationView launch propagation', () => {
         launchSource: 'OPERATION_LEAD_MODAL',
         configOverride: expect.objectContaining({
           provider: 'OPENAI',
-          modelId: 'gpt-4.1-mini',
+          modelId: 'gpt-5.4-mini',
           searchDepth: 'DEEP',
         }),
         scope: expect.objectContaining({ id: 'open-investigation' }),

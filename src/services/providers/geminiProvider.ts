@@ -79,9 +79,7 @@ const SAFETY_SETTINGS = [
   },
 ];
 
-const supportsStructuredOutput = (modelId: string): boolean => {
-  return !modelId.includes('2.5') && !modelId.includes('2-5');
-};
+const supportsStructuredOutput = (_modelId: string): boolean => true;
 
 const investigate = async (request: InvestigationRequest): Promise<Artifact> => {
   const { topic, parentContext, config, scope, dateOverride } = request;

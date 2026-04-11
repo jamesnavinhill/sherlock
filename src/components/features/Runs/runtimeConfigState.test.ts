@@ -10,13 +10,13 @@ describe('runtimeConfigState', () => {
   it('maps runtime config sources into the shared form input shape', () => {
     expect(
       createRuntimeConfigFormInput({
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         generationMode: 'SINGLE_PASS',
         searchDepth: 'DEEP',
         thinkingBudget: 2048,
       })
     ).toEqual({
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
       searchDepth: 'DEEP',
       generationMode: 'SINGLE_PASS',
       thinkingBudget: 2048,

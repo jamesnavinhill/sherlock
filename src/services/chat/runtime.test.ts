@@ -12,7 +12,7 @@ const buildSession = (overrides: Partial<ChatSession> = {}): ChatSession => ({
   packId: overrides.packId,
   purposeId: overrides.purposeId,
   provider: overrides.provider || 'OPENAI',
-  modelId: overrides.modelId || 'gpt-4.1-mini',
+  modelId: overrides.modelId || 'gpt-5.4-mini',
   metadata: overrides.metadata,
   createdAt: overrides.createdAt || 1,
   updatedAt: overrides.updatedAt || 1,

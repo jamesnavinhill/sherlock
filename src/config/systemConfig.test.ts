@@ -15,14 +15,30 @@ describe('systemConfig migration', () => {
     expect(migrated.modelId).toBe('gemini-3-flash-preview');
   });
 
+  it('migrates deprecated Gemini 3 Pro ids to Gemini 3.1 Pro Preview', () => {
+    expect(migrateSystemConfig({ modelId: 'gemini-3-pro' }).modelId).toBe(
+      'gemini-3.1-pro-preview'
+    );
+    expect(migrateSystemConfig({ modelId: 'gemini-3-pro-preview' }).modelId).toBe(
+      'gemini-3.1-pro-preview'
+    );
+  });
+
   it('falls back to provider inferred from model when provider value is invalid', () => {
     const migrated = migrateSystemConfig({
       provider: 'UNKNOWN_PROVIDER' as unknown as SystemConfig['provider'],
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
     });
 
     expect(migrated.provider).toBe('OPENAI');
-    expect(migrated.modelId).toBe('gpt-4.1-mini');
+    expect(migrated.modelId).toBe('gpt-5.4-mini');
+  });
+
+  it('migrates retired OpenAI and Anthropic model ids to current catalog entries', () => {
+    expect(migrateSystemConfig({ modelId: 'gpt-4.1-mini' }).modelId).toBe('gpt-5.4-mini');
+    expect(migrateSystemConfig({ modelId: 'claude-3-5-haiku-latest' }).modelId).toBe(
+      'claude-haiku-4-5'
+    );
   });
 
   it('realigns model to provider default when stored pair mismatches', () => {

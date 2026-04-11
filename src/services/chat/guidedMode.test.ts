@@ -41,7 +41,7 @@ describe('guidedMode', () => {
         ],
         prioritySources: 'sec.gov, usaspending.gov',
         provider: 'OPENAI',
-        modelId: 'gpt-4.1-mini',
+        modelId: 'gpt-5.4-mini',
         persona: 'general-investigator',
         searchDepth: 'DEEP',
         generationMode: 'STAGED',
@@ -67,7 +67,7 @@ describe('guidedMode', () => {
     expect(request.topic).toContain('[PRIORITY_SOURCES]: sec.gov, usaspending.gov');
     expect(request.configOverride).toMatchObject({
       provider: 'OPENAI',
-      modelId: 'gpt-4.1-mini',
+      modelId: 'gpt-5.4-mini',
       searchDepth: 'DEEP',
       artifactType: 'REPORT',
     });

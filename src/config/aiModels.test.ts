@@ -74,4 +74,11 @@ describe('aiModels catalog and selection', () => {
     expect(compactChoices.map((model) => model.id)).toContain('acme/manual-model');
     expect(resolveModelSelection('OPENROUTER', 'acme/manual-model')).toBe('acme/manual-model');
   });
+
+  it('falls back to the configured provider default when a direct-provider model is invalid', () => {
+    expect(resolveModelSelection('OPENAI', 'missing-openai-model')).toBe('gpt-5.4-mini');
+    expect(resolveModelSelection('ANTHROPIC', 'missing-anthropic-model')).toBe(
+      'claude-sonnet-4-6'
+    );
+  });
 });

@@ -24,7 +24,7 @@ describe('runtime provider operations', () => {
   const scope = { id: 'open-investigation' } as InvestigationScope;
   const configOverride = {
     provider: 'OPENAI',
-    modelId: 'gpt-4.1-mini',
+    modelId: 'gpt-5.4-mini',
   } as Partial<SystemConfig>;
 
   beforeEach(() => {
