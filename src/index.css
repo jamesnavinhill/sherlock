@@ -1592,6 +1592,11 @@ body,
   text-transform: uppercase;
 }
 
+.osint-meta-label.osint-button-chrome-active,
+.osint-meta-label-strong.osint-button-chrome-active {
+  color: var(--osint-primary);
+}
+
 .osint-meta-value {
   color: var(--osint-text-strong);
   font-family: var(--font-mono);
