@@ -26,6 +26,14 @@ describe('SettingsDataTab', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Export$/i }));
 
+    expect(screen.getByRole('button', { name: /^Operational Preferences$/i })).not.toHaveAttribute(
+      'data-active',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: /^Workspace Data$/i })).not.toHaveAttribute(
+      'data-active',
+      'true'
+    );
     expect(screen.getByText('Workspace Backup')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Workspace Data as JSON Backup/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Delete Data' })).toBeInTheDocument();

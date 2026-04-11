@@ -88,6 +88,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
           isOpen={dataSections.preferences}
           onToggle={() => toggleDataSection('preferences')}
           className="bg-zinc-900/40"
+          disableActiveHeaderStyle
           contentClassName="p-4 sm:p-6"
         >
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
@@ -111,6 +112,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
           isOpen={dataSections.workspaceData}
           onToggle={() => toggleDataSection('workspaceData')}
           className="bg-zinc-900/40"
+          disableActiveHeaderStyle
           contentClassName="p-4 sm:p-6"
         >
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

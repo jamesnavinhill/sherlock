@@ -49,7 +49,7 @@ export function useOperationViewController({
   task,
 }: OperationViewControllerOptions) {
   const navigate = useNavigate();
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(() => window.innerWidth > 1024);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     caseInfo: false,
     reports: false,

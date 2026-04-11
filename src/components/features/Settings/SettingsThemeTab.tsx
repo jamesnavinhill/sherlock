@@ -575,6 +575,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         isOpen={themeSections.accent}
         onToggle={() => toggleThemeSection('accent')}
         className="mb-0"
+        disableActiveHeaderStyle
       >
         <div className="space-y-6 px-3 pb-3 pt-1">
           <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
@@ -616,6 +617,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         isOpen={themeSections.fonts}
         onToggle={() => toggleThemeSection('fonts')}
         className="mb-0"
+        disableActiveHeaderStyle
       >
         {renderFontSection()}
       </Accordion>
@@ -625,6 +627,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         isOpen={themeSections.surfaces}
         onToggle={() => toggleThemeSection('surfaces')}
         className="mb-0"
+        disableActiveHeaderStyle
       >
         {renderThemeSurfaceEditor()}
       </Accordion>

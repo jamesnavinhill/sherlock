@@ -9,12 +9,12 @@ import type {
 import type { MonitorConfig } from '../../../services/runtime';
 import { getLiveWorkspaceIntel } from '../../../services/runtime';
 import { getAllScopes, getScopeById } from '../../../data/presets';
-import { Radio, Play, Pause, Activity, Settings2, Radar } from 'lucide-react';
+import { Play, Pause, Activity, Settings2, Radar } from 'lucide-react';
 import { RunSetupModal } from '../Runs/RunSetupModal';
 import { BackgroundMatrixRain } from '../../ui/BackgroundMatrixRain';
-import { EmptyState } from '../../ui/EmptyState';
 import { OsintSelect } from '../../ui/OsintSelect';
 import { GlobalSearch } from '../../ui/GlobalSearch';
+import { SkeletonPulse } from '../../ui/SkeletonLoaders';
 import {
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
@@ -42,6 +42,43 @@ interface LiveMonitorProps {
   setEvents: React.Dispatch<React.SetStateAction<MonitorEvent[]>>;
   onInvestigate: (request: InvestigationLaunchRequest) => void;
 }
+
+const MonitorEventCardSkeleton: React.FC<{ active: boolean }> = ({ active }) => (
+  <div className="osint-raised-surface flex min-h-[17rem] flex-col gap-3 p-5">
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <SkeletonPulse className="h-4 w-4 rounded-none" />
+        <SkeletonPulse className="h-3 w-16 rounded-none" />
+      </div>
+      <div className="flex items-center gap-2">
+        <SkeletonPulse className="h-6 w-20 rounded-none" />
+        <SkeletonPulse className="h-6 w-16 rounded-none" />
+      </div>
+    </div>
+    <div className="space-y-3">
+      <SkeletonPulse className="h-5 w-32 rounded-none" />
+      <SkeletonPulse className="h-3 w-full rounded-none" />
+      <SkeletonPulse className="h-3 w-11/12 rounded-none" />
+      <SkeletonPulse className="h-3 w-3/4 rounded-none" />
+    </div>
+    <div className="mt-auto flex items-center justify-center border border-zinc-800 bg-zinc-950/50 px-4 py-6">
+      <div className="text-center">
+        <div className="mb-3 flex items-center justify-center gap-2">
+          <span className={`h-2 w-2 rounded-none ${active ? 'bg-osint-primary animate-pulse' : 'bg-zinc-600'}`} />
+          <span className={`h-2 w-2 rounded-none ${active ? 'bg-osint-primary animate-pulse [animation-delay:120ms]' : 'bg-zinc-600'}`} />
+          <span className={`h-2 w-2 rounded-none ${active ? 'bg-osint-primary animate-pulse [animation-delay:240ms]' : 'bg-zinc-600'}`} />
+        </div>
+        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-300">
+          {active ? 'SCANNING_NETWORK' : 'SYSTEM_IDLE'}
+        </span>
+      </div>
+    </div>
+    <div className="mt-auto flex items-center justify-between border-t border-zinc-800 pt-3">
+      <SkeletonPulse className="h-3 w-16 rounded-none" />
+      <SkeletonPulse className="h-3 w-24 rounded-none" />
+    </div>
+  </div>
+);
 
 /**
  * Live Monitor component for real-time OSINT surveillance.
@@ -299,6 +336,9 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
       selectedLevels.includes(event.threatLevel as Exclude<ThreatFilter, 'ALL'>)
     );
   };
+  const filteredEvents = getFilteredEvents();
+  const showSkeletonGrid = filteredEvents.length === 0;
+  const skeletonActive = isMonitoring || streamStatus !== 'IDLE';
 
   // --- RENDER ---
 
@@ -393,34 +433,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
 
         {/* Center: The Stream */}
         <div className="flex-1 relative z-10 flex flex-col overflow-hidden">
-          {/* Empty State */}
-          {!selectedCaseId && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center px-6">
-              <EmptyState
-                icon={Radio}
-                title={
-                  workspaces.length === 0
-                    ? 'Monitor Awaiting Workspace'
-                    : 'Awaiting Target Selection'
-                }
-                description={
-                  workspaces.length === 0
-                    ? 'Create or reopen a workspace first. Live Monitor needs an active workspace so incoming signals stay local, searchable, and auditable.'
-                    : 'Select a workspace to begin surveillance and route incoming signals into the active operation.'
-                }
-                action={
-                  workspaces.length > 0
-                    ? {
-                        label: 'Use First Workspace',
-                        onClick: () => setSelectedCaseId(workspaces[0].id),
-                      }
-                    : undefined
-                }
-                panelClassName="max-w-xl"
-              />
-            </div>
-          )}
-
           {/* Scanning State */}
           {streamStatus === 'SCANNING' && (
             <div className="flex items-center justify-center mb-6 pt-6 animate-in fade-in zoom-in duration-300">
@@ -444,16 +456,20 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
           {/* Feed Content Grid */}
           <div className="flex-1 overflow-y-auto p-8" data-app-scroll-region>
             <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
-              {getFilteredEvents().map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  isExpanded={expandedEventId === event.id}
-                  isSaved={savedHeadlineIds.has(event.id)}
-                  onToggle={() => handleEventClick(event)}
-                  onInvestigate={() => handleInvestigateFromExpanded(event)}
-                />
-              ))}
+              {showSkeletonGrid
+                ? Array.from({ length: 6 }).map((_, index) => (
+                    <MonitorEventCardSkeleton key={`monitor-skeleton-${index}`} active={skeletonActive} />
+                  ))
+                : filteredEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      isExpanded={expandedEventId === event.id}
+                      isSaved={savedHeadlineIds.has(event.id)}
+                      onToggle={() => handleEventClick(event)}
+                      onInvestigate={() => handleInvestigateFromExpanded(event)}
+                    />
+                  ))}
             </div>
           </div>
         </div>

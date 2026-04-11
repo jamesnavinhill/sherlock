@@ -68,9 +68,8 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
   const showWorkspaceEmptyState = !activeWorkspace;
   const showAssistantPrimer = !!activeWorkspace && messages.length === 0;
   const assistantPrimerBody = activeWorkspace ? buildAssistantPrimerBody(activeWorkspace) : '';
-  const transcriptStackClassName = showWorkspaceEmptyState
-    ? 'min-h-full justify-center'
-    : 'min-h-full justify-end';
+  const transcriptStackClassName =
+    showWorkspaceEmptyState || showAssistantPrimer ? 'min-h-full justify-start' : 'min-h-full justify-end';
 
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black px-4 pt-2 sm:px-6">

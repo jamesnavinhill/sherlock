@@ -220,8 +220,12 @@ export const useChatController = ({ onLaunchInvestigation }: UseChatControllerIn
   }, [activeWorkspace, activeChatSessionId, setActiveChatSessionId, workspaceSessions]);
 
   useEffect(() => {
+    if (messages.length === 0 && !partialAssistantOutput.trim()) {
+      return;
+    }
+
     transcriptEndRef.current?.scrollIntoView({ block: 'end' });
-  }, [guidedState, messages, partialAssistantOutput, transcriptEndRef]);
+  }, [messages, partialAssistantOutput, transcriptEndRef]);
 
   const copyToClipboard = async (value: string, successMessage: string) => {
     await navigator.clipboard.writeText(value);

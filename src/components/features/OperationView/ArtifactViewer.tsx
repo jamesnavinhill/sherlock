@@ -113,7 +113,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const reportSources = report?.sources || [];
   const reportEntities = report?.entities || [];
 
-  const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(true);
+  const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(false);
   const [editingTargetKey, setEditingTargetKey] = useState<string | null>(null);
   const [editingSectionDraft, setEditingSectionDraft] = useState('');
   const [isSavingSection, setIsSavingSection] = useState(false);
@@ -966,6 +966,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               </div>
             }
             onClose={() => setIsDetailSidebarOpen(false)}
+            closeButtonClassName={`${PLAIN_ICON_BUTTON_CLASS} shrink-0`}
             closeIcon={<PanelRight className="h-4 w-4" />}
             closeLabel="Collapse Artifact Details"
           />

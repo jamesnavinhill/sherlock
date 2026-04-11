@@ -68,6 +68,7 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
           isOpen={runtime.runtimeSections.runtime}
           onToggle={() => runtime.toggleRuntimeSection('runtime')}
           className="bg-zinc-900/40"
+          disableActiveHeaderStyle
           contentClassName="p-4 sm:p-6"
         >
           <div className="space-y-6">
@@ -113,6 +114,7 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
           isOpen={runtime.runtimeSections.apiKeys}
           onToggle={() => runtime.toggleRuntimeSection('apiKeys')}
           className="bg-zinc-900/40"
+          disableActiveHeaderStyle
           contentClassName="p-4 sm:p-6"
         >
           <div className="space-y-4">

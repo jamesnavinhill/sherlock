@@ -56,6 +56,10 @@ vi.mock('../../ui/BackgroundMatrixRain', () => ({
   BackgroundMatrixRain: () => null,
 }));
 
+vi.mock('../../ui/GlobalSearch', () => ({
+  GlobalSearch: () => null,
+}));
+
 import { LiveMonitor } from './index';
 
 describe('LiveMonitor launch propagation', () => {
@@ -146,5 +150,19 @@ describe('LiveMonitor launch propagation', () => {
 
     expect(screen.queryByText(/status:/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/events:/i)).not.toBeInTheDocument();
+  });
+
+  it('renders monitor skeleton cards when the feed is empty', () => {
+    render(
+      <MemoryRouter future={routerFuture}>
+        <LiveMonitor
+          events={[]}
+          setEvents={vi.fn()}
+          onInvestigate={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getAllByText('SYSTEM_IDLE')).toHaveLength(6);
   });
 });

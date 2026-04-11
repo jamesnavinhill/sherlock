@@ -476,123 +476,124 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
           </div>
         </div>
 
-        <Accordion
-          title="Agent Context"
-          icon={Shapes}
-          count={selectedEntries.length || undefined}
-          isOpen={agentSections.context}
-          onToggle={onToggleContext}
-          variant="nested"
-          className="mb-0"
-          headerClassName="px-4 py-2"
-          contentClassName="px-4 py-3"
-        >
-          <div
-            className={`osint-raised-surface-subtle space-y-3 p-3 osint-body-small ${headerToneSurfaceClassName}`}
+        <div className="space-y-0">
+          <Accordion
+            title="Agent Context"
+            icon={Shapes}
+            count={selectedEntries.length || undefined}
+            isOpen={agentSections.context}
+            onToggle={onToggleContext}
+            variant="nested"
+            className="mb-0"
+            headerClassName="px-4 py-2"
+            contentClassName="px-4 py-3"
           >
-            <div className="osint-meta-value">
-              {selectedEntries.length > 0
-                ? `${selectedEntries.length} selected item${selectedEntries.length === 1 ? '' : 's'}`
-                : 'Entire board in view'}
+            <div
+              className={`osint-raised-surface-subtle space-y-3 p-3 osint-body-small ${headerToneSurfaceClassName}`}
+            >
+              <div className="osint-meta-value">
+                {selectedEntries.length > 0
+                  ? `${selectedEntries.length} selected item${selectedEntries.length === 1 ? '' : 's'}`
+                  : 'Entire board in view'}
+              </div>
+              {selectedEntries.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {selectedEntries.slice(0, 4).map((entry) => (
+                    <span
+                      key={`${entry.refKind}:${entry.refId}`}
+                      className={`${headerToneChipClassName} px-2.5 py-1 osint-title-inline text-zinc-300`}
+                    >
+                      {entry.title}
+                    </span>
+                  ))}
+                  {selectedEntries.length > 4 ? (
+                    <span className={`${headerToneChipClassName} px-2.5 py-1 osint-body-quiet`}>
+                      +{selectedEntries.length - 4} more
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+              {aiSummary ? (
+                <div
+                  className={`osint-raised-surface-subtle p-3 osint-body-small ${headerToneSurfaceClassName}`}
+                >
+                  {aiSummary}
+                </div>
+              ) : null}
             </div>
-            {selectedEntries.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {selectedEntries.slice(0, 4).map((entry) => (
-                  <span
-                    key={`${entry.refKind}:${entry.refId}`}
-                    className={`${headerToneChipClassName} px-2.5 py-1 osint-title-inline text-zinc-300`}
-                  >
-                    {entry.title}
-                  </span>
-                ))}
-                {selectedEntries.length > 4 ? (
-                  <span className={`${headerToneChipClassName} px-2.5 py-1 osint-body-quiet`}>
-                    +{selectedEntries.length - 4} more
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-            {aiSummary ? (
-              <div
-                className={`osint-raised-surface-subtle p-3 osint-body-small ${headerToneSurfaceClassName}`}
-              >
-                {aiSummary}
-              </div>
-            ) : null}
-          </div>
-        </Accordion>
+          </Accordion>
 
-        <div className={composerShellClassName}>
-          <textarea
-            value={boardAgentPrompt}
-            onChange={(event) => onPromptChange(event.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Ask the board agent to organize evidence, flag contradictions, or draft a note."
-            className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-[color:var(--osint-text)] outline-none placeholder:text-[color:var(--osint-text-muted)]"
-          />
-          <div
-            className={`flex items-center justify-between gap-3 border-t border-zinc-800/80 px-4 py-2.5 ${headerToneSurfaceClassName}`}
-          >
-            <div className="flex items-center gap-1">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStarterMenuOpen((current) => !current);
-                    setSessionMenuOpen(false);
-                  }}
-                  className={`${composerToolButtonClassName} ${
-                    starterMenuOpen ? 'text-osint-primary' : ''
-                  }`}
-                  aria-label="Starter prompts"
-                  title="Starter prompts"
-                >
-                  <Sparkles
-                    className={
-                      starterMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName
-                    }
-                  />
-                </button>
-                {starterMenuOpen ? (
-                  <div className="absolute bottom-11 left-0 z-20 w-72 border border-zinc-800 bg-black shadow-2xl">
-                    {BOARD_AGENT_STARTER_INTENTS.map((intent) => (
-                      <button
-                        key={intent.id}
-                        type="button"
-                        onClick={() => {
-                          onSelectStarterIntent(intent.prompt);
-                          setStarterMenuOpen(false);
-                        }}
-                        className="block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 hover:bg-zinc-900/80"
-                      >
-                        <div className="osint-meta-label-strong text-zinc-200">{intent.label}</div>
-                        <div className="mt-1 osint-body-quiet">{intent.description}</div>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSessionMenuOpen((current) => !current);
-                    setStarterMenuOpen(false);
-                  }}
-                  className={`${composerToolButtonClassName} ${
-                    sessionMenuOpen ? 'text-osint-primary' : ''
-                  }`}
-                  aria-label="Session history"
-                  title="Session history"
-                >
-                  <Clock3
-                    className={
-                      sessionMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName
-                    }
-                  />
-                </button>
-                {sessionMenuOpen ? (
-                  <div className="absolute bottom-11 left-0 z-20 w-80 border border-zinc-800 bg-black shadow-2xl">
+          <div className={composerShellClassName}>
+            <textarea
+              value={boardAgentPrompt}
+              onChange={(event) => onPromptChange(event.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Ask the board agent to organize evidence, flag contradictions, or draft a note."
+              className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-[color:var(--osint-text)] outline-none placeholder:text-[color:var(--osint-text-muted)]"
+            />
+            <div
+              className={`flex items-center justify-between gap-3 border-t border-zinc-800/80 px-4 py-2.5 ${headerToneSurfaceClassName}`}
+            >
+              <div className="flex items-center gap-1">
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStarterMenuOpen((current) => !current);
+                      setSessionMenuOpen(false);
+                    }}
+                    className={`${composerToolButtonClassName} ${
+                      starterMenuOpen ? 'text-osint-primary' : ''
+                    }`}
+                    aria-label="Starter prompts"
+                    title="Starter prompts"
+                  >
+                    <Sparkles
+                      className={
+                        starterMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName
+                      }
+                    />
+                  </button>
+                  {starterMenuOpen ? (
+                    <div className="absolute bottom-11 left-0 z-20 w-72 border border-zinc-800 bg-black shadow-2xl">
+                      {BOARD_AGENT_STARTER_INTENTS.map((intent) => (
+                        <button
+                          key={intent.id}
+                          type="button"
+                          onClick={() => {
+                            onSelectStarterIntent(intent.prompt);
+                            setStarterMenuOpen(false);
+                          }}
+                          className="block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 hover:bg-zinc-900/80"
+                        >
+                          <div className="osint-meta-label-strong text-zinc-200">{intent.label}</div>
+                          <div className="mt-1 osint-body-quiet">{intent.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSessionMenuOpen((current) => !current);
+                      setStarterMenuOpen(false);
+                    }}
+                    className={`${composerToolButtonClassName} ${
+                      sessionMenuOpen ? 'text-osint-primary' : ''
+                    }`}
+                    aria-label="Session history"
+                    title="Session history"
+                  >
+                    <Clock3
+                      className={
+                        sessionMenuOpen ? activeToolbarIconClassName : hoverToolbarIconClassName
+                      }
+                    />
+                  </button>
+                  {sessionMenuOpen ? (
+                    <div className="absolute bottom-11 left-0 z-20 w-80 border border-zinc-800 bg-black shadow-2xl">
                     <div className="border-b border-zinc-800 px-3 py-2 osint-menu-section-label">
                       Session History
                     </div>
@@ -695,43 +696,44 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                       </div>
                     ) : null}
                   </div>
-                ) : null}
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={onAttachFiles}
+                  className={composerToolButtonClassName}
+                  aria-label="Attach files"
+                  title="Attach files"
+                >
+                  <Paperclip className={hoverToolbarIconClassName} />
+                </button>
+                <button
+                  type="button"
+                  onClick={onToggleActions}
+                  className={`${composerToolButtonClassName} ${
+                    agentSections.actions ? 'text-osint-primary' : ''
+                  }`}
+                  aria-label="Toggle agent details"
+                  title="Toggle agent details"
+                >
+                  <SlidersHorizontal
+                    className={
+                      agentSections.actions ? activeToolbarIconClassName : hoverToolbarIconClassName
+                    }
+                  />
+                </button>
               </div>
               <button
                 type="button"
-                onClick={onAttachFiles}
+                onClick={onRunAgent}
+                disabled={boardAgentBusy || !boardAgentPrompt.trim()}
                 className={composerToolButtonClassName}
-                aria-label="Attach files"
-                title="Attach files"
+                aria-label={boardAgentBusy ? 'Agent running' : 'Run agent'}
+                title={boardAgentBusy ? 'Agent running' : 'Run agent'}
               >
-                <Paperclip className={hoverToolbarIconClassName} />
-              </button>
-              <button
-                type="button"
-                onClick={onToggleActions}
-                className={`${composerToolButtonClassName} ${
-                  agentSections.actions ? 'text-osint-primary' : ''
-                }`}
-                aria-label="Toggle agent details"
-                title="Toggle agent details"
-              >
-                <SlidersHorizontal
-                  className={
-                    agentSections.actions ? activeToolbarIconClassName : hoverToolbarIconClassName
-                  }
-                />
+                <Send className={hoverToolbarIconClassName} />
               </button>
             </div>
-            <button
-              type="button"
-              onClick={onRunAgent}
-              disabled={boardAgentBusy || !boardAgentPrompt.trim()}
-              className={composerToolButtonClassName}
-              aria-label={boardAgentBusy ? 'Agent running' : 'Run agent'}
-              title={boardAgentBusy ? 'Agent running' : 'Run agent'}
-            >
-              <Send className={hoverToolbarIconClassName} />
-            </button>
           </div>
         </div>
       </div>

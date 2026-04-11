@@ -13,6 +13,7 @@ interface AccordionProps {
   headerClassName?: string;
   chevronClassName?: string;
   contentClassName?: string;
+  disableActiveHeaderStyle?: boolean;
   variant?: 'section' | 'nested';
 }
 
@@ -31,6 +32,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   headerClassName = '',
   chevronClassName = '',
   contentClassName = '',
+  disableActiveHeaderStyle = false,
   variant = 'section',
 }) => {
   const wrapperClassName =
@@ -52,7 +54,9 @@ export const Accordion: React.FC<AccordionProps> = ({
         type="button"
         onClick={onToggle}
         className={`${headerBaseClassName} ${headerClassName}`}
-        data-active={variant === 'section' && isOpen ? 'true' : undefined}
+        data-active={
+          variant === 'section' && isOpen && !disableActiveHeaderStyle ? 'true' : undefined
+        }
       >
         <span className="flex min-w-0 items-center gap-2">
           {Icon && <Icon className="w-4 h-4 mr-2 text-zinc-500" />}

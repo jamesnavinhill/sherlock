@@ -140,4 +140,71 @@ describe('useNetworkGraphController', () => {
 
     expect(setFlaggedNodeIds).toHaveBeenCalledWith([]);
   });
+
+  it('defaults the inspector selection to the active workspace report when nothing else is selected', () => {
+    const setInspectorMode = vi.fn();
+    const setSelectedEntityName = vi.fn();
+    const setSelectedHeadline = vi.fn();
+    const setSelectedNode = vi.fn();
+    const setSelectedReport = vi.fn();
+
+    useNetworkGraphFeatureState.mockReturnValue({
+      ...baseState,
+      artifacts: [
+        {
+          id: 'report-1',
+          workspaceId: 'ws-1',
+          topic: 'Atlas report',
+          summary: 'Summary',
+          agendas: [],
+          leads: [],
+          entities: [],
+          sources: [],
+          rawText: 'raw',
+        },
+      ],
+    });
+
+    useNetworkGraphInspectorState.mockReturnValue({
+      clearInspectorSelection: vi.fn(),
+      handleNodeClick: vi.fn(),
+      handleOpenEntityInspector: vi.fn(),
+      handleOpenHeadlineInspector: vi.fn(),
+      handleOpenReportInspector: vi.fn(),
+      inspectorMode: null,
+      selectedEntityName: null,
+      selectedHeadline: null,
+      selectedNode: null,
+      selectedReport: null,
+      setInspectorMode,
+      setSelectedEntityName,
+      setSelectedHeadline,
+      setSelectedNode,
+      setSelectedReport,
+      setShowRightPanel: vi.fn(),
+      showRightPanel: false,
+    });
+
+    renderHook(() =>
+      useNetworkGraphController({
+        onOpenChat: vi.fn(),
+      })
+    );
+
+    expect(setSelectedReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'report-1',
+      })
+    );
+    expect(setSelectedNode).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'case-report-1',
+        type: 'REPORT',
+        label: 'Atlas report',
+      })
+    );
+    expect(setSelectedEntityName).toHaveBeenCalledWith(null);
+    expect(setSelectedHeadline).toHaveBeenCalledWith(null);
+    expect(setInspectorMode).toHaveBeenCalledWith('REPORT');
+  });
 });

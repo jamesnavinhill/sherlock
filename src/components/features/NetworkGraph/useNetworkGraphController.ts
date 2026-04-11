@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type {
@@ -23,6 +23,7 @@ import {
 import { useNetworkGraphUiState } from './useNetworkGraphUiState';
 import { useNetworkGraphInspectorState } from './useNetworkGraphInspectorState';
 import { useNetworkGraphNodeActions } from './useNetworkGraphNodeActions';
+import { getReportGraphNodeId } from './networkGraphNodeIds';
 
 interface NetworkGraphControllerOptions {
   onInvestigateEntity?: (request: InvestigationLaunchRequest) => void;
@@ -111,7 +112,9 @@ export function useNetworkGraphController({
     selectedHeadline,
     selectedNode,
     selectedReport,
+    setInspectorMode,
     setSelectedEntityName,
+    setSelectedHeadline,
     setSelectedNode,
     setSelectedReport,
     setShowRightPanel,
@@ -121,6 +124,53 @@ export function useNetworkGraphController({
   const handleWorkspaceChange = (id: string) => {
     setActiveWorkspaceId(id);
   };
+
+  useEffect(() => {
+    if (!filterWorkspaceId || selectedEntityName || selectedHeadline) {
+      return;
+    }
+
+    const fallbackReport = reports.find((entry) => entry.workspaceId === filterWorkspaceId) || null;
+    if (!fallbackReport) {
+      return;
+    }
+
+    if (selectedReport?.id === fallbackReport.id && inspectorMode === 'REPORT') {
+      return;
+    }
+
+    if (selectedReport && selectedReport.workspaceId === filterWorkspaceId && inspectorMode === 'REPORT') {
+      return;
+    }
+
+    setSelectedReport(fallbackReport);
+    setSelectedNode(
+      fallbackReport.id
+        ? {
+            id: getReportGraphNodeId(fallbackReport.id),
+            type: 'REPORT',
+            label: fallbackReport.topic,
+            data: fallbackReport,
+            connections: 0,
+          }
+        : null
+    );
+    setSelectedEntityName(null);
+    setSelectedHeadline(null);
+    setInspectorMode('REPORT');
+  }, [
+    filterWorkspaceId,
+    inspectorMode,
+    reports,
+    selectedEntityName,
+    selectedHeadline,
+    selectedReport,
+    setInspectorMode,
+    setSelectedEntityName,
+    setSelectedHeadline,
+    setSelectedNode,
+    setSelectedReport,
+  ]);
 
   const dossierData = useMemo(
     () =>

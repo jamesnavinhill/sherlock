@@ -8,6 +8,7 @@ interface GlobalInspectorHeaderProps {
   title: React.ReactNode;
   icon?: React.ReactNode;
   onClose?: () => void;
+  closeButtonClassName?: string;
   closeIcon?: React.ReactNode;
   closeLabel?: string;
   closeTitle?: string;
@@ -20,6 +21,7 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
   title,
   icon,
   onClose,
+  closeButtonClassName,
   closeIcon,
   closeLabel = 'Close inspector',
   closeTitle,
@@ -64,7 +66,7 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className={`${CHROME_GHOST_ICON_BUTTON_CLASS} shrink-0`}
+          className={`${closeButtonClassName || CHROME_GHOST_ICON_BUTTON_CLASS} shrink-0`}
           aria-label={closeLabel}
           title={closeTitle || closeLabel}
         >

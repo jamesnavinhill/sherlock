@@ -71,6 +71,36 @@ describe('Chat page', () => {
     expect(screen.getByTestId('task-setup-modal')).toBeInTheDocument();
   });
 
+  it('keeps the composer toolbar controls icon-only when the workspace primer is showing', () => {
+    useWorkspaceStore.setState({
+      workspaces: [
+        {
+          id: 'case-1',
+          title: 'Atlas Workspace',
+          status: 'ACTIVE',
+          dateOpened: '2026-04-03',
+        },
+      ],
+      activeWorkspaceId: 'case-1',
+    });
+
+    render(
+      <MemoryRouter future={routerFuture}>
+        <Chat onLaunchInvestigation={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('button', { name: /attach files/i })).toHaveClass(
+      'osint-icon-button-plain'
+    );
+    expect(screen.getByRole('button', { name: /open run configuration/i })).toHaveClass(
+      'osint-icon-button-plain'
+    );
+    expect(screen.getByRole('button', { name: /send message/i })).toHaveClass(
+      'osint-icon-button-plain'
+    );
+  });
+
   it('creates a session and streams the first message from the composer', async () => {
     const session: ChatSession = {
       id: 'chat-session-1',

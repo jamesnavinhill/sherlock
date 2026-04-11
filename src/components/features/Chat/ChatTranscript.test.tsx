@@ -62,6 +62,35 @@ describe('ChatTranscript', () => {
     );
   });
 
+  it('anchors the workspace primer at the top of the transcript before any messages exist', () => {
+    render(
+      <ChatTranscript
+        activeWorkspace={workspace}
+        messages={[]}
+        workspaces={[workspace]}
+        workingAssistantMessageId={null}
+        workingSessionId={null}
+        partialAssistantOutput=""
+        messageBodyClassName="osint-body-small"
+        sectionLabelClassName="osint-meta-label"
+        transcriptEndRef={createRef<HTMLDivElement>()}
+        splitCollapsedFollowUpBlock={(body) => ({ primaryBody: body, collapsedBody: '' })}
+        formatTimestamp={() => '12:00'}
+        copyToClipboard={vi.fn(async () => undefined)}
+        formatMessageWithCitations={(entry) => entry.content}
+        handleOpenMention={vi.fn()}
+        handlePromoteAttachment={vi.fn(async () => undefined)}
+        handleSaveMessageAsArtifact={vi.fn(async () => undefined)}
+        handleAppendMessageToArtifact={vi.fn(async () => undefined)}
+        handleLaunchFollowUp={vi.fn(async () => undefined)}
+        handleStartNewWorkspace={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('chat-assistant-primer')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-transcript-stack')).toHaveClass('justify-start');
+  });
+
   it('renders user messages as natural rows inside the shared transcript pane', () => {
     const userMessage: ChatMessage = {
       id: 'message-2',

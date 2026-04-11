@@ -162,10 +162,13 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
               onClick={() => onSelectWorkspace(workspace.id)}
               className="osint-raised-surface group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden p-6 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
             >
-              <div className="absolute right-0 top-0 p-4 opacity-20 transition-opacity group-hover:opacity-40">
+              <div
+                data-testid="files-overview-workspace-hero-icon"
+                className="absolute right-0 top-0 p-4 opacity-20 transition-opacity group-hover:opacity-40"
+              >
                 <AppIcon
                   iconId={workspace.iconId || getDefaultWorkspaceIconId()}
-                  className="h-24 w-24 text-white"
+                  className="h-24 w-24 text-white transition-colors group-hover:text-osint-primary"
                   size={96}
                   strokeWidth={1.5}
                 />

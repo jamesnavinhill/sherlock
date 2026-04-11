@@ -49,6 +49,12 @@ describe('FilesOverview', () => {
     render(<FilesOverview {...baseProps} viewMode="GRID" />);
 
     expect(screen.getByText('Workspace summary copy for layout coverage.')).toBeInTheDocument();
+    expect(
+      screen
+        .getByTestId('files-overview-workspace-hero-icon')
+        .querySelector('svg')
+        ?.getAttribute('class')
+    ).toContain('group-hover:text-osint-primary');
     expect(screen.getByTitle(/workspace chat/i)).toHaveClass('osint-icon-button-plain');
     expect(screen.getByTitle(/\(HTML\)/i)).toBeInTheDocument();
     expect(screen.getByTitle(/\(JSON\)/i)).toBeInTheDocument();
