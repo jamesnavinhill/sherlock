@@ -5,6 +5,7 @@ import { getWorkspaceDisplayTitle } from '@/domain';
 import type { WorkspaceDocumentUploadRoute } from '@/services/workspace/documentUploads';
 import type { WorkspaceDocumentUploadDialogState } from '@/components/features/shared/useWorkspaceDocumentUpload';
 import { ModalShell } from './ModalShell';
+import { OsintSelect, type OsintSelectOption } from './OsintSelect';
 
 interface WorkspaceDocumentUploadDialogProps {
   isSubmitting: boolean;
@@ -36,6 +37,13 @@ const formatArtifactTypeLabel = (artifactType: ArtifactType) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 
+const ARTIFACT_TYPE_SELECT_OPTIONS: OsintSelectOption[] = ARTIFACT_TYPE_OPTIONS.map(
+  (artifactType) => ({
+    value: artifactType,
+    label: formatArtifactTypeLabel(artifactType),
+  })
+);
+
 const buildConfirmLabel = (state: WorkspaceDocumentUploadDialogState) =>
   state.files.length === 0
     ? 'Select Files'
@@ -60,6 +68,13 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
 }) => {
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === state.targetWorkspaceId) || null;
   const requiresWorkspaceSelection = workspaces.length > 1 || !selectedWorkspace;
+  const workspaceOptions: OsintSelectOption[] = [
+    { value: '', label: 'Select a workspace...' },
+    ...workspaces.map((workspace) => ({
+      value: workspace.id,
+      label: getWorkspaceDisplayTitle(workspace),
+    })),
+  ];
   const hasFiles = state.files.length > 0;
   const selectedFilesPanelClassName = onSelectFiles
     ? `w-full border p-4 text-left transition ${
@@ -76,6 +91,7 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
       description="Choose whether these files should become canonical workspace items or draft artifacts."
       onClose={onClose}
       widthClassName="max-w-2xl"
+      allowOverflow
       footer={
         <div className="flex justify-end gap-3">
           <button
@@ -159,22 +175,17 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
 
         {requiresWorkspaceSelection ? (
           <div>
-            <label htmlFor="upload-target-workspace" className="block osint-meta-label">
+            <div className="block osint-meta-label">
               Target Workspace
-            </label>
-            <select
-              id="upload-target-workspace"
+            </div>
+            <OsintSelect
+              ariaLabel="Target workspace"
               value={state.targetWorkspaceId}
-              onChange={(event) => onTargetWorkspaceChange(event.target.value)}
-              className="mt-3 w-full border border-zinc-700 bg-black px-3 py-3 osint-body-small text-white outline-none transition focus:border-osint-primary"
-            >
-              <option value="">Select a workspace...</option>
-              {workspaces.map((workspace) => (
-                <option key={workspace.id} value={workspace.id}>
-                  {getWorkspaceDisplayTitle(workspace)}
-                </option>
-              ))}
-            </select>
+              onChange={onTargetWorkspaceChange}
+              options={workspaceOptions}
+              containerClassName="mt-3"
+              triggerClassName="px-3 py-3 osint-body-small"
+            />
           </div>
         ) : selectedWorkspace ? (
           <div className="border border-zinc-800 bg-zinc-950/80 px-4 py-3">
@@ -219,21 +230,19 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
 
         {state.route === 'ARTIFACT_DRAFT' ? (
           <div>
-            <label htmlFor="upload-artifact-type" className="block osint-meta-label">
+            <div className="block osint-meta-label">
               Artifact Type
-            </label>
-            <select
-              id="upload-artifact-type"
+            </div>
+            <OsintSelect
+              ariaLabel="Artifact type"
               value={state.artifactType}
-              onChange={(event) => onArtifactTypeChange(event.target.value as ArtifactType)}
-              className="mt-3 w-full border border-zinc-700 bg-black px-3 py-3 osint-body-small text-white outline-none transition focus:border-osint-primary"
-            >
-              {ARTIFACT_TYPE_OPTIONS.map((artifactType) => (
-                <option key={artifactType} value={artifactType}>
-                  {formatArtifactTypeLabel(artifactType)}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => onArtifactTypeChange(value as ArtifactType)}
+              options={ARTIFACT_TYPE_SELECT_OPTIONS}
+              containerClassName="mt-3"
+              triggerClassName="px-3 py-3 osint-body-small"
+              menuPlacement="top"
+              portalledMenu
+            />
           </div>
         ) : null}
       </div>

@@ -13,6 +13,7 @@ interface ModalShellProps {
   contentClassName?: string;
   closeOnOverlayClick?: boolean;
   scrollContent?: boolean;
+  allowOverflow?: boolean;
 }
 
 export const ModalShell: React.FC<ModalShellProps> = ({
@@ -26,6 +27,7 @@ export const ModalShell: React.FC<ModalShellProps> = ({
   contentClassName = '',
   closeOnOverlayClick = true,
   scrollContent = false,
+  allowOverflow = false,
 }) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -48,7 +50,7 @@ export const ModalShell: React.FC<ModalShellProps> = ({
       }}
     >
       <div
-        className={`w-full ${widthClassName} overflow-hidden border border-zinc-700 bg-zinc-950 shadow-2xl ${
+        className={`w-full ${widthClassName} ${allowOverflow ? 'overflow-visible' : 'overflow-hidden'} border border-zinc-700 bg-zinc-950 shadow-2xl ${
           scrollContent ? 'flex max-h-[calc(100vh-2rem)] flex-col' : ''
         } ${panelClassName}`.trim()}
       >
@@ -67,7 +69,13 @@ export const ModalShell: React.FC<ModalShellProps> = ({
         </div>
 
         <div
-          className={`${scrollContent ? 'min-h-0 flex-1 overflow-y-auto p-6' : 'p-6'} ${contentClassName}`.trim()}
+          className={`${
+            scrollContent
+              ? 'min-h-0 flex-1 overflow-y-auto p-6'
+              : allowOverflow
+                ? 'overflow-visible p-6'
+                : 'p-6'
+          } ${contentClassName}`.trim()}
         >
           {children}
         </div>
