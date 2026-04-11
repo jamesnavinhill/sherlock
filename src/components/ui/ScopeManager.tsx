@@ -18,7 +18,10 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { Accordion } from './Accordion';
 import {
   SETTINGS_CARD_CLASS,
+  SETTINGS_INPUT_CLASS,
+  SETTINGS_SEARCH_INPUT_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_TEXTAREA_CLASS,
 } from '@/components/features/Settings/settingsUtils';
 
 interface ScopeManagerProps {
@@ -141,7 +144,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
             placeholder="Search scopes..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="osint-input-field w-full pl-10 pr-4 py-2 osint-body-small"
+            className={SETTINGS_SEARCH_INPUT_CLASS}
           />
         </div>
         <button
@@ -181,7 +184,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                   value={formName}
                   onChange={(event) => setFormName(event.target.value)}
                   placeholder="e.g., Supply Chain Analysis"
-                  className="osint-input-field w-full p-2 osint-body-small"
+                  className={SETTINGS_INPUT_CLASS}
                 />
               </div>
 
@@ -191,7 +194,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                   value={formDescription}
                   onChange={(event) => setFormDescription(event.target.value)}
                   placeholder="Brief description of this scope or pack..."
-                  className="osint-input-field h-16 w-full resize-none p-2 osint-body-small"
+                  className={`${SETTINGS_TEXTAREA_CLASS} h-16`}
                 />
               </div>
 
@@ -202,7 +205,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                   value={formCategories}
                   onChange={(event) => setFormCategories(event.target.value)}
                   placeholder="e.g., Finance, Contracts, Compliance"
-                  className="osint-input-field w-full p-2 osint-body-small"
+                  className={SETTINGS_INPUT_CLASS}
                 />
               </div>
 
@@ -212,7 +215,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                   value={formDomainContext}
                   onChange={(event) => setFormDomainContext(event.target.value)}
                   placeholder="Provide context about this domain, workflow, or monitoring area..."
-                  className="osint-input-field h-20 w-full resize-none p-2 osint-body-small"
+                  className={`${SETTINGS_TEXTAREA_CLASS} h-20`}
                 />
               </div>
 

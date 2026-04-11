@@ -27,6 +27,7 @@ import {
 import {
   FONT_ROLE_CARDS,
   SETTINGS_CARD_CLASS,
+  SETTINGS_SELECT_TRIGGER_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
   SURFACE_LABELS,
   getSurfacePreviewTone,
@@ -193,12 +194,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             </div>
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-            <div className="space-y-4">
-              <div className={SETTINGS_CARD_CLASS}>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,2.05fr)]">
+            <div className="grid gap-4 xl:auto-rows-fr">
+              <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
                 <div className="osint-meta-label">Surface Preview</div>
                 <div
-                  className="mt-4 rounded border p-4"
+                  className="mt-4 flex flex-1 items-center justify-center rounded border p-4"
                   style={{
                     background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].background),
                     borderColor:
@@ -212,7 +213,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   }}
                 >
                   <div
-                    className="rounded border p-4"
+                    className="flex w-full items-center justify-center rounded border p-4"
                     style={{
                       background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].panel),
                       borderColor:
@@ -223,10 +224,10 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                         selectedSurfaceKey === 'panel'
                           ? '0 0 0 1px color-mix(in oklab, var(--osint-primary) 30%, transparent)'
                           : undefined,
-                    }}
-                  >
-                    <div
-                      className="rounded border p-4"
+                      }}
+                    >
+                      <div
+                      className="flex min-h-[9rem] w-full max-w-[17rem] items-center justify-center rounded border p-4"
                       style={{
                         background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].surface),
                         borderColor:
@@ -239,18 +240,22 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                             : undefined,
                       }}
                     >
-                      <div className="osint-title-inline mt-2" style={{ color: surfaceTone.textColor }}>
-                        {SURFACE_LABELS[selectedSurfaceKey]}
+                      <div
+                        className="flex h-full w-full items-center justify-center rounded border p-5 text-center"
+                        style={{ borderColor: surfaceTone.overlayColor }}
+                      >
+                        <div className="osint-title-inline" style={{ color: surfaceTone.textColor }}>
+                          {SURFACE_LABELS[selectedSurfaceKey]}
+                        </div>
                       </div>
-                      <div className="mt-3 h-8 rounded border" style={{ borderColor: surfaceTone.overlayColor }} />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className={SETTINGS_CARD_CLASS}>
+              <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
                 <div className="osint-meta-label">Surface Targets</div>
-                <div className="mt-3 grid gap-2">
+                <div className="mt-3 grid flex-1 content-start gap-2">
                   {(Object.keys(SURFACE_LABELS) as Array<keyof ThemeSurfaceScale>).map((surfaceKey) => {
                     const surface = themeSurfaceSettings[activeSurfaceMode][surfaceKey];
                     return (
@@ -281,8 +286,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               </div>
             </div>
 
-            <div className="space-y-5">
-              <div className={SETTINGS_CARD_CLASS}>
+            <div className="grid gap-4 xl:auto-rows-fr">
+              <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="osint-meta-label">Selected Surface</div>
@@ -299,7 +304,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   </button>
                 </div>
 
-                <div className="mt-5 grid gap-5 md:grid-cols-3">
+                <div className="mt-5 flex flex-1 items-center">
+                  <div className="grid w-full gap-5 lg:grid-cols-3">
                   {(
                     [
                       ['hue', 'Hue', 0, 360, 1],
@@ -325,12 +331,13 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                       </div>
                     </label>
                   ))}
+                  </div>
                 </div>
               </div>
 
-              <div className={SETTINGS_CARD_CLASS}>
+              <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
                 <div className="osint-meta-label">Quick Adjust</div>
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 flex flex-1 flex-col justify-center gap-3">
                   <button
                     type="button"
                     onClick={() => handleMatchAccentHue(activeSurfaceMode)}
@@ -338,7 +345,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   >
                     Match Accent Hue
                   </button>
-                  <div className="grid gap-2 md:grid-cols-2">
+                  <div className="grid gap-3 md:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => handleAdjustModeChroma(activeSurfaceMode, 0.004)}
@@ -354,7 +361,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                       Reduce Chroma
                     </button>
                   </div>
-                  <div className="grid gap-2 md:grid-cols-2">
+                  <div className="grid gap-3 md:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => handleAdjustModeSeparation(activeSurfaceMode, 1)}
@@ -411,7 +418,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     [role.key]: event,
                   })
                 }
-                triggerClassName="mt-3 px-3 py-2.5 pr-8 osint-meta-value"
+                triggerClassName={`mt-3 ${SETTINGS_SELECT_TRIGGER_CLASS}`}
                 options={getThemeFontOptionsForRole(role.key).map((option) => ({
                   value: option.id,
                   label: option.label,
@@ -659,7 +666,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     value as ThemeBackgroundSettings['variant']
                   )
                 }
-                triggerClassName="h-12 px-4 pr-8 osint-meta-value"
+                triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
                 options={[
                   { value: 'plain', label: 'Plain' },
                   { value: 'grid', label: 'Grid' },

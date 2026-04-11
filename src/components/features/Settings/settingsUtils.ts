@@ -16,6 +16,16 @@ export const SETTINGS_SECTION_BODY_CLASS = 'space-y-6 px-3 pb-3 pt-1';
 export const SETTINGS_CARD_CLASS =
   'osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4';
 
+export const SETTINGS_SELECT_TRIGGER_CLASS = 'p-2 pr-8 osint-meta-value';
+
+export const SETTINGS_INPUT_CLASS = 'osint-input-field w-full px-3 py-2 osint-meta-value';
+
+export const SETTINGS_SEARCH_INPUT_CLASS =
+  'osint-input-field w-full py-2 pl-10 pr-4 osint-meta-value';
+
+export const SETTINGS_TEXTAREA_CLASS =
+  'osint-input-field w-full resize-none px-3 py-2 osint-meta-value';
+
 export const SURFACE_LABELS: Record<keyof ThemeSurfaceScale, string> = {
   background: 'Workspace Background',
   panel: 'Panel Background',

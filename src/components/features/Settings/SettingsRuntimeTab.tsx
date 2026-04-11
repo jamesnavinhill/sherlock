@@ -5,7 +5,11 @@ import { ProviderModelSelector } from '@/components/features/Runs/ProviderModelS
 import { RuntimeConfigBehaviorControls } from '@/components/features/Runs/RuntimeConfigBehaviorControls';
 import { OpenRouterSearchControls } from '@/components/features/Runs/OpenRouterSearchControls';
 import { Accordion } from '@/components/ui/Accordion';
-import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS } from './settingsUtils';
+import {
+  SETTINGS_CARD_CLASS,
+  SETTINGS_INPUT_CLASS,
+  SETTINGS_SECTION_BODY_CLASS,
+} from './settingsUtils';
 import type { SettingsRuntimeState } from './useSettingsRuntimeState';
 
 interface SettingsRuntimeTabProps {
@@ -22,9 +26,9 @@ const ProviderKeyField: React.FC<{
   provider: AIProvider;
   showValue: boolean;
 }> = ({ keyValue, label, onChange, onClear, onToggleVisibility, provider, showValue }) => (
-  <div className={`${SETTINGS_CARD_CLASS} space-y-2`}>
+  <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col gap-3`}>
     <label className="block osint-meta-label">{label}</label>
-    <div className="flex flex-col sm:flex-row gap-2">
+    <div className="flex flex-1 flex-col gap-2">
       <input
         type={showValue ? 'text' : 'password'}
         value={keyValue}
@@ -34,23 +38,25 @@ const ProviderKeyField: React.FC<{
         data-1p-ignore="true"
         spellCheck={false}
         placeholder={`Enter ${provider} API Key...`}
-        className="osint-input-field flex-1 p-3 osint-meta-value"
+        className={`${SETTINGS_INPUT_CLASS} flex-1`}
       />
-      <button
-        type="button"
-        onClick={onToggleVisibility}
-        className="osint-surface-button px-4 osint-meta-label-strong"
-      >
-        {showValue ? 'HIDE' : 'SHOW'}
-      </button>
-      <button
-        type="button"
-        onClick={onClear}
-        className="osint-button-danger px-4 osint-meta-label-strong"
-        title={`Clear ${provider} key`}
-      >
-        CLEAR
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={onToggleVisibility}
+          className="osint-surface-button min-w-[5.25rem] px-4 osint-meta-label-strong"
+        >
+          {showValue ? 'HIDE' : 'SHOW'}
+        </button>
+        <button
+          type="button"
+          onClick={onClear}
+          className="osint-button-danger min-w-[5.25rem] px-4 osint-meta-label-strong"
+          title={`Clear ${provider} key`}
+        >
+          CLEAR
+        </button>
+      </div>
     </div>
   </div>
 );
@@ -83,10 +89,6 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               providerSectionClassName={SETTINGS_CARD_CLASS}
               modelSectionClassName={SETTINGS_CARD_CLASS}
             />
-
-            <p className="osint-meta-label">
-              TTS {runtime.form.providerMeta?.capabilities.supportsTts ? 'enabled' : 'not available'}.
-            </p>
 
             <RuntimeConfigBehaviorControls
               form={runtime.form}
@@ -125,7 +127,7 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
           disableActiveHeaderStyle
         >
           <div className={SETTINGS_SECTION_BODY_CLASS}>
-            <div className="space-y-6">
+            <div className="grid gap-6 xl:grid-cols-2">
               <ProviderKeyField
                 label="Google Gemini API Key"
                 provider="GEMINI"
@@ -164,12 +166,12 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               />
 
               {saveError ? (
-                <div className="osint-danger-banner osint-meta-label border px-3 py-2">
+                <div className="osint-danger-banner osint-meta-label border px-3 py-2 xl:col-span-2">
                   {saveError}
                 </div>
               ) : null}
 
-              <p className="pt-2 osint-body-quiet italic">
+              <p className="pt-2 osint-body-quiet italic xl:col-span-2">
                 Keys are stored locally in your browser.
               </p>
             </div>

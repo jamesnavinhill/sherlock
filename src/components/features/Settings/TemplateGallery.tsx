@@ -32,7 +32,13 @@ import { RuntimeConfigBehaviorControls } from '../Runs/RuntimeConfigBehaviorCont
 import { RuntimeConfigSummary } from '../Runs/RuntimeConfigSummary';
 import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
 import { Accordion } from '@/components/ui/Accordion';
-import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS } from './settingsUtils';
+import {
+  SETTINGS_CARD_CLASS,
+  SETTINGS_INPUT_CLASS,
+  SETTINGS_SEARCH_INPUT_CLASS,
+  SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_TEXTAREA_CLASS,
+} from './settingsUtils';
 
 interface TemplateGalleryProps {
   onApply: (template: WorkspaceTemplate) => void;
@@ -258,7 +264,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
             placeholder="Search templates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="osint-input-field w-full pl-10 pr-4 py-2 osint-body-small"
+            className={SETTINGS_SEARCH_INPUT_CLASS}
           />
         </div>
         <button
@@ -383,7 +389,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={templateName}
                       onChange={(event) => setTemplateName(event.target.value)}
                       placeholder="e.g., Corporate Fraud Deep-Dive"
-                      className="osint-input-field w-full p-3 osint-body-small"
+                      className={SETTINGS_INPUT_CLASS}
                       autoFocus
                     />
                   </div>
@@ -395,7 +401,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={templateDescription}
                       onChange={(event) => setTemplateDescription(event.target.value)}
                       placeholder="Describe when and why this protocol should be used."
-                      className="osint-input-field w-full h-28 resize-none p-3 osint-body-small"
+                      className={`${SETTINGS_TEXTAREA_CLASS} h-28`}
                     />
                   </div>
                 </div>
@@ -465,7 +471,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={topic}
                       onChange={(event) => setTopic(event.target.value)}
                       placeholder="Enter the question, subject, or topic this template should launch with..."
-                      className="osint-input-field w-full h-32 resize-none p-3 osint-body-small"
+                      className={`${SETTINGS_TEXTAREA_CLASS} h-32`}
                     />
                   </div>
                   <div>
@@ -477,7 +483,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       value={hypothesis}
                       onChange={(event) => setHypothesis(event.target.value)}
                       placeholder="Capture the default lens, hypothesis, or comparison this template should carry."
-                      className="osint-input-field w-full h-24 resize-none p-3 osint-body-small"
+                      className={`${SETTINGS_TEXTAREA_CLASS} h-24`}
                     />
                   </div>
                 </div>

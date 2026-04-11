@@ -1,6 +1,11 @@
 import React from 'react';
 
 import { OsintSelect } from '@/components/ui/OsintSelect';
+import {
+  SETTINGS_INPUT_CLASS,
+  SETTINGS_SELECT_TRIGGER_CLASS,
+  SETTINGS_TEXTAREA_CLASS,
+} from '@/components/features/Settings/settingsUtils';
 
 interface OpenRouterSearchControlsProps {
   allowedDomains: string;
@@ -58,7 +63,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
           ariaLabel="OpenRouter search engine"
           value={engine}
           onChange={(value) => setEngine(value as typeof engine)}
-          triggerClassName="rounded-none py-3 pl-3 pr-8 osint-meta-value"
+          triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
           options={[
             { value: 'auto', label: 'Auto' },
             { value: 'native', label: 'Native' },
@@ -74,7 +79,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
           ariaLabel="OpenRouter search context size"
           value={searchContextSize}
           onChange={(value) => setSearchContextSize(value as typeof searchContextSize)}
-          triggerClassName="rounded-none py-3 pl-3 pr-8 osint-meta-value"
+          triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
           options={[
             { value: 'low', label: 'Low' },
             { value: 'medium', label: 'Medium' },
@@ -93,7 +98,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
           max={25}
           value={maxResults}
           onChange={(event) => setMaxResults(Number(event.target.value) || 1)}
-          className="osint-input-field w-full px-3 py-3 osint-meta-value"
+          className={SETTINGS_INPUT_CLASS}
         />
       </label>
       <label className="block">
@@ -104,7 +109,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
           max={50}
           value={maxTotalResults}
           onChange={(event) => setMaxTotalResults(Number(event.target.value) || 1)}
-          className="osint-input-field w-full px-3 py-3 osint-meta-value"
+          className={SETTINGS_INPUT_CLASS}
         />
       </label>
     </div>
@@ -115,7 +120,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
         value={allowedDomains}
         onChange={(event) => setAllowedDomains(event.target.value)}
         placeholder="arxiv.org, sec.gov"
-        className="osint-input-field h-20 w-full resize-none px-3 py-3 osint-meta-value"
+        className={`${SETTINGS_TEXTAREA_CLASS} h-20`}
       />
     </label>
 
@@ -125,7 +130,7 @@ export const OpenRouterSearchControls: React.FC<OpenRouterSearchControlsProps> =
         value={excludedDomains}
         onChange={(event) => setExcludedDomains(event.target.value)}
         placeholder="reddit.com"
-        className="osint-input-field h-20 w-full resize-none px-3 py-3 osint-meta-value"
+        className={`${SETTINGS_TEXTAREA_CLASS} h-20`}
       />
     </label>
   </section>
