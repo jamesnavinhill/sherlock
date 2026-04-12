@@ -30,7 +30,6 @@ import {
   SETTINGS_CARD_ACTIVE_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_CARD_INTERACTIVE_CLASS,
-  SETTINGS_CARD_SECTION_CLASS,
   SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_SELECT_TRIGGER_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
@@ -119,6 +118,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
     'grid min-h-[5.75rem] gap-3 [grid-template-rows:auto_auto_1fr]';
   const themeWorkbenchActionClassName =
     'osint-surface-button osint-meta-label-strong w-full px-3 py-2';
+  const activeSurfaceLabelClassName =
+    'text-[color:var(--osint-primary)] [text-shadow:0_0_12px_color-mix(in_oklab,var(--osint-primary)_30%,transparent)]';
 
   const renderThemeSurfaceEditor = () => {
     const selectedSurface = themeSurfaceSettings[activeSurfaceMode][selectedSurfaceKey];
@@ -202,9 +203,16 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,2.05fr)]">
             <div className="grid gap-4 xl:auto-rows-fr">
               <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
-                <div className="osint-meta-label">Surface Preview</div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="osint-meta-label">Surface Preview</div>
+                  <div
+                    className="osint-title-inline text-zinc-100 [text-shadow:0_0_14px_rgba(255,255,255,0.16)]"
+                  >
+                    {SURFACE_LABELS[selectedSurfaceKey]}
+                  </div>
+                </div>
                 <div
-                  className="mt-4 flex flex-1 items-center justify-center rounded border p-4"
+                  className="mt-4 flex flex-1 items-center justify-center rounded border p-5"
                   style={{
                     background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].background),
                     borderColor:
@@ -218,7 +226,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   }}
                 >
                   <div
-                    className="flex w-full items-center justify-center rounded border p-4"
+                    className="flex h-full w-[86%] items-center justify-center rounded border p-5"
                     style={{
                       background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].panel),
                       borderColor:
@@ -231,8 +239,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                           : undefined,
                       }}
                     >
-                      <div
-                      className="flex min-h-[9rem] w-full max-w-[17rem] items-center justify-center rounded border p-4"
+                    <div
+                      className="flex min-h-[3.25rem] w-[72%] max-w-[13rem] items-center justify-center rounded border p-2"
                       style={{
                         background: buildAccentColor(themeSurfaceSettings[activeSurfaceMode].surface),
                         borderColor:
@@ -246,13 +254,9 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                       }}
                     >
                       <div
-                        className="flex h-full w-full items-center justify-center rounded border p-5 text-center"
+                        className="flex h-full w-full items-center justify-center rounded border p-2 text-center"
                         style={{ borderColor: surfaceTone.overlayColor }}
-                      >
-                        <div className="osint-title-inline" style={{ color: surfaceTone.textColor }}>
-                          {SURFACE_LABELS[selectedSurfaceKey]}
-                        </div>
-                      </div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -272,8 +276,18 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                         className="osint-surface-button flex items-center justify-between px-3 py-2 text-left transition-colors"
                       >
                         <div>
-                          <div className="osint-title-inline">{SURFACE_LABELS[surfaceKey]}</div>
-                          <div className="osint-meta-label">
+                          <div
+                            className={`osint-title-inline ${
+                              selectedSurfaceKey === surfaceKey ? activeSurfaceLabelClassName : ''
+                            }`}
+                          >
+                            {SURFACE_LABELS[surfaceKey]}
+                          </div>
+                          <div
+                            className={`osint-meta-label ${
+                              selectedSurfaceKey === surfaceKey ? activeSurfaceLabelClassName : ''
+                            }`}
+                          >
                             h {surface.hue.toFixed(0)} / l {surface.lightness.toFixed(3)} / c{' '}
                             {surface.chroma.toFixed(3)}
                           </div>
@@ -294,7 +308,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="osint-meta-label">Selected Surface</div>
-                    <div className="osint-title-inline mt-1">
+                    <div className={`osint-title-inline mt-1 ${activeSurfaceLabelClassName}`}>
                       {SURFACE_LABELS[selectedSurfaceKey]}
                     </div>
                   </div>
@@ -402,34 +416,33 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </button>
       </div>
 
-      <div className={SETTINGS_CARD_CLASS}>
-        <div className="grid gap-3 md:grid-cols-2">
-          {fontSelections.map((role) => (
-            <label key={role.key} className={SETTINGS_CARD_SECTION_CLASS}>
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="osint-title-inline">{role.label}</span>
-                <span className="osint-meta-label">
-                  {role.activeOption.label}
-                </span>
-              </div>
-              <OsintSelect
-                ariaLabel={`${role.label} font family`}
-                value={themeFontSettings[role.key]}
-                onChange={(event) =>
-                  onThemeFontSettingsChange({
-                    ...themeFontSettings,
-                    [role.key]: event,
-                  })
-                }
-                triggerClassName={`mt-3 ${SETTINGS_SELECT_TRIGGER_CLASS}`}
-                options={getThemeFontOptionsForRole(role.key).map((option) => ({
-                  value: option.id,
-                  label: option.label,
-                }))}
-              />
-            </label>
-          ))}
-        </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {fontSelections.map((role) => (
+          <label key={role.key} className={SETTINGS_CARD_CLASS}>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="osint-title-inline">{role.label}</span>
+              <span className="osint-meta-label">
+                {role.activeOption.label}
+              </span>
+            </div>
+            <OsintSelect
+              ariaLabel={`${role.label} font family`}
+              value={themeFontSettings[role.key]}
+              onChange={(event) =>
+                onThemeFontSettingsChange({
+                  ...themeFontSettings,
+                  [role.key]: event,
+                })
+              }
+              triggerClassName={`mt-3 ${SETTINGS_SELECT_TRIGGER_CLASS}`}
+              portalledMenu
+              options={getThemeFontOptionsForRole(role.key).map((option) => ({
+                value: option.id,
+                label: option.label,
+              }))}
+            />
+          </label>
+        ))}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -515,15 +528,32 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         >
           Incident Desk / Theme Preview
         </div>
-        <div
-          className="mt-3 leading-tight text-white"
-          style={{
-            fontFamily: fontSelectionByRole.display.activeOption.cssValue,
-            fontSize: resolvedSizes['3xl'],
-            fontWeight: resolvedWeights.display,
-          }}
-        >
-          Operational Summary
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div
+            className="leading-tight text-white"
+            style={{
+              fontFamily: fontSelectionByRole.display.activeOption.cssValue,
+              fontSize: resolvedSizes['3xl'],
+              fontWeight: resolvedWeights.display,
+            }}
+          >
+            Operational Summary
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {['Data', 'Runtime', 'Scopes', 'Theme'].map((item) => (
+              <span
+                key={item}
+                className="border border-zinc-700 px-2 py-1 uppercase text-zinc-300"
+                style={{
+                  fontFamily: fontSelectionByRole.label.activeOption.cssValue,
+                  fontSize: resolvedSizes.xs,
+                  fontWeight: resolvedWeights.label,
+                }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
         <p
           className="mt-4 max-w-3xl leading-7 text-zinc-300"
@@ -535,56 +565,15 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           Signal review should stay calm and readable while headings, chrome, and dense evidence
           still feel like part of the same system.
         </p>
-        <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className={SETTINGS_CARD_SECTION_SUBTLE_CLASS}>
-            <div
-              className="osint-meta-label"
-              style={{
-                fontFamily: fontSelectionByRole.label.activeOption.cssValue,
-                fontSize: resolvedSizes['2xs'],
-                fontWeight: resolvedWeights.label,
-              }}
-            >
-              Navigation Labels
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {['Data', 'Runtime', 'Scopes', 'Theme'].map((item) => (
-                <span
-                  key={item}
-                  className="border border-zinc-700 px-2 py-1 uppercase text-zinc-300"
-                  style={{
-                    fontFamily: fontSelectionByRole.label.activeOption.cssValue,
-                    fontSize: resolvedSizes.xs,
-                    fontWeight: resolvedWeights.label,
-                  }}
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className={SETTINGS_CARD_SECTION_SUBTLE_CLASS}>
-            <div
-              className="osint-meta-label"
-              style={{
-                fontFamily: fontSelectionByRole.label.activeOption.cssValue,
-                fontSize: resolvedSizes['2xs'],
-                fontWeight: resolvedWeights.label,
-              }}
-            >
-              Evidence Sample
-            </div>
-            <pre
-              className="mt-3 overflow-x-auto leading-7 text-zinc-300"
-              style={{
-                fontFamily: fontSelectionByRole.mono.activeOption.cssValue,
-                fontSize: resolvedSizes.sm,
-              }}
-            >
-              <code>{`artifact_id=ops-17\noklch(0.21 0.01 286)\nstatus=monitoring`}</code>
-            </pre>
-          </div>
-        </div>
+        <pre
+          className="mt-5 overflow-x-auto leading-7 text-zinc-300"
+          style={{
+            fontFamily: fontSelectionByRole.mono.activeOption.cssValue,
+            fontSize: resolvedSizes.sm,
+          }}
+        >
+          <code>{`artifact_id=ops-17\noklch(0.21 0.01 286)\nstatus=monitoring`}</code>
+        </pre>
       </div>
     </div>
   );

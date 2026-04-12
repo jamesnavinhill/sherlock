@@ -120,6 +120,18 @@ textarea {
   font-family: var(--font-sans);
 }
 
+input[type='range'] {
+  --osint-slider-track-bg: var(--osint-panel);
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  background: var(--osint-slider-track-bg);
+}
+
+input[type='range']::-moz-range-track {
+  background: var(--osint-slider-track-bg);
+}
+
 #root {
   background-color: var(--osint-dark);
   color: var(--osint-text);
