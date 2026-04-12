@@ -102,6 +102,7 @@ export const buildWorkspaceBoardViewModel = ({
       ['NOTE', 'LINK', 'FILE', 'MEDIA', 'EXCERPT'].includes(entry.kind)
     ),
     artifacts: filteredEntries.filter((entry) => entry.kind === 'ARTIFACT'),
+    findings: filteredEntries.filter((entry) => entry.kind === 'FINDING'),
     entities: filteredEntries.filter((entry) => entry.kind === 'ENTITY'),
     sources: filteredEntries.filter((entry) => entry.kind === 'SOURCE'),
     signals: filteredEntries.filter(

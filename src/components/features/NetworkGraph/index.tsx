@@ -164,6 +164,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           activeCase={workspaces.find((workspace) => workspace.id === filterWorkspaceId) || null}
           labelProfile={dossierLabelProfile}
           reports={dossierData.reports}
+          findings={dossierData.findings}
           entities={dossierData.entities}
           leads={dossierData.leads}
           sources={dossierData.sources}

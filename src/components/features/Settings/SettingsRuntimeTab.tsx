@@ -6,6 +6,7 @@ import { RuntimeConfigBehaviorControls } from '@/components/features/Runs/Runtim
 import { OpenRouterSearchControls } from '@/components/features/Runs/OpenRouterSearchControls';
 import { Accordion } from '@/components/ui/Accordion';
 import {
+  SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_INPUT_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
@@ -76,6 +77,7 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
           title="Runtime Profile"
           isOpen={runtime.runtimeSections.runtime}
           onToggle={() => runtime.toggleRuntimeSection('runtime')}
+          className={SETTINGS_ACCORDION_CLASS}
           disableActiveHeaderStyle
         >
           <div className={SETTINGS_SECTION_BODY_CLASS}>
@@ -124,6 +126,7 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
           count={configuredKeyCount}
           isOpen={runtime.runtimeSections.apiKeys}
           onToggle={() => runtime.toggleRuntimeSection('apiKeys')}
+          className={SETTINGS_ACCORDION_CLASS}
           disableActiveHeaderStyle
         >
           <div className={SETTINGS_SECTION_BODY_CLASS}>

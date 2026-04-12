@@ -1,9 +1,16 @@
-import type { Artifact, Entity, Source, Workspace } from '@/types';
+import type { Artifact, Entity, KeyFinding, Source, Workspace } from '@/types';
 import { getArtifactFollowUps, getFollowUpText } from '@/domain';
+
+export interface OperationWorkspaceFindingEntry {
+  finding: KeyFinding;
+  reportId?: string;
+  reportTopic: string;
+}
 
 interface OperationWorkspacePanelData {
   workspaceInfo: Workspace | null;
   entities: Entity[];
+  findings: OperationWorkspaceFindingEntry[];
   leads: string[];
   reports: Artifact[];
   sources: Source[];
@@ -21,6 +28,7 @@ export const buildOperationWorkspacePanelData = ({
       workspaceInfo: activeWorkspace,
       reports: [],
       entities: [],
+      findings: [],
       leads: [],
       sources: [],
     };
@@ -45,6 +53,14 @@ export const buildOperationWorkspacePanelData = ({
     )
   );
 
+  const findings = reports.flatMap((report) =>
+    (report.keyFindings || []).map((finding) => ({
+      finding,
+      reportId: report.id,
+      reportTopic: report.topic,
+    }))
+  );
+
   const sourceMap = new Map<string, Source>();
   reports
     .flatMap((report) => report.sources || [])
@@ -58,6 +74,7 @@ export const buildOperationWorkspacePanelData = ({
     workspaceInfo: activeWorkspace,
     reports,
     entities: Array.from(entityMap.values()),
+    findings,
     leads,
     sources: Array.from(sourceMap.values()),
   };

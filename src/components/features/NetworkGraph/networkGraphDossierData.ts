@@ -1,7 +1,12 @@
-import type { Artifact, Entity, Headline, Source } from '@/types';
+import type { Artifact, Entity, Headline, KeyFinding, Source } from '@/types';
 
 interface NetworkGraphDossierData {
   entities: Entity[];
+  findings: Array<{
+    finding: KeyFinding;
+    reportId?: string;
+    reportTopic: string;
+  }>;
   headlines: Headline[];
   leads: string[];
   reports: Artifact[];
@@ -24,6 +29,7 @@ export const buildNetworkGraphDossierData = ({
       leads: [],
       sources: [],
       entities: [],
+      findings: [],
     };
   }
 
@@ -58,11 +64,20 @@ export const buildNetworkGraphDossierData = ({
       }
     });
 
+  const findings = activeReports.flatMap((report) =>
+    (report.keyFindings || []).map((finding) => ({
+      finding,
+      reportId: report.id,
+      reportTopic: report.topic,
+    }))
+  );
+
   return {
     reports: activeReports,
     headlines: activeHeadlines,
     leads: allLeads,
     sources: Array.from(sourceMap.values()),
     entities: Array.from(entityMap.values()),
+    findings,
   };
 };

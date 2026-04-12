@@ -67,6 +67,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
     handleBoardAgentComposerKeyDown,
     handleBoardAgentReviewSelectionChange,
     handleApproveBoardAgentPlan,
+    handleAddArtifactPackage,
     handleCanvasDrop,
     handleCancelBoardAgent,
     handleCreateBoard,
@@ -210,6 +211,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           onToggleLibraryEntrySection={toggleLibraryEntrySection}
           onDeleteCreatedItem={(entry) => void handleDeleteCreatedItem(entry)}
           onAddToBoard={handleDropEntry}
+          onAddArtifactPackage={handleAddArtifactPackage}
         />
 
         <BoardCanvasPane

@@ -13,6 +13,7 @@ import { LibraryRailSections } from '../LibraryRail/LibraryRailSections';
 import { LibraryRailShell } from '../LibraryRail/LibraryRailShell';
 import type { LibraryRailSection } from '../LibraryRail/libraryRailTypes';
 import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
+import type { OperationWorkspaceFindingEntry } from './operationWorkspacePanelData';
 
 interface WorkspaceLibraryRailProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface WorkspaceLibraryRailProps {
   labelProfile: LabelProfile;
   // Data objects
   reports: Artifact[];
+  findings: OperationWorkspaceFindingEntry[];
   entities: Entity[];
   leads: string[];
   sources: Source[];
@@ -42,6 +44,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
   activeCase,
   labelProfile,
   reports,
+  findings,
   entities,
   leads,
   sources,
@@ -108,6 +111,24 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
           ))}
         </div>
       ),
+    });
+  }
+
+  if (findings.length > 0) {
+    sections.push({
+      id: 'findings',
+      title: 'Findings',
+      count: findings.length,
+      icon: PANEL_SECTION_ICONS.keyFindings,
+      isOpen: openSections.findings,
+      onToggle: () => toggleSection('findings'),
+      entries: findings.map(({ finding, reportId, reportTopic }) => ({
+        id: finding.id,
+        title: finding.title,
+        description: finding.summary,
+        meta: sanitizeDisplayTitle(reportTopic),
+        onClick: reportId ? () => onNavigate(reportId) : undefined,
+      })),
     });
   }
 

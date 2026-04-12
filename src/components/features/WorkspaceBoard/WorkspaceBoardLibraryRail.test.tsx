@@ -13,6 +13,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         groupedEntries={{
           created: [],
           artifacts: [],
+          findings: [],
           entities: [],
           sources: [],
           signals: [],
@@ -20,6 +21,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         librarySections={{
           created: false,
           artifacts: false,
+          findings: false,
           entities: false,
           sources: false,
           signals: false,
@@ -37,6 +39,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onToggleLibraryEntrySection={vi.fn()}
         onDeleteCreatedItem={vi.fn()}
         onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
       />
     );
 
@@ -60,6 +63,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         groupedEntries={{
           created: [],
           artifacts: [],
+          findings: [],
           entities: [],
           sources: [],
           signals: [],
@@ -67,6 +71,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         librarySections={{
           created: false,
           artifacts: false,
+          findings: false,
           entities: false,
           sources: false,
           signals: false,
@@ -84,6 +89,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onToggleLibraryEntrySection={vi.fn()}
         onDeleteCreatedItem={vi.fn()}
         onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
       />
     );
 
@@ -101,6 +107,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         groupedEntries={{
           created: [],
           artifacts: [],
+          findings: [],
           entities: [],
           sources: [],
           signals: [],
@@ -108,6 +115,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         librarySections={{
           created: false,
           artifacts: false,
+          findings: false,
           entities: false,
           sources: false,
           signals: false,
@@ -125,6 +133,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onToggleLibraryEntrySection={vi.fn()}
         onDeleteCreatedItem={vi.fn()}
         onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
       />
     );
 
@@ -162,6 +171,7 @@ describe('WorkspaceBoardLibraryRail', () => {
               iconId: 'file-text',
             },
           ],
+          findings: [],
           entities: [],
           sources: [],
           signals: [],
@@ -169,6 +179,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         librarySections={{
           created: false,
           artifacts: true,
+          findings: false,
           entities: false,
           sources: false,
           signals: false,
@@ -188,11 +199,13 @@ describe('WorkspaceBoardLibraryRail', () => {
         onToggleLibraryEntrySection={vi.fn()}
         onDeleteCreatedItem={vi.fn()}
         onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
       />
     );
 
     expect(screen.getByText('Universal Action Protocol')).toBeInTheDocument();
     expect(screen.getByText('Add To Board')).toBeInTheDocument();
+    expect(screen.getByText('Add All')).toBeInTheDocument();
     expect(screen.queryByText('ARTIFACT')).not.toBeInTheDocument();
   });
 
@@ -217,6 +230,7 @@ describe('WorkspaceBoardLibraryRail', () => {
               iconId: 'file-text',
             },
           ],
+          findings: [],
           entities: [],
           sources: [],
           signals: [],
@@ -224,6 +238,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         librarySections={{
           created: false,
           artifacts: true,
+          findings: false,
           entities: false,
           sources: false,
           signals: false,
@@ -243,6 +258,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onToggleLibraryEntrySection={vi.fn()}
         onDeleteCreatedItem={vi.fn()}
         onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
       />
     );
 
@@ -261,6 +277,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         groupedEntries={{
           created: [],
           artifacts: [],
+          findings: [],
           entities: [
             {
               workspaceId: 'ws-1',
@@ -279,6 +296,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         librarySections={{
           created: false,
           artifacts: false,
+          findings: false,
           entities: true,
           sources: false,
           signals: false,
@@ -296,6 +314,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         onToggleLibraryEntrySection={vi.fn()}
         onDeleteCreatedItem={vi.fn()}
         onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
       />
     );
 
@@ -314,6 +333,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         groupedEntries={{
           created: [],
           artifacts: [],
+          findings: [],
           entities: [],
           sources: [],
           signals: [],
@@ -321,6 +341,7 @@ describe('WorkspaceBoardLibraryRail', () => {
         librarySections={{
           created: false,
           artifacts: false,
+          findings: false,
           entities: false,
           sources: false,
           signals: false,
@@ -338,10 +359,65 @@ describe('WorkspaceBoardLibraryRail', () => {
         onToggleLibraryEntrySection={vi.fn()}
         onDeleteCreatedItem={vi.fn()}
         onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
       />
     );
 
     const panel = screen.getByText('Agentic A.I.').closest('aside');
     expect(panel?.className).toContain('lg:relative');
+  });
+
+  it('adds a dedicated findings section to the board library rail', () => {
+    render(
+      <WorkspaceBoardLibraryRail
+        isOpen
+        workspaceTitle="Agentic A.I."
+        search=""
+        groupedEntries={{
+          created: [],
+          artifacts: [],
+          findings: [
+            {
+              workspaceId: 'ws-1',
+              refKind: 'KEY_FINDING',
+              refId: 'finding-1',
+              title: 'Core divergence is architectural',
+              kind: 'FINDING',
+              description: 'Each system optimizes a different memory model.',
+              searchText: 'architectural divergence',
+              iconId: 'file-text',
+            },
+          ],
+          entities: [],
+          sources: [],
+          signals: [],
+        }}
+        librarySections={{
+          created: false,
+          artifacts: false,
+          findings: true,
+          entities: false,
+          sources: false,
+          signals: false,
+        }}
+        libraryItemSections={{}}
+        fileInputRef={{ current: null }}
+        sectionScrollClassName=""
+        onSearchChange={vi.fn()}
+        onCreateNote={vi.fn()}
+        onCreateLink={vi.fn()}
+        onAddIcon={vi.fn()}
+        onTriggerFileUpload={vi.fn()}
+        onFileUpload={vi.fn()}
+        onToggleLibrarySection={vi.fn()}
+        onToggleLibraryEntrySection={vi.fn()}
+        onDeleteCreatedItem={vi.fn()}
+        onAddToBoard={vi.fn()}
+        onAddArtifactPackage={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Findings')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Core divergence is architectural/i })).toBeInTheDocument();
   });
 });

@@ -38,7 +38,7 @@ export const useWorkspaceBoardLibraryState = ({
   const [libraryItemPendingDeletion, setLibraryItemPendingDeletion] =
     useState<WorkspaceLibraryEntry | null>(null);
   const librarySectionState = useExclusivePanelSections(
-    ['created', 'artifacts', 'entities', 'sources', 'signals'] as const
+    ['created', 'artifacts', 'findings', 'entities', 'sources', 'signals'] as const
   );
 
   const toggleLibraryEntrySection = useCallback((entryKey: string) => {

@@ -26,6 +26,7 @@ import {
 } from '@/utils/themeFonts';
 import {
   FONT_ROLE_CARDS,
+  SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_CARD_SECTION_CLASS,
   SETTINGS_CARD_SECTION_SUBTLE_CLASS,
@@ -725,7 +726,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         title="Accent"
         isOpen={themeSections.accent}
         onToggle={() => toggleThemeSection('accent')}
-        className="mb-0"
+        className={SETTINGS_ACCORDION_CLASS}
         disableActiveHeaderStyle
       >
         {renderThemeAccentSection()}
@@ -735,7 +736,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         title="Fonts"
         isOpen={themeSections.fonts}
         onToggle={() => toggleThemeSection('fonts')}
-        className="mb-0"
+        className={SETTINGS_ACCORDION_CLASS}
         disableActiveHeaderStyle
       >
         {renderFontSection()}
@@ -745,7 +746,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         title="Surface System"
         isOpen={themeSections.surfaces}
         onToggle={() => toggleThemeSection('surfaces')}
-        className="mb-0"
+        className={SETTINGS_ACCORDION_CLASS}
         disableActiveHeaderStyle
       >
         {renderThemeSurfaceEditor()}

@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import type { ChangeEvent } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { buildWorkspaceEntityRefId, buildWorkspaceSourceRefId } from '@/services/workspace/library';
 
 const navigateMock = vi.fn();
 const { useWorkspaceBoardFeatureState } = vi.hoisted(() => ({
@@ -371,5 +372,156 @@ describe('useWorkspaceBoardController', () => {
         headlineId: undefined,
       },
     });
+  });
+
+  it('adds an artifact package as a grouped cluster on the current board', () => {
+    const createShape = vi.fn();
+    const groupShapes = vi.fn();
+    const setSelectedShapes = vi.fn();
+
+    useBoardCanvasPersistence.mockReturnValue({
+      editorRef: {
+        current: {
+          createAssets: vi.fn(),
+          createShape,
+          getCurrentPageShapes: () => [],
+          getShapePageBounds: vi.fn(),
+          getViewportPageBounds: () => ({ x: 0, y: 0, w: 1400, h: 900 }),
+          groupShapes,
+          setSelectedShapes,
+        },
+      },
+      handleEditorMount: vi.fn(),
+      hydratedSnapshot: null,
+      persistCurrentBoardDocument: vi.fn(async () => undefined),
+    });
+
+    buildWorkspaceBoardViewModel.mockReturnValue({
+      ...baseViewModel,
+      libraryMap: new Map([
+        [
+          'ARTIFACT:artifact-1',
+          {
+            workspaceId: 'ws-1',
+            refKind: 'ARTIFACT',
+            refId: 'artifact-1',
+            title: 'Atlas Brief',
+            kind: 'ARTIFACT',
+            description: 'Summary',
+            contextText: 'Executive Summary\nSummary',
+            searchText: 'Atlas Brief Summary',
+          },
+        ],
+        [
+          'KEY_FINDING:finding-1',
+          {
+            workspaceId: 'ws-1',
+            refKind: 'KEY_FINDING',
+            refId: 'finding-1',
+            title: 'One core finding',
+            kind: 'FINDING',
+            description: 'Finding summary',
+            searchText: 'One core finding',
+          },
+        ],
+        [
+          `ENTITY:${buildWorkspaceEntityRefId('Atlas Holdings')}`,
+          {
+            workspaceId: 'ws-1',
+            refKind: 'ENTITY',
+            refId: buildWorkspaceEntityRefId('Atlas Holdings'),
+            title: 'Atlas Holdings',
+            kind: 'ENTITY',
+            searchText: 'Atlas Holdings',
+          },
+        ],
+        [
+          `SOURCE:${buildWorkspaceSourceRefId({
+            title: 'Registry',
+            url: 'https://example.com/registry',
+          })}`,
+          {
+            workspaceId: 'ws-1',
+            refKind: 'SOURCE',
+            refId: buildWorkspaceSourceRefId({
+              title: 'Registry',
+              url: 'https://example.com/registry',
+            }),
+            title: 'Registry',
+            kind: 'SOURCE',
+            searchText: 'Registry https://example.com/registry',
+          },
+        ],
+        [
+          'SIGNAL:signal-1',
+          {
+            workspaceId: 'ws-1',
+            refKind: 'SIGNAL',
+            refId: 'signal-1',
+            title: 'Monitor',
+            kind: 'SIGNAL',
+            description: 'Signal content',
+            searchText: 'Monitor Signal content',
+          },
+        ],
+      ]),
+      workspaceArtifacts: [
+        {
+          id: 'artifact-1',
+          workspaceId: 'ws-1',
+          topic: 'Atlas Brief',
+          summary: 'Summary',
+          agendas: [],
+          leads: [],
+          keyFindings: [
+            {
+              id: 'finding-1',
+              title: 'One core finding',
+              summary: 'Finding summary',
+            },
+          ],
+          entities: [{ name: 'Atlas Holdings', type: 'ORGANIZATION' }],
+          sources: [{ title: 'Registry', url: 'https://example.com/registry' }],
+          rawText: 'Summary',
+        },
+      ],
+      workspaceHeadlines: [
+        {
+          id: 'signal-1',
+          workspaceId: 'ws-1',
+          content: 'Signal content',
+          source: 'Monitor',
+          timestamp: '2026-04-12T12:00:00Z',
+          type: 'NEWS',
+          status: 'PENDING',
+          threatLevel: 'INFO',
+          linkedArtifactId: 'artifact-1',
+        },
+      ],
+    });
+
+    const { result } = renderHook(() =>
+      useWorkspaceBoardController({
+        onLaunchInvestigation: vi.fn(),
+        onOpenChat: vi.fn(),
+        onOpenReport: vi.fn(),
+      })
+    );
+
+    act(() => {
+      result.current.handleAddArtifactPackage({
+        workspaceId: 'ws-1',
+        refKind: 'ARTIFACT',
+        refId: 'artifact-1',
+        title: 'Atlas Brief',
+        kind: 'ARTIFACT',
+        description: 'Summary',
+        searchText: 'Atlas Brief Summary',
+      });
+    });
+
+    expect(createShape).toHaveBeenCalled();
+    expect(groupShapes).toHaveBeenCalledTimes(1);
+    expect(setSelectedShapes).toHaveBeenCalled();
   });
 });

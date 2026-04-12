@@ -14,6 +14,7 @@ import {
   buildWorkspaceItemSearchText,
   getWorkspaceItemPrimaryText,
 } from './workspaceItemText';
+import { buildArtifactBoardContent } from './artifactText';
 
 export interface WorkspaceLibraryEntry extends WorkspaceBoardItemReference {
   kind:
@@ -140,7 +141,7 @@ export const buildWorkspaceLibraryEntries = (input: {
       kind: 'ARTIFACT' as const,
       description: artifact.summary,
       subtitle: artifact.artifactType || 'Artifact',
-      contextText: [artifact.summary, artifact.rawText].filter(Boolean).join('\n\n') || artifact.topic,
+      contextText: buildArtifactBoardContent(artifact),
       searchText: [artifact.topic, artifact.summary, artifact.rawText].filter(Boolean).join(' '),
       iconId: getDefaultWorkspaceLibraryIconId({ kind: 'ARTIFACT' }),
     }));

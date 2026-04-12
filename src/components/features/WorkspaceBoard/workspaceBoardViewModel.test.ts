@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type {
+  Artifact,
   Workspace,
   WorkspaceBoard,
   WorkspaceBoardDocument,
@@ -41,6 +42,26 @@ describe('buildWorkspaceBoardViewModel', () => {
       createdAt: 1,
       updatedAt: 1,
     };
+    const artifact: Artifact = {
+      id: 'artifact-1',
+      workspaceId: 'ws-1',
+      topic: 'Atlas Brief',
+      summary: 'Summary',
+      agendas: [],
+      leads: [],
+      keyFindings: [
+        {
+          id: 'finding-1',
+          workspaceId: 'ws-1',
+          originArtifactId: 'artifact-1',
+          title: 'One core finding',
+          summary: 'A board-worthy finding.',
+        },
+      ],
+      entities: [],
+      sources: [],
+      rawText: 'Summary',
+    };
     const selectedEntry = {
       kind: 'NOTE',
       title: 'Board Note',
@@ -52,12 +73,12 @@ describe('buildWorkspaceBoardViewModel', () => {
     const viewModel = buildWorkspaceBoardViewModel({
       activeWorkspaceBoardId: 'board-1',
       activeWorkspaceId: 'ws-1',
-      artifacts: [],
+      artifacts: [artifact],
       boardAgentActionsBySessionId: {},
       boardAgentActiveSessionId: null,
       boardAgentSessions: [],
       headlines: [],
-      search: 'note',
+      search: '',
       selectedEntries: [selectedEntry],
       workspaceBoardDocuments: { 'board-1': document },
       workspaceBoards: [board],
@@ -68,6 +89,7 @@ describe('buildWorkspaceBoardViewModel', () => {
     expect(viewModel.activeBoard?.id).toBe('board-1');
     expect(viewModel.activeBoardDocument?.boardId).toBe('board-1');
     expect(viewModel.groupedEntries.created).toHaveLength(1);
+    expect(viewModel.groupedEntries.findings).toHaveLength(1);
     expect(viewModel.selectedWorkspaceItem?.id).toBe('item-1');
     expect(viewModel.workspaceTitle).toBe('Alpha Workspace');
   });

@@ -205,6 +205,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
           activeCase={activeCase}
           labelProfile={labelProfile}
           reports={casePanelData.reports}
+          findings={casePanelData.findings}
           entities={casePanelData.entities}
           leads={casePanelData.leads}
           sources={casePanelData.sources}

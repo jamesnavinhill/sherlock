@@ -123,19 +123,32 @@ const clipBoardCardText = (value: string | undefined, maxLength: number) => {
   return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
 };
 
+const estimateArtifactCardHeight = (content: string, width: number) => {
+  const charsPerLine = Math.max(32, Math.floor(width / 8.75));
+  const wrappedLineCount = content
+    .split('\n')
+    .map((line) => {
+      if (!line.trim()) return 1;
+      return Math.max(1, Math.ceil(line.length / charsPerLine));
+    })
+    .reduce((total, lineCount) => total + lineCount, 0);
+
+  return Math.max(520, 96 + wrappedLineCount * 18);
+};
+
 export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec => {
   switch (entry.kind) {
-    case 'ARTIFACT':
+    case 'ARTIFACT': {
+      const width = 520;
+      const artifactBody = (entry.contextText || entry.description || '').trim();
       return {
         color: getShapeColor(entry),
-        w: 420,
-        h: 520,
+        w: width,
+        h: estimateArtifactCardHeight(`${entry.title}\n\n${artifactBody}`, width),
         iconId: entry.iconId,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.description || entry.contextText,
-          560
-        )}`,
+        content: artifactBody ? `${entry.title}\n\n${artifactBody}` : entry.title,
       };
+    }
     case 'FINDING':
       return {
         color: getShapeColor(entry),

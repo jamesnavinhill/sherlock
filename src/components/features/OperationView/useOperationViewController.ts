@@ -53,6 +53,7 @@ export function useOperationViewController({
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     caseInfo: false,
     reports: false,
+    findings: false,
     entities: false,
     leads: false,
     evidence: false,

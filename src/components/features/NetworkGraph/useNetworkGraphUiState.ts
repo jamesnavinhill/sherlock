@@ -25,6 +25,7 @@ export const useNetworkGraphUiState = () => {
   } | null>(null);
   const [dossierSections, setDossierSections] = useState<Record<string, boolean>>({
     reports: false,
+    findings: false,
     entities: false,
     headlines: false,
     leads: false,

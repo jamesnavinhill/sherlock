@@ -33,12 +33,17 @@ import { RuntimeConfigSummary } from '../Runs/RuntimeConfigSummary';
 import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
 import { Accordion } from '@/components/ui/Accordion';
 import {
+  SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_CARD_SECTION_CLASS,
   SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_INPUT_CLASS,
+  SETTINGS_MODAL_ACTION_ROW_CLASS,
+  SETTINGS_MODAL_HEADER_CLASS,
+  SETTINGS_MODAL_PANEL_CLASS,
   SETTINGS_SEARCH_INPUT_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_TOOLBAR_CLASS,
   SETTINGS_TEXTAREA_CLASS,
 } from './settingsUtils';
 
@@ -258,7 +263,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
   return (
     <div className="space-y-6">
-      <div className="osint-panel-shell flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/50 p-4 border border-zinc-800">
+      <div className={SETTINGS_TOOLBAR_CLASS}>
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
@@ -283,6 +288,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         count={filteredTemplates.length}
         isOpen={libraryOpen}
         onToggle={() => setLibraryOpen((current) => !current)}
+        className={SETTINGS_ACCORDION_CLASS}
         disableActiveHeaderStyle
       >
         <div className={SETTINGS_SECTION_BODY_CLASS}>
@@ -342,11 +348,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
       {showCreateModal && (
         <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="osint-panel-shell w-full max-w-4xl bg-black border border-zinc-700 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-950 flex items-start justify-between gap-4">
+          <div
+            className={`${SETTINGS_MODAL_PANEL_CLASS} w-full max-w-4xl flex flex-col max-h-[88vh] overflow-hidden`}
+          >
+            <div className={`${SETTINGS_MODAL_HEADER_CLASS} px-6 py-4`}>
               <div>
                 <h3 className="osint-panel-title">Create Protocol Template</h3>
-                <p className="osint-eyebrow mt-1 text-zinc-500">
+                <p className="osint-body-quiet mt-1">
                   Reusable pack and purpose-aware launch setup
                 </p>
               </div>
@@ -359,7 +367,9 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               </button>
             </div>
 
-            <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-900/40 flex items-center gap-2 overflow-x-auto">
+            <div
+              className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} rounded-none border-x-0 px-6 py-4 flex items-center gap-2 overflow-x-auto`}
+            >
               {CREATE_STEPS.map((step) => {
                 const isActive = createStep === step.id;
                 const isDone = createStep > step.id;
@@ -524,7 +534,9 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
+            <div
+              className={`${SETTINGS_MODAL_ACTION_ROW_CLASS} px-6 py-4`}
+            >
               <div className="osint-meta-label">
                 Step {createStep + 1} of {CREATE_STEPS.length}
               </div>

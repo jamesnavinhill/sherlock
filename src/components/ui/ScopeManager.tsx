@@ -18,10 +18,12 @@ import { getEntityToneClass } from '../../utils/entityPalette';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Accordion } from './Accordion';
 import {
+  SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_INPUT_CLASS,
   SETTINGS_SEARCH_INPUT_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_TOOLBAR_CLASS,
   SETTINGS_TEXTAREA_CLASS,
 } from '@/components/features/Settings/settingsUtils';
 
@@ -152,7 +154,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
 
   return (
     <div className="space-y-6">
-      <div className="osint-panel-shell flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/50 p-4 border border-zinc-800">
+      <div className={SETTINGS_TOOLBAR_CLASS}>
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
@@ -177,6 +179,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
         count={filteredScopes.length}
         isOpen={libraryOpen}
         onToggle={() => setLibraryOpen((current) => !current)}
+        className={SETTINGS_ACCORDION_CLASS}
         disableActiveHeaderStyle
       >
         <div className={SETTINGS_SECTION_BODY_CLASS}>

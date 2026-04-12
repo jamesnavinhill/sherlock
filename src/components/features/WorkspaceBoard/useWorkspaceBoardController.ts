@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createShapeId, type Editor } from 'tldraw';
 
 import type {
   Artifact,
@@ -23,6 +24,7 @@ import {
   findBoardShapeIdsForReference,
   placeStandaloneIconOnBoard,
 } from '../../../services/workspace/boardShapes';
+import { buildArtifactPackageEntries } from '@/services/workspace/artifactBoard';
 import {
   LEFT_PANEL_SECTION_SCROLL_CLASS,
   placeEntryOnBoard,
@@ -55,6 +57,84 @@ interface UseWorkspaceBoardControllerInput {
   onOpenChat: (request: ChatOpenRequest) => void;
   onOpenReport: (report: Artifact) => void;
 }
+
+const PACKAGE_GUTTER_X = 24;
+const PACKAGE_GUTTER_Y = 24;
+const PACKAGE_STACK_GAP = 96;
+
+const getBoardContentBounds = (editor: Editor) => {
+  const bounds = editor
+    .getCurrentPageShapes()
+    .map((shape) => editor.getShapePageBounds(shape.id as never))
+    .filter((entry): entry is NonNullable<typeof entry> => !!entry);
+
+  if (bounds.length === 0) return null;
+
+  return {
+    minX: Math.min(...bounds.map((entry) => entry.x)),
+    maxY: Math.max(...bounds.map((entry) => entry.y + entry.h)),
+  };
+};
+
+const resolveArtifactPackageOrigin = (editor: Editor) => {
+  const viewport = editor.getViewportPageBounds();
+  const existingBounds = getBoardContentBounds(editor);
+
+  if (!existingBounds) {
+    return {
+      x: viewport.x + 48,
+      y: viewport.y + 48,
+    };
+  }
+
+  return {
+    x: existingBounds.minX,
+    y: existingBounds.maxY + PACKAGE_STACK_GAP,
+  };
+};
+
+const placeEntryGrid = (input: {
+  editor: Editor;
+  entries: WorkspaceLibraryEntry[];
+  maxColumns: number;
+  startX: number;
+  startY: number;
+  themeMode: 'dark' | 'light';
+}) => {
+  if (input.entries.length === 0) {
+    return {
+      height: 0,
+      shapeIds: [] as string[],
+      width: 0,
+    };
+  }
+
+  const firstCard = buildBoardCardSpec(input.entries[0]);
+  const columns = Math.max(1, Math.min(input.maxColumns, input.entries.length));
+  const shapeIds: string[] = [];
+
+  input.entries.forEach((entry, index) => {
+    const card = buildBoardCardSpec(entry);
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const placed = placeEntryOnBoard(
+      input.editor,
+      entry,
+      input.startX + column * (card.w + PACKAGE_GUTTER_X),
+      input.startY + row * (card.h + PACKAGE_GUTTER_Y),
+      input.themeMode
+    );
+    shapeIds.push(placed.shapeId as string);
+  });
+
+  const rows = Math.ceil(input.entries.length / columns);
+
+  return {
+    width: columns * firstCard.w + (columns - 1) * PACKAGE_GUTTER_X,
+    height: rows * firstCard.h + (rows - 1) * PACKAGE_GUTTER_Y,
+    shapeIds,
+  };
+};
 
 export const useWorkspaceBoardController = ({
   onLaunchInvestigation,
@@ -446,6 +526,110 @@ export const useWorkspaceBoardController = ({
     [activeBoard, addToast, editorRef, themeMode]
   );
 
+  const handleAddArtifactPackage = useCallback(
+    (entry: WorkspaceLibraryEntry) => {
+      if (!editorRef.current || !activeBoard || !activeWorkspace) return;
+      if (entry.refKind !== 'ARTIFACT') return;
+      if (activeBoard.presentationMode) {
+        addToast('Disable presentation mode before editing this board.', 'INFO');
+        return;
+      }
+
+      const artifact = workspaceArtifacts.find(
+        (candidate): candidate is Artifact & { id: string; workspaceId: string } =>
+          candidate.id === entry.refId &&
+          candidate.workspaceId === activeWorkspace.id
+      );
+      if (!artifact) {
+        addToast('Artifact package could not be resolved from the current workspace.', 'ERROR');
+        return;
+      }
+
+      const packageEntries = buildArtifactPackageEntries({
+        artifact,
+        libraryMap,
+        workspaceSignals: workspaceHeadlines,
+      });
+      if (!packageEntries) {
+        addToast('Artifact package could not be assembled for board placement.', 'ERROR');
+        return;
+      }
+
+      const origin = resolveArtifactPackageOrigin(editorRef.current);
+      const placedArtifact = placeEntryOnBoard(
+        editorRef.current,
+        packageEntries.artifactEntry,
+        origin.x,
+        origin.y,
+        themeMode
+      );
+
+      const artifactCard = placedArtifact.card;
+      const rightColumnX = origin.x + artifactCard.w + 48;
+      let rightColumnY = origin.y;
+      const shapeIds = [placedArtifact.shapeId as string];
+
+      const findingBlock = placeEntryGrid({
+        editor: editorRef.current,
+        entries: packageEntries.findingEntries,
+        maxColumns: 3,
+        startX: rightColumnX,
+        startY: rightColumnY,
+        themeMode,
+      });
+      shapeIds.push(...findingBlock.shapeIds);
+      rightColumnY += findingBlock.height > 0 ? findingBlock.height + PACKAGE_GUTTER_Y : 0;
+
+      const entityBlock = placeEntryGrid({
+        editor: editorRef.current,
+        entries: packageEntries.entityEntries,
+        maxColumns: 3,
+        startX: rightColumnX,
+        startY: rightColumnY,
+        themeMode,
+      });
+      shapeIds.push(...entityBlock.shapeIds);
+      rightColumnY += entityBlock.height > 0 ? entityBlock.height + PACKAGE_GUTTER_Y : 0;
+
+      const sourceBlock = placeEntryGrid({
+        editor: editorRef.current,
+        entries: packageEntries.sourceEntries,
+        maxColumns: 2,
+        startX: rightColumnX,
+        startY: rightColumnY,
+        themeMode,
+      });
+      shapeIds.push(...sourceBlock.shapeIds);
+      rightColumnY += sourceBlock.height > 0 ? sourceBlock.height + PACKAGE_GUTTER_Y : 0;
+
+      const signalBlock = placeEntryGrid({
+        editor: editorRef.current,
+        entries: packageEntries.signalEntries,
+        maxColumns: 2,
+        startX: rightColumnX,
+        startY: rightColumnY,
+        themeMode,
+      });
+      shapeIds.push(...signalBlock.shapeIds);
+
+      if (shapeIds.length > 1) {
+        const groupId = createShapeId();
+        editorRef.current.groupShapes(shapeIds as never[], { groupId });
+        editorRef.current.setSelectedShapes([groupId]);
+      }
+    },
+    [
+      activeBoard,
+      activeWorkspace,
+      addToast,
+      editorRef,
+      libraryMap,
+      themeMode,
+      workspaceArtifacts,
+      workspaceHeadlines,
+    ]
+  );
+
   const handleCanvasDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const raw = event.dataTransfer.getData('application/json+sherlock-entry');
@@ -813,6 +997,7 @@ export const useWorkspaceBoardController = ({
     handleBoardAgentComposerKeyDown,
     handleBoardAgentReviewSelectionChange,
     handleApproveBoardAgentPlan,
+    handleAddArtifactPackage,
     handleCanvasDrop,
     handleCancelBoardAgent,
     handleCreateBoard,

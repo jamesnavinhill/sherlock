@@ -2,6 +2,14 @@ import { Compass, Cpu, Database, Layout, Palette } from 'lucide-react';
 
 import type { ThemeSurfaceScale, ThemeSurfaceSettings } from '@/utils/themeSurfaces';
 import type { ThemeFontRole } from '@/utils/themeFonts';
+import {
+  CHROME_CARD_SECTION_CLASS,
+  CHROME_CARD_SECTION_SUBTLE_CLASS,
+  CHROME_CARD_SURFACE_CLASS,
+  CHROME_PANEL_ACTION_ROW_CLASS,
+  CHROME_PANEL_CLASS,
+  CHROME_PANEL_HEADER_CLASS,
+} from '@/components/ui/chrome';
 
 export const TABS = [
   { id: 'DATA', label: 'Data', icon: Database },
@@ -14,11 +22,26 @@ export const TABS = [
 export const SETTINGS_SECTION_BODY_CLASS = 'space-y-6 px-3 pb-3 pt-1';
 
 export const SETTINGS_CARD_CLASS =
-  'osint-raised-surface osint-card-surface rounded p-4';
+  `${CHROME_CARD_SURFACE_CLASS} rounded p-4`;
 
-export const SETTINGS_CARD_SECTION_CLASS = 'osint-card-section rounded p-4';
+export const SETTINGS_CARD_SECTION_CLASS =
+  `${CHROME_CARD_SECTION_CLASS} rounded p-4`;
 
-export const SETTINGS_CARD_SECTION_SUBTLE_CLASS = 'osint-card-section-subtle rounded p-4';
+export const SETTINGS_CARD_SECTION_SUBTLE_CLASS =
+  `${CHROME_CARD_SECTION_SUBTLE_CLASS} rounded p-4`;
+
+export const SETTINGS_ACCORDION_CLASS = 'mb-0';
+
+export const SETTINGS_TOOLBAR_CLASS =
+  `${CHROME_CARD_SECTION_SUBTLE_CLASS} flex flex-col justify-between gap-4 rounded p-4 md:flex-row md:items-center`;
+
+export const SETTINGS_MODAL_PANEL_CLASS = `${CHROME_PANEL_CLASS} osint-section-shadow`;
+
+export const SETTINGS_MODAL_HEADER_CLASS =
+  `${CHROME_PANEL_HEADER_CLASS} flex items-start justify-between gap-4`;
+
+export const SETTINGS_MODAL_ACTION_ROW_CLASS =
+  `${CHROME_PANEL_ACTION_ROW_CLASS} flex items-center justify-between`;
 
 export const SETTINGS_SELECT_TRIGGER_CLASS = 'p-2 pr-8 osint-meta-value';
 

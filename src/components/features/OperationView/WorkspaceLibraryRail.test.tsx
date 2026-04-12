@@ -48,12 +48,14 @@ describe('WorkspaceLibraryRail', () => {
         activeCase={workspace}
         labelProfile={labelProfile}
         reports={[artifact]}
+        findings={[]}
         entities={[entity]}
         leads={[]}
         sources={[]}
         headlines={[]}
         openSections={{
           reports: true,
+          findings: false,
           entities: false,
           leads: false,
           evidence: false,
@@ -95,12 +97,14 @@ describe('WorkspaceLibraryRail', () => {
         activeCase={workspace}
         labelProfile={labelProfile}
         reports={[]}
+        findings={[]}
         entities={[entity]}
         leads={[]}
         sources={[]}
         headlines={[]}
         openSections={{
           reports: false,
+          findings: false,
           entities: true,
           leads: false,
           evidence: false,
@@ -134,12 +138,14 @@ describe('WorkspaceLibraryRail', () => {
         activeCase={workspace}
         labelProfile={labelProfile}
         reports={[]}
+        findings={[]}
         entities={[]}
         leads={['Trace shared directors across the vendor cluster.']}
         sources={[]}
         headlines={[]}
         openSections={{
           reports: false,
+          findings: false,
           entities: false,
           leads: true,
           evidence: false,
@@ -173,12 +179,14 @@ describe('WorkspaceLibraryRail', () => {
         activeCase={workspace}
         labelProfile={labelProfile}
         reports={[]}
+        findings={[]}
         entities={[]}
         leads={[]}
         sources={[]}
         headlines={[]}
         openSections={{
           reports: false,
+          findings: false,
           entities: false,
           leads: false,
           evidence: false,
@@ -211,12 +219,14 @@ describe('WorkspaceLibraryRail', () => {
         activeCase={workspace}
         labelProfile={labelProfile}
         reports={[]}
+        findings={[]}
         entities={[]}
         leads={[]}
         sources={[{ title: 'Registry', url: 'https://example.com/registry' }]}
         headlines={[]}
         openSections={{
           reports: false,
+          findings: false,
           entities: false,
           leads: false,
           evidence: false,
@@ -249,12 +259,14 @@ describe('WorkspaceLibraryRail', () => {
         activeCase={workspace}
         labelProfile={labelProfile}
         reports={[]}
+        findings={[]}
         entities={[]}
         leads={[]}
         sources={[]}
         headlines={[]}
         openSections={{
           reports: false,
+          findings: false,
           entities: false,
           leads: false,
           evidence: false,
@@ -290,12 +302,14 @@ describe('WorkspaceLibraryRail', () => {
         activeCase={workspace}
         labelProfile={labelProfile}
         reports={[]}
+        findings={[]}
         entities={[]}
         leads={[]}
         sources={[]}
         headlines={[]}
         openSections={{
           reports: false,
+          findings: false,
           entities: false,
           leads: false,
           evidence: false,
@@ -314,5 +328,55 @@ describe('WorkspaceLibraryRail', () => {
     const panel = screen.getByText('Atlas Workspace').closest('aside');
     expect(panel?.className).toContain('lg:absolute');
     expect(panel?.className).not.toContain('lg:relative');
+  });
+
+  it('surfaces findings as their own rail section in the operation library', () => {
+    const workspace: Workspace = {
+      id: 'workspace-1',
+      title: 'Atlas Workspace',
+      status: 'ACTIVE',
+      dateOpened: '2026-04-08',
+    };
+
+    render(
+      <WorkspaceLibraryRail
+        isOpen
+        activeCase={workspace}
+        labelProfile={labelProfile}
+        reports={[]}
+        findings={[
+          {
+            finding: {
+              id: 'finding-1',
+              title: 'Ownership chain converges on one holding company',
+              summary: 'Registry and procurement records point to a shared parent.',
+            },
+            reportId: 'artifact-1',
+            reportTopic: 'Procurement File',
+          },
+        ]}
+        entities={[]}
+        leads={[]}
+        sources={[]}
+        headlines={[]}
+        openSections={{
+          reports: false,
+          findings: true,
+          entities: false,
+          leads: false,
+          evidence: false,
+          sources: false,
+          headlines: false,
+        }}
+        toggleSection={vi.fn()}
+        onNavigate={vi.fn()}
+        onEntityClick={vi.fn()}
+        onLeadClick={vi.fn()}
+        onHeadlineClick={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Findings')).toBeInTheDocument();
+    expect(screen.getByText('Ownership chain converges on one holding company')).toBeInTheDocument();
   });
 });

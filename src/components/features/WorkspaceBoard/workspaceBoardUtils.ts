@@ -26,5 +26,5 @@ export const placeEntryOnBoard = (
   y: number,
   themeMode: ThemeMode
 ) => {
-  placeWorkspaceEntryOnBoard(editor, entry, x, y, themeMode);
+  return placeWorkspaceEntryOnBoard(editor, entry, x, y, themeMode);
 };

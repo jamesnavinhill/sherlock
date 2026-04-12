@@ -19,6 +19,7 @@ import { serializeBoardReference } from '@/services/workspace/boardShapes';
 interface GroupedEntries {
   created: WorkspaceLibraryEntry[];
   artifacts: WorkspaceLibraryEntry[];
+  findings: WorkspaceLibraryEntry[];
   entities: WorkspaceLibraryEntry[];
   sources: WorkspaceLibraryEntry[];
   signals: WorkspaceLibraryEntry[];
@@ -43,6 +44,7 @@ interface WorkspaceBoardLibraryRailProps {
   onToggleLibraryEntrySection: (entryKey: string) => void;
   onDeleteCreatedItem: (entry: WorkspaceLibraryEntry) => void;
   onAddToBoard: (entry: WorkspaceLibraryEntry) => void;
+  onAddArtifactPackage: (entry: WorkspaceLibraryEntry) => void;
 }
 
 export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps> = ({
@@ -64,12 +66,14 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
   onToggleLibraryEntrySection,
   onDeleteCreatedItem,
   onAddToBoard,
+  onAddArtifactPackage,
 }) => {
   const railSectionScrollClassName = sectionScrollClassName || CHROME_RAIL_SECTION_SCROLL_CLASS;
   const sections: LibraryRailSection[] = (
     [
       ['created', 'Created Items', groupedEntries.created, FilePlus2],
       ['artifacts', 'Artifacts', groupedEntries.artifacts, PANEL_SECTION_ICONS.artifacts],
+      ['findings', 'Findings', groupedEntries.findings, PANEL_SECTION_ICONS.keyFindings],
       ['entities', 'Entities', groupedEntries.entities, PANEL_SECTION_ICONS.entities],
       ['sources', 'Sources', groupedEntries.sources, PANEL_SECTION_ICONS.sources],
       ['signals', 'Signals', groupedEntries.signals, PANEL_SECTION_ICONS.signals],
@@ -145,7 +149,11 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                         </div>
                         <div
                           className={getChromeThinActionRowClassName(
-                            key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? 2 : 1
+                            key === 'artifacts'
+                              ? 2
+                              : key === 'created' && entry.refKind === 'WORKSPACE_ITEM'
+                                ? 2
+                                : 1
                           )}
                         >
                           {key === 'created' && entry.refKind === 'WORKSPACE_ITEM' ? (
@@ -165,6 +173,15 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                           >
                             Add To Board
                           </button>
+                          {key === 'artifacts' ? (
+                            <button
+                              type="button"
+                              onClick={() => onAddArtifactPackage(entry)}
+                              className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+                            >
+                              Add All
+                            </button>
+                          ) : null}
                         </div>
                       </div>
                     </div>

@@ -9,7 +9,11 @@ import {
 
 import { Accordion } from '@/components/ui/Accordion';
 import { CHROME_HEADER_CONTROL_HEIGHT_CLASS } from '@/components/ui/chrome';
-import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS } from './settingsUtils';
+import {
+  SETTINGS_ACCORDION_CLASS,
+  SETTINGS_CARD_CLASS,
+  SETTINGS_SECTION_BODY_CLASS,
+} from './settingsUtils';
 
 interface SettingsDataTabProps {
   autoResolve: boolean;
@@ -88,6 +92,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
           title="Operational Preferences"
           isOpen={dataSections.preferences}
           onToggle={() => toggleDataSection('preferences')}
+          className={SETTINGS_ACCORDION_CLASS}
           disableActiveHeaderStyle
         >
           <div className={SETTINGS_SECTION_BODY_CLASS}>
@@ -112,6 +117,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
           title="Workspace Data"
           isOpen={dataSections.workspaceData}
           onToggle={() => toggleDataSection('workspaceData')}
+          className={SETTINGS_ACCORDION_CLASS}
           disableActiveHeaderStyle
         >
           <div className={SETTINGS_SECTION_BODY_CLASS}>
@@ -137,7 +143,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                       <ChevronDown className="h-4 w-4 flex-shrink-0 text-zinc-500" />
                     </button>
                     {showExportMenu ? (
-                      <div className="osint-menu-panel absolute left-0 top-full z-20 mt-1 min-w-full border border-zinc-700 bg-zinc-900">
+                      <div className="osint-menu-panel absolute left-0 top-full z-20 mt-1 min-w-full">
                         <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
                           Workspace Backup
                         </div>
