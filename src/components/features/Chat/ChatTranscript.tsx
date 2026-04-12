@@ -125,7 +125,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div className={`flex items-center gap-2 ${sectionLabelClassName}`}>
                       <TranscriptRoleIcon role="assistant" />
-                      assistant
+                      Sherlock
                     </div>
                     <div className="osint-body-quiet">Ready in workspace</div>
                   </div>
@@ -174,7 +174,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                         ) : (
                           <TranscriptRoleIcon role="user" />
                         )}
-                        {message.role}
+                        {isAssistant ? 'Sherlock' : message.role}
                       </div>
                     </div>
 

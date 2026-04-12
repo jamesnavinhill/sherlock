@@ -396,7 +396,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                           className={`flex items-center gap-2 ${sectionLabelClassName} justify-start`}
                         >
                           <TranscriptRoleIcon role="assistant" />
-                          assistant
+                          Sherlock
                         </div>
                         {showAssistantStatusChip ? (
                           <span

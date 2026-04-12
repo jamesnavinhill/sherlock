@@ -121,7 +121,7 @@ textarea {
 }
 
 input[type='range'] {
-  --osint-slider-track-bg: var(--osint-panel);
+  --osint-slider-track-bg: var(--osint-surface);
 }
 
 input[type='range']::-webkit-slider-runnable-track {
@@ -1975,7 +1975,7 @@ body,
   --osint-interaction-shadow: 0 12px 24px -24px rgba(31, 22, 13, 0.22);
   --osint-card-surface-bg: var(--osint-interaction-bg);
   --osint-card-section-bg: color-mix(in oklab, var(--osint-panel) 72%, var(--osint-surface) 28%);
-  --osint-card-section-subtle-bg: color-mix(in oklab, var(--osint-panel) 64%, white 36%);
+  --osint-card-section-subtle-bg: color-mix(in oklab, var(--osint-panel) 64%, var(--osint-surface) 36%);
   --osint-rail-interaction-hover-bg: var(--osint-interaction-hover-bg);
   --osint-rail-interaction-active-bg: var(--osint-interaction-active-bg);
   --osint-rail-interaction-hover-color: var(--osint-text-action);

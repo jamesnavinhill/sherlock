@@ -461,7 +461,7 @@ ${formatArtifactMarkdown(artifact, labelProfile)}
 const formatChatMessageMarkdown = (message: ChatMessage) => {
   const heading =
     message.role === 'assistant'
-      ? 'Assistant'
+      ? 'Sherlock'
       : message.role === 'user'
         ? 'User'
         : message.role === 'system'
