@@ -123,8 +123,20 @@ const clipBoardCardText = (value: string | undefined, maxLength: number) => {
   return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
 };
 
+const clipBoardCardContent = (value: string | undefined, maxLength: number) => {
+  if (!value) return '';
+  const normalized = value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('\n');
+
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
+};
+
 const estimateArtifactCardHeight = (content: string, width: number) => {
-  const charsPerLine = Math.max(32, Math.floor(width / 8.75));
+  const charsPerLine = Math.max(28, Math.floor(width / 7.2));
   const wrappedLineCount = content
     .split('\n')
     .map((line) => {
@@ -133,51 +145,95 @@ const estimateArtifactCardHeight = (content: string, width: number) => {
     })
     .reduce((total, lineCount) => total + lineCount, 0);
 
-  return Math.max(520, 96 + wrappedLineCount * 18);
+  return Math.max(420, 120 + wrappedLineCount * 22);
+};
+
+const estimateBoardCardHeight = (
+  content: string,
+  width: number,
+  {
+    minHeight,
+    maxHeight,
+    charsPerLineDivisor = 9.2,
+    baseHeight = 84,
+    lineHeight = 18,
+  }: {
+    minHeight: number;
+    maxHeight: number;
+    charsPerLineDivisor?: number;
+    baseHeight?: number;
+    lineHeight?: number;
+  }
+) => {
+  const charsPerLine = Math.max(20, Math.floor(width / charsPerLineDivisor));
+  const wrappedLineCount = content
+    .split('\n')
+    .map((line) => {
+      if (!line.trim()) return 1;
+      return Math.max(1, Math.ceil(line.length / charsPerLine));
+    })
+    .reduce((total, lineCount) => total + lineCount, 0);
+
+  return Math.max(minHeight, Math.min(maxHeight, baseHeight + wrappedLineCount * lineHeight));
 };
 
 export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec => {
   switch (entry.kind) {
     case 'ARTIFACT': {
-      const width = 520;
+      const width = 1400;
       const artifactBody = (entry.contextText || entry.description || '').trim();
+      const content = artifactBody ? `${entry.title}\n\n${artifactBody}` : entry.title;
       return {
         color: getShapeColor(entry),
         w: width,
-        h: estimateArtifactCardHeight(`${entry.title}\n\n${artifactBody}`, width),
+        h: estimateArtifactCardHeight(content, width),
         iconId: entry.iconId,
-        content: artifactBody ? `${entry.title}\n\n${artifactBody}` : entry.title,
+        content,
       };
     }
-    case 'FINDING':
+    case 'FINDING': {
+      const width = 640;
+      const content = `${entry.title}\n\n${clipBoardCardText(
+        entry.description || entry.contextText,
+        320
+      )}`;
       return {
         color: getShapeColor(entry),
-        w: 340,
-        h: 260,
+        w: width,
+        h: estimateBoardCardHeight(content, width, {
+          minHeight: 190,
+          maxHeight: 240,
+        }),
         iconId: entry.iconId,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.description || entry.contextText,
-          280
-        )}`,
+        content,
       };
+    }
     case 'SIGNAL':
-    case 'HEADLINE':
+    case 'HEADLINE': {
+      const width = 640;
+      const content = `${entry.title}\n\n${clipBoardCardText(
+        entry.description || entry.contextText,
+        320
+      )}`;
       return {
         color: getShapeColor(entry),
-        w: 300,
-        h: 420,
+        w: width,
+        h: estimateBoardCardHeight(content, width, {
+          minHeight: 186,
+          maxHeight: 232,
+        }),
         iconId: entry.iconId,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.description || entry.contextText,
-          360
-        )}`,
+        content,
       };
+    }
     case 'ENTITY': {
-      const meta = [entry.subtitle, entry.description].filter(Boolean).join(' | ');
+      const meta = [entry.subtitle, clipBoardCardText(entry.description, 72)]
+        .filter(Boolean)
+        .join(' | ');
       return {
         color: getShapeColor(entry),
-        w: 300,
-        h: 220,
+        w: 620,
+        h: 164,
         iconId: entry.iconId,
         content: meta ? `${entry.title}\n\n${meta}` : entry.title,
       };
@@ -186,44 +242,50 @@ export const buildBoardCardSpec = (entry: WorkspaceLibraryEntry): BoardCardSpec 
     case 'LINK':
       return {
         color: getShapeColor(entry),
-        w: 320,
-        h: 260,
+        w: 430,
+        h: 132,
         iconId: entry.iconId,
-        content: entry.title,
+        content: clipBoardCardText(entry.title, 64),
       };
     case 'NOTE':
-    case 'EXCERPT':
+    case 'EXCERPT': {
+      const width = 640;
+      const content = `${entry.title}\n\n${clipBoardCardText(
+        entry.contextText || entry.description,
+        320
+      )}`;
       return {
         color: getShapeColor(entry),
-        w: 340,
-        h: 280,
+        w: width,
+        h: estimateBoardCardHeight(content, width, {
+          minHeight: 190,
+          maxHeight: 250,
+        }),
         iconId: entry.iconId,
-        content: `${entry.title}\n\n${clipBoardCardText(
-          entry.contextText || entry.description,
-          300
-        )}`,
+        content,
       };
+    }
     case 'MEDIA':
     case 'FILE':
       return {
         color: getShapeColor(entry),
-        w: 320,
-        h: 220,
+        w: 560,
+        h: 160,
         iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.subtitle,
-          180
+          96
         )}`,
       };
     default:
       return {
         color: getShapeColor(entry),
-        w: 320,
-        h: 240,
+        w: 560,
+        h: 180,
         iconId: entry.iconId,
         content: `${entry.title}\n\n${clipBoardCardText(
           entry.description || entry.contextText,
-          220
+          120
         )}`,
       };
   }
@@ -242,8 +304,6 @@ export const placeEntryOnBoard = (
   const shapeMeta = {
     [BOARD_REF_META_KEY]: serializeBoardReference(entry),
   };
-  const boardIconId = entry.kind !== 'ARTIFACT' ? card.iconId : undefined;
-  const cardShapeIds: string[] = [shapeId];
 
   editor.createShape<TLGeoShape>({
     id: shapeId,
@@ -266,64 +326,9 @@ export const placeEntryOnBoard = (
       font: 'sans',
       align: 'start',
       verticalAlign: 'start',
-      richText: toRichText(boardIconId ? ` \n${card.content}` : card.content),
+      richText: toRichText(card.content),
     },
   });
-
-  if (boardIconId) {
-    const iconAssetId = AssetRecordType.createId(`${entry.refKind}-${entry.refId}-${shapeId}-icon`);
-    const iconShapeId = createShapeId();
-    const iconSize = 28;
-    const iconOffset = 14;
-    editor.createAssets([
-      {
-        id: iconAssetId,
-        typeName: 'asset',
-        type: 'image',
-        props: {
-          name: `${entry.title} icon`,
-          src: buildAppIconSvgDataUrl(boardIconId, {
-            color: themeMode === 'light' ? '#111827' : '#f4f4f5',
-            size: 24,
-            strokeWidth: 1.9,
-          }),
-          w: 24,
-          h: 24,
-          mimeType: 'image/svg+xml',
-          isAnimated: false,
-        },
-        meta: {},
-      },
-    ]);
-
-    editor.createShape<TLImageShape>({
-      id: iconShapeId,
-      type: 'image',
-      x: x + card.w - iconSize - iconOffset,
-      y: y + iconOffset,
-      meta: shapeMeta,
-      props: {
-        w: iconSize,
-        h: iconSize,
-        assetId: iconAssetId,
-        playing: true,
-        url: '',
-        crop: null,
-        flipX: false,
-        flipY: false,
-        altText: `${entry.title} icon`,
-      },
-    });
-
-    cardShapeIds.push(iconShapeId as string);
-    const groupId = createShapeId();
-    editor.groupShapes(cardShapeIds as never[], { groupId });
-    editor.setSelectedShapes([groupId]);
-    return {
-      shapeId: groupId as string,
-      card,
-    };
-  }
 
   editor.setSelectedShapes([shapeId]);
 

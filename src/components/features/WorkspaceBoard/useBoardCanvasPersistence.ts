@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { getSnapshot, type Editor, type TLEditorSnapshot, type TLStoreSnapshot } from 'tldraw';
+import {
+  getSnapshot,
+  type Editor,
+  type TLGeoShape,
+  type TLEditorSnapshot,
+  type TLStoreSnapshot,
+} from 'tldraw';
 
 import type { WorkspaceBoard, WorkspaceBoardDocument } from '@/types';
 import {
   BOARD_REF_META_KEY,
+  getBoardCardThemeProps,
   parseBoardReference,
 } from '@/services/workspace/boardShapes';
 import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
@@ -112,6 +119,41 @@ export const useBoardCanvasPersistence = ({
     if (!editorRef.current) return;
     editorRef.current.user.updateUserPreferences({ colorScheme: themeMode });
   }, [themeMode]);
+
+  useEffect(() => {
+    if (!editorRef.current || !activeBoard) return;
+
+    const nextGeoUpdates = editorRef.current
+      .getCurrentPageShapes()
+      .filter(
+        (shape): shape is TLGeoShape =>
+          shape.type === 'geo' && !!parseBoardReference(shape.meta?.[BOARD_REF_META_KEY])
+      )
+      .map((shape) => {
+        const themeProps = getBoardCardThemeProps(themeMode, shape.props.color);
+        if (
+          shape.props.fill === themeProps.fill &&
+          shape.props.labelColor === themeProps.labelColor
+        ) {
+          return null;
+        }
+
+        return {
+          id: shape.id,
+          type: shape.type,
+          props: {
+            fill: themeProps.fill,
+            labelColor: themeProps.labelColor,
+          },
+        };
+      })
+      .filter((shape): shape is NonNullable<typeof shape> => !!shape);
+
+    if (nextGeoUpdates.length === 0) return;
+
+    editorRef.current.updateShapes(nextGeoUpdates);
+    void persistBoardSnapshot(editorRef.current, activeBoard.id);
+  }, [activeBoard, persistBoardSnapshot, themeMode]);
 
   useEffect(
     () => () => {

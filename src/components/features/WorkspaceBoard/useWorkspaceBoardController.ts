@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createShapeId, type Editor } from 'tldraw';
+import type { Editor } from 'tldraw';
 
 import type {
   Artifact,
@@ -58,8 +58,8 @@ interface UseWorkspaceBoardControllerInput {
   onOpenReport: (report: Artifact) => void;
 }
 
-const PACKAGE_GUTTER_X = 24;
-const PACKAGE_GUTTER_Y = 24;
+const PACKAGE_GUTTER_X = 32;
+const PACKAGE_GUTTER_Y = 32;
 const PACKAGE_STACK_GAP = 96;
 
 const getBoardContentBounds = (editor: Editor) => {
@@ -565,58 +565,53 @@ export const useWorkspaceBoardController = ({
       );
 
       const artifactCard = placedArtifact.card;
-      const rightColumnX = origin.x + artifactCard.w + 48;
-      let rightColumnY = origin.y;
-      const shapeIds = [placedArtifact.shapeId as string];
-
+      const artifactBounds = editorRef.current.getShapePageBounds(placedArtifact.shapeId as never);
+      const artifactRight = artifactBounds ? artifactBounds.x + artifactBounds.w : origin.x + artifactCard.w;
+      const artifactBottom =
+        artifactBounds ? artifactBounds.y + artifactBounds.h : origin.y + artifactCard.h;
+      const rightColumnX = artifactRight + 128;
+      let rightColumnY = origin.y + 48;
+      const lowerLeftY = artifactBottom + 80;
       const findingBlock = placeEntryGrid({
         editor: editorRef.current,
         entries: packageEntries.findingEntries,
-        maxColumns: 3,
+        maxColumns: 2,
         startX: rightColumnX,
         startY: rightColumnY,
         themeMode,
       });
-      shapeIds.push(...findingBlock.shapeIds);
       rightColumnY += findingBlock.height > 0 ? findingBlock.height + PACKAGE_GUTTER_Y : 0;
 
       const entityBlock = placeEntryGrid({
         editor: editorRef.current,
         entries: packageEntries.entityEntries,
-        maxColumns: 3,
+        maxColumns: 2,
         startX: rightColumnX,
         startY: rightColumnY,
         themeMode,
       });
-      shapeIds.push(...entityBlock.shapeIds);
       rightColumnY += entityBlock.height > 0 ? entityBlock.height + PACKAGE_GUTTER_Y : 0;
 
       const sourceBlock = placeEntryGrid({
         editor: editorRef.current,
         entries: packageEntries.sourceEntries,
-        maxColumns: 2,
-        startX: rightColumnX,
-        startY: rightColumnY,
+        maxColumns: 3,
+        startX: origin.x,
+        startY: lowerLeftY,
         themeMode,
       });
-      shapeIds.push(...sourceBlock.shapeIds);
-      rightColumnY += sourceBlock.height > 0 ? sourceBlock.height + PACKAGE_GUTTER_Y : 0;
+      const rightColumnSignalsY =
+        rightColumnY + (entityBlock.height > 0 ? PACKAGE_GUTTER_Y : 0);
 
-      const signalBlock = placeEntryGrid({
+      placeEntryGrid({
         editor: editorRef.current,
         entries: packageEntries.signalEntries,
-        maxColumns: 2,
+        maxColumns: 3,
         startX: rightColumnX,
-        startY: rightColumnY,
+        startY: rightColumnSignalsY,
         themeMode,
       });
-      shapeIds.push(...signalBlock.shapeIds);
-
-      if (shapeIds.length > 1) {
-        const groupId = createShapeId();
-        editorRef.current.groupShapes(shapeIds as never[], { groupId });
-        editorRef.current.setSelectedShapes([groupId]);
-      }
+      editorRef.current.setSelectedShapes([placedArtifact.shapeId as never]);
     },
     [
       activeBoard,

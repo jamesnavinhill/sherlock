@@ -374,7 +374,7 @@ describe('useWorkspaceBoardController', () => {
     });
   });
 
-  it('adds an artifact package as a grouped cluster on the current board', () => {
+  it('adds an artifact package as a neat ungrouped cluster on the current board', () => {
     const createShape = vi.fn();
     const groupShapes = vi.fn();
     const setSelectedShapes = vi.fn();
@@ -521,7 +521,7 @@ describe('useWorkspaceBoardController', () => {
     });
 
     expect(createShape).toHaveBeenCalled();
-    expect(groupShapes).toHaveBeenCalledTimes(1);
-    expect(setSelectedShapes).toHaveBeenCalled();
+    expect(groupShapes).not.toHaveBeenCalled();
+    expect(setSelectedShapes).toHaveBeenCalledWith([expect.any(String)]);
   });
 });
