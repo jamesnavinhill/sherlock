@@ -231,7 +231,7 @@ describe('OperationInspectorPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
     expect(screen.getByText('Trace shared directors across the vendor cluster.')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: /^Open$/i })[1]);
+    fireEvent.click(screen.getByRole('button', { name: /^Open$/i }));
     expect(onOpenReportLead).toHaveBeenCalledWith(
       expect.objectContaining({
         actionText: 'Trace shared directors across the vendor cluster.',

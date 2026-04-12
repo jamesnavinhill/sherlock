@@ -781,7 +781,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </div>
                 </div>
                 <div className="mt-6 divide-y divide-zinc-800">
-                  {canonicalFindings.map((finding, index) => {
+                  {canonicalFindings.map((finding) => {
                     const relatedEvidence = getFindingRelatedEvidence(finding);
                     const matchingSources = getMatchingSources(finding.supportRefs);
                     const findingOriginSectionId = finding.originSectionId;
