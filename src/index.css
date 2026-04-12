@@ -1638,6 +1638,35 @@ body,
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
 }
 
+.osint-settings-surface-button-accent-hover:hover,
+.osint-settings-surface-button-accent-hover:focus-visible {
+  background-color: var(--osint-primary-soft-bg);
+  border-color: var(--osint-primary-soft-border);
+  color: var(--osint-primary);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 24%, transparent),
+    var(--osint-accent-outline-glow);
+  outline: none;
+}
+
+.osint-settings-surface-button-danger-hover:hover,
+.osint-settings-surface-button-danger-hover:focus-visible {
+  background-color: var(--osint-danger-soft-bg);
+  border-color: var(--osint-danger-soft-border);
+  color: color-mix(in oklab, var(--color-osint-danger) 88%, var(--osint-ink) 12%);
+  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--color-osint-danger) 24%, transparent);
+  outline: none;
+}
+
+.osint-settings-surface-button-danger-hover:active,
+.osint-settings-surface-button-danger-hover[data-active='true'],
+.osint-settings-surface-button-danger-hover[aria-pressed='true'] {
+  background-color: var(--osint-danger-soft-bg-strong);
+  border-color: color-mix(in oklab, var(--color-osint-danger) 58%, transparent);
+  color: color-mix(in oklab, var(--color-osint-danger) 92%, var(--osint-ink) 8%);
+  box-shadow: 0 0 10px -8px color-mix(in oklab, var(--color-osint-danger) 24%, transparent);
+}
+
 .osint-entity-chip {
   background-color: var(--osint-interaction-bg);
   border: 1px solid var(--osint-interaction-border);

@@ -17,12 +17,12 @@ import {
   ArrowRight,
   Sun,
   Moon,
-  ChevronDown,
   Crosshair,
   BarChart3,
   BookOpen,
   Workflow,
 } from 'lucide-react';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 
 /* ------------------------------------------------------------------ */
 /*  LandingPage                                                       */
@@ -36,6 +36,11 @@ interface LandingPageProps {
   onGetStarted: () => void;
 }
 
+const LANDING_ACCENT_FILL = 'color-mix(in oklab, var(--osint-primary) 12%, var(--osint-panel) 88%)';
+const LANDING_ACCENT_FILL_STRONG =
+  'color-mix(in oklab, var(--osint-primary) 18%, var(--osint-panel) 82%)';
+const LANDING_ACCENT_GLOW = '0 0 8px -8px color-mix(in oklab, var(--osint-primary) 18%, transparent)';
+
 /* ---- tiny helpers ------------------------------------------------ */
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -45,7 +50,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       style={{
         borderColor: 'var(--osint-primary-soft-border)',
         color: 'var(--osint-primary)',
-        backgroundColor: 'var(--osint-primary-soft-bg)',
+        backgroundColor: LANDING_ACCENT_FILL,
       }}
     >
       {children}
@@ -81,7 +86,7 @@ function FeatureCard({
       <div
         className="mb-4 flex h-10 w-10 items-center justify-center rounded-md"
         style={{
-          backgroundColor: 'var(--osint-primary-soft-bg)',
+          backgroundColor: LANDING_ACCENT_FILL,
           color: 'var(--osint-primary)',
         }}
       >
@@ -117,7 +122,7 @@ function WorkflowStep({
         <div
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full font-mono text-sm font-bold"
           style={{
-            backgroundColor: 'var(--osint-primary-soft-bg)',
+            backgroundColor: LANDING_ACCENT_FILL,
             color: 'var(--osint-primary)',
             border: '1px solid var(--osint-primary-soft-border)',
           }}
@@ -177,7 +182,7 @@ function SurfaceCard({
       <div
         className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md"
         style={{
-          backgroundColor: 'var(--osint-primary-soft-bg)',
+          backgroundColor: LANDING_ACCENT_FILL,
           color: 'var(--osint-primary)',
         }}
       >
@@ -214,9 +219,11 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
 
   return (
     <div
-      className="min-h-screen font-sans"
+      className="relative isolate min-h-screen overflow-hidden font-sans"
       style={{ backgroundColor: 'var(--osint-dark)', color: 'var(--osint-text)' }}
     >
+      <MainContentDotGrid className="z-0" testId="landing-dot-grid-background" />
+      <div className="relative z-10">
       {/* ─── Top Bar ─────────────────────────────────────────── */}
       <header
         className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-3 transition-all duration-300 md:px-10"
@@ -289,12 +296,29 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <button
-              onClick={onGetStarted}
-              className="osint-button-soft inline-flex items-center gap-2.5 rounded-lg px-8 py-3 text-sm font-semibold uppercase tracking-wider"
-            >
-              Open Workspace
-              <ArrowRight className="h-4 w-4" />
+              <button
+                onClick={onGetStarted}
+                className="inline-flex items-center gap-2.5 rounded-lg px-8 py-3 text-sm font-semibold uppercase tracking-wider transition-all duration-200"
+                style={{
+                  backgroundColor: LANDING_ACCENT_FILL,
+                  border: '1px solid var(--osint-primary-soft-border)',
+                  color: 'var(--osint-primary)',
+                  boxShadow: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL_STRONG;
+                  e.currentTarget.style.borderColor =
+                    'color-mix(in oklab, var(--osint-primary) 60%, transparent)';
+                  e.currentTarget.style.boxShadow = LANDING_ACCENT_GLOW;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL;
+                  e.currentTarget.style.borderColor = 'var(--osint-primary-soft-border)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                Open Workspace
+                <ArrowRight className="h-4 w-4" />
             </button>
           </div>
 
@@ -304,14 +328,6 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
           >
             Free &amp; open source · BYOK · Nothing leaves your browser
           </p>
-        </div>
-
-        {/* Scroll indicator - absolute at bottom to not shift layout */}
-        <div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce"
-          style={{ color: 'var(--osint-text-quiet)' }}
-        >
-          <ChevronDown className="h-5 w-5" />
         </div>
       </section>
 
@@ -329,7 +345,7 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
             <div
               className="flex h-14 w-14 items-center justify-center rounded-full"
               style={{
-                backgroundColor: 'var(--osint-primary-soft-bg)',
+                backgroundColor: LANDING_ACCENT_FILL,
                 border: '1px solid var(--osint-primary-soft-border)',
               }}
             >
@@ -601,7 +617,7 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
           className="rounded-xl p-10 md:p-14"
           style={{
             border: '1px solid var(--osint-primary-soft-border)',
-            backgroundColor: 'var(--osint-primary-soft-bg)',
+            backgroundColor: LANDING_ACCENT_FILL,
           }}
         >
           <h2
@@ -619,7 +635,24 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
           </p>
           <button
             onClick={onGetStarted}
-            className="osint-button-soft mt-8 inline-flex items-center gap-2.5 rounded-lg px-8 py-3 text-sm font-semibold uppercase tracking-wider"
+            className="mt-8 inline-flex items-center gap-2.5 rounded-lg px-8 py-3 text-sm font-semibold uppercase tracking-wider transition-all duration-200"
+            style={{
+              backgroundColor: LANDING_ACCENT_FILL,
+              border: '1px solid var(--osint-primary-soft-border)',
+              color: 'var(--osint-primary)',
+              boxShadow: 'none',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL_STRONG;
+              e.currentTarget.style.borderColor =
+                'color-mix(in oklab, var(--osint-primary) 60%, transparent)';
+              e.currentTarget.style.boxShadow = LANDING_ACCENT_GLOW;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = LANDING_ACCENT_FILL;
+              e.currentTarget.style.borderColor = 'var(--osint-primary-soft-border)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           >
             Open Workspace
             <ArrowRight className="h-4 w-4" />
@@ -646,6 +679,7 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
           GitHub
         </a>
       </footer>
+      </div>
     </div>
   );
 }

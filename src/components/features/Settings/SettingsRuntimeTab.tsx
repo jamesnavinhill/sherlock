@@ -46,14 +46,14 @@ const ProviderKeyField: React.FC<{
         <button
           type="button"
           onClick={onToggleVisibility}
-          className={`${SETTINGS_SURFACE_BUTTON_CLASS} min-w-[5.25rem] px-4 osint-meta-label-strong`}
+          className={`${SETTINGS_SURFACE_BUTTON_CLASS} osint-settings-surface-button-accent-hover min-w-[5.25rem] px-4 osint-meta-label-strong`}
         >
           {showValue ? 'HIDE' : 'SHOW'}
         </button>
         <button
           type="button"
           onClick={onClear}
-          className="osint-button-danger min-w-[5.25rem] px-4 osint-meta-label-strong"
+          className={`${SETTINGS_SURFACE_BUTTON_CLASS} osint-settings-surface-button-danger-hover min-w-[5.25rem] px-4 osint-meta-label-strong`}
           title={`Clear ${provider} key`}
         >
           CLEAR

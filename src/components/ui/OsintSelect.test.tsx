@@ -77,4 +77,53 @@ describe('OsintSelect', () => {
       'true'
     );
   });
+
+  it('auto-places portalled menus above the trigger when there is not enough space below', () => {
+    const onChange = vi.fn();
+
+    render(
+      <OsintSelect
+        ariaLabel="Font Family"
+        value="alpha"
+        onChange={onChange}
+        triggerClassName="px-3 py-2 font-mono text-xs"
+        portalledMenu
+        options={[
+          { value: 'alpha', label: 'Alpha Workspace' },
+          { value: 'beta', label: 'Beta Workspace' },
+        ]}
+      />
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Font Family' });
+    const originalInnerHeight = window.innerHeight;
+
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 480,
+    });
+
+    Object.defineProperty(trigger.parentElement as HTMLDivElement, 'getBoundingClientRect', {
+      configurable: true,
+      value: () =>
+        ({
+          top: 430,
+          bottom: 462,
+          left: 24,
+          right: 224,
+          width: 200,
+          height: 32,
+        }) as DOMRect,
+    });
+
+    fireEvent.click(trigger);
+
+    const menu = screen.getByRole('listbox');
+    expect(menu).toHaveStyle({ transform: 'translateY(-100%)' });
+
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: originalInnerHeight,
+    });
+  });
 });

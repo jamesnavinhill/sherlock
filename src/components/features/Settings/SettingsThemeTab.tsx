@@ -435,7 +435,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
 
       <div className="grid gap-3 md:grid-cols-2">
         {fontSelections.map((role) => (
-          <label key={role.key} className={SETTINGS_CARD_CLASS}>
+          <section key={role.key} className={SETTINGS_CARD_CLASS}>
             <div className="flex items-baseline justify-between gap-3">
               <span className="osint-title-inline">{role.label}</span>
               <span className="osint-meta-label">
@@ -458,7 +458,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 label: option.label,
               }))}
             />
-          </label>
+          </section>
         ))}
       </div>
 
@@ -662,7 +662,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
 
           <div className="mt-8 flex flex-1 flex-col gap-8 py-3">
-            <label className={themeControlSectionClassName}>
+            <div className={themeControlSectionClassName}>
               <div className="flex items-center justify-between gap-3">
                 <span className="osint-meta-label">Background Image</span>
                 <span className="osint-meta-value">{backgroundVariantLabel}</span>
@@ -681,7 +681,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   { value: 'grid', label: 'Grid' },
                 ]}
               />
-            </label>
+            </div>
 
             <label className={themeControlSectionClassName}>
               <div className="flex items-center justify-between gap-3">

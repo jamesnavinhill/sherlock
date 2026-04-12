@@ -63,6 +63,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
               ariaLabel={providerAriaLabel}
               value={form.value.provider}
               onChange={(value) => form.setProvider(value as typeof form.value.provider)}
+              portalledMenu
               triggerClassName="p-2 pr-8 osint-meta-value"
               options={form.providerOptions.map((provider) => ({
                 value: provider.id,
@@ -88,6 +89,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
                 ariaLabel={modelAriaLabel}
                 value={form.activeModelId}
                 onChange={form.setModelId}
+                portalledMenu
                 triggerClassName="p-2 pr-8 osint-meta-value"
                 options={form.selectableModels.map((model) => ({
                   value: model.id,
