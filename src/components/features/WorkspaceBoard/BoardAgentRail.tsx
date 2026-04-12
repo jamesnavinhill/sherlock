@@ -193,7 +193,8 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
       : 'Board agent';
   const sharedSectionSurfaceClassName = `border border-zinc-800 bg-zinc-900/30`;
   const transcriptSurfaceClassName = 'border-x border-zinc-800 bg-zinc-900/30';
-  const composerShellClassName = `${sharedSectionSurfaceClassName} overflow-hidden`;
+  const composerShellClassName = `${sharedSectionSurfaceClassName} -mt-px overflow-visible`;
+  const composerInputClassName = 'overflow-hidden';
 
   return (
     <div className="-mx-3 -mb-3 flex min-h-0 flex-1 flex-col">
@@ -484,7 +485,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
             isOpen={agentSections.context}
             onToggle={onToggleContext}
             variant="nested"
-            className="mb-0"
+            className="!mb-0"
             headerClassName="px-4 py-2"
             contentClassName="px-4 py-3"
           >
@@ -524,15 +525,17 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
           </Accordion>
 
           <div className={composerShellClassName}>
-            <textarea
-              value={boardAgentPrompt}
-              onChange={(event) => onPromptChange(event.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder="Ask the board agent to organize evidence, flag contradictions, or draft a note."
-              className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-[color:var(--osint-text)] outline-none placeholder:text-[color:var(--osint-text-muted)]"
-            />
+            <div className={composerInputClassName}>
+              <textarea
+                value={boardAgentPrompt}
+                onChange={(event) => onPromptChange(event.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder="Ask the board agent to organize evidence, flag contradictions, or draft a note."
+                className="min-h-28 w-full resize-none bg-transparent px-4 py-4 text-sm leading-6 text-[color:var(--osint-text)] outline-none placeholder:text-[color:var(--osint-text-muted)]"
+              />
+            </div>
             <div
-              className={`flex items-center justify-between gap-3 border-t border-zinc-800/80 px-4 py-2.5 ${headerToneSurfaceClassName}`}
+              className={`relative z-10 flex items-center justify-between gap-3 border-t border-zinc-800/80 px-4 py-2.5 ${headerToneSurfaceClassName}`}
             >
               <div className="flex items-center gap-1">
                 <div className="relative">
@@ -555,7 +558,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     />
                   </button>
                   {starterMenuOpen ? (
-                    <div className="absolute bottom-11 left-0 z-20 w-72 border border-zinc-800 bg-black shadow-2xl">
+                    <div className="absolute bottom-11 left-0 z-30 w-72 border border-zinc-800 bg-black shadow-2xl">
                       {BOARD_AGENT_STARTER_INTENTS.map((intent) => (
                         <button
                           key={intent.id}
@@ -593,109 +596,109 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     />
                   </button>
                   {sessionMenuOpen ? (
-                    <div className="absolute bottom-11 left-0 z-20 w-80 border border-zinc-800 bg-black shadow-2xl">
-                    <div className="border-b border-zinc-800 px-3 py-2 osint-menu-section-label">
-                      Session History
-                    </div>
-                    {visibleBoardAgentSession ? (
-                      <div className="border-b border-zinc-800 px-3 py-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="osint-meta-value">{sessionDisplayTitle}</div>
-                          <div
-                            className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
-                              visibleBoardAgentSession.requestState ||
-                                visibleBoardAgentSession.status
-                            )}`}
-                          >
-                            {visibleBoardAgentSession.requestState ||
-                              visibleBoardAgentSession.status}
-                          </div>
-                        </div>
-                        <div className="mt-2 osint-body-quiet">
-                          {formatDateTime(visibleBoardAgentSession.updatedAt)}
-                        </div>
-                        <div className="mt-1 osint-body-quiet">
-                          {visibleBoardAgentSession.provider || 'Provider pending'}
-                          {visibleBoardAgentSession.modelId
-                            ? ` - ${visibleBoardAgentSession.modelId}`
-                            : ''}
-                        </div>
-                        {boardAgentBusy ? (
-                          <div className="mt-3">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onCancelAgent();
-                                setSessionMenuOpen(false);
-                              }}
-                              className="inline-flex items-center gap-1 rounded-none border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 osint-meta-label-strong text-red-200 transition hover:bg-red-500/20 hover:text-white"
+                    <div className="absolute bottom-11 left-0 z-30 w-80 border border-zinc-800 bg-black shadow-2xl">
+                      <div className="border-b border-zinc-800 px-3 py-2 osint-menu-section-label">
+                        Session History
+                      </div>
+                      {visibleBoardAgentSession ? (
+                        <div className="border-b border-zinc-800 px-3 py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="osint-meta-value">{sessionDisplayTitle}</div>
+                            <div
+                              className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
+                                visibleBoardAgentSession.requestState ||
+                                  visibleBoardAgentSession.status
+                              )}`}
                             >
-                              <X className="h-3.5 w-3.5" />
-                              Cancel
-                            </button>
+                              {visibleBoardAgentSession.requestState ||
+                                visibleBoardAgentSession.status}
+                            </div>
                           </div>
-                        ) : null}
-                        {boardAgentTodoItems.length > 0 ? (
-                          <div className="mt-3 space-y-2 border-t border-zinc-800 pt-3">
-                            {boardAgentTodoItems.slice(0, 4).map((item) => (
-                              <div
-                                key={item.id}
-                                className="flex items-start justify-between gap-3 border border-zinc-800 bg-zinc-950/80 px-3 py-2"
+                          <div className="mt-2 osint-body-quiet">
+                            {formatDateTime(visibleBoardAgentSession.updatedAt)}
+                          </div>
+                          <div className="mt-1 osint-body-quiet">
+                            {visibleBoardAgentSession.provider || 'Provider pending'}
+                            {visibleBoardAgentSession.modelId
+                              ? ` - ${visibleBoardAgentSession.modelId}`
+                              : ''}
+                          </div>
+                          {boardAgentBusy ? (
+                            <div className="mt-3">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onCancelAgent();
+                                  setSessionMenuOpen(false);
+                                }}
+                                className="inline-flex items-center gap-1 rounded-none border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 osint-meta-label-strong text-red-200 transition hover:bg-red-500/20 hover:text-white"
                               >
-                                <div className="osint-body-small">{item.text}</div>
-                                <div className="shrink-0 osint-meta-label">{item.status}</div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <div className="border-b border-zinc-800 px-3 py-3 osint-body-quiet">
-                        No board-agent sessions yet.
-                      </div>
-                    )}
-
-                    {boardSessionsForBoard.length > 0 ? (
-                      <div className="max-h-72 overflow-y-auto py-1">
-                        {boardSessionsForBoard.slice(0, 8).map((session) => {
-                          const isActive = session.id === visibleBoardAgentSession?.id;
-                          return (
-                            <button
-                              key={session.id}
-                              type="button"
-                              disabled={boardAgentBusy}
-                              onClick={() => {
-                                onSelectSession(session.id);
-                                setSessionMenuOpen(false);
-                              }}
-                              className={`block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 ${
-                                isActive ? 'bg-zinc-950/80' : 'hover:bg-zinc-900/80'
-                              } disabled:cursor-not-allowed disabled:opacity-60`}
-                            >
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="osint-meta-value text-zinc-200">
-                                  {getSessionDisplayTitle(session)}
-                                </div>
+                                <X className="h-3.5 w-3.5" />
+                                Cancel
+                              </button>
+                            </div>
+                          ) : null}
+                          {boardAgentTodoItems.length > 0 ? (
+                            <div className="mt-3 space-y-2 border-t border-zinc-800 pt-3">
+                              {boardAgentTodoItems.slice(0, 4).map((item) => (
                                 <div
-                                  className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
-                                    session.requestState || session.status
-                                  )}`}
+                                  key={item.id}
+                                  className="flex items-start justify-between gap-3 border border-zinc-800 bg-zinc-950/80 px-3 py-2"
                                 >
-                                  {session.requestState || session.status}
+                                  <div className="osint-body-small">{item.text}</div>
+                                  <div className="shrink-0 osint-meta-label">{item.status}</div>
                                 </div>
-                              </div>
-                              <div className="mt-1 truncate osint-body-quiet">
-                                {session.request.trim() || 'No request saved.'}
-                              </div>
-                              <div className="mt-1 osint-body-quiet">
-                                {formatDateTime(session.updatedAt)}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="border-b border-zinc-800 px-3 py-3 osint-body-quiet">
+                          No board-agent sessions yet.
+                        </div>
+                      )}
+
+                      {boardSessionsForBoard.length > 0 ? (
+                        <div className="max-h-72 overflow-y-auto py-1">
+                          {boardSessionsForBoard.slice(0, 8).map((session) => {
+                            const isActive = session.id === visibleBoardAgentSession?.id;
+                            return (
+                              <button
+                                key={session.id}
+                                type="button"
+                                disabled={boardAgentBusy}
+                                onClick={() => {
+                                  onSelectSession(session.id);
+                                  setSessionMenuOpen(false);
+                                }}
+                                className={`block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 ${
+                                  isActive ? 'bg-zinc-950/80' : 'hover:bg-zinc-900/80'
+                                } disabled:cursor-not-allowed disabled:opacity-60`}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="osint-meta-value text-zinc-200">
+                                    {getSessionDisplayTitle(session)}
+                                  </div>
+                                  <div
+                                    className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
+                                      session.requestState || session.status
+                                    )}`}
+                                  >
+                                    {session.requestState || session.status}
+                                  </div>
+                                </div>
+                                <div className="mt-1 truncate osint-body-quiet">
+                                  {session.request.trim() || 'No request saved.'}
+                                </div>
+                                <div className="mt-1 osint-body-quiet">
+                                  {formatDateTime(session.updatedAt)}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
                 <button

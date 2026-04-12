@@ -57,8 +57,55 @@ describe('BoardAgentRail', () => {
       .closest('.osint-raised-surface-section');
     expect(contextSection?.nextElementSibling?.querySelector('textarea')).toBeTruthy();
     const composerTextarea = screen.getByPlaceholderText(/ask the board agent/i);
-    expect(composerTextarea.closest('div')).toHaveClass('border', 'border-zinc-800', 'bg-zinc-900/30');
+    expect(composerTextarea.closest('.border.border-zinc-800.bg-zinc-900\\/30')).toBeTruthy();
     expect(composerTextarea).toHaveClass('text-[color:var(--osint-text)]');
+  });
+
+  it('lets the starter prompt menu escape above the composer shell', () => {
+    render(
+      <BoardAgentRail
+        agentSections={{
+          context: true,
+          actions: false,
+        }}
+        selectedEntries={[]}
+        aiSummary={null}
+        boardAgentAutoApproveOrganizationActions={false}
+        boardAgentMessage={null}
+        boardAgentReviewActions={[]}
+        boardAgentReviewSelections={{}}
+        boardAgentReviewState={null}
+        boardAgentTodoItems={[]}
+        boardAgentBusy={false}
+        boardAgentPrompt=""
+        boardSessionsForBoard={[]}
+        visibleBoardAgentActions={[]}
+        visibleBoardAgentSession={null}
+        copyToClipboard={vi.fn(async () => undefined)}
+        onSelectSession={vi.fn()}
+        onPromptChange={vi.fn()}
+        onToggleContext={vi.fn()}
+        onToggleActions={vi.fn()}
+        onAttachFiles={vi.fn()}
+        onRunAgent={vi.fn()}
+        onCancelAgent={vi.fn()}
+        onApprovePlan={vi.fn()}
+        onReviewSelectionChange={vi.fn()}
+        onSelectStarterIntent={vi.fn()}
+        onSkipPlan={vi.fn()}
+        onToggleAutoApproveOrganizationActions={vi.fn()}
+        onKeyDown={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Starter prompts' }));
+
+    const prepBriefing = screen.getByText('Prep briefing');
+    expect(prepBriefing).toBeInTheDocument();
+    expect(prepBriefing.closest('.z-30')).toBeTruthy();
+
+    const composerTextarea = screen.getByPlaceholderText(/ask the board agent/i);
+    expect(composerTextarea.closest('.overflow-visible')).toBeTruthy();
   });
 
   it('renders a full-width transcript block for the visible board-agent session', () => {

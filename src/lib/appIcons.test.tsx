@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { icons as pixelartIconSet } from '@iconify-json/pixelarticons';
-
 import {
   APP_ICON_OPTIONS,
   buildAppIconSvgDataUrl,

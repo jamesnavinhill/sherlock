@@ -9,6 +9,7 @@ import { ChatComposer } from './ChatComposer';
 import { ChatInspectorPanel } from './ChatInspectorPanel';
 import { ChatDialogs } from './ChatDialogs';
 import { ChatHeader } from './ChatHeader';
+import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 
 interface ChatProps {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -190,7 +191,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
           onDeleteSession={handleDeleteSession}
         />
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
+          <MainContentDotGrid testId="chat-dot-grid-background" />
           <ChatTranscript
             activeWorkspace={activeWorkspace}
             messages={messages}

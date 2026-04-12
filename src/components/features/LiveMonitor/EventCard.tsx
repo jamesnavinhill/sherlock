@@ -1,6 +1,10 @@
 import React from 'react';
 import type { MonitorEvent } from '../../../types';
-import { CHROME_CARD_SURFACE_CLASS } from '../../ui/chrome';
+import {
+  CHROME_CARD_SECTION_CLASS,
+  CHROME_CARD_SECTION_SUBTLE_CLASS,
+  CHROME_CARD_SURFACE_CLASS,
+} from '../../ui/chrome';
 import {
   AlertCircle,
   MessageSquare,
@@ -51,7 +55,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
       case 'POSITIVE':
-        return 'text-green-500 border-green-900 bg-green-900/10';
+        return 'text-osint-success border-osint-success/30 bg-osint-success/10';
       case 'NEGATIVE':
         return 'osint-danger-text border-osint-danger/30 bg-osint-danger/10';
       default:
@@ -67,9 +71,15 @@ export const EventCard: React.FC<EventCardProps> = ({
           icon: ShieldAlert,
         };
       case 'CAUTION':
-        return { color: 'text-amber-400 border-amber-500 bg-amber-950/30', icon: ShieldQuestion };
+        return {
+          color: 'text-osint-warn border-osint-warn/30 bg-osint-warn/10',
+          icon: ShieldQuestion,
+        };
       default:
-        return { color: 'text-blue-400 border-blue-500 bg-blue-950/30', icon: ShieldCheck };
+        return {
+          color: 'text-osint-primary border-osint-primary/30 bg-osint-primary/10',
+          icon: ShieldCheck,
+        };
     }
   };
 
@@ -86,12 +96,12 @@ export const EventCard: React.FC<EventCardProps> = ({
       onClick={() => !isExpanded && onToggle()}
     >
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className={`${CHROME_CARD_SECTION_CLASS} flex items-start justify-between gap-3 px-3 py-3`}>
         <div className="flex items-center space-x-2">
           {getTypeIcon(event.type)}
           <span className="osint-meta-label text-zinc-400">{event.type}</span>
           {isSaved && (
-            <span className="osint-meta-label flex items-center text-green-500">
+            <span className="osint-meta-label flex items-center text-osint-success">
               <Save className="w-3 h-3 mr-1" /> SAVED
             </span>
           )}
@@ -134,7 +144,9 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Expanded View */}
       {isExpanded && (
-            <div className="pt-4 border-t border-zinc-700 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div
+          className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} space-y-4 px-3 py-3 animate-in fade-in slide-in-from-top-2 duration-200`}
+        >
           {/* Source Link */}
           {event.url && (
             <a
@@ -171,7 +183,9 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Collapsed Footer */}
       {!isExpanded && (
-        <div className="pt-3 border-t border-zinc-800 flex items-center justify-between mt-auto">
+        <div
+          className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} mt-auto flex items-center justify-between gap-3 px-3 py-3`}
+        >
           <div className="osint-meta-label text-zinc-600">{event.timestamp}</div>
           <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="osint-meta-label flex items-center text-zinc-400">

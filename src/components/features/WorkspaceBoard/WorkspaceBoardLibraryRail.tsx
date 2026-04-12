@@ -133,7 +133,11 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                       <div className="space-y-2">
                         <div
                           className={`osint-body-quiet text-zinc-500 ${
-                            key === 'sources' ? 'line-clamp-2 break-all' : ''
+                            key === 'artifacts'
+                              ? 'line-clamp-6'
+                              : key === 'sources'
+                                ? 'line-clamp-2 break-all'
+                                : ''
                           }`}
                         >
                           {entry.description ||

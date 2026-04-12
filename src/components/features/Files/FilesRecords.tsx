@@ -13,6 +13,9 @@ import {
   getArtifactRecordSummary,
   getWorkspaceItemRecordSummary,
 } from './filesViewModel';
+import {
+  CHROME_CARD_SURFACE_CLASS,
+} from '@/components/ui/chrome';
 
 const RECORD_ACTION_BUTTON_CLASS =
   'osint-icon-button-plain inline-flex h-9 w-9 items-center justify-center p-2';
@@ -87,7 +90,9 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
 }) => (
   <div className="animate-in fade-in slide-in-from-right-4 duration-300">
     {focusedItem && !viewModel.isUnassigned && focusedItem.workspaceId ? (
-      <div className="mb-6 border-l-2 border-osint-primary bg-[var(--osint-rail-interaction-active-bg)] p-5 shadow-[var(--osint-rail-interaction-shadow)]">
+      <div
+        className={`${CHROME_CARD_SURFACE_CLASS} mb-6 border-l-2 border-osint-primary bg-[var(--osint-rail-interaction-active-bg)] p-5 shadow-[var(--osint-rail-interaction-shadow)]`}
+      >
         <div className="osint-meta-label text-osint-primary">Focused Item</div>
         <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -143,7 +148,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
               <div
                 key={record.artifact.id || index}
                 onClick={() => onSelectArtifact(record.artifact)}
-                className="osint-raised-surface group flex cursor-pointer items-center justify-between p-6 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
+                className={`${CHROME_CARD_SURFACE_CLASS} group flex cursor-pointer items-center justify-between p-6 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]`}
               >
                 <div className="flex items-center space-x-4">
                   <div className="p-3 text-osint-primary">
@@ -202,7 +207,7 @@ export const FilesRecords: React.FC<FilesRecordsProps> = ({
                       }
                     : undefined
                 }
-                className={`osint-raised-surface group flex items-center justify-between border p-6 transition-all duration-200 ${
+                className={`${CHROME_CARD_SURFACE_CLASS} group flex items-center justify-between border p-6 transition-all duration-200 ${
                   focusedItem?.id === record.item.id
                     ? 'bg-[var(--osint-rail-interaction-active-bg)] shadow-[var(--osint-rail-interaction-shadow)] border-l-2 border-osint-primary'
                     : 'hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)] hover:border-zinc-600'

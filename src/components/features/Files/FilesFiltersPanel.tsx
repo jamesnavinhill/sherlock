@@ -26,7 +26,7 @@ export const FilesFiltersPanel: React.FC<FilesFiltersPanelProps> = ({
   onRecordFilterChange,
   onViewModeChange,
 }) => (
-  <div className="osint-panel-shell absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-osint-panel shadow-2xl">
+  <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-zinc-900">
     <div className="border-b border-zinc-800 bg-black px-4 py-3">
       <h3 className="osint-meta-label-strong text-white">Files Filters</h3>
     </div>

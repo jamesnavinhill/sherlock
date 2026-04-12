@@ -38,6 +38,8 @@ import { MainContentDotGrid } from '../../ui/MainContentDotGrid';
 import { generateAudioBriefing } from '../../../services/runtime';
 import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import {
+  CHROME_CARD_SECTION_SUBTLE_CLASS,
+  CHROME_CARD_SURFACE_CLASS,
   CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
@@ -94,14 +96,11 @@ const dedupeById = <T extends { id: string }>(items: T[]) =>
 const PLAIN_ICON_BUTTON_CLASS =
   'osint-icon-button-plain inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
 
-const PLAIN_SUCCESS_ICON_BUTTON_CLASS =
-  'osint-icon-button-plain-success inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
-
 const ARTIFACT_VIEWER_SECTION_CLASS =
-  'border border-zinc-800 bg-transparent p-6 transition-colors';
+  `${CHROME_CARD_SURFACE_CLASS} p-6 transition-colors`;
 
 const ARTIFACT_VIEWER_SUBSECTION_CLASS =
-  'osint-raised-surface-subtle bg-transparent p-4 transition-colors';
+  `${CHROME_CARD_SECTION_SUBTLE_CLASS} p-4 transition-colors`;
 
 const SECTION_HEADER_CLASS = 'flex items-center justify-between gap-4 border-b border-zinc-800 pb-4';
 

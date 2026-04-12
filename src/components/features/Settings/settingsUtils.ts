@@ -14,7 +14,11 @@ export const TABS = [
 export const SETTINGS_SECTION_BODY_CLASS = 'space-y-6 px-3 pb-3 pt-1';
 
 export const SETTINGS_CARD_CLASS =
-  'osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4';
+  'osint-raised-surface osint-card-surface rounded p-4';
+
+export const SETTINGS_CARD_SECTION_CLASS = 'osint-card-section rounded p-4';
+
+export const SETTINGS_CARD_SECTION_SUBTLE_CLASS = 'osint-card-section-subtle rounded p-4';
 
 export const SETTINGS_SELECT_TRIGGER_CLASS = 'p-2 pr-8 osint-meta-value';
 

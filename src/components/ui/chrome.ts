@@ -34,7 +34,10 @@ export const CHROME_NESTED_ACTION_ITEM_CLASS = 'osint-panel-action-item p-3';
 
 export const CHROME_RAISED_SURFACE_CLASS = 'osint-raised-surface';
 export const CHROME_CARD_SURFACE_CLASS =
-  'osint-raised-surface bg-[var(--osint-interaction-bg)] backdrop-blur-sm';
+  'osint-raised-surface osint-card-surface';
+
+export const CHROME_CARD_SECTION_CLASS = 'osint-card-section';
+export const CHROME_CARD_SECTION_SUBTLE_CLASS = 'osint-card-section-subtle';
 
 export const CHROME_RAISED_SURFACE_SUBTLE_CLASS = 'osint-raised-surface-subtle';
 

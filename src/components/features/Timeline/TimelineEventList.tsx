@@ -4,6 +4,7 @@ import { Clock3 } from 'lucide-react';
 import type { LabelProfile, TimelineEvent, Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
+import { CHROME_CARD_SURFACE_CLASS } from '@/components/ui/chrome';
 import {
   formatEventTime,
   getEventIcon,
@@ -47,8 +48,6 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
   onClearFilters,
   onSelectEvent,
   onFocusReference,
-  onOpenArtifact,
-  onOpenWorkspaceChat,
 }) => (
   <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden border-r border-zinc-800 bg-black/70">
     <MainContentDotGrid testId="timeline-dot-grid-background" />
@@ -114,7 +113,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                       role="button"
                       tabIndex={0}
                       data-active={isActive ? 'true' : undefined}
-                      className={`osint-raised-surface group w-full p-4 text-left transition-all duration-200 ${
+                      className={`${CHROME_CARD_SURFACE_CLASS} group w-full p-4 text-left transition-all duration-200 ${
                         isActive
                           ? 'border-osint-primary bg-[var(--osint-rail-interaction-active-bg)] shadow-[var(--osint-rail-interaction-shadow)]'
                           : 'hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]'
@@ -195,32 +194,6 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                           ) : null}
                         </div>
 
-                        <div className="flex items-center justify-between gap-3 border-t border-zinc-800 pt-3">
-                          <div className="osint-meta-label text-zinc-600">
-                            Select for actions in details
-                          </div>
-                          {relatedArtifactId ? (
-                            <button
-                              onClick={(clickEvent) => {
-                                clickEvent.stopPropagation();
-                                onOpenArtifact(relatedArtifactId);
-                              }}
-                              className="osint-meta-label text-zinc-500 transition hover:text-white"
-                            >
-                              Open {labelProfile.artifactLabel}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={(clickEvent) => {
-                                clickEvent.stopPropagation();
-                                onOpenWorkspaceChat(event);
-                              }}
-                              className="osint-meta-label text-zinc-500 transition hover:text-white"
-                            >
-                              {sessionId ? 'Chat Session' : 'Workspace Chat'}
-                            </button>
-                          )}
-                        </div>
                       </div>
                     </div>
                   );

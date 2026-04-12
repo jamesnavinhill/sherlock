@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { EntityAliasMap } from '../../../types';
 import {
   GitMerge,
@@ -132,9 +133,27 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
     onSaveAliases(newAliases);
   };
 
-  return (
-    <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
-      <div className="bg-osint-panel w-[95vw] h-[90vh] border border-zinc-700 shadow-2xl flex flex-col relative overflow-hidden rounded-sm">
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-300 md:p-6"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div className="bg-osint-panel flex h-[90vh] w-[95vw] flex-col overflow-hidden rounded-sm border border-zinc-700 shadow-2xl">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-black flex-shrink-0">
           <div className="flex items-center space-x-4">
@@ -360,4 +379,10 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') {
+    return modalContent;
+  }
+
+  return createPortal(modalContent, document.body);
 };

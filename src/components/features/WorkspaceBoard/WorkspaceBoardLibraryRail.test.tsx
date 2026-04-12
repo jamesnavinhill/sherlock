@@ -196,6 +196,62 @@ describe('WorkspaceBoardLibraryRail', () => {
     expect(screen.queryByText('ARTIFACT')).not.toBeInTheDocument();
   });
 
+  it('clamps expanded artifact descriptions to a short preview', () => {
+    render(
+      <WorkspaceBoardLibraryRail
+        isOpen
+        workspaceTitle="Agentic A.I."
+        search=""
+        groupedEntries={{
+          created: [],
+          artifacts: [
+            {
+              workspaceId: 'ws-1',
+              refKind: 'ARTIFACT',
+              refId: 'artifact-1',
+              title: 'Memo vs Zep vs Letta',
+              kind: 'ARTIFACT',
+              description:
+                'As of April 2026, the local AI agent memory landscape has fractured into three dominant architectural paradigms. Memo leads as a pluggable, hybrid memory service optimized for multi-scope state. Letta offers a heavily integrated runtime that handles self-editing agent state directly. Zep focuses on temporal knowledge graphs designed to track fact evolution over time for deterministic retrieval.',
+              searchText: 'Memo vs Zep vs Letta',
+              iconId: 'file-text',
+            },
+          ],
+          entities: [],
+          sources: [],
+          signals: [],
+        }}
+        librarySections={{
+          created: false,
+          artifacts: true,
+          entities: false,
+          sources: false,
+          signals: false,
+        }}
+        libraryItemSections={{
+          'ARTIFACT:artifact-1': true,
+        }}
+        fileInputRef={{ current: null }}
+        sectionScrollClassName=""
+        onSearchChange={vi.fn()}
+        onCreateNote={vi.fn()}
+        onCreateLink={vi.fn()}
+        onAddIcon={vi.fn()}
+        onTriggerFileUpload={vi.fn()}
+        onFileUpload={vi.fn()}
+        onToggleLibrarySection={vi.fn()}
+        onToggleLibraryEntrySection={vi.fn()}
+        onDeleteCreatedItem={vi.fn()}
+        onAddToBoard={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText(/As of April 2026, the local AI agent memory landscape/i)
+    ).toHaveClass('line-clamp-6');
+    expect(screen.getByRole('button', { name: 'Add To Board' })).toBeInTheDocument();
+  });
+
   it('uses the shared thin rail spacing for board entries', () => {
     render(
       <WorkspaceBoardLibraryRail

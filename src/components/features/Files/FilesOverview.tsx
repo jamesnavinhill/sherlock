@@ -13,6 +13,10 @@ import type { Workspace } from '@/types';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { AppIcon, getDefaultWorkspaceIconId } from '@/lib/appIcons';
 import type { FilesOverviewViewModel, FilesViewMode } from './filesViewModel';
+import {
+  CHROME_CARD_SECTION_SUBTLE_CLASS,
+  CHROME_CARD_SURFACE_CLASS,
+} from '@/components/ui/chrome';
 
 interface FilesOverviewProps {
   artifactLabelPlural: string;
@@ -160,7 +164,7 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
             <div
               key={workspace.id}
               onClick={() => onSelectWorkspace(workspace.id)}
-              className="osint-raised-surface group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden p-6 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]"
+              className={`${CHROME_CARD_SURFACE_CLASS} group relative flex min-h-[22rem] cursor-pointer flex-col overflow-hidden p-6 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]`}
             >
               <div
                 data-testid="files-overview-workspace-hero-icon"
@@ -213,20 +217,22 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
               </p>
 
               <div className="relative z-10 mt-auto pt-6">
-                <div className="grid grid-cols-2 gap-3 border-t border-zinc-800 pt-4">
-                  <div className="osint-raised-surface-subtle min-w-0 px-3 py-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} min-w-0 px-3 py-2`}>
                     <div className="osint-meta-label">Artifacts</div>
                     <div className="mt-1 flex items-center gap-2 osint-meta-value">
                       <FileText className="h-4 w-4 text-osint-primary" />
                       <span>{artifactCount}</span>
                     </div>
                   </div>
-                  <div className="osint-raised-surface-subtle min-w-0 px-3 py-2">
+                  <div className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} min-w-0 px-3 py-2`}>
                     <div className="osint-meta-label">Items</div>
                     <div className="mt-1 osint-meta-value">{itemCount}</div>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2 border-t border-zinc-800 pt-4">
+                <div
+                  className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} mt-4 flex items-center gap-2 px-3 py-3`}
+                >
                   {renderWorkspaceActions(workspace)}
                 </div>
               </div>
@@ -294,7 +300,9 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                   <div className="osint-meta-value self-center text-right">{artifactCount}</div>
                   <div className="osint-meta-value self-center text-right">{itemCount}</div>
                 </div>
-                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-zinc-800 pt-3">
+                <div
+                  className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} mt-4 flex flex-wrap items-center gap-2 px-3 py-3`}
+                >
                   <button
                     type="button"
                     onClick={(event) => {

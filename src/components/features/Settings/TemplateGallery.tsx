@@ -34,6 +34,8 @@ import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
 import { Accordion } from '@/components/ui/Accordion';
 import {
   SETTINGS_CARD_CLASS,
+  SETTINGS_CARD_SECTION_CLASS,
+  SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_INPUT_CLASS,
   SETTINGS_SEARCH_INPUT_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
@@ -364,7 +366,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 return (
                   <div
                     key={step.id}
-                  className={`osint-raised-surface-subtle flex items-center whitespace-nowrap border px-3 py-2 osint-meta-label ${isActive ? 'border-osint-primary text-osint-primary bg-osint-primary/10' : isDone ? 'border-zinc-700 text-zinc-300 bg-zinc-900' : 'border-zinc-800 text-zinc-500 bg-black'}`}
+                  className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} flex items-center whitespace-nowrap px-3 py-2 osint-meta-label ${isActive ? 'border-osint-primary text-osint-primary bg-osint-primary/10' : isDone ? 'text-zinc-300' : 'text-zinc-500'}`}
                   >
                     {isDone ? (
                       <Check className="w-3 h-3 mr-2" />
@@ -418,7 +420,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={scope.id}
                           onClick={() => setSelectedScopeId(scope.id)}
-                          className={`osint-raised-surface p-3 border text-left transition-all ${selectedScopeId === scope.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`${SETTINGS_CARD_SECTION_CLASS} p-3 text-left transition-all ${selectedScopeId === scope.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="flex items-start gap-2">
                             <span className="text-lg">{scope.icon || '🔍'}</span>
@@ -443,7 +445,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={purpose.id}
                           onClick={() => setSelectedPurposeId(purpose.id)}
-                          className={`osint-raised-surface p-3 border text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`${SETTINGS_CARD_SECTION_CLASS} p-3 text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <div className="osint-meta-value truncate">{purpose.name}</div>
@@ -501,7 +503,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={item.id}
                           onClick={() => setPersona(item.id)}
-                          className={`osint-raised-surface p-3 border text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`${SETTINGS_CARD_SECTION_CLASS} p-3 text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
                         >
                           <div className="osint-meta-value">{item.label}</div>
                           <div className="osint-body-quiet mt-1 line-clamp-2">

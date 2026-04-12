@@ -22,6 +22,8 @@ import { useWorkspaceStore } from '../../store/workspaceStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 import {
   CHROME_CARD_SURFACE_CLASS,
+  CHROME_CARD_SECTION_CLASS,
+  CHROME_CARD_SECTION_SUBTLE_CLASS,
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_TOOLBAR_FIELD_CLASS,
@@ -150,7 +152,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
   }, [feedConfig.autoRefresh, feedConfig.refreshInterval, loading, loadFeed]);
 
   const renderSettingsPanel = () => (
-    <div className="osint-panel-shell absolute top-20 right-6 z-50 w-96 bg-osint-panel border border-zinc-700 shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
+    <div className="osint-menu-panel absolute top-20 right-6 z-50 w-96 border border-zinc-700 bg-zinc-900 animate-in slide-in-from-top-2 fade-in duration-200">
       <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-black">
         <h3 className="osint-meta-label-strong text-white flex items-center">
           <Settings2 className="w-4 h-4 mr-2 text-osint-primary" />
@@ -418,7 +420,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
           {/* Mobile Filter Panel Overlay */}
           {showFilters && (
-            <div className="osint-panel-shell absolute top-20 left-0 right-0 z-40 bg-osint-panel border-b border-zinc-700 p-4 md:hidden shadow-2xl animate-in slide-in-from-top-2 fade-in duration-200">
+            <div className="osint-menu-panel absolute top-20 left-0 right-0 z-40 border-b border-zinc-700 bg-zinc-900 p-4 md:hidden animate-in slide-in-from-top-2 fade-in duration-200">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="osint-meta-label-strong text-white flex items-center">
                   <Filter className="w-4 h-4 mr-2 text-osint-primary" />
@@ -523,7 +525,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                   className={`${CHROME_CARD_SURFACE_CLASS} h-full cursor-pointer group flex flex-col p-5 transition-all animate-in fade-in slide-in-from-bottom-2 duration-500 hover:border-osint-primary hover:bg-zinc-900/80`}
                   onClick={() => setSelectedItem(item)}
                 >
-                  <div className="flex justify-between items-start mb-4">
+                  <div className={`${CHROME_CARD_SECTION_CLASS} mb-4 flex items-start justify-between gap-3 px-3 py-2`}>
                     <span
                       className={`px-2 py-0.5 border osint-meta-label-strong ${getRiskColor(item.riskLevel)}`}
                     >
@@ -540,7 +542,9 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                     {`${item.category} discovery ready for workspace triage and follow-up synthesis.`}
                   </p>
 
-                  <div className="mt-auto flex items-center justify-between border-t border-zinc-800 pt-4 text-zinc-500">
+                  <div
+                    className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} mt-auto flex items-center justify-between gap-3 px-3 py-3 text-zinc-500`}
+                  >
                     <span className="osint-meta-label">{item.category}</span>
                     <span className="flex items-center osint-meta-label text-osint-primary opacity-0 transition-opacity group-hover:opacity-100">
                       Open In Synthesis <ArrowRight className="w-3 h-3 ml-1" />

@@ -154,10 +154,11 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="shrink-0 px-4 pb-4 pt-2 sm:px-6"
+      className="relative z-10 shrink-0 px-4 pb-4 pt-2 sm:px-6"
     >
-      <div className="mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
-        <div className="relative border-b border-zinc-800">
+      <div className="relative z-10 mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
+        <div className="pointer-events-none absolute inset-0 bg-black" aria-hidden="true" />
+        <div className="relative z-10 border-b border-zinc-800">
           <textarea
             ref={textareaRef}
             value={draft}
@@ -230,7 +231,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
         </div>
 
         {linkedMentions.length ? (
-          <div className="flex flex-wrap gap-1.5 border-b border-zinc-800 px-4 py-2">
+          <div className="relative z-10 flex flex-wrap gap-1.5 border-b border-zinc-800 px-4 py-2">
             {linkedMentions.map((mention) => (
               <span
                 key={mention.id}
@@ -243,7 +244,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-3 px-3 py-2">
+        <div className="relative z-10 flex items-center justify-between gap-3 px-3 py-2">
           <div className="flex items-center gap-2">
             <button
               type="button"

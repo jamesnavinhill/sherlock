@@ -514,6 +514,13 @@ body,
   --osint-interaction-border-strong: color-mix(in oklab, var(--osint-border) 100%, transparent);
   --osint-interaction-focus-ring: color-mix(in oklab, var(--osint-border) 70%, transparent);
   --osint-interaction-shadow: 0 14px 26px -24px rgba(0, 0, 0, 0.62);
+  --osint-card-surface-bg: var(--osint-interaction-bg);
+  --osint-card-section-bg: color-mix(in oklab, var(--osint-panel) 74%, var(--osint-surface) 26%);
+  --osint-card-section-subtle-bg: color-mix(
+    in oklab,
+    var(--osint-panel) 68%,
+    var(--osint-dark) 32%
+  );
   --osint-rail-interaction-hover-bg: var(--osint-surface);
   --osint-rail-interaction-active-bg: color-mix(
     in oklab,
@@ -708,6 +715,11 @@ body,
   box-shadow: none;
 }
 
+.osint-card-surface {
+  background-color: var(--osint-card-surface-bg);
+  backdrop-filter: blur(10px);
+}
+
 .osint-raised-surface,
 .osint-raised-surface-section,
 .osint-panel-item,
@@ -743,6 +755,28 @@ body,
 .osint-filter-option[data-active='true'] {
   border-color: color-mix(in oklab, var(--osint-primary) 44%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 28%, transparent);
+}
+
+.osint-card-section,
+.osint-card-section-subtle {
+  color: var(--osint-text-strong);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-card-section {
+  background-color: var(--osint-card-section-bg);
+  border: 1px solid var(--osint-raised-outline);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
+}
+
+.osint-card-section-subtle {
+  background-color: var(--osint-card-section-subtle-bg);
+  border: 1px solid color-mix(in oklab, var(--osint-surface) 42%, var(--osint-border) 58%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 12%, transparent);
 }
 
 .osint-filter-option {
@@ -1922,6 +1956,9 @@ body,
   );
   --osint-interaction-focus-ring: color-mix(in oklab, var(--osint-ink) 16%, transparent);
   --osint-interaction-shadow: 0 12px 24px -24px rgba(31, 22, 13, 0.22);
+  --osint-card-surface-bg: var(--osint-interaction-bg);
+  --osint-card-section-bg: color-mix(in oklab, var(--osint-panel) 72%, var(--osint-surface) 28%);
+  --osint-card-section-subtle-bg: color-mix(in oklab, var(--osint-panel) 64%, white 36%);
   --osint-rail-interaction-hover-bg: var(--osint-interaction-hover-bg);
   --osint-rail-interaction-active-bg: var(--osint-interaction-active-bg);
   --osint-rail-interaction-hover-color: var(--osint-text-action);
@@ -1968,6 +2005,14 @@ body,
 
 :root[data-theme='light'] .osint-raised-surface-subtle {
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 22%, transparent);
+}
+
+:root[data-theme='light'] .osint-card-section {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 30%, transparent);
+}
+
+:root[data-theme='light'] .osint-card-section-subtle {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 20%, transparent);
 }
 
 /* Custom Utility Animations (compatible with animate-in pattern) */

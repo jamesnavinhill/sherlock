@@ -27,6 +27,8 @@ import {
 import {
   FONT_ROLE_CARDS,
   SETTINGS_CARD_CLASS,
+  SETTINGS_CARD_SECTION_CLASS,
+  SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_SELECT_TRIGGER_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
   SURFACE_LABELS,
@@ -399,10 +401,10 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </button>
       </div>
 
-      <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
+      <div className={SETTINGS_CARD_CLASS}>
         <div className="grid gap-3 md:grid-cols-2">
           {fontSelections.map((role) => (
-            <label key={role.key} className="osint-raised-surface rounded border border-zinc-800 bg-black/50 p-3">
+            <label key={role.key} className={SETTINGS_CARD_SECTION_CLASS}>
               <div className="flex items-baseline justify-between gap-3">
                 <span className="osint-title-inline">{role.label}</span>
                 <span className="osint-meta-label">
@@ -430,7 +432,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className={SETTINGS_CARD_CLASS}>
           <div className="flex items-baseline justify-between gap-3">
             <div>
               <div className="osint-meta-label">Global Size Scale</div>
@@ -442,7 +444,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               {activeSizeProfile.label}
             </span>
           </div>
-          <div className="osint-raised-surface-subtle mt-4 rounded border border-zinc-800 bg-black/50 p-4">
+          <div className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} mt-4`}>
             <input
               type="range"
               min={-1}
@@ -465,7 +467,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
         </div>
 
-        <div className="osint-raised-surface rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className={SETTINGS_CARD_CLASS}>
           <div className="flex items-baseline justify-between gap-3">
             <div>
               <div className="osint-meta-label">Global Weight Profile</div>
@@ -477,7 +479,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               {activeWeightProfile.label}
             </span>
           </div>
-          <div className="osint-raised-surface-subtle mt-4 rounded border border-zinc-800 bg-black/50 p-4">
+          <div className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} mt-4`}>
             <input
               type="range"
               min={-1}
@@ -501,7 +503,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </div>
       </div>
 
-      <div className="osint-raised-surface rounded border border-zinc-800 bg-black/60 p-5">
+      <div className="osint-raised-surface osint-card-surface rounded p-5">
         <div
           className="osint-meta-label"
           style={{
@@ -533,7 +535,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           still feel like part of the same system.
         </p>
         <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="osint-raised-surface-subtle rounded border border-zinc-800 bg-zinc-950/70 p-4">
+          <div className={SETTINGS_CARD_SECTION_SUBTLE_CLASS}>
             <div
               className="osint-meta-label"
               style={{
@@ -560,7 +562,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               ))}
             </div>
           </div>
-          <div className="osint-raised-surface-subtle rounded border border-zinc-800 bg-zinc-950/70 p-4">
+          <div className={SETTINGS_CARD_SECTION_SUBTLE_CLASS}>
             <div
               className="osint-meta-label"
               style={{
@@ -589,7 +591,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const renderThemeAccentSection = () => (
     <div className="space-y-6 px-3 pb-3 pt-1">
       <div className="grid auto-rows-fr gap-6 xl:grid-cols-2">
-        <div className="osint-raised-surface flex h-full flex-col rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <div
@@ -625,7 +627,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
         </div>
 
-        <div className="osint-raised-surface flex h-full flex-col rounded border border-zinc-800 bg-zinc-950/50 p-4">
+        <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <div

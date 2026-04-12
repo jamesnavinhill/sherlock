@@ -19,6 +19,7 @@ import { SkeletonPulse } from '../../ui/SkeletonLoaders';
 import { SystemStatusBeacon } from '../../ui/SystemStatusBeacon';
 import {
   CHROME_CARD_SURFACE_CLASS,
+  CHROME_CARD_SECTION_SUBTLE_CLASS,
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
@@ -64,10 +65,10 @@ const MonitorEventCardSkeleton: React.FC<{ active: boolean }> = ({ active }) => 
       <SkeletonPulse className="h-3 w-11/12 rounded-none" />
       <SkeletonPulse className="h-3 w-3/4 rounded-none" />
     </div>
-    <div className="mt-auto flex items-center justify-center border border-zinc-800 bg-zinc-950/50 px-4 py-6">
+    <div className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} mt-auto flex items-center justify-center px-4 py-6`}>
       <SystemStatusBeacon active={active} dotTestId="monitor-skeleton-status-dot" />
     </div>
-    <div className="mt-auto flex items-center justify-between border-t border-zinc-800 pt-3">
+    <div className={`${CHROME_CARD_SECTION_SUBTLE_CLASS} mt-auto flex items-center justify-between px-3 py-3`}>
       <SkeletonPulse className="h-3 w-16 rounded-none" />
       <SkeletonPulse className="h-3 w-24 rounded-none" />
     </div>
