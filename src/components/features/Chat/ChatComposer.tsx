@@ -156,7 +156,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
       onSubmit={onSubmit}
       className="relative z-10 shrink-0 px-4 pb-4 pt-2 sm:px-6"
     >
-      <div className="relative z-10 mx-auto w-full max-w-4xl border border-zinc-800 bg-black/20">
+      <div className="osint-chat-composer-shell relative z-10 mx-auto w-full max-w-4xl bg-black/20">
         <div className="pointer-events-none absolute inset-0 bg-black" aria-hidden="true" />
         <div className="relative z-10 border-b border-zinc-800">
           <textarea

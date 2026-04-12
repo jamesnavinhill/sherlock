@@ -359,6 +359,23 @@ body,
   color: var(--osint-text-heading) !important;
 }
 
+.osint-chat-composer-shell {
+  border: 2px solid color-mix(in oklab, var(--osint-primary) 20%, var(--osint-raised-outline) 80%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 10%, transparent),
+    0 0 18px color-mix(in oklab, var(--osint-primary) 10%, transparent);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-chat-composer-shell:focus-within {
+  border-color: color-mix(in oklab, var(--osint-primary) 28%, var(--osint-raised-outline) 72%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 16%, transparent),
+    0 0 22px color-mix(in oklab, var(--osint-primary) 14%, transparent);
+}
+
 :root:not([data-theme='light']) .text-zinc-700 {
   color: color-mix(in oklab, var(--osint-text) 34%, var(--osint-dark)) !important;
 }
