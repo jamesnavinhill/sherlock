@@ -10,6 +10,7 @@ interface RuntimeConfigBehaviorControlsProps {
   generationHint?: string;
   searchDepthHint?: string;
   generationSectionClassName?: string;
+  optionButtonClassName?: string;
   searchDepthSectionClassName?: string;
   thinkingBudgetClassName?: string;
 }
@@ -19,6 +20,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
   className = 'grid gap-4 md:grid-cols-2',
   generationHint = 'Single pass is lighter. Staged favors stronger evidence and reusable sections.',
   generationSectionClassName = 'border border-zinc-800 bg-zinc-900/30 p-4',
+  optionButtonClassName = 'osint-surface-button py-2 osint-meta-label-strong',
   searchDepthSectionClassName = 'border border-zinc-800 bg-zinc-900/30 p-4',
   searchDepthHint = 'Controls breadth, synthesis depth, and investigative rigor.',
   thinkingBudgetClassName = 'border border-zinc-800 bg-zinc-900/30 p-4 md:col-span-2',
@@ -36,7 +38,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
           onClick={() => form.setSearchDepth('STANDARD')}
           aria-pressed={form.value.searchDepth === 'STANDARD'}
           data-active={form.value.searchDepth === 'STANDARD' ? 'true' : undefined}
-          className="osint-surface-button py-2 osint-meta-label-strong"
+          className={optionButtonClassName}
         >
           Standard
         </button>
@@ -45,7 +47,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
           onClick={() => form.setSearchDepth('DEEP')}
           aria-pressed={form.value.searchDepth === 'DEEP'}
           data-active={form.value.searchDepth === 'DEEP' ? 'true' : undefined}
-          className="osint-surface-button py-2 osint-meta-label-strong"
+          className={optionButtonClassName}
         >
           Deep
         </button>
@@ -64,7 +66,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
           onClick={() => form.setGenerationMode('SINGLE_PASS')}
           aria-pressed={form.value.generationMode === 'SINGLE_PASS'}
           data-active={form.value.generationMode === 'SINGLE_PASS' ? 'true' : undefined}
-          className="osint-surface-button py-2 osint-meta-label-strong"
+          className={optionButtonClassName}
         >
           Single Pass
         </button>
@@ -73,7 +75,7 @@ export const RuntimeConfigBehaviorControls: React.FC<RuntimeConfigBehaviorContro
           onClick={() => form.setGenerationMode('STAGED')}
           aria-pressed={form.value.generationMode === 'STAGED'}
           data-active={form.value.generationMode === 'STAGED' ? 'true' : undefined}
-          className="osint-surface-button py-2 osint-meta-label-strong"
+          className={optionButtonClassName}
         >
           Staged
         </button>

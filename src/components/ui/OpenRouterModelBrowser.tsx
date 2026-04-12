@@ -12,6 +12,8 @@ import {
 } from '../../config/aiModels';
 
 interface OpenRouterModelBrowserProps {
+  actionButtonClassName?: string;
+  closeButtonClassName?: string;
   isOpen: boolean;
   currentModelId?: string;
   onClose: () => void;
@@ -30,6 +32,8 @@ const formatCapabilitySummary = (model: AIModelOption): string => {
 };
 
 export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
+  actionButtonClassName = 'osint-surface-button px-3 py-2 osint-meta-label-strong',
+  closeButtonClassName = 'osint-surface-button p-2',
   isOpen,
   currentModelId,
   onClose,
@@ -95,7 +99,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="osint-surface-button p-2"
+            className={closeButtonClassName}
             aria-label="Close OpenRouter model browser"
           >
             <X className="h-4 w-4" />
@@ -162,7 +166,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     onSelectModel(slug);
                     onClose();
                   }}
-                  className="osint-surface-button px-3 py-2 osint-meta-label-strong"
+                  className={actionButtonClassName}
                 >
                   Use slug
                 </button>
@@ -195,7 +199,7 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                     )
                     .finally(() => setIsRefreshing(false));
                 }}
-                className="osint-surface-button inline-flex items-center justify-center gap-2 px-3 py-2 osint-meta-label-strong"
+                className={actionButtonClassName}
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh

@@ -8,7 +8,10 @@ import type { RuntimeConfigFormController } from './useRuntimeConfigForm';
 
 interface ProviderModelSelectorProps {
   form: RuntimeConfigFormController;
+  browseButtonClassName?: string;
   className?: string;
+  modelBrowserActionButtonClassName?: string;
+  modelBrowserCloseButtonClassName?: string;
   modelSectionClassName?: string;
   modelAriaLabel?: string;
   modelHint?: string;
@@ -23,7 +26,10 @@ interface ProviderModelSelectorProps {
 
 export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
   form,
+  browseButtonClassName = 'osint-surface-button px-3 py-2 osint-meta-label-strong',
   className = 'grid gap-4 md:grid-cols-2',
+  modelBrowserActionButtonClassName = 'osint-surface-button px-3 py-2 osint-meta-label-strong',
+  modelBrowserCloseButtonClassName = 'osint-surface-button p-2',
   modelSectionClassName = 'border border-zinc-800 bg-zinc-900/30 p-4',
   modelAriaLabel = 'Model',
   modelHint,
@@ -93,7 +99,7 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
               <button
                 type="button"
                 onClick={() => form.setShowOpenRouterBrowser(true)}
-                className="osint-surface-button px-3 py-2 osint-meta-label-strong"
+                className={browseButtonClassName}
               >
                 Browse
               </button>
@@ -111,6 +117,8 @@ export const ProviderModelSelector: React.FC<ProviderModelSelectorProps> = ({
           form.setModelId(modelId);
           form.setShowOpenRouterBrowser(false);
         }}
+        actionButtonClassName={modelBrowserActionButtonClassName}
+        closeButtonClassName={modelBrowserCloseButtonClassName}
       />
     </>
   );

@@ -75,7 +75,7 @@ export const Settings: React.FC<SettingsProps> = ({
   });
 
   return (
-    <div className="h-full w-full bg-black relative flex flex-col overflow-hidden">
+    <div className="osint-settings-shell h-full w-full bg-black relative flex flex-col overflow-hidden">
       <header className={`${CHROME_HEADER_CLASS} relative z-20 flex items-center justify-between px-8`}>
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-700/70 to-transparent pointer-events-none" />
         <div className="h-full flex items-center gap-1">

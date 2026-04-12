@@ -9,6 +9,7 @@ import {
   SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_INPUT_CLASS,
+  SETTINGS_SURFACE_BUTTON_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
 } from './settingsUtils';
 import type { SettingsRuntimeState } from './useSettingsRuntimeState';
@@ -45,7 +46,7 @@ const ProviderKeyField: React.FC<{
         <button
           type="button"
           onClick={onToggleVisibility}
-          className="osint-surface-button min-w-[5.25rem] px-4 osint-meta-label-strong"
+          className={`${SETTINGS_SURFACE_BUTTON_CLASS} min-w-[5.25rem] px-4 osint-meta-label-strong`}
         >
           {showValue ? 'HIDE' : 'SHOW'}
         </button>
@@ -90,6 +91,9 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               showModelHint={false}
               providerSectionClassName={SETTINGS_CARD_CLASS}
               modelSectionClassName={SETTINGS_CARD_CLASS}
+              browseButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-2 osint-meta-label-strong`}
+              modelBrowserActionButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} inline-flex items-center justify-center gap-2 px-3 py-2 osint-meta-label-strong`}
+              modelBrowserCloseButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} p-2`}
             />
 
             <RuntimeConfigBehaviorControls
@@ -97,6 +101,7 @@ export const SettingsRuntimeTab: React.FC<SettingsRuntimeTabProps> = ({ runtime,
               searchDepthSectionClassName={SETTINGS_CARD_CLASS}
               generationSectionClassName={SETTINGS_CARD_CLASS}
               thinkingBudgetClassName={`${SETTINGS_CARD_CLASS} md:col-span-2`}
+              optionButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} py-2 osint-meta-label-strong`}
             />
 
             {runtime.form.value.provider === 'OPENROUTER' ? (

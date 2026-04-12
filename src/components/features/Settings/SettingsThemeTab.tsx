@@ -33,6 +33,7 @@ import {
   SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_SELECT_TRIGGER_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_SURFACE_BUTTON_CLASS,
   SURFACE_LABELS,
   getSurfacePreviewTone,
 } from './settingsUtils';
@@ -122,7 +123,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const themeControlSectionClassName =
     'grid min-h-[5.75rem] gap-3 [grid-template-rows:auto_auto_1fr]';
   const themeWorkbenchActionClassName =
-    'osint-surface-button osint-meta-label-strong flex h-[2.875rem] w-full items-center justify-center px-3 text-center transition-colors';
+    `${SETTINGS_SURFACE_BUTTON_CLASS} osint-meta-label-strong flex h-[2.875rem] w-full items-center justify-center px-3 text-center transition-colors`;
   const activeSurfaceLabelClassName =
     'text-[color:var(--osint-primary)] [text-shadow:0_0_12px_color-mix(in_oklab,var(--osint-primary)_30%,transparent)]';
 
@@ -143,7 +144,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             <button
               type="button"
               onClick={handleResetThemeSettings}
-              className="osint-surface-button px-3 py-1 osint-meta-label-strong"
+              className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-1 osint-meta-label-strong`}
             >
               Reset Theme
             </button>
@@ -197,7 +198,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   onClick={() => setActiveSurfaceMode(mode)}
                   aria-pressed={activeSurfaceMode === mode}
                   data-active={activeSurfaceMode === mode ? 'true' : undefined}
-                  className="osint-surface-button px-4 py-2 osint-meta-label"
+                  className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-4 py-2 osint-meta-label`}
                 >
                   {mode}
                 </button>
@@ -278,7 +279,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                         type="button"
                         onClick={() => setSelectedSurfaceKey(surfaceKey)}
                         data-active={selectedSurfaceKey === surfaceKey ? 'true' : undefined}
-                        className="osint-surface-button flex items-center justify-between px-3 py-2 text-left transition-colors"
+                        className={`${SETTINGS_SURFACE_BUTTON_CLASS} flex items-center justify-between px-3 py-2 text-left transition-colors`}
                       >
                         <div>
                           <div
@@ -320,7 +321,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   <button
                     type="button"
                     onClick={() => handleResetSurfaceMode(activeSurfaceMode)}
-                    className="osint-surface-button px-3 py-1 osint-meta-label-strong"
+                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-1 osint-meta-label-strong`}
                   >
                     Reset {activeSurfaceMode}
                   </button>
@@ -365,7 +366,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     onClick={() =>
                       handleResetSelectedSurface(activeSurfaceMode, selectedSurfaceKey)
                     }
-                    className="osint-surface-button px-3 py-1 osint-meta-label-strong"
+                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-1 osint-meta-label-strong`}
                   >
                     Reset Surface
                   </button>
@@ -426,7 +427,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         <button
           type="button"
           onClick={handleResetFonts}
-          className="osint-surface-button px-3 py-1 osint-meta-label-strong"
+          className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-1 osint-meta-label-strong`}
         >
           Reset Fonts
         </button>
@@ -611,7 +612,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             </div>
             <button
               onClick={handleResetThemeSettings}
-              className="osint-surface-button px-3 py-1 osint-meta-label-strong"
+              className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-1 osint-meta-label-strong`}
             >
               Reset Theme
             </button>
@@ -654,7 +655,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 updateThemeBackgroundField('dotColor', DEFAULT_THEME_BACKGROUND_SETTINGS.dotColor);
                 updateThemeBackgroundField('dotOpacity', DEFAULT_THEME_BACKGROUND_SETTINGS.dotOpacity);
               }}
-              className="osint-surface-button px-3 py-1 osint-meta-label-strong"
+              className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-1 osint-meta-label-strong`}
             >
               Reset Background
             </button>

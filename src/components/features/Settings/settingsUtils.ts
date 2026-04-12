@@ -42,6 +42,8 @@ export const SETTINGS_CARD_SECTION_ACTIVE_CLASS =
 export const SETTINGS_CARD_SECTION_SUBTLE_CLASS =
   `${CHROME_CARD_SECTION_SUBTLE_CLASS} rounded p-4`;
 
+export const SETTINGS_SURFACE_BUTTON_CLASS = 'osint-settings-surface-button';
+
 export const SETTINGS_ACCORDION_CLASS = 'osint-settings-accordion mb-0';
 
 export const SETTINGS_TOOLBAR_CLASS =
