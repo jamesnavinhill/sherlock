@@ -29,6 +29,7 @@ export const SourceList: React.FC<SourceListProps> = ({ sources, className = '',
           target="_blank"
           rel="noopener noreferrer"
           className="osint-link-list-item osint-meta-value block truncate border-b border-zinc-900 p-2 last:border-0 group"
+          style={{ color: 'var(--osint-primary)' }}
         >
           <div className="flex items-center gap-1">
             <Link2 className="w-3 h-3 flex-shrink-0" />

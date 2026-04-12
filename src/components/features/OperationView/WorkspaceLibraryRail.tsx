@@ -208,6 +208,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
+              style={{ color: 'var(--osint-primary)' }}
               title={source.title || source.url}
             >
               <Link2 className="mr-1 inline h-3 w-3 text-current opacity-70" />

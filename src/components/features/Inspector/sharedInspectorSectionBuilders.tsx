@@ -199,10 +199,13 @@ export const buildHeadlineInspectorSections = ({
         target="_blank"
         rel="noopener noreferrer"
         className="osint-raised-surface flex items-center justify-between p-4 transition-all hover:border-osint-primary hover:bg-zinc-900"
+        style={{ color: 'var(--osint-primary)' }}
       >
         <div className="flex items-center overflow-hidden">
           <Globe className="mr-3 h-4 w-4 text-zinc-500" />
-          <span className="truncate osint-meta-value text-zinc-400">{headline.url}</span>
+          <span className="truncate osint-meta-value" style={{ color: 'inherit' }}>
+            {headline.url}
+          </span>
         </div>
       </a>
     ) : (

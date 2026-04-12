@@ -110,6 +110,7 @@ const FindingDetailList: React.FC<FindingDetailListProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             className="flex min-w-0 items-center gap-1.5 font-sans text-[11px] leading-5 text-[color:var(--osint-text-quiet)] transition-colors hover:text-osint-primary"
+            style={{ color: 'var(--osint-primary)' }}
             title={source.title || source.url}
           >
             <Link2 className="h-3 w-3 shrink-0" />
@@ -231,6 +232,7 @@ export const buildArtifactViewerDetailRailSections = ({
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-body-quiet text-zinc-400 transition hover:border-osint-primary hover:text-white"
+            style={{ color: 'var(--osint-primary)' }}
           >
             <Link2 className="h-3 w-3" />
             <span>{source.title || source.url}</span>
@@ -475,6 +477,7 @@ export const buildArtifactViewerDetailRailSections = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`${CHROME_THIN_NESTED_ITEM_BUTTON_CLASS} block truncate`}
+                style={{ color: 'var(--osint-primary)' }}
                 title={source.title || source.url}
               >
                 <Link2 className="mr-1 inline h-3 w-3 text-current opacity-70" />

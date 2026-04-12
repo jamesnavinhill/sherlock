@@ -103,8 +103,11 @@ describe('ArtifactViewer', () => {
 
     expect(screen.getByRole('heading', { name: /Executive Summary/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Key Findings/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Appendix/i })).toBeInTheDocument();
-    expect(screen.getAllByText('This is the fuller report body.').length).toBeGreaterThan(0);
+    const executiveSummarySection = screen
+      .getByRole('heading', { name: /Executive Summary/i })
+      .closest('section');
+    expect(executiveSummarySection).not.toBeNull();
+    expect(executiveSummarySection?.textContent).toContain('This is the fuller report body.');
     expect(screen.getAllByText('Atlas Review').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Atlas Contract Network').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /Atlas Contract Network/i })).toHaveClass(
@@ -123,9 +126,7 @@ describe('ArtifactViewer', () => {
     });
     expect(findingSourceLink.className).toContain('osint-inline-text-link');
     expect(findingSourceLink.className).not.toContain('border-zinc-700');
-    const findingSupportReference = within(findingCard as HTMLElement).getAllByText('Registry')[1];
-    expect(findingSupportReference.className).toContain('osint-inline-reference');
-    expect(findingSupportReference.className).not.toContain('border-zinc-700');
+    expect(within(findingCard as HTMLElement).queryByText('Support References')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Expand Artifact Details' }));
     fireEvent.click(screen.getByRole('button', { name: /Key Findings/i }));
     const findingDisclosure = screen.getByRole('button', {
@@ -153,7 +154,10 @@ describe('ArtifactViewer', () => {
     expect(screen.getAllByText('Registry').length).toBeGreaterThan(0);
     expect(screen.queryByText('Entity Index')).not.toBeInTheDocument();
     expect(screen.queryByText('Source Index')).not.toBeInTheDocument();
-    expect(screen.queryByText('Follow-Up Questions')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Next Steps/i })).toBeInTheDocument();
+    expect(screen.getByText('Trace shared directors across the vendor cluster.')).toBeInTheDocument();
+    const investigateButton = screen.getByRole('button', { name: 'Investigate' });
+    expect(investigateButton.className).toContain('osint-button-chrome');
     expect(screen.queryByText('Award timing clusters across overlapping vendors.')).not.toBeInTheDocument();
     expect(
       screen
@@ -166,15 +170,14 @@ describe('ArtifactViewer', () => {
     expect(screen.getByRole('button', { name: 'Expand Artifact Details' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Expand Artifact Details' }));
 
-    expect(
-      screen.queryByText('Trace shared directors across the vendor cluster.')
-    ).not.toBeInTheDocument();
-
     fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
-    const followUpText = screen.getByText('Trace shared directors across the vendor cluster.');
-    expect(followUpText).toBeInTheDocument();
-    expect(followUpText).toHaveClass('osint-body-quiet');
-    expect(followUpText).not.toHaveClass('osint-meta-value');
+    const followUpMatches = screen.getAllByText('Trace shared directors across the vendor cluster.');
+    expect(followUpMatches.length).toBeGreaterThan(1);
+    const detailRailFollowUp = followUpMatches.find((node) =>
+      node.className.includes('osint-body-quiet')
+    );
+    expect(detailRailFollowUp).toBeDefined();
+    expect(detailRailFollowUp as HTMLElement).not.toHaveClass('osint-meta-value');
 
     fireEvent.click(screen.getByRole('button', { name: /Sources/i }));
     expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();
@@ -184,35 +187,18 @@ describe('ArtifactViewer', () => {
     fireEvent.click(screen.getByRole('button', { name: /Entities/i }));
     expect(screen.getAllByText('Atlas Holdings').length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
-    const openFollowUpButton = screen.getByRole('button', { name: 'Open' });
-    expect(openFollowUpButton).toHaveClass('h-6');
-    fireEvent.click(openFollowUpButton);
+    fireEvent.click(investigateButton);
     expect(onLeadOpen).toHaveBeenCalledWith(
       expect.objectContaining({
         actionText: 'Trace shared directors across the vendor cluster.',
       })
     );
 
-    const executiveSummarySection = screen
-      .getByRole('heading', { name: /Executive Summary/i })
-      .closest('section');
-    expect(executiveSummarySection).not.toBeNull();
     expect(executiveSummarySection).toHaveClass('p-6');
-
-    fireEvent.click(within(executiveSummarySection as HTMLElement).getByRole('button', { name: 'Edit' }));
-    const textarea = await screen.findByRole('textbox');
-    fireEvent.change(textarea, { target: { value: 'Expanded report body for editing.' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => {
-      expect(onReportBodySave).toHaveBeenCalledWith(
-        'Expanded report body for editing.',
-        'section-executive_summary-0',
-        {
-          syncSummary: true,
-        }
-      );
-    });
+    expect(
+      within(executiveSummarySection as HTMLElement).queryByRole('button', { name: 'Edit' })
+    ).not.toBeInTheDocument();
+    expect(onReportBodySave).not.toHaveBeenCalled();
   });
+
 });

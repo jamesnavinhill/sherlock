@@ -78,4 +78,70 @@ describe('buildArtifactBoardContent', () => {
 
     expect(buildArtifactBoardContent(artifact)).toBe('Unstructured but complete report body.');
   });
+
+  it('renders duplicate leads and next steps only once when they have the same content', () => {
+    const artifact: Artifact = {
+      topic: 'Duplicate Follow Ups',
+      summary: 'Summary',
+      agendas: [],
+      leads: [
+        "Audit 'OMEGAMCP' source code for potential telemetry or backdoors.",
+        "Track the adoption of 'Agent File' (.af) formats.",
+      ],
+      followUps: [
+        {
+          id: 'follow-up-1',
+          kind: 'TASK',
+          title: "Audit 'OMEGAMCP'",
+          actionText: "Audit 'OMEGAMCP' source code for potential telemetry or backdoors.",
+          status: 'OPEN',
+        },
+        {
+          id: 'follow-up-2',
+          kind: 'TASK',
+          title: "Track 'Agent File' formats",
+          actionText: "Track the adoption of 'Agent File' (.af) formats.",
+          status: 'OPEN',
+        },
+      ],
+      sections: [
+        {
+          id: 'summary',
+          kind: 'EXECUTIVE_SUMMARY',
+          title: 'Executive Summary',
+          content: 'Summary',
+          order: 0,
+        },
+        {
+          id: 'next-steps',
+          kind: 'NEXT_STEPS',
+          title: 'Next Steps',
+          items: [
+            "Audit 'OMEGAMCP' source code for potential telemetry or backdoors.",
+            "Track the adoption of 'Agent File' (.af) formats.",
+          ],
+          order: 1,
+        },
+        {
+          id: 'leads',
+          kind: 'LEADS',
+          title: 'Leads',
+          items: [
+            "Audit 'OMEGAMCP' source code for potential telemetry or backdoors.",
+            "Track the adoption of 'Agent File' (.af) formats.",
+          ],
+          order: 2,
+        },
+      ],
+      artifactType: 'BRIEF',
+      entities: [],
+      sources: [],
+      rawText: 'raw',
+    };
+
+    const content = buildArtifactBoardContent(artifact);
+
+    expect(content).toContain('Next Steps');
+    expect(content).not.toContain('\n\nLeads\n');
+  });
 });

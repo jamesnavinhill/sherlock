@@ -24,6 +24,7 @@ import {
   getArtifactFollowUps,
   getArtifactKeyFindings,
   getArtifactSectionTitle,
+  getFollowUpText,
   getLabelProfileById,
   getPurposeProfileById,
   getSectionByKinds,
@@ -40,6 +41,7 @@ import { decodeBase64, decodeAudioData } from '../../../utils/audio';
 import {
   CHROME_CARD_SECTION_SUBTLE_CLASS,
   CHROME_CARD_SURFACE_CLASS,
+  getChromeMenuButtonClass,
   CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
@@ -49,6 +51,8 @@ import { GlobalInspectorHeader } from '../Inspector/GlobalInspectorHeader';
 import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
 import { buildArtifactViewerDetailRailSections } from './artifactViewerDetailRail';
+import { buildArtifactViewerBody, buildArtifactViewerBodyBlocks } from './artifactViewerText';
+import { getEntityToneClass } from '@/utils/entityPalette';
 
 interface ArtifactViewerProps {
   report: Artifact | null;
@@ -111,6 +115,9 @@ const SECTION_HEADER_ICON_BUTTON_CLASS =
 
 const SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS =
   'osint-icon-button-plain-success inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
+
+const REPORT_MENU_BUTTON_CLASS =
+  `${getChromeMenuButtonClass(false)} osint-meta-label-strong inline-flex h-9 items-center justify-center px-3`;
 
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   report,
@@ -224,7 +231,19 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const highlightedSectionId =
     localFocusedSectionId || focusedSectionId || focusedEvidence?.sectionId || null;
   const highlightedEvidenceId = localFocusedEvidenceId || focusedEvidenceId || null;
-  const visibleReportBody = primarySummarySection?.content || report?.summary || '';
+  const visibleReportBodyBlocks = buildArtifactViewerBodyBlocks({
+    report,
+    orderedSections,
+    labelProfile,
+  });
+  const visibleReportBody = buildArtifactViewerBody({
+    report,
+    orderedSections,
+    labelProfile,
+  });
+  const editableReportBody = primarySummarySection?.content || report?.summary || '';
+  const isCompositeReportBody =
+    normalizeText(visibleReportBody) !== normalizeText(editableReportBody);
   const visibleFollowUps: FollowUp[] = (() => {
     if (!report) return [];
     const canonical = getArtifactFollowUps(report);
@@ -238,22 +257,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
       status: 'OPEN' as const,
     }));
   })();
-  const hiddenSectionKinds = new Set(
-    [
-      primarySummarySection?.kind,
-      'KEY_FINDINGS',
-      'LEADS',
-      'NEXT_STEPS',
-      methodologySection?.kind,
-      visibleEvidence.length > 0 ? 'EVIDENCE' : null,
-    ].filter(Boolean)
-  );
-  const supplementalSections = orderedSections.filter(
-    (section) =>
-      !hiddenSectionKinds.has(section.kind) &&
-      ((section.content && section.content.trim().length > 0) ||
-        (section.items && section.items.length > 0))
-  );
+  const shouldRenderDiscreteReportSections = false;
   const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
   const mainColumnClassName = isDetailSidebarOpen
     ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
@@ -411,6 +415,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             className="osint-inline-text-link osint-body-quiet"
+            style={{ color: 'var(--osint-primary)' }}
           >
             <span>{source.title || source.url}</span>
           </a>
@@ -701,7 +706,8 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   <h2 className="font-osint-display osint-title-section">Executive Summary</h2>
                 </div>
                 <div className={SECTION_HEADER_ACTION_GROUP_CLASS}>
-                  {editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                  {!isCompositeReportBody &&
+                  editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
                     <>
                       <button
                         type="button"
@@ -728,11 +734,11 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         <X className="h-4 w-4" />
                       </button>
                     </>
-                  ) : (
+                  ) : !isCompositeReportBody ? (
                     <button
                       type="button"
                       onClick={() =>
-                        startEditingSection(visibleReportBody, primarySummarySection?.id, true)
+                        startEditingSection(editableReportBody, primarySummarySection?.id, true)
                       }
                       className={SECTION_HEADER_ICON_BUTTON_CLASS}
                       title="Edit artifact text"
@@ -740,7 +746,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
-                  )}
+                  ) : null}
                   <button
                     type="button"
                     onClick={handlePlayBriefing}
@@ -765,7 +771,8 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 </div>
               </div>
 
-              {(focusedEvidenceId || focusedSectionId) && editingTargetKey !== (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+              {(focusedEvidenceId || focusedSectionId) &&
+              editingTargetKey !== (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
                 <div className="mt-4 inline-flex items-center px-2 py-1 osint-meta-label text-osint-primary">
                   Focused Reading Target
                 </div>
@@ -776,13 +783,29 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 : null}
 
               <div className="mt-6">
-                {editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                {!isCompositeReportBody &&
+                editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
                   <textarea
                     value={editingSectionDraft}
                     onChange={(event) => setEditingSectionDraft(event.target.value)}
                     className="min-h-[18rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 osint-prose text-zinc-200 outline-none transition-colors focus:border-osint-primary"
                     spellCheck={false}
                   />
+                ) : isCompositeReportBody ? (
+                  <div className="space-y-5 text-zinc-200">
+                    {visibleReportBodyBlocks.map((block, index) => (
+                      <div key={`${block.title || 'body'}-${index}`} className="space-y-2">
+                        {block.title ? (
+                          <div className="osint-body-small font-semibold tracking-[0.02em] text-white">
+                            {block.title}
+                          </div>
+                        ) : null}
+                        <div className="osint-prose max-w-none whitespace-pre-wrap text-zinc-200">
+                          {block.body}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="osint-prose max-w-none prose prose-invert">
                     <ReactMarkdown components={markdownComponents}>{visibleReportBody}</ReactMarkdown>
@@ -823,7 +846,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     <article key={finding.id} className="py-6 first:pt-0 last:pb-0">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
-                          <div className="osint-meta-label">{`Finding ${index + 1}`}</div>
                           <h3 className="mt-1 osint-panel-title text-white">{finding.title}</h3>
                         </div>
                         {finding.originSectionId ? (
@@ -851,21 +873,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           {renderInlineSourceLinks(matchingSources)}
                         </div>
                       ) : null}
-                      {finding.supportRefs && finding.supportRefs.length > 0 ? (
-                        <div className="mt-4">
-                          <div className="osint-meta-label">Support References</div>
-                          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
-                            {finding.supportRefs.map((reference) => (
-                              <span
-                                key={`${finding.id}-${reference}`}
-                                className="osint-inline-reference osint-meta-label"
-                              >
-                                {reference}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
                       {relatedEvidence.length > 0 ? (
                         <div className="mt-4">
                           <div className="osint-meta-label">Evidence Jumps</div>
@@ -879,7 +886,84 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             </section>
           ) : null}
 
-          {methodologySection?.content
+          {visibleFollowUps.length > 0 ? (
+            <section className={ARTIFACT_VIEWER_SECTION_CLASS}>
+              <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
+                <div>
+                  <h2 className="font-osint-display osint-title-section">Next Steps</h2>
+                </div>
+                <div className="osint-meta-label text-zinc-300">
+                  {`${visibleFollowUps.length} records`}
+                </div>
+              </div>
+              <div className="mt-6 divide-y divide-zinc-800">
+                {visibleFollowUps.map((followUp) => {
+                  const followUpText = getFollowUpText(followUp);
+                  const matchingSources = getMatchingSources(followUp.sourceRefs);
+                  const matchingEntities = (followUp.entityRefs || [])
+                    .map((reference) => getMatchingEntity(reference))
+                    .filter((entity): entity is Entity => !!entity);
+
+                  return (
+                    <article key={followUp.id} className="py-6 first:pt-0 last:pb-0">
+                      <p className="max-w-none osint-body-small leading-relaxed text-zinc-300">
+                        {followUpText}
+                      </p>
+                      {matchingEntities.length > 0 ? (
+                        <div className="mt-4">
+                          <div className="osint-meta-label">Entities</div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {matchingEntities.map((entity) => (
+                              <button
+                                key={`${followUp.id}-${entity.name}`}
+                                type="button"
+                                onClick={() => onEntityClick(entity)}
+                                className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                              >
+                                <span
+                                  className={cx(
+                                    'h-1.5 w-1.5 rounded-full entity-tone-dot',
+                                    getEntityToneClass(entity.type)
+                                  )}
+                                />
+                                <span>{entity.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                      {matchingSources.length > 0 ? (
+                        <div className="mt-4">
+                          <div className="osint-meta-label">Linked Sources</div>
+                          {renderInlineSourceLinks(matchingSources)}
+                        </div>
+                      ) : null}
+                      <div className="mt-4 flex flex-wrap justify-start gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onLeadOpen(followUp)}
+                          className={REPORT_MENU_BUTTON_CLASS}
+                        >
+                          Investigate
+                        </button>
+                        {followUp.originSectionId ? (
+                          <button
+                            type="button"
+                            onClick={() => jumpToSection(followUp.originSectionId as string)}
+                            className={REPORT_MENU_BUTTON_CLASS}
+                          >
+                            Open In Report
+                          </button>
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {shouldRenderDiscreteReportSections && methodologySection?.content
             ? renderDocumentSection(methodologySection, {
                 eyebrow: 'Method',
                 editable: true,
@@ -888,9 +972,23 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
               })
             : null}
 
-          {supplementalSections.length > 0 ? (
+          {shouldRenderDiscreteReportSections ? (
             <div className="space-y-6">
-              {supplementalSections.map((section) =>
+              {orderedSections
+                .filter(
+                  (section) =>
+                    ![
+                      primarySummarySection?.kind,
+                      'KEY_FINDINGS',
+                      methodologySection?.kind,
+                      visibleEvidence.length > 0 ? 'EVIDENCE' : null,
+                    ]
+                      .filter(Boolean)
+                      .includes(section.kind) &&
+                    ((section.content && section.content.trim().length > 0) ||
+                      (section.items && section.items.length > 0))
+                )
+                .map((section) =>
                 renderDocumentSection(section, {
                   editable: Boolean(section.content),
                   saveSectionId: section.content ? section.id : undefined,
