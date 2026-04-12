@@ -35,7 +35,10 @@ import { Accordion } from '@/components/ui/Accordion';
 import {
   SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
+  SETTINGS_CARD_INTERACTIVE_CLASS,
   SETTINGS_CARD_SECTION_CLASS,
+  SETTINGS_CARD_SECTION_ACTIVE_CLASS,
+  SETTINGS_CARD_SECTION_INTERACTIVE_CLASS,
   SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_INPUT_CLASS,
   SETTINGS_MODAL_ACTION_ROW_CLASS,
@@ -297,7 +300,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               {filteredTemplates.map(({ isStarter, template }) => (
                 <div
                   key={template.id}
-                  className={`${SETTINGS_CARD_CLASS} group flex flex-col transition-all duration-300 hover:border-osint-primary`}
+                  className={`${SETTINGS_CARD_INTERACTIVE_CLASS} group flex flex-col`}
                 >
                   <div className="flex-1 p-4">
                     <div className="mb-2 flex items-center justify-between gap-3">
@@ -330,7 +333,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
 
                   <button
                     onClick={() => onApply(template)}
-                    className="osint-surface-button flex items-center justify-center border-t border-zinc-800 p-3 osint-meta-label-strong"
+                    className={`${SETTINGS_CARD_SECTION_CLASS} mt-auto flex items-center justify-center rounded-none border-x-0 border-b-0 p-3 osint-meta-label-strong`}
                   >
                     <Play className="mr-2 h-3 w-3" />
                     {isStarter ? 'Launch Starter' : 'Launch Template'}
@@ -376,7 +379,13 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 return (
                   <div
                     key={step.id}
-                  className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} flex items-center whitespace-nowrap px-3 py-2 osint-meta-label ${isActive ? 'border-osint-primary text-osint-primary bg-osint-primary/10' : isDone ? 'text-zinc-300' : 'text-zinc-500'}`}
+                    className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} flex items-center whitespace-nowrap px-3 py-2 osint-meta-label ${
+                      isActive
+                        ? 'border-osint-primary/40 bg-[var(--osint-rail-interaction-active-bg)] text-osint-primary shadow-[var(--osint-rail-interaction-shadow)]'
+                        : isDone
+                          ? 'text-zinc-300'
+                          : 'text-zinc-500'
+                    }`}
                   >
                     {isDone ? (
                       <Check className="w-3 h-3 mr-2" />
@@ -430,7 +439,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={scope.id}
                           onClick={() => setSelectedScopeId(scope.id)}
-                          className={`${SETTINGS_CARD_SECTION_CLASS} p-3 text-left transition-all ${selectedScopeId === scope.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`${SETTINGS_CARD_SECTION_INTERACTIVE_CLASS} p-3 text-left ${
+                            selectedScopeId === scope.id
+                              ? SETTINGS_CARD_SECTION_ACTIVE_CLASS
+                              : 'text-zinc-400'
+                          }`}
                         >
                           <div className="flex items-start gap-2">
                             <span className="text-lg">{scope.icon || '🔍'}</span>
@@ -455,7 +468,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={purpose.id}
                           onClick={() => setSelectedPurposeId(purpose.id)}
-                          className={`${SETTINGS_CARD_SECTION_CLASS} p-3 text-left transition-all ${selectedPurpose.id === purpose.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`${SETTINGS_CARD_SECTION_INTERACTIVE_CLASS} p-3 text-left ${
+                            selectedPurpose.id === purpose.id
+                              ? SETTINGS_CARD_SECTION_ACTIVE_CLASS
+                              : 'text-zinc-400'
+                          }`}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <div className="osint-meta-value truncate">{purpose.name}</div>
@@ -513,7 +530,9 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                         <button
                           key={item.id}
                           onClick={() => setPersona(item.id)}
-                          className={`${SETTINGS_CARD_SECTION_CLASS} p-3 text-left transition-all ${persona === item.id ? 'border-osint-primary bg-osint-primary/10 text-white' : 'text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'}`}
+                          className={`${SETTINGS_CARD_SECTION_INTERACTIVE_CLASS} p-3 text-left ${
+                            persona === item.id ? SETTINGS_CARD_SECTION_ACTIVE_CLASS : 'text-zinc-400'
+                          }`}
                         >
                           <div className="osint-meta-value">{item.label}</div>
                           <div className="osint-body-quiet mt-1 line-clamp-2">

@@ -12,6 +12,7 @@ import { CHROME_HEADER_CONTROL_HEIGHT_CLASS } from '@/components/ui/chrome';
 import {
   SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
+  SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
 } from './settingsUtils';
 
@@ -144,7 +145,9 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                     </button>
                     {showExportMenu ? (
                       <div className="osint-menu-panel absolute left-0 top-full z-20 mt-1 min-w-full">
-                        <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
+                        <div
+                          className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} rounded-none border-x-0 border-t-0 px-3 py-1.5 osint-menu-section-label`}
+                        >
                           Workspace Backup
                         </div>
                         <button
@@ -181,9 +184,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                 </div>
               </section>
 
-              <section
-                className={`${SETTINGS_CARD_CLASS} osint-danger-panel osint-panel-shell flex h-full flex-col`}
-              >
+              <section className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
                 <h3 className="osint-meta-value osint-danger-text">Delete Data</h3>
                 <p className="mt-5 max-w-xl osint-body-small osint-danger-text">
                   Permanently delete all local workspace data, including runs, chats, saved signals,

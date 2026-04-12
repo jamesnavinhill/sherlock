@@ -24,13 +24,25 @@ export const SETTINGS_SECTION_BODY_CLASS = 'space-y-6 px-3 pb-3 pt-1';
 export const SETTINGS_CARD_CLASS =
   `${CHROME_CARD_SURFACE_CLASS} rounded p-4`;
 
+export const SETTINGS_CARD_INTERACTIVE_CLASS =
+  `${SETTINGS_CARD_CLASS} transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:shadow-[var(--osint-rail-interaction-shadow)]`;
+
+export const SETTINGS_CARD_ACTIVE_CLASS =
+  'border-osint-primary/50 bg-[var(--osint-rail-interaction-active-bg)] shadow-[var(--osint-rail-interaction-shadow)]';
+
 export const SETTINGS_CARD_SECTION_CLASS =
   `${CHROME_CARD_SECTION_CLASS} rounded p-4`;
+
+export const SETTINGS_CARD_SECTION_INTERACTIVE_CLASS =
+  `${SETTINGS_CARD_SECTION_CLASS} text-zinc-300 transition-all duration-200 hover:border-osint-primary hover:bg-[var(--osint-rail-interaction-hover-bg)] hover:text-[color:var(--osint-text-strong)] hover:shadow-[var(--osint-rail-interaction-shadow)]`;
+
+export const SETTINGS_CARD_SECTION_ACTIVE_CLASS =
+  'border-osint-primary/50 bg-[var(--osint-rail-interaction-active-bg)] text-[color:var(--osint-text-strong)] shadow-[var(--osint-rail-interaction-shadow)]';
 
 export const SETTINGS_CARD_SECTION_SUBTLE_CLASS =
   `${CHROME_CARD_SECTION_SUBTLE_CLASS} rounded p-4`;
 
-export const SETTINGS_ACCORDION_CLASS = 'mb-0';
+export const SETTINGS_ACCORDION_CLASS = 'osint-settings-accordion mb-0';
 
 export const SETTINGS_TOOLBAR_CLASS =
   `${CHROME_CARD_SECTION_SUBTLE_CLASS} flex flex-col justify-between gap-4 rounded p-4 md:flex-row md:items-center`;

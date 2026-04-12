@@ -242,6 +242,7 @@ export const placeEntryOnBoard = (
   const shapeMeta = {
     [BOARD_REF_META_KEY]: serializeBoardReference(entry),
   };
+  const boardIconId = entry.kind !== 'ARTIFACT' ? card.iconId : undefined;
   const cardShapeIds: string[] = [shapeId];
 
   editor.createShape<TLGeoShape>({
@@ -265,11 +266,11 @@ export const placeEntryOnBoard = (
       font: 'sans',
       align: 'start',
       verticalAlign: 'start',
-      richText: toRichText(card.iconId ? ` \n${card.content}` : card.content),
+      richText: toRichText(boardIconId ? ` \n${card.content}` : card.content),
     },
   });
 
-  if (card.iconId) {
+  if (boardIconId) {
     const iconAssetId = AssetRecordType.createId(`${entry.refKind}-${entry.refId}-${shapeId}-icon`);
     const iconShapeId = createShapeId();
     const iconSize = 28;
@@ -281,7 +282,7 @@ export const placeEntryOnBoard = (
         type: 'image',
         props: {
           name: `${entry.title} icon`,
-          src: buildAppIconSvgDataUrl(card.iconId, {
+          src: buildAppIconSvgDataUrl(boardIconId, {
             color: themeMode === 'light' ? '#111827' : '#f4f4f5',
             size: 24,
             strokeWidth: 1.9,
@@ -315,15 +316,13 @@ export const placeEntryOnBoard = (
     });
 
     cardShapeIds.push(iconShapeId as string);
-    if (cardShapeIds.length > 1) {
-      const groupId = createShapeId();
-      editor.groupShapes(cardShapeIds as never[], { groupId });
-      editor.setSelectedShapes([groupId]);
-      return {
-        shapeId: groupId as string,
-        card,
-      };
-    }
+    const groupId = createShapeId();
+    editor.groupShapes(cardShapeIds as never[], { groupId });
+    editor.setSelectedShapes([groupId]);
+    return {
+      shapeId: groupId as string,
+      card,
+    };
   }
 
   editor.setSelectedShapes([shapeId]);

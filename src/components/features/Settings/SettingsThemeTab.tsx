@@ -27,7 +27,9 @@ import {
 import {
   FONT_ROLE_CARDS,
   SETTINGS_ACCORDION_CLASS,
+  SETTINGS_CARD_ACTIVE_CLASS,
   SETTINGS_CARD_CLASS,
+  SETTINGS_CARD_INTERACTIVE_CLASS,
   SETTINGS_CARD_SECTION_CLASS,
   SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_SELECT_TRIGGER_CLASS,
@@ -152,8 +154,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   type="button"
                   onClick={() => handleApplySurfacePreset(preset.settings)}
                   data-active={isActive ? 'true' : undefined}
-                  className={`${SETTINGS_CARD_CLASS} text-left transition-colors ${
-                    isActive ? 'bg-osint-primary/6' : 'hover:border-zinc-600'
+                  className={`${SETTINGS_CARD_INTERACTIVE_CLASS} text-left ${
+                    isActive ? SETTINGS_CARD_ACTIVE_CLASS : ''
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -267,9 +269,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                         type="button"
                         onClick={() => setSelectedSurfaceKey(surfaceKey)}
                         data-active={selectedSurfaceKey === surfaceKey ? 'true' : undefined}
-                        className={`osint-surface-button flex items-center justify-between px-3 py-2 text-left transition-colors ${
-                          selectedSurfaceKey === surfaceKey ? 'bg-osint-primary/8' : ''
-                        }`}
+                        className="osint-surface-button flex items-center justify-between px-3 py-2 text-left transition-colors"
                       >
                         <div>
                           <div className="osint-title-inline">{SURFACE_LABELS[surfaceKey]}</div>
@@ -504,7 +504,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
         </div>
       </div>
 
-      <div className="osint-raised-surface osint-card-surface rounded p-5">
+      <div className={`${SETTINGS_CARD_CLASS} p-5`}>
         <div
           className="osint-meta-label"
           style={{

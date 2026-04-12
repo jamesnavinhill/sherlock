@@ -19,7 +19,9 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { Accordion } from './Accordion';
 import {
   SETTINGS_ACCORDION_CLASS,
+  SETTINGS_CARD_ACTIVE_CLASS,
   SETTINGS_CARD_CLASS,
+  SETTINGS_CARD_INTERACTIVE_CLASS,
   SETTINGS_INPUT_CLASS,
   SETTINGS_SEARCH_INPUT_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
@@ -264,10 +266,8 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
               return (
                 <div
                   key={scope.id}
-                  className={`${SETTINGS_CARD_CLASS} overflow-hidden transition-all ${
-                    activeScopeId === scope.id
-                      ? 'border-osint-primary/50 bg-osint-primary/5'
-                      : 'hover:border-zinc-600'
+                  className={`${SETTINGS_CARD_INTERACTIVE_CLASS} overflow-hidden ${
+                    activeScopeId === scope.id ? SETTINGS_CARD_ACTIVE_CLASS : ''
                   }`}
                 >
                   <button
