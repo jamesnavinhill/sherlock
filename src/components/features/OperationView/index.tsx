@@ -109,6 +109,18 @@ export const OperationView: React.FC<OperationViewProps> = ({
     task,
   });
 
+  const [inspectorFocusedSectionId, setInspectorFocusedSectionId] = React.useState<
+    string | undefined
+  >(undefined);
+  const [inspectorFocusedEvidenceId, setInspectorFocusedEvidenceId] = React.useState<
+    string | undefined
+  >(undefined);
+
+  React.useEffect(() => {
+    setInspectorFocusedSectionId(undefined);
+    setInspectorFocusedEvidenceId(undefined);
+  }, [artifactRouteState?.focusEvidenceId, artifactRouteState?.focusSectionId, report?.id]);
+
   if (isTaskRunning) {
     return <MatrixLoader statusText={statusText} onRunInBackground={onBack} />;
   }
@@ -222,9 +234,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
         {/* Center: Report Viewer */}
         <ArtifactViewer
           report={report}
-          workspaceTitle={activeCase ? getWorkspaceDisplayTitle(activeCase) : null}
-          focusedSectionId={artifactRouteState?.focusSectionId}
-          focusedEvidenceId={artifactRouteState?.focusEvidenceId}
+          focusedSectionId={inspectorFocusedSectionId ?? artifactRouteState?.focusSectionId}
+          focusedEvidenceId={inspectorFocusedEvidenceId ?? artifactRouteState?.focusEvidenceId}
           navStack={navStack}
           onNavigate={onNavigate}
           showPlaceholder={showPlaceholder}
@@ -242,6 +253,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
           onClose={() => setRightPanelOpen(false)}
           mode={inspectorMode}
           report={report}
+          labelProfile={labelProfile}
           workspaceTitle={activeCase ? getWorkspaceDisplayTitle(activeCase) : null}
           entity={selectedEntity}
           headline={selectedHeadline}
@@ -261,6 +273,16 @@ export const OperationView: React.FC<OperationViewProps> = ({
           }}
           onPlaceReportOnBoard={() => {
             void handlePlaceReportOnBoard();
+          }}
+          onSelectReportEntity={handleEntityClick}
+          onOpenReportLead={handleLeadClick}
+          onJumpToReportSection={(sectionId) => {
+            setInspectorFocusedEvidenceId(undefined);
+            setInspectorFocusedSectionId(sectionId);
+          }}
+          onJumpToReportEvidence={(evidenceId) => {
+            setInspectorFocusedSectionId(undefined);
+            setInspectorFocusedEvidenceId(evidenceId);
           }}
           onNavigate={onNavigate}
         />

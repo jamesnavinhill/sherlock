@@ -5,7 +5,6 @@ import {
   FileText,
   Globe,
   Loader2,
-  PanelRight,
   Pencil,
   StopCircle,
   Volume2,
@@ -43,20 +42,14 @@ import {
   CHROME_CARD_SURFACE_CLASS,
   getChromeMenuButtonClass,
   CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
-  CHROME_RAIL_BODY_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
 } from '../../ui/chrome';
-import { LibraryRailSections } from '../LibraryRail/LibraryRailSections';
-import { GlobalInspectorHeader } from '../Inspector/GlobalInspectorHeader';
-import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
-import { buildArtifactViewerDetailRailSections } from './artifactViewerDetailRail';
 import { buildArtifactViewerBody, buildArtifactViewerBodyBlocks } from './artifactViewerText';
 import { getEntityToneClass } from '@/utils/entityPalette';
 
 interface ArtifactViewerProps {
   report: Artifact | null;
-  workspaceTitle?: string | null;
   focusedSectionId?: string;
   focusedEvidenceId?: string;
   navStack: BreadcrumbItem[];
@@ -97,16 +90,12 @@ const matchesReference = (reference?: string | null, candidate?: string | null) 
 const dedupeById = <T extends { id: string }>(items: T[]) =>
   Array.from(new Map(items.map((item) => [item.id, item])).values());
 
-const PLAIN_ICON_BUTTON_CLASS =
-  'osint-icon-button-plain inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
+const ARTIFACT_VIEWER_SECTION_CLASS = `${CHROME_CARD_SURFACE_CLASS} p-6 transition-colors`;
 
-const ARTIFACT_VIEWER_SECTION_CLASS =
-  `${CHROME_CARD_SURFACE_CLASS} p-6 transition-colors`;
+const ARTIFACT_VIEWER_SUBSECTION_CLASS = `${CHROME_CARD_SECTION_SUBTLE_CLASS} p-4 transition-colors`;
 
-const ARTIFACT_VIEWER_SUBSECTION_CLASS =
-  `${CHROME_CARD_SECTION_SUBTLE_CLASS} p-4 transition-colors`;
-
-const SECTION_HEADER_CLASS = 'flex items-center justify-between gap-4 border-b border-zinc-800 pb-4';
+const SECTION_HEADER_CLASS =
+  'flex items-center justify-between gap-4 border-b border-zinc-800 pb-4';
 
 const SECTION_HEADER_ACTION_GROUP_CLASS = 'flex items-center gap-2';
 
@@ -116,12 +105,10 @@ const SECTION_HEADER_ICON_BUTTON_CLASS =
 const SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS =
   'osint-icon-button-plain-success inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-60';
 
-const REPORT_MENU_BUTTON_CLASS =
-  `${getChromeMenuButtonClass(false)} osint-meta-label-strong inline-flex h-9 items-center justify-center px-3`;
+const REPORT_MENU_BUTTON_CLASS = `${getChromeMenuButtonClass(false)} osint-meta-label-strong inline-flex h-9 items-center justify-center px-3`;
 
 export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   report,
-  workspaceTitle,
   focusedSectionId,
   focusedEvidenceId,
   navStack,
@@ -137,7 +124,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const reportSources = report?.sources || [];
   const reportEntities = report?.entities || [];
 
-  const [isDetailSidebarOpen, setIsDetailSidebarOpen] = useState(false);
   const [editingTargetKey, setEditingTargetKey] = useState<string | null>(null);
   const [editingSectionDraft, setEditingSectionDraft] = useState('');
   const [isSavingSection, setIsSavingSection] = useState(false);
@@ -152,11 +138,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
-
-  const {
-    openSection: openDetailRailSection,
-    toggleSection: toggleDetailRailSection,
-  } = useExclusivePanelSections(['findings', 'followUps', 'entities', 'resources'] as const);
 
   useEffect(() => {
     return () => stopAudio();
@@ -208,11 +189,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
     p: (props) => <p className="mb-4 last:mb-0" {...props} />,
   };
 
-  const labelProfile = getLabelProfileById(report?.labelProfileId || report?.config?.labelProfileId);
+  const labelProfile = getLabelProfileById(
+    report?.labelProfileId || report?.config?.labelProfileId
+  );
   const purposeProfile = getPurposeProfileById(report?.purposeId || report?.config?.purposeId);
-  const detailPanelTitle = workspaceTitle?.trim()
-    ? workspaceTitle.trim()
-    : navStack.find((item) => item.type === 'CASE')?.label || labelProfile.workspaceLabel;
   const { evidenceBySectionId, orderedSections, visibleEvidence } = buildArtifactViewerPresentation(
     report,
     purposeProfile
@@ -226,8 +206,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   const primarySummarySection = getSectionByKinds(orderedSections, ['EXECUTIVE_SUMMARY']);
   const methodologySection = getSectionByKinds(orderedSections, ['METHODOLOGY']);
   const summaryAnchorId = primarySummarySection?.id || `${report?.id || 'artifact'}-summary`;
-  const keyFindingsAnchorId =
-    keyFindingsSection?.id || `${report?.id || 'artifact'}-key-findings`;
+  const keyFindingsAnchorId = keyFindingsSection?.id || `${report?.id || 'artifact'}-key-findings`;
   const highlightedSectionId =
     localFocusedSectionId || focusedSectionId || focusedEvidence?.sectionId || null;
   const highlightedEvidenceId = localFocusedEvidenceId || focusedEvidenceId || null;
@@ -259,9 +238,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   })();
   const shouldRenderDiscreteReportSections = false;
   const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
-  const mainColumnClassName = isDetailSidebarOpen
-    ? 'w-3/4 h-full overflow-y-auto custom-scrollbar border-r border-zinc-800'
-    : 'flex-1 h-full overflow-y-auto custom-scrollbar';
+  const mainColumnClassName = 'flex-1 h-full overflow-y-auto custom-scrollbar';
   const detailActionButtonClassName = CHROME_THIN_ACTION_BUTTON_CLASS;
   useEffect(() => {
     const nextTarget =
@@ -571,19 +548,19 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </button>
                 </>
               ) : (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      startEditingSection(
-                        section.content || '',
-                        saveSectionId,
-                        options?.syncSummary ?? false
-                      )
-                    }
-                    className={SECTION_HEADER_ICON_BUTTON_CLASS}
-                    title="Edit artifact text"
-                    aria-label="Edit"
-                  >
+                <button
+                  type="button"
+                  onClick={() =>
+                    startEditingSection(
+                      section.content || '',
+                      saveSectionId,
+                      options?.syncSummary ?? false
+                    )
+                  }
+                  className={SECTION_HEADER_ICON_BUTTON_CLASS}
+                  title="Edit artifact text"
+                  aria-label="Edit"
+                >
                   <Pencil className="h-4 w-4" />
                 </button>
               )}
@@ -608,26 +585,6 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
       </section>
     );
   };
-
-  const detailRailSections = buildArtifactViewerDetailRailSections({
-    report,
-    labelProfile,
-    canonicalFindings,
-    reportEntities,
-    reportSources,
-    visibleFollowUps,
-    visibleEvidence,
-    openSection: openDetailRailSection,
-    toggleSection: toggleDetailRailSection,
-    keyFindingsAnchorId,
-    onEntityClick,
-    onLeadOpen,
-    jumpToSection,
-    jumpToEvidence,
-    getFindingRelatedEvidence,
-    getMatchingSources,
-    getMatchingEntity,
-  });
 
   if (showPlaceholder || !report) {
     return (
@@ -661,24 +618,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 {report.dateStr ? (
                   <p className="osint-meta-label whitespace-nowrap">LOG DATE: {report.dateStr}</p>
                 ) : null}
-                {!isDetailSidebarOpen ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsDetailSidebarOpen(true)}
-                    className="osint-icon-button-plain inline-flex h-9 w-9 shrink-0 items-center justify-center border-0 bg-transparent p-0"
-                    title="Expand Artifact Details"
-                    aria-label="Expand Artifact Details"
-                  >
-                    <PanelRight className="h-4 w-4" />
-                  </button>
-                  ) : null}
               </div>
             </div>
           </div>
-          <div
-            data-testid="artifact-viewer-title-surface"
-            className="relative z-10 px-6 py-5"
-          >
+          <div data-testid="artifact-viewer-title-surface" className="relative z-10 px-6 py-5">
             <EditableTitle
               value={report.topic}
               displayValue={reportDisplayTitle}
@@ -689,171 +632,354 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           </div>
 
           <div className="relative z-10 space-y-8 px-6 pb-6 pt-6">
-          {visibleReportBody.trim().length > 0 ? (
-            <section
-              ref={(node) => {
-                sectionRefs.current[summaryAnchorId] = node;
-              }}
-              className={cx(
-                ARTIFACT_VIEWER_SECTION_CLASS,
-                highlightedSectionId === summaryAnchorId
-                  ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-                  : undefined
-              )}
-            >
-              <div className={SECTION_HEADER_CLASS}>
-                <div className="min-w-0">
-                  <h2 className="font-osint-display osint-title-section">Executive Summary</h2>
-                </div>
-                <div className={SECTION_HEADER_ACTION_GROUP_CLASS}>
-                  {!isCompositeReportBody &&
-                  editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
-                    <>
+            {visibleReportBody.trim().length > 0 ? (
+              <section
+                ref={(node) => {
+                  sectionRefs.current[summaryAnchorId] = node;
+                }}
+                className={cx(
+                  ARTIFACT_VIEWER_SECTION_CLASS,
+                  highlightedSectionId === summaryAnchorId
+                    ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                    : undefined
+                )}
+              >
+                <div className={SECTION_HEADER_CLASS}>
+                  <div className="min-w-0">
+                    <h2 className="font-osint-display osint-title-section">Executive Summary</h2>
+                  </div>
+                  <div className={SECTION_HEADER_ACTION_GROUP_CLASS}>
+                    {!isCompositeReportBody &&
+                    editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleSaveSection}
+                          disabled={isSavingSection}
+                          className={SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS}
+                          title="Save artifact text"
+                          aria-label="Save"
+                        >
+                          {isSavingSection ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEditing}
+                          disabled={isSavingSection}
+                          className={SECTION_HEADER_ICON_BUTTON_CLASS}
+                          title="Cancel editing"
+                          aria-label="Cancel"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </>
+                    ) : !isCompositeReportBody ? (
                       <button
                         type="button"
-                        onClick={handleSaveSection}
-                        disabled={isSavingSection}
-                        className={SECTION_HEADER_SUCCESS_ICON_BUTTON_CLASS}
-                        title="Save artifact text"
-                        aria-label="Save"
-                      >
-                        {isSavingSection ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelEditing}
-                        disabled={isSavingSection}
+                        onClick={() =>
+                          startEditingSection(editableReportBody, primarySummarySection?.id, true)
+                        }
                         className={SECTION_HEADER_ICON_BUTTON_CLASS}
-                        title="Cancel editing"
-                        aria-label="Cancel"
+                        title="Edit artifact text"
+                        aria-label="Edit"
                       >
-                        <X className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       </button>
-                    </>
-                  ) : !isCompositeReportBody ? (
+                    ) : null}
                     <button
                       type="button"
-                      onClick={() =>
-                        startEditingSection(editableReportBody, primarySummarySection?.id, true)
-                      }
-                      className={SECTION_HEADER_ICON_BUTTON_CLASS}
-                      title="Edit artifact text"
-                      aria-label="Edit"
+                      onClick={handlePlayBriefing}
+                      disabled={isAudioLoading}
+                      className={cx(
+                        'inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 shadow-none transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60',
+                        isPlaying
+                          ? 'osint-icon-button-plain-danger animate-pulse'
+                          : 'osint-icon-button-plain'
+                      )}
+                      aria-label={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
+                      title={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
                     >
-                      <Pencil className="h-4 w-4" />
+                      {isAudioLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : isPlaying ? (
+                        <StopCircle className="h-4 w-4" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
                     </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={handlePlayBriefing}
-                    disabled={isAudioLoading}
-                    className={cx(
-                      'inline-flex h-9 w-9 items-center justify-center border-0 bg-transparent p-0 shadow-none transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60',
-                      isPlaying
-                        ? 'osint-icon-button-plain-danger animate-pulse'
-                        : 'osint-icon-button-plain'
-                    )}
-                    aria-label={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
-                    title={isPlaying ? 'Stop audio briefing' : 'Play audio briefing'}
-                  >
-                    {isAudioLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : isPlaying ? (
-                      <StopCircle className="h-4 w-4" />
-                    ) : (
-                      <Volume2 className="h-4 w-4" />
-                    )}
-                  </button>
+                  </div>
                 </div>
-              </div>
 
-              {(focusedEvidenceId || focusedSectionId) &&
-              editingTargetKey !== (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
-                <div className="mt-4 inline-flex items-center px-2 py-1 osint-meta-label text-osint-primary">
-                  Focused Reading Target
+                {(focusedEvidenceId || focusedSectionId) &&
+                editingTargetKey !== (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                  <div className="mt-4 inline-flex items-center px-2 py-1 osint-meta-label text-osint-primary">
+                    Focused Reading Target
+                  </div>
+                ) : null}
+
+                {(evidenceBySectionId[primarySummarySection?.id || ''] || []).length > 0
+                  ? renderEvidenceButtons(evidenceBySectionId[primarySummarySection?.id || ''])
+                  : null}
+
+                <div className="mt-6">
+                  {!isCompositeReportBody &&
+                  editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
+                    <textarea
+                      value={editingSectionDraft}
+                      onChange={(event) => setEditingSectionDraft(event.target.value)}
+                      className="min-h-[18rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 osint-prose text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+                      spellCheck={false}
+                    />
+                  ) : isCompositeReportBody ? (
+                    <div className="space-y-5 text-zinc-200">
+                      {visibleReportBodyBlocks.map((block, index) => (
+                        <div key={`${block.title || 'body'}-${index}`} className="space-y-2">
+                          {block.title ? (
+                            <div className="osint-body-small font-semibold tracking-[0.02em] text-white">
+                              {block.title}
+                            </div>
+                          ) : null}
+                          <div className="osint-prose max-w-none whitespace-pre-wrap text-zinc-200">
+                            {block.body}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="osint-prose max-w-none prose prose-invert">
+                      <ReactMarkdown components={markdownComponents}>
+                        {visibleReportBody}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
-              ) : null}
+              </section>
+            ) : null}
 
-              {(evidenceBySectionId[primarySummarySection?.id || ''] || []).length > 0
-                ? renderEvidenceButtons(evidenceBySectionId[primarySummarySection?.id || ''])
-                : null}
+            {canonicalFindings.length > 0 ? (
+              <section
+                ref={(node) => {
+                  sectionRefs.current[keyFindingsAnchorId] = node;
+                }}
+                className={cx(
+                  ARTIFACT_VIEWER_SECTION_CLASS,
+                  highlightedSectionId === keyFindingsAnchorId
+                    ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                    : undefined
+                )}
+              >
+                <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
+                  <div>
+                    <h2 className="font-osint-display osint-title-section">Key Findings</h2>
+                  </div>
+                  <div className="osint-meta-label text-zinc-300">
+                    {`${canonicalFindings.length} records`}
+                  </div>
+                </div>
+                <div className="mt-6 divide-y divide-zinc-800">
+                  {canonicalFindings.map((finding, index) => {
+                    const relatedEvidence = getFindingRelatedEvidence(finding);
+                    const matchingSources = getMatchingSources(finding.supportRefs);
+                    const findingOriginSectionId = finding.originSectionId;
 
-              <div className="mt-6">
-                {!isCompositeReportBody &&
-                editingTargetKey === (primarySummarySection?.id || REPORT_BODY_EDIT_KEY) ? (
-                  <textarea
-                    value={editingSectionDraft}
-                    onChange={(event) => setEditingSectionDraft(event.target.value)}
-                    className="min-h-[18rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 osint-prose text-zinc-200 outline-none transition-colors focus:border-osint-primary"
-                    spellCheck={false}
-                  />
-                ) : isCompositeReportBody ? (
-                  <div className="space-y-5 text-zinc-200">
-                    {visibleReportBodyBlocks.map((block, index) => (
-                      <div key={`${block.title || 'body'}-${index}`} className="space-y-2">
-                        {block.title ? (
-                          <div className="osint-body-small font-semibold tracking-[0.02em] text-white">
-                            {block.title}
+                    return (
+                      <article key={finding.id} className="py-6 first:pt-0 last:pb-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <h3 className="mt-1 osint-panel-title text-white">{finding.title}</h3>
+                          </div>
+                          {finding.originSectionId ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (findingOriginSectionId) {
+                                  jumpToSection(findingOriginSectionId);
+                                }
+                              }}
+                              className={detailActionButtonClassName}
+                            >
+                              Jump To Section
+                            </button>
+                          ) : null}
+                        </div>
+                        <div className="mt-3 max-w-none osint-body-small prose prose-invert">
+                          <ReactMarkdown components={markdownComponents}>
+                            {finding.summary}
+                          </ReactMarkdown>
+                        </div>
+                        {matchingSources.length > 0 ? (
+                          <div className="mt-4">
+                            <div className="osint-meta-label">Linked Sources</div>
+                            {renderInlineSourceLinks(matchingSources)}
                           </div>
                         ) : null}
-                        <div className="osint-prose max-w-none whitespace-pre-wrap text-zinc-200">
-                          {block.body}
+                        {relatedEvidence.length > 0 ? (
+                          <div className="mt-4">
+                            <div className="osint-meta-label">Evidence Jumps</div>
+                            {renderEvidenceButtons(relatedEvidence)}
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
+
+            {visibleFollowUps.length > 0 ? (
+              <section className={ARTIFACT_VIEWER_SECTION_CLASS}>
+                <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
+                  <div>
+                    <h2 className="font-osint-display osint-title-section">Next Steps</h2>
+                  </div>
+                  <div className="osint-meta-label text-zinc-300">
+                    {`${visibleFollowUps.length} records`}
+                  </div>
+                </div>
+                <div className="mt-6 divide-y divide-zinc-800">
+                  {visibleFollowUps.map((followUp) => {
+                    const followUpText = getFollowUpText(followUp);
+                    const matchingSources = getMatchingSources(followUp.sourceRefs);
+                    const matchingEntities = (followUp.entityRefs || [])
+                      .map((reference) => getMatchingEntity(reference))
+                      .filter((entity): entity is Entity => !!entity);
+
+                    return (
+                      <article key={followUp.id} className="py-6 first:pt-0 last:pb-0">
+                        <p className="max-w-none osint-body-small leading-relaxed text-zinc-300">
+                          {followUpText}
+                        </p>
+                        {matchingEntities.length > 0 ? (
+                          <div className="mt-4">
+                            <div className="osint-meta-label">Entities</div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {matchingEntities.map((entity) => (
+                                <button
+                                  key={`${followUp.id}-${entity.name}`}
+                                  type="button"
+                                  onClick={() => onEntityClick(entity)}
+                                  className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                >
+                                  <span
+                                    className={cx(
+                                      'h-1.5 w-1.5 rounded-full entity-tone-dot',
+                                      getEntityToneClass(entity.type)
+                                    )}
+                                  />
+                                  <span>{entity.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                        {matchingSources.length > 0 ? (
+                          <div className="mt-4">
+                            <div className="osint-meta-label">Linked Sources</div>
+                            {renderInlineSourceLinks(matchingSources)}
+                          </div>
+                        ) : null}
+                        <div className="mt-4 flex flex-wrap justify-start gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onLeadOpen(followUp)}
+                            className={REPORT_MENU_BUTTON_CLASS}
+                          >
+                            Investigate
+                          </button>
+                          {followUp.originSectionId ? (
+                            <button
+                              type="button"
+                              onClick={() => jumpToSection(followUp.originSectionId as string)}
+                              className={REPORT_MENU_BUTTON_CLASS}
+                            >
+                              Open In Report
+                            </button>
+                          ) : null}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="osint-prose max-w-none prose prose-invert">
-                    <ReactMarkdown components={markdownComponents}>{visibleReportBody}</ReactMarkdown>
-                  </div>
-                )}
-              </div>
-
-            </section>
-          ) : null}
-
-          {canonicalFindings.length > 0 ? (
-            <section
-              ref={(node) => {
-                sectionRefs.current[keyFindingsAnchorId] = node;
-              }}
-              className={cx(
-                ARTIFACT_VIEWER_SECTION_CLASS,
-                highlightedSectionId === keyFindingsAnchorId
-                  ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-                  : undefined
-              )}
-            >
-              <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
-                <div>
-                  <h2 className="font-osint-display osint-title-section">Key Findings</h2>
+                      </article>
+                    );
+                  })}
                 </div>
-                <div className="osint-meta-label text-zinc-300">
-                  {`${canonicalFindings.length} records`}
-                </div>
-              </div>
-              <div className="mt-6 divide-y divide-zinc-800">
-                {canonicalFindings.map((finding, index) => {
-                  const relatedEvidence = getFindingRelatedEvidence(finding);
-                  const matchingSources = getMatchingSources(finding.supportRefs);
-                  const findingOriginSectionId = finding.originSectionId;
+              </section>
+            ) : null}
 
-                  return (
-                    <article key={finding.id} className="py-6 first:pt-0 last:pb-0">
-                      <div className="flex items-start justify-between gap-4">
+            {shouldRenderDiscreteReportSections && methodologySection?.content
+              ? renderDocumentSection(methodologySection, {
+                  eyebrow: 'Method',
+                  editable: true,
+                  saveSectionId: methodologySection.id,
+                  syncSummary: false,
+                })
+              : null}
+
+            {shouldRenderDiscreteReportSections ? (
+              <div className="space-y-6">
+                {orderedSections
+                  .filter(
+                    (section) =>
+                      ![
+                        primarySummarySection?.kind,
+                        'KEY_FINDINGS',
+                        methodologySection?.kind,
+                        visibleEvidence.length > 0 ? 'EVIDENCE' : null,
+                      ]
+                        .filter(Boolean)
+                        .includes(section.kind) &&
+                      ((section.content && section.content.trim().length > 0) ||
+                        (section.items && section.items.length > 0))
+                  )
+                  .map((section) =>
+                    renderDocumentSection(section, {
+                      editable: Boolean(section.content),
+                      saveSectionId: section.content ? section.id : undefined,
+                      syncSummary: false,
+                    })
+                  )}
+              </div>
+            ) : null}
+
+            {visibleEvidence.length > 0 ? (
+              <section className={ARTIFACT_VIEWER_SECTION_CLASS}>
+                <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
+                  <div>
+                    <div className="osint-eyebrow">Evidence Index</div>
+                    <h2 className="mt-2 font-osint-display osint-title-section">Evidence Log</h2>
+                  </div>
+                  <div className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
+                    {`${visibleEvidence.length} items`}
+                  </div>
+                </div>
+                <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                  {visibleEvidence.map((evidence) => (
+                    <article
+                      key={evidence.id}
+                      ref={(node) => {
+                        evidenceRefs.current[evidence.id] = node;
+                      }}
+                      className={cx(
+                        ARTIFACT_VIEWER_SUBSECTION_CLASS,
+                        highlightedEvidenceId === evidence.id
+                          ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                          : 'border-zinc-800'
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="mt-1 osint-panel-title text-white">{finding.title}</h3>
+                          <div className="osint-meta-label">{evidence.kind}</div>
+                          <div className="mt-1 osint-meta-label-strong text-white">
+                            {evidence.title}
+                          </div>
                         </div>
-                        {finding.originSectionId ? (
+                        {evidence.sectionId ? (
                           <button
                             type="button"
                             onClick={() => {
-                              if (findingOriginSectionId) {
-                                jumpToSection(findingOriginSectionId);
+                              if (evidence.sectionId) {
+                                jumpToSection(evidence.sectionId);
                               }
                             }}
                             className={detailActionButtonClassName}
@@ -862,243 +988,40 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           </button>
                         ) : null}
                       </div>
-                      <div className="mt-3 max-w-none osint-body-small prose prose-invert">
-                        <ReactMarkdown components={markdownComponents}>
-                          {finding.summary}
-                        </ReactMarkdown>
-                      </div>
-                      {matchingSources.length > 0 ? (
-                        <div className="mt-4">
-                          <div className="osint-meta-label">Linked Sources</div>
-                          {renderInlineSourceLinks(matchingSources)}
-                        </div>
-                      ) : null}
-                      {relatedEvidence.length > 0 ? (
-                        <div className="mt-4">
-                          <div className="osint-meta-label">Evidence Jumps</div>
-                          {renderEvidenceButtons(relatedEvidence)}
-                        </div>
-                      ) : null}
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-
-          {visibleFollowUps.length > 0 ? (
-            <section className={ARTIFACT_VIEWER_SECTION_CLASS}>
-              <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
-                <div>
-                  <h2 className="font-osint-display osint-title-section">Next Steps</h2>
-                </div>
-                <div className="osint-meta-label text-zinc-300">
-                  {`${visibleFollowUps.length} records`}
-                </div>
-              </div>
-              <div className="mt-6 divide-y divide-zinc-800">
-                {visibleFollowUps.map((followUp) => {
-                  const followUpText = getFollowUpText(followUp);
-                  const matchingSources = getMatchingSources(followUp.sourceRefs);
-                  const matchingEntities = (followUp.entityRefs || [])
-                    .map((reference) => getMatchingEntity(reference))
-                    .filter((entity): entity is Entity => !!entity);
-
-                  return (
-                    <article key={followUp.id} className="py-6 first:pt-0 last:pb-0">
-                      <p className="max-w-none osint-body-small leading-relaxed text-zinc-300">
-                        {followUpText}
+                      <p className="mt-3 osint-body-small leading-relaxed text-zinc-300">
+                        {evidence.summary}
                       </p>
-                      {matchingEntities.length > 0 ? (
+                      {evidence.quote ? (
+                        <blockquote className="mt-3 border-l-2 border-osint-primary/40 pl-3 osint-body-muted italic">
+                          {evidence.quote}
+                        </blockquote>
+                      ) : null}
+                      {evidence.sourceUrl || evidence.sourceTitle ? (
                         <div className="mt-4">
-                          <div className="osint-meta-label">Entities</div>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {matchingEntities.map((entity) => (
-                              <button
-                                key={`${followUp.id}-${entity.name}`}
-                                type="button"
-                                onClick={() => onEntityClick(entity)}
-                                className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
-                              >
-                                <span
-                                  className={cx(
-                                    'h-1.5 w-1.5 rounded-full entity-tone-dot',
-                                    getEntityToneClass(entity.type)
-                                  )}
-                                />
-                                <span>{entity.name}</span>
-                              </button>
-                            ))}
-                          </div>
+                          {evidence.sourceUrl ? (
+                            <a
+                              href={evidence.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="osint-inline-text-link osint-meta-label"
+                            >
+                              <span>{evidence.sourceTitle || evidence.sourceUrl}</span>
+                            </a>
+                          ) : (
+                            <span className="osint-inline-reference osint-meta-label">
+                              {evidence.sourceTitle}
+                            </span>
+                          )}
                         </div>
                       ) : null}
-                      {matchingSources.length > 0 ? (
-                        <div className="mt-4">
-                          <div className="osint-meta-label">Linked Sources</div>
-                          {renderInlineSourceLinks(matchingSources)}
-                        </div>
-                      ) : null}
-                      <div className="mt-4 flex flex-wrap justify-start gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onLeadOpen(followUp)}
-                          className={REPORT_MENU_BUTTON_CLASS}
-                        >
-                          Investigate
-                        </button>
-                        {followUp.originSectionId ? (
-                          <button
-                            type="button"
-                            onClick={() => jumpToSection(followUp.originSectionId as string)}
-                            className={REPORT_MENU_BUTTON_CLASS}
-                          >
-                            Open In Report
-                          </button>
-                        ) : null}
-                      </div>
                     </article>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-
-          {shouldRenderDiscreteReportSections && methodologySection?.content
-            ? renderDocumentSection(methodologySection, {
-                eyebrow: 'Method',
-                editable: true,
-                saveSectionId: methodologySection.id,
-                syncSummary: false,
-              })
-            : null}
-
-          {shouldRenderDiscreteReportSections ? (
-            <div className="space-y-6">
-              {orderedSections
-                .filter(
-                  (section) =>
-                    ![
-                      primarySummarySection?.kind,
-                      'KEY_FINDINGS',
-                      methodologySection?.kind,
-                      visibleEvidence.length > 0 ? 'EVIDENCE' : null,
-                    ]
-                      .filter(Boolean)
-                      .includes(section.kind) &&
-                    ((section.content && section.content.trim().length > 0) ||
-                      (section.items && section.items.length > 0))
-                )
-                .map((section) =>
-                renderDocumentSection(section, {
-                  editable: Boolean(section.content),
-                  saveSectionId: section.content ? section.id : undefined,
-                  syncSummary: false,
-                })
-              )}
-            </div>
-          ) : null}
-
-          {visibleEvidence.length > 0 ? (
-            <section className={ARTIFACT_VIEWER_SECTION_CLASS}>
-              <div className="flex items-end justify-between gap-4 border-b border-zinc-800 pb-4">
-                <div>
-                  <div className="osint-eyebrow">Evidence Index</div>
-                  <h2 className="mt-2 font-osint-display osint-title-section">Evidence Log</h2>
+                  ))}
                 </div>
-                <div className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
-                  {`${visibleEvidence.length} items`}
-                </div>
-              </div>
-              <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                {visibleEvidence.map((evidence) => (
-                  <article
-                    key={evidence.id}
-                    ref={(node) => {
-                      evidenceRefs.current[evidence.id] = node;
-                    }}
-                    className={cx(
-                      ARTIFACT_VIEWER_SUBSECTION_CLASS,
-                      highlightedEvidenceId === evidence.id
-                        ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-                        : 'border-zinc-800'
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="osint-meta-label">{evidence.kind}</div>
-                        <div className="mt-1 osint-meta-label-strong text-white">
-                          {evidence.title}
-                        </div>
-                      </div>
-                      {evidence.sectionId ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (evidence.sectionId) {
-                              jumpToSection(evidence.sectionId);
-                            }
-                          }}
-                          className={detailActionButtonClassName}
-                        >
-                          Jump To Section
-                        </button>
-                      ) : null}
-                    </div>
-                    <p className="mt-3 osint-body-small leading-relaxed text-zinc-300">
-                      {evidence.summary}
-                    </p>
-                    {evidence.quote ? (
-                      <blockquote className="mt-3 border-l-2 border-osint-primary/40 pl-3 osint-body-muted italic">
-                        {evidence.quote}
-                      </blockquote>
-                    ) : null}
-                    {evidence.sourceUrl || evidence.sourceTitle ? (
-                      <div className="mt-4">
-                        {evidence.sourceUrl ? (
-                          <a
-                            href={evidence.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="osint-inline-text-link osint-meta-label"
-                          >
-                            <span>{evidence.sourceTitle || evidence.sourceUrl}</span>
-                          </a>
-                        ) : (
-                          <span className="osint-inline-reference osint-meta-label">
-                            {evidence.sourceTitle}
-                          </span>
-                        )}
-                      </div>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            </section>
-          ) : null}
+              </section>
+            ) : null}
           </div>
         </div>
       </div>
-
-      {isDetailSidebarOpen ? (
-        <div className="flex h-full w-1/4 flex-col overflow-hidden bg-black/95">
-          <GlobalInspectorHeader
-            eyebrow="Details"
-            title={detailPanelTitle}
-            icon={
-              <div className="p-2 text-white">
-                <FileText className="h-5 w-5" />
-              </div>
-            }
-            onClose={() => setIsDetailSidebarOpen(false)}
-            closeButtonClassName={`${PLAIN_ICON_BUTTON_CLASS} shrink-0`}
-            closeIcon={<PanelRight className="h-4 w-4" />}
-            closeLabel="Collapse Artifact Details"
-          />
-          <div className={`${CHROME_RAIL_BODY_CLASS} bg-zinc-900/10 custom-scrollbar`}>
-            <LibraryRailSections sections={detailRailSections} />
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 };

@@ -12,8 +12,8 @@ import {
   User,
 } from 'lucide-react';
 
-import type { Artifact, Entity, Headline } from '../../../types';
-import { sanitizeDisplayTitle } from '../../../domain';
+import type { Artifact, Entity, FollowUp, Headline, LabelProfile } from '../../../types';
+import { getPurposeProfileById, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
 import { EditableTitle } from '../../ui/EditableTitle';
 import type { InspectorActionItem } from '../../ui/InspectorActionRow';
@@ -25,6 +25,7 @@ import {
   buildHeadlineInspectorSections,
 } from '../Inspector/sharedInspectorSectionBuilders';
 import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
+import { buildArtifactViewerReportDetailRailSections } from './artifactViewerDetailRail';
 import { getArtifactTypeLabel } from './artifactViewerPresentation';
 
 interface OperationInspectorPanelProps {
@@ -32,6 +33,7 @@ interface OperationInspectorPanelProps {
   onClose: () => void;
   mode: 'ENTITY' | 'HEADLINE' | 'REPORT' | null;
   report: Artifact | null;
+  labelProfile: LabelProfile;
   workspaceTitle?: string | null;
   entity: Entity | null;
   headline: Headline | null;
@@ -46,6 +48,10 @@ interface OperationInspectorPanelProps {
   onPlaceEntityOnBoard: (entityName: string) => void;
   onPlaceHeadlineOnBoard: () => void;
   onPlaceReportOnBoard: () => void;
+  onSelectReportEntity: (entity: Entity) => void;
+  onOpenReportLead: (followUp: FollowUp) => void;
+  onJumpToReportSection: (sectionId: string) => void;
+  onJumpToReportEvidence: (evidenceId: string) => void;
   onNavigate: (artifactId: string) => void;
 }
 
@@ -60,6 +66,7 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
   onClose,
   mode,
   report,
+  labelProfile,
   workspaceTitle,
   entity,
   headline,
@@ -74,16 +81,31 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
   onPlaceEntityOnBoard,
   onPlaceHeadlineOnBoard,
   onPlaceReportOnBoard,
+  onSelectReportEntity,
+  onOpenReportLead,
+  onJumpToReportSection,
+  onJumpToReportEvidence,
   onNavigate,
 }) => {
-  const entitySectionState = useExclusivePanelSections(['details', 'mentions', 'connections'] as const);
+  const entitySectionState = useExclusivePanelSections([
+    'details',
+    'mentions',
+    'connections',
+  ] as const);
   const headlineSectionState = useExclusivePanelSections(['content', 'source'] as const);
-  const reportSectionState = useExclusivePanelSections(['overview', 'metrics'] as const);
+  const reportSectionState = useExclusivePanelSections(['overview'] as const);
+  const reportDetailSectionState = useExclusivePanelSections([
+    'findings',
+    'entities',
+    'followUps',
+    'resources',
+  ] as const);
 
   const entityToneClass = entity ? getEntityToneClass(entity.type) : getEntityToneClass('UNKNOWN');
   const reportDisplayTitle = report ? sanitizeDisplayTitle(report.topic) : '';
   const reportArtifactTypeLabel = report ? getArtifactTypeLabel(report.artifactType) : '';
   const entityTypeLabel = entity ? entity.type.replace(/_/g, ' ') : 'UNKNOWN';
+  const purposeProfile = getPurposeProfileById(report?.purposeId || report?.config?.purposeId);
 
   const entityActions: InspectorActionItem[] = entity
     ? [
@@ -279,32 +301,20 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
               </div>
             ),
           },
-          {
-            id: 'metrics',
-            title: 'Artifact Metrics',
-            isOpen: reportSectionState.openSection === 'metrics',
-            onToggle: () => reportSectionState.toggleSection('metrics'),
-            content: (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="osint-raised-surface-subtle p-3">
-                  <div className="mb-1 osint-meta-label">Sections</div>
-                  <div className="osint-meta-value text-lg text-white">{report.sections?.length || 0}</div>
-                </div>
-                <div className="osint-raised-surface-subtle p-3">
-                  <div className="mb-1 osint-meta-label">Evidence</div>
-                  <div className="osint-meta-value text-lg text-white">{report.evidence?.length || 0}</div>
-                </div>
-                <div className="osint-raised-surface-subtle p-3">
-                  <div className="mb-1 osint-meta-label">Entities</div>
-                  <div className="osint-meta-value text-lg text-white">{report.entities?.length || 0}</div>
-                </div>
-                <div className="osint-raised-surface-subtle p-3">
-                  <div className="mb-1 osint-meta-label">Sources</div>
-                  <div className="osint-meta-value text-lg text-white">{report.sources?.length || 0}</div>
-                </div>
-              </div>
-            ),
-          },
+          ...buildArtifactViewerReportDetailRailSections({
+            report,
+            labelProfile,
+            purposeProfile,
+            openSection: reportDetailSectionState.openSection,
+            toggleSection: reportDetailSectionState.toggleSection,
+            onEntityClick: onSelectReportEntity,
+            onLeadOpen: onOpenReportLead,
+            jumpToSection: onJumpToReportSection,
+            jumpToEvidence: onJumpToReportEvidence,
+          }).map<GlobalInspectorSection>((section) => ({
+            ...section,
+            content: section.content ?? section.emptyState ?? null,
+          })),
         ]
       : [];
 
@@ -388,7 +398,8 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
       title="No Item Selected"
       emptyState={{
         title: 'No Item Selected',
-        description: 'Select an entity, saved signal, or reopen the current artifact inspector here.',
+        description:
+          'Select an entity, saved signal, or reopen the current artifact inspector here.',
       }}
     />
   );

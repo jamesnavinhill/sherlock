@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Artifact } from '../../../types';
 import { ArtifactViewer } from './ArtifactViewer';
@@ -78,14 +78,13 @@ const reportFixture: Artifact = {
 };
 
 describe('ArtifactViewer', () => {
-  it('renders canonical findings in both the document body and details rail, hides legacy follow-up sections, and preserves detail-rail actions', async () => {
+  it('renders canonical findings in the document body and hides legacy follow-up chrome', async () => {
     const onReportBodySave = vi.fn(async () => undefined);
     const onLeadOpen = vi.fn();
 
     render(
       <ArtifactViewer
         report={reportFixture}
-        workspaceTitle="Atlas Review"
         navStack={[
           { type: 'CASE', id: 'case-1', label: 'Atlas Review' },
           { type: 'REPORT', id: 'report-1', label: reportFixture.topic },
@@ -127,19 +126,6 @@ describe('ArtifactViewer', () => {
     expect(findingSourceLink.className).toContain('osint-inline-text-link');
     expect(findingSourceLink.className).not.toContain('border-zinc-700');
     expect(within(findingCard as HTMLElement).queryByText('Support References')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Expand Artifact Details' }));
-    fireEvent.click(screen.getByRole('button', { name: /Key Findings/i }));
-    const findingDisclosure = screen.getByRole('button', {
-      name: /1\s*Award timing irregularity/i,
-    });
-    expect(findingDisclosure).toBeInTheDocument();
-    expect(screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')).toHaveLength(1);
-    fireEvent.click(findingDisclosure);
-    expect(
-      screen.getAllByText('Coordinated contract awards cluster around the same vendor network.').length
-    ).toBeGreaterThan(1);
-    fireEvent.click(findingDisclosure);
-    expect(screen.getAllByText('Coordinated contract awards cluster around the same vendor network.')).toHaveLength(1);
     expect(screen.queryByText(/\[RUN_ANGLE\]/)).not.toBeInTheDocument();
     expect(screen.queryByText(/\[PRIORITY_SOURCES\]/)).not.toBeInTheDocument();
     expect(screen.queryByText('Grounded vs Inferred')).not.toBeInTheDocument();
@@ -159,33 +145,6 @@ describe('ArtifactViewer', () => {
     const investigateButton = screen.getByRole('button', { name: 'Investigate' });
     expect(investigateButton.className).toContain('osint-button-chrome');
     expect(screen.queryByText('Award timing clusters across overlapping vendors.')).not.toBeInTheDocument();
-    expect(
-      screen
-        .getByRole('button', { name: /Entities/i })
-        .compareDocumentPosition(screen.getByRole('button', { name: /Investigative Leads/i }))
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-
-    expect(screen.getByRole('button', { name: 'Collapse Artifact Details' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse Artifact Details' }));
-    expect(screen.getByRole('button', { name: 'Expand Artifact Details' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Expand Artifact Details' }));
-
-    fireEvent.click(screen.getByRole('button', { name: /Investigative Leads/i }));
-    const followUpMatches = screen.getAllByText('Trace shared directors across the vendor cluster.');
-    expect(followUpMatches.length).toBeGreaterThan(1);
-    const detailRailFollowUp = followUpMatches.find((node) =>
-      node.className.includes('osint-body-quiet')
-    );
-    expect(detailRailFollowUp).toBeDefined();
-    expect(detailRailFollowUp as HTMLElement).not.toHaveClass('osint-meta-value');
-
-    fireEvent.click(screen.getByRole('button', { name: /Sources/i }));
-    expect(screen.getByText('One source could not be fully verified.')).toBeInTheDocument();
-    expect(screen.queryByText('Generation')).not.toBeInTheDocument();
-    expect(screen.queryByText('OPENAI / gpt-test')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Entities/i }));
-    expect(screen.getAllByText('Atlas Holdings').length).toBeGreaterThan(0);
 
     fireEvent.click(investigateButton);
     expect(onLeadOpen).toHaveBeenCalledWith(

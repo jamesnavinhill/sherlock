@@ -11,9 +11,16 @@ import type {
   FollowUp,
   KeyFinding,
   LabelProfile,
+  PurposeProfile,
   Source,
 } from '@/types';
-import { getFollowUpText } from '@/domain';
+import {
+  getArtifactFollowUps,
+  getArtifactKeyFindings,
+  getFollowUpText,
+  getSectionByKinds,
+  getSectionItemsByKinds,
+} from '@/domain';
 import {
   CHROME_THIN_ACTION_BUTTON_CLASS,
   CHROME_THIN_NESTED_ITEM_BUTTON_CLASS,
@@ -24,6 +31,7 @@ import { Accordion } from '@/components/ui/Accordion';
 import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 import { getEntityToneClass } from '@/utils/entityPalette';
 import type { LibraryRailSection } from '../LibraryRail/libraryRailTypes';
+import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
 
 type ArtifactDetailRailSectionId = 'findings' | 'entities' | 'followUps' | 'resources';
 
@@ -53,6 +61,34 @@ const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
 const normalizeText = (value?: string | null) => value?.replace(/\s+/g, ' ').trim() || '';
+
+const matchesReference = (reference?: string | null, candidate?: string | null) => {
+  const normalizedReference = normalizeText(reference).toLowerCase();
+  const normalizedCandidate = normalizeText(candidate).toLowerCase();
+
+  return (
+    normalizedReference.length > 0 &&
+    normalizedCandidate.length > 0 &&
+    (normalizedReference === normalizedCandidate ||
+      normalizedCandidate.includes(normalizedReference) ||
+      normalizedReference.includes(normalizedCandidate))
+  );
+};
+
+const dedupeById = <T extends { id: string }>(items: T[]) =>
+  Array.from(new Map(items.map((item) => [item.id, item])).values());
+
+interface BuildArtifactViewerReportDetailRailSectionsArgs {
+  report: Artifact | null;
+  labelProfile: LabelProfile;
+  purposeProfile?: PurposeProfile;
+  openSection: ArtifactDetailRailSectionId | null;
+  toggleSection: (sectionId: ArtifactDetailRailSectionId) => void;
+  onEntityClick: (entity: Entity) => void;
+  onLeadOpen: (followUp: FollowUp) => void;
+  jumpToSection: (sectionId: string) => void;
+  jumpToEvidence: (evidenceId: string) => void;
+}
 
 interface FollowUpDetailRowProps {
   title?: string;
@@ -491,4 +527,97 @@ export const buildArtifactViewerDetailRailSections = ({
       ),
     },
   ];
+};
+
+export const buildArtifactViewerReportDetailRailSections = ({
+  report,
+  labelProfile,
+  purposeProfile,
+  openSection,
+  toggleSection,
+  onEntityClick,
+  onLeadOpen,
+  jumpToSection,
+  jumpToEvidence,
+}: BuildArtifactViewerReportDetailRailSectionsArgs): LibraryRailSection[] => {
+  const reportEntities = report?.entities || [];
+  const reportSources = report?.sources || [];
+  const { evidenceBySectionId, orderedSections, visibleEvidence } = buildArtifactViewerPresentation(
+    report,
+    purposeProfile
+  );
+  const canonicalFindings = report ? getArtifactKeyFindings(report) : [];
+  const keyFindingsSection = getSectionByKinds(orderedSections, ['KEY_FINDINGS']);
+  const keyFindingsAnchorId = keyFindingsSection?.id || `${report?.id || 'artifact'}-key-findings`;
+  const visibleFollowUps: FollowUp[] = (() => {
+    if (!report) return [];
+
+    const canonical = getArtifactFollowUps(report);
+    if (canonical.length > 0) return canonical;
+
+    return getSectionItemsByKinds(orderedSections, ['LEADS', 'NEXT_STEPS']).map((item, index) => ({
+      id: `report-follow-up-${index}`,
+      kind: 'NEXT_STEP' as const,
+      title: item.slice(0, 96),
+      actionText: item,
+      status: 'OPEN' as const,
+    }));
+  })();
+
+  const getFindingRelatedEvidence = (finding: KeyFinding) =>
+    dedupeById(
+      [
+        ...(finding.originSectionId ? evidenceBySectionId[finding.originSectionId] || [] : []),
+        ...visibleEvidence.filter((entry) =>
+          (finding.supportRefs || []).some(
+            (reference) =>
+              matchesReference(reference, entry.title) ||
+              matchesReference(reference, entry.sourceTitle) ||
+              matchesReference(reference, entry.sourceUrl)
+          )
+        ),
+      ].filter((entry): entry is ArtifactEvidence => Boolean(entry))
+    );
+
+  const getMatchingSources = (references?: string[]) =>
+    dedupeById(
+      reportSources
+        .filter((source) =>
+          (references || []).some(
+            (reference) =>
+              matchesReference(reference, source.title) || matchesReference(reference, source.url)
+          )
+        )
+        .map((source, index) => ({ ...source, id: `${source.url}-${index}` }))
+    ).map(({ id: _id, ...source }) => source);
+
+  const getMatchingEntity = (reference: string) => {
+    const match = reportEntities.find((entity) => {
+      const candidateName = typeof entity === 'string' ? entity : entity.name;
+      return matchesReference(reference, candidateName);
+    });
+
+    if (!match) return null;
+    return typeof match === 'string' ? { name: match, type: 'UNKNOWN' as const } : match;
+  };
+
+  return buildArtifactViewerDetailRailSections({
+    report,
+    labelProfile,
+    canonicalFindings,
+    reportEntities,
+    reportSources,
+    visibleFollowUps,
+    visibleEvidence,
+    openSection,
+    toggleSection,
+    keyFindingsAnchorId,
+    onEntityClick,
+    onLeadOpen,
+    jumpToSection,
+    jumpToEvidence,
+    getFindingRelatedEvidence,
+    getMatchingSources,
+    getMatchingEntity,
+  });
 };
