@@ -50,6 +50,10 @@ interface SettingsThemeTabProps {
   handleThemeBackgroundVariantChange: (variant: ThemeBackgroundSettings['variant']) => void;
   handleMatchAccentHue: (mode: keyof ThemeSurfaceSettings) => void;
   handleResetFonts: () => void;
+  handleResetSelectedSurface: (
+    mode: keyof ThemeSurfaceSettings,
+    surfaceKey: keyof ThemeSurfaceScale
+  ) => void;
   handleResetSurfaceMode: (mode: keyof ThemeSurfaceSettings) => void;
   handleResetThemeSettings: () => void;
   onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
@@ -86,6 +90,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   handleThemeBackgroundVariantChange,
   handleMatchAccentHue,
   handleResetFonts,
+  handleResetSelectedSurface,
   handleResetSurfaceMode,
   handleResetThemeSettings,
   onAccentChange,
@@ -117,7 +122,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const themeControlSectionClassName =
     'grid min-h-[5.75rem] gap-3 [grid-template-rows:auto_auto_1fr]';
   const themeWorkbenchActionClassName =
-    'osint-surface-button osint-meta-label-strong w-full px-3 py-2';
+    'osint-surface-button osint-meta-label-strong flex h-[2.875rem] w-full items-center justify-center px-3 text-center transition-colors';
   const activeSurfaceLabelClassName =
     'text-[color:var(--osint-primary)] [text-shadow:0_0_12px_color-mix(in_oklab,var(--osint-primary)_30%,transparent)]';
 
@@ -353,7 +358,18 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               </div>
 
               <div className={`${SETTINGS_CARD_CLASS} flex h-full flex-col`}>
-                <div className="osint-meta-label">Quick Adjust</div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="osint-meta-label">Quick Adjust</div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleResetSelectedSurface(activeSurfaceMode, selectedSurfaceKey)
+                    }
+                    className="osint-surface-button px-3 py-1 osint-meta-label-strong"
+                  >
+                    Reset Surface
+                  </button>
+                </div>
                 <div className="mt-4 flex flex-1 flex-col justify-center gap-3">
                   <button
                     type="button"

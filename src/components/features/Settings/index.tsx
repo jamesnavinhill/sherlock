@@ -163,6 +163,7 @@ export const Settings: React.FC<SettingsProps> = ({
               toggleThemeSection={theme.toggleThemeSection}
               handleResetThemeSettings={theme.handleResetThemeSettings}
               handleResetFonts={theme.handleResetFonts}
+              handleResetSelectedSurface={theme.handleResetSelectedSurface}
               handleApplySurfacePreset={theme.handleApplySurfacePreset}
               handleResetSurfaceMode={theme.handleResetSurfaceMode}
               handleMatchAccentHue={theme.handleMatchAccentHue}

@@ -169,6 +169,17 @@ export const useSettingsThemeState = ({
     });
   };
 
+  const handleResetSelectedSurface = (
+    mode: keyof ThemeSurfaceSettings,
+    surfaceKey: keyof ThemeSurfaceScale
+  ) => {
+    handleThemeSurfaceChange(
+      mode,
+      surfaceKey,
+      cloneThemeSurfaceSettings(DEFAULT_THEME_SURFACE_SETTINGS)[mode][surfaceKey]
+    );
+  };
+
   const handleMatchAccentHue = (mode: keyof ThemeSurfaceSettings) => {
     updateModeSurfaces(mode, (scale) => ({
       background: { ...scale.background, hue: accentSettings.hue },
@@ -258,6 +269,7 @@ export const useSettingsThemeState = ({
     handleThemeBackgroundVariantChange,
     handleMatchAccentHue,
     handleResetFonts,
+    handleResetSelectedSurface,
     handleResetSurfaceMode,
     handleResetThemeSettings,
     handleThemeSurfaceChange,
