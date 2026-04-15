@@ -287,10 +287,8 @@
 }
 
 .ds-rail-header {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1.1rem;
-  border-bottom: 1px solid var(--ds-border-soft);
+  display: flex;
+  flex-direction: column;
 }
 
 .ds-rail-header-top {
@@ -299,6 +297,8 @@
   justify-content: space-between;
   flex-wrap: nowrap;
   gap: 1rem;
+  padding: 1.1rem;
+  border-bottom: 1px solid var(--ds-border-soft);
 }
 
 .ds-rail-header-copy {
@@ -321,6 +321,8 @@
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid var(--ds-border-soft);
 }
 
 .ds-rail-close {

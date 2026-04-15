@@ -25,6 +25,7 @@ describe('useOperationViewController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (window as Window & { innerWidth: number }).innerWidth = 1280;
     baseState = {
       workspaces: [],
       artifacts: [],
@@ -44,6 +45,28 @@ describe('useOperationViewController', () => {
       toggleFlag: vi.fn(),
     };
     selectorState.useOperationFeatureState.mockReturnValue(baseState);
+  });
+
+  it('defaults the workspace rail and its sections collapsed', () => {
+    const { result } = renderHook(() =>
+      useOperationViewController({
+        onNavigate: vi.fn(),
+        onOpenChat: vi.fn(),
+        task: null,
+      })
+    );
+
+    expect(result.current.leftPanelOpen).toBe(false);
+    expect(result.current.openSections).toEqual({
+      caseInfo: false,
+      reports: false,
+      findings: false,
+      entities: false,
+      leads: false,
+      evidence: false,
+      sources: false,
+      headlines: false,
+    });
   });
 
   it('routes flag actions through selector-owned toggle handlers', () => {

@@ -173,7 +173,7 @@ export const useWorkspaceBoardController = ({
     themeMode,
   } = useWorkspaceBoardFeatureState();
 
-  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [aiBusy, setAiBusy] = useState(false);

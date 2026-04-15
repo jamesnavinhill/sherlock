@@ -9,7 +9,7 @@ export const useNetworkGraphUiState = () => {
   const [showHiddenNodes, setShowHiddenNodes] = useState(false);
   const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const [showLeftPanel, setShowLeftPanel] = useState(true);
+  const [showLeftPanel, setShowLeftPanel] = useState(false);
   const [isLinkingMode, setIsLinkingMode] = useState(false);
   const [linkSourceNode, setLinkSourceNode] = useState<GraphNode | null>(null);
   const [showAddNodeUI, setShowAddNodeUI] = useState(false);

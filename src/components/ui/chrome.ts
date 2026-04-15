@@ -122,8 +122,31 @@ export const getChromeSegmentButtonClass = (active: boolean) =>
       : 'text-zinc-500'
   }`;
 
-export const getRailAccordionClassName = (isOpen: boolean) =>
-  isOpen ? 'mb-0 flex min-h-0 flex-1 flex-col' : 'mb-0 shrink-0';
+interface RailAccordionClassOptions {
+  hasOpenSection?: boolean;
+  isLast?: boolean;
+  isOpen: boolean;
+}
+
+export const getRailAccordionClassName = (
+  input: boolean | RailAccordionClassOptions,
+  options: Omit<RailAccordionClassOptions, 'isOpen'> = {}
+) => {
+  const resolved =
+    typeof input === 'boolean'
+      ? { isOpen: input, ...options }
+      : input;
+
+  if (resolved.isOpen) {
+    return 'mb-0 flex min-h-0 flex-1 flex-col';
+  }
+
+  if (resolved.isLast && !resolved.hasOpenSection) {
+    return 'mb-0 flex min-h-0 flex-1 flex-col justify-end';
+  }
+
+  return 'mb-0 shrink-0';
+};
 
 export const getChromeThinActionRowClassName = (count: number) =>
   count > 1 ? 'mt-3 grid grid-cols-2 gap-2' : 'mt-3 flex';

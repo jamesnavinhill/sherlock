@@ -26,6 +26,7 @@ import { useTimelineViewController } from './useTimelineViewController';
 describe('useTimelineViewController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (window as Window & { innerWidth: number }).innerWidth = 1280;
 
     useTimelineFeatureState.mockReturnValue({
       activeWorkspaceId: 'ws-1',
@@ -81,6 +82,35 @@ describe('useTimelineViewController', () => {
       signalTitleById: {},
       timelineSnapshot: null,
       visibleEvents: [],
+    });
+  });
+
+  it('defaults both timeline rails and section groups collapsed', () => {
+    const { result } = renderHook(
+      () =>
+        useTimelineViewController({
+          onOpenChat: vi.fn(),
+          onOpenReport: vi.fn(),
+        }),
+      {
+        wrapper: ({ children }) =>
+          React.createElement(MemoryRouter, { future: routerFuture }, children),
+      }
+    );
+
+    expect(result.current.leftPanelOpen).toBe(false);
+    expect(result.current.rightPanelOpen).toBe(false);
+    expect(result.current.dossierSections).toEqual({
+      events: false,
+      runs: false,
+      artifacts: false,
+      signals: false,
+      entities: false,
+      chats: false,
+    });
+    expect(result.current.detailSections).toEqual({
+      summary: false,
+      context: false,
     });
   });
 

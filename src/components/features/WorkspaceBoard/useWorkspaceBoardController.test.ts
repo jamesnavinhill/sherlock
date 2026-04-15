@@ -53,6 +53,7 @@ describe('useWorkspaceBoardController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (window as Window & { innerWidth: number }).innerWidth = 1280;
 
     baseFeatureState = {
       activeWorkspaceBoardId: 'board-1',
@@ -129,6 +130,32 @@ describe('useWorkspaceBoardController', () => {
       workspaceHeadlines: [],
     };
     buildWorkspaceBoardViewModel.mockReturnValue(baseViewModel);
+  });
+
+  it('defaults the board rail and shared sections collapsed', () => {
+    const { result } = renderHook(() =>
+      useWorkspaceBoardController({
+        onLaunchInvestigation: vi.fn(),
+        onOpenChat: vi.fn(),
+        onOpenReport: vi.fn(),
+      })
+    );
+
+    expect(result.current.leftPanelOpen).toBe(false);
+    expect(result.current.rightPanelOpen).toBe(false);
+    expect(result.current.librarySections).toEqual({
+      created: false,
+      artifacts: false,
+      findings: false,
+      entities: false,
+      sources: false,
+      signals: false,
+    });
+    expect(result.current.inspectorSections).toEqual({
+      quickActions: false,
+      selection: false,
+      provenance: false,
+    });
   });
 
   it('opens board deletion confirmation state through controller-owned dialog boundaries', async () => {

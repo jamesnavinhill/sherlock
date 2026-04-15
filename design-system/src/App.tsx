@@ -782,20 +782,6 @@ export default function App() {
                 <h1 className="ds-title-page">Reusable shell and component canon</h1>
               </div>
               <div className="ds-hero-actions">
-                <Button
-                  variant="primary"
-                  leadingIcon={<Palette size={16} />}
-                  onClick={() => setWorkbenchOpen((current) => !current)}
-                >
-                  Open Workbench
-                </Button>
-                <Button
-                  variant="ghost"
-                  leadingIcon={<Sparkles size={16} />}
-                  onClick={() => setModalOpen(true)}
-                >
-                  Review Modal
-                </Button>
               </div>
             </div>
 

@@ -10,7 +10,6 @@ import {
   CHROME_RAIL_SECTION_SCROLL_CLASS,
   CHROME_THIN_ACTION_BUTTON_CLASS,
   getChromeThinActionRowClassName,
-  getRailAccordionClassName,
 } from '@/components/ui/chrome';
 import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 import { boardRefKey, type WorkspaceLibraryEntry } from '@/services/workspace/library';
@@ -85,7 +84,6 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
     icon,
     isOpen: librarySections[key],
     onToggle: () => onToggleLibrarySection(key),
-    className: getRailAccordionClassName(librarySections[key]),
     contentClassName: railSectionScrollClassName,
     content: (
       <div className="space-y-1">

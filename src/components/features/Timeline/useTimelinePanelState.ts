@@ -13,9 +13,6 @@ export const useTimelinePanelState = () => {
       if (window.innerWidth <= 1024) {
         setLeftPanelOpen(false);
         setRightPanelOpen(false);
-      } else {
-        setLeftPanelOpen(true);
-        setRightPanelOpen(false);
       }
     };
 
