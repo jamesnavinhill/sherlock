@@ -17,6 +17,7 @@ export interface SidebarNavProps {
   activeId: string;
   onSelect: (id: string) => void;
   footer?: ReactNode;
+  collapsed?: boolean;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -30,11 +31,16 @@ export function SidebarNav({
   activeId,
   onSelect,
   footer,
+  collapsed = false,
   mobileOpen = false,
   onCloseMobile,
 }: SidebarNavProps) {
   return (
-    <aside className="ds-sidebar" data-mobile-open={mobileOpen ? 'true' : 'false'}>
+    <aside
+      className="ds-sidebar"
+      data-collapsed={collapsed ? 'true' : 'false'}
+      data-mobile-open={mobileOpen ? 'true' : 'false'}
+    >
       <div className="ds-sidebar-brand">
         <div className="ds-sidebar-brand-row">
           <div className="ds-brand-mark">{brandIcon}</div>
@@ -49,10 +55,12 @@ export function SidebarNav({
             </button>
           ) : null}
         </div>
-        <div>
+        <div className="ds-sidebar-brand-copy">
           <div className="ds-meta-label">{brandEyebrow}</div>
-          <div className="ds-title-inline">{brandTitle}</div>
-          {brandSubtitle ? <p className="ds-body-quiet">{brandSubtitle}</p> : null}
+          <div className="ds-title-inline ds-sidebar-brand-title">{brandTitle}</div>
+          {brandSubtitle ? (
+            <p className="ds-body-quiet ds-sidebar-brand-subtitle">{brandSubtitle}</p>
+          ) : null}
         </div>
       </div>
 
@@ -71,7 +79,7 @@ export function SidebarNav({
               }}
             >
               <Icon size={18} />
-              <span>{item.label}</span>
+              <span className="ds-sidebar-nav-item-label">{item.label}</span>
             </button>
           );
         })}

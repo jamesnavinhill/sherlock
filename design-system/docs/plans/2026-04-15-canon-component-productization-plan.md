@@ -98,7 +98,9 @@ This means the studio can act as a reference for conversation-oriented product s
 The studio now has:
 
 - functioning collapsibles
-- mobile overlay drawers for sidebar and rails
+- a collapsible desktop sidebar with icon-first navigation mode
+- toolbar actions that compact to icon-first controls as space tightens
+- mobile overlay sheets for sidebar and rails
 - more resilient responsive card fitting
 - a non-blocking docked workbench
 

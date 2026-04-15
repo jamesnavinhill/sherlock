@@ -6,11 +6,13 @@ export interface PageShellProps {
   children: ReactNode;
   leftRail?: ReactNode;
   rightRail?: ReactNode;
+  sidebarCollapsed?: boolean;
   leftRailPinnedOpen?: boolean;
   rightRailPinnedOpen?: boolean;
   overlayOpen?: boolean;
   onDismissOverlay?: () => void;
   floatingContent?: ReactNode;
+  toolbarOffset?: number;
 }
 
 export function PageShell({
@@ -19,27 +21,35 @@ export function PageShell({
   children,
   leftRail,
   rightRail,
+  sidebarCollapsed = false,
   leftRailPinnedOpen = true,
   rightRailPinnedOpen = true,
   overlayOpen = false,
   onDismissOverlay,
   floatingContent,
+  toolbarOffset,
 }: PageShellProps) {
-  const columnStyle = {
+  const shellStyle = {
+    '--ds-sidebar-size': sidebar
+      ? sidebarCollapsed
+        ? 'var(--ds-sidebar-collapsed-width)'
+        : 'clamp(14rem, 18vw, var(--ds-sidebar-width))'
+      : '0px',
     '--ds-left-rail-size': leftRail
       ? leftRailPinnedOpen
-        ? 'var(--ds-rail-width)'
+        ? 'clamp(18rem, 22vw, var(--ds-rail-width))'
         : '0px'
       : '0px',
     '--ds-right-rail-size': rightRail
       ? rightRailPinnedOpen
-        ? 'var(--ds-rail-width)'
+        ? 'clamp(18rem, 22vw, var(--ds-rail-width))'
         : '0px'
       : '0px',
+    '--ds-toolbar-offset': toolbarOffset ? `${toolbarOffset}px` : undefined,
   } as CSSProperties;
 
   return (
-    <div className="ds-app-shell">
+    <div className="ds-app-shell" style={shellStyle}>
       {overlayOpen ? (
         <button
           type="button"
@@ -52,7 +62,7 @@ export function PageShell({
         {sidebar}
         <div className="ds-shell-main">
           {toolbar}
-          <div className="ds-shell-columns" style={columnStyle}>
+          <div className="ds-shell-columns">
             {leftRail}
             <main className="ds-content">{children}</main>
             {rightRail}

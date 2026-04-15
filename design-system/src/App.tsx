@@ -3,6 +3,7 @@ import {
   BookOpen,
   ChevronRight,
   Compass,
+  Download,
   FileSearch,
   FolderKanban,
   LayoutDashboard,
@@ -19,7 +20,7 @@ import {
   Sparkles,
   Workflow,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   AccordionSection,
@@ -53,6 +54,34 @@ import { buildThemeCssVars } from './system/cssVars';
 import { DEFAULT_THEME, cloneTheme, type StudioTheme } from './system/schema';
 
 const STORAGE_KEY = 'canon-design-system-studio/v1';
+const SHELL_OVERLAY_QUERY = '(max-width: 1180px)';
+
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(query).matches : false
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(query);
+    const update = () => setMatches(mediaQuery.matches);
+
+    update();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', update);
+      return () => mediaQuery.removeEventListener('change', update);
+    }
+
+    mediaQuery.addListener(update);
+    return () => mediaQuery.removeListener(update);
+  }, [query]);
+
+  return matches;
+};
 
 type GalleryTab =
   | 'shell'
@@ -200,7 +229,10 @@ const applyThemeToDocument = (theme: StudioTheme) => {
 };
 
 export default function App() {
+  const isOverlayShell = useMediaQuery(SHELL_OVERLAY_QUERY);
+  const toolbarRef = useRef<HTMLDivElement | null>(null);
   const [theme, setThemeState] = useState<StudioTheme>(() => loadTheme());
+  const [toolbarOffset, setToolbarOffset] = useState(DEFAULT_THEME.shell.toolbarHeight);
   const [workbenchOpen, setWorkbenchOpen] = useState(false);
   const [galleryTab, setGalleryTab] = useState<GalleryTab>('shell');
   const [activeNav, setActiveNav] = useState('workspace');
@@ -211,6 +243,7 @@ export default function App() {
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [mobilePanel, setMobilePanel] = useState<'sidebar' | 'left' | 'right' | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [leftRailPinnedOpen, setLeftRailPinnedOpen] = useState(true);
   const [rightRailPinnedOpen, setRightRailPinnedOpen] = useState(true);
 
@@ -226,6 +259,22 @@ export default function App() {
     applyThemeToDocument(theme);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(theme));
   }, [theme]);
+
+  useEffect(() => {
+    const toolbarNode = toolbarRef.current;
+    if (!toolbarNode || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) {
+        setToolbarOffset(Math.ceil(entry.contentRect.height));
+      }
+    });
+
+    observer.observe(toolbarNode);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -244,6 +293,41 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    setMobilePanel(null);
+  }, [isOverlayShell]);
+
+  const toggleOverlayPanel = (panel: 'sidebar' | 'left' | 'right') => {
+    setMobilePanel((current) => (current === panel ? null : panel));
+  };
+
+  const toggleSidebar = () => {
+    if (isOverlayShell) {
+      toggleOverlayPanel('sidebar');
+      return;
+    }
+
+    setSidebarCollapsed((current) => !current);
+  };
+
+  const toggleLeftRail = () => {
+    if (isOverlayShell) {
+      toggleOverlayPanel('left');
+      return;
+    }
+
+    setLeftRailPinnedOpen((current) => !current);
+  };
+
+  const toggleRightRail = () => {
+    if (isOverlayShell) {
+      toggleOverlayPanel('right');
+      return;
+    }
+
+    setRightRailPinnedOpen((current) => !current);
+  };
 
   const configurationPanel = (
     <div className="ds-stack ds-popover-stack">
@@ -279,8 +363,9 @@ export default function App() {
             items={NAV_ITEMS}
             activeId={activeNav}
             onSelect={setActiveNav}
+            collapsed={!isOverlayShell && sidebarCollapsed}
             mobileOpen={mobilePanel === 'sidebar'}
-            onCloseMobile={() => setMobilePanel(null)}
+            onCloseMobile={isOverlayShell ? () => setMobilePanel(null) : undefined}
             footer={
               <>
                 <button
@@ -294,7 +379,9 @@ export default function App() {
                   }
                 >
                   <SlidersHorizontal size={18} />
-                  <span>{theme.mode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                  <span className="ds-sidebar-nav-item-label">
+                    {theme.mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -302,110 +389,132 @@ export default function App() {
                   onClick={() => setWorkbenchOpen((current) => !current)}
                 >
                   <Settings2 size={18} />
-                  <span>Workbench</span>
+                  <span className="ds-sidebar-nav-item-label">Workbench</span>
                 </button>
               </>
             }
           />
         }
         toolbar={
-          <ToolbarBar
-            leading={
-              <>
-                <IconButton
-                  className="ds-mobile-only"
-                  label="Open navigation"
-                  icon={<Sidebar size={16} />}
-                  onClick={() => setMobilePanel('sidebar')}
+          <div ref={toolbarRef}>
+            <ToolbarBar
+              leading={
+                <ToolbarCluster className="ds-toolbar-cluster-main">
+                  <IconButton
+                    label={
+                      isOverlayShell
+                        ? mobilePanel === 'sidebar'
+                          ? 'Close navigation'
+                          : 'Open navigation'
+                        : sidebarCollapsed
+                          ? 'Expand sidebar'
+                          : 'Collapse sidebar'
+                    }
+                    icon={<Sidebar size={16} />}
+                    active={isOverlayShell ? mobilePanel === 'sidebar' : !sidebarCollapsed}
+                    onClick={toggleSidebar}
+                  />
+                  <IconButton
+                    label={
+                      isOverlayShell
+                        ? mobilePanel === 'left'
+                          ? 'Close library rail'
+                          : 'Open library rail'
+                        : leftRailPinnedOpen
+                          ? 'Hide library rail'
+                          : 'Show library rail'
+                    }
+                    icon={<FolderKanban size={16} />}
+                    active={isOverlayShell ? mobilePanel === 'left' : leftRailPinnedOpen}
+                    onClick={toggleLeftRail}
+                  />
+                  <IconButton
+                    label={
+                      isOverlayShell
+                        ? mobilePanel === 'right'
+                          ? 'Close inspector rail'
+                          : 'Open inspector rail'
+                        : rightRailPinnedOpen
+                          ? 'Hide inspector rail'
+                          : 'Show inspector rail'
+                    }
+                    icon={<PanelRight size={16} />}
+                    active={isOverlayShell ? mobilePanel === 'right' : rightRailPinnedOpen}
+                    onClick={toggleRightRail}
+                  />
+                  <Button
+                    variant="primary"
+                    leadingIcon={<Play size={16} />}
+                    className="ds-toolbar-responsive-control"
+                    aria-label="New Pattern"
+                  >
+                    <span className="ds-toolbar-responsive-label">New Pattern</span>
+                  </Button>
+                  <SelectField
+                    value={workspaceId}
+                    onChange={setWorkspaceId}
+                    options={WORKSPACE_OPTIONS}
+                    className="ds-toolbar-select ds-toolbar-primary-select"
+                  />
+                </ToolbarCluster>
+              }
+              center={
+                <SearchField
+                  items={SEARCH_ITEMS}
+                  itemLabel={(item) => item.label}
+                  itemKind={(item) => item.kind}
+                  onSelect={(item) => setGalleryTab(item.tab)}
                 />
-                <IconButton
-                  className="ds-mobile-only"
-                  label="Open library rail"
-                  icon={<FolderKanban size={16} />}
-                  onClick={() => setMobilePanel('left')}
-                />
-                <IconButton
-                  className="ds-desktop-only"
-                  label={leftRailPinnedOpen ? 'Hide library rail' : 'Show library rail'}
-                  icon={<FolderKanban size={16} />}
-                  active={leftRailPinnedOpen}
-                  onClick={() => setLeftRailPinnedOpen((current) => !current)}
-                />
-                <Button variant="primary" leadingIcon={<Play size={16} />}>
-                  New Pattern
-                </Button>
-                <SelectField
-                  value={workspaceId}
-                  onChange={setWorkspaceId}
-                  options={WORKSPACE_OPTIONS}
-                  className="ds-toolbar-select"
-                />
-              </>
-            }
-            center={
-              <SearchField
-                items={SEARCH_ITEMS}
-                itemLabel={(item) => item.label}
-                itemKind={(item) => item.kind}
-                onSelect={(item) => setGalleryTab(item.tab)}
-              />
-            }
-            trailing={
-              <ToolbarCluster className="ds-wrap">
-                <PopoverButton
-                  label="Configure"
-                  leadingIcon={<SlidersHorizontal size={14} />}
-                  panelClassName="ds-toolbar-popover"
-                >
-                  {configurationPanel}
-                </PopoverButton>
-                <MenuButton
-                  label="Export"
-                  items={[
-                    {
-                      id: 'json',
-                      label: 'Export Token JSON',
-                      description: 'Portable token contract',
-                      icon: <BookOpen size={14} />,
-                    },
-                    {
-                      id: 'css',
-                      label: 'Export CSS Vars',
-                      description: 'Resolved runtime variables',
-                      icon: <Workflow size={14} />,
-                    },
-                    {
-                      id: 'inventory',
-                      label: 'Export Component Inventory',
-                      description: 'Canon coverage snapshot',
-                      icon: <SearchCode size={14} />,
-                    },
-                  ]}
-                />
-                <Button
-                  variant="ghost"
-                  className="ds-desktop-only"
-                  leadingIcon={<Palette size={16} />}
-                  onClick={() => setWorkbenchOpen((current) => !current)}
-                >
-                  Workbench
-                </Button>
-                <IconButton
-                  className="ds-mobile-only"
-                  label="Open inspector rail"
-                  icon={<PanelRight size={16} />}
-                  onClick={() => setMobilePanel('right')}
-                />
-                <IconButton
-                  className="ds-desktop-only"
-                  label={rightRailPinnedOpen ? 'Hide inspector rail' : 'Show inspector rail'}
-                  icon={<PanelRight size={16} />}
-                  active={rightRailPinnedOpen}
-                  onClick={() => setRightRailPinnedOpen((current) => !current)}
-                />
-              </ToolbarCluster>
-            }
-          />
+              }
+              trailing={
+                <ToolbarCluster className="ds-toolbar-cluster-actions">
+                  <PopoverButton
+                    label={<span className="ds-toolbar-responsive-label">Configure</span>}
+                    leadingIcon={<SlidersHorizontal size={14} />}
+                    triggerClassName="ds-toolbar-responsive-control"
+                    panelClassName="ds-toolbar-popover"
+                  >
+                    {configurationPanel}
+                  </PopoverButton>
+                  <MenuButton
+                    label={<span className="ds-toolbar-responsive-label">Export</span>}
+                    leadingIcon={<Download size={14} />}
+                    triggerClassName="ds-toolbar-responsive-control"
+                    panelClassName="ds-toolbar-popover"
+                    items={[
+                      {
+                        id: 'json',
+                        label: 'Export Token JSON',
+                        description: 'Portable token contract',
+                        icon: <BookOpen size={14} />,
+                      },
+                      {
+                        id: 'css',
+                        label: 'Export CSS Vars',
+                        description: 'Resolved runtime variables',
+                        icon: <Workflow size={14} />,
+                      },
+                      {
+                        id: 'inventory',
+                        label: 'Export Component Inventory',
+                        description: 'Canon coverage snapshot',
+                        icon: <SearchCode size={14} />,
+                      },
+                    ]}
+                  />
+                  <Button
+                    variant="ghost"
+                    className="ds-toolbar-responsive-control"
+                    leadingIcon={<Palette size={16} />}
+                    aria-label="Workbench"
+                    onClick={() => setWorkbenchOpen((current) => !current)}
+                  >
+                    <span className="ds-toolbar-responsive-label">Workbench</span>
+                  </Button>
+                </ToolbarCluster>
+              }
+            />
+          </div>
         }
         leftRail={
           <PanelRail
@@ -420,7 +529,7 @@ export default function App() {
                 Scope
               </Button>
             }
-            onCloseMobile={() => setMobilePanel(null)}
+            onCloseMobile={isOverlayShell ? () => setMobilePanel(null) : undefined}
           >
             <AccordionSection
               title="Inventory"
@@ -500,7 +609,7 @@ export default function App() {
             eyebrow="Inspector Rail"
             title="Canon Notes"
             subtitle="Shared disclosure, state, and token reference."
-            className={workbenchOpen ? 'ds-right-rail-offset' : undefined}
+            className={workbenchOpen && !isOverlayShell ? 'ds-right-rail-offset' : undefined}
             actions={
               <Button
                 variant="ghost"
@@ -511,7 +620,7 @@ export default function App() {
                 Tokens
               </Button>
             }
-            onCloseMobile={() => setMobilePanel(null)}
+            onCloseMobile={isOverlayShell ? () => setMobilePanel(null) : undefined}
           >
             <AccordionSection
               title="Details"
@@ -562,10 +671,12 @@ export default function App() {
             </AccordionSection>
           </PanelRail>
         }
+        sidebarCollapsed={sidebarCollapsed}
         leftRailPinnedOpen={leftRailPinnedOpen}
         rightRailPinnedOpen={rightRailPinnedOpen}
-        overlayOpen={mobilePanel !== null}
+        overlayOpen={isOverlayShell && mobilePanel !== null}
         onDismissOverlay={() => setMobilePanel(null)}
+        toolbarOffset={toolbarOffset}
         floatingContent={
           <Workbench
             isOpen={workbenchOpen}

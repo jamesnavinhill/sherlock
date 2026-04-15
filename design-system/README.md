@@ -23,4 +23,5 @@ npm run build
 - Family-based styles now live under `src/styles/`, split into `base.css`, `shell.css`, `controls.css`, `surfaces.css`, `conversation.css`, and `workbench.css`, with `src/index.css` acting as the import hub.
 - `F1` toggles the non-blocking design workbench.
 - The workbench can export the current token set as JSON or resolved CSS custom properties.
-- Mobile behavior now uses overlay drawers for sidebar/library/inspector regions instead of dropping those surfaces entirely.
+- The desktop shell now supports a collapsed sidebar state, and toolbar actions compact to icon-first controls as space tightens.
+- Mobile behavior now uses lighter overlay sheets for sidebar/library/inspector regions instead of full-height blurred takeovers.

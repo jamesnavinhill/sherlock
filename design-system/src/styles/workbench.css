@@ -20,6 +20,7 @@
   display: flex;
   align-items: start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
@@ -44,13 +45,13 @@
 .ds-grid-two {
   display: grid;
   gap: 0.85rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
 }
 
 .ds-token-grid {
   display: grid;
   gap: 0.6rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
 }
 
 .ds-code-block {
@@ -79,7 +80,7 @@
 
   .ds-workbench {
     inset: auto 0 0 0;
-    top: 4.5rem;
+    top: calc(var(--ds-toolbar-offset, 4.5rem) + 0.5rem);
     bottom: 0;
     width: auto;
     border-radius: var(--ds-radius-panel) var(--ds-radius-panel) 0 0;
