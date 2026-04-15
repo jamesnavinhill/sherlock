@@ -109,12 +109,12 @@ The grouped-file intermediate stage has now been replaced by a package-style can
 The canon layer currently ships as:
 
 - per-component files under `controls/`, `conversation/`, `disclosure/`, `layout/`, `navigation/`, `surfaces/`, and `workbench/`
+- family-based styles under `src/styles/`, re-exported through `src/index.css`
 - shared helpers under `utils/`
 - a single top-level `canon/index.ts` export surface
 
 The remaining productization work is now:
 
-- CSS organization beyond the current shared stylesheet
 - direct canon component tests
 - extraction-oriented inventory and package documentation
 
@@ -163,7 +163,6 @@ The current design-system state is acceptable as an intermediate step because th
 
 The main thing still missing is productization polish:
 
-- better CSS organization
 - explicit tests around the canon components
 - extraction-oriented docs for the public inventory and package boundary
 
@@ -280,6 +279,10 @@ Goal:
 
 - reduce the monolithic feel of `src/index.css`
 
+Status:
+
+- completed on `2026-04-15`
+
 Tasks:
 
 - keep token and document-level base styles centralized
@@ -294,6 +297,7 @@ Recommended direction:
 - `styles/controls.css`
 - `styles/surfaces.css`
 - `styles/conversation.css`
+- `styles/workbench.css`
 
 Exit criteria:
 
@@ -410,11 +414,11 @@ When the next split touches the main Sherlock repo again, continue running the n
 
 The next best step is:
 
-1. tighten CSS organization now that the component file boundaries have settled
-2. add direct canon component tests around accordion, modal, rail, search, select, composer, and transcript behavior
-3. document the public component inventory before any extraction work starts
+1. add direct canon component tests around accordion, modal, rail, search, select, composer, and transcript behavior
+2. document the public component inventory and CSS-var expectations before any extraction work starts
+3. audit the remaining studio-specific assumptions before extraction work begins
 
-That keeps momentum high and builds on the finished file split without reopening the behavior work that already landed.
+That keeps momentum high and builds on the finished file split and CSS split without reopening the behavior work that already landed.
 
 ## Summary
 
@@ -429,7 +433,6 @@ What is true now:
 
 What is not done yet:
 
-- cleaner styling layout
 - direct component tests
 - extraction-ready packaging polish
 
