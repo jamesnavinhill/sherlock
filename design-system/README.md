@@ -19,5 +19,7 @@ npm run build
 ## Notes
 
 - This app is intentionally self-contained and does not import Sherlock source files.
+- Reusable canon components now live under `src/components/canon/` and cover the page shell, general rails, toolbar clusters, overlays, badges/buttons, conversation surfaces, and disclosure primitives.
 - `F1` toggles the non-blocking design workbench.
 - The workbench can export the current token set as JSON or resolved CSS custom properties.
+- Mobile behavior now uses overlay drawers for sidebar/library/inspector regions instead of dropping those surfaces entirely.

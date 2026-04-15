@@ -28,7 +28,7 @@ import {
   SegmentedTabs,
   SelectField,
   TokenSwatch,
-} from './primitives';
+} from './canon';
 
 type WorkbenchTab = 'theme' | 'type' | 'shell' | 'export';
 
@@ -59,10 +59,19 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const [selectedSurfaceKey, setSelectedSurfaceKey] = useState<
     'background' | 'panel' | 'surface'
   >('panel');
+  const [openFontProfiles, setOpenFontProfiles] = useState<string[]>([]);
 
   useEffect(() => {
     setSelectedSurfaceMode(theme.mode);
   }, [theme.mode]);
+
+  useEffect(() => {
+    const nextFontIds = getSelectedFontIds(theme);
+    setOpenFontProfiles((current) => {
+      const merged = Array.from(new Set([...current, ...nextFontIds]));
+      return merged.filter((fontId) => nextFontIds.includes(fontId));
+    });
+  }, [theme]);
 
   if (!isOpen) {
     return null;
@@ -519,8 +528,14 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       key={font.id}
                       title={font.label}
                       meta={font.category}
-                      isOpen
-                      onToggle={() => undefined}
+                      isOpen={openFontProfiles.includes(font.id)}
+                      onToggle={() =>
+                        setOpenFontProfiles((current) =>
+                          current.includes(font.id)
+                            ? current.filter((item) => item !== font.id)
+                            : [...current, font.id]
+                        )
+                      }
                       className="ds-font-profile-card"
                     >
                       <p className="ds-body-quiet" style={{ fontFamily: font.cssValue }}>

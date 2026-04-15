@@ -123,18 +123,6 @@ const clipBoardCardText = (value: string | undefined, maxLength: number) => {
   return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
 };
 
-const clipBoardCardContent = (value: string | undefined, maxLength: number) => {
-  if (!value) return '';
-  const normalized = value
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .join('\n');
-
-  if (normalized.length <= maxLength) return normalized;
-  return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
-};
-
 const estimateArtifactCardHeight = (content: string, width: number) => {
   const charsPerLine = Math.max(28, Math.floor(width / 7.2));
   const wrappedLineCount = content

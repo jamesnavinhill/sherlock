@@ -592,7 +592,7 @@ export const useWorkspaceBoardController = ({
       });
       rightColumnY += entityBlock.height > 0 ? entityBlock.height + PACKAGE_GUTTER_Y : 0;
 
-      const sourceBlock = placeEntryGrid({
+      placeEntryGrid({
         editor: editorRef.current,
         entries: packageEntries.sourceEntries,
         maxColumns: 3,
