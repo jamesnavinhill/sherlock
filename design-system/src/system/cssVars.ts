@@ -9,7 +9,10 @@ import {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const round = (value: number, places = 3) => Number(value.toFixed(places));
+const round = (value: number, places = 3) => {
+  if (value === undefined || value === null || isNaN(value)) return 0;
+  return Number(value.toFixed(places));
+};
 
 const buildAccentColor = (point: AccentPoint) => {
   const base = `${round(point.lightness)} ${round(point.chroma)} ${Math.round(point.hue)}`;
@@ -151,6 +154,7 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
     '--ds-toolbar-height': `${Math.round(theme.shell.toolbarHeight)}px`,
     '--ds-content-width': `${Math.round(theme.shell.contentWidth)}px`,
     '--ds-density': String(round(theme.shell.density, 2)),
+    '--ds-surface-opacity': String(round(theme.shell.surfaceOpacity ?? 1, 2)),
     '--ds-background-image': backgroundImage,
     '--ds-background-opacity': String(round(theme.background.dotOpacity, 2)),
     '--ds-grid-size': `${Math.round(theme.background.gridSize)}px`,

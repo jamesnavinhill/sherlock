@@ -32,6 +32,7 @@ export function AccordionSection({
       className={cx('ds-accordion', compact && 'ds-accordion-compact', className)}
       data-open={isOpen ? 'true' : 'false'}
     >
+    <div className={cx('ds-accordion-header', Boolean(actions) && 'ds-has-actions')}>
       <button
         type="button"
         className="ds-accordion-trigger"
@@ -45,9 +46,10 @@ export function AccordionSection({
         </span>
         <span className="ds-accordion-trailing">
           {meta ? <span className="ds-meta-label">{meta}</span> : null}
-          {actions}
         </span>
       </button>
+      {actions && <div className="ds-accordion-actions">{actions}</div>}
+    </div>
       {isOpen ? (
         <div className="ds-accordion-body" id={bodyId}>
           {children}

@@ -34,7 +34,7 @@
 .ds-surface-preview-surface {
   min-width: 0;
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) 84%, transparent);
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(84% * var(--ds-surface-opacity)), 100%), transparent);
   border-radius: var(--ds-radius-panel);
   box-shadow: var(--ds-shadow-soft);
 }
@@ -264,16 +264,16 @@
   padding: 1rem;
   border: 1px solid var(--ds-border-soft);
   border-radius: calc(var(--ds-radius-control) * 1.05);
-  background: color-mix(in oklab, var(--ds-panel) 90%, transparent);
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(90% * var(--ds-surface-opacity)), 100%), transparent);
 }
 
 .ds-overlay-section[data-tone='accent'] {
   border-color: var(--ds-accent-border);
-  background: color-mix(in oklab, var(--ds-accent-soft) 78%, var(--ds-panel) 22%);
+  background: color-mix(in oklab, var(--ds-accent-soft) clamp(0%, calc(78% * var(--ds-surface-opacity)), 100%), var(--ds-panel) 22%);
 }
 
 .ds-overlay-section[data-tone='subtle'] {
-  background: color-mix(in oklab, var(--ds-panel) 78%, transparent);
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(78% * var(--ds-surface-opacity)), 100%), transparent);
 }
 
 .ds-overlay-section-meta {

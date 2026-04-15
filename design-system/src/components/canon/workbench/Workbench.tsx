@@ -4,6 +4,8 @@ import {
   Palette,
   Pilcrow,
   RefreshCw,
+  Sun,
+  Moon,
   WandSparkles,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -59,6 +61,11 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const [selectedSurfaceKey, setSelectedSurfaceKey] = useState<
     'background' | 'panel' | 'surface'
   >('panel');
+  const [activeFontRole, setActiveFontRole] = useState<FontRole>('ui');
+  const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
+  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['refinement']);
+  const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry', 'radius']);
+  const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
   const [openFontProfiles, setOpenFontProfiles] = useState<string[]>([]);
 
   useEffect(() => {
@@ -86,7 +93,6 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
     <aside className="ds-workbench">
       <div className="ds-workbench-header">
         <div>
-          <span className="ds-meta-label">Workbench</span>
           <h2 className="ds-title-section">System Controls</h2>
         </div>
         <div className="ds-toolbar-inline">
@@ -107,87 +113,31 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
       <div className="ds-workbench-body">
         {activeTab === 'theme' ? (
           <div className="ds-stack">
-            <SegmentedTabs
-              value={themeSection}
-              onChange={setThemeSection}
-              items={[
-                { id: 'surfaces', label: 'Surfaces' },
-                { id: 'background', label: 'Background' },
-                { id: 'accent', label: 'Accent' },
-              ]}
-              stretch
-            />
-
-            {themeSection === 'accent' ? (
-              <section className="ds-panel-section">
-                <div className="ds-panel-section-header">
-                  <span className="ds-meta-label">Accent</span>
-                  <div className="ds-inline-swatch" style={{ background: `var(--ds-accent)` }} />
-                </div>
-                <div className="ds-stack">
-                  <RangeField
-                    label="Hue"
-                    value={theme.accent.hue}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        accent: { ...current.accent, hue: value },
-                      }))
-                    }
-                    min={0}
-                    max={360}
-                    step={1}
-                    format={(value) => `${Math.round(value)}`}
-                  />
-                  <RangeField
-                    label="Lightness"
-                    value={theme.accent.lightness}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        accent: { ...current.accent, lightness: value },
-                      }))
-                    }
-                    min={0.3}
-                    max={0.8}
-                    step={0.005}
-                    format={(value) => round(value).toString()}
-                  />
-                  <RangeField
-                    label="Chroma"
-                    value={theme.accent.chroma}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        accent: { ...current.accent, chroma: value },
-                      }))
-                    }
-                    min={0}
-                    max={0.18}
-                    step={0.002}
-                    format={(value) => round(value).toString()}
-                  />
-                </div>
-              </section>
-            ) : null}
-
-            {themeSection === 'surfaces' ? (
-              <section className="ds-panel-section">
-                <div className="ds-panel-section-header">
-                  <span className="ds-meta-label">Surface Canon</span>
-                  <Button
-                    variant="page"
-                    onClick={() =>
-                      setTheme((current) => ({
-                        ...current,
-                        surfaces: cloneTheme(DEFAULT_THEME).surfaces,
-                      }))
-                    }
-                  >
-                    Reset
-                  </Button>
-                </div>
-
+            <AccordionSection
+              title="Gallery"
+              isOpen={openThemeSections.includes('gallery')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('gallery')
+                    ? current.filter((s) => s !== 'gallery')
+                    : [...current, 'gallery']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      surfaces: cloneTheme(DEFAULT_THEME).surfaces,
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
                 <div className="ds-chip-grid">
                   {SURFACE_PRESETS.map((preset) => (
                     <button
@@ -210,351 +160,402 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     </button>
                   ))}
                 </div>
+              </div>
+            </AccordionSection>
 
-                <div className="ds-toolbar-inline">
-                  <SegmentedTabs
-                    value={selectedSurfaceMode}
-                    onChange={(value) => setSelectedSurfaceMode(value)}
-                    items={[
-                      { id: 'dark', label: 'Dark' },
-                      { id: 'light', label: 'Light' },
-                    ]}
-                    stretch
-                  />
-                </div>
-
-                <div className="ds-chip-grid">
-                  {(['background', 'panel', 'surface'] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className="ds-filter-chip"
-                      data-active={selectedSurfaceKey === key ? 'true' : undefined}
-                      onClick={() => setSelectedSurfaceKey(key)}
-                    >
-                      {key === 'background'
-                        ? 'Background'
-                        : key === 'panel'
-                          ? 'Panel'
-                          : 'Surface'}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="ds-surface-preview">
-                  <div className="ds-surface-preview-bg">
-                    <div className="ds-surface-preview-panel">
-                      <div className="ds-surface-preview-surface" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="ds-stack">
-                  <RangeField
-                    label="Hue"
-                    value={selectedSurface.hue}
-                    onChange={(value) =>
+            <AccordionSection
+              title="Refinement"
+              isOpen={openThemeSections.includes('refinement')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('refinement')
+                    ? current.filter((s) => s !== 'refinement')
+                    : [...current, 'refinement']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() => {
+                    if (themeSection === 'surfaces') {
                       setTheme((current) => ({
                         ...current,
-                        surfaces: {
-                          ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                              hue: value,
-                            },
-                          },
-                        },
-                      }))
-                    }
-                    min={0}
-                    max={360}
-                    step={1}
-                    format={(value) => `${Math.round(value)}`}
-                  />
-                  <RangeField
-                    label="Lightness"
-                    value={selectedSurface.lightness}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        surfaces: {
-                          ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                              lightness: value,
-                            },
-                          },
-                        },
-                      }))
-                    }
-                    min={selectedSurfaceMode === 'dark' ? 0 : 0.82}
-                    max={selectedSurfaceMode === 'dark' ? 0.35 : 1}
-                    step={0.002}
-                    format={(value) => round(value).toString()}
-                  />
-                  <RangeField
-                    label="Chroma"
-                    value={selectedSurface.chroma}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        surfaces: {
-                          ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                              chroma: value,
-                            },
-                          },
-                        },
-                      }))
-                    }
-                    min={0}
-                    max={selectedSurfaceMode === 'dark' ? 0.06 : 0.08}
-                    step={0.001}
-                    format={(value) => round(value).toString()}
-                  />
-                  <RangeField
-                    label="Opacity"
-                    value={selectedSurface.opacity}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        surfaces: {
-                          ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                              opacity: value,
-                            },
-                          },
-                        },
-                      }))
-                    }
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                </div>
-              </section>
-            ) : null}
-
-            {themeSection === 'background' ? (
-              <section className="ds-panel-section">
-                <div className="ds-panel-section-header">
-                  <span className="ds-meta-label">Background System</span>
-                  <Button
-                    variant="page"
-                    onClick={() =>
+                        surfaces: cloneTheme(DEFAULT_THEME).surfaces,
+                      }));
+                    } else if (themeSection === 'background') {
                       setTheme((current) => ({
                         ...current,
                         background: { ...DEFAULT_THEME.background },
-                      }))
+                      }));
+                    } else if (themeSection === 'accent') {
+                      setTheme((current) => ({
+                        ...current,
+                        accent: { ...DEFAULT_THEME.accent },
+                      }));
                     }
-                  >
-                    Reset
-                  </Button>
-                </div>
-                <SelectField
-                  label="Variant"
-                  value={theme.background.variant}
-                  onChange={(value) =>
-                    setTheme((current) => ({
-                      ...current,
-                      background: {
-                        ...current.background,
-                        variant: value as StudioTheme['background']['variant'],
-                      },
-                    }))
-                  }
-                  options={BACKGROUND_VARIANTS.map((variant) => ({
-                    value: variant.id,
-                    label: variant.label,
-                  }))}
+                  }}
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <SegmentedTabs
+                  value={themeSection}
+                  onChange={setThemeSection}
+                  items={[
+                    { id: 'surfaces', label: 'Surfaces' },
+                    { id: 'background', label: 'Background' },
+                    { id: 'accent', label: 'Accent' },
+                  ]}
+                  stretch
                 />
-                <div className="ds-stack">
-                  <RangeField
-                    label="Pattern Intensity"
-                    value={theme.background.dotOpacity}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, dotOpacity: value },
-                      }))
-                    }
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                  <RangeField
-                    label="Grid Size"
-                    value={theme.background.gridSize}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, gridSize: value },
-                      }))
-                    }
-                    min={12}
-                    max={40}
-                    step={1}
-                    format={(value) => `${Math.round(value)}px`}
-                  />
-                  <RangeField
-                    label="Dot Tone"
-                    value={theme.background.dotColor}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, dotColor: value },
-                      }))
-                    }
-                    min={0}
-                    max={100}
-                    step={1}
-                    format={(value) => `${Math.round(value)}%`}
-                  />
-                  <RangeField
-                    label="Accent Glow"
-                    value={theme.background.glowOpacity}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, glowOpacity: value },
-                      }))
-                    }
-                    min={0}
-                    max={0.3}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                  <RangeField
-                    label="Scanlines"
-                    value={theme.background.scanlineOpacity}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, scanlineOpacity: value },
-                      }))
-                    }
-                    min={0}
-                    max={0.25}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                </div>
-              </section>
-            ) : null}
+
+                {themeSection === 'surfaces' && (
+                  <div className="ds-stack">
+                    <div className="ds-chip-grid">
+                      {(['background', 'panel', 'surface'] as const).map((key) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className="ds-filter-chip"
+                          data-active={selectedSurfaceKey === key ? 'true' : undefined}
+                          onClick={() => setSelectedSurfaceKey(key)}
+                        >
+                          {key === 'background'
+                            ? 'Background'
+                            : key === 'panel'
+                              ? 'Panel'
+                              : 'Surface'}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="ds-surface-preview">
+                      <div className="ds-surface-preview-bg">
+                        <div className="ds-surface-preview-panel">
+                          <div className="ds-surface-preview-surface" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="ds-stack">
+                      <RangeField
+                        label="Hue"
+                        value={selectedSurface.hue}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            surfaces: {
+                              ...current.surfaces,
+                              [selectedSurfaceMode]: {
+                                ...current.surfaces[selectedSurfaceMode],
+                                [selectedSurfaceKey]: {
+                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                                  hue: value,
+                                },
+                              },
+                            },
+                          }))
+                        }
+                        min={0}
+                        max={360}
+                        step={1}
+                        format={(value) => `${Math.round(value)}`}
+                      />
+                      <RangeField
+                        label="Lightness"
+                        value={selectedSurface.lightness}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            surfaces: {
+                              ...current.surfaces,
+                              [selectedSurfaceMode]: {
+                                ...current.surfaces[selectedSurfaceMode],
+                                [selectedSurfaceKey]: {
+                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                                  lightness: value,
+                                },
+                              },
+                            },
+                          }))
+                        }
+                        min={selectedSurfaceMode === 'dark' ? 0 : 0.82}
+                        max={selectedSurfaceMode === 'dark' ? 0.35 : 1}
+                        step={0.002}
+                        format={(value) => round(value).toString()}
+                      />
+                      <RangeField
+                        label="Chroma"
+                        value={selectedSurface.chroma}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            surfaces: {
+                              ...current.surfaces,
+                              [selectedSurfaceMode]: {
+                                ...current.surfaces[selectedSurfaceMode],
+                                [selectedSurfaceKey]: {
+                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                                  chroma: value,
+                                },
+                              },
+                            },
+                          }))
+                        }
+                        min={0}
+                        max={selectedSurfaceMode === 'dark' ? 0.06 : 0.08}
+                        step={0.001}
+                        format={(value) => round(value).toString()}
+                      />
+                      <RangeField
+                        label="Opacity"
+                        value={selectedSurface.opacity}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            surfaces: {
+                              ...current.surfaces,
+                              [selectedSurfaceMode]: {
+                                ...current.surfaces[selectedSurfaceMode],
+                                [selectedSurfaceKey]: {
+                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                                  opacity: value,
+                                },
+                              },
+                            },
+                          }))
+                        }
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        format={(value) => `${Math.round(value * 100)}%`}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {themeSection === 'background' && (
+                  <div className="ds-stack">
+                    <SelectField
+                      label="Variant"
+                      value={theme.background.variant}
+                      onChange={(value) =>
+                        setTheme((current) => ({
+                          ...current,
+                          background: {
+                            ...current.background,
+                            variant: value as StudioTheme['background']['variant'],
+                          },
+                        }))
+                      }
+                      options={BACKGROUND_VARIANTS.map((variant) => ({
+                        value: variant.id,
+                        label: variant.label,
+                      }))}
+                    />
+                    <div className="ds-stack">
+                      <RangeField
+                        label="Pattern Intensity"
+                        value={theme.background.dotOpacity}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            background: { ...current.background, dotOpacity: value },
+                          }))
+                        }
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        format={(value) => `${Math.round(value * 100)}%`}
+                      />
+                      <RangeField
+                        label="Grid Size"
+                        value={theme.background.gridSize}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            background: { ...current.background, gridSize: value },
+                          }))
+                        }
+                        min={12}
+                        max={40}
+                        step={1}
+                        format={(value) => `${Math.round(value)}px`}
+                      />
+                      <RangeField
+                        label="Dot Tone"
+                        value={theme.background.dotColor}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            background: { ...current.background, dotColor: value },
+                          }))
+                        }
+                        min={0}
+                        max={100}
+                        step={1}
+                        format={(value) => `${Math.round(value)}%`}
+                      />
+                      <RangeField
+                        label="Accent Glow"
+                        value={theme.background.glowOpacity}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            background: { ...current.background, glowOpacity: value },
+                          }))
+                        }
+                        min={0}
+                        max={0.3}
+                        step={0.01}
+                        format={(value) => `${Math.round(value * 100)}%`}
+                      />
+                      <RangeField
+                        label="Scanlines"
+                        value={theme.background.scanlineOpacity}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            background: { ...current.background, scanlineOpacity: value },
+                          }))
+                        }
+                        min={0}
+                        max={0.25}
+                        step={0.01}
+                        format={(value) => `${Math.round(value * 100)}%`}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {themeSection === 'accent' && (
+                  <div className="ds-stack">
+                    <div className="ds-surface-preview">
+                      <div className="ds-surface-preview-bg" style={{ background: 'var(--ds-accent)' }} />
+                    </div>
+                    <div className="ds-stack">
+                      <RangeField
+                        label="Hue"
+                        value={theme.accent.hue}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            accent: { ...current.accent, hue: value },
+                          }))
+                        }
+                        min={0}
+                        max={360}
+                        step={1}
+                        format={(value) => `${Math.round(value)}`}
+                      />
+                      <RangeField
+                        label="Lightness"
+                        value={theme.accent.lightness}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            accent: { ...current.accent, lightness: value },
+                          }))
+                        }
+                        min={0.3}
+                        max={0.8}
+                        step={0.005}
+                        format={(value) => round(value).toString()}
+                      />
+                      <RangeField
+                        label="Chroma"
+                        value={theme.accent.chroma}
+                        onChange={(value) =>
+                          setTheme((current) => ({
+                            ...current,
+                            accent: { ...current.accent, chroma: value },
+                          }))
+                        }
+                        min={0}
+                        max={0.18}
+                        step={0.002}
+                        format={(value) => round(value).toString()}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </AccordionSection>
           </div>
         ) : null}
 
         {activeTab === 'type' ? (
           <div className="ds-stack">
-            <section className="ds-panel-section">
-              <div className="ds-panel-section-header">
-                <span className="ds-meta-label">Typography</span>
+            <AccordionSection
+              title="Role Profiles"
+              isOpen={openTypeSections.includes('roles')}
+              onToggle={() =>
+                setOpenTypeSections((current) =>
+                  current.includes('roles')
+                    ? current.filter((s) => s !== 'roles')
+                    : [...current, 'roles']
+                )
+              }
+              actions={
                 <Button
                   variant="page"
-                  onClick={() =>
+                  onClick={() => {
+                    const defaultId = DEFAULT_THEME.typography[activeFontRole];
                     setTheme((current) => ({
                       ...current,
-                      typography: cloneTheme(DEFAULT_THEME).typography,
-                    }))
-                  }
+                      typography: {
+                        ...current.typography,
+                        [activeFontRole]: defaultId,
+                        profiles: {
+                          ...current.typography.profiles,
+                          [defaultId]: { ...DEFAULT_THEME.typography.profiles[defaultId] },
+                        },
+                      },
+                    }));
+                  }}
                 >
                   Reset
                 </Button>
-              </div>
-              <div className="ds-grid-two">
-                {(['ui', 'display', 'label', 'mono'] as FontRole[]).map((role) => (
-                  <SelectField
-                    key={role}
-                    label={FONT_ROLE_LABELS[role]}
-                    value={theme.typography[role]}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        typography: { ...current.typography, [role]: value },
-                      }))
-                    }
-                    options={getFontOptionsForRole(role).map((font) => ({
-                      value: font.id,
-                      label: font.label,
-                    }))}
-                  />
-                ))}
-              </div>
-
+              }
+            >
               <div className="ds-stack">
-                <RangeField
-                  label="Global Size Scale"
-                  value={theme.typography.size}
+                <SegmentedTabs
+                  value={activeFontRole}
+                  onChange={(value) => setActiveFontRole(value as FontRole)}
+                  items={[
+                    { id: 'ui', label: 'UI' },
+                    { id: 'display', label: 'Display' },
+                    { id: 'label', label: 'Labels' },
+                    { id: 'mono', label: 'Data' },
+                  ]}
+                  stretch
+                />
+
+                <SelectField
+                  label="Selected Family"
+                  value={theme.typography[activeFontRole]}
                   onChange={(value) =>
                     setTheme((current) => ({
                       ...current,
-                      typography: { ...current.typography, size: value },
+                      typography: { ...current.typography, [activeFontRole]: value },
                     }))
                   }
-                  min={-1}
-                  max={1}
-                  step={0.05}
-                  format={(value) => round(value, 2).toString()}
+                  options={getFontOptionsForRole(activeFontRole).map((font) => ({
+                    value: font.id,
+                    label: font.label,
+                  }))}
                 />
-                <RangeField
-                  label="Global Weight Profile"
-                  value={theme.typography.weight}
-                  onChange={(value) =>
-                    setTheme((current) => ({
-                      ...current,
-                      typography: { ...current.typography, weight: value },
-                    }))
-                  }
-                  min={-1}
-                  max={1}
-                  step={0.05}
-                  format={(value) => round(value, 2).toString()}
-                />
-              </div>
-            </section>
 
-            <section className="ds-panel-section">
-              <div className="ds-panel-section-header">
-                <span className="ds-meta-label">Selected Families</span>
-                <span className="ds-body-quiet">Only active assignments show controls.</span>
-              </div>
-              <div className="ds-stack">
-                {selectedFontIds.map((fontId) => {
-                  const font = FONT_OPTIONS.find((option) => option.id === fontId);
-                  const profile = theme.typography.profiles[fontId];
-                  if (!font || !profile) return null;
+                <div className="ds-stack">
+                  {(() => {
+                    const fontId = theme.typography[activeFontRole];
+                    const profile = theme.typography.profiles[fontId];
+                    if (!profile) return null;
 
-                  return (
-                    <AccordionSection
-                      key={font.id}
-                      title={font.label}
-                      meta={font.category}
-                      isOpen={openFontProfiles.includes(font.id)}
-                      onToggle={() =>
-                        setOpenFontProfiles((current) =>
-                          current.includes(font.id)
-                            ? current.filter((item) => item !== font.id)
-                            : [...current, font.id]
-                        )
-                      }
-                      className="ds-font-profile-card"
-                    >
-                      <p className="ds-body-quiet" style={{ fontFamily: font.cssValue }}>
-                        {font.preview}
-                      </p>
-                      <div className="ds-stack">
+                    return (
+                      <>
                         <RangeField
                           label="Size Adjust"
                           value={profile.sizeAdjust}
@@ -619,8 +620,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                               },
                             }))
                           }
-                          min={-0.06}
-                          max={0.12}
+                          min={-0.1}
+                          max={0.2}
                           step={0.005}
                           format={(value) => `${round(value, 3)}em`}
                         />
@@ -647,34 +648,107 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                           step={0.01}
                           format={(value) => round(value, 2).toString()}
                         />
-                      </div>
-                    </AccordionSection>
-                  );
-                })}
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
-            </section>
-          </div>
-        ) : null}
+            </AccordionSection>
 
-        {activeTab === 'shell' ? (
-          <div className="ds-stack">
-            <section className="ds-panel-section">
-              <div className="ds-panel-section-header">
-                <span className="ds-meta-label">Shell Geometry</span>
+            <AccordionSection
+              title="Global Scale"
+              isOpen={openTypeSections.includes('globals')}
+              onToggle={() =>
+                setOpenTypeSections((current) =>
+                  current.includes('globals')
+                    ? current.filter((s) => s !== 'globals')
+                    : [...current, 'globals']
+                )
+              }
+              actions={
                 <Button
                   variant="page"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
-                      shell: { ...DEFAULT_THEME.shell },
-                      radii: { ...DEFAULT_THEME.radii },
+                      typography: {
+                        ...current.typography,
+                        size: DEFAULT_THEME.typography.size,
+                        weight: DEFAULT_THEME.typography.weight,
+                      },
                     }))
                   }
                 >
                   Reset
                 </Button>
+              }
+            >
+              <div className="ds-stack">
+                <RangeField
+                  label="Global Size Scale"
+                  value={theme.typography.size}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      typography: { ...current.typography, size: value },
+                    }))
+                  }
+                  min={-1}
+                  max={1}
+                  step={0.05}
+                  format={(value) => round(value, 2).toString()}
+                />
+                <RangeField
+                  label="Global Weight Profile"
+                  value={theme.typography.weight}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      typography: { ...current.typography, weight: value },
+                    }))
+                  }
+                  min={-1}
+                  max={1}
+                  step={0.05}
+                  format={(value) => round(value, 2).toString()}
+                />
               </div>
+            </AccordionSection>
+          </div>
+        ) : null}
 
+        {activeTab === 'shell' ? (
+          <div className="ds-stack">
+            <AccordionSection
+              title="Geometry"
+              isOpen={openShellSections.includes('geometry')}
+              onToggle={() =>
+                setOpenShellSections((current) =>
+                  current.includes('geometry')
+                    ? current.filter((s) => s !== 'geometry')
+                    : [...current, 'geometry']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: {
+                        ...current.shell,
+                        sidebarWidth: DEFAULT_THEME.shell.sidebarWidth,
+                        railWidth: DEFAULT_THEME.shell.railWidth,
+                        toolbarHeight: DEFAULT_THEME.shell.toolbarHeight,
+                        contentWidth: DEFAULT_THEME.shell.contentWidth,
+                      },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
               <div className="ds-stack">
                 <RangeField
                   label="Sidebar Width"
@@ -733,13 +807,74 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   format={(value) => `${Math.round(value)}px`}
                 />
               </div>
-            </section>
+            </AccordionSection>
 
-            <section className="ds-panel-section">
-              <div className="ds-panel-section-header">
-                <span className="ds-meta-label">Radius System</span>
-                <Palette size={14} />
+            <AccordionSection
+              title="Rendering"
+              isOpen={openShellSections.includes('rendering')}
+              onToggle={() =>
+                setOpenShellSections((current) =>
+                  current.includes('rendering')
+                    ? current.filter((s) => s !== 'rendering')
+                    : [...current, 'rendering']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: { ...current.shell, surfaceOpacity: DEFAULT_THEME.shell.surfaceOpacity },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <RangeField
+                  label="Surface Solidarity"
+                  value={theme.shell.surfaceOpacity}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: { ...current.shell, surfaceOpacity: value },
+                    }))
+                  }
+                  min={0}
+                  max={1.5}
+                  step={0.05}
+                  format={(value) => `${Math.round(value * 100)}%`}
+                />
               </div>
+            </AccordionSection>
+
+            <AccordionSection
+              title="Radius System"
+              isOpen={openShellSections.includes('radius')}
+              onToggle={() =>
+                setOpenShellSections((current) =>
+                  current.includes('radius')
+                    ? current.filter((s) => s !== 'radius')
+                    : [...current, 'radius']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      radii: { ...DEFAULT_THEME.radii },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
               <div className="ds-stack">
                 <RangeField
                   label="Shell Radius"
@@ -798,52 +933,79 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   format={(value) => `${Math.round(value)}px`}
                 />
               </div>
-            </section>
+            </AccordionSection>
           </div>
         ) : null}
 
         {activeTab === 'export' ? (
           <div className="ds-stack">
-            <section className="ds-panel-section">
-              <div className="ds-panel-section-header">
-                <span className="ds-meta-label">Token Snapshot</span>
-                <CopyButton text={exportJson} variant="page" />
-              </div>
+            <AccordionSection
+              title="Token Snapshot"
+              isOpen={openExportSections.includes('tokens')}
+              onToggle={() =>
+                setOpenExportSections((current) =>
+                  current.includes('tokens')
+                    ? current.filter((s) => s !== 'tokens')
+                    : [...current, 'tokens']
+                )
+              }
+              actions={<CopyButton text={exportJson} variant="page" />}
+            >
               <pre className="ds-code-block">
                 <code>{exportJson}</code>
               </pre>
-            </section>
+            </AccordionSection>
 
-            <section className="ds-panel-section">
-              <div className="ds-panel-section-header">
-                <span className="ds-meta-label">Resolved CSS Vars</span>
-                <CopyButton text={exportCss} variant="page" />
-              </div>
+            <AccordionSection
+              title="Resolved Styles"
+              isOpen={openExportSections.includes('css')}
+              onToggle={() =>
+                setOpenExportSections((current) =>
+                  current.includes('css') ? current.filter((s) => s !== 'css') : [...current, 'css']
+                )
+              }
+              actions={<CopyButton text={exportCss} variant="page" />}
+            >
               <pre className="ds-code-block">
                 <code>{exportCss}</code>
               </pre>
-            </section>
+            </AccordionSection>
 
-            <section className="ds-panel-section">
-              <div className="ds-panel-section-header">
-                <span className="ds-meta-label">Current Swatches</span>
-                <Palette size={14} />
-              </div>
+            <AccordionSection
+              title="Palette Swatches"
+              isOpen={openExportSections.includes('swatches')}
+              onToggle={() =>
+                setOpenExportSections((current) =>
+                  current.includes('swatches')
+                    ? current.filter((s) => s !== 'swatches')
+                    : [...current, 'swatches']
+                )
+              }
+              actions={<Palette size={14} />}
+            >
               <div className="ds-token-grid">
-                <TokenSwatch label="Accent" style={{ background: 'var(--ds-accent)' }} meta="Accent" />
+                <TokenSwatch
+                  label="Accent"
+                  style={{ background: 'var(--ds-accent)' }}
+                  meta="Accent"
+                />
                 <TokenSwatch
                   label="Background"
                   style={{ background: `var(--ds-bg)` }}
                   meta={theme.mode}
                 />
-                <TokenSwatch label="Panel" style={{ background: `var(--ds-panel)` }} meta={theme.mode} />
+                <TokenSwatch
+                  label="Panel"
+                  style={{ background: `var(--ds-panel)` }}
+                  meta={theme.mode}
+                />
                 <TokenSwatch
                   label="Surface"
                   style={{ background: `var(--ds-surface)` }}
                   meta={theme.mode}
                 />
               </div>
-            </section>
+            </AccordionSection>
           </div>
         ) : null}
       </div>

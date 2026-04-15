@@ -12,7 +12,7 @@ interface SidebarItem {
 
 export interface SidebarNavProps {
   brandIcon: ReactNode;
-  brandEyebrow: string;
+  brandEyebrow?: string;
   brandTitle: string;
   brandSubtitle?: string;
   brandPressLabel?: string;
@@ -79,7 +79,7 @@ export function SidebarNav({
           tabIndex={-1}
         />
         <div className="ds-sidebar-brand-copy">
-          <div className="ds-meta-label">{brandEyebrow}</div>
+          {brandEyebrow ? <div className="ds-meta-label">{brandEyebrow}</div> : null}
           <div className="ds-title-inline ds-sidebar-brand-title">{brandTitle}</div>
           {brandSubtitle ? (
             <p className="ds-body-quiet ds-sidebar-brand-subtitle">{brandSubtitle}</p>

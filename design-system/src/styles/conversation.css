@@ -21,7 +21,7 @@
   padding: 1rem;
   border-radius: calc(var(--ds-radius-panel) * 0.9);
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) 92%, transparent);
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
 }
 
 .ds-transcript-message[data-role='user'] {
@@ -70,7 +70,7 @@
   overflow: hidden;
   border: 1px solid var(--ds-border-soft);
   border-radius: var(--ds-radius-panel);
-  background: color-mix(in oklab, var(--ds-panel) 92%, transparent);
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
   box-shadow: var(--ds-shadow-soft);
 }
 

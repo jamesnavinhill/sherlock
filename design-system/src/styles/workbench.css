@@ -1,18 +1,23 @@
 .ds-workbench {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
-  bottom: 1rem;
+  top: 0;
+  right: 0;
+  bottom: 0;
   width: min(28rem, 38vw);
   z-index: 20;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  padding: 1rem;
-  border: 1px solid var(--ds-border-soft);
-  border-radius: var(--ds-radius-panel);
-  background: color-mix(in oklab, var(--ds-panel) 96%, var(--ds-bg) 4%);
-  box-shadow: var(--ds-shadow-soft);
-  backdrop-filter: blur(22px);
+  padding: 1.25rem 0; /* Vertical only, horizontal handled by children */
+  border: 0;
+  border-left: 1px solid var(--ds-border-soft);
+  border-radius: 0;
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%), var(--ds-bg) 4%);
+  box-shadow: var(--ds-shadow-strong);
+  backdrop-filter: blur(28px);
+}
+
+.ds-workbench-header {
+  padding-inline: 1.25rem;
 }
 
 .ds-workbench-header,
@@ -26,8 +31,9 @@
 
 .ds-workbench-body {
   min-height: 0;
-  overflow: auto;
-  padding-top: 1rem;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding: 1rem 1.25rem 2rem 1.25rem;
   display: grid;
   align-content: start;
   gap: 1rem;
@@ -38,7 +44,7 @@
   display: grid;
   gap: 1rem;
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) 84%, transparent);
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(84% * var(--ds-surface-opacity)), 100%), transparent);
   border-radius: var(--ds-radius-panel);
   box-shadow: var(--ds-shadow-soft);
 }
@@ -64,7 +70,7 @@
   border: 1px solid var(--ds-border-soft);
   border-radius: var(--ds-radius-panel);
   box-shadow: var(--ds-shadow-soft);
-  background: color-mix(in oklab, var(--ds-panel) 92%, transparent);
+  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
 }
 
 @media (max-width: 1400px) {

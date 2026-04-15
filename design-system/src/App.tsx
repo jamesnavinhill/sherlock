@@ -239,6 +239,7 @@ const loadTheme = (): StudioTheme => {
     return {
       ...nextTheme,
       ...parsed,
+      shell: { ...nextTheme.shell, ...parsed.shell },
       radii: hasLegacyRadiusDefaults(parsed.radii)
         ? { ...nextTheme.radii }
         : { ...nextTheme.radii, ...parsed.radii },
@@ -471,7 +472,6 @@ export default function App() {
         sidebar={
           <SidebarNav
             brandIcon={<Palette size={16} />}
-            brandEyebrow="Design System"
             brandTitle="Canon Studio"
             brandPressLabel={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             onBrandPress={!isOverlayShell ? toggleSidebar : undefined}

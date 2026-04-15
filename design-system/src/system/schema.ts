@@ -67,6 +67,7 @@ export interface ShellSettings {
   toolbarHeight: number;
   contentWidth: number;
   density: number;
+  surfaceOpacity: number;
 }
 
 export interface StudioTheme {
@@ -379,6 +380,7 @@ export const DEFAULT_THEME: StudioTheme = {
     toolbarHeight: 78,
     contentWidth: 980,
     density: 1,
+    surfaceOpacity: 1,
   },
 };
 

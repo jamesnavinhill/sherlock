@@ -21,6 +21,8 @@ export function RangeField({
   format = (nextValue) => nextValue.toString(),
   description,
 }: RangeFieldProps) {
+  const percent = ((value - min) / (max - min)) * 100;
+
   return (
     <FieldRow label={label} value={format(value)} description={description}>
       <input
@@ -30,6 +32,7 @@ export function RangeField({
         max={max}
         step={step}
         value={value}
+        style={{ '--value-percent': `${percent}%` } as any}
         onChange={(event) => onChange(Number(event.target.value))}
       />
     </FieldRow>
