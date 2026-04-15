@@ -8,7 +8,7 @@ import { cx } from '../utils/cx';
 
 export interface PopoverButtonProps {
   label: ReactNode;
-  children: ReactNode;
+  children: ReactNode | ((controls: { close: () => void }) => ReactNode);
   variant?: Exclude<ButtonVariant, 'icon'>;
   align?: 'start' | 'end';
   className?: string;
@@ -31,8 +31,9 @@ export function PopoverButton({
 }: PopoverButtonProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const close = () => setOpen(false);
 
-  useDismissableLayer(open, rootRef, () => setOpen(false));
+  useDismissableLayer(open, rootRef, close);
 
   return (
     <div className={cx('ds-menu-wrap', className)} ref={rootRef}>
@@ -54,7 +55,7 @@ export function PopoverButton({
             panelClassName
           )}
         >
-          {children}
+          {typeof children === 'function' ? children({ close }) : children}
         </div>
       ) : null}
     </div>

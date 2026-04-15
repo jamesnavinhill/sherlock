@@ -33,7 +33,7 @@ That canon layer currently covers:
 - select/menu/popover/search controls
 - disclosure and accordion behavior
 - card and empty-state surfaces
-- modal shell
+- modal shell plus structured config/workflow overlay surfaces
 - chat composer
 - transcript rendering
 - workbench controls and token export

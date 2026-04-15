@@ -34,10 +34,13 @@ import {
   MenuButton,
   MetricGrid,
   ModalDialog,
+  OverlayPanel,
+  OverlaySection,
   PageShell,
   PanelNote,
   PanelRail,
   PopoverButton,
+  RangeField,
   ResponsiveGrid,
   SearchField,
   SegmentedTabs,
@@ -47,6 +50,7 @@ import {
   ToolbarBar,
   ToolbarCluster,
   Workbench,
+  WorkflowDialog,
   useExclusiveDisclosure,
   type TranscriptMessage,
 } from './components/canon';
@@ -104,12 +108,24 @@ const SEARCH_ITEMS: Array<{ label: string; kind: string; tab: GalleryTab }> = [
   { label: 'Page Shell', kind: 'Shell', tab: 'shell' },
   { label: 'Panel Rail', kind: 'Navigation', tab: 'navigation' },
   { label: 'Toolbar Menus', kind: 'Navigation', tab: 'navigation' },
+  { label: 'Configuration Panel', kind: 'Overlay', tab: 'controls' },
   { label: 'Modal Dialog', kind: 'Controls', tab: 'controls' },
+  { label: 'Workflow Dialog', kind: 'Overlay', tab: 'controls' },
   { label: 'Action Cards', kind: 'Surface', tab: 'surfaces' },
   { label: 'Chat Composer', kind: 'Conversation', tab: 'conversation' },
   { label: 'Transcript', kind: 'Conversation', tab: 'conversation' },
   { label: 'Typography Hierarchy', kind: 'Type', tab: 'typography' },
 ];
+
+const FLOW_OUTPUT_OPTIONS = [
+  { id: 'artifact', label: 'Artifact' },
+  { id: 'brief', label: 'Brief' },
+] as const;
+
+const FLOW_DEPTH_OPTIONS = [
+  { id: 'standard', label: 'Standard' },
+  { id: 'deep', label: 'Deep' },
+] as const;
 
 const NAV_ITEMS = [
   { id: 'workspace', label: 'Workspace', icon: Shapes },
@@ -242,6 +258,12 @@ export default function App() {
     'Compare the strongest signal clusters against the last artifact summary and call out the missing evidence.'
   );
   const [modalOpen, setModalOpen] = useState(false);
+  const [workflowOpen, setWorkflowOpen] = useState(false);
+  const [flowOutput, setFlowOutput] = useState<(typeof FLOW_OUTPUT_OPTIONS)[number]['id']>(
+    'artifact'
+  );
+  const [flowDepth, setFlowDepth] = useState<(typeof FLOW_DEPTH_OPTIONS)[number]['id']>('deep');
+  const [flowReviewBudget, setFlowReviewBudget] = useState(72);
   const [mobilePanel, setMobilePanel] = useState<'sidebar' | 'left' | 'right' | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [leftRailPinnedOpen, setLeftRailPinnedOpen] = useState(true);
@@ -286,6 +308,7 @@ export default function App() {
       if (event.key === 'Escape') {
         setWorkbenchOpen(false);
         setModalOpen(false);
+        setWorkflowOpen(false);
         setMobilePanel(null);
       }
     };
@@ -329,26 +352,93 @@ export default function App() {
     setRightRailPinnedOpen((current) => !current);
   };
 
-  const configurationPanel = (
-    <div className="ds-stack ds-popover-stack">
-      <PanelNote title="Shell Geometry">
-        One toolbar, one general rail, and one page shell contract are carrying both library and
-        inspector patterns now.
-      </PanelNote>
-      <MetricGrid
-        items={[
-          { label: 'Sidebar', value: `${Math.round(theme.shell.sidebarWidth)}px` },
-          { label: 'Rail', value: `${Math.round(theme.shell.railWidth)}px` },
-          { label: 'Toolbar', value: `${Math.round(theme.shell.toolbarHeight)}px` },
-          { label: 'Radius', value: `${Math.round(theme.radii.panel)}px` },
-        ]}
-      />
-      <div className="ds-chip-grid">
-        <Badge variant="accent">Mobile Remap</Badge>
-        <Badge variant="outline">Reusable Toolbar</Badge>
-        <Badge variant="outline">Shared Rail</Badge>
+  const configurationPanel = ({ close }: { close: () => void }) => (
+    <OverlayPanel
+      eyebrow="Config Surface"
+      title="Workbench Configuration"
+      description="Use this richer panel tier for structured settings, grouped decisions, and footer actions instead of plain list menus."
+      onClose={close}
+      footer={
+        <div className="ds-overlay-actions">
+          <div className="ds-chip-grid">
+            <Badge variant="accent">Config Popout</Badge>
+            <Badge variant="outline">Grouped Controls</Badge>
+          </div>
+          <ToolbarCluster className="ds-wrap">
+            <Button variant="secondary" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
+              Reset Studio
+            </Button>
+            <Button variant="primary" onClick={close}>
+              Done
+            </Button>
+          </ToolbarCluster>
+        </div>
+      }
+    >
+      <div className="ds-overlay-grid">
+        <OverlaySection
+          title="Surface Preset"
+          description="Theme and shell choices live together so configuration popouts feel intentional instead of incidental."
+          meta={<Badge variant="outline">Live</Badge>}
+        >
+          <SelectField
+            label="Preset"
+            value={surfacePreset}
+            onChange={setSurfacePreset}
+            options={SURFACE_OPTIONS}
+          />
+        </OverlaySection>
+
+        <OverlaySection
+          title="Shell Geometry"
+          description="Config popouts should support multiple related inputs without collapsing into a plain menu list."
+          meta={<Badge variant="accent">Layout</Badge>}
+        >
+          <RangeField
+            label="Sidebar Width"
+            value={theme.shell.sidebarWidth}
+            min={208}
+            max={320}
+            step={8}
+            format={(value) => `${Math.round(value)}px`}
+            onChange={(value) =>
+              setTheme((current) => ({
+                ...current,
+                shell: { ...current.shell, sidebarWidth: value },
+              }))
+            }
+          />
+          <RangeField
+            label="Rail Width"
+            value={theme.shell.railWidth}
+            min={272}
+            max={420}
+            step={8}
+            format={(value) => `${Math.round(value)}px`}
+            onChange={(value) =>
+              setTheme((current) => ({
+                ...current,
+                shell: { ...current.shell, railWidth: value },
+              }))
+            }
+          />
+          <RangeField
+            label="Toolbar Height"
+            value={theme.shell.toolbarHeight}
+            min={64}
+            max={110}
+            step={2}
+            format={(value) => `${Math.round(value)}px`}
+            onChange={(value) =>
+              setTheme((current) => ({
+                ...current,
+                shell: { ...current.shell, toolbarHeight: value },
+              }))
+            }
+          />
+        </OverlaySection>
       </div>
-    </div>
+    </OverlayPanel>
   );
 
   return (
@@ -879,13 +969,22 @@ export default function App() {
                 >
                   {configurationPanel}
                 </PopoverButton>
-                <Button
-                  variant="ghost"
-                  leadingIcon={<Bell size={16} />}
-                  onClick={() => setModalOpen(true)}
-                >
-                  Open Modal Review
-                </Button>
+                <ToolbarCluster className="ds-wrap">
+                  <Button
+                    variant="ghost"
+                    leadingIcon={<Workflow size={16} />}
+                    onClick={() => setWorkflowOpen(true)}
+                  >
+                    Open Workflow Dialog
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    leadingIcon={<Bell size={16} />}
+                    onClick={() => setModalOpen(true)}
+                  >
+                    Open Review Modal
+                  </Button>
+                </ToolbarCluster>
               </div>
             </SurfaceCard>
 
@@ -1069,6 +1168,108 @@ export default function App() {
           </PanelNote>
         </div>
       </ModalDialog>
+
+      <WorkflowDialog
+        open={workflowOpen}
+        onClose={() => setWorkflowOpen(false)}
+        eyebrow="Workflow"
+        title="Start Artifact Flow"
+        description="Reserve the larger workflow tier for multi-step configuration, launch context, and outcome summaries."
+        actions={<Badge variant="accent">Structured Launch</Badge>}
+        footer={
+          <div className="ds-overlay-actions">
+            <div className="ds-chip-grid">
+              <Badge variant="outline">Workspace {workspaceId === 'workspace-a' ? 'A' : 'B'}</Badge>
+              <Badge variant="outline">
+                {flowDepth === 'deep' ? 'Deep Review' : 'Standard Review'}
+              </Badge>
+            </div>
+            <ToolbarCluster className="ds-wrap">
+              <Button variant="secondary" onClick={() => setWorkflowOpen(false)}>
+                Keep Editing
+              </Button>
+              <Button
+                variant="primary"
+                leadingIcon={<Play size={16} />}
+                onClick={() => setWorkflowOpen(false)}
+              >
+                Start Flow
+              </Button>
+            </ToolbarCluster>
+          </div>
+        }
+        sidebar={
+          <div className="ds-stack">
+            <OverlaySection
+              title="Launch Summary"
+              description="Sherlock-style workflow dialogs benefit from a visible summary rail instead of burying context below the fold."
+              tone="accent"
+            >
+              <MetricGrid
+                items={[
+                  { label: 'Workspace', value: workspaceId === 'workspace-a' ? 'Operations' : 'Incident' },
+                  { label: 'Output', value: flowOutput === 'artifact' ? 'Artifact' : 'Brief' },
+                  { label: 'Depth', value: flowDepth === 'deep' ? 'Deep' : 'Standard' },
+                  { label: 'Budget', value: `${flowReviewBudget}%` },
+                ]}
+              />
+            </OverlaySection>
+            <PanelNote title="System Rule">
+              List selectors stay lightweight. Structured overlays are for configuration, wizards,
+              and guided task setup.
+            </PanelNote>
+          </div>
+        }
+      >
+        <div className="ds-overlay-grid ds-overlay-grid-split">
+          <OverlaySection
+            title="Launch Context"
+            description="Top-level intent and destination belong in the first section so the flow has a clear starting point."
+          >
+            <SelectField
+              label="Workspace"
+              value={workspaceId}
+              onChange={setWorkspaceId}
+              options={WORKSPACE_OPTIONS}
+            />
+            <div className="ds-stack">
+              <span className="ds-meta-label">Delivery Shape</span>
+              <SegmentedTabs value={flowOutput} onChange={setFlowOutput} items={FLOW_OUTPUT_OPTIONS} stretch />
+            </div>
+          </OverlaySection>
+
+          <OverlaySection
+            title="Flow Framing"
+            description="A second grouped section can hold context-setting guidance without competing with the main launch controls."
+            tone="subtle"
+          >
+            <PanelNote title="Why this tier exists">
+              This is the dialog pattern for setup flows that need header copy, grouped sections,
+              footer actions, and a side summary all at once.
+            </PanelNote>
+          </OverlaySection>
+        </div>
+
+        <OverlaySection
+          title="Evidence Settings"
+          description="Grouped controls should read like one decision surface, not a pile of detached inputs."
+        >
+          <div className="ds-stack">
+            <span className="ds-meta-label">Investigation Depth</span>
+            <SegmentedTabs value={flowDepth} onChange={setFlowDepth} items={FLOW_DEPTH_OPTIONS} stretch />
+          </div>
+          <RangeField
+            label="Review Budget"
+            value={flowReviewBudget}
+            min={30}
+            max={100}
+            step={5}
+            format={(value) => `${value}%`}
+            onChange={setFlowReviewBudget}
+            description="Higher budgets are slower, but give the workflow more room for synthesis and review."
+          />
+        </OverlaySection>
+      </WorkflowDialog>
     </>
   );
 }

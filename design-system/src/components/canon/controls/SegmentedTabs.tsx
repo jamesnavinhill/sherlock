@@ -3,7 +3,7 @@ import { cx } from '../utils/cx';
 interface TabsProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
-  items: Array<{ id: T; label: string }>;
+  items: ReadonlyArray<{ id: T; label: string }>;
   stretch?: boolean;
 }
 
