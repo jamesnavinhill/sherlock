@@ -123,8 +123,6 @@ export const getChromeSegmentButtonClass = (active: boolean) =>
   }`;
 
 interface RailAccordionClassOptions {
-  hasOpenSection?: boolean;
-  isLast?: boolean;
   isOpen: boolean;
 }
 
@@ -139,10 +137,6 @@ export const getRailAccordionClassName = (
 
   if (resolved.isOpen) {
     return 'mb-0 flex min-h-0 flex-1 flex-col';
-  }
-
-  if (resolved.isLast && !resolved.hasOpenSection) {
-    return 'mb-0 flex min-h-0 flex-1 flex-col justify-end';
   }
 
   return 'mb-0 shrink-0';

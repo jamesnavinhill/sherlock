@@ -28,7 +28,10 @@ export function AccordionSection({
   const bodyId = useId();
 
   return (
-    <section className={cx('ds-accordion', compact && 'ds-accordion-compact', className)}>
+    <section
+      className={cx('ds-accordion', compact && 'ds-accordion-compact', className)}
+      data-open={isOpen ? 'true' : 'false'}
+    >
       <button
         type="button"
         className="ds-accordion-trigger"

@@ -1,18 +1,19 @@
 import { Copy } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from './Button';
+import { Button, type ButtonVariant } from './Button';
 
 export interface CopyButtonProps {
   text: string;
+  variant?: ButtonVariant;
 }
 
-export function CopyButton({ text }: CopyButtonProps) {
+export function CopyButton({ text, variant = 'toolbar' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   return (
     <Button
-      variant="toolbar"
+      variant={variant}
       leadingIcon={<Copy size={14} />}
       onClick={async () => {
         try {
@@ -24,7 +25,7 @@ export function CopyButton({ text }: CopyButtonProps) {
         }
       }}
     >
-      {copied ? 'Copied' : 'Copy'}
+      {copied ? 'Copied' : null}
     </Button>
   );
 }

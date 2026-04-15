@@ -45,10 +45,10 @@
   --ds-display-leading: 1.08;
   --ds-label-leading: 1.2;
   --ds-mono-leading: 1.6;
-  --ds-radius-shell: 0px;
-  --ds-radius-panel: 16px;
-  --ds-radius-control: 12px;
-  --ds-radius-pill: 999px;
+  --ds-radius-shell: 5px;
+  --ds-radius-panel: 5px;
+  --ds-radius-control: 5px;
+  --ds-radius-pill: 5px;
   --ds-sidebar-width: 248px;
   --ds-sidebar-collapsed-width: 5.25rem;
   --ds-rail-width: 320px;

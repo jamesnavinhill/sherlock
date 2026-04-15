@@ -181,7 +181,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
         onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
       />
 
-      <div className="relative z-0 flex flex-1 overflow-hidden">
+      <div className="relative z-0 flex min-h-0 flex-1 overflow-hidden">
         {leftPanelOpen || rightPanelOpen ? (
           <div
             className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm lg:hidden"

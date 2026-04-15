@@ -6,6 +6,7 @@ export type ButtonVariant =
   | 'primary'
   | 'secondary'
   | 'ghost'
+  | 'page'
   | 'toolbar'
   | 'danger'
   | 'icon';
@@ -16,6 +17,7 @@ const BUTTON_VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary: 'ds-primary-button',
   secondary: 'ds-secondary-button',
   ghost: 'ds-ghost-button',
+  page: 'ds-page-button',
   toolbar: 'ds-toolbar-button',
   danger: 'ds-danger-button',
   icon: 'ds-toolbar-icon-button',

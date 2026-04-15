@@ -10,11 +10,10 @@ interface GlobalInspectorSectionsProps {
 
 export const GlobalInspectorSections: React.FC<GlobalInspectorSectionsProps> = ({ sections }) => {
   if (sections.length === 0) return null;
-  const hasOpenSection = sections.some((section) => section.isOpen);
 
   return (
     <>
-      {sections.map((section, index) => (
+      {sections.map((section) => (
         <Accordion
           key={section.id}
           title={section.title}
@@ -22,14 +21,7 @@ export const GlobalInspectorSections: React.FC<GlobalInspectorSectionsProps> = (
           icon={section.icon}
           isOpen={section.isOpen}
           onToggle={section.onToggle}
-          className={
-            section.className ||
-            getRailAccordionClassName({
-              hasOpenSection,
-              isLast: index === sections.length - 1,
-              isOpen: section.isOpen,
-            })
-          }
+          className={section.className || getRailAccordionClassName(section.isOpen)}
           headerClassName={section.headerClassName}
           chevronClassName={section.chevronClassName}
           contentClassName={section.contentClassName || CHROME_RAIL_SECTION_SCROLL_CLASS}

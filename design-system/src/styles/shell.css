@@ -40,6 +40,8 @@
   display: grid;
   grid-template-columns: var(--ds-sidebar-size, var(--ds-sidebar-width)) minmax(0, 1fr);
   min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   border-radius: var(--ds-radius-shell);
 }
 
@@ -200,8 +202,10 @@
 
 .ds-shell-main {
   min-width: 0;
+  min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .ds-toolbar {
@@ -256,17 +260,20 @@
 
 .ds-shell-columns {
   min-width: 0;
+  min-height: 0;
   display: grid;
   grid-template-columns:
     var(--ds-left-rail-size, var(--ds-rail-width))
     minmax(0, 1fr)
     var(--ds-right-rail-size, var(--ds-rail-width));
+  overflow: hidden;
   transition: grid-template-columns 180ms ease;
 }
 
 .ds-rail {
   min-width: 0;
-  min-height: calc(100vh - var(--ds-toolbar-offset, var(--ds-toolbar-height)));
+  min-height: 0;
+  height: 100%;
   border-right: 1px solid var(--ds-border-soft);
   background: color-mix(in oklab, var(--ds-panel) 92%, transparent);
   display: grid;
@@ -335,18 +342,30 @@
 }
 
 .ds-rail-body {
-  display: grid;
-  align-content: start;
-  align-items: start;
-  grid-auto-rows: max-content;
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .ds-rail-body > * {
   min-width: 0;
+  flex: 0 0 auto;
+}
+
+.ds-rail-body > .ds-accordion[data-open='true'] {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-rail-body > .ds-accordion[data-open='true'] .ds-accordion-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
 }
 
 .ds-rail-footer {
@@ -356,7 +375,9 @@
 
 .ds-content {
   min-width: 0;
+  min-height: 0;
   padding: 1.5rem;
+  overflow: auto;
 }
 
 .ds-page-layout {
@@ -416,6 +437,7 @@
 .ds-main-tabs {
   max-width: none;
   margin: 0;
+  padding-top: 0.35rem; /* Pushes the nav tabs to functionally equal the visual height of panel headers */
 }
 
 @media (min-width: 1181px) {
@@ -475,7 +497,7 @@
     height: 2rem;
     align-items: center;
     justify-content: center;
-    border-radius: 999px;
+    border-radius: var(--ds-radius-control);
     border: 1px solid var(--ds-border-soft);
     background: color-mix(in oklab, var(--ds-panel) 92%, transparent);
   }

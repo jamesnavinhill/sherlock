@@ -63,6 +63,18 @@ import { DEFAULT_THEME, cloneTheme, type StudioTheme } from './system/schema';
 
 const STORAGE_KEY = 'canon-design-system-studio/v1';
 const SHELL_OVERLAY_QUERY = '(max-width: 1180px)';
+const LEGACY_RADIUS_DEFAULTS = {
+  shell: 0,
+  panel: 16,
+  control: 12,
+  pill: 999,
+} as const;
+
+const hasLegacyRadiusDefaults = (radii: Partial<StudioTheme['radii']> | undefined) =>
+  radii?.shell === LEGACY_RADIUS_DEFAULTS.shell &&
+  radii?.panel === LEGACY_RADIUS_DEFAULTS.panel &&
+  radii?.control === LEGACY_RADIUS_DEFAULTS.control &&
+  radii?.pill === LEGACY_RADIUS_DEFAULTS.pill;
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() =>
@@ -221,9 +233,15 @@ const loadTheme = (): StudioTheme => {
   }
 
   try {
+    const parsed = JSON.parse(raw) as Partial<StudioTheme>;
+    const nextTheme = cloneTheme(DEFAULT_THEME);
+
     return {
-      ...cloneTheme(DEFAULT_THEME),
-      ...JSON.parse(raw),
+      ...nextTheme,
+      ...parsed,
+      radii: hasLegacyRadiusDefaults(parsed.radii)
+        ? { ...nextTheme.radii }
+        : { ...nextTheme.radii, ...parsed.radii },
     } as StudioTheme;
   } catch {
     return cloneTheme(DEFAULT_THEME);
@@ -261,12 +279,12 @@ export default function App() {
   const [flowReviewBudget, setFlowReviewBudget] = useState(72);
   const [mobilePanel, setMobilePanel] = useState<'sidebar' | 'left' | 'right' | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [leftRailPinnedOpen, setLeftRailPinnedOpen] = useState(true);
-  const [rightRailPinnedOpen, setRightRailPinnedOpen] = useState(true);
+  const [leftRailPinnedOpen, setLeftRailPinnedOpen] = useState(false);
+  const [rightRailPinnedOpen, setRightRailPinnedOpen] = useState(false);
 
-  const leftSections = useExclusiveDisclosure<'inventory' | 'filters' | 'saved'>('inventory');
-  const rightSections = useExclusiveDisclosure<'details' | 'states' | 'tokens'>('details');
-  const controlSections = useExclusiveDisclosure<'accordion' | 'modal' | 'mobile'>('accordion');
+  const leftSections = useExclusiveDisclosure<'inventory' | 'filters' | 'saved'>(null);
+  const rightSections = useExclusiveDisclosure<'details' | 'states' | 'tokens'>(null);
+  const controlSections = useExclusiveDisclosure<'accordion' | 'modal' | 'mobile'>(null);
 
   const setTheme = (updater: (current: StudioTheme) => StudioTheme) => {
     setThemeState((current) => updater(current));
@@ -776,17 +794,13 @@ export default function App() {
           ) : null}
 
           <div className="ds-page-main">
-            <div className="ds-content-header">
-              <div>
-                <div className="ds-meta-label">Studio Page</div>
-                <h1 className="ds-title-page">Reusable shell and component canon</h1>
-              </div>
-              <div className="ds-hero-actions">
-              </div>
+            <div className="ds-content-header ds-main-tabs">
+              <NavTabs value={galleryTab} onChange={setGalleryTab} items={GALLERY_TABS} />
             </div>
 
-            <div className="ds-main-tabs">
-              <NavTabs value={galleryTab} onChange={setGalleryTab} items={GALLERY_TABS} />
+            <div className="ds-page-title-section" style={{ display: 'grid', gap: '0.35rem' }}>
+              <div className="ds-meta-label">Studio Page</div>
+              <h1 className="ds-title-page">Reusable shell and component canon</h1>
             </div>
 
             {galleryTab === 'shell' ? (

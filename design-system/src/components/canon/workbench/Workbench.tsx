@@ -21,6 +21,7 @@ import {
   type FontRole,
   type StudioTheme,
 } from '../../../system/schema';
+import { Button } from '../controls/Button';
 import { CopyButton } from '../controls/CopyButton';
 import { RangeField } from '../controls/RangeField';
 import { NavTabs } from '../controls/NavTabs';
@@ -89,17 +90,15 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
           <h2 className="ds-title-section">System Controls</h2>
         </div>
         <div className="ds-toolbar-inline">
-          <button
-            type="button"
-            className="ds-toolbar-button"
+          <Button
+            variant="page"
             onClick={() => setTheme(() => cloneTheme(DEFAULT_THEME))}
           >
-            <RefreshCw size={14} />
             Reset
-          </button>
-          <button type="button" className="ds-toolbar-button" onClick={onClose}>
+          </Button>
+          <Button variant="page" onClick={onClose}>
             Close
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -176,21 +175,17 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               <section className="ds-panel-section">
                 <div className="ds-panel-section-header">
                   <span className="ds-meta-label">Surface Canon</span>
-                  <div className="ds-toolbar-inline">
-                    <button
-                      type="button"
-                      className="ds-toolbar-button"
-                      onClick={() =>
-                        setTheme((current) => ({
-                          ...current,
-                          surfaces: cloneTheme(DEFAULT_THEME).surfaces,
-                        }))
-                      }
-                    >
-                      <BrushCleaning size={14} />
-                      Reset
-                    </button>
-                  </div>
+                  <Button
+                    variant="page"
+                    onClick={() =>
+                      setTheme((current) => ({
+                        ...current,
+                        surfaces: cloneTheme(DEFAULT_THEME).surfaces,
+                      }))
+                    }
+                  >
+                    Reset
+                  </Button>
                 </div>
 
                 <div className="ds-chip-grid">
@@ -332,9 +327,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               <section className="ds-panel-section">
                 <div className="ds-panel-section-header">
                   <span className="ds-meta-label">Background System</span>
-                  <button
-                    type="button"
-                    className="ds-toolbar-button"
+                  <Button
+                    variant="page"
                     onClick={() =>
                       setTheme((current) => ({
                         ...current,
@@ -342,9 +336,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       }))
                     }
                   >
-                    <WandSparkles size={14} />
                     Reset
-                  </button>
+                  </Button>
                 </div>
                 <SelectField
                   label="Variant"
@@ -445,9 +438,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             <section className="ds-panel-section">
               <div className="ds-panel-section-header">
                 <span className="ds-meta-label">Typography</span>
-                <button
-                  type="button"
-                  className="ds-toolbar-button"
+                <Button
+                  variant="page"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -455,9 +447,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     }))
                   }
                 >
-                  <Pilcrow size={14} />
                   Reset
-                </button>
+                </Button>
               </div>
               <div className="ds-grid-two">
                 {(['ui', 'display', 'label', 'mono'] as FontRole[]).map((role) => (
@@ -647,9 +638,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             <section className="ds-panel-section">
               <div className="ds-panel-section-header">
                 <span className="ds-meta-label">Shell Geometry</span>
-                <button
-                  type="button"
-                  className="ds-toolbar-button"
+                <Button
+                  variant="page"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -658,9 +648,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     }))
                   }
                 >
-                  <LayoutPanelTop size={14} />
                   Reset
-                </button>
+                </Button>
               </div>
 
               <div className="ds-stack">
@@ -780,8 +769,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       radii: { ...current.radii, pill: value },
                     }))
                   }
-                  min={16}
-                  max={999}
+                  min={0}
+                  max={24}
                   step={1}
                   format={(value) => `${Math.round(value)}px`}
                 />
@@ -795,7 +784,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             <section className="ds-panel-section">
               <div className="ds-panel-section-header">
                 <span className="ds-meta-label">Token Snapshot</span>
-                <CopyButton text={exportJson} />
+                <CopyButton text={exportJson} variant="page" />
               </div>
               <pre className="ds-code-block">
                 <code>{exportJson}</code>
@@ -805,7 +794,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             <section className="ds-panel-section">
               <div className="ds-panel-section-header">
                 <span className="ds-meta-label">Resolved CSS Vars</span>
-                <CopyButton text={exportCss} />
+                <CopyButton text={exportCss} variant="page" />
               </div>
               <pre className="ds-code-block">
                 <code>{exportCss}</code>

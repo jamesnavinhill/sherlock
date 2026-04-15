@@ -367,10 +367,10 @@ export const DEFAULT_THEME: StudioTheme = {
     profiles: createDefaultProfiles(),
   },
   radii: {
-    shell: 0,
-    panel: 16,
-    control: 12,
-    pill: 999,
+    shell: 5,
+    panel: 5,
+    control: 5,
+    pill: 5,
   },
   shell: {
     sidebarWidth: 248,

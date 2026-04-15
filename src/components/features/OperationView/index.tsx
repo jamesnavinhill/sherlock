@@ -210,7 +210,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
       )}
 
       {/* 3-PANEL LAYOUT */}
-      <div className="flex-1 flex overflow-hidden relative z-10">
+      <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden">
         {/* Left Panel: Dossier */}
         <WorkspaceLibraryRail
           isOpen={leftPanelOpen}
