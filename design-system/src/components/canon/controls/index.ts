@@ -10,3 +10,4 @@ export * from './SearchField';
 export * from './SegmentedTabs';
 export * from './SelectField';
 export * from './TokenSwatch';
+export * from './NavTabs';

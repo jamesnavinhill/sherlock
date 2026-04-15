@@ -23,6 +23,7 @@ import {
 } from '../../../system/schema';
 import { CopyButton } from '../controls/CopyButton';
 import { RangeField } from '../controls/RangeField';
+import { NavTabs } from '../controls/NavTabs';
 import { SegmentedTabs } from '../controls/SegmentedTabs';
 import { SelectField } from '../controls/SelectField';
 import { TokenSwatch } from '../controls/TokenSwatch';
@@ -102,7 +103,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
         </div>
       </div>
 
-      <SegmentedTabs value={activeTab} onChange={setActiveTab} items={WORKBENCH_TABS} stretch />
+      <NavTabs value={activeTab} onChange={setActiveTab} items={WORKBENCH_TABS} stretch />
 
       <div className="ds-workbench-body">
         {activeTab === 'theme' ? (

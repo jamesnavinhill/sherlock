@@ -19,6 +19,8 @@ import {
   Sidebar,
   SlidersHorizontal,
   Sparkles,
+  Sun,
+  Moon,
   Workflow,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -45,6 +47,7 @@ import {
   ResponsiveGrid,
   SearchField,
   SegmentedTabs,
+  NavTabs,
   SelectField,
   SidebarNav,
   SurfaceCard,
@@ -484,7 +487,7 @@ export default function App() {
                     }))
                   }
                 >
-                  <SlidersHorizontal size={18} />
+                  {theme.mode === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   <span className="ds-sidebar-nav-item-label">
                     {theme.mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
                   </span>
@@ -797,7 +800,7 @@ export default function App() {
             </div>
 
             <div className="ds-main-tabs">
-              <SegmentedTabs value={galleryTab} onChange={setGalleryTab} items={GALLERY_TABS} />
+              <NavTabs value={galleryTab} onChange={setGalleryTab} items={GALLERY_TABS} />
             </div>
 
             {galleryTab === 'shell' ? (

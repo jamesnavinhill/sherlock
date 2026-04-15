@@ -507,6 +507,64 @@
   width: min(22rem, calc(100vw - 2rem));
 }
 
+.ds-nav-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--ds-border-soft);
+  width: 100%;
+}
+
+.ds-nav-tabs-stretch {
+  justify-content: space-between;
+}
+
+.ds-nav-tabs-stretch .ds-nav-tab {
+  flex: 1;
+}
+
+.ds-nav-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.25rem;
+  font-family: var(--ds-font-label);
+  font-size: calc(var(--ds-type-2xs) * var(--ds-label-scale));
+  font-weight: var(--ds-label-weight);
+  letter-spacing: var(--ds-label-tracking);
+  color: var(--ds-text-quiet);
+  text-transform: uppercase;
+  background: transparent;
+  border: none;
+  margin-bottom: -1px;
+}
+
+.ds-nav-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background-color 160ms ease;
+}
+
+.ds-nav-tab:hover:not([data-active='true']),
+.ds-nav-tab:focus-visible:not([data-active='true']) {
+  color: var(--ds-text-strong);
+}
+
+.ds-nav-tab[data-active='true'] {
+  color: var(--ds-accent);
+}
+
+.ds-nav-tab[data-active='true']::after {
+  background: var(--ds-accent);
+}
+
 @container (max-width: 1320px) {
   .ds-toolbar-responsive-control {
     gap: 0.35rem;
