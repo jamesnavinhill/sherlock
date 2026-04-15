@@ -11,6 +11,7 @@ export interface PanelRailProps {
   eyebrow: string;
   title: ReactNode;
   subtitle?: ReactNode;
+  headerActions?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
@@ -25,6 +26,7 @@ export function PanelRail({
   eyebrow,
   title,
   subtitle,
+  headerActions,
   actions,
   children,
   footer,
@@ -43,25 +45,28 @@ export function PanelRail({
       data-mobile-open={mobileOpen ? 'true' : 'false'}
     >
       <div className="ds-rail-header">
-        <div className="ds-rail-header-copy">
-          <div className="ds-meta-label">{eyebrow}</div>
-          <h2 className="ds-panel-title">{title}</h2>
-          {subtitle ? <p className="ds-body-quiet">{subtitle}</p> : null}
+        <div className="ds-rail-header-top">
+          <div className="ds-rail-header-copy">
+            <div className="ds-meta-label">{eyebrow}</div>
+            <h2 className="ds-panel-title">{title}</h2>
+            {subtitle ? <p className="ds-body-quiet">{subtitle}</p> : null}
+          </div>
+          <div className="ds-rail-header-controls">
+            {headerActions}
+            {onCloseMobile ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ds-rail-close"
+                leadingIcon={<X size={14} />}
+                onClick={onCloseMobile}
+              >
+                Close
+              </Button>
+            ) : null}
+          </div>
         </div>
-        <div className="ds-rail-header-actions">
-          {actions}
-          {onCloseMobile ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="ds-rail-close"
-              leadingIcon={<X size={14} />}
-              onClick={onCloseMobile}
-            >
-              Close
-            </Button>
-          ) : null}
-        </div>
+        {actions ? <div className="ds-rail-header-actions">{actions}</div> : null}
       </div>
       <div className="ds-rail-body">{children}</div>
       {footer ? <div className="ds-rail-footer">{footer}</div> : null}

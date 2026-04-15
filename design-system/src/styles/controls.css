@@ -106,11 +106,32 @@
   padding: 0;
 }
 
+.ds-page-icon-button {
+  width: 2rem;
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ds-text-meta);
+  box-shadow: none;
+  transition:
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
 .ds-toolbar-icon-button[data-active='true'] {
   border-color: var(--ds-accent-border);
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
   box-shadow: var(--ds-shadow-soft);
+}
+
+.ds-page-icon-button[data-active='true'] {
+  color: var(--ds-accent);
 }
 
 .ds-toolbar-button:hover,
@@ -123,6 +144,8 @@
 .ds-danger-button:focus-visible,
 .ds-toolbar-icon-button:hover,
 .ds-toolbar-icon-button:focus-visible,
+.ds-page-icon-button:hover,
+.ds-page-icon-button:focus-visible,
 .ds-select-trigger:hover,
 .ds-select-trigger:focus-visible,
 .ds-search-shell:hover,
@@ -134,6 +157,14 @@
   color: var(--ds-text-heading);
   box-shadow: var(--ds-shadow-soft);
   outline: none;
+}
+
+.ds-page-icon-button:hover,
+.ds-page-icon-button:focus-visible {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ds-text-heading);
+  box-shadow: none;
 }
 
 .ds-primary-button {
@@ -157,11 +188,15 @@
 .ds-menu-wrap,
 .ds-select-wrap {
   position: relative;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ds-select-wrap {
   display: grid;
   gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -216,6 +251,9 @@
 }
 
 .ds-select-menu {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
   right: auto;
 }
 
@@ -321,6 +359,8 @@
   display: inline-grid;
   grid-auto-flow: column;
   gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .ds-segmented-tabs-stretch {
@@ -329,12 +369,14 @@
 }
 
 .ds-segmented-tab {
+  min-width: 0;
   min-height: 2.35rem;
   padding: 0 0.85rem;
   border-radius: var(--ds-radius-control);
   border: 1px solid var(--ds-border-soft);
   background: color-mix(in oklab, var(--ds-panel) 90%, transparent);
   color: var(--ds-text-quiet);
+  overflow: hidden;
 }
 
 .ds-segmented-tab[data-active='true'] {

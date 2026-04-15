@@ -10,6 +10,7 @@ import {
   MessageSquare,
   Network,
   Palette,
+  PanelLeft,
   PanelRight,
   Play,
   SearchCode,
@@ -87,13 +88,7 @@ const useMediaQuery = (query: string) => {
   return matches;
 };
 
-type GalleryTab =
-  | 'shell'
-  | 'navigation'
-  | 'controls'
-  | 'surfaces'
-  | 'conversation'
-  | 'typography';
+type GalleryTab = 'shell' | 'navigation' | 'controls' | 'surfaces' | 'conversation' | 'typography';
 
 const GALLERY_TABS: Array<{ id: GalleryTab; label: string }> = [
   { id: 'shell', label: 'Shell' },
@@ -259,9 +254,8 @@ export default function App() {
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [workflowOpen, setWorkflowOpen] = useState(false);
-  const [flowOutput, setFlowOutput] = useState<(typeof FLOW_OUTPUT_OPTIONS)[number]['id']>(
-    'artifact'
-  );
+  const [flowOutput, setFlowOutput] =
+    useState<(typeof FLOW_OUTPUT_OPTIONS)[number]['id']>('artifact');
   const [flowDepth, setFlowDepth] = useState<(typeof FLOW_DEPTH_OPTIONS)[number]['id']>('deep');
   const [flowReviewBudget, setFlowReviewBudget] = useState(72);
   const [mobilePanel, setMobilePanel] = useState<'sidebar' | 'left' | 'right' | null>(null);
@@ -351,6 +345,30 @@ export default function App() {
 
     setRightRailPinnedOpen((current) => !current);
   };
+
+  const sidebarToggleLabel = isOverlayShell
+    ? mobilePanel === 'sidebar'
+      ? 'Close navigation'
+      : 'Open navigation'
+    : sidebarCollapsed
+      ? 'Expand sidebar'
+      : 'Collapse sidebar';
+
+  const leftRailToggleLabel = isOverlayShell
+    ? mobilePanel === 'left'
+      ? 'Close library rail'
+      : 'Open library rail'
+    : leftRailPinnedOpen
+      ? 'Hide library rail'
+      : 'Show library rail';
+
+  const rightRailToggleLabel = isOverlayShell
+    ? mobilePanel === 'right'
+      ? 'Close inspector rail'
+      : 'Open inspector rail'
+    : rightRailPinnedOpen
+      ? 'Hide inspector rail'
+      : 'Show inspector rail';
 
   const configurationPanel = ({ close }: { close: () => void }) => (
     <OverlayPanel
@@ -446,10 +464,22 @@ export default function App() {
       <PageShell
         sidebar={
           <SidebarNav
-            brandIcon={<Palette size={24} />}
+            brandIcon={<Palette size={18} />}
             brandEyebrow="Design System"
             brandTitle="Canon Studio"
-            brandSubtitle="Portable reference app for the extracted shell and component language."
+            brandPressLabel={sidebarCollapsed ? 'Expand sidebar' : 'Canon Studio'}
+            onBrandPress={!isOverlayShell && sidebarCollapsed ? toggleSidebar : undefined}
+            headerActions={
+              !isOverlayShell && !sidebarCollapsed ? (
+                <IconButton
+                  label={sidebarToggleLabel}
+                  icon={<Sidebar size={16} />}
+                  active={isOverlayShell ? mobilePanel === 'sidebar' : !sidebarCollapsed}
+                  className="ds-sidebar-header-toggle"
+                  onClick={toggleSidebar}
+                />
+              ) : undefined
+            }
             items={NAV_ITEMS}
             activeId={activeNav}
             onSelect={setActiveNav}
@@ -490,48 +520,6 @@ export default function App() {
             <ToolbarBar
               leading={
                 <ToolbarCluster className="ds-toolbar-cluster-main">
-                  <IconButton
-                    label={
-                      isOverlayShell
-                        ? mobilePanel === 'sidebar'
-                          ? 'Close navigation'
-                          : 'Open navigation'
-                        : sidebarCollapsed
-                          ? 'Expand sidebar'
-                          : 'Collapse sidebar'
-                    }
-                    icon={<Sidebar size={16} />}
-                    active={isOverlayShell ? mobilePanel === 'sidebar' : !sidebarCollapsed}
-                    onClick={toggleSidebar}
-                  />
-                  <IconButton
-                    label={
-                      isOverlayShell
-                        ? mobilePanel === 'left'
-                          ? 'Close library rail'
-                          : 'Open library rail'
-                        : leftRailPinnedOpen
-                          ? 'Hide library rail'
-                          : 'Show library rail'
-                    }
-                    icon={<FolderKanban size={16} />}
-                    active={isOverlayShell ? mobilePanel === 'left' : leftRailPinnedOpen}
-                    onClick={toggleLeftRail}
-                  />
-                  <IconButton
-                    label={
-                      isOverlayShell
-                        ? mobilePanel === 'right'
-                          ? 'Close inspector rail'
-                          : 'Open inspector rail'
-                        : rightRailPinnedOpen
-                          ? 'Hide inspector rail'
-                          : 'Show inspector rail'
-                    }
-                    icon={<PanelRight size={16} />}
-                    active={isOverlayShell ? mobilePanel === 'right' : rightRailPinnedOpen}
-                    onClick={toggleRightRail}
-                  />
                   <Button
                     variant="primary"
                     leadingIcon={<Play size={16} />}
@@ -592,15 +580,6 @@ export default function App() {
                       },
                     ]}
                   />
-                  <Button
-                    variant="ghost"
-                    className="ds-toolbar-responsive-control"
-                    leadingIcon={<Palette size={16} />}
-                    aria-label="Workbench"
-                    onClick={() => setWorkbenchOpen((current) => !current)}
-                  >
-                    <span className="ds-toolbar-responsive-label">Workbench</span>
-                  </Button>
                 </ToolbarCluster>
               }
             />
@@ -613,7 +592,18 @@ export default function App() {
             mobileOpen={mobilePanel === 'left'}
             eyebrow="Library Rail"
             title="System Inventory"
-            subtitle="One rail component handling both browse and inspect roles."
+            headerActions={
+              !isOverlayShell && leftRailPinnedOpen ? (
+                <IconButton
+                  label={leftRailToggleLabel}
+                  icon={<PanelLeft size={16} />}
+                  active
+                  appearance="page"
+                  className="ds-rail-header-toggle"
+                  onClick={toggleLeftRail}
+                />
+              ) : null
+            }
             actions={
               <Button variant="ghost" size="sm" leadingIcon={<Compass size={14} />}>
                 Scope
@@ -681,8 +671,8 @@ export default function App() {
               onToggle={() => leftSections.toggle('saved')}
             >
               <PanelNote title="Shell Coverage" meta={<Badge variant="accent">Current</Badge>}>
-                Page shell, rails, toolbar, buttons, badges, selectors, modal, composer,
-                transcript, and accordions are all now represented as canon components.
+                Page shell, rails, toolbar, buttons, badges, selectors, modal, composer, transcript,
+                and accordions are all now represented as canon components.
               </PanelNote>
               <PanelNote title="Next Export">
                 Once the reference project settles, the `canon` folder can move out as the package
@@ -698,8 +688,19 @@ export default function App() {
             mobileOpen={mobilePanel === 'right'}
             eyebrow="Inspector Rail"
             title="Canon Notes"
-            subtitle="Shared disclosure, state, and token reference."
             className={workbenchOpen && !isOverlayShell ? 'ds-right-rail-offset' : undefined}
+            headerActions={
+              !isOverlayShell && rightRailPinnedOpen ? (
+                <IconButton
+                  label={rightRailToggleLabel}
+                  icon={<PanelRight size={16} />}
+                  active
+                  appearance="page"
+                  className="ds-rail-header-toggle"
+                  onClick={toggleRightRail}
+                />
+              ) : null
+            }
             actions={
               <Button
                 variant="ghost"
@@ -776,364 +777,389 @@ export default function App() {
           />
         }
       >
-        <div className="ds-content-header">
-          <div>
-            <div className="ds-meta-label">Studio Page</div>
-            <h1 className="ds-title-page">Reusable shell and component canon</h1>
-            <p className="ds-body-copy">
-              The studio is now exercising actual system components instead of one large hand-built
-              mock page. Rails, toolbar controls, badges, modals, conversation surfaces, and
-              disclosures all flow through the same canon layer. Press{' '}
-              <span className="ds-keycap-inline">F1</span> to open the workbench without blocking
-              the main page.
-            </p>
-          </div>
-          <div className="ds-hero-actions">
-            <Button
-              variant="primary"
-              leadingIcon={<Palette size={16} />}
-              onClick={() => setWorkbenchOpen((current) => !current)}
-            >
-              Open Workbench
-            </Button>
-            <Button
-              variant="ghost"
-              leadingIcon={<Sparkles size={16} />}
-              onClick={() => setModalOpen(true)}
-            >
-              Review Modal
-            </Button>
-          </div>
-        </div>
-
-        <div className="ds-main-tabs">
-          <SegmentedTabs value={galleryTab} onChange={setGalleryTab} items={GALLERY_TABS} />
-        </div>
-
-        {galleryTab === 'shell' ? (
-          <ResponsiveGrid>
-            <SurfaceCard title="Page Shell" eyebrow="Layout" actions={<Badge variant="accent">Canon</Badge>}>
-              <PanelNote title="One shell contract">
-                `PageShell` now owns the sidebar, toolbar, left rail, right rail, content region,
-                mobile backdrop, and floating workbench slot.
-              </PanelNote>
-              <PanelNote title="Toolbar stays shared">
-                `ToolbarBar` and `ToolbarCluster` give us one header anatomy for search, selectors,
-                menus, and page actions across different surfaces.
-              </PanelNote>
-            </SurfaceCard>
-
-            <SurfaceCard title="Layout Tokens" eyebrow="Geometry">
-              <MetricGrid
-                items={[
-                  { label: 'Sidebar', value: `${Math.round(theme.shell.sidebarWidth)}px` },
-                  { label: 'Rail', value: `${Math.round(theme.shell.railWidth)}px` },
-                  { label: 'Toolbar', value: `${Math.round(theme.shell.toolbarHeight)}px` },
-                  { label: 'Content', value: `${Math.round(theme.shell.contentWidth)}px` },
-                ]}
+        <div className="ds-page-layout">
+          {isOverlayShell || !leftRailPinnedOpen ? (
+            <div className="ds-page-rail-toggle-slot" data-placement="left">
+              <IconButton
+                label={leftRailToggleLabel}
+                icon={<PanelLeft size={16} />}
+                active={isOverlayShell ? mobilePanel === 'left' : leftRailPinnedOpen}
+                appearance="page"
+                className="ds-page-rail-toggle"
+                onClick={toggleLeftRail}
               />
-            </SurfaceCard>
+            </div>
+          ) : null}
 
-            <SurfaceCard title="Responsive Remap" eyebrow="Mobile">
-              <PanelNote title="Drawer behavior" meta={<Badge variant="outline">New</Badge>}>
-                Sidebar and both rails remap into overlay drawers on smaller screens instead of
-                disappearing. The content column keeps its own width and scroll behavior.
-              </PanelNote>
-              <PanelNote title="Natural card sizing">
-                Showcase grids now auto-fit cards and align items to the top so taller sections no
-                longer stretch unrelated cards into awkward heights.
-              </PanelNote>
-            </SurfaceCard>
-          </ResponsiveGrid>
-        ) : null}
-
-        {galleryTab === 'navigation' ? (
-          <ResponsiveGrid>
-            <SurfaceCard title="Sidebar Navigation" eyebrow="Sidebar">
-              <div className="ds-stack">
-                {NAV_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className="ds-list-item"
-                      data-active={item.id === activeNav ? 'true' : undefined}
-                    >
-                      <Icon size={16} />
-                      <span className="ds-title-inline">{item.label}</span>
-                    </button>
-                  );
-                })}
+          <div className="ds-page-main">
+            <div className="ds-content-header">
+              <div>
+                <div className="ds-meta-label">Studio Page</div>
+                <h1 className="ds-title-page">Reusable shell and component canon</h1>
               </div>
-            </SurfaceCard>
-
-            <SurfaceCard title="Toolbar Actions" eyebrow="Header">
-              <ToolbarCluster className="ds-wrap">
-                <Button variant="primary" leadingIcon={<Play size={16} />}>
-                  New
+              <div className="ds-hero-actions">
+                <Button
+                  variant="primary"
+                  leadingIcon={<Palette size={16} />}
+                  onClick={() => setWorkbenchOpen((current) => !current)}
+                >
+                  Open Workbench
                 </Button>
-                <MenuButton
-                  label="Open"
-                  items={[
-                    {
-                      id: 'chat',
-                      label: 'Open Context Chat',
-                      description: 'Route handoff into conversation',
-                      icon: <MessageSquare size={14} />,
-                    },
-                    {
-                      id: 'board',
-                      label: 'Open Board',
-                      description: 'Shared launch route',
-                      icon: <Shapes size={14} />,
-                    },
-                    {
-                      id: 'timeline',
-                      label: 'Open Timeline',
-                      description: 'Chronology handoff',
-                      icon: <Workflow size={14} />,
-                    },
-                  ]}
-                />
-                <PopoverButton
-                  label="Config"
-                  leadingIcon={<SlidersHorizontal size={14} />}
-                  panelClassName="ds-toolbar-popover"
+                <Button
+                  variant="ghost"
+                  leadingIcon={<Sparkles size={16} />}
+                  onClick={() => setModalOpen(true)}
                 >
-                  {configurationPanel}
-                </PopoverButton>
-              </ToolbarCluster>
-            </SurfaceCard>
-
-            <SurfaceCard title="General Rail" eyebrow="Panel">
-              <PanelNote title="Shared anatomy">
-                Header, action slot, body scroll, disclosure groups, and mobile close affordance all
-                live in `PanelRail`.
-              </PanelNote>
-              <PanelNote title="Role-specific content">
-                Library and inspector surfaces stay different through their children and actions, not
-                through separate shell implementations.
-              </PanelNote>
-            </SurfaceCard>
-          </ResponsiveGrid>
-        ) : null}
-
-        {galleryTab === 'controls' ? (
-          <ResponsiveGrid>
-            <SurfaceCard title="Buttons + Badges" eyebrow="Inputs">
-              <div className="ds-stack">
-                <ToolbarCluster className="ds-wrap">
-                  <Button variant="primary" leadingIcon={<Sparkles size={16} />}>
-                    Primary
-                  </Button>
-                  <Button variant="secondary">Secondary</Button>
-                  <Button variant="ghost">Ghost</Button>
-                  <Button variant="toolbar" leadingIcon={<BookOpen size={14} />}>
-                    Toolbar
-                  </Button>
-                </ToolbarCluster>
-                <div className="ds-chip-grid">
-                  <Badge variant="accent">Accent</Badge>
-                  <Badge>Neutral</Badge>
-                  <Badge variant="outline">Outline</Badge>
-                </div>
+                  Review Modal
+                </Button>
               </div>
-            </SurfaceCard>
+            </div>
 
-            <SurfaceCard title="Selectors + Tabs" eyebrow="Navigation">
-              <div className="ds-stack">
-                <SelectField
-                  label="Surface Preset"
-                  value={surfacePreset}
-                  onChange={setSurfacePreset}
-                  options={SURFACE_OPTIONS}
-                />
-                <SegmentedTabs
-                  value={galleryTab}
-                  onChange={setGalleryTab}
-                  items={GALLERY_TABS}
-                  stretch
-                />
-              </div>
-            </SurfaceCard>
+            <div className="ds-main-tabs">
+              <SegmentedTabs value={galleryTab} onChange={setGalleryTab} items={GALLERY_TABS} />
+            </div>
 
-            <SurfaceCard title="Popouts + Modal" eyebrow="Overlays">
-              <div className="ds-stack">
-                <PopoverButton
-                  label="Open Configuration Popout"
-                  variant="secondary"
-                  leadingIcon={<Settings2 size={14} />}
-                  align="start"
-                  panelClassName="ds-toolbar-popover"
+            {galleryTab === 'shell' ? (
+              <ResponsiveGrid>
+                <SurfaceCard
+                  title="Page Shell"
+                  eyebrow="Layout"
+                  actions={<Badge variant="accent">Canon</Badge>}
                 >
-                  {configurationPanel}
-                </PopoverButton>
-                <ToolbarCluster className="ds-wrap">
-                  <Button
-                    variant="ghost"
-                    leadingIcon={<Workflow size={16} />}
-                    onClick={() => setWorkflowOpen(true)}
-                  >
-                    Open Workflow Dialog
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    leadingIcon={<Bell size={16} />}
-                    onClick={() => setModalOpen(true)}
-                  >
-                    Open Review Modal
-                  </Button>
-                </ToolbarCluster>
-              </div>
-            </SurfaceCard>
+                  <PanelNote title="One shell contract">
+                    `PageShell` now owns the sidebar, toolbar, left rail, right rail, content
+                    region, mobile backdrop, and floating workbench slot.
+                  </PanelNote>
+                  <PanelNote title="Toolbar stays shared">
+                    `ToolbarBar` and `ToolbarCluster` give us one header anatomy for search,
+                    selectors, menus, and page actions across different surfaces.
+                  </PanelNote>
+                </SurfaceCard>
 
-            <SurfaceCard title="Working Accordions" eyebrow="Disclosure">
-              <div className="ds-stack">
-                <AccordionSection
-                  title="Accordion Contract"
-                  meta="Open"
-                  isOpen={controlSections.isOpen('accordion')}
-                  onToggle={() => controlSections.toggle('accordion')}
-                >
-                  The shared disclosure component now uses real toggle state, so section bodies can
-                  open and close instead of staying stuck open.
-                </AccordionSection>
-                <AccordionSection
-                  title="Modal + Popout Coordination"
-                  meta="Overlay"
-                  isOpen={controlSections.isOpen('modal')}
-                  onToggle={() => controlSections.toggle('modal')}
-                >
-                  Popouts use one dismissable-layer contract, while modals keep a separate blocking
-                  layer with keyboard dismissal.
-                </AccordionSection>
-                <AccordionSection
-                  title="Mobile Shell Behavior"
-                  meta="Remap"
-                  isOpen={controlSections.isOpen('mobile')}
-                  onToggle={() => controlSections.toggle('mobile')}
-                >
-                  Mobile uses overlay drawers for navigation and panels so important surface areas do
-                  not disappear when the layout collapses.
-                </AccordionSection>
-              </div>
-            </SurfaceCard>
-          </ResponsiveGrid>
-        ) : null}
+                <SurfaceCard title="Layout Tokens" eyebrow="Geometry">
+                  <MetricGrid
+                    items={[
+                      { label: 'Sidebar', value: `${Math.round(theme.shell.sidebarWidth)}px` },
+                      { label: 'Rail', value: `${Math.round(theme.shell.railWidth)}px` },
+                      { label: 'Toolbar', value: `${Math.round(theme.shell.toolbarHeight)}px` },
+                      { label: 'Content', value: `${Math.round(theme.shell.contentWidth)}px` },
+                    ]}
+                  />
+                </SurfaceCard>
 
-        {galleryTab === 'surfaces' ? (
-          <ResponsiveGrid>
-            <SurfaceCard title="Action Cards" eyebrow="Cards">
-              <div className="ds-stack">
-                <ActionCard
-                  title="Artifact Summary Treatment"
-                  description="Nested item anatomy for boards, chat context, and inspector highlights."
-                  meta={<Bell size={16} />}
-                >
-                  <div className="ds-chip-grid">
-                    <Badge>Library</Badge>
-                    <Badge variant="outline">Inspector</Badge>
-                    <Badge variant="outline">Reusable</Badge>
+                <SurfaceCard title="Responsive Remap" eyebrow="Mobile">
+                  <PanelNote title="Drawer behavior" meta={<Badge variant="outline">New</Badge>}>
+                    Sidebar and both rails remap into overlay drawers on smaller screens instead of
+                    disappearing. The content column keeps its own width and scroll behavior.
+                  </PanelNote>
+                  <PanelNote title="Natural card sizing">
+                    Showcase grids now auto-fit cards and align items to the top so taller sections
+                    no longer stretch unrelated cards into awkward heights.
+                  </PanelNote>
+                </SurfaceCard>
+              </ResponsiveGrid>
+            ) : null}
+
+            {galleryTab === 'navigation' ? (
+              <ResponsiveGrid>
+                <SurfaceCard title="Sidebar Navigation" eyebrow="Sidebar">
+                  <div className="ds-stack">
+                    {NAV_ITEMS.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="ds-list-item"
+                          data-active={item.id === activeNav ? 'true' : undefined}
+                        >
+                          <Icon size={16} />
+                          <span className="ds-title-inline">{item.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                </ActionCard>
-                <ActionCard
-                  title="Section Safety"
-                  description="Cards now size to their own content naturally instead of stretching each row."
-                  meta={<FolderKanban size={16} />}
-                />
+                </SurfaceCard>
+
+                <SurfaceCard title="Toolbar Actions" eyebrow="Header">
+                  <ToolbarCluster className="ds-wrap">
+                    <Button variant="primary" leadingIcon={<Play size={16} />}>
+                      New
+                    </Button>
+                    <MenuButton
+                      label="Open"
+                      items={[
+                        {
+                          id: 'chat',
+                          label: 'Open Context Chat',
+                          description: 'Route handoff into conversation',
+                          icon: <MessageSquare size={14} />,
+                        },
+                        {
+                          id: 'board',
+                          label: 'Open Board',
+                          description: 'Shared launch route',
+                          icon: <Shapes size={14} />,
+                        },
+                        {
+                          id: 'timeline',
+                          label: 'Open Timeline',
+                          description: 'Chronology handoff',
+                          icon: <Workflow size={14} />,
+                        },
+                      ]}
+                    />
+                    <PopoverButton
+                      label="Config"
+                      leadingIcon={<SlidersHorizontal size={14} />}
+                      panelClassName="ds-toolbar-popover"
+                    >
+                      {configurationPanel}
+                    </PopoverButton>
+                  </ToolbarCluster>
+                </SurfaceCard>
+
+                <SurfaceCard title="General Rail" eyebrow="Panel">
+                  <PanelNote title="Shared anatomy">
+                    Header, action slot, body scroll, disclosure groups, and mobile close affordance
+                    all live in `PanelRail`.
+                  </PanelNote>
+                  <PanelNote title="Role-specific content">
+                    Library and inspector surfaces stay different through their children and
+                    actions, not through separate shell implementations.
+                  </PanelNote>
+                </SurfaceCard>
+              </ResponsiveGrid>
+            ) : null}
+
+            {galleryTab === 'controls' ? (
+              <ResponsiveGrid>
+                <SurfaceCard title="Buttons + Badges" eyebrow="Inputs">
+                  <div className="ds-stack">
+                    <ToolbarCluster className="ds-wrap">
+                      <Button variant="primary" leadingIcon={<Sparkles size={16} />}>
+                        Primary
+                      </Button>
+                      <Button variant="secondary">Secondary</Button>
+                      <Button variant="ghost">Ghost</Button>
+                      <Button variant="toolbar" leadingIcon={<BookOpen size={14} />}>
+                        Toolbar
+                      </Button>
+                    </ToolbarCluster>
+                    <div className="ds-chip-grid">
+                      <Badge variant="accent">Accent</Badge>
+                      <Badge>Neutral</Badge>
+                      <Badge variant="outline">Outline</Badge>
+                    </div>
+                  </div>
+                </SurfaceCard>
+
+                <SurfaceCard title="Selectors + Tabs" eyebrow="Navigation">
+                  <div className="ds-stack">
+                    <SelectField
+                      label="Surface Preset"
+                      value={surfacePreset}
+                      onChange={setSurfacePreset}
+                      options={SURFACE_OPTIONS}
+                    />
+                  </div>
+                </SurfaceCard>
+
+                <SurfaceCard title="Popouts + Modal" eyebrow="Overlays">
+                  <div className="ds-stack">
+                    <PopoverButton
+                      label="Open Configuration Popout"
+                      variant="secondary"
+                      leadingIcon={<Settings2 size={14} />}
+                      align="start"
+                      panelClassName="ds-toolbar-popover"
+                    >
+                      {configurationPanel}
+                    </PopoverButton>
+                    <ToolbarCluster className="ds-wrap">
+                      <Button
+                        variant="ghost"
+                        leadingIcon={<Workflow size={16} />}
+                        onClick={() => setWorkflowOpen(true)}
+                      >
+                        Open Workflow Dialog
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        leadingIcon={<Bell size={16} />}
+                        onClick={() => setModalOpen(true)}
+                      >
+                        Open Review Modal
+                      </Button>
+                    </ToolbarCluster>
+                  </div>
+                </SurfaceCard>
+
+                <SurfaceCard title="Working Accordions" eyebrow="Disclosure">
+                  <div className="ds-stack">
+                    <AccordionSection
+                      title="Accordion Contract"
+                      meta="Open"
+                      isOpen={controlSections.isOpen('accordion')}
+                      onToggle={() => controlSections.toggle('accordion')}
+                    >
+                      The shared disclosure component now uses real toggle state, so section bodies
+                      can open and close instead of staying stuck open.
+                    </AccordionSection>
+                    <AccordionSection
+                      title="Modal + Popout Coordination"
+                      meta="Overlay"
+                      isOpen={controlSections.isOpen('modal')}
+                      onToggle={() => controlSections.toggle('modal')}
+                    >
+                      Popouts use one dismissable-layer contract, while modals keep a separate
+                      blocking layer with keyboard dismissal.
+                    </AccordionSection>
+                    <AccordionSection
+                      title="Mobile Shell Behavior"
+                      meta="Remap"
+                      isOpen={controlSections.isOpen('mobile')}
+                      onToggle={() => controlSections.toggle('mobile')}
+                    >
+                      Mobile uses overlay drawers for navigation and panels so important surface
+                      areas do not disappear when the layout collapses.
+                    </AccordionSection>
+                  </div>
+                </SurfaceCard>
+              </ResponsiveGrid>
+            ) : null}
+
+            {galleryTab === 'surfaces' ? (
+              <ResponsiveGrid>
+                <SurfaceCard title="Action Cards" eyebrow="Cards">
+                  <div className="ds-stack">
+                    <ActionCard
+                      title="Artifact Summary Treatment"
+                      description="Nested item anatomy for boards, chat context, and inspector highlights."
+                      meta={<Bell size={16} />}
+                    >
+                      <div className="ds-chip-grid">
+                        <Badge>Library</Badge>
+                        <Badge variant="outline">Inspector</Badge>
+                        <Badge variant="outline">Reusable</Badge>
+                      </div>
+                    </ActionCard>
+                    <ActionCard
+                      title="Section Safety"
+                      description="Cards now size to their own content naturally instead of stretching each row."
+                      meta={<FolderKanban size={16} />}
+                    />
+                  </div>
+                </SurfaceCard>
+
+                <SurfaceCard title="State Cards" eyebrow="Surface">
+                  <div className="ds-state-grid">
+                    <div className="ds-state-card">
+                      <span className="ds-meta-label">Default</span>
+                      <span className="ds-body-quiet">Resting surface treatment</span>
+                    </div>
+                    <div className="ds-state-card" data-tone="hover">
+                      <span className="ds-meta-label">Hover</span>
+                      <span className="ds-body-quiet">Interaction hover state</span>
+                    </div>
+                    <div className="ds-state-card" data-tone="active">
+                      <span className="ds-meta-label">Active</span>
+                      <span className="ds-body-quiet">Selection and focus state</span>
+                    </div>
+                  </div>
+                </SurfaceCard>
+
+                <SurfaceCard title="Empty State" eyebrow="Feedback">
+                  <EmptyStateCard
+                    icon={<FileSearch size={24} />}
+                    title="No components filtered out"
+                    description="Use search, tabs, or the workbench to move through the canon inventory."
+                    actions={
+                      <Button variant="toolbar" leadingIcon={<SearchCode size={14} />}>
+                        Clear Filters
+                      </Button>
+                    }
+                  />
+                </SurfaceCard>
+              </ResponsiveGrid>
+            ) : null}
+
+            {galleryTab === 'conversation' ? (
+              <div className="ds-conversation-showcase">
+                <SurfaceCard
+                  title="Transcript"
+                  eyebrow="Conversation"
+                  className="ds-conversation-main"
+                >
+                  <ChatTranscript messages={TRANSCRIPT_MESSAGES} />
+                </SurfaceCard>
+
+                <SurfaceCard title="Composer" eyebrow="Input">
+                  <ChatComposer
+                    value={composerValue}
+                    onChange={setComposerValue}
+                    onSubmit={() => setComposerValue('')}
+                    placeholder="Ask for a comparison, summary, next-step plan, or evidence review..."
+                    leadingActions={[
+                      { id: 'attach', label: 'Attach', icon: <FolderKanban size={14} /> },
+                      { id: 'prompt', label: 'Prompt Library', icon: <BookOpen size={14} /> },
+                    ]}
+                    contextTags={[
+                      { id: 'workspace', label: 'Operations Workspace', meta: 'Workspace' },
+                      { id: 'artifact', label: 'April Signal Review', meta: 'Artifact' },
+                    ]}
+                    footerNote="Composer, transcript, and transcript disclosures are all reusable canon components now."
+                  />
+                </SurfaceCard>
               </div>
-            </SurfaceCard>
+            ) : null}
 
-            <SurfaceCard title="State Cards" eyebrow="Surface">
-              <div className="ds-state-grid">
-                <div className="ds-state-card">
-                  <span className="ds-meta-label">Default</span>
-                  <span className="ds-body-quiet">Resting surface treatment</span>
-                </div>
-                <div className="ds-state-card" data-tone="hover">
-                  <span className="ds-meta-label">Hover</span>
-                  <span className="ds-body-quiet">Interaction hover state</span>
-                </div>
-                <div className="ds-state-card" data-tone="active">
-                  <span className="ds-meta-label">Active</span>
-                  <span className="ds-body-quiet">Selection and focus state</span>
-                </div>
-              </div>
-            </SurfaceCard>
+            {galleryTab === 'typography' ? (
+              <ResponsiveGrid className="ds-showcase-grid-wide">
+                <SurfaceCard title="Type Hierarchy" eyebrow="Typography">
+                  <div className="ds-type-stack">
+                    <div className="ds-type-eyebrow">Operational System</div>
+                    <h2 className="ds-type-display">
+                      Signal review stays sharp without becoming decorative.
+                    </h2>
+                    <p className="ds-type-body">
+                      The extracted system keeps Sherlock&apos;s editorial, controlled tone, but the
+                      typography settings are now surfaced through reusable cards and selectors
+                      instead of buried in page-specific markup.
+                    </p>
+                    <pre className="ds-type-mono">
+                      <code>{`surface=${surfacePreset}\nvariant=${theme.background.variant}\nmode=${theme.mode}`}</code>
+                    </pre>
+                  </div>
+                </SurfaceCard>
 
-            <SurfaceCard title="Empty State" eyebrow="Feedback">
-              <EmptyStateCard
-                icon={<FileSearch size={24} />}
-                title="No components filtered out"
-                description="Use search, tabs, or the workbench to move through the canon inventory."
-                actions={
-                  <Button variant="toolbar" leadingIcon={<SearchCode size={14} />}>
-                    Clear Filters
-                  </Button>
-                }
-              />
-            </SurfaceCard>
-          </ResponsiveGrid>
-        ) : null}
-
-        {galleryTab === 'conversation' ? (
-          <div className="ds-conversation-showcase">
-            <SurfaceCard title="Transcript" eyebrow="Conversation" className="ds-conversation-main">
-              <ChatTranscript messages={TRANSCRIPT_MESSAGES} />
-            </SurfaceCard>
-
-            <SurfaceCard title="Composer" eyebrow="Input">
-              <ChatComposer
-                value={composerValue}
-                onChange={setComposerValue}
-                onSubmit={() => setComposerValue('')}
-                placeholder="Ask for a comparison, summary, next-step plan, or evidence review..."
-                leadingActions={[
-                  { id: 'attach', label: 'Attach', icon: <FolderKanban size={14} /> },
-                  { id: 'prompt', label: 'Prompt Library', icon: <BookOpen size={14} /> },
-                ]}
-                contextTags={[
-                  { id: 'workspace', label: 'Operations Workspace', meta: 'Workspace' },
-                  { id: 'artifact', label: 'April Signal Review', meta: 'Artifact' },
-                ]}
-                footerNote="Composer, transcript, and transcript disclosures are all reusable canon components now."
-              />
-            </SurfaceCard>
+                <SurfaceCard title="Assignments" eyebrow="Current">
+                  <MetricGrid
+                    items={[
+                      { label: 'UI', value: theme.typography.ui },
+                      { label: 'Display', value: theme.typography.display },
+                      { label: 'Label', value: theme.typography.label },
+                      { label: 'Mono', value: theme.typography.mono },
+                    ]}
+                  />
+                </SurfaceCard>
+              </ResponsiveGrid>
+            ) : null}
           </div>
-        ) : null}
 
-        {galleryTab === 'typography' ? (
-          <ResponsiveGrid className="ds-showcase-grid-wide">
-            <SurfaceCard title="Type Hierarchy" eyebrow="Typography">
-              <div className="ds-type-stack">
-                <div className="ds-type-eyebrow">Operational System</div>
-                <h2 className="ds-type-display">
-                  Signal review stays sharp without becoming decorative.
-                </h2>
-                <p className="ds-type-body">
-                  The extracted system keeps Sherlock&apos;s editorial, controlled tone, but the
-                  typography settings are now surfaced through reusable cards and selectors instead
-                  of buried in page-specific markup.
-                </p>
-                <pre className="ds-type-mono">
-                  <code>{`surface=${surfacePreset}\nvariant=${theme.background.variant}\nmode=${theme.mode}`}</code>
-                </pre>
-              </div>
-            </SurfaceCard>
-
-            <SurfaceCard title="Assignments" eyebrow="Current">
-              <MetricGrid
-                items={[
-                  { label: 'UI', value: theme.typography.ui },
-                  { label: 'Display', value: theme.typography.display },
-                  { label: 'Label', value: theme.typography.label },
-                  { label: 'Mono', value: theme.typography.mono },
-                ]}
+          {isOverlayShell || !rightRailPinnedOpen ? (
+            <div className="ds-page-rail-toggle-slot" data-placement="right">
+              <IconButton
+                label={rightRailToggleLabel}
+                icon={<PanelRight size={16} />}
+                active={isOverlayShell ? mobilePanel === 'right' : rightRailPinnedOpen}
+                appearance="page"
+                className="ds-page-rail-toggle"
+                onClick={toggleRightRail}
               />
-            </SurfaceCard>
-          </ResponsiveGrid>
-        ) : null}
+            </div>
+          ) : null}
+        </div>
       </PageShell>
 
       <ModalDialog
@@ -1207,7 +1233,10 @@ export default function App() {
             >
               <MetricGrid
                 items={[
-                  { label: 'Workspace', value: workspaceId === 'workspace-a' ? 'Operations' : 'Incident' },
+                  {
+                    label: 'Workspace',
+                    value: workspaceId === 'workspace-a' ? 'Operations' : 'Incident',
+                  },
                   { label: 'Output', value: flowOutput === 'artifact' ? 'Artifact' : 'Brief' },
                   { label: 'Depth', value: flowDepth === 'deep' ? 'Deep' : 'Standard' },
                   { label: 'Budget', value: `${flowReviewBudget}%` },
@@ -1234,7 +1263,12 @@ export default function App() {
             />
             <div className="ds-stack">
               <span className="ds-meta-label">Delivery Shape</span>
-              <SegmentedTabs value={flowOutput} onChange={setFlowOutput} items={FLOW_OUTPUT_OPTIONS} stretch />
+              <SegmentedTabs
+                value={flowOutput}
+                onChange={setFlowOutput}
+                items={FLOW_OUTPUT_OPTIONS}
+                stretch
+              />
             </div>
           </OverlaySection>
 
@@ -1256,7 +1290,12 @@ export default function App() {
         >
           <div className="ds-stack">
             <span className="ds-meta-label">Investigation Depth</span>
-            <SegmentedTabs value={flowDepth} onChange={setFlowDepth} items={FLOW_DEPTH_OPTIONS} stretch />
+            <SegmentedTabs
+              value={flowDepth}
+              onChange={setFlowDepth}
+              items={FLOW_DEPTH_OPTIONS}
+              stretch
+            />
           </div>
           <RangeField
             label="Review Budget"
