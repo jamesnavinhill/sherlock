@@ -105,40 +105,6 @@
   padding: 1rem 1.25rem;
 }
 
-.ds-sidebar-header-toggle {
-  width: 2.5rem;
-  min-height: 2.5rem;
-}
-
-.ds-brand-mark {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--ds-radius-control);
-  background: color-mix(in oklab, var(--ds-panel) 92%, transparent);
-  color: var(--ds-accent);
-  border: 1px solid var(--ds-border-soft);
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.ds-brand-mark-button {
-  padding: 0;
-  cursor: pointer;
-}
-
-.ds-brand-mark-button:hover,
-.ds-brand-mark-button:focus-visible {
-  border-color: var(--ds-border-strong);
-  background: var(--ds-interaction-hover-bg);
-  box-shadow: var(--ds-shadow-soft);
-  outline: none;
-}
-
 .ds-sidebar-close {
   display: none !important;
 }
@@ -229,7 +195,7 @@
 .ds-sidebar[data-collapsed='true'] .ds-sidebar-footer {
   justify-items: center;
   gap: 0.75rem;
-  padding: 0.5rem;
+  padding: 1rem 0.5rem;
 }
 
 .ds-shell-main {

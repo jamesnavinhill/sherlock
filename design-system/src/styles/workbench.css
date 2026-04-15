@@ -29,6 +29,7 @@
   overflow: auto;
   padding-top: 1rem;
   display: grid;
+  align-content: start;
   gap: 1rem;
 }
 

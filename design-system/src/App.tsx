@@ -133,19 +133,17 @@ const WORKSPACE_OPTIONS = [
   {
     value: 'workspace-a',
     label: 'Operations Workspace',
-    description: 'Canonical shell sample',
   },
   {
     value: 'workspace-b',
     label: 'Incident Desk',
-    description: 'Tighter rail density',
   },
 ];
 
 const SURFACE_OPTIONS = [
-  { value: 'classic', label: 'Classic', description: 'Balanced default canon' },
-  { value: 'graphite', label: 'Graphite', description: 'Neutral chrome' },
-  { value: 'archive', label: 'Archive', description: 'Paper-lean daylight surfaces' },
+  { value: 'classic', label: 'Classic' },
+  { value: 'graphite', label: 'Graphite' },
+  { value: 'archive', label: 'Archive' },
 ];
 
 const TRANSCRIPT_MESSAGES: TranscriptMessage[] = [
@@ -374,14 +372,9 @@ export default function App() {
     <OverlayPanel
       eyebrow="Config Surface"
       title="Workbench Configuration"
-      description="Use this richer panel tier for structured settings, grouped decisions, and footer actions instead of plain list menus."
       onClose={close}
       footer={
         <div className="ds-overlay-actions">
-          <div className="ds-chip-grid">
-            <Badge variant="accent">Config Popout</Badge>
-            <Badge variant="outline">Grouped Controls</Badge>
-          </div>
           <ToolbarCluster className="ds-wrap">
             <Button variant="secondary" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
               Reset Studio
@@ -394,11 +387,7 @@ export default function App() {
       }
     >
       <div className="ds-overlay-grid">
-        <OverlaySection
-          title="Surface Preset"
-          description="Theme and shell choices live together so configuration popouts feel intentional instead of incidental."
-          meta={<Badge variant="outline">Live</Badge>}
-        >
+        <OverlaySection title="Surface Preset">
           <SelectField
             label="Preset"
             value={surfacePreset}
@@ -407,11 +396,7 @@ export default function App() {
           />
         </OverlaySection>
 
-        <OverlaySection
-          title="Shell Geometry"
-          description="Config popouts should support multiple related inputs without collapsing into a plain menu list."
-          meta={<Badge variant="accent">Layout</Badge>}
-        >
+        <OverlaySection title="Shell Geometry">
           <RangeField
             label="Sidebar Width"
             value={theme.shell.sidebarWidth}
@@ -464,7 +449,7 @@ export default function App() {
       <PageShell
         sidebar={
           <SidebarNav
-            brandIcon={<Palette size={18} />}
+            brandIcon={<Palette size={16} />}
             brandEyebrow="Design System"
             brandTitle="Canon Studio"
             brandPressLabel={sidebarCollapsed ? 'Expand sidebar' : 'Canon Studio'}
@@ -563,19 +548,16 @@ export default function App() {
                       {
                         id: 'json',
                         label: 'Export Token JSON',
-                        description: 'Portable token contract',
                         icon: <BookOpen size={14} />,
                       },
                       {
                         id: 'css',
                         label: 'Export CSS Vars',
-                        description: 'Resolved runtime variables',
                         icon: <Workflow size={14} />,
                       },
                       {
                         id: 'inventory',
                         label: 'Export Component Inventory',
-                        description: 'Canon coverage snapshot',
                         icon: <SearchCode size={14} />,
                       },
                     ]}
@@ -892,19 +874,16 @@ export default function App() {
                         {
                           id: 'chat',
                           label: 'Open Context Chat',
-                          description: 'Route handoff into conversation',
                           icon: <MessageSquare size={14} />,
                         },
                         {
                           id: 'board',
                           label: 'Open Board',
-                          description: 'Shared launch route',
                           icon: <Shapes size={14} />,
                         },
                         {
                           id: 'timeline',
                           label: 'Open Timeline',
-                          description: 'Chronology handoff',
                           icon: <Workflow size={14} />,
                         },
                       ]}
@@ -1167,7 +1146,6 @@ export default function App() {
         onClose={() => setModalOpen(false)}
         eyebrow="Modal"
         title="Component Review"
-        description="Use the modal contract for focused decision points, not for the workbench or the main page shell."
         actions={
           <ToolbarCluster className="ds-modal-actions">
             <Button variant="secondary" onClick={() => setModalOpen(false)}>
@@ -1182,25 +1160,13 @@ export default function App() {
             </Button>
           </ToolbarCluster>
         }
-      >
-        <div className="ds-stack">
-          <PanelNote title="Reusable modal shell">
-            Title, description, body, footer actions, Escape dismissal, and click-away dismissal are
-            now all part of one component instead of ad hoc page overlays.
-          </PanelNote>
-          <PanelNote title="Non-blocking workbench">
-            The workbench intentionally stays out of this modal system so it can remain docked and
-            non-blocking while the page shell stays interactive.
-          </PanelNote>
-        </div>
-      </ModalDialog>
+      />
 
       <WorkflowDialog
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}
         eyebrow="Workflow"
         title="Start Artifact Flow"
-        description="Reserve the larger workflow tier for multi-step configuration, launch context, and outcome summaries."
         actions={<Badge variant="accent">Structured Launch</Badge>}
         footer={
           <div className="ds-overlay-actions">
@@ -1226,11 +1192,7 @@ export default function App() {
         }
         sidebar={
           <div className="ds-stack">
-            <OverlaySection
-              title="Launch Summary"
-              description="Sherlock-style workflow dialogs benefit from a visible summary rail instead of burying context below the fold."
-              tone="accent"
-            >
+            <OverlaySection title="Launch Summary" tone="accent">
               <MetricGrid
                 items={[
                   {
@@ -1243,18 +1205,11 @@ export default function App() {
                 ]}
               />
             </OverlaySection>
-            <PanelNote title="System Rule">
-              List selectors stay lightweight. Structured overlays are for configuration, wizards,
-              and guided task setup.
-            </PanelNote>
           </div>
         }
       >
         <div className="ds-overlay-grid ds-overlay-grid-split">
-          <OverlaySection
-            title="Launch Context"
-            description="Top-level intent and destination belong in the first section so the flow has a clear starting point."
-          >
+          <OverlaySection title="Launch Context">
             <SelectField
               label="Workspace"
               value={workspaceId}
@@ -1271,23 +1226,9 @@ export default function App() {
               />
             </div>
           </OverlaySection>
-
-          <OverlaySection
-            title="Flow Framing"
-            description="A second grouped section can hold context-setting guidance without competing with the main launch controls."
-            tone="subtle"
-          >
-            <PanelNote title="Why this tier exists">
-              This is the dialog pattern for setup flows that need header copy, grouped sections,
-              footer actions, and a side summary all at once.
-            </PanelNote>
-          </OverlaySection>
         </div>
 
-        <OverlaySection
-          title="Evidence Settings"
-          description="Grouped controls should read like one decision surface, not a pile of detached inputs."
-        >
+        <OverlaySection title="Evidence Settings">
           <div className="ds-stack">
             <span className="ds-meta-label">Investigation Depth</span>
             <SegmentedTabs
@@ -1305,7 +1246,6 @@ export default function App() {
             step={5}
             format={(value) => `${value}%`}
             onChange={setFlowReviewBudget}
-            description="Higher budgets are slower, but give the workflow more room for synthesis and review."
           />
         </OverlaySection>
       </WorkflowDialog>

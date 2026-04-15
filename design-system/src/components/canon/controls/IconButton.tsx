@@ -9,6 +9,7 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   icon: ReactNode;
   active?: boolean;
   appearance?: IconButtonAppearance;
+  interactive?: boolean;
 }
 
 export function IconButton({
@@ -16,10 +17,25 @@ export function IconButton({
   icon,
   active = false,
   appearance = 'toolbar',
+  interactive = true,
   className,
   type = 'button',
   ...props
 }: IconButtonProps) {
+  if (!interactive) {
+    return (
+      <span
+        aria-hidden="true"
+        className={cx(
+          appearance === 'page' ? 'ds-page-icon-button' : 'ds-toolbar-icon-button',
+          className
+        )}
+      >
+        {icon}
+      </span>
+    );
+  }
+
   return (
     <button
       type={type}

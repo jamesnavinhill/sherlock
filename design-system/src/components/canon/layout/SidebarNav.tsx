@@ -2,6 +2,8 @@ import { X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { IconButton } from '../controls/IconButton';
+
 interface SidebarItem {
   id: string;
   label: string;
@@ -50,18 +52,12 @@ export function SidebarNav({
       data-mobile-open={mobileOpen ? 'true' : 'false'}
     >
       <div className="ds-sidebar-brand">
-        {onBrandPress ? (
-          <button
-            type="button"
-            className="ds-brand-mark ds-brand-mark-button"
-            aria-label={brandPressLabel || brandTitle}
-            onClick={onBrandPress}
-          >
-            {brandIcon}
-          </button>
-        ) : (
-          <div className="ds-brand-mark">{brandIcon}</div>
-        )}
+        <IconButton
+          label={brandPressLabel || brandTitle}
+          icon={brandIcon}
+          interactive={Boolean(onBrandPress)}
+          onClick={onBrandPress}
+        />
         <div className="ds-sidebar-brand-copy">
           <div className="ds-meta-label">{brandEyebrow}</div>
           <div className="ds-title-inline ds-sidebar-brand-title">{brandTitle}</div>
