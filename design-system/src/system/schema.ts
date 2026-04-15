@@ -236,6 +236,40 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     },
   },
   {
+    id: 'cobalt',
+    label: 'Cobalt',
+    description: 'Cool signal-room surfaces with a crisp brighter stack.',
+    surfaces: {
+      dark: {
+        background: { hue: 236, lightness: 0.02, chroma: 0.02 },
+        panel: { hue: 244, lightness: 0.13, chroma: 0.028 },
+        surface: { hue: 248, lightness: 0.215, chroma: 0.034 },
+      },
+      light: {
+        background: { hue: 220, lightness: 0.94, chroma: 0.03 },
+        panel: { hue: 224, lightness: 0.965, chroma: 0.034 },
+        surface: { hue: 220, lightness: 0.9, chroma: 0.045 },
+      },
+    },
+  },
+  {
+    id: 'ember',
+    label: 'Ember',
+    description: 'Warm control-room surfaces with richer bronze highlights.',
+    surfaces: {
+      dark: {
+        background: { hue: 18, lightness: 0.01, chroma: 0.01 },
+        panel: { hue: 28, lightness: 0.13, chroma: 0.02 },
+        surface: { hue: 32, lightness: 0.215, chroma: 0.028 },
+      },
+      light: {
+        background: { hue: 74, lightness: 0.94, chroma: 0.03 },
+        panel: { hue: 70, lightness: 0.962, chroma: 0.032 },
+        surface: { hue: 64, lightness: 0.9, chroma: 0.04 },
+      },
+    },
+  },
+  {
     id: 'terminal',
     label: 'Terminal',
     description: 'Slight phosphor lean with higher separation in both modes.',

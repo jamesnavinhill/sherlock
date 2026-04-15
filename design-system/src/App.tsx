@@ -462,6 +462,7 @@ export default function App() {
                   active={isOverlayShell ? mobilePanel === 'sidebar' : !sidebarCollapsed}
                   className="ds-sidebar-header-toggle"
                   onClick={toggleSidebar}
+                  appearance="page"
                 />
               ) : undefined
             }
@@ -507,11 +508,9 @@ export default function App() {
                 <ToolbarCluster className="ds-toolbar-cluster-main">
                   <Button
                     variant="primary"
-                    leadingIcon={<Play size={16} />}
-                    className="ds-toolbar-responsive-control"
                     aria-label="New Pattern"
                   >
-                    <span className="ds-toolbar-responsive-label">New Pattern</span>
+                    New +
                   </Button>
                   <SelectField
                     value={workspaceId}
