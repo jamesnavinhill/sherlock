@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Workbench } from './components/Workbench';
 import {
   AccordionSection,
   ActionCard,
@@ -46,6 +45,7 @@ import {
   SurfaceCard,
   ToolbarBar,
   ToolbarCluster,
+  Workbench,
   useExclusiveDisclosure,
   type TranscriptMessage,
 } from './components/canon';

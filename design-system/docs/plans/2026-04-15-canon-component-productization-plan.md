@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Capture where the standalone design-system studio is right now, why the extracted component layer is grouped the way it is, and the next steps required to turn it into a cleaner package-style design system with more obvious component files such as `Button.tsx`, `SurfaceCard.tsx`, `PanelRail.tsx`, and `Toolbar.tsx`.
+Capture where the standalone design-system studio is right now, how the extracted component layer is organized, and the next steps required to keep turning it into a cleaner package-style design system.
 
 This is a design-system plan for `design-system/`, not a Sherlock runtime plan.
 
@@ -12,11 +12,14 @@ The studio is no longer one large hand-built demo page.
 
 The main page in `design-system/src/App.tsx` now consumes a reusable canon component layer under:
 
-- `design-system/src/components/canon/controls.tsx`
-- `design-system/src/components/canon/disclosure.tsx`
-- `design-system/src/components/canon/shell.tsx`
-- `design-system/src/components/canon/surfaces.tsx`
-- `design-system/src/components/canon/chat.tsx`
+- `design-system/src/components/canon/controls/*`
+- `design-system/src/components/canon/conversation/*`
+- `design-system/src/components/canon/disclosure/*`
+- `design-system/src/components/canon/layout/*`
+- `design-system/src/components/canon/navigation/*`
+- `design-system/src/components/canon/surfaces/*`
+- `design-system/src/components/canon/utils/*`
+- `design-system/src/components/canon/workbench/*`
 - `design-system/src/components/canon/index.ts`
 
 That canon layer currently covers:
@@ -33,6 +36,7 @@ That canon layer currently covers:
 - modal shell
 - chat composer
 - transcript rendering
+- workbench controls and token export
 
 The design-system studio now proves these primitives in a real page instead of keeping the shell behavior inside `App.tsx`.
 
@@ -98,7 +102,23 @@ The studio now has:
 - more resilient responsive card fitting
 - a non-blocking docked workbench
 
-## Why The Files Do Not Yet Look Like A Final Package
+## Productization Status Update
+
+The grouped-file intermediate stage has now been replaced by a package-style canon tree.
+
+The canon layer currently ships as:
+
+- per-component files under `controls/`, `conversation/`, `disclosure/`, `layout/`, `navigation/`, `surfaces/`, and `workbench/`
+- shared helpers under `utils/`
+- a single top-level `canon/index.ts` export surface
+
+The remaining productization work is now:
+
+- CSS organization beyond the current shared stylesheet
+- direct canon component tests
+- extraction-oriented inventory and package documentation
+
+## Historical Context: Why The Files Did Not Yet Look Like A Final Package
 
 The extracted canon layer is grouped by responsibility, not yet split into one file per component.
 
@@ -143,11 +163,9 @@ The current design-system state is acceptable as an intermediate step because th
 
 The main thing still missing is productization polish:
 
-- clearer per-component files
-- smaller focused modules
 - better CSS organization
 - explicit tests around the canon components
-- a cleaner export surface for future extraction
+- extraction-oriented docs for the public inventory and package boundary
 
 ## Target Outcome
 
@@ -202,12 +220,14 @@ design-system/
           ChatComposer.tsx
           ChatTranscript.tsx
           types.ts
+        workbench/
+          Workbench.tsx
         utils/
           cx.ts
         index.ts
 ```
 
-This is the cleanest next split because it preserves the current family boundaries while making the exported component inventory feel obvious and conventional.
+This is the structure the canon layer now follows, which preserves the family boundaries while making the exported component inventory feel obvious and conventional.
 
 ## Phase Plan
 
@@ -232,6 +252,10 @@ Exit criteria:
 Goal:
 
 - make the system easier to browse and more obviously reusable
+
+Status:
+
+- completed on `2026-04-15`
 
 Tasks:
 
@@ -328,7 +352,7 @@ Possible later rename:
 Recommendation:
 
 - do not rename the root folder yet
-- finish the per-component split first
+- finish CSS and test productization first
 
 ### Keep `PanelRail` general
 
@@ -358,7 +382,7 @@ That should remain the shell anchor rather than being broken into less meaningfu
 These do not block the next phase, but they should be answered before extraction out of Sherlock:
 
 1. Should `ToolbarBar` and `ToolbarCluster` stay separate, or should they become one `Toolbar` file with sub-exports?
-2. Should the workbench remain part of the studio only, or should some workbench primitives be canonized too?
+2. Should the canon workbench remain one app-facing component, or split into smaller subcomponents and tab files?
 3. Should conversation components stay inside the same canon package, or eventually move into an optional “ai/conversation” layer?
 4. How much styling should remain class-based in one stylesheet versus moving to more local CSS organization?
 
@@ -386,11 +410,11 @@ When the next split touches the main Sherlock repo again, continue running the n
 
 The next best step is:
 
-1. split the grouped canon files into conventional per-component files
-2. preserve current APIs during that split
-3. only then consider CSS reorganization
+1. tighten CSS organization now that the component file boundaries have settled
+2. add direct canon component tests around accordion, modal, rail, search, select, composer, and transcript behavior
+3. document the public component inventory before any extraction work starts
 
-That keeps momentum high and gives the design system the expected package-like shape without reopening the behavioral work that just landed.
+That keeps momentum high and builds on the finished file split without reopening the behavior work that already landed.
 
 ## Summary
 
@@ -405,9 +429,8 @@ What is true now:
 
 What is not done yet:
 
-- per-component file structure
 - cleaner styling layout
 - direct component tests
 - extraction-ready packaging polish
 
-That means the system is in a strong intermediate state, and the next pass should focus on productization and file structure, not re-deriving the component model again.
+That means the system is in a strong intermediate state, and the next pass should focus on CSS organization, tests, and extraction polish rather than re-deriving the component model again.

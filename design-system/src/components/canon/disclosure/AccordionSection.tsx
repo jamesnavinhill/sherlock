@@ -1,10 +1,10 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useId, useState } from 'react';
+import { useId } from 'react';
 
-import { cx } from './controls';
+import { cx } from '../utils/cx';
 
-interface AccordionProps {
+export interface AccordionSectionProps {
   title: ReactNode;
   isOpen: boolean;
   onToggle: () => void;
@@ -24,7 +24,7 @@ export function AccordionSection({
   className,
   compact = false,
   actions,
-}: AccordionProps) {
+}: AccordionSectionProps) {
   const bodyId = useId();
 
   return (
@@ -52,29 +52,4 @@ export function AccordionSection({
       ) : null}
     </section>
   );
-}
-
-export function useExclusiveDisclosure<T extends string>(initialOpen: T | null) {
-  const [openId, setOpenId] = useState<T | null>(initialOpen);
-
-  return {
-    openId,
-    isOpen: (id: T) => openId === id,
-    toggle: (id: T) => setOpenId((current) => (current === id ? null : id)),
-    setOpenId,
-  };
-}
-
-export function useDisclosureSet<T extends string>(initialOpen: T[] = []) {
-  const [openItems, setOpenItems] = useState<T[]>(initialOpen);
-
-  return {
-    openItems,
-    isOpen: (id: T) => openItems.includes(id),
-    toggle: (id: T) =>
-      setOpenItems((current) =>
-        current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-      ),
-    setOpenItems,
-  };
 }

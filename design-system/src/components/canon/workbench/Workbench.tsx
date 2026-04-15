@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { buildThemeCssText } from '../system/cssVars';
+import { buildThemeCssText } from '../../../system/cssVars';
 import {
   BACKGROUND_VARIANTS,
   DEFAULT_THEME,
@@ -20,15 +20,13 @@ import {
   getSelectedFontIds,
   type FontRole,
   type StudioTheme,
-} from '../system/schema';
-import {
-  AccordionSection,
-  CopyButton,
-  RangeField,
-  SegmentedTabs,
-  SelectField,
-  TokenSwatch,
-} from './canon';
+} from '../../../system/schema';
+import { CopyButton } from '../controls/CopyButton';
+import { RangeField } from '../controls/RangeField';
+import { SegmentedTabs } from '../controls/SegmentedTabs';
+import { SelectField } from '../controls/SelectField';
+import { TokenSwatch } from '../controls/TokenSwatch';
+import { AccordionSection } from '../disclosure/AccordionSection';
 
 type WorkbenchTab = 'theme' | 'type' | 'shell' | 'export';
 
