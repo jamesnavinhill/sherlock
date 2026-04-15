@@ -147,6 +147,10 @@
   outline: none;
 }
 
+.ds-sidebar[data-collapsed='true'] .ds-sidebar-brand {
+  gap: 0;
+}
+
 .ds-sidebar[data-collapsed='true'] .ds-sidebar-brand-copy,
 .ds-sidebar[data-collapsed='true'] .ds-sidebar-nav-item-label {
   opacity: 0;
@@ -155,6 +159,10 @@
 
 .ds-sidebar[data-collapsed='true'] .ds-sidebar-brand-actions {
   display: none;
+}
+
+.ds-sidebar[data-collapsed='true'] .ds-sidebar-nav-item {
+  gap: 0;
 }
 
 .ds-shell-main {
