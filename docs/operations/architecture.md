@@ -2,6 +2,11 @@
 
 This document describes the current runtime architecture as implemented in `src/`.
 
+Repository note:
+
+- `src/` remains the active Sherlock application.
+- `design-system/` is a separate standalone app kept in-repo for now. It should stay self-contained and must not depend on Sherlock routing, store, or runtime modules.
+
 Sherlock now runs on a canonical workspace architecture. The domain-pack shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the settled `Workspace -> Artifact -> WorkspaceRun` model.
 
 ## 1. Application Shell

@@ -1,0 +1,410 @@
+export type ThemeMode = 'dark' | 'light';
+export type FontRole = 'ui' | 'display' | 'label' | 'mono';
+export type BackgroundVariant = 'plain' | 'dot-grid' | 'cross-grid' | 'scanlines';
+
+export interface AccentPoint {
+  hue: number;
+  lightness: number;
+  chroma: number;
+}
+
+export interface SurfaceScale {
+  background: AccentPoint;
+  panel: AccentPoint;
+  surface: AccentPoint;
+}
+
+export interface SurfaceSettings {
+  dark: SurfaceScale;
+  light: SurfaceScale;
+}
+
+export interface BackgroundSettings {
+  variant: BackgroundVariant;
+  dotColor: number;
+  dotOpacity: number;
+  gridSize: number;
+  glowOpacity: number;
+  scanlineOpacity: number;
+}
+
+export interface FontOption {
+  id: string;
+  label: string;
+  cssValue: string;
+  category: 'sans' | 'mono';
+  preview: string;
+}
+
+export interface FontFamilyProfile {
+  sizeAdjust: number;
+  weightAdjust: number;
+  trackingAdjust: number;
+  leadingAdjust: number;
+}
+
+export interface TypographySettings {
+  ui: string;
+  display: string;
+  label: string;
+  mono: string;
+  size: number;
+  weight: number;
+  profiles: Record<string, FontFamilyProfile>;
+}
+
+export interface RadiusSettings {
+  shell: number;
+  panel: number;
+  control: number;
+  pill: number;
+}
+
+export interface ShellSettings {
+  sidebarWidth: number;
+  railWidth: number;
+  toolbarHeight: number;
+  contentWidth: number;
+  density: number;
+}
+
+export interface StudioTheme {
+  mode: ThemeMode;
+  accent: AccentPoint;
+  surfaces: SurfaceSettings;
+  background: BackgroundSettings;
+  typography: TypographySettings;
+  radii: RadiusSettings;
+  shell: ShellSettings;
+}
+
+export interface SurfacePreset {
+  id: string;
+  label: string;
+  description: string;
+  surfaces: SurfaceSettings;
+}
+
+export const FONT_OPTIONS: FontOption[] = [
+  {
+    id: 'work-sans',
+    label: 'Work Sans',
+    cssValue: "'Work Sans', sans-serif",
+    category: 'sans',
+    preview: 'Friendly UI texture with newsroom discipline.',
+  },
+  {
+    id: 'manrope',
+    label: 'Manrope',
+    cssValue: "'Manrope', sans-serif",
+    category: 'sans',
+    preview: 'Soft geometry with strong dashboard legibility.',
+  },
+  {
+    id: 'space-grotesk',
+    label: 'Space Grotesk',
+    cssValue: "'Space Grotesk', sans-serif",
+    category: 'sans',
+    preview: 'Sharper sci-tech voice for visible headings.',
+  },
+  {
+    id: 'plus-jakarta-sans',
+    label: 'Plus Jakarta Sans',
+    cssValue: "'Plus Jakarta Sans', sans-serif",
+    category: 'sans',
+    preview: 'Modern editorial polish without losing precision.',
+  },
+  {
+    id: 'public-sans',
+    label: 'Public Sans',
+    cssValue: "'Public Sans', sans-serif",
+    category: 'sans',
+    preview: 'Institutional and calm for research-heavy workflows.',
+  },
+  {
+    id: 'ibm-plex-sans',
+    label: 'IBM Plex Sans',
+    cssValue: "'IBM Plex Sans', sans-serif",
+    category: 'sans',
+    preview: 'Technical, grounded, and quietly industrial.',
+  },
+  {
+    id: 'inter',
+    label: 'Inter',
+    cssValue: "'Inter', sans-serif",
+    category: 'sans',
+    preview: 'Neutral, stable, and versatile across product UI.',
+  },
+  {
+    id: 'sora',
+    label: 'Sora',
+    cssValue: "'Sora', sans-serif",
+    category: 'sans',
+    preview: 'Compact futurism with high-impact titles.',
+  },
+  {
+    id: 'archivo',
+    label: 'Archivo',
+    cssValue: "'Archivo', sans-serif",
+    category: 'sans',
+    preview: 'Industrial sans with disciplined uppercase forms.',
+  },
+  {
+    id: 'instrument-sans',
+    label: 'Instrument Sans',
+    cssValue: "'Instrument Sans', sans-serif",
+    category: 'sans',
+    preview: 'Quiet modernism with restrained character.',
+  },
+  {
+    id: 'ibm-plex-mono',
+    label: 'IBM Plex Mono',
+    cssValue: "'IBM Plex Mono', monospace",
+    category: 'mono',
+    preview: 'Control-room labeling with crisp structure.',
+  },
+  {
+    id: 'jetbrains-mono',
+    label: 'JetBrains Mono',
+    cssValue: "'JetBrains Mono', monospace",
+    category: 'mono',
+    preview: 'Dense signal readouts and dependable code texture.',
+  },
+  {
+    id: 'space-mono',
+    label: 'Space Mono',
+    cssValue: "'Space Mono', monospace",
+    category: 'mono',
+    preview: 'Retro terminal flavor for loud metadata.',
+  },
+  {
+    id: 'source-code-pro',
+    label: 'Source Code Pro',
+    cssValue: "'Source Code Pro', monospace",
+    category: 'mono',
+    preview: 'Readable long-form data and evidence listings.',
+  },
+  {
+    id: 'azeret-mono',
+    label: 'Azeret Mono',
+    cssValue: "'Azeret Mono', monospace",
+    category: 'mono',
+    preview: 'Angular monospace for highly visible labels and telemetry.',
+  },
+];
+
+export const FONT_ROLE_LABELS: Record<FontRole, string> = {
+  ui: 'UI Text',
+  display: 'Display',
+  label: 'Labels',
+  mono: 'Data Text',
+};
+
+export const SURFACE_PRESETS: SurfacePreset[] = [
+  {
+    id: 'classic',
+    label: 'Classic',
+    description: 'Balanced dark chrome with a warm paper light mode.',
+    surfaces: {
+      dark: {
+        background: { hue: 0, lightness: 0, chroma: 0 },
+        panel: { hue: 286, lightness: 0.141, chroma: 0.004 },
+        surface: { hue: 286, lightness: 0.21, chroma: 0.006 },
+      },
+      light: {
+        background: { hue: 85, lightness: 0.88, chroma: 0.002 },
+        panel: { hue: 85, lightness: 0.9, chroma: 0.004 },
+        surface: { hue: 81, lightness: 0.975, chroma: 0.004 },
+      },
+    },
+  },
+  {
+    id: 'graphite',
+    label: 'Graphite',
+    description: 'Neutral dark chrome with restrained daylight surfaces.',
+    surfaces: {
+      dark: {
+        background: { hue: 220, lightness: 0.01, chroma: 0.004 },
+        panel: { hue: 228, lightness: 0.125, chroma: 0.01 },
+        surface: { hue: 232, lightness: 0.205, chroma: 0.012 },
+      },
+      light: {
+        background: { hue: 220, lightness: 0.95, chroma: 0.01 },
+        panel: { hue: 220, lightness: 0.965, chroma: 0.012 },
+        surface: { hue: 218, lightness: 0.905, chroma: 0.016 },
+      },
+    },
+  },
+  {
+    id: 'terminal',
+    label: 'Terminal',
+    description: 'Slight phosphor lean with higher separation in both modes.',
+    surfaces: {
+      dark: {
+        background: { hue: 145, lightness: 0, chroma: 0.01 },
+        panel: { hue: 150, lightness: 0.12, chroma: 0.024 },
+        surface: { hue: 154, lightness: 0.205, chroma: 0.032 },
+      },
+      light: {
+        background: { hue: 98, lightness: 0.935, chroma: 0.03 },
+        panel: { hue: 102, lightness: 0.958, chroma: 0.034 },
+        surface: { hue: 104, lightness: 0.885, chroma: 0.044 },
+      },
+    },
+  },
+  {
+    id: 'archive',
+    label: 'Archive',
+    description: 'Muted ink-on-paper palette with softer daylight warmth.',
+    surfaces: {
+      dark: {
+        background: { hue: 32, lightness: 0.005, chroma: 0.004 },
+        panel: { hue: 34, lightness: 0.12, chroma: 0.012 },
+        surface: { hue: 38, lightness: 0.19, chroma: 0.015 },
+      },
+      light: {
+        background: { hue: 82, lightness: 0.955, chroma: 0.02 },
+        panel: { hue: 80, lightness: 0.972, chroma: 0.022 },
+        surface: { hue: 76, lightness: 0.91, chroma: 0.028 },
+      },
+    },
+  },
+];
+
+export const BACKGROUND_VARIANTS: Array<{
+  id: BackgroundVariant;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: 'plain',
+    label: 'Plain',
+    description: 'No grid, just the shell and surfaces.',
+  },
+  {
+    id: 'dot-grid',
+    label: 'Dot Grid',
+    description: 'Direct carry-forward of the Sherlock workspace field.',
+  },
+  {
+    id: 'cross-grid',
+    label: 'Cross Grid',
+    description: 'A cleaner linear grid for layout-heavy tuning.',
+  },
+  {
+    id: 'scanlines',
+    label: 'Scanlines',
+    description: 'The CRT-style layer, canonized into the background system.',
+  },
+];
+
+const createDefaultProfiles = (): Record<string, FontFamilyProfile> =>
+  Object.fromEntries(
+    FONT_OPTIONS.map((font) => [
+      font.id,
+      {
+        sizeAdjust: 0,
+        weightAdjust: 0,
+        trackingAdjust: 0,
+        leadingAdjust: 0,
+      },
+    ])
+  );
+
+export const DEFAULT_THEME: StudioTheme = {
+  mode: 'light',
+  accent: { hue: 340, lightness: 0.57, chroma: 0.09 },
+  surfaces: SURFACE_PRESETS[0].surfaces,
+  background: {
+    variant: 'dot-grid',
+    dotColor: 23,
+    dotOpacity: 0.42,
+    gridSize: 20,
+    glowOpacity: 0.12,
+    scanlineOpacity: 0.08,
+  },
+  typography: {
+    ui: 'work-sans',
+    display: 'work-sans',
+    label: 'ibm-plex-mono',
+    mono: 'ibm-plex-mono',
+    size: -0.15,
+    weight: -0.1,
+    profiles: createDefaultProfiles(),
+  },
+  radii: {
+    shell: 0,
+    panel: 16,
+    control: 12,
+    pill: 999,
+  },
+  shell: {
+    sidebarWidth: 248,
+    railWidth: 320,
+    toolbarHeight: 78,
+    contentWidth: 980,
+    density: 1,
+  },
+};
+
+export const getFontOption = (id: string): FontOption =>
+  FONT_OPTIONS.find((font) => font.id === id) ?? FONT_OPTIONS[0];
+
+export const getFontOptionsForRole = (role: FontRole): FontOption[] => {
+  if (role === 'mono') {
+    return FONT_OPTIONS.filter((font) => font.category === 'mono');
+  }
+
+  if (role === 'label') {
+    return FONT_OPTIONS.filter(
+      (font) =>
+        font.id === 'space-grotesk' ||
+        font.id === 'ibm-plex-sans' ||
+        font.id === 'public-sans' ||
+        font.id === 'ibm-plex-mono' ||
+        font.id === 'jetbrains-mono' ||
+        font.id === 'azeret-mono'
+    );
+  }
+
+  return FONT_OPTIONS.filter((font) => font.category === 'sans');
+};
+
+export const getSelectedFontIds = (theme: StudioTheme): string[] =>
+  Array.from(
+    new Set([
+      theme.typography.ui,
+      theme.typography.display,
+      theme.typography.label,
+      theme.typography.mono,
+    ])
+  );
+
+export const cloneTheme = (theme: StudioTheme): StudioTheme => ({
+  mode: theme.mode,
+  accent: { ...theme.accent },
+  surfaces: {
+    dark: {
+      background: { ...theme.surfaces.dark.background },
+      panel: { ...theme.surfaces.dark.panel },
+      surface: { ...theme.surfaces.dark.surface },
+    },
+    light: {
+      background: { ...theme.surfaces.light.background },
+      panel: { ...theme.surfaces.light.panel },
+      surface: { ...theme.surfaces.light.surface },
+    },
+  },
+  background: { ...theme.background },
+  typography: {
+    ...theme.typography,
+    profiles: Object.fromEntries(
+      Object.entries(theme.typography.profiles).map(([fontId, profile]) => [
+        fontId,
+        { ...profile },
+      ])
+    ),
+  },
+  radii: { ...theme.radii },
+  shell: { ...theme.shell },
+});

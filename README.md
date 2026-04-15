@@ -2,6 +2,8 @@
 
 Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investigations, research, monitoring, and structured reporting across multiple domains.
 
+This repository also contains a separate standalone design-system studio in [`design-system`](./design-system). It is intentionally self-contained so it can be moved out later without depending on Sherlock runtime code.
+
 ## What It Does
 
 - Runs structured analysis through a provider router (`GEMINI`, `OPENROUTER`, `OPENAI`, `ANTHROPIC`)
