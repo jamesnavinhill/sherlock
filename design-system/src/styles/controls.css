@@ -42,29 +42,21 @@
   color: var(--ds-accent);
 }
 
-.ds-badge-outline {
-  background: transparent;
+.ds-filter-chip:hover,
+.ds-filter-chip:focus-visible {
+  border-color: var(--ds-border-strong);
+  background: var(--ds-interaction-hover-bg);
+  color: var(--ds-text-heading);
 }
 
-.ds-filter-chip:hover,
-.ds-filter-chip:focus-visible,
 .ds-filter-chip[data-active='true'] {
   border-color: var(--ds-accent-border);
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
-  outline: none;
 }
 
-.ds-toolbar-button,
-.ds-secondary-button,
-.ds-ghost-button,
-.ds-page-button,
-.ds-primary-button,
-.ds-danger-button,
-.ds-toolbar-icon-button,
 .ds-select-trigger,
-.ds-search-shell,
-.ds-list-item {
+.ds-search-shell {
   min-height: 2.5rem;
   border-radius: var(--ds-radius-control);
   border: 1px solid var(--ds-border-soft);
@@ -80,10 +72,60 @@
 .ds-toolbar-button,
 .ds-secondary-button,
 .ds-ghost-button,
+.ds-toolbar-icon-button {
+  min-height: 2.5rem;
+  border-radius: var(--ds-radius-control);
+  border: 1px solid var(--ds-border-soft);
+  background: color-mix(in oklab, var(--ds-panel) 94%, transparent);
+  color: var(--ds-text-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0 1rem;
+  font-family: var(--ds-font-ui);
+  font-size: var(--ds-type-sm);
+  font-weight: var(--ds-weight-semibold);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+  user-select: none;
+}
+
+.ds-primary-button,
+.ds-danger-button {
+  min-height: 2.5rem;
+  border-radius: var(--ds-radius-control);
+  border: 0;
+  background: transparent;
+  color: var(--ds-text-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0 1rem;
+  font-family: var(--ds-font-ui);
+  font-size: var(--ds-type-sm);
+  font-weight: var(--ds-weight-semibold);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+  user-select: none;
+}
+
+.ds-toolbar-button,
+.ds-secondary-button,
+.ds-ghost-button,
 .ds-page-button,
 .ds-primary-button,
-.ds-danger-button,
-.ds-select-trigger {
+.ds-danger-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -147,10 +189,9 @@
 }
 
 .ds-toolbar-icon-button[data-active='true'] {
-  border-color: var(--ds-accent-border);
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-soft);
+  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
 }
 
 .ds-page-icon-button[data-active='true'] {
@@ -167,20 +208,27 @@
 .ds-secondary-button:focus-visible,
 .ds-ghost-button:hover,
 .ds-ghost-button:focus-visible,
-.ds-danger-button:hover,
-.ds-danger-button:focus-visible,
 .ds-toolbar-icon-button:hover,
-.ds-toolbar-icon-button:focus-visible,
-.ds-page-button:hover,
-.ds-page-button:focus-visible,
-.ds-page-icon-button:hover,
-.ds-page-icon-button:focus-visible,
+.ds-toolbar-icon-button:focus-visible {
+  border-color: var(--ds-border-strong);
+  background: var(--ds-interaction-hover-bg);
+  color: var(--ds-text-heading);
+  outline: none;
+}
+
+.ds-toolbar-button[data-active='true'],
+.ds-secondary-button[data-active='true'],
+.ds-ghost-button[data-active='true'],
+.ds-toolbar-icon-button[data-active='true'] {
+  border-color: var(--ds-accent-border);
+  background: var(--ds-accent-soft);
+  color: var(--ds-accent);
+}
+
 .ds-select-trigger:hover,
 .ds-select-trigger:focus-visible,
 .ds-search-shell:hover,
-.ds-search-shell:focus-within,
-.ds-list-item:hover,
-.ds-list-item:focus-visible {
+.ds-search-shell:focus-within {
   border-color: var(--ds-border-strong);
   background: var(--ds-interaction-hover-bg);
   color: var(--ds-text-heading);
@@ -206,13 +254,14 @@
 
 .ds-primary-button {
   background: var(--ds-accent-soft);
-  border-color: var(--ds-accent-border);
   color: var(--ds-accent);
+  box-shadow: 0 2px 6px -2px color-mix(in oklab, var(--ds-accent) 15%, transparent);
 }
 
 .ds-primary-button:hover,
 .ds-primary-button:focus-visible {
   background: var(--ds-accent-soft-strong);
+  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
 }
 
 .ds-danger-button {
@@ -295,6 +344,9 @@
 }
 
 .ds-search-results {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
   max-height: 18rem;
   overflow: auto;
 }
@@ -414,6 +466,17 @@
   background: color-mix(in oklab, var(--ds-panel) 90%, transparent);
   color: var(--ds-text-quiet);
   overflow: hidden;
+  transition: 
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.ds-segmented-tab:hover,
+.ds-segmented-tab:focus-visible {
+  border-color: var(--ds-border-strong);
+  background: var(--ds-interaction-hover-bg);
+  color: var(--ds-text-heading);
 }
 
 .ds-segmented-tab[data-active='true'] {
@@ -438,8 +501,22 @@
   gap: 1rem;
   padding: 0.9rem 1rem;
   border: 0;
+  border-radius: var(--ds-radius-control);
   background: transparent;
   text-align: left;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.ds-accordion-trigger:hover,
+.ds-accordion-trigger:focus-visible,
+.ds-accordion[data-open='true'] .ds-accordion-trigger {
+  background: var(--ds-accent-soft);
+  color: var(--ds-accent);
+  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
+  outline: none;
 }
 
 .ds-accordion-leading {
@@ -477,11 +554,22 @@
   gap: 0.75rem;
   padding: 0.85rem 0.95rem;
   text-align: left;
+  border: 0;
+  border-radius: var(--ds-radius-control);
+  background: transparent;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
+.ds-list-item:hover,
+.ds-list-item:focus-visible,
 .ds-list-item[data-active='true'] {
-  border-color: var(--ds-accent-border);
   background: var(--ds-accent-soft);
+  color: var(--ds-accent);
+  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
+  outline: none;
 }
 
 .ds-list-item-stack {

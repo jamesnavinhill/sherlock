@@ -50,13 +50,33 @@ export function SidebarNav({
       className="ds-sidebar"
       data-collapsed={collapsed ? 'true' : 'false'}
       data-mobile-open={mobileOpen ? 'true' : 'false'}
+      onClick={(e) => {
+        if (
+          onBrandPress &&
+          (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('ds-sidebar-nav'))
+        ) {
+          onBrandPress();
+        }
+      }}
     >
-      <div className="ds-sidebar-brand">
+      <div 
+        className="ds-sidebar-brand"
+        onClick={onBrandPress}
+        style={{ cursor: onBrandPress ? 'pointer' : 'default' }}
+        role={onBrandPress ? "button" : undefined}
+        tabIndex={onBrandPress ? 0 : undefined}
+        onKeyDown={(e) => {
+          if (onBrandPress && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            onBrandPress();
+          }
+        }}
+      >
         <IconButton
           label={brandPressLabel || brandTitle}
           icon={brandIcon}
-          interactive={Boolean(onBrandPress)}
-          onClick={onBrandPress}
+          interactive={false}
+          tabIndex={-1}
         />
         <div className="ds-sidebar-brand-copy">
           <div className="ds-meta-label">{brandEyebrow}</div>

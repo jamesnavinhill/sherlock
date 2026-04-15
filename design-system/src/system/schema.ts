@@ -6,6 +6,7 @@ export interface AccentPoint {
   hue: number;
   lightness: number;
   chroma: number;
+  opacity: number;
 }
 
 export interface SurfaceScale {
@@ -207,14 +208,14 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Balanced dark chrome with a warm paper light mode.',
     surfaces: {
       dark: {
-        background: { hue: 0, lightness: 0, chroma: 0 },
-        panel: { hue: 286, lightness: 0.141, chroma: 0.004 },
-        surface: { hue: 286, lightness: 0.21, chroma: 0.006 },
+        background: { hue: 0, lightness: 0, chroma: 0, opacity: 1 },
+        panel: { hue: 286, lightness: 0.141, chroma: 0.004, opacity: 1 },
+        surface: { hue: 286, lightness: 0.21, chroma: 0.006, opacity: 1 },
       },
       light: {
-        background: { hue: 85, lightness: 0.88, chroma: 0.002 },
-        panel: { hue: 85, lightness: 0.9, chroma: 0.004 },
-        surface: { hue: 81, lightness: 0.975, chroma: 0.004 },
+        background: { hue: 85, lightness: 0.88, chroma: 0.002, opacity: 1 },
+        panel: { hue: 85, lightness: 0.9, chroma: 0.004, opacity: 1 },
+        surface: { hue: 81, lightness: 0.975, chroma: 0.004, opacity: 1 },
       },
     },
   },
@@ -224,14 +225,14 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Neutral dark chrome with restrained daylight surfaces.',
     surfaces: {
       dark: {
-        background: { hue: 220, lightness: 0.01, chroma: 0.004 },
-        panel: { hue: 228, lightness: 0.125, chroma: 0.01 },
-        surface: { hue: 232, lightness: 0.205, chroma: 0.012 },
+        background: { hue: 220, lightness: 0.01, chroma: 0.004, opacity: 1 },
+        panel: { hue: 228, lightness: 0.125, chroma: 0.01, opacity: 1 },
+        surface: { hue: 232, lightness: 0.205, chroma: 0.012, opacity: 1 },
       },
       light: {
-        background: { hue: 220, lightness: 0.95, chroma: 0.01 },
-        panel: { hue: 220, lightness: 0.965, chroma: 0.012 },
-        surface: { hue: 218, lightness: 0.905, chroma: 0.016 },
+        background: { hue: 220, lightness: 0.95, chroma: 0.01, opacity: 1 },
+        panel: { hue: 220, lightness: 0.965, chroma: 0.012, opacity: 1 },
+        surface: { hue: 218, lightness: 0.905, chroma: 0.016, opacity: 1 },
       },
     },
   },
@@ -241,14 +242,14 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Cool signal-room surfaces with a crisp brighter stack.',
     surfaces: {
       dark: {
-        background: { hue: 236, lightness: 0.02, chroma: 0.02 },
-        panel: { hue: 244, lightness: 0.13, chroma: 0.028 },
-        surface: { hue: 248, lightness: 0.215, chroma: 0.034 },
+        background: { hue: 236, lightness: 0.02, chroma: 0.02, opacity: 1 },
+        panel: { hue: 244, lightness: 0.13, chroma: 0.028, opacity: 1 },
+        surface: { hue: 248, lightness: 0.215, chroma: 0.034, opacity: 1 },
       },
       light: {
-        background: { hue: 220, lightness: 0.94, chroma: 0.03 },
-        panel: { hue: 224, lightness: 0.965, chroma: 0.034 },
-        surface: { hue: 220, lightness: 0.9, chroma: 0.045 },
+        background: { hue: 220, lightness: 0.94, chroma: 0.03, opacity: 1 },
+        panel: { hue: 224, lightness: 0.965, chroma: 0.034, opacity: 1 },
+        surface: { hue: 220, lightness: 0.9, chroma: 0.045, opacity: 1 },
       },
     },
   },
@@ -258,14 +259,14 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Warm control-room surfaces with richer bronze highlights.',
     surfaces: {
       dark: {
-        background: { hue: 18, lightness: 0.01, chroma: 0.01 },
-        panel: { hue: 28, lightness: 0.13, chroma: 0.02 },
-        surface: { hue: 32, lightness: 0.215, chroma: 0.028 },
+        background: { hue: 18, lightness: 0.01, chroma: 0.01, opacity: 1 },
+        panel: { hue: 28, lightness: 0.13, chroma: 0.02, opacity: 1 },
+        surface: { hue: 32, lightness: 0.215, chroma: 0.028, opacity: 1 },
       },
       light: {
-        background: { hue: 74, lightness: 0.94, chroma: 0.03 },
-        panel: { hue: 70, lightness: 0.962, chroma: 0.032 },
-        surface: { hue: 64, lightness: 0.9, chroma: 0.04 },
+        background: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
+        panel: { hue: 70, lightness: 0.962, chroma: 0.032, opacity: 1 },
+        surface: { hue: 64, lightness: 0.9, chroma: 0.04, opacity: 1 },
       },
     },
   },
@@ -275,14 +276,14 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Slight phosphor lean with higher separation in both modes.',
     surfaces: {
       dark: {
-        background: { hue: 145, lightness: 0, chroma: 0.01 },
-        panel: { hue: 150, lightness: 0.12, chroma: 0.024 },
-        surface: { hue: 154, lightness: 0.205, chroma: 0.032 },
+        background: { hue: 145, lightness: 0, chroma: 0.01, opacity: 1 },
+        panel: { hue: 150, lightness: 0.12, chroma: 0.024, opacity: 1 },
+        surface: { hue: 154, lightness: 0.205, chroma: 0.032, opacity: 1 },
       },
       light: {
-        background: { hue: 98, lightness: 0.935, chroma: 0.03 },
-        panel: { hue: 102, lightness: 0.958, chroma: 0.034 },
-        surface: { hue: 104, lightness: 0.885, chroma: 0.044 },
+        background: { hue: 98, lightness: 0.935, chroma: 0.03, opacity: 1 },
+        panel: { hue: 102, lightness: 0.958, chroma: 0.034, opacity: 1 },
+        surface: { hue: 104, lightness: 0.885, chroma: 0.044, opacity: 1 },
       },
     },
   },
@@ -292,14 +293,14 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Muted ink-on-paper palette with softer daylight warmth.',
     surfaces: {
       dark: {
-        background: { hue: 32, lightness: 0.005, chroma: 0.004 },
-        panel: { hue: 34, lightness: 0.12, chroma: 0.012 },
-        surface: { hue: 38, lightness: 0.19, chroma: 0.015 },
+        background: { hue: 32, lightness: 0.005, chroma: 0.004, opacity: 1 },
+        panel: { hue: 34, lightness: 0.12, chroma: 0.012, opacity: 1 },
+        surface: { hue: 38, lightness: 0.19, chroma: 0.015, opacity: 1 },
       },
       light: {
-        background: { hue: 82, lightness: 0.955, chroma: 0.02 },
-        panel: { hue: 80, lightness: 0.972, chroma: 0.022 },
-        surface: { hue: 76, lightness: 0.91, chroma: 0.028 },
+        background: { hue: 82, lightness: 0.955, chroma: 0.02, opacity: 1 },
+        panel: { hue: 80, lightness: 0.972, chroma: 0.022, opacity: 1 },
+        surface: { hue: 76, lightness: 0.91, chroma: 0.028, opacity: 1 },
       },
     },
   },
@@ -347,7 +348,7 @@ const createDefaultProfiles = (): Record<string, FontFamilyProfile> =>
 
 export const DEFAULT_THEME: StudioTheme = {
   mode: 'light',
-  accent: { hue: 340, lightness: 0.57, chroma: 0.09 },
+  accent: { hue: 340, lightness: 0.57, chroma: 0.09, opacity: 1 },
   surfaces: SURFACE_PRESETS[0].surfaces,
   background: {
     variant: 'dot-grid',

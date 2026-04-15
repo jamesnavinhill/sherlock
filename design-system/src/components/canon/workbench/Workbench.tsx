@@ -233,10 +233,10 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       onClick={() => setSelectedSurfaceKey(key)}
                     >
                       {key === 'background'
-                        ? 'Workspace Background'
+                        ? 'Background'
                         : key === 'panel'
-                          ? 'Panel Background'
-                          : 'Raised Surface'}
+                          ? 'Panel'
+                          : 'Surface'}
                     </button>
                   ))}
                 </div>
@@ -318,6 +318,29 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     max={selectedSurfaceMode === 'dark' ? 0.06 : 0.08}
                     step={0.001}
                     format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Opacity"
+                    value={selectedSurface.opacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        surfaces: {
+                          ...current.surfaces,
+                          [selectedSurfaceMode]: {
+                            ...current.surfaces[selectedSurfaceMode],
+                            [selectedSurfaceKey]: {
+                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                              opacity: value,
+                            },
+                          },
+                        },
+                      }))
+                    }
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
                   />
                 </div>
               </section>

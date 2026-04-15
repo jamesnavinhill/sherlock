@@ -473,20 +473,8 @@ export default function App() {
             brandIcon={<Palette size={16} />}
             brandEyebrow="Design System"
             brandTitle="Canon Studio"
-            brandPressLabel={sidebarCollapsed ? 'Expand sidebar' : 'Canon Studio'}
-            onBrandPress={!isOverlayShell && sidebarCollapsed ? toggleSidebar : undefined}
-            headerActions={
-              !isOverlayShell && !sidebarCollapsed ? (
-                <IconButton
-                  label={sidebarToggleLabel}
-                  icon={<Sidebar size={16} />}
-                  active={isOverlayShell ? mobilePanel === 'sidebar' : !sidebarCollapsed}
-                  className="ds-sidebar-header-toggle"
-                  onClick={toggleSidebar}
-                  appearance="page"
-                />
-              ) : undefined
-            }
+            brandPressLabel={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onBrandPress={!isOverlayShell ? toggleSidebar : undefined}
             items={NAV_ITEMS}
             activeId={activeNav}
             onSelect={setActiveNav}
@@ -1068,29 +1056,29 @@ export default function App() {
             {galleryTab === 'conversation' ? (
               <div className="ds-conversation-showcase">
                 <SurfaceCard
-                  title="Transcript"
+                  title="Context Chat"
                   eyebrow="Conversation"
                   className="ds-conversation-main"
+                  actions={<Badge variant="accent">Combined View</Badge>}
                 >
-                  <ChatTranscript messages={TRANSCRIPT_MESSAGES} />
-                </SurfaceCard>
-
-                <SurfaceCard title="Composer" eyebrow="Input">
-                  <ChatComposer
-                    value={composerValue}
-                    onChange={setComposerValue}
-                    onSubmit={() => setComposerValue('')}
-                    placeholder="Ask for a comparison, summary, next-step plan, or evidence review..."
-                    leadingActions={[
-                      { id: 'attach', label: 'Attach', icon: <FolderKanban size={14} /> },
-                      { id: 'prompt', label: 'Prompt Library', icon: <BookOpen size={14} /> },
-                    ]}
-                    contextTags={[
-                      { id: 'workspace', label: 'Operations Workspace', meta: 'Workspace' },
-                      { id: 'artifact', label: 'April Signal Review', meta: 'Artifact' },
-                    ]}
-                    footerNote="Composer, transcript, and transcript disclosures are all reusable canon components now."
-                  />
+                  <div className="ds-chat-layout-combined" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <ChatTranscript messages={TRANSCRIPT_MESSAGES} />
+                    <ChatComposer
+                      value={composerValue}
+                      onChange={setComposerValue}
+                      onSubmit={() => setComposerValue('')}
+                      placeholder="Ask for a comparison, summary, next-step plan, or evidence review..."
+                      leadingActions={[
+                        { id: 'attach', label: 'Attach', icon: <FolderKanban size={14} /> },
+                        { id: 'prompt', label: 'Prompt Library', icon: <BookOpen size={14} /> },
+                      ]}
+                      contextTags={[
+                        { id: 'workspace', label: 'Operations Workspace', meta: 'Workspace' },
+                        { id: 'artifact', label: 'April Signal Review', meta: 'Artifact' },
+                      ]}
+                      footerNote="Composer, transcript, and transcript disclosures are all reusable canon components now."
+                    />
+                  </div>
                 </SurfaceCard>
               </div>
             ) : null}

@@ -1,10 +1,9 @@
 .ds-conversation-showcase {
-  max-width: var(--ds-content-width);
+  max-width: 800px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(18rem, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-  align-items: start;
 }
 
 .ds-conversation-main {
@@ -60,8 +59,14 @@
 }
 
 .ds-chat-composer {
-  display: grid;
-  gap: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ds-chat-composer-shell {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--ds-border-soft);
   border-radius: var(--ds-radius-panel);
@@ -69,8 +74,12 @@
   box-shadow: var(--ds-shadow-soft);
 }
 
+.ds-chat-composer-body {
+  border-bottom: 1px solid var(--ds-border-soft);
+}
+
 .ds-chat-composer-input {
-  min-height: 10rem;
+  min-height: 5rem;
   width: 100%;
   resize: vertical;
   border: 0;
@@ -78,13 +87,15 @@
   padding: 1rem;
   background: transparent;
   color: var(--ds-text-strong);
+  display: block;
 }
 
 .ds-chat-context-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0 1rem 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--ds-border-soft);
 }
 
 .ds-chat-context-chip {
@@ -111,18 +122,11 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1rem;
-  border-top: 1px solid var(--ds-border-soft);
+  padding: 0.5rem 0.75rem;
 }
 
-.ds-chat-composer > .ds-body-quiet {
-  padding: 0 1rem 1rem;
-}
-
-@media (max-width: 1180px) {
-  .ds-conversation-showcase {
-    grid-template-columns: 1fr;
-  }
+.ds-chat-composer-note {
+  padding: 0;
 }
 
 @media (max-width: 760px) {

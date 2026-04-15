@@ -33,48 +33,52 @@ export function ChatComposer({
         onSubmit();
       }}
     >
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="ds-chat-composer-input"
-      />
-
-      {contextTags.length > 0 ? (
-        <div className="ds-chat-context-row">
-          {contextTags.map((tag) => (
-            <span key={tag.id} className="ds-chat-context-chip">
-              <span className="truncate">{tag.label}</span>
-              {tag.meta ? <span className="ds-chat-context-meta">{tag.meta}</span> : null}
-            </span>
-          ))}
+      <div className="ds-chat-composer-shell">
+        <div className="ds-chat-composer-body">
+          <textarea
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder={placeholder}
+            className="ds-chat-composer-input"
+          />
         </div>
-      ) : null}
 
-      <div className="ds-chat-composer-footer">
-        <div className="ds-toolbar-inline ds-wrap">
-          {leadingActions.map((action) => (
-            <Button
-              key={action.id}
-              variant="ghost"
-              size="sm"
-              leadingIcon={action.icon}
-              onClick={action.onClick}
-            >
-              {action.label}
-            </Button>
-          ))}
+        {contextTags.length > 0 ? (
+          <div className="ds-chat-context-row">
+            {contextTags.map((tag) => (
+              <span key={tag.id} className="ds-chat-context-chip">
+                <span className="truncate">{tag.label}</span>
+                {tag.meta ? <span className="ds-chat-context-meta">{tag.meta}</span> : null}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="ds-chat-composer-footer">
+          <div className="ds-toolbar-inline ds-wrap">
+            {leadingActions.map((action) => (
+              <Button
+                key={action.id}
+                variant="ghost"
+                size="sm"
+                leadingIcon={action.icon}
+                onClick={action.onClick}
+              >
+                {action.label}
+              </Button>
+            ))}
+          </div>
+          <Button
+            type="submit"
+            variant="primary"
+            leadingIcon={busy ? <LoaderCircle size={16} className="ds-spin" /> : <Send size={16} />}
+            disabled={busy || !value.trim()}
+          >
+            {busy ? 'Sending' : 'Send'}
+          </Button>
         </div>
-        <Button
-          type="submit"
-          variant="primary"
-          leadingIcon={busy ? <LoaderCircle size={16} className="ds-spin" /> : <Send size={16} />}
-          disabled={busy || !value.trim()}
-        >
-          {busy ? 'Sending' : 'Send'}
-        </Button>
       </div>
-      {footerNote ? <div className="ds-body-quiet">{footerNote}</div> : null}
+      {footerNote ? <div className="ds-chat-composer-note"><span className="ds-body-quiet">{footerNote}</span></div> : null}
     </form>
   );
 }

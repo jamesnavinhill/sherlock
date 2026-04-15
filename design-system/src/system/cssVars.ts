@@ -11,8 +11,13 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 
 const round = (value: number, places = 3) => Number(value.toFixed(places));
 
-const buildAccentColor = (point: AccentPoint) =>
-  `oklch(${round(point.lightness)} ${round(point.chroma)} ${Math.round(point.hue)})`;
+const buildAccentColor = (point: AccentPoint) => {
+  const base = `${round(point.lightness)} ${round(point.chroma)} ${Math.round(point.hue)}`;
+  if (point.opacity < 1) {
+    return `oklch(${base} / ${round(point.opacity)})`;
+  }
+  return `oklch(${base})`;
+};
 
 const interpolate = (value: number, low: number, mid: number, high: number) => {
   const clamped = clamp(value, -1, 1);
