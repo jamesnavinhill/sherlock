@@ -20,8 +20,10 @@ export { OptionGroup } from './OptionGroup';
 export type {
   MultipleOptionGroupProps,
   OptionGroupBaseProps,
+  OptionGroupColumns,
   OptionGroupOption,
   OptionGroupProps,
+  OptionGroupPresentation,
   OptionGroupSelectionMode,
   SingleOptionGroupProps,
 } from './OptionGroup';

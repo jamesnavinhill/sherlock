@@ -762,6 +762,14 @@
   grid-template-columns: 1fr;
 }
 
+.ds-option-group-three-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ds-option-group-choice-grid {
+  gap: 0.6rem;
+}
+
 .ds-option-card {
   width: 100%;
   min-width: 0;
@@ -777,6 +785,15 @@
   box-shadow: var(--ds-control-shadow);
   text-align: left;
   transition: var(--ds-transition-control-fast);
+}
+
+.ds-option-card-choice-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem;
+  text-align: center;
 }
 
 .ds-option-card:hover,
@@ -824,10 +841,24 @@
   min-width: 0;
 }
 
+.ds-option-card-choice-grid .ds-option-card-stack {
+  gap: 0;
+  justify-items: center;
+}
+
 .ds-option-card-title {
   color: var(--ds-text-heading);
   font-size: calc(var(--ds-type-sm) * var(--ds-ui-scale));
   font-weight: var(--ds-weight-semibold);
+}
+
+.ds-option-card-choice-grid .ds-option-card-title {
+  color: inherit;
+  font-family: var(--ds-font-ui);
+  font-size: calc(var(--ds-type-base) * var(--ds-ui-scale));
+  font-weight: var(--ds-ui-weight);
+  letter-spacing: var(--ds-ui-tracking);
+  line-height: var(--ds-ui-leading);
 }
 
 .ds-option-card-description,

@@ -18,6 +18,7 @@ import { CopyButton } from '../controls/CopyButton';
 import { IconButton } from '../controls/IconButton';
 import { RangeField } from '../controls/RangeField';
 import { NavTabs } from '../controls/NavTabs';
+import { OptionGroup } from '../controls/OptionGroup';
 import { SegmentedTabs } from '../controls/SegmentedTabs';
 import { SelectField } from '../controls/SelectField';
 import { TokenSwatch } from '../controls/TokenSwatch';
@@ -113,6 +114,76 @@ export function Workbench({
   const railReadout = splitColorReadout(themeCssVars['--ds-rail']);
   const panelReadout = splitColorReadout(themeCssVars['--ds-panel']);
   const surfaceReadout = splitColorReadout(themeCssVars['--ds-surface']);
+  const themeChoiceOptions = [
+    ...THEME_TEMPLATES.map((template) => ({
+      id: `theme:${template.id}`,
+      label: template.label,
+    })),
+    ...SURFACE_PRESETS.map((preset) => ({
+      id: `surface:${preset.id}`,
+      label: preset.label,
+    })),
+  ];
+  const activeThemeChoiceId = (() => {
+    const activeThemeTemplate = THEME_TEMPLATES.find(
+      (template) =>
+        JSON.stringify(theme.surfaces) === JSON.stringify(template.theme.surfaces) &&
+        JSON.stringify(theme.background) === JSON.stringify(template.theme.background)
+    );
+
+    if (activeThemeTemplate) {
+      return `theme:${activeThemeTemplate.id}`;
+    }
+
+    const activeSurfacePreset = SURFACE_PRESETS.find((preset) =>
+      selectedPresetMode === 'both'
+        ? JSON.stringify(theme.surfaces) === JSON.stringify(preset.surfaces)
+        : selectedPresetMode === 'dark'
+          ? JSON.stringify(theme.surfaces.dark) === JSON.stringify(preset.surfaces.dark)
+          : JSON.stringify(theme.surfaces.light) === JSON.stringify(preset.surfaces.light)
+    );
+
+    return activeSurfacePreset ? `surface:${activeSurfacePreset.id}` : '';
+  })();
+
+  const applySurfacePreset = (presetId: string) => {
+    const preset = SURFACE_PRESETS.find((candidate) => candidate.id === presetId);
+    if (!preset) {
+      return;
+    }
+
+    setTheme((current) => {
+      const nextSurfaces = { ...current.surfaces };
+      const nextBackground = { ...current.background };
+      if (selectedPresetMode === 'both' || selectedPresetMode === 'dark') {
+        nextSurfaces.dark = preset.surfaces.dark;
+        nextBackground.dark = { ...preset.surfaces.dark.shell };
+      }
+      if (selectedPresetMode === 'both' || selectedPresetMode === 'light') {
+        nextSurfaces.light = preset.surfaces.light;
+        nextBackground.light = { ...preset.surfaces.light.shell };
+      }
+      return {
+        ...current,
+        surfaces: nextSurfaces,
+        background: nextBackground,
+      };
+    });
+  };
+
+  const handleThemeChoiceChange = (value: string) => {
+    if (value.startsWith('theme:')) {
+      const template = THEME_TEMPLATES.find((candidate) => `theme:${candidate.id}` === value);
+      if (template) {
+        setTheme(() => cloneTheme(template.theme));
+      }
+      return;
+    }
+
+    if (value.startsWith('surface:')) {
+      applySurfacePreset(value.replace('surface:', ''));
+    }
+  };
 
   return (
     <DockPanel
@@ -189,56 +260,13 @@ export function Workbench({
                     stretch
                   />
                 </div>
-                <div className="ds-grid-three">
-                  {THEME_TEMPLATES.map((template) => (
-                    <Button
-                      key={template.id}
-                      variant="secondary"
-                      textStyle="body"
-                      data-active={
-                        JSON.stringify(theme) === JSON.stringify(template.theme) ? 'true' : undefined
-                      }
-                      onClick={() => setTheme(() => cloneTheme(template.theme))}
-                    >
-                      {template.label}
-                    </Button>
-                  ))}
-                  {SURFACE_PRESETS.map((preset) => (
-                    <Button
-                      key={preset.id}
-                      variant="secondary"
-                      textStyle="body"
-                      data-active={
-                        selectedPresetMode === 'both'
-                          ? JSON.stringify(theme.surfaces) === JSON.stringify(preset.surfaces)
-                          : selectedPresetMode === 'dark'
-                            ? JSON.stringify(theme.surfaces.dark) === JSON.stringify(preset.surfaces.dark)
-                            : JSON.stringify(theme.surfaces.light) === JSON.stringify(preset.surfaces.light)
-                      }
-                      onClick={() =>
-                        setTheme((current) => {
-                          const nextSurfaces = { ...current.surfaces };
-                          const nextBackground = { ...current.background };
-                          if (selectedPresetMode === 'both' || selectedPresetMode === 'dark') {
-                            nextSurfaces.dark = preset.surfaces.dark;
-                            nextBackground.dark = { ...preset.surfaces.dark.shell };
-                          }
-                          if (selectedPresetMode === 'both' || selectedPresetMode === 'light') {
-                            nextSurfaces.light = preset.surfaces.light;
-                            nextBackground.light = { ...preset.surfaces.light.shell };
-                          }
-                          return {
-                            ...current,
-                            surfaces: nextSurfaces,
-                            background: nextBackground,
-                          };
-                        })
-                      }
-                    >
-                      {preset.label}
-                    </Button>
-                  ))}
-                </div>
+                <OptionGroup
+                  columns={3}
+                  presentation="choice-grid"
+                  value={activeThemeChoiceId}
+                  onChange={handleThemeChoiceChange}
+                  options={themeChoiceOptions}
+                />
               </div>
             </AccordionSection>
 
