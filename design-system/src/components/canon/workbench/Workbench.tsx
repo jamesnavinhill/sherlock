@@ -7,6 +7,7 @@ import {
   Sun,
   Moon,
   WandSparkles,
+  X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -101,9 +102,9 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
           >
             Reset
           </Button>
-          <Button variant="page" onClick={onClose}>
-            Close
-          </Button>
+          <button className="ds-page-icon-button" onClick={onClose} title="Close">
+            <X size={18} strokeWidth={2.5} />
+          </button>
         </div>
       </div>
 

@@ -219,6 +219,11 @@
   min-width: 0;
 }
 
+.ds-toolbar-select {
+  width: auto;
+  min-width: 11rem;
+}
+
 .ds-toolbar-cluster-actions {
   justify-content: flex-end;
 }

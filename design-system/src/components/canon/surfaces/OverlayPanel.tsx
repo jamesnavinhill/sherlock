@@ -45,14 +45,13 @@ export function OverlayPanel({
           <div className="ds-overlay-panel-actions">
             {actions}
             {onClose ? (
-              <Button
-                variant="icon"
-                size="sm"
-                className="ds-overlay-panel-close"
-                leadingIcon={<X size={14} />}
+              <button
+                className="ds-page-icon-button"
                 aria-label={closeLabel}
                 onClick={onClose}
-              />
+              >
+                <X size={18} strokeWidth={2.5} />
+              </button>
             ) : null}
           </div>
         ) : null}

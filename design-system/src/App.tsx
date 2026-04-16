@@ -153,7 +153,7 @@ const NAV_ITEMS = [
 const WORKSPACE_OPTIONS = [
   {
     value: 'workspace-a',
-    label: 'Operations Workspace',
+    label: 'Workspace',
   },
   {
     value: 'workspace-b',
@@ -403,19 +403,18 @@ export default function App() {
 
   const configurationPanel = ({ close }: { close: () => void }) => (
     <OverlayPanel
-      eyebrow="Config Surface"
       title="Workbench Configuration"
       onClose={close}
       footer={
         <div className="ds-overlay-actions">
-          <ToolbarCluster className="ds-wrap">
+          <div className="ds-toolbar-inline" style={{ justifyContent: 'flex-end', width: '100%' }}>
             <Button variant="secondary" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
               Reset Studio
             </Button>
             <Button variant="primary" onClick={close}>
               Done
             </Button>
-          </ToolbarCluster>
+          </div>
         </div>
       }
     >
@@ -562,18 +561,18 @@ export default function App() {
                 <>
                   <ToolbarCluster className="ds-toolbar-cluster-actions">
                     <PopoverButton
-                      label={<span className="ds-toolbar-responsive-label">Configure</span>}
                       leadingIcon={<SlidersHorizontal size={14} />}
                       triggerClassName="ds-toolbar-responsive-control"
                       panelClassName="ds-toolbar-popover"
+                      aria-label="Configure"
                     >
                       {configurationPanel}
                     </PopoverButton>
                     <MenuButton
-                      label={<span className="ds-toolbar-responsive-label">Export</span>}
                       leadingIcon={<Download size={14} />}
                       triggerClassName="ds-toolbar-responsive-control"
                       panelClassName="ds-toolbar-popover"
+                      aria-label="Export"
                       items={[
                         {
                           id: 'json',

@@ -132,6 +132,7 @@
   gap: 0.5rem;
   padding: 0 0.9rem;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ds-button-block {
@@ -254,6 +255,7 @@
 }
 
 .ds-primary-button {
+  border: 1px solid var(--ds-accent-border);
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
   box-shadow: 0 2px 6px -2px color-mix(in oklab, var(--ds-accent) 15%, transparent);
