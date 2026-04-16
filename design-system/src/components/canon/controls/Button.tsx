@@ -6,7 +6,6 @@ export type ButtonVariant =
   | 'primary'
   | 'secondary'
   | 'ghost'
-  | 'page'
   | 'toolbar'
   | 'danger'
   | 'icon';
@@ -17,7 +16,6 @@ const BUTTON_VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary: 'ds-primary-button',
   secondary: 'ds-secondary-button',
   ghost: 'ds-ghost-button',
-  page: 'ds-page-button',
   toolbar: 'ds-toolbar-button',
   danger: 'ds-danger-button',
   icon: 'ds-toolbar-icon-button',
@@ -47,12 +45,21 @@ export function Button({
   type = 'button',
   ...props
 }: ButtonProps) {
+  const hasVisibleLabel = !(
+    children === undefined ||
+    children === null ||
+    children === false ||
+    children === ''
+  );
+  const ghostIconOnly = variant === 'ghost' && !hasVisibleLabel && Boolean(leadingIcon || trailingIcon);
+
   return (
     <button
       type={type}
       className={cx(
         BUTTON_VARIANT_CLASS[variant],
         BUTTON_SIZE_CLASS[size],
+        ghostIconOnly && 'ds-ghost-button-icon-only',
         fullWidth && 'ds-button-block',
         className
       )}

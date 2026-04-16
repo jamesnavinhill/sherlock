@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { Button } from '../controls/Button';
+import { IconButton } from '../controls/IconButton';
 import { cx } from '../utils/cx';
 
 export interface PanelRailProps {
@@ -54,15 +54,13 @@ export function PanelRail({
           <div className="ds-rail-header-controls">
             {headerActions}
             {onCloseMobile ? (
-              <Button
-                variant="ghost"
-                size="sm"
+              <IconButton
+                appearance="ghost"
+                label="Close rail"
                 className="ds-rail-close"
-                leadingIcon={<X size={14} />}
+                icon={<X size={16} />}
                 onClick={onCloseMobile}
-              >
-                Close
-              </Button>
+              />
             ) : null}
           </div>
         </div>

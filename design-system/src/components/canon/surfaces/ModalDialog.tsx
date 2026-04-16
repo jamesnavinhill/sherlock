@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 
-import { Button } from '../controls/Button';
+import { IconButton } from '../controls/IconButton';
 
 export interface ModalDialogProps {
   open: boolean;
@@ -57,15 +57,12 @@ export function ModalDialog({
             <h2 className="ds-title-section">{title}</h2>
             {description ? <p className="ds-body-quiet">{description}</p> : null}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ds-modal-close"
-            leadingIcon={<X size={14} />}
+          <IconButton
+            appearance="ghost"
+            label={`Close ${title}`}
+            icon={<X size={16} />}
             onClick={onClose}
-          >
-            Close
-          </Button>
+          />
         </div>
         {children ? <div className="ds-modal-body">{children}</div> : null}
         {actions ? <div className="ds-modal-footer">{actions}</div> : null}

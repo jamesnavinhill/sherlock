@@ -86,14 +86,13 @@ export function SidebarNav({
           <div className="ds-sidebar-brand-actions">
             {headerActions}
             {onCloseMobile ? (
-              <button
-                type="button"
+              <IconButton
+                appearance="ghost"
                 className="ds-sidebar-close"
-                aria-label="Close navigation"
+                label="Close navigation"
+                icon={<X size={16} />}
                 onClick={onCloseMobile}
-              >
-                <X size={16} />
-              </button>
+              />
             ) : null}
           </div>
         ) : null}

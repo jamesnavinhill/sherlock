@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 import { cx } from '../utils/cx';
 
-type IconButtonAppearance = 'toolbar' | 'page';
+type IconButtonAppearance = 'toolbar' | 'ghost';
 
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
@@ -27,7 +27,7 @@ export function IconButton({
       <span
         aria-hidden="true"
         className={cx(
-          appearance === 'page' ? 'ds-page-icon-button' : 'ds-toolbar-icon-button',
+          appearance === 'ghost' ? 'ds-ghost-icon-button' : 'ds-toolbar-icon-button',
           className
         )}
       >
@@ -43,7 +43,7 @@ export function IconButton({
       title={label}
       data-active={active ? 'true' : undefined}
       className={cx(
-        appearance === 'page' ? 'ds-page-icon-button' : 'ds-toolbar-icon-button',
+        appearance === 'ghost' ? 'ds-ghost-icon-button' : 'ds-toolbar-icon-button',
         className
       )}
       {...props}

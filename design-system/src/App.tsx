@@ -439,7 +439,7 @@ export default function App() {
       footer={
         <div className="ds-overlay-actions">
           <div className="ds-toolbar-inline ds-flex-end ds-fill">
-            <Button variant="secondary" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
+            <Button variant="ghost" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
               Reset Studio
             </Button>
             <Button variant="primary" onClick={close}>

@@ -2,6 +2,7 @@ import { Search, X } from 'lucide-react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useId, useMemo, useRef, useState } from 'react';
 
+import { IconButton } from './IconButton';
 import { useDismissableLayer } from '../utils/useDismissableLayer';
 
 export interface SearchFieldProps<T> {
@@ -62,17 +63,15 @@ export function SearchField<T>({
           placeholder={placeholder}
         />
         {query ? (
-          <button
-            type="button"
-            className="ds-search-clear"
-            aria-label="Clear search"
+          <IconButton
+            appearance="ghost"
+            label="Clear search"
+            icon={<X size={14} />}
             onClick={() => {
               setQuery('');
               setOpen(false);
             }}
-          >
-            <X size={14} />
-          </button>
+          />
         ) : (
           <span className="ds-keycap">Ctrl K</span>
         )}

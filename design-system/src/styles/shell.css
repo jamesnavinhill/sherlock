@@ -173,7 +173,7 @@
 .ds-sidebar-nav-item[data-active='true'] {
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
-  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
+  box-shadow: var(--ds-shadow-accent-soft);
   outline: none;
 }
 
@@ -494,13 +494,6 @@
 
   .ds-sidebar-close {
     display: inline-flex !important;
-    width: 2rem;
-    height: 2rem;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--ds-radius-control);
-    border: 1px solid var(--ds-border-soft);
-    background: color-mix(in oklab, var(--ds-panel) 92%, transparent);
   }
 
   .ds-shell-main {

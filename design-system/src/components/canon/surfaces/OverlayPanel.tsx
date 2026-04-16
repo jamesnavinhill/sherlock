@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { Button } from '../controls/Button';
+import { IconButton } from '../controls/IconButton';
 import { cx } from '../utils/cx';
 
 export interface OverlayPanelProps {
@@ -45,13 +45,12 @@ export function OverlayPanel({
           <div className="ds-overlay-panel-actions">
             {actions}
             {onClose ? (
-              <button
-                className="ds-page-icon-button"
-                aria-label={closeLabel}
+              <IconButton
+                appearance="ghost"
+                label={closeLabel}
+                icon={<X size={18} strokeWidth={2.5} />}
                 onClick={onClose}
-              >
-                <X size={18} strokeWidth={2.5} />
-              </button>
+              />
             ) : null}
           </div>
         ) : null}

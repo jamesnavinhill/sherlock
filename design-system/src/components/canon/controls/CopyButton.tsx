@@ -10,11 +10,14 @@ export interface CopyButtonProps {
 
 export function CopyButton({ text, variant = 'toolbar' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+  const label = copied ? 'Copied to clipboard' : 'Copy to clipboard';
 
   return (
     <Button
       variant={variant}
       leadingIcon={<Copy size={14} />}
+      aria-label={label}
+      title={label}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text);

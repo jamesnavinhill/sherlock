@@ -66,6 +66,7 @@
   --ds-scanline-opacity: 0;
   --ds-shadow-soft: 0 16px 34px -28px rgba(0, 0, 0, 0.28);
   --ds-shadow-strong: 0 22px 42px -34px rgba(0, 0, 0, 0.42);
+  --ds-shadow-accent-soft: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
   --ds-border-soft: color-mix(in oklab, var(--ds-border) 70%, transparent);
   --ds-border-strong: color-mix(in oklab, var(--ds-border) 88%, var(--ds-ink) 12%);
   --ds-interaction-bg: color-mix(in oklab, var(--ds-panel) 88%, var(--ds-surface) 12%);

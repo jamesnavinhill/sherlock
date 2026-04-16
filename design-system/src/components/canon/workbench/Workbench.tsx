@@ -27,6 +27,7 @@ import {
 } from '../../../system/schema';
 import { Button } from '../controls/Button';
 import { CopyButton } from '../controls/CopyButton';
+import { IconButton } from '../controls/IconButton';
 import { RangeField } from '../controls/RangeField';
 import { NavTabs } from '../controls/NavTabs';
 import { SegmentedTabs } from '../controls/SegmentedTabs';
@@ -94,9 +95,12 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
     <aside className="ds-workbench">
       <div className="ds-workbench-header">
         <h2 className="ds-title-section">System Controls</h2>
-        <button className="ds-page-icon-button" onClick={onClose} title="Close">
-          <X size={18} strokeWidth={2.5} />
-        </button>
+        <IconButton
+          appearance="ghost"
+          label="Close system controls"
+          icon={<X size={18} strokeWidth={2.5} />}
+          onClick={onClose}
+        />
       </div>
 
       <NavTabs value={activeTab} onChange={setActiveTab} items={WORKBENCH_TABS} stretch />
@@ -116,7 +120,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -189,7 +193,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -267,7 +271,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -390,7 +394,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -507,7 +511,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -689,7 +693,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() => {
                     const defaultId = DEFAULT_THEME.typography[activeFontRole];
                     setTheme((current) => ({
@@ -856,7 +860,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -920,7 +924,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -1010,7 +1014,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -1052,7 +1056,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
               actions={
                 <Button
-                  variant="page"
+                  variant="ghost"
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
@@ -1124,7 +1128,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'tokens']
                 )
               }
-              actions={<CopyButton text={exportJson} variant="page" />}
+              actions={<CopyButton text={exportJson} variant="ghost" />}
             >
               <pre className="ds-code-block">
                 <code>{exportJson}</code>
@@ -1139,7 +1143,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   current.includes('css') ? current.filter((s) => s !== 'css') : [...current, 'css']
                 )
               }
-              actions={<CopyButton text={exportCss} variant="page" />}
+              actions={<CopyButton text={exportCss} variant="ghost" />}
             >
               <pre className="ds-code-block">
                 <code>{exportCss}</code>
