@@ -13,6 +13,7 @@ export interface AccordionSectionProps {
   className?: string;
   compact?: boolean;
   actions?: ReactNode;
+  showActionsWhenOpenOnly?: boolean;
   variant?: 'default' | 'nested';
   icon?: ReactNode;
 }
@@ -26,10 +27,12 @@ export function AccordionSection({
   className,
   compact = false,
   actions,
+  showActionsWhenOpenOnly = false,
   variant = 'default',
   icon,
 }: AccordionSectionProps) {
   const bodyId = useId();
+  const visibleActions = !actions || !showActionsWhenOpenOnly || isOpen ? actions : null;
 
   return (
     <section
@@ -41,26 +44,26 @@ export function AccordionSection({
       )}
       data-open={isOpen ? 'true' : 'false'}
     >
-    <div className={cx('ds-accordion-header', Boolean(actions) && 'ds-has-actions')}>
-      <button
-        type="button"
-        className="ds-accordion-trigger"
-        aria-expanded={isOpen}
-        aria-controls={bodyId}
-        onClick={onToggle}
-      >
-        <span className="ds-accordion-leading">
-          {variant !== 'nested' && (isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />)}
-          {icon && <span className="ds-accordion-icon">{icon}</span>}
-          <span className="ds-accordion-title">{title}</span>
-        </span>
-        <span className="ds-accordion-trailing">
-          {meta ? <span className="ds-meta-label">{meta}</span> : null}
-          {variant === 'nested' && (isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />)}
-        </span>
-      </button>
-      {actions && <div className="ds-accordion-actions">{actions}</div>}
-    </div>
+      <div className={cx('ds-accordion-header', Boolean(visibleActions) && 'ds-has-actions')}>
+        <button
+          type="button"
+          className="ds-accordion-trigger"
+          aria-expanded={isOpen}
+          aria-controls={bodyId}
+          onClick={onToggle}
+        >
+          <span className="ds-accordion-leading">
+            {variant !== 'nested' && (isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />)}
+            {icon && <span className="ds-accordion-icon">{icon}</span>}
+            <span className="ds-accordion-title">{title}</span>
+          </span>
+          <span className="ds-accordion-trailing">
+            {meta ? <span className="ds-meta-label">{meta}</span> : null}
+            {variant === 'nested' && (isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />)}
+          </span>
+        </button>
+        {visibleActions ? <div className="ds-accordion-actions">{visibleActions}</div> : null}
+      </div>
       {isOpen ? (
         <div className="ds-accordion-body" id={bodyId}>
           {children}

@@ -1,22 +1,12 @@
 import {
-  BrushCleaning,
-  LayoutPanelTop,
-  Palette,
-  Pilcrow,
-  RefreshCw,
-  Sun,
-  Moon,
-  WandSparkles,
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { buildThemeCssText } from '../../../system/cssVars';
+import { buildThemeCssText, buildThemeCssVars } from '../../../system/cssVars';
 import {
   BACKGROUND_VARIANTS,
   DEFAULT_THEME,
-  FONT_OPTIONS,
-  FONT_ROLE_LABELS,
   SURFACE_PRESETS,
   cloneTheme,
   createDefaultGraphs,
@@ -47,6 +37,29 @@ const WORKBENCH_TABS: Array<{ id: WorkbenchTab; label: string }> = [
 const round = (value: number, digits = 3) => Number(value.toFixed(digits));
 
 const buildExportJson = (theme: StudioTheme) => JSON.stringify(theme, null, 2);
+const buildColorThemeJson = (theme: StudioTheme) =>
+  JSON.stringify(
+    {
+      mode: theme.mode,
+      accent: theme.accent,
+      graphs: theme.graphs,
+      surfaces: theme.surfaces,
+      background: theme.background,
+    },
+    null,
+    2
+  );
+const splitColorReadout = (value: string) => {
+  const match = /^([a-z-]+)\((.*)\)$/.exec(value.trim());
+  if (!match) {
+    return { value, label: '' };
+  }
+
+  return {
+    value: match[2],
+    label: match[1],
+  };
+};
 
 export interface WorkbenchProps {
   isOpen: boolean;
@@ -89,7 +102,13 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const selectedSurface = theme.surfaces[selectedSurfaceMode][selectedSurfaceKey];
   const selectedFontIds = getSelectedFontIds(theme);
   const exportJson = buildExportJson(theme);
+  const colorThemeJson = buildColorThemeJson(theme);
   const exportCss = buildThemeCssText(theme);
+  const themeCssVars = buildThemeCssVars(theme);
+  const accentReadout = splitColorReadout(themeCssVars['--ds-accent']);
+  const backgroundReadout = splitColorReadout(themeCssVars['--ds-bg']);
+  const panelReadout = splitColorReadout(themeCssVars['--ds-panel']);
+  const surfaceReadout = splitColorReadout(themeCssVars['--ds-surface']);
 
   return (
     <aside className="ds-workbench">
@@ -118,6 +137,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'templates']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -140,6 +160,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   <SegmentedTabs
                     value={selectedPresetMode}
                     onChange={(v) => setSelectedPresetMode(v as any)}
+                    size="compact"
                     items={[
                       { id: 'both', label: 'Both' },
                       { id: 'dark', label: 'Dark Only' },
@@ -153,7 +174,6 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     <Button
                       key={preset.id}
                       variant="secondary"
-                      size="compact"
                       data-active={
                         selectedPresetMode === 'both'
                           ? JSON.stringify(theme.surfaces) === JSON.stringify(preset.surfaces)
@@ -191,6 +211,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'accent']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -269,6 +290,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'graphs']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -392,6 +414,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'background']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -509,6 +532,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'surfaces']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -691,6 +715,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'roles']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -717,6 +742,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                 <SegmentedTabs
                   value={activeFontRole}
                   onChange={(value) => setActiveFontRole(value as FontRole)}
+                  size="compact"
                   items={[
                     { id: 'ui', label: 'UI' },
                     { id: 'display', label: 'Display' },
@@ -858,6 +884,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'globals']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -922,6 +949,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'geometry']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -1012,6 +1040,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'rendering']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -1054,6 +1083,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'radius']
                 )
               }
+              showActionsWhenOpenOnly
               actions={
                 <Button
                   variant="ghost"
@@ -1128,6 +1158,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'tokens']
                 )
               }
+              showActionsWhenOpenOnly
               actions={<CopyButton text={exportJson} variant="ghost" />}
             >
               <pre className="ds-code-block">
@@ -1143,6 +1174,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   current.includes('css') ? current.filter((s) => s !== 'css') : [...current, 'css']
                 )
               }
+              showActionsWhenOpenOnly
               actions={<CopyButton text={exportCss} variant="ghost" />}
             >
               <pre className="ds-code-block">
@@ -1160,28 +1192,33 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     : [...current, 'swatches']
                 )
               }
-              actions={<Palette size={14} />}
+              showActionsWhenOpenOnly
+              actions={<CopyButton text={colorThemeJson} variant="ghost" />}
             >
               <div className="ds-token-grid">
                 <TokenSwatch
                   label="Accent"
                   style={{ background: 'var(--ds-accent)' }}
-                  meta="Accent"
+                  readoutValue={accentReadout.value}
+                  readoutLabel={accentReadout.label}
                 />
                 <TokenSwatch
                   label="Background"
                   style={{ background: `var(--ds-bg)` }}
-                  meta={theme.mode}
+                  readoutValue={backgroundReadout.value}
+                  readoutLabel={backgroundReadout.label}
                 />
                 <TokenSwatch
                   label="Panel"
                   style={{ background: `var(--ds-panel)` }}
-                  meta={theme.mode}
+                  readoutValue={panelReadout.value}
+                  readoutLabel={panelReadout.label}
                 />
                 <TokenSwatch
                   label="Surface"
                   style={{ background: `var(--ds-surface)` }}
-                  meta={theme.mode}
+                  readoutValue={surfaceReadout.value}
+                  readoutLabel={surfaceReadout.label}
                 />
               </div>
             </AccordionSection>

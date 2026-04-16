@@ -390,12 +390,19 @@ const createDefaultProfiles = (): Record<string, FontFamilyProfile> =>
   Object.fromEntries(
     FONT_OPTIONS.map((font) => [
       font.id,
-      {
-        sizeAdjust: 0,
-        weightAdjust: 0,
-        trackingAdjust: 0,
-        leadingAdjust: 0,
-      },
+      font.id === 'source-code-pro'
+        ? {
+            sizeAdjust: -0.1,
+            weightAdjust: -100,
+            trackingAdjust: 0,
+            leadingAdjust: -0.1,
+          }
+        : {
+            sizeAdjust: 0,
+            weightAdjust: 0,
+            trackingAdjust: 0,
+            leadingAdjust: 0,
+          },
     ])
   );
 
@@ -431,7 +438,7 @@ export const DEFAULT_THEME: StudioTheme = {
     ui: 'work-sans',
     display: 'work-sans',
     label: 'ibm-plex-mono',
-    mono: 'ibm-plex-mono',
+    mono: 'source-code-pro',
     size: -0.15,
     weight: -0.1,
     profiles: createDefaultProfiles(),

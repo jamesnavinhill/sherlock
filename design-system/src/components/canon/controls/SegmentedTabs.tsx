@@ -5,6 +5,7 @@ interface TabsProps<T extends string> {
   onChange: (value: T) => void;
   items: ReadonlyArray<{ id: T; label: string }>;
   stretch?: boolean;
+  size?: 'default' | 'compact';
 }
 
 export function SegmentedTabs<T extends string>({
@@ -12,9 +13,16 @@ export function SegmentedTabs<T extends string>({
   onChange,
   items,
   stretch = false,
+  size = 'default',
 }: TabsProps<T>) {
   return (
-    <div className={cx('ds-segmented-tabs', stretch && 'ds-segmented-tabs-stretch')}>
+    <div
+      className={cx(
+        'ds-segmented-tabs',
+        stretch && 'ds-segmented-tabs-stretch',
+        size === 'compact' && 'ds-segmented-tabs-compact'
+      )}
+    >
       {items.map((item) => (
         <button
           key={item.id}

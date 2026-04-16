@@ -457,6 +457,10 @@
   grid-auto-columns: 1fr;
 }
 
+.ds-segmented-tabs-compact {
+  gap: 0.5rem;
+}
+
 .ds-segmented-tab {
   min-width: 0;
   min-height: 2.35rem;
@@ -486,6 +490,12 @@
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
   box-shadow: var(--ds-shadow-accent-soft);
+}
+
+.ds-segmented-tabs-compact .ds-segmented-tab {
+  min-height: 1.7rem;
+  padding-inline: 0.65rem;
+  font-size: calc(var(--ds-type-xs) * var(--ds-ui-scale));
 }
 
 .ds-accordion {
@@ -695,6 +705,17 @@
 .ds-token-swatch-copy {
   display: grid;
   gap: 0.2rem;
+  min-width: 0;
+}
+
+.ds-token-swatch-readout {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-token-swatch-format {
+  white-space: nowrap;
 }
 
 .ds-field-row {
