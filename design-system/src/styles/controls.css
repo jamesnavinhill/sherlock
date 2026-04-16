@@ -342,7 +342,6 @@
   max-width: 100%;
   right: auto;
   overflow-y: auto;
-  scrollbar-gutter: stable;
 }
 
 .ds-search-results {
