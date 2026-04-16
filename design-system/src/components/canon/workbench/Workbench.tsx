@@ -1066,20 +1066,6 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             >
               <div className="ds-stack">
                 <RangeField
-                  label="Shell Radius"
-                  value={theme.radii.shell}
-                  onChange={(value) =>
-                    setTheme((current) => ({
-                      ...current,
-                      radii: { ...current.radii, shell: value },
-                    }))
-                  }
-                  min={0}
-                  max={24}
-                  step={1}
-                  format={(value) => `${Math.round(value)}px`}
-                />
-                <RangeField
                   label="Panel Radius"
                   value={theme.radii.panel}
                   onChange={(value) =>

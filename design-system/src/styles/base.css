@@ -45,14 +45,14 @@
   --ds-display-leading: 1.08;
   --ds-label-leading: 1.2;
   --ds-mono-leading: 1.6;
-  --ds-radius-shell: 5px;
-  --ds-radius-panel: 5px;
-  --ds-radius-control: 5px;
-  --ds-radius-pill: 5px;
-  --ds-sidebar-width: 248px;
+  --ds-radius-shell: 0px;
+  --ds-radius-panel: 3px;
+  --ds-radius-control: 4px;
+  --ds-radius-pill: 8px;
+  --ds-sidebar-width: 220px;
   --ds-sidebar-collapsed-width: 5.25rem;
-  --ds-rail-width: 320px;
-  --ds-toolbar-height: 78px;
+  --ds-rail-width: 300px;
+  --ds-toolbar-height: 72px;
   --ds-content-width: 980px;
   --ds-density: 1;
   --ds-background-image: radial-gradient(

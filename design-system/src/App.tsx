@@ -76,12 +76,40 @@ const LEGACY_RADIUS_DEFAULTS = {
   control: 12,
   pill: 999,
 } as const;
+const PREVIOUS_RADIUS_DEFAULTS = {
+  shell: 5,
+  panel: 5,
+  control: 5,
+  pill: 5,
+} as const;
+const PREVIOUS_SHELL_DEFAULTS = {
+  sidebarWidth: 248,
+  railWidth: 320,
+  toolbarHeight: 78,
+  contentWidth: 980,
+  density: 1,
+  surfaceOpacity: 1,
+} as const;
 
 const hasLegacyRadiusDefaults = (radii: Partial<StudioTheme['radii']> | undefined) =>
   radii?.shell === LEGACY_RADIUS_DEFAULTS.shell &&
   radii?.panel === LEGACY_RADIUS_DEFAULTS.panel &&
   radii?.control === LEGACY_RADIUS_DEFAULTS.control &&
   radii?.pill === LEGACY_RADIUS_DEFAULTS.pill;
+
+const hasPreviousRadiusDefaults = (radii: Partial<StudioTheme['radii']> | undefined) =>
+  radii?.shell === PREVIOUS_RADIUS_DEFAULTS.shell &&
+  radii?.panel === PREVIOUS_RADIUS_DEFAULTS.panel &&
+  radii?.control === PREVIOUS_RADIUS_DEFAULTS.control &&
+  radii?.pill === PREVIOUS_RADIUS_DEFAULTS.pill;
+
+const hasPreviousShellDefaults = (shell: Partial<StudioTheme['shell']> | undefined) =>
+  shell?.sidebarWidth === PREVIOUS_SHELL_DEFAULTS.sidebarWidth &&
+  shell?.railWidth === PREVIOUS_SHELL_DEFAULTS.railWidth &&
+  shell?.toolbarHeight === PREVIOUS_SHELL_DEFAULTS.toolbarHeight &&
+  shell?.contentWidth === PREVIOUS_SHELL_DEFAULTS.contentWidth &&
+  shell?.density === PREVIOUS_SHELL_DEFAULTS.density &&
+  shell?.surfaceOpacity === PREVIOUS_SHELL_DEFAULTS.surfaceOpacity;
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() =>
@@ -247,10 +275,13 @@ const loadTheme = (): StudioTheme => {
         light: { ...nextTheme.surfaces.light, ...parsed.surfaces?.light },
       },
       graphs: parsed.graphs ?? createDefaultGraphs(parsed.accent ?? nextTheme.accent),
-      shell: { ...nextTheme.shell, ...parsed.shell },
-      radii: hasLegacyRadiusDefaults(parsed.radii)
-        ? { ...nextTheme.radii }
-        : { ...nextTheme.radii, ...parsed.radii },
+      shell: hasPreviousShellDefaults(parsed.shell)
+        ? { ...nextTheme.shell }
+        : { ...nextTheme.shell, ...parsed.shell },
+      radii:
+        hasLegacyRadiusDefaults(parsed.radii) || hasPreviousRadiusDefaults(parsed.radii)
+          ? { ...nextTheme.radii }
+          : { ...nextTheme.radii, ...parsed.radii, shell: nextTheme.radii.shell },
     } as StudioTheme;
   } catch {
     return cloneTheme(DEFAULT_THEME);
