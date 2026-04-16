@@ -13,6 +13,8 @@ export interface AccordionSectionProps {
   className?: string;
   compact?: boolean;
   actions?: ReactNode;
+  variant?: 'default' | 'nested';
+  icon?: ReactNode;
 }
 
 export function AccordionSection({
@@ -24,12 +26,19 @@ export function AccordionSection({
   className,
   compact = false,
   actions,
+  variant = 'default',
+  icon,
 }: AccordionSectionProps) {
   const bodyId = useId();
 
   return (
     <section
-      className={cx('ds-accordion', compact && 'ds-accordion-compact', className)}
+      className={cx(
+        'ds-accordion',
+        compact && 'ds-accordion-compact',
+        variant === 'nested' && 'ds-accordion-nested',
+        className
+      )}
       data-open={isOpen ? 'true' : 'false'}
     >
     <div className={cx('ds-accordion-header', Boolean(actions) && 'ds-has-actions')}>
@@ -41,11 +50,13 @@ export function AccordionSection({
         onClick={onToggle}
       >
         <span className="ds-accordion-leading">
-          {isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-          <span>{title}</span>
+          {variant !== 'nested' && (isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />)}
+          {icon && <span className="ds-accordion-icon">{icon}</span>}
+          <span className="ds-accordion-title">{title}</span>
         </span>
         <span className="ds-accordion-trailing">
           {meta ? <span className="ds-meta-label">{meta}</span> : null}
+          {variant === 'nested' && (isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />)}
         </span>
       </button>
       {actions && <div className="ds-accordion-actions">{actions}</div>}

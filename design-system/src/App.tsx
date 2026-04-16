@@ -57,6 +57,7 @@ import {
   Workbench,
   WorkflowDialog,
   useExclusiveDisclosure,
+  useDisclosureSet,
   type TranscriptMessage,
 } from './components/canon';
 import { buildThemeCssVars } from './system/cssVars';
@@ -297,6 +298,10 @@ export default function App() {
   const leftSections = useExclusiveDisclosure<'inventory' | 'filters' | 'saved'>(null);
   const rightSections = useExclusiveDisclosure<'details' | 'states' | 'tokens'>(null);
   const controlSections = useExclusiveDisclosure<'accordion' | 'modal' | 'mobile'>(null);
+  
+  const inventoryItems = useDisclosureSet<'pageShell' | 'rails' | 'menus'>();
+  const savedItems = useDisclosureSet<'coverage' | 'export'>();
+  const detailItems = useDisclosureSet<'generalRail' | 'collapsibles'>();
 
   const setTheme = (updater: (current: StudioTheme) => StudioTheme) => {
     setThemeState((current) => updater(current));
@@ -565,6 +570,7 @@ export default function App() {
                       triggerClassName="ds-toolbar-responsive-control"
                       panelClassName="ds-toolbar-popover"
                       aria-label="Configure"
+                      label=""
                     >
                       {configurationPanel}
                     </PopoverButton>
@@ -573,6 +579,7 @@ export default function App() {
                       triggerClassName="ds-toolbar-responsive-control"
                       panelClassName="ds-toolbar-popover"
                       aria-label="Export"
+                      label=""
                       items={[
                         {
                           id: 'json',
@@ -625,36 +632,41 @@ export default function App() {
               isOpen={leftSections.isOpen('inventory')}
               onToggle={() => leftSections.toggle('inventory')}
             >
-              <button type="button" className="ds-list-item" data-active="true">
-                <Workflow size={16} />
-                <span className="ds-list-item-stack">
-                  <span className="ds-title-inline">Page Shell</span>
-                  <span className="ds-body-quiet">
-                    Reusable app frame with mobile drawer remap.
-                  </span>
-                </span>
-                <ChevronRight size={15} />
-              </button>
-              <button type="button" className="ds-list-item">
-                <FolderKanban size={16} />
-                <span className="ds-list-item-stack">
-                  <span className="ds-title-inline">Rails</span>
-                  <span className="ds-body-quiet">
-                    Left library and right inspector share one canon component.
-                  </span>
-                </span>
-                <ChevronRight size={15} />
-              </button>
-              <button type="button" className="ds-list-item">
-                <SearchCode size={16} />
-                <span className="ds-list-item-stack">
-                  <span className="ds-title-inline">Menus + Selectors</span>
-                  <span className="ds-body-quiet">
-                    Unified popover contract for actions and configuration.
-                  </span>
-                </span>
-                <ChevronRight size={15} />
-              </button>
+              <AccordionSection
+                variant="nested"
+                title="Page Shell"
+                icon={<Workflow size={16} />}
+                isOpen={inventoryItems.isOpen('pageShell')}
+                onToggle={() => inventoryItems.toggle('pageShell')}
+              >
+                <div className="ds-body-quiet">
+                  Reusable app frame with mobile drawer remap.
+                </div>
+              </AccordionSection>
+              
+              <AccordionSection
+                variant="nested"
+                title="Rails"
+                icon={<FolderKanban size={16} />}
+                isOpen={inventoryItems.isOpen('rails')}
+                onToggle={() => inventoryItems.toggle('rails')}
+              >
+                <div className="ds-body-quiet">
+                  Left library and right inspector share one canon component.
+                </div>
+              </AccordionSection>
+              
+              <AccordionSection
+                variant="nested"
+                title="Menus + Selectors"
+                icon={<SearchCode size={16} />}
+                isOpen={inventoryItems.isOpen('menus')}
+                onToggle={() => inventoryItems.toggle('menus')}
+              >
+                <div className="ds-body-quiet">
+                  Unified popover contract for actions and configuration.
+                </div>
+              </AccordionSection>
             </AccordionSection>
 
             <AccordionSection
@@ -663,10 +675,10 @@ export default function App() {
               isOpen={leftSections.isOpen('filters')}
               onToggle={() => leftSections.toggle('filters')}
             >
-              <div className="ds-chip-grid">
+              <div style={{ display: 'grid', gap: '0.25rem' }}>
                 {['Shell', 'Toolbars', 'Rails', 'Conversation', 'Typography'].map((item) => (
-                  <button key={item} type="button" className="ds-filter-chip">
-                    {item}
+                  <button key={item} type="button" className="ds-list-item ds-list-item-sm">
+                    <span className="ds-title-inline">{item}</span>
                   </button>
                 ))}
               </div>
@@ -678,14 +690,29 @@ export default function App() {
               isOpen={leftSections.isOpen('saved')}
               onToggle={() => leftSections.toggle('saved')}
             >
-              <PanelNote title="Shell Coverage" meta={<Badge variant="accent">Current</Badge>}>
-                Page shell, rails, toolbar, buttons, badges, selectors, modal, composer, transcript,
-                and accordions are all now represented as canon components.
-              </PanelNote>
-              <PanelNote title="Next Export">
-                Once the reference project settles, the `canon` folder can move out as the package
-                seed without Sherlock runtime imports.
-              </PanelNote>
+              <AccordionSection
+                variant="nested"
+                title="Shell Coverage"
+                meta={<Badge variant="accent">Current</Badge>}
+                isOpen={savedItems.isOpen('coverage')}
+                onToggle={() => savedItems.toggle('coverage')}
+              >
+                <div className="ds-body-quiet">
+                  Page shell, rails, toolbar, buttons, badges, selectors, modal, composer, transcript,
+                  and accordions are all now represented as canon components.
+                </div>
+              </AccordionSection>
+              <AccordionSection
+                variant="nested"
+                title="Next Export"
+                isOpen={savedItems.isOpen('export')}
+                onToggle={() => savedItems.toggle('export')}
+              >
+                <div className="ds-body-quiet">
+                  Once the reference project settles, the `canon` folder can move out as the package
+                  seed without Sherlock runtime imports.
+                </div>
+              </AccordionSection>
             </AccordionSection>
           </PanelRail>
         }
@@ -715,14 +742,28 @@ export default function App() {
               isOpen={rightSections.isOpen('details')}
               onToggle={() => rightSections.toggle('details')}
             >
-              <PanelNote title="General Rail">
-                One `PanelRail` handles library and inspector placement, which keeps the shell canon
-                smaller and easier to export.
-              </PanelNote>
-              <PanelNote title="Working Collapsibles">
-                The studio now uses shared toggle hooks, so the rail sections and component demo
-                accordions can actually open and close.
-              </PanelNote>
+              <AccordionSection
+                variant="nested"
+                title="General Rail"
+                isOpen={detailItems.isOpen('generalRail')}
+                onToggle={() => detailItems.toggle('generalRail')}
+              >
+                <div className="ds-body-quiet">
+                  One `PanelRail` handles library and inspector placement, which keeps the shell canon
+                  smaller and easier to export.
+                </div>
+              </AccordionSection>
+              <AccordionSection
+                variant="nested"
+                title="Working Collapsibles"
+                isOpen={detailItems.isOpen('collapsibles')}
+                onToggle={() => detailItems.toggle('collapsibles')}
+              >
+                <div className="ds-body-quiet">
+                  The studio now uses shared toggle hooks, so the rail sections and component demo
+                  accordions can actually open and close.
+                </div>
+              </AccordionSection>
             </AccordionSection>
 
             <AccordionSection
@@ -731,9 +772,11 @@ export default function App() {
               isOpen={rightSections.isOpen('states')}
               onToggle={() => rightSections.toggle('states')}
             >
-              <div className="ds-chip-grid">
+              <div style={{ display: 'grid', gap: '0.25rem' }}>
                 {['Default', 'Hover', 'Active', 'Pinned'].map((item) => (
-                  <Badge key={item}>{item}</Badge>
+                  <button key={item} type="button" className="ds-list-item ds-list-item-sm">
+                    <span className="ds-title-inline">{item}</span>
+                  </button>
                 ))}
               </div>
             </AccordionSection>
