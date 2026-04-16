@@ -63,7 +63,7 @@
   --ds-shell-header-height: var(--ds-toolbar-height);
   --ds-shell-header-padding-inline: 1.25rem;
   --ds-shell-header-padding-block: 1rem;
-  --ds-shell-subrow-padding-block: 0.75rem;
+  --ds-shell-subrow-padding-block: 0.5rem;
   --ds-content-width: 980px;
   --ds-density: 1;
   --ds-modal-width-sm: 28rem;

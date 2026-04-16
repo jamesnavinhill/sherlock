@@ -1382,7 +1382,6 @@ export default function App() {
       <ModalDialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        eyebrow="Modal"
         title="Component Review"
         actions={
           <ToolbarCluster className="ds-modal-actions">
@@ -1418,9 +1417,7 @@ export default function App() {
         open={modelessModalOpen}
         onClose={() => setModelessModalOpen(false)}
         presentation="modeless"
-        eyebrow="Modeless"
         title="Docked System Panel"
-        description="This uses the shared dialog shell without blocking the rest of the studio."
         actions={
           <ToolbarCluster className="ds-modal-actions">
             <Button variant="secondary" onClick={() => setModelessModalOpen(false)}>
@@ -1445,7 +1442,6 @@ export default function App() {
       <WorkflowDialog
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}
-        eyebrow="Workflow"
         title="Start Artifact Flow"
         actions={<Badge variant="accent">Structured Launch</Badge>}
         footer={
