@@ -37,8 +37,11 @@ import {
   ContentSection,
   ConfigPanel,
   ConfigPanelSection,
+  CodeBlock,
   DateRangePicker,
   EmptyStateCard,
+  Eyebrow,
+  Heading,
   ListActionGroup,
   MenuButton,
   MetricGrid,
@@ -59,6 +62,7 @@ import {
   SidebarAction,
   SidebarNav,
   SurfaceCard,
+  Text,
   Toast,
   ToastStack,
   ToolbarBar,
@@ -545,16 +549,20 @@ export default function App() {
           id: 'page-shell',
           title: 'Page Shell',
           icon: <Workflow size={16} />,
-          content: <div className="ds-body-quiet">Reusable app frame with mobile drawer remap.</div>,
+          content: (
+            <Text as="div" variant="quiet">
+              Reusable app frame with mobile drawer remap.
+            </Text>
+          ),
         },
         {
           id: 'rails',
           title: 'Rails',
           icon: <FolderKanban size={16} />,
           content: (
-            <div className="ds-body-quiet">
+            <Text as="div" variant="quiet">
               Left library and right inspector share one canon component.
-            </div>
+            </Text>
           ),
         },
         {
@@ -562,9 +570,9 @@ export default function App() {
           title: 'Menus + Selectors',
           icon: <SearchCode size={16} />,
           content: (
-            <div className="ds-body-quiet">
+            <Text as="div" variant="quiet">
               Unified popover contract for actions and configuration.
-            </div>
+            </Text>
           ),
         },
       ],
@@ -593,20 +601,20 @@ export default function App() {
           title: 'Shell Coverage',
           meta: <Badge variant="accent">Current</Badge>,
           content: (
-            <div className="ds-body-quiet">
+            <Text as="div" variant="quiet">
               Page shell, rails, toolbar, buttons, badges, selectors, modal, composer, transcript,
               and accordions are all now represented as canon components.
-            </div>
+            </Text>
           ),
         },
         {
           id: 'export',
           title: 'Next Export',
           content: (
-            <div className="ds-body-quiet">
+            <Text as="div" variant="quiet">
               Once the reference project settles, the `canon` folder can move out as the package
               seed without application runtime imports.
-            </div>
+            </Text>
           ),
         },
       ],
@@ -623,20 +631,20 @@ export default function App() {
           id: 'general-rail',
           title: 'General Rail',
           content: (
-            <div className="ds-body-quiet">
+            <Text as="div" variant="quiet">
               One `PanelRail` handles library and inspector placement, which keeps the shell canon
               smaller and easier to export.
-            </div>
+            </Text>
           ),
         },
         {
           id: 'collapsibles',
           title: 'Working Collapsibles',
           content: (
-            <div className="ds-body-quiet">
+            <Text as="div" variant="quiet">
               The studio now uses shared toggle hooks, so the rail sections and reference
               accordions can actually open and close.
-            </div>
+            </Text>
           ),
         },
       ],
@@ -924,8 +932,8 @@ export default function App() {
             </div>
 
             <div className="ds-page-title-section ds-stack-sm">
-              <div className="ds-meta-label">Studio Page</div>
-              <h1 className="ds-title-page">Reusable shell and component canon</h1>
+              <Eyebrow as="div">Studio Page</Eyebrow>
+              <Heading level="page">Reusable shell and component canon</Heading>
             </div>
 
             {galleryTab === 'shell' ? (
@@ -1259,16 +1267,16 @@ export default function App() {
                 <SurfaceCard title="State Cards" eyebrow="Surface">
                   <div className="ds-state-grid">
                     <div className="ds-state-card">
-                      <span className="ds-meta-label">Default</span>
-                      <span className="ds-body-quiet">Resting surface treatment</span>
+                      <Eyebrow>Default</Eyebrow>
+                      <Text as="span" variant="quiet">Resting surface treatment</Text>
                     </div>
                     <div className="ds-state-card" data-tone="hover">
-                      <span className="ds-meta-label">Hover</span>
-                      <span className="ds-body-quiet">Interaction hover state</span>
+                      <Eyebrow>Hover</Eyebrow>
+                      <Text as="span" variant="quiet">Interaction hover state</Text>
                     </div>
                     <div className="ds-state-card" data-tone="active">
-                      <span className="ds-meta-label">Active</span>
-                      <span className="ds-body-quiet">Selection and focus state</span>
+                      <Eyebrow>Active</Eyebrow>
+                      <Text as="span" variant="quiet">Selection and focus state</Text>
                     </div>
                   </div>
                 </SurfaceCard>
@@ -1301,10 +1309,10 @@ export default function App() {
                   }
                 >
                   <div className="ds-stack">
-                    <p className="ds-body-quiet">
+                    <Text variant="quiet">
                       Toasts now sit in the reusable surfaces family and use the existing graph
                       palette instead of introducing separate notification colors.
-                    </p>
+                    </Text>
                     {toastPreviewItems.length ? (
                       <ToastStack placement="inline">
                         {toastPreviewItems.map((item) => (
@@ -1371,19 +1379,17 @@ export default function App() {
             {galleryTab === 'typography' ? (
               <ResponsiveGrid className="ds-showcase-grid-wide">
                 <SurfaceCard title="Type Hierarchy" eyebrow="Typography">
-                  <div className="ds-type-stack">
-                    <div className="ds-type-eyebrow">Operational System</div>
-                    <h2 className="ds-type-display">
+                  <div className="ds-stack">
+                    <Eyebrow as="div">Operational System</Eyebrow>
+                    <Heading level="display">
                       Signal review stays sharp without becoming decorative.
-                    </h2>
-                    <p className="ds-type-body">
+                    </Heading>
+                    <Text>
                       The canon system keeps the same editorial, controlled tone, but the typography
                       settings are now surfaced through reusable cards and selectors instead of
                       buried in page-specific markup.
-                    </p>
-                    <pre className="ds-type-mono">
-                      <code>{`accent=${Math.round(theme.accent.hue)}\nvariant=${theme.background.variant}\nmode=${theme.mode}`}</code>
-                    </pre>
+                    </Text>
+                    <CodeBlock>{`accent=${Math.round(theme.accent.hue)}\nvariant=${theme.background.variant}\nmode=${theme.mode}`}</CodeBlock>
                   </div>
                 </SurfaceCard>
 
@@ -1527,7 +1533,7 @@ export default function App() {
               options={WORKSPACE_OPTIONS}
             />
             <div className="ds-stack">
-              <span className="ds-meta-label">Delivery Shape</span>
+              <Eyebrow>Delivery Shape</Eyebrow>
               <SegmentedTabs
                 value={flowOutput}
                 onChange={setFlowOutput}
@@ -1544,7 +1550,7 @@ export default function App() {
         >
           <ResponsiveGrid minWidth="16rem">
             <div className="ds-stack">
-              <span className="ds-meta-label">Investigation Depth</span>
+              <Eyebrow>Investigation Depth</Eyebrow>
               <SegmentedTabs
                 value={flowDepth}
                 onChange={setFlowDepth}

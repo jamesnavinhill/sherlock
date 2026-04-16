@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { Eyebrow, MetaValue } from '../typography';
+
 export interface MetricGridProps {
   items: Array<{ label: string; value: ReactNode }>;
 }
@@ -9,8 +11,8 @@ export function MetricGrid({ items }: MetricGridProps) {
     <div className="ds-token-pairs">
       {items.map((item) => (
         <div key={item.label}>
-          <div className="ds-meta-label">{item.label}</div>
-          <div className="ds-meta-value">{item.value}</div>
+          <Eyebrow as="div">{item.label}</Eyebrow>
+          <MetaValue as="div">{item.value}</MetaValue>
         </div>
       ))}
     </div>

@@ -116,6 +116,16 @@ export type {
   WorkflowDialogProps,
   WorkflowDialogSize,
 } from './surfaces';
+export { CodeBlock, Eyebrow, Heading, MetaValue, Text } from './typography';
+export type {
+  CodeBlockProps,
+  EyebrowProps,
+  HeadingLevel,
+  HeadingProps,
+  MetaValueProps,
+  TextProps,
+  TextVariant,
+} from './typography';
 export { ConfigPanel, ConfigPanelSection, Workbench } from './workbench';
 export type {
   ConfigPanelProps,

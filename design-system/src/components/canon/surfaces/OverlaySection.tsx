@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 
 export interface OverlaySectionProps {
@@ -23,8 +24,8 @@ export function OverlaySection({
     <section className={cx('ds-overlay-section', className)} data-tone={tone}>
       <header className="ds-overlay-section-header">
         <div className="ds-overlay-section-copy">
-          <div className="ds-title-inline">{title}</div>
-          {description ? <p className="ds-body-quiet">{description}</p> : null}
+          <Heading level="inline">{title}</Heading>
+          {description ? <Text variant="quiet">{description}</Text> : null}
         </div>
         {meta ? <div className="ds-overlay-section-meta">{meta}</div> : null}
       </header>

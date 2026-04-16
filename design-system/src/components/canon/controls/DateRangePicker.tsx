@@ -1,6 +1,7 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
+import { Eyebrow, Heading, Text } from '../typography';
 import { Button, type ButtonVariant } from './Button';
 import { PopupSurface } from './PopupSurface';
 import { useDismissableLayer } from '../utils/useDismissableLayer';
@@ -154,7 +155,7 @@ export function DateRangePicker({
       )}
       ref={rootRef}
     >
-      {showFieldLabel ? <span className="ds-meta-label">{label}</span> : null}
+      {showFieldLabel ? <Eyebrow>{label}</Eyebrow> : null}
       <Button
         variant={triggerVariant}
         className={cx(
@@ -185,8 +186,10 @@ export function DateRangePicker({
         >
           <div className="ds-overlay-panel-header ds-date-range-header">
             <div className="ds-overlay-panel-copy ds-date-range-copy">
-              <span className="ds-meta-label">Date Range</span>
-              <span className="ds-title-inline">{draftLabel}</span>
+              <Eyebrow>Date Range</Eyebrow>
+              <Heading level="inline" as="span">
+                {draftLabel}
+              </Heading>
             </div>
             <div className="ds-overlay-panel-actions ds-date-range-nav">
               <Button
@@ -269,13 +272,13 @@ export function DateRangePicker({
           </div>
 
           <footer className="ds-overlay-panel-footer ds-date-range-footer">
-            <div className="ds-body-quiet">
+            <Text as="div" variant="quiet">
               {draft.start
                 ? draft.end
                   ? 'Apply the selected range to update filters and saved views.'
                   : 'Choose an end date to complete the range.'
                 : 'Pick a start date to begin the range.'}
-            </div>
+            </Text>
             <div className="ds-overlay-panel-actions">
               <Button
                 variant="ghost"

@@ -98,6 +98,7 @@ The reusable canon tree currently lives under:
 - `design-system/src/components/canon/layout/*`
 - `design-system/src/components/canon/navigation/*`
 - `design-system/src/components/canon/surfaces/*`
+- `design-system/src/components/canon/typography/*`
 - `design-system/src/components/canon/utils/*`
 - `design-system/src/components/canon/workbench/*`
 - `design-system/src/components/canon/index.ts`
@@ -107,6 +108,7 @@ That canon layer now materially covers:
 - page shell composition
 - sidebar and rail composition
 - toolbar structure
+- reusable typography primitives
 - buttons and badges
 - popup, menu, search, and select controls
 - option groups
@@ -302,6 +304,21 @@ Why this matters:
 - shell, controls, surfaces, and workbench now share a more explicit motion language instead of carrying repeated transition lists
 - backdrop blur behavior now reads as a system convention rather than a set of family-local blur calls
 - toast styling stays graph-palette-driven while keeping the remaining tone math easier to audit and reuse
+
+### 2026-04-16: Canon typography family productization started
+
+Completed in this pass:
+
+- promoted shared heading, body, meta-label, meta-value, and code-block presentation into a real `components/canon/typography/*` family
+- added explicit exported typography primitives and contract types through the canon family barrels and top-level public entry point
+- moved shared type hierarchy styling into `src/styles/typography.css` instead of leaving it buried in general base styling
+- refactored canon surfaces, layout, controls, conversation, disclosure, workbench, and the studio reference page to consume the new typography primitives instead of raw type class markup
+
+Why this matters:
+
+- the type hierarchy is now part of the public reusable canon API rather than an implicit styling convention
+- consumers no longer need to know raw class names to get canon headings, body copy, meta labels, metric values, or monospace blocks right
+- typography is now closer to the same productized standard as the other canon families, which makes future extraction and testing more straightforward
 
 ## Main Problems Still Left
 

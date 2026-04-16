@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useId } from 'react';
 
+import { Eyebrow } from '../typography';
 import { cx } from '../utils/cx';
 
 export interface AccordionSectionProps {
@@ -58,7 +59,7 @@ export function AccordionSection({
             <span className="ds-accordion-title">{title}</span>
           </span>
           <span className="ds-accordion-trailing">
-            {meta ? <span className="ds-meta-label">{meta}</span> : null}
+            {meta ? <Eyebrow>{meta}</Eyebrow> : null}
             {variant === 'nested' && (isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />)}
           </span>
         </button>

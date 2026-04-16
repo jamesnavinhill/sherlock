@@ -2,6 +2,7 @@ import { LoaderCircle, Send } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Button } from '../controls/Button';
+import { Text } from '../typography';
 import type { ComposerAction, ComposerContextTag } from './types';
 
 export interface ChatComposerProps {
@@ -78,7 +79,13 @@ export function ChatComposer({
           </Button>
         </div>
       </div>
-      {footerNote ? <div className="ds-chat-composer-note"><span className="ds-body-quiet">{footerNote}</span></div> : null}
+      {footerNote ? (
+        <div className="ds-chat-composer-note">
+          <Text as="span" variant="quiet">
+            {footerNote}
+          </Text>
+        </div>
+      ) : null}
     </form>
   );
 }

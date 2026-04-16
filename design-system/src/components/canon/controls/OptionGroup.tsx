@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { Eyebrow, Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 
 export interface OptionGroupOption {
@@ -41,7 +42,7 @@ export function OptionGroup(props: OptionGroupProps) {
 
   return (
     <div className={cx('ds-field-row', className)}>
-      {label ? <span className="ds-meta-label">{label}</span> : null}
+      {label ? <Eyebrow>{label}</Eyebrow> : null}
       <div
         className={cx('ds-option-group', columns === 1 && 'ds-option-group-single-column')}
         role={props.selectionMode === 'multiple' ? 'group' : 'radiogroup'}
@@ -82,9 +83,13 @@ export function OptionGroup(props: OptionGroupProps) {
                 </span>
               </span>
               <span className="ds-option-card-stack">
-                <span className="ds-option-card-title">{option.label}</span>
+                <Heading level="inline" as="span" className="ds-option-card-title">
+                  {option.label}
+                </Heading>
                 {option.description ? (
-                  <span className="ds-option-card-description">{option.description}</span>
+                  <Text as="span" className="ds-option-card-description" variant="quiet">
+                    {option.description}
+                  </Text>
                 ) : null}
               </span>
               {option.meta ? <span className="ds-option-card-meta">{option.meta}</span> : null}

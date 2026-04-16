@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { Heading, Text } from '../typography';
+
 export interface EmptyStateCardProps {
   icon: ReactNode;
   title: string;
@@ -11,8 +13,8 @@ export function EmptyStateCard({ icon, title, description, actions }: EmptyState
   return (
     <div className="ds-empty-state-card">
       {icon}
-      <div className="ds-title-inline">{title}</div>
-      <p className="ds-body-quiet">{description}</p>
+      <Heading level="inline">{title}</Heading>
+      <Text variant="quiet">{description}</Text>
       {actions}
     </div>
   );

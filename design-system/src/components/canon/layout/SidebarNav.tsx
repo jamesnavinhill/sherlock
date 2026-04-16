@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { IconButton } from '../controls/IconButton';
+import { Eyebrow, Heading, Text } from '../typography';
 
 export interface SidebarNavItem {
   id: string;
@@ -48,9 +49,15 @@ export function SidebarNav({
     <>
       <div className="ds-sidebar-brand-icon">{brandIcon}</div>
       <div className="ds-sidebar-brand-copy">
-        {brandEyebrow ? <div className="ds-meta-label">{brandEyebrow}</div> : null}
-        <div className="ds-title-inline ds-sidebar-brand-title">{brandTitle}</div>
-        {brandSubtitle ? <p className="ds-body-quiet ds-sidebar-brand-subtitle">{brandSubtitle}</p> : null}
+        {brandEyebrow ? <Eyebrow as="div">{brandEyebrow}</Eyebrow> : null}
+        <Heading level="inline" className="ds-sidebar-brand-title">
+          {brandTitle}
+        </Heading>
+        {brandSubtitle ? (
+          <Text className="ds-sidebar-brand-subtitle" variant="quiet">
+            {brandSubtitle}
+          </Text>
+        ) : null}
       </div>
     </>
   );

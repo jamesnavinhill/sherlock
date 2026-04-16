@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { IconButton } from '../controls/IconButton';
+import { Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 
 export type ToastTone = 'graph-1' | 'graph-2' | 'graph-3' | 'graph-4';
@@ -39,10 +40,12 @@ export function Toast({
         {icon ? <div className="ds-toast-icon">{icon}</div> : null}
         <div className="ds-toast-copy">
           <div className="ds-toast-copy-row">
-            <span className="ds-toast-title">{title}</span>
+            <Heading level="inline" as="span" className="ds-toast-title">
+              {title}
+            </Heading>
             {meta ? <div className="ds-toast-meta">{meta}</div> : null}
           </div>
-          {description ? <p className="ds-body-quiet">{description}</p> : null}
+          {description ? <Text variant="quiet">{description}</Text> : null}
         </div>
         {onDismiss ? (
           <IconButton

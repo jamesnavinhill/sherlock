@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { IconButton } from '../controls/IconButton';
+import { Eyebrow, Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 
 export interface PanelRailProps {
@@ -47,9 +48,9 @@ export function PanelRail({
       <div className="ds-rail-header">
         <div className="ds-rail-header-top ds-shell-header-surface">
           <div className="ds-rail-header-copy">
-            <div className="ds-meta-label">{eyebrow}</div>
-            <h2 className="ds-panel-title">{title}</h2>
-            {subtitle ? <p className="ds-body-quiet">{subtitle}</p> : null}
+            <Eyebrow as="div">{eyebrow}</Eyebrow>
+            <Heading level="panel">{title}</Heading>
+            {subtitle ? <Text variant="quiet">{subtitle}</Text> : null}
           </div>
           <div className="ds-rail-header-controls">
             {headerActions}

@@ -24,6 +24,7 @@ import { SegmentedTabs } from '../controls/SegmentedTabs';
 import { SelectField } from '../controls/SelectField';
 import { TokenSwatch } from '../controls/TokenSwatch';
 import { AccordionSection } from '../disclosure/AccordionSection';
+import { CodeBlock, Eyebrow, Heading } from '../typography';
 
 type WorkbenchTab = 'theme' | 'type' | 'shell' | 'export';
 
@@ -114,7 +115,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   return (
     <aside className="ds-workbench">
       <div className="ds-workbench-header ds-shell-header-surface">
-        <h2 className="ds-title-section">System Controls</h2>
+        <Heading level="section">System Controls</Heading>
         <IconButton
           appearance="ghost"
           label="Close system controls"
@@ -156,7 +157,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               <div className="ds-stack">
                 <div className="ds-field-row">
                   <div className="ds-field-row-header">
-                    <span className="ds-meta-label">Apply To</span>
+                    <Eyebrow>Apply To</Eyebrow>
                   </div>
                   <SegmentedTabs
                     value={selectedPresetMode}
@@ -598,7 +599,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               <div className="ds-stack">
                 <div className="ds-field-row">
                   <div className="ds-field-row-header">
-                    <span className="ds-meta-label">Tuning Mode</span>
+                    <Eyebrow>Tuning Mode</Eyebrow>
                   </div>
                   <SegmentedTabs
                     value={selectedSurfaceMode}
@@ -1209,9 +1210,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               showActionsWhenOpenOnly
               actions={<CopyButton text={exportJson} variant="ghost" />}
             >
-              <pre className="ds-code-block">
-                <code>{exportJson}</code>
-              </pre>
+              <CodeBlock maxHeight="18rem">{exportJson}</CodeBlock>
             </AccordionSection>
 
             <AccordionSection
@@ -1225,9 +1224,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               showActionsWhenOpenOnly
               actions={<CopyButton text={exportCss} variant="ghost" />}
             >
-              <pre className="ds-code-block">
-                <code>{exportCss}</code>
-              </pre>
+              <CodeBlock maxHeight="18rem">{exportCss}</CodeBlock>
             </AccordionSection>
 
             <AccordionSection

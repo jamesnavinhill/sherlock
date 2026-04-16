@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { Eyebrow, Heading } from '../typography';
 import { cx } from '../utils/cx';
 
 export interface SurfaceCardProps {
@@ -21,8 +22,8 @@ export function SurfaceCard({
     <section className={cx('ds-card', className)}>
       <header className="ds-card-header">
         <div className="ds-card-header-copy">
-          {eyebrow ? <span className="ds-meta-label">{eyebrow}</span> : null}
-          <h3 className="ds-title-card">{title}</h3>
+          {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
+          <Heading level="card">{title}</Heading>
         </div>
         {actions}
       </header>

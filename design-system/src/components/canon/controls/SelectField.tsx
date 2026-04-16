@@ -1,6 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 
+import { Eyebrow, Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 import { useDismissableLayer } from '../utils/useDismissableLayer';
 import { PopupSurface } from './PopupSurface';
@@ -42,7 +43,7 @@ export function SelectField({ label, value, onChange, options, className }: Sele
 
   return (
     <div className={cx('ds-select-wrap', className)} ref={rootRef}>
-      {label ? <span className="ds-meta-label">{label}</span> : null}
+      {label ? <Eyebrow>{label}</Eyebrow> : null}
       <button
         type="button"
         className="ds-select-trigger"
@@ -107,9 +108,13 @@ export function SelectField({ label, value, onChange, options, className }: Sele
               }}
             >
               <span className="ds-menu-item-stack">
-                <span className="ds-menu-item-title">{option.label}</span>
+                <Heading level="inline" as="span" className="ds-menu-item-title">
+                  {option.label}
+                </Heading>
                 {option.description ? (
-                  <span className="ds-menu-item-description">{option.description}</span>
+                  <Text as="span" className="ds-menu-item-description" variant="quiet">
+                    {option.description}
+                  </Text>
                 ) : null}
               </span>
               {option.value === value ? <Check size={14} /> : null}

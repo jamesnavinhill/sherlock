@@ -5,6 +5,7 @@ import { Button } from '../controls/Button';
 import { AccordionSection } from '../disclosure/AccordionSection';
 import { useDisclosureSet } from '../disclosure/useDisclosureSet';
 import { EmptyStateCard } from '../surfaces/EmptyStateCard';
+import { Text } from '../typography';
 import { cx } from '../utils/cx';
 import type { TranscriptMessage } from './types';
 
@@ -66,7 +67,11 @@ export function ChatTranscript({
               {roleIcon(message.role, message.status)}
               <span>{message.role === 'assistant' ? 'Canon' : message.role}</span>
             </div>
-            {message.meta ? <span className="ds-body-quiet">{message.meta}</span> : null}
+            {message.meta ? (
+              <Text as="span" variant="quiet">
+                {message.meta}
+              </Text>
+            ) : null}
           </div>
 
           <div className="ds-transcript-body">{message.body}</div>
@@ -95,7 +100,9 @@ export function ChatTranscript({
                     onToggle={() => disclosures.toggle(disclosureId)}
                     compact
                   >
-                    <div className="ds-body-quiet">{section.content}</div>
+                    <Text as="div" variant="quiet">
+                      {section.content}
+                    </Text>
                   </AccordionSection>
                 );
               })}

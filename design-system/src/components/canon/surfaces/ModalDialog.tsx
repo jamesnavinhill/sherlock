@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useId } from 'react';
 
 import { IconButton } from '../controls/IconButton';
+import { Eyebrow, Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 import {
   DialogSurface,
@@ -52,14 +53,14 @@ export function ModalDialog({
       <>
         <div className="ds-modal-header">
           <div className="ds-modal-copy">
-            {eyebrow ? <div className="ds-meta-label">{eyebrow}</div> : null}
-            <h2 id={titleId} className="ds-title-section">
+            {eyebrow ? <Eyebrow as="div">{eyebrow}</Eyebrow> : null}
+            <Heading id={titleId} level="section">
               {title}
-            </h2>
+            </Heading>
             {description ? (
-              <p id={descriptionId} className="ds-body-quiet">
+              <Text id={descriptionId} variant="quiet">
                 {description}
-              </p>
+              </Text>
             ) : null}
           </div>
           <IconButton

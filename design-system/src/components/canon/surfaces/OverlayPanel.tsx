@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { IconButton } from '../controls/IconButton';
+import { Eyebrow, Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 
 export interface OverlayPanelProps {
@@ -37,9 +38,9 @@ export function OverlayPanel({
     <section className={cx('ds-overlay-panel', `ds-overlay-panel-${tone}`, className)}>
       <header className="ds-overlay-panel-header">
         <div className="ds-overlay-panel-copy">
-          {eyebrow ? <div className="ds-meta-label">{eyebrow}</div> : null}
-          <h2 className="ds-title-section">{title}</h2>
-          {description ? <p className="ds-body-quiet">{description}</p> : null}
+          {eyebrow ? <Eyebrow as="div">{eyebrow}</Eyebrow> : null}
+          <Heading level="section">{title}</Heading>
+          {description ? <Text variant="quiet">{description}</Text> : null}
         </div>
         {actions || onClose ? (
           <div className="ds-overlay-panel-actions">

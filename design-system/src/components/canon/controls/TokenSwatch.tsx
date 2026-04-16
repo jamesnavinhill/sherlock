@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
 
+import { Eyebrow, Heading, MetaValue } from '../typography';
+
 export interface TokenSwatchProps {
   label: string;
   style: CSSProperties;
@@ -17,9 +19,11 @@ export function TokenSwatch({
     <div className="ds-token-swatch">
       <div className="ds-token-swatch-box" style={style} />
       <div className="ds-token-swatch-copy">
-        <span className="ds-title-inline">{label}</span>
-        <span className="ds-meta-value ds-token-swatch-readout">{readoutValue}</span>
-        <span className="ds-meta-label ds-token-swatch-format">{readoutLabel}</span>
+        <Heading level="inline" as="span">
+          {label}
+        </Heading>
+        <MetaValue className="ds-token-swatch-readout">{readoutValue}</MetaValue>
+        <Eyebrow className="ds-token-swatch-format">{readoutLabel}</Eyebrow>
       </div>
     </div>
   );

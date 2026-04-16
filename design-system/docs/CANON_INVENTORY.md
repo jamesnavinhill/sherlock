@@ -8,6 +8,7 @@ This document is about the shipped canon system:
 
 - reusable shell
 - shipped workbench
+- reusable typography primitives
 - reusable controls
 - reusable surfaces
 - reusable disclosure and conversation primitives
@@ -36,6 +37,8 @@ The same rule applies to shared surface-fill treatments: if a panel, raised card
 
 The same preference also applies to shared overlay sizing and feedback tones: dialog widths and modal rhythm should live as system tokens, with modal and workflow families owning their width classes instead of one-off page styling, and toast tones should derive from the existing `--ds-graph-*` palette rather than new notification colors.
 
+The same rule now applies to typography hierarchy: shared headings, body copy, meta labels, metric values, and monospace blocks should prefer exported canon typography primitives instead of making consumers know raw `ds-*` type class names.
+
 ## Family Ownership
 
 ### `layout/`
@@ -60,6 +63,20 @@ Current public components:
 
 - `ToolbarBar`
 - `ToolbarCluster`
+
+### `typography/`
+
+Owns shared text hierarchy and canon-facing type presentation primitives.
+
+Current public components:
+
+- `CodeBlock`
+- `Eyebrow`
+- `Heading`
+- `MetaValue`
+- `Text`
+
+This family is the public bridge between the theme typography roles and app-facing component composition. Consumers should prefer these primitives over direct title/body/meta class markup so the type hierarchy remains explicit, typed, and easier to evolve.
 
 ### `controls/`
 
@@ -147,6 +164,7 @@ These assumptions are current and intentional:
 
 - the workbench ships with the system
 - the workbench is part of the reusable shell contract
+- the type hierarchy is part of the reusable canon API, not just a studio styling detail
 - the studio page is a reference consumer, not the main abstraction target
 - the canon file tree is the real reusable boundary
 

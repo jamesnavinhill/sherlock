@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
+import { Heading, Text } from '../typography';
 import { cx } from '../utils/cx';
 
 export interface ListActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -45,8 +46,14 @@ export function ListAction({
     >
       {icon ? <span className="ds-list-action-icon">{icon}</span> : null}
       <span className="ds-list-action-copy">
-        <span className="ds-title-inline">{label}</span>
-        {description ? <span className="ds-body-quiet">{description}</span> : null}
+        <Heading level="inline" as="span">
+          {label}
+        </Heading>
+        {description ? (
+          <Text as="span" variant="quiet">
+            {description}
+          </Text>
+        ) : null}
       </span>
       {meta ? <span className="ds-list-action-meta">{meta}</span> : null}
     </button>

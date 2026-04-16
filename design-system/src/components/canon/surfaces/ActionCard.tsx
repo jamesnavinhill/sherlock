@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { Heading, Text } from '../typography';
+
 export interface ActionCardProps {
   title: string;
   description: string;
@@ -12,8 +14,8 @@ export function ActionCard({ title, description, meta, children }: ActionCardPro
     <div className="ds-action-card">
       <div className="ds-action-card-header">
         <div>
-          <div className="ds-title-inline">{title}</div>
-          <p className="ds-body-quiet">{description}</p>
+          <Heading level="inline">{title}</Heading>
+          <Text variant="quiet">{description}</Text>
         </div>
         {meta}
       </div>
