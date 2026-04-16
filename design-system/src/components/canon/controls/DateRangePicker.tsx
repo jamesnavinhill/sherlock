@@ -1,8 +1,9 @@
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
-import { Eyebrow, Heading, Text } from '../typography';
+import { Eyebrow, Heading } from '../typography';
 import { Button, type ButtonVariant } from './Button';
+import { IconButton } from './IconButton';
 import { PopupSurface } from './PopupSurface';
 import { useDismissableLayer } from '../utils/useDismissableLayer';
 import { cx } from '../utils/cx';
@@ -100,6 +101,9 @@ const selectDay = (current: DateRangeValue, nextDay: string): DateRangeValue => 
   return { start: current.start, end: nextDay };
 };
 
+const dateRangeEquals = (left: DateRangeValue, right: DateRangeValue) =>
+  left.start === right.start && left.end === right.end;
+
 export function DateRangePicker({
   label,
   value,
@@ -142,6 +146,8 @@ export function DateRangePicker({
   const todayKey = toDateKey(new Date());
   const selectionLabel = buildSelectionLabel(value);
   const draftLabel = buildSelectionLabel(draft);
+  const hasDraftSelection = Boolean(draft.start || draft.end);
+  const canApplyDraft = !dateRangeEquals(draft, value);
   const showFieldLabel = layout === 'field' && Boolean(label);
   const showSelectionLabel = triggerVariant !== 'icon';
   const iconTriggerLabel = `${triggerLabel ?? 'Date range'}: ${selectionLabel}`;
@@ -191,37 +197,47 @@ export function DateRangePicker({
                 {draftLabel}
               </Heading>
             </div>
-            <div className="ds-overlay-panel-actions ds-date-range-nav">
-              <Button
-                variant="ghost"
-                aria-label="Previous month"
-                leadingIcon={<ChevronLeft size={14} />}
-                onClick={() => setVisibleMonth((current) => addMonths(current, -1))}
-              />
-              <Button
-                variant="ghost"
-                aria-label="Next month"
-                leadingIcon={<ChevronRight size={14} />}
-                onClick={() => setVisibleMonth((current) => addMonths(current, 1))}
+            <div className="ds-overlay-panel-actions">
+              <IconButton
+                appearance="ghost"
+                label="Close date range picker"
+                icon={<X size={18} strokeWidth={2.5} />}
+                onClick={close}
               />
             </div>
           </div>
 
           <div className="ds-overlay-panel-body ds-date-range-body">
-            {presets.length ? (
-              <div className="ds-date-range-presets">
-                {presets.map((preset) => (
-                  <Button
-                    key={preset.id}
-                    variant="secondary"
-                    size="compact"
-                    onClick={() => setDraft(preset.range)}
-                  >
-                    {preset.label}
-                  </Button>
-                ))}
+            <div className="ds-date-range-controls">
+              {presets.length ? (
+                <div className="ds-date-range-presets">
+                  {presets.map((preset) => (
+                    <Button
+                      key={preset.id}
+                      variant="secondary"
+                      size="compact"
+                      onClick={() => setDraft(preset.range)}
+                    >
+                      {preset.label}
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+              <div className="ds-overlay-panel-actions ds-date-range-nav">
+                <IconButton
+                  appearance="ghost"
+                  label="Previous month"
+                  icon={<ChevronLeft size={16} />}
+                  onClick={() => setVisibleMonth((current) => addMonths(current, -1))}
+                />
+                <IconButton
+                  appearance="ghost"
+                  label="Next month"
+                  icon={<ChevronRight size={16} />}
+                  onClick={() => setVisibleMonth((current) => addMonths(current, 1))}
+                />
               </div>
-            ) : null}
+            </div>
 
             <div className="ds-date-range-calendars">
               {calendarMonths.map((month) => {
@@ -272,31 +288,23 @@ export function DateRangePicker({
           </div>
 
           <footer className="ds-overlay-panel-footer ds-date-range-footer">
-            <Text as="div" variant="quiet">
-              {draft.start
-                ? draft.end
-                  ? 'Apply the selected range to update filters and saved views.'
-                  : 'Choose an end date to complete the range.'
-                : 'Pick a start date to begin the range.'}
-            </Text>
+            <Button
+              variant="ghost"
+              disabled={!hasDraftSelection}
+              onClick={() => {
+                setDraft({ start: null, end: null });
+              }}
+            >
+              Clear
+            </Button>
             <div className="ds-overlay-panel-actions">
               <Button
-                variant="ghost"
-                onClick={() => {
-                  onChange({ start: null, end: null });
-                  setDraft({ start: null, end: null });
-                  setOpen(false);
-                }}
-              >
-                Clear
-              </Button>
-              <Button
                 variant="primary"
-                disabled={!draft.start}
+                disabled={!canApplyDraft}
                 onClick={() => {
                   onChange({
                     start: draft.start,
-                    end: draft.end ?? draft.start,
+                    end: draft.start ? draft.end ?? draft.start : null,
                   });
                   setOpen(false);
                 }}

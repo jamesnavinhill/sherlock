@@ -924,11 +924,31 @@
   gap: 0.875rem;
 }
 
+.ds-date-range-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.875rem;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.ds-date-range-calendar-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .ds-date-range-nav,
 .ds-date-range-presets {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
+}
+
+.ds-date-range-nav {
+  margin-left: auto;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
 }
 
 .ds-date-range-calendars {
