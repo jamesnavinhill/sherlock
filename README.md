@@ -2,7 +2,7 @@
 
 Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investigations, research, monitoring, and structured reporting across multiple domains.
 
-This repository also contains a separate standalone design-system studio in [`design-system`](./design-system). It is intentionally self-contained so it can be moved out later without depending on Sherlock runtime code. The extracted canon component layer currently lives in `design-system/src/components/canon/` and is the reference implementation for the reusable shell, rail, toolbar, overlay, disclosure, and conversation primitives.
+This repository also contains a separate standalone design-system studio in [`design-system`](./design-system). It is intentionally self-contained so it can be moved out later without depending on Sherlock runtime code. The extracted canon component layer currently lives in `design-system/src/components/canon/` and is the reference implementation for the reusable shell, rail, toolbar, popup/menu, dialog, disclosure, date-range, option-group, and conversation primitives.
 
 ## What It Does
 

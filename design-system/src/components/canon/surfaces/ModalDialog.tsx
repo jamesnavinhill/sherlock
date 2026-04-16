@@ -1,8 +1,9 @@
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useId } from 'react';
+import { useId } from 'react';
 
 import { IconButton } from '../controls/IconButton';
+import { DialogSurface } from './DialogSurface';
 
 export interface ModalDialogProps {
   open: boolean;
@@ -12,6 +13,7 @@ export interface ModalDialogProps {
   description?: string;
   children?: ReactNode;
   actions?: ReactNode;
+  presentation?: 'modal' | 'modeless';
 }
 
 export function ModalDialog({
@@ -22,44 +24,23 @@ export function ModalDialog({
   description,
   children,
   actions,
+  presentation = 'modal',
 }: ModalDialogProps) {
   const titleId = useId();
   const descriptionId = description ? `${titleId}-description` : undefined;
 
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, open]);
-
-  if (!open) {
-    return null;
-  }
-
   return (
-    <div
-      className="ds-modal-layer"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
+    <DialogSurface
+      open={open}
+      onClose={onClose}
+      title={title}
+      presentation={presentation}
+      size="md"
+      ariaLabelledBy={titleId}
+      ariaDescribedBy={descriptionId}
+      surfaceClassName="ds-modal"
     >
-      <button
-        type="button"
-        className="ds-modal-backdrop"
-        aria-label="Close modal"
-        onClick={onClose}
-      />
-      <div className="ds-modal">
+      <div>
         <div className="ds-modal-header">
           <div className="ds-modal-copy">
             {eyebrow ? <div className="ds-meta-label">{eyebrow}</div> : null}
@@ -82,6 +63,6 @@ export function ModalDialog({
         {children ? <div className="ds-modal-body">{children}</div> : null}
         {actions ? <div className="ds-modal-footer">{actions}</div> : null}
       </div>
-    </div>
+    </DialogSurface>
   );
 }

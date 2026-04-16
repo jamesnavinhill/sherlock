@@ -3,6 +3,7 @@ import {
   getFontOption,
   type AccentPoint,
   type BackgroundSettings,
+  type ControlChrome,
   type FontRole,
   type StudioTheme,
 } from './schema';
@@ -21,6 +22,47 @@ const buildAccentColor = (point: AccentPoint) => {
     return `oklch(${base} / ${round(point.opacity)})`;
   }
   return `oklch(${base})`;
+};
+
+const CONTROL_CHROME_VARS: Record<ControlChrome, Record<string, string>> = {
+  glass: {
+    '--ds-control-bg':
+      'color-mix(in oklab, var(--ds-panel) clamp(0%, calc(94% * var(--ds-surface-opacity)), 100%), transparent)',
+    '--ds-control-bg-hover': 'var(--ds-accent-soft)',
+    '--ds-control-bg-active': 'var(--ds-accent-soft)',
+    '--ds-control-border': 'var(--ds-border-soft)',
+    '--ds-control-border-hover': 'var(--ds-border-strong)',
+    '--ds-control-shadow': 'none',
+    '--ds-control-shadow-hover': 'var(--ds-shadow-accent-soft)',
+    '--ds-floating-bg':
+      'color-mix(in oklab, var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%), transparent)',
+    '--ds-dialog-bg': 'color-mix(in oklab, var(--ds-panel) 76%, var(--ds-surface) 24%)',
+    '--ds-dialog-backdrop': 'color-mix(in oklab, var(--ds-panel-dark) 46%, transparent)',
+  },
+  solid: {
+    '--ds-control-bg': 'color-mix(in oklab, var(--ds-surface) 74%, var(--ds-panel) 26%)',
+    '--ds-control-bg-hover': 'color-mix(in oklab, var(--ds-surface) 84%, var(--ds-accent) 16%)',
+    '--ds-control-bg-active': 'var(--ds-accent-soft)',
+    '--ds-control-border': 'color-mix(in oklab, var(--ds-border) 84%, transparent)',
+    '--ds-control-border-hover': 'var(--ds-border-strong)',
+    '--ds-control-shadow': 'var(--ds-shadow-soft)',
+    '--ds-control-shadow-hover': 'var(--ds-shadow-accent-soft)',
+    '--ds-floating-bg': 'color-mix(in oklab, var(--ds-surface) 88%, var(--ds-panel) 12%)',
+    '--ds-dialog-bg': 'color-mix(in oklab, var(--ds-surface) 82%, var(--ds-panel) 18%)',
+    '--ds-dialog-backdrop': 'color-mix(in oklab, var(--ds-panel-dark) 54%, transparent)',
+  },
+  line: {
+    '--ds-control-bg': 'transparent',
+    '--ds-control-bg-hover': 'color-mix(in oklab, var(--ds-accent) 8%, transparent)',
+    '--ds-control-bg-active': 'color-mix(in oklab, var(--ds-accent) 12%, transparent)',
+    '--ds-control-border': 'var(--ds-border-strong)',
+    '--ds-control-border-hover': 'var(--ds-accent-border)',
+    '--ds-control-shadow': 'none',
+    '--ds-control-shadow-hover': 'none',
+    '--ds-floating-bg': 'color-mix(in oklab, var(--ds-bg) 84%, var(--ds-panel) 16%)',
+    '--ds-dialog-bg': 'color-mix(in oklab, var(--ds-bg) 78%, var(--ds-panel) 22%)',
+    '--ds-dialog-backdrop': 'color-mix(in oklab, var(--ds-panel-dark) 38%, transparent)',
+  },
 };
 
 const interpolate = (value: number, low: number, mid: number, high: number) => {
@@ -120,6 +162,7 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
   const typeSizes = resolveTypeSizes(theme.typography.size);
   const weightScale = resolveWeights(theme.typography.weight);
   const backgroundImage = buildBackgroundImage(theme.background);
+  const chromeVars = CONTROL_CHROME_VARS[theme.controls.chrome];
 
   return {
     '--ds-accent': buildAccentColor(theme.accent),
@@ -163,6 +206,7 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
     '--ds-content-width': `${Math.round(theme.shell.contentWidth)}px`,
     '--ds-density': String(round(theme.shell.density, 2)),
     '--ds-surface-opacity': String(round(theme.shell.surfaceOpacity ?? 1, 2)),
+    '--ds-control-chrome': theme.controls.chrome,
     '--ds-background-image': backgroundImage,
     '--ds-background-opacity': String(round(theme.background.dotOpacity, 2)),
     '--ds-grid-size': `${Math.round(theme.background.gridSize)}px`,
@@ -172,6 +216,7 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
       round(theme.background.variant === 'scanlines' ? theme.background.scanlineOpacity : 0, 2)
     ),
     '--ds-background-variant': theme.background.variant,
+    ...chromeVars,
     ...buildRoleVars(theme, 'ui', weightScale),
     ...buildRoleVars(theme, 'display', weightScale),
     ...buildRoleVars(theme, 'label', weightScale),

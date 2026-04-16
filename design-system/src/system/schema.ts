@@ -1,6 +1,7 @@
 export type ThemeMode = 'dark' | 'light';
 export type FontRole = 'ui' | 'display' | 'label' | 'mono';
 export type BackgroundVariant = 'plain' | 'dot-grid' | 'cross-grid' | 'scanlines';
+export type ControlChrome = 'glass' | 'solid' | 'line';
 
 export interface AccentPoint {
   hue: number;
@@ -71,6 +72,10 @@ export interface ShellSettings {
   surfaceOpacity: number;
 }
 
+export interface ControlSettings {
+  chrome: ControlChrome;
+}
+
 export interface StudioTheme {
   mode: ThemeMode;
   accent: AccentPoint;
@@ -80,6 +85,7 @@ export interface StudioTheme {
   typography: TypographySettings;
   radii: RadiusSettings;
   shell: ShellSettings;
+  controls: ControlSettings;
 }
 
 export interface SurfacePreset {
@@ -447,7 +453,7 @@ export const DEFAULT_THEME: StudioTheme = {
     shell: 0,
     panel: 3,
     control: 4,
-    pill: 8,
+    pill: 2,
   },
   shell: {
     sidebarWidth: 220,
@@ -456,6 +462,9 @@ export const DEFAULT_THEME: StudioTheme = {
     contentWidth: 980,
     density: 1,
     surfaceOpacity: 1,
+  },
+  controls: {
+    chrome: 'glass',
   },
 };
 
@@ -524,4 +533,5 @@ export const cloneTheme = (theme: StudioTheme): StudioTheme => ({
   },
   radii: { ...theme.radii },
   shell: { ...theme.shell },
+  controls: { ...theme.controls },
 });

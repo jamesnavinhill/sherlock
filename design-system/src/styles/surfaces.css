@@ -168,6 +168,7 @@
   background: var(--ds-surface);
 }
 
+.ds-dialog-layer,
 .ds-modal-layer {
   position: fixed;
   inset: 0;
@@ -178,24 +179,54 @@
   padding: 1rem;
 }
 
+.ds-dialog-layer-modeless {
+  align-items: flex-end;
+  justify-content: flex-end;
+  pointer-events: none;
+  padding: 1.25rem;
+}
+
+.ds-dialog-backdrop,
 .ds-modal-backdrop {
   position: absolute;
   inset: 0;
   border: 0;
-  background: color-mix(in oklab, var(--ds-panel-dark) 46%, transparent);
+  background: var(--ds-dialog-backdrop);
   backdrop-filter: blur(8px) saturate(92%);
 }
 
-.ds-modal {
+.ds-dialog-surface {
   position: relative;
   z-index: 1;
-  width: min(31rem, 100%);
+  width: min(100%, 31rem);
+  max-height: calc(100vh - 2rem);
+  pointer-events: auto;
+}
+
+.ds-dialog-surface-md {
+  width: min(100%, 31rem);
+}
+
+.ds-dialog-surface-lg {
+  width: min(100%, 58rem);
+}
+
+.ds-dialog-surface-xl {
+  width: min(100%, 72rem);
+}
+
+.ds-dialog-surface-modeless {
+  width: min(28rem, calc(100vw - 2rem));
+}
+
+.ds-modal {
+  width: 100%;
   display: grid;
   gap: 0;
   overflow: hidden;
   border-radius: var(--ds-radius-panel);
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) 76%, var(--ds-surface) 24%);
+  background: var(--ds-dialog-bg);
   box-shadow: var(--ds-shadow-strong);
 }
 
@@ -240,7 +271,7 @@
   gap: 1rem;
   border: 1px solid var(--ds-border-soft);
   border-radius: var(--ds-radius-panel);
-  background: color-mix(in oklab, var(--ds-panel) 72%, var(--ds-surface) 28%);
+  background: var(--ds-floating-bg);
 }
 
 .ds-overlay-panel-popover {
@@ -249,11 +280,10 @@
 }
 
 .ds-overlay-panel-dialog {
-  position: relative;
-  z-index: 1;
-  width: min(72rem, 100%);
+  width: 100%;
   max-height: calc(100vh - 2rem);
   overflow: auto;
+  background: var(--ds-dialog-bg);
   box-shadow: var(--ds-shadow-strong);
 }
 
@@ -378,6 +408,16 @@
 }
 
 @media (max-width: 760px) {
+  .ds-dialog-layer-modeless {
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 1rem;
+  }
+
+  .ds-dialog-surface-modeless {
+    width: 100%;
+  }
+
   .ds-responsive-grid,
   .ds-showcase-grid-wide,
   .ds-state-grid,

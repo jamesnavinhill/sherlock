@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
 
 import { cx } from '../utils/cx';
+import { DialogSurface } from './DialogSurface';
 import { OverlayPanel } from './OverlayPanel';
 
 export interface WorkflowDialogProps {
@@ -18,6 +18,7 @@ export interface WorkflowDialogProps {
   className?: string;
   bodyClassName?: string;
   sidebarClassName?: string;
+  presentation?: 'modal' | 'modeless';
 }
 
 export function WorkflowDialog({
@@ -34,34 +35,16 @@ export function WorkflowDialog({
   className,
   bodyClassName,
   sidebarClassName,
+  presentation = 'modal',
 }: WorkflowDialogProps) {
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, open]);
-
-  if (!open) {
-    return null;
-  }
-
   return (
-    <div className="ds-modal-layer" role="dialog" aria-modal="true" aria-label={title}>
-      <button
-        type="button"
-        className="ds-modal-backdrop"
-        aria-label={`Close ${title}`}
-        onClick={onClose}
-      />
+    <DialogSurface
+      open={open}
+      onClose={onClose}
+      title={title}
+      presentation={presentation}
+      size={size}
+    >
       <OverlayPanel
         title={title}
         eyebrow={eyebrow}
@@ -84,6 +67,6 @@ export function WorkflowDialog({
           <aside className={cx('ds-workflow-dialog-sidebar', sidebarClassName)}>{sidebar}</aside>
         ) : null}
       </OverlayPanel>
-    </div>
+    </DialogSurface>
   );
 }

@@ -6,7 +6,7 @@ Repository note:
 
 - `src/` remains the active Sherlock application.
 - `design-system/` is a separate standalone app kept in-repo for now. It should stay self-contained and must not depend on Sherlock routing, store, or runtime modules.
-- `design-system/src/components/canon/` is the extracted reusable design-system layer inside that standalone app. It now owns the page shell, general rail, toolbar/cluster, structured overlay surfaces (including list menus, config panels, modal dialogs, and workflow dialogs), disclosure, and conversation primitives used by the studio reference page.
+- `design-system/src/components/canon/` is the extracted reusable design-system layer inside that standalone app. It now owns the page shell, general rail, toolbar/cluster, shared popup/menu surfaces, structured dialog surfaces (modal and modeless), option-group and date-range controls, disclosure, and conversation primitives used by the studio reference page and workbench behavior lab.
 
 Sherlock now runs on a canonical workspace architecture. The domain-pack shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the settled `Workspace -> Artifact -> WorkspaceRun` model.
 

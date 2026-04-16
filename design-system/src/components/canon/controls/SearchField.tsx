@@ -1,9 +1,10 @@
 import { Search, X } from 'lucide-react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { IconButton } from './IconButton';
 import { useDismissableLayer } from '../utils/useDismissableLayer';
+import { PopupSurface } from './PopupSurface';
 
 export interface SearchFieldProps<T> {
   items: T[];
@@ -22,7 +23,9 @@ export function SearchField<T>({
 }: SearchFieldProps<T>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const listId = useId();
 
   useDismissableLayer(open, rootRef, () => setOpen(false));
@@ -41,9 +44,38 @@ export function SearchField<T>({
       .slice(0, 8);
   }, [itemKind, itemLabel, items, query]);
 
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    resultRefs.current[activeIndex]?.focus();
+  }, [activeIndex, open]);
+
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       setOpen(false);
+      return;
+    }
+
+    if (!results.length) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((current) => (current + 1) % results.length);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((current) => (current - 1 + results.length) % results.length);
     }
   };
 
@@ -73,19 +105,40 @@ export function SearchField<T>({
             }}
           />
         ) : (
-          <span className="ds-keycap">Ctrl K</span>
+          <span className="ds-search-shortcut" aria-hidden="true">
+            Ctrl K
+          </span>
         )}
       </div>
       {open ? (
-        <div className="ds-menu-panel ds-search-results ds-menu-panel-start" id={listId}>
+        <PopupSurface id={listId} className="ds-search-results" align="start">
           {results.length === 0 ? (
             <div className="ds-empty-state">No matching components.</div>
           ) : (
-            results.map((item) => (
+            results.map((item, index) => (
               <button
                 key={itemLabel(item)}
+                ref={(node) => {
+                  resultRefs.current[index] = node;
+                }}
                 type="button"
                 className="ds-menu-item"
+                tabIndex={index === activeIndex ? 0 : -1}
+                data-active={index === activeIndex ? 'true' : undefined}
+                onFocus={() => setActiveIndex(index)}
+                onMouseEnter={() => setActiveIndex(index)}
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    setActiveIndex((current) => (current + 1) % results.length);
+                    return;
+                  }
+
+                  if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    setActiveIndex((current) => (current - 1 + results.length) % results.length);
+                  }
+                }}
                 onClick={() => {
                   onSelect?.(item);
                   setOpen(false);
@@ -100,7 +153,7 @@ export function SearchField<T>({
               </button>
             ))
           )}
-        </div>
+        </PopupSurface>
       ) : null}
     </div>
   );

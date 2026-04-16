@@ -1,4 +1,5 @@
 export * from './ActionCard';
+export * from './DialogSurface';
 export * from './EmptyStateCard';
 export * from './MetricGrid';
 export * from './ModalDialog';

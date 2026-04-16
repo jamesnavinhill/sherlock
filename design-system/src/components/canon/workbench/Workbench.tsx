@@ -45,6 +45,7 @@ const buildColorThemeJson = (theme: StudioTheme) =>
       graphs: theme.graphs,
       surfaces: theme.surfaces,
       background: theme.background,
+      controls: theme.controls,
     },
     null,
     2
@@ -78,7 +79,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const [activeGraphIndex, setActiveGraphIndex] = useState<number>(0);
   const [activeFontRole, setActiveFontRole] = useState<FontRole>('ui');
   const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
-  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['templates']);
+  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['templates', 'chrome']);
   const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry', 'radius']);
   const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
   const [openFontProfiles, setOpenFontProfiles] = useState<string[]>([]);
@@ -198,6 +199,53 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     </Button>
                   ))}
                 </div>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection
+              title="Chrome Family"
+              isOpen={openThemeSections.includes('chrome')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('chrome')
+                    ? current.filter((s) => s !== 'chrome')
+                    : [...current, 'chrome']
+                )
+              }
+              showActionsWhenOpenOnly
+              actions={
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      controls: { ...DEFAULT_THEME.controls },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <SegmentedTabs
+                  value={theme.controls.chrome}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      controls: {
+                        ...current.controls,
+                        chrome: value as StudioTheme['controls']['chrome'],
+                      },
+                    }))
+                  }
+                  items={[
+                    { id: 'glass', label: 'Glass' },
+                    { id: 'solid', label: 'Solid' },
+                    { id: 'line', label: 'Line' },
+                  ]}
+                  stretch
+                />
               </div>
             </AccordionSection>
 

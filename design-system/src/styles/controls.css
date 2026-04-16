@@ -44,9 +44,10 @@
 .ds-search-shell {
   min-height: 2.5rem;
   border-radius: var(--ds-radius-control);
-  border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
+  border: 1px solid var(--ds-control-border);
+  background: var(--ds-control-bg);
   color: var(--ds-text-strong);
+  box-shadow: var(--ds-control-shadow);
   transition:
     border-color 160ms ease,
     background-color 160ms ease,
@@ -59,9 +60,10 @@
 .ds-toolbar-icon-button {
   min-height: 2.5rem;
   border-radius: var(--ds-radius-control);
-  border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(94% * var(--ds-surface-opacity)), 100%), transparent);
+  border: 1px solid var(--ds-control-border);
+  background: var(--ds-control-bg);
   color: var(--ds-text-strong);
+  box-shadow: var(--ds-control-shadow);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -212,37 +214,37 @@
 .ds-secondary-button:focus-visible,
 .ds-toolbar-icon-button:hover,
 .ds-toolbar-icon-button:focus-visible {
-  border-color: var(--ds-border-strong);
-  background: var(--ds-accent-soft);
+  border-color: var(--ds-control-border-hover);
+  background: var(--ds-control-bg-hover);
   color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-accent-soft);
+  box-shadow: var(--ds-control-shadow-hover);
   outline: none;
 }
 
 .ds-toolbar-button[data-active='true'],
 .ds-secondary-button[data-active='true'],
 .ds-toolbar-icon-button[data-active='true'] {
-  background: var(--ds-accent-soft);
+  background: var(--ds-control-bg-active);
   color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-accent-soft);
+  box-shadow: var(--ds-control-shadow-hover);
 }
 
 .ds-select-trigger:hover,
 .ds-select-trigger:focus-visible,
 .ds-search-shell:hover,
 .ds-search-shell:focus-within {
-  border-color: var(--ds-border-strong);
-  background: var(--ds-accent-soft);
+  border-color: var(--ds-control-border-hover);
+  background: var(--ds-control-bg-hover);
   color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-accent-soft);
+  box-shadow: var(--ds-control-shadow-hover);
   outline: none;
 }
 
 .ds-select-trigger[data-state='open'] {
-  border-color: var(--ds-border-strong);
-  background: var(--ds-accent-soft);
+  border-color: var(--ds-control-border-hover);
+  background: var(--ds-control-bg-active);
   color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-accent-soft);
+  box-shadow: var(--ds-control-shadow-hover);
 }
 
 .ds-ghost-button:hover,
@@ -260,21 +262,22 @@
 
 .ds-primary-button {
   border: 1px solid var(--ds-accent-border);
-  background: var(--ds-accent-soft);
+  background: color-mix(in oklab, var(--ds-accent-soft) 74%, var(--ds-control-bg) 26%);
   color: var(--ds-accent);
-  box-shadow: 0 2px 6px -2px color-mix(in oklab, var(--ds-accent) 15%, transparent);
+  box-shadow: var(--ds-control-shadow);
 }
 
 .ds-primary-button:hover,
 .ds-primary-button:focus-visible {
-  background: var(--ds-accent-soft-strong);
-  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
+  background: color-mix(in oklab, var(--ds-accent-soft-strong) 78%, var(--ds-control-bg-hover) 22%);
+  box-shadow: var(--ds-control-shadow-hover);
 }
 
 .ds-danger-button {
   border: 1px solid var(--ds-danger-border);
-  background: var(--ds-danger-soft);
+  background: color-mix(in oklab, var(--ds-danger-soft) 78%, var(--ds-control-bg) 22%);
   color: var(--ds-danger);
+  box-shadow: var(--ds-control-shadow);
 }
 
 .ds-search-field,
@@ -301,6 +304,17 @@
   padding: 0 0.875rem;
 }
 
+.ds-search-shortcut {
+  color: var(--ds-text-meta);
+  font-family: var(--ds-font-label);
+  font-size: calc(var(--ds-type-2xs) * var(--ds-label-scale));
+  font-weight: calc(var(--ds-label-weight) - 40);
+  letter-spacing: calc(var(--ds-label-tracking) * 0.8);
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
 .ds-search-shell input {
   min-width: 0;
   width: 100%;
@@ -318,7 +332,7 @@
   overflow: hidden;
   border-radius: var(--ds-radius-panel);
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-floating-bg);
   box-shadow: var(--ds-shadow-strong);
 }
 
@@ -353,6 +367,10 @@
   font-size: calc(var(--ds-type-sm) * var(--ds-ui-scale));
 }
 
+.ds-menu-list {
+  display: grid;
+}
+
 .ds-menu-item {
   width: 100%;
   display: flex;
@@ -376,6 +394,11 @@
   background: var(--ds-accent-soft);
   color: var(--ds-text-heading);
   outline: none;
+}
+
+.ds-menu-item-disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 
 .ds-menu-item-stack {
@@ -402,6 +425,13 @@
 .ds-menu-item-description {
   color: var(--ds-text-quiet);
   font-size: calc(var(--ds-type-2xs) * var(--ds-ui-scale));
+}
+
+.ds-menu-item-shortcut {
+  color: var(--ds-text-meta);
+  font-family: var(--ds-font-mono);
+  font-size: calc(var(--ds-type-2xs) * var(--ds-mono-scale));
+  white-space: nowrap;
 }
 
 .ds-select-trigger {
@@ -466,9 +496,10 @@
   min-height: 2.35rem;
   padding: 0 0.85rem;
   border-radius: var(--ds-radius-control);
-  border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(90% * var(--ds-surface-opacity)), 100%), transparent);
+  border: 1px solid var(--ds-control-border);
+  background: var(--ds-control-bg);
   color: var(--ds-text-quiet);
+  box-shadow: var(--ds-control-shadow);
   overflow: hidden;
   transition: 
     border-color 160ms ease,
@@ -479,17 +510,17 @@
 
 .ds-segmented-tab:hover,
 .ds-segmented-tab:focus-visible {
-  border-color: var(--ds-border-strong);
-  background: var(--ds-accent-soft);
+  border-color: var(--ds-control-border-hover);
+  background: var(--ds-control-bg-hover);
   color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-accent-soft);
+  box-shadow: var(--ds-control-shadow-hover);
   outline: none;
 }
 
 .ds-segmented-tab[data-active='true'] {
-  background: var(--ds-accent-soft);
+  background: var(--ds-control-bg-active);
   color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-accent-soft);
+  box-shadow: var(--ds-control-shadow-hover);
 }
 
 .ds-segmented-tabs-compact .ds-segmented-tab {
@@ -684,8 +715,9 @@
   gap: 0.75rem;
   padding: 0.85rem;
   border-radius: var(--ds-radius-control);
-  border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
+  border: 1px solid var(--ds-control-border);
+  background: var(--ds-control-bg);
+  box-shadow: var(--ds-control-shadow);
 }
 
 .ds-token-swatch-box,
@@ -728,6 +760,210 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.ds-option-group {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ds-option-group-single-column {
+  grid-template-columns: 1fr;
+}
+
+.ds-option-card {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: start;
+  padding: 0.9rem 1rem;
+  border-radius: var(--ds-radius-panel);
+  border: 1px solid var(--ds-control-border);
+  background: var(--ds-control-bg);
+  color: var(--ds-text-strong);
+  box-shadow: var(--ds-control-shadow);
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.ds-option-card:hover,
+.ds-option-card:focus-visible {
+  border-color: var(--ds-control-border-hover);
+  background: var(--ds-control-bg-hover);
+  box-shadow: var(--ds-control-shadow-hover);
+  outline: none;
+}
+
+.ds-option-card[data-active='true'] {
+  border-color: var(--ds-accent-border);
+  background: var(--ds-control-bg-active);
+  color: var(--ds-accent);
+  box-shadow: var(--ds-control-shadow-hover);
+}
+
+.ds-option-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ds-option-card-leading,
+.ds-option-card-icon,
+.ds-option-card-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-option-card-leading {
+  gap: 0.5rem;
+}
+
+.ds-option-card-icon,
+.ds-option-card-check {
+  width: 1rem;
+  min-width: 1rem;
+  color: var(--ds-text-meta);
+}
+
+.ds-option-card-stack {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.ds-option-card-title {
+  color: var(--ds-text-heading);
+  font-size: calc(var(--ds-type-sm) * var(--ds-ui-scale));
+  font-weight: var(--ds-weight-semibold);
+}
+
+.ds-option-card-description,
+.ds-option-card-meta {
+  color: var(--ds-text-quiet);
+  font-size: calc(var(--ds-type-2xs) * var(--ds-ui-scale));
+}
+
+.ds-option-card-meta {
+  white-space: nowrap;
+}
+
+.ds-date-range-trigger {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.ds-date-range-trigger-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-date-range-panel {
+  width: min(44rem, calc(100vw - 2rem));
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.ds-date-range-header,
+.ds-date-range-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ds-date-range-copy {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ds-date-range-nav,
+.ds-date-range-presets {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ds-date-range-calendars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.ds-date-calendar {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ds-date-calendar-month {
+  color: var(--ds-text-heading);
+  font-size: calc(var(--ds-type-sm) * var(--ds-ui-scale));
+  font-weight: var(--ds-weight-semibold);
+}
+
+.ds-date-calendar-weekdays,
+.ds-date-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.ds-date-calendar-weekday {
+  padding: 0.25rem 0;
+  text-align: center;
+  color: var(--ds-text-meta);
+  font-family: var(--ds-font-label);
+  font-size: calc(var(--ds-type-2xs) * var(--ds-label-scale));
+  letter-spacing: var(--ds-label-tracking);
+  text-transform: uppercase;
+}
+
+.ds-date-calendar-day {
+  min-height: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--ds-radius-control) * 0.95);
+  background: transparent;
+  color: var(--ds-text-strong);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.ds-date-calendar-day[data-in-month='false'] {
+  color: var(--ds-text-meta);
+  opacity: 0.55;
+}
+
+.ds-date-calendar-day:hover,
+.ds-date-calendar-day:focus-visible {
+  border-color: var(--ds-control-border-hover);
+  background: var(--ds-control-bg-hover);
+  outline: none;
+}
+
+.ds-date-calendar-day[data-in-range='true'] {
+  background: color-mix(in oklab, var(--ds-accent) 12%, transparent);
+  color: var(--ds-text-heading);
+}
+
+.ds-date-calendar-day[data-selected='true'] {
+  border-color: var(--ds-accent-border);
+  background: var(--ds-control-bg-active);
+  color: var(--ds-accent);
+}
+
+.ds-date-calendar-day[data-today='true'] {
+  border-color: var(--ds-control-border);
 }
 
 .ds-range {
@@ -894,12 +1130,17 @@
 }
 
 @container (max-width: 1024px) {
-  .ds-search-shell .ds-keycap {
+  .ds-search-shell .ds-search-shortcut {
     display: none;
   }
 }
 
 @media (max-width: 760px) {
+  .ds-option-group,
+  .ds-date-range-calendars {
+    grid-template-columns: 1fr;
+  }
+
   .ds-segmented-tabs {
     display: flex;
     flex-wrap: wrap;

@@ -34,10 +34,12 @@ import {
   Button,
   ChatComposer,
   ChatTranscript,
+  DateRangePicker,
   EmptyStateCard,
   MenuButton,
   MetricGrid,
   ModalDialog,
+  OptionGroup,
   OverlayPanel,
   OverlaySection,
   PageShell,
@@ -58,9 +60,10 @@ import {
   WorkflowDialog,
   useExclusiveDisclosure,
   useDisclosureSet,
+  type DateRangeValue,
   type TranscriptMessage,
 } from './components/canon';
-import { buildThemeCssVars } from './system/cssVars';
+import { buildThemeCssText, buildThemeCssVars } from './system/cssVars';
 import {
   DEFAULT_THEME,
   cloneTheme,
@@ -278,6 +281,7 @@ const loadTheme = (): StudioTheme => {
       shell: hasPreviousShellDefaults(parsed.shell)
         ? { ...nextTheme.shell }
         : { ...nextTheme.shell, ...parsed.shell },
+      controls: { ...nextTheme.controls, ...parsed.controls },
       radii:
         hasLegacyRadiusDefaults(parsed.radii) || hasPreviousRadiusDefaults(parsed.radii)
           ? { ...nextTheme.radii }
@@ -311,11 +315,21 @@ export default function App() {
     'Compare the strongest signal clusters against the last artifact summary and call out the missing evidence.'
   );
   const [modalOpen, setModalOpen] = useState(false);
+  const [modelessModalOpen, setModelessModalOpen] = useState(false);
   const [workflowOpen, setWorkflowOpen] = useState(false);
   const [flowOutput, setFlowOutput] =
     useState<(typeof FLOW_OUTPUT_OPTIONS)[number]['id']>('artifact');
   const [flowDepth, setFlowDepth] = useState<(typeof FLOW_DEPTH_OPTIONS)[number]['id']>('deep');
   const [flowReviewBudget, setFlowReviewBudget] = useState(72);
+  const [controlsDateRange, setControlsDateRange] = useState<DateRangeValue>({
+    start: '2026-04-10',
+    end: '2026-04-16',
+  });
+  const [controlChromeChoice, setControlChromeChoice] = useState('glass');
+  const [controlBehaviorTags, setControlBehaviorTags] = useState<string[]>([
+    'selected',
+    'removable',
+  ]);
   const [mobilePanel, setMobilePanel] = useState<'sidebar' | 'left' | 'right' | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [leftRailPinnedOpen, setLeftRailPinnedOpen] = useState(false);
@@ -331,6 +345,18 @@ export default function App() {
 
   const setTheme = (updater: (current: StudioTheme) => StudioTheme) => {
     setThemeState((current) => updater(current));
+  };
+
+  const copyText = async (text: string) => {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // The studio can still prove menu wiring even if clipboard access is unavailable.
+    }
   };
 
   useEffect(() => {
@@ -364,6 +390,7 @@ export default function App() {
       if (event.key === 'Escape') {
         setWorkbenchOpen(false);
         setModalOpen(false);
+        setModelessModalOpen(false);
         setWorkflowOpen(false);
         setMobilePanel(null);
       }
@@ -601,16 +628,19 @@ export default function App() {
                           id: 'json',
                           label: 'Export Token JSON',
                           icon: <BookOpen size={14} />,
+                          onSelect: () => void copyText(JSON.stringify(theme, null, 2)),
                         },
                         {
                           id: 'css',
                           label: 'Export CSS Vars',
                           icon: <Workflow size={14} />,
+                          onSelect: () => void copyText(buildThemeCssText(theme)),
                         },
                         {
                           id: 'inventory',
                           label: 'Export Component Inventory',
                           icon: <SearchCode size={14} />,
+                          onSelect: () => setGalleryTab('controls'),
                         },
                       ]}
                     />
@@ -919,16 +949,19 @@ export default function App() {
                           id: 'chat',
                           label: 'Open Context Chat',
                           icon: <MessageSquare size={14} />,
+                          onSelect: () => setGalleryTab('conversation'),
                         },
                         {
                           id: 'board',
                           label: 'Open Board',
                           icon: <Shapes size={14} />,
+                          onSelect: () => setGalleryTab('shell'),
                         },
                         {
                           id: 'timeline',
                           label: 'Open Timeline',
                           icon: <Workflow size={14} />,
+                          onSelect: () => setGalleryTab('controls'),
                         },
                       ]}
                     />
@@ -959,6 +992,9 @@ export default function App() {
               <ResponsiveGrid>
                 <SurfaceCard title="Buttons + Badges" eyebrow="Inputs">
                   <div className="ds-stack">
+                    <div className="ds-chip-grid">
+                      <Badge variant="outline">Chrome {theme.controls.chrome}</Badge>
+                    </div>
                     <ToolbarCluster className="ds-wrap">
                       <Button variant="primary" leadingIcon={<Sparkles size={16} />}>
                         Primary
@@ -980,7 +1016,7 @@ export default function App() {
                   </div>
                 </SurfaceCard>
 
-                <SurfaceCard title="Selectors + Tabs" eyebrow="Navigation">
+                <SurfaceCard title="Selectors + Option Group" eyebrow="Navigation">
                   <div className="ds-stack">
                     <SelectField
                       label="Active Workspace"
@@ -988,21 +1024,85 @@ export default function App() {
                       onChange={setWorkspaceId}
                       options={WORKSPACE_OPTIONS}
                     />
+                    <OptionGroup
+                      label="Single Select"
+                      columns={1}
+                      value={controlChromeChoice}
+                      onChange={setControlChromeChoice}
+                      options={[
+                        {
+                          id: 'glass',
+                          label: 'Glass',
+                          description: 'Translucent shared control chrome.',
+                        },
+                        {
+                          id: 'solid',
+                          label: 'Solid',
+                          description: 'Filled control bodies with stronger weight.',
+                        },
+                        {
+                          id: 'line',
+                          label: 'Line',
+                          description: 'Border-first editorial chrome.',
+                        },
+                      ]}
+                    />
+                    <OptionGroup
+                      label="Multi Select"
+                      selectionMode="multiple"
+                      columns={1}
+                      value={controlBehaviorTags}
+                      onChange={setControlBehaviorTags}
+                      options={[
+                        {
+                          id: 'selected',
+                          label: 'Selected',
+                          description: 'Chip or row can show checked state inside the same system.',
+                        },
+                        {
+                          id: 'contextual',
+                          label: 'Contextual',
+                          description: 'Config content stays page-specific while surface behavior stays shared.',
+                        },
+                        {
+                          id: 'removable',
+                          label: 'Removable',
+                          description: 'Multi-select chips can include remove affordances later.',
+                        },
+                      ]}
+                    />
                   </div>
                 </SurfaceCard>
 
-                <SurfaceCard title="Popouts + Modal" eyebrow="Overlays">
+                <SurfaceCard title="Date Range + Dialogs" eyebrow="Overlays">
                   <div className="ds-stack">
-                    <PopoverButton
-                      label="Open Configuration Popout"
-                      variant="secondary"
-                      leadingIcon={<Settings2 size={14} />}
-                      align="start"
-                      panelClassName="ds-toolbar-popover"
-                    >
-                      {configurationPanel}
-                    </PopoverButton>
+                    <DateRangePicker
+                      label="Shared Date Range"
+                      value={controlsDateRange}
+                      onChange={setControlsDateRange}
+                      presets={[
+                        {
+                          id: 'last-7',
+                          label: 'Last 7d',
+                          range: { start: '2026-04-10', end: '2026-04-16' },
+                        },
+                        {
+                          id: 'last-30',
+                          label: 'Last 30d',
+                          range: { start: '2026-03-18', end: '2026-04-16' },
+                        },
+                      ]}
+                    />
                     <ToolbarCluster className="ds-wrap">
+                      <PopoverButton
+                        label="Open Configuration Popout"
+                        variant="secondary"
+                        leadingIcon={<Settings2 size={14} />}
+                        align="start"
+                        panelClassName="ds-toolbar-popover"
+                      >
+                        {configurationPanel}
+                      </PopoverButton>
                       <Button
                         variant="ghost"
                         leadingIcon={<Workflow size={16} />}
@@ -1017,7 +1117,49 @@ export default function App() {
                       >
                         Open Review Modal
                       </Button>
+                      <Button
+                        variant="secondary"
+                        leadingIcon={<Bell size={16} />}
+                        onClick={() => setModelessModalOpen(true)}
+                      >
+                        Open Modeless Dialog
+                      </Button>
                     </ToolbarCluster>
+                  </div>
+                </SurfaceCard>
+
+                <SurfaceCard title="Menu Behavior" eyebrow="Popup">
+                  <div className="ds-stack">
+                    <MenuButton
+                      label="Open Action Menu"
+                      items={[
+                        {
+                          id: 'save',
+                          label: 'Save Draft',
+                          description: 'Real handler keeps the menu primitive canon-ready.',
+                          icon: <BookOpen size={14} />,
+                          shortcut: 'S',
+                          onSelect: () => setGalleryTab('surfaces'),
+                        },
+                        {
+                          id: 'checked',
+                          label: 'Checked Item',
+                          description: 'Shared row chrome with explicit checked state.',
+                          icon: <Bell size={14} />,
+                          checked: true,
+                          shortcut: 'C',
+                          onSelect: () => setGalleryTab('controls'),
+                        },
+                        {
+                          id: 'disabled',
+                          label: 'Disabled Item',
+                          description: 'Disabled rows stay visible without a different shell.',
+                          icon: <SlidersHorizontal size={14} />,
+                          disabled: true,
+                          shortcut: 'D',
+                        },
+                      ]}
+                    />
                   </div>
                 </SurfaceCard>
 
@@ -1209,6 +1351,35 @@ export default function App() {
               { label: 'Next step', value: 'Promote to canon' },
             ]}
           />
+        </OverlaySection>
+      </ModalDialog>
+
+      <ModalDialog
+        open={modelessModalOpen}
+        onClose={() => setModelessModalOpen(false)}
+        presentation="modeless"
+        eyebrow="Modeless"
+        title="Docked System Panel"
+        description="This uses the shared dialog shell without blocking the rest of the studio."
+        actions={
+          <ToolbarCluster className="ds-modal-actions">
+            <Button variant="secondary" onClick={() => setModelessModalOpen(false)}>
+              Close
+            </Button>
+          </ToolbarCluster>
+        }
+      >
+        <OverlaySection
+          title="Non-blocking Review"
+          description="Same dialog family, lighter interaction contract."
+          meta={<Badge variant="outline">Modeless</Badge>}
+          tone="subtle"
+        >
+          <div className="ds-chip-grid">
+            <Badge variant="outline">Menu</Badge>
+            <Badge variant="outline">Date Range</Badge>
+            <Badge variant="accent">Dialog</Badge>
+          </div>
         </OverlaySection>
       </ModalDialog>
 
