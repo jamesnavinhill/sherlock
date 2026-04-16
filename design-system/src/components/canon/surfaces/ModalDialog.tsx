@@ -54,7 +54,7 @@ export function ModalDialog({
         <div className="ds-modal-header">
           <div className="ds-modal-copy">
             {eyebrow ? <Eyebrow as="div">{eyebrow}</Eyebrow> : null}
-            <Heading id={titleId} level="section">
+            <Heading id={titleId} level="panel">
               {title}
             </Heading>
             {description ? (

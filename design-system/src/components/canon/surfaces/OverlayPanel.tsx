@@ -39,7 +39,7 @@ export function OverlayPanel({
       <header className="ds-overlay-panel-header">
         <div className="ds-overlay-panel-copy">
           {eyebrow ? <Eyebrow as="div">{eyebrow}</Eyebrow> : null}
-          <Heading level="section">{title}</Heading>
+          <Heading level="panel">{title}</Heading>
           {description ? <Text variant="quiet">{description}</Text> : null}
         </div>
         {actions || onClose ? (
