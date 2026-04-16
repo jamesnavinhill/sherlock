@@ -17,6 +17,7 @@ export interface SelectFieldProps {
 export function SelectField({ label, value, onChange, options, className }: SelectFieldProps) {
   const selectedLabel = options.find((option) => option.value === value)?.label ?? value;
   const [open, setOpen] = useState(false);
+  const [menuMaxHeight, setMenuMaxHeight] = useState<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(() =>
     Math.max(
       0,
@@ -36,10 +37,57 @@ export function SelectField({ label, value, onChange, options, className }: Sele
 
   useEffect(() => {
     if (!open) {
+      setMenuMaxHeight(null);
       return;
     }
     optionRefs.current[activeIndex]?.focus();
   }, [activeIndex, open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const updateMenuMaxHeight = () => {
+      const root = rootRef.current;
+      if (!root) {
+        return;
+      }
+
+      const rootRect = root.getBoundingClientRect();
+      const sectionBottom =
+        root.closest('.ds-accordion')?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY;
+      const viewportBottom = window.innerHeight - 16;
+      const maxBottom = Math.min(sectionBottom - 8, viewportBottom);
+      const availableHeight = Math.max(0, Math.floor(maxBottom - rootRect.bottom - 8));
+
+      setMenuMaxHeight(availableHeight);
+    };
+
+    const scrollParents = new Set<EventTarget>();
+    let current = rootRef.current?.parentElement ?? null;
+    while (current) {
+      const { overflowY } = window.getComputedStyle(current);
+      if (/(auto|scroll|overlay)/.test(overflowY)) {
+        scrollParents.add(current);
+      }
+      current = current.parentElement;
+    }
+
+    updateMenuMaxHeight();
+
+    scrollParents.forEach((target) =>
+      target.addEventListener('scroll', updateMenuMaxHeight, { passive: true })
+    );
+    window.addEventListener('resize', updateMenuMaxHeight);
+
+    return () => {
+      scrollParents.forEach((target) =>
+        target.removeEventListener('scroll', updateMenuMaxHeight)
+      );
+      window.removeEventListener('resize', updateMenuMaxHeight);
+    };
+  }, [open]);
 
   return (
     <div className={cx('ds-select-wrap', className)} ref={rootRef}>
@@ -63,7 +111,13 @@ export function SelectField({ label, value, onChange, options, className }: Sele
         <ChevronDown size={15} />
       </button>
       {open ? (
-        <PopupSurface id={listboxId} role="listbox" className="ds-select-menu" align="start">
+        <PopupSurface
+          id={listboxId}
+          role="listbox"
+          className="ds-select-menu"
+          align="start"
+          style={menuMaxHeight !== null ? { maxHeight: `${menuMaxHeight}px` } : undefined}
+        >
           {options.map((option, index) => (
             <button
               key={option.value}
