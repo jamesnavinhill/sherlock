@@ -1,7 +1,7 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
-import { Button } from './Button';
+import { Button, type ButtonVariant } from './Button';
 import { PopupSurface } from './PopupSurface';
 import { useDismissableLayer } from '../utils/useDismissableLayer';
 import { cx } from '../utils/cx';
@@ -23,7 +23,12 @@ export interface DateRangePickerProps {
   onChange: (value: DateRangeValue) => void;
   presets?: DateRangePreset[];
   align?: 'start' | 'end';
+  layout?: 'field' | 'inline';
+  triggerVariant?: Extract<ButtonVariant, 'secondary' | 'toolbar' | 'icon'>;
+  triggerLabel?: string;
   className?: string;
+  triggerClassName?: string;
+  panelClassName?: string;
 }
 
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -100,12 +105,18 @@ export function DateRangePicker({
   onChange,
   presets = [],
   align = 'start',
+  layout = 'field',
+  triggerVariant = 'secondary',
+  triggerLabel,
   className,
+  triggerClassName,
+  panelClassName,
 }: DateRangePickerProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<DateRangeValue>(value);
   const [visibleMonth, setVisibleMonth] = useState(() => getInitialMonth(value));
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const panelId = useId();
 
   const close = () => {
     setDraft(value);
@@ -130,30 +141,54 @@ export function DateRangePicker({
   const todayKey = toDateKey(new Date());
   const selectionLabel = buildSelectionLabel(value);
   const draftLabel = buildSelectionLabel(draft);
+  const showFieldLabel = layout === 'field' && Boolean(label);
+  const showSelectionLabel = triggerVariant !== 'icon';
+  const iconTriggerLabel = `${triggerLabel ?? 'Date range'}: ${selectionLabel}`;
 
   return (
-    <div className={cx('ds-select-wrap', className)} ref={rootRef}>
-      {label ? <span className="ds-meta-label">{label}</span> : null}
+    <div
+      className={cx(
+        layout === 'field' ? 'ds-select-wrap' : 'ds-menu-wrap',
+        'ds-date-range-wrap',
+        className
+      )}
+      ref={rootRef}
+    >
+      {showFieldLabel ? <span className="ds-meta-label">{label}</span> : null}
       <Button
-        variant="secondary"
-        className="ds-date-range-trigger"
+        variant={triggerVariant}
+        className={cx(
+          'ds-date-range-trigger',
+          layout === 'field' ? 'ds-date-range-trigger-block' : 'ds-date-range-trigger-inline',
+          triggerClassName
+        )}
         leadingIcon={<CalendarDays size={14} />}
-        trailingIcon={null}
         aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
         aria-haspopup="dialog"
+        aria-label={!showSelectionLabel ? iconTriggerLabel : undefined}
+        title={!showSelectionLabel ? iconTriggerLabel : undefined}
         onClick={() => setOpen((current) => !current)}
       >
-        <span className="ds-date-range-trigger-label">{selectionLabel}</span>
+        {showSelectionLabel ? (
+          <span className="ds-date-range-trigger-label">{selectionLabel}</span>
+        ) : null}
       </Button>
 
       {open ? (
-        <PopupSurface className="ds-date-range-panel" align={align} role="dialog">
-          <div className="ds-date-range-header">
-            <div className="ds-date-range-copy">
+        <PopupSurface
+          id={panelId}
+          className={cx('ds-date-range-panel', panelClassName)}
+          align={align}
+          role="dialog"
+          aria-label="Date range"
+        >
+          <div className="ds-overlay-panel-header ds-date-range-header">
+            <div className="ds-overlay-panel-copy ds-date-range-copy">
               <span className="ds-meta-label">Date Range</span>
               <span className="ds-title-inline">{draftLabel}</span>
             </div>
-            <div className="ds-date-range-nav">
+            <div className="ds-overlay-panel-actions ds-date-range-nav">
               <Button
                 variant="ghost"
                 aria-label="Previous month"
@@ -169,69 +204,71 @@ export function DateRangePicker({
             </div>
           </div>
 
-          {presets.length ? (
-            <div className="ds-date-range-presets">
-              {presets.map((preset) => (
-                <Button
-                  key={preset.id}
-                  variant="secondary"
-                  size="compact"
-                  onClick={() => setDraft(preset.range)}
-                >
-                  {preset.label}
-                </Button>
-              ))}
+          <div className="ds-overlay-panel-body ds-date-range-body">
+            {presets.length ? (
+              <div className="ds-date-range-presets">
+                {presets.map((preset) => (
+                  <Button
+                    key={preset.id}
+                    variant="secondary"
+                    size="compact"
+                    onClick={() => setDraft(preset.range)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="ds-date-range-calendars">
+              {calendarMonths.map((month) => {
+                const days = buildMonthDays(month);
+
+                return (
+                  <div key={month.toISOString()} className="ds-date-calendar">
+                    <div className="ds-date-calendar-month">{monthFormatter.format(month)}</div>
+                    <div className="ds-date-calendar-weekdays">
+                      {WEEKDAY_LABELS.map((weekday) => (
+                        <span key={weekday} className="ds-date-calendar-weekday">
+                          {weekday}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="ds-date-calendar-grid">
+                      {days.map((day) => {
+                        const isSelectedStart = draft.start === day.key;
+                        const isSelectedEnd = draft.end === day.key;
+                        const hasRange = Boolean(draft.start && draft.end);
+                        const inRange =
+                          hasRange &&
+                          draft.start !== null &&
+                          draft.end !== null &&
+                          day.key >= draft.start &&
+                          day.key <= draft.end;
+
+                        return (
+                          <button
+                            key={day.key}
+                            type="button"
+                            className="ds-date-calendar-day"
+                            data-in-month={day.inMonth ? 'true' : 'false'}
+                            data-selected={isSelectedStart || isSelectedEnd ? 'true' : undefined}
+                            data-in-range={inRange ? 'true' : undefined}
+                            data-today={day.key === todayKey ? 'true' : undefined}
+                            onClick={() => setDraft((current) => selectDay(current, day.key))}
+                          >
+                            {day.date.getDate()}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ) : null}
-
-          <div className="ds-date-range-calendars">
-            {calendarMonths.map((month) => {
-              const days = buildMonthDays(month);
-
-              return (
-                <div key={month.toISOString()} className="ds-date-calendar">
-                  <div className="ds-date-calendar-month">{monthFormatter.format(month)}</div>
-                  <div className="ds-date-calendar-weekdays">
-                    {WEEKDAY_LABELS.map((weekday) => (
-                      <span key={weekday} className="ds-date-calendar-weekday">
-                        {weekday}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="ds-date-calendar-grid">
-                    {days.map((day) => {
-                      const isSelectedStart = draft.start === day.key;
-                      const isSelectedEnd = draft.end === day.key;
-                      const hasRange = Boolean(draft.start && draft.end);
-                      const inRange =
-                        hasRange &&
-                        draft.start !== null &&
-                        draft.end !== null &&
-                        day.key >= draft.start &&
-                        day.key <= draft.end;
-
-                      return (
-                        <button
-                          key={day.key}
-                          type="button"
-                          className="ds-date-calendar-day"
-                          data-in-month={day.inMonth ? 'true' : 'false'}
-                          data-selected={isSelectedStart || isSelectedEnd ? 'true' : undefined}
-                          data-in-range={inRange ? 'true' : undefined}
-                          data-today={day.key === todayKey ? 'true' : undefined}
-                          onClick={() => setDraft((current) => selectDay(current, day.key))}
-                        >
-                          {day.date.getDate()}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
           </div>
 
-          <div className="ds-date-range-footer">
+          <footer className="ds-overlay-panel-footer ds-date-range-footer">
             <div className="ds-body-quiet">
               {draft.start
                 ? draft.end
@@ -239,7 +276,7 @@ export function DateRangePicker({
                   : 'Choose an end date to complete the range.'
                 : 'Pick a start date to begin the range.'}
             </div>
-            <div className="ds-overlay-actions">
+            <div className="ds-overlay-panel-actions">
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -264,7 +301,7 @@ export function DateRangePicker({
                 Apply
               </Button>
             </div>
-          </div>
+          </footer>
         </PopupSurface>
       ) : null}
     </div>

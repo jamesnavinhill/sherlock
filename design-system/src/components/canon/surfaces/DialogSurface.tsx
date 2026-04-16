@@ -3,13 +3,17 @@ import { useEffect } from 'react';
 
 import { cx } from '../utils/cx';
 
+export type DialogSurfacePresentation = 'modal' | 'modeless';
+
+export type DialogSurfaceSize = 'sm' | 'md' | 'lg' | 'xl';
+
 export interface DialogSurfaceProps {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
-  presentation?: 'modal' | 'modeless';
-  size?: 'md' | 'lg' | 'xl';
+  presentation?: DialogSurfacePresentation;
+  size?: DialogSurfaceSize;
   className?: string;
   surfaceClassName?: string;
   ariaLabelledBy?: string;

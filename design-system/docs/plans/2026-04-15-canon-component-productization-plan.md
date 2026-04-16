@@ -9,11 +9,11 @@ Define the next productization pass for `design-system/` around the real reusabl
 - a canon component tree with obvious, simple file boundaries
 - a stable systems layer that can be turned into multiple apps later
 
-This is a design-system plan for `design-system/`, not a Sherlock runtime plan.
+This is a design-system plan for `design-system/`, not an application runtime plan.
 
 ## Current Direction
 
-The important thing is no longer the demo page itself.
+The important thing is no longer the reference page itself.
 
 The important thing is:
 
@@ -47,15 +47,15 @@ That means:
 - the shell should continue to support an attached workbench
 - workbench controls should remain focused on global system tuning, not page-local configuration
 
-### 2. The demo page is not the end state
+### 2. The reference page is not the end state
 
-The demo page is useful for:
+The reference page is useful for:
 
 - exercising the canon components
 - dialing in tokens and behavior
 - providing a live reference while the system matures
 
-The demo page is not something we need to over-optimize structurally.
+The reference page is not something we need to over-optimize structurally.
 
 We can move on from it later.
 
@@ -69,7 +69,7 @@ The reusable parts should feel:
 - obvious to browse
 - obvious to reuse
 
-That means file layout, exports, naming, and styling boundaries matter more than polishing the demo page.
+That means file layout, exports, naming, and styling boundaries matter more than polishing the reference page.
 
 ### 4. Documentation moves in parallel with implementation
 
@@ -111,7 +111,7 @@ That canon layer now materially covers:
 - popup, menu, search, and select controls
 - option groups
 - date-range picking
-- dialog and workflow surfaces
+- dialog, workflow, and toast surfaces
 - disclosure behavior
 - conversation primitives
 - shipped workbench controls
@@ -178,7 +178,7 @@ Why this matters:
 
 - the main reusable shell contract is now easier to discover directly from the canon files
 - the shipped workbench relationship is expressed in code instead of only in docs
-- sidebar brand behavior is more product-ready and less demo-shaped
+- sidebar brand behavior is more product-ready and less page-local
 
 ### 2026-04-16: Public canon API typing cleanup started
 
@@ -255,6 +255,23 @@ Why this matters:
 - the remaining obvious conversation-specific surface literals are now part of the shared token language
 - boundary and token cleanup are both closer to a natural stopping point for a later test-locking phase
 
+### 2026-04-16: Modal shaping and toast surface cleanup continued
+
+Completed in this pass:
+
+- exported explicit dialog presentation and size contract types as part of the canon surface API
+- promoted dialog widths, modal section rhythm, and graph-based toast chroming into named system variables
+- added `Toast` and `ToastStack` as reusable canon surfaces under `components/canon/surfaces/*`
+- narrowed standard modal presentation so focused review dialogs read more vertically while `WorkflowDialog` keeps the wider structured layout
+- updated the studio reference consumer and docs to describe toasts as part of the real reusable surface
+
+Why this matters:
+
+- standard modals now feel more intentional and less like generic wide overlays
+- workflow dialogs keep their wider shape without forcing that width onto every dialog
+- non-blocking feedback now exists as an actual canon primitive using the existing graph palette
+- the public canon surface is clearer because overlay sizing and presentation contracts are now importable instead of hidden as inline unions
+
 ## Main Problems Still Left
 
 The remaining work is not “invent the system.”
@@ -289,7 +306,7 @@ We need docs that describe the system we actually have now:
 - workbench ships
 - new popup/dialog foundations exist
 - new controls exist
-- demo page is reference-only
+- reference page is not the product boundary
 
 ### 4. The public reusable inventory is not documented crisply enough
 
@@ -298,7 +315,7 @@ We need a straightforward answer to:
 - what files are the canon primitives
 - what each family owns
 - what consumers are supposed to import
-- what belongs to the system versus what belongs to the demo page
+- what belongs to the system versus what belongs to the reference page
 
 ### 5. Direct component tests do not exist yet
 
@@ -308,8 +325,8 @@ This is still a real gap, but it is intentionally last in the sequence.
 
 This pass is not about:
 
-- turning the demo page into a polished long-term product
-- spending time over-abstracting demo-only composition
+- turning the reference page into a polished long-term product
+- spending time over-abstracting reference-only composition
 - treating the workbench as optional or studio-only
 - reopening the basic shell/component vocabulary unless we find a real defect
 - prematurely extracting the design system into another repository before the reusable layer is cleaner
@@ -332,7 +349,7 @@ These principles should guide every change in this pass.
 
 ### 1. Reusable code first
 
-Prefer improving the canon component files over improving page-specific demo composition.
+Prefer improving the canon component files over improving page-specific reference composition.
 
 ### 2. One obvious home
 
@@ -373,7 +390,7 @@ Goal:
 Tasks:
 
 - review each `canon/` family for ownership clarity
-- remove any ambiguity between app-facing reusable code and demo-page composition
+- remove any ambiguity between app-facing reusable code and reference-page composition
 - keep `workbench/` as an explicit shipped family, not a studio-only afterthought
 - keep the top-level export surface intentional and easy to scan
 
@@ -413,7 +430,7 @@ Tasks:
 - add or update inventory-style documentation describing the canon families
 - document what ships as part of the reusable shell
 - explicitly document that the workbench ships with the app
-- document the demo page as reference-only, not the main abstraction target
+- document the reference page as reference-only, not the main abstraction target
 - keep docs current in parallel with each structural/system change
 
 Deliverables:
@@ -461,7 +478,7 @@ Tasks:
 
 - treat `PageShell` plus attached workbench as the primary reusable shell contract
 - keep the workbench as part of the shipped system
-- clean up any remaining ambiguity between canon code and demo composition
+- clean up any remaining ambiguity between canon code and reference composition
 - make sure imports and file locations communicate the intended system clearly
 
 Exit criteria:
@@ -486,7 +503,7 @@ Exit criteria:
 
 - the reusable component files are easy to scan
 - family ownership is obvious
-- the codebase feels more canon and less “demo extracted”
+- the codebase feels more canon and less “reference extracted”
 
 ### Phase 3: Finish System-Level Styling Conventions
 
@@ -554,7 +571,7 @@ Minimum expectation for each meaningful structural or system change:
 Docs should reflect:
 
 - workbench ships
-- demo page is reference-only
+- reference page is not the product boundary
 - canon families are the real reusable boundary
 
 ## Validation Expectations
@@ -575,9 +592,9 @@ Testing is last in this plan, but typecheck/build should continue during the int
 
 The next best step is:
 
-1. tighten the canon boundary and export surface around the reusable shell, shipped workbench, and canon families
-2. document that reusable inventory clearly as we make those changes
-3. then finish motion/style token cleanup before opening the direct test pass
+1. run the direct component test pass against the now-settled canon surface, starting with dialogs, popovers, and selection-heavy controls
+2. keep the inventory and plan language aligned as the remaining public-boundary cleanup lands
+3. use the focused test additions to confirm the canon surface is actually stable enough for later extraction
 
 ## Summary
 
@@ -595,6 +612,6 @@ The remaining job is to make the reusable code feel fully canon:
 
 The workbench is part of that shipped reusable system.
 
-The demo page is not.
+The reference page is not.
 
 Testing still matters, but it should land after the reusable surface is structurally settled enough to deserve being locked down.

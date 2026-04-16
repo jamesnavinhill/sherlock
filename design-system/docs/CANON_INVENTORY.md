@@ -34,6 +34,8 @@ Shared interaction treatments such as accent glows, control halos, motion, blur,
 
 The same rule applies to shared surface-fill treatments: if a panel, raised card, workbench, or control track style is reused across families, it should prefer a named system variable over repeated `color-mix(...)` literals.
 
+The same preference also applies to shared overlay sizing and feedback tones: dialog widths and modal rhythm should live as system tokens, and toast tones should derive from the existing `--ds-graph-*` palette rather than new notification colors.
+
 ## Family Ownership
 
 ### `layout/`
@@ -82,7 +84,7 @@ Current public components:
 
 ### `surfaces/`
 
-Owns reusable card, panel, overlay, and dialog surfaces.
+Owns reusable card, panel, overlay, dialog, and feedback surfaces.
 
 Current public components:
 
@@ -96,7 +98,11 @@ Current public components:
 - `PanelNote`
 - `ResponsiveGrid`
 - `SurfaceCard`
+- `Toast`
+- `ToastStack`
 - `WorkflowDialog`
+
+Dialog presentation/size contracts are part of the public reusable surface, and toast tones now resolve through the shared graph palette rather than a separate notification color set.
 
 ### `disclosure/`
 
@@ -134,7 +140,7 @@ These assumptions are current and intentional:
 
 - the workbench ships with the system
 - the workbench is part of the reusable shell contract
-- the demo page is a reference consumer, not the main abstraction target
+- the studio page is a reference consumer, not the main abstraction target
 - the canon file tree is the real reusable boundary
 
 ## Internal Helpers

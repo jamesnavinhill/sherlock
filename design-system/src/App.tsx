@@ -25,7 +25,7 @@ import {
   Moon,
   Workflow,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import {
   AccordionSection,
@@ -54,13 +54,17 @@ import {
   SelectField,
   SidebarNav,
   SurfaceCard,
+  Toast,
+  ToastStack,
   ToolbarBar,
   ToolbarCluster,
   Workbench,
   WorkflowDialog,
   useExclusiveDisclosure,
   useDisclosureSet,
+  type DateRangePreset,
   type DateRangeValue,
+  type ToastTone,
   type TranscriptMessage,
 } from './components/canon';
 import { buildThemeCssText, buildThemeCssVars } from './system/cssVars';
@@ -160,6 +164,7 @@ const SEARCH_ITEMS: Array<{ label: string; kind: string; tab: GalleryTab }> = [
   { label: 'Modal Dialog', kind: 'Controls', tab: 'controls' },
   { label: 'Workflow Dialog', kind: 'Overlay', tab: 'controls' },
   { label: 'Action Cards', kind: 'Surface', tab: 'surfaces' },
+  { label: 'Toast Stack', kind: 'Feedback', tab: 'surfaces' },
   { label: 'Chat Composer', kind: 'Conversation', tab: 'conversation' },
   { label: 'Transcript', kind: 'Conversation', tab: 'conversation' },
   { label: 'Typography Hierarchy', kind: 'Type', tab: 'typography' },
@@ -193,6 +198,71 @@ const WORKSPACE_OPTIONS = [
   },
 ];
 
+const CONTROL_DATE_RANGE_PRESETS: DateRangePreset[] = [
+  {
+    id: 'last-7',
+    label: 'Last 7d',
+    range: { start: '2026-04-10', end: '2026-04-16' },
+  },
+  {
+    id: 'last-30',
+    label: 'Last 30d',
+    range: { start: '2026-03-18', end: '2026-04-16' },
+  },
+];
+
+type ToastPreviewItem = {
+  id: string;
+  tone: ToastTone;
+  title: string;
+  description: string;
+  meta: string;
+  icon: ReactNode;
+  actionLabel: string;
+};
+
+const createToastPreviewItems = (): ToastPreviewItem[] => [
+  {
+    id: 'canon-export',
+    tone: 'graph-1',
+    title: 'Canon export ready',
+    description: 'Shared dialog widths and toast surfaces are aligned for the next packaging pass.',
+    meta: 'Graph 1',
+    icon: <Download size={16} />,
+    actionLabel: 'Inspect',
+  },
+  {
+    id: 'feedback-layer',
+    tone: 'graph-2',
+    title: 'Feedback layer updated',
+    description:
+      'Notifications now live in the shared surfaces family instead of relying on page-local markup.',
+    meta: 'Graph 2',
+    icon: <Bell size={16} />,
+    actionLabel: 'Open Surface',
+  },
+  {
+    id: 'modal-shape',
+    tone: 'graph-3',
+    title: 'Modal rhythm tightened',
+    description:
+      'Standard modals now bias toward a narrower, more vertical review shape while the workflow dialog stays wide.',
+    meta: 'Graph 3',
+    icon: <Compass size={16} />,
+    actionLabel: 'Compare',
+  },
+  {
+    id: 'workflow-ready',
+    tone: 'graph-4',
+    title: 'Workflow path preserved',
+    description:
+      'The wide structured dialog remains available for launches, approvals, and multi-step configuration flows.',
+    meta: 'Graph 4',
+    icon: <Workflow size={16} />,
+    actionLabel: 'View Flow',
+  },
+];
+
 /* Redundant SURFACE_OPTIONS removed in favor of independent mode tuning in Workbench */
 
 const TRANSCRIPT_MESSAGES: TranscriptMessage[] = [
@@ -203,9 +273,9 @@ const TRANSCRIPT_MESSAGES: TranscriptMessage[] = [
     tags: ['Workspace', 'Inspector', 'Reusable'],
     body: (
       <p>
-        The extracted system is stable enough to turn into actual app-facing components now. The
+        The canon system is stable enough to serve as actual app-facing product code now. The
         biggest wins are the shared shell, the generalized rail contract, and making every
-        disclosure surface operate the same way on desktop and mobile.
+        disclosure surface behave the same way on desktop and mobile.
       </p>
     ),
     sections: [
@@ -314,6 +384,9 @@ export default function App() {
   const [composerValue, setComposerValue] = useState(
     'Compare the strongest signal clusters against the last artifact summary and call out the missing evidence.'
   );
+  const [toastPreviewItems, setToastPreviewItems] = useState<ToastPreviewItem[]>(() =>
+    createToastPreviewItems()
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [modelessModalOpen, setModelessModalOpen] = useState(false);
   const [workflowOpen, setWorkflowOpen] = useState(false);
@@ -345,6 +418,10 @@ export default function App() {
 
   const setTheme = (updater: (current: StudioTheme) => StudioTheme) => {
     setThemeState((current) => updater(current));
+  };
+
+  const resetToastPreviewItems = () => {
+    setToastPreviewItems(createToastPreviewItems());
   };
 
   const copyText = async (text: string) => {
@@ -608,6 +685,15 @@ export default function App() {
               trailing={
                 <>
                   <ToolbarCluster className="ds-toolbar-cluster-actions">
+                    <DateRangePicker
+                      value={controlsDateRange}
+                      onChange={setControlsDateRange}
+                      presets={CONTROL_DATE_RANGE_PRESETS}
+                      layout="inline"
+                      triggerVariant="icon"
+                      triggerLabel="Filter date range"
+                      align="end"
+                    />
                     <PopoverButton
                       leadingIcon={<SlidersHorizontal size={14} />}
                       triggerClassName="ds-toolbar-responsive-control"
@@ -756,7 +842,7 @@ export default function App() {
               >
                 <div className="ds-body-quiet">
                   Once the reference project settles, the `canon` folder can move out as the package
-                  seed without Sherlock runtime imports.
+                  seed without application runtime imports.
                 </div>
               </AccordionSection>
             </AccordionSection>
@@ -806,7 +892,7 @@ export default function App() {
                 onToggle={() => detailItems.toggle('collapsibles')}
               >
                 <div className="ds-body-quiet">
-                  The studio now uses shared toggle hooks, so the rail sections and component demo
+                  The studio now uses shared toggle hooks, so the rail sections and reference
                   accordions can actually open and close.
                 </div>
               </AccordionSection>
@@ -1079,18 +1165,7 @@ export default function App() {
                       label="Shared Date Range"
                       value={controlsDateRange}
                       onChange={setControlsDateRange}
-                      presets={[
-                        {
-                          id: 'last-7',
-                          label: 'Last 7d',
-                          range: { start: '2026-04-10', end: '2026-04-16' },
-                        },
-                        {
-                          id: 'last-30',
-                          label: 'Last 30d',
-                          range: { start: '2026-03-18', end: '2026-04-16' },
-                        },
-                      ]}
+                      presets={CONTROL_DATE_RANGE_PRESETS}
                     />
                     <ToolbarCluster className="ds-wrap">
                       <PopoverButton
@@ -1248,6 +1323,56 @@ export default function App() {
                     }
                   />
                 </SurfaceCard>
+
+                <SurfaceCard
+                  title="Toast Stack"
+                  eyebrow="Feedback"
+                  actions={
+                    <Button
+                      variant="toolbar"
+                      size="compact"
+                      leadingIcon={<Bell size={14} />}
+                      onClick={resetToastPreviewItems}
+                    >
+                      Reset Stack
+                    </Button>
+                  }
+                >
+                  <div className="ds-stack">
+                    <p className="ds-body-quiet">
+                      Toasts now sit in the reusable surfaces family and use the existing graph
+                      palette instead of introducing separate notification colors.
+                    </p>
+                    {toastPreviewItems.length ? (
+                      <ToastStack placement="inline">
+                        {toastPreviewItems.map((item) => (
+                          <Toast
+                            key={item.id}
+                            tone={item.tone}
+                            title={item.title}
+                            description={item.description}
+                            meta={item.meta}
+                            icon={item.icon}
+                            onDismiss={() =>
+                              setToastPreviewItems((current) =>
+                                current.filter((toast) => toast.id !== item.id)
+                              )
+                            }
+                            actions={
+                              <Button variant="toolbar" size="compact">
+                                {item.actionLabel}
+                              </Button>
+                            }
+                          />
+                        ))}
+                      </ToastStack>
+                    ) : (
+                      <PanelNote title="Stack Cleared" meta={<Badge variant="outline">Dismissed</Badge>}>
+                        Restore the sample stack to review the non-blocking feedback surface again.
+                      </PanelNote>
+                    )}
+                  </div>
+                </SurfaceCard>
               </ResponsiveGrid>
             ) : null}
 
@@ -1290,9 +1415,9 @@ export default function App() {
                       Signal review stays sharp without becoming decorative.
                     </h2>
                     <p className="ds-type-body">
-                      The extracted system keeps Sherlock&apos;s editorial, controlled tone, but the
-                      typography settings are now surfaced through reusable cards and selectors
-                      instead of buried in page-specific markup.
+                      The canon system keeps the same editorial, controlled tone, but the typography
+                      settings are now surfaced through reusable cards and selectors instead of
+                      buried in page-specific markup.
                     </p>
                     <pre className="ds-type-mono">
                       <code>{`accent=${Math.round(theme.accent.hue)}\nvariant=${theme.background.variant}\nmode=${theme.mode}`}</code>

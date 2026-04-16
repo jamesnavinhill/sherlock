@@ -1,5 +1,9 @@
 :root {
   --ds-accent: oklch(0.57 0.09 340);
+  --ds-graph-1: oklch(0.57 0.09 25);
+  --ds-graph-2: oklch(0.57 0.09 140);
+  --ds-graph-3: oklch(0.57 0.09 190);
+  --ds-graph-4: oklch(0.57 0.09 260);
   --ds-bg: oklch(0.88 0.002 85);
   --ds-panel: oklch(0.9 0.004 85);
   --ds-surface: oklch(0.975 0.004 81);
@@ -58,6 +62,21 @@
   --ds-shell-header-padding-block: 1rem;
   --ds-content-width: 980px;
   --ds-density: 1;
+  --ds-dialog-width-sm: 28rem;
+  --ds-dialog-width-md: 34rem;
+  --ds-dialog-width-lg: 58rem;
+  --ds-dialog-width-xl: 72rem;
+  --ds-dialog-width-modeless: 28rem;
+  --ds-dialog-max-block-size: calc(100vh - 2rem);
+  --ds-modal-copy-measure: 30ch;
+  --ds-modal-header-padding: 1rem 1.125rem;
+  --ds-modal-body-padding: 1rem 1.125rem 1.125rem;
+  --ds-modal-footer-padding: 0.875rem 1.125rem 1.125rem;
+  --ds-modal-body-gap: 1rem;
+  --ds-toast-width: 23rem;
+  --ds-toast-gap: 0.75rem;
+  --ds-toast-padding: 0.9rem;
+  --ds-toast-stack-offset: 1.25rem;
   --ds-background-image: radial-gradient(
     color-mix(in oklab, var(--ds-ink) 23%, var(--ds-border)) 1px,
     transparent 1px
@@ -127,6 +146,14 @@
     var(--ds-accent-soft) clamp(0%, calc(78% * var(--ds-surface-opacity)), 100%),
     var(--ds-panel) 22%
   );
+  --ds-toast-graph-1-bg: color-mix(in oklab, var(--ds-graph-1) 14%, var(--ds-panel) 86%);
+  --ds-toast-graph-1-border: color-mix(in oklab, var(--ds-graph-1) 38%, var(--ds-border-soft));
+  --ds-toast-graph-2-bg: color-mix(in oklab, var(--ds-graph-2) 14%, var(--ds-panel) 86%);
+  --ds-toast-graph-2-border: color-mix(in oklab, var(--ds-graph-2) 38%, var(--ds-border-soft));
+  --ds-toast-graph-3-bg: color-mix(in oklab, var(--ds-graph-3) 14%, var(--ds-panel) 86%);
+  --ds-toast-graph-3-border: color-mix(in oklab, var(--ds-graph-3) 38%, var(--ds-border-soft));
+  --ds-toast-graph-4-bg: color-mix(in oklab, var(--ds-graph-4) 14%, var(--ds-panel) 86%);
+  --ds-toast-graph-4-border: color-mix(in oklab, var(--ds-graph-4) 38%, var(--ds-border-soft));
   --ds-border-soft: color-mix(in oklab, var(--ds-border) 70%, transparent);
   --ds-border-strong: color-mix(in oklab, var(--ds-border) 88%, var(--ds-ink) 12%);
   --ds-interaction-bg: color-mix(in oklab, var(--ds-panel) 88%, var(--ds-surface) 12%);

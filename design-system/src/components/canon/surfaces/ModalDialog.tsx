@@ -3,7 +3,13 @@ import type { ReactNode } from 'react';
 import { useId } from 'react';
 
 import { IconButton } from '../controls/IconButton';
-import { DialogSurface } from './DialogSurface';
+import {
+  DialogSurface,
+  type DialogSurfacePresentation,
+  type DialogSurfaceSize,
+} from './DialogSurface';
+
+export type ModalDialogSize = Extract<DialogSurfaceSize, 'sm' | 'md'>;
 
 export interface ModalDialogProps {
   open: boolean;
@@ -13,7 +19,8 @@ export interface ModalDialogProps {
   description?: string;
   children?: ReactNode;
   actions?: ReactNode;
-  presentation?: 'modal' | 'modeless';
+  presentation?: DialogSurfacePresentation;
+  size?: ModalDialogSize;
 }
 
 export function ModalDialog({
@@ -25,6 +32,7 @@ export function ModalDialog({
   children,
   actions,
   presentation = 'modal',
+  size = 'sm',
 }: ModalDialogProps) {
   const titleId = useId();
   const descriptionId = description ? `${titleId}-description` : undefined;
@@ -35,12 +43,12 @@ export function ModalDialog({
       onClose={onClose}
       title={title}
       presentation={presentation}
-      size="md"
+      size={size}
       ariaLabelledBy={titleId}
       ariaDescribedBy={descriptionId}
       surfaceClassName="ds-modal"
     >
-      <div>
+      <>
         <div className="ds-modal-header">
           <div className="ds-modal-copy">
             {eyebrow ? <div className="ds-meta-label">{eyebrow}</div> : null}
@@ -62,7 +70,7 @@ export function ModalDialog({
         </div>
         {children ? <div className="ds-modal-body">{children}</div> : null}
         {actions ? <div className="ds-modal-footer">{actions}</div> : null}
-      </div>
+      </>
     </DialogSurface>
   );
 }

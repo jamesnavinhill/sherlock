@@ -1,8 +1,14 @@
 import type { ReactNode } from 'react';
 
 import { cx } from '../utils/cx';
-import { DialogSurface } from './DialogSurface';
+import {
+  DialogSurface,
+  type DialogSurfacePresentation,
+  type DialogSurfaceSize,
+} from './DialogSurface';
 import { OverlayPanel } from './OverlayPanel';
+
+export type WorkflowDialogSize = Extract<DialogSurfaceSize, 'lg' | 'xl'>;
 
 export interface WorkflowDialogProps {
   open: boolean;
@@ -14,11 +20,11 @@ export interface WorkflowDialogProps {
   actions?: ReactNode;
   footer?: ReactNode;
   sidebar?: ReactNode;
-  size?: 'lg' | 'xl';
+  size?: WorkflowDialogSize;
   className?: string;
   bodyClassName?: string;
   sidebarClassName?: string;
-  presentation?: 'modal' | 'modeless';
+  presentation?: DialogSurfacePresentation;
 }
 
 export function WorkflowDialog({

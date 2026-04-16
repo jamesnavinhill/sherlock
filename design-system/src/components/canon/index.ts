@@ -76,20 +76,30 @@ export {
   PanelNote,
   ResponsiveGrid,
   SurfaceCard,
+  Toast,
+  ToastStack,
   WorkflowDialog,
 } from './surfaces';
 export type {
   ActionCardProps,
+  DialogSurfacePresentation,
   DialogSurfaceProps,
+  DialogSurfaceSize,
   EmptyStateCardProps,
   MetricGridProps,
   ModalDialogProps,
+  ModalDialogSize,
   OverlayPanelProps,
   OverlaySectionProps,
   PanelNoteProps,
   ResponsiveGridProps,
   SurfaceCardProps,
+  ToastProps,
+  ToastStackPlacement,
+  ToastStackProps,
+  ToastTone,
   WorkflowDialogProps,
+  WorkflowDialogSize,
 } from './surfaces';
 export { Workbench } from './workbench';
 export type { WorkbenchProps } from './workbench';

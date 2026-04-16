@@ -1,13 +1,17 @@
 export { ActionCard } from './ActionCard';
 export type { ActionCardProps } from './ActionCard';
 export { DialogSurface } from './DialogSurface';
-export type { DialogSurfaceProps } from './DialogSurface';
+export type {
+  DialogSurfacePresentation,
+  DialogSurfaceProps,
+  DialogSurfaceSize,
+} from './DialogSurface';
 export { EmptyStateCard } from './EmptyStateCard';
 export type { EmptyStateCardProps } from './EmptyStateCard';
 export { MetricGrid } from './MetricGrid';
 export type { MetricGridProps } from './MetricGrid';
 export { ModalDialog } from './ModalDialog';
-export type { ModalDialogProps } from './ModalDialog';
+export type { ModalDialogProps, ModalDialogSize } from './ModalDialog';
 export { OverlayPanel } from './OverlayPanel';
 export type { OverlayPanelProps } from './OverlayPanel';
 export { OverlaySection } from './OverlaySection';
@@ -18,5 +22,9 @@ export { ResponsiveGrid } from './ResponsiveGrid';
 export type { ResponsiveGridProps } from './ResponsiveGrid';
 export { SurfaceCard } from './SurfaceCard';
 export type { SurfaceCardProps } from './SurfaceCard';
+export { Toast } from './Toast';
+export type { ToastProps, ToastTone } from './Toast';
+export { ToastStack } from './ToastStack';
+export type { ToastStackPlacement, ToastStackProps } from './ToastStack';
 export { WorkflowDialog } from './WorkflowDialog';
-export type { WorkflowDialogProps } from './WorkflowDialog';
+export type { WorkflowDialogProps, WorkflowDialogSize } from './WorkflowDialog';
