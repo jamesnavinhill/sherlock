@@ -53,6 +53,9 @@
   --ds-sidebar-collapsed-width: 5.25rem;
   --ds-rail-width: 300px;
   --ds-toolbar-height: 72px;
+  --ds-shell-header-height: var(--ds-toolbar-height);
+  --ds-shell-header-padding-inline: 1.25rem;
+  --ds-shell-header-padding-block: 1rem;
   --ds-content-width: 980px;
   --ds-density: 1;
   --ds-background-image: radial-gradient(
@@ -342,6 +345,12 @@ pre {
 
 .ds-stack-sm > * {
   min-width: 0;
+}
+
+.ds-shell-header-surface {
+  min-height: var(--ds-shell-header-height, var(--ds-toolbar-height));
+  padding-block: var(--ds-shell-header-padding-block, 1rem);
+  padding-inline: var(--ds-shell-header-padding-inline, 1.25rem);
 }
 
 .ds-toolbar-inline,

@@ -57,7 +57,7 @@ export function SidebarNav({
 
   return (
     <aside className="ds-sidebar" data-collapsed={collapsed ? 'true' : 'false'} data-mobile-open={mobileOpen ? 'true' : 'false'}>
-      <div className="ds-sidebar-brand">
+      <div className="ds-sidebar-brand ds-shell-header-surface">
         {onBrandPress ? (
           <button
             type="button"

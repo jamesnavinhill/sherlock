@@ -10,7 +10,7 @@ export interface ToolbarBarProps {
 
 export function ToolbarBar({ leading, center, trailing }: ToolbarBarProps) {
   return (
-    <header className="ds-toolbar">
+    <header className="ds-toolbar ds-shell-header-surface">
       <div className="ds-toolbar-group">{leading}</div>
       <div className="ds-toolbar-search">{center}</div>
       <div className="ds-toolbar-group ds-toolbar-group-end">{trailing}</div>

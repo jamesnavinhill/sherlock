@@ -45,7 +45,7 @@ export function PanelRail({
       data-mobile-open={mobileOpen ? 'true' : 'false'}
     >
       <div className="ds-rail-header">
-        <div className="ds-rail-header-top">
+        <div className="ds-rail-header-top ds-shell-header-surface">
           <div className="ds-rail-header-copy">
             <div className="ds-meta-label">{eyebrow}</div>
             <h2 className="ds-panel-title">{title}</h2>

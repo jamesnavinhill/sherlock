@@ -120,8 +120,6 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.85rem;
-  min-height: var(--ds-toolbar-height);
-  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--ds-border-soft);
 }
 
@@ -242,8 +240,6 @@
   align-items: center;
   column-gap: 1rem;
   row-gap: 1rem;
-  min-height: var(--ds-toolbar-height);
-  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--ds-border-soft);
   background: var(--ds-shell-toolbar-bg);
   backdrop-filter: blur(var(--ds-blur-shell));
@@ -347,7 +343,6 @@
   justify-content: space-between;
   flex-wrap: nowrap;
   gap: 1rem;
-  padding: 1.1rem;
   border-bottom: 1px solid var(--ds-border-soft);
 }
 
@@ -371,7 +366,7 @@
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-  padding: 0.75rem 1.1rem;
+  padding: 0.75rem var(--ds-shell-header-padding-inline, 1.25rem);
   border-bottom: 1px solid var(--ds-border-soft);
 }
 
@@ -600,8 +595,11 @@
 }
 
 @media (max-width: 760px) {
-  .ds-content,
-  .ds-toolbar {
+  .ds-app-shell {
+    --ds-shell-header-padding-inline: 1rem;
+  }
+
+  .ds-content {
     padding: 1rem;
   }
 

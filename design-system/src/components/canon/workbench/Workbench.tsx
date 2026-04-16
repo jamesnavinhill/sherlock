@@ -113,7 +113,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
 
   return (
     <aside className="ds-workbench">
-      <div className="ds-workbench-header">
+      <div className="ds-workbench-header ds-shell-header-surface">
         <h2 className="ds-title-section">System Controls</h2>
         <IconButton
           appearance="ghost"
