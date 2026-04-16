@@ -769,7 +769,6 @@ export default function App() {
             mobileOpen={mobilePanel === 'right'}
             eyebrow="Tuning Rail"
             title="Workbench"
-            className={workbenchOpen && !isOverlayShell ? 'ds-right-rail-offset' : undefined}
             actions={
               <Button
                 variant="secondary"

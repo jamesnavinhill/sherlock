@@ -2,15 +2,95 @@
 
 ## Purpose
 
-Capture where the standalone design-system studio is right now, how the extracted component layer is organized, and the next steps required to keep turning it into a cleaner package-style design system.
+Define the next productization pass for `design-system/` around the real reusable asset:
+
+- a reusable shell
+- a reusable shipped workbench
+- a canon component tree with obvious, simple file boundaries
+- a stable systems layer that can be turned into multiple apps later
 
 This is a design-system plan for `design-system/`, not a Sherlock runtime plan.
 
-## Current State
+## Current Direction
 
-The studio is no longer one large hand-built demo page.
+The important thing is no longer the demo page itself.
 
-The main page in `design-system/src/App.tsx` now consumes a reusable canon component layer under:
+The important thing is:
+
+- the actual components
+- the actual files
+- the actual tokens and systems
+- the actual reusable shell contract
+- the actual shipped workbench attached to that shell
+
+The studio page in `design-system/src/App.tsx` is now just:
+
+- a reference consumer
+- a tuning surface
+- a way to dial in the real component code
+
+It is not the product boundary we are optimizing for.
+
+## Updated Product Assumptions
+
+These assumptions should now be treated as settled unless we explicitly change them later.
+
+### 1. The workbench ships with the system
+
+The workbench is not studio-only.
+
+It is part of the reusable shell and part of the shipped app-facing system.
+
+That means:
+
+- `components/canon/workbench/*` is real reusable product code
+- the shell should continue to support an attached workbench
+- workbench controls should remain focused on global system tuning, not page-local configuration
+
+### 2. The demo page is not the end state
+
+The demo page is useful for:
+
+- exercising the canon components
+- dialing in tokens and behavior
+- providing a live reference while the system matures
+
+The demo page is not something we need to over-optimize structurally.
+
+We can move on from it later.
+
+### 3. The main goal is obvious canon structure
+
+The reusable parts should feel:
+
+- simple
+- clean
+- canon
+- obvious to browse
+- obvious to reuse
+
+That means file layout, exports, naming, and styling boundaries matter more than polishing the demo page.
+
+### 4. Documentation moves in parallel with implementation
+
+We should not leave docs as a cleanup phase at the end.
+
+As we land each structural/system change, we should update the relevant design-system docs in the same pass.
+
+### 5. Testing comes last
+
+Testing is still required, but it is intentionally the last major phase in this plan.
+
+The right order is:
+
+1. settle structure
+2. settle systems
+3. settle docs and inventory in parallel
+4. add direct component tests after the canon surface is stable enough to be worth locking down
+
+## Current Canon Surface
+
+The reusable canon tree currently lives under:
 
 - `design-system/src/components/canon/controls/*`
 - `design-system/src/components/canon/conversation/*`
@@ -22,379 +102,375 @@ The main page in `design-system/src/App.tsx` now consumes a reusable canon compo
 - `design-system/src/components/canon/workbench/*`
 - `design-system/src/components/canon/index.ts`
 
-That canon layer currently covers:
+That canon layer now materially covers:
 
 - page shell composition
-- left and right rail composition
-- sidebar navigation
-- toolbar grouping
-- buttons and icon buttons
-- badges
-- select/menu/popover/search controls
-- disclosure and accordion behavior
-- card and empty-state surfaces
-- modal shell plus structured config/workflow overlay surfaces
-- chat composer
-- transcript rendering
-- workbench controls and token export
+- sidebar and rail composition
+- toolbar structure
+- buttons and badges
+- popup, menu, search, and select controls
+- option groups
+- date-range picking
+- dialog and workflow surfaces
+- disclosure behavior
+- conversation primitives
+- shipped workbench controls
+- token export
 
-The design-system studio now proves these primitives in a real page instead of keeping the shell behavior inside `App.tsx`.
+This is already a real reusable layer, not just a mockup.
 
-## What Landed Already
+## Progress Update
 
-### 1. Real shell extraction
+### 2026-04-16: First boundary-cleanup pass started
 
-These are now standalone reusable components:
+Completed in this pass:
 
-- `PageShell`
-- `SidebarNav`
-- `PanelRail`
-- `ToolbarBar`
-- `ToolbarCluster`
+- tightened the top-level `components/canon/index.ts` public boundary by stopping implicit re-export of `utils`
+- clarified `components/canon/utils/*` as implementation helpers rather than top-level public canon API
+- added `design-system/docs/CANON_INVENTORY.md` to document family ownership and current public reusable inventory
+- updated `design-system/README.md` to reflect the shipped workbench and the intended public canon entry point
 
-This means the studio has a real reusable shell contract instead of a one-off layout.
+Why this matters:
 
-### 2. Real control extraction
+- the public reusable boundary is now more intentional
+- the shipped workbench is documented as part of the real product surface
+- canon family ownership is easier to understand without reading the entire codebase
 
-These are now standalone reusable controls:
+### 2026-04-16: System token cleanup pass started
 
-- `Button`
-- `IconButton`
-- `Badge`
-- `SegmentedTabs`
-- `SelectField`
-- `MenuButton`
-- `PopoverButton`
-- `SearchField`
-- `CopyButton`
+Completed in this pass:
 
-This means buttons, menus, selectors, and search are no longer implicit page markup.
+- centralized canon motion timing values into shared CSS variables
+- centralized shared backdrop blur and saturation values into shared CSS variables
+- centralized the remaining accent preview ring into a named shared shadow variable
+- updated shell, controls, surfaces, workbench, and base styles to consume those shared vars
+- updated `design-system/README.md` to reflect that these interaction conventions are now systemized
 
-### 3. Real surface extraction
+Why this matters:
 
-These are now reusable surfaces:
+- shell, workbench, controls, and surfaces now share a more explicit global interaction language
+- repeated hard-coded timing and backdrop values have been materially reduced
+- exported theme CSS now includes more of the real canon interaction system, not just colors and radii
 
-- `SurfaceCard`
-- `ActionCard`
-- `EmptyStateCard`
-- `PanelNote`
-- `MetricGrid`
-- `ResponsiveGrid`
-- `ModalDialog`
+### 2026-04-16: Shell rail motion normalization started
 
-This means card-like patterns are now canonized instead of embedded in showcase JSX.
+Completed in this pass:
 
-### 4. Real conversation extraction
+- removed the abrupt desktop rail child hide/show behavior that made opening feel uneven
+- added explicit opacity and transform motion to the left rail so it uses the same kind of panel-level movement language as the right rail
+- removed the dead right-rail/workbench offset path so both rails now rely on one shared shell motion model
+- kept rail open/close behavior inside the shared shell CSS instead of patching a page-level workaround
 
-These are now reusable conversation pieces:
+Why this matters:
 
-- `ChatComposer`
-- `ChatTranscript`
+- left and right rails now feel more canon and less like separate interaction paths
+- shell behavior is more uniform at the reusable system layer
 
-This means the studio can act as a reference for conversation-oriented product surfaces too.
+## Main Problems Still Left
 
-### 5. Working interaction and mobile behavior
+The remaining work is not “invent the system.”
 
-The studio now has:
+The remaining work is:
 
-- functioning collapsibles
-- a collapsible desktop sidebar with icon-first navigation mode
-- toolbar actions that compact to icon-first controls as space tightens
-- mobile overlay sheets for sidebar and rails
-- more resilient responsive card fitting
-- a non-blocking docked workbench
+### 1. Canon boundaries are good, but not fully explicit yet
 
-## Productization Status Update
+The tree is much better now, but we still need to make sure the reusable pieces are unmistakably clean and obvious:
 
-The grouped-file intermediate stage has now been replaced by a package-style canon tree.
+- no confusing export surface
+- no ambiguous ownership between shell, workbench, controls, and surfaces
+- no “is this demo code or real code?” ambiguity in the actual canon directories
 
-The canon layer currently ships as:
+### 2. System-level styling is not fully tokenized yet
 
-- per-component files under `controls/`, `conversation/`, `disclosure/`, `layout/`, `navigation/`, `surfaces/`, and `workbench/`
-- family-based styles under `src/styles/`, re-exported through `src/index.css`
-- shared helpers under `utils/`
-- a single top-level `canon/index.ts` export surface
+Color, radius, and chrome mode have become more systemized.
 
-The remaining productization work is now:
+What still needs tightening:
 
-- direct canon component tests
-- extraction-oriented inventory and package documentation
+- motion timing tokens
+- blur/backdrop conventions
+- shadow usage consistency
+- any repeated hard-coded style values that should become system-level variables
 
-## Historical Context: Why The Files Did Not Yet Look Like A Final Package
+### 3. The design-system docs lag the actual code
 
-The extracted canon layer is grouped by responsibility, not yet split into one file per component.
+The current plan and inventory language still reflect an older intermediate state in places.
 
-Current grouping:
+We need docs that describe the system we actually have now:
 
-- `controls.tsx` groups related form/control primitives
-- `shell.tsx` groups layout and navigation shell primitives
-- `surfaces.tsx` groups card/modal/empty-state surface primitives
-- `disclosure.tsx` groups accordion components and disclosure hooks
-- `chat.tsx` groups conversation primitives
+- workbench ships
+- new popup/dialog foundations exist
+- new controls exist
+- demo page is reference-only
 
-This was intentional.
+### 4. The public reusable inventory is not documented crisply enough
 
-The first extraction goal was:
+We need a straightforward answer to:
 
-- prove the component seams are real
-- make `App.tsx` consume those seams
-- stabilize the API families
-- fix shell/mobile/disclosure behavior
+- what files are the canon primitives
+- what each family owns
+- what consumers are supposed to import
+- what belongs to the system versus what belongs to the demo page
 
-The goal was not yet:
+### 5. Direct component tests do not exist yet
 
-- perfect package-style file granularity
-- final naming taxonomy
-- final folder tree
-- final testing strategy
+This is still a real gap, but it is intentionally last in the sequence.
 
-In other words:
+## Non-Goals
 
-- the component concepts are now real
-- the file structure is still in the “organized extraction” stage, not the “publication-ready package” stage
+This pass is not about:
 
-## Architectural Read
-
-The current design-system state is acceptable as an intermediate step because the highest-value work has landed:
-
-- shell boundaries are real
-- shared component vocabulary exists
-- mobile shell behavior is no longer ad hoc
-- disclosure behavior is no longer broken
-- the studio is exercising reusable pieces instead of bypassing them
-
-The main thing still missing is productization polish:
-
-- explicit tests around the canon components
-- extraction-oriented docs for the public inventory and package boundary
+- turning the demo page into a polished long-term product
+- spending time over-abstracting demo-only composition
+- treating the workbench as optional or studio-only
+- reopening the basic shell/component vocabulary unless we find a real defect
+- prematurely extracting the design system into another repository before the reusable layer is cleaner
 
 ## Target Outcome
 
-Move from the current grouped canon layer to a more package-like component tree while preserving the now-working APIs and behaviors.
+At the end of this pass:
 
-The end state should:
+- the reusable shell is clearly the anchor product surface
+- the workbench is clearly part of that shipped reusable shell
+- the canon component files are easy to browse and easy to trust
+- the export surface is obvious
+- the system-level tokens are more complete and more uniform
+- docs accurately describe the actual reusable system
+- direct component tests can then be added against a stabilized canon surface
 
-- keep the design system self-contained
-- preserve the current shell and interaction behavior
-- expose a clearer component inventory
-- make extraction into a separate repository or package much easier
+## Canon Product Principles
 
-## Proposed Target Structure
+These principles should guide every change in this pass.
 
-Recommended next file tree:
+### 1. Reusable code first
 
-```text
-design-system/
-  src/
-    components/
-      canon/
-        layout/
-          PageShell.tsx
-          PanelRail.tsx
-          SidebarNav.tsx
-        navigation/
-          Toolbar.tsx
-          ToolbarCluster.tsx
-        controls/
-          Button.tsx
-          IconButton.tsx
-          Badge.tsx
-          SegmentedTabs.tsx
-          SelectField.tsx
-          MenuButton.tsx
-          PopoverButton.tsx
-          SearchField.tsx
-          CopyButton.tsx
-        disclosure/
-          AccordionSection.tsx
-          useExclusiveDisclosure.ts
-          useDisclosureSet.ts
-        surfaces/
-          SurfaceCard.tsx
-          ActionCard.tsx
-          EmptyStateCard.tsx
-          PanelNote.tsx
-          MetricGrid.tsx
-          ResponsiveGrid.tsx
-          ModalDialog.tsx
-        conversation/
-          ChatComposer.tsx
-          ChatTranscript.tsx
-          types.ts
-        workbench/
-          Workbench.tsx
-        utils/
-          cx.ts
-        index.ts
-```
+Prefer improving the canon component files over improving page-specific demo composition.
 
-This is the structure the canon layer now follows, which preserves the family boundaries while making the exported component inventory feel obvious and conventional.
+### 2. One obvious home
 
-## Phase Plan
+Each reusable concern should have one obvious family and one obvious file home.
 
-### Phase 1: Stabilize The Current Canon API
+Examples:
+
+- shell composition belongs in `layout/`
+- toolbar structure belongs in `navigation/`
+- reusable controls belong in `controls/`
+- reusable overlay/dialog surfaces belong in `surfaces/`
+- shipped global tuning belongs in `workbench/`
+
+### 3. System before variants
+
+Prefer global system modes and shared primitives over one-off per-component variants.
+
+### 4. Docs stay current with code
+
+If a reusable family changes meaningfully, update the docs in the same pass.
+
+### 5. Testing locks the settled surface, not the evolving sketch
+
+Do not rush tests onto unstable APIs.
+
+Use tests to lock the canon once the structure and behavior are intentionally settled.
+
+## Workstreams
+
+The remaining work should be executed through these parallel-aware workstreams.
+
+### Workstream A: Canon Boundary Cleanup
 
 Goal:
 
-- keep behavior stable while treating the current grouped files as the source of truth
+- make the reusable file tree feel unmistakably clean and obvious
 
 Tasks:
 
-- avoid changing component behavior unless there is a real defect
-- continue using the studio as the reference consumer
-- verify the current props are good enough before splitting files further
+- review each `canon/` family for ownership clarity
+- remove any ambiguity between app-facing reusable code and demo-page composition
+- keep `workbench/` as an explicit shipped family, not a studio-only afterthought
+- keep the top-level export surface intentional and easy to scan
 
-Exit criteria:
+Deliverables:
 
-- no major API churn needed after another round of use
+- clearer family ownership
+- cleaner exports
+- fewer “transitional” assumptions left in docs or code comments
 
-### Phase 2: Split Grouped Files Into Per-Component Files
+### Workstream B: System Token Completion
 
 Goal:
 
-- make the system easier to browse and more obviously reusable
-
-Status:
-
-- completed on `2026-04-15`
+- finish the most important missing system-level styling decisions
 
 Tasks:
 
-- move `Button`, `IconButton`, `Badge`, and related controls into individual files
-- move shell pieces into `layout/` and `navigation/`
-- move `SurfaceCard`, `ModalDialog`, `EmptyStateCard`, and friends into `surfaces/`
-- move transcript/composer pieces into `conversation/`
-- keep a single top-level `canon/index.ts` as the export surface
+- define canon motion timing tokens or variables
+- normalize transition timing usage across `base.css`, `shell.css`, `controls.css`, `surfaces.css`, and `workbench.css`
+- audit repeated blur/backdrop/shadow treatments and pull the important ones into clearer system conventions
+- keep chrome-family behavior global and system-level
 
-Constraints:
+Deliverables:
 
-- do not rewrite behavior during the file split
-- keep class names and API shapes unchanged wherever possible
+- fewer hard-coded repeated values
+- more predictable interaction feel across shell, workbench, controls, and surfaces
 
-Exit criteria:
-
-- expected file names like `Button.tsx`, `PanelRail.tsx`, and `SurfaceCard.tsx` exist
-
-### Phase 3: Tighten CSS Organization
+### Workstream C: Canon Inventory And Documentation
 
 Goal:
 
-- reduce the monolithic feel of `src/index.css`
-
-Status:
-
-- completed on `2026-04-15`
+- document the actual reusable system we are building now
 
 Tasks:
 
-- keep token and document-level base styles centralized
-- separate shell/layout styles from component styles
-- separate conversation-specific styling from general surface styling
-- only split CSS after component file boundaries settle
+- update this plan as the direction tightens
+- add or update inventory-style documentation describing the canon families
+- document what ships as part of the reusable shell
+- explicitly document that the workbench ships with the app
+- document the demo page as reference-only, not the main abstraction target
+- keep docs current in parallel with each structural/system change
 
-Recommended direction:
+Deliverables:
 
-- `styles/base.css`
-- `styles/shell.css`
-- `styles/controls.css`
-- `styles/surfaces.css`
-- `styles/conversation.css`
-- `styles/workbench.css`
+- a truthful productization plan
+- a clearer reusable component inventory
+- less mismatch between docs and code
 
-Exit criteria:
-
-- developers can find a component’s markup and styling without scanning the entire stylesheet
-
-### Phase 4: Add Canon Component Tests
+### Workstream D: Final Test Pass
 
 Goal:
 
-- validate the extracted design-system pieces directly
+- add direct component tests only after the reusable surface is stable enough to lock
 
 Recommended coverage:
 
 - `AccordionSection` open/close behavior
-- `ModalDialog` open/close and Escape handling
-- `PanelRail` open state and mobile state behavior
-- `SearchField` result filtering
-- `SelectField` selection behavior
-- `ChatComposer` submit/disabled states
-- `ChatTranscript` empty state and disclosure rendering
+- `PanelRail` pinned/mobile behavior
+- `PopoverButton` open/close and dismissal behavior
+- `MenuButton` item selection and keyboard behavior
+- `SearchField` result filtering and keyboard navigation
+- `SelectField` selection behavior and keyboard navigation
+- `OptionGroup` single and multiple selection behavior
+- `DateRangePicker` selection, clear, and apply behavior
+- `ModalDialog` dismissal and presentation behavior
+- `WorkflowDialog` dismissal and layout behavior
+- `ChatComposer` submit and disabled states
+- `ChatTranscript` disclosure and empty-state behavior
+- `Workbench` tab and control behavior for core shipped settings
 
-Exit criteria:
+Deliverables:
 
-- component-level regressions are caught without relying only on manual studio inspection
+- direct canon tests
+- less reliance on manual visual verification
 
-### Phase 5: Prepare For Extraction Out Of Sherlock
+## Recommended Phase Order
+
+### Phase 1: Lock The Reusable Product Boundary
 
 Goal:
 
-- make the design system easier to move to its own repository or package
+- settle what the reusable system actually is
 
 Tasks:
 
-- audit remaining assumptions tied to the current studio app
-- ensure component names and exports are clean
-- document the public component inventory
-- document token and CSS-var expectations
-- decide whether the workbench ships with the package or remains studio-only
+- treat `PageShell` plus attached workbench as the primary reusable shell contract
+- keep the workbench as part of the shipped system
+- clean up any remaining ambiguity between canon code and demo composition
+- make sure imports and file locations communicate the intended system clearly
 
 Exit criteria:
 
-- the canon layer can be moved with minimal path churn and minimal restructuring
+- a new reader can find the reusable shell and its attached workbench immediately
+- the canon tree feels intentional rather than transitional
 
-## Naming And Structure Recommendations
+### Phase 2: Tighten Canon Family Ownership
 
-### Keep “canon” for now
+Goal:
 
-`src/components/canon/` is a good intermediate name while the system is still being extracted and shaped.
+- make the file tree and exports feel obvious
 
-Possible later rename:
+Tasks:
 
-- `src/components/system/`
-- `src/components/ui/`
-- `src/canon/`
+- verify each canon family has a clear responsibility
+- tighten any exports that feel noisy or accidental
+- keep app-facing reusable code simple to browse
+- avoid unnecessary sub-abstractions unless they improve clarity
 
-Recommendation:
+Exit criteria:
 
-- do not rename the root folder yet
-- finish CSS and test productization first
+- the reusable component files are easy to scan
+- family ownership is obvious
+- the codebase feels more canon and less “demo extracted”
 
-### Keep `PanelRail` general
+### Phase 3: Finish System-Level Styling Conventions
 
-Current behavior suggests `PanelRail` should remain the general rail primitive used for both:
+Goal:
 
-- library/browse rail
-- inspector/detail rail
+- make the system visually uniform in a truly global way
 
-That appears to be the right canon abstraction.
+Tasks:
 
-### Keep `PageShell` as the top-level layout contract
+- normalize timing and motion values
+- normalize backdrop and shadow conventions
+- keep button/popup/dialog/workbench chrome aligned through system variables
+- continue preferring global system controls over local style forks
 
-`PageShell` is the correct anchor component for:
+Exit criteria:
 
-- sidebar
-- toolbar
-- left rail
-- content
-- right rail
-- overlay/backdrop behavior
-- floating workbench or docked secondary surfaces
+- the main reusable families share one obvious interaction language
+- repeated style values are materially reduced
 
-That should remain the shell anchor rather than being broken into less meaningful top-level pieces.
+### Phase 4: Keep Docs In Parallel With The Work
 
-## Open Questions
+Goal:
 
-These do not block the next phase, but they should be answered before extraction out of Sherlock:
+- prevent the docs from drifting behind the system again
 
-1. Should `ToolbarBar` and `ToolbarCluster` stay separate, or should they become one `Toolbar` file with sub-exports?
-2. Should the canon workbench remain one app-facing component, or split into smaller subcomponents and tab files?
-3. Should conversation components stay inside the same canon package, or eventually move into an optional “ai/conversation” layer?
-4. How much styling should remain class-based in one stylesheet versus moving to more local CSS organization?
+Tasks:
 
-## Validation Expectations For The Next Pass
+- update plan and inventory docs during each structural/system pass
+- keep the component inventory aligned with the actual canon tree
+- document shipped workbench behavior as part of the shell system
+- document what is reference-only versus truly reusable
 
-For non-trivial design-system refactors, run:
+Exit criteria:
+
+- docs describe the system as it really exists
+- the reusable inventory is easy to understand without reading the entire codebase
+
+### Phase 5: Add Direct Component Tests Last
+
+Goal:
+
+- lock the settled canon surface with focused tests
+
+Tasks:
+
+- add direct tests for the most important reusable primitives
+- prioritize interaction-heavy and dismissal-heavy components first
+- avoid snapshot-heavy low-signal coverage
+
+Exit criteria:
+
+- key reusable behavior is protected by direct tests
+- manual studio inspection is no longer the only safety net
+
+## Documentation Expectations During This Plan
+
+Documentation should update in parallel with implementation.
+
+Minimum expectation for each meaningful structural or system change:
+
+- update this plan if the direction changes
+- update any canon inventory/reference doc that describes the component families
+- keep terminology aligned with the actual code
+
+Docs should reflect:
+
+- workbench ships
+- demo page is reference-only
+- canon families are the real reusable boundary
+
+## Validation Expectations
+
+For non-trivial design-system work, run:
 
 ```bash
 cd design-system
@@ -402,40 +478,34 @@ npm run typecheck
 npm run build
 ```
 
-For structural component work, also verify:
+When component tests land later, extend validation with the narrowest credible test command for the changed canon family.
 
-- desktop layout
-- mobile drawer behavior
-- accordion open/close behavior
-- modal visibility/dismissal
-- transcript and composer layout
+Testing is last in this plan, but typecheck/build should continue during the intermediate phases.
 
-When the next split touches the main Sherlock repo again, continue running the narrowest credible repo validation rather than defaulting to the full test suite.
-
-## Recommended Immediate Next Step
+## Immediate Next Step
 
 The next best step is:
 
-1. add direct canon component tests around accordion, modal, rail, search, select, composer, and transcript behavior
-2. document the public component inventory and CSS-var expectations before any extraction work starts
-3. audit the remaining studio-specific assumptions before extraction work begins
-
-That keeps momentum high and builds on the finished file split and CSS split without reopening the behavior work that already landed.
+1. tighten the canon boundary and export surface around the reusable shell, shipped workbench, and canon families
+2. document that reusable inventory clearly as we make those changes
+3. then finish motion/style token cleanup before opening the direct test pass
 
 ## Summary
 
-The design-system extraction is past the “mock page” stage and into the “real reusable layer” stage.
+The design system is no longer trying to prove whether reusable components are possible.
 
-What is true now:
+That part is already real.
 
-- the component concepts are real
-- the studio uses them
-- shell, rail, modal, disclosure, and conversation seams are extracted
-- mobile behavior is canonized
+The remaining job is to make the reusable code feel fully canon:
 
-What is not done yet:
+- simple
+- clean
+- obvious
+- systemized
+- documented as it evolves
 
-- direct component tests
-- extraction-ready packaging polish
+The workbench is part of that shipped reusable system.
 
-That means the system is in a strong intermediate state, and the next pass should focus on CSS organization, tests, and extraction polish rather than re-deriving the component model again.
+The demo page is not.
+
+Testing still matters, but it should land after the reusable surface is structurally settled enough to deserve being locked down.

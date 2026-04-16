@@ -49,10 +49,10 @@
   color: var(--ds-text-strong);
   box-shadow: var(--ds-control-shadow);
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+    border-color var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-toolbar-button,
@@ -74,11 +74,11 @@
   font-weight: var(--ds-weight-semibold);
   cursor: pointer;
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    border-color var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease),
+    transform var(--ds-motion-fast) var(--ds-motion-ease);
   user-select: none;
 }
 
@@ -99,10 +99,10 @@
   font-weight: var(--ds-weight-semibold);
   cursor: pointer;
   transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease),
+    transform var(--ds-motion-fast) var(--ds-motion-ease);
   user-select: none;
 }
 
@@ -166,8 +166,8 @@
   line-height: var(--ds-label-leading);
   text-transform: uppercase;
   transition:
-    color 160ms ease,
-    opacity 160ms ease;
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    opacity var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-ghost-button-icon-only,
@@ -187,8 +187,8 @@
   user-select: none;
   flex-shrink: 0;
   transition:
-    color 160ms ease,
-    opacity 160ms ease;
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    opacity var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-ghost-button svg,
@@ -199,7 +199,7 @@
 .ds-toolbar-icon-button[data-active='true'] {
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
-  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
+  box-shadow: var(--ds-shadow-accent-soft);
 }
 
 .ds-ghost-button[data-active='true'],
@@ -470,8 +470,8 @@
   overflow: hidden;
   white-space: nowrap;
   transition:
-    max-width 160ms ease,
-    opacity 160ms ease;
+    max-width var(--ds-motion-fast) var(--ds-motion-ease),
+    opacity var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-segmented-tabs {
@@ -502,10 +502,10 @@
   box-shadow: var(--ds-control-shadow);
   overflow: hidden;
   transition: 
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+    border-color var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-segmented-tab:hover,
@@ -542,9 +542,9 @@
   align-items: center;
   border-radius: var(--ds-radius-control);
   transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-accordion-header:hover,
@@ -662,9 +662,9 @@
   border-radius: var(--ds-radius-control);
   background: transparent;
   transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-list-item:hover,
@@ -787,10 +787,10 @@
   box-shadow: var(--ds-control-shadow);
   text-align: left;
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+    border-color var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-option-card:hover,
@@ -934,9 +934,9 @@
   background: transparent;
   color: var(--ds-text-strong);
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease;
+    border-color var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-date-calendar-day[data-in-month='false'] {
@@ -988,7 +988,7 @@
     color-mix(in oklab, var(--ds-accent) 15%, var(--ds-panel)) 100%
   );
   border: 1px solid color-mix(in oklab, var(--ds-accent) 8%, var(--ds-border-soft));
-  transition: border-color 160ms ease;
+  transition: border-color var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 /* --- Thumb --- */
@@ -1005,9 +1005,9 @@
     var(--ds-shadow-soft);
   border: 1px solid var(--ds-accent-border);
   transition: 
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease;
+    transform var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-range:hover::-webkit-slider-runnable-track {
@@ -1097,7 +1097,7 @@
   height: 2px;
   border-radius: 2px 2px 0 0;
   background: transparent;
-  transition: background-color 160ms ease;
+  transition: background-color var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-nav-tab:hover:not([data-active='true']),

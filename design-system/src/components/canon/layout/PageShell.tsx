@@ -29,20 +29,23 @@ export function PageShell({
   floatingContent,
   toolbarOffset,
 }: PageShellProps) {
+  const railPanelWidth = 'clamp(18rem, 22vw, var(--ds-rail-width))';
+
   const shellStyle = {
     '--ds-sidebar-size': sidebar
       ? sidebarCollapsed
         ? 'var(--ds-sidebar-collapsed-width)'
         : 'clamp(14rem, 18vw, var(--ds-sidebar-width))'
       : '0px',
+    '--ds-rail-panel-width': railPanelWidth,
     '--ds-left-rail-size': leftRail
       ? leftRailPinnedOpen
-        ? 'clamp(18rem, 22vw, var(--ds-rail-width))'
+        ? railPanelWidth
         : '0px'
       : '0px',
     '--ds-right-rail-size': rightRail
       ? rightRailPinnedOpen
-        ? 'clamp(18rem, 22vw, var(--ds-rail-width))'
+        ? railPanelWidth
         : '0px'
       : '0px',
     '--ds-toolbar-offset': toolbarOffset ? `${toolbarOffset}px` : undefined,

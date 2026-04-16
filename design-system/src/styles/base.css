@@ -67,6 +67,7 @@
   --ds-shadow-soft: 0 16px 34px -28px rgba(0, 0, 0, 0.28);
   --ds-shadow-strong: 0 22px 42px -34px rgba(0, 0, 0, 0.42);
   --ds-shadow-accent-soft: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
+  --ds-shadow-accent-ring: 0 0 12px -2px color-mix(in oklab, var(--ds-accent) 25%, transparent);
   --ds-border-soft: color-mix(in oklab, var(--ds-border) 70%, transparent);
   --ds-border-strong: color-mix(in oklab, var(--ds-border) 88%, var(--ds-ink) 12%);
   --ds-interaction-bg: color-mix(in oklab, var(--ds-panel) 88%, var(--ds-surface) 12%);
@@ -78,6 +79,14 @@
   --ds-danger: #ef4444;
   --ds-danger-soft: color-mix(in oklab, var(--ds-danger) 12%, transparent);
   --ds-danger-border: color-mix(in oklab, var(--ds-danger) 44%, transparent);
+  --ds-motion-fast: 160ms;
+  --ds-motion-base: 180ms;
+  --ds-motion-slow: 200ms;
+  --ds-motion-ease: ease;
+  --ds-blur-shell: 18px;
+  --ds-blur-workbench: 28px;
+  --ds-blur-dialog-backdrop: 8px;
+  --ds-backdrop-saturate: 92%;
   font-synthesis-weight: none;
   color-scheme: light;
 }
@@ -120,7 +129,7 @@
   background: var(--ds-surface);
   border-radius: 100px;
   border: 3px solid var(--ds-panel);
-  transition: background-color 160ms ease;
+  transition: background-color var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -143,8 +152,8 @@ body {
   letter-spacing: var(--ds-ui-tracking);
   line-height: var(--ds-ui-leading);
   transition:
-    background-color 180ms ease,
-    color 180ms ease;
+    background-color var(--ds-motion-base) var(--ds-motion-ease),
+    color var(--ds-motion-base) var(--ds-motion-ease);
 }
 
 button,

@@ -13,7 +13,7 @@
   border-radius: 0;
   background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%), var(--ds-bg) 4%);
   box-shadow: var(--ds-shadow-strong);
-  backdrop-filter: blur(28px);
+  backdrop-filter: blur(var(--ds-blur-workbench));
 }
 
 .ds-workbench-header {

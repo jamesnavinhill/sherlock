@@ -46,7 +46,7 @@
   height: 100vh;
   overflow: hidden;
   border-radius: var(--ds-radius-shell);
-  transition: grid-template-columns 180ms ease;
+  transition: grid-template-columns var(--ds-motion-base) var(--ds-motion-ease);
 }
 
 .ds-shell-backdrop {
@@ -62,7 +62,7 @@
   height: 100vh;
   border-right: 1px solid var(--ds-border-soft);
   background: color-mix(in oklab, var(--ds-bg) 88%, var(--ds-panel) 12%);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(var(--ds-blur-shell));
   box-shadow: var(--ds-shadow-soft);
   z-index: 12;
   overflow-x: hidden;
@@ -75,7 +75,7 @@
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  transition: opacity 180ms ease;
+  transition: opacity var(--ds-motion-base) var(--ds-motion-ease);
 }
 
 .ds-sidebar-brand-title,
@@ -163,9 +163,9 @@
   background: transparent;
   color: var(--ds-text-quiet);
   transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
 .ds-sidebar-nav-item:hover,
@@ -216,7 +216,7 @@
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--ds-border-soft);
   background: color-mix(in oklab, var(--ds-bg) 78%, var(--ds-panel) 22%);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(var(--ds-blur-shell));
   container-type: inline-size;
 }
 
@@ -267,10 +267,11 @@
     minmax(0, 1fr)
     var(--ds-right-rail-size, var(--ds-rail-width));
   overflow: hidden;
-  transition: grid-template-columns 180ms ease;
+  transition: grid-template-columns var(--ds-motion-base) var(--ds-motion-ease);
 }
 
 .ds-rail {
+  width: var(--ds-rail-panel-width, clamp(18rem, 22vw, var(--ds-rail-width)));
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -279,18 +280,30 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
+  transform: translateX(0);
+  opacity: 1;
+  transition:
+    opacity var(--ds-motion-base) var(--ds-motion-ease),
+    transform var(--ds-motion-base) var(--ds-motion-ease),
+    border-color var(--ds-motion-base) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-base) var(--ds-motion-ease);
+}
+
+.ds-rail > * {
+  transform: translateX(0);
+  transition:
+    opacity var(--ds-motion-fast) var(--ds-motion-ease),
+    transform var(--ds-motion-base) var(--ds-motion-ease);
+}
+
+.ds-left-rail {
+  transform-origin: left center;
 }
 
 .ds-right-rail {
   border-right: 0;
   border-left: 1px solid var(--ds-border-soft);
-  transition:
-    margin-right 180ms ease,
-    transform 180ms ease;
-}
-
-.ds-right-rail-offset {
-  margin-right: min(28rem, 38vw);
+  transform-origin: right center;
 }
 
 .ds-rail-header {
@@ -443,18 +456,30 @@
 
 @media (min-width: 1181px) {
   .ds-rail[data-pinned-open='false'] {
-    border-width: 0;
+    opacity: 0;
+    border-color: transparent;
     box-shadow: none;
+    pointer-events: none;
+  }
+
+  .ds-left-rail[data-pinned-open='false'] {
+    transform: translateX(-0.85rem);
+  }
+
+  .ds-right-rail[data-pinned-open='false'] {
+    transform: translateX(0.85rem);
   }
 
   .ds-rail[data-pinned-open='false'] > * {
-    display: none;
+    opacity: 0;
   }
-}
 
-@media (max-width: 1400px) {
-  .ds-right-rail-offset {
-    margin-right: 0;
+  .ds-left-rail[data-pinned-open='false'] > * {
+    transform: translateX(-1rem);
+  }
+
+  .ds-right-rail[data-pinned-open='false'] > * {
+    transform: translateX(1rem);
   }
 }
 
@@ -483,7 +508,7 @@
     border: 1px solid var(--ds-border-soft);
     border-radius: var(--ds-radius-panel);
     transform: translateX(-100%);
-    transition: transform 180ms ease;
+    transition: transform var(--ds-motion-base) var(--ds-motion-ease);
     box-shadow: var(--ds-shadow-strong);
     z-index: 24;
   }
@@ -521,7 +546,7 @@
     border: 1px solid var(--ds-border-soft);
     border-radius: var(--ds-radius-panel);
     z-index: 24;
-    transition: transform 180ms ease;
+    transition: transform var(--ds-motion-base) var(--ds-motion-ease);
     box-shadow: var(--ds-shadow-strong);
   }
 

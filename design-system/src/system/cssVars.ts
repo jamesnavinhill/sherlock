@@ -65,6 +65,19 @@ const CONTROL_CHROME_VARS: Record<ControlChrome, Record<string, string>> = {
   },
 };
 
+const SYSTEM_STYLE_VARS: Record<string, string> = {
+  '--ds-motion-fast': '160ms',
+  '--ds-motion-base': '180ms',
+  '--ds-motion-slow': '200ms',
+  '--ds-motion-ease': 'ease',
+  '--ds-blur-shell': '18px',
+  '--ds-blur-workbench': '28px',
+  '--ds-blur-dialog-backdrop': '8px',
+  '--ds-backdrop-saturate': '92%',
+  '--ds-shadow-accent-ring':
+    '0 0 12px -2px color-mix(in oklab, var(--ds-accent) 25%, transparent)',
+};
+
 const interpolate = (value: number, low: number, mid: number, high: number) => {
   const clamped = clamp(value, -1, 1);
   if (clamped <= 0) {
@@ -216,6 +229,7 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
       round(theme.background.variant === 'scanlines' ? theme.background.scanlineOpacity : 0, 2)
     ),
     '--ds-background-variant': theme.background.variant,
+    ...SYSTEM_STYLE_VARS,
     ...chromeVars,
     ...buildRoleVars(theme, 'ui', weightScale),
     ...buildRoleVars(theme, 'display', weightScale),
