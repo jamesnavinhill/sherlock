@@ -90,14 +90,10 @@ export function Workbench({
   const [selectedPresetMode, setSelectedPresetMode] = useState<'both' | 'dark' | 'light'>('both');
   const [activeGraphIndex, setActiveGraphIndex] = useState<number>(0);
   const [activeFontRole, setActiveFontRole] = useState<FontRole>('ui');
-  const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
-  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['templates', 'chrome']);
-  const [openShellSections, setOpenShellSections] = useState<string[]>([
-    'geometry',
-    'radius',
-    'dividers',
-  ]);
-  const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
+  const [openTypeSections, setOpenTypeSections] = useState<string[]>([]);
+  const [openThemeSections, setOpenThemeSections] = useState<string[]>([]);
+  const [openShellSections, setOpenShellSections] = useState<string[]>([]);
+  const [openExportSections, setOpenExportSections] = useState<string[]>([]);
 
   useEffect(() => {
     setSelectedBackgroundMode(theme.mode);
@@ -123,6 +119,7 @@ export function Workbench({
       placement={placement}
       open={open}
       mobileOpen={mobileOpen}
+      eyebrow="Workbench Rail"
       title="System Controls"
       closeLabel="Close system controls"
       onClose={onClose}
@@ -197,6 +194,7 @@ export function Workbench({
                     <Button
                       key={template.id}
                       variant="secondary"
+                      textStyle="body"
                       data-active={
                         JSON.stringify(theme) === JSON.stringify(template.theme) ? 'true' : undefined
                       }
@@ -209,6 +207,7 @@ export function Workbench({
                     <Button
                       key={preset.id}
                       variant="secondary"
+                      textStyle="body"
                       data-active={
                         selectedPresetMode === 'both'
                           ? JSON.stringify(theme.surfaces) === JSON.stringify(preset.surfaces)
@@ -401,6 +400,7 @@ export function Workbench({
                       key={index}
                       variant="secondary"
                       size="compact"
+                      textStyle="body"
                       data-active={activeGraphIndex === index ? 'true' : undefined}
                       onClick={() => setActiveGraphIndex(index)}
                     >
@@ -753,6 +753,7 @@ export function Workbench({
                       key={key}
                       variant="secondary"
                       size="compact"
+                      textStyle="body"
                       data-active={selectedStructureKey === key ? 'true' : undefined}
                       onClick={() => setSelectedStructureKey(key)}
                     >

@@ -408,8 +408,8 @@ export const BACKGROUND_VARIANTS: Array<{
 
 const createDefaultProfiles = (): Record<FontRole, FontFamilyProfile> => ({
   ui: {
-    sizeAdjust: 0,
-    weightAdjust: 0,
+    sizeAdjust: -0.1,
+    weightAdjust: -140,
     trackingAdjust: 0,
     leadingAdjust: 0,
   },
@@ -469,8 +469,8 @@ const BLUEBERRY_THEME: StudioTheme = {
     scanlineOpacity: 0.08,
   },
   typography: {
-    ui: 'work-sans',
-    display: 'work-sans',
+    ui: 'plus-jakarta-sans',
+    display: 'plus-jakarta-sans',
     label: 'ibm-plex-mono',
     mono: 'source-code-pro',
     size: -0.15,

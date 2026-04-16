@@ -110,6 +110,13 @@
   width: 100%;
 }
 
+.ds-button-text-body {
+  font-family: var(--ds-font-ui);
+  font-weight: var(--ds-ui-weight);
+  letter-spacing: var(--ds-ui-tracking);
+  line-height: var(--ds-ui-leading);
+}
+
 .ds-button-sm {
   min-height: 2.15rem;
   padding-inline: 0.75rem;

@@ -43,7 +43,6 @@
 .ds-workbench-body {
   min-height: 0;
   overflow-x: hidden;
-  overflow-y: scroll;
   padding: 1rem 1.25rem 2rem 1.25rem;
   display: grid;
   align-content: start;

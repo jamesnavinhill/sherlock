@@ -11,6 +11,7 @@ export type ButtonVariant =
   | 'icon';
 
 export type ButtonSize = 'compact' | 'sm' | 'md';
+export type ButtonTextStyle = 'action' | 'body';
 
 const BUTTON_VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary: 'ds-primary-button',
@@ -27,9 +28,15 @@ const BUTTON_SIZE_CLASS: Record<ButtonSize, string> = {
   md: '',
 };
 
+const BUTTON_TEXT_STYLE_CLASS: Record<ButtonTextStyle, string> = {
+  action: '',
+  body: 'ds-button-text-body',
+};
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  textStyle?: ButtonTextStyle;
   leadingIcon?: ReactNode;
   trailingIcon?: ReactNode;
   fullWidth?: boolean;
@@ -38,6 +45,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Button({
   variant = 'secondary',
   size = 'md',
+  textStyle = 'action',
   leadingIcon,
   trailingIcon,
   fullWidth = false,
@@ -60,6 +68,7 @@ export function Button({
       className={cx(
         BUTTON_VARIANT_CLASS[variant],
         BUTTON_SIZE_CLASS[size],
+        BUTTON_TEXT_STYLE_CLASS[textStyle],
         ghostIconOnly && 'ds-ghost-button-icon-only',
         fullWidth && 'ds-button-block',
         className

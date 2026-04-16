@@ -368,13 +368,18 @@
 }
 
 .ds-dock-panel-topbar {
-  padding-inline: var(--ds-shell-header-padding-inline, 1.25rem);
+  display: flex;
+  align-items: center;
+  min-height: calc(2.5rem + (var(--ds-shell-subrow-padding-block, 0.75rem) * 2));
+  padding: var(--ds-shell-subrow-padding-block, 0.75rem)
+    var(--ds-shell-header-padding-inline, 1.25rem);
 }
 
 .ds-dock-panel-body {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .ds-dock-panel-footer {
@@ -459,7 +464,9 @@
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-  padding: 0.75rem var(--ds-shell-header-padding-inline, 1.25rem);
+  min-height: calc(2.5rem + (var(--ds-shell-subrow-padding-block, 0.75rem) * 2));
+  padding: var(--ds-shell-subrow-padding-block, 0.75rem)
+    var(--ds-shell-header-padding-inline, 1.25rem);
   border-bottom: var(--ds-shell-divider-width) solid var(--ds-shell-divider-color);
 }
 
