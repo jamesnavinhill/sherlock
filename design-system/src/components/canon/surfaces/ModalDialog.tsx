@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useId } from 'react';
 
 import { IconButton } from '../controls/IconButton';
+import { cx } from '../utils/cx';
 import {
   DialogSurface,
   type DialogSurfacePresentation,
@@ -46,7 +47,7 @@ export function ModalDialog({
       size={size}
       ariaLabelledBy={titleId}
       ariaDescribedBy={descriptionId}
-      surfaceClassName="ds-modal"
+      surfaceClassName={cx('ds-modal', `ds-modal-${size}`)}
     >
       <>
         <div className="ds-modal-header">

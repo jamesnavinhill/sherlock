@@ -238,6 +238,14 @@
   box-shadow: var(--ds-shadow-strong);
 }
 
+.ds-modal-sm {
+  width: min(100%, var(--ds-modal-width-sm));
+}
+
+.ds-modal-md {
+  width: min(100%, var(--ds-modal-width-md));
+}
+
 .ds-modal-header,
 .ds-modal-footer {
   display: flex;
@@ -537,11 +545,11 @@
 }
 
 .ds-workflow-dialog-lg {
-  width: min(58rem, 100%);
+  width: min(100%, var(--ds-workflow-dialog-width-lg));
 }
 
 .ds-workflow-dialog-xl {
-  width: min(72rem, 100%);
+  width: min(100%, var(--ds-workflow-dialog-width-xl));
 }
 
 .ds-workflow-dialog-body {

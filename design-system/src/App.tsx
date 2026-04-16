@@ -34,24 +34,28 @@ import {
   Button,
   ChatComposer,
   ChatTranscript,
+  ConfigPanel,
+  ConfigPanelSection,
   DateRangePicker,
   EmptyStateCard,
+  ListActionGroup,
   MenuButton,
   MetricGrid,
   ModalDialog,
   OptionGroup,
-  OverlayPanel,
   OverlaySection,
   PageShell,
   PanelNote,
   PanelRail,
   PopoverButton,
   RangeField,
+  RailSectionTree,
   ResponsiveGrid,
   SearchField,
   SegmentedTabs,
   NavTabs,
   SelectField,
+  SidebarAction,
   SidebarNav,
   SurfaceCard,
   Toast,
@@ -61,9 +65,9 @@ import {
   Workbench,
   WorkflowDialog,
   useExclusiveDisclosure,
-  useDisclosureSet,
   type DateRangePreset,
   type DateRangeValue,
+  type RailSectionNode,
   type ToastTone,
   type TranscriptMessage,
 } from './components/canon';
@@ -408,13 +412,7 @@ export default function App() {
   const [leftRailPinnedOpen, setLeftRailPinnedOpen] = useState(false);
   const [rightRailPinnedOpen, setRightRailPinnedOpen] = useState(false);
 
-  const leftSections = useExclusiveDisclosure<'inventory' | 'filters' | 'saved'>(null);
-  const rightSections = useExclusiveDisclosure<'details' | 'states' | 'tokens'>(null);
   const controlSections = useExclusiveDisclosure<'accordion' | 'modal' | 'mobile'>(null);
-  
-  const inventoryItems = useDisclosureSet<'pageShell' | 'rails' | 'menus'>();
-  const savedItems = useDisclosureSet<'coverage' | 'export'>();
-  const detailItems = useDisclosureSet<'generalRail' | 'collapsibles'>();
 
   const setTheme = (updater: (current: StudioTheme) => StudioTheme) => {
     setThemeState((current) => updater(current));
@@ -536,69 +534,197 @@ export default function App() {
       ? 'Hide inspector rail'
       : 'Show inspector rail';
 
+  const libraryRailSections: RailSectionNode[] = [
+    {
+      id: 'inventory',
+      title: 'Inventory',
+      meta: '6',
+      sections: [
+        {
+          id: 'page-shell',
+          title: 'Page Shell',
+          icon: <Workflow size={16} />,
+          content: <div className="ds-body-quiet">Reusable app frame with mobile drawer remap.</div>,
+        },
+        {
+          id: 'rails',
+          title: 'Rails',
+          icon: <FolderKanban size={16} />,
+          content: (
+            <div className="ds-body-quiet">
+              Left library and right inspector share one canon component.
+            </div>
+          ),
+        },
+        {
+          id: 'menus',
+          title: 'Menus + Selectors',
+          icon: <SearchCode size={16} />,
+          content: (
+            <div className="ds-body-quiet">
+              Unified popover contract for actions and configuration.
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'filters',
+      title: 'Filters',
+      meta: '5',
+      content: (
+        <ListActionGroup
+          compact
+          items={['Shell', 'Toolbars', 'Rails', 'Conversation', 'Typography'].map((item) => ({
+            id: item.toLowerCase(),
+            label: item,
+          }))}
+        />
+      ),
+    },
+    {
+      id: 'saved',
+      title: 'Saved Views',
+      meta: '2',
+      sections: [
+        {
+          id: 'coverage',
+          title: 'Shell Coverage',
+          meta: <Badge variant="accent">Current</Badge>,
+          content: (
+            <div className="ds-body-quiet">
+              Page shell, rails, toolbar, buttons, badges, selectors, modal, composer, transcript,
+              and accordions are all now represented as canon components.
+            </div>
+          ),
+        },
+        {
+          id: 'export',
+          title: 'Next Export',
+          content: (
+            <div className="ds-body-quiet">
+              Once the reference project settles, the `canon` folder can move out as the package
+              seed without application runtime imports.
+            </div>
+          ),
+        },
+      ],
+    },
+  ];
+
+  const inspectorRailSections: RailSectionNode[] = [
+    {
+      id: 'details',
+      title: 'Details',
+      meta: '3',
+      sections: [
+        {
+          id: 'general-rail',
+          title: 'General Rail',
+          content: (
+            <div className="ds-body-quiet">
+              One `PanelRail` handles library and inspector placement, which keeps the shell canon
+              smaller and easier to export.
+            </div>
+          ),
+        },
+        {
+          id: 'collapsibles',
+          title: 'Working Collapsibles',
+          content: (
+            <div className="ds-body-quiet">
+              The studio now uses shared toggle hooks, so the rail sections and reference
+              accordions can actually open and close.
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      id: 'states',
+      title: 'States',
+      meta: '4',
+      content: (
+        <ListActionGroup
+          compact
+          items={['Default', 'Hover', 'Active', 'Pinned'].map((item) => ({
+            id: item.toLowerCase(),
+            label: item,
+          }))}
+        />
+      ),
+    },
+    {
+      id: 'tokens',
+      title: 'Tokens',
+      meta: 'Live',
+      content: (
+        <MetricGrid
+          items={[
+            { label: 'Mode', value: theme.mode },
+            { label: 'Background', value: theme.background.variant },
+            {
+              label: 'Accent',
+              value: `${Math.round(theme.accent.hue)} / ${theme.accent.chroma.toFixed(3)}`,
+            },
+            { label: 'Radius', value: `${Math.round(theme.radii.panel)}px` },
+          ]}
+        />
+      ),
+    },
+  ];
+
   const configurationPanel = ({ close }: { close: () => void }) => (
-    <OverlayPanel
+    <ConfigPanel
       title="Workbench Configuration"
       onClose={close}
-      footer={
-        <div className="ds-overlay-actions">
-          <Button variant="ghost" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
-            Reset
-          </Button>
-          <Button variant="primary" onClick={close}>
-            Done
-          </Button>
-        </div>
-      }
+      onReset={() => setThemeState(cloneTheme(DEFAULT_THEME))}
     >
-      <div className="ds-overlay-grid">
-
-        <OverlaySection title="Shell Geometry">
-          <RangeField
-            label="Sidebar Width"
-            value={theme.shell.sidebarWidth}
-            min={208}
-            max={320}
-            step={8}
-            format={(value) => `${Math.round(value)}px`}
-            onChange={(value) =>
-              setTheme((current) => ({
-                ...current,
-                shell: { ...current.shell, sidebarWidth: value },
-              }))
-            }
-          />
-          <RangeField
-            label="Rail Width"
-            value={theme.shell.railWidth}
-            min={272}
-            max={420}
-            step={8}
-            format={(value) => `${Math.round(value)}px`}
-            onChange={(value) =>
-              setTheme((current) => ({
-                ...current,
-                shell: { ...current.shell, railWidth: value },
-              }))
-            }
-          />
-          <RangeField
-            label="Toolbar Height"
-            value={theme.shell.toolbarHeight}
-            min={64}
-            max={110}
-            step={2}
-            format={(value) => `${Math.round(value)}px`}
-            onChange={(value) =>
-              setTheme((current) => ({
-                ...current,
-                shell: { ...current.shell, toolbarHeight: value },
-              }))
-            }
-          />
-        </OverlaySection>
-      </div>
-    </OverlayPanel>
+      <ConfigPanelSection title="Shell Geometry">
+        <RangeField
+          label="Sidebar Width"
+          value={theme.shell.sidebarWidth}
+          min={208}
+          max={320}
+          step={8}
+          format={(value) => `${Math.round(value)}px`}
+          onChange={(value) =>
+            setTheme((current) => ({
+              ...current,
+              shell: { ...current.shell, sidebarWidth: value },
+            }))
+          }
+        />
+        <RangeField
+          label="Rail Width"
+          value={theme.shell.railWidth}
+          min={272}
+          max={420}
+          step={8}
+          format={(value) => `${Math.round(value)}px`}
+          onChange={(value) =>
+            setTheme((current) => ({
+              ...current,
+              shell: { ...current.shell, railWidth: value },
+            }))
+          }
+        />
+        <RangeField
+          label="Toolbar Height"
+          value={theme.shell.toolbarHeight}
+          min={64}
+          max={110}
+          step={2}
+          format={(value) => `${Math.round(value)}px`}
+          onChange={(value) =>
+            setTheme((current) => ({
+              ...current,
+              shell: { ...current.shell, toolbarHeight: value },
+            }))
+          }
+        />
+      </ConfigPanelSection>
+    </ConfigPanel>
   );
 
   return (
@@ -618,29 +744,21 @@ export default function App() {
             onCloseMobile={isOverlayShell ? () => setMobilePanel(null) : undefined}
             footer={
               <>
-                <button
-                  type="button"
-                  className="ds-sidebar-nav-item"
+                <SidebarAction
+                  icon={theme.mode === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                  label={theme.mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
                   onClick={() =>
                     setTheme((current) => ({
                       ...current,
                       mode: current.mode === 'dark' ? 'light' : 'dark',
                     }))
                   }
-                >
-                  {theme.mode === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-                  <span className="ds-sidebar-nav-item-label">
-                    {theme.mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="ds-sidebar-nav-item"
+                />
+                <SidebarAction
+                  icon={<Settings2 size={18} />}
+                  label="Workbench"
                   onClick={() => setWorkbenchOpen((current) => !current)}
-                >
-                  <Settings2 size={18} />
-                  <span className="ds-sidebar-nav-item-label">Workbench</span>
-                </button>
+                />
               </>
             }
           />
@@ -697,7 +815,6 @@ export default function App() {
                     <PopoverButton
                       leadingIcon={<SlidersHorizontal size={14} />}
                       triggerClassName="ds-toolbar-responsive-control"
-                      panelClassName="ds-toolbar-popover"
                       aria-label="Configure"
                       label=""
                     >
@@ -706,7 +823,6 @@ export default function App() {
                     <MenuButton
                       leadingIcon={<Download size={14} />}
                       triggerClassName="ds-toolbar-responsive-control"
-                      panelClassName="ds-toolbar-popover"
                       aria-label="Export"
                       label=""
                       items={[
@@ -758,94 +874,7 @@ export default function App() {
             }
             onCloseMobile={isOverlayShell ? () => setMobilePanel(null) : undefined}
           >
-            <AccordionSection
-              title="Inventory"
-              meta="6"
-              isOpen={leftSections.isOpen('inventory')}
-              onToggle={() => leftSections.toggle('inventory')}
-            >
-              <AccordionSection
-                variant="nested"
-                title="Page Shell"
-                icon={<Workflow size={16} />}
-                isOpen={inventoryItems.isOpen('pageShell')}
-                onToggle={() => inventoryItems.toggle('pageShell')}
-              >
-                <div className="ds-body-quiet">
-                  Reusable app frame with mobile drawer remap.
-                </div>
-              </AccordionSection>
-              
-              <AccordionSection
-                variant="nested"
-                title="Rails"
-                icon={<FolderKanban size={16} />}
-                isOpen={inventoryItems.isOpen('rails')}
-                onToggle={() => inventoryItems.toggle('rails')}
-              >
-                <div className="ds-body-quiet">
-                  Left library and right inspector share one canon component.
-                </div>
-              </AccordionSection>
-              
-              <AccordionSection
-                variant="nested"
-                title="Menus + Selectors"
-                icon={<SearchCode size={16} />}
-                isOpen={inventoryItems.isOpen('menus')}
-                onToggle={() => inventoryItems.toggle('menus')}
-              >
-                <div className="ds-body-quiet">
-                  Unified popover contract for actions and configuration.
-                </div>
-              </AccordionSection>
-            </AccordionSection>
-
-            <AccordionSection
-              title="Filters"
-              meta="5"
-              isOpen={leftSections.isOpen('filters')}
-              onToggle={() => leftSections.toggle('filters')}
-            >
-              <div className="ds-stack-sm">
-                {['Shell', 'Toolbars', 'Rails', 'Conversation', 'Typography'].map((item) => (
-                  <button key={item} type="button" className="ds-list-item ds-list-item-sm">
-                    <span className="ds-title-inline">{item}</span>
-                  </button>
-                ))}
-              </div>
-            </AccordionSection>
-
-            <AccordionSection
-              title="Saved Views"
-              meta="2"
-              isOpen={leftSections.isOpen('saved')}
-              onToggle={() => leftSections.toggle('saved')}
-            >
-              <AccordionSection
-                variant="nested"
-                title="Shell Coverage"
-                meta={<Badge variant="accent">Current</Badge>}
-                isOpen={savedItems.isOpen('coverage')}
-                onToggle={() => savedItems.toggle('coverage')}
-              >
-                <div className="ds-body-quiet">
-                  Page shell, rails, toolbar, buttons, badges, selectors, modal, composer, transcript,
-                  and accordions are all now represented as canon components.
-                </div>
-              </AccordionSection>
-              <AccordionSection
-                variant="nested"
-                title="Next Export"
-                isOpen={savedItems.isOpen('export')}
-                onToggle={() => savedItems.toggle('export')}
-              >
-                <div className="ds-body-quiet">
-                  Once the reference project settles, the `canon` folder can move out as the package
-                  seed without application runtime imports.
-                </div>
-              </AccordionSection>
-            </AccordionSection>
+            <RailSectionTree sections={libraryRailSections} />
           </PanelRail>
         }
         rightRail={
@@ -868,69 +897,7 @@ export default function App() {
             }
             onCloseMobile={isOverlayShell ? () => setMobilePanel(null) : undefined}
           >
-            <AccordionSection
-              title="Details"
-              meta="3"
-              isOpen={rightSections.isOpen('details')}
-              onToggle={() => rightSections.toggle('details')}
-            >
-              <AccordionSection
-                variant="nested"
-                title="General Rail"
-                isOpen={detailItems.isOpen('generalRail')}
-                onToggle={() => detailItems.toggle('generalRail')}
-              >
-                <div className="ds-body-quiet">
-                  One `PanelRail` handles library and inspector placement, which keeps the shell canon
-                  smaller and easier to export.
-                </div>
-              </AccordionSection>
-              <AccordionSection
-                variant="nested"
-                title="Working Collapsibles"
-                isOpen={detailItems.isOpen('collapsibles')}
-                onToggle={() => detailItems.toggle('collapsibles')}
-              >
-                <div className="ds-body-quiet">
-                  The studio now uses shared toggle hooks, so the rail sections and reference
-                  accordions can actually open and close.
-                </div>
-              </AccordionSection>
-            </AccordionSection>
-
-            <AccordionSection
-              title="States"
-              meta="4"
-              isOpen={rightSections.isOpen('states')}
-              onToggle={() => rightSections.toggle('states')}
-            >
-              <div className="ds-stack-sm">
-                {['Default', 'Hover', 'Active', 'Pinned'].map((item) => (
-                  <button key={item} type="button" className="ds-list-item ds-list-item-sm">
-                    <span className="ds-title-inline">{item}</span>
-                  </button>
-                ))}
-              </div>
-            </AccordionSection>
-
-            <AccordionSection
-              title="Tokens"
-              meta="Live"
-              isOpen={rightSections.isOpen('tokens')}
-              onToggle={() => rightSections.toggle('tokens')}
-            >
-              <MetricGrid
-                items={[
-                  { label: 'Mode', value: theme.mode },
-                  { label: 'Background', value: theme.background.variant },
-                  {
-                    label: 'Accent',
-                    value: `${Math.round(theme.accent.hue)} / ${theme.accent.chroma.toFixed(3)}`,
-                  },
-                  { label: 'Radius', value: `${Math.round(theme.radii.panel)}px` },
-                ]}
-              />
-            </AccordionSection>
+            <RailSectionTree sections={inspectorRailSections} />
           </PanelRail>
         }
         sidebarCollapsed={sidebarCollapsed}
@@ -1004,22 +971,18 @@ export default function App() {
             {galleryTab === 'navigation' ? (
               <ResponsiveGrid>
                 <SurfaceCard title="Sidebar Navigation" eyebrow="Sidebar">
-                  <div className="ds-stack">
-                    {NAV_ITEMS.map((item) => {
+                  <ListActionGroup
+                    items={NAV_ITEMS.map((item) => {
                       const Icon = item.icon;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          className="ds-list-item"
-                          data-active={item.id === activeNav ? 'true' : undefined}
-                        >
-                          <Icon size={16} />
-                          <span className="ds-title-inline">{item.label}</span>
-                        </button>
-                      );
+
+                      return {
+                        id: item.id,
+                        label: item.label,
+                        icon: <Icon size={16} />,
+                        active: item.id === activeNav,
+                      };
                     })}
-                  </div>
+                  />
                 </SurfaceCard>
 
                 <SurfaceCard title="Toolbar Actions" eyebrow="Header">
@@ -1053,7 +1016,6 @@ export default function App() {
                     <PopoverButton
                       label="Config"
                       leadingIcon={<SlidersHorizontal size={14} />}
-                      panelClassName="ds-toolbar-popover"
                     >
                       {configurationPanel}
                     </PopoverButton>
@@ -1173,7 +1135,6 @@ export default function App() {
                         variant="secondary"
                         leadingIcon={<Settings2 size={14} />}
                         align="start"
-                        panelClassName="ds-toolbar-popover"
                       >
                         {configurationPanel}
                       </PopoverButton>

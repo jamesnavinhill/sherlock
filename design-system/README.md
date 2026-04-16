@@ -25,13 +25,14 @@ npm run build
 - `MenuButton` and `OptionGroup` now expose their remaining reusable control contract types explicitly, including readonly item/options collections and single vs. multiple option-group prop shapes.
 - `PageShell` is the main reusable shell contract and now exposes an explicit attached `workbench` slot instead of a generic floating-content escape hatch.
 - The workbench is part of the shipped reusable shell system, not studio-only code.
+- The global config-panel shell, reusable rail disclosure tree, list-action rows, and sidebar footer actions now also live in canon instead of being assembled inline in `App.tsx`.
 - Overlay canon now has two tiers: lightweight list/menu selectors and richer structured config/workflow overlays for popouts and wizards.
 - Family-based styles now live under `src/styles/`, split into `base.css`, `shell.css`, `controls.css`, `surfaces.css`, `conversation.css`, and `workbench.css`, with `src/index.css` acting as the import hub.
 - Motion timing, backdrop blur, and shared accent-preview shadows now resolve through canon CSS variables so shell, controls, surfaces, and workbench use one interaction language.
 - Accent icon glow and range-thumb halo treatments now also resolve through named canon variables instead of one-off style literals.
 - Shared raised/subtle/workbench surface fills and range-track treatments now also resolve through named system variables across controls, conversation, surfaces, base typography, and workbench styles.
 - Shell chrome, overlay backdrop, button emphasis fills, muted/emphasis borders, modal section fills, and overlay section tones now also resolve through named system variables instead of family-local literals.
-- Dialog widths, modal section rhythm, and toast chroming now also resolve through shared surface tokens, and toast tones derive from the existing graph palette instead of new notification colors.
+- Modal and workflow dialog widths now resolve through family-scoped surface tokens, modal section rhythm stays shared, and toast tones derive from the existing graph palette instead of new notification colors.
 - Conversation role surfaces now also resolve through named system variables, and the internal `utils` barrel now follows the same explicit-export rule as the public canon barrels.
 - `DateRangePicker` now supports both full field layout and compact inline toolbar triggers while reusing the shared overlay divider language for its header and footer framing.
 - `F1` toggles the non-blocking design workbench.

@@ -34,7 +34,7 @@ Shared interaction treatments such as accent glows, control halos, motion, blur,
 
 The same rule applies to shared surface-fill treatments: if a panel, raised card, workbench, or control track style is reused across families, it should prefer a named system variable over repeated `color-mix(...)` literals.
 
-The same preference also applies to shared overlay sizing and feedback tones: dialog widths and modal rhythm should live as system tokens, and toast tones should derive from the existing `--ds-graph-*` palette rather than new notification colors.
+The same preference also applies to shared overlay sizing and feedback tones: dialog widths and modal rhythm should live as system tokens, with modal and workflow families owning their width classes instead of one-off page styling, and toast tones should derive from the existing `--ds-graph-*` palette rather than new notification colors.
 
 ## Family Ownership
 
@@ -46,6 +46,8 @@ Current public components:
 
 - `PageShell`
 - `PanelRail`
+- `RailSectionTree`
+- `SidebarAction`
 - `SidebarNav`
 
 `PageShell` is the main reusable shell contract. It owns the sidebar, toolbar, rails, content region, overlay backdrop, and the attached `workbench` slot used by the shipped system workbench.
@@ -71,6 +73,8 @@ Current public components:
 - `DateRangePicker`
 - `FieldRow`
 - `IconButton`
+- `ListAction`
+- `ListActionGroup`
 - `MenuButton`
 - `NavTabs`
 - `OptionGroup`
@@ -132,6 +136,8 @@ The intended attachment point is `PageShell`'s explicit `workbench` slot rather 
 
 Current public components:
 
+- `ConfigPanel`
+- `ConfigPanelSection`
 - `Workbench`
 
 ## Product Assumptions

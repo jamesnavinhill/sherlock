@@ -681,6 +681,18 @@
   gap: 0.2rem;
 }
 
+.ds-list-action-icon,
+.ds-list-action-meta {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ds-list-action-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
 .ds-list-item-sm {
   padding: 0.4rem 0.65rem;
   min-height: 2.15rem;
@@ -1071,10 +1083,6 @@
   border: 1px solid var(--ds-accent-border);
   box-shadow: var(--ds-shadow-control-thumb);
   cursor: pointer;
-}
-
-.ds-toolbar-popover {
-  width: min(22rem, calc(100vw - 2rem));
 }
 
 .ds-nav-tabs {

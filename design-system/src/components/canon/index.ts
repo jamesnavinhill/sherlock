@@ -6,6 +6,8 @@ export {
   DateRangePicker,
   FieldRow,
   IconButton,
+  ListAction,
+  ListActionGroup,
   MenuButton,
   NavTabs,
   OptionGroup,
@@ -30,6 +32,9 @@ export type {
   FieldRowProps,
   IconButtonAppearance,
   IconButtonProps,
+  ListActionGroupProps,
+  ListActionItem,
+  ListActionProps,
   MenuButtonItem,
   MenuButtonProps,
   MultipleOptionGroupProps,
@@ -61,8 +66,16 @@ export type {
 } from './conversation';
 export { AccordionSection, useDisclosureSet, useExclusiveDisclosure } from './disclosure';
 export type { AccordionSectionProps } from './disclosure';
-export { PageShell, PanelRail, SidebarNav } from './layout';
-export type { PageShellProps, PanelRailProps, SidebarNavItem, SidebarNavProps } from './layout';
+export { PageShell, PanelRail, RailSectionTree, SidebarAction, SidebarNav } from './layout';
+export type {
+  PageShellProps,
+  PanelRailProps,
+  RailSectionNode,
+  RailSectionTreeProps,
+  SidebarActionProps,
+  SidebarNavItem,
+  SidebarNavProps,
+} from './layout';
 export { ToolbarBar, ToolbarCluster } from './navigation';
 export type { ToolbarBarProps, ToolbarClusterProps } from './navigation';
 export {
@@ -101,5 +114,9 @@ export type {
   WorkflowDialogProps,
   WorkflowDialogSize,
 } from './surfaces';
-export { Workbench } from './workbench';
-export type { WorkbenchProps } from './workbench';
+export { ConfigPanel, ConfigPanelSection, Workbench } from './workbench';
+export type {
+  ConfigPanelProps,
+  ConfigPanelSectionProps,
+  WorkbenchProps,
+} from './workbench';

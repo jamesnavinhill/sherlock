@@ -32,6 +32,36 @@
   gap: 1rem;
 }
 
+.ds-config-panel {
+  width: min(var(--ds-config-panel-width), calc(100vw - 2rem));
+}
+
+.ds-config-panel-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.ds-config-panel-section {
+  width: 100%;
+}
+
+.ds-config-panel-footer {
+  align-items: stretch;
+}
+
+.ds-config-panel-footer-actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ds-config-panel-footer-actions > * {
+  min-width: 0;
+}
+
 .ds-workbench-body {
   min-height: 0;
   overflow-x: hidden;

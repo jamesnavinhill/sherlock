@@ -272,6 +272,22 @@ Why this matters:
 - non-blocking feedback now exists as an actual canon primitive using the existing graph palette
 - the public canon surface is clearer because overlay sizing and presentation contracts are now importable instead of hidden as inline unions
 
+### 2026-04-16: Config and rail composition extraction continued
+
+Completed in this pass:
+
+- promoted the global config-panel shell into the `workbench/` family as `ConfigPanel` and `ConfigPanelSection`
+- promoted reusable list-row and sidebar-footer button anatomy into canon components instead of leaving raw class-based buttons in `App.tsx`
+- promoted the reusable rail accordion composition into the `layout/` family as `RailSectionTree`
+- refactored the studio page to consume those canon components instead of owning the config panel and rail disclosure structure inline
+
+Why this matters:
+
+- the config panel is now a real reusable product component rather than a page-local overlay assembly
+- the left and right rail disclosure structure now lives in canon code instead of page-local JSX
+- `App.tsx` is closer to being a reference consumer of canon components rather than the owner of their layout and styling
+- future app pages now have named canon building blocks for config panels, rail disclosure trees, list rows, and sidebar footer actions
+
 ## Main Problems Still Left
 
 The remaining work is not “invent the system.”
