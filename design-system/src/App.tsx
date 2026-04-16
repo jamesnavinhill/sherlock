@@ -1,7 +1,6 @@
 import {
   Bell,
   BookOpen,
-  ChevronRight,
   Compass,
   Download,
   FileSearch,
@@ -18,7 +17,6 @@ import {
   SearchCode,
   Settings2,
   Shapes,
-  Sidebar,
   SlidersHorizontal,
   Sparkles,
   Sun,
@@ -47,7 +45,6 @@ import {
   MetricGrid,
   ModalDialog,
   OptionGroup,
-  OverlaySection,
   PageShell,
   PanelNote,
   PanelRail,
@@ -81,6 +78,7 @@ import {
   DEFAULT_THEME,
   cloneTheme,
   createDefaultGraphs,
+  type AccentPoint,
   type StudioTheme,
 } from './system/schema';
 
@@ -126,6 +124,47 @@ const hasPreviousShellDefaults = (shell: Partial<StudioTheme['shell']> | undefin
   shell?.contentWidth === PREVIOUS_SHELL_DEFAULTS.contentWidth &&
   shell?.density === PREVIOUS_SHELL_DEFAULTS.density &&
   shell?.surfaceOpacity === PREVIOUS_SHELL_DEFAULTS.surfaceOpacity;
+
+type LegacySurfaceScaleInput = Partial<StudioTheme['surfaces']['dark']> & {
+  background?: Partial<AccentPoint>;
+};
+
+type LegacyThemeInput = Partial<StudioTheme> & {
+  surfaces?: {
+    dark?: LegacySurfaceScaleInput;
+    light?: LegacySurfaceScaleInput;
+  };
+};
+
+const mergeAccentPoint = (base: AccentPoint, input?: Partial<AccentPoint>): AccentPoint => ({
+  ...base,
+  ...input,
+});
+
+const mergeSurfaceScale = (
+  base: StudioTheme['surfaces']['dark'],
+  input?: LegacySurfaceScaleInput
+): StudioTheme['surfaces']['dark'] => ({
+  shell: mergeAccentPoint(base.shell, input?.shell ?? input?.background),
+  rail: mergeAccentPoint(base.rail, input?.rail),
+  panel: mergeAccentPoint(base.panel, input?.panel),
+  surface: mergeAccentPoint(base.surface, input?.surface),
+});
+
+const mergeBackgroundSettings = (
+  base: StudioTheme['background'],
+  input: LegacyThemeInput['background'],
+  legacySurfaces: LegacyThemeInput['surfaces']
+): StudioTheme['background'] => ({
+  dark: mergeAccentPoint(base.dark, input?.dark ?? legacySurfaces?.dark?.background),
+  light: mergeAccentPoint(base.light, input?.light ?? legacySurfaces?.light?.background),
+  variant: input?.variant ?? base.variant,
+  dotColor: input?.dotColor ?? base.dotColor,
+  dotOpacity: input?.dotOpacity ?? base.dotOpacity,
+  gridSize: input?.gridSize ?? base.gridSize,
+  glowOpacity: input?.glowOpacity ?? base.glowOpacity,
+  scanlineOpacity: input?.scanlineOpacity ?? base.scanlineOpacity,
+});
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() =>
@@ -346,16 +385,17 @@ const loadTheme = (): StudioTheme => {
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<StudioTheme>;
+    const parsed = JSON.parse(raw) as LegacyThemeInput;
     const nextTheme = cloneTheme(DEFAULT_THEME);
 
     return {
       ...nextTheme,
       ...parsed,
       surfaces: {
-        dark: { ...nextTheme.surfaces.dark, ...parsed.surfaces?.dark },
-        light: { ...nextTheme.surfaces.light, ...parsed.surfaces?.light },
+        dark: mergeSurfaceScale(nextTheme.surfaces.dark, parsed.surfaces?.dark),
+        light: mergeSurfaceScale(nextTheme.surfaces.light, parsed.surfaces?.light),
       },
+      background: mergeBackgroundSettings(nextTheme.background, parsed.background, parsed.surfaces),
       graphs: parsed.graphs ?? createDefaultGraphs(parsed.accent ?? nextTheme.accent),
       shell: hasPreviousShellDefaults(parsed.shell)
         ? { ...nextTheme.shell }
@@ -514,30 +554,6 @@ export default function App() {
 
     setRightRailPinnedOpen((current) => !current);
   };
-
-  const sidebarToggleLabel = isOverlayShell
-    ? mobilePanel === 'sidebar'
-      ? 'Close navigation'
-      : 'Open navigation'
-    : sidebarCollapsed
-      ? 'Expand sidebar'
-      : 'Collapse sidebar';
-
-  const leftRailToggleLabel = isOverlayShell
-    ? mobilePanel === 'left'
-      ? 'Close library rail'
-      : 'Open library rail'
-    : leftRailPinnedOpen
-      ? 'Hide library rail'
-      : 'Show library rail';
-
-  const rightRailToggleLabel = isOverlayShell
-    ? mobilePanel === 'right'
-      ? 'Close inspector rail'
-      : 'Open inspector rail'
-    : rightRailPinnedOpen
-      ? 'Hide inspector rail'
-      : 'Show inspector rail';
 
   const libraryRailSections: RailSectionNode[] = [
     {

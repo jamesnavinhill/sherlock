@@ -30,6 +30,8 @@
 .ds-empty-state-card,
 .ds-action-card,
 .ds-surface-preview-bg,
+.ds-surface-preview-page,
+.ds-surface-preview-shell,
 .ds-surface-preview-panel,
 .ds-surface-preview-surface {
   min-width: 0;
@@ -124,6 +126,8 @@
   justify-content: center;
 }
 
+.ds-surface-preview-page,
+.ds-surface-preview-shell,
 .ds-surface-preview-bg,
 .ds-surface-preview-rail,
 .ds-surface-preview-panel,
@@ -133,7 +137,7 @@
   border: 1px solid var(--ds-border-muted);
 }
 
-.ds-surface-preview-bg[data-active='true'],
+.ds-surface-preview-shell[data-active='true'],
 .ds-surface-preview-rail[data-active='true'],
 .ds-surface-preview-panel[data-active='true'],
 .ds-surface-preview-surface[data-active='true'] {
@@ -141,11 +145,23 @@
   box-shadow: var(--ds-shadow-accent-ring);
 }
 
+.ds-surface-preview-page {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  padding: 0.5rem;
+  background: var(--ds-background);
+}
+
 .ds-surface-preview-bg {
   width: 100%;
   aspect-ratio: 16 / 7;
+}
+
+.ds-surface-preview-shell {
+  width: 100%;
+  height: 100%;
   padding: 0.75rem 1.75rem;
-  background: var(--ds-bg);
+  background: var(--ds-shell);
 }
 
 .ds-surface-preview-rail {

@@ -4,8 +4,10 @@
   --ds-graph-2: oklch(0.57 0.09 140);
   --ds-graph-3: oklch(0.57 0.09 190);
   --ds-graph-4: oklch(0.57 0.09 260);
-  --ds-bg: oklch(0.88 0.002 85);
+  --ds-background: oklch(0.88 0.002 85);
+  --ds-shell: oklch(0.88 0.002 85);
   --ds-panel: oklch(0.9 0.004 85);
+  --ds-rail: oklch(0.88 0.002 85);
   --ds-surface: oklch(0.975 0.004 81);
   --ds-border: #c6ccd6;
   --ds-text: #424954;
@@ -95,8 +97,8 @@
   --ds-shadow-strong: 0 22px 42px -34px rgba(0, 0, 0, 0.42);
   --ds-shadow-accent-soft: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
   --ds-shadow-accent-ring: 0 0 12px -2px color-mix(in oklab, var(--ds-accent) 25%, transparent);
-  --ds-shadow-control-thumb: 0 0 0 3px var(--ds-bg), var(--ds-shadow-soft);
-  --ds-shadow-control-thumb-strong: 0 0 0 4px var(--ds-bg), var(--ds-shadow-strong);
+  --ds-shadow-control-thumb: 0 0 0 3px var(--ds-background), var(--ds-shadow-soft);
+  --ds-shadow-control-thumb-strong: 0 0 0 4px var(--ds-background), var(--ds-shadow-strong);
   --ds-filter-accent-glow: drop-shadow(0 2px 4px color-mix(in oklab, var(--ds-accent) 20%, transparent));
   --ds-surface-bg-subtle: color-mix(
     in oklab,
@@ -111,11 +113,11 @@
   --ds-surface-bg-workbench: color-mix(
     in oklab,
     var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%),
-    var(--ds-bg) 4%
+    var(--ds-background) 4%
   );
   --ds-overlay-panel-bg: var(--ds-surface-bg-workbench);
-  --ds-shell-sidebar-bg: color-mix(in oklab, var(--ds-bg) 88%, var(--ds-panel) 12%);
-  --ds-shell-toolbar-bg: color-mix(in oklab, var(--ds-bg) 78%, var(--ds-panel) 22%);
+  --ds-shell-sidebar-bg: color-mix(in oklab, var(--ds-shell) 88%, var(--ds-panel) 12%);
+  --ds-shell-toolbar-bg: color-mix(in oklab, var(--ds-shell) 78%, var(--ds-panel) 22%);
   --ds-shell-rail-bg: color-mix(
     in oklab,
     var(--ds-rail) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%),
@@ -136,7 +138,7 @@
   --ds-modal-body-bg: var(--ds-overlay-panel-bg);
   --ds-modal-footer-bg: var(--ds-overlay-panel-bg);
   --ds-conversation-user-bg: color-mix(in oklab, var(--ds-accent-soft) 62%, var(--ds-panel) 38%);
-  --ds-conversation-system-bg: color-mix(in oklab, var(--ds-bg) 68%, var(--ds-panel) 32%);
+  --ds-conversation-system-bg: color-mix(in oklab, var(--ds-background) 68%, var(--ds-panel) 32%);
   --ds-overlay-section-bg: color-mix(
     in oklab,
     var(--ds-panel) clamp(0%, calc(90% * var(--ds-surface-opacity)), 100%),
@@ -236,15 +238,15 @@
   --ds-text-strong: color-mix(in oklab, var(--ds-ink) 44%, var(--ds-text));
   --ds-text-heading: color-mix(in oklab, var(--ds-ink) 56%, var(--ds-text));
   --ds-text-muted: color-mix(in oklab, var(--ds-text) 84%, var(--ds-ink) 16%);
-  --ds-text-meta: color-mix(in oklab, var(--ds-text) 72%, var(--ds-bg));
-  --ds-text-quiet: color-mix(in oklab, var(--ds-text) 70%, var(--ds-bg));
+  --ds-text-meta: color-mix(in oklab, var(--ds-text) 72%, var(--ds-background));
+  --ds-text-quiet: color-mix(in oklab, var(--ds-text) 70%, var(--ds-background));
   --ds-shadow-soft: 0 16px 34px -28px rgba(0, 0, 0, 0.72);
   --ds-shadow-strong: 0 22px 42px -34px rgba(0, 0, 0, 0.82);
   --ds-border-soft: color-mix(in oklab, var(--ds-border) 92%, transparent);
   --ds-border-strong: color-mix(in oklab, var(--ds-border) 100%, transparent);
-  --ds-interaction-bg: color-mix(in oklab, var(--ds-bg) 90%, var(--ds-panel) 10%);
-  --ds-interaction-hover-bg: color-mix(in oklab, var(--ds-bg) 86%, var(--ds-panel) 14%);
-  --ds-interaction-active-bg: color-mix(in oklab, var(--ds-bg) 82%, var(--ds-panel) 18%);
+  --ds-interaction-bg: color-mix(in oklab, var(--ds-shell) 90%, var(--ds-panel) 10%);
+  --ds-interaction-hover-bg: color-mix(in oklab, var(--ds-shell) 86%, var(--ds-panel) 14%);
+  --ds-interaction-active-bg: color-mix(in oklab, var(--ds-shell) 82%, var(--ds-panel) 18%);
   color-scheme: dark;
 }
 
@@ -282,7 +284,7 @@ body,
 
 body {
   margin: 0;
-  background: var(--ds-bg);
+  background: var(--ds-background);
   color: var(--ds-text);
   font-family: var(--ds-font-ui);
   font-size: calc(var(--ds-type-base) * var(--ds-ui-scale));

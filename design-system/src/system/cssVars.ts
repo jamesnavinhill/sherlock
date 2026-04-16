@@ -57,7 +57,7 @@ const CONTROL_CHROME_VARS: Record<ControlChrome, Record<string, string>> = {
     '--ds-control-border-hover': 'var(--ds-accent-border)',
     '--ds-control-shadow': 'none',
     '--ds-control-shadow-hover': 'none',
-    '--ds-floating-bg': 'color-mix(in oklab, var(--ds-bg) 84%, var(--ds-panel) 16%)',
+    '--ds-floating-bg': 'color-mix(in oklab, var(--ds-shell) 84%, var(--ds-panel) 16%)',
     '--ds-dialog-backdrop': 'color-mix(in oklab, var(--ds-panel-dark) 38%, transparent)',
   },
 };
@@ -170,6 +170,7 @@ const buildRoleVars = (
 
 export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> => {
   const modeScale = theme.surfaces[theme.mode];
+  const modeBackground = theme.background[theme.mode];
   const typeSizes = resolveTypeSizes(theme.typography.size);
   const weightScale = resolveWeights(theme.typography.weight);
   const backgroundImage = buildBackgroundImage(theme.background);
@@ -181,15 +182,18 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
     '--ds-graph-2': buildAccentColor(theme.graphs[1]),
     '--ds-graph-3': buildAccentColor(theme.graphs[2]),
     '--ds-graph-4': buildAccentColor(theme.graphs[3]),
-    '--ds-bg': buildAccentColor(modeScale.background),
+    '--ds-background': buildAccentColor(modeBackground),
+    '--ds-shell': buildAccentColor(modeScale.shell),
     '--ds-panel': buildAccentColor(modeScale.panel),
     '--ds-rail': buildAccentColor(modeScale.rail),
     '--ds-surface': buildAccentColor(modeScale.surface),
-    '--ds-bg-dark': buildAccentColor(theme.surfaces.dark.background),
+    '--ds-background-dark': buildAccentColor(theme.background.dark),
+    '--ds-shell-dark': buildAccentColor(theme.surfaces.dark.shell),
     '--ds-panel-dark': buildAccentColor(theme.surfaces.dark.panel),
     '--ds-rail-dark': buildAccentColor(theme.surfaces.dark.rail),
     '--ds-surface-dark': buildAccentColor(theme.surfaces.dark.surface),
-    '--ds-bg-light': buildAccentColor(theme.surfaces.light.background),
+    '--ds-background-light': buildAccentColor(theme.background.light),
+    '--ds-shell-light': buildAccentColor(theme.surfaces.light.shell),
     '--ds-panel-light': buildAccentColor(theme.surfaces.light.panel),
     '--ds-rail-light': buildAccentColor(theme.surfaces.light.rail),
     '--ds-surface-light': buildAccentColor(theme.surfaces.light.surface),

@@ -37,7 +37,8 @@ npm run build
 - Conversation role surfaces now also resolve through named system variables, and the internal `utils` barrel now follows the same explicit-export rule as the public canon barrels.
 - `DateRangePicker` now supports both full field layout and compact inline toolbar triggers while reusing the shared overlay divider language for its header and footer framing.
 - `F1` toggles the non-blocking design workbench.
-- The workbench can export the current token set as JSON or resolved CSS custom properties.
+- The workbench now ships with full theme templates, separate page-background color tuning, and a distinct page-structure tuning surface for shell, rail, panel, and surface tokens.
+- The workbench can export the current token set as JSON or resolved CSS custom properties, and legacy exports still hydrate through the updated background/shell migration path.
 - The desktop shell now supports a collapsed sidebar state, and toolbar actions compact to icon-first controls as space tightens.
 - Mobile behavior now uses lighter overlay sheets for sidebar/library/inspector regions instead of full-height blurred takeovers.
 - See `docs/CANON_INVENTORY.md` for the current reusable family ownership and public inventory.

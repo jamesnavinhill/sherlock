@@ -1,17 +1,17 @@
 import {
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 
 import { buildThemeCssText, buildThemeCssVars } from '../../../system/cssVars';
 import {
   BACKGROUND_VARIANTS,
   DEFAULT_THEME,
   SURFACE_PRESETS,
+  THEME_TEMPLATES,
   cloneTheme,
   createDefaultGraphs,
   getFontOptionsForRole,
-  getSelectedFontIds,
   type FontRole,
   type StudioTheme,
 } from '../../../system/schema';
@@ -72,9 +72,10 @@ export interface WorkbenchProps {
 
 export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) {
   const [activeTab, setActiveTab] = useState<WorkbenchTab>('theme');
-  const [selectedSurfaceMode, setSelectedSurfaceMode] = useState<'dark' | 'light'>(theme.mode);
-  const [selectedSurfaceKey, setSelectedSurfaceKey] = useState<
-    'background' | 'panel' | 'rail' | 'surface'
+  const [selectedBackgroundMode, setSelectedBackgroundMode] = useState<'dark' | 'light'>(theme.mode);
+  const [selectedStructureMode, setSelectedStructureMode] = useState<'dark' | 'light'>(theme.mode);
+  const [selectedStructureKey, setSelectedStructureKey] = useState<
+    'shell' | 'panel' | 'rail' | 'surface'
   >('panel');
   const [selectedPresetMode, setSelectedPresetMode] = useState<'both' | 'dark' | 'light'>('both');
   const [activeGraphIndex, setActiveGraphIndex] = useState<number>(0);
@@ -83,32 +84,27 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const [openThemeSections, setOpenThemeSections] = useState<string[]>(['templates', 'chrome']);
   const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry', 'radius']);
   const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
-  const [openFontProfiles, setOpenFontProfiles] = useState<string[]>([]);
 
   useEffect(() => {
-    setSelectedSurfaceMode(theme.mode);
+    setSelectedBackgroundMode(theme.mode);
+    setSelectedStructureMode(theme.mode);
   }, [theme.mode]);
-
-  useEffect(() => {
-    const nextFontIds = getSelectedFontIds(theme);
-    setOpenFontProfiles((current) => {
-      const merged = Array.from(new Set([...current, ...nextFontIds]));
-      return merged.filter((fontId) => nextFontIds.includes(fontId));
-    });
-  }, [theme]);
 
   if (!isOpen) {
     return null;
   }
 
-  const selectedSurface = theme.surfaces[selectedSurfaceMode][selectedSurfaceKey];
-  const selectedFontIds = getSelectedFontIds(theme);
+  const selectedBackground = theme.background[selectedBackgroundMode];
+  const selectedStructure = theme.surfaces[selectedStructureMode][selectedStructureKey];
+  const structurePreviewVars = buildThemeCssVars({ ...theme, mode: selectedStructureMode });
   const exportJson = buildExportJson(theme);
   const colorThemeJson = buildColorThemeJson(theme);
   const exportCss = buildThemeCssText(theme);
   const themeCssVars = buildThemeCssVars(theme);
   const accentReadout = splitColorReadout(themeCssVars['--ds-accent']);
-  const backgroundReadout = splitColorReadout(themeCssVars['--ds-bg']);
+  const backgroundReadout = splitColorReadout(themeCssVars['--ds-background']);
+  const shellReadout = splitColorReadout(themeCssVars['--ds-shell']);
+  const railReadout = splitColorReadout(themeCssVars['--ds-rail']);
   const panelReadout = splitColorReadout(themeCssVars['--ds-panel']);
   const surfaceReadout = splitColorReadout(themeCssVars['--ds-surface']);
 
@@ -161,7 +157,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   </div>
                   <SegmentedTabs
                     value={selectedPresetMode}
-                    onChange={(v) => setSelectedPresetMode(v as any)}
+                    onChange={(value) => setSelectedPresetMode(value as 'both' | 'dark' | 'light')}
                     size="compact"
                     items={[
                       { id: 'both', label: 'Both' },
@@ -172,6 +168,18 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   />
                 </div>
                 <div className="ds-grid-three">
+                  {THEME_TEMPLATES.map((template) => (
+                    <Button
+                      key={template.id}
+                      variant="secondary"
+                      data-active={
+                        JSON.stringify(theme) === JSON.stringify(template.theme) ? 'true' : undefined
+                      }
+                      onClick={() => setTheme(() => cloneTheme(template.theme))}
+                    >
+                      {template.label}
+                    </Button>
+                  ))}
                   {SURFACE_PRESETS.map((preset) => (
                     <Button
                       key={preset.id}
@@ -479,6 +487,102 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
             >
               <div className="ds-stack">
+                <div className="ds-field-row">
+                  <div className="ds-field-row-header">
+                    <Eyebrow>Tuning Mode</Eyebrow>
+                  </div>
+                  <SegmentedTabs
+                    value={selectedBackgroundMode}
+                    onChange={(value) => setSelectedBackgroundMode(value as 'dark' | 'light')}
+                    items={[
+                      { id: 'dark', label: 'Dark Mode' },
+                      { id: 'light', label: 'Light Mode' },
+                    ]}
+                    stretch
+                  />
+                </div>
+                <div className="ds-stack">
+                  <RangeField
+                    label="Background Hue"
+                    value={selectedBackground.hue}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: {
+                          ...current.background,
+                          [selectedBackgroundMode]: {
+                            ...current.background[selectedBackgroundMode],
+                            hue: value,
+                          },
+                        },
+                      }))
+                    }
+                    min={0}
+                    max={360}
+                    step={1}
+                    format={(value) => `${Math.round(value)}`}
+                  />
+                  <RangeField
+                    label="Background Lightness"
+                    value={selectedBackground.lightness}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: {
+                          ...current.background,
+                          [selectedBackgroundMode]: {
+                            ...current.background[selectedBackgroundMode],
+                            lightness: value,
+                          },
+                        },
+                      }))
+                    }
+                    min={selectedBackgroundMode === 'dark' ? 0 : 0.82}
+                    max={selectedBackgroundMode === 'dark' ? 0.35 : 1}
+                    step={0.002}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Background Chroma"
+                    value={selectedBackground.chroma}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: {
+                          ...current.background,
+                          [selectedBackgroundMode]: {
+                            ...current.background[selectedBackgroundMode],
+                            chroma: value,
+                          },
+                        },
+                      }))
+                    }
+                    min={0}
+                    max={selectedBackgroundMode === 'dark' ? 0.06 : 0.08}
+                    step={0.001}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Background Opacity"
+                    value={selectedBackground.opacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: {
+                          ...current.background,
+                          [selectedBackgroundMode]: {
+                            ...current.background[selectedBackgroundMode],
+                            opacity: value,
+                          },
+                        },
+                      }))
+                    }
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                </div>
                 <SelectField
                   label="Variant"
                   value={theme.background.variant}
@@ -572,7 +676,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             </AccordionSection>
 
             <AccordionSection
-              title="Surfaces"
+              title="Page Structure"
               isOpen={openThemeSections.includes('surfaces')}
               onToggle={() =>
                 setOpenThemeSections((current) =>
@@ -602,8 +706,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     <Eyebrow>Tuning Mode</Eyebrow>
                   </div>
                   <SegmentedTabs
-                    value={selectedSurfaceMode}
-                    onChange={(v) => setSelectedSurfaceMode(v as 'dark' | 'light')}
+                    value={selectedStructureMode}
+                    onChange={(v) => setSelectedStructureMode(v as 'dark' | 'light')}
                     items={[
                       { id: 'dark', label: 'Dark Mode' },
                       { id: 'light', label: 'Light Mode' },
@@ -612,16 +716,16 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   />
                 </div>
                 <div className="ds-chip-grid ds-action-row">
-                  {(['background', 'rail', 'panel', 'surface'] as const).map((key) => (
+                  {(['shell', 'rail', 'panel', 'surface'] as const).map((key) => (
                     <Button
                       key={key}
                       variant="secondary"
                       size="compact"
-                      data-active={selectedSurfaceKey === key ? 'true' : undefined}
-                      onClick={() => setSelectedSurfaceKey(key)}
+                      data-active={selectedStructureKey === key ? 'true' : undefined}
+                      onClick={() => setSelectedStructureKey(key)}
                     >
-                      {key === 'background'
-                        ? 'Background'
+                      {key === 'shell'
+                        ? 'Shell'
                         : key === 'panel'
                           ? 'Panel'
                         : key === 'rail'
@@ -631,23 +735,25 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   ))}
                 </div>
 
-                <div className="ds-surface-preview">
-                  <div
-                    className="ds-surface-preview-bg"
-                    data-active={selectedSurfaceKey === 'background' ? 'true' : undefined}
-                  >
+                <div className="ds-surface-preview" style={structurePreviewVars as CSSProperties}>
+                  <div className="ds-surface-preview-page">
                     <div
-                      className="ds-surface-preview-rail"
-                      data-active={selectedSurfaceKey === 'rail' ? 'true' : undefined}
+                      className="ds-surface-preview-shell"
+                      data-active={selectedStructureKey === 'shell' ? 'true' : undefined}
                     >
                       <div
-                        className="ds-surface-preview-panel"
-                        data-active={selectedSurfaceKey === 'panel' ? 'true' : undefined}
+                        className="ds-surface-preview-rail"
+                        data-active={selectedStructureKey === 'rail' ? 'true' : undefined}
                       >
                         <div
-                          className="ds-surface-preview-surface"
-                          data-active={selectedSurfaceKey === 'surface' ? 'true' : undefined}
-                        />
+                          className="ds-surface-preview-panel"
+                          data-active={selectedStructureKey === 'panel' ? 'true' : undefined}
+                        >
+                          <div
+                            className="ds-surface-preview-surface"
+                            data-active={selectedStructureKey === 'surface' ? 'true' : undefined}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -656,16 +762,16 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                 <div className="ds-stack">
                   <RangeField
                     label="Hue"
-                    value={selectedSurface.hue}
+                    value={selectedStructure.hue}
                     onChange={(value) =>
                       setTheme((current) => ({
                         ...current,
                         surfaces: {
                           ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                          [selectedStructureMode]: {
+                            ...current.surfaces[selectedStructureMode],
+                            [selectedStructureKey]: {
+                              ...current.surfaces[selectedStructureMode][selectedStructureKey],
                               hue: value,
                             },
                           },
@@ -679,39 +785,39 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   />
                   <RangeField
                     label="Lightness"
-                    value={selectedSurface.lightness}
+                    value={selectedStructure.lightness}
                     onChange={(value) =>
                       setTheme((current) => ({
                         ...current,
                         surfaces: {
                           ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                          [selectedStructureMode]: {
+                            ...current.surfaces[selectedStructureMode],
+                            [selectedStructureKey]: {
+                              ...current.surfaces[selectedStructureMode][selectedStructureKey],
                               lightness: value,
                             },
                           },
                         },
                       }))
                     }
-                    min={selectedSurfaceMode === 'dark' ? 0 : 0.82}
-                    max={selectedSurfaceMode === 'dark' ? 0.35 : 1}
+                    min={selectedStructureMode === 'dark' ? 0 : 0.82}
+                    max={selectedStructureMode === 'dark' ? 0.35 : 1}
                     step={0.002}
                     format={(value) => round(value).toString()}
                   />
                   <RangeField
                     label="Chroma"
-                    value={selectedSurface.chroma}
+                    value={selectedStructure.chroma}
                     onChange={(value) =>
                       setTheme((current) => ({
                         ...current,
                         surfaces: {
                           ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                          [selectedStructureMode]: {
+                            ...current.surfaces[selectedStructureMode],
+                            [selectedStructureKey]: {
+                              ...current.surfaces[selectedStructureMode][selectedStructureKey],
                               chroma: value,
                             },
                           },
@@ -719,22 +825,22 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       }))
                     }
                     min={0}
-                    max={selectedSurfaceMode === 'dark' ? 0.06 : 0.08}
+                    max={selectedStructureMode === 'dark' ? 0.06 : 0.08}
                     step={0.001}
                     format={(value) => round(value).toString()}
                   />
                   <RangeField
                     label="Opacity"
-                    value={selectedSurface.opacity}
+                    value={selectedStructure.opacity}
                     onChange={(value) =>
                       setTheme((current) => ({
                         ...current,
                         surfaces: {
                           ...current.surfaces,
-                          [selectedSurfaceMode]: {
-                            ...current.surfaces[selectedSurfaceMode],
-                            [selectedSurfaceKey]: {
-                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                          [selectedStructureMode]: {
+                            ...current.surfaces[selectedStructureMode],
+                            [selectedStructureKey]: {
+                              ...current.surfaces[selectedStructureMode][selectedStructureKey],
                               opacity: value,
                             },
                           },
@@ -1249,9 +1355,21 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                 />
                 <TokenSwatch
                   label="Background"
-                  style={{ background: `var(--ds-bg)` }}
+                  style={{ background: 'var(--ds-background)' }}
                   readoutValue={backgroundReadout.value}
                   readoutLabel={backgroundReadout.label}
+                />
+                <TokenSwatch
+                  label="Shell"
+                  style={{ background: 'var(--ds-shell)' }}
+                  readoutValue={shellReadout.value}
+                  readoutLabel={shellReadout.label}
+                />
+                <TokenSwatch
+                  label="Rail"
+                  style={{ background: 'var(--ds-rail)' }}
+                  readoutValue={railReadout.value}
+                  readoutLabel={railReadout.label}
                 />
                 <TokenSwatch
                   label="Panel"

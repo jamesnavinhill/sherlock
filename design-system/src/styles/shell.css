@@ -7,7 +7,7 @@
       color-mix(in oklab, var(--ds-accent) var(--ds-glow-strength), transparent),
       transparent 42%
     ),
-    var(--ds-bg);
+    var(--ds-background);
 }
 
 .ds-app-shell::before,

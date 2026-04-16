@@ -11,7 +11,7 @@ export interface AccentPoint {
 }
 
 export interface SurfaceScale {
-  background: AccentPoint;
+  shell: AccentPoint;
   panel: AccentPoint;
   rail: AccentPoint;
   surface: AccentPoint;
@@ -23,6 +23,8 @@ export interface SurfaceSettings {
 }
 
 export interface BackgroundSettings {
+  dark: AccentPoint;
+  light: AccentPoint;
   variant: BackgroundVariant;
   dotColor: number;
   dotOpacity: number;
@@ -93,6 +95,13 @@ export interface SurfacePreset {
   label: string;
   description: string;
   surfaces: SurfaceSettings;
+}
+
+export interface ThemeTemplate {
+  id: string;
+  label: string;
+  description: string;
+  theme: StudioTheme;
 }
 
 export const FONT_OPTIONS: FontOption[] = [
@@ -217,13 +226,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Balanced dark chrome with a warm paper light mode.',
     surfaces: {
       dark: {
-        background: { hue: 0, lightness: 0, chroma: 0, opacity: 1 },
+        shell: { hue: 0, lightness: 0, chroma: 0, opacity: 1 },
         panel: { hue: 286, lightness: 0.141, chroma: 0.004, opacity: 1 },
         rail: { hue: 0, lightness: 0, chroma: 0, opacity: 1 },
         surface: { hue: 286, lightness: 0.21, chroma: 0.006, opacity: 1 },
       },
       light: {
-        background: { hue: 85, lightness: 0.88, chroma: 0.002, opacity: 1 },
+        shell: { hue: 85, lightness: 0.88, chroma: 0.002, opacity: 1 },
         panel: { hue: 85, lightness: 0.9, chroma: 0.004, opacity: 1 },
         rail: { hue: 85, lightness: 0.88, chroma: 0.002, opacity: 1 },
         surface: { hue: 81, lightness: 0.975, chroma: 0.004, opacity: 1 },
@@ -236,13 +245,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Neutral dark chrome with restrained daylight surfaces.',
     surfaces: {
       dark: {
-        background: { hue: 220, lightness: 0.01, chroma: 0.004, opacity: 1 },
+        shell: { hue: 220, lightness: 0.01, chroma: 0.004, opacity: 1 },
         panel: { hue: 228, lightness: 0.125, chroma: 0.01, opacity: 1 },
         rail: { hue: 220, lightness: 0.01, chroma: 0.004, opacity: 1 },
         surface: { hue: 232, lightness: 0.205, chroma: 0.012, opacity: 1 },
       },
       light: {
-        background: { hue: 220, lightness: 0.95, chroma: 0.01, opacity: 1 },
+        shell: { hue: 220, lightness: 0.95, chroma: 0.01, opacity: 1 },
         panel: { hue: 220, lightness: 0.965, chroma: 0.012, opacity: 1 },
         rail: { hue: 220, lightness: 0.95, chroma: 0.01, opacity: 1 },
         surface: { hue: 218, lightness: 0.905, chroma: 0.016, opacity: 1 },
@@ -255,13 +264,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Cool signal-room surfaces with a crisp brighter stack.',
     surfaces: {
       dark: {
-        background: { hue: 236, lightness: 0.02, chroma: 0.02, opacity: 1 },
+        shell: { hue: 236, lightness: 0.02, chroma: 0.02, opacity: 1 },
         panel: { hue: 244, lightness: 0.13, chroma: 0.028, opacity: 1 },
         rail: { hue: 236, lightness: 0.02, chroma: 0.02, opacity: 1 },
         surface: { hue: 248, lightness: 0.215, chroma: 0.034, opacity: 1 },
       },
       light: {
-        background: { hue: 220, lightness: 0.94, chroma: 0.03, opacity: 1 },
+        shell: { hue: 220, lightness: 0.94, chroma: 0.03, opacity: 1 },
         panel: { hue: 224, lightness: 0.965, chroma: 0.034, opacity: 1 },
         rail: { hue: 220, lightness: 0.94, chroma: 0.03, opacity: 1 },
         surface: { hue: 220, lightness: 0.9, chroma: 0.045, opacity: 1 },
@@ -274,13 +283,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Warm control-room surfaces with richer bronze highlights.',
     surfaces: {
       dark: {
-        background: { hue: 18, lightness: 0.01, chroma: 0.01, opacity: 1 },
+        shell: { hue: 18, lightness: 0.01, chroma: 0.01, opacity: 1 },
         panel: { hue: 28, lightness: 0.13, chroma: 0.02, opacity: 1 },
         rail: { hue: 18, lightness: 0.01, chroma: 0.01, opacity: 1 },
         surface: { hue: 32, lightness: 0.215, chroma: 0.028, opacity: 1 },
       },
       light: {
-        background: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
+        shell: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
         panel: { hue: 70, lightness: 0.962, chroma: 0.032, opacity: 1 },
         rail: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
         surface: { hue: 64, lightness: 0.9, chroma: 0.04, opacity: 1 },
@@ -293,13 +302,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Slight phosphor lean with higher separation in both modes.',
     surfaces: {
       dark: {
-        background: { hue: 145, lightness: 0, chroma: 0.01, opacity: 1 },
+        shell: { hue: 145, lightness: 0, chroma: 0.01, opacity: 1 },
         panel: { hue: 150, lightness: 0.12, chroma: 0.024, opacity: 1 },
         rail: { hue: 145, lightness: 0, chroma: 0.01, opacity: 1 },
         surface: { hue: 154, lightness: 0.205, chroma: 0.032, opacity: 1 },
       },
       light: {
-        background: { hue: 98, lightness: 0.935, chroma: 0.03, opacity: 1 },
+        shell: { hue: 98, lightness: 0.935, chroma: 0.03, opacity: 1 },
         panel: { hue: 102, lightness: 0.958, chroma: 0.034, opacity: 1 },
         rail: { hue: 98, lightness: 0.935, chroma: 0.03, opacity: 1 },
         surface: { hue: 104, lightness: 0.885, chroma: 0.044, opacity: 1 },
@@ -312,13 +321,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Muted ink-on-paper palette with softer daylight warmth.',
     surfaces: {
       dark: {
-        background: { hue: 32, lightness: 0.005, chroma: 0.004, opacity: 1 },
+        shell: { hue: 32, lightness: 0.005, chroma: 0.004, opacity: 1 },
         panel: { hue: 34, lightness: 0.12, chroma: 0.012, opacity: 1 },
         rail: { hue: 32, lightness: 0.005, chroma: 0.004, opacity: 1 },
         surface: { hue: 38, lightness: 0.19, chroma: 0.015, opacity: 1 },
       },
       light: {
-        background: { hue: 82, lightness: 0.955, chroma: 0.02, opacity: 1 },
+        shell: { hue: 82, lightness: 0.955, chroma: 0.02, opacity: 1 },
         panel: { hue: 80, lightness: 0.972, chroma: 0.022, opacity: 1 },
         rail: { hue: 82, lightness: 0.955, chroma: 0.02, opacity: 1 },
         surface: { hue: 76, lightness: 0.91, chroma: 0.028, opacity: 1 },
@@ -331,13 +340,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Ultra-dark navy surfaces with a crystalline daylight mode.',
     surfaces: {
       dark: {
-        background: { hue: 232, lightness: 0.005, chroma: 0.015, opacity: 1 },
+        shell: { hue: 232, lightness: 0.005, chroma: 0.015, opacity: 1 },
         panel: { hue: 232, lightness: 0.08, chroma: 0.02, opacity: 1 },
         rail: { hue: 232, lightness: 0.005, chroma: 0.015, opacity: 1 },
         surface: { hue: 232, lightness: 0.16, chroma: 0.025, opacity: 1 },
       },
       light: {
-        background: { hue: 232, lightness: 0.94, chroma: 0.015, opacity: 1 },
+        shell: { hue: 232, lightness: 0.94, chroma: 0.015, opacity: 1 },
         panel: { hue: 232, lightness: 0.965, chroma: 0.02, opacity: 1 },
         rail: { hue: 232, lightness: 0.94, chroma: 0.015, opacity: 1 },
         surface: { hue: 232, lightness: 0.895, chroma: 0.025, opacity: 1 },
@@ -350,13 +359,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
     description: 'Deep burgundy dark chrome with a blush light mode.',
     surfaces: {
       dark: {
-        background: { hue: 350, lightness: 0.005, chroma: 0.01, opacity: 1 },
+        shell: { hue: 350, lightness: 0.005, chroma: 0.01, opacity: 1 },
         panel: { hue: 350, lightness: 0.1, chroma: 0.015, opacity: 1 },
         rail: { hue: 350, lightness: 0.005, chroma: 0.01, opacity: 1 },
         surface: { hue: 350, lightness: 0.18, chroma: 0.02, opacity: 1 },
       },
       light: {
-        background: { hue: 350, lightness: 0.945, chroma: 0.015, opacity: 1 },
+        shell: { hue: 350, lightness: 0.945, chroma: 0.015, opacity: 1 },
         panel: { hue: 350, lightness: 0.965, chroma: 0.02, opacity: 1 },
         rail: { hue: 350, lightness: 0.945, chroma: 0.015, opacity: 1 },
         surface: { hue: 350, lightness: 0.9, chroma: 0.025, opacity: 1 },
@@ -419,20 +428,27 @@ export const createDefaultGraphs = (accent: AccentPoint): AccentPoint[] => [
   { hue: (accent.hue + 280) % 360, lightness: accent.lightness, chroma: accent.chroma, opacity: 1 },
 ];
 
-export const DEFAULT_THEME: StudioTheme = {
+const BLUEBERRY_THEME: StudioTheme = {
   mode: 'dark',
-  accent: { hue: 340, lightness: 0.57, chroma: 0.09, opacity: 1 },
+  accent: { hue: 293, lightness: 0.555, chroma: 0.098, opacity: 1 },
   graphs: [
-    { hue: 385 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
-    { hue: 500 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
-    { hue: 550 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
-    { hue: 620 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
+    { hue: 248, lightness: 0.475, chroma: 0.1, opacity: 1 },
+    { hue: 3, lightness: 0.475, chroma: 0.1, opacity: 1 },
+    { hue: 53, lightness: 0.475, chroma: 0.1, opacity: 1 },
+    { hue: 291, lightness: 0.475, chroma: 0.122, opacity: 1 },
   ],
   surfaces: {
-    dark: SURFACE_PRESETS.find((p) => p.id === 'midnight')!.surfaces.dark,
+    dark: {
+      shell: { hue: 0, lightness: 0.088, chroma: 0.027, opacity: 1 },
+      panel: { hue: 286, lightness: 0.134, chroma: 0.005, opacity: 1 },
+      rail: { hue: 0, lightness: 0.088, chroma: 0.027, opacity: 1 },
+      surface: { hue: 286, lightness: 0.35, chroma: 0.006, opacity: 1 },
+    },
     light: SURFACE_PRESETS.find((p) => p.id === 'ember')!.surfaces.light,
   },
   background: {
+    dark: { hue: 0, lightness: 0.088, chroma: 0.027, opacity: 1 },
+    light: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
     variant: 'dot-grid',
     dotColor: 23,
     dotOpacity: 0.42,
@@ -467,6 +483,17 @@ export const DEFAULT_THEME: StudioTheme = {
     chrome: 'glass',
   },
 };
+
+export const THEME_TEMPLATES: ThemeTemplate[] = [
+  {
+    id: 'blueberry',
+    label: 'Blueberry',
+    description: 'Your exported blueberry theme, preserved as-is for the full-theme picker.',
+    theme: BLUEBERRY_THEME,
+  },
+];
+
+export const DEFAULT_THEME: StudioTheme = THEME_TEMPLATES[0].theme;
 
 export const getFontOption = (id: string): FontOption =>
   FONT_OPTIONS.find((font) => font.id === id) ?? FONT_OPTIONS[0];
@@ -509,19 +536,28 @@ export const cloneTheme = (theme: StudioTheme): StudioTheme => ({
     : createDefaultGraphs(theme.accent),
   surfaces: {
     dark: {
-      background: { ...theme.surfaces.dark.background },
+      shell: { ...theme.surfaces.dark.shell },
       panel: { ...theme.surfaces.dark.panel },
       rail: { ...theme.surfaces.dark.rail },
       surface: { ...theme.surfaces.dark.surface },
     },
     light: {
-      background: { ...theme.surfaces.light.background },
+      shell: { ...theme.surfaces.light.shell },
       panel: { ...theme.surfaces.light.panel },
       rail: { ...theme.surfaces.light.rail },
       surface: { ...theme.surfaces.light.surface },
     },
   },
-  background: { ...theme.background },
+  background: {
+    dark: { ...theme.background.dark },
+    light: { ...theme.background.light },
+    variant: theme.background.variant,
+    dotColor: theme.background.dotColor,
+    dotOpacity: theme.background.dotOpacity,
+    gridSize: theme.background.gridSize,
+    glowOpacity: theme.background.glowOpacity,
+    scanlineOpacity: theme.background.scanlineOpacity,
+  },
   typography: {
     ...theme.typography,
     profiles: Object.fromEntries(
