@@ -15,6 +15,7 @@ const round = (value: number, places = 3) => {
 };
 
 const buildAccentColor = (point: AccentPoint) => {
+  if (!point) return 'transparent';
   const base = `${round(point.lightness)} ${round(point.chroma)} ${Math.round(point.hue)}`;
   if (point.opacity < 1) {
     return `oklch(${base} / ${round(point.opacity)})`;
@@ -124,12 +125,15 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
     '--ds-accent': buildAccentColor(theme.accent),
     '--ds-bg': buildAccentColor(modeScale.background),
     '--ds-panel': buildAccentColor(modeScale.panel),
+    '--ds-rail': buildAccentColor(modeScale.rail),
     '--ds-surface': buildAccentColor(modeScale.surface),
     '--ds-bg-dark': buildAccentColor(theme.surfaces.dark.background),
     '--ds-panel-dark': buildAccentColor(theme.surfaces.dark.panel),
+    '--ds-rail-dark': buildAccentColor(theme.surfaces.dark.rail),
     '--ds-surface-dark': buildAccentColor(theme.surfaces.dark.surface),
     '--ds-bg-light': buildAccentColor(theme.surfaces.light.background),
     '--ds-panel-light': buildAccentColor(theme.surfaces.light.panel),
+    '--ds-rail-light': buildAccentColor(theme.surfaces.light.rail),
     '--ds-surface-light': buildAccentColor(theme.surfaces.light.surface),
     '--ds-type-2xs': typeSizes['2xs'],
     '--ds-type-xs': typeSizes.xs,

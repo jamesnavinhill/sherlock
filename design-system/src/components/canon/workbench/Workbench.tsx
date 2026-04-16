@@ -54,16 +54,13 @@ export interface WorkbenchProps {
 
 export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) {
   const [activeTab, setActiveTab] = useState<WorkbenchTab>('theme');
-  const [themeSection, setThemeSection] = useState<'accent' | 'surfaces' | 'background'>(
-    'surfaces'
-  );
   const [selectedSurfaceMode, setSelectedSurfaceMode] = useState<'dark' | 'light'>(theme.mode);
   const [selectedSurfaceKey, setSelectedSurfaceKey] = useState<
-    'background' | 'panel' | 'surface'
+    'background' | 'panel' | 'rail' | 'surface'
   >('panel');
   const [activeFontRole, setActiveFontRole] = useState<FontRole>('ui');
   const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
-  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['refinement']);
+  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['surfaces']);
   const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry', 'radius']);
   const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
   const [openFontProfiles, setOpenFontProfiles] = useState<string[]>([]);
@@ -138,7 +135,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
             >
               <div className="ds-stack">
-                <div className="ds-chip-grid">
+                <div className="ds-grid-three">
                   {SURFACE_PRESETS.map((preset) => (
                     <button
                       key={preset.id}
@@ -164,323 +161,361 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             </AccordionSection>
 
             <AccordionSection
-              title="Refinement"
-              isOpen={openThemeSections.includes('refinement')}
+              title="Surfaces"
+              isOpen={openThemeSections.includes('surfaces')}
               onToggle={() =>
                 setOpenThemeSections((current) =>
-                  current.includes('refinement')
-                    ? current.filter((s) => s !== 'refinement')
-                    : [...current, 'refinement']
+                  current.includes('surfaces')
+                    ? current.filter((s) => s !== 'surfaces')
+                    : [...current, 'surfaces']
                 )
               }
               actions={
                 <Button
                   variant="page"
-                  onClick={() => {
-                    if (themeSection === 'surfaces') {
-                      setTheme((current) => ({
-                        ...current,
-                        surfaces: cloneTheme(DEFAULT_THEME).surfaces,
-                      }));
-                    } else if (themeSection === 'background') {
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...DEFAULT_THEME.background },
-                      }));
-                    } else if (themeSection === 'accent') {
-                      setTheme((current) => ({
-                        ...current,
-                        accent: { ...DEFAULT_THEME.accent },
-                      }));
-                    }
-                  }}
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      surfaces: cloneTheme(DEFAULT_THEME).surfaces,
+                    }))
+                  }
                 >
                   Reset
                 </Button>
               }
             >
               <div className="ds-stack">
-                <SegmentedTabs
-                  value={themeSection}
-                  onChange={setThemeSection}
-                  items={[
-                    { id: 'surfaces', label: 'Surfaces' },
-                    { id: 'background', label: 'Background' },
-                    { id: 'accent', label: 'Accent' },
-                  ]}
-                  stretch
-                />
+                <div className="ds-chip-grid ds-action-row">
+                  {(['background', 'rail', 'panel', 'surface'] as const).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className="ds-filter-chip"
+                      data-active={selectedSurfaceKey === key ? 'true' : undefined}
+                      onClick={() => setSelectedSurfaceKey(key)}
+                    >
+                      {key === 'background'
+                        ? 'Background'
+                        : key === 'panel'
+                          ? 'Panel'
+                          : key === 'rail'
+                            ? 'Rail'
+                            : 'Surface'}
+                    </button>
+                  ))}
+                </div>
 
-                {themeSection === 'surfaces' && (
-                  <div className="ds-stack">
-                    <div className="ds-chip-grid">
-                      {(['background', 'panel', 'surface'] as const).map((key) => (
-                        <button
-                          key={key}
-                          type="button"
-                          className="ds-filter-chip"
-                          data-active={selectedSurfaceKey === key ? 'true' : undefined}
-                          onClick={() => setSelectedSurfaceKey(key)}
-                        >
-                          {key === 'background'
-                            ? 'Background'
-                            : key === 'panel'
-                              ? 'Panel'
-                              : 'Surface'}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="ds-surface-preview">
-                      <div className="ds-surface-preview-bg">
-                        <div className="ds-surface-preview-panel">
-                          <div className="ds-surface-preview-surface" />
-                        </div>
+                <div className="ds-surface-preview">
+                  <div
+                    className="ds-surface-preview-bg"
+                    data-active={selectedSurfaceKey === 'background' ? 'true' : undefined}
+                  >
+                    <div
+                      className="ds-surface-preview-rail"
+                      data-active={selectedSurfaceKey === 'rail' ? 'true' : undefined}
+                    >
+                      <div
+                        className="ds-surface-preview-panel"
+                        data-active={selectedSurfaceKey === 'panel' ? 'true' : undefined}
+                      >
+                        <div
+                          className="ds-surface-preview-surface"
+                          data-active={selectedSurfaceKey === 'surface' ? 'true' : undefined}
+                        />
                       </div>
                     </div>
-
-                    <div className="ds-stack">
-                      <RangeField
-                        label="Hue"
-                        value={selectedSurface.hue}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            surfaces: {
-                              ...current.surfaces,
-                              [selectedSurfaceMode]: {
-                                ...current.surfaces[selectedSurfaceMode],
-                                [selectedSurfaceKey]: {
-                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                                  hue: value,
-                                },
-                              },
-                            },
-                          }))
-                        }
-                        min={0}
-                        max={360}
-                        step={1}
-                        format={(value) => `${Math.round(value)}`}
-                      />
-                      <RangeField
-                        label="Lightness"
-                        value={selectedSurface.lightness}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            surfaces: {
-                              ...current.surfaces,
-                              [selectedSurfaceMode]: {
-                                ...current.surfaces[selectedSurfaceMode],
-                                [selectedSurfaceKey]: {
-                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                                  lightness: value,
-                                },
-                              },
-                            },
-                          }))
-                        }
-                        min={selectedSurfaceMode === 'dark' ? 0 : 0.82}
-                        max={selectedSurfaceMode === 'dark' ? 0.35 : 1}
-                        step={0.002}
-                        format={(value) => round(value).toString()}
-                      />
-                      <RangeField
-                        label="Chroma"
-                        value={selectedSurface.chroma}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            surfaces: {
-                              ...current.surfaces,
-                              [selectedSurfaceMode]: {
-                                ...current.surfaces[selectedSurfaceMode],
-                                [selectedSurfaceKey]: {
-                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                                  chroma: value,
-                                },
-                              },
-                            },
-                          }))
-                        }
-                        min={0}
-                        max={selectedSurfaceMode === 'dark' ? 0.06 : 0.08}
-                        step={0.001}
-                        format={(value) => round(value).toString()}
-                      />
-                      <RangeField
-                        label="Opacity"
-                        value={selectedSurface.opacity}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            surfaces: {
-                              ...current.surfaces,
-                              [selectedSurfaceMode]: {
-                                ...current.surfaces[selectedSurfaceMode],
-                                [selectedSurfaceKey]: {
-                                  ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
-                                  opacity: value,
-                                },
-                              },
-                            },
-                          }))
-                        }
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        format={(value) => `${Math.round(value * 100)}%`}
-                      />
-                    </div>
                   </div>
-                )}
+                </div>
 
-                {themeSection === 'background' && (
-                  <div className="ds-stack">
-                    <SelectField
-                      label="Variant"
-                      value={theme.background.variant}
-                      onChange={(value) =>
-                        setTheme((current) => ({
-                          ...current,
-                          background: {
-                            ...current.background,
-                            variant: value as StudioTheme['background']['variant'],
+                <div className="ds-stack">
+                  <RangeField
+                    label="Hue"
+                    value={selectedSurface.hue}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        surfaces: {
+                          ...current.surfaces,
+                          [selectedSurfaceMode]: {
+                            ...current.surfaces[selectedSurfaceMode],
+                            [selectedSurfaceKey]: {
+                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                              hue: value,
+                            },
                           },
-                        }))
-                      }
-                      options={BACKGROUND_VARIANTS.map((variant) => ({
-                        value: variant.id,
-                        label: variant.label,
-                      }))}
-                    />
-                    <div className="ds-stack">
-                      <RangeField
-                        label="Pattern Intensity"
-                        value={theme.background.dotOpacity}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            background: { ...current.background, dotOpacity: value },
-                          }))
-                        }
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        format={(value) => `${Math.round(value * 100)}%`}
-                      />
-                      <RangeField
-                        label="Grid Size"
-                        value={theme.background.gridSize}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            background: { ...current.background, gridSize: value },
-                          }))
-                        }
-                        min={12}
-                        max={40}
-                        step={1}
-                        format={(value) => `${Math.round(value)}px`}
-                      />
-                      <RangeField
-                        label="Dot Tone"
-                        value={theme.background.dotColor}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            background: { ...current.background, dotColor: value },
-                          }))
-                        }
-                        min={0}
-                        max={100}
-                        step={1}
-                        format={(value) => `${Math.round(value)}%`}
-                      />
-                      <RangeField
-                        label="Accent Glow"
-                        value={theme.background.glowOpacity}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            background: { ...current.background, glowOpacity: value },
-                          }))
-                        }
-                        min={0}
-                        max={0.3}
-                        step={0.01}
-                        format={(value) => `${Math.round(value * 100)}%`}
-                      />
-                      <RangeField
-                        label="Scanlines"
-                        value={theme.background.scanlineOpacity}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            background: { ...current.background, scanlineOpacity: value },
-                          }))
-                        }
-                        min={0}
-                        max={0.25}
-                        step={0.01}
-                        format={(value) => `${Math.round(value * 100)}%`}
-                      />
-                    </div>
-                  </div>
-                )}
+                        },
+                      }))
+                    }
+                    min={0}
+                    max={360}
+                    step={1}
+                    format={(value) => `${Math.round(value)}`}
+                  />
+                  <RangeField
+                    label="Lightness"
+                    value={selectedSurface.lightness}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        surfaces: {
+                          ...current.surfaces,
+                          [selectedSurfaceMode]: {
+                            ...current.surfaces[selectedSurfaceMode],
+                            [selectedSurfaceKey]: {
+                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                              lightness: value,
+                            },
+                          },
+                        },
+                      }))
+                    }
+                    min={selectedSurfaceMode === 'dark' ? 0 : 0.82}
+                    max={selectedSurfaceMode === 'dark' ? 0.35 : 1}
+                    step={0.002}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Chroma"
+                    value={selectedSurface.chroma}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        surfaces: {
+                          ...current.surfaces,
+                          [selectedSurfaceMode]: {
+                            ...current.surfaces[selectedSurfaceMode],
+                            [selectedSurfaceKey]: {
+                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                              chroma: value,
+                            },
+                          },
+                        },
+                      }))
+                    }
+                    min={0}
+                    max={selectedSurfaceMode === 'dark' ? 0.06 : 0.08}
+                    step={0.001}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Opacity"
+                    value={selectedSurface.opacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        surfaces: {
+                          ...current.surfaces,
+                          [selectedSurfaceMode]: {
+                            ...current.surfaces[selectedSurfaceMode],
+                            [selectedSurfaceKey]: {
+                              ...current.surfaces[selectedSurfaceMode][selectedSurfaceKey],
+                              opacity: value,
+                            },
+                          },
+                        },
+                      }))
+                    }
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                </div>
+              </div>
+            </AccordionSection>
 
-                {themeSection === 'accent' && (
-                  <div className="ds-stack">
-                    <div className="ds-surface-preview">
-                      <div className="ds-surface-preview-bg" style={{ background: 'var(--ds-accent)' }} />
-                    </div>
-                    <div className="ds-stack">
-                      <RangeField
-                        label="Hue"
-                        value={theme.accent.hue}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            accent: { ...current.accent, hue: value },
-                          }))
-                        }
-                        min={0}
-                        max={360}
-                        step={1}
-                        format={(value) => `${Math.round(value)}`}
-                      />
-                      <RangeField
-                        label="Lightness"
-                        value={theme.accent.lightness}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            accent: { ...current.accent, lightness: value },
-                          }))
-                        }
-                        min={0.3}
-                        max={0.8}
-                        step={0.005}
-                        format={(value) => round(value).toString()}
-                      />
-                      <RangeField
-                        label="Chroma"
-                        value={theme.accent.chroma}
-                        onChange={(value) =>
-                          setTheme((current) => ({
-                            ...current,
-                            accent: { ...current.accent, chroma: value },
-                          }))
-                        }
-                        min={0}
-                        max={0.18}
-                        step={0.002}
-                        format={(value) => round(value).toString()}
-                      />
-                    </div>
-                  </div>
-                )}
+            <AccordionSection
+              title="Background"
+              isOpen={openThemeSections.includes('background')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('background')
+                    ? current.filter((s) => s !== 'background')
+                    : [...current, 'background']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      background: { ...DEFAULT_THEME.background },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <SelectField
+                  label="Variant"
+                  value={theme.background.variant}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      background: {
+                        ...current.background,
+                        variant: value as StudioTheme['background']['variant'],
+                      },
+                    }))
+                  }
+                  options={BACKGROUND_VARIANTS.map((variant) => ({
+                    value: variant.id,
+                    label: variant.label,
+                  }))}
+                />
+                <div className="ds-stack">
+                  <RangeField
+                    label="Pattern Intensity"
+                    value={theme.background.dotOpacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, dotOpacity: value },
+                      }))
+                    }
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                  <RangeField
+                    label="Grid Size"
+                    value={theme.background.gridSize}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, gridSize: value },
+                      }))
+                    }
+                    min={12}
+                    max={40}
+                    step={1}
+                    format={(value) => `${Math.round(value)}px`}
+                  />
+                  <RangeField
+                    label="Dot Tone"
+                    value={theme.background.dotColor}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, dotColor: value },
+                      }))
+                    }
+                    min={0}
+                    max={100}
+                    step={1}
+                    format={(value) => `${Math.round(value)}%`}
+                  />
+                  <RangeField
+                    label="Accent Glow"
+                    value={theme.background.glowOpacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, glowOpacity: value },
+                      }))
+                    }
+                    min={0}
+                    max={0.3}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                  <RangeField
+                    label="Scanlines"
+                    value={theme.background.scanlineOpacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, scanlineOpacity: value },
+                      }))
+                    }
+                    min={0}
+                    max={0.25}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                </div>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection
+              title="Accent"
+              isOpen={openThemeSections.includes('accent')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('accent')
+                    ? current.filter((s) => s !== 'accent')
+                    : [...current, 'accent']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      accent: { ...DEFAULT_THEME.accent },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <div className="ds-surface-preview">
+                  <div
+                    className="ds-surface-preview-bg"
+                    style={{ background: 'var(--ds-accent)' }}
+                  />
+                </div>
+                <div className="ds-stack">
+                  <RangeField
+                    label="Hue"
+                    value={theme.accent.hue}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        accent: { ...current.accent, hue: value },
+                      }))
+                    }
+                    min={0}
+                    max={360}
+                    step={1}
+                    format={(value) => `${Math.round(value)}`}
+                  />
+                  <RangeField
+                    label="Lightness"
+                    value={theme.accent.lightness}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        accent: { ...current.accent, lightness: value },
+                      }))
+                    }
+                    min={0.3}
+                    max={0.8}
+                    step={0.005}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Chroma"
+                    value={theme.accent.chroma}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        accent: { ...current.accent, chroma: value },
+                      }))
+                    }
+                    min={0}
+                    max={0.18}
+                    step={0.002}
+                    format={(value) => round(value).toString()}
+                  />
+                </div>
               </div>
             </AccordionSection>
           </div>

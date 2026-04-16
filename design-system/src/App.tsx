@@ -10,8 +10,10 @@ import {
   MessageSquare,
   Network,
   Palette,
-  PanelLeft,
-  PanelRight,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
   Play,
   SearchCode,
   Settings2,
@@ -33,7 +35,6 @@ import {
   ChatComposer,
   ChatTranscript,
   EmptyStateCard,
-  IconButton,
   MenuButton,
   MetricGrid,
   ModalDialog,
@@ -239,6 +240,10 @@ const loadTheme = (): StudioTheme => {
     return {
       ...nextTheme,
       ...parsed,
+      surfaces: {
+        dark: { ...nextTheme.surfaces.dark, ...parsed.surfaces?.dark },
+        light: { ...nextTheme.surfaces.light, ...parsed.surfaces?.light },
+      },
       shell: { ...nextTheme.shell, ...parsed.shell },
       radii: hasLegacyRadiusDefaults(parsed.radii)
         ? { ...nextTheme.radii }
@@ -514,20 +519,30 @@ export default function App() {
           <div ref={toolbarRef}>
             <ToolbarBar
               leading={
-                <ToolbarCluster className="ds-toolbar-cluster-main">
+                <>
                   <Button
-                    variant="primary"
-                    aria-label="New Pattern"
-                  >
-                    New +
-                  </Button>
-                  <SelectField
-                    value={workspaceId}
-                    onChange={setWorkspaceId}
-                    options={WORKSPACE_OPTIONS}
-                    className="ds-toolbar-select ds-toolbar-primary-select"
+                    variant="secondary"
+                    aria-label={leftRailPinnedOpen ? "Close Library Rail" : "Open Library Rail"}
+                    onClick={toggleLeftRail}
+                    data-active={leftRailPinnedOpen ? 'true' : undefined}
+                    leadingIcon={leftRailPinnedOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+                    className="ds-toolbar-rail-toggle"
                   />
-                </ToolbarCluster>
+                  <ToolbarCluster className="ds-toolbar-cluster-main">
+                    <Button
+                      variant="primary"
+                      aria-label="New Pattern"
+                    >
+                      New +
+                    </Button>
+                    <SelectField
+                      value={workspaceId}
+                      onChange={setWorkspaceId}
+                      options={WORKSPACE_OPTIONS}
+                      className="ds-toolbar-select ds-toolbar-primary-select"
+                    />
+                  </ToolbarCluster>
+                </>
               }
               center={
                 <SearchField
@@ -538,39 +553,49 @@ export default function App() {
                 />
               }
               trailing={
-                <ToolbarCluster className="ds-toolbar-cluster-actions">
-                  <PopoverButton
-                    label={<span className="ds-toolbar-responsive-label">Configure</span>}
-                    leadingIcon={<SlidersHorizontal size={14} />}
-                    triggerClassName="ds-toolbar-responsive-control"
-                    panelClassName="ds-toolbar-popover"
-                  >
-                    {configurationPanel}
-                  </PopoverButton>
-                  <MenuButton
-                    label={<span className="ds-toolbar-responsive-label">Export</span>}
-                    leadingIcon={<Download size={14} />}
-                    triggerClassName="ds-toolbar-responsive-control"
-                    panelClassName="ds-toolbar-popover"
-                    items={[
-                      {
-                        id: 'json',
-                        label: 'Export Token JSON',
-                        icon: <BookOpen size={14} />,
-                      },
-                      {
-                        id: 'css',
-                        label: 'Export CSS Vars',
-                        icon: <Workflow size={14} />,
-                      },
-                      {
-                        id: 'inventory',
-                        label: 'Export Component Inventory',
-                        icon: <SearchCode size={14} />,
-                      },
-                    ]}
+                <>
+                  <ToolbarCluster className="ds-toolbar-cluster-actions">
+                    <PopoverButton
+                      label={<span className="ds-toolbar-responsive-label">Configure</span>}
+                      leadingIcon={<SlidersHorizontal size={14} />}
+                      triggerClassName="ds-toolbar-responsive-control"
+                      panelClassName="ds-toolbar-popover"
+                    >
+                      {configurationPanel}
+                    </PopoverButton>
+                    <MenuButton
+                      label={<span className="ds-toolbar-responsive-label">Export</span>}
+                      leadingIcon={<Download size={14} />}
+                      triggerClassName="ds-toolbar-responsive-control"
+                      panelClassName="ds-toolbar-popover"
+                      items={[
+                        {
+                          id: 'json',
+                          label: 'Export Token JSON',
+                          icon: <BookOpen size={14} />,
+                        },
+                        {
+                          id: 'css',
+                          label: 'Export CSS Vars',
+                          icon: <Workflow size={14} />,
+                        },
+                        {
+                          id: 'inventory',
+                          label: 'Export Component Inventory',
+                          icon: <SearchCode size={14} />,
+                        },
+                      ]}
+                    />
+                  </ToolbarCluster>
+                  <Button
+                    variant="secondary"
+                    aria-label={rightRailPinnedOpen ? "Close Workbench" : "Open Workbench"}
+                    onClick={toggleRightRail}
+                    data-active={rightRailPinnedOpen ? 'true' : undefined}
+                    leadingIcon={rightRailPinnedOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+                    className="ds-toolbar-rail-toggle"
                   />
-                </ToolbarCluster>
+                </>
               }
             />
           </div>
@@ -582,18 +607,6 @@ export default function App() {
             mobileOpen={mobilePanel === 'left'}
             eyebrow="Library Rail"
             title="System Inventory"
-            headerActions={
-              !isOverlayShell && leftRailPinnedOpen ? (
-                <IconButton
-                  label={leftRailToggleLabel}
-                  icon={<PanelLeft size={16} />}
-                  active
-                  appearance="page"
-                  className="ds-rail-header-toggle"
-                  onClick={toggleLeftRail}
-                />
-              ) : null
-            }
             actions={
               <Button variant="ghost" size="sm" leadingIcon={<Compass size={14} />}>
                 Scope
@@ -676,21 +689,9 @@ export default function App() {
             placement="right"
             pinnedOpen={rightRailPinnedOpen}
             mobileOpen={mobilePanel === 'right'}
-            eyebrow="Inspector Rail"
-            title="Canon Notes"
+            eyebrow="Tuning Rail"
+            title="Workbench"
             className={workbenchOpen && !isOverlayShell ? 'ds-right-rail-offset' : undefined}
-            headerActions={
-              !isOverlayShell && rightRailPinnedOpen ? (
-                <IconButton
-                  label={rightRailToggleLabel}
-                  icon={<PanelRight size={16} />}
-                  active
-                  appearance="page"
-                  className="ds-rail-header-toggle"
-                  onClick={toggleRightRail}
-                />
-              ) : null
-            }
             actions={
               <Button
                 variant="ghost"
@@ -768,18 +769,6 @@ export default function App() {
         }
       >
         <div className="ds-page-layout">
-          {isOverlayShell || !leftRailPinnedOpen ? (
-            <div className="ds-page-rail-toggle-slot" data-placement="left">
-              <IconButton
-                label={leftRailToggleLabel}
-                icon={<PanelLeft size={16} />}
-                active={isOverlayShell ? mobilePanel === 'left' : leftRailPinnedOpen}
-                appearance="page"
-                className="ds-page-rail-toggle"
-                onClick={toggleLeftRail}
-              />
-            </div>
-          ) : null}
 
           <div className="ds-page-main">
             <div className="ds-content-header ds-main-tabs">
@@ -1116,18 +1105,6 @@ export default function App() {
             ) : null}
           </div>
 
-          {isOverlayShell || !rightRailPinnedOpen ? (
-            <div className="ds-page-rail-toggle-slot" data-placement="right">
-              <IconButton
-                label={rightRailToggleLabel}
-                icon={<PanelRight size={16} />}
-                active={isOverlayShell ? mobilePanel === 'right' : rightRailPinnedOpen}
-                appearance="page"
-                className="ds-page-rail-toggle"
-                onClick={toggleRightRail}
-              />
-            </div>
-          ) : null}
         </div>
       </PageShell>
 

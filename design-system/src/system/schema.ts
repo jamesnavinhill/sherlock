@@ -12,6 +12,7 @@ export interface AccentPoint {
 export interface SurfaceScale {
   background: AccentPoint;
   panel: AccentPoint;
+  rail: AccentPoint;
   surface: AccentPoint;
 }
 
@@ -211,11 +212,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
       dark: {
         background: { hue: 0, lightness: 0, chroma: 0, opacity: 1 },
         panel: { hue: 286, lightness: 0.141, chroma: 0.004, opacity: 1 },
+        rail: { hue: 0, lightness: 0, chroma: 0, opacity: 1 },
         surface: { hue: 286, lightness: 0.21, chroma: 0.006, opacity: 1 },
       },
       light: {
         background: { hue: 85, lightness: 0.88, chroma: 0.002, opacity: 1 },
         panel: { hue: 85, lightness: 0.9, chroma: 0.004, opacity: 1 },
+        rail: { hue: 85, lightness: 0.88, chroma: 0.002, opacity: 1 },
         surface: { hue: 81, lightness: 0.975, chroma: 0.004, opacity: 1 },
       },
     },
@@ -228,11 +231,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
       dark: {
         background: { hue: 220, lightness: 0.01, chroma: 0.004, opacity: 1 },
         panel: { hue: 228, lightness: 0.125, chroma: 0.01, opacity: 1 },
+        rail: { hue: 220, lightness: 0.01, chroma: 0.004, opacity: 1 },
         surface: { hue: 232, lightness: 0.205, chroma: 0.012, opacity: 1 },
       },
       light: {
         background: { hue: 220, lightness: 0.95, chroma: 0.01, opacity: 1 },
         panel: { hue: 220, lightness: 0.965, chroma: 0.012, opacity: 1 },
+        rail: { hue: 220, lightness: 0.95, chroma: 0.01, opacity: 1 },
         surface: { hue: 218, lightness: 0.905, chroma: 0.016, opacity: 1 },
       },
     },
@@ -245,11 +250,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
       dark: {
         background: { hue: 236, lightness: 0.02, chroma: 0.02, opacity: 1 },
         panel: { hue: 244, lightness: 0.13, chroma: 0.028, opacity: 1 },
+        rail: { hue: 236, lightness: 0.02, chroma: 0.02, opacity: 1 },
         surface: { hue: 248, lightness: 0.215, chroma: 0.034, opacity: 1 },
       },
       light: {
         background: { hue: 220, lightness: 0.94, chroma: 0.03, opacity: 1 },
         panel: { hue: 224, lightness: 0.965, chroma: 0.034, opacity: 1 },
+        rail: { hue: 220, lightness: 0.94, chroma: 0.03, opacity: 1 },
         surface: { hue: 220, lightness: 0.9, chroma: 0.045, opacity: 1 },
       },
     },
@@ -262,11 +269,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
       dark: {
         background: { hue: 18, lightness: 0.01, chroma: 0.01, opacity: 1 },
         panel: { hue: 28, lightness: 0.13, chroma: 0.02, opacity: 1 },
+        rail: { hue: 18, lightness: 0.01, chroma: 0.01, opacity: 1 },
         surface: { hue: 32, lightness: 0.215, chroma: 0.028, opacity: 1 },
       },
       light: {
         background: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
         panel: { hue: 70, lightness: 0.962, chroma: 0.032, opacity: 1 },
+        rail: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
         surface: { hue: 64, lightness: 0.9, chroma: 0.04, opacity: 1 },
       },
     },
@@ -279,11 +288,13 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
       dark: {
         background: { hue: 145, lightness: 0, chroma: 0.01, opacity: 1 },
         panel: { hue: 150, lightness: 0.12, chroma: 0.024, opacity: 1 },
+        rail: { hue: 145, lightness: 0, chroma: 0.01, opacity: 1 },
         surface: { hue: 154, lightness: 0.205, chroma: 0.032, opacity: 1 },
       },
       light: {
         background: { hue: 98, lightness: 0.935, chroma: 0.03, opacity: 1 },
         panel: { hue: 102, lightness: 0.958, chroma: 0.034, opacity: 1 },
+        rail: { hue: 98, lightness: 0.935, chroma: 0.03, opacity: 1 },
         surface: { hue: 104, lightness: 0.885, chroma: 0.044, opacity: 1 },
       },
     },
@@ -296,12 +307,52 @@ export const SURFACE_PRESETS: SurfacePreset[] = [
       dark: {
         background: { hue: 32, lightness: 0.005, chroma: 0.004, opacity: 1 },
         panel: { hue: 34, lightness: 0.12, chroma: 0.012, opacity: 1 },
+        rail: { hue: 32, lightness: 0.005, chroma: 0.004, opacity: 1 },
         surface: { hue: 38, lightness: 0.19, chroma: 0.015, opacity: 1 },
       },
       light: {
         background: { hue: 82, lightness: 0.955, chroma: 0.02, opacity: 1 },
         panel: { hue: 80, lightness: 0.972, chroma: 0.022, opacity: 1 },
+        rail: { hue: 82, lightness: 0.955, chroma: 0.02, opacity: 1 },
         surface: { hue: 76, lightness: 0.91, chroma: 0.028, opacity: 1 },
+      },
+    },
+  },
+  {
+    id: 'midnight',
+    label: 'Midnight',
+    description: 'Ultra-dark navy surfaces with a crystalline daylight mode.',
+    surfaces: {
+      dark: {
+        background: { hue: 232, lightness: 0.005, chroma: 0.015, opacity: 1 },
+        panel: { hue: 232, lightness: 0.08, chroma: 0.02, opacity: 1 },
+        rail: { hue: 232, lightness: 0.005, chroma: 0.015, opacity: 1 },
+        surface: { hue: 232, lightness: 0.16, chroma: 0.025, opacity: 1 },
+      },
+      light: {
+        background: { hue: 232, lightness: 0.94, chroma: 0.015, opacity: 1 },
+        panel: { hue: 232, lightness: 0.965, chroma: 0.02, opacity: 1 },
+        rail: { hue: 232, lightness: 0.94, chroma: 0.015, opacity: 1 },
+        surface: { hue: 232, lightness: 0.895, chroma: 0.025, opacity: 1 },
+      },
+    },
+  },
+  {
+    id: 'crimson',
+    label: 'Crimson',
+    description: 'Deep burgundy dark chrome with a blush light mode.',
+    surfaces: {
+      dark: {
+        background: { hue: 350, lightness: 0.005, chroma: 0.01, opacity: 1 },
+        panel: { hue: 350, lightness: 0.1, chroma: 0.015, opacity: 1 },
+        rail: { hue: 350, lightness: 0.005, chroma: 0.01, opacity: 1 },
+        surface: { hue: 350, lightness: 0.18, chroma: 0.02, opacity: 1 },
+      },
+      light: {
+        background: { hue: 350, lightness: 0.945, chroma: 0.015, opacity: 1 },
+        panel: { hue: 350, lightness: 0.965, chroma: 0.02, opacity: 1 },
+        rail: { hue: 350, lightness: 0.945, chroma: 0.015, opacity: 1 },
+        surface: { hue: 350, lightness: 0.9, chroma: 0.025, opacity: 1 },
       },
     },
   },
@@ -424,11 +475,13 @@ export const cloneTheme = (theme: StudioTheme): StudioTheme => ({
     dark: {
       background: { ...theme.surfaces.dark.background },
       panel: { ...theme.surfaces.dark.panel },
+      rail: { ...theme.surfaces.dark.rail },
       surface: { ...theme.surfaces.dark.surface },
     },
     light: {
       background: { ...theme.surfaces.light.background },
       panel: { ...theme.surfaces.light.panel },
+      rail: { ...theme.surfaces.light.rail },
       surface: { ...theme.surfaces.light.surface },
     },
   },

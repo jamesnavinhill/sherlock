@@ -61,6 +61,18 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
 }
 
+.ds-grid-three {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+}
+
+.ds-grid-three > * {
+  width: 100%;
+  display: flex;
+}
+
 .ds-code-block {
   margin: 0;
   padding: 1rem;

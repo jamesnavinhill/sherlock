@@ -50,7 +50,7 @@
 }
 
 .ds-filter-chip[data-active='true'] {
-  border-color: var(--ds-accent-border);
+  border-color: transparent;
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
 }
@@ -220,9 +220,10 @@
 .ds-secondary-button[data-active='true'],
 .ds-ghost-button[data-active='true'],
 .ds-toolbar-icon-button[data-active='true'] {
-  border-color: var(--ds-accent-border);
+  border-color: transparent;
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
+  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 50%, transparent);
 }
 
 .ds-select-trigger:hover,
@@ -484,7 +485,7 @@
 }
 
 .ds-segmented-tab[data-active='true'] {
-  border-color: var(--ds-accent-border);
+  border-color: transparent;
   background: var(--ds-accent-soft);
   color: var(--ds-accent);
 }
@@ -534,7 +535,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding-right: 0.75rem;
+  padding-right: 1rem;
   height: 100%;
 }
 
@@ -602,6 +603,20 @@
   gap: 0.6rem;
   align-items: flex-start;
   align-content: flex-start;
+}
+
+.ds-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.ds-action-row > * {
+  flex: 1 1 0px;
+  min-width: 0;
+  width: 100%;
+  display: flex;
 }
 
 .ds-token-swatch {

@@ -240,7 +240,7 @@
   min-height: 0;
   height: 100%;
   border-right: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
+  background: color-mix(in oklab, var(--ds-rail) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
