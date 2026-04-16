@@ -64,7 +64,7 @@ export function PanelRail({
             ) : null}
           </div>
         </div>
-        {actions ? <div className="ds-rail-header-actions ds-action-row">{actions}</div> : null}
+        {actions ? <div className="ds-rail-header-actions">{actions}</div> : null}
       </div>
       <div className="ds-rail-body">{children}</div>
       {footer ? <div className="ds-rail-footer">{footer}</div> : null}

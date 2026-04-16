@@ -150,10 +150,10 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                 </div>
                 <div className="ds-grid-three">
                   {SURFACE_PRESETS.map((preset) => (
-                    <button
+                    <Button
                       key={preset.id}
-                      type="button"
-                      className="ds-filter-chip"
+                      variant="secondary"
+                      size="compact"
                       data-active={
                         selectedPresetMode === 'both'
                           ? JSON.stringify(theme.surfaces) === JSON.stringify(preset.surfaces)
@@ -175,7 +175,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       }
                     >
                       {preset.label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -286,15 +286,15 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               <div className="ds-stack">
                 <div className="ds-chip-grid ds-action-row">
                   {[0, 1, 2, 3].map((index) => (
-                    <button
+                    <Button
                       key={index}
-                      type="button"
-                      className="ds-filter-chip"
+                      variant="secondary"
+                      size="compact"
                       data-active={activeGraphIndex === index ? 'true' : undefined}
                       onClick={() => setActiveGraphIndex(index)}
                     >
                       Graph {index + 1}
-                    </button>
+                    </Button>
                   ))}
                 </div>
 
@@ -540,10 +540,10 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                 </div>
                 <div className="ds-chip-grid ds-action-row">
                   {(['background', 'rail', 'panel', 'surface'] as const).map((key) => (
-                    <button
+                    <Button
                       key={key}
-                      type="button"
-                      className="ds-filter-chip"
+                      variant="secondary"
+                      size="compact"
                       data-active={selectedSurfaceKey === key ? 'true' : undefined}
                       onClick={() => setSelectedSurfaceKey(key)}
                     >
@@ -551,10 +551,10 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                         ? 'Background'
                         : key === 'panel'
                           ? 'Panel'
-                          : key === 'rail'
+                        : key === 'rail'
                             ? 'Rail'
                             : 'Surface'}
-                    </button>
+                    </Button>
                   ))}
                 </div>
 

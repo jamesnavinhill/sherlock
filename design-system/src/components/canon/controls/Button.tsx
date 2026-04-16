@@ -10,7 +10,7 @@ export type ButtonVariant =
   | 'danger'
   | 'icon';
 
-export type ButtonSize = 'sm' | 'md';
+export type ButtonSize = 'compact' | 'sm' | 'md';
 
 const BUTTON_VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary: 'ds-primary-button',
@@ -22,6 +22,7 @@ const BUTTON_VARIANT_CLASS: Record<ButtonVariant, string> = {
 };
 
 const BUTTON_SIZE_CLASS: Record<ButtonSize, string> = {
+  compact: 'ds-button-compact',
   sm: 'ds-button-sm',
   md: '',
 };

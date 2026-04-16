@@ -438,14 +438,12 @@ export default function App() {
       onClose={close}
       footer={
         <div className="ds-overlay-actions">
-          <div className="ds-toolbar-inline ds-flex-end ds-fill">
-            <Button variant="ghost" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
-              Reset Studio
-            </Button>
-            <Button variant="primary" onClick={close}>
-              Done
-            </Button>
-          </div>
+          <Button variant="ghost" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
+            Reset
+          </Button>
+          <Button variant="primary" onClick={close}>
+            Done
+          </Button>
         </div>
       }
     >
@@ -638,7 +636,7 @@ export default function App() {
             eyebrow="Library Rail"
             title="System Inventory"
             actions={
-              <Button variant="ghost" size="sm" leadingIcon={<Compass size={14} />}>
+              <Button variant="secondary" size="compact" leadingIcon={<Compass size={14} />}>
                 Scope
               </Button>
             }
@@ -744,9 +742,10 @@ export default function App() {
             className={workbenchOpen && !isOverlayShell ? 'ds-right-rail-offset' : undefined}
             actions={
               <Button
-                variant="ghost"
-                size="sm"
+                variant="secondary"
+                size="compact"
                 leadingIcon={<Palette size={14} />}
+                data-active={workbenchOpen ? 'true' : undefined}
                 onClick={() => setWorkbenchOpen((current) => !current)}
               >
                 Tokens
@@ -965,6 +964,9 @@ export default function App() {
                         Primary
                       </Button>
                       <Button variant="secondary">Secondary</Button>
+                      <Button variant="secondary" size="compact">
+                        Compact
+                      </Button>
                       <Button variant="ghost">Ghost</Button>
                       <Button variant="toolbar" leadingIcon={<BookOpen size={14} />}>
                         Toolbar
@@ -1193,7 +1195,22 @@ export default function App() {
             </Button>
           </ToolbarCluster>
         }
-      />
+      >
+        <OverlaySection
+          title="Review Snapshot"
+          description="Use the compact dialog for focused signoff while the larger workspace and workflow surfaces stay in the background."
+          meta={<Badge variant="outline">Focused Review</Badge>}
+          tone="subtle"
+        >
+          <MetricGrid
+            items={[
+              { label: 'Scope', value: 'Single component' },
+              { label: 'Status', value: 'Ready for approval' },
+              { label: 'Next step', value: 'Promote to canon' },
+            ]}
+          />
+        </OverlaySection>
+      </ModalDialog>
 
       <WorkflowDialog
         open={workflowOpen}

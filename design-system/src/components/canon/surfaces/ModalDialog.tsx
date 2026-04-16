@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 
 import { IconButton } from '../controls/IconButton';
 
@@ -23,6 +23,9 @@ export function ModalDialog({
   children,
   actions,
 }: ModalDialogProps) {
+  const titleId = useId();
+  const descriptionId = description ? `${titleId}-description` : undefined;
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -43,7 +46,13 @@ export function ModalDialog({
   }
 
   return (
-    <div className="ds-modal-layer" role="dialog" aria-modal="true" aria-label={title}>
+    <div
+      className="ds-modal-layer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+    >
       <button
         type="button"
         className="ds-modal-backdrop"
@@ -52,10 +61,16 @@ export function ModalDialog({
       />
       <div className="ds-modal">
         <div className="ds-modal-header">
-          <div>
+          <div className="ds-modal-copy">
             {eyebrow ? <div className="ds-meta-label">{eyebrow}</div> : null}
-            <h2 className="ds-title-section">{title}</h2>
-            {description ? <p className="ds-body-quiet">{description}</p> : null}
+            <h2 id={titleId} className="ds-title-section">
+              {title}
+            </h2>
+            {description ? (
+              <p id={descriptionId} className="ds-body-quiet">
+                {description}
+              </p>
+            ) : null}
           </div>
           <IconButton
             appearance="ghost"

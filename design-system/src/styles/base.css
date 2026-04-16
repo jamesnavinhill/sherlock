@@ -297,6 +297,12 @@ pre {
   width: 100%;
 }
 
+.ds-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 .ds-type-stack {
   display: grid;
   gap: 0.9rem;
