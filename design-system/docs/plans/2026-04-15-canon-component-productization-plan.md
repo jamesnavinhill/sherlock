@@ -288,6 +288,21 @@ Why this matters:
 - `App.tsx` is closer to being a reference consumer of canon components rather than the owner of their layout and styling
 - future app pages now have named canon building blocks for config panels, rail disclosure trees, list rows, and sidebar footer actions
 
+### 2026-04-16: Global motion and backdrop token cleanup continued
+
+Completed in this pass:
+
+- promoted repeated transition stacks for layout shifts, control chrome, emphasis states, panel motion, label collapse, and range-thumb motion into named base tokens
+- promoted shell, workbench, and dialog backdrop filters into named base tokens instead of repeating blur formulas in family stylesheets
+- moved the toast icon and divider chroming behind toast-level variables so tone-driven feedback styling no longer depends on inline `color-mix(...)` literals in the component rules
+- updated README wording to describe transition-stack tokens as part of the canon styling system
+
+Why this matters:
+
+- shell, controls, surfaces, and workbench now share a more explicit motion language instead of carrying repeated transition lists
+- backdrop blur behavior now reads as a system convention rather than a set of family-local blur calls
+- toast styling stays graph-palette-driven while keeping the remaining tone math easier to audit and reuse
+
 ## Main Problems Still Left
 
 The remaining work is not “invent the system.”

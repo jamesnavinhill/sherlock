@@ -13,7 +13,7 @@
   border-radius: 0;
   background: var(--ds-surface-bg-workbench);
   box-shadow: var(--ds-shadow-strong);
-  backdrop-filter: blur(var(--ds-blur-workbench));
+  backdrop-filter: var(--ds-backdrop-filter-workbench);
 }
 
 .ds-workbench-header {

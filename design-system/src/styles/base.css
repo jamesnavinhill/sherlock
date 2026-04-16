@@ -178,6 +178,52 @@
   --ds-blur-workbench: 28px;
   --ds-blur-dialog-backdrop: 8px;
   --ds-backdrop-saturate: 92%;
+  --ds-transition-background-fast: background-color var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-transition-border-fast: border-color var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-transition-fade-base: opacity var(--ds-motion-base) var(--ds-motion-ease);
+  --ds-transition-theme-base:
+    background-color var(--ds-motion-base) var(--ds-motion-ease),
+    color var(--ds-motion-base) var(--ds-motion-ease);
+  --ds-transition-layout-base: grid-template-columns var(--ds-motion-base) var(--ds-motion-ease);
+  --ds-transition-emphasis-fast:
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-transition-control-fast:
+    border-color var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-transition-control-transform-fast:
+    border-color var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease),
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease),
+    transform var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-transition-color-fade-fast:
+    color var(--ds-motion-fast) var(--ds-motion-ease),
+    opacity var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-transition-size-fade-fast:
+    max-width var(--ds-motion-fast) var(--ds-motion-ease),
+    opacity var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-transition-panel-base:
+    opacity var(--ds-motion-base) var(--ds-motion-ease),
+    transform var(--ds-motion-base) var(--ds-motion-ease),
+    border-color var(--ds-motion-base) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-base) var(--ds-motion-ease);
+  --ds-transition-panel-child:
+    opacity var(--ds-motion-fast) var(--ds-motion-ease),
+    transform var(--ds-motion-base) var(--ds-motion-ease);
+  --ds-transition-transform-base: transform var(--ds-motion-base) var(--ds-motion-ease);
+  --ds-transition-surface-slow: all var(--ds-motion-slow) var(--ds-motion-ease);
+  --ds-transition-thumb-fast:
+    transform var(--ds-motion-fast) var(--ds-motion-ease),
+    box-shadow var(--ds-motion-fast) var(--ds-motion-ease),
+    background-color var(--ds-motion-fast) var(--ds-motion-ease);
+  --ds-backdrop-filter-shell: blur(var(--ds-blur-shell));
+  --ds-backdrop-filter-workbench: blur(var(--ds-blur-workbench));
+  --ds-backdrop-filter-dialog:
+    blur(var(--ds-blur-dialog-backdrop)) saturate(var(--ds-backdrop-saturate));
   font-synthesis-weight: none;
   color-scheme: light;
 }
@@ -220,7 +266,7 @@
   background: var(--ds-surface);
   border-radius: 100px;
   border: 3px solid var(--ds-panel);
-  transition: background-color var(--ds-motion-fast) var(--ds-motion-ease);
+  transition: var(--ds-transition-background-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -242,9 +288,7 @@ body {
   font-weight: var(--ds-ui-weight);
   letter-spacing: var(--ds-ui-tracking);
   line-height: var(--ds-ui-leading);
-  transition:
-    background-color var(--ds-motion-base) var(--ds-motion-ease),
-    color var(--ds-motion-base) var(--ds-motion-ease);
+  transition: var(--ds-transition-theme-base);
 }
 
 button,

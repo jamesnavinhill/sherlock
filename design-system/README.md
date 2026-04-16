@@ -28,7 +28,7 @@ npm run build
 - The global config-panel shell, reusable rail disclosure tree, list-action rows, and sidebar footer actions now also live in canon instead of being assembled inline in `App.tsx`.
 - Overlay canon now has two tiers: lightweight list/menu selectors and richer structured config/workflow overlays for popouts and wizards.
 - Family-based styles now live under `src/styles/`, split into `base.css`, `shell.css`, `controls.css`, `surfaces.css`, `conversation.css`, and `workbench.css`, with `src/index.css` acting as the import hub.
-- Motion timing, backdrop blur, and shared accent-preview shadows now resolve through canon CSS variables so shell, controls, surfaces, and workbench use one interaction language.
+- Motion timing, shared transition stacks, backdrop blur, and accent-preview shadows now resolve through canon CSS variables so shell, controls, surfaces, and workbench use one interaction language.
 - Accent icon glow and range-thumb halo treatments now also resolve through named canon variables instead of one-off style literals.
 - Shared raised/subtle/workbench surface fills and range-track treatments now also resolve through named system variables across controls, conversation, surfaces, base typography, and workbench styles.
 - Shell chrome, overlay backdrop, button emphasis fills, muted/emphasis borders, modal section fills, and overlay section tones now also resolve through named system variables instead of family-local literals.

@@ -46,7 +46,7 @@
   height: 100vh;
   overflow: hidden;
   border-radius: var(--ds-radius-shell);
-  transition: grid-template-columns var(--ds-motion-base) var(--ds-motion-ease);
+  transition: var(--ds-transition-layout-base);
 }
 
 .ds-shell-backdrop {
@@ -62,7 +62,7 @@
   height: 100vh;
   border-right: 1px solid var(--ds-border-soft);
   background: var(--ds-shell-sidebar-bg);
-  backdrop-filter: blur(var(--ds-blur-shell));
+  backdrop-filter: var(--ds-backdrop-filter-shell);
   box-shadow: var(--ds-shadow-soft);
   z-index: 12;
   overflow-x: hidden;
@@ -75,7 +75,7 @@
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  transition: opacity var(--ds-motion-base) var(--ds-motion-ease);
+  transition: var(--ds-transition-fade-base);
 }
 
 .ds-sidebar-brand-title,
@@ -186,10 +186,7 @@
   border-radius: var(--ds-radius-control);
   background: transparent;
   color: var(--ds-text-quiet);
-  transition:
-    background-color var(--ds-motion-fast) var(--ds-motion-ease),
-    color var(--ds-motion-fast) var(--ds-motion-ease),
-    box-shadow var(--ds-motion-fast) var(--ds-motion-ease);
+  transition: var(--ds-transition-emphasis-fast);
 }
 
 .ds-sidebar-nav-item:hover,
@@ -242,7 +239,7 @@
   row-gap: 1rem;
   border-bottom: 1px solid var(--ds-border-soft);
   background: var(--ds-shell-toolbar-bg);
-  backdrop-filter: blur(var(--ds-blur-shell));
+  backdrop-filter: var(--ds-backdrop-filter-shell);
   container-type: inline-size;
 }
 
@@ -293,7 +290,7 @@
     minmax(0, 1fr)
     var(--ds-right-rail-size, var(--ds-rail-width));
   overflow: hidden;
-  transition: grid-template-columns var(--ds-motion-base) var(--ds-motion-ease);
+  transition: var(--ds-transition-layout-base);
 }
 
 .ds-rail {
@@ -308,18 +305,12 @@
   overflow: hidden;
   transform: translateX(0);
   opacity: 1;
-  transition:
-    opacity var(--ds-motion-base) var(--ds-motion-ease),
-    transform var(--ds-motion-base) var(--ds-motion-ease),
-    border-color var(--ds-motion-base) var(--ds-motion-ease),
-    box-shadow var(--ds-motion-base) var(--ds-motion-ease);
+  transition: var(--ds-transition-panel-base);
 }
 
 .ds-rail > * {
   transform: translateX(0);
-  transition:
-    opacity var(--ds-motion-fast) var(--ds-motion-ease),
-    transform var(--ds-motion-base) var(--ds-motion-ease);
+  transition: var(--ds-transition-panel-child);
 }
 
 .ds-left-rail {
@@ -533,7 +524,7 @@
     border: 1px solid var(--ds-border-soft);
     border-radius: var(--ds-radius-panel);
     transform: translateX(-100%);
-    transition: transform var(--ds-motion-base) var(--ds-motion-ease);
+    transition: var(--ds-transition-transform-base);
     box-shadow: var(--ds-shadow-strong);
     z-index: 24;
   }
@@ -571,7 +562,7 @@
     border: 1px solid var(--ds-border-soft);
     border-radius: var(--ds-radius-panel);
     z-index: 24;
-    transition: transform var(--ds-motion-base) var(--ds-motion-ease);
+    transition: var(--ds-transition-transform-base);
     box-shadow: var(--ds-shadow-strong);
   }
 
