@@ -92,20 +92,10 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   return (
     <aside className="ds-workbench">
       <div className="ds-workbench-header">
-        <div>
-          <h2 className="ds-title-section">System Controls</h2>
-        </div>
-        <div className="ds-toolbar-inline">
-          <Button
-            variant="page"
-            onClick={() => setTheme(() => cloneTheme(DEFAULT_THEME))}
-          >
-            Reset
-          </Button>
-          <button className="ds-page-icon-button" onClick={onClose} title="Close">
-            <X size={18} strokeWidth={2.5} />
-          </button>
-        </div>
+        <h2 className="ds-title-section">System Controls</h2>
+        <button className="ds-page-icon-button" onClick={onClose} title="Close">
+          <X size={18} strokeWidth={2.5} />
+        </button>
       </div>
 
       <NavTabs value={activeTab} onChange={setActiveTab} items={WORKBENCH_TABS} stretch />

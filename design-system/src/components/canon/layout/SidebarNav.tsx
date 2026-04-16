@@ -72,12 +72,9 @@ export function SidebarNav({
           }
         }}
       >
-        <IconButton
-          label={brandPressLabel || brandTitle}
-          icon={brandIcon}
-          interactive={false}
-          tabIndex={-1}
-        />
+        <div className="ds-sidebar-brand-icon">
+          {brandIcon}
+        </div>
         <div className="ds-sidebar-brand-copy">
           {brandEyebrow ? <div className="ds-meta-label">{brandEyebrow}</div> : null}
           <div className="ds-title-inline ds-sidebar-brand-title">{brandTitle}</div>

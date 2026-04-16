@@ -7,7 +7,7 @@
   z-index: 20;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  padding: 1.25rem 0; /* Vertical only, horizontal handled by children */
+  padding: 0 0 1.25rem 0; /* No top padding, header provides it */
   border: 0;
   border-left: 1px solid var(--ds-border-soft);
   border-radius: 0;
@@ -17,13 +17,17 @@
 }
 
 .ds-workbench-header {
-  padding-inline: 1.25rem;
+  padding: 1.25rem 1.25rem 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ds-border-soft);
+  margin-bottom: 0.25rem; /* Subtle nudge before tabs */
 }
 
-.ds-workbench-header,
 .ds-panel-section-header {
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;

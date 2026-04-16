@@ -407,7 +407,7 @@ export const createDefaultGraphs = (accent: AccentPoint): AccentPoint[] => [
 ];
 
 export const DEFAULT_THEME: StudioTheme = {
-  mode: 'light',
+  mode: 'dark',
   accent: { hue: 340, lightness: 0.57, chroma: 0.09, opacity: 1 },
   graphs: [
     { hue: 385 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
