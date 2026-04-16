@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 import { cx } from '../utils/cx';
 
-type IconButtonAppearance = 'toolbar' | 'ghost';
+export type IconButtonAppearance = 'toolbar' | 'ghost';
 
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;

@@ -12,20 +12,22 @@ export interface OptionGroupOption {
   disabled?: boolean;
 }
 
-interface OptionGroupBaseProps {
+export type OptionGroupSelectionMode = 'single' | 'multiple';
+
+export interface OptionGroupBaseProps {
   label?: string;
-  options: OptionGroupOption[];
+  options: ReadonlyArray<OptionGroupOption>;
   className?: string;
   columns?: 1 | 2;
 }
 
-interface SingleOptionGroupProps extends OptionGroupBaseProps {
+export interface SingleOptionGroupProps extends OptionGroupBaseProps {
   selectionMode?: 'single';
   value: string;
   onChange: (value: string) => void;
 }
 
-interface MultipleOptionGroupProps extends OptionGroupBaseProps {
+export interface MultipleOptionGroupProps extends OptionGroupBaseProps {
   selectionMode: 'multiple';
   value: string[];
   onChange: (value: string[]) => void;

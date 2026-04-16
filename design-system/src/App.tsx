@@ -853,7 +853,7 @@ export default function App() {
         overlayOpen={isOverlayShell && mobilePanel !== null}
         onDismissOverlay={() => setMobilePanel(null)}
         toolbarOffset={toolbarOffset}
-        floatingContent={
+        workbench={
           <Workbench
             isOpen={workbenchOpen}
             onClose={() => setWorkbenchOpen(false)}
@@ -883,7 +883,7 @@ export default function App() {
                 >
                   <PanelNote title="One shell contract">
                     `PageShell` now owns the sidebar, toolbar, left rail, right rail, content
-                    region, mobile backdrop, and floating workbench slot.
+                    region, mobile backdrop, and attached workbench slot.
                   </PanelNote>
                   <PanelNote title="Toolbar stays shared">
                     `ToolbarBar` and `ToolbarCluster` give us one header anatomy for search,

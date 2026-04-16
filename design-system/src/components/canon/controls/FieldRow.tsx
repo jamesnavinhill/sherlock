@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-interface FieldRowProps {
+export interface FieldRowProps {
   label: string;
   value?: string;
   description?: string;

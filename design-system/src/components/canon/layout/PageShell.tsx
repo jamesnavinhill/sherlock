@@ -6,12 +6,12 @@ export interface PageShellProps {
   children: ReactNode;
   leftRail?: ReactNode;
   rightRail?: ReactNode;
+  workbench?: ReactNode;
   sidebarCollapsed?: boolean;
   leftRailPinnedOpen?: boolean;
   rightRailPinnedOpen?: boolean;
   overlayOpen?: boolean;
   onDismissOverlay?: () => void;
-  floatingContent?: ReactNode;
   toolbarOffset?: number;
 }
 
@@ -21,12 +21,12 @@ export function PageShell({
   children,
   leftRail,
   rightRail,
+  workbench,
   sidebarCollapsed = false,
   leftRailPinnedOpen = false,
   rightRailPinnedOpen = false,
   overlayOpen = false,
   onDismissOverlay,
-  floatingContent,
   toolbarOffset,
 }: PageShellProps) {
   const railPanelWidth = 'clamp(18rem, 22vw, var(--ds-rail-width))';
@@ -71,7 +71,7 @@ export function PageShell({
             {rightRail}
           </div>
         </div>
-        {floatingContent}
+        {workbench}
       </div>
     </div>
   );

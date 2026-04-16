@@ -1,9 +1,14 @@
 import { cx } from '../utils/cx';
 
-interface TabsProps<T extends string> {
+export interface SegmentedTabItem<T extends string> {
+  id: T;
+  label: string;
+}
+
+export interface SegmentedTabsProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
-  items: ReadonlyArray<{ id: T; label: string }>;
+  items: ReadonlyArray<SegmentedTabItem<T>>;
   stretch?: boolean;
   size?: 'default' | 'compact';
 }
@@ -14,7 +19,7 @@ export function SegmentedTabs<T extends string>({
   items,
   stretch = false,
   size = 'default',
-}: TabsProps<T>) {
+}: SegmentedTabsProps<T>) {
   return (
     <div
       className={cx(

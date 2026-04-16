@@ -24,6 +24,16 @@ Consumers should prefer importing app-facing reusable pieces from that barrel.
 
 Internal helpers under `components/canon/utils/*` are implementation details and are not part of the top-level public canon API.
 
+Canon family barrels and the top-level canon barrel should prefer explicit named exports over wildcard re-exports so the shipped surface stays easy to scan.
+
+The same preference applies to internal helper barrels such as `utils/`: even internal surfaces are easier to maintain when their exports stay explicit.
+
+Where canon components expose reusable item/value shapes or prop contracts, those types should be exported intentionally rather than hidden behind private file-local interfaces.
+
+Shared interaction treatments such as accent glows, control halos, motion, blur, and backdrop conventions should also resolve through named system variables when they are reused across canon families.
+
+The same rule applies to shared surface-fill treatments: if a panel, raised card, workbench, or control track style is reused across families, it should prefer a named system variable over repeated `color-mix(...)` literals.
+
 ## Family Ownership
 
 ### `layout/`
@@ -35,6 +45,8 @@ Current public components:
 - `PageShell`
 - `PanelRail`
 - `SidebarNav`
+
+`PageShell` is the main reusable shell contract. It owns the sidebar, toolbar, rails, content region, overlay backdrop, and the attached `workbench` slot used by the shipped system workbench.
 
 ### `navigation/`
 
@@ -109,6 +121,8 @@ Current public components/types:
 ### `workbench/`
 
 Owns the shipped global system workbench that attaches to the reusable shell.
+
+The intended attachment point is `PageShell`'s explicit `workbench` slot rather than a generic page-level floating content escape hatch.
 
 Current public components:
 

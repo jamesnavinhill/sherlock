@@ -61,7 +61,7 @@
   flex-direction: column;
   height: 100vh;
   border-right: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-bg) 88%, var(--ds-panel) 12%);
+  background: var(--ds-shell-sidebar-bg);
   backdrop-filter: blur(var(--ds-blur-shell));
   box-shadow: var(--ds-shadow-soft);
   z-index: 12;
@@ -99,7 +99,7 @@
 .ds-sidebar-brand-icon svg {
   width: 1.5rem;
   height: 1.5rem;
-  filter: drop-shadow(0 2px 4px color-mix(in oklab, var(--ds-accent) 20%, transparent));
+  filter: var(--ds-filter-accent-glow);
 }
 
 .ds-sidebar-brand-icon::after {
@@ -108,7 +108,7 @@
   inset: -0.25rem;
   background: radial-gradient(
     circle at center,
-    color-mix(in oklab, var(--ds-accent) 12%, transparent),
+    var(--ds-accent-soft),
     transparent 70%
   );
   border-radius: 50%;
@@ -117,12 +117,38 @@
 
 .ds-sidebar-brand {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.85rem;
   min-height: var(--ds-toolbar-height);
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--ds-border-soft);
+}
+
+.ds-sidebar-brand-trigger {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.ds-sidebar-brand-trigger:not([data-interactive='false']) {
+  cursor: pointer;
+}
+
+.ds-sidebar-brand-trigger:not([data-interactive='false']):focus-visible {
+  outline: none;
+  border-radius: var(--ds-radius-control);
+  box-shadow: var(--ds-shadow-accent-soft);
 }
 
 .ds-sidebar-brand-actions {
@@ -181,6 +207,10 @@
   gap: 0;
 }
 
+.ds-sidebar[data-collapsed='true'] .ds-sidebar-brand-trigger {
+  gap: 0;
+}
+
 .ds-sidebar[data-collapsed='true'] .ds-sidebar-brand-copy,
 .ds-sidebar[data-collapsed='true'] .ds-sidebar-nav-item-label {
   opacity: 0;
@@ -215,7 +245,7 @@
   min-height: var(--ds-toolbar-height);
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-bg) 78%, var(--ds-panel) 22%);
+  background: var(--ds-shell-toolbar-bg);
   backdrop-filter: blur(var(--ds-blur-shell));
   container-type: inline-size;
 }
@@ -276,7 +306,7 @@
   min-height: 0;
   height: 100%;
   border-right: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-rail) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-shell-rail-bg);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
@@ -494,8 +524,8 @@
     z-index: 22;
     display: block;
     border: 0;
-    background: color-mix(in oklab, var(--ds-ink) 18%, transparent);
-  backdrop-filter: none;
+    background: var(--ds-overlay-backdrop-bg);
+    backdrop-filter: none;
   }
 
   .ds-sidebar {

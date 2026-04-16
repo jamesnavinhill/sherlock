@@ -68,6 +68,62 @@
   --ds-shadow-strong: 0 22px 42px -34px rgba(0, 0, 0, 0.42);
   --ds-shadow-accent-soft: 0 4px 12px -4px color-mix(in oklab, var(--ds-accent) 25%, transparent);
   --ds-shadow-accent-ring: 0 0 12px -2px color-mix(in oklab, var(--ds-accent) 25%, transparent);
+  --ds-shadow-control-thumb: 0 0 0 3px var(--ds-bg), var(--ds-shadow-soft);
+  --ds-shadow-control-thumb-strong: 0 0 0 4px var(--ds-bg), var(--ds-shadow-strong);
+  --ds-filter-accent-glow: drop-shadow(0 2px 4px color-mix(in oklab, var(--ds-accent) 20%, transparent));
+  --ds-surface-bg-subtle: color-mix(
+    in oklab,
+    var(--ds-panel) clamp(0%, calc(84% * var(--ds-surface-opacity)), 100%),
+    transparent
+  );
+  --ds-surface-bg-raised: color-mix(
+    in oklab,
+    var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%),
+    transparent
+  );
+  --ds-surface-bg-workbench: color-mix(
+    in oklab,
+    var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%),
+    var(--ds-bg) 4%
+  );
+  --ds-shell-sidebar-bg: color-mix(in oklab, var(--ds-bg) 88%, var(--ds-panel) 12%);
+  --ds-shell-toolbar-bg: color-mix(in oklab, var(--ds-bg) 78%, var(--ds-panel) 22%);
+  --ds-shell-rail-bg: color-mix(
+    in oklab,
+    var(--ds-rail) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%),
+    transparent
+  );
+  --ds-overlay-backdrop-bg: color-mix(in oklab, var(--ds-ink) 18%, transparent);
+  --ds-border-muted: color-mix(in oklab, var(--ds-border) 42%, transparent);
+  --ds-border-emphasis: color-mix(in oklab, var(--ds-border) 72%, transparent);
+  --ds-button-primary-bg: color-mix(in oklab, var(--ds-accent-soft) 74%, var(--ds-control-bg) 26%);
+  --ds-button-primary-bg-hover: color-mix(
+    in oklab,
+    var(--ds-accent-soft-strong) 78%,
+    var(--ds-control-bg-hover) 22%
+  );
+  --ds-button-danger-bg: color-mix(in oklab, var(--ds-danger-soft) 78%, var(--ds-control-bg) 22%);
+  --ds-range-track-bg: color-mix(in oklab, var(--ds-accent) 15%, var(--ds-panel));
+  --ds-range-track-border: color-mix(in oklab, var(--ds-accent) 8%, var(--ds-border-soft));
+  --ds-modal-body-bg: color-mix(in oklab, var(--ds-surface) 10%, transparent);
+  --ds-modal-footer-bg: color-mix(in oklab, var(--ds-panel) 82%, transparent);
+  --ds-conversation-user-bg: color-mix(in oklab, var(--ds-accent-soft) 62%, var(--ds-panel) 38%);
+  --ds-conversation-system-bg: color-mix(in oklab, var(--ds-bg) 68%, var(--ds-panel) 32%);
+  --ds-overlay-section-bg: color-mix(
+    in oklab,
+    var(--ds-panel) clamp(0%, calc(90% * var(--ds-surface-opacity)), 100%),
+    transparent
+  );
+  --ds-overlay-section-bg-subtle: color-mix(
+    in oklab,
+    var(--ds-panel) clamp(0%, calc(78% * var(--ds-surface-opacity)), 100%),
+    transparent
+  );
+  --ds-overlay-section-bg-accent: color-mix(
+    in oklab,
+    var(--ds-accent-soft) clamp(0%, calc(78% * var(--ds-surface-opacity)), 100%),
+    var(--ds-panel) 22%
+  );
   --ds-border-soft: color-mix(in oklab, var(--ds-border) 70%, transparent);
   --ds-border-strong: color-mix(in oklab, var(--ds-border) 88%, var(--ds-ink) 12%);
   --ds-interaction-bg: color-mix(in oklab, var(--ds-panel) 88%, var(--ds-surface) 12%);
@@ -344,7 +400,7 @@ pre {
   padding: 1rem;
   border-radius: var(--ds-radius-control);
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-surface-bg-raised);
   color: var(--ds-text-strong);
   font-family: var(--ds-font-mono);
   font-size: calc(var(--ds-type-sm) * var(--ds-mono-scale));

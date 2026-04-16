@@ -166,6 +166,95 @@ Why this matters:
 - left and right rails now feel more canon and less like separate interaction paths
 - shell behavior is more uniform at the reusable system layer
 
+### 2026-04-16: Reusable shell contract cleanup started
+
+Completed in this pass:
+
+- renamed `PageShell`'s generic `floatingContent` slot to an explicit `workbench` slot so the shipped shell contract is clearer in code
+- tightened `SidebarNav` brand handling so the reusable shell no longer relies on a broad container click path for brand actions
+- updated the inventory and README to document `PageShell` plus attached `Workbench` as the intended reusable shell composition
+
+Why this matters:
+
+- the main reusable shell contract is now easier to discover directly from the canon files
+- the shipped workbench relationship is expressed in code instead of only in docs
+- sidebar brand behavior is more product-ready and less demo-shaped
+
+### 2026-04-16: Public canon API typing cleanup started
+
+Completed in this pass:
+
+- exported the reusable item/prop/value types that were implicitly part of the canon public surface
+- made `SidebarNav` item typing explicit as part of the layout family API
+- made `NavTabs`, `SegmentedTabs`, `FieldRow`, and `IconButton` expose importable public contract types
+- updated canon docs to describe this as an intentional API-boundary rule
+
+Why this matters:
+
+- consumers can import canon component contract types directly instead of reconstructing them ad hoc
+- the reusable surface is clearer for future extraction or packaging work
+- family barrels now communicate both components and their important public shapes more honestly
+
+### 2026-04-16: Interaction token cleanup continued
+
+Completed in this pass:
+
+- promoted the remaining sidebar accent glow treatment into a named system variable
+- promoted range-thumb halo and hover halo treatments into named system variables
+- replaced the last matching one-off accent-soft literal in shell styling with the shared accent token
+- updated docs to reflect that these interaction treatments are part of the canon variable system
+
+Why this matters:
+
+- shared shell and control polish now depends less on file-local CSS literals
+- the canon interaction language is more explicit for future reuse and extraction
+- remaining styling cleanup work is easier to spot because these common treatments are now named
+
+### 2026-04-16: Control contract and surface token cleanup continued
+
+Completed in this pass:
+
+- finished the remaining public control-contract cleanup for `MenuButton` and `OptionGroup`
+- made canon control collections readonly where those item lists are part of the reusable API
+- promoted repeated raised/subtle/workbench surface fills into named system variables
+- promoted repeated range-track fill and border treatments into named system variables
+- updated docs to describe both the control-contract rule and the shared surface-fill rule
+
+Why this matters:
+
+- the remaining control-heavy canon primitives now communicate their reusable contracts more directly
+- shared fills used across controls, conversation, surfaces, typography, and workbench styling are easier to reason about as system assets
+- future package extraction work has fewer implicit shapes and fewer repeated CSS literals to unwind
+
+### 2026-04-16: Export surface and shell/overlay token cleanup continued
+
+Completed in this pass:
+
+- replaced wildcard canon barrel exports with explicit named exports across the family barrels and top-level canon entry point
+- promoted the remaining shared shell chrome backgrounds into named system variables
+- promoted shared overlay backdrop, muted/emphasis border, modal fill, overlay section, and button emphasis treatments into named system variables
+- updated canon docs to describe explicit named exports as part of the intended public boundary
+
+Why this matters:
+
+- the public canon surface is now easier to scan directly from the barrel files without following transitive wildcard exports
+- the remaining shell and overlay styling conventions now read more like a system and less like family-local exceptions
+- the canon boundary is closer to package-ready because both exports and shared styling language are more explicit
+
+### 2026-04-16: Final boundary and conversation token cleanup continued
+
+Completed in this pass:
+
+- removed the last wildcard export from the internal `canon/utils` barrel so helper exports follow the same explicit rule as the public canon surface
+- promoted conversation user/system role fills into named system variables instead of keeping them as file-local literals
+- tightened README and inventory wording so `utils/` reads as internal helper space rather than another reusable component family
+
+Why this matters:
+
+- the canon tree now communicates public families versus internal helpers more honestly
+- the remaining obvious conversation-specific surface literals are now part of the shared token language
+- boundary and token cleanup are both closer to a natural stopping point for a later test-locking phase
+
 ## Main Problems Still Left
 
 The remaining work is not “invent the system.”

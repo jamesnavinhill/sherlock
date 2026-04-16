@@ -1,9 +1,14 @@
 import { cx } from '../utils/cx';
 
+export interface NavTabItem<T extends string> {
+  id: T;
+  label: string;
+}
+
 export interface NavTabsProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
-  items: ReadonlyArray<{ id: T; label: string }>;
+  items: ReadonlyArray<NavTabItem<T>>;
   stretch?: boolean;
 }
 

@@ -34,7 +34,7 @@
 .ds-surface-preview-surface {
   min-width: 0;
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(84% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-surface-bg-subtle);
   border-radius: var(--ds-radius-panel);
   box-shadow: var(--ds-shadow-soft);
 }
@@ -130,7 +130,7 @@
 .ds-surface-preview-surface {
   transition: all var(--ds-motion-slow) var(--ds-motion-ease);
   border-radius: var(--ds-radius-panel);
-  border: 1px solid color-mix(in oklab, var(--ds-border) 42%, transparent);
+  border: 1px solid var(--ds-border-muted);
 }
 
 .ds-surface-preview-bg[data-active='true'],
@@ -255,14 +255,14 @@
   display: grid;
   gap: 1rem;
   padding: 1rem 1.125rem;
-  background: color-mix(in oklab, var(--ds-surface) 10%, transparent);
+  background: var(--ds-modal-body-bg);
 }
 
 .ds-modal-footer {
   padding: 1rem 1.125rem;
   align-items: center;
   border-top: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) 82%, transparent);
+  background: var(--ds-modal-footer-bg);
 }
 
 .ds-overlay-panel {
@@ -345,16 +345,16 @@
   padding: 1rem;
   border: 1px solid var(--ds-border-soft);
   border-radius: calc(var(--ds-radius-control) * 1.05);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(90% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-overlay-section-bg);
 }
 
 .ds-overlay-section[data-tone='accent'] {
   border-color: var(--ds-accent-border);
-  background: color-mix(in oklab, var(--ds-accent-soft) clamp(0%, calc(78% * var(--ds-surface-opacity)), 100%), var(--ds-panel) 22%);
+  background: var(--ds-overlay-section-bg-accent);
 }
 
 .ds-overlay-section[data-tone='subtle'] {
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(78% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-overlay-section-bg-subtle);
 }
 
 .ds-overlay-section-meta {

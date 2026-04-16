@@ -17,7 +17,7 @@
   min-height: 1.75rem;
   padding: 0 0.625rem;
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-surface-bg-raised);
 }
 
 .ds-keycap-inline {
@@ -30,7 +30,7 @@
   min-height: 1.8rem;
   padding: 0 0.75rem;
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-surface-bg-raised);
   color: var(--ds-text-strong);
 }
 
@@ -262,20 +262,20 @@
 
 .ds-primary-button {
   border: 1px solid var(--ds-accent-border);
-  background: color-mix(in oklab, var(--ds-accent-soft) 74%, var(--ds-control-bg) 26%);
+  background: var(--ds-button-primary-bg);
   color: var(--ds-accent);
   box-shadow: var(--ds-control-shadow);
 }
 
 .ds-primary-button:hover,
 .ds-primary-button:focus-visible {
-  background: color-mix(in oklab, var(--ds-accent-soft-strong) 78%, var(--ds-control-bg-hover) 22%);
+  background: var(--ds-button-primary-bg-hover);
   box-shadow: var(--ds-control-shadow-hover);
 }
 
 .ds-danger-button {
   border: 1px solid var(--ds-danger-border);
-  background: color-mix(in oklab, var(--ds-danger-soft) 78%, var(--ds-control-bg) 22%);
+  background: var(--ds-button-danger-bg);
   color: var(--ds-danger);
   box-shadow: var(--ds-control-shadow);
 }
@@ -379,7 +379,7 @@
   gap: 0.75rem;
   padding: 0.85rem 1rem;
   border: 0;
-  border-bottom: 1px solid color-mix(in oklab, var(--ds-border) 42%, transparent);
+  border-bottom: 1px solid var(--ds-border-muted);
   background: transparent;
   text-align: left;
 }
@@ -532,7 +532,7 @@
 .ds-accordion {
   overflow: hidden;
   border: 1px solid var(--ds-border-soft);
-  background: color-mix(in oklab, var(--ds-panel) clamp(0%, calc(84% * var(--ds-surface-opacity)), 100%), transparent);
+  background: var(--ds-surface-bg-subtle);
   border-radius: var(--ds-radius-panel);
   box-shadow: var(--ds-shadow-soft);
 }
@@ -642,7 +642,7 @@
 }
 
 .ds-accordion-body {
-  border-top: 1px solid color-mix(in oklab, var(--ds-border) 42%, transparent);
+  border-top: 1px solid var(--ds-border-muted);
   padding: 1rem;
   display: grid;
   gap: 0.75rem;
@@ -726,7 +726,7 @@
   width: 2rem;
   height: 2rem;
   border-radius: calc(var(--ds-radius-control) * 0.7);
-  border: 1px solid color-mix(in oklab, var(--ds-border) 72%, transparent);
+  border: 1px solid var(--ds-border-emphasis);
 }
 
 .ds-inline-swatch {
@@ -952,7 +952,7 @@
 }
 
 .ds-date-calendar-day[data-in-range='true'] {
-  background: color-mix(in oklab, var(--ds-accent) 12%, transparent);
+  background: var(--ds-accent-soft);
   color: var(--ds-text-heading);
 }
 
@@ -984,10 +984,10 @@
     to right,
     var(--ds-accent) 0%,
     var(--ds-accent) var(--value-percent),
-    color-mix(in oklab, var(--ds-accent) 15%, var(--ds-panel)) var(--value-percent),
-    color-mix(in oklab, var(--ds-accent) 15%, var(--ds-panel)) 100%
+    var(--ds-range-track-bg) var(--value-percent),
+    var(--ds-range-track-bg) 100%
   );
-  border: 1px solid color-mix(in oklab, var(--ds-accent) 8%, var(--ds-border-soft));
+  border: 1px solid var(--ds-range-track-border);
   transition: border-color var(--ds-motion-fast) var(--ds-motion-ease);
 }
 
@@ -1000,9 +1000,7 @@
   background: var(--ds-accent);
   /* (track height 0.375 - thumb height 1) / 2 = -0.3125 */
   margin-top: -0.3125rem;
-  box-shadow: 
-    0 0 0 3px var(--ds-bg),
-    var(--ds-shadow-soft);
+  box-shadow: var(--ds-shadow-control-thumb);
   border: 1px solid var(--ds-accent-border);
   transition: 
     transform var(--ds-motion-fast) var(--ds-motion-ease),
@@ -1017,9 +1015,7 @@
 .ds-range:hover::-webkit-slider-thumb {
   transform: scale(1.1);
   background: var(--ds-accent);
-  box-shadow: 
-    0 0 0 4px var(--ds-bg),
-    var(--ds-shadow-strong);
+  box-shadow: var(--ds-shadow-control-thumb-strong);
 }
 
 .ds-range:active::-webkit-slider-thumb {
@@ -1031,8 +1027,8 @@
   width: 100%;
   height: 0.375rem;
   border-radius: var(--ds-radius-pill);
-  background: color-mix(in oklab, var(--ds-accent) 15%, var(--ds-panel));
-  border: 1px solid color-mix(in oklab, var(--ds-accent) 8%, var(--ds-border-soft));
+  background: var(--ds-range-track-bg);
+  border: 1px solid var(--ds-range-track-border);
 }
 
 .ds-range::-moz-range-progress {
@@ -1047,7 +1043,7 @@
   border-radius: var(--ds-radius-pill);
   background: var(--ds-accent);
   border: 1px solid var(--ds-accent-border);
-  box-shadow: 0 0 0 3px var(--ds-bg);
+  box-shadow: var(--ds-shadow-control-thumb);
   cursor: pointer;
 }
 

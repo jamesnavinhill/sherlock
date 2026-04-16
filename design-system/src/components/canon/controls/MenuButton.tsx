@@ -18,7 +18,7 @@ export interface MenuButtonItem {
 
 export interface MenuButtonProps {
   label: ReactNode;
-  items: MenuButtonItem[];
+  items: ReadonlyArray<MenuButtonItem>;
   leadingIcon?: ReactNode;
   className?: string;
   panelClassName?: string;
@@ -26,7 +26,7 @@ export interface MenuButtonProps {
 }
 
 interface MenuButtonPanelProps {
-  items: MenuButtonItem[];
+  items: ReadonlyArray<MenuButtonItem>;
   close: () => void;
 }
 

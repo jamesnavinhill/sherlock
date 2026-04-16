@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import { IconButton } from '../controls/IconButton';
 
-interface SidebarItem {
+export interface SidebarNavItem {
   id: string;
   label: string;
   icon: LucideIcon;
@@ -17,7 +17,7 @@ export interface SidebarNavProps {
   brandSubtitle?: string;
   brandPressLabel?: string;
   headerActions?: ReactNode;
-  items: SidebarItem[];
+  items: ReadonlyArray<SidebarNavItem>;
   activeId: string;
   onSelect: (id: string) => void;
   onBrandPress?: () => void;
@@ -44,44 +44,34 @@ export function SidebarNav({
   onCloseMobile,
 }: SidebarNavProps) {
   const hasHeaderActions = Boolean(headerActions) || Boolean(onCloseMobile);
+  const brandContent = (
+    <>
+      <div className="ds-sidebar-brand-icon">{brandIcon}</div>
+      <div className="ds-sidebar-brand-copy">
+        {brandEyebrow ? <div className="ds-meta-label">{brandEyebrow}</div> : null}
+        <div className="ds-title-inline ds-sidebar-brand-title">{brandTitle}</div>
+        {brandSubtitle ? <p className="ds-body-quiet ds-sidebar-brand-subtitle">{brandSubtitle}</p> : null}
+      </div>
+    </>
+  );
 
   return (
-    <aside
-      className="ds-sidebar"
-      data-collapsed={collapsed ? 'true' : 'false'}
-      data-mobile-open={mobileOpen ? 'true' : 'false'}
-      onClick={(e) => {
-        if (
-          onBrandPress &&
-          (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('ds-sidebar-nav'))
-        ) {
-          onBrandPress();
-        }
-      }}
-    >
-      <div 
-        className="ds-sidebar-brand"
-        onClick={onBrandPress}
-        style={{ cursor: onBrandPress ? 'pointer' : 'default' }}
-        role={onBrandPress ? "button" : undefined}
-        tabIndex={onBrandPress ? 0 : undefined}
-        onKeyDown={(e) => {
-          if (onBrandPress && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault();
-            onBrandPress();
-          }
-        }}
-      >
-        <div className="ds-sidebar-brand-icon">
-          {brandIcon}
-        </div>
-        <div className="ds-sidebar-brand-copy">
-          {brandEyebrow ? <div className="ds-meta-label">{brandEyebrow}</div> : null}
-          <div className="ds-title-inline ds-sidebar-brand-title">{brandTitle}</div>
-          {brandSubtitle ? (
-            <p className="ds-body-quiet ds-sidebar-brand-subtitle">{brandSubtitle}</p>
-          ) : null}
-        </div>
+    <aside className="ds-sidebar" data-collapsed={collapsed ? 'true' : 'false'} data-mobile-open={mobileOpen ? 'true' : 'false'}>
+      <div className="ds-sidebar-brand">
+        {onBrandPress ? (
+          <button
+            type="button"
+            className="ds-sidebar-brand-trigger"
+            aria-label={brandPressLabel ?? brandTitle}
+            onClick={onBrandPress}
+          >
+            {brandContent}
+          </button>
+        ) : (
+          <div className="ds-sidebar-brand-trigger" data-interactive="false">
+            {brandContent}
+          </div>
+        )}
         {hasHeaderActions ? (
           <div className="ds-sidebar-brand-actions">
             {headerActions}
