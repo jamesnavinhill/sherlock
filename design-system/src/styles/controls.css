@@ -901,11 +901,7 @@
   padding: 0;
   display: grid;
   gap: 0;
-}
-
-.ds-date-range-header,
-.ds-date-range-footer {
-  background: var(--ds-overlay-section-bg-subtle);
+  background: var(--ds-overlay-body-bg);
 }
 
 .ds-date-range-header {
@@ -922,6 +918,7 @@
 
 .ds-date-range-body {
   gap: 0.875rem;
+  background: var(--ds-overlay-body-bg);
 }
 
 .ds-date-range-controls {

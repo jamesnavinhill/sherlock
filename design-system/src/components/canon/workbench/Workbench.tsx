@@ -1,5 +1,5 @@
 import { PanelLeftOpen, PanelRightOpen } from 'lucide-react';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 
 import { buildThemeCssText, buildThemeCssVars } from '../../../system/cssVars';
 import {
@@ -103,7 +103,6 @@ export function Workbench({
 
   const selectedBackground = theme.background[selectedBackgroundMode];
   const selectedStructure = theme.surfaces[selectedStructureMode][selectedStructureKey];
-  const structurePreviewVars = buildThemeCssVars({ ...theme, mode: selectedStructureMode });
   const exportJson = buildExportJson(theme);
   const colorThemeJson = buildColorThemeJson(theme);
   const exportCss = buildThemeCssText(theme);
@@ -795,31 +794,6 @@ export function Workbench({
                     </Button>
                   ))}
                 </div>
-
-                <div className="ds-surface-preview" style={structurePreviewVars as CSSProperties}>
-                  <div className="ds-surface-preview-page">
-                    <div
-                      className="ds-surface-preview-shell"
-                      data-active={selectedStructureKey === 'shell' ? 'true' : undefined}
-                    >
-                      <div
-                        className="ds-surface-preview-rail"
-                        data-active={selectedStructureKey === 'rail' ? 'true' : undefined}
-                      >
-                        <div
-                          className="ds-surface-preview-panel"
-                          data-active={selectedStructureKey === 'panel' ? 'true' : undefined}
-                        >
-                          <div
-                            className="ds-surface-preview-surface"
-                            data-active={selectedStructureKey === 'surface' ? 'true' : undefined}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="ds-stack">
                   <RangeField
                     label="Hue"

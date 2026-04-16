@@ -70,7 +70,15 @@ const SYSTEM_STYLE_VARS: Record<string, string> = {
   '--ds-blur-shell': '18px',
   '--ds-blur-workbench': '28px',
   '--ds-blur-dialog-backdrop': '8px',
-  '--ds-dialog-bg': 'var(--ds-overlay-panel-bg)',
+  '--ds-shell-chrome-bg': 'color-mix(in oklab, var(--ds-shell) 78%, var(--ds-panel) 22%)',
+  '--ds-overlay-chrome-bg': 'var(--ds-shell-chrome-bg)',
+  '--ds-overlay-body-bg':
+    'color-mix(in oklab, var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%), transparent)',
+  '--ds-overlay-panel-bg': 'var(--ds-overlay-body-bg)',
+  '--ds-dialog-bg': 'var(--ds-overlay-body-bg)',
+  '--ds-modal-header-bg': 'var(--ds-overlay-chrome-bg)',
+  '--ds-modal-body-bg': 'var(--ds-overlay-body-bg)',
+  '--ds-modal-footer-bg': 'var(--ds-overlay-chrome-bg)',
   '--ds-backdrop-saturate': '92%',
   '--ds-shadow-accent-ring':
     '0 0 12px -2px color-mix(in oklab, var(--ds-accent) 25%, transparent)',

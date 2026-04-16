@@ -274,6 +274,7 @@
 .ds-modal-header {
   padding: var(--ds-modal-header-padding);
   border-bottom: 1px solid var(--ds-border-soft);
+  background: var(--ds-modal-header-bg);
 }
 
 .ds-modal-copy {
@@ -449,9 +450,10 @@
   min-width: 0;
   display: grid;
   gap: 1rem;
+  overflow: hidden;
   border: 1px solid var(--ds-border-soft);
   border-radius: var(--ds-radius-panel);
-  background: var(--ds-floating-bg);
+  background: var(--ds-overlay-panel-bg);
 }
 
 .ds-overlay-panel-popover {
@@ -479,6 +481,7 @@
 .ds-overlay-panel-header {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--ds-border-soft);
+  background: var(--ds-overlay-chrome-bg);
 }
 
 .ds-overlay-panel-footer {
@@ -489,6 +492,7 @@
   flex-wrap: wrap;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--ds-border-soft);
+  background: var(--ds-overlay-chrome-bg);
 }
 
 .ds-overlay-panel-actions {
@@ -544,6 +548,7 @@
 
 .ds-overlay-panel-body {
   padding: 1rem 1.25rem;
+  background: var(--ds-overlay-body-bg);
 }
 
 .ds-content-section-body {
