@@ -194,13 +194,20 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       onClick={() =>
                         setTheme((current) => {
                           const nextSurfaces = { ...current.surfaces };
+                          const nextBackground = { ...current.background };
                           if (selectedPresetMode === 'both' || selectedPresetMode === 'dark') {
                             nextSurfaces.dark = preset.surfaces.dark;
+                            nextBackground.dark = { ...preset.surfaces.dark.shell };
                           }
                           if (selectedPresetMode === 'both' || selectedPresetMode === 'light') {
                             nextSurfaces.light = preset.surfaces.light;
+                            nextBackground.light = { ...preset.surfaces.light.shell };
                           }
-                          return { ...current, surfaces: nextSurfaces };
+                          return {
+                            ...current,
+                            surfaces: nextSurfaces,
+                            background: nextBackground,
+                          };
                         })
                       }
                     >
@@ -676,7 +683,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             </AccordionSection>
 
             <AccordionSection
-              title="Page Structure"
+              title="Surfaces"
               isOpen={openThemeSections.includes('surfaces')}
               onToggle={() =>
                 setOpenThemeSections((current) =>
