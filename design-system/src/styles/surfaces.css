@@ -270,7 +270,7 @@
 
 .ds-modal-body {
   display: grid;
-  gap: var(--ds-modal-body-gap);
+  gap: 0;
   padding: var(--ds-modal-body-padding);
   overflow: auto;
   overscroll-behavior: contain;
@@ -489,6 +489,34 @@
   gap: 0.35rem;
 }
 
+.ds-content-section {
+  min-width: 0;
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+}
+
+.ds-content-section-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ds-content-section-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ds-content-section-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .ds-overlay-panel-body,
 .ds-overlay-section-body,
 .ds-workflow-dialog-main,
@@ -500,6 +528,28 @@
 
 .ds-overlay-panel-body {
   padding: 1rem 1.25rem;
+}
+
+.ds-content-section-body {
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.ds-modal-body > *,
+.ds-config-panel-body > *,
+.ds-workflow-dialog-main > *,
+.ds-workflow-dialog-sidebar > * {
+  min-width: 0;
+}
+
+.ds-modal-body > * + *,
+.ds-config-panel-body > * + *,
+.ds-workflow-dialog-main > * + *,
+.ds-workflow-dialog-sidebar > * + * {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--ds-border-muted);
 }
 
 
@@ -558,6 +608,12 @@
 .ds-workflow-dialog-body {
   display: grid;
   gap: 1rem;
+}
+
+.ds-workflow-dialog-main,
+.ds-workflow-dialog-sidebar {
+  gap: 0;
+  align-content: start;
 }
 
 .ds-workflow-dialog-body-with-sidebar {

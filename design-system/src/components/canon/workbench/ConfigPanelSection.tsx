@@ -1,8 +1,8 @@
-import { OverlaySection, type OverlaySectionProps } from '../surfaces/OverlaySection';
+import { ContentSection, type ContentSectionProps } from '../surfaces/ContentSection';
 import { cx } from '../utils/cx';
 
-export interface ConfigPanelSectionProps extends OverlaySectionProps {}
+export interface ConfigPanelSectionProps extends ContentSectionProps {}
 
 export function ConfigPanelSection({ className, ...props }: ConfigPanelSectionProps) {
-  return <OverlaySection className={cx('ds-config-panel-section', className)} {...props} />;
+  return <ContentSection className={cx('ds-config-panel-section', className)} {...props} />;
 }

@@ -38,7 +38,7 @@
 
 .ds-config-panel-body {
   display: grid;
-  gap: 1rem;
+  gap: 0;
 }
 
 .ds-config-panel-section {

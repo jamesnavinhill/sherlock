@@ -93,6 +93,7 @@ Owns reusable card, panel, overlay, dialog, and feedback surfaces.
 Current public components:
 
 - `ActionCard`
+- `ContentSection`
 - `DialogSurface`
 - `EmptyStateCard`
 - `MetricGrid`
@@ -106,7 +107,7 @@ Current public components:
 - `ToastStack`
 - `WorkflowDialog`
 
-Dialog presentation/size contracts are part of the public reusable surface, and toast tones now resolve through the shared graph palette rather than a separate notification color set.
+Dialog presentation/size contracts are part of the public reusable surface. `ContentSection` is the default natural-flow section for modal, workflow, and config-panel bodies, while `OverlaySection` remains the boxed inset option for intentionally nested sub-surfaces. Toast tones now resolve through the shared graph palette rather than a separate notification color set.
 
 ### `disclosure/`
 

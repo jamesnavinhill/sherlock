@@ -113,6 +113,7 @@
     var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%),
     var(--ds-bg) 4%
   );
+  --ds-overlay-panel-bg: var(--ds-surface-bg-workbench);
   --ds-shell-sidebar-bg: color-mix(in oklab, var(--ds-bg) 88%, var(--ds-panel) 12%);
   --ds-shell-toolbar-bg: color-mix(in oklab, var(--ds-bg) 78%, var(--ds-panel) 22%);
   --ds-shell-rail-bg: color-mix(
@@ -132,8 +133,8 @@
   --ds-button-danger-bg: color-mix(in oklab, var(--ds-danger-soft) 78%, var(--ds-control-bg) 22%);
   --ds-range-track-bg: color-mix(in oklab, var(--ds-accent) 15%, var(--ds-panel));
   --ds-range-track-border: color-mix(in oklab, var(--ds-accent) 8%, var(--ds-border-soft));
-  --ds-modal-body-bg: color-mix(in oklab, var(--ds-surface) 10%, transparent);
-  --ds-modal-footer-bg: color-mix(in oklab, var(--ds-panel) 82%, transparent);
+  --ds-modal-body-bg: var(--ds-overlay-panel-bg);
+  --ds-modal-footer-bg: var(--ds-overlay-panel-bg);
   --ds-conversation-user-bg: color-mix(in oklab, var(--ds-accent-soft) 62%, var(--ds-panel) 38%);
   --ds-conversation-system-bg: color-mix(in oklab, var(--ds-bg) 68%, var(--ds-panel) 32%);
   --ds-overlay-section-bg: color-mix(

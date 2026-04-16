@@ -36,7 +36,6 @@ const CONTROL_CHROME_VARS: Record<ControlChrome, Record<string, string>> = {
     '--ds-control-shadow-hover': 'var(--ds-shadow-accent-soft)',
     '--ds-floating-bg':
       'color-mix(in oklab, var(--ds-panel) clamp(0%, calc(96% * var(--ds-surface-opacity)), 100%), transparent)',
-    '--ds-dialog-bg': 'color-mix(in oklab, var(--ds-panel) 76%, var(--ds-surface) 24%)',
     '--ds-dialog-backdrop': 'color-mix(in oklab, var(--ds-panel-dark) 46%, transparent)',
   },
   solid: {
@@ -48,7 +47,6 @@ const CONTROL_CHROME_VARS: Record<ControlChrome, Record<string, string>> = {
     '--ds-control-shadow': 'var(--ds-shadow-soft)',
     '--ds-control-shadow-hover': 'var(--ds-shadow-accent-soft)',
     '--ds-floating-bg': 'color-mix(in oklab, var(--ds-surface) 88%, var(--ds-panel) 12%)',
-    '--ds-dialog-bg': 'color-mix(in oklab, var(--ds-surface) 82%, var(--ds-panel) 18%)',
     '--ds-dialog-backdrop': 'color-mix(in oklab, var(--ds-panel-dark) 54%, transparent)',
   },
   line: {
@@ -60,7 +58,6 @@ const CONTROL_CHROME_VARS: Record<ControlChrome, Record<string, string>> = {
     '--ds-control-shadow': 'none',
     '--ds-control-shadow-hover': 'none',
     '--ds-floating-bg': 'color-mix(in oklab, var(--ds-bg) 84%, var(--ds-panel) 16%)',
-    '--ds-dialog-bg': 'color-mix(in oklab, var(--ds-bg) 78%, var(--ds-panel) 22%)',
     '--ds-dialog-backdrop': 'color-mix(in oklab, var(--ds-panel-dark) 38%, transparent)',
   },
 };
@@ -73,6 +70,7 @@ const SYSTEM_STYLE_VARS: Record<string, string> = {
   '--ds-blur-shell': '18px',
   '--ds-blur-workbench': '28px',
   '--ds-blur-dialog-backdrop': '8px',
+  '--ds-dialog-bg': 'var(--ds-overlay-panel-bg)',
   '--ds-backdrop-saturate': '92%',
   '--ds-shadow-accent-ring':
     '0 0 12px -2px color-mix(in oklab, var(--ds-accent) 25%, transparent)',

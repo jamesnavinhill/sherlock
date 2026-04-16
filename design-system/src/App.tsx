@@ -34,6 +34,7 @@ import {
   Button,
   ChatComposer,
   ChatTranscript,
+  ContentSection,
   ConfigPanel,
   ConfigPanelSection,
   DateRangePicker,
@@ -1423,11 +1424,10 @@ export default function App() {
           </ToolbarCluster>
         }
       >
-        <OverlaySection
+        <ContentSection
           title="Review Snapshot"
           description="Use the compact dialog for focused signoff while the larger workspace and workflow surfaces stay in the background."
           meta={<Badge variant="outline">Focused Review</Badge>}
-          tone="subtle"
         >
           <MetricGrid
             items={[
@@ -1436,7 +1436,7 @@ export default function App() {
               { label: 'Next step', value: 'Promote to canon' },
             ]}
           />
-        </OverlaySection>
+        </ContentSection>
       </ModalDialog>
 
       <ModalDialog
@@ -1454,18 +1454,17 @@ export default function App() {
           </ToolbarCluster>
         }
       >
-        <OverlaySection
+        <ContentSection
           title="Non-blocking Review"
           description="Same dialog family, lighter interaction contract."
           meta={<Badge variant="outline">Modeless</Badge>}
-          tone="subtle"
         >
           <div className="ds-chip-grid">
             <Badge variant="outline">Menu</Badge>
             <Badge variant="outline">Date Range</Badge>
             <Badge variant="accent">Dialog</Badge>
           </div>
-        </OverlaySection>
+        </ContentSection>
       </ModalDialog>
 
       <WorkflowDialog
@@ -1497,25 +1496,30 @@ export default function App() {
           </div>
         }
         sidebar={
-          <div className="ds-stack">
-            <OverlaySection title="Launch Summary" tone="accent">
-              <MetricGrid
-                items={[
-                  {
-                    label: 'Workspace',
-                    value: workspaceId === 'workspace-a' ? 'Operations' : 'Incident',
-                  },
-                  { label: 'Output', value: flowOutput === 'artifact' ? 'Artifact' : 'Brief' },
-                  { label: 'Depth', value: flowDepth === 'deep' ? 'Deep' : 'Standard' },
-                  { label: 'Budget', value: `${flowReviewBudget}%` },
-                ]}
-              />
-            </OverlaySection>
-          </div>
+          <ContentSection
+            title="Launch Summary"
+            description="A compact readout of the current launch configuration."
+            meta={<Badge variant="outline">Live Summary</Badge>}
+          >
+            <MetricGrid
+              items={[
+                {
+                  label: 'Workspace',
+                  value: workspaceId === 'workspace-a' ? 'Operations' : 'Incident',
+                },
+                { label: 'Output', value: flowOutput === 'artifact' ? 'Artifact' : 'Brief' },
+                { label: 'Depth', value: flowDepth === 'deep' ? 'Deep' : 'Standard' },
+                { label: 'Budget', value: `${flowReviewBudget}%` },
+              ]}
+            />
+          </ContentSection>
         }
       >
-        <div className="ds-overlay-grid ds-overlay-grid-split">
-          <OverlaySection title="Launch Context">
+        <ContentSection
+          title="Launch Context"
+          description="Set the workspace and delivery shape for this flow."
+        >
+          <ResponsiveGrid minWidth="16rem">
             <SelectField
               label="Workspace"
               value={workspaceId}
@@ -1531,29 +1535,34 @@ export default function App() {
                 stretch
               />
             </div>
-          </OverlaySection>
-        </div>
+          </ResponsiveGrid>
+        </ContentSection>
 
-        <OverlaySection title="Evidence Settings">
-          <div className="ds-stack">
-            <span className="ds-meta-label">Investigation Depth</span>
-            <SegmentedTabs
-              value={flowDepth}
-              onChange={setFlowDepth}
-              items={FLOW_DEPTH_OPTIONS}
-              stretch
+        <ContentSection
+          title="Evidence Settings"
+          description="Tune how much depth and review budget this run should use."
+        >
+          <ResponsiveGrid minWidth="16rem">
+            <div className="ds-stack">
+              <span className="ds-meta-label">Investigation Depth</span>
+              <SegmentedTabs
+                value={flowDepth}
+                onChange={setFlowDepth}
+                items={FLOW_DEPTH_OPTIONS}
+                stretch
+              />
+            </div>
+            <RangeField
+              label="Review Budget"
+              value={flowReviewBudget}
+              min={30}
+              max={100}
+              step={5}
+              format={(value) => `${value}%`}
+              onChange={setFlowReviewBudget}
             />
-          </div>
-          <RangeField
-            label="Review Budget"
-            value={flowReviewBudget}
-            min={30}
-            max={100}
-            step={5}
-            format={(value) => `${value}%`}
-            onChange={setFlowReviewBudget}
-          />
-        </OverlaySection>
+          </ResponsiveGrid>
+        </ContentSection>
       </WorkflowDialog>
     </>
   );

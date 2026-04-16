@@ -1,5 +1,7 @@
 export { ActionCard } from './ActionCard';
 export type { ActionCardProps } from './ActionCard';
+export { ContentSection } from './ContentSection';
+export type { ContentSectionProps } from './ContentSection';
 export { DialogSurface } from './DialogSurface';
 export type {
   DialogSurfacePresentation,

@@ -80,6 +80,7 @@ export { ToolbarBar, ToolbarCluster } from './navigation';
 export type { ToolbarBarProps, ToolbarClusterProps } from './navigation';
 export {
   ActionCard,
+  ContentSection,
   DialogSurface,
   EmptyStateCard,
   MetricGrid,
@@ -95,6 +96,7 @@ export {
 } from './surfaces';
 export type {
   ActionCardProps,
+  ContentSectionProps,
   DialogSurfacePresentation,
   DialogSurfaceProps,
   DialogSurfaceSize,
