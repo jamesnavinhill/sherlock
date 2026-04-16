@@ -29,10 +29,10 @@
   opacity: var(--ds-scanline-opacity);
   background: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0) 50%,
-    rgba(0, 0, 0, 0.12) 50%,
-    rgba(0, 0, 0, 0.12)
+    transparent,
+    transparent 50%,
+    color-mix(in oklab, var(--ds-ink) 12%, transparent) 50%,
+    color-mix(in oklab, var(--ds-ink) 12%, transparent)
   );
   background-size: 100% 4px;
 }
@@ -469,8 +469,8 @@
     z-index: 22;
     display: block;
     border: 0;
-    background: rgba(10, 14, 21, 0.18);
-    backdrop-filter: none;
+    background: color-mix(in oklab, var(--ds-ink) 18%, transparent);
+  backdrop-filter: none;
   }
 
   .ds-sidebar {

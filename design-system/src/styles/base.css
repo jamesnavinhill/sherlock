@@ -74,6 +74,9 @@
   --ds-accent-soft: color-mix(in oklab, var(--ds-accent) 12%, transparent);
   --ds-accent-soft-strong: color-mix(in oklab, var(--ds-accent) 16%, transparent);
   --ds-accent-border: color-mix(in oklab, var(--ds-accent) 44%, transparent);
+  --ds-danger: #ef4444;
+  --ds-danger-soft: color-mix(in oklab, var(--ds-danger) 12%, transparent);
+  --ds-danger-border: color-mix(in oklab, var(--ds-danger) 44%, transparent);
   font-synthesis-weight: none;
   color-scheme: light;
 }
@@ -210,7 +213,8 @@ pre {
   font-weight: var(--ds-weight-semibold);
 }
 
-.ds-meta-label {
+.ds-meta-label,
+.ds-type-eyebrow {
   color: var(--ds-text-meta);
   font-family: var(--ds-font-label);
   font-size: calc(var(--ds-type-2xs) * var(--ds-label-scale));
@@ -248,12 +252,29 @@ pre {
   flex-wrap: wrap;
 }
 
+.ds-flex-end {
+  justify-content: flex-end;
+}
+
+.ds-fill {
+  width: 100%;
+}
+
 .ds-stack {
   display: grid;
   gap: 1rem;
 }
 
 .ds-stack > * {
+  min-width: 0;
+}
+
+.ds-stack-sm {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ds-stack-sm > * {
   min-width: 0;
 }
 
@@ -280,14 +301,7 @@ pre {
   gap: 0.9rem;
 }
 
-.ds-type-eyebrow {
-  color: var(--ds-text-meta);
-  font-family: var(--ds-font-label);
-  font-size: calc(var(--ds-type-2xs) * var(--ds-label-scale));
-  font-weight: var(--ds-label-weight);
-  letter-spacing: var(--ds-label-tracking);
-  text-transform: uppercase;
-}
+/* Redundant eyebrow consolidated with meta-label above */
 
 .ds-type-display {
   margin: 0;

@@ -162,11 +162,7 @@ const WORKSPACE_OPTIONS = [
   },
 ];
 
-const SURFACE_OPTIONS = [
-  { value: 'classic', label: 'Classic' },
-  { value: 'graphite', label: 'Graphite' },
-  { value: 'archive', label: 'Archive' },
-];
+/* Redundant SURFACE_OPTIONS removed in favor of independent mode tuning in Workbench */
 
 const TRANSCRIPT_MESSAGES: TranscriptMessage[] = [
   {
@@ -210,7 +206,7 @@ const TRANSCRIPT_MESSAGES: TranscriptMessage[] = [
     meta: '1 min ago',
     body: (
       <p>
-        Make the design system reusable enough that Sherlock can treat it as the canon reference
+        Make the design system reusable enough that the application can treat it as the canon reference
         before we move it into its own package.
       </p>
     ),
@@ -280,7 +276,6 @@ export default function App() {
   const [galleryTab, setGalleryTab] = useState<GalleryTab>('shell');
   const [activeNav, setActiveNav] = useState('workspace');
   const [workspaceId, setWorkspaceId] = useState('workspace-a');
-  const [surfacePreset, setSurfacePreset] = useState('classic');
   const [composerValue, setComposerValue] = useState(
     'Compare the strongest signal clusters against the last artifact summary and call out the missing evidence.'
   );
@@ -412,7 +407,7 @@ export default function App() {
       onClose={close}
       footer={
         <div className="ds-overlay-actions">
-          <div className="ds-toolbar-inline" style={{ justifyContent: 'flex-end', width: '100%' }}>
+          <div className="ds-toolbar-inline ds-flex-end ds-fill">
             <Button variant="secondary" onClick={() => setThemeState(cloneTheme(DEFAULT_THEME))}>
               Reset Studio
             </Button>
@@ -424,14 +419,6 @@ export default function App() {
       }
     >
       <div className="ds-overlay-grid">
-        <OverlaySection title="Surface Preset">
-          <SelectField
-            label="Preset"
-            value={surfacePreset}
-            onChange={setSurfacePreset}
-            options={SURFACE_OPTIONS}
-          />
-        </OverlaySection>
 
         <OverlaySection title="Shell Geometry">
           <RangeField
@@ -675,7 +662,7 @@ export default function App() {
               isOpen={leftSections.isOpen('filters')}
               onToggle={() => leftSections.toggle('filters')}
             >
-              <div style={{ display: 'grid', gap: '0.25rem' }}>
+              <div className="ds-stack-sm">
                 {['Shell', 'Toolbars', 'Rails', 'Conversation', 'Typography'].map((item) => (
                   <button key={item} type="button" className="ds-list-item ds-list-item-sm">
                     <span className="ds-title-inline">{item}</span>
@@ -772,7 +759,7 @@ export default function App() {
               isOpen={rightSections.isOpen('states')}
               onToggle={() => rightSections.toggle('states')}
             >
-              <div style={{ display: 'grid', gap: '0.25rem' }}>
+              <div className="ds-stack-sm">
                 {['Default', 'Hover', 'Active', 'Pinned'].map((item) => (
                   <button key={item} type="button" className="ds-list-item ds-list-item-sm">
                     <span className="ds-title-inline">{item}</span>
@@ -823,7 +810,7 @@ export default function App() {
               <NavTabs value={galleryTab} onChange={setGalleryTab} items={GALLERY_TABS} />
             </div>
 
-            <div className="ds-page-title-section" style={{ display: 'grid', gap: '0.35rem' }}>
+            <div className="ds-page-title-section ds-stack-sm">
               <div className="ds-meta-label">Studio Page</div>
               <h1 className="ds-title-page">Reusable shell and component canon</h1>
             </div>
@@ -963,10 +950,10 @@ export default function App() {
                 <SurfaceCard title="Selectors + Tabs" eyebrow="Navigation">
                   <div className="ds-stack">
                     <SelectField
-                      label="Surface Preset"
-                      value={surfacePreset}
-                      onChange={setSurfacePreset}
-                      options={SURFACE_OPTIONS}
+                      label="Active Workspace"
+                      value={workspaceId}
+                      onChange={setWorkspaceId}
+                      options={WORKSPACE_OPTIONS}
                     />
                   </div>
                 </SurfaceCard>
@@ -1098,7 +1085,7 @@ export default function App() {
                   className="ds-conversation-main"
                   actions={<Badge variant="accent">Combined View</Badge>}
                 >
-                  <div className="ds-chat-layout-combined" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div className="ds-chat-layout-combined ds-stack">
                     <ChatTranscript messages={TRANSCRIPT_MESSAGES} />
                     <ChatComposer
                       value={composerValue}
@@ -1134,7 +1121,7 @@ export default function App() {
                       instead of buried in page-specific markup.
                     </p>
                     <pre className="ds-type-mono">
-                      <code>{`surface=${surfacePreset}\nvariant=${theme.background.variant}\nmode=${theme.mode}`}</code>
+                      <code>{`accent=${Math.round(theme.accent.hue)}\nvariant=${theme.background.variant}\nmode=${theme.mode}`}</code>
                     </pre>
                   </div>
                 </SurfaceCard>

@@ -60,6 +60,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const [selectedSurfaceKey, setSelectedSurfaceKey] = useState<
     'background' | 'panel' | 'rail' | 'surface'
   >('panel');
+  const [selectedPresetMode, setSelectedPresetMode] = useState<'both' | 'dark' | 'light'>('both');
   const [activeGraphIndex, setActiveGraphIndex] = useState<number>(0);
   const [activeFontRole, setActiveFontRole] = useState<FontRole>('ui');
   const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
@@ -128,6 +129,21 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
             >
               <div className="ds-stack">
+                <div className="ds-field-row">
+                  <div className="ds-field-row-header">
+                    <span className="ds-meta-label">Apply To</span>
+                  </div>
+                  <SegmentedTabs
+                    value={selectedPresetMode}
+                    onChange={(v) => setSelectedPresetMode(v as any)}
+                    items={[
+                      { id: 'both', label: 'Both' },
+                      { id: 'dark', label: 'Dark Only' },
+                      { id: 'light', label: 'Light Only' },
+                    ]}
+                    stretch
+                  />
+                </div>
                 <div className="ds-grid-three">
                   {SURFACE_PRESETS.map((preset) => (
                     <button
@@ -135,15 +151,23 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       type="button"
                       className="ds-filter-chip"
                       data-active={
-                        JSON.stringify(theme.surfaces) === JSON.stringify(preset.surfaces)
-                          ? 'true'
-                          : undefined
+                        selectedPresetMode === 'both'
+                          ? JSON.stringify(theme.surfaces) === JSON.stringify(preset.surfaces)
+                          : selectedPresetMode === 'dark'
+                            ? JSON.stringify(theme.surfaces.dark) === JSON.stringify(preset.surfaces.dark)
+                            : JSON.stringify(theme.surfaces.light) === JSON.stringify(preset.surfaces.light)
                       }
                       onClick={() =>
-                        setTheme((current) => ({
-                          ...current,
-                          surfaces: cloneTheme({ ...current, surfaces: preset.surfaces }).surfaces,
-                        }))
+                        setTheme((current) => {
+                          const nextSurfaces = { ...current.surfaces };
+                          if (selectedPresetMode === 'both' || selectedPresetMode === 'dark') {
+                            nextSurfaces.dark = preset.surfaces.dark;
+                          }
+                          if (selectedPresetMode === 'both' || selectedPresetMode === 'light') {
+                            nextSurfaces.light = preset.surfaces.light;
+                          }
+                          return { ...current, surfaces: nextSurfaces };
+                        })
                       }
                     >
                       {preset.label}
@@ -496,6 +520,20 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
               }
             >
               <div className="ds-stack">
+                <div className="ds-field-row">
+                  <div className="ds-field-row-header">
+                    <span className="ds-meta-label">Tuning Mode</span>
+                  </div>
+                  <SegmentedTabs
+                    value={selectedSurfaceMode}
+                    onChange={(v) => setSelectedSurfaceMode(v as 'dark' | 'light')}
+                    items={[
+                      { id: 'dark', label: 'Dark Mode' },
+                      { id: 'light', label: 'Light Mode' },
+                    ]}
+                    stretch
+                  />
+                </div>
                 <div className="ds-chip-grid ds-action-row">
                   {(['background', 'rail', 'panel', 'surface'] as const).map((key) => (
                     <button

@@ -266,9 +266,9 @@
 }
 
 .ds-danger-button {
-  border-color: color-mix(in oklab, var(--ds-accent) 44%, #9f1239 56%);
-  background: color-mix(in oklab, var(--ds-accent-soft) 35%, #7f1d1d 65%);
-  color: #ffe4e6;
+  border: 1px solid var(--ds-danger-border);
+  background: var(--ds-danger-soft);
+  color: var(--ds-danger);
 }
 
 .ds-search-field,
@@ -528,6 +528,10 @@
   color: inherit;
   text-align: left;
   user-select: none;
+}
+
+.ds-has-actions .ds-accordion-trigger {
+  padding-right: 0;
 }
 
 .ds-accordion-actions {

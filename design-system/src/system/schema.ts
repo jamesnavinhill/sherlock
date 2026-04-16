@@ -372,7 +372,7 @@ export const BACKGROUND_VARIANTS: Array<{
   {
     id: 'dot-grid',
     label: 'Dot Grid',
-    description: 'Direct carry-forward of the Sherlock workspace field.',
+    description: 'Direct carry-forward of the system workspace field.',
   },
   {
     id: 'cross-grid',
@@ -415,7 +415,10 @@ export const DEFAULT_THEME: StudioTheme = {
     { hue: 550 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
     { hue: 620 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
   ],
-  surfaces: SURFACE_PRESETS[0].surfaces,
+  surfaces: {
+    dark: SURFACE_PRESETS.find((p) => p.id === 'midnight')!.surfaces.dark,
+    light: SURFACE_PRESETS.find((p) => p.id === 'ember')!.surfaces.light,
+  },
   background: {
     variant: 'dot-grid',
     dotColor: 23,
