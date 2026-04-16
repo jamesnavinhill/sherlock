@@ -123,6 +123,10 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
 
   return {
     '--ds-accent': buildAccentColor(theme.accent),
+    '--ds-graph-1': buildAccentColor(theme.graphs[0]),
+    '--ds-graph-2': buildAccentColor(theme.graphs[1]),
+    '--ds-graph-3': buildAccentColor(theme.graphs[2]),
+    '--ds-graph-4': buildAccentColor(theme.graphs[3]),
     '--ds-bg': buildAccentColor(modeScale.background),
     '--ds-panel': buildAccentColor(modeScale.panel),
     '--ds-rail': buildAccentColor(modeScale.rail),

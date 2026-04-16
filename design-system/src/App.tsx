@@ -60,7 +60,12 @@ import {
   type TranscriptMessage,
 } from './components/canon';
 import { buildThemeCssVars } from './system/cssVars';
-import { DEFAULT_THEME, cloneTheme, type StudioTheme } from './system/schema';
+import {
+  DEFAULT_THEME,
+  cloneTheme,
+  createDefaultGraphs,
+  type StudioTheme,
+} from './system/schema';
 
 const STORAGE_KEY = 'canon-design-system-studio/v1';
 const SHELL_OVERLAY_QUERY = '(max-width: 1180px)';
@@ -244,6 +249,7 @@ const loadTheme = (): StudioTheme => {
         dark: { ...nextTheme.surfaces.dark, ...parsed.surfaces?.dark },
         light: { ...nextTheme.surfaces.light, ...parsed.surfaces?.light },
       },
+      graphs: parsed.graphs ?? createDefaultGraphs(parsed.accent ?? nextTheme.accent),
       shell: { ...nextTheme.shell, ...parsed.shell },
       radii: hasLegacyRadiusDefaults(parsed.radii)
         ? { ...nextTheme.radii }

@@ -18,6 +18,7 @@ import {
   FONT_ROLE_LABELS,
   SURFACE_PRESETS,
   cloneTheme,
+  createDefaultGraphs,
   getFontOptionsForRole,
   getSelectedFontIds,
   type FontRole,
@@ -58,9 +59,10 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const [selectedSurfaceKey, setSelectedSurfaceKey] = useState<
     'background' | 'panel' | 'rail' | 'surface'
   >('panel');
+  const [activeGraphIndex, setActiveGraphIndex] = useState<number>(0);
   const [activeFontRole, setActiveFontRole] = useState<FontRole>('ui');
   const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
-  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['surfaces']);
+  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['templates']);
   const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry', 'radius']);
   const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
   const [openFontProfiles, setOpenFontProfiles] = useState<string[]>([]);
@@ -111,13 +113,13 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
         {activeTab === 'theme' ? (
           <div className="ds-stack">
             <AccordionSection
-              title="Gallery"
-              isOpen={openThemeSections.includes('gallery')}
+              title="Templates"
+              isOpen={openThemeSections.includes('templates')}
               onToggle={() =>
                 setOpenThemeSections((current) =>
-                  current.includes('gallery')
-                    ? current.filter((s) => s !== 'gallery')
-                    : [...current, 'gallery']
+                  current.includes('templates')
+                    ? current.filter((s) => s !== 'templates')
+                    : [...current, 'templates']
                 )
               }
               actions={
@@ -156,6 +158,324 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                       {preset.label}
                     </button>
                   ))}
+                </div>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection
+              title="Accent"
+              isOpen={openThemeSections.includes('accent')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('accent')
+                    ? current.filter((s) => s !== 'accent')
+                    : [...current, 'accent']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      accent: { ...DEFAULT_THEME.accent },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <div className="ds-surface-preview">
+                  <div
+                    className="ds-surface-preview-bg"
+                    style={{ background: 'var(--ds-accent)' }}
+                  />
+                </div>
+                <div className="ds-stack">
+                  <RangeField
+                    label="Hue"
+                    value={theme.accent.hue}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        accent: { ...current.accent, hue: value },
+                      }))
+                    }
+                    min={0}
+                    max={360}
+                    step={1}
+                    format={(value) => `${Math.round(value)}`}
+                  />
+                  <RangeField
+                    label="Lightness"
+                    value={theme.accent.lightness}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        accent: { ...current.accent, lightness: value },
+                      }))
+                    }
+                    min={0.3}
+                    max={0.8}
+                    step={0.005}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Chroma"
+                    value={theme.accent.chroma}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        accent: { ...current.accent, chroma: value },
+                      }))
+                    }
+                    min={0}
+                    max={0.18}
+                    step={0.002}
+                    format={(value) => round(value).toString()}
+                  />
+                </div>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection
+              title="Graphs"
+              isOpen={openThemeSections.includes('graphs')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('graphs')
+                    ? current.filter((s) => s !== 'graphs')
+                    : [...current, 'graphs']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      graphs: createDefaultGraphs(current.accent),
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <div className="ds-chip-grid ds-action-row">
+                  {[0, 1, 2, 3].map((index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="ds-filter-chip"
+                      data-active={activeGraphIndex === index ? 'true' : undefined}
+                      onClick={() => setActiveGraphIndex(index)}
+                    >
+                      Graph {index + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="ds-surface-preview">
+                  <div
+                    className="ds-surface-preview-bg"
+                    style={{ background: `var(--ds-graph-${activeGraphIndex + 1})` }}
+                  />
+                </div>
+
+                <div className="ds-stack">
+                  <RangeField
+                    label="Hue"
+                    value={theme.graphs?.[activeGraphIndex]?.hue ?? 0}
+                    onChange={(value) =>
+                      setTheme((current) => {
+                        const nextGraphs = [...current.graphs];
+                        nextGraphs[activeGraphIndex] = {
+                          ...nextGraphs[activeGraphIndex],
+                          hue: value,
+                        };
+                        return { ...current, graphs: nextGraphs };
+                      })
+                    }
+                    min={0}
+                    max={360}
+                    step={1}
+                    format={(value) => `${Math.round(value)}`}
+                  />
+                  <RangeField
+                    label="Lightness"
+                    value={theme.graphs?.[activeGraphIndex]?.lightness ?? 0.5}
+                    onChange={(value) =>
+                      setTheme((current) => {
+                        const nextGraphs = [...current.graphs];
+                        nextGraphs[activeGraphIndex] = {
+                          ...nextGraphs[activeGraphIndex],
+                          lightness: value,
+                        };
+                        return { ...current, graphs: nextGraphs };
+                      })
+                    }
+                    min={0.3}
+                    max={0.8}
+                    step={0.005}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Chroma"
+                    value={theme.graphs?.[activeGraphIndex]?.chroma ?? 0.1}
+                    onChange={(value) =>
+                      setTheme((current) => {
+                        const nextGraphs = [...current.graphs];
+                        nextGraphs[activeGraphIndex] = {
+                          ...nextGraphs[activeGraphIndex],
+                          chroma: value,
+                        };
+                        return { ...current, graphs: nextGraphs };
+                      })
+                    }
+                    min={0}
+                    max={0.18}
+                    step={0.002}
+                    format={(value) => round(value).toString()}
+                  />
+                  <RangeField
+                    label="Opacity"
+                    value={theme.graphs?.[activeGraphIndex]?.opacity ?? 1}
+                    onChange={(value) =>
+                      setTheme((current) => {
+                        const nextGraphs = [...current.graphs];
+                        nextGraphs[activeGraphIndex] = {
+                          ...nextGraphs[activeGraphIndex],
+                          opacity: value,
+                        };
+                        return { ...current, graphs: nextGraphs };
+                      })
+                    }
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                </div>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection
+              title="Background"
+              isOpen={openThemeSections.includes('background')}
+              onToggle={() =>
+                setOpenThemeSections((current) =>
+                  current.includes('background')
+                    ? current.filter((s) => s !== 'background')
+                    : [...current, 'background']
+                )
+              }
+              actions={
+                <Button
+                  variant="page"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      background: { ...DEFAULT_THEME.background },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <SelectField
+                  label="Variant"
+                  value={theme.background.variant}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      background: {
+                        ...current.background,
+                        variant: value as StudioTheme['background']['variant'],
+                      },
+                    }))
+                  }
+                  options={BACKGROUND_VARIANTS.map((variant) => ({
+                    value: variant.id,
+                    label: variant.label,
+                  }))}
+                />
+                <div className="ds-stack">
+                  <RangeField
+                    label="Pattern Intensity"
+                    value={theme.background.dotOpacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, dotOpacity: value },
+                      }))
+                    }
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                  <RangeField
+                    label="Grid Size"
+                    value={theme.background.gridSize}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, gridSize: value },
+                      }))
+                    }
+                    min={12}
+                    max={40}
+                    step={1}
+                    format={(value) => `${Math.round(value)}px`}
+                  />
+                  <RangeField
+                    label="Dot Tone"
+                    value={theme.background.dotColor}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, dotColor: value },
+                      }))
+                    }
+                    min={0}
+                    max={100}
+                    step={1}
+                    format={(value) => `${Math.round(value)}%`}
+                  />
+                  <RangeField
+                    label="Accent Glow"
+                    value={theme.background.glowOpacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, glowOpacity: value },
+                      }))
+                    }
+                    min={0}
+                    max={0.3}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
+                  <RangeField
+                    label="Scanlines"
+                    value={theme.background.scanlineOpacity}
+                    onChange={(value) =>
+                      setTheme((current) => ({
+                        ...current,
+                        background: { ...current.background, scanlineOpacity: value },
+                      }))
+                    }
+                    min={0}
+                    max={0.25}
+                    step={0.01}
+                    format={(value) => `${Math.round(value * 100)}%`}
+                  />
                 </div>
               </div>
             </AccordionSection>
@@ -319,201 +639,6 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                     max={1}
                     step={0.01}
                     format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                </div>
-              </div>
-            </AccordionSection>
-
-            <AccordionSection
-              title="Background"
-              isOpen={openThemeSections.includes('background')}
-              onToggle={() =>
-                setOpenThemeSections((current) =>
-                  current.includes('background')
-                    ? current.filter((s) => s !== 'background')
-                    : [...current, 'background']
-                )
-              }
-              actions={
-                <Button
-                  variant="page"
-                  onClick={() =>
-                    setTheme((current) => ({
-                      ...current,
-                      background: { ...DEFAULT_THEME.background },
-                    }))
-                  }
-                >
-                  Reset
-                </Button>
-              }
-            >
-              <div className="ds-stack">
-                <SelectField
-                  label="Variant"
-                  value={theme.background.variant}
-                  onChange={(value) =>
-                    setTheme((current) => ({
-                      ...current,
-                      background: {
-                        ...current.background,
-                        variant: value as StudioTheme['background']['variant'],
-                      },
-                    }))
-                  }
-                  options={BACKGROUND_VARIANTS.map((variant) => ({
-                    value: variant.id,
-                    label: variant.label,
-                  }))}
-                />
-                <div className="ds-stack">
-                  <RangeField
-                    label="Pattern Intensity"
-                    value={theme.background.dotOpacity}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, dotOpacity: value },
-                      }))
-                    }
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                  <RangeField
-                    label="Grid Size"
-                    value={theme.background.gridSize}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, gridSize: value },
-                      }))
-                    }
-                    min={12}
-                    max={40}
-                    step={1}
-                    format={(value) => `${Math.round(value)}px`}
-                  />
-                  <RangeField
-                    label="Dot Tone"
-                    value={theme.background.dotColor}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, dotColor: value },
-                      }))
-                    }
-                    min={0}
-                    max={100}
-                    step={1}
-                    format={(value) => `${Math.round(value)}%`}
-                  />
-                  <RangeField
-                    label="Accent Glow"
-                    value={theme.background.glowOpacity}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, glowOpacity: value },
-                      }))
-                    }
-                    min={0}
-                    max={0.3}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                  <RangeField
-                    label="Scanlines"
-                    value={theme.background.scanlineOpacity}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        background: { ...current.background, scanlineOpacity: value },
-                      }))
-                    }
-                    min={0}
-                    max={0.25}
-                    step={0.01}
-                    format={(value) => `${Math.round(value * 100)}%`}
-                  />
-                </div>
-              </div>
-            </AccordionSection>
-
-            <AccordionSection
-              title="Accent"
-              isOpen={openThemeSections.includes('accent')}
-              onToggle={() =>
-                setOpenThemeSections((current) =>
-                  current.includes('accent')
-                    ? current.filter((s) => s !== 'accent')
-                    : [...current, 'accent']
-                )
-              }
-              actions={
-                <Button
-                  variant="page"
-                  onClick={() =>
-                    setTheme((current) => ({
-                      ...current,
-                      accent: { ...DEFAULT_THEME.accent },
-                    }))
-                  }
-                >
-                  Reset
-                </Button>
-              }
-            >
-              <div className="ds-stack">
-                <div className="ds-surface-preview">
-                  <div
-                    className="ds-surface-preview-bg"
-                    style={{ background: 'var(--ds-accent)' }}
-                  />
-                </div>
-                <div className="ds-stack">
-                  <RangeField
-                    label="Hue"
-                    value={theme.accent.hue}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        accent: { ...current.accent, hue: value },
-                      }))
-                    }
-                    min={0}
-                    max={360}
-                    step={1}
-                    format={(value) => `${Math.round(value)}`}
-                  />
-                  <RangeField
-                    label="Lightness"
-                    value={theme.accent.lightness}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        accent: { ...current.accent, lightness: value },
-                      }))
-                    }
-                    min={0.3}
-                    max={0.8}
-                    step={0.005}
-                    format={(value) => round(value).toString()}
-                  />
-                  <RangeField
-                    label="Chroma"
-                    value={theme.accent.chroma}
-                    onChange={(value) =>
-                      setTheme((current) => ({
-                        ...current,
-                        accent: { ...current.accent, chroma: value },
-                      }))
-                    }
-                    min={0}
-                    max={0.18}
-                    step={0.002}
-                    format={(value) => round(value).toString()}
                   />
                 </div>
               </div>

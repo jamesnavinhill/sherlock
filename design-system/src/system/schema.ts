@@ -74,6 +74,7 @@ export interface ShellSettings {
 export interface StudioTheme {
   mode: ThemeMode;
   accent: AccentPoint;
+  graphs: AccentPoint[];
   surfaces: SurfaceSettings;
   background: BackgroundSettings;
   typography: TypographySettings;
@@ -398,9 +399,22 @@ const createDefaultProfiles = (): Record<string, FontFamilyProfile> =>
     ])
   );
 
+export const createDefaultGraphs = (accent: AccentPoint): AccentPoint[] => [
+  { hue: (accent.hue + 45) % 360, lightness: accent.lightness, chroma: accent.chroma, opacity: 1 },
+  { hue: (accent.hue + 160) % 360, lightness: accent.lightness, chroma: accent.chroma, opacity: 1 },
+  { hue: (accent.hue + 210) % 360, lightness: accent.lightness, chroma: accent.chroma, opacity: 1 },
+  { hue: (accent.hue + 280) % 360, lightness: accent.lightness, chroma: accent.chroma, opacity: 1 },
+];
+
 export const DEFAULT_THEME: StudioTheme = {
   mode: 'light',
   accent: { hue: 340, lightness: 0.57, chroma: 0.09, opacity: 1 },
+  graphs: [
+    { hue: 385 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
+    { hue: 500 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
+    { hue: 550 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
+    { hue: 620 % 360, lightness: 0.57, chroma: 0.09, opacity: 1 },
+  ],
   surfaces: SURFACE_PRESETS[0].surfaces,
   background: {
     variant: 'dot-grid',
@@ -471,6 +485,9 @@ export const getSelectedFontIds = (theme: StudioTheme): string[] =>
 export const cloneTheme = (theme: StudioTheme): StudioTheme => ({
   mode: theme.mode,
   accent: { ...theme.accent },
+  graphs: theme.graphs
+    ? theme.graphs.map((g) => ({ ...g }))
+    : createDefaultGraphs(theme.accent),
   surfaces: {
     dark: {
       background: { ...theme.surfaces.dark.background },
