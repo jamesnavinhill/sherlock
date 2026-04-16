@@ -24,8 +24,8 @@ npm run build
 - Canon components now also export the public prop/item/value types that are part of their reusable contract instead of hiding those shapes behind file-local interfaces.
 - Canon typography is now a real exported family under `src/components/canon/typography/*`, so consumers can import shared heading/body/meta/code primitives instead of reaching for raw type class names.
 - `MenuButton` and `OptionGroup` now expose their remaining reusable control contract types explicitly, including readonly item/options collections and single vs. multiple option-group prop shapes.
-- `PageShell` is the main reusable shell contract and now exposes an explicit attached `workbench` slot instead of a generic floating-content escape hatch.
-- The workbench is part of the shipped reusable shell system, not studio-only code.
+- `PageShell` is the main reusable shell contract and now exposes explicit left/right utility-panel slots alongside the existing rails, so docked tools can plug into the shell without relying on fixed overlays.
+- The workbench is part of the shipped reusable shell system, now implemented as one reusable docked utility-panel consumer rather than a special fixed overlay.
 - The global config-panel shell, reusable rail disclosure tree, list-action rows, and sidebar footer actions now also live in canon instead of being assembled inline in `App.tsx`.
 - Overlay canon now has three tiers: lightweight list/menu selectors, natural divider-based content sections for dialog/config bodies, and inset overlay sections when a nested sub-surface is actually needed.
 - Family-based styles now live under `src/styles/`, split into `base.css`, `typography.css`, `shell.css`, `controls.css`, `surfaces.css`, `conversation.css`, and `workbench.css`, with `src/index.css` acting as the import hub.
@@ -38,7 +38,7 @@ npm run build
 - `DateRangePicker` now supports both full field layout and compact inline toolbar triggers while reusing the shared overlay divider language for its header and footer framing.
 - `F1` toggles the non-blocking design workbench.
 - The workbench now ships with full theme templates, separate page-background color tuning, and a distinct page-structure tuning surface for shell, rail, panel, and surface tokens.
-- The workbench can export the current token set as JSON or resolved CSS custom properties, and legacy exports still hydrate through the updated background/shell migration path.
+- The workbench can export the current token set as JSON or resolved CSS custom properties, and it now docks left or right inside the shell body instead of floating over the rails.
 - The desktop shell now supports a collapsed sidebar state, and toolbar actions compact to icon-first controls as space tightens.
 - Mobile behavior now uses lighter overlay sheets for sidebar/library/inspector regions instead of full-height blurred takeovers.
 - See `docs/CANON_INVENTORY.md` for the current reusable family ownership and public inventory.

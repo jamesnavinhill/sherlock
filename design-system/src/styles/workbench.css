@@ -1,27 +1,5 @@
-.ds-workbench {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(28rem, 38vw);
-  z-index: 20;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  padding: 0 0 1.25rem 0; /* No top padding, header provides it */
-  border: 0;
-  border-left: 1px solid var(--ds-border-soft);
-  border-radius: 0;
-  background: var(--ds-surface-bg-workbench);
-  box-shadow: var(--ds-shadow-strong);
+.ds-workbench-panel {
   backdrop-filter: var(--ds-backdrop-filter-workbench);
-}
-
-.ds-workbench-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--ds-border-soft);
-  margin-bottom: 0.25rem; /* Subtle nudge before tabs */
 }
 
 .ds-panel-section-header {
@@ -107,8 +85,8 @@
 }
 
 @media (max-width: 1400px) {
-  .ds-workbench {
-    width: min(30rem, calc(100vw - 2rem));
+  .ds-workbench-panel {
+    --ds-utility-panel-width: min(24rem, 30vw);
   }
 }
 
@@ -116,13 +94,5 @@
   .ds-grid-two,
   .ds-token-grid {
     grid-template-columns: 1fr;
-  }
-
-  .ds-workbench {
-    inset: auto 0 0 0;
-    top: calc(var(--ds-toolbar-offset, 4.5rem) + 0.5rem);
-    bottom: 0;
-    width: auto;
-    border-radius: var(--ds-radius-panel) var(--ds-radius-panel) 0 0;
   }
 }

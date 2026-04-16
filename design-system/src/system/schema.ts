@@ -55,7 +55,7 @@ export interface TypographySettings {
   mono: string;
   size: number;
   weight: number;
-  profiles: Record<string, FontFamilyProfile>;
+  profiles: Record<FontRole, FontFamilyProfile>;
 }
 
 export interface RadiusSettings {
@@ -68,10 +68,15 @@ export interface RadiusSettings {
 export interface ShellSettings {
   sidebarWidth: number;
   railWidth: number;
+  utilityWidth: number;
   toolbarHeight: number;
   contentWidth: number;
   density: number;
   surfaceOpacity: number;
+  dividerWidth: number;
+  dividerStrength: number;
+  dividerTint: number;
+  dividerGlow: number;
 }
 
 export interface ControlSettings {
@@ -213,7 +218,7 @@ export const FONT_OPTIONS: FontOption[] = [
 ];
 
 export const FONT_ROLE_LABELS: Record<FontRole, string> = {
-  ui: 'UI Text',
+  ui: 'Body',
   display: 'Display',
   label: 'Labels',
   mono: 'Data Text',
@@ -401,25 +406,32 @@ export const BACKGROUND_VARIANTS: Array<{
   },
 ];
 
-const createDefaultProfiles = (): Record<string, FontFamilyProfile> =>
-  Object.fromEntries(
-    FONT_OPTIONS.map((font) => [
-      font.id,
-      font.id === 'source-code-pro'
-        ? {
-            sizeAdjust: -0.1,
-            weightAdjust: -100,
-            trackingAdjust: 0,
-            leadingAdjust: -0.1,
-          }
-        : {
-            sizeAdjust: 0,
-            weightAdjust: 0,
-            trackingAdjust: 0,
-            leadingAdjust: 0,
-          },
-    ])
-  );
+const createDefaultProfiles = (): Record<FontRole, FontFamilyProfile> => ({
+  ui: {
+    sizeAdjust: 0,
+    weightAdjust: 0,
+    trackingAdjust: 0,
+    leadingAdjust: 0,
+  },
+  display: {
+    sizeAdjust: 0,
+    weightAdjust: 0,
+    trackingAdjust: 0,
+    leadingAdjust: 0,
+  },
+  label: {
+    sizeAdjust: 0,
+    weightAdjust: 0,
+    trackingAdjust: 0,
+    leadingAdjust: 0,
+  },
+  mono: {
+    sizeAdjust: -0.1,
+    weightAdjust: -100,
+    trackingAdjust: 0,
+    leadingAdjust: -0.1,
+  },
+});
 
 export const createDefaultGraphs = (accent: AccentPoint): AccentPoint[] => [
   { hue: (accent.hue + 45) % 360, lightness: accent.lightness, chroma: accent.chroma, opacity: 1 },
@@ -474,10 +486,15 @@ const BLUEBERRY_THEME: StudioTheme = {
   shell: {
     sidebarWidth: 220,
     railWidth: 300,
+    utilityWidth: 360,
     toolbarHeight: 72,
     contentWidth: 980,
     density: 1,
     surfaceOpacity: 1,
+    dividerWidth: 1,
+    dividerStrength: 1,
+    dividerTint: 0,
+    dividerGlow: 0,
   },
   controls: {
     chrome: 'glass',
@@ -561,11 +578,11 @@ export const cloneTheme = (theme: StudioTheme): StudioTheme => ({
   typography: {
     ...theme.typography,
     profiles: Object.fromEntries(
-      Object.entries(theme.typography.profiles).map(([fontId, profile]) => [
-        fontId,
+      Object.entries(theme.typography.profiles).map(([role, profile]) => [
+        role,
         { ...profile },
       ])
-    ),
+    ) as Record<FontRole, FontFamilyProfile>,
   },
   radii: { ...theme.radii },
   shell: { ...theme.shell },

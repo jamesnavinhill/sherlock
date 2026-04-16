@@ -58,6 +58,7 @@
   --ds-sidebar-width: 220px;
   --ds-sidebar-collapsed-width: 5.25rem;
   --ds-rail-width: 300px;
+  --ds-utility-width: 360px;
   --ds-toolbar-height: 72px;
   --ds-shell-header-height: var(--ds-toolbar-height);
   --ds-shell-header-padding-inline: 1.25rem;
@@ -123,6 +124,12 @@
     var(--ds-rail) clamp(0%, calc(92% * var(--ds-surface-opacity)), 100%),
     transparent
   );
+  --ds-shell-utility-bg: var(--ds-surface-bg-workbench);
+  --ds-shell-divider-width: 1px;
+  --ds-shell-divider-color: var(--ds-border-soft);
+  --ds-shell-divider-shadow-right: none;
+  --ds-shell-divider-shadow-left: none;
+  --ds-shell-divider-shadow-bottom: none;
   --ds-overlay-backdrop-bg: color-mix(in oklab, var(--ds-ink) 18%, transparent);
   --ds-border-muted: color-mix(in oklab, var(--ds-border) 42%, transparent);
   --ds-border-emphasis: color-mix(in oklab, var(--ds-border) 72%, transparent);

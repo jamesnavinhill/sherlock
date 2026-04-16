@@ -6,10 +6,13 @@ export interface PageShellProps {
   children: ReactNode;
   leftRail?: ReactNode;
   rightRail?: ReactNode;
-  workbench?: ReactNode;
+  leftUtility?: ReactNode;
+  rightUtility?: ReactNode;
   sidebarCollapsed?: boolean;
   leftRailPinnedOpen?: boolean;
   rightRailPinnedOpen?: boolean;
+  leftUtilityOpen?: boolean;
+  rightUtilityOpen?: boolean;
   overlayOpen?: boolean;
   onDismissOverlay?: () => void;
   toolbarOffset?: number;
@@ -21,15 +24,19 @@ export function PageShell({
   children,
   leftRail,
   rightRail,
-  workbench,
+  leftUtility,
+  rightUtility,
   sidebarCollapsed = false,
   leftRailPinnedOpen = false,
   rightRailPinnedOpen = false,
+  leftUtilityOpen = false,
+  rightUtilityOpen = false,
   overlayOpen = false,
   onDismissOverlay,
   toolbarOffset,
 }: PageShellProps) {
   const railPanelWidth = 'clamp(18rem, 22vw, var(--ds-rail-width))';
+  const utilityPanelWidth = 'clamp(20rem, 26vw, var(--ds-utility-width))';
 
   const shellStyle = {
     '--ds-sidebar-size': sidebar
@@ -46,6 +53,17 @@ export function PageShell({
     '--ds-right-rail-size': rightRail
       ? rightRailPinnedOpen
         ? railPanelWidth
+        : '0px'
+      : '0px',
+    '--ds-utility-panel-width': utilityPanelWidth,
+    '--ds-left-utility-size': leftUtility
+      ? leftUtilityOpen
+        ? utilityPanelWidth
+        : '0px'
+      : '0px',
+    '--ds-right-utility-size': rightUtility
+      ? rightUtilityOpen
+        ? utilityPanelWidth
         : '0px'
       : '0px',
     '--ds-toolbar-offset': toolbarOffset ? `${toolbarOffset}px` : undefined,
@@ -66,12 +84,13 @@ export function PageShell({
         <div className="ds-shell-main">
           {toolbar}
           <div className="ds-shell-columns">
-            {leftRail}
-            <main className="ds-content">{children}</main>
-            {rightRail}
+            <div className="ds-shell-slot ds-shell-slot-left-utility">{leftUtility}</div>
+            <div className="ds-shell-slot ds-shell-slot-left-rail">{leftRail}</div>
+            <main className="ds-content ds-shell-slot-content">{children}</main>
+            <div className="ds-shell-slot ds-shell-slot-right-rail">{rightRail}</div>
+            <div className="ds-shell-slot ds-shell-slot-right-utility">{rightUtility}</div>
           </div>
         </div>
-        {workbench}
       </div>
     </div>
   );

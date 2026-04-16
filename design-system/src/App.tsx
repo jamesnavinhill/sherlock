@@ -77,94 +77,11 @@ import { buildThemeCssText, buildThemeCssVars } from './system/cssVars';
 import {
   DEFAULT_THEME,
   cloneTheme,
-  createDefaultGraphs,
-  type AccentPoint,
   type StudioTheme,
 } from './system/schema';
 
-const STORAGE_KEY = 'canon-design-system-studio/v1';
+const STORAGE_KEY = 'canon-design-system-studio/v4';
 const SHELL_OVERLAY_QUERY = '(max-width: 1180px)';
-const LEGACY_RADIUS_DEFAULTS = {
-  shell: 0,
-  panel: 16,
-  control: 12,
-  pill: 999,
-} as const;
-const PREVIOUS_RADIUS_DEFAULTS = {
-  shell: 5,
-  panel: 5,
-  control: 5,
-  pill: 5,
-} as const;
-const PREVIOUS_SHELL_DEFAULTS = {
-  sidebarWidth: 248,
-  railWidth: 320,
-  toolbarHeight: 78,
-  contentWidth: 980,
-  density: 1,
-  surfaceOpacity: 1,
-} as const;
-
-const hasLegacyRadiusDefaults = (radii: Partial<StudioTheme['radii']> | undefined) =>
-  radii?.shell === LEGACY_RADIUS_DEFAULTS.shell &&
-  radii?.panel === LEGACY_RADIUS_DEFAULTS.panel &&
-  radii?.control === LEGACY_RADIUS_DEFAULTS.control &&
-  radii?.pill === LEGACY_RADIUS_DEFAULTS.pill;
-
-const hasPreviousRadiusDefaults = (radii: Partial<StudioTheme['radii']> | undefined) =>
-  radii?.shell === PREVIOUS_RADIUS_DEFAULTS.shell &&
-  radii?.panel === PREVIOUS_RADIUS_DEFAULTS.panel &&
-  radii?.control === PREVIOUS_RADIUS_DEFAULTS.control &&
-  radii?.pill === PREVIOUS_RADIUS_DEFAULTS.pill;
-
-const hasPreviousShellDefaults = (shell: Partial<StudioTheme['shell']> | undefined) =>
-  shell?.sidebarWidth === PREVIOUS_SHELL_DEFAULTS.sidebarWidth &&
-  shell?.railWidth === PREVIOUS_SHELL_DEFAULTS.railWidth &&
-  shell?.toolbarHeight === PREVIOUS_SHELL_DEFAULTS.toolbarHeight &&
-  shell?.contentWidth === PREVIOUS_SHELL_DEFAULTS.contentWidth &&
-  shell?.density === PREVIOUS_SHELL_DEFAULTS.density &&
-  shell?.surfaceOpacity === PREVIOUS_SHELL_DEFAULTS.surfaceOpacity;
-
-type LegacySurfaceScaleInput = Partial<StudioTheme['surfaces']['dark']> & {
-  background?: Partial<AccentPoint>;
-};
-
-type LegacyThemeInput = Partial<StudioTheme> & {
-  surfaces?: {
-    dark?: LegacySurfaceScaleInput;
-    light?: LegacySurfaceScaleInput;
-  };
-};
-
-const mergeAccentPoint = (base: AccentPoint, input?: Partial<AccentPoint>): AccentPoint => ({
-  ...base,
-  ...input,
-});
-
-const mergeSurfaceScale = (
-  base: StudioTheme['surfaces']['dark'],
-  input?: LegacySurfaceScaleInput
-): StudioTheme['surfaces']['dark'] => ({
-  shell: mergeAccentPoint(base.shell, input?.shell ?? input?.background),
-  rail: mergeAccentPoint(base.rail, input?.rail),
-  panel: mergeAccentPoint(base.panel, input?.panel),
-  surface: mergeAccentPoint(base.surface, input?.surface),
-});
-
-const mergeBackgroundSettings = (
-  base: StudioTheme['background'],
-  input: LegacyThemeInput['background'],
-  legacySurfaces: LegacyThemeInput['surfaces']
-): StudioTheme['background'] => ({
-  dark: mergeAccentPoint(base.dark, input?.dark ?? legacySurfaces?.dark?.background),
-  light: mergeAccentPoint(base.light, input?.light ?? legacySurfaces?.light?.background),
-  variant: input?.variant ?? base.variant,
-  dotColor: input?.dotColor ?? base.dotColor,
-  dotOpacity: input?.dotOpacity ?? base.dotOpacity,
-  gridSize: input?.gridSize ?? base.gridSize,
-  glowOpacity: input?.glowOpacity ?? base.glowOpacity,
-  scanlineOpacity: input?.scanlineOpacity ?? base.scanlineOpacity,
-});
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() =>
@@ -385,27 +302,7 @@ const loadTheme = (): StudioTheme => {
   }
 
   try {
-    const parsed = JSON.parse(raw) as LegacyThemeInput;
-    const nextTheme = cloneTheme(DEFAULT_THEME);
-
-    return {
-      ...nextTheme,
-      ...parsed,
-      surfaces: {
-        dark: mergeSurfaceScale(nextTheme.surfaces.dark, parsed.surfaces?.dark),
-        light: mergeSurfaceScale(nextTheme.surfaces.light, parsed.surfaces?.light),
-      },
-      background: mergeBackgroundSettings(nextTheme.background, parsed.background, parsed.surfaces),
-      graphs: parsed.graphs ?? createDefaultGraphs(parsed.accent ?? nextTheme.accent),
-      shell: hasPreviousShellDefaults(parsed.shell)
-        ? { ...nextTheme.shell }
-        : { ...nextTheme.shell, ...parsed.shell },
-      controls: { ...nextTheme.controls, ...parsed.controls },
-      radii:
-        hasLegacyRadiusDefaults(parsed.radii) || hasPreviousRadiusDefaults(parsed.radii)
-          ? { ...nextTheme.radii }
-          : { ...nextTheme.radii, ...parsed.radii, shell: nextTheme.radii.shell },
-    } as StudioTheme;
+    return cloneTheme(JSON.parse(raw) as StudioTheme);
   } catch {
     return cloneTheme(DEFAULT_THEME);
   }
@@ -427,6 +324,7 @@ export default function App() {
   const [theme, setThemeState] = useState<StudioTheme>(() => loadTheme());
   const [toolbarOffset, setToolbarOffset] = useState(DEFAULT_THEME.shell.toolbarHeight);
   const [workbenchOpen, setWorkbenchOpen] = useState(false);
+  const [workbenchPlacement, setWorkbenchPlacement] = useState<'left' | 'right'>('right');
   const [galleryTab, setGalleryTab] = useState<GalleryTab>('shell');
   const [activeNav, setActiveNav] = useState('workspace');
   const [workspaceId, setWorkspaceId] = useState('workspace-a');
@@ -452,7 +350,9 @@ export default function App() {
     'selected',
     'removable',
   ]);
-  const [mobilePanel, setMobilePanel] = useState<'sidebar' | 'left' | 'right' | null>(null);
+  const [mobilePanel, setMobilePanel] = useState<'sidebar' | 'left' | 'right' | 'utility' | null>(
+    null
+  );
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [leftRailPinnedOpen, setLeftRailPinnedOpen] = useState(false);
   const [rightRailPinnedOpen, setRightRailPinnedOpen] = useState(false);
@@ -524,7 +424,7 @@ export default function App() {
     setMobilePanel(null);
   }, [isOverlayShell]);
 
-  const toggleOverlayPanel = (panel: 'sidebar' | 'left' | 'right') => {
+  const toggleOverlayPanel = (panel: 'sidebar' | 'left' | 'right' | 'utility') => {
     setMobilePanel((current) => (current === panel ? null : panel));
   };
 
@@ -553,6 +453,24 @@ export default function App() {
     }
 
     setRightRailPinnedOpen((current) => !current);
+  };
+
+  const toggleWorkbench = () => {
+    if (isOverlayShell) {
+      toggleOverlayPanel('utility');
+      return;
+    }
+
+    setWorkbenchOpen((current) => !current);
+  };
+
+  const closeWorkbench = () => {
+    if (isOverlayShell) {
+      setMobilePanel((current) => (current === 'utility' ? null : current));
+      return;
+    }
+
+    setWorkbenchOpen(false);
   };
 
   const libraryRailSections: RailSectionNode[] = [
@@ -735,6 +653,20 @@ export default function App() {
           }
         />
         <RangeField
+          label="Utility Width"
+          value={theme.shell.utilityWidth}
+          min={320}
+          max={520}
+          step={8}
+          format={(value) => `${Math.round(value)}px`}
+          onChange={(value) =>
+            setTheme((current) => ({
+              ...current,
+              shell: { ...current.shell, utilityWidth: value },
+            }))
+          }
+        />
+        <RangeField
           label="Toolbar Height"
           value={theme.shell.toolbarHeight}
           min={64}
@@ -782,7 +714,7 @@ export default function App() {
                 <SidebarAction
                   icon={<Settings2 size={18} />}
                   label="Workbench"
-                  onClick={() => setWorkbenchOpen((current) => !current)}
+                  onClick={toggleWorkbench}
                 />
               </>
             }
@@ -874,7 +806,7 @@ export default function App() {
                   </ToolbarCluster>
                   <Button
                     variant="secondary"
-                    aria-label={rightRailPinnedOpen ? "Close Workbench" : "Open Workbench"}
+                    aria-label={rightRailPinnedOpen ? 'Close Inspector' : 'Open Inspector'}
                     onClick={toggleRightRail}
                     data-active={rightRailPinnedOpen ? 'true' : undefined}
                     leadingIcon={rightRailPinnedOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
@@ -907,15 +839,15 @@ export default function App() {
             placement="right"
             pinnedOpen={rightRailPinnedOpen}
             mobileOpen={mobilePanel === 'right'}
-            eyebrow="Tuning Rail"
-            title="Workbench"
+            eyebrow="Inspector Rail"
+            title="Inspector"
             actions={
               <Button
                 variant="secondary"
                 size="compact"
                 leadingIcon={<Palette size={14} />}
                 data-active={workbenchOpen ? 'true' : undefined}
-                onClick={() => setWorkbenchOpen((current) => !current)}
+                onClick={toggleWorkbench}
               >
                 Tokens
               </Button>
@@ -928,17 +860,37 @@ export default function App() {
         sidebarCollapsed={sidebarCollapsed}
         leftRailPinnedOpen={leftRailPinnedOpen}
         rightRailPinnedOpen={rightRailPinnedOpen}
+        leftUtility={
+          workbenchPlacement === 'left' ? (
+            <Workbench
+              open={workbenchOpen}
+              placement="left"
+              mobileOpen={mobilePanel === 'utility'}
+              onClose={closeWorkbench}
+              onMove={setWorkbenchPlacement}
+              theme={theme}
+              setTheme={setTheme}
+            />
+          ) : undefined
+        }
+        rightUtility={
+          workbenchPlacement === 'right' ? (
+            <Workbench
+              open={workbenchOpen}
+              placement="right"
+              mobileOpen={mobilePanel === 'utility'}
+              onClose={closeWorkbench}
+              onMove={setWorkbenchPlacement}
+              theme={theme}
+              setTheme={setTheme}
+            />
+          ) : undefined
+        }
+        leftUtilityOpen={workbenchPlacement === 'left' && workbenchOpen}
+        rightUtilityOpen={workbenchPlacement === 'right' && workbenchOpen}
         overlayOpen={isOverlayShell && mobilePanel !== null}
         onDismissOverlay={() => setMobilePanel(null)}
         toolbarOffset={toolbarOffset}
-        workbench={
-          <Workbench
-            isOpen={workbenchOpen}
-            onClose={() => setWorkbenchOpen(false)}
-            theme={theme}
-            setTheme={setTheme}
-          />
-        }
       >
         <div className="ds-page-layout">
 
@@ -960,8 +912,8 @@ export default function App() {
                   actions={<Badge variant="accent">Canon</Badge>}
                 >
                   <PanelNote title="One shell contract">
-                    `PageShell` now owns the sidebar, toolbar, left rail, right rail, content
-                    region, mobile backdrop, and attached workbench slot.
+                    `PageShell` now owns the sidebar, toolbar, left rail, right rail, optional
+                    docked utility panels, content region, and mobile backdrop.
                   </PanelNote>
                   <PanelNote title="Toolbar stays shared">
                     `ToolbarBar` and `ToolbarCluster` give us one header anatomy for search,
@@ -974,6 +926,7 @@ export default function App() {
                     items={[
                       { label: 'Sidebar', value: `${Math.round(theme.shell.sidebarWidth)}px` },
                       { label: 'Rail', value: `${Math.round(theme.shell.railWidth)}px` },
+                      { label: 'Utility', value: `${Math.round(theme.shell.utilityWidth)}px` },
                       { label: 'Toolbar', value: `${Math.round(theme.shell.toolbarHeight)}px` },
                       { label: 'Content', value: `${Math.round(theme.shell.contentWidth)}px` },
                     ]}

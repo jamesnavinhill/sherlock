@@ -1,6 +1,4 @@
-import {
-  X,
-} from 'lucide-react';
+import { PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 import { useEffect, useState, type CSSProperties } from 'react';
 
 import { buildThemeCssText, buildThemeCssVars } from '../../../system/cssVars';
@@ -24,7 +22,8 @@ import { SegmentedTabs } from '../controls/SegmentedTabs';
 import { SelectField } from '../controls/SelectField';
 import { TokenSwatch } from '../controls/TokenSwatch';
 import { AccordionSection } from '../disclosure/AccordionSection';
-import { CodeBlock, Eyebrow, Heading } from '../typography';
+import { DockPanel } from '../layout/DockPanel';
+import { CodeBlock, Eyebrow } from '../typography';
 
 type WorkbenchTab = 'theme' | 'type' | 'shell' | 'export';
 
@@ -64,13 +63,24 @@ const splitColorReadout = (value: string) => {
 };
 
 export interface WorkbenchProps {
-  isOpen: boolean;
+  open: boolean;
+  placement: 'left' | 'right';
+  mobileOpen?: boolean;
   onClose: () => void;
+  onMove: (placement: 'left' | 'right') => void;
   theme: StudioTheme;
   setTheme: (updater: (current: StudioTheme) => StudioTheme) => void;
 }
 
-export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) {
+export function Workbench({
+  open,
+  placement,
+  mobileOpen = false,
+  onClose,
+  onMove,
+  theme,
+  setTheme,
+}: WorkbenchProps) {
   const [activeTab, setActiveTab] = useState<WorkbenchTab>('theme');
   const [selectedBackgroundMode, setSelectedBackgroundMode] = useState<'dark' | 'light'>(theme.mode);
   const [selectedStructureMode, setSelectedStructureMode] = useState<'dark' | 'light'>(theme.mode);
@@ -82,17 +92,17 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const [activeFontRole, setActiveFontRole] = useState<FontRole>('ui');
   const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
   const [openThemeSections, setOpenThemeSections] = useState<string[]>(['templates', 'chrome']);
-  const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry', 'radius']);
+  const [openShellSections, setOpenShellSections] = useState<string[]>([
+    'geometry',
+    'radius',
+    'dividers',
+  ]);
   const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
 
   useEffect(() => {
     setSelectedBackgroundMode(theme.mode);
     setSelectedStructureMode(theme.mode);
   }, [theme.mode]);
-
-  if (!isOpen) {
-    return null;
-  }
 
   const selectedBackground = theme.background[selectedBackgroundMode];
   const selectedStructure = theme.surfaces[selectedStructureMode][selectedStructureKey];
@@ -109,20 +119,35 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
   const surfaceReadout = splitColorReadout(themeCssVars['--ds-surface']);
 
   return (
-    <aside className="ds-workbench">
-      <div className="ds-workbench-header ds-shell-header-surface">
-        <Heading level="section">System Controls</Heading>
-        <IconButton
-          appearance="ghost"
-          label="Close system controls"
-          icon={<X size={18} strokeWidth={2.5} />}
-          onClick={onClose}
-        />
-      </div>
-
-      <NavTabs value={activeTab} onChange={setActiveTab} items={WORKBENCH_TABS} stretch />
-
-      <div className="ds-workbench-body">
+    <DockPanel
+      placement={placement}
+      open={open}
+      mobileOpen={mobileOpen}
+      title="System Controls"
+      closeLabel="Close system controls"
+      onClose={onClose}
+      headerActions={
+        <>
+          <IconButton
+            appearance="ghost"
+            label="Dock workbench left"
+            icon={<PanelLeftOpen size={16} />}
+            data-active={placement === 'left' ? 'true' : undefined}
+            onClick={() => onMove('left')}
+          />
+          <IconButton
+            appearance="ghost"
+            label="Dock workbench right"
+            icon={<PanelRightOpen size={16} />}
+            data-active={placement === 'right' ? 'true' : undefined}
+            onClick={() => onMove('right')}
+          />
+        </>
+      }
+      topBar={<NavTabs value={activeTab} onChange={setActiveTab} items={WORKBENCH_TABS} stretch />}
+      className="ds-workbench-panel"
+      bodyClassName="ds-workbench-body"
+    >
         {activeTab === 'theme' ? (
           <div className="ds-stack">
             <AccordionSection
@@ -890,7 +915,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                         [activeFontRole]: defaultId,
                         profiles: {
                           ...current.typography.profiles,
-                          [defaultId]: { ...DEFAULT_THEME.typography.profiles[defaultId] },
+                          [activeFontRole]: { ...DEFAULT_THEME.typography.profiles[activeFontRole] },
                         },
                       },
                     }));
@@ -906,7 +931,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   onChange={(value) => setActiveFontRole(value as FontRole)}
                   size="compact"
                   items={[
-                    { id: 'ui', label: 'UI' },
+                    { id: 'ui', label: 'Body' },
                     { id: 'display', label: 'Display' },
                     { id: 'label', label: 'Labels' },
                     { id: 'mono', label: 'Data' },
@@ -931,8 +956,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
 
                 <div className="ds-stack">
                   {(() => {
-                    const fontId = theme.typography[activeFontRole];
-                    const profile = theme.typography.profiles[fontId];
+                    const profile = theme.typography.profiles[activeFontRole];
                     if (!profile) return null;
 
                     return (
@@ -947,8 +971,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                                 ...current.typography,
                                 profiles: {
                                   ...current.typography.profiles,
-                                  [fontId]: {
-                                    ...current.typography.profiles[fontId],
+                                  [activeFontRole]: {
+                                    ...current.typography.profiles[activeFontRole],
                                     sizeAdjust: value,
                                   },
                                 },
@@ -970,8 +994,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                                 ...current.typography,
                                 profiles: {
                                   ...current.typography.profiles,
-                                  [fontId]: {
-                                    ...current.typography.profiles[fontId],
+                                  [activeFontRole]: {
+                                    ...current.typography.profiles[activeFontRole],
                                     weightAdjust: value,
                                   },
                                 },
@@ -993,8 +1017,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                                 ...current.typography,
                                 profiles: {
                                   ...current.typography.profiles,
-                                  [fontId]: {
-                                    ...current.typography.profiles[fontId],
+                                  [activeFontRole]: {
+                                    ...current.typography.profiles[activeFontRole],
                                     trackingAdjust: value,
                                   },
                                 },
@@ -1016,8 +1040,8 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                                 ...current.typography,
                                 profiles: {
                                   ...current.typography.profiles,
-                                  [fontId]: {
-                                    ...current.typography.profiles[fontId],
+                                  [activeFontRole]: {
+                                    ...current.typography.profiles[activeFontRole],
                                     leadingAdjust: value,
                                   },
                                 },
@@ -1122,6 +1146,7 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                         ...current.shell,
                         sidebarWidth: DEFAULT_THEME.shell.sidebarWidth,
                         railWidth: DEFAULT_THEME.shell.railWidth,
+                        utilityWidth: DEFAULT_THEME.shell.utilityWidth,
                         toolbarHeight: DEFAULT_THEME.shell.toolbarHeight,
                         contentWidth: DEFAULT_THEME.shell.contentWidth,
                       },
@@ -1159,6 +1184,20 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   min={260}
                   max={420}
                   step={4}
+                  format={(value) => `${Math.round(value)}px`}
+                />
+                <RangeField
+                  label="Utility Width"
+                  value={theme.shell.utilityWidth}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: { ...current.shell, utilityWidth: value },
+                    }))
+                  }
+                  min={320}
+                  max={520}
+                  step={8}
                   format={(value) => `${Math.round(value)}px`}
                 />
                 <RangeField
@@ -1229,6 +1268,97 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
                   }
                   min={0}
                   max={1.5}
+                  step={0.05}
+                  format={(value) => `${Math.round(value * 100)}%`}
+                />
+              </div>
+            </AccordionSection>
+
+            <AccordionSection
+              title="Dividers"
+              isOpen={openShellSections.includes('dividers')}
+              onToggle={() =>
+                setOpenShellSections((current) =>
+                  current.includes('dividers')
+                    ? current.filter((s) => s !== 'dividers')
+                    : [...current, 'dividers']
+                )
+              }
+              showActionsWhenOpenOnly
+              actions={
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: {
+                        ...current.shell,
+                        dividerWidth: DEFAULT_THEME.shell.dividerWidth,
+                        dividerStrength: DEFAULT_THEME.shell.dividerStrength,
+                        dividerTint: DEFAULT_THEME.shell.dividerTint,
+                        dividerGlow: DEFAULT_THEME.shell.dividerGlow,
+                      },
+                    }))
+                  }
+                >
+                  Reset
+                </Button>
+              }
+            >
+              <div className="ds-stack">
+                <RangeField
+                  label="Divider Width"
+                  value={theme.shell.dividerWidth}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: { ...current.shell, dividerWidth: value },
+                    }))
+                  }
+                  min={0}
+                  max={4}
+                  step={1}
+                  format={(value) => `${Math.round(value)}px`}
+                />
+                <RangeField
+                  label="Divider Strength"
+                  value={theme.shell.dividerStrength}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: { ...current.shell, dividerStrength: value },
+                    }))
+                  }
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  format={(value) => `${Math.round(value * 100)}%`}
+                />
+                <RangeField
+                  label="Accent Tint"
+                  value={theme.shell.dividerTint}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: { ...current.shell, dividerTint: value },
+                    }))
+                  }
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  format={(value) => `${Math.round(value * 100)}%`}
+                />
+                <RangeField
+                  label="Edge Glow"
+                  value={theme.shell.dividerGlow}
+                  onChange={(value) =>
+                    setTheme((current) => ({
+                      ...current,
+                      shell: { ...current.shell, dividerGlow: value },
+                    }))
+                  }
+                  min={0}
+                  max={1}
                   step={0.05}
                   format={(value) => `${Math.round(value * 100)}%`}
                 />
@@ -1394,7 +1524,6 @@ export function Workbench({ isOpen, onClose, theme, setTheme }: WorkbenchProps) 
             </AccordionSection>
           </div>
         ) : null}
-      </div>
-    </aside>
+    </DockPanel>
   );
 }

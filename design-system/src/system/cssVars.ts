@@ -155,7 +155,7 @@ const buildRoleVars = (
 ) => {
   const fontId = theme.typography[role];
   const font = getFontOption(fontId);
-  const profile = theme.typography.profiles[fontId] ?? DEFAULT_THEME.typography.profiles[fontId];
+  const profile = theme.typography.profiles[role] ?? DEFAULT_THEME.typography.profiles[role];
 
   return {
     [`--ds-font-${role}`]: font.cssValue,
@@ -175,6 +175,36 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
   const weightScale = resolveWeights(theme.typography.weight);
   const backgroundImage = buildBackgroundImage(theme.background);
   const chromeVars = CONTROL_CHROME_VARS[theme.controls.chrome];
+  const dividerStrength = clamp(theme.shell.dividerStrength ?? 1, 0, 1);
+  const dividerTint = clamp(theme.shell.dividerTint ?? 0, 0, 1);
+  const dividerGlow = clamp(theme.shell.dividerGlow ?? 0, 0, 1);
+  const dividerWidth = Math.max(0, Math.round(theme.shell.dividerWidth ?? 1));
+  const shellDividerBase =
+    dividerStrength === 1
+      ? 'var(--ds-border-soft)'
+      : `color-mix(in oklab, var(--ds-border-soft) ${Math.round(dividerStrength * 100)}%, transparent)`;
+  const shellDividerColor =
+    dividerTint > 0
+      ? `color-mix(in oklab, var(--ds-accent) ${Math.round(dividerTint * 100)}%, ${shellDividerBase})`
+      : shellDividerBase;
+  const dividerGlowColor =
+    dividerGlow > 0
+      ? `color-mix(in oklab, ${shellDividerColor} ${Math.round(28 + dividerGlow * 36)}%, transparent)`
+      : 'transparent';
+  const dividerGlowBlur = Math.round(dividerGlow * 18);
+  const dividerGlowSpread = Math.round(dividerGlowBlur * 0.7);
+  const dividerShadowRight =
+    dividerGlowBlur > 0
+      ? `${Math.max(1, dividerWidth)}px 0 ${dividerGlowBlur}px -${dividerGlowSpread}px ${dividerGlowColor}`
+      : 'none';
+  const dividerShadowLeft =
+    dividerGlowBlur > 0
+      ? `${-Math.max(1, dividerWidth)}px 0 ${dividerGlowBlur}px -${dividerGlowSpread}px ${dividerGlowColor}`
+      : 'none';
+  const dividerShadowBottom =
+    dividerGlowBlur > 0
+      ? `0 ${Math.max(1, dividerWidth)}px ${dividerGlowBlur}px -${dividerGlowSpread}px ${dividerGlowColor}`
+      : 'none';
 
   return {
     '--ds-accent': buildAccentColor(theme.accent),
@@ -217,6 +247,7 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
     '--ds-radius-pill': `${Math.round(theme.radii.pill)}px`,
     '--ds-sidebar-width': `${Math.round(theme.shell.sidebarWidth)}px`,
     '--ds-rail-width': `${Math.round(theme.shell.railWidth)}px`,
+    '--ds-utility-width': `${Math.round(theme.shell.utilityWidth)}px`,
     '--ds-toolbar-height': `${Math.round(theme.shell.toolbarHeight)}px`,
     '--ds-shell-header-height': `${Math.round(theme.shell.toolbarHeight)}px`,
     '--ds-shell-header-padding-inline': '1.25rem',
@@ -224,6 +255,11 @@ export const buildThemeCssVars = (theme: StudioTheme): Record<string, string> =>
     '--ds-content-width': `${Math.round(theme.shell.contentWidth)}px`,
     '--ds-density': String(round(theme.shell.density, 2)),
     '--ds-surface-opacity': String(round(theme.shell.surfaceOpacity ?? 1, 2)),
+    '--ds-shell-divider-width': `${dividerWidth}px`,
+    '--ds-shell-divider-color': shellDividerColor,
+    '--ds-shell-divider-shadow-right': dividerShadowRight,
+    '--ds-shell-divider-shadow-left': dividerShadowLeft,
+    '--ds-shell-divider-shadow-bottom': dividerShadowBottom,
     '--ds-control-chrome': theme.controls.chrome,
     '--ds-background-image': backgroundImage,
     '--ds-background-opacity': String(round(theme.background.dotOpacity, 2)),

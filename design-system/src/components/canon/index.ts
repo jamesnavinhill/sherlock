@@ -66,8 +66,9 @@ export type {
 } from './conversation';
 export { AccordionSection, useDisclosureSet, useExclusiveDisclosure } from './disclosure';
 export type { AccordionSectionProps } from './disclosure';
-export { PageShell, PanelRail, RailSectionTree, SidebarAction, SidebarNav } from './layout';
+export { DockPanel, PageShell, PanelRail, RailSectionTree, SidebarAction, SidebarNav } from './layout';
 export type {
+  DockPanelProps,
   PageShellProps,
   PanelRailProps,
   RailSectionNode,

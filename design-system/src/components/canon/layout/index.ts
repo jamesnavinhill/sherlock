@@ -1,3 +1,5 @@
+export { DockPanel } from './DockPanel';
+export type { DockPanelProps } from './DockPanel';
 export { PageShell } from './PageShell';
 export type { PageShellProps } from './PageShell';
 export { PanelRail } from './PanelRail';
