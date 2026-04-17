@@ -501,6 +501,8 @@ const BLUEBERRY_THEME: StudioTheme = {
   },
 };
 
+const DEFAULT_THEME_DARK_SURFACES = SURFACE_PRESETS.find((p) => p.id === 'midnight')!.surfaces.dark;
+
 export const THEME_TEMPLATES: ThemeTemplate[] = [
   {
     id: 'blueberry',
@@ -510,7 +512,17 @@ export const THEME_TEMPLATES: ThemeTemplate[] = [
   },
 ];
 
-export const DEFAULT_THEME: StudioTheme = THEME_TEMPLATES[0].theme;
+export const DEFAULT_THEME: StudioTheme = {
+  ...BLUEBERRY_THEME,
+  surfaces: {
+    dark: DEFAULT_THEME_DARK_SURFACES,
+    light: BLUEBERRY_THEME.surfaces.light,
+  },
+  background: {
+    ...BLUEBERRY_THEME.background,
+    dark: { ...DEFAULT_THEME_DARK_SURFACES.shell },
+  },
+};
 
 export const getFontOption = (id: string): FontOption =>
   FONT_OPTIONS.find((font) => font.id === id) ?? FONT_OPTIONS[0];
