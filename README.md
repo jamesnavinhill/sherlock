@@ -168,9 +168,8 @@ The current targeted validation for the shared panel unification pass passed on 
 - `docs/operations/SOURCES.md`
 - `docs/operations/LINTING.md`
 - `docs/operations/CONTRIBUTING.md`
-- `docs/plans/10-canonical-cleanup-roadmap.md`
-- `docs/plans/11-ui-uniformity-roadmap.md`
 - `docs/plans/12-agent-terminal-roadmap.md`
+- `docs/plans/13-canon-workbench-cutover-roadmap.md`
 - `docs/reports/2026-04-08-ui-uniformity-report.md`
 
 Historical plans and reports live under `docs/_legacy/`.

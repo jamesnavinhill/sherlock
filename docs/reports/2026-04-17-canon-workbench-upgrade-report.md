@@ -1,5 +1,10 @@
 # Canon Workbench Upgrade Report
 
+Status: This report now serves as the audit input for
+`docs/plans/13-canon-workbench-cutover-roadmap.md`.
+
+Use the roadmap for execution sequencing and stage boundaries.
+
 ## Goal
 
 Assess which `canon-design` improvements are worth porting into Sherlock now, with emphasis on:
