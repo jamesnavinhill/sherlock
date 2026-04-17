@@ -1,17 +1,17 @@
 export const CHROME_HEADER_CLASS =
-  'osint-app-header sticky top-0 z-30 h-20 border-b border-zinc-800 bg-black/95 backdrop-blur-md osint-header-shadow transition-[transform,margin-bottom,opacity] duration-200 ease-out will-change-transform';
+  'osint-app-header osint-shell-header sticky top-0 z-30 h-20 osint-header-shadow transition-[transform,margin-bottom,opacity] duration-200 ease-out will-change-transform';
 
 export const CHROME_HEADER_ROW_CLASS = 'flex h-full min-w-0 items-center justify-between gap-3';
 
-export const CHROME_PANEL_CLASS = 'osint-panel-shell border-zinc-800 bg-black/95 backdrop-blur-md';
+export const CHROME_PANEL_CLASS = 'osint-panel-shell osint-shell-panel';
 
 export const CHROME_PANEL_HEADER_CLASS =
-  'border-b border-zinc-800 bg-zinc-900/30 px-4 py-3';
+  'osint-panel-header px-4 py-3';
 
 export const CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS = 'min-h-16';
 
 export const CHROME_PANEL_ACTION_ROW_CLASS =
-  'border-b border-zinc-800 bg-zinc-900/10 px-4 py-3';
+  'osint-panel-action-row px-4 py-3';
 
 export const CHROME_RAIL_BODY_CLASS =
   'flex flex-1 min-h-0 flex-col gap-2 overflow-hidden p-3';

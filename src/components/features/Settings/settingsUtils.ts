@@ -19,6 +19,14 @@ export const TABS = [
   { id: 'THEME', label: 'Theme', icon: Palette },
 ] as const;
 
+export const SETTINGS_TAB_DESCRIPTIONS: Record<(typeof TABS)[number]['id'], string> = {
+  DATA: 'Backups, imports, quiet mode, and workspace data maintenance.',
+  RUNTIME: 'Provider keys, model defaults, and active runtime behavior.',
+  SCOPES: 'Scope presets and domain defaults that shape investigations.',
+  TEMPLATES: 'Reusable launch and workflow templates for common setups.',
+  THEME: 'Surface, typography, and accent controls for Sherlock chrome.',
+};
+
 export const SETTINGS_SECTION_BODY_CLASS = 'space-y-6 px-3 pb-3 pt-1';
 
 export const SETTINGS_CARD_CLASS =

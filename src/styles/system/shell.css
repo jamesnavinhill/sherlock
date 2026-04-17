@@ -1,0 +1,105 @@
+:root {
+  --osint-shell-border: var(--osint-raised-outline);
+  --osint-shell-header-bg: color-mix(in oklab, var(--osint-panel) 94%, var(--osint-dark) 6%);
+  --osint-shell-panel-bg: color-mix(in oklab, var(--osint-panel) 95%, var(--osint-dark) 5%);
+  --osint-shell-panel-header-bg: color-mix(
+    in oklab,
+    var(--osint-panel) 80%,
+    var(--osint-surface) 20%
+  );
+  --osint-shell-panel-action-bg: color-mix(
+    in oklab,
+    var(--osint-panel) 74%,
+    var(--osint-dark) 26%
+  );
+}
+
+:root[data-theme='light'] {
+  --osint-shell-header-bg: color-mix(in oklab, var(--osint-panel) 90%, white 10%);
+  --osint-shell-panel-bg: color-mix(in oklab, var(--osint-panel) 88%, white 12%);
+  --osint-shell-panel-header-bg: color-mix(
+    in oklab,
+    var(--osint-panel) 76%,
+    var(--osint-surface) 24%
+  );
+  --osint-shell-panel-action-bg: color-mix(
+    in oklab,
+    var(--osint-panel) 72%,
+    var(--osint-surface) 28%
+  );
+}
+
+.osint-shell-header {
+  background-color: var(--osint-shell-header-bg);
+  border-bottom: 1px solid var(--osint-shell-border);
+  backdrop-filter: blur(14px);
+}
+
+.osint-shell-panel,
+.osint-dock-panel {
+  background-color: var(--osint-shell-panel-bg);
+  border-color: var(--osint-shell-border);
+  backdrop-filter: blur(14px);
+}
+
+.osint-panel-shell {
+  border-color: var(--osint-shell-border);
+  box-shadow: none;
+}
+
+.osint-panel-header {
+  background-color: var(--osint-shell-panel-header-bg);
+  border-bottom: 1px solid var(--osint-shell-border);
+}
+
+.osint-panel-action-row {
+  background-color: var(--osint-shell-panel-action-bg);
+  border-bottom: 1px solid var(--osint-shell-border);
+}
+
+.osint-page-shell {
+  position: relative;
+  display: flex;
+  min-height: 100%;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--osint-dark);
+}
+
+.osint-page-shell-body {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.osint-page-shell-content {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.osint-header-shadow {
+  box-shadow: 0 12px 26px -24px rgba(0, 0, 0, 0.78);
+}
+
+.osint-app-shell[data-header-hidden='true'] .osint-app-header {
+  margin-bottom: -5rem;
+  opacity: 0.98;
+  pointer-events: none;
+  transform: translateY(calc(-100% - 1px));
+}
+
+:root[data-theme='light'] .osint-header-shadow {
+  box-shadow: 0 10px 22px -20px rgba(28, 36, 48, 0.12);
+}
+
+:root[data-theme='light'] .osint-panel-shell {
+  box-shadow: none;
+}

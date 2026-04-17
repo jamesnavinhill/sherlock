@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { EmptyState } from '@/components/ui/EmptyState';
+import { DockPanel } from '@/components/system/layout/DockPanel';
 import { InspectorActionRow, type InspectorActionItem } from '@/components/ui/InspectorActionRow';
 import {
   CHROME_PANEL_ACTION_ROW_CLASS,
@@ -17,6 +18,7 @@ import type {
 
 interface GlobalInspectorPanelProps {
   isOpen: boolean;
+  placement?: 'left' | 'right';
   eyebrow?: React.ReactNode;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
@@ -37,11 +39,13 @@ interface GlobalInspectorPanelProps {
   footer?: React.ReactNode;
   headerActionsPlacement?: 'top' | 'bottom';
   widthClassName?: string;
+  overlayOnDesktop?: boolean;
   className?: string;
 }
 
 export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   isOpen,
+  placement = 'right',
   eyebrow,
   title,
   subtitle: _subtitle,
@@ -62,6 +66,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   footer,
   headerActionsPlacement = 'bottom',
   widthClassName = 'w-[min(24rem,calc(100vw-1rem))]',
+  overlayOnDesktop = false,
   className = '',
 }) => {
   const tabControls =
@@ -98,14 +103,12 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
     );
 
   return (
-    <aside
-      aria-hidden={!isOpen}
-      data-state={isOpen ? 'open' : 'closed'}
-      className={`osint-panel-shell absolute right-0 top-0 z-30 flex h-full flex-col overflow-hidden border-l border-zinc-800 bg-black/95 transition-all duration-200 lg:relative lg:translate-x-0 ${
-        isOpen
-          ? `${widthClassName} translate-x-0`
-          : `${widthClassName} pointer-events-none translate-x-full lg:w-0 lg:border-l-0`
-      } ${className}`}
+    <DockPanel
+      isOpen={isOpen}
+      placement={placement}
+      widthClassName={widthClassName}
+      overlayOnDesktop={overlayOnDesktop}
+      className={className}
     >
       <GlobalInspectorHeader
         eyebrow={eyebrow}
@@ -135,6 +138,6 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
 
       <div className={CHROME_RAIL_BODY_CLASS}>{bodyContent}</div>
       {footer}
-    </aside>
+    </DockPanel>
   );
 };

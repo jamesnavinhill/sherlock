@@ -5,8 +5,8 @@ This document describes the current runtime architecture as implemented in `src/
 Repository note:
 
 - `src/` remains the active Sherlock application.
-- `design-system/` is a separate standalone app kept in-repo for now. It should stay self-contained and must not depend on Sherlock routing, store, or runtime modules.
-- `design-system/src/components/canon/` is the extracted reusable design-system layer inside that standalone app. It now owns the page shell, general rail, toolbar/cluster, shared popup/menu surfaces, structured dialog surfaces (modal and modeless), option-group and date-range controls, disclosure, and conversation primitives used by the studio reference page and workbench behavior lab.
+- `canon-design/` is a separate standalone app kept in-repo for now. It should stay self-contained and must not depend on Sherlock routing, store, or runtime modules.
+- `canon-design/src/components/canon/` is the extracted reusable canon layer inside that standalone app. It now owns the page shell, general rail, toolbar/cluster, shared popup/menu surfaces, structured dialog surfaces (modal and modeless), option-group and date-range controls, disclosure, and conversation primitives used by the studio reference page and workbench behavior lab.
 
 Sherlock now runs on a canonical workspace architecture. The domain-pack shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the settled `Workspace -> Artifact -> WorkspaceRun` model.
 
@@ -119,6 +119,15 @@ That module currently centralizes:
 - sticky header treatment for routed surfaces
 - shared panel shell/header treatments
 - common toolbar/menu/toggle/segmented-button classes
+
+The Sherlock-owned route shell and dock layout primitives now live in:
+
+- `src/components/system/layout/PageShell.tsx`
+- `src/components/system/layout/DockPanel.tsx`
+- `src/styles/system/shell.css`
+- `src/styles/system/controls.css`
+- `src/styles/system/surfaces.css`
+- `src/styles/system/workbench.css`
 
 Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
 
