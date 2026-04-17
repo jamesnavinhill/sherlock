@@ -299,7 +299,8 @@ export function DateRangePicker({
             </Button>
             <div className="ds-overlay-panel-actions">
               <Button
-                variant="primary"
+                variant="secondary"
+                size="compact"
                 disabled={!canApplyDraft}
                 onClick={() => {
                   onChange({

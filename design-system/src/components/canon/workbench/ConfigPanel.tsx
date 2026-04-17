@@ -32,7 +32,7 @@ export function ConfigPanel({
   onReset,
   resetLabel = 'Reset',
   confirmLabel = 'Done',
-  confirmVariant = 'primary',
+  confirmVariant = 'secondary',
   closeLabel = `Close ${title}`,
   className,
   bodyClassName,
@@ -50,7 +50,7 @@ export function ConfigPanel({
         ) : (
           <span />
         )}
-        <Button variant={confirmVariant} onClick={onClose}>
+        <Button variant={confirmVariant} size="compact" onClick={onClose}>
           {confirmLabel}
         </Button>
       </div>

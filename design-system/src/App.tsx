@@ -1385,11 +1385,12 @@ export default function App() {
         title="Component Review"
         actions={
           <ToolbarCluster className="ds-modal-actions">
-            <Button variant="secondary" onClick={() => setModalOpen(false)}>
+            <Button variant="secondary" size="compact" onClick={() => setModalOpen(false)}>
               Keep Editing
             </Button>
             <Button
-              variant="primary"
+              variant="secondary"
+              size="compact"
               leadingIcon={<Sparkles size={16} />}
               onClick={() => setModalOpen(false)}
             >
@@ -1420,7 +1421,11 @@ export default function App() {
         title="Docked System Panel"
         actions={
           <ToolbarCluster className="ds-modal-actions">
-            <Button variant="secondary" onClick={() => setModelessModalOpen(false)}>
+            <Button
+              variant="secondary"
+              size="compact"
+              onClick={() => setModelessModalOpen(false)}
+            >
               Close
             </Button>
           </ToolbarCluster>
@@ -1453,11 +1458,12 @@ export default function App() {
               </Badge>
             </div>
             <ToolbarCluster className="ds-wrap">
-              <Button variant="secondary" onClick={() => setWorkflowOpen(false)}>
+              <Button variant="secondary" size="compact" onClick={() => setWorkflowOpen(false)}>
                 Keep Editing
               </Button>
               <Button
                 variant="primary"
+                size="compact"
                 leadingIcon={<Play size={16} />}
                 onClick={() => setWorkflowOpen(false)}
               >
