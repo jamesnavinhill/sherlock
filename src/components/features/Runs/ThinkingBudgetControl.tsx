@@ -1,6 +1,8 @@
 import React from 'react';
 import { Brain } from 'lucide-react';
 
+import { RangeField } from '@/components/system/controls';
+
 interface ThinkingBudgetControlProps {
   providerLabel: string;
   supportsThinkingBudget: boolean;
@@ -31,28 +33,25 @@ export const ThinkingBudgetControl: React.FC<ThinkingBudgetControlProps> = ({
   const effectiveValue = supportsThinkingBudget ? value : 0;
 
   return (
-    <div className={className}>
-      <label className={labelClassName}>
-        <Brain
-          className={`mr-2 h-3 w-3 ${supportsThinkingBudget ? 'text-osint-primary' : 'text-zinc-600'}`}
-        />
-        {label} ({effectiveValue})
-      </label>
-      <input
-        type="range"
-        min={0}
-        max={8192}
-        step={512}
-        value={effectiveValue}
-        onChange={(event) => onChange(Number(event.target.value))}
-        disabled={!supportsThinkingBudget}
-        className={inputClassName}
-      />
-      <p className={helpClassName}>
-        {supportsThinkingBudget
+    <RangeField
+      className={className}
+      label={label}
+      labelClassName={labelClassName}
+      value={effectiveValue}
+      min={0}
+      max={8192}
+      step={512}
+      onChange={onChange}
+      disabled={!supportsThinkingBudget}
+      inputClassName={inputClassName}
+      icon={Brain}
+      formatValue={(nextValue) => `(${nextValue})`}
+      description={
+        supportsThinkingBudget
           ? supportedHint
-          : unsupportedHint || `${providerLabel} ignores this setting.`}
-      </p>
-    </div>
+          : unsupportedHint || `${providerLabel} ignores this setting.`
+      }
+      descriptionClassName={helpClassName}
+    />
   );
 };

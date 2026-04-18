@@ -21,6 +21,7 @@ import {
   Shapes,
   Library,
 } from 'lucide-react';
+import { DateRangePicker } from '@/components/system/controls';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import type { GraphNodeSubtype, InvestigationScope, ManualNode } from '@/types';
 import { getEntityToneClass } from '@/utils/entityPalette';
@@ -184,26 +185,15 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
           <Calendar className="w-3 h-3 mr-2" />
           Temporal Scope
         </label>
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <label className="mb-1 block osint-meta-label">From</label>
-            <input
-              type="date"
-              value={dateRangeStart}
-              onChange={(event) => setDateRangeStart(event.target.value)}
-              className="w-full bg-black border border-zinc-700 p-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="mb-1 block osint-meta-label">To</label>
-            <input
-              type="date"
-              value={dateRangeEnd}
-              onChange={(event) => setDateRangeEnd(event.target.value)}
-              className="w-full bg-black border border-zinc-700 p-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
-            />
-          </div>
-        </div>
+        <DateRangePicker
+          value={{ start: dateRangeStart, end: dateRangeEnd }}
+          onChange={(nextValue) => {
+            setDateRangeStart(nextValue.start || '');
+            setDateRangeEnd(nextValue.end || '');
+          }}
+          className="mt-3"
+          inputClassName="bg-black p-2 text-zinc-300"
+        />
       </div>
     </div>
   );

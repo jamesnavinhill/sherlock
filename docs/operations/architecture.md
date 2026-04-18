@@ -124,6 +124,10 @@ The Sherlock-owned route shell and dock layout primitives now live in:
 
 - `src/components/system/layout/PageShell.tsx`
 - `src/components/system/layout/DockPanel.tsx`
+- `src/components/system/controls/FieldRow.tsx`
+- `src/components/system/controls/PopupSurface.tsx`
+- `src/components/system/controls/RangeField.tsx`
+- `src/components/system/controls/DateRangePicker.tsx`
 - `src/styles/system/shell.css`
 - `src/styles/system/controls.css`
 - `src/styles/system/surfaces.css`
@@ -133,6 +137,13 @@ The Sherlock-owned route shell and dock layout primitives now live in:
 - `src/system/theme/cssVars.ts`
 
 Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
+
+The shared input/control layer now also has Sherlock-owned primitives instead of route-local slider/date markup:
+
+- `RangeField` is the shared range-slider contract for theme tuning and runtime-behavior controls
+- `DateRangePicker` is the shared absolute date-range contract for inline field layouts and toolbar-trigger popups
+- `FieldRow` and `PopupSurface` provide the small supporting structure those controls reuse
+- Settings, Run Setup, Guided Run Builder, Feed, Live Monitor, and the shared thinking-budget control now render through that layer instead of keeping separate raw `input[type="range"]` or paired `input[type="date"]` seams
 
 The active visual-theme runtime now uses one Sherlock-owned theme workspace:
 
@@ -693,6 +704,7 @@ Run-setup and template flows now expose:
 - wizard state, pack/model derivation, and launch/template handlers centralized in `src/components/features/Runs/useRunSetupState.ts`
 - shared runtime-config behavior now routes through `runtimeConfigState.ts`, `useRuntimeConfigForm.ts`, `ProviderModelSelector.tsx`, `RuntimeConfigBehaviorControls.tsx`, `RuntimeConfigSummary.tsx`, and `OpenRouterSearchControls.tsx`, with launch-field shaping centralized in `runtimeConfigMapping.ts`
 - the run-setup implementation now lives with the run-launch feature under `src/components/features/Runs/RunSetupModal.tsx`
+- shared field controls for thinking budget and absolute date windows now come from `src/components/system/controls/*` rather than per-surface inline slider/date markup
 
 ### Settings
 
@@ -704,6 +716,7 @@ Run-setup and template flows now expose:
 - `SettingsDialogs.tsx` owns backup restore, purge confirmation, and import feedback boundaries instead of leaving those workflows inline in the page root
 - the Runtime tab now reuses the same shared runtime-config modules used by run setup, guided chat, template authoring, and launch mapping
 - the Theme tab now edits one docked Sherlock theme workspace rather than separate accent/background/surface/font cards
+- the Theme tab's background, graph, typography, shell, and radius sliders now render through the shared `RangeField` contract instead of one-off range markup
 - theme templates are full editable themes with saved/draft separation, preview-mode switching, factory reset, fork-to-custom-slot, and JSON/CSS export
 
 ### Files

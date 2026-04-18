@@ -7,11 +7,11 @@ import {
   Filter,
   MapPin,
   Tag,
-  Calendar,
   X,
   LayoutDashboard,
   Settings2,
 } from 'lucide-react';
+import { DateRangePicker } from '@/components/system/controls';
 import { BackgroundMatrixRain } from '../ui/BackgroundMatrixRain';
 import { MainContentDotGrid } from '../ui/MainContentDotGrid';
 import { RunSetupModal } from './Runs/RunSetupModal';
@@ -326,61 +326,23 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
 
             {/* Date Filter */}
             <div className="relative hidden w-36 md:block">
-              <button
-                type="button"
-                onClick={() => setShowDatePicker(!showDatePicker)}
-                className={`osint-button-chrome osint-meta-label ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-full flex items-center truncate px-2`}
-              >
-                <Calendar className="w-3 h-3 mr-2 text-zinc-300" />
-                <span className="truncate">
-                  {filterStartDate || filterEndDate
-                    ? `${filterStartDate} > ${filterEndDate}`
-                    : 'Time Range'}
-                </span>
-              </button>
-
-              {/* Date Picker Popover */}
-              {showDatePicker && (
-                <div className="osint-menu-panel absolute top-full left-0 mt-2 w-64 bg-black border border-zinc-600 p-4 z-50 animate-in fade-in zoom-in duration-200">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block osint-meta-label mb-1">
-                        Start Date
-                      </label>
-                      <input
-                        type="date"
-                        value={filterStartDate}
-                        onChange={(e) => setFilterStartDate(e.target.value)}
-                        onClick={(e) => (e.target as HTMLInputElement).showPicker()}
-                        className="w-full bg-zinc-900 border border-zinc-700 p-1.5 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none cursor-pointer"
-                      />
-                    </div>
-                    <div>
-                      <label className="block osint-meta-label mb-1">
-                        End Date
-                      </label>
-                      <input
-                        type="date"
-                        value={filterEndDate}
-                        onChange={(e) => setFilterEndDate(e.target.value)}
-                        onClick={(e) => (e.target as HTMLInputElement).showPicker()}
-                        className="w-full bg-zinc-900 border border-zinc-700 p-1.5 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none cursor-pointer"
-                      />
-                    </div>
-                    <div className="flex justify-end pt-2">
-                      <button
-                        onClick={() => {
-                          setShowDatePicker(false);
-                          loadFeed();
-                        }}
-                        className="osint-button-primary px-3 py-1 osint-meta-label-strong"
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <DateRangePicker
+                value={{ start: filterStartDate, end: filterEndDate }}
+                onChange={(nextValue) => {
+                  setFilterStartDate(nextValue.start || '');
+                  setFilterEndDate(nextValue.end || '');
+                }}
+                label="Feed date range"
+                description="Filter discovery scanning to a specific reporting window."
+                isOpen={showDatePicker}
+                onOpenChange={setShowDatePicker}
+                onApply={loadFeed}
+                toolbarTrigger
+                placeholder="Time Range"
+                triggerClassName={`${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-full`}
+                popupClassName="animate-in fade-in zoom-in duration-200"
+                inputClassName="bg-zinc-900 p-1.5 text-zinc-300"
+              />
             </div>
           </div>
 
@@ -467,30 +429,15 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 </div>
 
                 {/* Mobile Date Range */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block osint-meta-label mb-1">
-                      From
-                    </label>
-                    <input
-                      type="date"
-                      value={filterStartDate}
-                      onChange={(e) => setFilterStartDate(e.target.value)}
-                      className="w-full bg-black border border-zinc-700 px-2 py-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block osint-meta-label mb-1">
-                      To
-                    </label>
-                    <input
-                      type="date"
-                      value={filterEndDate}
-                      onChange={(e) => setFilterEndDate(e.target.value)}
-                      className="w-full bg-black border border-zinc-700 px-2 py-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
-                    />
-                  </div>
-                </div>
+                <DateRangePicker
+                  value={{ start: filterStartDate, end: filterEndDate }}
+                  onChange={(nextValue) => {
+                    setFilterStartDate(nextValue.start || '');
+                    setFilterEndDate(nextValue.end || '');
+                  }}
+                  label="Date Range"
+                  inputClassName="bg-black text-zinc-300"
+                />
 
                 <div className="pt-2">
                   <button

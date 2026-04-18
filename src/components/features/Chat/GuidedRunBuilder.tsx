@@ -11,6 +11,7 @@ import {
   Target,
   Trash2,
 } from 'lucide-react';
+import { DateRangePicker } from '@/components/system/controls';
 import type { Workspace, GraphNodeSubtype, InvestigationScope } from '@/types';
 import { getAllScopes } from '../../../data/presets';
 import { getDomainPackForScope, getPurposeProfileById, getWorkspaceDisplayTitle } from '../../../domain';
@@ -235,46 +236,18 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
           />
         </label>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="block">
-          <span className="mb-2 block osint-meta-label">
-            Date From
-          </span>
-          <input
-            type="date"
-            value={draft.dateRange?.start || ''}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                dateRange: {
-                  ...current.dateRange,
-                  start: event.target.value || undefined,
-                },
-              }))
-            }
-            className="w-full border border-zinc-700 bg-black px-3 py-2 osint-meta-value text-zinc-200 outline-none focus:border-osint-primary"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-2 block osint-meta-label">
-            Date To
-          </span>
-          <input
-            type="date"
-            value={draft.dateRange?.end || ''}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                dateRange: {
-                  ...current.dateRange,
-                  end: event.target.value || undefined,
-                },
-              }))
-            }
-            className="w-full border border-zinc-700 bg-black px-3 py-2 osint-meta-value text-zinc-200 outline-none focus:border-osint-primary"
-          />
-        </label>
-      </div>
+      <DateRangePicker
+        value={draft.dateRange || {}}
+        onChange={(nextValue) =>
+          setDraft((current) => ({
+            ...current,
+            dateRange: nextValue.start || nextValue.end ? nextValue : undefined,
+          }))
+        }
+        label="Date Range"
+        className="md:max-w-xl"
+        inputClassName="bg-black text-zinc-200"
+      />
     </div>
   );
 

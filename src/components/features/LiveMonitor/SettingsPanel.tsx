@@ -11,6 +11,7 @@ import {
   Calendar,
   Save,
 } from 'lucide-react';
+import { DateRangePicker, RangeField } from '@/components/system/controls';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     { value: 'CRITICAL', label: 'Critical' },
   ] as const;
   const inputClassName =
-    'osint-meta-value w-full border border-zinc-700 bg-black p-2 outline-none focus:border-osint-primary';
+    'w-full bg-black p-2 text-zinc-300';
 
   return (
     <div className="osint-menu-panel absolute top-20 right-6 z-50 w-96 border border-zinc-700 bg-zinc-900 animate-in slide-in-from-top-2 fade-in duration-200">
@@ -73,51 +74,36 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             Batch Size Configuration
           </label>
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="osint-meta-value flex items-center">
-                <Newspaper className="w-3 h-3 mr-2" /> News
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                step="1"
-                value={config.newsCount}
-                onChange={(e) => updateConfig({ newsCount: parseInt(e.target.value) })}
-                className="w-24 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-osint-primary"
-              />
-              <span className="osint-meta-value w-4 text-right">{config.newsCount}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="osint-meta-value flex items-center">
-                <MessageSquare className="w-3 h-3 mr-2" /> Social
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                step="1"
-                value={config.socialCount}
-                onChange={(e) => updateConfig({ socialCount: parseInt(e.target.value) })}
-                className="w-24 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-osint-primary"
-              />
-              <span className="osint-meta-value w-4 text-right">{config.socialCount}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="osint-meta-value flex items-center">
-                <Landmark className="w-3 h-3 mr-2" /> Official
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                step="1"
-                value={config.officialCount}
-                onChange={(e) => updateConfig({ officialCount: parseInt(e.target.value) })}
-                className="w-24 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-osint-primary"
-              />
-              <span className="osint-meta-value w-4 text-right">{config.officialCount}</span>
-            </div>
+            <RangeField
+              label="News"
+              value={config.newsCount}
+              min={0}
+              max={10}
+              step={1}
+              onChange={(nextValue) => updateConfig({ newsCount: nextValue })}
+              icon={Newspaper}
+              formatValue={(nextValue) => nextValue}
+            />
+            <RangeField
+              label="Social"
+              value={config.socialCount}
+              min={0}
+              max={10}
+              step={1}
+              onChange={(nextValue) => updateConfig({ socialCount: nextValue })}
+              icon={MessageSquare}
+              formatValue={(nextValue) => nextValue}
+            />
+            <RangeField
+              label="Official"
+              value={config.officialCount}
+              min={0}
+              max={10}
+              step={1}
+              onChange={(nextValue) => updateConfig({ officialCount: nextValue })}
+              icon={Landmark}
+              formatValue={(nextValue) => nextValue}
+            />
           </div>
         </div>
 
@@ -163,33 +149,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
         {/* Date Range */}
         <div>
-          <label className="osint-meta-label mb-2 flex items-center">
-            <Calendar className="w-3 h-3 mr-1" /> Temporal Constraints
-          </label>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <input
-                type="date"
-                value={config.dateRange?.start || ''}
-                onChange={(e) =>
-                  updateConfig({ dateRange: { ...config.dateRange, start: e.target.value } })
-                }
-                className={inputClassName}
-                placeholder="Start Date"
-              />
-            </div>
-            <div className="flex-1">
-              <input
-                type="date"
-                value={config.dateRange?.end || ''}
-                onChange={(e) =>
-                  updateConfig({ dateRange: { ...config.dateRange, end: e.target.value } })
-                }
-                className={inputClassName}
-                placeholder="End Date"
-              />
-            </div>
-          </div>
+          <DateRangePicker
+            value={config.dateRange || {}}
+            onChange={(nextValue) =>
+              updateConfig({ dateRange: nextValue.start || nextValue.end ? nextValue : undefined })
+            }
+            label={
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="h-3 w-3" /> Temporal Constraints
+              </span>
+            }
+            inputClassName={inputClassName}
+          />
         </div>
 
         {/* Priority Sources */}

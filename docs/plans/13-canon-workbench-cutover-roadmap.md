@@ -245,10 +245,8 @@ Docs to update when this lands:
 Completed stages so far:
 
 - Stage 1. Sherlock Shell Foundation Cutover
-
-Substantially landed, with remaining cleanup and parity work still tracked below:
-
 - Stage 2. Unified Theme Platform And Settings Workbench Cutover
+- Stage 3. Shared Controls And Input-Surface Parity Cutover
 
 Delivered from those completed stages:
 
@@ -258,7 +256,11 @@ Delivered from those completed stages:
 - The active CSS-var runtime now builds from one central `SherlockTheme` path rather than the older split accent/background/surface/font builders.
 - Settings has been cut over onto the unified theme workspace with template selection, save/revert/reset flows, fork-to-custom-slot behavior, and JSON/CSS export.
 - Shared shell, surface, toolbar, divider, and radius styling now responds to the new theme workspace so the settings work is not only preview-deep.
-- README and operations docs have been updated to reflect the landed shell and theme-platform behavior.
+- Sherlock now has a shared system control layer under `src/components/system/controls/*`, including `RangeField`, `DateRangePicker`, `FieldRow`, and `PopupSurface`.
+- The settings theme workbench sliders now use the shared range-field contract instead of custom slider markup.
+- Run Setup, Guided Run Builder, Feed, and Live Monitor now share one date-range control model, including toolbar-trigger and inline field variants.
+- Shared runtime-behavior sliders, including thinking budget and live-monitor counts, now route through the same range-control family instead of per-surface implementations.
+- README and architecture docs have been updated to reflect the landed shell, theme-platform, and shared-control behavior.
 
 ## Stage 3. Shared Controls And Input-Surface Parity Cutover
 
@@ -302,6 +304,11 @@ Exit criteria:
 - the major remaining raw slider and date-pair implementations are gone from the targeted surfaces
 - theme editing and non-theme configuration surfaces share one control language
 - slider and date behavior are reusable and easier to evolve from one place
+
+Docs to update when this lands:
+
+- `README.md`
+- `docs/operations/ARCHITECTURE.md`
 
 ## Stage 4. Routed Theme Adoption And Shell Cleanup Closeout
 

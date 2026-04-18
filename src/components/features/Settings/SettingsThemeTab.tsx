@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
+import { RangeField } from '@/components/system/controls';
 import { AccentPicker } from '@/components/ui/AccentPicker';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { buildAccentColor } from '@/utils/accent';
@@ -444,44 +445,38 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   : activeTheme.background[field as keyof SherlockTheme['background']];
 
               return (
-                <label key={field} className="block">
-                  <span className="osint-meta-label mb-2 block">{label}</span>
-                  <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={Number(value)}
-                    onChange={(event) => {
-                      const nextValue = Number(event.target.value);
-                      updateTheme((theme) => ({
-                        ...theme,
-                        background: {
-                          ...theme.background,
-                          [editingMode]: {
-                            ...theme.background[editingMode],
-                            ...(field === 'hue' || field === 'lightness' || field === 'chroma'
-                              ? { [field]: nextValue }
-                              : {}),
-                          },
-                          ...(field === 'dotColor' ||
-                          field === 'dotOpacity' ||
-                          field === 'gridSize'
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={Number(value)}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) => {
+                    updateTheme((theme) => ({
+                      ...theme,
+                      background: {
+                        ...theme.background,
+                        [editingMode]: {
+                          ...theme.background[editingMode],
+                          ...(field === 'hue' || field === 'lightness' || field === 'chroma'
                             ? { [field]: nextValue }
                             : {}),
                         },
-                      }));
-                    }}
-                    className="w-full accent-[var(--osint-primary)]"
-                  />
-                  <div className="osint-meta-label mt-2">
-                    {field === 'dotOpacity' ||
-                    field === 'glowOpacity' ||
-                    field === 'scanlineOpacity'
-                      ? `${Math.round(Number(value) * 100)}%`
-                      : Number(value).toFixed(field === 'hue' || field === 'dotColor' || field === 'gridSize' ? 0 : 3)}
-                  </div>
-                </label>
+                        ...(field === 'dotColor' || field === 'dotOpacity' || field === 'gridSize'
+                          ? { [field]: nextValue }
+                          : {}),
+                      },
+                    }));
+                  }}
+                  formatValue={(nextValue) =>
+                    field === 'dotOpacity' || field === 'glowOpacity' || field === 'scanlineOpacity'
+                      ? `${Math.round(nextValue * 100)}%`
+                      : nextValue.toFixed(
+                          field === 'hue' || field === 'dotColor' || field === 'gridSize' ? 0 : 3
+                        )
+                  }
+                />
               );
             })}
           </div>
@@ -553,21 +548,16 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 ['chroma', 'Chroma', 0, 0.18, 0.001],
               ] as const
             ).map(([field, label, min, max, step]) => (
-              <label key={field} className="block">
-                <span className="osint-meta-label mb-2 block">{label}</span>
-                <input
-                  type="range"
-                  min={min}
-                  max={max}
-                  step={step}
-                  value={selectedGraph[field]}
-                  onChange={(event) => updateGraphField(field, Number(event.target.value))}
-                  className="w-full accent-[var(--osint-primary)]"
-                />
-                <div className="osint-meta-label mt-2">
-                  {selectedGraph[field].toFixed(field === 'hue' ? 0 : 3)}
-                </div>
-              </label>
+              <RangeField
+                key={field}
+                label={label}
+                value={selectedGraph[field]}
+                min={min}
+                max={max}
+                step={step}
+                onChange={(nextValue) => updateGraphField(field, nextValue)}
+                formatValue={(nextValue) => nextValue.toFixed(field === 'hue' ? 0 : 3)}
+              />
             ))}
           </div>
         </div>
@@ -691,21 +681,16 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   ['chroma', 'Chroma', 0, surfaceBounds.chromaMax, 0.001],
                 ] as const
               ).map(([field, label, min, max, step]) => (
-                <label key={field} className="block">
-                  <span className="osint-meta-label mb-2 block">{label}</span>
-                  <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={selectedSurface[field]}
-                    onChange={(event) => updateSurfaceField(field, Number(event.target.value))}
-                    className="w-full accent-[var(--osint-primary)]"
-                  />
-                  <div className="osint-meta-label mt-2">
-                    {selectedSurface[field].toFixed(field === 'hue' ? 0 : 3)}
-                  </div>
-                </label>
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={selectedSurface[field]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) => updateSurfaceField(field, nextValue)}
+                  formatValue={(nextValue) => nextValue.toFixed(field === 'hue' ? 0 : 3)}
+                />
               ))}
             </div>
           </div>
@@ -737,43 +722,35 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           <div className={SETTINGS_CARD_SECTION_SUBTLE_CLASS}>
             <div className="osint-meta-label">Global Scale</div>
             <div className="mt-3 grid gap-4">
-              <label className="block">
-                <span className="osint-meta-label mb-2 block">Size Profile</span>
-                <input
-                  type="range"
-                  min={-1}
-                  max={1}
-                  step={0.05}
-                  value={activeTheme.typography.size}
-                  onChange={(event) =>
-                    updateTheme((theme) => ({
-                      ...theme,
-                      typography: { ...theme.typography, size: Number(event.target.value) },
-                    }))
-                  }
-                  className="w-full accent-[var(--osint-primary)]"
-                />
-                <div className="osint-meta-label mt-2">{activeSizeProfile.label}</div>
-              </label>
+              <RangeField
+                label="Size Profile"
+                value={activeTheme.typography.size}
+                min={-1}
+                max={1}
+                step={0.05}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    typography: { ...theme.typography, size: nextValue },
+                  }))
+                }
+                formatValue={() => activeSizeProfile.label}
+              />
 
-              <label className="block">
-                <span className="osint-meta-label mb-2 block">Weight Profile</span>
-                <input
-                  type="range"
-                  min={-1}
-                  max={1}
-                  step={0.05}
-                  value={activeTheme.typography.weight}
-                  onChange={(event) =>
-                    updateTheme((theme) => ({
-                      ...theme,
-                      typography: { ...theme.typography, weight: Number(event.target.value) },
-                    }))
-                  }
-                  className="w-full accent-[var(--osint-primary)]"
-                />
-                <div className="osint-meta-label mt-2">{activeWeightProfile.label}</div>
-              </label>
+              <RangeField
+                label="Weight Profile"
+                value={activeTheme.typography.weight}
+                min={-1}
+                max={1}
+                step={0.05}
+                onChange={(nextValue) =>
+                  updateTheme((theme) => ({
+                    ...theme,
+                    typography: { ...theme.typography, weight: nextValue },
+                  }))
+                }
+                formatValue={() => activeWeightProfile.label}
+              />
             </div>
           </div>
         </section>
@@ -842,27 +819,24 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               ['contentWidth', 'Content Measure', 920, 1360, 20],
             ] as const
           ).map(([field, label, min, max, step]) => (
-            <label key={field} className="block">
-              <span className="osint-meta-label mb-2 block">{label}</span>
-              <input
-                type="range"
-                min={min}
-                max={max}
-                step={step}
-                value={activeTheme.shell[field]}
-                onChange={(event) =>
-                  updateTheme((theme) => ({
-                    ...theme,
-                    shell: {
-                      ...theme.shell,
-                      [field]: Number(event.target.value),
-                    },
-                  }))
-                }
-                className="w-full accent-[var(--osint-primary)]"
-              />
-              <div className="osint-meta-label mt-2">{Math.round(activeTheme.shell[field])}px</div>
-            </label>
+            <RangeField
+              key={field}
+              label={label}
+              value={activeTheme.shell[field]}
+              min={min}
+              max={max}
+              step={step}
+              onChange={(nextValue) =>
+                updateTheme((theme) => ({
+                  ...theme,
+                  shell: {
+                    ...theme.shell,
+                    [field]: nextValue,
+                  },
+                }))
+              }
+              formatValue={(nextValue) => `${Math.round(nextValue)}px`}
+            />
           ))}
         </section>
 
@@ -902,31 +876,26 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               ['dividerGlow', 'Divider Glow', 0, 1, 0.05, '%'],
             ] as const
           ).map(([field, label, min, max, step, unit]) => (
-            <label key={field} className="block">
-              <span className="osint-meta-label mb-2 block">{label}</span>
-              <input
-                type="range"
-                min={min}
-                max={max}
-                step={step}
-                value={activeTheme.shell[field]}
-                onChange={(event) =>
-                  updateTheme((theme) => ({
-                    ...theme,
-                    shell: {
-                      ...theme.shell,
-                      [field]: Number(event.target.value),
-                    },
-                  }))
-                }
-                className="w-full accent-[var(--osint-primary)]"
-              />
-              <div className="osint-meta-label mt-2">
-                {unit === '%'
-                  ? `${Math.round(activeTheme.shell[field] * 100)}%`
-                  : `${Math.round(activeTheme.shell[field])}${unit}`}
-              </div>
-            </label>
+            <RangeField
+              key={field}
+              label={label}
+              value={activeTheme.shell[field]}
+              min={min}
+              max={max}
+              step={step}
+              onChange={(nextValue) =>
+                updateTheme((theme) => ({
+                  ...theme,
+                  shell: {
+                    ...theme.shell,
+                    [field]: nextValue,
+                  },
+                }))
+              }
+              formatValue={(nextValue) =>
+                unit === '%' ? `${Math.round(nextValue * 100)}%` : `${Math.round(nextValue)}${unit}`
+              }
+            />
           ))}
         </section>
       </div>
@@ -942,27 +911,24 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               ['pill', 'Pill Radius'],
             ] as const
           ).map(([field, label]) => (
-            <label key={field} className="block">
-              <span className="osint-meta-label mb-2 block">{label}</span>
-              <input
-                type="range"
-                min={0}
-                max={28}
-                step={1}
-                value={activeTheme.radii[field]}
-                onChange={(event) =>
-                  updateTheme((theme) => ({
-                    ...theme,
-                    radii: {
-                      ...theme.radii,
-                      [field]: Number(event.target.value),
-                    },
-                  }))
-                }
-                className="w-full accent-[var(--osint-primary)]"
-              />
-              <div className="osint-meta-label mt-2">{Math.round(activeTheme.radii[field])}px</div>
-            </label>
+            <RangeField
+              key={field}
+              label={label}
+              value={activeTheme.radii[field]}
+              min={0}
+              max={28}
+              step={1}
+              onChange={(nextValue) =>
+                updateTheme((theme) => ({
+                  ...theme,
+                  radii: {
+                    ...theme.radii,
+                    [field]: nextValue,
+                  },
+                }))
+              }
+              formatValue={(nextValue) => `${Math.round(nextValue)}px`}
+            />
           ))}
         </section>
 

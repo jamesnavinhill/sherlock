@@ -25,21 +25,22 @@ This repository also contains a separate standalone canon studio in [`canon-desi
 - Uses canonical top-level shell nouns (`Workspace`, `Artifact`, `Run`, `Signal`, `Source`, `Item`) while keeping pack/purpose-specific copy inside artifact content and guided flows
 - Separates workspace display identity from launch metadata so top-level chrome uses a clean workspace title while prompts and summaries retain `launchTopic`, `launchAngle`, and priority-source context
 - Supports hybrid artifact generation modes with a global default plus per-run overrides (`SINGLE_PASS` vs `STAGED`)
+- Reuses Sherlock-owned shared `RangeField` and `DateRangePicker` controls across the theme workbench, run setup, guided run building, feed filters, and live monitor settings
 - Exports and restores workspace-data backups for workspaces, artifacts, runs, chat history, research boards, canonical workspace items, templates, manual graph data, and saved signals without bundling device-local app preferences or API keys
 
 ## UI Areas
 
 - `Operation View`: document-first artifact reading with canonical key findings near the top of the body, inline evidence jump cues, section-level editing for substantive document blocks, route-backed section/evidence focus, purpose-ordered typed-section rendering, dossier, and a current-artifact/entity/signal inspector panel
-- `Run Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, OpenRouter browser, generation mode override, starter prompts, template save/apply
+- `Run Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, shared date-range controls, OpenRouter browser, generation mode override, starter prompts, template save/apply
 - `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into artifacts, timeline, graph, and chat
 - `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update/reuse events, opt-in entity milestones, chat sessions, and high-signal chat actions, with shared library/inspector panel foundations, lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
 - `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records that reopen focused workspace surfaces, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Files, and Network Graph
 - `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files; this is real and routed, but it is not yet the global app homepage/dashboard
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for artifacts/entities/signals, and an overlaying dossier rail that no longer shifts graph content
-- `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
+- `Live Monitor`: live signal scans, shared slider/date controls for monitor settings, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
 - `Files`: workspace browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
-- `Finder`: discovery scanning and analysis launch
-- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a docked theme workspace with editable theme templates, dark/light preview separation, save/revert/reset flows, and JSON/CSS export
+- `Finder`: discovery scanning and analysis launch with shared toolbar date-range filtering
+- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a docked theme workspace with editable theme templates, dark/light preview separation, save/revert/reset flows, JSON/CSS export, and shared range-field controls
 
 ## Tech Stack
 
@@ -148,9 +149,9 @@ npm run check:full
 
 ## Current Validation Snapshot (April 17, 2026)
 
-The current targeted validation for the unified Sherlock theme workspace cutover passed on this checkout:
+The current targeted validation for the Stage 3 shared controls cutover passed on this checkout:
 
-- `npm run test -- src/components/features/Settings/useSettingsController.test.ts src/system/theme/storage.test.ts src/app/AppShell.test.tsx src/app/AppShellRoutes.test.tsx`: passes
+- `npm run test -- src/components/system/controls/DateRangePicker.test.tsx src/components/system/controls/RangeField.test.tsx`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes
