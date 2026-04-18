@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_THEME_FONT_SETTINGS } from '@/utils/themeFonts';
-import { DEFAULT_THEME_SURFACE_SETTINGS } from '@/utils/themeSurfaces';
+import { createInitialThemeWorkspace } from '@/system/theme/schema';
 
 import type { WorkspaceState } from '../workspaceStore';
 import {
@@ -68,11 +67,8 @@ const createWorkspaceState = (overrides: Partial<WorkspaceState> = {}): Workspac
     setLiveEvents: () => undefined,
     setNavStack: () => undefined,
     setIsSidebarCollapsed: () => undefined,
+    setThemeWorkspace: () => undefined,
     setThemeMode: () => undefined,
-    setThemeColor: () => undefined,
-    setAccentSettings: () => undefined,
-    setThemeSurfaceSettings: () => undefined,
-    setThemeFontSettings: () => undefined,
     setShowGlobalSearch: () => undefined,
     setTemplates: () => undefined,
     setHeadlines: () => undefined,
@@ -150,11 +146,8 @@ const createWorkspaceState = (overrides: Partial<WorkspaceState> = {}): Workspac
     clearWorkspaceData: async () => undefined,
     navStack: [],
     isSidebarCollapsed: false,
+    themeWorkspace: createInitialThemeWorkspace(),
     themeMode: 'dark',
-    themeColor: '#000000',
-    accentSettings: { hue: 0, lightness: 0.5, chroma: 0.1 },
-    themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,
-    themeFontSettings: DEFAULT_THEME_FONT_SETTINGS,
     showGlobalSearch: false,
     ...overrides,
   }) as WorkspaceState;

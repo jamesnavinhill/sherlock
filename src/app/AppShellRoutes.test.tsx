@@ -23,7 +23,6 @@ const LocationProbe = () => {
 
 const buildControllerStub = () =>
   ({
-    accentSettings: { hue: 0, lightness: 0, chroma: 0 },
     activeChatSessionId: null,
     activeRunId: null,
     activeWorkspaceBoardId: null,
@@ -39,20 +38,13 @@ const buildControllerStub = () =>
     launchInvestigation: vi.fn(),
     liveEvents: [],
     openChat: vi.fn(),
-    setAccentSettings: vi.fn(),
     setActiveChatSessionId: vi.fn(),
     setActiveRunId: vi.fn(),
     setActiveWorkspaceBoardId: vi.fn(),
     setActiveWorkspaceId: vi.fn(),
     setLiveEvents: vi.fn(),
-    setThemeColor: vi.fn(),
-    setThemeFontSettings: vi.fn(),
-    setThemeSurfaceSettings: vi.fn(),
     showLandingApiKeyPrompt: false,
-    themeColor: '#000000',
-    themeFontSettings: {},
     themeMode: 'dark',
-    themeSurfaceSettings: {},
     workspaceBoards: [],
     workspaceRuns: [],
     workspaces: [],

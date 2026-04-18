@@ -8,20 +8,33 @@ export const Toast: React.FC<{ toast: ToastType; onRemove: (id: string) => void 
   onRemove,
 }) => {
   const icons = {
-    SUCCESS: <CheckCircle className="w-5 h-5 text-green-500" />,
+    SUCCESS: <CheckCircle className="h-5 w-5 text-[var(--osint-graph-2)]" />,
     ERROR: <AlertCircle className="w-5 h-5 osint-danger-text" />,
-    INFO: <Info className="w-5 h-5 text-osint-primary" />,
+    INFO: <Info className="h-5 w-5 text-[var(--osint-graph-1)]" />,
   };
 
   const bgColors = {
-    SUCCESS: 'bg-green-500/10 border-green-500/50',
+    SUCCESS: '',
     ERROR: 'osint-danger-banner',
-    INFO: 'bg-osint-primary/10 border-osint-primary/50',
+    INFO: '',
+  };
+
+  const toneStyles = {
+    SUCCESS: {
+      backgroundColor: 'color-mix(in oklab, var(--osint-graph-2) 14%, var(--osint-panel) 86%)',
+      borderColor: 'color-mix(in oklab, var(--osint-graph-2) 38%, var(--osint-border))',
+    },
+    ERROR: undefined,
+    INFO: {
+      backgroundColor: 'color-mix(in oklab, var(--osint-graph-1) 14%, var(--osint-panel) 86%)',
+      borderColor: 'color-mix(in oklab, var(--osint-graph-1) 38%, var(--osint-border))',
+    },
   };
 
   return (
     <div
       className={`flex items-center p-4 min-w-[300px] border backdrop-blur-md animate-in slide-in-from-right-full duration-300 ${bgColors[toast.type]}`}
+      style={toneStyles[toast.type]}
     >
       <div className="mr-3">{icons[toast.type]}</div>
       <div className="flex-1 text-sm font-mono text-white">{toast.message}</div>

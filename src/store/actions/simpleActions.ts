@@ -1,4 +1,3 @@
-import { parseOklch } from '@/utils/accent';
 import { clearStoredActiveWorkspaceId, setStoredActiveWorkspaceId } from '@/utils/localStorage';
 import { SettingsRepository } from '@/services/db/repositories/SettingsRepository';
 import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
@@ -6,10 +5,8 @@ import { TemplateRepository } from '@/services/db/repositories/TemplateRepositor
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import { ScopeRepository } from '@/services/db/repositories/ScopeRepository';
 import {
-  deriveLegacyThemeState,
   SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
   setThemePreviewMode,
-  updateActiveDraftTheme,
 } from '@/system/theme/storage';
 import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 
@@ -38,11 +35,6 @@ export const createSimpleActions = ({
   | 'setIsSidebarCollapsed'
   | 'setThemeWorkspace'
   | 'setThemeMode'
-  | 'setThemeColor'
-  | 'setAccentSettings'
-  | 'setThemeSurfaceSettings'
-  | 'setThemeFontSettings'
-  | 'setThemeBackgroundSettings'
   | 'setShowGlobalSearch'
   | 'setTemplates'
   | 'setHeadlines'
@@ -97,69 +89,11 @@ export const createSimpleActions = ({
   setNavStack: (navStack) => set({ navStack }),
   setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
   setThemeWorkspace: (themeWorkspace: SherlockThemeWorkspaceState) => {
-    set({
-      themeWorkspace,
-      ...deriveLegacyThemeState(themeWorkspace),
-    });
+    set({ themeWorkspace });
     void SettingsRepository.setSetting(SHERLOCK_THEME_WORKSPACE_SETTING_KEY, themeWorkspace);
   },
   setThemeMode: (themeMode) => {
     const nextWorkspace = setThemePreviewMode(get().themeWorkspace, themeMode);
-    get().setThemeWorkspace(nextWorkspace);
-  },
-  setThemeColor: (themeColor) => {
-    const parsedAccent = parseOklch(themeColor);
-    if (!parsedAccent) return;
-    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
-      ...theme,
-      accent: parsedAccent,
-    }));
-    get().setThemeWorkspace(nextWorkspace);
-  },
-  setAccentSettings: (accentSettings) => {
-    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
-      ...theme,
-      accent: accentSettings,
-    }));
-    get().setThemeWorkspace(nextWorkspace);
-  },
-  setThemeSurfaceSettings: (themeSurfaceSettings) => {
-    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
-      ...theme,
-      surfaces: {
-        dark: {
-          shell: { ...themeSurfaceSettings.dark.background },
-          panel: { ...themeSurfaceSettings.dark.panel },
-          rail: { ...themeSurfaceSettings.dark.background },
-          surface: { ...themeSurfaceSettings.dark.surface },
-        },
-        light: {
-          shell: { ...themeSurfaceSettings.light.background },
-          panel: { ...themeSurfaceSettings.light.panel },
-          rail: { ...themeSurfaceSettings.light.background },
-          surface: { ...themeSurfaceSettings.light.surface },
-        },
-      },
-    }));
-    get().setThemeWorkspace(nextWorkspace);
-  },
-  setThemeFontSettings: (themeFontSettings) => {
-    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
-      ...theme,
-      typography: { ...themeFontSettings },
-    }));
-    get().setThemeWorkspace(nextWorkspace);
-  },
-  setThemeBackgroundSettings: (themeBackgroundSettings) => {
-    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
-      ...theme,
-      background: {
-        ...theme.background,
-        variant: themeBackgroundSettings.variant === 'plain' ? 'plain' : 'dot-grid',
-        dotColor: themeBackgroundSettings.dotColor,
-        dotOpacity: themeBackgroundSettings.dotOpacity,
-      },
-    }));
     get().setThemeWorkspace(nextWorkspace);
   },
   setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),

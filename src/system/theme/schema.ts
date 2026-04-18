@@ -21,6 +21,7 @@ import {
 export type SherlockThemeMode = 'dark' | 'light';
 export type SherlockThemeBackgroundVariant = 'plain' | 'dot-grid' | 'cross-grid' | 'scanlines';
 export type SherlockThemeControlChrome = 'glass' | 'solid' | 'line';
+export const SHERLOCK_THEME_GRAPH_COUNT = 4;
 
 export interface SherlockThemeSurfaceScale {
   shell: AccentSettings;
@@ -73,6 +74,7 @@ export interface SherlockThemeControlSettings {
 export interface SherlockTheme {
   mode: SherlockThemeMode;
   accent: AccentSettings;
+  graphs: AccentSettings[];
   surfaces: SherlockThemeSurfaceSettings;
   background: SherlockThemeBackgroundSettings;
   typography: ThemeFontSettings;
@@ -113,6 +115,17 @@ const cloneAccentSettings = (settings: AccentSettings): AccentSettings => ({
   chroma: settings.chroma,
 });
 
+const wrapHue = (value: number) => ((Math.round(value) % 360) + 360) % 360;
+
+export const createDefaultSherlockThemeGraphs = (
+  accent: AccentSettings
+): AccentSettings[] =>
+  [45, 160, 210, 280].map((hueOffset) => ({
+    hue: wrapHue(accent.hue + hueOffset),
+    lightness: accent.lightness,
+    chroma: accent.chroma,
+  }));
+
 const createSurfaceScaleFromLegacy = (
   settings: ThemeSurfaceSettings['dark']
 ): SherlockThemeSurfaceScale => ({
@@ -146,6 +159,7 @@ const createSherlockThemeBackgroundSettings = (
 export const DEFAULT_SHERLOCK_THEME: SherlockTheme = {
   mode: 'light',
   accent: cloneAccentSettings(DEFAULT_ACCENT_SETTINGS),
+  graphs: createDefaultSherlockThemeGraphs(DEFAULT_ACCENT_SETTINGS),
   surfaces: createSherlockThemeSurfaceSettings(DEFAULT_THEME_SURFACE_SETTINGS),
   background: createSherlockThemeBackgroundSettings(
     DEFAULT_THEME_BACKGROUND_SETTINGS,
@@ -179,6 +193,7 @@ export const DEFAULT_SHERLOCK_THEME: SherlockTheme = {
 const createThemeClone = (theme: SherlockTheme): SherlockTheme => ({
   mode: theme.mode,
   accent: cloneAccentSettings(theme.accent),
+  graphs: theme.graphs.map((graph) => cloneAccentSettings(graph)),
   surfaces: {
     dark: {
       shell: cloneAccentSettings(theme.surfaces.dark.shell),
@@ -367,6 +382,11 @@ const isSherlockThemeBackgroundVariant = (
 const isSherlockThemeControlChrome = (value: unknown): value is SherlockThemeControlChrome =>
   value === 'glass' || value === 'solid' || value === 'line';
 
+const isSherlockThemeGraphs = (value: unknown): value is AccentSettings[] =>
+  Array.isArray(value) &&
+  value.length === SHERLOCK_THEME_GRAPH_COUNT &&
+  value.every((entry) => isAccentSettings(entry));
+
 const isSherlockThemeSurfaceScale = (value: unknown): value is SherlockThemeSurfaceScale => {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<SherlockThemeSurfaceScale>;
@@ -435,5 +455,17 @@ export const parseSherlockTheme = (value: unknown): SherlockTheme | null => {
     return null;
   }
 
-  return cloneSherlockTheme(candidate as SherlockTheme);
+  return cloneSherlockTheme({
+    mode: candidate.mode,
+    accent: candidate.accent,
+    graphs: isSherlockThemeGraphs(candidate.graphs)
+      ? candidate.graphs.map((graph) => cloneAccentSettings(graph))
+      : createDefaultSherlockThemeGraphs(candidate.accent),
+    surfaces: candidate.surfaces,
+    background: candidate.background,
+    typography: candidate.typography,
+    radii: candidate.radii,
+    shell: candidate.shell,
+    controls: candidate.controls,
+  });
 };

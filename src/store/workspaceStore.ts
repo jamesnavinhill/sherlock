@@ -29,16 +29,6 @@ import type {
 import type { BreadcrumbItem } from '../components/ui/Breadcrumbs';
 import { WorkspaceRepository } from '../services/db/repositories/WorkspaceRepository';
 import { normalizeWorkspaceDataBackup } from '../services/maintenance/workspaceData';
-import { DEFAULT_ACCENT_SETTINGS, buildAccentColor } from '../utils/accent';
-import {
-  DEFAULT_THEME_SURFACE_SETTINGS,
-  type ThemeSurfaceSettings,
-} from '../utils/themeSurfaces';
-import { DEFAULT_THEME_FONT_SETTINGS, type ThemeFontSettings } from '../utils/themeFonts';
-import {
-  DEFAULT_THEME_BACKGROUND_SETTINGS,
-  type ThemeBackgroundSettings,
-} from '../utils/themeBackground';
 import {
   createInitialThemeWorkspace,
   type SherlockThemeWorkspaceState,
@@ -158,15 +148,6 @@ export interface WorkspaceState {
   isSidebarCollapsed: boolean;
   themeWorkspace: SherlockThemeWorkspaceState;
   themeMode: ThemeMode;
-  themeColor: string;
-  accentSettings: {
-    hue: number;
-    lightness: number;
-    chroma: number;
-  };
-  themeSurfaceSettings: ThemeSurfaceSettings;
-  themeFontSettings: ThemeFontSettings;
-  themeBackgroundSettings: ThemeBackgroundSettings;
   showGlobalSearch: boolean;
 
   setWorkspaces: (workspaces: Workspace[]) => void;
@@ -186,11 +167,6 @@ export interface WorkspaceState {
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   setThemeWorkspace: (workspace: SherlockThemeWorkspaceState) => void;
   setThemeMode: (mode: ThemeMode) => void;
-  setThemeColor: (color: string) => void;
-  setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
-  setThemeSurfaceSettings: (settings: ThemeSurfaceSettings) => void;
-  setThemeFontSettings: (settings: ThemeFontSettings) => void;
-  setThemeBackgroundSettings: (settings: ThemeBackgroundSettings) => void;
   setShowGlobalSearch: (show: boolean) => void;
   setTemplates: (templates: WorkspaceTemplate[]) => void;
   setHeadlines: (headlines: Headline[]) => void;
@@ -350,11 +326,6 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   isSidebarCollapsed: true,
   themeWorkspace: createInitialThemeWorkspace(),
   themeMode: 'light',
-  themeColor: buildAccentColor(DEFAULT_ACCENT_SETTINGS),
-  accentSettings: DEFAULT_ACCENT_SETTINGS,
-  themeSurfaceSettings: DEFAULT_THEME_SURFACE_SETTINGS,
-  themeFontSettings: DEFAULT_THEME_FONT_SETTINGS,
-  themeBackgroundSettings: DEFAULT_THEME_BACKGROUND_SETTINGS,
   showGlobalSearch: false,
   templates: [],
   headlines: [],

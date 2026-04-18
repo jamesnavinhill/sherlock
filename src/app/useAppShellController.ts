@@ -44,11 +44,6 @@ export interface AppShellController {
   activeRunId: string | null;
   activeWorkspaceBoardId: string | null;
   activeWorkspaceId: string | null;
-  accentSettings: {
-    hue: number;
-    lightness: number;
-    chroma: number;
-  };
   artifacts: Artifact[];
   chatMessagesBySessionId: ReturnType<typeof useWorkspaceStore.getState>['chatMessagesBySessionId'];
   chatSessions: ReturnType<typeof useWorkspaceStore.getState>['chatSessions'];
@@ -77,26 +72,17 @@ export interface AppShellController {
   setActiveRunId: (id: string | null) => void;
   setActiveWorkspaceBoardId: (id: string | null) => void;
   setActiveWorkspaceId: (id: string | null) => void;
-  setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
   setShowApiKeyPrompt: (value: boolean) => void;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   setShowHelpModal: (value: boolean) => void;
   setLiveEvents: ReturnType<typeof useWorkspaceStore.getState>['setLiveEvents'];
-  setThemeColor: (color: string) => void;
-  setThemeBackgroundSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeBackgroundSettings'];
-  setThemeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeFontSettings'];
   setThemeMode: (mode: 'dark' | 'light') => void;
-  setThemeSurfaceSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeSurfaceSettings'];
   setThemeWorkspace: (workspace: SherlockThemeWorkspaceState) => void;
   showLandingApiKeyPrompt: boolean;
   showGlobalSearch: boolean;
   shouldHideRouteHeader: boolean;
   showHelpModal: boolean;
-  themeBackgroundSettings: ReturnType<typeof useWorkspaceStore.getState>['themeBackgroundSettings'];
-  themeColor: string;
-  themeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['themeFontSettings'];
   themeMode: 'dark' | 'light';
-  themeSurfaceSettings: ReturnType<typeof useWorkspaceStore.getState>['themeSurfaceSettings'];
   themeWorkspace: SherlockThemeWorkspaceState;
   workspaceBoards: ReturnType<typeof useWorkspaceStore.getState>['workspaceBoards'];
   workspaceRuns: WorkspaceRun[];
@@ -133,25 +119,15 @@ export function useAppShellController(): AppShellController {
     setActiveWorkspaceId,
   } = useAppShellRouteState();
   const {
-    accentSettings,
     isSidebarCollapsed,
     liveEvents,
-    setAccentSettings,
     setIsSidebarCollapsed,
     setLiveEvents,
     setShowGlobalSearch,
-    setThemeColor,
-    setThemeBackgroundSettings,
-    themeFontSettings,
-    setThemeFontSettings,
     setThemeMode,
-    setThemeSurfaceSettings,
     setThemeWorkspace,
     showGlobalSearch,
-    themeBackgroundSettings,
-    themeColor,
     themeMode,
-    themeSurfaceSettings,
     themeWorkspace,
   } = useAppShellThemeUiState();
   const {
@@ -333,7 +309,6 @@ export function useAppShellController(): AppShellController {
     activeRunId,
     activeWorkspaceBoardId,
     activeWorkspaceId,
-    accentSettings,
     artifacts,
     chatMessagesBySessionId,
     chatSessions,
@@ -362,27 +337,18 @@ export function useAppShellController(): AppShellController {
     setActiveRunId,
     setActiveWorkspaceBoardId,
     setActiveWorkspaceId,
-    setAccentSettings,
     setShowApiKeyPrompt,
     setIsSidebarCollapsed,
     setShowHelpModal,
     setLiveEvents,
-    setThemeColor,
-    setThemeBackgroundSettings,
-    setThemeFontSettings,
     setThemeMode,
-    setThemeSurfaceSettings,
     setThemeWorkspace,
     showLandingApiKeyPrompt,
     showGlobalSearch,
     shouldHideRouteHeader:
       routeCurrentView !== AppView.SETTINGS && isHeaderManuallyHidden && !showGlobalSearch,
     showHelpModal,
-    themeBackgroundSettings,
-    themeColor,
-    themeFontSettings,
     themeMode,
-    themeSurfaceSettings,
     themeWorkspace,
     workspaceBoards,
     workspaceRuns,

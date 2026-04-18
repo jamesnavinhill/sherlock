@@ -128,6 +128,10 @@ export const buildSherlockThemeCssVars = (theme: SherlockTheme): Record<string, 
 
   return {
     '--osint-primary': buildAccentColor(theme.accent),
+    '--osint-graph-1': buildAccentColor(theme.graphs[0]),
+    '--osint-graph-2': buildAccentColor(theme.graphs[1]),
+    '--osint-graph-3': buildAccentColor(theme.graphs[2]),
+    '--osint-graph-4': buildAccentColor(theme.graphs[3]),
     ...buildEntityPaletteCssVars(theme.accent),
     '--osint-dark-darkmode': buildAccentColor(theme.surfaces.dark.shell),
     '--osint-panel-darkmode': buildAccentColor(theme.surfaces.dark.panel),

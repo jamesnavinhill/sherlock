@@ -5,10 +5,11 @@ import {
   buildSherlockThemeCssVars,
 } from './cssVars';
 import {
+  createDefaultSherlockThemeGraphs,
   createInitialThemeWorkspace,
 } from './schema';
 import {
-  deriveLegacyThemeState,
+  hydrateSherlockThemeWorkspace,
   factoryResetActiveTheme,
   getDisplayTheme,
   migrateLegacySherlockThemeWorkspace,
@@ -76,14 +77,39 @@ describe('theme workspace storage helpers', () => {
     );
   });
 
-  it('derives runtime fields and css vars from the active workspace theme', () => {
+  it('hydrates pre-graph saved themes without discarding the rest of the workspace theme', () => {
+    const initialWorkspace = createInitialThemeWorkspace();
+    const themeWithoutGraphs = {
+      ...initialWorkspace.savedThemes.default,
+    } as Omit<(typeof initialWorkspace.savedThemes.default), 'graphs'>;
+    delete (themeWithoutGraphs as { graphs?: unknown }).graphs;
+
+    const hydratedWorkspace = hydrateSherlockThemeWorkspace({
+      ...initialWorkspace,
+      savedThemes: {
+        ...initialWorkspace.savedThemes,
+        default: themeWithoutGraphs,
+      } as unknown as typeof initialWorkspace.savedThemes,
+      draftThemes: {
+        ...initialWorkspace.draftThemes,
+        default: themeWithoutGraphs,
+      } as unknown as typeof initialWorkspace.draftThemes,
+    });
+
+    expect(hydratedWorkspace.savedThemes.default.accent).toEqual(
+      initialWorkspace.savedThemes.default.accent
+    );
+    expect(hydratedWorkspace.savedThemes.default.graphs).toEqual(
+      createDefaultSherlockThemeGraphs(initialWorkspace.savedThemes.default.accent)
+    );
+  });
+
+  it('builds css vars from the active workspace theme', () => {
     const workspace = setThemePreviewMode(createInitialThemeWorkspace(), 'dark');
-    const legacyThemeState = deriveLegacyThemeState(workspace);
     const cssVars = buildSherlockThemeCssVars(getDisplayTheme(workspace));
 
-    expect(legacyThemeState.themeMode).toBe('dark');
-    expect(legacyThemeState.themeBackgroundSettings.variant).toBe('grid');
     expect(cssVars['--osint-primary']).toBeDefined();
+    expect(cssVars['--osint-graph-1']).toBeDefined();
     expect(cssVars['--osint-shell-toolbar-height']).toMatch(/px$/);
     expect(cssVars['--osint-main-bg-image']).toBeTruthy();
   });

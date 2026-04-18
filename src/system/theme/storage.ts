@@ -1,8 +1,3 @@
-import type { ThemeBackgroundSettings } from '@/utils/themeBackground';
-import type { ThemeFontSettings } from '@/utils/themeFonts';
-import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
-
-import { buildAccentColor } from '@/utils/accent';
 import {
   cloneSherlockTheme,
   createInitialSavedThemes,
@@ -244,35 +239,6 @@ export const forkActiveThemeToNextCustomSlot = (
   nextWorkspace.activeThemeId = destinationThemeId;
   nextWorkspace.previewMode = activeDraft.mode;
   return nextWorkspace;
-};
-
-export const deriveLegacyThemeState = (workspace: SherlockThemeWorkspaceState) => {
-  const displayTheme = getDisplayTheme(workspace);
-  const themeColor = buildAccentColor(displayTheme.accent);
-
-  return {
-    accentSettings: { ...displayTheme.accent },
-    themeBackgroundSettings: {
-      variant: displayTheme.background.variant === 'plain' ? 'plain' : 'grid',
-      dotColor: displayTheme.background.dotColor,
-      dotOpacity: displayTheme.background.dotOpacity,
-    } as ThemeBackgroundSettings,
-    themeColor,
-    themeFontSettings: { ...displayTheme.typography } as ThemeFontSettings,
-    themeMode: displayTheme.mode,
-    themeSurfaceSettings: {
-      dark: {
-        background: { ...displayTheme.surfaces.dark.shell },
-        panel: { ...displayTheme.surfaces.dark.panel },
-        surface: { ...displayTheme.surfaces.dark.surface },
-      },
-      light: {
-        background: { ...displayTheme.surfaces.light.shell },
-        panel: { ...displayTheme.surfaces.light.panel },
-        surface: { ...displayTheme.surfaces.light.surface },
-      },
-    } as ThemeSurfaceSettings,
-  };
 };
 
 export const exportSherlockThemeJson = (theme: SherlockTheme): string =>

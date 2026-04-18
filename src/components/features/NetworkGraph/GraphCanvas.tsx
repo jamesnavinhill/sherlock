@@ -107,6 +107,12 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
     const getEntityFillColor = (subtype?: GraphNodeSubtype) =>
       `color-mix(in oklab, ${getEntityToneCssVar(subtype)} 28%, var(--osint-dark))`;
     const getEntityStrokeColor = (subtype?: GraphNodeSubtype) => getEntityToneCssVar(subtype);
+    const reportFillColor = 'var(--osint-graph-1)';
+    const reportStrokeColor = 'color-mix(in oklab, var(--osint-graph-1) 56%, white)';
+    const reportLabelColor = 'color-mix(in oklab, var(--osint-graph-1) 34%, var(--osint-text))';
+    const manualLinkColor = 'var(--osint-graph-2)';
+    const automaticLinkColor =
+      'color-mix(in oklab, var(--osint-graph-4) 30%, var(--osint-border))';
 
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -160,14 +166,18 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
             .select('circle')
             .attr(
               'fill',
-              isLinkSource ? '#ef4444' : d.type === 'REPORT' ? '#000' : getEntityFillColor(d.subtype)
+              isLinkSource
+                ? '#ef4444'
+                : d.type === 'REPORT'
+                  ? reportFillColor
+                  : getEntityFillColor(d.subtype)
             )
             .attr(
               'stroke',
               isLinkSource
                 ? '#f87171'
                 : d.type === 'REPORT'
-                  ? '#fff'
+                  ? reportStrokeColor
                   : getEntityStrokeColor(d.subtype)
             )
             .attr('stroke-width', isLinkSource ? 3 : 1.5);
@@ -597,7 +607,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         .selectAll('line')
         .data(filteredLinks)
         .join('line')
-        .attr('stroke', (d: GraphLink) => (d.isManual ? '#ffffff' : '#52525b'))
+        .attr('stroke', (d: GraphLink) => (d.isManual ? manualLinkColor : automaticLinkColor))
         .attr('stroke-width', (d: GraphLink) => (d.isManual ? 2 : 1))
         .attr('stroke-dasharray', (d: GraphLink) => (d.isManual ? '0' : '2,2'));
 
@@ -711,7 +721,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
         .attr('dy', 30)
         .attr('text-anchor', 'middle')
         .text((d: GraphNode) => d.label.substring(0, 15))
-        .attr('fill', '#a1a1aa')
+        .attr('fill', (d: GraphNode) => (d.type === 'REPORT' ? reportLabelColor : '#a1a1aa'))
         .style('font-size', '10px')
         .style('font-family', 'monospace');
 

@@ -7,6 +7,10 @@
 
 :root {
   --osint-primary: oklch(0.57 0.09 340);
+  --osint-graph-1: oklch(0.57 0.09 25);
+  --osint-graph-2: oklch(0.57 0.09 140);
+  --osint-graph-3: oklch(0.57 0.09 190);
+  --osint-graph-4: oklch(0.57 0.09 260);
   --entity-person: oklch(0.62 0.1 236);
   --entity-organization: oklch(0.62 0.1 300);
   --entity-concept: oklch(0.62 0.1 348);

@@ -29,7 +29,6 @@ import { WorkspaceItemRepository } from '@/services/db/repositories/WorkspaceIte
 import { parseStoredJson } from '@/services/db/repositories/json';
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import {
-  deriveLegacyThemeState,
   hydrateSherlockThemeWorkspace,
   migrateLegacySherlockThemeWorkspace,
   SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
@@ -275,8 +274,6 @@ export const createBootstrapActions = (
                 legacyThemeBackgroundSettings ||
                 DEFAULT_THEME_BACKGROUND_SETTINGS,
             });
-        const resolvedLegacyThemeState = deriveLegacyThemeState(resolvedThemeWorkspace);
-
         await SettingsRepository.setSetting(
           SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
           resolvedThemeWorkspace
@@ -363,7 +360,6 @@ export const createBootstrapActions = (
           flaggedNodeIds,
           entityAliases,
           themeWorkspace: resolvedThemeWorkspace,
-          ...resolvedLegacyThemeState,
           activeWorkspaceId,
           activeWorkspaceBoardId,
           isLoading: false,

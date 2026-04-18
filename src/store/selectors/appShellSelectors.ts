@@ -34,25 +34,15 @@ export const useAppShellRouteState = () =>
   useWorkspaceStore(useShallow(selectAppShellRouteState));
 
 export const selectAppShellThemeUiState = (state: WorkspaceState) => ({
-  accentSettings: state.accentSettings,
   isSidebarCollapsed: state.isSidebarCollapsed,
   liveEvents: state.liveEvents,
-  setAccentSettings: state.setAccentSettings,
   setIsSidebarCollapsed: state.setIsSidebarCollapsed,
   setLiveEvents: state.setLiveEvents,
   setShowGlobalSearch: state.setShowGlobalSearch,
-  setThemeColor: state.setThemeColor,
-  setThemeBackgroundSettings: state.setThemeBackgroundSettings,
-  setThemeFontSettings: state.setThemeFontSettings,
   setThemeMode: state.setThemeMode,
-  setThemeSurfaceSettings: state.setThemeSurfaceSettings,
   setThemeWorkspace: state.setThemeWorkspace,
   showGlobalSearch: state.showGlobalSearch,
-  themeBackgroundSettings: state.themeBackgroundSettings,
-  themeColor: state.themeColor,
-  themeFontSettings: state.themeFontSettings,
   themeMode: state.themeMode,
-  themeSurfaceSettings: state.themeSurfaceSettings,
   themeWorkspace: state.themeWorkspace,
 });
 

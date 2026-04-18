@@ -12,6 +12,7 @@ import {
   type ThemeFontRole,
 } from '@/utils/themeFonts';
 import {
+  createDefaultSherlockThemeGraphs,
   SHERLOCK_THEME_BACKGROUND_VARIANTS,
   SHERLOCK_THEME_CONTROL_CHROME_OPTIONS,
   SHERLOCK_THEME_LIBRARY_TEMPLATES,
@@ -134,8 +135,10 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const [editingMode, setEditingMode] = useState<SherlockThemeMode>(previewMode);
   const [selectedStructureKey, setSelectedStructureKey] = useState<ThemeStructureKey>('panel');
   const [activeFontRole, setActiveFontRole] = useState<ThemeFontRole>('ui');
+  const [activeGraphIndex, setActiveGraphIndex] = useState(0);
   const selectedSurface = activeTheme.surfaces[editingMode][selectedStructureKey];
   const selectedBackground = activeTheme.background[editingMode];
+  const selectedGraph = activeTheme.graphs[activeGraphIndex];
   const surfaceBounds = getSurfaceBounds(editingMode, selectedStructureKey);
   const activeSizeProfile = describeThemeFontSize(activeTheme.typography.size);
   const activeWeightProfile = describeThemeFontWeight(activeTheme.typography.weight);
@@ -168,6 +171,26 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           },
         },
       },
+    }));
+  };
+
+  const updateGraphField = (
+    field: keyof SherlockTheme['graphs'][number],
+    rawValue: number
+  ) => {
+    updateTheme((theme) => ({
+      ...theme,
+      graphs: theme.graphs.map((graph, index) =>
+        index === activeGraphIndex
+          ? {
+              ...graph,
+              [field]:
+                field === 'hue'
+                  ? ((Math.round(rawValue) % 360) + 360) % 360
+                  : clamp(Number(rawValue.toFixed(3)), 0, field === 'lightness' ? 1 : 0.18),
+            }
+          : graph
+      ),
     }));
   };
 
@@ -411,6 +434,8 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 ['dotColor', 'Grid Ink', 0, 100, 1],
                 ['dotOpacity', 'Pattern Opacity', 0, 1, 0.01],
                 ['gridSize', 'Grid Size', 8, 40, 1],
+                ['glowOpacity', 'Background Glow', 0, 1, 0.01],
+                ['scanlineOpacity', 'Scanline Strength', 0, 1, 0.01],
               ] as const
             ).map(([field, label, min, max, step]) => {
               const value =
@@ -450,7 +475,9 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                     className="w-full accent-[var(--osint-primary)]"
                   />
                   <div className="osint-meta-label mt-2">
-                    {field === 'dotOpacity'
+                    {field === 'dotOpacity' ||
+                    field === 'glowOpacity' ||
+                    field === 'scanlineOpacity'
                       ? `${Math.round(Number(value) * 100)}%`
                       : Number(value).toFixed(field === 'hue' || field === 'dotColor' || field === 'gridSize' ? 0 : 3)}
                   </div>
@@ -460,6 +487,91 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           </div>
         </section>
       </div>
+
+      <section className={`${SETTINGS_CARD_CLASS} grid gap-5`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="osint-meta-label">Graph Colors</div>
+            <div className="mt-1 osint-title-inline">Graph {activeGraphIndex + 1}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              updateTheme((theme) => ({
+                ...theme,
+                graphs: createDefaultSherlockThemeGraphs(theme.accent),
+              }))
+            }
+            className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-4 py-2 osint-meta-label`}
+          >
+            Derive From Accent
+          </button>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="grid gap-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {activeTheme.graphs.map((graph, index) => (
+                <button
+                  key={`graph-${index}`}
+                  type="button"
+                  onClick={() => setActiveGraphIndex(index)}
+                  data-active={activeGraphIndex === index ? 'true' : undefined}
+                  className={`${SETTINGS_SURFACE_BUTTON_CLASS} flex items-center justify-between px-3 py-3 text-left`}
+                >
+                  <span className="osint-title-inline">Graph {index + 1}</span>
+                  <span
+                    className="h-5 w-5 rounded-sm border border-zinc-700"
+                    style={{ background: buildAccentColor(graph) }}
+                  />
+                </button>
+              ))}
+            </div>
+
+            <div
+              className="min-h-[8rem] rounded border p-5"
+              style={{
+                background: `linear-gradient(135deg, ${buildAccentColor(selectedGraph)} 0%, color-mix(in oklab, ${buildAccentColor(selectedGraph)} 42%, var(--osint-panel)) 100%)`,
+                borderColor: 'color-mix(in oklab, var(--osint-graph-4, var(--osint-border)) 32%, var(--osint-border))',
+              }}
+            >
+              <div className="osint-meta-label text-white/70">Graph Palette Preview</div>
+              <div className="mt-2 text-lg text-white" style={{ fontFamily: 'var(--font-display)' }}>
+                Graph {activeGraphIndex + 1}
+              </div>
+              <div className="mt-3 text-sm text-white/80">
+                This palette now drives shared graph-theme tokens and graph-linked UI accents.
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            {(
+              [
+                ['hue', 'Hue', 0, 360, 1],
+                ['lightness', 'Lightness', 0.3, 0.8, 0.001],
+                ['chroma', 'Chroma', 0, 0.18, 0.001],
+              ] as const
+            ).map(([field, label, min, max, step]) => (
+              <label key={field} className="block">
+                <span className="osint-meta-label mb-2 block">{label}</span>
+                <input
+                  type="range"
+                  min={min}
+                  max={max}
+                  step={step}
+                  value={selectedGraph[field]}
+                  onChange={(event) => updateGraphField(field, Number(event.target.value))}
+                  className="w-full accent-[var(--osint-primary)]"
+                />
+                <div className="osint-meta-label mt-2">
+                  {selectedGraph[field].toFixed(field === 'hue' ? 0 : 3)}
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,2.05fr)]">
         <section className={`${SETTINGS_CARD_CLASS} flex flex-col gap-4`}>
@@ -783,6 +895,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           {(
             [
               ['surfaceOpacity', 'Surface Solidity', 0.4, 1.4, 0.05, '%'],
+              ['density', 'Density', 0.85, 1.25, 0.05, '%'],
               ['dividerWidth', 'Divider Width', 0, 4, 1, 'px'],
               ['dividerStrength', 'Divider Strength', 0, 1, 0.05, '%'],
               ['dividerTint', 'Accent Tint', 0, 1, 0.05, '%'],

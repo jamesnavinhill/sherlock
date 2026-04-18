@@ -14,7 +14,7 @@ export const CHROME_PANEL_ACTION_ROW_CLASS =
   'osint-panel-action-row px-4 py-3';
 
 export const CHROME_RAIL_BODY_CLASS =
-  'flex flex-1 min-h-0 flex-col gap-2 overflow-hidden p-3';
+  'osint-rail-body flex flex-1 min-h-0 flex-col overflow-hidden';
 
 export const CHROME_RAIL_SECTION_SCROLL_CLASS =
   'min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
