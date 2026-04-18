@@ -22,7 +22,7 @@ Responsibilities:
 - owns the unified launch pipeline
 - resolves domain-pack and purpose metadata into run config
 - wires lazy-loaded route pages and route wrappers
-- applies theme/accent/font runtime CSS variables
+- applies one unified Sherlock theme workspace to runtime CSS variables
 
 `/` and unknown routes now redirect to `/welcome`, giving first-time visitors a public landing page before they enter the main app shell. The welcome CTA reuses the existing API key modal and only routes into `/files` after the user authenticates or explicitly chooses to browse without a key.
 
@@ -128,8 +128,18 @@ The Sherlock-owned route shell and dock layout primitives now live in:
 - `src/styles/system/controls.css`
 - `src/styles/system/surfaces.css`
 - `src/styles/system/workbench.css`
+- `src/system/theme/schema.ts`
+- `src/system/theme/storage.ts`
+- `src/system/theme/cssVars.ts`
 
 Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
+
+The active visual-theme runtime now uses one Sherlock-owned theme workspace:
+
+- `theme_workspace` is the only active persisted visual-theme setting key
+- each workspace entry contains `savedThemes`, `draftThemes`, an `activeThemeId`, and a separate `previewMode`
+- `src/app/useAppShellEffects.ts` now applies one `buildSherlockThemeCssVars()` result to the document instead of stitching together split accent/background/surface/font builders
+- legacy split theme fragments (`theme_mode`, `accent_settings`, `theme_surface_settings`, `theme_font_settings`, `theme_background_settings`) are now migration inputs and derived compatibility state, not the active runtime source of truth
 
 ### Shared panel foundations
 
@@ -445,7 +455,7 @@ State domains include:
 - typed artifact sections
 - manual graph nodes/links
 - entity aliases and hide/flag sets
-- theme mode, accent surfaces, and font-role selections
+- theme workspace state, preview mode, and derived compatibility theme slices
 - scopes and templates
 - feed config and UI state
 
@@ -693,6 +703,8 @@ Run-setup and template flows now expose:
 - `useSettingsController.ts` is now a small facade over `useSettingsRuntimeState.ts`, `useSettingsDataState.ts`, and `useSettingsThemeState.ts`
 - `SettingsDialogs.tsx` owns backup restore, purge confirmation, and import feedback boundaries instead of leaving those workflows inline in the page root
 - the Runtime tab now reuses the same shared runtime-config modules used by run setup, guided chat, template authoring, and launch mapping
+- the Theme tab now edits one docked Sherlock theme workspace rather than separate accent/background/surface/font cards
+- theme templates are full editable themes with saved/draft separation, preview-mode switching, factory reset, fork-to-custom-slot, and JSON/CSS export
 
 ### Files
 

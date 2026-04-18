@@ -33,6 +33,7 @@
   --osint-main-bg-dot-color: color-mix(in oklab, var(--osint-ink) 26%, var(--osint-border));
   --osint-main-bg-image: radial-gradient(var(--osint-main-bg-dot-color) 1px, transparent 1px);
   --osint-main-bg-dot-opacity: 0.2;
+  --osint-main-bg-size: 20px 20px;
   --font-sans: 'Work Sans', sans-serif;
   --font-display: 'Work Sans', sans-serif;
   --font-label: 'IBM Plex Mono', monospace;
@@ -52,6 +53,20 @@
   --font-weight-extrabold: 640;
   --font-weight-label: 540;
   --font-weight-display: 560;
+  --osint-shell-toolbar-height: 80px;
+  --osint-shell-sidebar-width: 224px;
+  --osint-shell-rail-width: 304px;
+  --osint-shell-utility-width: 360px;
+  --osint-shell-content-width: 1160px;
+  --osint-shell-radius: 0px;
+  --osint-panel-radius: 6px;
+  --osint-control-radius: 6px;
+  --osint-pill-radius: 999px;
+  --osint-shell-divider-width: 1px;
+  --osint-shell-divider-color: var(--osint-raised-outline);
+  --osint-shell-divider-shadow-right: none;
+  --osint-shell-divider-shadow-left: none;
+  --osint-shell-divider-shadow-bottom: none;
   --osint-danger-soft-bg: color-mix(in oklab, var(--color-osint-danger) 14%, transparent);
   --osint-danger-soft-bg-strong: color-mix(in oklab, var(--color-osint-danger) 20%, transparent);
   --osint-danger-soft-border: color-mix(in oklab, var(--color-osint-danger) 42%, transparent);

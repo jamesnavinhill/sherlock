@@ -11,6 +11,7 @@
 .osint-card-surface {
   background-color: var(--osint-card-surface-bg);
   backdrop-filter: blur(10px);
+  border-radius: var(--osint-panel-radius);
 }
 
 .osint-raised-surface,
@@ -19,6 +20,7 @@
 .osint-panel-action-item,
 .osint-filter-option {
   border: 1px solid var(--osint-raised-outline);
+  border-radius: var(--osint-panel-radius);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
   transition:
     border-color 180ms ease,
@@ -28,6 +30,7 @@
 
 .osint-raised-surface-subtle {
   border: 1px solid color-mix(in oklab, var(--osint-surface) 42%, var(--osint-border) 58%);
+  border-radius: var(--osint-panel-radius);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 12%, transparent);
   transition:
     border-color 180ms ease,
@@ -63,12 +66,14 @@
 .osint-card-section {
   background-color: var(--osint-card-section-bg);
   border: 1px solid var(--osint-raised-outline);
+  border-radius: var(--osint-panel-radius);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
 }
 
 .osint-card-section-subtle {
   background-color: var(--osint-card-section-subtle-bg);
   border: 1px solid color-mix(in oklab, var(--osint-surface) 42%, var(--osint-border) 58%);
+  border-radius: var(--osint-panel-radius);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 12%, transparent);
 }
 

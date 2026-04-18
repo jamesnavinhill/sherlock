@@ -40,6 +40,10 @@ import {
   type ThemeBackgroundSettings,
 } from '../utils/themeBackground';
 import {
+  createInitialThemeWorkspace,
+  type SherlockThemeWorkspaceState,
+} from '@/system/theme/schema';
+import {
   hasAppliedDemoWorkspaceSeed,
 } from '../utils/localStorage';
 import { createBootstrapActions } from './actions/bootstrapActions';
@@ -152,6 +156,7 @@ export interface WorkspaceState {
 
   navStack: BreadcrumbItem[];
   isSidebarCollapsed: boolean;
+  themeWorkspace: SherlockThemeWorkspaceState;
   themeMode: ThemeMode;
   themeColor: string;
   accentSettings: {
@@ -179,6 +184,7 @@ export interface WorkspaceState {
   setLiveEvents: (events: MonitorEvent[] | ((prev: MonitorEvent[]) => MonitorEvent[])) => void;
   setNavStack: (stack: BreadcrumbItem[]) => void;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
+  setThemeWorkspace: (workspace: SherlockThemeWorkspaceState) => void;
   setThemeMode: (mode: ThemeMode) => void;
   setThemeColor: (color: string) => void;
   setAccentSettings: (settings: { hue: number; lightness: number; chroma: number }) => void;
@@ -342,6 +348,7 @@ export const useWorkspaceStore = create<WorkspaceState>()((set, get) => ({
   toasts: [],
   navStack: [],
   isSidebarCollapsed: true,
+  themeWorkspace: createInitialThemeWorkspace(),
   themeMode: 'light',
   themeColor: buildAccentColor(DEFAULT_ACCENT_SETTINGS),
   accentSettings: DEFAULT_ACCENT_SETTINGS,

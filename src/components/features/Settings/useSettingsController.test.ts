@@ -81,9 +81,11 @@ vi.mock('./useSettingsThemeState', () => ({
 }));
 
 import { useSettingsController } from './useSettingsController';
+import { createInitialThemeWorkspace } from '@/system/theme/schema';
 
 describe('useSettingsController', () => {
   let runtimeState: Record<string, unknown>;
+  let themeState: Record<string, unknown>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -114,25 +116,25 @@ describe('useSettingsController', () => {
       autoResolve: true,
       quietMode: false,
     });
-    useSettingsThemeState.mockReturnValue({
-      activeSurfaceMode: 'dark',
-      selectedSurfaceKey: null,
-      themeSections: {},
-      getSurfaceBounds: vi.fn(),
-      setActiveSurfaceMode: vi.fn(),
-      setSelectedSurfaceKey: vi.fn(),
-      toggleThemeSection: vi.fn(),
-      handleResetThemeSettings: vi.fn(),
-      handleResetFonts: vi.fn(),
-      handleApplySurfacePreset: vi.fn(),
-      handleResetSurfaceMode: vi.fn(),
-      handleMatchAccentHue: vi.fn(),
-      handleAdjustModeChroma: vi.fn(),
-      handleAdjustModeSeparation: vi.fn(),
-      handleThemeBackgroundVariantChange: vi.fn(),
-      updateThemeBackgroundField: vi.fn(),
-      updateSelectedSurfaceField: vi.fn(),
-    });
+    themeState = {
+      activeTheme: createInitialThemeWorkspace().draftThemes.default,
+      activeThemeId: 'default',
+      exportResolvedCss: ':root {}',
+      exportThemeJson: '{}',
+      forkActiveTheme: vi.fn(),
+      previewMode: 'light',
+      resetActiveThemeFactory: vi.fn(),
+      resetAllThemeFactories: vi.fn(),
+      revertActiveTheme: vi.fn(),
+      saveActiveTheme: vi.fn(),
+      savedTheme: createInitialThemeWorkspace().savedThemes.default,
+      selectTheme: vi.fn(),
+      setPreviewMode: vi.fn(),
+      themeDirty: false,
+      themeWorkspace: createInitialThemeWorkspace(),
+      updateTheme: vi.fn(),
+    };
+    useSettingsThemeState.mockReturnValue(themeState);
   });
 
   afterEach(() => {
@@ -163,16 +165,8 @@ describe('useSettingsController', () => {
 
     const { result } = renderHook(() =>
       useSettingsController({
-        accentSettings: { hue: 20, lightness: 60, chroma: 0.2 },
-        onAccentChange: vi.fn(),
-        onThemeBackgroundSettingsChange: vi.fn(),
-        onThemeFontSettingsChange: vi.fn(),
-        onThemeSurfaceSettingsChange: vi.fn(),
-        themeBackgroundSettings: { variant: 'grid', dotColor: 26, dotOpacity: 0.2 },
-        themeColor: 'oklch(62% 0.2 20)',
-        themeFontSettings: {} as never,
-        themeMode: 'dark',
-        themeSurfaceSettings: {} as never,
+        onThemeWorkspaceChange: vi.fn(),
+        themeWorkspace: createInitialThemeWorkspace(),
       })
     );
 
@@ -187,16 +181,8 @@ describe('useSettingsController', () => {
   it('persists config and marks save success when validation passes', () => {
     const { result } = renderHook(() =>
       useSettingsController({
-        accentSettings: { hue: 20, lightness: 60, chroma: 0.2 },
-        onAccentChange: vi.fn(),
-        onThemeBackgroundSettingsChange: vi.fn(),
-        onThemeFontSettingsChange: vi.fn(),
-        onThemeSurfaceSettingsChange: vi.fn(),
-        themeBackgroundSettings: { variant: 'grid', dotColor: 26, dotOpacity: 0.2 },
-        themeColor: 'oklch(62% 0.2 20)',
-        themeFontSettings: {} as never,
-        themeMode: 'dark',
-        themeSurfaceSettings: {} as never,
+        onThemeWorkspaceChange: vi.fn(),
+        themeWorkspace: createInitialThemeWorkspace(),
       })
     );
 
@@ -211,11 +197,7 @@ describe('useSettingsController', () => {
         provider: 'OPENAI',
         modelId: 'gpt-test',
       }),
-      expect.objectContaining({
-        theme: 'oklch(62% 0.2 20)',
-        themeMode: 'dark',
-        themeBackgroundSettings: { variant: 'grid', dotColor: 26, dotOpacity: 0.2 },
-      })
+      expect.anything()
     );
     expect(result.current.saveSuccess).toBe(true);
   });

@@ -1,10 +1,17 @@
-import { buildAccentColor, parseOklch } from '@/utils/accent';
+import { parseOklch } from '@/utils/accent';
 import { clearStoredActiveWorkspaceId, setStoredActiveWorkspaceId } from '@/utils/localStorage';
 import { SettingsRepository } from '@/services/db/repositories/SettingsRepository';
 import { WorkspaceRepository } from '@/services/db/repositories/WorkspaceRepository';
 import { TemplateRepository } from '@/services/db/repositories/TemplateRepository';
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import { ScopeRepository } from '@/services/db/repositories/ScopeRepository';
+import {
+  deriveLegacyThemeState,
+  SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
+  setThemePreviewMode,
+  updateActiveDraftTheme,
+} from '@/system/theme/storage';
+import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 
 import type { WorkspaceState } from '../workspaceStore';
 import type { WorkspaceStoreApi } from './shared';
@@ -29,6 +36,7 @@ export const createSimpleActions = ({
   | 'setLiveEvents'
   | 'setNavStack'
   | 'setIsSidebarCollapsed'
+  | 'setThemeWorkspace'
   | 'setThemeMode'
   | 'setThemeColor'
   | 'setAccentSettings'
@@ -88,37 +96,71 @@ export const createSimpleActions = ({
   },
   setNavStack: (navStack) => set({ navStack }),
   setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
+  setThemeWorkspace: (themeWorkspace: SherlockThemeWorkspaceState) => {
+    set({
+      themeWorkspace,
+      ...deriveLegacyThemeState(themeWorkspace),
+    });
+    void SettingsRepository.setSetting(SHERLOCK_THEME_WORKSPACE_SETTING_KEY, themeWorkspace);
+  },
   setThemeMode: (themeMode) => {
-    set({ themeMode });
-    void SettingsRepository.setSetting('theme_mode', themeMode);
+    const nextWorkspace = setThemePreviewMode(get().themeWorkspace, themeMode);
+    get().setThemeWorkspace(nextWorkspace);
   },
   setThemeColor: (themeColor) => {
     const parsedAccent = parseOklch(themeColor);
-    set({
-      themeColor,
-      accentSettings: parsedAccent ?? get().accentSettings,
-    });
-    void SettingsRepository.setSetting('theme_color', themeColor);
-    if (parsedAccent) {
-      void SettingsRepository.setSetting('accent_settings', parsedAccent);
-    }
+    if (!parsedAccent) return;
+    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
+      ...theme,
+      accent: parsedAccent,
+    }));
+    get().setThemeWorkspace(nextWorkspace);
   },
   setAccentSettings: (accentSettings) => {
-    set({ accentSettings, themeColor: buildAccentColor(accentSettings) });
-    void SettingsRepository.setSetting('accent_settings', accentSettings);
-    void SettingsRepository.setSetting('theme_color', buildAccentColor(accentSettings));
+    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
+      ...theme,
+      accent: accentSettings,
+    }));
+    get().setThemeWorkspace(nextWorkspace);
   },
   setThemeSurfaceSettings: (themeSurfaceSettings) => {
-    set({ themeSurfaceSettings });
-    void SettingsRepository.setSetting('theme_surface_settings', themeSurfaceSettings);
+    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
+      ...theme,
+      surfaces: {
+        dark: {
+          shell: { ...themeSurfaceSettings.dark.background },
+          panel: { ...themeSurfaceSettings.dark.panel },
+          rail: { ...themeSurfaceSettings.dark.background },
+          surface: { ...themeSurfaceSettings.dark.surface },
+        },
+        light: {
+          shell: { ...themeSurfaceSettings.light.background },
+          panel: { ...themeSurfaceSettings.light.panel },
+          rail: { ...themeSurfaceSettings.light.background },
+          surface: { ...themeSurfaceSettings.light.surface },
+        },
+      },
+    }));
+    get().setThemeWorkspace(nextWorkspace);
   },
   setThemeFontSettings: (themeFontSettings) => {
-    set({ themeFontSettings });
-    void SettingsRepository.setSetting('theme_font_settings', themeFontSettings);
+    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
+      ...theme,
+      typography: { ...themeFontSettings },
+    }));
+    get().setThemeWorkspace(nextWorkspace);
   },
   setThemeBackgroundSettings: (themeBackgroundSettings) => {
-    set({ themeBackgroundSettings });
-    void SettingsRepository.setSetting('theme_background_settings', themeBackgroundSettings);
+    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
+      ...theme,
+      background: {
+        ...theme.background,
+        variant: themeBackgroundSettings.variant === 'plain' ? 'plain' : 'dot-grid',
+        dotColor: themeBackgroundSettings.dotColor,
+        dotOpacity: themeBackgroundSettings.dotOpacity,
+      },
+    }));
+    get().setThemeWorkspace(nextWorkspace);
   },
   setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
   setTemplates: (templates) => set({ templates }),

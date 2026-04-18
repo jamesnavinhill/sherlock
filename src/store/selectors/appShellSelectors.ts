@@ -46,12 +46,14 @@ export const selectAppShellThemeUiState = (state: WorkspaceState) => ({
   setThemeFontSettings: state.setThemeFontSettings,
   setThemeMode: state.setThemeMode,
   setThemeSurfaceSettings: state.setThemeSurfaceSettings,
+  setThemeWorkspace: state.setThemeWorkspace,
   showGlobalSearch: state.showGlobalSearch,
   themeBackgroundSettings: state.themeBackgroundSettings,
   themeColor: state.themeColor,
   themeFontSettings: state.themeFontSettings,
   themeMode: state.themeMode,
   themeSurfaceSettings: state.themeSurfaceSettings,
+  themeWorkspace: state.themeWorkspace,
 });
 
 export const useAppShellThemeUiState = () =>

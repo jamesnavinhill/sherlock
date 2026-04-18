@@ -2,6 +2,7 @@
   background-color: var(--osint-panel);
   color: var(--osint-text-action);
   border: 1px solid color-mix(in oklab, var(--osint-border) 92%, transparent);
+  border-radius: var(--osint-control-radius);
   font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
@@ -23,6 +24,7 @@
   background-color: var(--osint-primary-soft-bg);
   color: var(--osint-primary);
   border: 1px solid var(--osint-primary-soft-border);
+  border-radius: var(--osint-control-radius);
   font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
@@ -43,6 +45,7 @@
   background-color: var(--osint-interaction-bg);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
   border: 1px solid var(--osint-raised-outline);
+  border-radius: var(--osint-control-radius);
   font-weight: var(--font-weight-bold);
   transition:
     background-color 180ms ease,
@@ -64,6 +67,7 @@
   background-color: var(--osint-primary-soft-bg-strong);
   color: var(--osint-primary);
   border: 1px solid color-mix(in oklab, var(--osint-primary) 60%, transparent);
+  border-radius: var(--osint-control-radius);
   font-weight: var(--font-weight-bold);
   box-shadow: var(--osint-accent-outline-glow);
 }
@@ -78,6 +82,7 @@
 .osint-ghost-button-success {
   background-color: transparent;
   border: 1px solid transparent;
+  border-radius: var(--osint-control-radius);
   box-shadow: none;
   transition:
     background-color 180ms ease,
@@ -127,6 +132,7 @@
   background-color: var(--osint-input-surface);
   color: color-mix(in oklab, var(--osint-text) 76%, var(--osint-ink) 24%);
   border: 1px solid var(--osint-raised-outline);
+  border-radius: var(--osint-control-radius);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -151,11 +157,13 @@
 .osint-toolbar-group {
   background-color: var(--osint-interaction-bg);
   border: 1px solid var(--osint-raised-outline);
+  border-radius: var(--osint-control-radius);
 }
 
 .osint-input-field {
   background-color: color-mix(in oklab, var(--osint-panel) 74%, var(--osint-surface) 26%);
   border: 1px solid var(--osint-raised-outline);
+  border-radius: var(--osint-control-radius);
   color: var(--osint-text-heading);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
   transition:
@@ -182,6 +190,7 @@
 .osint-surface-button {
   background-color: var(--osint-accent-outline-bg);
   border: 1px solid var(--osint-accent-outline-border);
+  border-radius: var(--osint-control-radius);
   color: var(--osint-text-strong);
   box-shadow: var(--osint-accent-outline-shadow);
   transition:
@@ -215,6 +224,7 @@
 .osint-rail-button {
   background-color: transparent;
   border: 1px solid var(--osint-raised-outline);
+  border-radius: var(--osint-control-radius);
   color: var(--osint-text-strong);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
   transition:

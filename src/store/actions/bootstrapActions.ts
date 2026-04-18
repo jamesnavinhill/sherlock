@@ -1,4 +1,4 @@
-import { buildAccentColor, parseOklch, DEFAULT_ACCENT_SETTINGS } from '@/utils/accent';
+import { parseOklch, DEFAULT_ACCENT_SETTINGS } from '@/utils/accent';
 import {
   DEFAULT_THEME_BACKGROUND_SETTINGS,
   parseThemeBackgroundSettings,
@@ -28,6 +28,13 @@ import { WorkspaceBoardRepository } from '@/services/db/repositories/WorkspaceBo
 import { WorkspaceItemRepository } from '@/services/db/repositories/WorkspaceItemRepository';
 import { parseStoredJson } from '@/services/db/repositories/json';
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
+import {
+  deriveLegacyThemeState,
+  hydrateSherlockThemeWorkspace,
+  migrateLegacySherlockThemeWorkspace,
+  SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
+} from '@/system/theme/storage';
+import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 import {
   getWorkspaceDataSignals,
   groupBoardAgentActionsBySessionId,
@@ -95,9 +102,9 @@ export const createBootstrapActions = (
           hiddenNodeIdsResult,
           flaggedNodeIdsResult,
           entityAliasesResult,
+          storedThemeWorkspace,
           storedThemeMode,
           storedAccent,
-          storedTheme,
           storedThemeSurfaceSettings,
           storedThemeFontSettings,
           storedThemeBackgroundSettings,
@@ -143,6 +150,11 @@ export const createBootstrapActions = (
             {}
           ),
           loadBootstrapResource(
+            'theme workspace',
+            () => SettingsRepository.getSetting<SherlockThemeWorkspaceState>(SHERLOCK_THEME_WORKSPACE_SETTING_KEY),
+            null
+          ),
+          loadBootstrapResource(
             'theme mode',
             () => SettingsRepository.getSetting<ThemeMode>('theme_mode'),
             null
@@ -155,11 +167,6 @@ export const createBootstrapActions = (
                 lightness: number;
                 chroma: number;
               }>('accent_settings'),
-            null
-          ),
-          loadBootstrapResource(
-            'theme color',
-            () => SettingsRepository.getSetting<string>('theme_color'),
             null
           ),
           loadBootstrapResource(
@@ -243,41 +250,36 @@ export const createBootstrapActions = (
         );
         const legacyThemeFontSettings = parseThemeFontSettings(legacyConfig['themeFontSettings']);
 
-        const resolvedAccent =
-          storedAccent ||
-          (legacyTheme ? parseOklch(legacyTheme) : null) ||
-          (legacyConfigTheme ? parseOklch(legacyConfigTheme) : null) ||
-          DEFAULT_ACCENT_SETTINGS;
-        const resolvedTheme =
-          storedTheme || legacyTheme || legacyConfigTheme || buildAccentColor(resolvedAccent);
-        const resolvedThemeMode =
-          storedThemeMode === 'light' || storedThemeMode === 'dark'
-            ? storedThemeMode
-            : (legacyThemeMode ?? 'light');
-        const resolvedThemeSurfaceSettings =
-          parseThemeSurfaceSettings(storedThemeSurfaceSettings) ||
-          legacyThemeSurfaceSettings ||
-          DEFAULT_THEME_SURFACE_SETTINGS;
-        const resolvedThemeFontSettings =
-          parseThemeFontSettings(storedThemeFontSettings) ||
-          legacyThemeFontSettings ||
-          DEFAULT_THEME_FONT_SETTINGS;
-        const resolvedThemeBackgroundSettings =
-          parseThemeBackgroundSettings(storedThemeBackgroundSettings) ||
-          legacyThemeBackgroundSettings ||
-          DEFAULT_THEME_BACKGROUND_SETTINGS;
+        const resolvedThemeWorkspace = storedThemeWorkspace
+          ? hydrateSherlockThemeWorkspace(storedThemeWorkspace)
+          : migrateLegacySherlockThemeWorkspace({
+              accentSettings:
+                storedAccent ||
+                (legacyTheme ? parseOklch(legacyTheme) : null) ||
+                (legacyConfigTheme ? parseOklch(legacyConfigTheme) : null) ||
+                DEFAULT_ACCENT_SETTINGS,
+              themeMode:
+                storedThemeMode === 'light' || storedThemeMode === 'dark'
+                  ? storedThemeMode
+                  : legacyThemeMode,
+              themeSurfaceSettings:
+                parseThemeSurfaceSettings(storedThemeSurfaceSettings) ||
+                legacyThemeSurfaceSettings ||
+                DEFAULT_THEME_SURFACE_SETTINGS,
+              themeFontSettings:
+                parseThemeFontSettings(storedThemeFontSettings) ||
+                legacyThemeFontSettings ||
+                DEFAULT_THEME_FONT_SETTINGS,
+              themeBackgroundSettings:
+                parseThemeBackgroundSettings(storedThemeBackgroundSettings) ||
+                legacyThemeBackgroundSettings ||
+                DEFAULT_THEME_BACKGROUND_SETTINGS,
+            });
+        const resolvedLegacyThemeState = deriveLegacyThemeState(resolvedThemeWorkspace);
 
-        await SettingsRepository.setSetting('theme_mode', resolvedThemeMode);
-        await SettingsRepository.setSetting('accent_settings', resolvedAccent);
-        await SettingsRepository.setSetting('theme_color', resolvedTheme);
         await SettingsRepository.setSetting(
-          'theme_surface_settings',
-          resolvedThemeSurfaceSettings
-        );
-        await SettingsRepository.setSetting('theme_font_settings', resolvedThemeFontSettings);
-        await SettingsRepository.setSetting(
-          'theme_background_settings',
-          resolvedThemeBackgroundSettings
+          SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
+          resolvedThemeWorkspace
         );
 
         if (
@@ -360,12 +362,8 @@ export const createBootstrapActions = (
           hiddenNodeIds,
           flaggedNodeIds,
           entityAliases,
-          themeMode: resolvedThemeMode,
-          accentSettings: resolvedAccent,
-          themeColor: resolvedTheme,
-          themeSurfaceSettings: resolvedThemeSurfaceSettings,
-          themeFontSettings: resolvedThemeFontSettings,
-          themeBackgroundSettings: resolvedThemeBackgroundSettings,
+          themeWorkspace: resolvedThemeWorkspace,
+          ...resolvedLegacyThemeState,
           activeWorkspaceId,
           activeWorkspaceBoardId,
           isLoading: false,

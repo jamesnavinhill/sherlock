@@ -39,7 +39,7 @@ This repository also contains a separate standalone canon studio in [`canon-desi
 - `Live Monitor`: live signal scans, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
 - `Files`: workspace browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
 - `Finder`: discovery scanning and analysis launch
-- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a vertically stacked runtime/theme workbench aligned to the shared chrome contract
+- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a docked theme workspace with editable theme templates, dark/light preview separation, save/revert/reset flows, and JSON/CSS export
 
 ## Tech Stack
 
@@ -146,11 +146,11 @@ npm run check:full
 
 `npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
-## Current Validation Snapshot (April 9, 2026)
+## Current Validation Snapshot (April 17, 2026)
 
-The current targeted validation for the shared panel unification pass passed on this checkout:
+The current targeted validation for the unified Sherlock theme workspace cutover passed on this checkout:
 
-- `npm run test -- src/components/features/Timeline/useTimelineViewController.test.ts src/components/features/Timeline/TimelineDossierPanel.test.tsx src/components/features/Timeline/TimelineDetailRail.test.tsx src/components/features/Timeline/timelineViewModel.test.ts src/components/features/OperationView/DossierPanel.test.tsx src/components/features/OperationView/ArtifactViewer.test.tsx src/components/features/OperationView/InspectorPanel.test.tsx src/components/features/NetworkGraph/NodeInspector.test.tsx src/components/features/shared/useExclusivePanelSections.test.tsx src/components/features/Inspector/GlobalInspectorPanel.test.tsx src/components/features/LibraryRail/LibraryRailShell.test.tsx src/components/features/LibraryRail/LibraryRailSections.test.tsx`: passes
+- `npm run test -- src/components/features/Settings/useSettingsController.test.ts src/system/theme/storage.test.ts src/app/AppShell.test.tsx src/app/AppShellRoutes.test.tsx`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes

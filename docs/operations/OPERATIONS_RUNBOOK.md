@@ -19,16 +19,17 @@ Adapters in scope:
 ## 1. Fast Triage
 
 1. Open `Settings -> Runtime` and capture selected `provider` and `model`.
-2. Verify a key exists for the selected provider.
-3. Reproduce once.
-4. Inspect browser console for `[provider-router]` entries.
-5. Capture:
+2. If the operator also changed `Settings -> Theme`, note that theme templates/drafts now persist separately in the Sherlock theme workspace and do not affect provider routing.
+3. Verify a key exists for the selected provider.
+4. Reproduce once.
+5. Inspect browser console for `[provider-router]` entries.
+6. Capture:
    - `provider`
    - `modelId`
    - `operation`
    - `retryCount`
    - `errorClass`
-6. If the run used OpenRouter, also capture:
+7. If the run used OpenRouter, also capture:
    - `generationMode`
    - whether OpenRouter web search was enabled
    - search engine and domain filters from `Settings -> Runtime`

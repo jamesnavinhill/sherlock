@@ -2,22 +2,12 @@ import { useEffect } from 'react';
 import type { MutableRefObject } from 'react';
 
 import { AppView } from '@/types';
-import { buildEntityPaletteCssVars } from '@/utils/entityPalette';
-import { buildThemeBackgroundCssVars } from '@/utils/themeBackground';
-import { buildThemeFontCssVars } from '@/utils/themeFonts';
-import { buildThemeSurfaceCssVars } from '@/utils/themeSurfaces';
+import { buildSherlockThemeCssVars } from '@/system/theme/cssVars';
+import { getDisplayTheme } from '@/system/theme/storage';
+import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 
 interface ApplyThemeInput {
-  accentSettings: {
-    hue: number;
-    lightness: number;
-    chroma: number;
-  };
-  themeColor: string;
-  themeBackgroundSettings: Parameters<typeof buildThemeBackgroundCssVars>[0];
-  themeFontSettings: Parameters<typeof buildThemeFontCssVars>[0];
-  themeMode: 'dark' | 'light';
-  themeSurfaceSettings: Parameters<typeof buildThemeSurfaceCssVars>[0];
+  themeWorkspace: SherlockThemeWorkspaceState;
 }
 
 export const useInitializeAppShell = (initializeStore: () => Promise<void>) => {
@@ -51,44 +41,15 @@ export const useTrackAppShellLocation = ({
 };
 
 export const useApplyAppShellTheme = ({
-  accentSettings,
-  themeColor,
-  themeBackgroundSettings,
-  themeFontSettings,
-  themeMode,
-  themeSurfaceSettings,
+  themeWorkspace,
 }: ApplyThemeInput) => {
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--osint-primary', themeColor);
-    Object.entries(buildEntityPaletteCssVars(accentSettings)).forEach(([name, value]) => {
+    const displayTheme = getDisplayTheme(themeWorkspace);
+    root.setAttribute('data-theme', displayTheme.mode);
+    root.style.colorScheme = displayTheme.mode;
+    Object.entries(buildSherlockThemeCssVars(displayTheme)).forEach(([name, value]) => {
       root.style.setProperty(name, value);
     });
-  }, [accentSettings, themeColor]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    Object.entries(buildThemeSurfaceCssVars(themeSurfaceSettings)).forEach(([name, value]) => {
-      root.style.setProperty(name, value);
-    });
-  }, [themeSurfaceSettings]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    Object.entries(buildThemeBackgroundCssVars(themeBackgroundSettings)).forEach(([name, value]) => {
-      root.style.setProperty(name, value);
-    });
-  }, [themeBackgroundSettings]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    Object.entries(buildThemeFontCssVars(themeFontSettings)).forEach(([name, value]) => {
-      root.style.setProperty(name, value);
-    });
-  }, [themeFontSettings]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', themeMode);
-    document.documentElement.style.colorScheme = themeMode;
-  }, [themeMode]);
+  }, [themeWorkspace]);
 };

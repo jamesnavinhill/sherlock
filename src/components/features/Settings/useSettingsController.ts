@@ -4,38 +4,20 @@ import type { SystemConfig } from '@/types';
 import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
 import { saveSystemConfig } from '@/config/systemConfig';
 import { serializeOpenRouterSettingsDraft } from '@/components/features/Runs/runtimeConfigState';
-import type { ThemeBackgroundSettings } from '@/utils/themeBackground';
-import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
-import type { ThemeFontSettings } from '@/utils/themeFonts';
+import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 import { useSettingsScopeState } from '@/store/selectors/settingsSelectors';
 import { useSettingsDataState } from './useSettingsDataState';
 import { useSettingsRuntimeState } from './useSettingsRuntimeState';
 import { useSettingsThemeState } from './useSettingsThemeState';
 
 interface SettingsControllerInput {
-  accentSettings: { hue: number; lightness: number; chroma: number };
-  onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
-  onThemeBackgroundSettingsChange: (settings: ThemeBackgroundSettings) => void;
-  onThemeFontSettingsChange: (settings: ThemeFontSettings) => void;
-  onThemeSurfaceSettingsChange: (settings: ThemeSurfaceSettings) => void;
-  themeBackgroundSettings: ThemeBackgroundSettings;
-  themeColor: string;
-  themeFontSettings: ThemeFontSettings;
-  themeMode: 'dark' | 'light';
-  themeSurfaceSettings: ThemeSurfaceSettings;
+  onThemeWorkspaceChange: (workspace: SherlockThemeWorkspaceState) => void;
+  themeWorkspace: SherlockThemeWorkspaceState;
 }
 
 export const useSettingsController = ({
-  accentSettings,
-  onAccentChange,
-  onThemeBackgroundSettingsChange,
-  onThemeFontSettingsChange,
-  onThemeSurfaceSettingsChange,
-  themeBackgroundSettings,
-  themeColor,
-  themeFontSettings,
-  themeMode,
-  themeSurfaceSettings,
+  onThemeWorkspaceChange,
+  themeWorkspace,
 }: SettingsControllerInput) => {
   const { customScopes } = useSettingsScopeState();
   const initialConfig = migrateSystemConfig(loadSystemConfig());
@@ -45,14 +27,8 @@ export const useSettingsController = ({
     initialQuietMode: initialConfig.quietMode ?? false,
   });
   const theme = useSettingsThemeState({
-    accentSettings,
-    onAccentChange,
-    onThemeBackgroundSettingsChange,
-    onThemeFontSettingsChange,
-    onThemeSurfaceSettingsChange,
-    themeBackgroundSettings,
-    themeMode,
-    themeSurfaceSettings,
+    onThemeWorkspaceChange,
+    themeWorkspace,
   });
 
   const [activeTab, setActiveTab] = useState<'DATA' | 'RUNTIME' | 'SCOPES' | 'TEMPLATES' | 'THEME'>(
@@ -94,12 +70,11 @@ export const useSettingsController = ({
     };
 
     saveSystemConfig(config, {
-      theme: themeColor,
-      themeMode,
-      themeBackgroundSettings,
-      themeSurfaceSettings,
-      themeFontSettings,
     });
+
+    if (activeTab === 'THEME') {
+      theme.saveActiveTheme();
+    }
 
     window.setTimeout(() => {
       setIsSaving(false);

@@ -1,7 +1,6 @@
 import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { buildAccentColor } from '@/utils/accent';
 import { buildLandingPath, getRouteDefinition } from '@/app/routes';
 import {
   ArtifactRouteView,
@@ -217,19 +216,8 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
         path={getRouteDefinition('SETTINGS').path}
         element={
           <Settings
-            themeColor={controller.themeColor}
-            themeMode={controller.themeMode}
-            accentSettings={controller.accentSettings}
-            onAccentChange={(settings) => {
-              controller.setAccentSettings(settings);
-              controller.setThemeColor(buildAccentColor(settings));
-            }}
-            themeBackgroundSettings={controller.themeBackgroundSettings}
-            onThemeBackgroundSettingsChange={controller.setThemeBackgroundSettings}
-            themeSurfaceSettings={controller.themeSurfaceSettings}
-            onThemeSurfaceSettingsChange={controller.setThemeSurfaceSettings}
-            themeFontSettings={controller.themeFontSettings}
-            onThemeFontSettingsChange={controller.setThemeFontSettings}
+            themeWorkspace={controller.themeWorkspace}
+            onThemeWorkspaceChange={controller.setThemeWorkspace}
             onStartCase={(request) =>
               controller.launchInvestigation({
                 ...request,

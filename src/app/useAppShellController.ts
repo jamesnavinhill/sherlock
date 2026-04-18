@@ -37,6 +37,7 @@ import { openWorkspaceChatRequest } from '@/app/openChatRequest';
 import { requestOmniboxFocus } from '@/components/ui/omniboxFocus';
 import { useAppShellLaunch } from '@/app/useAppShellLaunch';
 import { useAppShellNavigation } from '@/app/useAppShellNavigation';
+import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 
 export interface AppShellController {
   activeChatSessionId: string | null;
@@ -86,6 +87,7 @@ export interface AppShellController {
   setThemeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeFontSettings'];
   setThemeMode: (mode: 'dark' | 'light') => void;
   setThemeSurfaceSettings: ReturnType<typeof useWorkspaceStore.getState>['setThemeSurfaceSettings'];
+  setThemeWorkspace: (workspace: SherlockThemeWorkspaceState) => void;
   showLandingApiKeyPrompt: boolean;
   showGlobalSearch: boolean;
   shouldHideRouteHeader: boolean;
@@ -95,6 +97,7 @@ export interface AppShellController {
   themeFontSettings: ReturnType<typeof useWorkspaceStore.getState>['themeFontSettings'];
   themeMode: 'dark' | 'light';
   themeSurfaceSettings: ReturnType<typeof useWorkspaceStore.getState>['themeSurfaceSettings'];
+  themeWorkspace: SherlockThemeWorkspaceState;
   workspaceBoards: ReturnType<typeof useWorkspaceStore.getState>['workspaceBoards'];
   workspaceRuns: WorkspaceRun[];
   workspaces: ReturnType<typeof useWorkspaceStore.getState>['workspaces'];
@@ -143,11 +146,13 @@ export function useAppShellController(): AppShellController {
     setThemeFontSettings,
     setThemeMode,
     setThemeSurfaceSettings,
+    setThemeWorkspace,
     showGlobalSearch,
     themeBackgroundSettings,
     themeColor,
     themeMode,
     themeSurfaceSettings,
+    themeWorkspace,
   } = useAppShellThemeUiState();
   const {
     addChatMessage,
@@ -269,12 +274,7 @@ export function useAppShellController(): AppShellController {
   useKeyboardShortcuts(shortcuts);
 
   useApplyAppShellTheme({
-    accentSettings,
-    themeColor,
-    themeBackgroundSettings,
-    themeFontSettings,
-    themeMode,
-    themeSurfaceSettings,
+    themeWorkspace,
   });
 
   const { launchInvestigation, handleBatchInvestigate } = useAppShellLaunch({
@@ -372,6 +372,7 @@ export function useAppShellController(): AppShellController {
     setThemeFontSettings,
     setThemeMode,
     setThemeSurfaceSettings,
+    setThemeWorkspace,
     showLandingApiKeyPrompt,
     showGlobalSearch,
     shouldHideRouteHeader:
@@ -382,6 +383,7 @@ export function useAppShellController(): AppShellController {
     themeFontSettings,
     themeMode,
     themeSurfaceSettings,
+    themeWorkspace,
     workspaceBoards,
     workspaceRuns,
     workspaces,

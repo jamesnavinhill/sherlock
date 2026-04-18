@@ -14,12 +14,12 @@ import {
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 import type { InvestigationLaunchRequest } from '@/types';
 import { buildAccentColor } from '@/utils/accent';
-import type { ThemeBackgroundSettings } from '@/utils/themeBackground';
-import type { ThemeFontSettings } from '@/utils/themeFonts';
-import type { ThemeSurfaceSettings } from '@/utils/themeSurfaces';
+import {
+  SHERLOCK_THEME_LIBRARY_TEMPLATES,
+  type SherlockThemeWorkspaceState,
+} from '@/system/theme/schema';
 import {
   SETTINGS_TAB_DESCRIPTIONS,
-  SURFACE_LABELS,
   TABS,
 } from './settingsUtils';
 import { SettingsDataTab } from './SettingsDataTab';
@@ -31,33 +31,17 @@ import { SettingsThemeTab } from './SettingsThemeTab';
 import { useSettingsController } from './useSettingsController';
 
 interface SettingsProps {
-  themeColor: string;
-  themeMode: 'dark' | 'light';
-  onAccentChange: (settings: { hue: number; lightness: number; chroma: number }) => void;
-  accentSettings: { hue: number; lightness: number; chroma: number };
-  themeBackgroundSettings: ThemeBackgroundSettings;
-  onThemeBackgroundSettingsChange: (settings: ThemeBackgroundSettings) => void;
-  themeSurfaceSettings: ThemeSurfaceSettings;
-  onThemeSurfaceSettingsChange: (settings: ThemeSurfaceSettings) => void;
-  themeFontSettings: ThemeFontSettings;
-  onThemeFontSettingsChange: (settings: ThemeFontSettings) => void;
+  onThemeWorkspaceChange: (workspace: SherlockThemeWorkspaceState) => void;
   onStartCase: (request: InvestigationLaunchRequest) => void;
   onClose: () => void;
+  themeWorkspace: SherlockThemeWorkspaceState;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
-  themeColor,
-  themeMode,
-  onAccentChange,
-  accentSettings,
-  themeBackgroundSettings,
-  onThemeBackgroundSettingsChange,
-  themeSurfaceSettings,
-  onThemeSurfaceSettingsChange,
-  themeFontSettings,
-  onThemeFontSettingsChange,
+  onThemeWorkspaceChange,
   onStartCase,
   onClose,
+  themeWorkspace,
 }) => {
   const {
     activeTab,
@@ -72,24 +56,11 @@ export const Settings: React.FC<SettingsProps> = ({
     setActiveTab,
     theme,
   } = useSettingsController({
-    accentSettings,
-    onAccentChange,
-    onThemeBackgroundSettingsChange,
-    onThemeFontSettingsChange,
-    onThemeSurfaceSettingsChange,
-    themeBackgroundSettings,
-    themeColor,
-    themeFontSettings,
-    themeMode,
-    themeSurfaceSettings,
+    onThemeWorkspaceChange,
+    themeWorkspace,
   });
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab) ?? TABS[0];
   const activeTabDescription = SETTINGS_TAB_DESCRIPTIONS[activeTab];
-  const themeSurfaceKeys: Array<keyof ThemeSurfaceSettings['dark']> = [
-    'background',
-    'panel',
-    'surface',
-  ];
 
   const renderActiveTab = () => {
     if (activeTab === 'DATA') {
@@ -123,30 +94,20 @@ export const Settings: React.FC<SettingsProps> = ({
 
     return (
       <SettingsThemeTab
-        accentSettings={accentSettings}
-        onAccentChange={onAccentChange}
-        themeBackgroundSettings={themeBackgroundSettings}
-        themeSurfaceSettings={themeSurfaceSettings}
-        themeFontSettings={themeFontSettings}
-        onThemeFontSettingsChange={onThemeFontSettingsChange}
-        activeSurfaceMode={theme.activeSurfaceMode}
-        selectedSurfaceKey={theme.selectedSurfaceKey}
-        themeSections={theme.themeSections}
-        getSurfaceBounds={theme.getSurfaceBounds}
-        setActiveSurfaceMode={theme.setActiveSurfaceMode}
-        setSelectedSurfaceKey={theme.setSelectedSurfaceKey}
-        toggleThemeSection={theme.toggleThemeSection}
-        handleResetThemeSettings={theme.handleResetThemeSettings}
-        handleResetFonts={theme.handleResetFonts}
-        handleResetSelectedSurface={theme.handleResetSelectedSurface}
-        handleApplySurfacePreset={theme.handleApplySurfacePreset}
-        handleResetSurfaceMode={theme.handleResetSurfaceMode}
-        handleMatchAccentHue={theme.handleMatchAccentHue}
-        handleAdjustModeChroma={theme.handleAdjustModeChroma}
-        handleAdjustModeSeparation={theme.handleAdjustModeSeparation}
-        updateThemeBackgroundField={theme.updateThemeBackgroundField}
-        handleThemeBackgroundVariantChange={theme.handleThemeBackgroundVariantChange}
-        updateSelectedSurfaceField={theme.updateSelectedSurfaceField}
+        activeTheme={theme.activeTheme}
+        activeThemeId={theme.activeThemeId}
+        exportResolvedCss={theme.exportResolvedCss}
+        exportThemeJson={theme.exportThemeJson}
+        forkActiveTheme={theme.forkActiveTheme}
+        previewMode={theme.previewMode}
+        resetActiveThemeFactory={theme.resetActiveThemeFactory}
+        resetAllThemeFactories={theme.resetAllThemeFactories}
+        revertActiveTheme={theme.revertActiveTheme}
+        saveActiveTheme={theme.saveActiveTheme}
+        selectTheme={theme.selectTheme}
+        setPreviewMode={theme.setPreviewMode}
+        themeDirty={theme.themeDirty}
+        updateTheme={theme.updateTheme}
       />
     );
   };
@@ -157,70 +118,76 @@ export const Settings: React.FC<SettingsProps> = ({
         <DockPanel placement="right" isOpen widthClassName="w-[min(22rem,24vw)]">
           <div className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}>
             <div className="osint-eyebrow">Workbench</div>
-            <div className="mt-1 osint-panel-title">Theme Summary</div>
+            <div className="mt-1 osint-panel-title">Theme Workspace</div>
             <div className="mt-2 osint-body-quiet">
-              Active mode, current surface target, and the values driving the shared shell.
+              Template selection, draft state, and export actions now live in the docked utility rail.
             </div>
           </div>
           <div className={CHROME_RAIL_BODY_CLASS}>
             <section className="osint-card-section rounded p-4">
-              <div className="osint-meta-label">Active Mode</div>
-              <div className="mt-2 osint-title-inline capitalize">{theme.activeSurfaceMode}</div>
+              <div className="osint-meta-label">Preview Mode</div>
+              <div className="mt-2 osint-title-inline capitalize">{theme.previewMode}</div>
               <div className="mt-3 flex items-center gap-3">
                 <div
                   className="h-4 w-4 rounded-sm border border-zinc-700"
-                  style={{ background: buildAccentColor(accentSettings) }}
+                  style={{ background: buildAccentColor(theme.activeTheme.accent) }}
                 />
                 <div className="min-w-0">
-                  <div className="osint-meta-label">Accent</div>
-                  <div className="truncate osint-body-small">
-                    {buildAccentColor(accentSettings)}
-                  </div>
+                  <div className="osint-meta-label">Draft Accent</div>
+                  <div className="truncate osint-body-small">{buildAccentColor(theme.activeTheme.accent)}</div>
                 </div>
               </div>
             </section>
 
             <section className="osint-card-section rounded p-4">
-              <div className="osint-meta-label">Selected Surface</div>
+              <div className="osint-meta-label">Active Template</div>
               <div className="mt-2 osint-title-inline">
-                {SURFACE_LABELS[theme.selectedSurfaceKey]}
+                {SHERLOCK_THEME_LIBRARY_TEMPLATES.find(
+                  (template) => template.id === theme.activeThemeId
+                )?.label ?? 'Theme'}
               </div>
               <div className="mt-3 grid gap-2">
-                {themeSurfaceKeys.map((surfaceKey) => {
-                  const surface = themeSurfaceSettings[theme.activeSurfaceMode][surfaceKey];
-
-                  return (
-                    <div
-                      key={surfaceKey}
-                      className="osint-card-section-subtle rounded px-3 py-2"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="osint-meta-label">{SURFACE_LABELS[surfaceKey]}</div>
-                          <div className="mt-1 osint-body-quiet">
-                            h {surface.hue.toFixed(0)} / l {surface.lightness.toFixed(3)} / c{' '}
-                            {surface.chroma.toFixed(3)}
-                          </div>
-                        </div>
-                        <div
-                          className="h-6 w-6 shrink-0 rounded border border-zinc-700"
-                          style={{ background: buildAccentColor(surface) }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                <div className="osint-card-section-subtle rounded px-3 py-2">
+                  <div className="osint-meta-label">Draft Status</div>
+                  <div className="mt-1 osint-body-quiet">
+                    {theme.themeDirty ? 'Unsaved changes are active in this draft.' : 'Draft matches the saved theme.'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={theme.saveActiveTheme}
+                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
+                >
+                  Save Active Theme
+                </button>
+                <button
+                  type="button"
+                  onClick={theme.revertActiveTheme}
+                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
+                >
+                  Revert Draft
+                </button>
               </div>
             </section>
 
             <section className="osint-card-section rounded p-4">
-              <div className="osint-meta-label">Background</div>
-              <div className="mt-2 osint-title-inline">
-                {themeBackgroundSettings.variant === 'grid' ? 'Dot Grid' : 'Plain'}
-              </div>
-              <div className="mt-3 osint-body-quiet">
-                Dot color {themeBackgroundSettings.dotColor}% and opacity{' '}
-                {Math.round(themeBackgroundSettings.dotOpacity * 100)}%.
+              <div className="osint-meta-label">Export</div>
+              <div className="mt-2 osint-title-inline">Theme Snapshot</div>
+              <div className="mt-3 grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => void navigator.clipboard.writeText(theme.exportThemeJson)}
+                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
+                >
+                  Copy Theme JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void navigator.clipboard.writeText(theme.exportResolvedCss)}
+                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
+                >
+                  Copy Resolved CSS
+                </button>
               </div>
             </section>
           </div>
@@ -268,7 +235,13 @@ export const Settings: React.FC<SettingsProps> = ({
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isSaving ? 'Saving...' : saveSuccess ? 'Saved' : 'Save Configuration'}
+              {isSaving
+                ? 'Saving...'
+                : saveSuccess
+                  ? 'Saved'
+                  : activeTab === 'THEME'
+                    ? 'Save Theme + Config'
+                    : 'Save Configuration'}
             </button>
             <button
               onClick={onClose}
