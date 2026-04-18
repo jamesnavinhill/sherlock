@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 
 import {
   AppIcon,
-  APP_ICON_OPTIONS,
   APP_ICON_PACKS,
   getAppIconLabel,
   getAppIconPack,
   getAppIconPackLabel,
   type AppIconId,
+  type AppIconOption,
   type AppIconPackId,
 } from '@/lib/appIcons';
 import { ModalShell } from './ModalShell';
@@ -39,12 +39,27 @@ const OpenIconPickerOverlay: React.FC<IconPickerOverlayProps> = ({
   onSelect,
 }) => {
   const [searchValue, setSearchValue] = useState('');
+  const [iconOptions, setIconOptions] = useState<AppIconOption[] | null>(null);
   const [packFilter, setPackFilter] = useState<IconPackFilter>(() =>
     getInitialPackFilter(selectedIconId)
   );
 
+  useEffect(() => {
+    let isMounted = true;
+
+    void import('@/lib/appIconCatalog').then((module) => {
+      if (isMounted) {
+        setIconOptions(module.getAppIconOptions());
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const normalizedSearch = searchValue.trim().toLowerCase();
-  const visibleOptions = APP_ICON_OPTIONS.filter((option) => {
+  const visibleOptions = (iconOptions || []).filter((option) => {
     if (packFilter !== 'all' && option.pack !== packFilter) return false;
     if (!normalizedSearch) return true;
     return option.searchText.includes(normalizedSearch);
@@ -124,12 +139,16 @@ const OpenIconPickerOverlay: React.FC<IconPickerOverlayProps> = ({
           </div>
 
           <div className="flex items-center justify-between gap-3 text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-500">
-            <span>{visibleOptions.length} icons</span>
+            <span>{iconOptions ? `${visibleOptions.length} icons` : 'Loading icons'}</span>
             <span>{packFilter === 'all' ? 'Mixed catalogue' : getAppIconPackLabel(packFilter)}</span>
           </div>
         </div>
 
-        {visibleOptions.length > 0 ? (
+        {!iconOptions ? (
+          <div className="border border-dashed border-zinc-800 bg-zinc-950/40 px-4 py-8 text-center">
+            <p className="text-sm text-zinc-300">Loading icon catalogue...</p>
+          </div>
+        ) : visibleOptions.length > 0 ? (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
             {visibleOptions.map((option) => {
               const isSelected = selectedIconId === option.id;

@@ -15,7 +15,7 @@ const hasScrollableAncestor = (element: HTMLElement | null): boolean => {
 };
 
 describe('IconPickerOverlay', () => {
-  it('surfaces pack filters and pack-aware search', () => {
+  it('surfaces pack filters and pack-aware search', async () => {
     render(
       <IconPickerOverlay
         isOpen
@@ -32,7 +32,7 @@ describe('IconPickerOverlay', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pixel Art' }));
 
     expect(
-      screen.getByRole('button', { name: 'Select Robot Face icon from Pixel Art' })
+      await screen.findByRole('button', { name: 'Select Robot Face icon from Pixel Art' })
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Select Shield Lock icon from Tabler' })

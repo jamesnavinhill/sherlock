@@ -5,9 +5,10 @@ Repository-specific operating notes for coding/documentation agents.
 ## 0. Local Environment
 
 - This checkout is intended to be installed and run from Windows, not from WSL/Linux, when the repo lives under `C:\Users\...\projects\sherlock`.
-- Do not run `npm install`, `npm ci`, or other dependency-mutating commands from WSL against `/mnt/<drive>/...` for this repo.
+- Do not run local repo dev commands from WSL against `/mnt/<drive>/...` for this repo. That includes `npm install`, `npm ci`, `npm run dev`, `npm run build`, `npm run test`, `npm run lint`, `npm run typecheck`, and similar Node/Vite/Vitest/esbuild/Rollup commands that act on the local checkout.
+- WSL is fine for read-only inspection and general shell tools such as `rg`, `sed`, `cat`, `ls`, and `git diff`, as long as they are not running the local app/toolchain.
 - If dependencies need repair, run the reinstall from `cmd.exe` or PowerShell in the Windows path instead.
-- Linux CI/hosted builds are allowed; this rule is specifically about local installs against the Windows-mounted checkout.
+- Linux CI/hosted builds are allowed; this rule is specifically about local work against the Windows-mounted checkout.
 
 ## 1. Scope and Boundaries
 

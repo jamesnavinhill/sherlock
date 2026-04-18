@@ -32,10 +32,16 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             const normalizedId = id.replace(/\\/g, '/');
+            if (normalizedId.endsWith('/src/lib/appIconCatalog.ts')) return 'app-icon-catalog';
             if (!normalizedId.includes('/node_modules/')) return undefined;
 
             if (normalizedId.includes('/node_modules/react-markdown/')) return 'vendor-markdown';
             if (normalizedId.includes('/node_modules/lucide-react/')) return 'vendor-icons';
+            if (
+              normalizedId.includes('/node_modules/@tabler/icons/') ||
+              normalizedId.includes('/node_modules/@iconify-json/')
+            )
+              return 'vendor-app-icons';
             if (normalizedId.includes('/node_modules/d3')) return 'vendor-d3';
             if (normalizedId.includes('/node_modules/tldraw/')) return 'vendor-tldraw-app';
             if (normalizedId.includes('/node_modules/@tldraw/editor/'))

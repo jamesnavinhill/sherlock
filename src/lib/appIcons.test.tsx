@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  APP_ICON_OPTIONS,
   buildAppIconSvgDataUrl,
   getAppIconPack,
   isAppIconId,
   resolveAppIconColor,
 } from './appIcons';
+import { getAppIconOptions } from './appIconCatalog';
 
 describe('appIcons', () => {
   it('resolves css variable colors before generating icon svg data urls', () => {
@@ -55,8 +55,9 @@ describe('appIcons', () => {
   });
 
   it('publishes searchable option metadata for the picker', () => {
-    const tablerRobot = APP_ICON_OPTIONS.find((option) => option.id === 'tabler:robot');
-    const pixelRobot = APP_ICON_OPTIONS.find((option) => option.id === 'pixel:robot-face');
+    const appIconOptions = getAppIconOptions();
+    const tablerRobot = appIconOptions.find((option) => option.id === 'tabler:robot');
+    const pixelRobot = appIconOptions.find((option) => option.id === 'pixel:robot-face');
 
     expect(tablerRobot?.searchText).toContain('tabler');
     expect(tablerRobot?.searchText).toContain('agent');
@@ -65,7 +66,7 @@ describe('appIcons', () => {
   });
 
   it('deduplicates visible picker labels within a pack', () => {
-    const pixelScriptMatches = APP_ICON_OPTIONS.filter(
+    const pixelScriptMatches = getAppIconOptions().filter(
       (option) => option.pack === 'pixelart' && option.label === 'Script Text'
     );
 
@@ -73,12 +74,13 @@ describe('appIcons', () => {
   });
 
   it('ships the full pixel-art pack and a large tabler catalogue', () => {
-    const pixelArtCount = APP_ICON_OPTIONS.filter((option) => option.pack === 'pixelart').length;
-    const tablerCount = APP_ICON_OPTIONS.filter((option) => option.pack === 'tabler').length;
+    const appIconOptions = getAppIconOptions();
+    const pixelArtCount = appIconOptions.filter((option) => option.pack === 'pixelart').length;
+    const tablerCount = appIconOptions.filter((option) => option.pack === 'tabler').length;
 
     expect(pixelArtCount).toBeGreaterThanOrEqual(1000);
     expect(tablerCount).toBeGreaterThanOrEqual(100);
-    expect(APP_ICON_OPTIONS.some((option) => option.id === 'pixel:ai-user-circle')).toBe(true);
-    expect(APP_ICON_OPTIONS.some((option) => option.id === 'tabler:timeline-event')).toBe(true);
+    expect(appIconOptions.some((option) => option.id === 'pixel:ai-user-circle')).toBe(true);
+    expect(appIconOptions.some((option) => option.id === 'tabler:timeline-event')).toBe(true);
   });
 });

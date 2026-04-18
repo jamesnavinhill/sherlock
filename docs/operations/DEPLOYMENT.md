@@ -41,7 +41,7 @@ Notes:
 
 1. Import the GitHub repository into Vercel.
 2. Use the repo `vercel.json`, or configure the same values manually:
-   `installCommand`: `npm ci --include=optional`
+   `installCommand`: `npm ci`
    `buildCommand`: `npm run build`
    `outputDirectory`: `dist`
 3. Leave provider env vars unset in Vercel for public BYOK hosting.

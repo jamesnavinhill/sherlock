@@ -18,7 +18,7 @@ console.error(`Detected WSL install attempt in a Windows-mounted repo: ${process
 console.error('');
 console.error('Use Command Prompt or PowerShell instead:');
 console.error(`  cd /d "${windowsPath}"`);
-console.error('  npm ci --include=optional');
+console.error('  npm install');
 console.error('');
 console.error('If this repo is intentionally being installed from WSL, set SHERLOCK_ALLOW_WSL_INSTALL=1.');
 console.error('');

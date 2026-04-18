@@ -1,9 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Icon as IconifyIcon } from '@iconify/react/offline';
 import { icons as pixelartIconSet } from '@iconify-json/pixelarticons';
-import * as TablerIcons from '@tabler/icons-react';
 import {
   Atom,
   BadgeHelp,
@@ -46,90 +44,71 @@ import {
   Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { IconifyIcon as IconifyIconData } from '@iconify/types';
+
+import { TABLER_RAW_ICON_BY_SLUG } from './tablerIconSvgMap';
 
 export type AppIconPackId = 'lucide' | 'pixelart' | 'tabler';
+export type AppIconId = string;
 
-type TablerLikeIcon = React.ComponentType<{
-  'aria-hidden'?: boolean;
-  className?: string;
-  color?: string;
-  size?: number | string;
-  stroke?: number | string;
-  title?: string;
-}>;
+export type AppIconOption = {
+  group: string;
+  id: AppIconId;
+  label: string;
+  pack: AppIconPackId;
+  searchText: string;
+};
 
-type AppIconRecord = {
-      group: string;
-      label: string;
-      pack: AppIconPackId;
-      searchTerms?: string[];
-} & (
-  | {
-      component: LucideIcon;
-      renderer: 'lucide';
-    }
-  | {
-      component: TablerLikeIcon;
-      renderer: 'tabler';
-    }
-  | {
-      icon: IconifyIconData;
-      renderer: 'iconify';
-    }
-);
+export type AppIconMetadata = {
+  group: string;
+  label: string;
+  pack: AppIconPackId;
+  searchTerms?: string[];
+};
+
+type LucideRecord = AppIconMetadata & {
+  component: LucideIcon;
+  renderer: 'lucide';
+};
+
+type SvgDefinition = {
+  body: string;
+  fill: string;
+  stroke: string;
+  strokeLinecap?: string;
+  strokeLinejoin?: string;
+  strokeWidth?: number;
+  viewBox: string;
+};
+
+type SvgRecord = AppIconMetadata & {
+  getSvgDefinition: () => SvgDefinition;
+  renderer: 'svg';
+};
+
+type AppIconRecord = LucideRecord | SvgRecord;
+
+type TablerIconSlug = Extract<keyof typeof TABLER_RAW_ICON_BY_SLUG, string>;
+type PixelArtIconName = Extract<keyof typeof pixelartIconSet.icons, string>;
+
+type TablerCuratedMetadata = Omit<AppIconMetadata, 'pack'> & {
+  slug: TablerIconSlug;
+};
+
+type PixelArtCuratedMetadata = Omit<AppIconMetadata, 'pack'> & {
+  iconName: PixelArtIconName;
+};
 
 const createLucideIcon = (
   label: string,
   component: LucideIcon,
   group: string,
   searchTerms?: string[]
-): AppIconRecord => ({
+): LucideRecord => ({
   label,
   component,
   group,
   pack: 'lucide',
   renderer: 'lucide',
-  searchTerms,
-});
-
-const createTablerIcon = (
-  label: string,
-  component: TablerLikeIcon,
-  group: string,
-  searchTerms?: string[]
-): AppIconRecord => ({
-  label,
-  component,
-  group,
-  pack: 'tabler',
-  renderer: 'tabler',
-  searchTerms,
-});
-
-const getPixelArtIconData = (name: string): IconifyIconData => {
-  const icon = pixelartIconSet.icons[name as keyof typeof pixelartIconSet.icons];
-  if (!icon) {
-    throw new Error(`Unknown Pixelarticons icon: ${name}`);
-  }
-  return {
-    ...icon,
-    height: pixelartIconSet.height,
-    width: pixelartIconSet.width,
-  };
-};
-
-const createPixelArtIcon = (
-  label: string,
-  iconName: string,
-  group: string,
-  searchTerms?: string[]
-): AppIconRecord => ({
-  label,
-  group,
-  icon: getPixelArtIconData(iconName),
-  pack: 'pixelart',
-  renderer: 'iconify',
   searchTerms,
 });
 
@@ -178,12 +157,6 @@ const humanizeIconName = (value: string) =>
     .map((token) => formatIconToken(token))
     .filter(Boolean)
     .join(' ');
-
-const pascalToKebabCase = (value: string) =>
-  value
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
-    .toLowerCase();
 
 const APP_ICON_GROUP_RULES: Array<{ group: string; keywords: string[] }> = [
   {
@@ -277,21 +250,6 @@ const deriveAppIconGroup = (values: string[]) => {
   return 'Core';
 };
 
-const getTablerIconComponent = (exportName: string): TablerLikeIcon => {
-  const component = TablerIcons[exportName as keyof typeof TablerIcons];
-  if (!component) {
-    throw new Error(`Unknown Tabler icon export: ${exportName}`);
-  }
-  return component as TablerLikeIcon;
-};
-
-const createNamedTablerIcon = (
-  exportName: string,
-  label: string,
-  group: string,
-  searchTerms?: string[]
-) => createTablerIcon(label, getTablerIconComponent(exportName), group, searchTerms);
-
 const LUCIDE_ICON_REGISTRY = {
   folder: createLucideIcon('Folder', Folder, 'Core', ['workspace']),
   'folder-open': createLucideIcon('Open Folder', FolderOpen, 'Core', ['workspace']),
@@ -332,338 +290,484 @@ const LUCIDE_ICON_REGISTRY = {
   database: createLucideIcon('Database', Database, 'Data', ['storage']),
   scroll: createLucideIcon('Scroll', ScrollText, 'Knowledge', ['note']),
   graduate: createLucideIcon('Graduate', GraduationCap, 'Knowledge', ['school', 'education']),
-} as const satisfies Record<string, AppIconRecord>;
+} as const satisfies Record<string, LucideRecord>;
 
-const CURATED_TABLER_ICON_REGISTRY = {
-  'tabler:folder': createNamedTablerIcon('IconFolder', 'Folder', 'Core', ['workspace']),
-  'tabler:folder-open': createNamedTablerIcon('IconFolderOpen', 'Open Folder', 'Core', ['workspace']),
-  'tabler:briefcase': createNamedTablerIcon('IconBriefcase2', 'Briefcase', 'Core', ['case']),
-  'tabler:robot': createNamedTablerIcon('IconRobot', 'Robot', 'Analysis', ['bot', 'agent']),
-  'tabler:brain': createNamedTablerIcon('IconBrain', 'Brain', 'Analysis', ['thinking']),
-  'tabler:file-text': createNamedTablerIcon('IconFileText', 'Document', 'Core', ['report', 'note']),
-  'tabler:file-search': createNamedTablerIcon(
-    'IconFileSearch',
-    'Research File',
-    'Analysis',
-    ['investigate']
-  ),
-  'tabler:file-code': createNamedTablerIcon('IconFileCode2', 'Code File', 'Data', ['source']),
-  'tabler:files': createNamedTablerIcon('IconFiles', 'Files', 'Core', ['documents']),
-  'tabler:message': createNamedTablerIcon('IconMessageCircle', 'Message', 'Comms', ['chat']),
-  'tabler:network': createNamedTablerIcon(
-    'IconTopologyStar3',
-    'Network Topology',
-    'Analysis',
-    ['graph', 'nodes']
-  ),
-  'tabler:radar': createNamedTablerIcon('IconRadar2', 'Radar', 'Analysis', ['signal', 'monitor']),
-  'tabler:world': createNamedTablerIcon('IconWorld', 'World', 'Places', ['globe']),
-  'tabler:compass': createNamedTablerIcon('IconCompass', 'Compass', 'Places', ['direction']),
-  'tabler:map': createNamedTablerIcon('IconMap2', 'Map', 'Places', ['location']),
-  'tabler:building': createNamedTablerIcon(
-    'IconBuildingSkyscraper',
-    'Skyscraper',
-    'Places',
-    ['organization', 'office']
-  ),
-  'tabler:landmark': createNamedTablerIcon(
-    'IconBuildingBank',
-    'Bank',
-    'Places',
-    ['landmark', 'government']
-  ),
-  'tabler:shield-lock': createNamedTablerIcon(
-    'IconShieldLock',
-    'Shield Lock',
-    'Security',
-    ['protect']
-  ),
-  'tabler:lock': createNamedTablerIcon('IconLock', 'Lock', 'Security', ['secure']),
-  'tabler:flask': createNamedTablerIcon('IconFlask2', 'Flask', 'Analysis', ['lab', 'science']),
-  'tabler:microscope': createNamedTablerIcon(
-    'IconMicroscope',
-    'Microscope',
-    'Analysis',
-    ['research']
-  ),
-  'tabler:atom': createNamedTablerIcon('IconAtom2', 'Atom', 'Analysis', ['science']),
-  'tabler:book': createNamedTablerIcon('IconBook2', 'Book', 'Knowledge', ['reference']),
-  'tabler:news': createNamedTablerIcon('IconNews', 'News', 'Knowledge', ['newspaper', 'media']),
-  'tabler:chart': createNamedTablerIcon('IconChartBar', 'Chart', 'Data', ['analytics', 'graph']),
-  'tabler:target': createNamedTablerIcon('IconTargetArrow', 'Target Arrow', 'Analysis', ['goal']),
-  'tabler:eye': createNamedTablerIcon('IconEye', 'Eye', 'Analysis', ['observe']),
-  'tabler:sparkles': createNamedTablerIcon(
-    'IconSparkles',
-    'Sparkles',
-    'Analysis',
-    ['highlight', 'magic']
-  ),
-  'tabler:star': createNamedTablerIcon('IconStar', 'Star', 'Analysis', ['favorite']),
-  'tabler:bulb': createNamedTablerIcon('IconBulb', 'Bulb', 'Analysis', ['idea', 'lightbulb']),
-  'tabler:puzzle': createNamedTablerIcon('IconPuzzle2', 'Puzzle', 'Analysis', ['problem']),
-  'tabler:help': createNamedTablerIcon('IconHelpCircle', 'Help Circle', 'Comms', ['question']),
-  'tabler:link': createNamedTablerIcon('IconLink', 'Link', 'Knowledge', ['source', 'url']),
-  'tabler:user': createNamedTablerIcon('IconUser', 'User', 'People', ['person', 'profile']),
-  'tabler:users': createNamedTablerIcon('IconUsersGroup', 'Users Group', 'People', ['team', 'group']),
-  'tabler:database': createNamedTablerIcon('IconDatabase', 'Database', 'Data', ['storage']),
-  'tabler:script': createNamedTablerIcon('IconScript', 'Script', 'Knowledge', ['scroll', 'note']),
-  'tabler:school': createNamedTablerIcon('IconSchool', 'School', 'Knowledge', ['graduate', 'education']),
-} as const satisfies Record<string, AppIconRecord>;
+const TABLER_CURATED_METADATA = {
+  'tabler:folder': { label: 'Folder', group: 'Core', searchTerms: ['workspace'], slug: 'folder' },
+  'tabler:folder-open': {
+    label: 'Open Folder',
+    group: 'Core',
+    searchTerms: ['workspace'],
+    slug: 'folder-open',
+  },
+  'tabler:briefcase': {
+    label: 'Briefcase',
+    group: 'Core',
+    searchTerms: ['case'],
+    slug: 'briefcase-2',
+  },
+  'tabler:robot': { label: 'Robot', group: 'Analysis', searchTerms: ['bot', 'agent'], slug: 'robot' },
+  'tabler:brain': { label: 'Brain', group: 'Analysis', searchTerms: ['thinking'], slug: 'brain' },
+  'tabler:file-text': {
+    label: 'Document',
+    group: 'Core',
+    searchTerms: ['report', 'note'],
+    slug: 'file-text',
+  },
+  'tabler:file-search': {
+    label: 'Research File',
+    group: 'Analysis',
+    searchTerms: ['investigate'],
+    slug: 'file-search',
+  },
+  'tabler:file-code': {
+    label: 'Code File',
+    group: 'Data',
+    searchTerms: ['source'],
+    slug: 'file-code-2',
+  },
+  'tabler:files': {
+    label: 'Files',
+    group: 'Core',
+    searchTerms: ['documents'],
+    slug: 'files',
+  },
+  'tabler:message': {
+    label: 'Message',
+    group: 'Comms',
+    searchTerms: ['chat'],
+    slug: 'message-circle',
+  },
+  'tabler:network': {
+    label: 'Network Topology',
+    group: 'Analysis',
+    searchTerms: ['graph', 'nodes'],
+    slug: 'topology-star-3',
+  },
+  'tabler:radar': {
+    label: 'Radar',
+    group: 'Analysis',
+    searchTerms: ['signal', 'monitor'],
+    slug: 'radar-2',
+  },
+  'tabler:world': {
+    label: 'World',
+    group: 'Places',
+    searchTerms: ['globe'],
+    slug: 'world',
+  },
+  'tabler:compass': {
+    label: 'Compass',
+    group: 'Places',
+    searchTerms: ['direction'],
+    slug: 'compass',
+  },
+  'tabler:map': { label: 'Map', group: 'Places', searchTerms: ['location'], slug: 'map-2' },
+  'tabler:building': {
+    label: 'Skyscraper',
+    group: 'Places',
+    searchTerms: ['organization', 'office'],
+    slug: 'building-skyscraper',
+  },
+  'tabler:landmark': {
+    label: 'Bank',
+    group: 'Places',
+    searchTerms: ['landmark', 'government'],
+    slug: 'building-bank',
+  },
+  'tabler:shield-lock': {
+    label: 'Shield Lock',
+    group: 'Security',
+    searchTerms: ['protect'],
+    slug: 'shield-lock',
+  },
+  'tabler:lock': { label: 'Lock', group: 'Security', searchTerms: ['secure'], slug: 'lock' },
+  'tabler:flask': {
+    label: 'Flask',
+    group: 'Analysis',
+    searchTerms: ['lab', 'science'],
+    slug: 'flask-2',
+  },
+  'tabler:microscope': {
+    label: 'Microscope',
+    group: 'Analysis',
+    searchTerms: ['research'],
+    slug: 'microscope',
+  },
+  'tabler:atom': { label: 'Atom', group: 'Analysis', searchTerms: ['science'], slug: 'atom-2' },
+  'tabler:book': {
+    label: 'Book',
+    group: 'Knowledge',
+    searchTerms: ['reference'],
+    slug: 'book-2',
+  },
+  'tabler:news': {
+    label: 'News',
+    group: 'Knowledge',
+    searchTerms: ['newspaper', 'media'],
+    slug: 'news',
+  },
+  'tabler:chart': {
+    label: 'Chart',
+    group: 'Data',
+    searchTerms: ['analytics', 'graph'],
+    slug: 'chart-bar',
+  },
+  'tabler:target': {
+    label: 'Target Arrow',
+    group: 'Analysis',
+    searchTerms: ['goal'],
+    slug: 'target-arrow',
+  },
+  'tabler:eye': { label: 'Eye', group: 'Analysis', searchTerms: ['observe'], slug: 'eye' },
+  'tabler:sparkles': {
+    label: 'Sparkles',
+    group: 'Analysis',
+    searchTerms: ['highlight', 'magic'],
+    slug: 'sparkles',
+  },
+  'tabler:star': { label: 'Star', group: 'Analysis', searchTerms: ['favorite'], slug: 'star' },
+  'tabler:bulb': {
+    label: 'Bulb',
+    group: 'Analysis',
+    searchTerms: ['idea', 'lightbulb'],
+    slug: 'bulb',
+  },
+  'tabler:puzzle': {
+    label: 'Puzzle',
+    group: 'Analysis',
+    searchTerms: ['problem'],
+    slug: 'puzzle-2',
+  },
+  'tabler:help': {
+    label: 'Help Circle',
+    group: 'Comms',
+    searchTerms: ['question'],
+    slug: 'help-circle',
+  },
+  'tabler:link': {
+    label: 'Link',
+    group: 'Knowledge',
+    searchTerms: ['source', 'url'],
+    slug: 'link',
+  },
+  'tabler:user': {
+    label: 'User',
+    group: 'People',
+    searchTerms: ['person', 'profile'],
+    slug: 'user',
+  },
+  'tabler:users': {
+    label: 'Users Group',
+    group: 'People',
+    searchTerms: ['team', 'group'],
+    slug: 'users-group',
+  },
+  'tabler:database': {
+    label: 'Database',
+    group: 'Data',
+    searchTerms: ['storage'],
+    slug: 'database',
+  },
+  'tabler:script': {
+    label: 'Script',
+    group: 'Knowledge',
+    searchTerms: ['scroll', 'note'],
+    slug: 'script',
+  },
+  'tabler:school': {
+    label: 'School',
+    group: 'Knowledge',
+    searchTerms: ['graduate', 'education'],
+    slug: 'school',
+  },
+} as const satisfies Record<string, TablerCuratedMetadata>;
 
-const GENERATED_TABLER_ICON_EXPORT_NAMES = [
-  'IconAddressBook',
-  'IconAi',
-  'IconAiAgent',
-  'IconAiAgents',
-  'IconAiGateway',
-  'IconAlarm',
-  'IconAlertCircle',
-  'IconAlertTriangle',
-  'IconAnalyze',
-  'IconApi',
-  'IconApiBook',
-  'IconAperture',
-  'IconAtom2',
-  'IconBell',
-  'IconBinary',
-  'IconBook',
-  'IconBook2',
-  'IconBookmark',
-  'IconBookmarks',
-  'IconBooks',
-  'IconBrain',
-  'IconBriefcase',
-  'IconBriefcase2',
-  'IconBuilding',
-  'IconBuildingBank',
-  'IconBuildingBroadcastTower',
-  'IconBuildingCastle',
-  'IconBuildingFactory',
-  'IconBuildingFortress',
-  'IconBuildingHospital',
-  'IconBuildingLighthouse',
-  'IconBuildingMonument',
-  'IconBuildingSkyscraper',
-  'IconCalendar',
-  'IconCalendarEvent',
-  'IconCalendarSearch',
-  'IconCamera',
-  'IconCameraAi',
-  'IconChartArcs',
-  'IconChartAreaLine',
-  'IconChartBar',
-  'IconChartBubble',
-  'IconChartCandle',
-  'IconChartDonut',
-  'IconChartDots',
-  'IconChartHistogram',
-  'IconChartPie',
-  'IconChecklist',
-  'IconClock',
-  'IconCloud',
-  'IconCloudDataConnection',
-  'IconCloudLock',
-  'IconCode',
-  'IconCodeCircle',
-  'IconCodeDots',
-  'IconCodeblock',
-  'IconCompass',
-  'IconCpu',
-  'IconDatabase',
-  'IconDatabaseExport',
-  'IconDatabaseImport',
-  'IconDatabaseSearch',
-  'IconEye',
-  'IconEyeQuestion',
-  'IconEyeSearch',
-  'IconFile',
-  'IconFileAnalytics',
-  'IconFileCertificate',
-  'IconFileChart',
-  'IconFileCode2',
-  'IconFileDatabase',
-  'IconFileDescription',
-  'IconFileSearch',
-  'IconFileText',
-  'IconFileTextAi',
-  'IconFileTextShield',
-  'IconFilter',
-  'IconFingerprint',
-  'IconFingerprintScan',
-  'IconFlag',
-  'IconFlask2',
-  'IconFolder',
-  'IconFolderCode',
-  'IconFolderOpen',
-  'IconFolderRoot',
-  'IconFolderSearch',
-  'IconFolderStar',
-  'IconFolders',
-  'IconGlobe',
-  'IconHelpCircle',
-  'IconHome',
-  'IconHomeShield',
-  'IconKey',
-  'IconLink',
-  'IconListDetails',
-  'IconLock',
-  'IconMail',
-  'IconMailSearch',
-  'IconMap2',
-  'IconMapPin',
-  'IconMapRoute',
-  'IconMapShield',
-  'IconMessage2',
-  'IconMessageCircle',
-  'IconMessageChatbot',
-  'IconMicroscope',
-  'IconNews',
-  'IconNotebook',
-  'IconNotes',
-  'IconPhone',
-  'IconPhoneCall',
-  'IconPuzzle2',
-  'IconRadar2',
-  'IconRobot',
-  'IconRobotFace',
-  'IconRoute',
-  'IconRouteScan',
-  'IconSatellite',
-  'IconScan',
-  'IconScanEye',
-  'IconSchool',
-  'IconSearch',
-  'IconServer',
-  'IconServer2',
-  'IconServerSpark',
-  'IconShield',
-  'IconShieldCheck',
-  'IconShieldLock',
-  'IconShieldQuestion',
-  'IconSparkles',
-  'IconSparkles2',
-  'IconStar',
-  'IconTarget',
-  'IconTargetArrow',
-  'IconTelescope',
-  'IconTimeline',
-  'IconTimelineEvent',
-  'IconTopologyComplex',
-  'IconTopologyFullHierarchy',
-  'IconTopologyStar3',
-  'IconUser',
-  'IconUserCircle',
-  'IconUserScan',
-  'IconUserShield',
-  'IconUsers',
-  'IconUsersGroup',
-  'IconWorld',
-  'IconWorldSearch',
-  'IconZoomQuestion',
-] as const;
+const CURATED_PIXELART_METADATA = {
+  'pixel:folder': {
+    label: 'Folder',
+    group: 'Core',
+    iconName: 'folder',
+    searchTerms: ['workspace'],
+  },
+  'pixel:briefcase': {
+    label: 'Briefcase',
+    group: 'Core',
+    iconName: 'briefcase',
+    searchTerms: ['case'],
+  },
+  'pixel:robot': {
+    label: 'Robot',
+    group: 'Analysis',
+    iconName: 'robot',
+    searchTerms: ['bot', 'agent'],
+  },
+  'pixel:robot-face': {
+    label: 'Robot Face',
+    group: 'Analysis',
+    iconName: 'robot-face-happy',
+    searchTerms: ['bot', 'assistant'],
+  },
+  'pixel:file': {
+    label: 'File',
+    group: 'Core',
+    iconName: 'file',
+    searchTerms: ['document'],
+  },
+  'pixel:file-text': {
+    label: 'File Text',
+    group: 'Core',
+    iconName: 'file-text',
+    searchTerms: ['report', 'note'],
+  },
+  'pixel:message': {
+    label: 'Message',
+    group: 'Comms',
+    iconName: 'message',
+    searchTerms: ['chat'],
+  },
+  'pixel:globe': {
+    label: 'Globe',
+    group: 'Places',
+    iconName: 'globe',
+    searchTerms: ['world'],
+  },
+  'pixel:map': {
+    label: 'Map',
+    group: 'Places',
+    iconName: 'map',
+    searchTerms: ['location'],
+  },
+  'pixel:building': {
+    label: 'Building',
+    group: 'Places',
+    iconName: 'building',
+    searchTerms: ['organization'],
+  },
+  'pixel:building-skyscraper': {
+    label: 'Skyscraper',
+    group: 'Places',
+    iconName: 'building-skyscraper',
+    searchTerms: ['city', 'office'],
+  },
+  'pixel:shield': {
+    label: 'Shield',
+    group: 'Security',
+    iconName: 'shield',
+    searchTerms: ['protect'],
+  },
+  'pixel:lock': {
+    label: 'Lock',
+    group: 'Security',
+    iconName: 'lock',
+    searchTerms: ['secure'],
+  },
+  'pixel:book-open': {
+    label: 'Open Book',
+    group: 'Knowledge',
+    iconName: 'book-open',
+    searchTerms: ['reference'],
+  },
+  'pixel:notebook': {
+    label: 'Notebook',
+    group: 'Knowledge',
+    iconName: 'notebook',
+    searchTerms: ['notes'],
+  },
+  'pixel:chart': {
+    label: 'Chart Bar Big',
+    group: 'Data',
+    iconName: 'chart-bar-big',
+    searchTerms: ['analytics', 'graph'],
+  },
+  'pixel:target': {
+    label: 'Target',
+    group: 'Analysis',
+    iconName: 'target',
+    searchTerms: ['goal'],
+  },
+  'pixel:eye': {
+    label: 'Eye',
+    group: 'Analysis',
+    iconName: 'eye',
+    searchTerms: ['observe'],
+  },
+  'pixel:lightbulb': {
+    label: 'Lightbulb',
+    group: 'Analysis',
+    iconName: 'lightbulb-on',
+    searchTerms: ['idea'],
+  },
+  'pixel:link': {
+    label: 'Link',
+    group: 'Knowledge',
+    iconName: 'link',
+    searchTerms: ['source', 'url'],
+  },
+  'pixel:user': {
+    label: 'User',
+    group: 'People',
+    iconName: 'user',
+    searchTerms: ['person', 'profile'],
+  },
+  'pixel:users': {
+    label: 'Users',
+    group: 'People',
+    iconName: 'users',
+    searchTerms: ['group', 'team'],
+  },
+  'pixel:database': {
+    label: 'Database',
+    group: 'Data',
+    iconName: 'database',
+    searchTerms: ['storage'],
+  },
+  'pixel:script': {
+    label: 'Script Text',
+    group: 'Knowledge',
+    iconName: 'script-text',
+    searchTerms: ['scroll', 'note'],
+  },
+} as const satisfies Record<string, PixelArtCuratedMetadata>;
 
-const GENERATED_TABLER_ICON_REGISTRY: Record<string, AppIconRecord> = Object.fromEntries(
-  GENERATED_TABLER_ICON_EXPORT_NAMES.map((exportName) => {
-    const slug = pascalToKebabCase(exportName.replace(/^Icon/, ''));
-    const searchTerms = [slug, ...slug.split('-')];
-    return [
-      `tabler:${slug}`,
-      createTablerIcon(
-        humanizeIconName(slug),
-        getTablerIconComponent(exportName),
-        deriveAppIconGroup(searchTerms),
-        searchTerms
-      ),
-    ];
-  })
-);
+const TABLER_SVG_CACHE = new Map<string, SvgDefinition>();
+const iconDataUrlCache = new Map<string, string>();
+const CSS_VAR_PATTERN = /var\((--[^),\s]+)(?:,[^)]+)?\)/g;
 
-const TABLER_ICON_REGISTRY = {
-  ...GENERATED_TABLER_ICON_REGISTRY,
-  ...CURATED_TABLER_ICON_REGISTRY,
-} as const satisfies Record<string, AppIconRecord>;
+const normalizeTablerSlug = (value: string): TablerIconSlug | null => {
+  if (value in TABLER_RAW_ICON_BY_SLUG) {
+    return value as TablerIconSlug;
+  }
 
-const CURATED_PIXELART_ICON_REGISTRY = {
-  'pixel:folder': createPixelArtIcon('Folder', 'folder', 'Core', ['workspace']),
-  'pixel:briefcase': createPixelArtIcon('Briefcase', 'briefcase', 'Core', ['case']),
-  'pixel:robot': createPixelArtIcon('Robot', 'robot', 'Analysis', ['bot', 'agent']),
-  'pixel:robot-face': createPixelArtIcon(
-    'Robot Face',
-    'robot-face-happy',
-    'Analysis',
-    ['bot', 'assistant']
-  ),
-  'pixel:file': createPixelArtIcon('File', 'file', 'Core', ['document']),
-  'pixel:file-text': createPixelArtIcon('File Text', 'file-text', 'Core', ['report', 'note']),
-  'pixel:message': createPixelArtIcon('Message', 'message', 'Comms', ['chat']),
-  'pixel:globe': createPixelArtIcon('Globe', 'globe', 'Places', ['world']),
-  'pixel:map': createPixelArtIcon('Map', 'map', 'Places', ['location']),
-  'pixel:building': createPixelArtIcon('Building', 'building', 'Places', ['organization']),
-  'pixel:building-skyscraper': createPixelArtIcon(
-    'Skyscraper',
-    'building-skyscraper',
-    'Places',
-    ['city', 'office']
-  ),
-  'pixel:shield': createPixelArtIcon('Shield', 'shield', 'Security', ['protect']),
-  'pixel:lock': createPixelArtIcon('Lock', 'lock', 'Security', ['secure']),
-  'pixel:book-open': createPixelArtIcon(
-    'Open Book',
-    'book-open',
-    'Knowledge',
-    ['reference']
-  ),
-  'pixel:notebook': createPixelArtIcon('Notebook', 'notebook', 'Knowledge', ['notes']),
-  'pixel:chart': createPixelArtIcon(
-    'Chart Bar Big',
-    'chart-bar-big',
-    'Data',
-    ['analytics', 'graph']
-  ),
-  'pixel:target': createPixelArtIcon('Target', 'target', 'Analysis', ['goal']),
-  'pixel:eye': createPixelArtIcon('Eye', 'eye', 'Analysis', ['observe']),
-  'pixel:lightbulb': createPixelArtIcon(
-    'Lightbulb',
-    'lightbulb-on',
-    'Analysis',
-    ['idea']
-  ),
-  'pixel:link': createPixelArtIcon('Link', 'link', 'Knowledge', ['source', 'url']),
-  'pixel:user': createPixelArtIcon('User', 'user', 'People', ['person', 'profile']),
-  'pixel:users': createPixelArtIcon('Users', 'users', 'People', ['group', 'team']),
-  'pixel:database': createPixelArtIcon('Database', 'database', 'Data', ['storage']),
-  'pixel:script': createPixelArtIcon('Script Text', 'script-text', 'Knowledge', ['scroll', 'note']),
-} as const satisfies Record<string, AppIconRecord>;
+  const normalized = value
+    .replace(/([a-z])(\d+)/g, '$1-$2')
+    .replace(/(\d+)([a-z])/g, '$1-$2');
 
-const GENERATED_PIXELART_ICON_REGISTRY: Record<string, AppIconRecord> = Object.fromEntries(
-  Object.keys(pixelartIconSet.icons).map((iconName) => {
-    const searchTerms = [iconName, ...iconName.split('-')];
-    return [
-      `pixel:${iconName}`,
-      createPixelArtIcon(
-        humanizeIconName(iconName),
-        iconName,
-        deriveAppIconGroup(searchTerms),
-        searchTerms
-      ),
-    ];
-  })
-);
+  if (normalized in TABLER_RAW_ICON_BY_SLUG) {
+    return normalized as TablerIconSlug;
+  }
 
-const PIXELART_ICON_REGISTRY = {
-  ...GENERATED_PIXELART_ICON_REGISTRY,
-  ...CURATED_PIXELART_ICON_REGISTRY,
-} as const satisfies Record<string, AppIconRecord>;
+  return null;
+};
 
-const APP_ICON_REGISTRY = {
-  ...TABLER_ICON_REGISTRY,
-  ...PIXELART_ICON_REGISTRY,
-  ...LUCIDE_ICON_REGISTRY,
-} as const satisfies Record<string, AppIconRecord>;
+const parseRawSvg = (rawSvg: string): SvgDefinition => ({
+  body: rawSvg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''),
+  fill: rawSvg.match(/\sfill="([^"]+)"/)?.[1] || 'none',
+  stroke: rawSvg.match(/\sstroke="([^"]+)"/)?.[1] || 'currentColor',
+  strokeLinecap: rawSvg.match(/\sstroke-linecap="([^"]+)"/)?.[1],
+  strokeLinejoin: rawSvg.match(/\sstroke-linejoin="([^"]+)"/)?.[1],
+  strokeWidth: Number(rawSvg.match(/\sstroke-width="([^"]+)"/)?.[1] || '2'),
+  viewBox: rawSvg.match(/\sviewBox="([^"]+)"/)?.[1] || '0 0 24 24',
+});
 
-const APP_ICON_REGISTRY_MAP: Record<string, AppIconRecord> = APP_ICON_REGISTRY;
+const getTablerSvgDefinition = (slug: TablerIconSlug): SvgDefinition => {
+  const cached = TABLER_SVG_CACHE.get(slug);
+  if (cached) return cached;
 
-export type AppIconId = string;
+  const parsed = parseRawSvg(TABLER_RAW_ICON_BY_SLUG[slug]);
+  TABLER_SVG_CACHE.set(slug, parsed);
+  return parsed;
+};
+
+const getPixelArtSvgDefinition = (iconName: PixelArtIconName): SvgDefinition => {
+  const icon = pixelartIconSet.icons[iconName];
+  if (!icon) {
+    throw new Error(`Unknown Pixelarticons icon: ${iconName}`);
+  }
+
+  return {
+    body: icon.body,
+    fill: 'currentColor',
+    stroke: 'none',
+    viewBox: `0 0 ${pixelartIconSet.width} ${pixelartIconSet.height}`,
+  };
+};
+
+const buildSvgMarkup = (
+  definition: SvgDefinition,
+  input: {
+    color?: string;
+    size: number;
+    strokeWidth?: number;
+  }
+) => {
+  const fill =
+    definition.fill === 'none'
+      ? 'none'
+      : input.color || (definition.fill === 'currentColor' ? 'currentColor' : definition.fill);
+  const stroke =
+    definition.stroke === 'none'
+      ? 'none'
+      : input.color || (definition.stroke === 'currentColor' ? 'currentColor' : definition.stroke);
+  const strokeWidth = definition.stroke === 'none' ? undefined : input.strokeWidth ?? definition.strokeWidth;
+
+  const attributes = [
+    'xmlns="http://www.w3.org/2000/svg"',
+    `width="${input.size}"`,
+    `height="${input.size}"`,
+    `viewBox="${definition.viewBox}"`,
+    `fill="${fill}"`,
+    `stroke="${stroke}"`,
+    strokeWidth ? `stroke-width="${strokeWidth}"` : '',
+    definition.strokeLinecap ? `stroke-linecap="${definition.strokeLinecap}"` : '',
+    definition.strokeLinejoin ? `stroke-linejoin="${definition.strokeLinejoin}"` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return `<svg ${attributes}>${definition.body}</svg>`;
+};
+
+const getTablerRecord = (iconId: string): SvgRecord | null => {
+  const curated = TABLER_CURATED_METADATA[iconId as keyof typeof TABLER_CURATED_METADATA];
+  const slug = normalizeTablerSlug(curated?.slug || iconId.slice('tabler:'.length));
+  if (!slug) return null;
+
+  const searchTerms = curated?.searchTerms || [slug, ...String(slug).split('-')];
+  return {
+    label: curated?.label || humanizeIconName(String(slug)),
+    getSvgDefinition: () => getTablerSvgDefinition(slug),
+    group: curated?.group || deriveAppIconGroup(searchTerms),
+    pack: 'tabler',
+    renderer: 'svg',
+    searchTerms,
+  };
+};
+
+const getPixelArtRecord = (iconId: string): SvgRecord | null => {
+  const curated = CURATED_PIXELART_METADATA[iconId as keyof typeof CURATED_PIXELART_METADATA];
+  const iconName = (curated?.iconName || iconId.slice('pixel:'.length)) as PixelArtIconName;
+
+  if (!(iconName in pixelartIconSet.icons)) return null;
+
+  const searchTerms = curated?.searchTerms || [iconName, ...String(iconName).split('-')];
+  return {
+    label: curated?.label || humanizeIconName(String(iconName)),
+    getSvgDefinition: () => getPixelArtSvgDefinition(iconName),
+    group: curated?.group || deriveAppIconGroup(searchTerms),
+    pack: 'pixelart',
+    renderer: 'svg',
+    searchTerms,
+  };
+};
+
+const getAppIconRecord = (iconId?: string | null): AppIconRecord => {
+  if (iconId && iconId in LUCIDE_ICON_REGISTRY) {
+    return LUCIDE_ICON_REGISTRY[iconId as keyof typeof LUCIDE_ICON_REGISTRY];
+  }
+
+  if (iconId?.startsWith('tabler:')) {
+    const record = getTablerRecord(iconId);
+    if (record) return record;
+  }
+
+  if (iconId?.startsWith('pixel:')) {
+    const record = getPixelArtRecord(iconId);
+    if (record) return record;
+  }
+
+  return LUCIDE_ICON_REGISTRY.folder;
+};
 
 export const APP_ICON_PACKS = [
   {
@@ -691,71 +795,51 @@ export const APP_ICON_PACKS = [
   shortLabel: string;
 }>;
 
-const APP_ICON_PACK_ORDER = APP_ICON_PACKS.map((pack) => pack.id);
-
-export const APP_ICON_IDS = Object.keys(APP_ICON_REGISTRY_MAP) as AppIconId[];
-
-export const isAppIconId = (value: string | null | undefined): value is AppIconId =>
-  !!value && value in APP_ICON_REGISTRY_MAP;
-
-export const getAppIconRecord = (iconId?: string | null) =>
-  isAppIconId(iconId) ? APP_ICON_REGISTRY_MAP[iconId] : APP_ICON_REGISTRY_MAP.folder;
-
-export const getAppIconLabel = (iconId?: string | null) => getAppIconRecord(iconId).label;
-
-export const getAppIconPack = (iconId?: string | null): AppIconPackId => getAppIconRecord(iconId).pack;
-
 export const getAppIconPackLabel = (pack: AppIconPackId) =>
   APP_ICON_PACKS.find((option) => option.id === pack)?.label || 'Icons';
 
-const compareAppIconOptions = (
-  left: { id: AppIconId; label: string; pack: AppIconPackId },
-  right: { id: AppIconId; label: string; pack: AppIconPackId }
-) => {
-  const packOrder =
-    APP_ICON_PACK_ORDER.indexOf(left.pack) - APP_ICON_PACK_ORDER.indexOf(right.pack);
-  if (packOrder !== 0) return packOrder;
-
-  const labelOrder = left.label.localeCompare(right.label);
-  if (labelOrder !== 0) return labelOrder;
-
-  return left.id.localeCompare(right.id);
+export const isAppIconId = (value: string | null | undefined): value is AppIconId => {
+  if (!value) return false;
+  if (value in LUCIDE_ICON_REGISTRY) return true;
+  if (value.startsWith('tabler:')) return !!getTablerRecord(value);
+  if (value.startsWith('pixel:')) return !!getPixelArtRecord(value);
+  return false;
 };
 
-export const APP_ICON_OPTIONS = (() => {
-  const candidates = APP_ICON_IDS.map((id) => {
-    const record = APP_ICON_REGISTRY_MAP[id];
-    const searchText = [
-      record.label,
-      record.group,
-      getAppIconPackLabel(record.pack),
-      ...(record.searchTerms || []),
-    ]
-      .join(' ')
-      .toLowerCase();
+export const getAppIconMetadata = (iconId?: string | null): AppIconMetadata => {
+  const { group, label, pack, searchTerms } = getAppIconRecord(iconId);
+  return { group, label, pack, searchTerms };
+};
 
-    return {
-      id,
-      group: record.group,
-      label: record.label,
-      pack: record.pack,
-      searchText,
-    };
-  }).sort(compareAppIconOptions);
+export const getAppIconLabel = (iconId?: string | null) => getAppIconMetadata(iconId).label;
 
-  const deduped = new Map<string, (typeof candidates)[number]>();
-  for (const option of candidates) {
-    const dedupeKey = `${option.pack}:${option.label.toLowerCase()}`;
-    if (!deduped.has(dedupeKey)) {
-      deduped.set(dedupeKey, option);
-    }
+export const getAppIconPack = (iconId?: string | null): AppIconPackId => getAppIconMetadata(iconId).pack;
+
+export const listAppIconIds = (): AppIconId[] => {
+  const ids = new Set<AppIconId>();
+
+  for (const id of Object.keys(LUCIDE_ICON_REGISTRY)) {
+    ids.add(id);
   }
 
-  return Array.from(deduped.values()).sort(compareAppIconOptions);
-})();
+  for (const slug of Object.keys(TABLER_RAW_ICON_BY_SLUG)) {
+    ids.add(`tabler:${slug}`);
+  }
 
-const iconDataUrlCache = new Map<string, string>();
-const CSS_VAR_PATTERN = /var\((--[^),\s]+)(?:,[^)]+)?\)/g;
+  for (const id of Object.keys(TABLER_CURATED_METADATA)) {
+    ids.add(id);
+  }
+
+  for (const iconName of Object.keys(pixelartIconSet.icons)) {
+    ids.add(`pixel:${iconName}`);
+  }
+
+  for (const id of Object.keys(CURATED_PIXELART_METADATA)) {
+    ids.add(id);
+  }
+
+  return Array.from(ids);
+};
 
 const renderAppIconElement = (input: {
   className?: string;
@@ -767,32 +851,24 @@ const renderAppIconElement = (input: {
   const record = getAppIconRecord(input.iconId);
   const size = input.size || 18;
 
-  if (record.renderer === 'iconify') {
-    return (
-      <IconifyIcon
-        icon={record.icon}
-        className={input.className}
-        color={input.color}
-        height={size}
-        width={size}
-      />
-    );
-  }
+  if (record.renderer === 'svg') {
+    const markup = buildSvgMarkup(record.getSvgDefinition(), {
+      color: input.color,
+      size,
+      strokeWidth: input.strokeWidth,
+    });
 
-  if (record.renderer === 'tabler') {
-    const Component = record.component as TablerLikeIcon;
     return (
-      <Component
+      <span
         aria-hidden
         className={input.className}
-        color={input.color}
-        size={size}
-        stroke={input.strokeWidth}
+        dangerouslySetInnerHTML={{ __html: markup }}
+        style={{ display: 'inline-flex', height: size, lineHeight: 0, width: size }}
       />
     );
   }
 
-  const Component = record.component as LucideIcon;
+  const Component = record.component;
   return (
     <Component
       aria-hidden
@@ -894,14 +970,23 @@ export const buildAppIconSvgDataUrl = (
   const cached = iconDataUrlCache.get(cacheKey);
   if (cached) return cached;
 
-  const markup = renderToStaticMarkup(
-    renderAppIconElement({
-      color,
-      iconId: resolvedId,
-      size,
-      strokeWidth,
-    })
-  );
+  const record = getAppIconRecord(resolvedId);
+  const markup =
+    record.renderer === 'svg'
+      ? buildSvgMarkup(record.getSvgDefinition(), {
+          color,
+          size,
+          strokeWidth,
+        })
+      : renderToStaticMarkup(
+          renderAppIconElement({
+            color,
+            iconId: resolvedId,
+            size,
+            strokeWidth,
+          })
+        );
+
   const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
   iconDataUrlCache.set(cacheKey, dataUrl);
   return dataUrl;

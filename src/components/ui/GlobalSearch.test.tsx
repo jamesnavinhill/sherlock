@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
 import { useWorkspaceStore } from '@/store/workspaceStore';
+import type { ChatSession } from '@/types';
 
 vi.mock('@/services/db/repositories/WorkspaceSearchRepository', () => ({
   WorkspaceSearchRepository: {
@@ -20,6 +21,17 @@ const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as
 
 describe('GlobalSearch', () => {
   beforeEach(() => {
+    const chatSession: ChatSession = {
+      id: 'chat-1',
+      workspaceId: 'ws-1',
+      title: 'Chat',
+      status: 'ACTIVE',
+      provider: 'OPENAI',
+      modelId: 'gpt-5.4-mini',
+      createdAt: 1,
+      updatedAt: 1,
+    };
+
     localStorage.clear();
     useWorkspaceStore.setState({
       activeWorkspaceBoardId: null,
@@ -56,16 +68,7 @@ describe('GlobalSearch', () => {
       ],
       addChatMessage: vi.fn(async () => undefined),
       addToast: vi.fn(),
-      createChatSession: vi.fn(async () => ({
-        id: 'chat-1',
-        workspaceId: 'ws-1',
-        title: 'Chat',
-        status: 'ACTIVE',
-        provider: 'OPENAI',
-        modelId: 'gpt-5.4-mini',
-        createdAt: 1,
-        updatedAt: 1,
-      })),
+      createChatSession: vi.fn(async () => chatSession),
       ensureWorkspaceBoard: vi.fn(async () => ({
         id: 'board-1',
         workspaceId: 'ws-1',

@@ -11,7 +11,7 @@ This guide covers contributions to active docs/code under:
 ## Local Setup
 
 ```bash
-npm ci --include=optional
+npm install
 npm run dev
 ```
 

@@ -70,7 +70,7 @@ This repository also contains a separate standalone canon studio in [`canon-desi
 ### Install and Run
 
 ```bash
-npm ci --include=optional
+npm install
 npm run dev
 ```
 
@@ -82,7 +82,7 @@ If you accidentally installed from WSL/Linux and hit a Rollup native package err
 
 ```bash
 rd /s /q node_modules
-npm ci --include=optional
+npm install
 ```
 
 The repo now blocks local `npm install`/`npm ci` from WSL when the checkout lives under `/mnt/<drive>/...`. If you truly need that path, set `SHERLOCK_ALLOW_WSL_INSTALL=1` explicitly.
@@ -129,7 +129,7 @@ Sherlock deploys cleanly to Vercel as a static Vite app.
 Recommended flow:
 
 1. Import the GitHub repo into Vercel.
-2. Let Vercel use the repo `vercel.json` or set `npm ci --include=optional`, `npm run build`, and `dist` manually.
+2. Let Vercel use the repo `vercel.json` or set `npm ci`, `npm run build`, and `dist` manually.
 3. Optionally place either a canonical workspace-data backup or a canonical single-workspace export JSON at `public/seeds/demo-workspace.json` if you want first-time visitors to land in a pre-seeded demo workspace.
 4. Leave provider env vars unset in Vercel for public BYOK hosting.
 5. Set `VITE_TLDRAW_LICENSE_KEY` in Vercel if the deployment uses Sherlock's `tldraw 4.x` board.

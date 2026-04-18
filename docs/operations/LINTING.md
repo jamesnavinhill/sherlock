@@ -79,11 +79,10 @@ Preferred recovery:
 
 ```bash
 rm -rf node_modules
-npm ci --include=optional
+npm install
 ```
 
 Notes:
 
-- prefer `npm ci --include=optional` over `npm install` for clean local restores
 - keep installs and command execution in one environment per clone
 - for this repo, avoid mixing Windows-side installs with WSL-side execution
