@@ -67,7 +67,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   footer,
   headerActionsPlacement = 'bottom',
   widthClassName = 'w-[var(--osint-dock-width)]',
-  widthValue = 'min(var(--osint-shell-utility-width),calc(100vw-1rem))',
+  widthValue = 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))',
   overlayOnDesktop = false,
   className = '',
 }) => {

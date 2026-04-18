@@ -12,12 +12,15 @@ export interface AppWorkbenchRegistration {
 
 export interface AppWorkbenchHostContextValue {
   activePanel: AppWorkbenchRegistration | null;
+  activePanelId: string | null;
   isOpen: boolean;
   placement: AppWorkbenchPlacement;
   hasPanel: boolean;
+  panels: AppWorkbenchRegistration[];
   closeWorkbench: () => void;
   openWorkbench: () => void;
   registerPanel: (panel: AppWorkbenchRegistration) => void;
+  setActivePanelId: (id: string) => void;
   setPlacement: (placement: AppWorkbenchPlacement) => void;
   toggleWorkbench: () => void;
   unregisterPanel: (id: string) => void;

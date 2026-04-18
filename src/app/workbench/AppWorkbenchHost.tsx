@@ -14,7 +14,16 @@ import { useAppWorkbenchHost } from './useAppWorkbenchHost';
 const APP_WORKBENCH_WIDTH = 'min(var(--osint-shell-utility-width),28vw)';
 
 export const AppWorkbenchHost: React.FC = () => {
-  const { activePanel, closeWorkbench, isOpen, placement, setPlacement } = useAppWorkbenchHost();
+  const {
+    activePanel,
+    activePanelId,
+    closeWorkbench,
+    isOpen,
+    panels,
+    placement,
+    setActivePanelId,
+    setPlacement,
+  } = useAppWorkbenchHost();
 
   if (!activePanel) {
     return null;
@@ -41,8 +50,20 @@ export const AppWorkbenchHost: React.FC = () => {
             <div className="min-w-0">
               <div className="osint-eyebrow">Workbench</div>
               <div className="mt-1 osint-panel-title">{activePanel.title}</div>
-              {activePanel.description ? (
-                <div className="mt-2 osint-body-quiet">{activePanel.description}</div>
+              {panels.length > 1 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {panels.map((panel) => (
+                    <button
+                      key={panel.id}
+                      type="button"
+                      onClick={() => setActivePanelId(panel.id)}
+                      data-active={activePanelId === panel.id ? 'true' : undefined}
+                      className="osint-settings-surface-button px-3 py-1.5 osint-meta-label"
+                    >
+                      {panel.title}
+                    </button>
+                  ))}
+                </div>
               ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -76,7 +97,11 @@ export const AppWorkbenchHost: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className={CHROME_RAIL_BODY_CLASS}>{activePanel.content}</div>
+        <div className={CHROME_RAIL_BODY_CLASS}>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar">
+            {activePanel.content}
+          </div>
+        </div>
       </DockPanel>
     </>
   );

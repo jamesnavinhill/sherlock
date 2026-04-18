@@ -48,6 +48,15 @@ describe('GlobalInspectorPanel', () => {
     expect(panel?.className).toContain('pointer-events-none');
   });
 
+  it('defaults to the shared rail width token', () => {
+    render(<GlobalInspectorPanel isOpen title="Atlas Holdings" />);
+
+    const panel = screen.getByText('Atlas Holdings').closest('aside');
+    expect(panel).toHaveStyle({
+      '--osint-dock-width': 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))',
+    });
+  });
+
   it('renders a shared footer when provided', () => {
     render(
       <GlobalInspectorPanel

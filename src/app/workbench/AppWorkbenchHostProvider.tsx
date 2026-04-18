@@ -8,33 +8,70 @@ import {
 } from './AppWorkbenchContext';
 
 export const AppWorkbenchHostProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activePanel, setActivePanel] = useState<AppWorkbenchRegistration | null>(null);
+  const [panelsById, setPanelsById] = useState<Record<string, AppWorkbenchRegistration>>({});
+  const [panelOrder, setPanelOrder] = useState<string[]>([]);
+  const [activePanelId, setActivePanelIdState] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState<AppWorkbenchPlacement>('right');
-  const activePanelRef = useRef<AppWorkbenchRegistration | null>(null);
+  const panelsByIdRef = useRef<Record<string, AppWorkbenchRegistration>>({});
+  const panelOrderRef = useRef<string[]>([]);
+  const activePanelIdRef = useRef<string | null>(null);
 
   const registerPanel = useCallback((panel: AppWorkbenchRegistration) => {
-    const previousPanelId = activePanelRef.current?.id || null;
-    activePanelRef.current = panel;
-    setActivePanel(panel);
+    const isNewPanel = !panelsByIdRef.current[panel.id];
+    const nextPanelsById = {
+      ...panelsByIdRef.current,
+      [panel.id]: panel,
+    };
 
-    if (previousPanelId !== panel.id && panel.defaultOpen) {
+    panelsByIdRef.current = nextPanelsById;
+    setPanelsById(nextPanelsById);
+
+    if (isNewPanel) {
+      const nextPanelOrder = [...panelOrderRef.current, panel.id];
+      panelOrderRef.current = nextPanelOrder;
+      setPanelOrder(nextPanelOrder);
+    }
+
+    if (!activePanelIdRef.current) {
+      activePanelIdRef.current = panel.id;
+      setActivePanelIdState(panel.id);
+    }
+
+    if (isNewPanel && panel.defaultOpen) {
       setIsOpen(true);
     }
   }, []);
 
   const unregisterPanel = useCallback((id: string) => {
-    if (activePanelRef.current?.id !== id) {
+    if (!panelsByIdRef.current[id]) {
       return;
     }
 
-    activePanelRef.current = null;
-    setActivePanel(null);
-    setIsOpen(false);
+    const nextPanelsById = { ...panelsByIdRef.current };
+    delete nextPanelsById[id];
+    panelsByIdRef.current = nextPanelsById;
+    setPanelsById(nextPanelsById);
+
+    const nextPanelOrder = panelOrderRef.current.filter((panelId) => panelId !== id);
+    panelOrderRef.current = nextPanelOrder;
+    setPanelOrder(nextPanelOrder);
+
+    if (activePanelIdRef.current === id) {
+      const nextActivePanelId = nextPanelOrder[0] ?? null;
+      activePanelIdRef.current = nextActivePanelId;
+      setActivePanelIdState(nextActivePanelId);
+
+      if (!nextActivePanelId) {
+        setIsOpen(false);
+      }
+    } else if (nextPanelOrder.length === 0) {
+      setIsOpen(false);
+    }
   }, []);
 
   const openWorkbench = useCallback(() => {
-    if (!activePanelRef.current) {
+    if (!activePanelIdRef.current) {
       return;
     }
 
@@ -46,33 +83,55 @@ export const AppWorkbenchHostProvider: React.FC<{ children: React.ReactNode }> =
   }, []);
 
   const toggleWorkbench = useCallback(() => {
-    if (!activePanelRef.current) {
+    if (!activePanelIdRef.current) {
       return;
     }
 
     setIsOpen((current) => !current);
   }, []);
 
+  const setActivePanelId = useCallback((id: string) => {
+    if (!panelsByIdRef.current[id]) {
+      return;
+    }
+
+    activePanelIdRef.current = id;
+    setActivePanelIdState(id);
+  }, []);
+
+  const panels = useMemo(
+    () => panelOrder.map((id) => panelsById[id]).filter(Boolean),
+    [panelOrder, panelsById]
+  );
+  const activePanel =
+    (activePanelId ? panelsById[activePanelId] : null) ?? panels[0] ?? null;
+
   const value = useMemo<AppWorkbenchHostContextValue>(
     () => ({
       activePanel,
+      activePanelId,
       closeWorkbench,
-      hasPanel: activePanel !== null,
+      hasPanel: panels.length > 0,
       isOpen,
       openWorkbench,
+      panels,
       placement,
       registerPanel,
+      setActivePanelId,
       setPlacement,
       toggleWorkbench,
       unregisterPanel,
     }),
     [
       activePanel,
+      activePanelId,
       closeWorkbench,
       isOpen,
       openWorkbench,
+      panels,
       placement,
       registerPanel,
+      setActivePanelId,
       toggleWorkbench,
       unregisterPanel,
     ]

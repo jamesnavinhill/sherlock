@@ -68,7 +68,7 @@ const copyText = async (value: string) => {
   }
 };
 
-const SECTION_ACTION_BUTTON_CLASS = `${SETTINGS_SURFACE_BUTTON_CLASS} px-2 py-1 osint-meta-label`;
+const SECTION_ACTION_BUTTON_CLASS = 'osint-workbench-header-action px-2 py-1 osint-meta-label';
 const SURFACE_BUTTON_CLASS = `${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-2`;
 const SECTION_WRAPPER_CLASS = 'space-y-2';
 const MODE_OPTIONS: SherlockThemeMode[] = ['dark', 'light'];
@@ -1041,8 +1041,8 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
             <div className="grid gap-4">
               {(
                 [
-                  ['sidebarWidth', 'Settings Rail Width', 200, 320, 4],
-                  ['railWidth', 'Shell Rail Width', 260, 420, 4],
+                  ['sidebarWidth', 'Sidebar Width', 200, 320, 4],
+                  ['railWidth', 'Rail Width', 260, 420, 4],
                   ['utilityWidth', 'Utility Dock Width', 300, 520, 4],
                   ['toolbarHeight', 'Toolbar Height', 64, 104, 2],
                   ['contentWidth', 'Content Measure', 920, 1360, 20],

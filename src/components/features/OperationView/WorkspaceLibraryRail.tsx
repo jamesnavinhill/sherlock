@@ -274,7 +274,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
           : `Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`
       }
       summary={headerSummary}
-      widthValue="min(var(--osint-shell-rail-width),calc(100vw-1rem))"
+      widthValue="min(var(--osint-shell-rail-width),calc(100vw - 1rem))"
       className={`${desktopLayoutClass} ${overlayOnDesktop ? 'lg:shadow-2xl' : 'lg:shadow-none'}`}
     >
       <LibraryRailSections sections={sections} />

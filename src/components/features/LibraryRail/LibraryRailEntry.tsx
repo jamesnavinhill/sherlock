@@ -49,7 +49,10 @@ export const LibraryRailEntry: React.FC<LibraryRailEntryProps> = ({ entry }) => 
     <div className="flex min-w-0 items-start gap-2">
       {entry.icon ? <div className="shrink-0 text-current">{entry.icon}</div> : null}
       <div className="min-w-0 flex-1">
-        <div className="truncate osint-body-quiet leading-5" style={{ color: 'inherit' }}>
+        <div
+          className="min-w-0 truncate osint-body-quiet leading-5"
+          style={{ color: 'inherit' }}
+        >
           {entry.title}
         </div>
         {entry.meta ? (

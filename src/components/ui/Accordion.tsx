@@ -1,6 +1,6 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 interface AccordionProps {
   title: React.ReactNode;
@@ -57,7 +57,17 @@ export const Accordion: React.FC<AccordionProps> = ({
 
   return (
     <div className={wrapperClassName}>
-      <div className="flex items-center gap-2">
+      <div
+        className={`flex items-center gap-2 ${
+          visibleActions
+            ? `overflow-hidden rounded-[inherit] ${
+                isOpen
+                  ? 'bg-[var(--osint-rail-interaction-active-bg)]'
+                  : 'bg-[var(--osint-card-section-bg)]'
+              }`
+            : ''
+        }`}
+      >
         <button
           type="button"
           onClick={onToggle}
@@ -68,20 +78,20 @@ export const Accordion: React.FC<AccordionProps> = ({
         >
           <span className="flex min-w-0 items-center gap-2">
             {Icon && <Icon className="mr-2 h-4 w-4 text-zinc-500" />}
-            <span className="min-w-0 truncate">{title}</span>
+            <span className="min-w-0 truncate">
+              {title}
+            </span>
             {typeof count === 'number' ? (
               <span className="shrink-0 osint-meta-label text-zinc-500">{count}</span>
             ) : null}
           </span>
-          {isOpen ? (
-            <ChevronDown className={`h-4 w-4 ${chevronClassName}`} />
-          ) : (
+          {!isOpen ? (
             <ChevronRight className={`h-4 w-4 ${chevronClassName}`} />
-          )}
+          ) : null}
         </button>
         {visibleActions ? (
           <div
-            className={`shrink-0 pr-2 ${actionsClassName}`}
+            className={`flex shrink-0 items-center self-stretch bg-[inherit] px-2 ${actionsClassName}`}
             onClick={(event) => event.stopPropagation()}
           >
             {visibleActions}

@@ -23,14 +23,32 @@ const RegisteredWorkbench = () => {
   return null;
 };
 
+const SecondaryWorkbench = () => {
+  const panel = React.useMemo(
+    () => ({
+      id: 'timeline-workbench',
+      title: 'Timeline Tools',
+      description: 'Secondary workbench content.',
+      defaultOpen: false,
+      content: <div>Timeline Summary Body</div>,
+    }),
+    []
+  );
+
+  useRegisterAppWorkbenchPanel(panel);
+
+  return null;
+};
+
 const WorkbenchControls = () => {
-  const { hasPanel, isOpen, placement, toggleWorkbench } = useAppWorkbenchHost();
+  const { hasPanel, isOpen, panels, placement, toggleWorkbench } = useAppWorkbenchHost();
 
   return (
     <div>
       <div>{hasPanel ? 'available' : 'missing'}</div>
       <div>{isOpen ? 'open' : 'closed'}</div>
       <div>{placement}</div>
+      <div>{panels.length} panels</div>
       <button type="button" onClick={toggleWorkbench}>
         Toggle Host
       </button>
@@ -51,6 +69,7 @@ describe('AppWorkbenchHost', () => {
     expect(screen.getByText('available')).toBeInTheDocument();
     expect(screen.getByText('open')).toBeInTheDocument();
     expect(screen.getByText('right')).toBeInTheDocument();
+    expect(screen.getByText('1 panels')).toBeInTheDocument();
     expect(screen.getByText('Theme Workspace')).toBeInTheDocument();
 
     const panel = screen.getByText('Theme Summary Body').closest('aside');
@@ -81,5 +100,22 @@ describe('AppWorkbenchHost', () => {
 
     panel = screen.getByText('Theme Summary Body').closest('aside');
     expect(panel).toHaveAttribute('data-placement', 'left');
+  });
+
+  it('supports switching between multiple registered panels', () => {
+    render(
+      <AppWorkbenchHostProvider>
+        <RegisteredWorkbench />
+        <SecondaryWorkbench />
+        <WorkbenchControls />
+        <AppWorkbenchHost />
+      </AppWorkbenchHostProvider>
+    );
+
+    expect(screen.getByText('2 panels')).toBeInTheDocument();
+    expect(screen.getByText('Theme Summary Body')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Timeline Tools' }));
+    expect(screen.getByText('Timeline Summary Body')).toBeInTheDocument();
   });
 });

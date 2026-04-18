@@ -24,6 +24,8 @@ import {
   type DetailSections,
 } from './timelineViewUtils';
 
+const RAIL_WIDTH_VALUE = 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))';
+
 interface TimelineInspectorPanelProps {
   isOpen: boolean;
   selectedEvent: TimelineEvent | null;
@@ -252,6 +254,7 @@ export const TimelineInspectorPanel: React.FC<TimelineInspectorPanelProps> = ({
   return (
     <GlobalInspectorPanel
       isOpen={isOpen}
+      widthValue={RAIL_WIDTH_VALUE}
       eyebrow="Inspector"
       title={selectedEvent ? selectedEvent.title : 'No Event Selected'}
       subtitle={

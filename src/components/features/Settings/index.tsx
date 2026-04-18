@@ -1,7 +1,6 @@
 import React from 'react';
 import { Check, RefreshCw, Save, X } from 'lucide-react';
 
-import { useRegisterAppWorkbenchPanel } from '@/app/workbench/useAppWorkbenchHost';
 import { PageShell } from '@/components/system/layout/PageShell';
 import {
   CHROME_HEADER_CLASS,
@@ -15,7 +14,6 @@ import { TABS } from './settingsUtils';
 import { SettingsDataTab } from './SettingsDataTab';
 import { SettingsDialogs } from './SettingsDialogs';
 import { SettingsRuntimeTab } from './SettingsRuntimeTab';
-import { SettingsThemeWorkbenchPanel } from './SettingsThemeWorkbenchPanel';
 import { SettingsScopesTab } from './SettingsScopesTab';
 import { SettingsTemplatesTab } from './SettingsTemplatesTab';
 import { SettingsThemeTab } from './SettingsThemeTab';
@@ -51,57 +49,6 @@ export const Settings: React.FC<SettingsProps> = ({
     themeWorkspace,
   });
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab) ?? TABS[0];
-  const themeWorkbenchPanel = React.useMemo(
-    () =>
-      activeTab === 'THEME'
-        ? {
-            id: 'settings-theme-workbench',
-            title: 'Theme Workspace',
-            description:
-              'Theme draft state, template context, and export actions now live in the shared app workbench host.',
-            defaultOpen: true,
-            content: (
-              <SettingsThemeWorkbenchPanel
-                activeTheme={theme.activeTheme}
-                activeThemeId={theme.activeThemeId}
-                exportResolvedCss={theme.exportResolvedCss}
-                exportThemeJson={theme.exportThemeJson}
-                forkActiveTheme={theme.forkActiveTheme}
-                previewMode={theme.previewMode}
-                resetActiveThemeFactory={theme.resetActiveThemeFactory}
-                resetAllThemeFactories={theme.resetAllThemeFactories}
-                revertActiveTheme={theme.revertActiveTheme}
-                saveActiveTheme={theme.saveActiveTheme}
-                savedTheme={theme.savedTheme}
-                selectTheme={theme.selectTheme}
-                setPreviewMode={theme.setPreviewMode}
-                themeDirty={theme.themeDirty}
-                updateTheme={theme.updateTheme}
-              />
-            ),
-          }
-        : null,
-    [
-      activeTab,
-      theme.activeTheme,
-      theme.activeThemeId,
-      theme.exportResolvedCss,
-      theme.exportThemeJson,
-      theme.forkActiveTheme,
-      theme.previewMode,
-      theme.resetActiveThemeFactory,
-      theme.resetAllThemeFactories,
-      theme.revertActiveTheme,
-      theme.saveActiveTheme,
-      theme.savedTheme,
-      theme.selectTheme,
-      theme.setPreviewMode,
-      theme.themeDirty,
-      theme.updateTheme,
-    ]
-  );
-
-  useRegisterAppWorkbenchPanel(themeWorkbenchPanel);
 
   const renderActiveTab = () => {
     if (activeTab === 'DATA') {

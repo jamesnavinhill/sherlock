@@ -16,7 +16,7 @@ export const DockPanel: React.FC<DockPanelProps> = ({
   isOpen,
   children,
   widthClassName = 'w-[var(--osint-dock-width)]',
-  widthValue = 'min(20rem,calc(100vw-1rem))',
+  widthValue = 'min(20rem,calc(100vw - 1rem))',
   overlayOnDesktop = false,
   className = '',
   style,
@@ -25,9 +25,14 @@ export const DockPanel: React.FC<DockPanelProps> = ({
   const hiddenTransformClassName = placement === 'right' ? 'translate-x-full' : '-translate-x-full';
   const desktopBorderResetClassName =
     placement === 'right' ? 'lg:border-l-0' : 'lg:border-r-0';
+  const resolvedWidth = isOpen ? widthValue : '0px';
   const panelStyle = {
     ...style,
     '--osint-dock-width': widthValue,
+    width: resolvedWidth,
+    minWidth: 0,
+    maxWidth: resolvedWidth,
+    flex: `0 0 ${resolvedWidth}`,
   } as React.CSSProperties;
 
   return (

@@ -27,7 +27,7 @@ describe('NetworkGraphInspectorPanel', () => {
       data: report,
     };
 
-    render(
+    const { container } = render(
       <NetworkGraphInspectorPanel
         isOpen
         onClose={vi.fn()}
@@ -66,6 +66,9 @@ describe('NetworkGraphInspectorPanel', () => {
     expect(followUpCard).not.toBeNull();
     expect(within(followUpCard as HTMLElement).getByRole('button', { name: 'Open' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Investigate' })).not.toBeInTheDocument();
+    expect(container.querySelector('aside')).toHaveStyle({
+      '--osint-dock-width': 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))',
+    });
   });
 
   it('starts the node summary accordion collapsed and still allows it to close fully after opening', () => {

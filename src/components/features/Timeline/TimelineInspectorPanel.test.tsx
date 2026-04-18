@@ -38,7 +38,7 @@ const labelProfile: LabelProfile = {
 
 describe('TimelineInspectorPanel', () => {
   it('renders timeline metadata inside the shared global inspector', () => {
-    render(
+    const { container } = render(
       <TimelineInspectorPanel
         isOpen
         selectedEvent={baseEvent}
@@ -119,6 +119,9 @@ describe('TimelineInspectorPanel', () => {
     expect(screen.getAllByText('Atlas Holdings')).toHaveLength(2);
     expect(screen.getByText('Desk signal')).toBeInTheDocument();
     expect(screen.getByText('Pinned')).toBeInTheDocument();
+    expect(container.querySelector('aside')).toHaveStyle({
+      '--osint-dock-width': 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))',
+    });
   });
 
   it('shows the shared inspector empty state when no event is selected', () => {

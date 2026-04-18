@@ -123,7 +123,7 @@ export const buildEntityInspectorSections = ({
               title={getMentionLabel(report)}
             >
               <FileText className="h-3 w-3 text-current opacity-70" />
-              <span className="truncate osint-body-quiet leading-5" style={{ color: 'inherit' }}>
+              <span className="min-w-0 truncate osint-body-quiet leading-5" style={{ color: 'inherit' }}>
                 {getMentionLabel(report)}
               </span>
             </button>

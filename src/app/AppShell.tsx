@@ -8,14 +8,14 @@ import { ToastContainer } from '@/components/ui/Toast';
 import { AppShellRoutes } from '@/app/AppShellRoutes';
 import { RouteErrorBoundary } from '@/app/RouteErrorBoundary';
 import { useAppShellController } from '@/app/useAppShellController';
-import { AppWorkbenchHost } from '@/app/workbench/AppWorkbenchHost';
 import { AppWorkbenchHostProvider } from '@/app/workbench/AppWorkbenchHostProvider';
+import { ThemeWorkbenchRegistration } from '@/app/workbench/ThemeWorkbenchRegistration';
 import { useAppWorkbenchHost } from '@/app/workbench/useAppWorkbenchHost';
 
 const AppShellWorkspaceChrome: React.FC<{
   controller: ReturnType<typeof useAppShellController>;
 }> = ({ controller }) => {
-  const { hasPanel, isOpen, placement, toggleWorkbench } = useAppWorkbenchHost();
+  const { hasPanel, isOpen, toggleWorkbench } = useAppWorkbenchHost();
 
   return (
     <div
@@ -28,6 +28,10 @@ const AppShellWorkspaceChrome: React.FC<{
           onBypass={controller.handleApiKeyPromptBypass}
         />
       )}
+      <ThemeWorkbenchRegistration
+        themeWorkspace={controller.themeWorkspace}
+        onThemeWorkspaceChange={controller.setThemeWorkspace}
+      />
 
       <Sidebar
         currentView={controller.routeCurrentView}
@@ -53,7 +57,6 @@ const AppShellWorkspaceChrome: React.FC<{
         }`}
       >
         <div className="flex flex-1 overflow-hidden relative w-full">
-          {placement === 'left' ? <AppWorkbenchHost /> : null}
           <div className="flex-1 overflow-hidden relative w-full">
             <RouteErrorBoundary resetKey={controller.locationPathname}>
               <Suspense
@@ -69,7 +72,6 @@ const AppShellWorkspaceChrome: React.FC<{
               </Suspense>
             </RouteErrorBoundary>
           </div>
-          {placement === 'right' ? <AppWorkbenchHost /> : null}
         </div>
       </main>
       {controller.showHelpModal && <HelpModal onClose={() => controller.setShowHelpModal(false)} />}

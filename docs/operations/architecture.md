@@ -154,11 +154,12 @@ Stage 4's routed-shell closeout is now active in runtime code:
 
 Stage 5's app-shell workbench host is also now active in runtime code:
 
-- `AppShell.tsx` now mounts one shared workbench host around the routed app surface instead of leaving utility docking trapped inside `Settings`
+- `AppShell.tsx` now provides one shared workbench registry while `PageShell.tsx` mounts the shared host inside each routed page body, so the dock sits under page toolbars instead of stretching the entire app column
 - `Sidebar.tsx` now exposes the global workbench trigger while the shared host owns app-level open/close and left/right dock placement
 - routed consumers register utility content through `useRegisterAppWorkbenchPanel()` rather than rendering route-local right docks
-- `Settings/index.tsx` and `TimelineView.tsx` are now live consumers of that contract, registering theme draft/export utility content and timeline saved-view/export tooling into the shared host instead of hard-wiring route-local right-side docks
-- the host/provider split (`AppWorkbenchHostProvider.tsx`, `AppWorkbenchHost.tsx`, `useAppWorkbenchHost.ts`) leaves one explicit route-pluggable contract for future utility panels without introducing a second docking system
+- the global theme workbench now registers once at the app-shell level, so canon-style theme controls are available across routed workspace pages such as Viewer, Board, Graph, Timeline, Chat, and Settings
+- `TimelineView.tsx` remains a route-level consumer and coexists with the global theme workbench through the shared multi-panel host registry instead of replacing it
+- the host/provider split (`AppWorkbenchHostProvider.tsx`, `AppWorkbenchHost.tsx`, `useAppWorkbenchHost.ts`) now owns panel registration, active-panel switching, open/close state, and left/right dock placement without introducing a second docking system
 
 The shared input/control layer now also has Sherlock-owned primitives instead of route-local slider/date markup:
 

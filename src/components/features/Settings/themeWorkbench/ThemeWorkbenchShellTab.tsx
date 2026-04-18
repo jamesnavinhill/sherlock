@@ -37,7 +37,7 @@ export const ThemeWorkbenchShellTab: React.FC<ThemeWorkbenchShellTabProps> = ({
         {(
           [
             ['sidebarWidth', 'Sidebar Width', 200, 320, 4],
-            ['railWidth', 'Shell Rail Width', 260, 420, 4],
+            ['railWidth', 'Rail Width', 260, 420, 4],
             ['utilityWidth', 'Utility Dock Width', 300, 520, 4],
             ['toolbarHeight', 'Toolbar Height', 64, 104, 2],
             ['contentWidth', 'Content Measure', 920, 1360, 20],

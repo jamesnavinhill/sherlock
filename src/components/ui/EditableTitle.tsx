@@ -97,12 +97,12 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
 
   return (
     <div
-      className="flex items-center gap-2 group min-w-0"
+      className="flex w-full min-w-0 items-start gap-2 group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <span
-        className={`truncate ${className}`}
+        className={`block min-w-0 flex-1 whitespace-normal break-all ${className}`}
         title={resolvedDisplayValue}
         onDoubleClick={() => setIsEditing(true)}
       >

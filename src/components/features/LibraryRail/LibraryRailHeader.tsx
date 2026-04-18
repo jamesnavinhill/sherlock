@@ -29,7 +29,9 @@ export const LibraryRailHeader: React.FC<LibraryRailHeaderProps> = ({
       <div className="min-w-0 osint-eyebrow">{eyebrow}</div>
       {actions && actionsPlacement === 'top' ? <div className="shrink-0">{actions}</div> : null}
     </div>
-    <div className="mt-1 min-w-0 truncate whitespace-nowrap osint-panel-title">{title}</div>
+    <div className="mt-1 min-w-0 truncate whitespace-nowrap osint-panel-title">
+      {title}
+    </div>
     {subtitle ? <div className="mt-2 osint-body-quiet">{subtitle}</div> : null}
     {summary ? <div className="mt-3">{summary}</div> : null}
     {actions && actionsPlacement === 'bottom' ? <div className="mt-3">{actions}</div> : null}

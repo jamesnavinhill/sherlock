@@ -44,6 +44,19 @@
   border-radius: var(--osint-panel-radius);
 }
 
+.osint-dock-panel {
+  width: var(--osint-dock-width);
+  min-width: 0;
+  max-width: var(--osint-dock-width);
+  flex: 0 0 var(--osint-dock-width);
+}
+
+.osint-dock-panel[data-state='closed'] {
+  width: 0;
+  max-width: 0;
+  flex-basis: 0;
+}
+
 .osint-panel-shell {
   border-color: var(--osint-shell-border);
   box-shadow: none;

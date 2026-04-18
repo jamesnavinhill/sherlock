@@ -9,6 +9,8 @@ import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 import { getLatestTimelineActivity, getTrackCount } from './timelineEvents';
 import { getFocusedButtonClass, TRACK_OPTIONS, type DossierSections } from './timelineViewUtils';
 
+const RAIL_WIDTH_VALUE = 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))';
+
 interface LabelProfileLike {
   artifactLabel: string;
   artifactLabelPlural: string;
@@ -169,6 +171,7 @@ export const TimelineLibraryRail: React.FC<TimelineLibraryRailProps> = ({
       isOpen={isOpen}
       eyebrow="Library"
       title={workspaceTitle}
+      widthValue={RAIL_WIDTH_VALUE}
       summary={
         latestActivity ? (
           <div className="osint-meta-label text-[color:var(--osint-text-meta)]">

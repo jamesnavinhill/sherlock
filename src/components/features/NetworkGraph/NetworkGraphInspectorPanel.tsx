@@ -38,6 +38,8 @@ import {
 import { useExclusivePanelSections } from '../shared/useExclusivePanelSections';
 import type { GraphNode } from './GraphCanvas';
 
+const RAIL_WIDTH_VALUE = 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))';
+
 type InvestigationContext = { topic: string; summary: string };
 
 interface NetworkGraphInspectorPanelProps {
@@ -536,6 +538,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
       {mode === 'ENTITY' && selectedEntity ? (
         <GlobalInspectorPanel
           isOpen={isOpen}
+          widthValue={RAIL_WIDTH_VALUE}
           onClose={onClose}
           title={
             <EditableTitle
@@ -566,6 +569,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
       ) : mode === 'HEADLINE' && selectedHeadline ? (
         <GlobalInspectorPanel
           isOpen={isOpen}
+          widthValue={RAIL_WIDTH_VALUE}
           onClose={onClose}
           title={<span title={selectedHeadline.source}>{selectedHeadline.source}</span>}
           subtitle={
@@ -589,6 +593,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
       ) : mode === 'REPORT' && selectedReport ? (
         <GlobalInspectorPanel
           isOpen={isOpen}
+          widthValue={RAIL_WIDTH_VALUE}
           onClose={onClose}
           title={
             <EditableTitle
@@ -613,6 +618,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
       ) : (
         <GlobalInspectorPanel
           isOpen={isOpen}
+          widthValue={RAIL_WIDTH_VALUE}
           onClose={onClose}
           title="No Item Selected"
           emptyState={{

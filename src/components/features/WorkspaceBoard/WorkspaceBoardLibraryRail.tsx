@@ -244,7 +244,7 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
         </div>
       }
       search={<LibraryRailSearch value={search} onChange={onSearchChange} />}
-      widthValue="min(var(--osint-shell-rail-width),calc(100vw-1rem))"
+      widthValue="min(var(--osint-shell-rail-width),calc(100vw - 1rem))"
     >
       <LibraryRailSections sections={sections} />
     </LibraryRailShell>
