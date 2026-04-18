@@ -32,7 +32,7 @@ vi.mock('./EntityResolution', () => ({
 }));
 
 vi.mock('../OperationView/WorkspaceLibraryRail', () => ({
-  WorkspaceLibraryRail: () => null,
+  WorkspaceRail: () => null,
 }));
 
 vi.mock('./NetworkGraphInspectorPanel', () => ({

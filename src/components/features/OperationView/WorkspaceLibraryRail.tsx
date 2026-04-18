@@ -15,47 +15,44 @@ import type { LibraryRailSection } from '../LibraryRail/libraryRailTypes';
 import { PANEL_SECTION_ICONS } from '../../ui/panelSectionIcons';
 import type { OperationWorkspaceFindingEntry } from './operationWorkspacePanelData';
 
-interface WorkspaceLibraryRailProps {
+interface WorkspaceRailProps {
   isOpen: boolean;
-  activeCase: Workspace | null;
+  activeWorkspace: Workspace | null;
   labelProfile: LabelProfile;
-  // Data objects
-  reports: Artifact[];
+  artifacts: Artifact[];
   findings: OperationWorkspaceFindingEntry[];
   entities: Entity[];
-  leads: string[];
+  followUps: string[];
   sources: Source[];
   headlines: Headline[];
-  // State
   openSections: Record<string, boolean>;
   toggleSection: (section: string) => void;
-  // Actions
   onNavigate: (id: string) => void;
   onEntityClick: (entity: Entity) => void;
-  onLeadClick: (lead: string) => void;
+  onFollowUpClick: (followUp: string) => void;
   onHeadlineClick: (headline: Headline) => void;
-  activeReportId?: string;
+  activeArtifactId?: string;
   overlayOnDesktop?: boolean;
   showHeaderSummary?: boolean;
 }
 
-export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
+export const WorkspaceRail: React.FC<WorkspaceRailProps> = ({
   isOpen,
-  activeCase,
+  activeWorkspace,
   labelProfile,
-  reports,
+  artifacts,
   findings,
   entities,
-  leads,
+  followUps,
   sources,
   headlines,
   openSections,
   toggleSection,
   onNavigate,
   onEntityClick,
-  onLeadClick,
+  onFollowUpClick,
   onHeadlineClick,
-  activeReportId,
+  activeArtifactId,
   overlayOnDesktop = false,
   showHeaderSummary = false,
 }) => {
@@ -65,19 +62,19 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
 
   const sections: LibraryRailSection[] = [];
 
-  if (reports.length > 0) {
+  if (artifacts.length > 0) {
     sections.push({
-      id: 'reports',
+      id: 'artifacts',
       title: labelProfile.artifactLabelPlural,
-      count: reports.length,
+      count: artifacts.length,
       icon: PANEL_SECTION_ICONS.artifacts,
-      isOpen: openSections.reports,
-      onToggle: () => toggleSection('reports'),
-      entries: reports.map((reportEntry) => ({
-        id: reportEntry.id || reportEntry.topic,
-        title: sanitizeDisplayTitle(reportEntry.topic),
-        onClick: reportEntry.id ? () => onNavigate(reportEntry.id as string) : undefined,
-        isActive: activeReportId === reportEntry.id,
+      isOpen: openSections.artifacts,
+      onToggle: () => toggleSection('artifacts'),
+      entries: artifacts.map((artifact) => ({
+        id: artifact.id || artifact.topic,
+        title: sanitizeDisplayTitle(artifact.topic),
+        onClick: artifact.id ? () => onNavigate(artifact.id as string) : undefined,
+        isActive: activeArtifactId === artifact.id,
         icon: <span className={CHROME_NESTED_ITEM_DOT_CLASS} />,
       })),
     });
@@ -122,35 +119,38 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
       icon: PANEL_SECTION_ICONS.keyFindings,
       isOpen: openSections.findings,
       onToggle: () => toggleSection('findings'),
-      entries: findings.map(({ finding, reportId, reportTopic }) => ({
+      entries: findings.map(({ finding, artifactId, artifactTitle }) => ({
         id: finding.id,
         title: finding.title,
         description: finding.summary,
-        meta: sanitizeDisplayTitle(reportTopic),
-        onClick: reportId ? () => onNavigate(reportId) : undefined,
+        meta: sanitizeDisplayTitle(artifactTitle),
+        onClick: artifactId ? () => onNavigate(artifactId) : undefined,
       })),
     });
   }
 
   sections.push({
-    id: 'leads',
+    id: 'followUps',
     title: labelProfile.followUpLabel,
-    count: leads.length,
+    count: followUps.length,
     icon: PANEL_SECTION_ICONS.followUps,
-    isOpen: openSections.leads,
-    onToggle: () => toggleSection('leads'),
+    isOpen: openSections.followUps,
+    onToggle: () => toggleSection('followUps'),
     content:
-      leads.length === 0 ? (
+      followUps.length === 0 ? (
         <p className="osint-body-quiet px-2 py-1 italic">{`No ${labelProfile.followUpLabel.toLowerCase()} available for this ${labelProfile.workspaceLabel.toLowerCase()}.`}</p>
       ) : (
         <div className="space-y-1">
-          {leads.map((lead, index) => (
-            <div key={`${lead}-${index}`} className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}>
-              <p className="osint-body-quiet leading-5 text-zinc-300">{lead}</p>
+          {followUps.map((followUp, index) => (
+            <div
+              key={`${followUp}-${index}`}
+              className={`${CHROME_THIN_NESTED_ITEM_CLASS} space-y-2`}
+            >
+              <p className="osint-body-quiet leading-5 text-zinc-300">{followUp}</p>
               <div className="flex">
                 <button
                   type="button"
-                  onClick={() => onLeadClick(lead)}
+                  onClick={() => onFollowUpClick(followUp)}
                   className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
                   title="Open follow-up"
                   aria-label="Open follow-up"
@@ -165,11 +165,11 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
       ),
   });
 
-  if (reports.some((reportEntry) => (reportEntry.evidence || []).length > 0)) {
-    const evidenceEntries = reports
-      .flatMap((reportEntry) =>
-        (reportEntry.evidence || []).slice(0, 2).map((evidence) => ({
-          report: reportEntry,
+  if (artifacts.some((artifact) => (artifact.evidence || []).length > 0)) {
+    const evidenceEntries = artifacts
+      .flatMap((artifact) =>
+        (artifact.evidence || []).slice(0, 2).map((evidence) => ({
+          artifact,
           evidence,
         }))
       )
@@ -178,16 +178,16 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
     sections.push({
       id: 'evidence',
       title: 'Evidence',
-      count: reports.reduce((total, reportEntry) => total + (reportEntry.evidence?.length || 0), 0),
+      count: artifacts.reduce((total, artifact) => total + (artifact.evidence?.length || 0), 0),
       icon: Globe,
       isOpen: openSections.evidence,
       onToggle: () => toggleSection('evidence'),
-      entries: evidenceEntries.map(({ report: evidenceReport, evidence }) => ({
-        id: `${evidenceReport.id || evidenceReport.topic}-${evidence.id}`,
+      entries: evidenceEntries.map(({ artifact: evidenceArtifact, evidence }) => ({
+        id: `${evidenceArtifact.id || evidenceArtifact.topic}-${evidence.id}`,
         title: evidence.kind,
         description: evidence.title,
-        meta: sanitizeDisplayTitle(evidenceReport.topic),
-        onClick: evidenceReport.id ? () => onNavigate(evidenceReport.id as string) : undefined,
+        meta: sanitizeDisplayTitle(evidenceArtifact.topic),
+        onClick: evidenceArtifact.id ? () => onNavigate(evidenceArtifact.id as string) : undefined,
       })),
     });
   }
@@ -247,7 +247,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
     <div className="osint-meta-label flex items-center space-x-3">
       <span className="flex items-center">
         <FileText className="mr-1 h-3 w-3" />
-        {reports.length} {labelProfile.artifactLabelPlural}
+        {artifacts.length} {labelProfile.artifactLabelPlural}
       </span>
       <span className="flex items-center">
         <Users className="mr-1 h-3 w-3" />
@@ -261,9 +261,9 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
       isOpen={isOpen}
       overlayOnDesktop={overlayOnDesktop}
       title={
-        activeCase ? (
+        activeWorkspace ? (
           <h2 className="truncate whitespace-nowrap leading-tight">
-            {getWorkspaceDisplayTitle(activeCase)}
+            {getWorkspaceDisplayTitle(activeWorkspace)}
           </h2>
         ) : (
           <h2 className="truncate whitespace-nowrap text-zinc-500">
@@ -272,7 +272,7 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
         )
       }
       subtitle={
-        activeCase
+        activeWorkspace
           ? undefined
           : `Select a ${labelProfile.workspaceLabel.toLowerCase()} from the dropdown above.`
       }
@@ -284,3 +284,5 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
     </LibraryRailShell>
   );
 };
+
+export { WorkspaceRail as WorkspaceLibraryRail };

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Artifact, Entity, LabelProfile, Workspace } from '@/types';
-import { WorkspaceLibraryRail } from './WorkspaceLibraryRail';
+import { WorkspaceRail } from './WorkspaceLibraryRail';
 
 const labelProfile: LabelProfile = {
   id: 'default',
@@ -17,7 +17,7 @@ const labelProfile: LabelProfile = {
   archiveLabel: 'Archive',
 };
 
-describe('WorkspaceLibraryRail', () => {
+describe('WorkspaceRail', () => {
   it('can suppress the header summary row for network-style library use', () => {
     const workspace: Workspace = {
       id: 'workspace-1',
@@ -43,21 +43,21 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[artifact]}
+        artifacts={[artifact]}
         findings={[]}
         entities={[entity]}
-        leads={[]}
+        followUps={[]}
         sources={[]}
         headlines={[]}
         openSections={{
-          reports: true,
+          artifacts: true,
           findings: false,
           entities: false,
-          leads: false,
+          followUps: false,
           evidence: false,
           sources: false,
           headlines: false,
@@ -65,7 +65,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
         showHeaderSummary={false}
       />
@@ -92,21 +92,21 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[]}
+        artifacts={[]}
         findings={[]}
         entities={[entity]}
-        leads={[]}
+        followUps={[]}
         sources={[]}
         headlines={[]}
         openSections={{
-          reports: false,
+          artifacts: false,
           findings: false,
           entities: true,
-          leads: false,
+          followUps: false,
           evidence: false,
           sources: false,
           headlines: false,
@@ -114,7 +114,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
       />
     );
@@ -133,21 +133,21 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[]}
+        artifacts={[]}
         findings={[]}
         entities={[]}
-        leads={['Trace shared directors across the vendor cluster.']}
+        followUps={['Trace shared directors across the vendor cluster.']}
         sources={[]}
         headlines={[]}
         openSections={{
-          reports: false,
+          artifacts: false,
           findings: false,
           entities: false,
-          leads: true,
+          followUps: true,
           evidence: false,
           sources: false,
           headlines: false,
@@ -155,7 +155,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
       />
     );
@@ -174,21 +174,21 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[]}
+        artifacts={[]}
         findings={[]}
         entities={[]}
-        leads={[]}
+        followUps={[]}
         sources={[]}
         headlines={[]}
         openSections={{
-          reports: false,
+          artifacts: false,
           findings: false,
           entities: false,
-          leads: false,
+          followUps: false,
           evidence: false,
           sources: true,
           headlines: true,
@@ -196,7 +196,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
       />
     );
@@ -214,21 +214,21 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[]}
+        artifacts={[]}
         findings={[]}
         entities={[]}
-        leads={[]}
+        followUps={[]}
         sources={[{ title: 'Registry', url: 'https://example.com/registry' }]}
         headlines={[]}
         openSections={{
-          reports: false,
+          artifacts: false,
           findings: false,
           entities: false,
-          leads: false,
+          followUps: false,
           evidence: false,
           sources: true,
           headlines: false,
@@ -236,7 +236,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
       />
     );
@@ -254,21 +254,21 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen={false}
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[]}
+        artifacts={[]}
         findings={[]}
         entities={[]}
-        leads={[]}
+        followUps={[]}
         sources={[]}
         headlines={[]}
         openSections={{
-          reports: false,
+          artifacts: false,
           findings: false,
           entities: false,
-          leads: false,
+          followUps: false,
           evidence: false,
           sources: false,
           headlines: false,
@@ -276,7 +276,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
         overlayOnDesktop
       />
@@ -301,21 +301,21 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[]}
+        artifacts={[]}
         findings={[]}
         entities={[]}
-        leads={[]}
+        followUps={[]}
         sources={[]}
         headlines={[]}
         openSections={{
-          reports: false,
+          artifacts: false,
           findings: false,
           entities: false,
-          leads: false,
+          followUps: false,
           evidence: false,
           sources: false,
           headlines: false,
@@ -323,7 +323,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
         overlayOnDesktop
       />
@@ -343,11 +343,11 @@ describe('WorkspaceLibraryRail', () => {
     };
 
     render(
-      <WorkspaceLibraryRail
+      <WorkspaceRail
         isOpen
-        activeCase={workspace}
+        activeWorkspace={workspace}
         labelProfile={labelProfile}
-        reports={[]}
+        artifacts={[]}
         findings={[
           {
             finding: {
@@ -355,19 +355,19 @@ describe('WorkspaceLibraryRail', () => {
               title: 'Ownership chain converges on one holding company',
               summary: 'Registry and procurement records point to a shared parent.',
             },
-            reportId: 'artifact-1',
-            reportTopic: 'Procurement File',
+            artifactId: 'artifact-1',
+            artifactTitle: 'Procurement File',
           },
         ]}
         entities={[]}
-        leads={[]}
+        followUps={[]}
         sources={[]}
         headlines={[]}
         openSections={{
-          reports: false,
+          artifacts: false,
           findings: true,
           entities: false,
-          leads: false,
+          followUps: false,
           evidence: false,
           sources: false,
           headlines: false,
@@ -375,7 +375,7 @@ describe('WorkspaceLibraryRail', () => {
         toggleSection={vi.fn()}
         onNavigate={vi.fn()}
         onEntityClick={vi.fn()}
-        onLeadClick={vi.fn()}
+        onFollowUpClick={vi.fn()}
         onHeadlineClick={vi.fn()}
       />
     );

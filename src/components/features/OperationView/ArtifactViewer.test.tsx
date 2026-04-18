@@ -80,7 +80,7 @@ const reportFixture: Artifact = {
 describe('ArtifactViewer', () => {
   it('renders canonical findings in the document body and hides legacy follow-up chrome', async () => {
     const onReportBodySave = vi.fn(async () => undefined);
-    const onLeadOpen = vi.fn();
+    const onFollowUpOpen = vi.fn();
 
     render(
       <ArtifactViewer
@@ -92,10 +92,10 @@ describe('ArtifactViewer', () => {
         onNavigate={vi.fn()}
         onNotify={vi.fn()}
         showPlaceholder={false}
-        onStartNewCase={vi.fn()}
+        onStartWorkspace={vi.fn()}
         onTitleSave={vi.fn()}
         onReportBodySave={onReportBodySave}
-        onLeadOpen={onLeadOpen}
+        onFollowUpOpen={onFollowUpOpen}
         onEntityClick={vi.fn()}
       />
     );
@@ -149,7 +149,7 @@ describe('ArtifactViewer', () => {
     expect(screen.queryByText('Award timing clusters across overlapping vendors.')).not.toBeInTheDocument();
 
     fireEvent.click(investigateButton);
-    expect(onLeadOpen).toHaveBeenCalledWith(
+    expect(onFollowUpOpen).toHaveBeenCalledWith(
       expect.objectContaining({
         actionText: 'Trace shared directors across the vendor cluster.',
       })

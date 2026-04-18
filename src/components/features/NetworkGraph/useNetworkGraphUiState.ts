@@ -24,11 +24,11 @@ export const useNetworkGraphUiState = () => {
     context?: { topic: string; summary: string };
   } | null>(null);
   const [dossierSections, setDossierSections] = useState<Record<string, boolean>>({
-    reports: false,
+    artifacts: false,
     findings: false,
     entities: false,
     headlines: false,
-    leads: false,
+    followUps: false,
     sources: false,
   });
 

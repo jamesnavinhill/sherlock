@@ -34,8 +34,8 @@ interface OperationViewControllerOptions {
   onNavigate: (id: string) => void;
   onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
-  onSelectCase?: (workspaceId: string) => void;
-  reportOverride?: Artifact | null;
+  onSelectArtifact?: (artifactId: string) => void;
+  artifactOverride?: Artifact | null;
   task: WorkspaceRun | null;
 }
 
@@ -44,18 +44,17 @@ export function useOperationViewController({
   onNavigate,
   onInvestigateHeadline,
   onOpenChat,
-  onSelectCase,
-  reportOverride = null,
+  onSelectArtifact,
+  artifactOverride = null,
   task,
 }: OperationViewControllerOptions) {
   const navigate = useNavigate();
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    caseInfo: false,
-    reports: false,
+    artifacts: false,
     findings: false,
     entities: false,
-    leads: false,
+    followUps: false,
     evidence: false,
     sources: false,
     headlines: false,
@@ -69,12 +68,12 @@ export function useOperationViewController({
     inheritedDateRange?: InvestigationRunConfig['dateRangeOverride'];
     parentArtifactId?: string;
   } | null>(null);
-  const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
+  const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState(false);
   const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [templateName, setTemplateName] = useState('');
 
   const {
-    workspaces: allCases,
+    workspaces: allWorkspaces,
     artifacts,
     headlines: allHeadlines,
     addToast,
@@ -83,7 +82,7 @@ export function useOperationViewController({
     updateArtifactTitle,
     updateArtifactSummary,
     renameEntityAcrossArtifacts,
-    activeWorkspaceId: selectedCaseId,
+    activeWorkspaceId: selectedWorkspaceId,
     setActiveWorkspaceId,
     ensureWorkspaceBoard,
     flaggedNodeIds,
@@ -92,9 +91,9 @@ export function useOperationViewController({
     customScopes,
   } = useOperationFeatureState();
 
-  const report = task?.report ?? reportOverride;
+  const artifact = task?.report ?? artifactOverride;
   const status = task?.status ?? null;
-  const effectiveCaseId = selectedCaseId ?? report?.workspaceId ?? null;
+  const effectiveWorkspaceId = selectedWorkspaceId ?? artifact?.workspaceId ?? null;
 
   useEffect(() => {
     const handleResize = () => {
@@ -108,32 +107,39 @@ export function useOperationViewController({
   }, []);
 
   useEffect(() => {
-    if (selectedCaseId && selectedCaseId !== 'ALL' && !allCases.find((c) => c.id === effectiveCaseId)) {
+    if (
+      selectedWorkspaceId &&
+      selectedWorkspaceId !== 'ALL' &&
+      !allWorkspaces.find((workspace) => workspace.id === effectiveWorkspaceId)
+    ) {
       // Keep the dependency seam explicit even though re-sync is store-driven today.
     }
-  }, [allCases, effectiveCaseId, selectedCaseId]);
+  }, [allWorkspaces, effectiveWorkspaceId, selectedWorkspaceId]);
 
-  const activeCase = useMemo(
-    () => (allCases.find((c) => c.id === effectiveCaseId) || null) as Workspace | null,
-    [allCases, effectiveCaseId]
+  const activeWorkspace = useMemo(
+    () =>
+      (allWorkspaces.find((workspace) => workspace.id === effectiveWorkspaceId) || null) as
+        | Workspace
+        | null,
+    [allWorkspaces, effectiveWorkspaceId]
   );
 
-  const allCaseReports = useMemo(
-    () => artifacts.filter((r) => r.workspaceId === effectiveCaseId),
-    [artifacts, effectiveCaseId]
+  const workspaceArtifacts = useMemo(
+    () => artifacts.filter((entry) => entry.workspaceId === effectiveWorkspaceId),
+    [artifacts, effectiveWorkspaceId]
   );
 
   const headlines = useMemo(() => {
-    if (!effectiveCaseId) return [];
-    return allHeadlines.filter((h) => h.workspaceId === effectiveCaseId);
-  }, [effectiveCaseId, allHeadlines]);
+    if (!effectiveWorkspaceId) return [];
+    return allHeadlines.filter((headline) => headline.workspaceId === effectiveWorkspaceId);
+  }, [effectiveWorkspaceId, allHeadlines]);
 
   const labelProfile = useMemo(
     () =>
       getLabelProfileById(
-        report?.labelProfileId || report?.config?.labelProfileId || activeCase?.labelProfileId
+        artifact?.labelProfileId || artifact?.config?.labelProfileId || activeWorkspace?.labelProfileId
       ),
-    [activeCase?.labelProfileId, report?.config?.labelProfileId, report?.labelProfileId]
+    [activeWorkspace?.labelProfileId, artifact?.config?.labelProfileId, artifact?.labelProfileId]
   );
 
   const resolveScope = (scopeId?: string): InvestigationScope | undefined =>
@@ -149,39 +155,39 @@ export function useOperationViewController({
     );
   };
 
-  const handleCaseSelect = (workspaceId: string) => {
+  const handleWorkspaceSelect = (workspaceId: string) => {
     setActiveWorkspaceId(workspaceId);
 
     if (workspaceId !== 'ALL' && workspaceId !== '') {
-      const caseReports = artifacts.filter((r) => r.workspaceId === workspaceId);
-      if (caseReports.length > 0) {
-        const rootReport = caseReports.find((r) => !r.config?.parentArtifactId) || caseReports[0];
-        if (!rootReport.id) return;
-        if (onSelectCase) {
-          onSelectCase(rootReport.id);
+      const rootArtifact =
+        workspaceArtifacts.find((entry) => entry.workspaceId === workspaceId && !entry.config?.parentArtifactId) ||
+        artifacts.find((entry) => entry.workspaceId === workspaceId && !entry.config?.parentArtifactId) ||
+        artifacts.find((entry) => entry.workspaceId === workspaceId);
+      if (!rootArtifact?.id) return;
+      if (onSelectArtifact) {
+        onSelectArtifact(rootArtifact.id);
         } else {
-          onNavigate(rootReport.id);
-        }
+        onNavigate(rootArtifact.id);
       }
     }
   };
 
   const handleSaveTemplate = () => {
-    if (!report) return;
+    if (!artifact) return;
     setShowSaveTemplateModal(true);
     setTemplateName(
-      `${activeCase ? getWorkspaceDisplayTitle(activeCase) : stripLegacyWorkspacePrefix(labelProfile.workspaceLabel)}: ${sanitizeDisplayTitle(report.topic)}`
+      `${activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : stripLegacyWorkspacePrefix(labelProfile.workspaceLabel)}: ${sanitizeDisplayTitle(artifact.topic)}`
     );
   };
 
   const executeSaveTemplate = () => {
-    if (!report || !templateName.trim()) return;
+    if (!artifact || !templateName.trim()) return;
 
     const newTemplate: WorkspaceTemplate = {
       id: `tpl-${Date.now()}`,
       name: templateName.trim(),
-      topic: report.topic,
-      config: report.config || {},
+      topic: artifact.topic,
+      config: artifact.config || {},
       createdAt: Date.now(),
     };
 
@@ -190,33 +196,35 @@ export function useOperationViewController({
     addToast('Template saved successfully', 'SUCCESS');
   };
 
-  const casePanelData = useMemo(
+  const workspacePanelData = useMemo(
     () =>
       buildOperationWorkspacePanelData({
-        activeWorkspace: activeCase,
-        reports: allCaseReports,
+        activeWorkspace,
+        artifacts: workspaceArtifacts,
       }),
-    [activeCase, allCaseReports]
+    [activeWorkspace, workspaceArtifacts]
   );
 
-  const handleLeadClick = (lead: string | FollowUp) => {
-    const parentContext = report
-      ? { topic: report.topic, summary: report.summary }
-      : activeCase
+  const handleFollowUpClick = (followUp: string | FollowUp) => {
+    const parentContext = artifact
+      ? { topic: artifact.topic, summary: artifact.summary }
+      : activeWorkspace
         ? {
-            topic: activeCase.title,
-            summary: activeCase.description || `Investigating lead within ${activeCase.title}`,
+            topic: activeWorkspace.title,
+            summary:
+              activeWorkspace.description ||
+              `Investigating follow-up within ${activeWorkspace.title}`,
           }
         : undefined;
 
     setLeadToAnalyze({
-      text: typeof lead === 'string' ? lead : getFollowUpText(lead),
-      sourceFollowUpId: typeof lead === 'string' ? undefined : lead.id,
+      text: typeof followUp === 'string' ? followUp : getFollowUpText(followUp),
+      sourceFollowUpId: typeof followUp === 'string' ? undefined : followUp.id,
       context: parentContext,
-      inheritedConfig: toConfigOverride(report?.config),
-      inheritedScopeId: report?.config?.scopeId,
-      inheritedDateRange: report?.config?.dateRangeOverride,
-      parentArtifactId: report?.id,
+      inheritedConfig: toConfigOverride(artifact?.config),
+      inheritedScopeId: artifact?.config?.scopeId,
+      inheritedDateRange: artifact?.config?.dateRangeOverride,
+      parentArtifactId: artifact?.id,
     });
   };
 
@@ -227,12 +235,12 @@ export function useOperationViewController({
     handleInvestigateEntity,
     handleOpenEntityChat,
     handleOpenHeadlineChat,
-    handleOpenReportChat,
-    handleOpenReportInspector,
+    handleOpenReportChat: handleOpenArtifactChat,
+    handleOpenReportInspector: handleOpenArtifactInspector,
     handleOpenWorkspaceBoard,
     handlePlaceEntityOnBoard,
     handlePlaceHeadlineOnBoard,
-    handlePlaceReportOnBoard,
+    handlePlaceReportOnBoard: handlePlaceArtifactOnBoard,
     inspectorMode,
     rightPanelOpen,
     selectedEntity,
@@ -240,45 +248,45 @@ export function useOperationViewController({
     setRightPanelOpen,
     setSelectedEntity,
   } = useOperationViewInspectorState({
-    activeWorkspace: activeCase,
+    activeWorkspace,
     artifactRouteState,
     closeLeftPanelForMobile: () => {
       if (window.innerWidth <= 1024) {
         setLeftPanelOpen(false);
       }
     },
-    effectiveWorkspaceId: effectiveCaseId,
+    effectiveWorkspaceId,
     ensureWorkspaceBoard,
     navigate,
     onInvestigateHeadline,
-    onInvestigateEntity: (entityName) => handleLeadClick(entityName),
+    onInvestigateEntity: (entityName) => handleFollowUpClick(entityName),
     onOpenChat,
     queueBoardPlacement,
-    report,
+    report: artifact,
     resolveScope,
     toConfigOverride,
   });
 
   const handleTitleSave = async (newTitle: string) => {
-    if (!report) return;
-    if (report.id) {
-      await updateArtifactTitle(report.id, newTitle);
+    if (!artifact) return;
+    if (artifact.id) {
+      await updateArtifactTitle(artifact.id, newTitle);
     }
-    if (report.id) onNavigate(report.id);
+    if (artifact.id) onNavigate(artifact.id);
   };
 
-  const handleReportBodySave = async (
+  const handleArtifactBodySave = async (
     summary: string,
     sectionId?: string,
     options?: { syncSummary?: boolean }
   ) => {
-    if (!report?.id) return;
+    if (!artifact?.id) return;
 
     if (options?.syncSummary ?? true) {
-      await updateArtifactSummary(report.id, summary);
+      await updateArtifactSummary(artifact.id, summary);
     }
     if (sectionId) {
-      await updateArtifactSection(report.id, sectionId, {
+      await updateArtifactSection(artifact.id, sectionId, {
         content: summary,
       });
     }
@@ -309,36 +317,36 @@ export function useOperationViewController({
       ? `SUB-NETWORK: "${task.topic}"`
       : `TARGET: "${task.topic}"`
     : '';
-  const showPlaceholder = !report;
+  const showPlaceholder = !artifact;
 
   return {
-    activeCase,
-    allCaseReports,
-    allCases,
-    casePanelData,
+    activeWorkspace,
+    workspaceArtifacts,
+    allWorkspaces,
+    workspacePanelData,
     executeSaveTemplate,
-    handleCaseSelect,
+    handleWorkspaceSelect,
     handleEntityClick,
     handleEntityNameSave,
     handleFlagEntity,
     handleHeadlineClick,
     handleHeadlineInvestigate,
     handleInvestigateEntity,
-    handleLeadClick,
+    handleFollowUpClick,
     handleOpenEntityChat,
     handleOpenHeadlineChat,
-    handleOpenReportInspector,
-    handleOpenReportChat,
+    handleOpenArtifactInspector,
+    handleOpenArtifactChat,
     handleOpenWorkspaceBoard,
     handlePlaceEntityOnBoard,
     handlePlaceHeadlineOnBoard,
-    handlePlaceReportOnBoard,
-    handleReportBodySave,
+    handlePlaceArtifactOnBoard,
+    handleArtifactBodySave,
     handleSaveTemplate,
     handleTitleSave,
     headlines,
     inspectorMode,
-    isNewCaseModalOpen,
+    isNewWorkspaceModalOpen,
     isTaskFailed,
     isTaskRunning,
     labelProfile,
@@ -346,14 +354,14 @@ export function useOperationViewController({
     leftPanelOpen,
     onNavigate,
     openSections,
-    report,
+    artifact,
     resolveScope,
     rightPanelOpen,
-    selectedCaseId,
+    selectedWorkspaceId,
     selectedEntity,
     selectedHeadline,
     addToast,
-    setIsNewCaseModalOpen,
+    setIsNewWorkspaceModalOpen,
     setLeadToAnalyze,
     setLeftPanelOpen,
     setRightPanelOpen,

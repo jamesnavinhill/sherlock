@@ -177,7 +177,7 @@ export function useNetworkGraphController({
       buildNetworkGraphDossierData({
         filterWorkspaceId,
         headlines,
-        reports,
+        artifacts: reports,
       }),
     [filterWorkspaceId, headlines, reports]
   );

@@ -58,11 +58,10 @@ describe('useOperationViewController', () => {
 
     expect(result.current.leftPanelOpen).toBe(false);
     expect(result.current.openSections).toEqual({
-      caseInfo: false,
-      reports: false,
+      artifacts: false,
       findings: false,
       entities: false,
-      leads: false,
+      followUps: false,
       evidence: false,
       sources: false,
       headlines: false,
@@ -106,7 +105,7 @@ describe('useOperationViewController', () => {
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
         task: null,
-        reportOverride: {
+        artifactOverride: {
           id: 'artifact-1',
           topic: 'Atlas Report',
           summary: 'Summary',
@@ -134,7 +133,7 @@ describe('useOperationViewController', () => {
     expect(addToast).toHaveBeenCalledWith('Template saved successfully', 'SUCCESS');
   });
 
-  it('saves the unified report body to both summary and executive summary section state', async () => {
+  it('saves the unified artifact body to both summary and executive summary section state', async () => {
     const updateArtifactSummary = vi.fn(async () => undefined);
     const updateArtifactSection = vi.fn(async () => undefined);
     const addToast = vi.fn();
@@ -151,7 +150,7 @@ describe('useOperationViewController', () => {
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
         task: null,
-        reportOverride: {
+        artifactOverride: {
           id: 'artifact-1',
           topic: 'Atlas Report',
           summary: 'Summary',
@@ -175,7 +174,7 @@ describe('useOperationViewController', () => {
     );
 
     await act(async () => {
-      await result.current.handleReportBodySave(
+      await result.current.handleArtifactBodySave(
         'Expanded report body for editing.',
         'section-executive_summary-0'
       );
@@ -212,7 +211,7 @@ describe('useOperationViewController', () => {
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
         task: null,
-        reportOverride: {
+        artifactOverride: {
           id: 'artifact-1',
           topic: 'Atlas Report',
           summary: 'Summary',
@@ -243,9 +242,13 @@ describe('useOperationViewController', () => {
     );
 
     await act(async () => {
-      await result.current.handleReportBodySave('Expanded methodology details.', 'section-methodology-1', {
-        syncSummary: false,
-      });
+      await result.current.handleArtifactBodySave(
+        'Expanded methodology details.',
+        'section-methodology-1',
+        {
+          syncSummary: false,
+        }
+      );
     });
 
     expect(updateArtifactSummary).not.toHaveBeenCalled();
@@ -259,7 +262,7 @@ describe('useOperationViewController', () => {
     expect(addToast).toHaveBeenCalledWith('Artifact updated.', 'SUCCESS');
   });
 
-  it('does not show the placeholder when a routed artifact is present even if the workspace selector is on ALL', () => {
+  it('does not show the placeholder when a routed artifact is present even if the workspace selector is on ALL', async () => {
     selectorState.useOperationFeatureState.mockReturnValue({
       ...baseState,
       activeWorkspaceId: 'ALL',
@@ -270,7 +273,7 @@ describe('useOperationViewController', () => {
         onNavigate: vi.fn(),
         onOpenChat: vi.fn(),
         task: null,
-        reportOverride: {
+        artifactOverride: {
           id: 'artifact-1',
           workspaceId: 'ws-1',
           topic: 'Atlas Report',
@@ -285,11 +288,15 @@ describe('useOperationViewController', () => {
       })
     );
 
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     expect(result.current.showPlaceholder).toBe(false);
-    expect(result.current.report?.id).toBe('artifact-1');
+    expect(result.current.artifact?.id).toBe('artifact-1');
   });
 
-  it('uses canonical chat and board handoff payloads for report and headline actions', async () => {
+  it('uses canonical chat and board handoff payloads for artifact and headline actions', async () => {
     const onOpenChat = vi.fn();
     const queueBoardPlacement = vi.fn();
 
@@ -304,7 +311,7 @@ describe('useOperationViewController', () => {
         onNavigate: vi.fn(),
         onOpenChat,
         task: null,
-        reportOverride: {
+        artifactOverride: {
           id: 'artifact-1',
           workspaceId: 'ws-1',
           topic: 'Atlas Report',
@@ -320,7 +327,7 @@ describe('useOperationViewController', () => {
     );
 
     act(() => {
-      result.current.handleOpenReportChat();
+      result.current.handleOpenArtifactChat();
       result.current.handleHeadlineClick({
         id: 'signal-1',
         workspaceId: 'ws-1',
@@ -338,7 +345,7 @@ describe('useOperationViewController', () => {
     });
 
     await act(async () => {
-      await result.current.handlePlaceReportOnBoard();
+      await result.current.handlePlaceArtifactOnBoard();
     });
 
     expect(onOpenChat.mock.calls).toEqual([

@@ -4,49 +4,49 @@ interface NetworkGraphDossierData {
   entities: Entity[];
   findings: Array<{
     finding: KeyFinding;
-    reportId?: string;
-    reportTopic: string;
+    artifactId?: string;
+    artifactTitle: string;
   }>;
   headlines: Headline[];
-  leads: string[];
-  reports: Artifact[];
+  followUps: string[];
+  artifacts: Artifact[];
   sources: Source[];
 }
 
 export const buildNetworkGraphDossierData = ({
   filterWorkspaceId,
   headlines,
-  reports,
+  artifacts,
 }: {
   filterWorkspaceId?: string | null;
   headlines: Headline[];
-  reports: Artifact[];
+  artifacts: Artifact[];
 }): NetworkGraphDossierData => {
   if (!filterWorkspaceId) {
     return {
-      reports: [],
+      artifacts: [],
       headlines: [],
-      leads: [],
+      followUps: [],
       sources: [],
       entities: [],
       findings: [],
     };
   }
 
-  const activeReports =
+  const activeArtifacts =
     filterWorkspaceId === 'ALL'
-      ? reports
-      : reports.filter((report) => report.workspaceId === filterWorkspaceId);
+      ? artifacts
+      : artifacts.filter((artifact) => artifact.workspaceId === filterWorkspaceId);
   const activeHeadlines =
     filterWorkspaceId === 'ALL'
       ? headlines
       : headlines.filter((headline) => headline.workspaceId === filterWorkspaceId);
 
-  const allLeads = Array.from(new Set(activeReports.flatMap((report) => report.leads || [])));
+  const allFollowUps = Array.from(new Set(activeArtifacts.flatMap((artifact) => artifact.leads || [])));
 
   const sourceMap = new Map<string, Source>();
-  activeReports
-    .flatMap((report) => report.sources || [])
+  activeArtifacts
+    .flatMap((artifact) => artifact.sources || [])
     .forEach((source) => {
       if (!sourceMap.has(source.url)) {
         sourceMap.set(source.url, source);
@@ -54,8 +54,8 @@ export const buildNetworkGraphDossierData = ({
     });
 
   const entityMap = new Map<string, Entity>();
-  activeReports
-    .flatMap((report) => report.entities || [])
+  activeArtifacts
+    .flatMap((artifact) => artifact.entities || [])
     .forEach((entity) => {
       const name = typeof entity === 'string' ? entity : entity.name;
       const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
@@ -64,18 +64,18 @@ export const buildNetworkGraphDossierData = ({
       }
     });
 
-  const findings = activeReports.flatMap((report) =>
-    (report.keyFindings || []).map((finding) => ({
+  const findings = activeArtifacts.flatMap((artifact) =>
+    (artifact.keyFindings || []).map((finding) => ({
       finding,
-      reportId: report.id,
-      reportTopic: report.topic,
+      artifactId: artifact.id,
+      artifactTitle: artifact.topic,
     }))
   );
 
   return {
-    reports: activeReports,
+    artifacts: activeArtifacts,
     headlines: activeHeadlines,
-    leads: allLeads,
+    followUps: allFollowUps,
     sources: Array.from(sourceMap.values()),
     entities: Array.from(entityMap.values()),
     findings,

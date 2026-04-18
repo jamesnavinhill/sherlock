@@ -56,14 +56,14 @@ interface ArtifactViewerProps {
   onNavigate: (id: string) => void;
   onNotify: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
   showPlaceholder: boolean;
-  onStartNewCase: () => void;
+  onStartWorkspace: () => void;
   onTitleSave: (newTitle: string) => void;
   onReportBodySave: (
     body: string,
     sectionId?: string,
     options?: { syncSummary?: boolean }
   ) => Promise<void>;
-  onLeadOpen: (followUp: FollowUp) => void;
+  onFollowUpOpen: (followUp: FollowUp) => void;
   onEntityClick: (entity: Entity) => void;
 }
 
@@ -115,10 +115,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   onNavigate,
   onNotify,
   showPlaceholder,
-  onStartNewCase,
+  onStartWorkspace,
   onTitleSave,
   onReportBodySave,
-  onLeadOpen,
+  onFollowUpOpen,
   onEntityClick,
 }) => {
   const reportSources = report?.sources || [];
@@ -595,7 +595,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
           description="Select a saved workspace from the toolbar above or start a new run to begin."
           action={{
             label: 'Start New Run',
-            onClick: onStartNewCase,
+            onClick: onStartWorkspace,
           }}
           panelClassName="max-w-xl"
         />
@@ -885,7 +885,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         <div className="mt-4 flex flex-wrap justify-start gap-2">
                           <button
                             type="button"
-                            onClick={() => onLeadOpen(followUp)}
+                              onClick={() => onFollowUpOpen(followUp)}
                             className={REPORT_MENU_BUTTON_CLASS}
                           >
                             Investigate

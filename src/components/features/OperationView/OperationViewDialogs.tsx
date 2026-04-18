@@ -22,44 +22,44 @@ interface LeadToAnalyzeState {
 
 interface OperationViewDialogsProps {
   leadToAnalyze: LeadToAnalyzeState | null;
-  report: Artifact | null;
-  isNewCaseModalOpen: boolean;
+  artifact: Artifact | null;
+  isNewWorkspaceModalOpen: boolean;
   showSaveTemplateModal: boolean;
   templateName: string;
   onTemplateNameChange: (value: string) => void;
   onCloseLeadDialog: () => void;
-  onCloseNewCaseDialog: () => void;
+  onCloseNewWorkspaceDialog: () => void;
   onCloseSaveTemplateDialog: () => void;
   onDeepDive: (request: InvestigationLaunchRequest) => void;
-  onStartNewCase: (request: InvestigationLaunchRequest) => void;
+  onStartWorkspace: (request: InvestigationLaunchRequest) => void;
   onExecuteSaveTemplate: () => void;
   resolveScope: (scopeId?: string) => InvestigationScope | undefined;
 }
 
 export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
   leadToAnalyze,
-  report,
-  isNewCaseModalOpen,
+  artifact,
+  isNewWorkspaceModalOpen,
   showSaveTemplateModal,
   templateName,
   onTemplateNameChange,
   onCloseLeadDialog,
-  onCloseNewCaseDialog,
+  onCloseNewWorkspaceDialog,
   onCloseSaveTemplateDialog,
   onDeepDive,
-  onStartNewCase,
+  onStartWorkspace,
   onExecuteSaveTemplate,
   resolveScope,
 }) => (
   <>
-    {leadToAnalyze && report ? (
+    {leadToAnalyze && artifact ? (
       <RunSetupModal
         initialTopic={leadToAnalyze.text}
         initialContext={leadToAnalyze.context}
         initialScopeId={leadToAnalyze.inheritedScopeId}
         initialConfigOverride={leadToAnalyze.inheritedConfig}
         initialDateRangeOverride={leadToAnalyze.inheritedDateRange}
-        inheritanceHint="Inherited from parent report. Change settings below to override this run."
+        inheritanceHint="Inherited from parent artifact. Change settings below to override this run."
         onCancel={onCloseLeadDialog}
         onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
           onDeepDive({
@@ -81,12 +81,12 @@ export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
       />
     ) : null}
 
-    {isNewCaseModalOpen ? (
+    {isNewWorkspaceModalOpen ? (
       <RunSetupModal
         initialTopic=""
-        onCancel={onCloseNewCaseDialog}
+        onCancel={onCloseNewWorkspaceDialog}
         onStart={(topic, configOverride, preseededEntities, scope, dateRange) => {
-          onStartNewCase({
+          onStartWorkspace({
             topic,
             configOverride,
             preseededEntities,
@@ -94,7 +94,7 @@ export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
             dateRangeOverride: dateRange,
             launchSource: 'OPERATION_NEW_CASE',
           });
-          onCloseNewCaseDialog();
+          onCloseNewWorkspaceDialog();
         }}
       />
     ) : null}
@@ -136,7 +136,7 @@ export const OperationViewDialogs: React.FC<OperationViewDialogsProps> = ({
           </div>
           <div className="osint-shell-stage-surface-subtle p-3">
             <div className="mb-1 osint-meta-label">Investigation Target</div>
-            <div className="truncate osint-meta-value">&quot;{report?.topic}&quot;</div>
+            <div className="truncate osint-meta-value">&quot;{artifact?.topic}&quot;</div>
           </div>
         </div>
       </ModalShell>

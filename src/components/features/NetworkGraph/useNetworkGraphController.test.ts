@@ -33,7 +33,14 @@ vi.mock('./useNetworkGraphInspectorState', () => ({
 }));
 
 vi.mock('./networkGraphDossierData', () => ({
-  buildNetworkGraphDossierData: () => ({ entities: [], reports: [], signals: [] }),
+  buildNetworkGraphDossierData: () => ({
+    entities: [],
+    artifacts: [],
+    followUps: [],
+    headlines: [],
+    findings: [],
+    sources: [],
+  }),
 }));
 
 vi.mock('./entityResolutionUtils', () => ({

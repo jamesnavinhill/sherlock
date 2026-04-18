@@ -12,7 +12,7 @@ import type { GraphCanvasRef } from './GraphCanvas';
 import { GraphCanvas } from './GraphCanvas';
 import { GraphViewportControls } from './GraphViewportControls';
 import { NetworkGraphInspectorPanel } from './NetworkGraphInspectorPanel';
-import { WorkspaceLibraryRail } from '../OperationView/WorkspaceLibraryRail';
+import { WorkspaceRail } from '../OperationView/WorkspaceLibraryRail';
 import { useNetworkGraphController } from './useNetworkGraphController';
 import { NetworkGraphDialogs } from './NetworkGraphDialogs';
 import { getEntityGraphNodeId } from './networkGraphNodeIds';
@@ -171,16 +171,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
       <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden">
         {/* Dossier Panel (Reused) */}
-        <WorkspaceLibraryRail
+        <WorkspaceRail
           isOpen={showLeftPanel}
           overlayOnDesktop
           showHeaderSummary={false}
-          activeCase={workspaces.find((workspace) => workspace.id === filterWorkspaceId) || null}
+          activeWorkspace={workspaces.find((workspace) => workspace.id === filterWorkspaceId) || null}
           labelProfile={dossierLabelProfile}
-          reports={dossierData.reports}
+          artifacts={dossierData.artifacts}
           findings={dossierData.findings}
           entities={dossierData.entities}
-          leads={dossierData.leads}
+          followUps={dossierData.followUps}
           sources={dossierData.sources}
           headlines={dossierData.headlines}
           openSections={dossierSections}
@@ -191,7 +191,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             if (r) handleOpenReportInspector(r);
           }}
           onEntityClick={(e) => handleOpenEntityInspector(e.name)}
-          onLeadClick={handleLeadInvestigate}
+          onFollowUpClick={handleLeadInvestigate}
           onHeadlineClick={handleOpenHeadlineInspector}
         />
 

@@ -42,41 +42,41 @@ import { OsintSelect } from '../../ui/OsintSelect';
 import { GlobalSearch } from '../../ui/GlobalSearch';
 
 interface ToolbarProps {
-  activeCase: Workspace | null;
-  allCases: Workspace[];
-  selectedCaseId: string | null;
-  report: Artifact | null; // The currently active report
-  allCaseReports: Artifact[]; // All reports for the active case
+  activeWorkspace: Workspace | null;
+  allWorkspaces: Workspace[];
+  selectedWorkspaceId: string | null;
+  artifact: Artifact | null;
+  workspaceArtifacts: Artifact[];
   labelProfile: LabelProfile;
   leftPanelOpen: boolean;
   onToggleLeftPanel: () => void;
   rightPanelOpen?: boolean;
   onToggleRightPanel?: () => void;
-  onSelectCase: (workspaceId: string) => void;
-  onStartNewCase: () => void;
+  onSelectWorkspace: (workspaceId: string) => void;
+  onStartWorkspace: () => void;
   onSaveTemplate?: () => void;
   onOpenChat?: () => void;
   onOpenBoard?: () => void;
-  onPlaceReportOnBoard?: () => void;
+  onPlaceArtifactOnBoard?: () => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
-  activeCase,
-  allCases,
-  selectedCaseId,
-  report,
-  allCaseReports,
+  activeWorkspace,
+  allWorkspaces,
+  selectedWorkspaceId,
+  artifact,
+  workspaceArtifacts,
   leftPanelOpen,
   labelProfile,
   onToggleLeftPanel,
   rightPanelOpen = false,
   onToggleRightPanel,
-  onSelectCase,
-  onStartNewCase,
+  onSelectWorkspace,
+  onStartWorkspace,
   onSaveTemplate,
   onOpenChat,
   onOpenBoard,
-  onPlaceReportOnBoard,
+  onPlaceArtifactOnBoard,
 }) => {
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -97,7 +97,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const hasContextActions = Boolean(onOpenChat || onOpenBoard || (onPlaceReportOnBoard && report));
+  const hasContextActions = Boolean(
+    onOpenChat || onOpenBoard || (onPlaceArtifactOnBoard && artifact)
+  );
 
   return (
     <div className={`${CHROME_HEADER_CLASS} px-6`}>
@@ -120,7 +122,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <Briefcase className="w-5 h-5 focus:outline-none" />
           </button>
           <button
-            onClick={onStartNewCase}
+            onClick={onStartWorkspace}
             className={CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS}
             title="Start a new workspace"
             aria-label="Start a new workspace"
@@ -131,13 +133,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <OsintSelect
               ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
               menuTitle={CANONICAL_NOUNS.workspace}
-              value={selectedCaseId || 'ALL'}
-              onChange={onSelectCase}
+              value={selectedWorkspaceId || 'ALL'}
+              onChange={onSelectWorkspace}
               chrome="toolbar"
               triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
               options={[
                 { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
-                ...allCases.map((workspace) => ({
+                ...allWorkspaces.map((workspace) => ({
                   value: workspace.id,
                   label: getWorkspaceDisplayTitle(workspace),
                 })),
@@ -152,7 +154,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
           {/* Export Dropdown - show when case or report is available */}
-          {(activeCase || report) && (
+          {(activeWorkspace || artifact) && (
             <div className="flex items-center space-x-2">
               {hasContextActions && (
                 <div className="relative" ref={contextMenuRef}>
@@ -181,13 +183,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           }}
                           className={COMPACT_MENU_ITEM_CLASS}
                           title={
-                            report
+                            artifact
                               ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
                               : `Open ${CANONICAL_NOUNS.workspace.toLowerCase()} in workspace chat`
                           }
                         >
                           <MessageSquare className={COMPACT_MENU_ICON_CLASS} />
-                          <span>{report ? 'Open Context Chat' : 'Open Workspace Chat'}</span>
+                          <span>{artifact ? 'Open Context Chat' : 'Open Workspace Chat'}</span>
                         </button>
                       )}
                       {onOpenBoard && (
@@ -203,10 +205,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                           <span>Open Board</span>
                         </button>
                       )}
-                      {onPlaceReportOnBoard && report && (
+                      {onPlaceArtifactOnBoard && artifact && (
                         <button
                           onClick={() => {
-                            onPlaceReportOnBoard();
+                            onPlaceArtifactOnBoard();
                             setShowContextMenu(false);
                           }}
                           className={`${COMPACT_MENU_ITEM_CLASS} border-t border-[color:var(--osint-shell-border)]`}
@@ -237,12 +239,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 </button>
                 {showExportMenu && (
                   <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 min-w-[220px]">
-                    {activeCase && (
+                    {activeWorkspace && (
                       <>
                         <CompactMenuHeader>{`Full ${CANONICAL_NOUNS.workspace}`}</CompactMenuHeader>
                         <button
                           onClick={() => {
-                            exportWorkspaceAsHtml(activeCase, allCaseReports);
+                            exportWorkspaceAsHtml(activeWorkspace, workspaceArtifacts);
                             setShowExportMenu(false);
                           }}
                           className={COMPACT_MENU_ITEM_CLASS}
@@ -253,7 +255,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportWorkspaceAsMarkdown(activeCase, allCaseReports);
+                            exportWorkspaceAsMarkdown(activeWorkspace, workspaceArtifacts);
                             setShowExportMenu(false);
                           }}
                           className={COMPACT_MENU_ITEM_CLASS}
@@ -264,7 +266,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportWorkspaceAsJson(activeCase, allCaseReports);
+                            exportWorkspaceAsJson(activeWorkspace, workspaceArtifacts);
                             setShowExportMenu(false);
                           }}
                           className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS}`}
@@ -275,12 +277,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                       </>
                     )}
-                    {report && (
+                    {artifact && (
                       <>
                         <CompactMenuHeader separated>{`Current ${labelProfile.artifactLabel}`}</CompactMenuHeader>
                         <button
                           onClick={() => {
-                            exportArtifactAsHtml(report, activeCase || undefined);
+                            exportArtifactAsHtml(artifact, activeWorkspace || undefined);
                             setShowExportMenu(false);
                           }}
                           className={COMPACT_MENU_ITEM_CLASS}
@@ -291,7 +293,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportArtifactAsMarkdown(report);
+                            exportArtifactAsMarkdown(artifact);
                             setShowExportMenu(false);
                           }}
                           className={COMPACT_MENU_ITEM_CLASS}
@@ -302,7 +304,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            exportArtifactAsJson(report);
+                            exportArtifactAsJson(artifact);
                             setShowExportMenu(false);
                           }}
                           className={COMPACT_MENU_ITEM_CLASS}

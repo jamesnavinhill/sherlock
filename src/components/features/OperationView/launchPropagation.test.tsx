@@ -20,7 +20,7 @@ vi.mock('./Toolbar', () => ({
 }));
 
 vi.mock('./WorkspaceLibraryRail', () => ({
-  WorkspaceLibraryRail: ({
+  WorkspaceRail: ({
     onHeadlineClick,
   }: {
     onHeadlineClick: (headline: {
@@ -56,9 +56,9 @@ vi.mock('./WorkspaceLibraryRail', () => ({
 
 vi.mock('./ArtifactViewer', () => ({
   ArtifactViewer: ({
-    onLeadOpen,
+    onFollowUpOpen,
   }: {
-    onLeadOpen: (followUp: {
+    onFollowUpOpen: (followUp: {
       id: string;
       kind: 'TASK';
       title: string;
@@ -69,7 +69,7 @@ vi.mock('./ArtifactViewer', () => ({
     <button
       data-testid="report-open-lead"
       onClick={() =>
-        onLeadOpen({
+        onFollowUpOpen({
           id: 'follow-up-1',
           kind: 'TASK',
           title: 'Trace vendor ownership',
@@ -226,7 +226,7 @@ describe('OperationView launch propagation', () => {
     });
   });
 
-  it('propagates report lead launches through the modal flow with inherited report config', async () => {
+  it('propagates artifact follow-up launches through the modal flow with inherited artifact config', async () => {
     const onDeepDive = vi.fn();
 
     render(
@@ -237,7 +237,7 @@ describe('OperationView launch propagation', () => {
           onDeepDive={onDeepDive}
           navStack={[]}
           onNavigate={vi.fn()}
-          onStartNewCase={vi.fn()}
+          onStartWorkspace={vi.fn()}
           onInvestigateHeadline={vi.fn()}
           onOpenChat={vi.fn()}
         />
@@ -282,7 +282,7 @@ describe('OperationView launch propagation', () => {
           onDeepDive={vi.fn()}
           navStack={[]}
           onNavigate={vi.fn()}
-          onStartNewCase={vi.fn()}
+          onStartWorkspace={vi.fn()}
           onInvestigateHeadline={onInvestigateHeadline}
           onOpenChat={vi.fn()}
         />
@@ -316,7 +316,7 @@ describe('OperationView launch propagation', () => {
           onDeepDive={onDeepDive}
           navStack={[]}
           onNavigate={vi.fn()}
-          onStartNewCase={vi.fn()}
+          onStartWorkspace={vi.fn()}
           onInvestigateHeadline={vi.fn()}
           onOpenChat={vi.fn()}
         />
@@ -344,7 +344,7 @@ describe('OperationView launch propagation', () => {
     );
   });
 
-  it('propagates report and inspector chat launches with grounding context', async () => {
+  it('propagates artifact and inspector chat launches with grounding context', async () => {
     const onOpenChat = vi.fn();
 
     render(
@@ -355,7 +355,7 @@ describe('OperationView launch propagation', () => {
           onDeepDive={vi.fn()}
           navStack={[]}
           onNavigate={vi.fn()}
-          onStartNewCase={vi.fn()}
+          onStartWorkspace={vi.fn()}
           onInvestigateHeadline={vi.fn()}
           onOpenChat={onOpenChat}
         />

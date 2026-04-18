@@ -3,40 +3,40 @@ import { getArtifactFollowUps, getFollowUpText } from '@/domain';
 
 export interface OperationWorkspaceFindingEntry {
   finding: KeyFinding;
-  reportId?: string;
-  reportTopic: string;
+  artifactId?: string;
+  artifactTitle: string;
 }
 
 interface OperationWorkspacePanelData {
   workspaceInfo: Workspace | null;
   entities: Entity[];
   findings: OperationWorkspaceFindingEntry[];
-  leads: string[];
-  reports: Artifact[];
+  followUps: string[];
+  artifacts: Artifact[];
   sources: Source[];
 }
 
 export const buildOperationWorkspacePanelData = ({
   activeWorkspace,
-  reports,
+  artifacts,
 }: {
   activeWorkspace: Workspace | null;
-  reports: Artifact[];
+  artifacts: Artifact[];
 }): OperationWorkspacePanelData => {
-  if (!activeWorkspace || reports.length === 0) {
+  if (!activeWorkspace || artifacts.length === 0) {
     return {
       workspaceInfo: activeWorkspace,
-      reports: [],
+      artifacts: [],
       entities: [],
       findings: [],
-      leads: [],
+      followUps: [],
       sources: [],
     };
   }
 
   const entityMap = new Map<string, Entity>();
-  reports
-    .flatMap((report) => report.entities || [])
+  artifacts
+    .flatMap((artifact) => artifact.entities || [])
     .forEach((entity) => {
       const name = typeof entity === 'string' ? entity : entity.name;
       const type = typeof entity === 'string' ? 'UNKNOWN' : entity.type;
@@ -45,25 +45,25 @@ export const buildOperationWorkspacePanelData = ({
       }
     });
 
-  const leads = Array.from(
+  const followUps = Array.from(
     new Set(
-      reports.flatMap((artifact) =>
+      artifacts.flatMap((artifact) =>
         getArtifactFollowUps(artifact).map((followUp) => getFollowUpText(followUp))
       )
     )
   );
 
-  const findings = reports.flatMap((report) =>
-    (report.keyFindings || []).map((finding) => ({
+  const findings = artifacts.flatMap((artifact) =>
+    (artifact.keyFindings || []).map((finding) => ({
       finding,
-      reportId: report.id,
-      reportTopic: report.topic,
+      artifactId: artifact.id,
+      artifactTitle: artifact.topic,
     }))
   );
 
   const sourceMap = new Map<string, Source>();
-  reports
-    .flatMap((report) => report.sources || [])
+  artifacts
+    .flatMap((artifact) => artifact.sources || [])
     .forEach((source) => {
       if (!sourceMap.has(source.url)) {
         sourceMap.set(source.url, source);
@@ -72,10 +72,10 @@ export const buildOperationWorkspacePanelData = ({
 
   return {
     workspaceInfo: activeWorkspace,
-    reports,
+    artifacts,
     entities: Array.from(entityMap.values()),
     findings,
-    leads,
+    followUps,
     sources: Array.from(sourceMap.values()),
   };
 };

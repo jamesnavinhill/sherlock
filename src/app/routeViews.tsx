@@ -164,14 +164,14 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
     }
   }, [nextWorkspaceId, setActiveWorkspaceId]);
 
-  const report = resolveArtifactRouteArtifact(artifacts, nextWorkspaceId, nextArtifactId);
-  const relatedTask = resolveRelatedRunForArtifact(workspaceRuns, report);
+  const artifact = resolveArtifactRouteArtifact(artifacts, nextWorkspaceId, nextArtifactId);
+  const relatedTask = resolveRelatedRunForArtifact(workspaceRuns, artifact);
 
   useEffect(() => {
     setActiveRunId(relatedTask?.id || null);
   }, [relatedTask?.id, setActiveRunId]);
 
-  if (!report || !nextWorkspaceId) {
+  if (!artifact || !nextWorkspaceId) {
     return <Navigate to={buildFilesPath()} replace />;
   }
 
@@ -179,19 +179,19 @@ export const ArtifactRouteView: React.FC<InvestigationRouteViewProps> = ({
     <Suspense fallback={<RouteViewFallback />}>
       <OperationView
         task={relatedTask}
-        reportOverride={report}
+        artifactOverride={artifact}
         artifactRouteState={artifactRouteState}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-        navStack={buildArtifactRouteBreadcrumbs(report, workspaces, relatedTask?.id || null)}
+        navStack={buildArtifactRouteBreadcrumbs(artifact, workspaces, relatedTask?.id || null)}
         onNavigate={onNavigateRecord}
-        onSelectCase={(artifactId) => {
-          const foundArtifact = artifacts.find((artifact) => artifact.id === artifactId);
+        onSelectArtifact={(artifactId) => {
+          const foundArtifact = artifacts.find((entry) => entry.id === artifactId);
           if (foundArtifact) {
             onViewReport(foundArtifact);
           }
         }}
-        onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
+        onStartWorkspace={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
         onInvestigateHeadline={(request) =>
           onLaunchInvestigation({ ...request, switchToView: true })
         }
@@ -217,7 +217,7 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   const [searchParams] = useSearchParams();
   const nextRunId = runId || '';
   const task = workspaceRuns.find((workspaceRun) => workspaceRun.id === nextRunId) || null;
-  const report = task?.report || null;
+  const artifact = task?.report || null;
   const artifactRouteState = parseArtifactRouteState(searchParams);
 
   useEffect(() => {
@@ -227,11 +227,11 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
   }, [nextRunId, setActiveRunId]);
 
   useEffect(() => {
-    const workspaceId = report?.workspaceId || task?.workspaceId || null;
+    const workspaceId = artifact?.workspaceId || task?.workspaceId || null;
     if (workspaceId) {
       setActiveWorkspaceId(workspaceId);
     }
-  }, [report?.workspaceId, setActiveWorkspaceId, task?.workspaceId]);
+  }, [artifact?.workspaceId, setActiveWorkspaceId, task?.workspaceId]);
 
   if (!task || !nextRunId) {
     return <Navigate to={buildFilesPath()} replace />;
@@ -241,19 +241,19 @@ export const RunRouteView: React.FC<InvestigationRouteViewProps> = ({
     <Suspense fallback={<RouteViewFallback />}>
       <OperationView
         task={task}
-        reportOverride={report}
+        artifactOverride={artifact}
         artifactRouteState={artifactRouteState}
         onBack={onBack}
         onDeepDive={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
-        navStack={buildArtifactRouteBreadcrumbs(report, workspaces, task.id)}
+        navStack={buildArtifactRouteBreadcrumbs(artifact, workspaces, task.id)}
         onNavigate={onNavigateRecord}
-        onSelectCase={(artifactId) => {
-          const foundArtifact = artifacts.find((artifact) => artifact.id === artifactId);
+        onSelectArtifact={(artifactId) => {
+          const foundArtifact = artifacts.find((entry) => entry.id === artifactId);
           if (foundArtifact) {
             onViewReport(foundArtifact);
           }
         }}
-        onStartNewCase={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
+        onStartWorkspace={(request) => onLaunchInvestigation({ ...request, switchToView: true })}
         onInvestigateHeadline={(request) =>
           onLaunchInvestigation({ ...request, switchToView: true })
         }

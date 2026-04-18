@@ -9,11 +9,11 @@ describe('useNetworkGraphUiState', () => {
 
     expect(result.current.showLeftPanel).toBe(false);
     expect(result.current.dossierSections).toEqual({
-      reports: false,
+      artifacts: false,
       findings: false,
       entities: false,
       headlines: false,
-      leads: false,
+      followUps: false,
       sources: false,
     });
   });

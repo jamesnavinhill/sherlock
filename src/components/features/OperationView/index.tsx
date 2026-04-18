@@ -14,7 +14,7 @@ import { PageShell } from '@/components/system/layout/PageShell';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
-import { WorkspaceLibraryRail } from './WorkspaceLibraryRail';
+import { WorkspaceRail } from './WorkspaceLibraryRail';
 import { ArtifactViewer } from './ArtifactViewer';
 import { OperationInspectorPanel } from './OperationInspectorPanel';
 import { useOperationViewController } from './useOperationViewController';
@@ -23,73 +23,73 @@ import { OperationViewDialogs } from './OperationViewDialogs';
 // --- PROPS ---
 interface OperationViewProps {
   task: WorkspaceRun | null;
-  reportOverride?: Artifact | null;
+  artifactOverride?: Artifact | null;
   artifactRouteState?: ArtifactRouteState;
   onBack: () => void;
   onDeepDive: (request: InvestigationLaunchRequest) => void;
   navStack: BreadcrumbItem[];
   onNavigate: (id: string) => void;
-  onSelectCase?: (workspaceId: string) => void;
-  onStartNewCase: (request: InvestigationLaunchRequest) => void;
+  onSelectArtifact?: (artifactId: string) => void;
+  onStartWorkspace: (request: InvestigationLaunchRequest) => void;
   onInvestigateHeadline?: (request: InvestigationLaunchRequest) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
 }
 
 export const OperationView: React.FC<OperationViewProps> = ({
   task,
-  reportOverride = null,
+  artifactOverride = null,
   artifactRouteState,
   onBack,
   onDeepDive,
   navStack,
   onNavigate,
-  onSelectCase,
-  onStartNewCase,
+  onSelectArtifact,
+  onStartWorkspace,
   onInvestigateHeadline,
   onOpenChat,
 }) => {
   const {
-    activeCase,
-    allCaseReports,
-    allCases,
-    casePanelData,
+    activeWorkspace,
+    workspaceArtifacts,
+    allWorkspaces,
+    workspacePanelData,
     executeSaveTemplate,
-    handleCaseSelect,
+    handleWorkspaceSelect,
     handleEntityClick,
     handleEntityNameSave,
     handleFlagEntity,
     handleHeadlineClick,
     handleHeadlineInvestigate,
     handleInvestigateEntity,
-    handleLeadClick,
+    handleFollowUpClick,
     handleOpenEntityChat,
     handleOpenHeadlineChat,
-    handleOpenReportInspector,
-    handleOpenReportChat,
+    handleOpenArtifactInspector,
+    handleOpenArtifactChat,
     handleOpenWorkspaceBoard,
     handlePlaceEntityOnBoard,
     handlePlaceHeadlineOnBoard,
-    handlePlaceReportOnBoard,
-    handleReportBodySave,
+    handlePlaceArtifactOnBoard,
+    handleArtifactBodySave,
     handleSaveTemplate,
     handleTitleSave,
     headlines,
     inspectorMode,
-    isNewCaseModalOpen,
+    isNewWorkspaceModalOpen,
     isTaskFailed,
     isTaskRunning,
     labelProfile,
     leadToAnalyze,
     leftPanelOpen,
     openSections,
-    report,
+    artifact,
     resolveScope,
     rightPanelOpen,
-    selectedCaseId,
+    selectedWorkspaceId,
     selectedEntity,
     selectedHeadline,
     addToast,
-    setIsNewCaseModalOpen,
+    setIsNewWorkspaceModalOpen,
     setLeadToAnalyze,
     setLeftPanelOpen,
     setRightPanelOpen,
@@ -105,8 +105,8 @@ export const OperationView: React.FC<OperationViewProps> = ({
     onNavigate,
     onInvestigateHeadline,
     onOpenChat,
-    onSelectCase,
-    reportOverride,
+    onSelectArtifact,
+    artifactOverride,
     task,
   });
 
@@ -120,7 +120,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
   React.useEffect(() => {
     setInspectorFocusedSectionId(undefined);
     setInspectorFocusedEvidenceId(undefined);
-  }, [artifactRouteState?.focusEvidenceId, artifactRouteState?.focusSectionId, report?.id]);
+  }, [artifactRouteState?.focusEvidenceId, artifactRouteState?.focusSectionId, artifact?.id]);
 
   if (isTaskRunning) {
     return <MatrixLoader statusText={statusText} onRunInBackground={onBack} />;
@@ -149,11 +149,11 @@ export const OperationView: React.FC<OperationViewProps> = ({
       className="osint-shell-stage h-screen w-full"
       toolbar={
         <Toolbar
-          activeCase={activeCase}
-          allCases={allCases}
-          selectedCaseId={selectedCaseId}
-          report={report}
-          allCaseReports={allCaseReports}
+          activeWorkspace={activeWorkspace}
+          allWorkspaces={allWorkspaces}
+          selectedWorkspaceId={selectedWorkspaceId}
+          artifact={artifact}
+          workspaceArtifacts={workspaceArtifacts}
           labelProfile={labelProfile}
           leftPanelOpen={leftPanelOpen}
           onToggleLeftPanel={() => {
@@ -166,19 +166,19 @@ export const OperationView: React.FC<OperationViewProps> = ({
               setRightPanelOpen(false);
               return;
             }
-            handleOpenReportInspector();
+            handleOpenArtifactInspector();
           }}
-          onSelectCase={handleCaseSelect}
-          onStartNewCase={() => setIsNewCaseModalOpen(true)}
+          onSelectWorkspace={handleWorkspaceSelect}
+          onStartWorkspace={() => setIsNewWorkspaceModalOpen(true)}
           onSaveTemplate={handleSaveTemplate}
-          onOpenChat={handleOpenReportChat}
+          onOpenChat={handleOpenArtifactChat}
           onOpenBoard={() => {
             void handleOpenWorkspaceBoard();
           }}
-          onPlaceReportOnBoard={
-            report?.id
+          onPlaceArtifactOnBoard={
+            artifact?.id
               ? () => {
-                  void handlePlaceReportOnBoard();
+                  void handlePlaceArtifactOnBoard();
                 }
               : undefined
           }
@@ -187,16 +187,16 @@ export const OperationView: React.FC<OperationViewProps> = ({
     >
       <OperationViewDialogs
         leadToAnalyze={leadToAnalyze}
-        report={report}
-        isNewCaseModalOpen={isNewCaseModalOpen}
+        artifact={artifact}
+        isNewWorkspaceModalOpen={isNewWorkspaceModalOpen}
         showSaveTemplateModal={showSaveTemplateModal}
         templateName={templateName}
         onTemplateNameChange={setTemplateName}
         onCloseLeadDialog={() => setLeadToAnalyze(null)}
-        onCloseNewCaseDialog={() => setIsNewCaseModalOpen(false)}
+        onCloseNewWorkspaceDialog={() => setIsNewWorkspaceModalOpen(false)}
         onCloseSaveTemplateDialog={() => setShowSaveTemplateModal(false)}
         onDeepDive={onDeepDive}
-        onStartNewCase={onStartNewCase}
+        onStartWorkspace={onStartWorkspace}
         onExecuteSaveTemplate={executeSaveTemplate}
         resolveScope={resolveScope}
       />
@@ -215,37 +215,37 @@ export const OperationView: React.FC<OperationViewProps> = ({
       {/* 3-PANEL LAYOUT */}
       <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden">
         {/* Left Panel: Dossier */}
-        <WorkspaceLibraryRail
+        <WorkspaceRail
           isOpen={leftPanelOpen}
-          activeCase={activeCase}
+          activeWorkspace={activeWorkspace}
           labelProfile={labelProfile}
-          reports={casePanelData.reports}
-          findings={casePanelData.findings}
-          entities={casePanelData.entities}
-          leads={casePanelData.leads}
-          sources={casePanelData.sources}
+          artifacts={workspacePanelData.artifacts}
+          findings={workspacePanelData.findings}
+          entities={workspacePanelData.entities}
+          followUps={workspacePanelData.followUps}
+          sources={workspacePanelData.sources}
           headlines={headlines}
           openSections={openSections}
           toggleSection={toggleDossierSection}
           onNavigate={onNavigate}
           onEntityClick={handleEntityClick}
-          onLeadClick={handleLeadClick}
+          onFollowUpClick={handleFollowUpClick}
           onHeadlineClick={handleHeadlineClick}
-          activeReportId={report?.id}
+          activeArtifactId={artifact?.id}
         />
 
-        {/* Center: Report Viewer */}
+        {/* Center: Artifact Viewer */}
         <ArtifactViewer
-          report={report}
+          report={artifact}
           focusedSectionId={inspectorFocusedSectionId ?? artifactRouteState?.focusSectionId}
           focusedEvidenceId={inspectorFocusedEvidenceId ?? artifactRouteState?.focusEvidenceId}
           navStack={navStack}
           onNavigate={onNavigate}
           showPlaceholder={showPlaceholder}
-          onStartNewCase={() => setIsNewCaseModalOpen(true)}
+          onStartWorkspace={() => setIsNewWorkspaceModalOpen(true)}
           onTitleSave={handleTitleSave}
-          onReportBodySave={handleReportBodySave}
-          onLeadOpen={handleLeadClick}
+          onReportBodySave={handleArtifactBodySave}
+          onFollowUpOpen={handleFollowUpClick}
           onEntityClick={handleEntityClick}
           onNotify={addToast}
         />
@@ -254,19 +254,19 @@ export const OperationView: React.FC<OperationViewProps> = ({
         <OperationInspectorPanel
           isOpen={rightPanelOpen}
           mode={inspectorMode}
-          report={report}
+          report={artifact}
           labelProfile={labelProfile}
-          workspaceTitle={activeCase ? getWorkspaceDisplayTitle(activeCase) : null}
+          workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : null}
           entity={selectedEntity}
           headline={selectedHeadline}
-          reports={allCaseReports}
+          reports={workspaceArtifacts}
           onEntitySave={handleEntityNameSave}
           onFlagEntity={handleFlagEntity}
           onInvestigateEntity={handleInvestigateEntity}
           onInvestigateHeadline={handleHeadlineInvestigate}
           onOpenEntityChat={handleOpenEntityChat}
           onOpenHeadlineChat={handleOpenHeadlineChat}
-          onOpenReportChat={handleOpenReportChat}
+          onOpenReportChat={handleOpenArtifactChat}
           onPlaceEntityOnBoard={(entityName) => {
             void handlePlaceEntityOnBoard(entityName);
           }}
@@ -274,10 +274,10 @@ export const OperationView: React.FC<OperationViewProps> = ({
             void handlePlaceHeadlineOnBoard();
           }}
           onPlaceReportOnBoard={() => {
-            void handlePlaceReportOnBoard();
+            void handlePlaceArtifactOnBoard();
           }}
           onSelectReportEntity={handleEntityClick}
-          onOpenReportLead={handleLeadClick}
+          onOpenReportLead={handleFollowUpClick}
           onJumpToReportSection={(sectionId) => {
             setInspectorFocusedEvidenceId(undefined);
             setInspectorFocusedSectionId(sectionId);
