@@ -542,8 +542,8 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
             <EditableTitle
               value={selectedEntity}
               onSave={(newName) => onEntitySave(selectedEntity, newName)}
-              className="leading-tight"
-              inputClassName="leading-tight"
+              className="truncate whitespace-nowrap leading-tight"
+              inputClassName="truncate whitespace-nowrap leading-tight"
             />
           }
           subtitle={
@@ -596,8 +596,8 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
             <EditableTitle
               value={selectedReport.topic}
               onSave={(newTitle) => onReportSave(selectedReport, newTitle)}
-              className="leading-tight"
-              inputClassName="leading-tight"
+              className="truncate whitespace-nowrap leading-tight"
+              inputClassName="truncate whitespace-nowrap leading-tight"
             />
           }
           subtitle="Artifact"

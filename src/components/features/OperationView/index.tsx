@@ -253,7 +253,6 @@ export const OperationView: React.FC<OperationViewProps> = ({
         {/* Right Panel: Inspector */}
         <OperationInspectorPanel
           isOpen={rightPanelOpen}
-          onClose={() => setRightPanelOpen(false)}
           mode={inspectorMode}
           report={report}
           labelProfile={labelProfile}

@@ -30,7 +30,6 @@ import { getArtifactTypeLabel } from './artifactViewerPresentation';
 
 interface OperationInspectorPanelProps {
   isOpen: boolean;
-  onClose: () => void;
   mode: 'ENTITY' | 'HEADLINE' | 'REPORT' | null;
   report: Artifact | null;
   labelProfile: LabelProfile;
@@ -63,7 +62,6 @@ const renderEntityIcon = (entityType: Entity['type']) => {
 
 export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = ({
   isOpen,
-  onClose,
   mode,
   report,
   labelProfile,
@@ -322,7 +320,6 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
     return (
       <GlobalInspectorPanel
         isOpen={isOpen}
-        onClose={onClose}
         title={
           <EditableTitle
             value={entity.name}
@@ -349,7 +346,6 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
     return (
       <GlobalInspectorPanel
         isOpen={isOpen}
-        onClose={onClose}
         title={<span title={headline.source}>{headline.source}</span>}
         subtitle={
           <span className="flex items-center gap-2">
@@ -376,7 +372,6 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
     return (
       <GlobalInspectorPanel
         isOpen={isOpen}
-        onClose={onClose}
         title={reportDisplayTitle}
         headerIcon={
           <div className="p-2 text-white">
@@ -394,7 +389,6 @@ export const OperationInspectorPanel: React.FC<OperationInspectorPanelProps> = (
   return (
     <GlobalInspectorPanel
       isOpen={isOpen}
-      onClose={onClose}
       title="No Item Selected"
       emptyState={{
         title: 'No Item Selected',

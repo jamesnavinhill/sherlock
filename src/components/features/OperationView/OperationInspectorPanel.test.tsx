@@ -35,7 +35,6 @@ describe('OperationInspectorPanel', () => {
     render(
       <OperationInspectorPanel
         isOpen
-        onClose={vi.fn()}
         mode="ENTITY"
         report={report}
         labelProfile={getLabelProfileById()}
@@ -61,6 +60,7 @@ describe('OperationInspectorPanel', () => {
       />
     );
 
+    expect(screen.queryByRole('button', { name: /Close inspector/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open Workspace Chat' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Launch Investigation' })).toBeInTheDocument();
     expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();
@@ -87,7 +87,6 @@ describe('OperationInspectorPanel', () => {
     render(
       <OperationInspectorPanel
         isOpen
-        onClose={vi.fn()}
         mode="ENTITY"
         report={null}
         labelProfile={getLabelProfileById()}
@@ -188,7 +187,6 @@ describe('OperationInspectorPanel', () => {
     render(
       <OperationInspectorPanel
         isOpen
-        onClose={vi.fn()}
         mode="REPORT"
         report={report}
         labelProfile={getLabelProfileById()}
