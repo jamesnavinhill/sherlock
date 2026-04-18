@@ -40,6 +40,7 @@ export const ThemeWorkbenchExportTab: React.FC<ThemeWorkbenchExportTabProps> = (
     { label: 'Rail', value: buildAccentColor(activeSurfaces.rail) },
     { label: 'Panel', value: buildAccentColor(activeSurfaces.panel) },
     { label: 'Surface', value: buildAccentColor(activeSurfaces.surface) },
+    { label: 'Divider', value: buildAccentColor(activeTheme.shell.dividerTone[activeMode]) },
     ...activeGraphs.map((graph, index) => ({
       label: `Graph ${index + 1}`,
       value: buildAccentColor(graph),

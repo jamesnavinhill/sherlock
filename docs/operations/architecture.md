@@ -190,7 +190,7 @@ The active visual-theme runtime now uses one Sherlock-owned theme workspace:
 
 - `theme_workspace` stores saved and draft theme templates, while the app-level `theme_mode` setting is the single source of truth for the live dark/light display mode
 - each workspace entry contains `savedThemes`, `draftThemes`, and an `activeThemeId`; theme templates no longer own the current display mode
-- each theme template now stores mode-scoped `accent`, `graphs`, `background`, `surfaces`, and shell divider values, while shared shell geometry/rendering, typography, radii, and control chrome stay single-valued per template
+- each theme template now stores mode-scoped `accent`, `graphs`, `background`, `surfaces`, and shell divider tone/behavior values, while shared shell geometry/rendering, typography, radii, and control chrome stay single-valued per template
 - `src/app/useAppShellEffects.ts` now applies one `buildSherlockThemeCssVars(activeTheme, themeMode)` result to the document so preset selection and display-mode switching are cleanly decoupled
 - legacy split theme fragments other than the active `theme_mode` display-mode setting (`accent_settings`, `theme_surface_settings`, `theme_font_settings`, `theme_background_settings`) are migration inputs only; bootstrap reads them only when `theme_workspace` is missing, and the active compatibility helpers now live under `src/system/theme/legacy/splitTheme.ts`
 
@@ -774,6 +774,7 @@ Run-setup and template flows now expose:
 - `SettingsThemeWorkbenchPanel.tsx` is now a compact orchestration panel over `ThemeWorkbenchThemeTab.tsx`, `ThemeWorkbenchTypeTab.tsx`, `ThemeWorkbenchShellTab.tsx`, `ThemeWorkbenchExportTab.tsx`, `ThemeWorkbenchBackgroundSection.tsx`, and shared workbench helpers instead of owning most editing behavior inline
 - the theme workspace's draft/export utility rail now registers into the shared app-level workbench host instead of rendering as a settings-only right dock
 - the Theme tab's background, graph, typography, shell, and radius sliders now render through the shared `RangeField` contract instead of one-off range markup
+- divider hue, lightness, and chroma are edited from the Shell tab's Dividers section and feed `--osint-shell-divider-color` directly, so panel surface color edits no longer implicitly recolor shell dividers
 - theme templates are full editable themes with saved/draft separation, app-mode-contextual dark/light editing for mode-scoped families, factory reset, fork-to-custom-slot, and JSON/CSS export
 
 ### Files

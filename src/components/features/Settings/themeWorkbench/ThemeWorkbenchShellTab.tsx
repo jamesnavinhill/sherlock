@@ -2,7 +2,9 @@ import React from 'react';
 
 import { RangeField } from '@/components/system/controls';
 import { Accordion } from '@/components/ui/Accordion';
+import { buildAccentColor } from '@/utils/accent';
 import type { SherlockTheme, SherlockThemeMode } from '@/system/theme/schema';
+import { clamp } from './shared';
 import {
   SECTION_ACTION_BUTTON_CLASS,
   SECTION_WRAPPER_CLASS,
@@ -26,6 +28,39 @@ export const ThemeWorkbenchShellTab: React.FC<ThemeWorkbenchShellTabProps> = ({
   setOpenSections,
   updateTheme,
 }) => {
+  const activeDividerTone = activeTheme.shell.dividerTone[activeMode];
+  const dividerLightnessBounds =
+    activeMode === 'dark' ? { min: 0.08, max: 0.74 } : { min: 0.32, max: 0.95 };
+  const updateDividerToneField = (
+    field: keyof typeof activeDividerTone,
+    rawValue: number
+  ) => {
+    updateTheme((theme) => ({
+      ...theme,
+      shell: {
+        ...theme.shell,
+        dividerTone: {
+          ...theme.shell.dividerTone,
+          [activeMode]: {
+            ...theme.shell.dividerTone[activeMode],
+            [field]:
+              field === 'hue'
+                ? ((Math.round(rawValue) % 360) + 360) % 360
+                : field === 'lightness'
+                  ? clamp(
+                      Number(rawValue.toFixed(3)),
+                      dividerLightnessBounds.min,
+                      dividerLightnessBounds.max
+                    )
+                  : field === 'chroma'
+                    ? clamp(Number(rawValue.toFixed(3)), 0, 0.16)
+                    : clamp(Number(rawValue.toFixed(3)), 0, 1),
+          },
+        },
+      },
+    }));
+  };
+
   const onToggle = (sectionId: string) => {
     setOpenSections((current) => toggleSection(current, sectionId));
   };
@@ -164,6 +199,10 @@ export const ThemeWorkbenchShellTab: React.FC<ThemeWorkbenchShellTabProps> = ({
                     ...theme.shell.dividerWidth,
                     [activeMode]: savedTheme.shell.dividerWidth[activeMode],
                   },
+                  dividerTone: {
+                    ...theme.shell.dividerTone,
+                    [activeMode]: { ...savedTheme.shell.dividerTone[activeMode] },
+                  },
                   dividerStrength: {
                     ...theme.shell.dividerStrength,
                     [activeMode]: savedTheme.shell.dividerStrength[activeMode],
@@ -187,6 +226,48 @@ export const ThemeWorkbenchShellTab: React.FC<ThemeWorkbenchShellTabProps> = ({
         showActionsWhenOpenOnly
       >
         <div className="grid gap-4">
+          <div className="rounded border border-[color:var(--osint-raised-outline)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="osint-meta-label">Divider Color</div>
+                <div className="mt-1 osint-body-quiet">{buildAccentColor(activeDividerTone)}</div>
+              </div>
+              <div
+                className="h-10 w-20 rounded border border-[color:var(--osint-raised-outline)]"
+                style={{ background: buildAccentColor(activeDividerTone) }}
+              />
+            </div>
+            <div
+              className="mt-4 h-px"
+              style={{ background: 'var(--osint-shell-divider-color)' }}
+            />
+          </div>
+
+          {(
+            [
+              ['hue', 'Divider Hue', 0, 360, 1],
+              [
+                'lightness',
+                'Divider Lightness',
+                dividerLightnessBounds.min,
+                dividerLightnessBounds.max,
+                0.001,
+              ],
+              ['chroma', 'Divider Chroma', 0, 0.16, 0.001],
+            ] as const
+          ).map(([field, label, min, max, step]) => (
+            <RangeField
+              key={field}
+              label={label}
+              value={activeDividerTone[field]}
+              min={min}
+              max={max}
+              step={step}
+              onChange={(nextValue) => updateDividerToneField(field, nextValue)}
+              formatValue={(nextValue) => nextValue.toFixed(field === 'hue' ? 0 : 3)}
+            />
+          ))}
+
           {(
             [
               ['dividerWidth', 'Divider Width', 0, 4, 1, 'px'],

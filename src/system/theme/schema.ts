@@ -68,6 +68,7 @@ export interface SherlockThemeShellSettings {
   contentWidth: number;
   density: number;
   surfaceOpacity: number;
+  dividerTone: SherlockThemeModeState<SherlockThemeTone>;
   dividerWidth: SherlockThemeModeState<number>;
   dividerStrength: SherlockThemeModeState<number>;
   dividerTint: SherlockThemeModeState<number>;
@@ -97,6 +98,7 @@ export interface ResolvedSherlockThemeShellSettings {
   contentWidth: number;
   density: number;
   surfaceOpacity: number;
+  dividerTone: SherlockThemeTone;
   dividerWidth: number;
   dividerStrength: number;
   dividerTint: number;
@@ -232,7 +234,19 @@ const createSherlockThemeBackgroundSettings = (
   light: createBackgroundLayer(surfaces.light.shell, settings),
 });
 
-const createDividerModeState = (width: number, strength: number, tint: number, glow: number) => ({
+const DEFAULT_DIVIDER_TONES: SherlockThemeModeState<SherlockThemeTone> = {
+  dark: { hue: 250, lightness: 0.52, chroma: 0.018, opacity: 1 },
+  light: { hue: 72, lightness: 0.56, chroma: 0.032, opacity: 1 },
+};
+
+const createDividerModeState = (
+  width: number,
+  strength: number,
+  tint: number,
+  glow: number,
+  dividerTone = DEFAULT_DIVIDER_TONES
+) => ({
+  dividerTone: cloneModeState(dividerTone, cloneThemeTone),
   dividerWidth: createSharedModeState(width, (value) => value),
   dividerStrength: createSharedModeState(strength, (value) => value),
   dividerTint: createSharedModeState(tint, (value) => value),
@@ -308,6 +322,7 @@ const createThemeClone = (theme: SherlockTheme): SherlockTheme => ({
   radii: { ...theme.radii },
   shell: {
     ...theme.shell,
+    dividerTone: cloneModeState(theme.shell.dividerTone, cloneThemeTone),
     dividerWidth: { ...theme.shell.dividerWidth },
     dividerStrength: { ...theme.shell.dividerStrength },
     dividerTint: { ...theme.shell.dividerTint },
@@ -401,7 +416,10 @@ const BLUEBERRY_SHERLOCK_THEME: SherlockTheme = {
     contentWidth: 980,
     density: 1,
     surfaceOpacity: 1,
-    ...createDividerModeState(1, 1, 0, 0),
+    ...createDividerModeState(1, 1, 0, 0, {
+      dark: { hue: 286, lightness: 0.48, chroma: 0.018, opacity: 1 },
+      light: { hue: 70, lightness: 0.58, chroma: 0.038, opacity: 1 },
+    }),
   },
   controls: {
     chrome: 'glass',
@@ -550,6 +568,7 @@ export const resolveSherlockTheme = (
     contentWidth: theme.shell.contentWidth,
     density: theme.shell.density,
     surfaceOpacity: theme.shell.surfaceOpacity,
+    dividerTone: cloneThemeTone(theme.shell.dividerTone[mode]),
     dividerWidth: theme.shell.dividerWidth[mode],
     dividerStrength: theme.shell.dividerStrength[mode],
     dividerTint: theme.shell.dividerTint[mode],
@@ -641,6 +660,29 @@ const normalizeAccentModeState = (
     return cloneModeState(value, cloneAccentSettings);
   }
   return cloneModeState(fallback, cloneAccentSettings);
+};
+
+const isSherlockThemeToneLike = (value: unknown): value is SherlockThemeTone | AccentSettings =>
+  isSherlockThemeTone(value) || isAccentSettings(value);
+
+const normalizeToneModeState = (
+  value: unknown,
+  fallback: SherlockThemeModeState<SherlockThemeTone>
+): SherlockThemeModeState<SherlockThemeTone> => {
+  if (isSherlockThemeToneLike(value)) {
+    const tone = normalizeSherlockThemeTone(value, fallback.dark) ?? fallback.dark;
+    return createSharedModeState(tone, cloneThemeTone);
+  }
+
+  if (isSherlockThemeModeState(value, isSherlockThemeToneLike)) {
+    return {
+      dark: normalizeSherlockThemeTone(value.dark, fallback.dark) ?? cloneThemeTone(fallback.dark),
+      light:
+        normalizeSherlockThemeTone(value.light, fallback.light) ?? cloneThemeTone(fallback.light),
+    };
+  }
+
+  return cloneModeState(fallback, cloneThemeTone);
 };
 
 const isSherlockThemeBackgroundVariant = (
@@ -914,6 +956,10 @@ export const parseSherlockTheme = (value: unknown): SherlockTheme | null => {
       contentWidth: candidate.shell.contentWidth,
       density: candidate.shell.density,
       surfaceOpacity: candidate.shell.surfaceOpacity,
+      dividerTone: normalizeToneModeState(
+        candidate.shell.dividerTone,
+        DEFAULT_SHERLOCK_THEME.shell.dividerTone
+      ),
       dividerWidth: normalizeModeNumber(
         candidate.shell.dividerWidth,
         DEFAULT_SHERLOCK_THEME.shell.dividerWidth

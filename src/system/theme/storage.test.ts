@@ -129,6 +129,7 @@ describe('theme workspace storage helpers', () => {
       },
       mode: 'dark',
     } as unknown as typeof initialWorkspace.savedThemes.default;
+    delete (themeWithoutModeSplit.shell as { dividerTone?: unknown }).dividerTone;
     delete (themeWithoutModeSplit.typography as { profiles?: unknown }).profiles;
     delete (
       themeWithoutModeSplit.background.dark as { opacity?: unknown }
@@ -168,6 +169,9 @@ describe('theme workspace storage helpers', () => {
     expect(hydratedWorkspace.savedThemes.default.shell.dividerWidth.light).toBe(
       initialWorkspace.savedThemes.default.shell.dividerWidth.dark
     );
+    expect(hydratedWorkspace.savedThemes.default.shell.dividerTone.dark).toEqual(
+      initialWorkspace.savedThemes.default.shell.dividerTone.dark
+    );
     expect(hydratedWorkspace.savedThemes.default.surfaces.dark.panel.opacity).toBe(1);
   });
 
@@ -178,6 +182,20 @@ describe('theme workspace storage helpers', () => {
         ...theme.accent,
         dark: { hue: 270, lightness: 0.59, chroma: 0.11 },
       },
+      surfaces: {
+        ...theme.surfaces,
+        dark: {
+          ...theme.surfaces.dark,
+          panel: { hue: 100, lightness: 0.12, chroma: 0.02, opacity: 1 },
+        },
+      },
+      shell: {
+        ...theme.shell,
+        dividerTone: {
+          ...theme.shell.dividerTone,
+          dark: { hue: 18, lightness: 0.44, chroma: 0.09, opacity: 1 },
+        },
+      },
     }));
     const cssVars = buildSherlockThemeCssVars(getActiveDraftTheme(workspace), 'dark');
 
@@ -186,6 +204,8 @@ describe('theme workspace storage helpers', () => {
     expect(cssVars['--osint-shell-toolbar-height']).toBe('64px');
     expect(cssVars['--osint-main-bg-image']).toBeTruthy();
     expect(cssVars['--osint-main-bg-color']).toBeDefined();
+    expect(cssVars['--osint-shell-divider-color']).toContain('oklch(0.44 0.09 18)');
+    expect(cssVars['--osint-shell-divider-color']).not.toContain('oklch(0.12 0.02 100)');
     expect(cssVars['--font-display-scale']).toBeDefined();
   });
 

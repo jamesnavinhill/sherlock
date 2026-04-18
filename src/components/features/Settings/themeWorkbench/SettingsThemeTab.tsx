@@ -520,6 +520,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           <div className="h-px" style={{ background: 'var(--osint-shell-divider-color)' }} />
           <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
             {([
+              ['Tone', buildAccentColor(activeTheme.shell.dividerTone[themeMode])],
               ['Width', `${activeTheme.shell.dividerWidth[themeMode]}px`],
               ['Strength', `${Math.round(activeTheme.shell.dividerStrength[themeMode] * 100)}%`],
               ['Accent Tint', `${Math.round(activeTheme.shell.dividerTint[themeMode] * 100)}%`],

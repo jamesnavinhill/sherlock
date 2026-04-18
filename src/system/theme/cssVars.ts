@@ -102,14 +102,16 @@ export const buildSherlockThemeCssVars = (
   const activeAccent = theme.accent[mode];
   const activeGraphs = theme.graphs[mode];
   const activeBackground = theme.background[mode];
+  const activeDividerTone = theme.shell.dividerTone[mode];
   const dividerStrength = clamp(theme.shell.dividerStrength[mode], 0, 1);
   const dividerTint = clamp(theme.shell.dividerTint[mode], 0, 1);
   const dividerGlow = clamp(theme.shell.dividerGlow[mode], 0, 1);
   const dividerWidth = Math.max(0, Math.round(theme.shell.dividerWidth[mode]));
+  const dividerToneColor = buildAccentColor(activeDividerTone);
   const shellDividerBase =
     dividerStrength === 1
-      ? 'var(--osint-raised-outline)'
-      : `color-mix(in oklab, var(--osint-raised-outline) ${Math.round(dividerStrength * 100)}%, transparent)`;
+      ? dividerToneColor
+      : `color-mix(in oklab, ${dividerToneColor} ${Math.round(dividerStrength * 100)}%, transparent)`;
   const shellDividerColor =
     dividerTint > 0
       ? `color-mix(in oklab, var(--osint-primary) ${Math.round(dividerTint * 100)}%, ${shellDividerBase})`

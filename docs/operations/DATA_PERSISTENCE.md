@@ -234,6 +234,7 @@ Visual-theme persistence also uses the SQLite `settings` table:
 
 - `theme_workspace` stores saved and draft Sherlock theme templates plus the active template id
 - `theme_mode` stores the current app-level light/dark display mode independently from the selected theme template
+- each theme template stores mode-scoped divider tone plus divider width, strength, accent tint, and glow values under the shell settings; older saved themes without `dividerTone` hydrate through the default divider tone fallback
 
 Values still kept there:
 
