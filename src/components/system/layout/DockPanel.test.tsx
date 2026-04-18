@@ -18,4 +18,18 @@ describe('DockPanel', () => {
     expect(panel?.className).toContain('pointer-events-none');
     expect(panel?.className).toContain('translate-x-full');
   });
+
+  it('applies theme-backed dock width variables', () => {
+    render(
+      <DockPanel placement="left" isOpen widthValue="min(var(--osint-shell-rail-width),calc(100vw-1rem))">
+        <div>Library</div>
+      </DockPanel>
+    );
+
+    const panel = screen.getByText('Library').closest('aside');
+    expect(panel).toHaveStyle({
+      '--osint-dock-width': 'min(var(--osint-shell-rail-width),calc(100vw-1rem))',
+    });
+    expect(panel?.className).toContain('w-[var(--osint-dock-width)]');
+  });
 });

@@ -113,9 +113,9 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   const themeSummaryDock =
-    activeTab === 'THEME' ? (
+      activeTab === 'THEME' ? (
       <div className="hidden h-full xl:block">
-        <DockPanel placement="right" isOpen widthClassName="w-[min(22rem,24vw)]">
+        <DockPanel placement="right" isOpen widthValue="min(var(--osint-shell-utility-width),24vw)">
           <div className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}>
             <div className="osint-eyebrow">Workbench</div>
             <div className="mt-1 osint-panel-title">Theme Workspace</div>
@@ -256,7 +256,7 @@ export const Settings: React.FC<SettingsProps> = ({
       }
       leftRail={
         <div className="hidden h-full lg:block">
-          <DockPanel placement="left" isOpen widthClassName="w-[min(15rem,18vw)]">
+          <DockPanel placement="left" isOpen widthValue="min(var(--osint-shell-sidebar-width),18vw)">
             <div className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}>
               <div className="osint-eyebrow">Settings</div>
               <div className="mt-1 osint-panel-title">Configuration</div>

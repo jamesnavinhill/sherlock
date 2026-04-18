@@ -12,6 +12,7 @@ import {
   buildFilesPath,
   buildWorkspaceBoardDocumentPath,
 } from '@/app/routes';
+import { PageShell } from '@/components/system/layout/PageShell';
 import { GlobalInspectorPanel } from '@/components/features/Inspector/GlobalInspectorPanel';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
@@ -127,7 +128,7 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
 
   if (!activeWorkspace) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-black">
+      <div className="osint-shell-empty flex h-screen w-full items-center justify-center">
         <EmptyState
           icon={Shapes}
           title="No Active Workspace"
@@ -150,41 +151,44 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
   };
 
   return (
-    <div className="workspace-board-page flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100 isolate">
-      <BoardTopBar
-        activeBoard={activeBoard}
-        activeWorkspaceId={activeWorkspace.id}
-        availableBoards={availableBoards}
-        leftPanelOpen={leftPanelOpen}
-        rightPanelOpen={rightPanelOpen}
-        workspaces={workspaces}
-        onCreateBoard={() => {
-          void handleCreateBoard();
-        }}
-        onSelectWorkspace={(workspaceId) => {
-          void handleWorkspaceChange(workspaceId);
-        }}
-        onSelectBoard={(boardId) => {
-          if (!activeWorkspace || !boardId) return;
-          void (async () => {
-            await persistCurrentBoardDocument();
-            navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, boardId));
-          })();
-        }}
-        onToggleLeftPanel={() => setLeftPanelOpen((current) => !current)}
-        onTogglePresentationMode={() => {
-          if (!activeBoard) return;
-          void updateWorkspaceBoard(activeBoard.id, {
-            presentationMode: !activeBoard.presentationMode,
-          });
-        }}
-        onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
-      />
-
+    <PageShell
+      className="workspace-board-page osint-shell-stage h-screen w-full isolate"
+      toolbar={
+        <BoardTopBar
+          activeBoard={activeBoard}
+          activeWorkspaceId={activeWorkspace.id}
+          availableBoards={availableBoards}
+          leftPanelOpen={leftPanelOpen}
+          rightPanelOpen={rightPanelOpen}
+          workspaces={workspaces}
+          onCreateBoard={() => {
+            void handleCreateBoard();
+          }}
+          onSelectWorkspace={(workspaceId) => {
+            void handleWorkspaceChange(workspaceId);
+          }}
+          onSelectBoard={(boardId) => {
+            if (!activeWorkspace || !boardId) return;
+            void (async () => {
+              await persistCurrentBoardDocument();
+              navigate(buildWorkspaceBoardDocumentPath(activeWorkspace.id, boardId));
+            })();
+          }}
+          onToggleLeftPanel={() => setLeftPanelOpen((current) => !current)}
+          onTogglePresentationMode={() => {
+            if (!activeBoard) return;
+            void updateWorkspaceBoard(activeBoard.id, {
+              presentationMode: !activeBoard.presentationMode,
+            });
+          }}
+          onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
+        />
+      }
+    >
       <div className="relative z-0 flex min-h-0 flex-1 overflow-hidden">
         {leftPanelOpen || rightPanelOpen ? (
           <div
-            className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm lg:hidden"
+            className="osint-shell-backdrop absolute inset-0 z-20 lg:hidden"
             onClick={() => {
               setLeftPanelOpen(false);
               setRightPanelOpen(false);
@@ -348,6 +352,6 @@ export const WorkspaceBoard: React.FC<WorkspaceBoardProps> = ({
           setBoardIconPickerOpen(false);
         }}
       />
-    </div>
+    </PageShell>
   );
 };

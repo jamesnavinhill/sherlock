@@ -46,10 +46,16 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
       className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS} flex items-start justify-between gap-2.5`}
     >
       <div className="flex min-w-0 flex-1 items-start gap-2.5">
-        {icon ? <div className="shrink-0 text-zinc-300">{icon}</div> : null}
+        {icon ? <div className="shrink-0 text-[color:var(--osint-text-strong)]">{icon}</div> : null}
         <div className="min-w-0 flex-1">
           {topActions ? (
-            <div className={hasHeaderContent ? 'mb-2 border-b border-zinc-800 pb-2' : ''}>
+            <div
+              className={
+                hasHeaderContent
+                  ? 'mb-2 border-b border-[color:var(--osint-shell-border)] pb-2'
+                  : ''
+              }
+            >
               {topActions}
             </div>
           ) : null}

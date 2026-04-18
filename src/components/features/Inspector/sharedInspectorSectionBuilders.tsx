@@ -54,9 +54,9 @@ const renderSentimentBadge = (sentiment: Entity['sentiment']) => {
       className={`inline-flex items-center border px-2 py-1 osint-meta-label ${
         sentiment === 'NEGATIVE'
           ? 'border-osint-danger/40 bg-osint-danger/10 osint-danger-text'
-          : sentiment === 'POSITIVE'
+            : sentiment === 'POSITIVE'
             ? 'border-green-500 text-green-500'
-            : 'border-zinc-600 text-zinc-400'
+            : 'border-[color:var(--osint-shell-border)] text-[color:var(--osint-text-meta)]'
       }`}
     >
       {sentiment}
@@ -86,10 +86,12 @@ export const buildEntityInspectorSections = ({
       details?.role || details?.sentiment ? (
         <div className="osint-raised-surface p-4 space-y-3">
           {details.role ? (
-            <div>
-              <div className="mb-1 osint-meta-label">Role</div>
-              <div className="osint-body-small text-zinc-300">{details.role}</div>
-            </div>
+              <div>
+                <div className="mb-1 osint-meta-label">Role</div>
+              <div className="osint-body-small text-[color:var(--osint-text-strong)]">
+                {details.role}
+              </div>
+              </div>
           ) : null}
           {details.sentiment ? (
             <div>
@@ -157,7 +159,9 @@ export const buildEntityInspectorSections = ({
                   {connection.entity.name}
                 </span>
               </div>
-              <span className="osint-meta-label tabular-nums text-zinc-500">{connection.count}</span>
+              <span className="osint-meta-label tabular-nums text-[color:var(--osint-text-meta)]">
+                {connection.count}
+              </span>
             </div>
           ))
         ) : (
@@ -180,8 +184,10 @@ export const buildHeadlineInspectorSections = ({
     onToggle: () => toggleSection('content'),
     content: (
       <div className="osint-raised-surface p-4">
-        <p className="osint-body-small text-zinc-300">&quot;{headline.content}&quot;</p>
-        <div className="mt-4 border-t border-zinc-800 pt-4 osint-body-quiet">
+        <p className="osint-body-small text-[color:var(--osint-text-strong)]">
+          &quot;{headline.content}&quot;
+        </p>
+        <div className="mt-4 border-t border-[color:var(--osint-shell-border)] pt-4 osint-body-quiet">
           <span>TS: {headline.timestamp}</span>
         </div>
       </div>
@@ -198,11 +204,11 @@ export const buildHeadlineInspectorSections = ({
         href={headline.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="osint-raised-surface flex items-center justify-between p-4 transition-all hover:border-osint-primary hover:bg-zinc-900"
+        className="osint-raised-surface flex items-center justify-between p-4 transition-all hover:border-osint-primary hover:bg-[color:var(--osint-shell-panel-bg)]"
         style={{ color: 'var(--osint-primary)' }}
       >
         <div className="flex items-center overflow-hidden">
-          <Globe className="mr-3 h-4 w-4 text-zinc-500" />
+          <Globe className="mr-3 h-4 w-4 text-[color:var(--osint-text-meta)]" />
           <span className="truncate osint-meta-value" style={{ color: 'inherit' }}>
             {headline.url}
           </span>

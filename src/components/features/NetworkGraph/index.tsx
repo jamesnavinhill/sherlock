@@ -17,6 +17,7 @@ import { useNetworkGraphController } from './useNetworkGraphController';
 import { NetworkGraphDialogs } from './NetworkGraphDialogs';
 import { getEntityGraphNodeId } from './networkGraphNodeIds';
 import { addNetworkEntityFocusListener } from '@/services/workspace/workspaceSurfaceFocus';
+import { PageShell } from '@/components/system/layout/PageShell';
 
 interface NetworkGraphProps {
   onOpenReport: (report: Artifact) => void;
@@ -139,21 +140,34 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   }, [filterWorkspaceId, handleOpenEntityInspector, routeState?.focusEntity, searchParams]);
 
   return (
-    <div className="w-full h-screen bg-osint-dark relative flex flex-col overflow-hidden">
-      <ControlBar
-        workspaces={workspaces}
-        filterWorkspaceId={filterWorkspaceId || ''}
-        onWorkspaceChange={handleWorkspaceChange}
-        showLeftPanel={showLeftPanel}
-        onToggleLeftPanel={() => setShowLeftPanel(!showLeftPanel)}
-        showRightPanel={showRightPanel}
-        onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
-        isLinkingMode={isLinkingMode}
-        onToggleLinkingMode={() => setIsLinkingMode(!isLinkingMode)}
-        onShowAddNode={() => setShowAddNodeUI(true)}
-        onShowResolution={() => setShowResolutionModal(true)}
-        pendingClusterCount={pendingClusterCount}
-      />
+    <PageShell
+      className="osint-shell-stage h-screen w-full"
+      toolbar={
+        <ControlBar
+          workspaces={workspaces}
+          filterWorkspaceId={filterWorkspaceId || ''}
+          onWorkspaceChange={handleWorkspaceChange}
+          showLeftPanel={showLeftPanel}
+          onToggleLeftPanel={() => setShowLeftPanel(!showLeftPanel)}
+          showRightPanel={showRightPanel}
+          onToggleRightPanel={() => setShowRightPanel(!showRightPanel)}
+          isLinkingMode={isLinkingMode}
+          onToggleLinkingMode={() => setIsLinkingMode(!isLinkingMode)}
+          onShowAddNode={() => setShowAddNodeUI(true)}
+          onShowResolution={() => setShowResolutionModal(true)}
+          pendingClusterCount={pendingClusterCount}
+        />
+      }
+    >
+      {(showLeftPanel || showRightPanel) && (
+        <div
+          className="osint-shell-backdrop absolute inset-0 z-20 lg:hidden"
+          onClick={() => {
+            setShowLeftPanel(false);
+            setShowRightPanel(false);
+          }}
+        />
+      )}
 
       <div className="relative z-10 flex min-h-0 flex-1 overflow-hidden">
         {/* Dossier Panel (Reused) */}
@@ -306,6 +320,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           setNodePendingDeletion(null);
         }}
       />
-    </div>
+    </PageShell>
   );
 };

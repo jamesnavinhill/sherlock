@@ -22,9 +22,11 @@ export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
   onRangeChange,
   onToggleTrackFilter,
 }) => (
-  <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-zinc-900">
-    <div className="border-b border-zinc-800 bg-black px-4 py-3">
-      <h3 className="osint-meta-label-strong text-white">Timeline Filters</h3>
+  <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))] border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-bg)]">
+    <div className="border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-header-bg)] px-4 py-3">
+      <h3 className="osint-meta-label-strong text-[color:var(--osint-text-heading)]">
+        Timeline Filters
+      </h3>
     </div>
     <div className="space-y-5 p-4">
       <div>
@@ -71,10 +73,10 @@ export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
+      <div className="flex items-center justify-between border-t border-[color:var(--osint-shell-border)] pt-4">
         <button
           onClick={onClearFilters}
-          className="osint-meta-label text-zinc-500 hover:text-white"
+          className="osint-meta-label text-[color:var(--osint-text-meta)] hover:text-[color:var(--osint-text-heading)]"
         >
           Reset
         </button>

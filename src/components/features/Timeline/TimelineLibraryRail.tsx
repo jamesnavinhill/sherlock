@@ -171,7 +171,9 @@ export const TimelineLibraryRail: React.FC<TimelineLibraryRailProps> = ({
       title={workspaceTitle}
       summary={
         latestActivity ? (
-          <div className="osint-meta-label text-zinc-500">Latest activity {latestActivity}</div>
+          <div className="osint-meta-label text-[color:var(--osint-text-meta)]">
+            Latest activity {latestActivity}
+          </div>
         ) : undefined
       }
     >

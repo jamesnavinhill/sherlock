@@ -20,12 +20,12 @@ export const CHROME_RAIL_SECTION_SCROLL_CLASS =
   'min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 custom-scrollbar';
 
 export const CHROME_ACTION_BUTTON_CLASS =
-  'osint-surface-button inline-flex h-9 items-center justify-center gap-2 px-3 osint-meta-label-strong text-zinc-300';
+  'osint-surface-button inline-flex h-9 items-center justify-center gap-2 px-3 osint-meta-label-strong text-[color:var(--osint-text-strong)]';
 
 export const CHROME_COMPACT_ACTION_BUTTON_CLASS = `${CHROME_ACTION_BUTTON_CLASS} h-6 px-2`;
 
 export const CHROME_THIN_ACTION_BUTTON_CLASS =
-  'osint-rail-button inline-flex h-6 items-center justify-center gap-1.5 px-2 osint-meta-label-strong text-[11px] text-zinc-300';
+  'osint-rail-button inline-flex h-6 items-center justify-center gap-1.5 px-2 osint-meta-label-strong text-[11px] text-[color:var(--osint-text-strong)]';
 
 export const CHROME_PANEL_TAB_ROW_CLASS = 'flex w-full justify-start gap-2';
 
@@ -72,7 +72,7 @@ export const CHROME_NESTED_ITEM_ACTION_ROW_CLASS = 'mt-3 flex flex-wrap items-ce
 export const CHROME_THIN_ACTION_STACK_CLASS = 'flex flex-col gap-2';
 
 export const CHROME_NESTED_ITEM_BADGE_CLASS =
-  'rounded-none border border-zinc-800 bg-black/40 px-2 py-1 osint-meta-label text-zinc-500';
+  'rounded-none border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-2 py-1 osint-meta-label text-[color:var(--osint-text-meta)]';
 
 export const CHROME_NESTED_ITEM_DOT_CLASS = 'mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-600';
 
@@ -90,7 +90,7 @@ export const CHROME_HEADER_PRIMARY_ACTION_CLASS =
   `osint-button-primary osint-meta-label-strong inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} shrink-0 items-center gap-2 whitespace-nowrap px-3`;
 
 export const CHROME_TOOLBAR_FIELD_CLASS =
-  `osint-toolbar-field border text-zinc-300 outline-none ${CHROME_HEADER_CONTROL_HEIGHT_CLASS}`;
+  `osint-toolbar-field border outline-none ${CHROME_HEADER_CONTROL_HEIGHT_CLASS}`;
 
 export const CHROME_TOOLBAR_GROUP_CLASS = 'osint-toolbar-group overflow-hidden';
 
@@ -112,14 +112,16 @@ export const getChromeMenuButtonClass = (active: boolean) =>
 
 export const getChromeToolbarSegmentButtonClass = (active: boolean) =>
   `osint-meta-label inline-flex items-center justify-center px-3 py-1.5 transition ${
-    active ? 'osint-button-chrome-active' : 'osint-button-chrome text-zinc-400 hover:text-white'
+    active
+      ? 'osint-button-chrome-active'
+      : 'osint-button-chrome text-[color:var(--osint-text-meta)] hover:text-[color:var(--osint-text-heading)]'
   }`;
 
 export const getChromeSegmentButtonClass = (active: boolean) =>
   `osint-ghost-button osint-meta-label inline-flex items-center justify-center px-3 py-1.5 transition ${
     active
       ? 'bg-osint-primary/10 text-osint-primary'
-      : 'text-zinc-500'
+      : 'text-[color:var(--osint-text-meta)]'
   }`;
 
 interface RailAccordionClassOptions {
@@ -154,5 +156,5 @@ export const getChromePanelTabButtonClass = (
   } ${
     active
       ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary'
-      : 'border-zinc-700 text-zinc-300 hover:border-osint-primary hover:text-white'
+      : 'border-[color:var(--osint-shell-border)] text-[color:var(--osint-text-strong)] hover:border-osint-primary hover:text-[color:var(--osint-text-heading)]'
   }`;

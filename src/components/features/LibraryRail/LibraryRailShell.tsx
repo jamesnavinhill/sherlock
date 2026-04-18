@@ -16,6 +16,7 @@ interface LibraryRailShellProps {
   search?: React.ReactNode;
   children: React.ReactNode;
   widthClassName?: string;
+  widthValue?: string;
   overlayOnDesktop?: boolean;
   className?: string;
 }
@@ -31,7 +32,8 @@ export const LibraryRailShell: React.FC<LibraryRailShellProps> = ({
   actionsPlacement,
   search,
   children,
-  widthClassName = 'w-[min(20rem,calc(100vw-1rem))]',
+  widthClassName = 'w-[var(--osint-dock-width)]',
+  widthValue = 'min(var(--osint-shell-rail-width),calc(100vw-1rem))',
   overlayOnDesktop = false,
   className = '',
 }) => (
@@ -39,6 +41,7 @@ export const LibraryRailShell: React.FC<LibraryRailShellProps> = ({
     isOpen={isOpen}
     placement={placement}
     widthClassName={widthClassName}
+    widthValue={widthValue}
     overlayOnDesktop={overlayOnDesktop}
     className={className}
   >

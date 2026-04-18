@@ -235,7 +235,7 @@ export const TimelineInspectorPanel: React.FC<TimelineInspectorPanelProps> = ({
                     {selectedEvent.badges.map((badge) => (
                       <span
                         key={`${selectedEvent.id}-detail-${badge}`}
-                        className="border border-zinc-700 bg-black px-2 py-1 osint-meta-label"
+                        className="border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-2 py-1 osint-meta-label"
                       >
                         {badge}
                       </span>

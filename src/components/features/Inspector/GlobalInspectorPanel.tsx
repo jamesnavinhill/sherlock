@@ -39,6 +39,7 @@ interface GlobalInspectorPanelProps {
   footer?: React.ReactNode;
   headerActionsPlacement?: 'top' | 'bottom';
   widthClassName?: string;
+  widthValue?: string;
   overlayOnDesktop?: boolean;
   className?: string;
 }
@@ -65,7 +66,8 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
   children,
   footer,
   headerActionsPlacement = 'bottom',
-  widthClassName = 'w-[min(24rem,calc(100vw-1rem))]',
+  widthClassName = 'w-[var(--osint-dock-width)]',
+  widthValue = 'min(var(--osint-shell-utility-width),calc(100vw-1rem))',
   overlayOnDesktop = false,
   className = '',
 }) => {
@@ -107,6 +109,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
       isOpen={isOpen}
       placement={placement}
       widthClassName={widthClassName}
+      widthValue={widthValue}
       overlayOnDesktop={overlayOnDesktop}
       className={className}
     >
@@ -120,7 +123,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
       />
 
       {tabsPlacement === 'section' && tabControls ? (
-        <div className="border-b border-zinc-800 bg-zinc-900/30 px-4 py-2">
+        <div className="border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-4 py-2">
           {tabControls}
         </div>
       ) : null}

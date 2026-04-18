@@ -10,6 +10,7 @@ import type { BreadcrumbItem } from '../../ui/Breadcrumbs';
 import { MatrixLoader } from '../../ui/MatrixLoader';
 import { AlertOctagon } from 'lucide-react';
 import { getWorkspaceDisplayTitle } from '@/domain';
+import { PageShell } from '@/components/system/layout/PageShell';
 
 // Sub-components
 import { Toolbar } from './Toolbar';
@@ -127,7 +128,7 @@ export const OperationView: React.FC<OperationViewProps> = ({
 
   if (isTaskFailed) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-screen">
+      <div className="osint-shell-empty flex h-full min-h-screen flex-col items-center justify-center">
         <AlertOctagon className="w-16 h-16 text-osint-danger mb-4" />
         <h2 className="text-xl text-white font-bold mb-2">OPERATION FAILED</h2>
         <p className="text-zinc-500 font-mono mb-6">
@@ -144,7 +145,46 @@ export const OperationView: React.FC<OperationViewProps> = ({
   }
 
   return (
-    <div className="w-full h-screen bg-black relative flex flex-col overflow-hidden">
+    <PageShell
+      className="osint-shell-stage h-screen w-full"
+      toolbar={
+        <Toolbar
+          activeCase={activeCase}
+          allCases={allCases}
+          selectedCaseId={selectedCaseId}
+          report={report}
+          allCaseReports={allCaseReports}
+          labelProfile={labelProfile}
+          leftPanelOpen={leftPanelOpen}
+          onToggleLeftPanel={() => {
+            setLeftPanelOpen(!leftPanelOpen);
+            if (window.innerWidth <= 1024) setRightPanelOpen(false);
+          }}
+          rightPanelOpen={rightPanelOpen}
+          onToggleRightPanel={() => {
+            if (rightPanelOpen) {
+              setRightPanelOpen(false);
+              return;
+            }
+            handleOpenReportInspector();
+          }}
+          onSelectCase={handleCaseSelect}
+          onStartNewCase={() => setIsNewCaseModalOpen(true)}
+          onSaveTemplate={handleSaveTemplate}
+          onOpenChat={handleOpenReportChat}
+          onOpenBoard={() => {
+            void handleOpenWorkspaceBoard();
+          }}
+          onPlaceReportOnBoard={
+            report?.id
+              ? () => {
+                  void handlePlaceReportOnBoard();
+                }
+              : undefined
+          }
+        />
+      }
+    >
       <OperationViewDialogs
         leadToAnalyze={leadToAnalyze}
         report={report}
@@ -161,47 +201,10 @@ export const OperationView: React.FC<OperationViewProps> = ({
         resolveScope={resolveScope}
       />
 
-      {/* Toolbar */}
-      <Toolbar
-        activeCase={activeCase}
-        allCases={allCases}
-        selectedCaseId={selectedCaseId}
-        report={report}
-        allCaseReports={allCaseReports}
-        labelProfile={labelProfile}
-        leftPanelOpen={leftPanelOpen}
-        onToggleLeftPanel={() => {
-          setLeftPanelOpen(!leftPanelOpen);
-          if (window.innerWidth <= 1024) setRightPanelOpen(false);
-        }}
-        rightPanelOpen={rightPanelOpen}
-        onToggleRightPanel={() => {
-          if (rightPanelOpen) {
-            setRightPanelOpen(false);
-            return;
-          }
-          handleOpenReportInspector();
-        }}
-        onSelectCase={handleCaseSelect}
-        onStartNewCase={() => setIsNewCaseModalOpen(true)}
-        onSaveTemplate={handleSaveTemplate}
-        onOpenChat={handleOpenReportChat}
-        onOpenBoard={() => {
-          void handleOpenWorkspaceBoard();
-        }}
-        onPlaceReportOnBoard={
-          report?.id
-            ? () => {
-                void handlePlaceReportOnBoard();
-              }
-            : undefined
-        }
-      />
-
       {/* Mobile Backdrop for Panels */}
       {(leftPanelOpen || rightPanelOpen) && (
         <div
-          className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm lg:hidden animate-in fade-in duration-300"
+          className="osint-shell-backdrop absolute inset-0 z-20 animate-in fade-in duration-300 lg:hidden"
           onClick={() => {
             setLeftPanelOpen(false);
             setRightPanelOpen(false);
@@ -287,6 +290,6 @@ export const OperationView: React.FC<OperationViewProps> = ({
           onNavigate={onNavigate}
         />
       </div>
-    </div>
+    </PageShell>
   );
 };

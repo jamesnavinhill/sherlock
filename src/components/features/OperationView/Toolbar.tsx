@@ -75,6 +75,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const [showExportMenu, setShowExportMenu] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const menuSurfaceClassName =
+    'osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[220px] border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-bg)]';
+  const menuSectionClassName =
+    'border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-3 py-1.5 osint-menu-section-label';
+  const menuItemClassName =
+    'osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-[color:var(--osint-text-strong)]';
+  const menuItemBorderTopClassName =
+    'osint-menu-item flex w-full items-center border-t border-[color:var(--osint-shell-border)] px-4 py-2.5 text-left osint-body-small text-[color:var(--osint-text-strong)]';
+  const menuItemBorderBottomClassName =
+    'osint-menu-item flex w-full items-center border-b border-[color:var(--osint-shell-border)] px-4 py-2.5 text-left osint-body-small text-[color:var(--osint-text-strong)]';
+  const menuIconClassName = 'osint-menu-item-icon mr-3 h-4 w-4 text-[color:var(--osint-text-meta)]';
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -159,8 +170,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     <ChevronDown className="w-3 h-3 ml-1" />
                   </button>
                   {showContextMenu && (
-                    <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
-                      <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
+                    <div className={menuSurfaceClassName}>
+                      <div className={menuSectionClassName}>
                         Workspace Actions
                       </div>
                       {onOpenChat && (
@@ -169,14 +180,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onOpenChat();
                             setShowContextMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemClassName}
                           title={
                             report
                               ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
                               : `Open ${CANONICAL_NOUNS.workspace.toLowerCase()} in workspace chat`
                           }
                         >
-                          <MessageSquare className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <MessageSquare className={menuIconClassName} />
                           <span>{report ? 'Open Context Chat' : 'Open Workspace Chat'}</span>
                         </button>
                       )}
@@ -186,10 +197,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onOpenBoard();
                             setShowContextMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemClassName}
                           title={`Open ${CANONICAL_NOUNS.workspace.toLowerCase()} board`}
                         >
-                          <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <Layout className={menuIconClassName} />
                           <span>Open Board</span>
                         </button>
                       )}
@@ -199,10 +210,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onPlaceReportOnBoard();
                             setShowContextMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center border-t border-zinc-800 px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemBorderTopClassName}
                           title={`Place this ${CANONICAL_NOUNS.artifact.toLowerCase()} on the board`}
                         >
-                          <Shapes className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <Shapes className={menuIconClassName} />
                           <span>{`Place ${CANONICAL_NOUNS.artifact} on Board`}</span>
                         </button>
                       )}
@@ -223,19 +234,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   <ChevronDown className="w-3 h-3 ml-1" />
                 </button>
                 {showExportMenu && (
-                  <div className="osint-menu-panel absolute right-0 top-full mt-1 bg-zinc-900 border border-zinc-700 z-50 min-w-[220px]">
+                  <div className={menuSurfaceClassName}>
                     {activeCase && (
                       <>
-                        <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">{`Full ${CANONICAL_NOUNS.workspace}`}</div>
+                        <div className={menuSectionClassName}>{`Full ${CANONICAL_NOUNS.workspace}`}</div>
                         <button
                           onClick={() => {
                             exportWorkspaceAsHtml(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemClassName}
                           title={`Exports a formatted printable view of the entire ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                         >
-                          <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <Download className={menuIconClassName} />
                           <span>{`${CANONICAL_NOUNS.workspace} as HTML`}</span>
                         </button>
                         <button
@@ -243,10 +254,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportWorkspaceAsMarkdown(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemClassName}
                           title={`Exports a full Markdown package of the ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                         >
-                          <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <FileText className={menuIconClassName} />
                           <span>{`${CANONICAL_NOUNS.workspace} as Markdown (.md)`}</span>
                         </button>
                         <button
@@ -254,26 +265,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportWorkspaceAsJson(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemBorderBottomClassName}
                           title={`Exports raw ${CANONICAL_NOUNS.workspace.toLowerCase()} data for backup/integration`}
                         >
-                          <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <FileJson className={menuIconClassName} />
                           <span>{`${CANONICAL_NOUNS.workspace} as JSON Data`}</span>
                         </button>
                       </>
                     )}
                     {report && (
                       <>
-                        <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">{`Current ${labelProfile.artifactLabel}`}</div>
+                        <div className={menuSectionClassName}>{`Current ${labelProfile.artifactLabel}`}</div>
                         <button
                           onClick={() => {
                             exportArtifactAsHtml(report, activeCase || undefined);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemClassName}
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a formatted printable document`}
                         >
-                          <Download className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <Download className={menuIconClassName} />
                           <span>{`${labelProfile.artifactLabel} as HTML`}</span>
                         </button>
                         <button
@@ -281,10 +292,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportArtifactAsMarkdown(report);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemClassName}
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a Markdown file`}
                         >
-                          <FileText className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <FileText className={menuIconClassName} />
                           <span>{`${labelProfile.artifactLabel} as Markdown`}</span>
                         </button>
                         <button
@@ -292,10 +303,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportArtifactAsJson(report);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={menuItemClassName}
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as raw JSON data`}
                         >
-                          <FileJson className="osint-menu-item-icon w-4 h-4 mr-3 text-zinc-500" />
+                          <FileJson className={menuIconClassName} />
                           <span>{`${labelProfile.artifactLabel} as JSON`}</span>
                         </button>
                         {onSaveTemplate && (
@@ -304,7 +315,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                               onSaveTemplate();
                               setShowExportMenu(false);
                             }}
-                            className="osint-menu-item flex w-full items-center border-t border-zinc-800 px-4 py-2.5 text-left osint-body-small text-osint-primary"
+                            className="osint-menu-item flex w-full items-center border-t border-[color:var(--osint-shell-border)] px-4 py-2.5 text-left osint-body-small text-osint-primary"
                             title="Saves this run configuration as a template"
                           >
                             <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-osint-primary" />

@@ -4,6 +4,7 @@ import { Clock3 } from 'lucide-react';
 
 import type { Artifact, ChatOpenRequest, TimelineRange } from '@/types';
 import { buildWorkspaceTimelinePath } from '@/app/routes';
+import { PageShell } from '@/components/system/layout/PageShell';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import { useTimelineViewController } from './Timeline/useTimelineViewController';
@@ -87,7 +88,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-black">
+      <div className="osint-shell-empty flex min-h-screen w-full items-center justify-center">
         <EmptyState
           icon={Clock3}
           title="Loading Timeline"
@@ -98,65 +99,68 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-100">
-      <TimelineToolbar
-        activeWorkspace={activeWorkspace}
-        workspaces={workspaces}
-        filters={filters}
-        leftPanelOpen={leftPanelOpen}
-        rightPanelOpen={rightPanelOpen}
-        showExportMenu={showExportMenu}
-        showFilters={showFilters}
-        timelineSnapshotAvailable={!!timelineSnapshot}
-        canSaveCurrentView={canSaveCurrentView}
-        exportMenuRef={exportMenuRef}
-        filterMenuRef={filterMenuRef}
-        onToggleLeftPanel={() => setLeftPanelOpen((current) => !current)}
-        onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
-        onWorkspaceChange={(workspaceId) => {
-          if (workspaceId) {
-            const nextSearch = searchParams.toString();
-            navigate({
-              pathname: buildWorkspaceTimelinePath(workspaceId),
-              search: nextSearch ? `?${nextSearch}` : '',
-            });
-          } else {
-            setActiveWorkspaceId(null);
+    <PageShell
+      className="osint-shell-stage h-screen w-full"
+      toolbar={
+        <TimelineToolbar
+          activeWorkspace={activeWorkspace}
+          workspaces={workspaces}
+          filters={filters}
+          leftPanelOpen={leftPanelOpen}
+          rightPanelOpen={rightPanelOpen}
+          showExportMenu={showExportMenu}
+          showFilters={showFilters}
+          timelineSnapshotAvailable={!!timelineSnapshot}
+          canSaveCurrentView={canSaveCurrentView}
+          exportMenuRef={exportMenuRef}
+          filterMenuRef={filterMenuRef}
+          onToggleLeftPanel={() => setLeftPanelOpen((current) => !current)}
+          onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
+          onWorkspaceChange={(workspaceId) => {
+            if (workspaceId) {
+              const nextSearch = searchParams.toString();
+              navigate({
+                pathname: buildWorkspaceTimelinePath(workspaceId),
+                search: nextSearch ? `?${nextSearch}` : '',
+              });
+            } else {
+              setActiveWorkspaceId(null);
+            }
+          }}
+          onToggleExportMenu={() => {
+            setShowExportMenu((current) => !current);
+            setShowFilters(false);
+          }}
+          onToggleFilters={() => {
+            setShowFilters((current) => !current);
+            setShowExportMenu(false);
+          }}
+          onSaveView={() => {
+            void handleSaveTimelineView();
+          }}
+          onCloseFilters={() => setShowFilters(false)}
+          onClearFilters={clearFilters}
+          onRangeChange={(range) =>
+            updateTimelineQuery((current) => ({
+              ...current,
+              filters: {
+                ...current.filters,
+                range: range as TimelineRange,
+              },
+            }))
           }
-        }}
-        onToggleExportMenu={() => {
-          setShowExportMenu((current) => !current);
-          setShowFilters(false);
-        }}
-        onToggleFilters={() => {
-          setShowFilters((current) => !current);
-          setShowExportMenu(false);
-        }}
-        onSaveView={() => {
-          void handleSaveTimelineView();
-        }}
-        onCloseFilters={() => setShowFilters(false)}
-        onClearFilters={clearFilters}
-        onRangeChange={(range) =>
-          updateTimelineQuery((current) => ({
-            ...current,
-            filters: {
-              ...current.filters,
-              range: range as TimelineRange,
-            },
-          }))
-        }
-        onToggleTrackFilter={toggleTrackFilter}
-        onExportTimelineMarkdown={handleExportTimelineMarkdown}
-        onExportTimelineJson={handleExportTimelineJson}
-        onSaveTimelineArtifact={() => {
-          void handleSaveTimelineArtifact();
-        }}
-      />
-
+          onToggleTrackFilter={toggleTrackFilter}
+          onExportTimelineMarkdown={handleExportTimelineMarkdown}
+          onExportTimelineJson={handleExportTimelineJson}
+          onSaveTimelineArtifact={() => {
+            void handleSaveTimelineArtifact();
+          }}
+        />
+      }
+    >
       {leftPanelOpen || rightPanelOpen ? (
         <div
-          className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm lg:hidden"
+          className="osint-shell-backdrop absolute inset-0 z-20 lg:hidden"
           onClick={() => {
             setLeftPanelOpen(false);
             setRightPanelOpen(false);
@@ -223,6 +227,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
           onToggleContext={() => toggleDetailSection('context')}
         />
       </div>
-    </div>
+    </PageShell>
   );
 };

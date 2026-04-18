@@ -769,7 +769,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef, GraphCanvasProps>(
     ]);
 
     return (
-      <div ref={containerRef} className="flex-1 w-full h-full relative z-0 bg-black cursor-move">
+      <div
+        ref={containerRef}
+        className="relative z-0 h-full w-full flex-1 cursor-move bg-[color:var(--osint-dark)]"
+      >
         <MainContentDotGrid testId="network-graph-dot-grid-background" />
         <svg ref={svgRef} className="w-full h-full" onClick={() => onNodeClick(null)} />
       </div>
