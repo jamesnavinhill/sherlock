@@ -4,14 +4,21 @@ export interface AccentSettings {
   chroma: number;
 }
 
+export type AccentColorPoint = AccentSettings & { opacity?: number };
+
 export const DEFAULT_ACCENT_SETTINGS: AccentSettings = {
   hue: 340,
   lightness: 0.57,
   chroma: 0.09,
 };
 
-export const buildAccentColor = ({ hue, lightness, chroma }: AccentSettings): string =>
-  `oklch(${lightness} ${chroma} ${hue})`;
+export const buildAccentColor = ({ hue, lightness, chroma, opacity }: AccentColorPoint): string => {
+  const base = `${lightness} ${chroma} ${hue}`;
+  if (typeof opacity === 'number' && opacity < 1) {
+    return `oklch(${base} / ${opacity})`;
+  }
+  return `oklch(${base})`;
+};
 
 export const parseOklch = (value: string): AccentSettings | null => {
   const match = value.match(

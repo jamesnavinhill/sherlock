@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createDefaultThemeFontProfiles,
   DEFAULT_THEME_FONT_SETTINGS,
   buildThemeFontCssVars,
   parseThemeFontSettings,
@@ -25,6 +26,7 @@ describe('themeFonts', () => {
       mono: 'ibm-plex-mono',
       size: -0.4,
       weight: 0.25,
+      profiles: createDefaultThemeFontProfiles(),
     });
   });
 
@@ -45,6 +47,7 @@ describe('themeFonts', () => {
       mono: 'ibm-plex-mono',
       size: -1,
       weight: -1,
+      profiles: createDefaultThemeFontProfiles(),
     });
   });
 
@@ -63,6 +66,39 @@ describe('themeFonts', () => {
       mono: 'ibm-plex-mono',
       size: -1,
       weight: -1,
+      profiles: createDefaultThemeFontProfiles(),
+    });
+  });
+
+  it('hydrates stored role profiles when present', () => {
+    expect(
+      parseThemeFontSettings({
+        ui: 'space-grotesk',
+        display: 'space-grotesk',
+        label: 'azeret-mono',
+        mono: 'ibm-plex-mono',
+        size: 0,
+        weight: 0,
+        profiles: {
+          ui: { sizeAdjust: 0.1, weightAdjust: 20, trackingAdjust: 0.01, leadingAdjust: 0.02 },
+          display: { sizeAdjust: 0, weightAdjust: 0, trackingAdjust: -0.01, leadingAdjust: 0 },
+          label: { sizeAdjust: 0.05, weightAdjust: 10, trackingAdjust: 0.12, leadingAdjust: 0.03 },
+          mono: { sizeAdjust: -0.05, weightAdjust: -20, trackingAdjust: 0.02, leadingAdjust: -0.08 },
+        },
+      })
+    ).toEqual({
+      ui: 'space-grotesk',
+      display: 'space-grotesk',
+      label: 'azeret-mono',
+      mono: 'ibm-plex-mono',
+      size: 0,
+      weight: 0,
+      profiles: {
+        ui: { sizeAdjust: 0.1, weightAdjust: 20, trackingAdjust: 0.01, leadingAdjust: 0.02 },
+        display: { sizeAdjust: 0, weightAdjust: 0, trackingAdjust: -0.01, leadingAdjust: 0 },
+        label: { sizeAdjust: 0.05, weightAdjust: 10, trackingAdjust: 0.12, leadingAdjust: 0.03 },
+        mono: { sizeAdjust: -0.05, weightAdjust: -20, trackingAdjust: 0.02, leadingAdjust: -0.08 },
+      },
     });
   });
 
@@ -94,6 +130,10 @@ describe('themeFonts', () => {
       '--font-size-3xl': '1.85rem',
       '--font-weight-bold': '580',
       '--font-weight-display': '560',
+      '--font-ui-scale': '0.9',
+      '--font-display-leading': '1.08',
+      '--font-label-tracking': '0.14em',
+      '--font-mono-weight': '360',
     });
   });
 });

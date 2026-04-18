@@ -27,6 +27,15 @@ export interface ThemeFontWeightScale {
   display: number;
 }
 
+export interface ThemeFontFamilyProfile {
+  sizeAdjust: number;
+  weightAdjust: number;
+  trackingAdjust: number;
+  leadingAdjust: number;
+}
+
+export type ThemeFontRoleProfiles = Record<ThemeFontRole, ThemeFontFamilyProfile>;
+
 export interface ThemeFontSettings {
   ui: string;
   display: string;
@@ -34,6 +43,7 @@ export interface ThemeFontSettings {
   mono: string;
   size: number;
   weight: number;
+  profiles: ThemeFontRoleProfiles;
 }
 
 interface ThemeFontScaleStop {
@@ -103,6 +113,20 @@ export const THEME_FONT_OPTIONS: ThemeFontOption[] = [
     preview: 'Compact futurism with high-impact titles.',
   },
   {
+    id: 'archivo',
+    label: 'Archivo',
+    cssValue: "'Archivo', sans-serif",
+    category: 'sans',
+    preview: 'Industrial sans with disciplined uppercase forms.',
+  },
+  {
+    id: 'instrument-sans',
+    label: 'Instrument Sans',
+    cssValue: "'Instrument Sans', sans-serif",
+    category: 'sans',
+    preview: 'Quiet modernism with restrained character.',
+  },
+  {
     id: 'work-sans',
     label: 'Work Sans',
     cssValue: "'Work Sans', sans-serif",
@@ -136,6 +160,13 @@ export const THEME_FONT_OPTIONS: ThemeFontOption[] = [
     cssValue: "'Source Code Pro', monospace",
     category: 'mono',
     preview: 'Readable long-form data and evidence listings.',
+  },
+  {
+    id: 'azeret-mono',
+    label: 'Azeret Mono',
+    cssValue: "'Azeret Mono', monospace",
+    category: 'mono',
+    preview: 'Angular monospace for highly visible labels and telemetry.',
   },
 ];
 
@@ -245,6 +276,32 @@ export const DEFAULT_THEME_FONT_SETTINGS: ThemeFontSettings = {
   mono: 'ibm-plex-mono',
   size: -1,
   weight: -1,
+  profiles: {
+    ui: {
+      sizeAdjust: -0.1,
+      weightAdjust: -140,
+      trackingAdjust: 0,
+      leadingAdjust: 0,
+    },
+    display: {
+      sizeAdjust: 0,
+      weightAdjust: 0,
+      trackingAdjust: 0,
+      leadingAdjust: 0,
+    },
+    label: {
+      sizeAdjust: 0,
+      weightAdjust: 0,
+      trackingAdjust: 0,
+      leadingAdjust: 0,
+    },
+    mono: {
+      sizeAdjust: -0.1,
+      weightAdjust: -100,
+      trackingAdjust: 0,
+      leadingAdjust: -0.1,
+    },
+  },
 };
 
 const FONT_OPTION_IDS = new Set(THEME_FONT_OPTIONS.map((option) => option.id));
@@ -256,6 +313,15 @@ const LEGACY_WEIGHT_SCALE_BY_ID = Object.fromEntries(
 ) as Record<ThemeFontWeightStop['id'], ThemeFontWeightStop['scale']>;
 
 const clampThemeFontAxis = (value: number) => Math.min(1, Math.max(-1, value));
+const clampThemeFontProfileValue = (value: number, min: number, max: number, digits = 3) =>
+  Math.min(max, Math.max(min, Number(value.toFixed(digits))));
+
+export const createDefaultThemeFontProfiles = (): ThemeFontRoleProfiles => ({
+  ui: { ...DEFAULT_THEME_FONT_SETTINGS.profiles.ui },
+  display: { ...DEFAULT_THEME_FONT_SETTINGS.profiles.display },
+  label: { ...DEFAULT_THEME_FONT_SETTINGS.profiles.label },
+  mono: { ...DEFAULT_THEME_FONT_SETTINGS.profiles.mono },
+});
 
 const interpolateValue = (value: number, low: number, mid: number, high: number) => {
   const clampedValue = clampThemeFontAxis(value);
@@ -308,10 +374,12 @@ export const getThemeFontOptionsForRole = (role: ThemeFontRole): ThemeFontOption
       (option) =>
         option.id === 'space-grotesk' ||
         option.id === 'ibm-plex-sans' ||
+        option.id === 'public-sans' ||
+        option.id === 'instrument-sans' ||
         option.id === 'jetbrains-mono' ||
         option.id === 'ibm-plex-mono' ||
         option.id === 'space-mono' ||
-        option.id === 'public-sans'
+        option.id === 'azeret-mono'
     );
   }
 
@@ -383,6 +451,51 @@ export const describeThemeFontWeight = (value: number) =>
     THEME_FONT_WEIGHT_STOPS[2],
   ]);
 
+const normalizeThemeFontProfile = (value: unknown): ThemeFontFamilyProfile | null => {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Partial<ThemeFontFamilyProfile>;
+
+  if (
+    typeof candidate.sizeAdjust !== 'number' ||
+    !Number.isFinite(candidate.sizeAdjust) ||
+    typeof candidate.weightAdjust !== 'number' ||
+    !Number.isFinite(candidate.weightAdjust) ||
+    typeof candidate.trackingAdjust !== 'number' ||
+    !Number.isFinite(candidate.trackingAdjust) ||
+    typeof candidate.leadingAdjust !== 'number' ||
+    !Number.isFinite(candidate.leadingAdjust)
+  ) {
+    return null;
+  }
+
+  return {
+    sizeAdjust: clampThemeFontProfileValue(candidate.sizeAdjust, -0.2, 0.2, 2),
+    weightAdjust: clampThemeFontProfileValue(candidate.weightAdjust, -140, 140, 0),
+    trackingAdjust: clampThemeFontProfileValue(candidate.trackingAdjust, -0.1, 0.2, 3),
+    leadingAdjust: clampThemeFontProfileValue(candidate.leadingAdjust, -0.2, 0.2, 2),
+  };
+};
+
+const normalizeThemeFontProfiles = (value: unknown): ThemeFontRoleProfiles | null => {
+  if (!value || typeof value !== 'object') return null;
+  const candidate = value as Partial<Record<ThemeFontRole, unknown>>;
+  const ui = normalizeThemeFontProfile(candidate.ui);
+  const display = normalizeThemeFontProfile(candidate.display);
+  const label = normalizeThemeFontProfile(candidate.label);
+  const mono = normalizeThemeFontProfile(candidate.mono);
+
+  if (!ui || !display || !label || !mono) {
+    return null;
+  }
+
+  return {
+    ui,
+    display,
+    label,
+    mono,
+  };
+};
+
 export const parseThemeFontSettings = (value: unknown): ThemeFontSettings | null => {
   if (!value || typeof value !== 'object') return null;
   const candidate = value as Partial<Record<keyof ThemeFontSettings, unknown>>;
@@ -411,6 +524,8 @@ export const parseThemeFontSettings = (value: unknown): ThemeFontSettings | null
 
   const normalizedSize = normalizeThemeFontSizeValue(candidate.size);
   const normalizedWeight = normalizeThemeFontWeightValue(candidate.weight);
+  const normalizedProfiles =
+    normalizeThemeFontProfiles(candidate.profiles) ?? createDefaultThemeFontProfiles();
 
   if (candidate.size != null && normalizedSize == null) {
     return null;
@@ -427,6 +542,47 @@ export const parseThemeFontSettings = (value: unknown): ThemeFontSettings | null
     mono: candidate.mono,
     size: normalizedSize ?? DEFAULT_THEME_FONT_SETTINGS.size,
     weight: normalizedWeight ?? DEFAULT_THEME_FONT_SETTINGS.weight,
+    profiles: normalizedProfiles,
+  };
+};
+
+const getRoleWeightBase = (role: ThemeFontRole, weights: ThemeFontWeightScale) => {
+  if (role === 'display') return weights.display;
+  if (role === 'label') return weights.label;
+  return weights.medium;
+};
+
+const getRoleTrackingBase = (role: ThemeFontRole) => {
+  if (role === 'display') return -0.02;
+  if (role === 'label') return 0.14;
+  if (role === 'mono') return 0.01;
+  return -0.005;
+};
+
+const getRoleLeadingBase = (role: ThemeFontRole) => {
+  if (role === 'display') return 1.08;
+  if (role === 'label') return 1.2;
+  return 1.6;
+};
+
+const buildThemeFontRoleVars = (
+  settings: ThemeFontSettings,
+  role: ThemeFontRole,
+  weights: ThemeFontWeightScale
+): Record<string, string> => {
+  const profile = settings.profiles[role] ?? DEFAULT_THEME_FONT_SETTINGS.profiles[role];
+
+  return {
+    [`--font-${role}-scale`]: String(Number((1 + profile.sizeAdjust).toFixed(3))),
+    [`--font-${role}-weight`]: String(
+      Math.min(760, Math.max(360, getRoleWeightBase(role, weights) + Math.round(profile.weightAdjust)))
+    ),
+    [`--font-${role}-tracking`]: `${Number(
+      (getRoleTrackingBase(role) + profile.trackingAdjust).toFixed(3)
+    )}em`,
+    [`--font-${role}-leading`]: String(
+      Number((getRoleLeadingBase(role) + profile.leadingAdjust).toFixed(3))
+    ),
   };
 };
 
@@ -456,5 +612,9 @@ export const buildThemeFontCssVars = (
     '--font-weight-extrabold': String(weights.extrabold),
     '--font-weight-label': String(weights.label),
     '--font-weight-display': String(weights.display),
+    ...buildThemeFontRoleVars(settings, 'ui', weights),
+    ...buildThemeFontRoleVars(settings, 'display', weights),
+    ...buildThemeFontRoleVars(settings, 'label', weights),
+    ...buildThemeFontRoleVars(settings, 'mono', weights),
   };
 };

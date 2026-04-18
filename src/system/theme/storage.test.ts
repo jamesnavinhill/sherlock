@@ -51,9 +51,14 @@ describe('theme workspace storage helpers', () => {
       hue: 220,
       lightness: 0.14,
       chroma: 0.02,
+      opacity: 1,
     });
     expect(displayTheme.background.variant).toBe('dot-grid');
     expect(displayTheme.typography.display).toBe('space-grotesk');
+    expect(displayTheme.background.dark.opacity).toBe(1);
+    expect(displayTheme.typography.profiles.ui.sizeAdjust).toBe(
+      DEFAULT_THEME_FONT_SETTINGS.profiles.ui.sizeAdjust
+    );
   });
 
   it('saves, reverts, and factory-resets active theme drafts', () => {
@@ -77,12 +82,36 @@ describe('theme workspace storage helpers', () => {
     );
   });
 
-  it('hydrates pre-graph saved themes without discarding the rest of the workspace theme', () => {
+  it('hydrates pre-graph and pre-profile saved themes without discarding the rest of the workspace theme', () => {
     const initialWorkspace = createInitialThemeWorkspace();
     const themeWithoutGraphs = {
       ...initialWorkspace.savedThemes.default,
+      typography: {
+        ...initialWorkspace.savedThemes.default.typography,
+        profiles: {
+          ...initialWorkspace.savedThemes.default.typography.profiles,
+        },
+      },
+      background: {
+        ...initialWorkspace.savedThemes.default.background,
+        dark: { ...initialWorkspace.savedThemes.default.background.dark },
+        light: { ...initialWorkspace.savedThemes.default.background.light },
+      },
+      surfaces: {
+        dark: {
+          ...initialWorkspace.savedThemes.default.surfaces.dark,
+          panel: { ...initialWorkspace.savedThemes.default.surfaces.dark.panel },
+        },
+        light: {
+          ...initialWorkspace.savedThemes.default.surfaces.light,
+        },
+      },
     } as Omit<(typeof initialWorkspace.savedThemes.default), 'graphs'>;
     delete (themeWithoutGraphs as { graphs?: unknown }).graphs;
+    delete (themeWithoutGraphs.typography as { profiles?: unknown }).profiles;
+    delete (themeWithoutGraphs.background.dark as { opacity?: unknown }).opacity;
+    delete (themeWithoutGraphs.background.light as { opacity?: unknown }).opacity;
+    delete (themeWithoutGraphs.surfaces.dark.panel as { opacity?: unknown }).opacity;
 
     const hydratedWorkspace = hydrateSherlockThemeWorkspace({
       ...initialWorkspace,
@@ -102,6 +131,11 @@ describe('theme workspace storage helpers', () => {
     expect(hydratedWorkspace.savedThemes.default.graphs).toEqual(
       createDefaultSherlockThemeGraphs(initialWorkspace.savedThemes.default.accent)
     );
+    expect(hydratedWorkspace.savedThemes.default.typography.profiles).toEqual(
+      initialWorkspace.savedThemes.default.typography.profiles
+    );
+    expect(hydratedWorkspace.savedThemes.default.background.dark.opacity).toBe(1);
+    expect(hydratedWorkspace.savedThemes.default.surfaces.dark.panel.opacity).toBe(1);
   });
 
   it('builds css vars from the active workspace theme', () => {
@@ -112,5 +146,7 @@ describe('theme workspace storage helpers', () => {
     expect(cssVars['--osint-graph-1']).toBeDefined();
     expect(cssVars['--osint-shell-toolbar-height']).toMatch(/px$/);
     expect(cssVars['--osint-main-bg-image']).toBeTruthy();
+    expect(cssVars['--osint-main-bg-color']).toBeDefined();
+    expect(cssVars['--font-display-scale']).toBeDefined();
   });
 });

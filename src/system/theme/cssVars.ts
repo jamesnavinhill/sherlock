@@ -95,6 +95,7 @@ export const buildSherlockThemeCssVars = (theme: SherlockTheme): Record<string, 
   const fontVars = buildThemeFontCssVars(theme.typography);
   const fontSizes = resolveThemeFontSizes(theme.typography.size);
   const fontWeights = resolveThemeFontWeights(theme.typography.weight);
+  const activeBackground = theme.background[theme.mode];
   const dividerStrength = clamp(theme.shell.dividerStrength, 0, 1);
   const dividerTint = clamp(theme.shell.dividerTint, 0, 1);
   const dividerGlow = clamp(theme.shell.dividerGlow, 0, 1);
@@ -141,6 +142,7 @@ export const buildSherlockThemeCssVars = (theme: SherlockTheme): Record<string, 
     '--osint-panel-lightmode': buildAccentColor(theme.surfaces.light.panel),
     '--osint-rail-lightmode': buildAccentColor(theme.surfaces.light.rail),
     '--osint-surface-lightmode': buildAccentColor(theme.surfaces.light.surface),
+    '--osint-main-bg-color': buildAccentColor(activeBackground),
     '--osint-main-bg-image': buildBackgroundImage(theme.background),
     '--osint-main-bg-dot-color': `color-mix(in oklab, var(--osint-ink) ${theme.background.dotColor}%, var(--osint-border))`,
     '--osint-main-bg-dot-opacity': String(theme.background.dotOpacity),

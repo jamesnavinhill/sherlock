@@ -35,6 +35,7 @@
   --osint-text-muted: color-mix(in oklab, var(--osint-text) 84%, var(--osint-ink) 16%);
   --osint-text-quiet: color-mix(in oklab, var(--osint-text) 70%, var(--osint-dark));
   --osint-main-bg-dot-color: color-mix(in oklab, var(--osint-ink) 26%, var(--osint-border));
+  --osint-main-bg-color: var(--osint-dark);
   --osint-main-bg-image: radial-gradient(var(--osint-main-bg-dot-color) 1px, transparent 1px);
   --osint-main-bg-dot-opacity: 0.2;
   --osint-main-bg-size: 20px 20px;
@@ -57,6 +58,22 @@
   --font-weight-extrabold: 640;
   --font-weight-label: 540;
   --font-weight-display: 560;
+  --font-ui-scale: 0.9;
+  --font-ui-weight: 360;
+  --font-ui-tracking: -0.005em;
+  --font-ui-leading: 1.6;
+  --font-display-scale: 1;
+  --font-display-weight: 560;
+  --font-display-tracking: -0.02em;
+  --font-display-leading: 1.08;
+  --font-label-scale: 1;
+  --font-label-weight: 540;
+  --font-label-tracking: 0.14em;
+  --font-label-leading: 1.2;
+  --font-mono-scale: 0.9;
+  --font-mono-weight: 360;
+  --font-mono-tracking: 0.01em;
+  --font-mono-leading: 1.5;
   --osint-shell-toolbar-height: 80px;
   --osint-shell-sidebar-width: 224px;
   --osint-shell-rail-width: 304px;
@@ -1160,27 +1177,30 @@ body,
 .osint-eyebrow {
   color: var(--osint-text-meta);
   font-family: var(--font-label);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-label);
-  letter-spacing: 0.16em;
+  font-size: calc(var(--font-size-2xs) * var(--font-label-scale));
+  font-weight: var(--font-label-weight);
+  letter-spacing: calc(var(--font-label-tracking) + 0.02em);
+  line-height: var(--font-label-leading);
   text-transform: uppercase;
 }
 
 .osint-meta-label {
   color: var(--osint-text-meta);
   font-family: var(--font-label);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-label);
-  letter-spacing: 0.16em;
+  font-size: calc(var(--font-size-2xs) * var(--font-label-scale));
+  font-weight: var(--font-label-weight);
+  letter-spacing: calc(var(--font-label-tracking) + 0.02em);
+  line-height: var(--font-label-leading);
   text-transform: uppercase;
 }
 
 .osint-meta-label-strong {
   color: var(--osint-text-heading);
   font-family: var(--font-label);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-label);
-  letter-spacing: 0.14em;
+  font-size: calc(var(--font-size-2xs) * var(--font-label-scale));
+  font-weight: var(--font-label-weight);
+  letter-spacing: var(--font-label-tracking);
+  line-height: var(--font-label-leading);
   text-transform: uppercase;
 }
 
@@ -1192,66 +1212,77 @@ body,
 .osint-meta-value {
   color: var(--osint-text-strong);
   font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  line-height: 1.6;
+  font-size: calc(var(--font-size-sm) * var(--font-mono-scale));
+  font-weight: var(--font-mono-weight);
+  letter-spacing: var(--font-mono-tracking);
+  line-height: var(--font-mono-leading);
 }
 
 .osint-title-page {
   color: var(--osint-text-heading);
   font-family: var(--font-display);
-  font-size: clamp(var(--font-size-2xl), calc(var(--font-size-xl) + 1vw), var(--font-size-4xl));
-  font-weight: var(--font-weight-display);
-  letter-spacing: -0.02em;
-  line-height: 1.08;
+  font-size: clamp(
+    calc(var(--font-size-2xl) * var(--font-display-scale)),
+    calc(var(--font-size-xl) + 1vw),
+    calc(var(--font-size-4xl) * var(--font-display-scale))
+  );
+  font-weight: var(--font-display-weight);
+  letter-spacing: var(--font-display-tracking);
+  line-height: var(--font-display-leading);
 }
 
 .osint-title-section {
   color: var(--osint-text-heading);
   font-family: var(--font-display);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-display);
-  letter-spacing: -0.01em;
-  line-height: 1.16;
+  font-size: calc(var(--font-size-xl) * var(--font-display-scale));
+  font-weight: var(--font-display-weight);
+  letter-spacing: calc(var(--font-display-tracking) * 0.45);
+  line-height: calc(var(--font-display-leading) + 0.08);
 }
 
 .osint-title-card {
   color: var(--osint-text-heading);
   font-family: var(--font-sans);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  font-size: calc(var(--font-size-base) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .osint-title-inline {
   color: var(--osint-text-heading);
   font-family: var(--font-sans);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  font-size: calc(var(--font-size-sm) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .osint-panel-title {
   color: var(--osint-text-heading);
   font-family: var(--font-sans);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.35;
+  font-size: calc(var(--font-size-base) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .osint-body-copy {
   color: var(--osint-text-strong);
   font-family: var(--font-sans);
-  font-size: var(--font-size-base);
-  line-height: 1.65;
+  font-size: calc(var(--font-size-base) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .osint-body-small {
   color: var(--osint-text-strong);
   font-family: var(--font-sans);
-  font-size: var(--font-size-sm);
-  line-height: 1.65;
+  font-size: calc(var(--font-size-sm) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .osint-body-muted {
@@ -1264,39 +1295,47 @@ body,
 .osint-body-quiet {
   color: var(--osint-text-quiet);
   font-family: var(--font-sans);
-  font-size: var(--font-size-xs);
-  line-height: 1.55;
+  font-size: calc(var(--font-size-xs) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .osint-prose {
   color: var(--osint-text-strong);
   font-family: var(--font-sans);
-  font-size: var(--font-size-base);
-  line-height: 1.75;
+  font-size: calc(var(--font-size-base) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: calc(var(--font-ui-leading) + 0.1);
 }
 
 .osint-menu-section-label {
   color: var(--osint-text-meta);
   font-family: var(--font-label);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-label);
-  letter-spacing: 0.16em;
+  font-size: calc(var(--font-size-2xs) * var(--font-label-scale));
+  font-weight: var(--font-label-weight);
+  letter-spacing: calc(var(--font-label-tracking) + 0.02em);
+  line-height: var(--font-label-leading);
   text-transform: uppercase;
 }
 
 .osint-menu-item-title {
   color: var(--osint-text-heading);
   font-family: var(--font-sans);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.3;
+  font-size: calc(var(--font-size-sm) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .osint-menu-item-description {
   color: var(--osint-text-quiet);
   font-family: var(--font-sans);
-  font-size: var(--font-size-2xs);
-  line-height: 1.5;
+  font-size: calc(var(--font-size-2xs) * var(--font-ui-scale));
+  font-weight: var(--font-ui-weight);
+  letter-spacing: var(--font-ui-tracking);
+  line-height: var(--font-ui-leading);
 }
 
 .sherlock-board-canvas .tl-container {

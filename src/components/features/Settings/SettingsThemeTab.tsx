@@ -10,6 +10,7 @@ import {
   getThemeFontOption,
   resolveThemeFontSizes,
   resolveThemeFontWeights,
+  type ThemeFontFamilyProfile,
   type ThemeFontRole,
 } from '@/utils/themeFonts';
 import {
@@ -140,6 +141,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   const selectedSurface = activeTheme.surfaces[editingMode][selectedStructureKey];
   const selectedBackground = activeTheme.background[editingMode];
   const selectedGraph = activeTheme.graphs[activeGraphIndex];
+  const selectedFontProfile = activeTheme.typography.profiles[activeFontRole];
   const surfaceBounds = getSurfaceBounds(editingMode, selectedStructureKey);
   const activeSizeProfile = describeThemeFontSize(activeTheme.typography.size);
   const activeWeightProfile = describeThemeFontWeight(activeTheme.typography.weight);
@@ -168,7 +170,9 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 ? ((Math.round(rawValue) % 360) + 360) % 360
                 : field === 'lightness'
                   ? clamp(Number(rawValue.toFixed(3)), surfaceBounds.lightnessMin, surfaceBounds.lightnessMax)
-                  : clamp(Number(rawValue.toFixed(3)), 0, surfaceBounds.chromaMax),
+                  : field === 'opacity'
+                    ? clamp(Number(rawValue.toFixed(3)), 0, 1)
+                    : clamp(Number(rawValue.toFixed(3)), 0, surfaceBounds.chromaMax),
           },
         },
       },
@@ -188,10 +192,67 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
               [field]:
                 field === 'hue'
                   ? ((Math.round(rawValue) % 360) + 360) % 360
-                  : clamp(Number(rawValue.toFixed(3)), 0, field === 'lightness' ? 1 : 0.18),
+                  : field === 'opacity'
+                    ? clamp(Number(rawValue.toFixed(3)), 0, 1)
+                    : clamp(Number(rawValue.toFixed(3)), 0, field === 'lightness' ? 1 : 0.18),
             }
           : graph
       ),
+    }));
+  };
+
+  const updateBackgroundField = (
+    field:
+      | keyof SherlockTheme['background'][SherlockThemeMode]
+      | 'dotColor'
+      | 'dotOpacity'
+      | 'gridSize'
+      | 'glowOpacity'
+      | 'scanlineOpacity',
+    rawValue: number
+  ) => {
+    updateTheme((theme) => ({
+      ...theme,
+      background: {
+        ...theme.background,
+        ...(field === 'dotColor' || field === 'gridSize'
+          ? { [field]: Math.round(rawValue) }
+          : field === 'dotOpacity' || field === 'glowOpacity' || field === 'scanlineOpacity'
+            ? { [field]: clamp(Number(rawValue.toFixed(3)), 0, 1) }
+            : {}),
+        ...(field === 'hue' || field === 'lightness' || field === 'chroma' || field === 'opacity'
+          ? {
+              [editingMode]: {
+                ...theme.background[editingMode],
+                [field]:
+                  field === 'hue'
+                    ? ((Math.round(rawValue) % 360) + 360) % 360
+                    : field === 'opacity'
+                      ? clamp(Number(rawValue.toFixed(3)), 0, 1)
+                      : clamp(Number(rawValue.toFixed(3)), 0, field === 'chroma' ? 0.12 : 1),
+              },
+            }
+          : {}),
+      },
+    }));
+  };
+
+  const updateFontProfileField = (field: keyof ThemeFontFamilyProfile, rawValue: number) => {
+    updateTheme((theme) => ({
+      ...theme,
+      typography: {
+        ...theme.typography,
+        profiles: {
+          ...theme.typography.profiles,
+          [activeFontRole]: {
+            ...theme.typography.profiles[activeFontRole],
+            [field]:
+              field === 'weightAdjust'
+                ? Math.round(rawValue)
+                : Number(rawValue.toFixed(field === 'trackingAdjust' ? 3 : 2)),
+          },
+        },
+      },
     }));
   };
 
@@ -432,6 +493,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 ['hue', 'Background Hue', 0, 360, 1],
                 ['lightness', 'Background Lightness', 0, 1, 0.001],
                 ['chroma', 'Background Chroma', 0, 0.12, 0.001],
+                ['opacity', 'Background Opacity', 0, 1, 0.01],
                 ['dotColor', 'Grid Ink', 0, 100, 1],
                 ['dotOpacity', 'Pattern Opacity', 0, 1, 0.01],
                 ['gridSize', 'Grid Size', 8, 40, 1],
@@ -452,25 +514,12 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   min={min}
                   max={max}
                   step={step}
-                  onChange={(nextValue) => {
-                    updateTheme((theme) => ({
-                      ...theme,
-                      background: {
-                        ...theme.background,
-                        [editingMode]: {
-                          ...theme.background[editingMode],
-                          ...(field === 'hue' || field === 'lightness' || field === 'chroma'
-                            ? { [field]: nextValue }
-                            : {}),
-                        },
-                        ...(field === 'dotColor' || field === 'dotOpacity' || field === 'gridSize'
-                          ? { [field]: nextValue }
-                          : {}),
-                      },
-                    }));
-                  }}
+                  onChange={(nextValue) => updateBackgroundField(field, nextValue)}
                   formatValue={(nextValue) =>
-                    field === 'dotOpacity' || field === 'glowOpacity' || field === 'scanlineOpacity'
+                    field === 'opacity' ||
+                    field === 'dotOpacity' ||
+                    field === 'glowOpacity' ||
+                    field === 'scanlineOpacity'
                       ? `${Math.round(nextValue * 100)}%`
                       : nextValue.toFixed(
                           field === 'hue' || field === 'dotColor' || field === 'gridSize' ? 0 : 3
@@ -546,6 +595,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 ['hue', 'Hue', 0, 360, 1],
                 ['lightness', 'Lightness', 0.3, 0.8, 0.001],
                 ['chroma', 'Chroma', 0, 0.18, 0.001],
+                ['opacity', 'Opacity', 0, 1, 0.01],
               ] as const
             ).map(([field, label, min, max, step]) => (
               <RangeField
@@ -556,7 +606,11 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                 max={max}
                 step={step}
                 onChange={(nextValue) => updateGraphField(field, nextValue)}
-                formatValue={(nextValue) => nextValue.toFixed(field === 'hue' ? 0 : 3)}
+                formatValue={(nextValue) =>
+                  field === 'opacity'
+                    ? `${Math.round(nextValue * 100)}%`
+                    : nextValue.toFixed(field === 'hue' ? 0 : 3)
+                }
               />
             ))}
           </div>
@@ -581,7 +635,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   <div>
                     <div className="osint-title-inline">{STRUCTURE_LABELS[surfaceKey]}</div>
                     <div className="mt-1 osint-meta-label">
-                      h {surface.hue.toFixed(0)} / l {surface.lightness.toFixed(3)} / c {surface.chroma.toFixed(3)}
+                      h {surface.hue.toFixed(0)} / l {surface.lightness.toFixed(3)} / c {surface.chroma.toFixed(3)} / o {Math.round(surface.opacity * 100)}%
                     </div>
                   </div>
                   <div className="h-6 w-6 rounded-sm border border-zinc-700" style={{ background: buildAccentColor(surface) }} />
@@ -679,6 +733,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   ['hue', 'Hue', 0, 360, 1],
                   ['lightness', 'Lightness', surfaceBounds.lightnessMin, surfaceBounds.lightnessMax, 0.001],
                   ['chroma', 'Chroma', 0, surfaceBounds.chromaMax, 0.001],
+                  ['opacity', 'Opacity', 0, 1, 0.01],
                 ] as const
               ).map(([field, label, min, max, step]) => (
                 <RangeField
@@ -689,7 +744,11 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
                   max={max}
                   step={step}
                   onChange={(nextValue) => updateSurfaceField(field, nextValue)}
-                  formatValue={(nextValue) => nextValue.toFixed(field === 'hue' ? 0 : 3)}
+                  formatValue={(nextValue) =>
+                    field === 'opacity'
+                      ? `${Math.round(nextValue * 100)}%`
+                      : nextValue.toFixed(field === 'hue' ? 0 : 3)
+                  }
                 />
               ))}
             </div>
@@ -785,19 +844,50 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
           />
 
           <div className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} space-y-4`}>
+            <div className="osint-meta-label">Selected Role Tuning</div>
+            <div className="grid gap-4">
+              {(
+                [
+                  ['sizeAdjust', 'Size Adjust', -0.2, 0.2, 0.01],
+                  ['weightAdjust', 'Weight Adjust', -140, 140, 5],
+                  ['trackingAdjust', 'Tracking Adjust', -0.1, 0.2, 0.005],
+                  ['leadingAdjust', 'Leading Adjust', -0.2, 0.2, 0.01],
+                ] as const
+              ).map(([field, label, min, max, step]) => (
+                <RangeField
+                  key={field}
+                  label={label}
+                  value={selectedFontProfile[field]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(nextValue) => updateFontProfileField(field, nextValue)}
+                  formatValue={(nextValue) =>
+                    field === 'weightAdjust'
+                      ? `${Math.round(nextValue)}`
+                      : field === 'trackingAdjust'
+                        ? `${nextValue.toFixed(3)}em`
+                        : nextValue.toFixed(2)
+                  }
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} space-y-4`}>
             <div className="osint-meta-label">Typography Preview</div>
-            <div style={{ fontFamily: getThemeFontOption(activeTheme.typography.display).cssValue, fontSize: resolvedSizes['3xl'], fontWeight: resolvedWeights.display, color: 'var(--osint-text-heading)' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 'calc(var(--font-size-3xl) * var(--font-display-scale))', fontWeight: 'var(--font-display-weight)', letterSpacing: 'var(--font-display-tracking)', lineHeight: 'var(--font-display-leading)', color: 'var(--osint-text-heading)' }}>
               Operational Summary
             </div>
-            <p style={{ fontFamily: getThemeFontOption(activeTheme.typography.ui).cssValue, fontSize: resolvedSizes.base, color: 'var(--osint-text-strong)' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 'calc(var(--font-size-base) * var(--font-ui-scale))', fontWeight: 'var(--font-ui-weight)', letterSpacing: 'var(--font-ui-tracking)', lineHeight: 'var(--font-ui-leading)', color: 'var(--osint-text-strong)' }}>
               Theme typography now travels through one source of truth, so shell labels,
               workspace copy, and dense evidence text stay aligned.
             </p>
-            <div style={{ fontFamily: getThemeFontOption(activeTheme.typography.label).cssValue, fontSize: resolvedSizes.xs, fontWeight: resolvedWeights.label, letterSpacing: '0.12em', color: 'var(--osint-text-meta)' }}>
+            <div style={{ fontFamily: 'var(--font-label)', fontSize: 'calc(var(--font-size-xs) * var(--font-label-scale))', fontWeight: 'var(--font-label-weight)', letterSpacing: 'var(--font-label-tracking)', lineHeight: 'var(--font-label-leading)', color: 'var(--osint-text-meta)' }}>
               THEME WORKSPACE
             </div>
-            <pre style={{ fontFamily: getThemeFontOption(activeTheme.typography.mono).cssValue, fontSize: resolvedSizes.sm, color: 'var(--osint-text-muted)' }}>
-              <code>{`mode=${previewMode}\nbase=${resolvedSizes.base}\nlabel=${resolvedWeights.label}`}</code>
+            <pre style={{ fontFamily: 'var(--font-mono)', fontSize: 'calc(var(--font-size-sm) * var(--font-mono-scale))', fontWeight: 'var(--font-mono-weight)', letterSpacing: 'var(--font-mono-tracking)', lineHeight: 'var(--font-mono-leading)', color: 'var(--osint-text-muted)' }}>
+              <code>{`mode=${previewMode}\nbase=${resolvedSizes.base}\nlabel=${resolvedWeights.label}\nroleScale=${(1 + selectedFontProfile.sizeAdjust).toFixed(2)}`}</code>
             </pre>
           </div>
         </section>

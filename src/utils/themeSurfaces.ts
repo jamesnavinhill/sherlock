@@ -124,6 +124,40 @@ export const THEME_SURFACE_PRESETS: ThemeSurfacePreset[] = [
       },
     },
   },
+  {
+    id: 'midnight',
+    label: 'Midnight',
+    description: 'Ultra-dark navy surfaces with a crystalline daylight mode.',
+    settings: {
+      dark: {
+        background: { hue: 232, lightness: 0.005, chroma: 0.015 },
+        panel: { hue: 232, lightness: 0.08, chroma: 0.02 },
+        surface: { hue: 232, lightness: 0.16, chroma: 0.025 },
+      },
+      light: {
+        background: { hue: 232, lightness: 0.94, chroma: 0.015 },
+        panel: { hue: 232, lightness: 0.965, chroma: 0.02 },
+        surface: { hue: 232, lightness: 0.895, chroma: 0.025 },
+      },
+    },
+  },
+  {
+    id: 'crimson',
+    label: 'Crimson',
+    description: 'Deep burgundy dark chrome with a blush light mode.',
+    settings: {
+      dark: {
+        background: { hue: 350, lightness: 0.005, chroma: 0.01 },
+        panel: { hue: 350, lightness: 0.1, chroma: 0.015 },
+        surface: { hue: 350, lightness: 0.18, chroma: 0.02 },
+      },
+      light: {
+        background: { hue: 350, lightness: 0.945, chroma: 0.015 },
+        panel: { hue: 350, lightness: 0.965, chroma: 0.02 },
+        surface: { hue: 350, lightness: 0.9, chroma: 0.025 },
+      },
+    },
+  },
 ];
 
 const isAccentSettings = (value: unknown): value is AccentSettings => {

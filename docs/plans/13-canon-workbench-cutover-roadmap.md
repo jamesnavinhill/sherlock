@@ -500,7 +500,7 @@ Primary targets:
 
 Execution checklist:
 
-1. Add the missing canon-shipped theme templates to Sherlock's library or explicitly document any intentional non-adoption inside the roadmap and architecture docs.
+1. Add the missing canon-shipped theme templates to Sherlock's library
 2. Extend `SherlockTheme` to represent the canon opacity axes that are still missing:
    - graph opacity
    - background dark/light opacity

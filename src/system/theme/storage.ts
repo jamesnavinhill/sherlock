@@ -1,7 +1,9 @@
 import {
   cloneSherlockTheme,
+  createDefaultSherlockThemeGraphs,
   createInitialSavedThemes,
   createInitialThemeWorkspace,
+  createThemeTone,
   DEFAULT_SHERLOCK_THEME_TEMPLATE,
   DEFAULT_SHERLOCK_THEME,
   parseSherlockTheme,
@@ -13,6 +15,7 @@ import {
   type SherlockThemeWorkspaceState,
 } from './schema';
 import { buildSherlockThemeCssText } from './cssVars';
+import { parseThemeFontSettings } from '@/utils/themeFonts';
 
 export const SHERLOCK_THEME_WORKSPACE_SETTING_KEY = 'theme_workspace';
 
@@ -61,21 +64,22 @@ export const migrateLegacySherlockThemeWorkspace = (
 
   if (legacy?.accentSettings) {
     activeTheme.accent = { ...legacy.accentSettings };
+    activeTheme.graphs = createDefaultSherlockThemeGraphs(activeTheme.accent);
   }
 
   if (legacy?.themeSurfaceSettings) {
     activeTheme.surfaces = {
       dark: {
-        shell: { ...legacy.themeSurfaceSettings.dark.background },
-        panel: { ...legacy.themeSurfaceSettings.dark.panel },
-        rail: { ...legacy.themeSurfaceSettings.dark.background },
-        surface: { ...legacy.themeSurfaceSettings.dark.surface },
+        shell: createThemeTone(legacy.themeSurfaceSettings.dark.background),
+        panel: createThemeTone(legacy.themeSurfaceSettings.dark.panel),
+        rail: createThemeTone(legacy.themeSurfaceSettings.dark.background),
+        surface: createThemeTone(legacy.themeSurfaceSettings.dark.surface),
       },
       light: {
-        shell: { ...legacy.themeSurfaceSettings.light.background },
-        panel: { ...legacy.themeSurfaceSettings.light.panel },
-        rail: { ...legacy.themeSurfaceSettings.light.background },
-        surface: { ...legacy.themeSurfaceSettings.light.surface },
+        shell: createThemeTone(legacy.themeSurfaceSettings.light.background),
+        panel: createThemeTone(legacy.themeSurfaceSettings.light.panel),
+        rail: createThemeTone(legacy.themeSurfaceSettings.light.background),
+        surface: createThemeTone(legacy.themeSurfaceSettings.light.surface),
       },
     };
     activeTheme.background.dark = { ...activeTheme.surfaces.dark.shell };
@@ -90,7 +94,8 @@ export const migrateLegacySherlockThemeWorkspace = (
   }
 
   if (legacy?.themeFontSettings) {
-    activeTheme.typography = { ...legacy.themeFontSettings };
+    activeTheme.typography =
+      parseThemeFontSettings(legacy.themeFontSettings) ?? activeTheme.typography;
   }
 
   if (legacy?.themeMode) {
