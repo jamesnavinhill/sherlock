@@ -6,6 +6,7 @@ Repository note:
 
 - `src/` remains the active Sherlock application.
 - active plans live under `docs/plans/`, active reports live under `docs/reports/`, and historical planning/report artifacts live under `docs/_legacy/`
+- the April 18, 2026 foundation cleanup is closed out in `docs/reports/2026-04-18-foundation-cleanup-closeout.md`; follow-on work should start from that report rather than rediscovering the same cleanup queue
 
 Sherlock now runs on a canonical workspace architecture. The domain-pack shell remains in place, but runtime execution resolves a generic pack, purpose profile, and artifact contract under the settled `Workspace -> Artifact -> WorkspaceRun` model.
 
@@ -638,6 +639,13 @@ Operation View now also includes board handoff for the active artifact plus insp
 - section-level editing for the executive summary plus substantive content sections such as methodology
 - purpose-ordered supplemental sections such as methodology, implications, anomalies, or timeline with pack-aware section titles
 - a rebuilt details rail where findings, follow-ups, entities, and provenance use one related item-row family rather than separate local treatments
+- smaller feature-owned rendering modules now carry the reader's large subtrees:
+  - `ArtifactViewerSections.tsx`
+  - `ArtifactViewerDocumentSection.tsx`
+  - `ArtifactViewerEvidenceLog.tsx`
+  - `artifactViewerDetailFindingList.tsx`
+  - `artifactViewerShared.tsx`
+  - `artifactViewerPresentation.ts`
 
 ### Network Graph
 
@@ -763,6 +771,7 @@ Run-setup and template flows now expose:
 - the Runtime tab now reuses the same shared runtime-config modules used by run setup, guided chat, template authoring, and launch mapping
 - the Theme tab now edits one docked Sherlock theme workspace rather than separate accent/background/surface/font cards
 - the Theme tab implementation is now split under `src/components/features/Settings/themeWorkbench/*`, separating tab sections, helper ownership, and workbench-host panel content from the routed settings shell
+- `SettingsThemeWorkbenchPanel.tsx` is now a compact orchestration panel over `ThemeWorkbenchThemeTab.tsx`, `ThemeWorkbenchTypeTab.tsx`, `ThemeWorkbenchShellTab.tsx`, `ThemeWorkbenchExportTab.tsx`, `ThemeWorkbenchBackgroundSection.tsx`, and shared workbench helpers instead of owning most editing behavior inline
 - the theme workspace's draft/export utility rail now registers into the shared app-level workbench host instead of rendering as a settings-only right dock
 - the Theme tab's background, graph, typography, shell, and radius sliders now render through the shared `RangeField` contract instead of one-off range markup
 - theme templates are full editable themes with saved/draft separation, app-mode-contextual dark/light editing for mode-scoped families, factory reset, fork-to-custom-slot, and JSON/CSS export
@@ -820,6 +829,7 @@ Slice 7 closes with a documented bundle-review checkpoint instead of relying on 
 - Timeline is now a live feature surface with exportable timeline snapshots, while secondary chronology remains intentionally curated and lower-signal graph/chat audit traces stay out of the main stream.
 - Some fallback simulation behavior is intentionally used when scan/live provider calls fail for reasons other than missing API keys.
 - Active UI labels and export surfaces now follow the resolved label profile; remaining legacy investigation names are confined to bounded compatibility-oriented internal types, migration paths, and persisted graph-id shims.
+- The current board-agent rail is intentionally temporary. Runtime/session/action cleanup is in scope for the current architecture, but layout and dock-composition work for the board-agent surface belongs to a future second dockable panel stream.
 - `Ctrl+N` now navigates to `/files` and opens the new-workspace modal rather than relying on old shell state.
 - Current lint/test status is tracked in `README.md` and `docs/operations/LINTING.md`.
 - Static hosting on Vercel is supported because runtime state, provider access, and persistence are browser-local; each origin keeps its own IndexedDB SQLite database and local BYOK settings, so preview URLs and the production domain do not share persisted data.

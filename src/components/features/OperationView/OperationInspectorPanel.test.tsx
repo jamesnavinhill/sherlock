@@ -121,7 +121,7 @@ describe('OperationInspectorPanel', () => {
     expect(screen.queryByText('Procurement intermediary')).not.toBeInTheDocument();
   });
 
-  it('replaces report metrics with the existing report detail sections', () => {
+  it('replaces artifact metrics with the existing artifact detail sections', () => {
     const onJumpToArtifactSection = vi.fn();
     const onOpenArtifactFollowUp = vi.fn();
     const onSelectArtifactEntity = vi.fn();

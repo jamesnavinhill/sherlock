@@ -11,7 +11,7 @@ import {
   CHROME_CARD_SURFACE_CLASS,
 } from '@/components/ui/chrome';
 
-export const ARTIFACT_BODY_EDIT_KEY = '__artifact-report-body__';
+export const ARTIFACT_BODY_EDIT_KEY = '__artifact-body__';
 
 export const ARTIFACT_VIEWER_SECTION_CLASS = `${CHROME_CARD_SURFACE_CLASS} osint-shell-stage-surface p-6 transition-colors`;
 

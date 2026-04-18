@@ -157,18 +157,16 @@ npm run check:full
 
 ## Current Validation Snapshot (April 18, 2026)
 
-The current targeted validation for the theme-mode decoupling cleanup and theme-workbench mode-branch cutover succeeded on this checkout:
+The current foundation-cleanup closeout validation succeeded on this checkout:
 
-- `npm run test -- src/system/theme/storage.test.ts src/components/features/Settings/useSettingsController.test.ts`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
+- `npm run test -- src/components/features/OperationView/ArtifactViewer.test.tsx src/components/features/OperationView/launchPropagation.test.tsx src/components/features/OperationView/OperationInspectorPanel.test.tsx src/components/features/Settings/themeWorkbench/backgroundState.test.ts src/components/features/Settings/useSettingsController.test.ts`: passes
 - `npm run build`: passes
-- the app shell now owns one shared workbench host with a sidebar trigger, app-level left/right docking, and route-pluggable utility-panel registration; current live consumers are the Settings theme workspace and the Timeline tools panel
-- the live display mode now persists separately from theme presets, while each preset stores mode-scoped accent, graph, background, surface, and divider families without forcing preset-driven light/dark flips
-- legacy split theme keys other than the active `theme_mode` display-mode setting are now read only as bootstrap migration fallbacks when `theme_workspace` is missing, and the active compatibility helpers live under `src/system/theme/legacy/`
-- all routed in-app pages mounted by `AppShellRoutes` still compose through the shared shell contract; the public `/welcome` landing page remains intentionally outside `PageShell`
-- the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
-- Vite still emits chunk-size warnings for `vendor-tldraw-app` and `vendor`; these remain documented review checkpoints
+- the foundation cleanup phases are recorded in `docs/plans/2026-04-18-foundation-cleanup-plan.md`
+- the closeout report is recorded in `docs/reports/2026-04-18-foundation-cleanup-closeout.md`
+- the full repo-wide `npm run test` suite was not rerun as part of this scoped closeout pass
+- Vite still emits the known `vendor-tldraw-app` chunk-size warning; no new chunk warning was introduced in this closeout
 
 ## Documentation Index
 
@@ -185,6 +183,7 @@ The current targeted validation for the theme-mode decoupling cleanup and theme-
 - `docs/plans/2026-04-18-foundation-cleanup-plan.md`
 - `docs/reports/README.md`
 - `docs/reports/2026-04-18-foundation-audit.md`
+- `docs/reports/2026-04-18-foundation-cleanup-closeout.md`
 
 Historical plans and reports live under `docs/_legacy/`.
 

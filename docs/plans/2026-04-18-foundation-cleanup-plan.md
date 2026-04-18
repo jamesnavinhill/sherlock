@@ -1,6 +1,6 @@
 # 2026-04-18 Foundation Cleanup Plan
 
-Status: In Progress (`Phase 1`, `Phase 2`, `Phase 3`, `Phase 4`, `Phase 5`, `Phase 6`, and `Phase 6B` completed on April 18, 2026)
+Status: Completed on April 18, 2026 (`Phase 1`, `Phase 2`, `Phase 3`, `Phase 4`, `Phase 5`, `Phase 6`, `Phase 6B`, and `Phase 7`)
 
 Related inputs:
 
@@ -685,11 +685,30 @@ Primary targets:
 - `npm run typecheck`
 - targeted tests or `npm run build` if the closeout includes final code adjustments
 
-## Carry-Over After Phase 6B Execution
+### Progress
 
-The remaining work is now concentrated in the final closeout phase and a few explicitly deferred follow-ups:
+Completed on April 18, 2026.
 
-- complete `Phase 7` final docs reconciliation and add the cleanup closeout report in `docs/reports`
+Landed in this phase:
+
+- reconciled `README.md`, `docs/operations/ARCHITECTURE.md`, `docs/operations/DATA_PERSISTENCE.md`, and `docs/operations/OPERATIONS_RUNBOOK.md` to the final cleanup structure
+- added the foundation cleanup closeout report at `docs/reports/2026-04-18-foundation-cleanup-closeout.md`
+- explicitly documented the future second dockable agent-panel stream as deferred work outside this foundation cleanup
+- recorded the remaining large-file carry-over list as an intentional follow-up queue rather than an undiscovered surprise
+- normalized a few remaining Operation View artifact-facing internal test/comment/edit-key names that still used old report/case wording
+
+Validation note:
+
+- `npm run lint` passed
+- `npm run typecheck` passed
+- `npm run test -- src/components/features/OperationView/ArtifactViewer.test.tsx src/components/features/OperationView/launchPropagation.test.tsx src/components/features/OperationView/OperationInspectorPanel.test.tsx src/components/features/Settings/themeWorkbench/backgroundState.test.ts src/components/features/Settings/useSettingsController.test.ts` passed
+- `npm run build` passed
+- build still reports the known Vite chunk-size warning for `vendor-tldraw-app`; no new chunk warning was introduced in this phase
+
+## Carry-Over After Phase 7 Closeout
+
+The foundation cleanup is complete. Remaining work is now explicitly deferred follow-up, not part of this plan:
+
 - decide whether broader non-Operation-View `report` naming in domain/presentation, chat artifact-building, and network-graph-local helper code should be normalized in a later cleanup tranche or left as bounded internal vocabulary where it still maps cleanly to artifact generation behavior
 - keep `src/components/features/WorkspaceBoard/BoardAgentRail.tsx` deferred to the future dockable-panel stream unless a targeted bug fix requires touching it first
 

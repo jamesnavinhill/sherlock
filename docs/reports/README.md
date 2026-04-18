@@ -8,6 +8,11 @@ Use this directory for:
 - closeout reports for active implementation streams
 - current findings records that are still relevant to ongoing work
 
+Current active entries:
+
+- `2026-04-18-foundation-audit.md`
+- `2026-04-18-foundation-cleanup-closeout.md`
+
 Do not use this directory for:
 
 - historical reports preserved only for reference

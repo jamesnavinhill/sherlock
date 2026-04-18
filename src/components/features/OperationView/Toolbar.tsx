@@ -153,7 +153,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-          {/* Export Dropdown - show when case or report is available */}
+          {/* Export Dropdown - show when workspace or artifact context is available */}
           {(activeWorkspace || artifact) && (
             <div className="flex items-center space-x-2">
               {hasContextActions && (

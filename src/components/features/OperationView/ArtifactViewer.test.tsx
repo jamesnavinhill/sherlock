@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Artifact } from '../../../types';
 import { ArtifactViewer } from './ArtifactViewer';
 
-const reportFixture: Artifact = {
+const artifactFixture: Artifact = {
   id: 'report-1',
   workspaceId: 'case-1',
   topic:
@@ -84,10 +84,10 @@ describe('ArtifactViewer', () => {
 
     render(
       <ArtifactViewer
-        artifact={reportFixture}
+        artifact={artifactFixture}
         navStack={[
           { type: 'CASE', id: 'case-1', label: 'Atlas Review' },
-          { type: 'REPORT', id: 'report-1', label: reportFixture.topic },
+          { type: 'REPORT', id: 'report-1', label: artifactFixture.topic },
         ]}
         onNavigate={vi.fn()}
         onNotify={vi.fn()}

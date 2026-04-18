@@ -168,6 +168,8 @@ Artifact save/hydration behavior now treats `Artifact.keyFindings` and `Artifact
 
 Artifact saves are now atomic across the artifact row, dependent key-finding/follow-up/section/evidence rows, source-signal linkage, and source-follow-up resolution so the database does not keep half-saved artifact bundles.
 
+The foundation cleanup did not introduce a new persistence path for the theme workbench, Operation View reader, board-agent review flow, or Timeline snapshots. Theme templates still persist through `theme_workspace`/`theme_mode` settings records, board-agent audit data still persists through `board_agent_sessions` and `board_agent_actions`, and Timeline snapshots still reuse the canonical artifact persistence path.
+
 The research workspace implementation adds:
 
 - `workspace_items` for canonical board-adjacent records such as notes, links, files/media, and promoted chat excerpts

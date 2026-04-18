@@ -67,7 +67,7 @@ vi.mock('./ArtifactViewer', () => ({
     }) => void;
   }) => (
     <button
-      data-testid="report-open-lead"
+      data-testid="artifact-open-follow-up"
       onClick={() =>
         onFollowUpOpen({
           id: 'follow-up-1',
@@ -154,7 +154,7 @@ vi.mock('../../ui/BackgroundMatrixRain', () => ({
 
 import { OperationView } from './index';
 
-const reportFixture: Artifact = {
+const artifactFixture: Artifact = {
   id: 'report-1',
   workspaceId: 'case-1',
   topic: 'Atlas Contract Network',
@@ -187,10 +187,10 @@ const reportFixture: Artifact = {
 
 const taskFixture: WorkspaceRun = {
   id: 'task-1',
-  topic: reportFixture.topic,
+  topic: artifactFixture.topic,
   status: 'COMPLETED',
   startTime: Date.now(),
-  artifact: reportFixture,
+  artifact: artifactFixture,
 };
 
 describe('OperationView launch propagation', () => {
@@ -209,7 +209,7 @@ describe('OperationView launch propagation', () => {
           description: 'Procurement case',
         },
       ],
-      artifacts: [reportFixture],
+      artifacts: [artifactFixture],
       headlines: [
         {
           id: 'headline-1',
@@ -246,7 +246,7 @@ describe('OperationView launch propagation', () => {
 
     await flushMicrotasks();
 
-    fireEvent.click(screen.getByTestId('report-open-lead'));
+    fireEvent.click(screen.getByTestId('artifact-open-follow-up'));
     fireEvent.click(screen.getByTestId('operation-modal-start'));
 
     expect(onDeepDive).toHaveBeenCalledTimes(1);
@@ -257,8 +257,8 @@ describe('OperationView launch propagation', () => {
         parentArtifactId: 'report-1',
         sourceFollowUpId: 'follow-up-1',
         parentContext: {
-          topic: reportFixture.topic,
-          summary: reportFixture.summary,
+          topic: artifactFixture.topic,
+          summary: artifactFixture.summary,
         },
         configOverride: expect.objectContaining({
           provider: 'OPENAI',
