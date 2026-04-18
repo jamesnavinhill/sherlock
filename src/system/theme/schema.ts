@@ -110,7 +110,7 @@ export interface LegacySherlockThemeState {
 }
 
 export const SHERLOCK_THEME_WORKSPACE_VERSION = 1;
-export const SHERLOCK_THEME_CUSTOM_TEMPLATE_IDS = ['custom-1', 'custom-2', 'custom-3'] as const;
+export const SHERLOCK_THEME_CUSTOM_TEMPLATE_IDS = ['custom-1', 'custom-2'] as const;
 
 const cloneAccentSettings = (settings: AccentSettings): AccentSettings => ({
   hue: settings.hue,
@@ -336,9 +336,12 @@ export const DEFAULT_SHERLOCK_THEME_TEMPLATE: SherlockThemeTemplate = {
 };
 
 const CUSTOM_SHERLOCK_THEME_TEMPLATES: SherlockThemeTemplate[] =
-  SHERLOCK_THEME_CUSTOM_TEMPLATE_IDS.map((id, index) => ({
+  [
+    { id: 'custom-1', label: 'Suyra' },
+    { id: 'custom-2', label: 'Arctic' },
+  ].map(({ id, label }) => ({
     id,
-    label: `Custom ${index + 1}`,
+    label,
     description: 'Editable custom theme slot.',
     theme: createThemeClone(DEFAULT_SHERLOCK_THEME),
   }));

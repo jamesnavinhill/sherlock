@@ -125,7 +125,7 @@ describe('TimelineView route state', () => {
     });
   });
 
-  it('registers timeline tools into the shared app workbench host', async () => {
+  it('does not register a timeline-specific workbench panel', async () => {
     render(
       <AppWorkbenchHostProvider>
         <MemoryRouter future={routerFuture} initialEntries={['/workspaces/case-1/timeline']}>
@@ -140,9 +140,6 @@ describe('TimelineView route state', () => {
       </AppWorkbenchHostProvider>
     );
 
-    expect(screen.getByText('Timeline Tools')).toBeInTheDocument();
-    expect(screen.getByText('Timeline Workspace')).toBeInTheDocument();
-    expect(screen.getAllByText('Workspace Alpha').length).toBeGreaterThan(0);
-    expect(screen.getByText('Save Current View')).toBeInTheDocument();
+    expect(screen.queryByText('Timeline Tools')).not.toBeInTheDocument();
   });
 });

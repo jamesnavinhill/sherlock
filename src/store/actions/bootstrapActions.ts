@@ -21,6 +21,7 @@ import { WorkspaceItemRepository } from '@/services/db/repositories/WorkspaceIte
 import { parseStoredJson } from '@/services/db/repositories/json';
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import {
+  getDisplayTheme,
   hydrateSherlockThemeWorkspace,
   migrateLegacySherlockThemeWorkspace,
   SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
@@ -373,6 +374,7 @@ export const createBootstrapActions = (
           flaggedNodeIds,
           entityAliases,
           themeWorkspace: resolvedThemeWorkspace,
+          themeMode: getDisplayTheme(resolvedThemeWorkspace).mode,
           activeWorkspaceId,
           activeWorkspaceBoardId,
           isLoading: false,

@@ -6,7 +6,6 @@ import { OsintSelect } from '@/components/ui/OsintSelect';
 import {
   describeThemeFontSize,
   describeThemeFontWeight,
-  getThemeFontOption,
   resolveThemeFontSizes,
   resolveThemeFontWeights,
   type ThemeFontRole,
@@ -108,10 +107,10 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
   const [selectedStructureKey, setSelectedStructureKey] = useState<ThemeStructureKey>('panel');
   const [activeFontRole, setActiveFontRole] = useState<ThemeFontRole>('ui');
   const [activeGraphIndex, setActiveGraphIndex] = useState(0);
-  const [openThemeSections, setOpenThemeSections] = useState<string[]>(['themes']);
-  const [openTypeSections, setOpenTypeSections] = useState<string[]>(['roles']);
-  const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry']);
-  const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
+  const [openThemeSections, setOpenThemeSections] = useState<string[]>([]);
+  const [openTypeSections, setOpenTypeSections] = useState<string[]>([]);
+  const [openShellSections, setOpenShellSections] = useState<string[]>([]);
+  const [openExportSections, setOpenExportSections] = useState<string[]>([]);
 
   const activeMode = activeTheme.mode;
   const activeSurfaces = activeTheme.surfaces[activeMode];
@@ -279,30 +278,34 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
             onToggle={() => setOpenThemeSections((current) => toggleSection(current, 'themes'))}
           >
             <div className="grid gap-3">
-              <div className="grid gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {SHERLOCK_THEME_LIBRARY_TEMPLATES.map((template) => (
-                  <button
-                    key={template.id}
-                    type="button"
-                    onClick={() => selectTheme(template.id)}
-                    data-active={activeThemeId === template.id ? 'true' : undefined}
-                    className={`${SURFACE_BUTTON_CLASS} flex items-center justify-between gap-3 text-left`}
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate osint-title-inline">{template.label}</div>
-                      <div className="mt-1 osint-body-quiet">{template.description}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-4 w-4 rounded-sm border border-[color:var(--osint-raised-outline)]"
-                        style={{ background: buildAccentColor(template.theme.surfaces.dark.panel) }}
-                      />
-                      <div
-                        className="h-4 w-4 rounded-sm border border-[color:var(--osint-raised-outline)]"
-                        style={{ background: buildAccentColor(template.theme.surfaces.light.panel) }}
-                      />
-                    </div>
-                  </button>
+                  (() => {
+                    const tileTone = template.theme.surfaces[activeMode].panel;
+                    const isActive = activeThemeId === template.id;
+
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => selectTheme(template.id)}
+                        data-active={isActive ? 'true' : undefined}
+                        className={`${SURFACE_BUTTON_CLASS} flex min-h-12 items-center justify-center px-3 py-3 text-center`}
+                        style={{
+                          background: buildAccentColor(tileTone),
+                          borderColor: isActive
+                            ? 'color-mix(in oklab, var(--osint-primary) 44%, transparent)'
+                            : getTone(tileTone.lightness).borderColor,
+                          color: getTone(tileTone.lightness).textColor,
+                          boxShadow: isActive
+                            ? 'inset 0 0 0 1px color-mix(in oklab, var(--osint-primary) 28%, transparent), var(--osint-rail-interaction-shadow)'
+                            : undefined,
+                        }}
+                      >
+                        <span className="truncate osint-title-inline">{template.label}</span>
+                      </button>
+                    );
+                  })()
                 ))}
               </div>
 
@@ -310,21 +313,21 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 <button
                   type="button"
                   onClick={forkActiveTheme}
-                  className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+                  className={`${SURFACE_BUTTON_CLASS} text-center osint-meta-label`}
                 >
                   Fork To Custom Slot
                 </button>
                 <button
                   type="button"
                   onClick={resetActiveThemeFactory}
-                  className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+                  className={`${SURFACE_BUTTON_CLASS} text-center osint-meta-label`}
                 >
                   Factory Reset Active Theme
                 </button>
                 <button
                   type="button"
                   onClick={resetAllThemeFactories}
-                  className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
+                  className={`${SURFACE_BUTTON_CLASS} text-center osint-meta-label`}
                 >
                   Factory Reset All Themes
                 </button>
@@ -805,10 +808,9 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                     type="button"
                     onClick={() => setActiveFontRole(role)}
                     data-active={activeFontRole === role ? 'true' : undefined}
-                    className={`${SURFACE_BUTTON_CLASS} flex items-center justify-between text-left`}
+                    className={`${SURFACE_BUTTON_CLASS} flex items-center text-left`}
                   >
                     <span className="osint-title-inline">{FONT_ROLE_LABELS[role]}</span>
-                    <span className="osint-meta-label">{getThemeFontOption(activeTheme.typography[role]).label}</span>
                   </button>
                 ))}
               </div>

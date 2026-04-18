@@ -7,12 +7,23 @@ import {
   type AppWorkbenchRegistration,
 } from './AppWorkbenchContext';
 
+const APP_WORKBENCH_PLACEMENT_STORAGE_KEY = 'app_workbench_placement';
+
+const readInitialPlacement = (): AppWorkbenchPlacement => {
+  try {
+    const storedValue = window.localStorage.getItem(APP_WORKBENCH_PLACEMENT_STORAGE_KEY);
+    return storedValue === 'right' ? 'right' : 'left';
+  } catch {
+    return 'left';
+  }
+};
+
 export const AppWorkbenchHostProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [panelsById, setPanelsById] = useState<Record<string, AppWorkbenchRegistration>>({});
   const [panelOrder, setPanelOrder] = useState<string[]>([]);
   const [activePanelId, setActivePanelIdState] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [placement, setPlacement] = useState<AppWorkbenchPlacement>('right');
+  const [placement, setPlacementState] = useState<AppWorkbenchPlacement>(readInitialPlacement);
   const panelsByIdRef = useRef<Record<string, AppWorkbenchRegistration>>({});
   const panelOrderRef = useRef<string[]>([]);
   const activePanelIdRef = useRef<string | null>(null);
@@ -99,6 +110,16 @@ export const AppWorkbenchHostProvider: React.FC<{ children: React.ReactNode }> =
     setActivePanelIdState(id);
   }, []);
 
+  const setPlacement = useCallback((nextPlacement: AppWorkbenchPlacement) => {
+    setPlacementState(nextPlacement);
+
+    try {
+      window.localStorage.setItem(APP_WORKBENCH_PLACEMENT_STORAGE_KEY, nextPlacement);
+    } catch {
+      // Ignore storage failures and keep placement in memory for the current session.
+    }
+  }, []);
+
   const panels = useMemo(
     () => panelOrder.map((id) => panelsById[id]).filter(Boolean),
     [panelOrder, panelsById]
@@ -132,6 +153,7 @@ export const AppWorkbenchHostProvider: React.FC<{ children: React.ReactNode }> =
       placement,
       registerPanel,
       setActivePanelId,
+      setPlacement,
       toggleWorkbench,
       unregisterPanel,
     ]

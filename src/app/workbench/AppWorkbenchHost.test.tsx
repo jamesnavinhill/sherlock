@@ -57,7 +57,9 @@ const WorkbenchControls = () => {
 };
 
 describe('AppWorkbenchHost', () => {
-  it('opens registered workbench content by default and exposes right placement', () => {
+  it('opens registered workbench content by default and exposes left placement', () => {
+    window.localStorage.clear();
+
     render(
       <AppWorkbenchHostProvider>
         <RegisteredWorkbench />
@@ -68,16 +70,18 @@ describe('AppWorkbenchHost', () => {
 
     expect(screen.getByText('available')).toBeInTheDocument();
     expect(screen.getByText('open')).toBeInTheDocument();
-    expect(screen.getByText('right')).toBeInTheDocument();
+    expect(screen.getByText('left')).toBeInTheDocument();
     expect(screen.getByText('1 panels')).toBeInTheDocument();
     expect(screen.getByText('Theme Workspace')).toBeInTheDocument();
 
     const panel = screen.getByText('Theme Summary Body').closest('aside');
-    expect(panel).toHaveAttribute('data-placement', 'right');
+    expect(panel).toHaveAttribute('data-placement', 'left');
     expect(panel).toHaveAttribute('data-state', 'open');
   });
 
   it('toggles visibility and updates placement through the shared host chrome', () => {
+    window.localStorage.clear();
+
     render(
       <AppWorkbenchHostProvider>
         <RegisteredWorkbench />
@@ -95,14 +99,16 @@ describe('AppWorkbenchHost', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Toggle Host' }));
     expect(screen.getByText('open')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Dock workbench left' }));
-    expect(screen.getByText('left')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Dock workbench right' }));
+    expect(screen.getByText('right')).toBeInTheDocument();
 
     panel = screen.getByText('Theme Summary Body').closest('aside');
-    expect(panel).toHaveAttribute('data-placement', 'left');
+    expect(panel).toHaveAttribute('data-placement', 'right');
   });
 
   it('supports switching between multiple registered panels', () => {
+    window.localStorage.clear();
+
     render(
       <AppWorkbenchHostProvider>
         <RegisteredWorkbench />
@@ -117,5 +123,21 @@ describe('AppWorkbenchHost', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Timeline Tools' }));
     expect(screen.getByText('Timeline Summary Body')).toBeInTheDocument();
+  });
+
+  it('restores a previously saved placement choice', () => {
+    window.localStorage.setItem('app_workbench_placement', 'right');
+
+    render(
+      <AppWorkbenchHostProvider>
+        <RegisteredWorkbench />
+        <WorkbenchControls />
+        <AppWorkbenchHost />
+      </AppWorkbenchHostProvider>
+    );
+
+    expect(screen.getByText('right')).toBeInTheDocument();
+    const panel = screen.getByText('Theme Summary Body').closest('aside');
+    expect(panel).toHaveAttribute('data-placement', 'right');
   });
 });
