@@ -147,16 +147,17 @@ npm run check:full
 
 `npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
-## Current Validation Snapshot (April 17, 2026)
+## Current Validation Snapshot (April 18, 2026)
 
-The current targeted validation for the Stage 6/7 theme-platform consolidation and multi-consumer workbench cutover succeeded on this checkout:
+The current targeted validation for the theme-mode decoupling cleanup and theme-workbench mode-branch cutover succeeded on this checkout:
 
-- `npm run test -- src/system/theme/storage.test.ts src/utils/themeFonts.test.ts src/app/workbench/AppWorkbenchHost.test.tsx src/components/features/TimelineView.test.tsx`: passes
+- `npm run test -- src/system/theme/storage.test.ts src/components/features/Settings/useSettingsController.test.ts`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes
 - the app shell now owns one shared workbench host with a sidebar trigger, app-level left/right docking, and route-pluggable utility-panel registration; current live consumers are the Settings theme workspace and the Timeline tools panel
-- legacy split theme keys are now read only as bootstrap migration fallbacks when `theme_workspace` is missing, and the active compatibility helpers live under `src/system/theme/legacy/`
+- the live display mode now persists separately from theme presets, while each preset stores mode-scoped accent, graph, background, surface, and divider families without forcing preset-driven light/dark flips
+- legacy split theme keys other than the active `theme_mode` display-mode setting are now read only as bootstrap migration fallbacks when `theme_workspace` is missing, and the active compatibility helpers live under `src/system/theme/legacy/`
 - all routed in-app pages mounted by `AppShellRoutes` still compose through the shared shell contract; the public `/welcome` landing page remains intentionally outside `PageShell`
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits chunk-size warnings for `vendor-tldraw-app` and `vendor`; these remain documented review checkpoints

@@ -21,9 +21,9 @@ import { WorkspaceItemRepository } from '@/services/db/repositories/WorkspaceIte
 import { parseStoredJson } from '@/services/db/repositories/json';
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import {
-  getDisplayTheme,
   hydrateSherlockThemeWorkspace,
   migrateLegacySherlockThemeWorkspace,
+  SHERLOCK_THEME_MODE_SETTING_KEY,
   SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
 } from '@/system/theme/storage';
 import {
@@ -100,6 +100,7 @@ export const createBootstrapActions = (
           hiddenNodeIdsResult,
           flaggedNodeIdsResult,
           entityAliasesResult,
+          storedThemeMode,
           storedThemeWorkspace,
         ] = await Promise.all([
           loadBootstrapResource('workspaces', () => WorkspaceRepository.getAllWorkspaces(), []),
@@ -141,6 +142,11 @@ export const createBootstrapActions = (
             'entity aliases',
             () => SettingsRepository.getSetting<Record<string, string>>('entity_aliases'),
             {}
+          ),
+          loadBootstrapResource(
+            'theme mode',
+            () => SettingsRepository.getSetting<ThemeMode>(SHERLOCK_THEME_MODE_SETTING_KEY),
+            null
           ),
           loadBootstrapResource(
             'theme workspace',
@@ -196,22 +202,28 @@ export const createBootstrapActions = (
         let hiddenNodeIds = hiddenNodeIdsResult || [];
         let flaggedNodeIds = flaggedNodeIdsResult || [];
         const entityAliases = entityAliasesResult || {};
+        const workspaceThemeModeFallback = (() => {
+          if (!storedThemeWorkspace?.activeThemeId) {
+            return null;
+          }
+
+          const activeThemeSnapshot =
+            storedThemeWorkspace.draftThemes?.[storedThemeWorkspace.activeThemeId] ??
+            storedThemeWorkspace.savedThemes?.[storedThemeWorkspace.activeThemeId];
+          const snapshotMode = (activeThemeSnapshot as { mode?: unknown } | undefined)?.mode;
+
+          return snapshotMode === 'dark' || snapshotMode === 'light' ? snapshotMode : null;
+        })();
 
         const resolvedThemeWorkspace = storedThemeWorkspace
           ? hydrateSherlockThemeWorkspace(storedThemeWorkspace)
           : await (async () => {
               const [
-                storedThemeMode,
                 storedAccent,
                 storedThemeSurfaceSettings,
                 storedThemeFontSettings,
                 storedThemeBackgroundSettings,
               ] = await Promise.all([
-                loadBootstrapResource(
-                  'legacy theme mode',
-                  () => SettingsRepository.getSetting<ThemeMode>('theme_mode'),
-                  null
-                ),
                 loadBootstrapResource(
                   'legacy accent settings',
                   () =>
@@ -250,10 +262,6 @@ export const createBootstrapActions = (
                 : {};
               const legacyConfigTheme =
                 typeof legacyConfig['theme'] === 'string' ? legacyConfig['theme'] : null;
-              const legacyThemeMode =
-                legacyConfig['themeMode'] === 'light' || legacyConfig['themeMode'] === 'dark'
-                  ? (legacyConfig['themeMode'] as ThemeMode)
-                  : null;
               const legacyThemeSurfaceSettings = parseThemeSurfaceSettings(
                 legacyConfig['themeSurfaceSettings']
               );
@@ -270,10 +278,6 @@ export const createBootstrapActions = (
                   (legacyTheme ? parseOklch(legacyTheme) : null) ||
                   (legacyConfigTheme ? parseOklch(legacyConfigTheme) : null) ||
                   DEFAULT_ACCENT_SETTINGS,
-                themeMode:
-                  storedThemeMode === 'light' || storedThemeMode === 'dark'
-                    ? storedThemeMode
-                    : legacyThemeMode,
                 themeSurfaceSettings:
                   parseThemeSurfaceSettings(storedThemeSurfaceSettings) ||
                   legacyThemeSurfaceSettings ||
@@ -292,6 +296,25 @@ export const createBootstrapActions = (
           SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
           resolvedThemeWorkspace
         );
+        const resolvedThemeMode =
+          storedThemeMode === 'light' || storedThemeMode === 'dark'
+            ? storedThemeMode
+            : workspaceThemeModeFallback === 'light' || workspaceThemeModeFallback === 'dark'
+              ? workspaceThemeModeFallback
+            : (() => {
+                const legacyConfigRaw = getStringItem(STORAGE_KEYS.SYSTEM_CONFIG);
+                const legacyConfig = legacyConfigRaw
+                  ? parseStoredJson<Record<string, unknown>>(
+                      legacyConfigRaw,
+                      {},
+                      'legacy system config'
+                    )
+                  : {};
+                return legacyConfig['themeMode'] === 'light' || legacyConfig['themeMode'] === 'dark'
+                  ? (legacyConfig['themeMode'] as ThemeMode)
+                  : 'light';
+              })();
+        await SettingsRepository.setSetting(SHERLOCK_THEME_MODE_SETTING_KEY, resolvedThemeMode);
 
         if (
           !hasExistingWorkspaceData({
@@ -374,7 +397,7 @@ export const createBootstrapActions = (
           flaggedNodeIds,
           entityAliases,
           themeWorkspace: resolvedThemeWorkspace,
-          themeMode: getDisplayTheme(resolvedThemeWorkspace).mode,
+          themeMode: resolvedThemeMode,
           activeWorkspaceId,
           activeWorkspaceBoardId,
           isLoading: false,

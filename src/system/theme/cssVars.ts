@@ -9,13 +9,14 @@ import { buildAccentColor } from '@/utils/accent';
 
 import type {
   SherlockTheme,
-  SherlockThemeBackgroundSettings,
+  SherlockThemeBackgroundLayer,
   SherlockThemeControlChrome,
+  SherlockThemeMode,
 } from './schema';
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const buildBackgroundImage = (settings: SherlockThemeBackgroundSettings) => {
+const buildBackgroundImage = (settings: SherlockThemeBackgroundLayer) => {
   const dotColor = `color-mix(in oklab, var(--osint-ink) ${settings.dotColor}%, var(--osint-border))`;
   const gridColor = `color-mix(in oklab, var(--osint-border) 58%, transparent)`;
 
@@ -39,7 +40,7 @@ const buildBackgroundImage = (settings: SherlockThemeBackgroundSettings) => {
   }%, transparent) 0, transparent 2px, transparent 4px)`;
 };
 
-const buildBackgroundSize = (settings: SherlockThemeBackgroundSettings) => {
+const buildBackgroundSize = (settings: SherlockThemeBackgroundLayer) => {
   const size = `${Math.round(settings.gridSize)}px`;
 
   if (settings.variant === 'scanlines') {
@@ -91,15 +92,20 @@ const CONTROL_CHROME_VARS: Record<SherlockThemeControlChrome, Record<string, str
   },
 };
 
-export const buildSherlockThemeCssVars = (theme: SherlockTheme): Record<string, string> => {
+export const buildSherlockThemeCssVars = (
+  theme: SherlockTheme,
+  mode: SherlockThemeMode
+): Record<string, string> => {
   const fontVars = buildThemeFontCssVars(theme.typography);
   const fontSizes = resolveThemeFontSizes(theme.typography.size);
   const fontWeights = resolveThemeFontWeights(theme.typography.weight);
-  const activeBackground = theme.background[theme.mode];
-  const dividerStrength = clamp(theme.shell.dividerStrength, 0, 1);
-  const dividerTint = clamp(theme.shell.dividerTint, 0, 1);
-  const dividerGlow = clamp(theme.shell.dividerGlow, 0, 1);
-  const dividerWidth = Math.max(0, Math.round(theme.shell.dividerWidth));
+  const activeAccent = theme.accent[mode];
+  const activeGraphs = theme.graphs[mode];
+  const activeBackground = theme.background[mode];
+  const dividerStrength = clamp(theme.shell.dividerStrength[mode], 0, 1);
+  const dividerTint = clamp(theme.shell.dividerTint[mode], 0, 1);
+  const dividerGlow = clamp(theme.shell.dividerGlow[mode], 0, 1);
+  const dividerWidth = Math.max(0, Math.round(theme.shell.dividerWidth[mode]));
   const shellDividerBase =
     dividerStrength === 1
       ? 'var(--osint-raised-outline)'
@@ -128,12 +134,12 @@ export const buildSherlockThemeCssVars = (theme: SherlockTheme): Record<string, 
       : 'none';
 
   return {
-    '--osint-primary': buildAccentColor(theme.accent),
-    '--osint-graph-1': buildAccentColor(theme.graphs[0]),
-    '--osint-graph-2': buildAccentColor(theme.graphs[1]),
-    '--osint-graph-3': buildAccentColor(theme.graphs[2]),
-    '--osint-graph-4': buildAccentColor(theme.graphs[3]),
-    ...buildEntityPaletteCssVars(theme.accent),
+    '--osint-primary': buildAccentColor(activeAccent),
+    '--osint-graph-1': buildAccentColor(activeGraphs[0]),
+    '--osint-graph-2': buildAccentColor(activeGraphs[1]),
+    '--osint-graph-3': buildAccentColor(activeGraphs[2]),
+    '--osint-graph-4': buildAccentColor(activeGraphs[3]),
+    ...buildEntityPaletteCssVars(activeAccent),
     '--osint-shell-darkmode': buildAccentColor(theme.surfaces.dark.shell),
     '--osint-dark-darkmode': buildAccentColor(theme.background.dark),
     '--osint-panel-darkmode': buildAccentColor(theme.surfaces.dark.panel),
@@ -145,11 +151,11 @@ export const buildSherlockThemeCssVars = (theme: SherlockTheme): Record<string, 
     '--osint-rail-lightmode': buildAccentColor(theme.surfaces.light.rail),
     '--osint-surface-lightmode': buildAccentColor(theme.surfaces.light.surface),
     '--osint-main-bg-color': buildAccentColor(activeBackground),
-    '--osint-main-bg-image': buildBackgroundImage(theme.background),
-    '--osint-main-bg-dot-color': `color-mix(in oklab, var(--osint-ink) ${theme.background.dotColor}%, var(--osint-border))`,
-    '--osint-main-bg-dot-opacity': String(theme.background.dotOpacity),
-    '--osint-main-bg-size': buildBackgroundSize(theme.background),
-    '--osint-main-bg-glow-opacity': String(theme.background.glowOpacity),
+    '--osint-main-bg-image': buildBackgroundImage(activeBackground),
+    '--osint-main-bg-dot-color': `color-mix(in oklab, var(--osint-ink) ${activeBackground.dotColor}%, var(--osint-border))`,
+    '--osint-main-bg-dot-opacity': String(activeBackground.dotOpacity),
+    '--osint-main-bg-size': buildBackgroundSize(activeBackground),
+    '--osint-main-bg-glow-opacity': String(activeBackground.glowOpacity),
     '--osint-shell-radius': `${Math.round(theme.radii.shell)}px`,
     '--osint-panel-radius': `${Math.round(theme.radii.panel)}px`,
     '--osint-control-radius': `${Math.round(theme.radii.control)}px`,
@@ -192,8 +198,8 @@ export const buildSherlockThemeCssVars = (theme: SherlockTheme): Record<string, 
   };
 };
 
-export const buildSherlockThemeCssText = (theme: SherlockTheme) => {
-  const vars = buildSherlockThemeCssVars(theme);
+export const buildSherlockThemeCssText = (theme: SherlockTheme, mode: SherlockThemeMode) => {
+  const vars = buildSherlockThemeCssVars(theme, mode);
   const lines = Object.entries(vars).map(([name, value]) => `  ${name}: ${value};`);
   return [':root {', ...lines, '}'].join('\n');
 };

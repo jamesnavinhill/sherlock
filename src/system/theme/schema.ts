@@ -23,6 +23,11 @@ export type SherlockThemeBackgroundVariant = 'plain' | 'dot-grid' | 'cross-grid'
 export type SherlockThemeControlChrome = 'glass' | 'solid' | 'line';
 export const SHERLOCK_THEME_GRAPH_COUNT = 4;
 
+export interface SherlockThemeModeState<T> {
+  dark: T;
+  light: T;
+}
+
 export interface SherlockThemeTone extends AccentSettings {
   opacity: number;
 }
@@ -39,9 +44,7 @@ export interface SherlockThemeSurfaceSettings {
   light: SherlockThemeSurfaceScale;
 }
 
-export interface SherlockThemeBackgroundSettings {
-  dark: SherlockThemeTone;
-  light: SherlockThemeTone;
+export interface SherlockThemeBackgroundLayer extends SherlockThemeTone {
   variant: SherlockThemeBackgroundVariant;
   dotColor: number;
   dotOpacity: number;
@@ -65,10 +68,10 @@ export interface SherlockThemeShellSettings {
   contentWidth: number;
   density: number;
   surfaceOpacity: number;
-  dividerWidth: number;
-  dividerStrength: number;
-  dividerTint: number;
-  dividerGlow: number;
+  dividerWidth: SherlockThemeModeState<number>;
+  dividerStrength: SherlockThemeModeState<number>;
+  dividerTint: SherlockThemeModeState<number>;
+  dividerGlow: SherlockThemeModeState<number>;
 }
 
 export interface SherlockThemeControlSettings {
@@ -76,14 +79,38 @@ export interface SherlockThemeControlSettings {
 }
 
 export interface SherlockTheme {
-  mode: SherlockThemeMode;
-  accent: AccentSettings;
-  graphs: SherlockThemeTone[];
+  accent: SherlockThemeModeState<AccentSettings>;
+  graphs: SherlockThemeModeState<SherlockThemeTone[]>;
   surfaces: SherlockThemeSurfaceSettings;
-  background: SherlockThemeBackgroundSettings;
+  background: SherlockThemeModeState<SherlockThemeBackgroundLayer>;
   typography: ThemeFontSettings;
   radii: SherlockThemeRadiusSettings;
   shell: SherlockThemeShellSettings;
+  controls: SherlockThemeControlSettings;
+}
+
+export interface ResolvedSherlockThemeShellSettings {
+  sidebarWidth: number;
+  railWidth: number;
+  utilityWidth: number;
+  toolbarHeight: number;
+  contentWidth: number;
+  density: number;
+  surfaceOpacity: number;
+  dividerWidth: number;
+  dividerStrength: number;
+  dividerTint: number;
+  dividerGlow: number;
+}
+
+export interface ResolvedSherlockTheme {
+  accent: AccentSettings;
+  graphs: SherlockThemeTone[];
+  surfaces: SherlockThemeSurfaceScale;
+  background: SherlockThemeBackgroundLayer;
+  typography: ThemeFontSettings;
+  radii: SherlockThemeRadiusSettings;
+  shell: ResolvedSherlockThemeShellSettings;
   controls: SherlockThemeControlSettings;
 }
 
@@ -105,7 +132,6 @@ export interface LegacySherlockThemeState {
   accentSettings?: AccentSettings | null;
   themeBackgroundSettings?: ThemeBackgroundSettings | null;
   themeFontSettings?: ThemeFontSettings | null;
-  themeMode?: SherlockThemeMode | null;
   themeSurfaceSettings?: ThemeSurfaceSettings | null;
 }
 
@@ -132,6 +158,11 @@ const cloneThemeTone = (settings: SherlockThemeTone): SherlockThemeTone => ({
   opacity: settings.opacity,
 });
 
+const cloneModeState = <T>(value: SherlockThemeModeState<T>, cloneValue: (entry: T) => T) => ({
+  dark: cloneValue(value.dark),
+  light: cloneValue(value.light),
+});
+
 const wrapHue = (value: number) => ((Math.round(value) % 360) + 360) % 360;
 
 export const createDefaultSherlockThemeGraphs = (
@@ -143,6 +174,14 @@ export const createDefaultSherlockThemeGraphs = (
     chroma: accent.chroma,
     opacity: 1,
   }));
+
+const createModeState = <T>(dark: T, light: T): SherlockThemeModeState<T> => ({
+  dark,
+  light,
+});
+
+const createSharedModeState = <T>(value: T, cloneValue: (entry: T) => T): SherlockThemeModeState<T> =>
+  createModeState(cloneValue(value), cloneValue(value));
 
 const createSurfaceScaleFromLegacy = (
   settings: ThemeSurfaceSettings['dark']
@@ -160,12 +199,11 @@ const createSherlockThemeSurfaceSettings = (
   light: createSurfaceScaleFromLegacy(settings.light),
 });
 
-const createSherlockThemeBackgroundSettings = (
-  settings: ThemeBackgroundSettings,
-  surfaces: SherlockThemeSurfaceSettings
-): SherlockThemeBackgroundSettings => ({
-  dark: cloneThemeTone(surfaces.dark.shell),
-  light: cloneThemeTone(surfaces.light.shell),
+const createBackgroundLayer = (
+  tone: SherlockThemeTone,
+  settings: ThemeBackgroundSettings
+): SherlockThemeBackgroundLayer => ({
+  ...cloneThemeTone(tone),
   variant: settings.variant === 'plain' ? 'plain' : 'dot-grid',
   dotColor: settings.dotColor,
   dotOpacity: settings.dotOpacity,
@@ -174,15 +212,47 @@ const createSherlockThemeBackgroundSettings = (
   scanlineOpacity: 0.08,
 });
 
+const cloneBackgroundLayer = (
+  settings: SherlockThemeBackgroundLayer
+): SherlockThemeBackgroundLayer => ({
+  ...cloneThemeTone(settings),
+  variant: settings.variant,
+  dotColor: settings.dotColor,
+  dotOpacity: settings.dotOpacity,
+  gridSize: settings.gridSize,
+  glowOpacity: settings.glowOpacity,
+  scanlineOpacity: settings.scanlineOpacity,
+});
+
+const createSherlockThemeBackgroundSettings = (
+  settings: ThemeBackgroundSettings,
+  surfaces: SherlockThemeSurfaceSettings
+): SherlockThemeModeState<SherlockThemeBackgroundLayer> => ({
+  dark: createBackgroundLayer(surfaces.dark.shell, settings),
+  light: createBackgroundLayer(surfaces.light.shell, settings),
+});
+
+const createDividerModeState = (width: number, strength: number, tint: number, glow: number) => ({
+  dividerWidth: createSharedModeState(width, (value) => value),
+  dividerStrength: createSharedModeState(strength, (value) => value),
+  dividerTint: createSharedModeState(tint, (value) => value),
+  dividerGlow: createSharedModeState(glow, (value) => value),
+});
+
+const DEFAULT_THEME_SURFACES = createSherlockThemeSurfaceSettings(DEFAULT_THEME_SURFACE_SETTINGS);
+const DEFAULT_THEME_BACKGROUND = createSherlockThemeBackgroundSettings(
+  DEFAULT_THEME_BACKGROUND_SETTINGS,
+  DEFAULT_THEME_SURFACES
+);
+
 export const DEFAULT_SHERLOCK_THEME: SherlockTheme = {
-  mode: 'light',
-  accent: cloneAccentSettings(DEFAULT_ACCENT_SETTINGS),
-  graphs: createDefaultSherlockThemeGraphs(DEFAULT_ACCENT_SETTINGS),
-  surfaces: createSherlockThemeSurfaceSettings(DEFAULT_THEME_SURFACE_SETTINGS),
-  background: createSherlockThemeBackgroundSettings(
-    DEFAULT_THEME_BACKGROUND_SETTINGS,
-    createSherlockThemeSurfaceSettings(DEFAULT_THEME_SURFACE_SETTINGS)
-  ),
+  accent: createSharedModeState(DEFAULT_ACCENT_SETTINGS, cloneAccentSettings),
+  graphs: {
+    dark: createDefaultSherlockThemeGraphs(DEFAULT_ACCENT_SETTINGS),
+    light: createDefaultSherlockThemeGraphs(DEFAULT_ACCENT_SETTINGS),
+  },
+  surfaces: DEFAULT_THEME_SURFACES,
+  background: DEFAULT_THEME_BACKGROUND,
   typography: {
     ...DEFAULT_THEME_FONT_SETTINGS,
     profiles: createDefaultThemeFontProfiles(),
@@ -201,10 +271,7 @@ export const DEFAULT_SHERLOCK_THEME: SherlockTheme = {
     contentWidth: 1160,
     density: 1,
     surfaceOpacity: 1,
-    dividerWidth: 1,
-    dividerStrength: 0.72,
-    dividerTint: 0,
-    dividerGlow: 0,
+    ...createDividerModeState(1, 0.72, 0, 0),
   },
   controls: {
     chrome: 'glass',
@@ -212,9 +279,8 @@ export const DEFAULT_SHERLOCK_THEME: SherlockTheme = {
 };
 
 const createThemeClone = (theme: SherlockTheme): SherlockTheme => ({
-  mode: theme.mode,
-  accent: cloneAccentSettings(theme.accent),
-  graphs: theme.graphs.map((graph) => cloneThemeTone(graph)),
+  accent: cloneModeState(theme.accent, cloneAccentSettings),
+  graphs: cloneModeState(theme.graphs, (graphs) => graphs.map((graph) => cloneThemeTone(graph))),
   surfaces: {
     dark: {
       shell: cloneThemeTone(theme.surfaces.dark.shell),
@@ -229,16 +295,7 @@ const createThemeClone = (theme: SherlockTheme): SherlockTheme => ({
       surface: cloneThemeTone(theme.surfaces.light.surface),
     },
   },
-  background: {
-    dark: cloneThemeTone(theme.background.dark),
-    light: cloneThemeTone(theme.background.light),
-    variant: theme.background.variant,
-    dotColor: theme.background.dotColor,
-    dotOpacity: theme.background.dotOpacity,
-    gridSize: theme.background.gridSize,
-    glowOpacity: theme.background.glowOpacity,
-    scanlineOpacity: theme.background.scanlineOpacity,
-  },
+  background: cloneModeState(theme.background, cloneBackgroundLayer),
   typography: {
     ...theme.typography,
     profiles: {
@@ -249,7 +306,13 @@ const createThemeClone = (theme: SherlockTheme): SherlockTheme => ({
     },
   },
   radii: { ...theme.radii },
-  shell: { ...theme.shell },
+  shell: {
+    ...theme.shell,
+    dividerWidth: { ...theme.shell.dividerWidth },
+    dividerStrength: { ...theme.shell.dividerStrength },
+    dividerTint: { ...theme.shell.dividerTint },
+    dividerGlow: { ...theme.shell.dividerGlow },
+  },
   controls: { ...theme.controls },
 });
 
@@ -262,15 +325,19 @@ const createThemeFromSurfacePreset = (preset: ThemeSurfacePreset): SherlockTheme
   };
 };
 
+const BLUEBERRY_ACCENT = { hue: 293, lightness: 0.555, chroma: 0.098 };
+
 const BLUEBERRY_SHERLOCK_THEME: SherlockTheme = {
-  mode: 'dark',
-  accent: { hue: 293, lightness: 0.555, chroma: 0.098 },
-  graphs: [
-    { hue: 248, lightness: 0.475, chroma: 0.1, opacity: 1 },
-    { hue: 3, lightness: 0.475, chroma: 0.1, opacity: 1 },
-    { hue: 53, lightness: 0.475, chroma: 0.1, opacity: 1 },
-    { hue: 291, lightness: 0.475, chroma: 0.122, opacity: 1 },
-  ],
+  accent: createSharedModeState(BLUEBERRY_ACCENT, cloneAccentSettings),
+  graphs: createSharedModeState(
+    [
+      { hue: 248, lightness: 0.475, chroma: 0.1, opacity: 1 },
+      { hue: 3, lightness: 0.475, chroma: 0.1, opacity: 1 },
+      { hue: 53, lightness: 0.475, chroma: 0.1, opacity: 1 },
+      { hue: 291, lightness: 0.475, chroma: 0.122, opacity: 1 },
+    ],
+    (graphs) => graphs.map((graph) => cloneThemeTone(graph))
+  ),
   surfaces: {
     dark: {
       shell: { hue: 0, lightness: 0.088, chroma: 0.027, opacity: 1 },
@@ -286,14 +353,30 @@ const BLUEBERRY_SHERLOCK_THEME: SherlockTheme = {
     },
   },
   background: {
-    dark: { hue: 0, lightness: 0.088, chroma: 0.027, opacity: 1 },
-    light: { hue: 74, lightness: 0.94, chroma: 0.03, opacity: 1 },
-    variant: 'dot-grid',
-    dotColor: 23,
-    dotOpacity: 0.42,
-    gridSize: 20,
-    glowOpacity: 0.12,
-    scanlineOpacity: 0.08,
+    dark: {
+      hue: 0,
+      lightness: 0.088,
+      chroma: 0.027,
+      opacity: 1,
+      variant: 'dot-grid',
+      dotColor: 23,
+      dotOpacity: 0.42,
+      gridSize: 20,
+      glowOpacity: 0.12,
+      scanlineOpacity: 0.08,
+    },
+    light: {
+      hue: 74,
+      lightness: 0.94,
+      chroma: 0.03,
+      opacity: 1,
+      variant: 'dot-grid',
+      dotColor: 23,
+      dotOpacity: 0.42,
+      gridSize: 20,
+      glowOpacity: 0.12,
+      scanlineOpacity: 0.08,
+    },
   },
   typography: {
     ui: 'plus-jakarta-sans',
@@ -318,10 +401,7 @@ const BLUEBERRY_SHERLOCK_THEME: SherlockTheme = {
     contentWidth: 980,
     density: 1,
     surfaceOpacity: 1,
-    dividerWidth: 1,
-    dividerStrength: 1,
-    dividerTint: 0,
-    dividerGlow: 0,
+    ...createDividerModeState(1, 1, 0, 0),
   },
   controls: {
     chrome: 'glass',
@@ -335,16 +415,15 @@ export const DEFAULT_SHERLOCK_THEME_TEMPLATE: SherlockThemeTemplate = {
   theme: DEFAULT_SHERLOCK_THEME,
 };
 
-const CUSTOM_SHERLOCK_THEME_TEMPLATES: SherlockThemeTemplate[] =
-  [
-    { id: 'custom-1', label: 'Suyra' },
-    { id: 'custom-2', label: 'Arctic' },
-  ].map(({ id, label }) => ({
-    id,
-    label,
-    description: 'Editable custom theme slot.',
-    theme: createThemeClone(DEFAULT_SHERLOCK_THEME),
-  }));
+const CUSTOM_SHERLOCK_THEME_TEMPLATES: SherlockThemeTemplate[] = [
+  { id: 'custom-1', label: 'Suyra' },
+  { id: 'custom-2', label: 'Arctic' },
+].map(({ id, label }) => ({
+  id,
+  label,
+  description: 'Editable custom theme slot.',
+  theme: createThemeClone(DEFAULT_SHERLOCK_THEME),
+}));
 
 export const SHERLOCK_THEME_LIBRARY_TEMPLATES: SherlockThemeTemplate[] = [
   DEFAULT_SHERLOCK_THEME_TEMPLATE,
@@ -380,7 +459,7 @@ export const SHERLOCK_THEME_BACKGROUND_VARIANTS: Array<{
   {
     id: 'dot-grid',
     label: 'Dot Grid',
-    description: 'Carries forward Sherlock’s existing field texture.',
+    description: "Carries forward Sherlock's existing field texture.",
   },
   {
     id: 'cross-grid',
@@ -440,6 +519,45 @@ export const getSherlockThemeFontOptionsForRole = (
   return SHERLOCK_THEME_FONT_OPTIONS.filter((option) => option.category === 'sans');
 };
 
+export const resolveSherlockTheme = (
+  theme: SherlockTheme,
+  mode: SherlockThemeMode
+): ResolvedSherlockTheme => ({
+  accent: cloneAccentSettings(theme.accent[mode]),
+  graphs: theme.graphs[mode].map((graph) => cloneThemeTone(graph)),
+  surfaces: {
+    shell: cloneThemeTone(theme.surfaces[mode].shell),
+    panel: cloneThemeTone(theme.surfaces[mode].panel),
+    rail: cloneThemeTone(theme.surfaces[mode].rail),
+    surface: cloneThemeTone(theme.surfaces[mode].surface),
+  },
+  background: cloneBackgroundLayer(theme.background[mode]),
+  typography: {
+    ...theme.typography,
+    profiles: {
+      ui: { ...theme.typography.profiles.ui },
+      display: { ...theme.typography.profiles.display },
+      label: { ...theme.typography.profiles.label },
+      mono: { ...theme.typography.profiles.mono },
+    },
+  },
+  radii: { ...theme.radii },
+  shell: {
+    sidebarWidth: theme.shell.sidebarWidth,
+    railWidth: theme.shell.railWidth,
+    utilityWidth: theme.shell.utilityWidth,
+    toolbarHeight: theme.shell.toolbarHeight,
+    contentWidth: theme.shell.contentWidth,
+    density: theme.shell.density,
+    surfaceOpacity: theme.shell.surfaceOpacity,
+    dividerWidth: theme.shell.dividerWidth[mode],
+    dividerStrength: theme.shell.dividerStrength[mode],
+    dividerTint: theme.shell.dividerTint[mode],
+    dividerGlow: theme.shell.dividerGlow[mode],
+  },
+  controls: { ...theme.controls },
+});
+
 export const cloneSherlockTheme = (theme: SherlockTheme): SherlockTheme => createThemeClone(theme);
 
 export const createInitialSavedThemes = (): Record<string, SherlockTheme> =>
@@ -474,9 +592,6 @@ const isAccentSettings = (value: unknown): value is AccentSettings => {
   );
 };
 
-const isSherlockThemeMode = (value: unknown): value is SherlockThemeMode =>
-  value === 'dark' || value === 'light';
-
 const isSherlockThemeTone = (value: unknown): value is SherlockThemeTone => {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<SherlockThemeTone>;
@@ -506,6 +621,28 @@ const normalizeSherlockThemeTone = (
   return fallback ? cloneThemeTone(fallback) : null;
 };
 
+const isSherlockThemeModeState = <T>(
+  value: unknown,
+  predicate: (entry: unknown) => entry is T
+): value is SherlockThemeModeState<T> => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<SherlockThemeModeState<T>>;
+  return predicate(candidate.dark) && predicate(candidate.light);
+};
+
+const normalizeAccentModeState = (
+  value: unknown,
+  fallback: SherlockThemeModeState<AccentSettings>
+): SherlockThemeModeState<AccentSettings> => {
+  if (isAccentSettings(value)) {
+    return createSharedModeState(value, cloneAccentSettings);
+  }
+  if (isSherlockThemeModeState(value, isAccentSettings)) {
+    return cloneModeState(value, cloneAccentSettings);
+  }
+  return cloneModeState(fallback, cloneAccentSettings);
+};
+
 const isSherlockThemeBackgroundVariant = (
   value: unknown
 ): value is SherlockThemeBackgroundVariant =>
@@ -519,6 +656,46 @@ const isSherlockThemeGraphs = (value: unknown): value is SherlockThemeTone[] =>
   value.length === SHERLOCK_THEME_GRAPH_COUNT &&
   value.every((entry) => isSherlockThemeTone(entry) || isAccentSettings(entry));
 
+const normalizeGraphs = (
+  value: unknown,
+  fallback: SherlockThemeTone[]
+): SherlockThemeTone[] | null => {
+  if (!isSherlockThemeGraphs(value)) {
+    return null;
+  }
+
+  return value.map(
+    (graph, index) =>
+      normalizeSherlockThemeTone(graph, fallback[index]) ?? cloneThemeTone(fallback[index])
+  );
+};
+
+const normalizeGraphModeState = (
+  value: unknown,
+  fallback: SherlockThemeModeState<SherlockThemeTone[]>
+): SherlockThemeModeState<SherlockThemeTone[]> => {
+  if (isSherlockThemeGraphs(value)) {
+    const graphs = normalizeGraphs(value, fallback.dark) ?? fallback.dark.map(cloneThemeTone);
+    return createSharedModeState(graphs, (entries) => entries.map((graph) => cloneThemeTone(graph)));
+  }
+
+  if (isSherlockThemeModeState(value, isSherlockThemeGraphs)) {
+    const dark = normalizeGraphs(value.dark, fallback.dark);
+    const light = normalizeGraphs(value.light, fallback.light);
+    if (dark && light) {
+      return {
+        dark,
+        light,
+      };
+    }
+  }
+
+  return {
+    dark: fallback.dark.map((graph) => cloneThemeTone(graph)),
+    light: fallback.light.map((graph) => cloneThemeTone(graph)),
+  };
+};
+
 const isSherlockThemeSurfaceScale = (value: unknown): value is SherlockThemeSurfaceScale => {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<SherlockThemeSurfaceScale>;
@@ -531,24 +708,142 @@ const isSherlockThemeSurfaceScale = (value: unknown): value is SherlockThemeSurf
   );
 };
 
+const normalizeSurfaceScale = (
+  value: unknown,
+  fallback: SherlockThemeSurfaceScale
+): SherlockThemeSurfaceScale | null => {
+  if (!isSherlockThemeSurfaceScale(value)) {
+    return null;
+  }
+
+  const shell = normalizeSherlockThemeTone(value.shell, fallback.shell);
+  const panel = normalizeSherlockThemeTone(value.panel, fallback.panel);
+  const rail = normalizeSherlockThemeTone(value.rail, fallback.rail);
+  const surface = normalizeSherlockThemeTone(value.surface, fallback.surface);
+
+  if (!shell || !panel || !rail || !surface) {
+    return null;
+  }
+
+  return { shell, panel, rail, surface };
+};
+
+const isSherlockThemeBackgroundLayer = (value: unknown): value is SherlockThemeBackgroundLayer => {
+  if (!isSherlockThemeTone(value)) return false;
+  const candidate = value as Partial<SherlockThemeBackgroundLayer>;
+
+  return (
+    isSherlockThemeBackgroundVariant(candidate.variant) &&
+    typeof candidate.dotColor === 'number' &&
+    typeof candidate.dotOpacity === 'number' &&
+    typeof candidate.gridSize === 'number' &&
+    typeof candidate.glowOpacity === 'number' &&
+    typeof candidate.scanlineOpacity === 'number'
+  );
+};
+
+const normalizeBackgroundModeState = (
+  value: unknown,
+  fallback: SherlockThemeModeState<SherlockThemeBackgroundLayer>
+): SherlockThemeModeState<SherlockThemeBackgroundLayer> => {
+  if (value && typeof value === 'object') {
+    const candidate = value as {
+      dark?: unknown;
+      light?: unknown;
+      variant?: unknown;
+      dotColor?: unknown;
+      dotOpacity?: unknown;
+      gridSize?: unknown;
+      glowOpacity?: unknown;
+      scanlineOpacity?: unknown;
+    };
+
+    if (isSherlockThemeBackgroundLayer(candidate.dark) && isSherlockThemeBackgroundLayer(candidate.light)) {
+      return {
+        dark: cloneBackgroundLayer(candidate.dark),
+        light: cloneBackgroundLayer(candidate.light),
+      };
+    }
+
+    if (
+      (isSherlockThemeTone(candidate.dark) || isAccentSettings(candidate.dark)) &&
+      (isSherlockThemeTone(candidate.light) || isAccentSettings(candidate.light)) &&
+      isSherlockThemeBackgroundVariant(candidate.variant) &&
+      typeof candidate.dotColor === 'number' &&
+      typeof candidate.dotOpacity === 'number' &&
+      typeof candidate.gridSize === 'number' &&
+      typeof candidate.glowOpacity === 'number' &&
+      typeof candidate.scanlineOpacity === 'number'
+    ) {
+      const darkTone = normalizeSherlockThemeTone(candidate.dark, fallback.dark);
+      const lightTone = normalizeSherlockThemeTone(candidate.light, fallback.light);
+
+      if (darkTone && lightTone) {
+        return {
+          dark: {
+            ...darkTone,
+            variant: candidate.variant,
+            dotColor: candidate.dotColor,
+            dotOpacity: candidate.dotOpacity,
+            gridSize: candidate.gridSize,
+            glowOpacity: candidate.glowOpacity,
+            scanlineOpacity: candidate.scanlineOpacity,
+          },
+          light: {
+            ...lightTone,
+            variant: candidate.variant,
+            dotColor: candidate.dotColor,
+            dotOpacity: candidate.dotOpacity,
+            gridSize: candidate.gridSize,
+            glowOpacity: candidate.glowOpacity,
+            scanlineOpacity: candidate.scanlineOpacity,
+          },
+        };
+      }
+    }
+  }
+
+  return {
+    dark: cloneBackgroundLayer(fallback.dark),
+    light: cloneBackgroundLayer(fallback.light),
+  };
+};
+
+const normalizeModeNumber = (
+  value: unknown,
+  fallback: SherlockThemeModeState<number>
+): SherlockThemeModeState<number> => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return {
+      dark: value,
+      light: value,
+    };
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    typeof (value as SherlockThemeModeState<unknown>).dark === 'number' &&
+    typeof (value as SherlockThemeModeState<unknown>).light === 'number'
+  ) {
+    return {
+      dark: (value as SherlockThemeModeState<number>).dark,
+      light: (value as SherlockThemeModeState<number>).light,
+    };
+  }
+
+  return { ...fallback };
+};
+
 export const parseSherlockTheme = (value: unknown): SherlockTheme | null => {
   if (!value || typeof value !== 'object') return null;
-  const candidate = value as Partial<SherlockTheme>;
+  const candidate = value as Partial<SherlockTheme> & {
+    shell?: Partial<SherlockThemeShellSettings>;
+  };
   const typography = parseThemeFontSettings(candidate.typography);
 
   if (
-    !isSherlockThemeMode(candidate.mode) ||
-    !isAccentSettings(candidate.accent) ||
     !candidate.surfaces ||
-    !isSherlockThemeSurfaceScale(candidate.surfaces.dark) ||
-    !isSherlockThemeSurfaceScale(candidate.surfaces.light) ||
-    !candidate.background ||
-    !isSherlockThemeBackgroundVariant(candidate.background.variant) ||
-    typeof candidate.background.dotColor !== 'number' ||
-    typeof candidate.background.dotOpacity !== 'number' ||
-    typeof candidate.background.gridSize !== 'number' ||
-    typeof candidate.background.glowOpacity !== 'number' ||
-    typeof candidate.background.scanlineOpacity !== 'number' ||
     !typography ||
     !candidate.radii ||
     typeof candidate.radii.shell !== 'number' ||
@@ -563,84 +858,79 @@ export const parseSherlockTheme = (value: unknown): SherlockTheme | null => {
     typeof candidate.shell.contentWidth !== 'number' ||
     typeof candidate.shell.density !== 'number' ||
     typeof candidate.shell.surfaceOpacity !== 'number' ||
-    typeof candidate.shell.dividerWidth !== 'number' ||
-    typeof candidate.shell.dividerStrength !== 'number' ||
-    typeof candidate.shell.dividerTint !== 'number' ||
-    typeof candidate.shell.dividerGlow !== 'number' ||
     !candidate.controls ||
     !isSherlockThemeControlChrome(candidate.controls.chrome)
   ) {
     return null;
   }
 
-  const darkShell = normalizeSherlockThemeTone(candidate.surfaces.dark.shell);
-  const darkPanel = normalizeSherlockThemeTone(candidate.surfaces.dark.panel);
-  const darkRail = normalizeSherlockThemeTone(candidate.surfaces.dark.rail);
-  const darkSurface = normalizeSherlockThemeTone(candidate.surfaces.dark.surface);
-  const lightShell = normalizeSherlockThemeTone(candidate.surfaces.light.shell);
-  const lightPanel = normalizeSherlockThemeTone(candidate.surfaces.light.panel);
-  const lightRail = normalizeSherlockThemeTone(candidate.surfaces.light.rail);
-  const lightSurface = normalizeSherlockThemeTone(candidate.surfaces.light.surface);
+  const darkSurfaces = normalizeSurfaceScale(
+    candidate.surfaces.dark,
+    DEFAULT_SHERLOCK_THEME.surfaces.dark
+  );
+  const lightSurfaces = normalizeSurfaceScale(
+    candidate.surfaces.light,
+    DEFAULT_SHERLOCK_THEME.surfaces.light
+  );
 
-  if (
-    !darkShell ||
-    !darkPanel ||
-    !darkRail ||
-    !darkSurface ||
-    !lightShell ||
-    !lightPanel ||
-    !lightRail ||
-    !lightSurface
-  ) {
+  if (!darkSurfaces || !lightSurfaces) {
     return null;
   }
 
-  const backgroundDark = normalizeSherlockThemeTone(candidate.background.dark, darkShell);
-  const backgroundLight = normalizeSherlockThemeTone(candidate.background.light, lightShell);
-
-  if (!backgroundDark || !backgroundLight) {
-    return null;
-  }
-
-  const surfaces: SherlockThemeSurfaceSettings = {
+  const accent = normalizeAccentModeState(candidate.accent, DEFAULT_SHERLOCK_THEME.accent);
+  const graphs = normalizeGraphModeState(candidate.graphs, DEFAULT_SHERLOCK_THEME.graphs);
+  const background = normalizeBackgroundModeState(candidate.background, {
     dark: {
-      shell: darkShell,
-      panel: darkPanel,
-      rail: darkRail,
-      surface: darkSurface,
+      ...DEFAULT_SHERLOCK_THEME.background.dark,
+      hue: darkSurfaces.shell.hue,
+      lightness: darkSurfaces.shell.lightness,
+      chroma: darkSurfaces.shell.chroma,
+      opacity: darkSurfaces.shell.opacity,
     },
     light: {
-      shell: lightShell,
-      panel: lightPanel,
-      rail: lightRail,
-      surface: lightSurface,
+      ...DEFAULT_SHERLOCK_THEME.background.light,
+      hue: lightSurfaces.shell.hue,
+      lightness: lightSurfaces.shell.lightness,
+      chroma: lightSurfaces.shell.chroma,
+      opacity: lightSurfaces.shell.opacity,
     },
-  };
+  });
 
   return cloneSherlockTheme({
-    mode: candidate.mode,
-    accent: candidate.accent,
-    graphs: isSherlockThemeGraphs(candidate.graphs)
-      ? candidate.graphs.map(
-          (graph, index) =>
-            normalizeSherlockThemeTone(graph, DEFAULT_SHERLOCK_THEME.graphs[index]) ??
-            cloneThemeTone(DEFAULT_SHERLOCK_THEME.graphs[index])
-        )
-      : createDefaultSherlockThemeGraphs(candidate.accent),
-    surfaces,
-    background: {
-      dark: backgroundDark,
-      light: backgroundLight,
-      variant: candidate.background.variant,
-      dotColor: candidate.background.dotColor,
-      dotOpacity: candidate.background.dotOpacity,
-      gridSize: candidate.background.gridSize,
-      glowOpacity: candidate.background.glowOpacity,
-      scanlineOpacity: candidate.background.scanlineOpacity,
+    accent,
+    graphs,
+    surfaces: {
+      dark: darkSurfaces,
+      light: lightSurfaces,
     },
+    background,
     typography,
     radii: candidate.radii,
-    shell: candidate.shell,
+    shell: {
+      sidebarWidth: candidate.shell.sidebarWidth,
+      railWidth: candidate.shell.railWidth,
+      utilityWidth: candidate.shell.utilityWidth,
+      toolbarHeight: candidate.shell.toolbarHeight,
+      contentWidth: candidate.shell.contentWidth,
+      density: candidate.shell.density,
+      surfaceOpacity: candidate.shell.surfaceOpacity,
+      dividerWidth: normalizeModeNumber(
+        candidate.shell.dividerWidth,
+        DEFAULT_SHERLOCK_THEME.shell.dividerWidth
+      ),
+      dividerStrength: normalizeModeNumber(
+        candidate.shell.dividerStrength,
+        DEFAULT_SHERLOCK_THEME.shell.dividerStrength
+      ),
+      dividerTint: normalizeModeNumber(
+        candidate.shell.dividerTint,
+        DEFAULT_SHERLOCK_THEME.shell.dividerTint
+      ),
+      dividerGlow: normalizeModeNumber(
+        candidate.shell.dividerGlow,
+        DEFAULT_SHERLOCK_THEME.shell.dividerGlow
+      ),
+    },
     controls: candidate.controls,
   });
 };

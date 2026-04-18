@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/chrome';
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 import type { InvestigationLaunchRequest } from '@/types';
-import { type SherlockThemeWorkspaceState } from '@/system/theme/schema';
+import { type SherlockThemeMode, type SherlockThemeWorkspaceState } from '@/system/theme/schema';
 import { TABS } from './settingsUtils';
 import { SettingsDataTab } from './SettingsDataTab';
 import { SettingsDialogs } from './SettingsDialogs';
@@ -23,6 +23,7 @@ interface SettingsProps {
   onThemeWorkspaceChange: (workspace: SherlockThemeWorkspaceState) => void;
   onStartCase: (request: InvestigationLaunchRequest) => void;
   onClose: () => void;
+  themeMode: SherlockThemeMode;
   themeWorkspace: SherlockThemeWorkspaceState;
 }
 
@@ -30,6 +31,7 @@ export const Settings: React.FC<SettingsProps> = ({
   onThemeWorkspaceChange,
   onStartCase,
   onClose,
+  themeMode,
   themeWorkspace,
 }) => {
   const {
@@ -46,6 +48,7 @@ export const Settings: React.FC<SettingsProps> = ({
     theme,
   } = useSettingsController({
     onThemeWorkspaceChange,
+    themeMode,
     themeWorkspace,
   });
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab) ?? TABS[0];
@@ -92,6 +95,7 @@ export const Settings: React.FC<SettingsProps> = ({
         revertActiveTheme={theme.revertActiveTheme}
         saveActiveTheme={theme.saveActiveTheme}
         selectTheme={theme.selectTheme}
+        themeMode={theme.themeMode}
         themeDirty={theme.themeDirty}
         updateTheme={theme.updateTheme}
       />

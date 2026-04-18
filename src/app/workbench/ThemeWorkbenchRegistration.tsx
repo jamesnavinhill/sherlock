@@ -1,21 +1,24 @@
 import React from 'react';
 
-import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
+import type { SherlockThemeMode, SherlockThemeWorkspaceState } from '@/system/theme/schema';
 import { useRegisterAppWorkbenchPanel } from '@/app/workbench/useAppWorkbenchHost';
 import { SettingsThemeWorkbenchPanel } from '@/components/features/Settings/SettingsThemeWorkbenchPanel';
 import { useSettingsThemeState } from '@/components/features/Settings/useSettingsThemeState';
 
 interface ThemeWorkbenchRegistrationProps {
   onThemeWorkspaceChange: (workspace: SherlockThemeWorkspaceState) => void;
+  themeMode: SherlockThemeMode;
   themeWorkspace: SherlockThemeWorkspaceState;
 }
 
 export const ThemeWorkbenchRegistration: React.FC<ThemeWorkbenchRegistrationProps> = ({
   onThemeWorkspaceChange,
+  themeMode,
   themeWorkspace,
 }) => {
   const theme = useSettingsThemeState({
     onThemeWorkspaceChange,
+    themeMode,
     themeWorkspace,
   });
 
@@ -39,6 +42,7 @@ export const ThemeWorkbenchRegistration: React.FC<ThemeWorkbenchRegistrationProp
           saveActiveTheme={theme.saveActiveTheme}
           savedTheme={theme.savedTheme}
           selectTheme={theme.selectTheme}
+          themeMode={theme.themeMode}
           updateTheme={theme.updateTheme}
         />
       ),
@@ -55,6 +59,7 @@ export const ThemeWorkbenchRegistration: React.FC<ThemeWorkbenchRegistrationProp
       theme.saveActiveTheme,
       theme.savedTheme,
       theme.selectTheme,
+      theme.themeMode,
       theme.updateTheme,
     ]
   );

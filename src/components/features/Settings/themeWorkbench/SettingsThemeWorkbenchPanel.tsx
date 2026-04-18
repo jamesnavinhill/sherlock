@@ -18,6 +18,7 @@ import {
   SHERLOCK_THEME_CONTROL_CHROME_OPTIONS,
   SHERLOCK_THEME_LIBRARY_TEMPLATES,
   type SherlockTheme,
+  type SherlockThemeMode,
   type SherlockThemeSurfaceScale,
 } from '@/system/theme/schema';
 import {
@@ -52,6 +53,7 @@ interface SettingsThemeWorkbenchPanelProps {
   saveActiveTheme: () => void;
   savedTheme: SherlockTheme;
   selectTheme: (themeId: string) => void;
+  themeMode: SherlockThemeMode;
   updateTheme: (updater: (theme: SherlockTheme) => SherlockTheme) => void;
 }
 
@@ -101,6 +103,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
   saveActiveTheme,
   savedTheme,
   selectTheme,
+  themeMode,
   updateTheme,
 }) => {
   const [activeTab, setActiveTab] = useState<ThemeWorkbenchTab>('theme');
@@ -112,11 +115,16 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
   const [openShellSections, setOpenShellSections] = useState<string[]>([]);
   const [openExportSections, setOpenExportSections] = useState<string[]>([]);
 
-  const activeMode = activeTheme.mode;
+  const activeMode = themeMode;
+  const activeAccent = activeTheme.accent[activeMode];
+  const savedAccent = savedTheme.accent[activeMode];
+  const activeGraphs = activeTheme.graphs[activeMode];
+  const savedGraphs = savedTheme.graphs[activeMode];
   const activeSurfaces = activeTheme.surfaces[activeMode];
   const selectedSurface = activeSurfaces[selectedStructureKey];
   const selectedBackground = activeTheme.background[activeMode];
-  const selectedGraph = activeTheme.graphs[activeGraphIndex];
+  const savedBackground = savedTheme.background[activeMode];
+  const selectedGraph = activeGraphs[activeGraphIndex];
   const surfaceBounds = getSurfaceBounds(activeMode, selectedStructureKey);
   const selectedFontProfile = activeTheme.typography.profiles[activeFontRole];
   const activeSizeProfile = describeThemeFontSize(activeTheme.typography.size);
@@ -162,7 +170,9 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
   const updateGraphField = (field: ThemeGraphField, rawValue: number) => {
     updateTheme((theme) => ({
       ...theme,
-      graphs: theme.graphs.map((graph, index) =>
+      graphs: {
+        ...theme.graphs,
+        [activeMode]: theme.graphs[activeMode].map((graph, index) =>
         index === activeGraphIndex
           ? {
               ...graph,
@@ -174,7 +184,8 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                     : clamp(Number(rawValue.toFixed(3)), 0, field === 'lightness' ? 1 : 0.18),
             }
           : graph
-      ),
+        ),
+      },
     }));
   };
 
@@ -225,13 +236,13 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
   };
 
   const paletteSwatches = [
-    { label: 'Accent', value: buildAccentColor(activeTheme.accent) },
+    { label: 'Accent', value: buildAccentColor(activeAccent) },
     { label: 'Background', value: buildAccentColor(activeTheme.background[activeMode]) },
     { label: 'Shell', value: buildAccentColor(activeSurfaces.shell) },
     { label: 'Rail', value: buildAccentColor(activeSurfaces.rail) },
     { label: 'Panel', value: buildAccentColor(activeSurfaces.panel) },
     { label: 'Surface', value: buildAccentColor(activeSurfaces.surface) },
-    ...activeTheme.graphs.map((graph, index) => ({
+    ...activeGraphs.map((graph, index) => ({
       label: `Graph ${index + 1}`,
       value: buildAccentColor(graph),
     })),
@@ -386,7 +397,10 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 onClick={() =>
                   updateTheme((theme) => ({
                     ...theme,
-                    accent: { ...savedTheme.accent },
+                    accent: {
+                      ...theme.accent,
+                      [activeMode]: { ...savedAccent },
+                    },
                   }))
                 }
                 className={SECTION_ACTION_BUTTON_CLASS}
@@ -401,48 +415,63 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 <div className="osint-meta-label">Accent Preview</div>
                 <div
                   className="mt-3 h-14 rounded border border-[color:var(--osint-raised-outline)]"
-                  style={{ background: buildAccentColor(activeTheme.accent) }}
+                  style={{ background: buildAccentColor(activeAccent) }}
                 />
-                <div className="mt-2 osint-body-quiet">{buildAccentColor(activeTheme.accent)}</div>
+                <div className="mt-2 osint-body-quiet">{buildAccentColor(activeAccent)}</div>
               </div>
               <RangeField
                 label="Hue"
-                value={activeTheme.accent.hue}
+                value={activeAccent.hue}
                 min={0}
                 max={360}
                 step={1}
                 onChange={(nextValue) =>
                   updateTheme((theme) => ({
                     ...theme,
-                    accent: { ...theme.accent, hue: Math.round(nextValue) },
+                    accent: {
+                      ...theme.accent,
+                      [activeMode]: { ...theme.accent[activeMode], hue: Math.round(nextValue) },
+                    },
                   }))
                 }
                 formatValue={(nextValue) => `${Math.round(nextValue)}`}
               />
               <RangeField
                 label="Lightness"
-                value={activeTheme.accent.lightness}
+                value={activeAccent.lightness}
                 min={0.3}
                 max={0.8}
                 step={0.005}
                 onChange={(nextValue) =>
                   updateTheme((theme) => ({
                     ...theme,
-                    accent: { ...theme.accent, lightness: Number(nextValue.toFixed(3)) },
+                    accent: {
+                      ...theme.accent,
+                      [activeMode]: {
+                        ...theme.accent[activeMode],
+                        lightness: Number(nextValue.toFixed(3)),
+                      },
+                    },
                   }))
                 }
                 formatValue={(nextValue) => nextValue.toFixed(3)}
               />
               <RangeField
                 label="Chroma"
-                value={activeTheme.accent.chroma}
+                value={activeAccent.chroma}
                 min={0}
                 max={0.18}
                 step={0.002}
                 onChange={(nextValue) =>
                   updateTheme((theme) => ({
                     ...theme,
-                    accent: { ...theme.accent, chroma: Number(nextValue.toFixed(3)) },
+                    accent: {
+                      ...theme.accent,
+                      [activeMode]: {
+                        ...theme.accent[activeMode],
+                        chroma: Number(nextValue.toFixed(3)),
+                      },
+                    },
                   }))
                 }
                 formatValue={(nextValue) => nextValue.toFixed(3)}
@@ -460,7 +489,10 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 onClick={() =>
                   updateTheme((theme) => ({
                     ...theme,
-                    graphs: savedTheme.graphs.map((graph) => ({ ...graph })),
+                    graphs: {
+                      ...theme.graphs,
+                      [activeMode]: savedGraphs.map((graph) => ({ ...graph })),
+                    },
                   }))
                 }
                 className={SECTION_ACTION_BUTTON_CLASS}
@@ -472,7 +504,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
           >
             <div className="grid gap-4">
               <div className="grid gap-2 sm:grid-cols-2">
-                {activeTheme.graphs.map((graph, index) => (
+                {activeGraphs.map((graph, index) => (
                   <button
                     key={`graph-${index}`}
                     type="button"
@@ -494,7 +526,10 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 onClick={() =>
                   updateTheme((theme) => ({
                     ...theme,
-                    graphs: createDefaultSherlockThemeGraphs(theme.accent),
+                    graphs: {
+                      ...theme.graphs,
+                      [activeMode]: createDefaultSherlockThemeGraphs(theme.accent[activeMode]),
+                    },
                   }))
                 }
                 className={`${SURFACE_BUTTON_CLASS} text-left osint-meta-label`}
@@ -547,9 +582,8 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                   updateTheme((theme) => ({
                     ...theme,
                     background: {
-                      ...savedTheme.background,
-                      dark: { ...savedTheme.background.dark },
-                      light: { ...savedTheme.background.light },
+                      ...theme.background,
+                      [activeMode]: { ...savedBackground },
                     },
                   }))
                 }
@@ -571,13 +605,16 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
 
               <OsintSelect
                 ariaLabel="Theme background pattern"
-                value={activeTheme.background.variant}
+                value={selectedBackground.variant}
                 onChange={(variant) =>
                   updateTheme((theme) => ({
                     ...theme,
                     background: {
                       ...theme.background,
-                      variant: variant as SherlockTheme['background']['variant'],
+                      [activeMode]: {
+                        ...theme.background[activeMode],
+                        variant: variant as SherlockTheme['background'][typeof activeMode]['variant'],
+                      },
                     },
                   }))
                 }
@@ -602,10 +639,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                   ['scanlineOpacity', 'Scanline Strength', 0, 1, 0.01],
                 ] as const
               ).map(([field, label, min, max, step]) => {
-                const value =
-                  field in selectedBackground
-                    ? selectedBackground[field as keyof typeof selectedBackground]
-                    : activeTheme.background[field as keyof SherlockTheme['background']];
+                const value = selectedBackground[field];
 
                 return (
                   <RangeField
@@ -643,17 +677,12 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                   updateTheme((theme) => ({
                     ...theme,
                     surfaces: {
-                      dark: {
-                        shell: { ...savedTheme.surfaces.dark.shell },
-                        panel: { ...savedTheme.surfaces.dark.panel },
-                        rail: { ...savedTheme.surfaces.dark.rail },
-                        surface: { ...savedTheme.surfaces.dark.surface },
-                      },
-                      light: {
-                        shell: { ...savedTheme.surfaces.light.shell },
-                        panel: { ...savedTheme.surfaces.light.panel },
-                        rail: { ...savedTheme.surfaces.light.rail },
-                        surface: { ...savedTheme.surfaces.light.surface },
+                      ...theme.surfaces,
+                      [activeMode]: {
+                        shell: { ...savedTheme.surfaces[activeMode].shell },
+                        panel: { ...savedTheme.surfaces[activeMode].panel },
+                        rail: { ...savedTheme.surfaces[activeMode].rail },
+                        surface: { ...savedTheme.surfaces[activeMode].surface },
                       },
                     },
                   }))
@@ -694,7 +723,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                       [activeMode]: Object.fromEntries(
                         Object.entries(theme.surfaces[activeMode]).map(([key, surface]) => [
                           key,
-                          { ...surface, hue: theme.accent.hue },
+                          { ...surface, hue: theme.accent[activeMode].hue },
                         ])
                       ) as SherlockThemeSurfaceScale,
                     },
@@ -1079,10 +1108,22 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                     ...theme,
                     shell: {
                       ...theme.shell,
-                      dividerWidth: savedTheme.shell.dividerWidth,
-                      dividerStrength: savedTheme.shell.dividerStrength,
-                      dividerTint: savedTheme.shell.dividerTint,
-                      dividerGlow: savedTheme.shell.dividerGlow,
+                      dividerWidth: {
+                        ...theme.shell.dividerWidth,
+                        [activeMode]: savedTheme.shell.dividerWidth[activeMode],
+                      },
+                      dividerStrength: {
+                        ...theme.shell.dividerStrength,
+                        [activeMode]: savedTheme.shell.dividerStrength[activeMode],
+                      },
+                      dividerTint: {
+                        ...theme.shell.dividerTint,
+                        [activeMode]: savedTheme.shell.dividerTint[activeMode],
+                      },
+                      dividerGlow: {
+                        ...theme.shell.dividerGlow,
+                        [activeMode]: savedTheme.shell.dividerGlow[activeMode],
+                      },
                     },
                   }))
                 }
@@ -1105,7 +1146,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 <RangeField
                   key={field}
                   label={label}
-                  value={activeTheme.shell[field]}
+                  value={activeTheme.shell[field][activeMode]}
                   min={min}
                   max={max}
                   step={step}
@@ -1114,7 +1155,10 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                       ...theme,
                       shell: {
                         ...theme.shell,
-                        [field]: nextValue,
+                        [field]: {
+                          ...theme.shell[field],
+                          [activeMode]: nextValue,
+                        },
                       },
                     }))
                   }

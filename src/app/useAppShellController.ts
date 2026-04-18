@@ -250,6 +250,7 @@ export function useAppShellController(): AppShellController {
   useKeyboardShortcuts(shortcuts);
 
   useApplyAppShellTheme({
+    themeMode,
     themeWorkspace,
   });
 

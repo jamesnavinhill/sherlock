@@ -7,16 +7,20 @@ import {
   DEFAULT_SHERLOCK_THEME_TEMPLATE,
   DEFAULT_SHERLOCK_THEME,
   parseSherlockTheme,
+  resolveSherlockTheme,
   SHERLOCK_THEME_CUSTOM_TEMPLATE_IDS,
   SHERLOCK_THEME_TEMPLATE_IDS,
   type LegacySherlockThemeState,
+  type ResolvedSherlockTheme,
   type SherlockTheme,
+  type SherlockThemeMode,
   type SherlockThemeWorkspaceState,
 } from './schema';
 import { buildSherlockThemeCssText } from './cssVars';
 import { parseThemeFontSettings } from '@/utils/themeFonts';
 
 export const SHERLOCK_THEME_WORKSPACE_SETTING_KEY = 'theme_workspace';
+export const SHERLOCK_THEME_MODE_SETTING_KEY = 'theme_mode';
 
 const serializeTheme = (theme: SherlockTheme) => JSON.stringify(theme);
 
@@ -57,8 +61,14 @@ export const migrateLegacySherlockThemeWorkspace = (
   const activeTheme = cloneSherlockTheme(workspace.savedThemes[workspace.activeThemeId]);
 
   if (legacy?.accentSettings) {
-    activeTheme.accent = { ...legacy.accentSettings };
-    activeTheme.graphs = createDefaultSherlockThemeGraphs(activeTheme.accent);
+    activeTheme.accent = {
+      dark: { ...legacy.accentSettings },
+      light: { ...legacy.accentSettings },
+    };
+    activeTheme.graphs = {
+      dark: createDefaultSherlockThemeGraphs(activeTheme.accent.dark),
+      light: createDefaultSherlockThemeGraphs(activeTheme.accent.light),
+    };
   }
 
   if (legacy?.themeSurfaceSettings) {
@@ -76,24 +86,35 @@ export const migrateLegacySherlockThemeWorkspace = (
         surface: createThemeTone(legacy.themeSurfaceSettings.light.surface),
       },
     };
-    activeTheme.background.dark = createThemeTone(legacy.themeSurfaceSettings.dark.background);
-    activeTheme.background.light = createThemeTone(legacy.themeSurfaceSettings.light.background);
+    activeTheme.background.dark = {
+      ...activeTheme.background.dark,
+      ...createThemeTone(legacy.themeSurfaceSettings.dark.background),
+    };
+    activeTheme.background.light = {
+      ...activeTheme.background.light,
+      ...createThemeTone(legacy.themeSurfaceSettings.light.background),
+    };
   }
 
   if (legacy?.themeBackgroundSettings) {
-    activeTheme.background.variant =
-      legacy.themeBackgroundSettings.variant === 'plain' ? 'plain' : 'dot-grid';
-    activeTheme.background.dotColor = legacy.themeBackgroundSettings.dotColor;
-    activeTheme.background.dotOpacity = legacy.themeBackgroundSettings.dotOpacity;
+    const variant = legacy.themeBackgroundSettings.variant === 'plain' ? 'plain' : 'dot-grid';
+    activeTheme.background.dark = {
+      ...activeTheme.background.dark,
+      variant,
+      dotColor: legacy.themeBackgroundSettings.dotColor,
+      dotOpacity: legacy.themeBackgroundSettings.dotOpacity,
+    };
+    activeTheme.background.light = {
+      ...activeTheme.background.light,
+      variant,
+      dotColor: legacy.themeBackgroundSettings.dotColor,
+      dotOpacity: legacy.themeBackgroundSettings.dotOpacity,
+    };
   }
 
   if (legacy?.themeFontSettings) {
     activeTheme.typography =
       parseThemeFontSettings(legacy.themeFontSettings) ?? activeTheme.typography;
-  }
-
-  if (legacy?.themeMode) {
-    activeTheme.mode = legacy.themeMode;
   }
 
   workspace.savedThemes[workspace.activeThemeId] = cloneSherlockTheme(activeTheme);
@@ -111,8 +132,10 @@ export const getActiveSavedTheme = (workspace: SherlockThemeWorkspaceState): She
     workspace.savedThemes[workspace.activeThemeId] ?? workspace.draftThemes[workspace.activeThemeId]
   );
 
-export const getDisplayTheme = (workspace: SherlockThemeWorkspaceState): SherlockTheme =>
-  getActiveDraftTheme(workspace);
+export const getDisplayTheme = (
+  workspace: SherlockThemeWorkspaceState,
+  mode: SherlockThemeMode
+): ResolvedSherlockTheme => resolveSherlockTheme(getActiveDraftTheme(workspace), mode);
 
 export const isActiveThemeDirty = (workspace: SherlockThemeWorkspaceState): boolean =>
   serializeTheme(getActiveDraftTheme(workspace)) !== serializeTheme(getActiveSavedTheme(workspace));
@@ -221,5 +244,5 @@ export const forkActiveThemeToNextCustomSlot = (
 export const exportSherlockThemeJson = (theme: SherlockTheme): string =>
   JSON.stringify(theme, null, 2);
 
-export const exportSherlockResolvedCss = (theme: SherlockTheme): string =>
-  buildSherlockThemeCssText(theme);
+export const exportSherlockResolvedCss = (theme: SherlockTheme, mode: SherlockThemeMode): string =>
+  buildSherlockThemeCssText(theme, mode);

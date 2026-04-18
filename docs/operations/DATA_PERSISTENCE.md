@@ -217,6 +217,11 @@ The storage helper now exposes dedicated typed accessors for:
 
 Durable saved timeline views do not use browser storage. They persist through the SQLite `settings` table under workspace-scoped keys so omnibox saved-view results survive reloads and backup/restore flows.
 
+Visual-theme persistence also uses the SQLite `settings` table:
+
+- `theme_workspace` stores saved and draft Sherlock theme templates plus the active template id
+- `theme_mode` stores the current app-level light/dark display mode independently from the selected theme template
+
 Values still kept there:
 
 - provider keys (for selected providers)
@@ -288,7 +293,7 @@ Restore/import still accepts older canonical payloads that stored saved signals 
 
 Workspace-data backups intentionally exclude:
 
-- theme mode and theme surface settings
+- visual theme settings (`theme_workspace`, `theme_mode`, and legacy split theme fragments)
 - provider/model defaults
 - API keys
 - quiet mode and other device-local preferences

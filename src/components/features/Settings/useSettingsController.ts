@@ -4,7 +4,7 @@ import type { SystemConfig } from '@/types';
 import { loadSystemConfig, migrateSystemConfig } from '@/config/systemConfig';
 import { saveSystemConfig } from '@/config/systemConfig';
 import { serializeOpenRouterSettingsDraft } from '@/components/features/Runs/runtimeConfigState';
-import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
+import type { SherlockThemeMode, SherlockThemeWorkspaceState } from '@/system/theme/schema';
 import { useSettingsScopeState } from '@/store/selectors/settingsSelectors';
 import { useSettingsDataState } from './useSettingsDataState';
 import { useSettingsRuntimeState } from './useSettingsRuntimeState';
@@ -12,11 +12,13 @@ import { useSettingsThemeState } from './useSettingsThemeState';
 
 interface SettingsControllerInput {
   onThemeWorkspaceChange: (workspace: SherlockThemeWorkspaceState) => void;
+  themeMode: SherlockThemeMode;
   themeWorkspace: SherlockThemeWorkspaceState;
 }
 
 export const useSettingsController = ({
   onThemeWorkspaceChange,
+  themeMode,
   themeWorkspace,
 }: SettingsControllerInput) => {
   const { customScopes } = useSettingsScopeState();
@@ -28,6 +30,7 @@ export const useSettingsController = ({
   });
   const theme = useSettingsThemeState({
     onThemeWorkspaceChange,
+    themeMode,
     themeWorkspace,
   });
 

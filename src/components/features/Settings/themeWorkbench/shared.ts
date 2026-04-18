@@ -8,14 +8,9 @@ import type {
 export type ThemeWorkbenchTab = 'theme' | 'type' | 'shell' | 'export';
 export type ThemeStructureKey = keyof SherlockThemeSurfaceScale;
 export type ThemeSurfaceField = keyof SherlockThemeSurfaceScale['shell'];
-export type ThemeGraphField = keyof SherlockTheme['graphs'][number];
+export type ThemeGraphField = keyof SherlockTheme['graphs']['dark'][number];
 export type ThemeBackgroundField =
   | keyof SherlockTheme['background']['dark']
-  | 'dotColor'
-  | 'dotOpacity'
-  | 'gridSize'
-  | 'glowOpacity'
-  | 'scanlineOpacity';
 export type ThemeFontProfileField = keyof ThemeFontFamilyProfile;
 
 export const WORKBENCH_TABS: Array<{ id: ThemeWorkbenchTab; label: string }> = [

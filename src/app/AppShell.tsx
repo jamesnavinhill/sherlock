@@ -29,6 +29,7 @@ const AppShellWorkspaceChrome: React.FC<{
         />
       )}
       <ThemeWorkbenchRegistration
+        themeMode={controller.themeMode}
         themeWorkspace={controller.themeWorkspace}
         onThemeWorkspaceChange={controller.setThemeWorkspace}
       />

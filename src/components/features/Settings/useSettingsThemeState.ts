@@ -1,14 +1,18 @@
 import { useCallback, useMemo } from 'react';
 
-import type { SherlockTheme, SherlockThemeWorkspaceState } from '@/system/theme/schema';
+import type {
+  SherlockTheme,
+  SherlockThemeMode,
+  SherlockThemeWorkspaceState,
+} from '@/system/theme/schema';
 import {
   exportSherlockResolvedCss,
   exportSherlockThemeJson,
   factoryResetActiveTheme,
   factoryResetAllThemes,
   forkActiveThemeToNextCustomSlot,
+  getActiveDraftTheme,
   getActiveSavedTheme,
-  getDisplayTheme,
   isActiveThemeDirty,
   revertActiveThemeDraft,
   saveActiveThemeDraft,
@@ -18,18 +22,23 @@ import {
 
 interface UseSettingsThemeStateInput {
   onThemeWorkspaceChange: (workspace: SherlockThemeWorkspaceState) => void;
+  themeMode: SherlockThemeMode;
   themeWorkspace: SherlockThemeWorkspaceState;
 }
 
 export const useSettingsThemeState = ({
   onThemeWorkspaceChange,
+  themeMode,
   themeWorkspace,
 }: UseSettingsThemeStateInput) => {
-  const activeTheme = useMemo(() => getDisplayTheme(themeWorkspace), [themeWorkspace]);
+  const activeTheme = useMemo(() => getActiveDraftTheme(themeWorkspace), [themeWorkspace]);
   const savedTheme = useMemo(() => getActiveSavedTheme(themeWorkspace), [themeWorkspace]);
   const themeDirty = useMemo(() => isActiveThemeDirty(themeWorkspace), [themeWorkspace]);
   const exportThemeJson = useMemo(() => exportSherlockThemeJson(activeTheme), [activeTheme]);
-  const exportResolvedCss = useMemo(() => exportSherlockResolvedCss(activeTheme), [activeTheme]);
+  const exportResolvedCss = useMemo(
+    () => exportSherlockResolvedCss(activeTheme, themeMode),
+    [activeTheme, themeMode]
+  );
 
   const applyWorkspace = useCallback(
     (nextWorkspace: SherlockThemeWorkspaceState) => {
@@ -83,6 +92,7 @@ export const useSettingsThemeState = ({
       saveActiveTheme,
       savedTheme,
       selectTheme: selectThemeById,
+      themeMode,
       themeDirty,
       themeWorkspace,
       updateTheme,
@@ -98,6 +108,7 @@ export const useSettingsThemeState = ({
       saveActiveTheme,
       savedTheme,
       selectThemeById,
+      themeMode,
       themeDirty,
       themeWorkspace,
       updateTheme,

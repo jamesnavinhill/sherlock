@@ -128,6 +128,7 @@ describe('useSettingsController', () => {
       saveActiveTheme: vi.fn(),
       savedTheme: createInitialThemeWorkspace().savedThemes.default,
       selectTheme: vi.fn(),
+      themeMode: 'dark',
       themeDirty: false,
       themeWorkspace: createInitialThemeWorkspace(),
       updateTheme: vi.fn(),
@@ -164,6 +165,7 @@ describe('useSettingsController', () => {
     const { result } = renderHook(() =>
       useSettingsController({
         onThemeWorkspaceChange: vi.fn(),
+        themeMode: 'dark',
         themeWorkspace: createInitialThemeWorkspace(),
       })
     );
@@ -180,6 +182,7 @@ describe('useSettingsController', () => {
     const { result } = renderHook(() =>
       useSettingsController({
         onThemeWorkspaceChange: vi.fn(),
+        themeMode: 'dark',
         themeWorkspace: createInitialThemeWorkspace(),
       })
     );

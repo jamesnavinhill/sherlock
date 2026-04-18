@@ -5,6 +5,7 @@ import { buildAccentColor } from '@/utils/accent';
 import {
   SHERLOCK_THEME_LIBRARY_TEMPLATES,
   type SherlockTheme,
+  type SherlockThemeMode,
 } from '@/system/theme/schema';
 import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS, SETTINGS_SURFACE_BUTTON_CLASS } from '../settingsUtils';
 import { getTone } from './shared';
@@ -20,6 +21,7 @@ export interface SettingsThemeTabProps {
   revertActiveTheme: () => void;
   saveActiveTheme: () => void;
   selectTheme: (themeId: string) => void;
+  themeMode: SherlockThemeMode;
   themeDirty: boolean;
   updateTheme: (updater: (theme: SherlockTheme) => SherlockTheme) => void;
 }
@@ -27,13 +29,15 @@ export interface SettingsThemeTabProps {
 export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   activeTheme,
   activeThemeId,
+  themeMode,
   themeDirty,
 }) => {
   const { openWorkbench } = useAppWorkbenchHost();
   const activeThemeLabel =
     SHERLOCK_THEME_LIBRARY_TEMPLATES.find((template) => template.id === activeThemeId)?.label ??
     'Theme';
-  const liveSurfaces = activeTheme.surfaces[activeTheme.mode];
+  const activeAccent = activeTheme.accent[themeMode];
+  const liveSurfaces = activeTheme.surfaces[themeMode];
   const previewShell = liveSurfaces.shell;
   const previewRail = liveSurfaces.rail;
   const previewPanel = liveSurfaces.panel;
@@ -71,13 +75,13 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
 
           <div className="rounded border border-[color:var(--osint-raised-outline)] p-4">
             <div className="flex items-center justify-between gap-3">
-              <div className="osint-meta-label">Accent</div>
+                <div className="osint-meta-label">Accent</div>
               <div
                 className="h-5 w-5 rounded-sm border border-[color:var(--osint-raised-outline)]"
-                style={{ background: buildAccentColor(activeTheme.accent) }}
+                style={{ background: buildAccentColor(activeAccent) }}
               />
             </div>
-            <div className="mt-2 osint-body-quiet">{buildAccentColor(activeTheme.accent)}</div>
+            <div className="mt-2 osint-body-quiet">{buildAccentColor(activeAccent)}</div>
           </div>
         </section>
 

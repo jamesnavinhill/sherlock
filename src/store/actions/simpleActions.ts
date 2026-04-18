@@ -5,9 +5,8 @@ import { TemplateRepository } from '@/services/db/repositories/TemplateRepositor
 import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepository';
 import { ScopeRepository } from '@/services/db/repositories/ScopeRepository';
 import {
-  getDisplayTheme,
+  SHERLOCK_THEME_MODE_SETTING_KEY,
   SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
-  updateActiveDraftTheme,
 } from '@/system/theme/storage';
 import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 
@@ -90,18 +89,12 @@ export const createSimpleActions = ({
   setNavStack: (navStack) => set({ navStack }),
   setIsSidebarCollapsed: (isSidebarCollapsed) => set({ isSidebarCollapsed }),
   setThemeWorkspace: (themeWorkspace: SherlockThemeWorkspaceState) => {
-    set({
-      themeWorkspace,
-      themeMode: getDisplayTheme(themeWorkspace).mode,
-    });
+    set({ themeWorkspace });
     void SettingsRepository.setSetting(SHERLOCK_THEME_WORKSPACE_SETTING_KEY, themeWorkspace);
   },
   setThemeMode: (themeMode) => {
-    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
-      ...theme,
-      mode: themeMode,
-    }));
-    get().setThemeWorkspace(nextWorkspace);
+    set({ themeMode });
+    void SettingsRepository.setSetting(SHERLOCK_THEME_MODE_SETTING_KEY, themeMode);
   },
   setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),
   setTemplates: (templates) => set({ templates }),

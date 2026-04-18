@@ -216,6 +216,7 @@ export function AppShellRoutes({ controller }: AppShellRoutesProps) {
         path={getRouteDefinition('SETTINGS').path}
         element={
           <Settings
+            themeMode={controller.themeMode}
             themeWorkspace={controller.themeWorkspace}
             onThemeWorkspaceChange={controller.setThemeWorkspace}
             onStartCase={(request) =>

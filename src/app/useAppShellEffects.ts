@@ -3,10 +3,11 @@ import type { MutableRefObject } from 'react';
 
 import { AppView } from '@/types';
 import { buildSherlockThemeCssVars } from '@/system/theme/cssVars';
-import { getDisplayTheme } from '@/system/theme/storage';
-import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
+import { getActiveDraftTheme } from '@/system/theme/storage';
+import type { SherlockThemeMode, SherlockThemeWorkspaceState } from '@/system/theme/schema';
 
 interface ApplyThemeInput {
+  themeMode: SherlockThemeMode;
   themeWorkspace: SherlockThemeWorkspaceState;
 }
 
@@ -41,15 +42,16 @@ export const useTrackAppShellLocation = ({
 };
 
 export const useApplyAppShellTheme = ({
+  themeMode,
   themeWorkspace,
 }: ApplyThemeInput) => {
   useEffect(() => {
     const root = document.documentElement;
-    const displayTheme = getDisplayTheme(themeWorkspace);
-    root.setAttribute('data-theme', displayTheme.mode);
-    root.style.colorScheme = displayTheme.mode;
-    Object.entries(buildSherlockThemeCssVars(displayTheme)).forEach(([name, value]) => {
+    const activeTheme = getActiveDraftTheme(themeWorkspace);
+    root.setAttribute('data-theme', themeMode);
+    root.style.colorScheme = themeMode;
+    Object.entries(buildSherlockThemeCssVars(activeTheme, themeMode)).forEach(([name, value]) => {
       root.style.setProperty(name, value);
     });
-  }, [themeWorkspace]);
+  }, [themeMode, themeWorkspace]);
 };
