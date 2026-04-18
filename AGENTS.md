@@ -2,6 +2,13 @@
 
 Repository-specific operating notes for coding/documentation agents.
 
+## 0. Local Environment
+
+- This checkout is intended to be installed and run from Windows, not from WSL/Linux, when the repo lives under `C:\Users\...\projects\sherlock`.
+- Do not run `npm install`, `npm ci`, or other dependency-mutating commands from WSL against `/mnt/<drive>/...` for this repo.
+- If dependencies need repair, run the reinstall from `cmd.exe` or PowerShell in the Windows path instead.
+- Linux CI/hosted builds are allowed; this rule is specifically about local installs against the Windows-mounted checkout.
+
 ## 1. Scope and Boundaries
 
 - Primary active code is under `src/`.

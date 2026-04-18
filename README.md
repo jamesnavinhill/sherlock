@@ -60,6 +60,13 @@ This repository also contains a separate standalone canon studio in [`canon-desi
 - npm
 - At least one provider key (Gemini/OpenRouter/OpenAI/Anthropic) if you want to run AI investigations; browsing works without one
 
+### Local Environment Rule
+
+- For local development on this checkout, use Windows `cmd.exe` or PowerShell.
+- Do not run `npm install`, `npm ci`, `npm run build`, `npm run test`, or other local repo scripts from WSL against `C:\Users\...\projects\sherlock`.
+- Mixing WSL/Linux installs with the Windows checkout can swap native optional packages like Rollup to the wrong platform and break the repo until `node_modules` is repaired from Windows.
+- CI and hosted Linux builds are still fine; this rule is specifically for local work on the Windows-mounted checkout.
+
 ### Install and Run
 
 ```bash
@@ -71,13 +78,14 @@ Dev server defaults to `http://localhost:3000`.
 
 The root route opens the public welcome page first. From there, `Open Workspace` launches the existing API key modal, and users can either authenticate or skip into the Files workspace browser.
 
-If you hit a Rollup native package error because an optional native package was skipped, delete `node_modules` and repair the local install with:
+If you accidentally installed from WSL/Linux and hit a Rollup native package error, repair the local install from Windows instead of WSL:
 
 ```bash
+rd /s /q node_modules
 npm ci --include=optional
 ```
 
-For this checkout, keep installs and script runs in the same environment. If you work in WSL, install and run from WSL rather than mixing Windows-side and WSL-side `node_modules`.
+The repo now blocks local `npm install`/`npm ci` from WSL when the checkout lives under `/mnt/<drive>/...`. If you truly need that path, set `SHERLOCK_ALLOW_WSL_INSTALL=1` explicitly.
 
 ### Provider Configuration
 
