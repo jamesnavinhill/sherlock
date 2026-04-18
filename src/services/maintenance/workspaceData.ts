@@ -15,73 +15,10 @@ import type {
   WorkspaceDataBackup,
   WorkspaceRun,
 } from '@/types';
+import { normalizeWorkspaceDataCompatibility } from './workspaceDataCompatibility';
 
 export const WORKSPACE_DATA_BACKUP_KIND = 'SHERLOCK_WORKSPACE_DATA';
 export const WORKSPACE_DATA_BACKUP_VERSION = 1 as const;
-
-type LegacyWorkspaceDataBackup = Partial<{
-  cases: unknown;
-  case: unknown;
-  archives: unknown;
-  reports: unknown;
-  tasks: unknown;
-  chatSessions: unknown;
-  chatMessagesBySessionId: unknown;
-  chatActionsBySessionId: unknown;
-  boardAgentSessions: unknown;
-  boardAgentActionsBySessionId: unknown;
-  headlines: unknown;
-  templates: unknown;
-  manualNodes: unknown;
-  manualLinks: unknown;
-  workspaceItems: unknown;
-  workspaceBoards: unknown;
-  workspaceBoardDocuments: unknown;
-  timestamp: unknown;
-  exportedAt: unknown;
-}>;
-
-type CanonicalWorkspaceExportPayload = Partial<{
-  workspace: unknown;
-  artifacts: unknown;
-  exportedAt: unknown;
-}>;
-
-const isCanonicalWorkspaceExportPayload = (
-  value: Partial<WorkspaceDataBackup> & CanonicalWorkspaceExportPayload
-): value is Partial<WorkspaceDataBackup> & Required<Pick<CanonicalWorkspaceExportPayload, 'workspace' | 'artifacts'>> =>
-  !!value.workspace && Array.isArray(value.artifacts);
-
-const isLegacyWorkspaceExportPayload = (
-  value: Partial<WorkspaceDataBackup> & LegacyWorkspaceDataBackup
-): value is Partial<WorkspaceDataBackup> & Required<Pick<LegacyWorkspaceDataBackup, 'case' | 'reports'>> =>
-  !!value.case && Array.isArray(value.reports);
-
-const asArray = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
-
-const withArtifactWorkspaceLink = (
-  artifact: Artifact | (Artifact & { caseId?: string })
-): Artifact => {
-  const legacyArtifact = artifact as Artifact & { caseId?: string };
-
-  return {
-    ...artifact,
-    workspaceId: artifact.workspaceId || legacyArtifact.caseId || undefined,
-  };
-};
-
-const flattenSessionRecord = <T extends { sessionId: string }>(value: unknown): T[] => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return [];
-  }
-
-  return Object.values(value as Record<string, unknown>).flatMap((entry) => asArray<T>(entry));
-};
-
-const withWorkspaceLink = (run: WorkspaceRun): WorkspaceRun => ({
-  ...run,
-  workspaceId: run.workspaceId || run.report?.workspaceId,
-});
 
 export const groupChatMessagesBySessionId = (
   messages: ChatMessage[]
@@ -112,6 +49,11 @@ export const groupBoardAgentActionsBySessionId = (
     acc[action.sessionId] = next;
     return acc;
   }, {});
+
+const withWorkspaceLink = (run: WorkspaceRun): WorkspaceRun => ({
+  ...run,
+  workspaceId: run.workspaceId || run.report?.workspaceId,
+});
 
 export const getWorkspaceDataSignals = (
   snapshot: WorkspaceDataBackup['signals'] | null | undefined
@@ -209,149 +151,38 @@ export const buildWorkspaceDataBackup = (input: {
 });
 
 export const normalizeWorkspaceDataBackup = (value: unknown): WorkspaceDataBackup => {
-  if (!value || typeof value !== 'object') {
-    throw new Error('Invalid workspace-data backup format.');
-  }
-
-  const payload = value as Partial<WorkspaceDataBackup> & LegacyWorkspaceDataBackup;
-  const legacyPayload = payload as LegacyWorkspaceDataBackup;
-  const exportPayload = payload as LegacyWorkspaceDataBackup & CanonicalWorkspaceExportPayload;
-  const metadata = payload.metadata;
-  const looksCanonical = Array.isArray(payload.workspaces) && Array.isArray(payload.artifacts);
-  const looksLegacy = Array.isArray(payload.cases) && Array.isArray(payload.archives);
-  const looksCanonicalWorkspaceExport = isCanonicalWorkspaceExportPayload(payload);
-  const looksLegacyWorkspaceExport = isLegacyWorkspaceExportPayload(payload);
-
-  if (
-    !looksCanonical &&
-    !looksLegacy &&
-    !looksCanonicalWorkspaceExport &&
-    !looksLegacyWorkspaceExport
-  ) {
-    throw new Error('Invalid workspace-data backup format.');
-  }
-
-  const workspaces: WorkspaceDataBackup['workspaces'] = looksCanonical
-    ? asArray<WorkspaceDataBackup['workspaces'][number]>(payload.workspaces)
-    : looksCanonicalWorkspaceExport
-      ? [payload.workspace as WorkspaceDataBackup['workspaces'][number]].filter(Boolean)
-      : looksLegacyWorkspaceExport
-        ? [payload.case as WorkspaceDataBackup['workspaces'][number]].filter(Boolean)
-      : asArray<WorkspaceDataBackup['workspaces'][number]>(payload.cases);
-  const artifacts = looksCanonical
-    ? asArray<Artifact | (Artifact & { caseId?: string })>(payload.artifacts).map(
-        withArtifactWorkspaceLink
-      )
-    : looksCanonicalWorkspaceExport
-      ? asArray<Artifact | (Artifact & { caseId?: string })>(payload.artifacts).map(
-          withArtifactWorkspaceLink
-        )
-      : looksLegacyWorkspaceExport
-        ? asArray<Artifact | (Artifact & { caseId?: string })>(payload.reports).map(
-            withArtifactWorkspaceLink
-          )
-      : asArray<Artifact | (Artifact & { caseId?: string })>(payload.archives).map(
-          withArtifactWorkspaceLink
-        );
-  const runs = (
-    looksCanonical
-      ? asArray<WorkspaceRun>(payload.runs)
-      : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-        ? []
-        : asArray<WorkspaceRun>(payload.tasks)
-  ).map(withWorkspaceLink);
-  const sessions = looksCanonical
-    ? asArray<ChatSession>(payload.chat?.sessions)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : asArray<ChatSession>(payload.chatSessions);
-  const messages = looksCanonical
-    ? asArray<ChatMessage>(payload.chat?.messages)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : flattenSessionRecord<ChatMessage>(payload.chatMessagesBySessionId);
-  const actions = looksCanonical
-    ? asArray<AgentAction>(payload.chat?.actions)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : flattenSessionRecord<AgentAction>(payload.chatActionsBySessionId);
-  const boardAgentSessions = looksCanonical
-    ? asArray<BoardAgentSession>(payload.boardAgent?.sessions)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : asArray<BoardAgentSession>(payload.boardAgentSessions);
-  const boardAgentActions = looksCanonical
-    ? asArray<BoardAgentAction>(payload.boardAgent?.actions)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : flattenSessionRecord<BoardAgentAction>(payload.boardAgentActionsBySessionId);
-  const signals = looksCanonical
-    ? getWorkspaceDataSignals(payload.signals)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : asArray<Signal>(payload.headlines);
-  const manualNodes = looksCanonical
-    ? asArray<ManualNode>(payload.graph?.manualNodes)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : asArray<ManualNode>(payload.manualNodes);
-  const manualLinks = looksCanonical
-    ? asArray<ManualConnection>(payload.graph?.manualLinks)
-    : looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : asArray<ManualConnection>(payload.manualLinks);
-  const workspaceItems = looksCanonical
-    ? asArray<WorkspaceItem>(payload.workspaceSurface?.items)
-    : asArray<WorkspaceItem>(legacyPayload.workspaceItems);
-  const workspaceBoards = looksCanonical
-    ? asArray<WorkspaceBoard>(payload.workspaceSurface?.boards)
-    : asArray<WorkspaceBoard>(legacyPayload.workspaceBoards);
-  const workspaceBoardDocuments = looksCanonical
-    ? asArray<WorkspaceBoardDocument>(payload.workspaceSurface?.boardDocuments)
-    : asArray<WorkspaceBoardDocument>(legacyPayload.workspaceBoardDocuments);
-  const templates =
-    looksCanonicalWorkspaceExport || looksLegacyWorkspaceExport
-      ? []
-      : asArray<WorkspaceTemplate>(payload.templates);
-  const exportedAt =
-    typeof metadata?.exportedAt === 'string'
-      ? metadata.exportedAt
-      : typeof exportPayload.exportedAt === 'string'
-        ? exportPayload.exportedAt
-        : typeof legacyPayload.timestamp === 'string'
-          ? legacyPayload.timestamp
-          : new Date().toISOString();
+  const slices = normalizeWorkspaceDataCompatibility(value);
 
   return {
-    workspaces,
-    artifacts,
-    runs,
+    workspaces: slices.workspaces,
+    artifacts: slices.artifacts,
+    runs: slices.runs,
     chat: {
-      sessions,
-      messages,
-      actions,
+      sessions: slices.chatSessions,
+      messages: slices.chatMessages,
+      actions: slices.chatActions,
     },
     boardAgent: {
-      sessions: boardAgentSessions,
-      actions: boardAgentActions,
+      sessions: slices.boardAgentSessions,
+      actions: slices.boardAgentActions,
     },
     signals: {
-      signals,
+      signals: slices.signals,
     },
     graph: {
-      manualNodes,
-      manualLinks,
+      manualNodes: slices.manualNodes,
+      manualLinks: slices.manualLinks,
     },
     workspaceSurface: {
-      items: workspaceItems,
-      boards: workspaceBoards,
-      boardDocuments: workspaceBoardDocuments,
+      items: slices.workspaceItems,
+      boards: slices.workspaceBoards,
+      boardDocuments: slices.workspaceBoardDocuments,
     },
-    templates,
+    templates: slices.templates,
     metadata: {
       kind: WORKSPACE_DATA_BACKUP_KIND,
       formatVersion: WORKSPACE_DATA_BACKUP_VERSION,
-      exportedAt,
+      exportedAt: slices.exportedAt,
     },
   };
 };

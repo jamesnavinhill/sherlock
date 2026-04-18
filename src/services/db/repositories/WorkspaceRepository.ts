@@ -16,20 +16,13 @@ import {
   signals,
 } from '../schema';
 import {
-  buildArtifactFollowUps,
-  buildArtifactKeyFindings,
-  buildArtifactSections,
   resolveWorkspaceIdentity,
-  toFollowUpTexts,
-  toLegacyReportArrays,
 } from '../../../domain';
 import type {
   ArtifactSection,
   Workspace,
   Artifact,
-  Entity,
   FollowUp,
-  KeyFinding,
   Signal,
   WorkspaceDataBackup,
 } from '@/types';
@@ -44,106 +37,19 @@ import { SettingsRepository } from './SettingsRepository';
 import {
   normalizeHumanText,
   normalizeTopicText,
-  unwrapArrayContainer,
 } from '../../../utils/textNormalization';
-import { createLocalId } from '../../../utils/id';
 import { getWorkspaceDataSignals } from '../../maintenance/workspaceData';
 import { isAppIconId } from '@/lib/appIcons';
 import {
   mapRowsSafely,
-  parseStoredJson,
   parseStoredJsonOrUndefined,
   serializeStoredJsonOrNull,
 } from './json';
-
-interface RawReportPayload {
-  summary?: string;
-  entities?: unknown;
-  sources?: unknown;
-  keyFindings?: unknown;
-  agendas?: unknown;
-  leads?: unknown;
-  sections?: unknown;
-  followUps?: unknown;
-  methodology?: unknown;
-}
-
-interface ReportMetadataPayload {
-  provenance?: Artifact['provenance'];
-  [key: string]: unknown;
-}
-
-const parseRawReportPayload = (rawText: string | null): RawReportPayload => {
-  if (!rawText) return {};
-  const parsed = parseStoredJson<RawReportPayload | null>(rawText, null, 'artifact raw payload');
-  return parsed && typeof parsed === 'object' ? parsed : {};
-};
-
-const toEntityList = (value: unknown): Entity[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item): Entity | null => {
-      if (typeof item === 'string') {
-        return { name: item, type: 'UNKNOWN' };
-      }
-      if (!item || typeof item !== 'object') return null;
-      const entity = item as Partial<Entity>;
-      if (!entity.name || typeof entity.name !== 'string') return null;
-      return {
-        name: entity.name,
-        type: entity.type === 'PERSON' || entity.type === 'ORGANIZATION' ? entity.type : 'UNKNOWN',
-        role: typeof entity.role === 'string' ? entity.role : undefined,
-        sentiment:
-          entity.sentiment === 'POSITIVE' ||
-          entity.sentiment === 'NEGATIVE' ||
-          entity.sentiment === 'NEUTRAL'
-            ? entity.sentiment
-            : undefined,
-      };
-    })
-    .filter((item): item is Entity => !!item);
-};
-
-const toStringList = (value: unknown): string[] => {
-  const list = unwrapArrayContainer(value, [
-    'signals',
-    'agendas',
-    'items',
-    'results',
-    'data',
-    'list',
-  ]);
-  const items =
-    list.length > 0
-      ? list
-      : value && typeof value === 'object' && !Array.isArray(value)
-        ? [value]
-        : [];
-
-  return items.map((item) => normalizeHumanText(item).trim()).filter((item) => item.length > 0);
-};
-
-const toSourceList = (value: unknown): Artifact['sources'] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item): { title: string; url: string } | null => {
-      if (!item || typeof item !== 'object') return null;
-      const source = item as { title?: unknown; url?: unknown; uri?: unknown };
-      const title =
-        typeof source.title === 'string' && source.title.trim().length > 0
-          ? source.title.trim()
-          : 'Untitled Source';
-      const rawUrl =
-        typeof source.url === 'string'
-          ? source.url
-          : typeof source.uri === 'string'
-            ? source.uri
-            : '';
-      if (!rawUrl) return null;
-      return { title, url: rawUrl };
-    })
-    .filter((item): item is { title: string; url: string } => !!item);
-};
+import { hydrateArtifactRow } from './artifactHydration';
+import {
+  buildArtifactPersistencePlan,
+  persistArtifactPlan,
+} from './artifactPersistence';
 
 const deleteArtifactDependencies = async (
   artifactIds: string[],
@@ -306,430 +212,54 @@ export class WorkspaceRepository {
   // --- ARTIFACTS ---
   static async getAllArtifacts(): Promise<Artifact[]> {
     const db = getDB();
-    // Join artifacts with entities and sources would be ideal, but for now we fetch artifacts and hydrate
-    // Drizzle's with query is powerful for this if relationships are defined, but here we'll keep it simple for now
-
-    // Fetch all artifacts
     const artifactRows = await db.select().from(artifacts).orderBy(desc(artifacts.createdAt));
-
-    // This N+1 query pattern is inefficient for large datasets, but okay for MVP client-side DB
-    // Optimization: Use separate queries to fetch all entities/sources and map them in memory
     const allEntities = await db.select().from(entities);
     const allSources = await db.select().from(sources);
     const allFollowUps = await db.select().from(followUpRows);
     const allKeyFindings = await db.select().from(keyFindingRows);
     const allSections = await db.select().from(artifactSections);
     const allEvidence = await db.select().from(artifactEvidence);
+    const groupRowsByArtifactId = <
+      TRow extends { artifactId: string | null | undefined }
+    >(
+      rows: TRow[]
+    ) =>
+      rows.reduce<Map<string, TRow[]>>((acc, row) => {
+        if (!row.artifactId) return acc;
+        const next = acc.get(row.artifactId) || [];
+        next.push(row);
+        acc.set(row.artifactId, next);
+        return acc;
+      }, new Map<string, TRow[]>());
+
+    const entitiesByArtifactId = groupRowsByArtifactId(allEntities);
+    const sourcesByArtifactId = groupRowsByArtifactId(allSources);
+    const followUpsByArtifactId = groupRowsByArtifactId(allFollowUps);
+    const keyFindingsByArtifactId = groupRowsByArtifactId(allKeyFindings);
+    const sectionsByArtifactId = groupRowsByArtifactId(allSections);
+    const evidenceByArtifactId = groupRowsByArtifactId(allEvidence);
 
     return mapRowsSafely(artifactRows, {
       label: 'artifact row',
       getRowId: (row) => row.id,
-      mapRow: (row) => {
-      const rawPayload = parseRawReportPayload(row.rawText);
-
-      const artifactEntities = allEntities
-        .filter((e) => e.artifactId === row.id)
-        .map((e) => ({
-          name: e.name,
-          type: e.type as Entity['type'],
-          role: e.role || undefined,
-          sentiment: e.sentiment as Entity['sentiment'],
-        }));
-      const parsedEntities = toEntityList(rawPayload.entities);
-
-      const artifactSources = allSources
-        .filter((s) => s.artifactId === row.id)
-        .map((s) => ({
-          title: s.title,
-          url: s.url,
-        }));
-      const reportFollowUps = allFollowUps
-        .filter((followUp) => followUp.artifactId === row.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .map(
-          (followUp): FollowUp => ({
-            id: followUp.id,
-            workspaceId: followUp.workspaceId || undefined,
-            originArtifactId: followUp.artifactId,
-            originSectionId: followUp.sectionId || undefined,
-            sourceSignalId: followUp.sourceSignalId || undefined,
-            kind: followUp.kind as FollowUp['kind'],
-            title: followUp.title,
-            actionText: followUp.actionText,
-            status: followUp.status as FollowUp['status'],
-            entityRefs: parseStoredJsonOrUndefined<string[]>(
-              followUp.entityRefsJson,
-              `follow-up entity refs ${followUp.id}`
-            ),
-            sourceRefs: parseStoredJsonOrUndefined<string[]>(
-              followUp.sourceRefsJson,
-              `follow-up source refs ${followUp.id}`
-            ),
-            resolvedByArtifactId: followUp.resolvedByArtifactId || undefined,
-            metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
-              followUp.metadataJson,
-              `follow-up metadata ${followUp.id}`
-            ),
-            createdAt: followUp.createdAt,
-            updatedAt: followUp.updatedAt,
-          })
-        );
-      const artifactKeyFindings = allKeyFindings
-        .filter((finding) => finding.artifactId === row.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .map(
-          (finding): KeyFinding => ({
-            id: finding.id,
-            workspaceId: finding.workspaceId || undefined,
-            originArtifactId: finding.artifactId,
-            originSectionId: finding.sectionId || undefined,
-            title: finding.title,
-            summary: finding.summary,
-            supportRefs: parseStoredJsonOrUndefined<string[]>(
-              finding.supportRefsJson,
-              `key finding support refs ${finding.id}`
-            ),
-            metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
-              finding.metadataJson,
-              `key finding metadata ${finding.id}`
-            ),
-            createdAt: finding.createdAt,
-            updatedAt: finding.updatedAt,
-            order: finding.sortOrder,
-          })
-        );
-      const parsedSources = toSourceList(rawPayload.sources);
-      const parsedAgendas = toStringList(rawPayload.agendas);
-      const parsedLeads = toStringList(rawPayload.leads);
-      const canonicalFollowUps =
-        reportFollowUps.length > 0
-          ? reportFollowUps
-          : buildArtifactFollowUps({
-              leads: parsedLeads,
-              followUps: toStringList((rawPayload as { followUps?: unknown }).followUps),
-              artifactId: row.id,
-              workspaceId: row.workspaceId || undefined,
-            });
-      const reportSections = allSections
-        .filter((section) => section.artifactId === row.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .map((section) => ({
-          id: section.id,
-          kind: section.kind as NonNullable<Artifact['sections']>[number]['kind'],
-          title: section.title,
-          content: section.content || undefined,
-          items: parseStoredJsonOrUndefined<string[]>(
-            section.itemsJson,
-            `artifact section items ${row.id}:${section.id}`
-          ),
-          order: section.sortOrder,
-        }));
-      const canonicalKeyFindings =
-        artifactKeyFindings.length > 0
-          ? artifactKeyFindings
-          : buildArtifactKeyFindings({
-              keyFindings: rawPayload.keyFindings,
-              sections: reportSections,
-              legacyAgendas: parsedAgendas,
-              artifactId: row.id,
-              workspaceId: row.workspaceId || undefined,
-              createdAt: row.createdAt,
-            });
-      const metadataPayload = row.metadataJson
-        ? parseStoredJson<ReportMetadataPayload>(
-            row.metadataJson,
-            {},
-            `artifact metadata ${row.id}`
-          )
-        : undefined;
-      const evidenceRows = allEvidence
-        .filter((evidence) => evidence.artifactId === row.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .map((evidence) => ({
-          id: evidence.id,
-          kind: evidence.kind as NonNullable<Artifact['evidence']>[number]['kind'],
-          title: evidence.title,
-          summary: evidence.summary,
-          quote: evidence.quote || undefined,
-          sourceTitle: evidence.sourceTitle || undefined,
-          sourceUrl: evidence.sourceUrl || undefined,
-          sectionId: evidence.sectionId || undefined,
-          tags: parseStoredJsonOrUndefined<string[]>(
-            evidence.tagsJson,
-            `artifact evidence tags ${evidence.id}`
-          ),
-          metadata: parseStoredJsonOrUndefined<Record<string, unknown>>(
-            evidence.metadataJson,
-            `artifact evidence metadata ${evidence.id}`
-          ),
-          order: evidence.sortOrder,
-        }));
-
-      const sections = buildArtifactSections({
-        sections: reportSections.length > 0 ? reportSections : rawPayload.sections,
-        summary: normalizeHumanText(row.summary, { includePriority: false }),
-        agendas: parsedAgendas,
-        leads: parsedLeads,
-        keyFindings: canonicalKeyFindings,
-        followUps: canonicalFollowUps,
-        methodology:
-          typeof (rawPayload as { methodology?: unknown }).methodology === 'string'
-            ? (rawPayload as { methodology?: string }).methodology
-            : undefined,
-        evidence: evidenceRows,
-        artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
-      });
-
-      const legacyArrays = toLegacyReportArrays({
-        id: row.id,
-        workspaceId: row.workspaceId || undefined,
-        topic: normalizeTopicText(row.topic),
-        dateStr: row.dateStr || undefined,
-        createdAt: row.createdAt,
-        summary: normalizeHumanText(row.summary, { includePriority: false }),
-        rawText: row.rawText || '',
-        config: parseStoredJsonOrUndefined<Artifact['config']>(
-          row.configJson,
-          `artifact config ${row.id}`
-        ),
-        entities: artifactEntities.length > 0 ? artifactEntities : parsedEntities,
-        sources: artifactSources.length > 0 ? artifactSources : parsedSources,
-        agendas: parsedAgendas,
-        leads: toFollowUpTexts(canonicalFollowUps),
-        keyFindings: canonicalKeyFindings,
-        sections,
-        followUps: canonicalFollowUps,
-        artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
-      });
-
-      return {
-        id: row.id,
-        workspaceId: row.workspaceId || undefined,
-        topic: normalizeTopicText(row.topic),
-        dateStr: row.dateStr || undefined,
-        createdAt: row.createdAt,
-        summary: normalizeHumanText(row.summary, { includePriority: false }),
-        rawText: row.rawText || '',
-        config: parseStoredJsonOrUndefined<Artifact['config']>(
-          row.configJson,
-          `artifact config ${row.id}`
-        ),
-        artifactType: (row.artifactType as Artifact['artifactType']) || undefined,
-        packId: row.packId || undefined,
-        purposeId: row.purposeId || undefined,
-        labelProfileId: row.labelProfileId || undefined,
-        metadata: metadataPayload
-          ? Object.fromEntries(
-              Object.entries(metadataPayload).filter(([key]) => key !== 'provenance')
-            )
-          : undefined,
-        entities: artifactEntities.length > 0 ? artifactEntities : parsedEntities,
-        sources: artifactSources.length > 0 ? artifactSources : parsedSources,
-        keyFindings: canonicalKeyFindings,
-        agendas: legacyArrays.agendas,
-        leads: legacyArrays.leads,
-        followUps: legacyArrays.followUps,
-        sections,
-        evidence: evidenceRows,
-        provenance: metadataPayload?.provenance,
-      };
-      },
+      mapRow: (row) =>
+        hydrateArtifactRow({
+          row,
+          entityRows: entitiesByArtifactId.get(row.id) || [],
+          sourceRows: sourcesByArtifactId.get(row.id) || [],
+          followUpRows: followUpsByArtifactId.get(row.id) || [],
+          keyFindingRows: keyFindingsByArtifactId.get(row.id) || [],
+          sectionRows: sectionsByArtifactId.get(row.id) || [],
+          evidenceRows: evidenceByArtifactId.get(row.id) || [],
+        }),
     });
   }
 
   static async createArtifact(report: Artifact, db?: SherlockWriteExecutor): Promise<void> {
     return runWriteTransaction(async (tx) => {
       const executor = db ?? tx;
-
-      const now = report.createdAt ?? Date.now();
-      if (!report.id) {
-        throw new Error('Artifact must have an id before persistence.');
-      }
-      const artifactId = report.id;
-      const normalizedTopic = normalizeTopicText(report.topic);
-      const normalizedSummary = normalizeHumanText(report.summary, {
-        includePriority: false,
-        fallback: 'Analysis pending...',
-      });
-      const canonicalFollowUps = buildArtifactFollowUps({
-        existing: report.followUps,
-        leads: report.leads,
-        artifactId,
-        workspaceId: report.workspaceId,
-        sourceSignalId: report.config?.sourceSignalId,
-        createdAt: now,
-      });
-      const canonicalKeyFindings = buildArtifactKeyFindings({
-        existing: report.keyFindings,
-        sections: report.sections,
-        legacyAgendas: report.agendas,
-        artifactId,
-        workspaceId: report.workspaceId,
-        createdAt: now,
-      });
-      const canonicalSections = buildArtifactSections({
-        sections: report.sections,
-        summary: normalizedSummary,
-        agendas: report.agendas,
-        leads: report.leads,
-        keyFindings: canonicalKeyFindings,
-        followUps: canonicalFollowUps,
-        evidence: report.evidence,
-        artifactType: report.artifactType,
-      });
-
-      const metadataPayload: ReportMetadataPayload | undefined =
-        report.metadata || report.provenance
-          ? {
-              ...(report.metadata || {}),
-              ...(report.provenance ? { provenance: report.provenance } : {}),
-            }
-          : undefined;
-
-      await executor.insert(artifacts).values({
-        id: artifactId,
-        workspaceId: report.workspaceId,
-        topic: normalizedTopic,
-        dateStr: report.dateStr,
-        summary: normalizedSummary,
-        rawText: report.rawText,
-        artifactType: report.artifactType,
-        packId: report.packId || report.config?.packId,
-        purposeId: report.purposeId || report.config?.purposeId,
-        labelProfileId: report.labelProfileId || report.config?.labelProfileId,
-        metadataJson: serializeStoredJsonOrNull(metadataPayload),
-        configJson: serializeStoredJsonOrNull(report.config),
-        createdAt: now,
-      });
-
-      // Insert entities
-      if (report.entities && report.entities.length > 0) {
-        for (const entity of report.entities) {
-          const entityObj =
-            typeof entity === 'string' ? { name: entity, type: 'UNKNOWN' as const } : entity;
-
-          await executor.insert(entities).values({
-            id: createLocalId('ent'),
-            artifactId,
-            name: entityObj.name,
-            type: entityObj.type,
-            role: entityObj.role,
-            sentiment: entityObj.sentiment,
-          });
-        }
-      }
-
-      // Insert sources
-      if (report.sources && report.sources.length > 0) {
-        for (const source of report.sources) {
-          await executor.insert(sources).values({
-            id: createLocalId('src'),
-            artifactId,
-            title: source.title,
-            url: source.url,
-          });
-        }
-      }
-
-      if (canonicalFollowUps.length > 0) {
-        for (const [index, followUp] of canonicalFollowUps.entries()) {
-          await executor.insert(followUpRows).values({
-            id: followUp.id,
-            workspaceId: followUp.workspaceId || report.workspaceId,
-            artifactId,
-            sectionId: followUp.originSectionId,
-            sourceSignalId: followUp.sourceSignalId || report.config?.sourceSignalId,
-            kind: followUp.kind,
-            title: followUp.title,
-            actionText: followUp.actionText,
-            status: followUp.status,
-            entityRefsJson: serializeStoredJsonOrNull(followUp.entityRefs),
-            sourceRefsJson: serializeStoredJsonOrNull(followUp.sourceRefs),
-            resolvedByArtifactId: followUp.resolvedByArtifactId,
-            metadataJson: serializeStoredJsonOrNull(followUp.metadata),
-            sortOrder: index,
-            createdAt: followUp.createdAt ?? now,
-            updatedAt: followUp.updatedAt ?? now,
-          });
-        }
-      }
-
-      if (canonicalKeyFindings.length > 0) {
-        for (const [index, finding] of canonicalKeyFindings.entries()) {
-          await executor.insert(keyFindingRows).values({
-            id: finding.id,
-            workspaceId: finding.workspaceId || report.workspaceId,
-            artifactId,
-            sectionId: finding.originSectionId,
-            title: finding.title,
-            summary: finding.summary,
-            supportRefsJson: serializeStoredJsonOrNull(finding.supportRefs),
-            metadataJson: serializeStoredJsonOrNull(finding.metadata),
-            sortOrder: typeof finding.order === 'number' ? finding.order : index,
-            createdAt: finding.createdAt ?? now,
-            updatedAt: finding.updatedAt ?? now,
-          });
-        }
-      }
-
-      if (canonicalSections && canonicalSections.length > 0) {
-        for (const [index, section] of canonicalSections.entries()) {
-          await executor.insert(artifactSections).values({
-            id: section.id || `sec-${artifactId}-${index}`,
-            artifactId,
-            kind: section.kind,
-            title: section.title,
-            content: section.content,
-            itemsJson: serializeStoredJsonOrNull(section.items),
-            sortOrder: typeof section.order === 'number' ? section.order : index,
-          });
-        }
-      }
-
-      if (report.evidence && report.evidence.length > 0) {
-        for (const [index, evidence] of report.evidence.entries()) {
-          await executor.insert(artifactEvidence).values({
-            id: evidence.id || `evidence-${artifactId}-${index}`,
-            artifactId,
-            kind: evidence.kind,
-            title: evidence.title,
-            summary: evidence.summary,
-            quote: evidence.quote,
-            sourceTitle: evidence.sourceTitle,
-            sourceUrl: evidence.sourceUrl,
-            sectionId: evidence.sectionId,
-            tagsJson: serializeStoredJsonOrNull(evidence.tags),
-            metadataJson: serializeStoredJsonOrNull(evidence.metadata),
-            sortOrder: typeof evidence.order === 'number' ? evidence.order : index,
-          });
-        }
-      }
-
-      if (report.config?.sourceSignalId) {
-        await executor
-          .update(signals)
-          .set({ linkedArtifactId: artifactId })
-          .where(eq(signals.id, report.config.sourceSignalId));
-      }
-
-      if (report.config?.sourceFollowUpId) {
-        await executor
-          .update(followUpRows)
-          .set({
-            status: 'RESOLVED',
-            resolvedByArtifactId: artifactId,
-            updatedAt: now,
-          })
-          .where(eq(followUpRows.id, report.config.sourceFollowUpId));
-      }
-
-      // Update parent workspace timestamp
-      if (report.workspaceId) {
-        await executor
-          .update(workspaces)
-          .set({ updatedAt: now })
-          .where(eq(workspaces.id, report.workspaceId));
-      }
+      const plan = buildArtifactPersistencePlan(report);
+      await persistArtifactPlan(plan, executor);
     }, db);
   }
 

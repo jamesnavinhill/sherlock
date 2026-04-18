@@ -16,7 +16,6 @@ import {
   Check,
   Layout,
   Compass,
-  Calendar,
   Sparkles,
   Shapes,
   Library,

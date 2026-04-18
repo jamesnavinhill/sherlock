@@ -68,6 +68,17 @@ Repository hydration and serialization now follow a shared helper contract in `s
 - row hydration should prefer the shared row-mapping guard so a corrupted row can be skipped with a labeled warning instead of aborting the full repository read
 - JSON serialization for nullable/update fields should use the same helper module so `null` vs `undefined` behavior stays consistent across create/update paths
 
+Artifact persistence now has an explicit helper split under `src/services/db/repositories/`:
+
+- `artifactHydration.ts` owns canonical row-to-domain artifact hydration
+- `artifactPersistence.ts` owns domain artifact to persistence-row planning plus write execution
+- `artifactCompatibility.ts` bounds legacy raw-payload parsing and legacy `agendas` / `leads` reconstruction used during hydration compatibility
+
+Workspace-data import normalization now follows the same boundary style under `src/services/maintenance/`:
+
+- `workspaceData.ts` owns canonical backup assembly and the normalized return shape
+- `workspaceDataCompatibility.ts` owns legacy backup/export shape acceptance and compatibility normalization
+
 That helper is the canonical repository pattern for:
 
 - artifact saves plus dependent key findings, follow-ups, sections, evidence, entities, sources, and lineage updates
@@ -153,7 +164,7 @@ The chat implementation adds:
 - `chat_message_attachments` for retrieved context snippets attached to a turn
 - `chat_actions` for auditable retrieval, save, append, and follow-up operations
 
-Artifact save/hydration behavior now treats `Artifact.keyFindings` and `Artifact.followUps` as canonical runtime fields. Legacy flattened `leads` arrays are still reconstructed when older persisted artifact payloads need hydration, but new workspace-level export flows now write canonical workspace/artifact keys rather than legacy `case` / `reports` payloads.
+Artifact save/hydration behavior now treats `Artifact.keyFindings` and `Artifact.followUps` as canonical runtime fields. `WorkspaceRepository` delegates that work through `artifactHydration.ts` and `artifactPersistence.ts`, while legacy flattened `leads` arrays are reconstructed only through the bounded compatibility helper in `artifactCompatibility.ts` when older persisted artifact payloads need hydration. New workspace-level export flows still write canonical workspace/artifact keys rather than legacy `case` / `reports` payloads.
 
 Artifact saves are now atomic across the artifact row, dependent key-finding/follow-up/section/evidence rows, source-signal linkage, and source-follow-up resolution so the database does not keep half-saved artifact bundles.
 
@@ -246,6 +257,8 @@ User-facing maintenance tools in Settings:
 - export workspace-data JSON snapshot
 - import JSON snapshot (replaces current workspace-data domain)
 - clear workspace-data domain
+
+Import normalization still accepts older canonical workspace-export payloads and pre-canonical legacy backups, but that compatibility is now isolated to `src/services/maintenance/workspaceDataCompatibility.ts` rather than mixed into canonical backup assembly.
 
 Canonical exported shape:
 

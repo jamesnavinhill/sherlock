@@ -1,4 +1,11 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -168,6 +175,14 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+  const resetActionMenu = useCallback(() => {
+    setActionMenuState(null);
+    setActionMenuPosition(null);
+  }, []);
+  const closeSearch = useCallback(() => {
+    resetActionMenu();
+    onClose();
+  }, [onClose, resetActionMenu]);
 
   const baseResults = useMemo(
     () =>
@@ -202,12 +217,6 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     inputRef.current?.focus();
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) return;
-    setActionMenuState(null);
-    setActionMenuPosition(null);
   }, [isOpen]);
 
   useEffect(() => {
@@ -300,33 +309,27 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
         return;
       }
       if (rootRef.current?.contains(target)) {
-        setActionMenuState(null);
-        setActionMenuPosition(null);
+        resetActionMenu();
         return;
       }
-      onClose();
+      closeSearch();
     };
 
     document.addEventListener('mousedown', handlePointerDown);
     return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, [onClose]);
+  }, [closeSearch, resetActionMenu]);
 
   useEffect(() => {
     if (!actionMenuState) return;
 
-    const closeActionMenu = () => {
-      setActionMenuState(null);
-      setActionMenuPosition(null);
-    };
-
-    window.addEventListener('resize', closeActionMenu);
-    window.addEventListener('scroll', closeActionMenu, true);
+    window.addEventListener('resize', resetActionMenu);
+    window.addEventListener('scroll', resetActionMenu, true);
 
     return () => {
-      window.removeEventListener('resize', closeActionMenu);
-      window.removeEventListener('scroll', closeActionMenu, true);
+      window.removeEventListener('resize', resetActionMenu);
+      window.removeEventListener('scroll', resetActionMenu, true);
     };
-  }, [actionMenuState]);
+  }, [actionMenuState, resetActionMenu]);
 
   useLayoutEffect(() => {
     if (!actionMenuState || !actionMenuRef.current) return;
@@ -376,7 +379,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   };
 
   const handleAction = async (result: OmniboxResult, action: OmniboxActionId) => {
-    setActionMenuState(null);
+    resetActionMenu();
     rememberRecent(result);
     await executeOmniboxAction({
       action,
@@ -393,7 +396,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
       locationPathname: location.pathname,
       locationSearch: location.search,
       navigate,
-      onClose,
+      onClose: closeSearch,
       queueBoardPlacement,
       result,
       setActiveChatSessionId,
@@ -439,7 +442,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
       return;
     }
     if (event.key === 'Escape') {
-      onClose();
+      closeSearch();
       return;
     }
     if (!selectedResult || event.key !== 'Enter') return;
@@ -507,7 +510,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
           type="button"
           onClick={() => {
             if (isOpen) {
-              onClose();
+              closeSearch();
             } else {
               onOpen();
               inputRef.current?.focus();

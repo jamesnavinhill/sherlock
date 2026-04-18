@@ -313,6 +313,27 @@ Primary targets:
 - targeted repository / persistence tests
 - `npm run build`
 
+### Progress
+
+Completed on April 18, 2026.
+
+Landed in this phase:
+
+- extracted repository-side artifact compatibility parsing into `src/services/db/repositories/artifactCompatibility.ts`
+- extracted raw-row artifact hydration into `src/services/db/repositories/artifactHydration.ts`
+- extracted artifact-to-row write planning and execution into `src/services/db/repositories/artifactPersistence.ts`
+- reduced `WorkspaceRepository.ts` to orchestration over those helpers instead of owning the full hydration and persistence stack inline
+- extracted backup/import legacy-shape normalization into `src/services/maintenance/workspaceDataCompatibility.ts` so `workspaceData.ts` can stay focused on canonical backup assembly
+- added focused coverage in `src/services/db/repositories/artifactHydration.test.ts` for legacy-payload hydration fallback behavior
+- updated `docs/operations/DATA_PERSISTENCE.md` to describe the new helper boundaries and explicitly bound compatibility seams
+
+Validation note:
+
+- `npm run typecheck` passed
+- `npm run test -- src/services/db/repositories/WorkspaceRepository.test.ts src/services/db/repositories/artifactHydration.test.ts src/services/maintenance/workspaceData.test.ts src/store/workspaceStore.test.ts` passed
+- `npm run build` passed
+- `npm run lint` still fails in unrelated pre-existing files: `src/components/features/Runs/RunSetupModal.tsx` and `src/components/ui/GlobalSearch.tsx`
+
 ## Phase 5. Board And Board-Agent Logic Decomposition
 
 Purpose:
