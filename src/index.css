@@ -1108,65 +1108,6 @@ body,
   box-shadow: var(--osint-accent-outline-glow);
 }
 
-.osint-sidebar-nav-item {
-  color: var(--osint-text-meta);
-  border-left-color: transparent;
-  transition:
-    background-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    color 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.osint-sidebar-nav-icon,
-.osint-sidebar-nav-label {
-  transition:
-    color 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.osint-sidebar-nav-icon {
-  transform: translateX(0);
-}
-
-.osint-sidebar-nav-label {
-  display: block;
-  transform: translateX(0);
-}
-
-.osint-sidebar-nav-item:hover,
-.osint-sidebar-nav-item:focus-visible {
-  background-color: var(--osint-rail-interaction-hover-bg);
-  color: var(--osint-primary);
-  box-shadow: var(--osint-rail-interaction-shadow);
-  outline: none;
-}
-
-.osint-sidebar-nav-item:hover .osint-sidebar-nav-icon,
-.osint-sidebar-nav-item:hover .osint-sidebar-nav-label,
-.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-icon,
-.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-label,
-.osint-sidebar-nav-item[data-active='true'] .osint-sidebar-nav-icon,
-.osint-sidebar-nav-item[data-active='true'] .osint-sidebar-nav-label {
-  color: var(--osint-primary);
-}
-
-.osint-sidebar-nav-item:hover .osint-sidebar-nav-icon,
-.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-icon {
-  transform: translateX(2px);
-}
-
-.osint-sidebar-nav-item:hover .osint-sidebar-nav-label,
-.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-label {
-  transform: translateX(4px);
-}
-
-.osint-sidebar-nav-item[data-active='true'] {
-  background-color: var(--osint-rail-interaction-active-bg);
-  color: var(--osint-rail-interaction-active-color);
-  box-shadow: var(--osint-rail-interaction-shadow);
-}
-
 .osint-entity-chip {
   background-color: var(--osint-interaction-bg);
   border: 1px solid var(--osint-interaction-border);

@@ -29,21 +29,21 @@ export const RunQueue: React.FC<RunQueueProps> = ({
   onExpand,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const expandedLabelClassName = isCollapsed
-    ? 'opacity-0 translate-x-1'
-    : 'opacity-100 -translate-x-4';
+  const expandedLabelClassName = 'opacity-100 translate-x-0';
+  const navButtonLayoutClassName = isCollapsed
+    ? 'grid-cols-[4rem_minmax(0,1fr)] items-center'
+    : 'grid-cols-[4rem_minmax(0,1fr)] items-center pr-3';
 
   const runningTasks = workspaceRuns.filter((t) => t.status === 'RUNNING' || t.status === 'QUEUED');
   const completedTasks = workspaceRuns.filter(
     (t) => t.status === 'COMPLETED' || t.status === 'FAILED'
   );
 
-  // Expanded View: Blended List Item
   return (
-    <div className="relative osint-shell-divider-top bg-[color:var(--osint-shell)] flex-shrink-0">
+    <div className="relative bg-[color:var(--osint-shell)]">
       {/* Popup List - Anchored to the bottom of the previous element, growing upwards */}
       {!isCollapsed && isExpanded && workspaceRuns.length > 0 && (
-        <div className="absolute bottom-full left-0 z-50 mb-1 w-[var(--osint-shell-sidebar-width)] max-w-[calc(100vw-1rem)] px-2 pb-2">
+        <div className="absolute bottom-full left-0 right-0 z-50 mb-1">
           <div className="bg-osint-panel border border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.5)] flex flex-col max-h-[400px] w-full animate-in slide-in-from-bottom-2 fade-in duration-200">
             <div className="bg-black p-3 border-b border-zinc-800 flex justify-between items-center">
               <h3 className="text-white font-mono font-bold text-[10px] uppercase flex items-center">
@@ -147,11 +147,10 @@ export const RunQueue: React.FC<RunQueueProps> = ({
             setIsExpanded(!isExpanded);
           }
         }}
-        disabled={!isCollapsed && workspaceRuns.length === 0}
         title={isCollapsed ? 'Ops' : undefined}
         aria-label={isCollapsed ? 'Expand Ops' : isExpanded ? 'Collapse Ops' : 'Expand Ops'}
-        className={`osint-sidebar-nav-item relative w-full grid grid-cols-[5rem_minmax(0,1fr)] items-center border-l py-4 text-left group outline-none ${
-          !isCollapsed && workspaceRuns.length === 0 ? 'opacity-50 cursor-default' : 'cursor-pointer'
+        className={`osint-sidebar-nav-item relative w-full grid min-h-12 py-3 text-left group outline-none ${navButtonLayoutClassName} ${
+          !isCollapsed && workspaceRuns.length === 0 ? 'cursor-default' : 'cursor-pointer'
         }`}
         data-active={isExpanded ? 'true' : 'false'}
       >
@@ -168,22 +167,21 @@ export const RunQueue: React.FC<RunQueueProps> = ({
             )}
           </div>
         </div>
-        <div className={`min-w-0 pr-10 text-left transition-all duration-200 ${expandedLabelClassName}`}>
-          <span
-            className={`block truncate font-osint-label text-sm font-medium uppercase tracking-wide ${
-              runningTasks.length > 0 || isExpanded
-                ? 'text-osint-primary'
-                : 'text-zinc-500 group-hover:text-osint-primary'
-            } osint-sidebar-nav-label`}
+        {!isCollapsed ? (
+          <div
+            className={`min-w-0 overflow-hidden whitespace-nowrap pr-8 text-left transition-all duration-200 ${expandedLabelClassName}`}
           >
-            Ops
-          </span>
-          {runningTasks.length > 0 && (
-            <span className="block truncate font-mono text-[10px] text-zinc-600">
-              {runningTasks.length} Running
+            <span
+              className={`osint-sidebar-nav-label block truncate font-osint-label text-sm font-medium uppercase tracking-wide ${
+                runningTasks.length > 0 || isExpanded
+                  ? 'text-osint-primary'
+                  : 'text-zinc-500 group-hover:text-osint-primary'
+              }`}
+            >
+              Ops
             </span>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {!isCollapsed && workspaceRuns.length > 0 && (
           <div className="osint-sidebar-nav-icon absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 group-hover:text-osint-primary">

@@ -328,3 +328,81 @@
   box-shadow: var(--osint-accent-outline-glow);
   outline: none;
 }
+
+.osint-settings-nav-item,
+.osint-sidebar-nav-item {
+  border-radius: var(--osint-control-radius);
+  color: var(--osint-text-meta);
+  transition:
+    background-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.osint-settings-nav-icon,
+.osint-settings-nav-label,
+.osint-sidebar-nav-icon,
+.osint-sidebar-nav-label {
+  transition:
+    color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.osint-settings-nav-icon,
+.osint-sidebar-nav-icon {
+  transform: translateX(0);
+}
+
+.osint-settings-nav-label,
+.osint-sidebar-nav-label {
+  transform: translateX(0);
+}
+
+.osint-settings-nav-item:hover,
+.osint-settings-nav-item:focus-visible,
+.osint-sidebar-nav-item:hover,
+.osint-sidebar-nav-item:focus-visible {
+  background-color: var(--osint-rail-interaction-hover-bg);
+  color: var(--osint-primary);
+  box-shadow: var(--osint-rail-interaction-shadow);
+  outline: none;
+}
+
+.osint-settings-nav-item:hover .osint-settings-nav-icon,
+.osint-settings-nav-item:hover .osint-settings-nav-label,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-icon,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-label,
+.osint-settings-nav-item[data-active='true'] .osint-settings-nav-icon,
+.osint-settings-nav-item[data-active='true'] .osint-settings-nav-label,
+.osint-sidebar-nav-item:hover .osint-sidebar-nav-icon,
+.osint-sidebar-nav-item:hover .osint-sidebar-nav-label,
+.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-icon,
+.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-label,
+.osint-sidebar-nav-item[data-active='true'] .osint-sidebar-nav-icon,
+.osint-sidebar-nav-item[data-active='true'] .osint-sidebar-nav-label {
+  color: var(--osint-primary);
+}
+
+.osint-settings-nav-item:hover .osint-settings-nav-icon,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-icon,
+.osint-sidebar-nav-item:hover .osint-sidebar-nav-icon,
+.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-icon {
+  transform: translateX(2px);
+}
+
+.osint-settings-nav-item:hover .osint-settings-nav-label,
+.osint-settings-nav-item:focus-visible .osint-settings-nav-label {
+  transform: translateX(3px);
+}
+
+.osint-sidebar-nav-item:hover .osint-sidebar-nav-label,
+.osint-sidebar-nav-item:focus-visible .osint-sidebar-nav-label {
+  transform: translateX(4px);
+}
+
+.osint-settings-nav-item[data-active='true'],
+.osint-sidebar-nav-item[data-active='true'] {
+  background-color: var(--osint-rail-interaction-active-bg);
+  color: var(--osint-rail-interaction-active-color);
+  box-shadow: var(--osint-rail-interaction-shadow);
+}

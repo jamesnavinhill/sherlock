@@ -48,12 +48,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isWorkbenchOpen,
   onToggleWorkbench,
 }) => {
-  const expandedLabelClassName = isCollapsed
+  const expandedBrandLabelClassName = isCollapsed
     ? 'opacity-0 translate-x-1'
     : 'opacity-100 -translate-x-4';
+  const expandedNavLabelClassName = isCollapsed
+    ? 'opacity-0 translate-x-1'
+    : 'opacity-100 translate-x-0';
+  const navButtonLayoutClassName = isCollapsed
+    ? 'grid-cols-[4rem_minmax(0,1fr)] items-center'
+    : 'grid-cols-[4rem_minmax(0,1fr)] items-center pr-3';
 
   const btnClass = (isActive: boolean) =>
-    `osint-sidebar-nav-item grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center rounded-none border-l py-3 text-left outline-none ${
+    `osint-sidebar-nav-item grid min-h-12 w-full py-3 text-left outline-none ${navButtonLayoutClassName} ${
       isActive ? '' : 'text-zinc-500'
     }`;
 
@@ -100,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <div
-            className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
+            className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedBrandLabelClassName}`}
           >
             <span className="font-osint-display text-xl font-bold tracking-widest text-zinc-400">
               SHER<span className="text-osint-primary">LOCK</span>
@@ -108,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        <nav className="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-2 py-4 custom-scrollbar">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -123,33 +129,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex items-center justify-center">
                   <Icon className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0" />
                 </div>
-                <div
-                  className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
-                >
-                  <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
-                    {item.label}
-                  </span>
-                </div>
+                {!isCollapsed ? (
+                  <div
+                    className={`min-w-0 overflow-hidden whitespace-nowrap pr-2 transition-all duration-200 ${expandedNavLabelClassName}`}
+                  >
+                    <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
+                      {item.label}
+                    </span>
+                  </div>
+                ) : null}
               </button>
             );
           })}
         </nav>
 
-        {/* Run queue - Now blends seamlessly as a bottom nav section */}
-        <RunQueue
-          workspaceRuns={workspaceRuns}
-          activeRunId={activeRunId}
-          onSelectRun={onSelectRun}
-          onClearCompleted={onClearCompleted}
-          isCollapsed={isCollapsed}
-          onExpand={() => isCollapsed && toggleCollapse()}
-        />
-
-        <div className="osint-shell-divider-top flex-shrink-0">
+        <div className="osint-shell-divider-top flex-shrink-0 space-y-1 px-2 py-2">
+          <RunQueue
+            workspaceRuns={workspaceRuns}
+            activeRunId={activeRunId}
+            onSelectRun={onSelectRun}
+            onClearCompleted={onClearCompleted}
+            isCollapsed={isCollapsed}
+            onExpand={() => isCollapsed && toggleCollapse()}
+          />
           <button
             onClick={onToggleWorkbench}
             disabled={!isWorkbenchAvailable}
-            className={`${btnClass(isWorkbenchOpen)} py-4 disabled:cursor-not-allowed disabled:opacity-40`}
+            className={`${btnClass(isWorkbenchOpen)} disabled:cursor-not-allowed disabled:opacity-40`}
             data-active={isWorkbenchOpen ? 'true' : 'false'}
             title={
               isCollapsed
@@ -163,17 +169,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center justify-center">
               <SlidersHorizontal className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0" />
             </div>
-            <div
-              className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
-            >
-              <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
-                Workbench
-              </span>
-            </div>
+            {!isCollapsed ? (
+              <div
+                className={`min-w-0 overflow-hidden whitespace-nowrap pr-2 transition-all duration-200 ${expandedNavLabelClassName}`}
+              >
+                <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
+                  Workbench
+                </span>
+              </div>
+            ) : null}
           </button>
           <button
             onClick={onToggleTheme}
-            className="osint-sidebar-nav-item grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center border-l py-4 text-left text-zinc-500 outline-none"
+            className={`osint-sidebar-nav-item grid min-h-12 w-full py-3 text-left text-zinc-500 outline-none ${navButtonLayoutClassName}`}
             data-active="false"
             title={isCollapsed ? (themeMode === 'dark' ? 'Light' : 'Dark') : undefined}
             aria-label={themeMode === 'dark' ? 'Light' : 'Dark'}
@@ -185,17 +193,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Moon className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0 text-osint-primary" />
               )}
             </div>
-            <div
-              className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
-            >
-              <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
-                {themeMode === 'dark' ? 'Light' : 'Dark'}
-              </span>
-            </div>
+            {!isCollapsed ? (
+              <div
+                className={`min-w-0 overflow-hidden whitespace-nowrap pr-2 transition-all duration-200 ${expandedNavLabelClassName}`}
+              >
+                <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
+                  {themeMode === 'dark' ? 'Light' : 'Dark'}
+                </span>
+              </div>
+            ) : null}
           </button>
           <button
             onClick={() => onChangeView(AppView.SETTINGS)}
-            className={`${btnClass(currentView === AppView.SETTINGS)} py-4`}
+            className={btnClass(currentView === AppView.SETTINGS)}
             data-active={currentView === AppView.SETTINGS ? 'true' : 'false'}
             title={isCollapsed ? 'Settings' : undefined}
             aria-label="Settings"
@@ -203,13 +213,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center justify-center">
               <Settings className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0" />
             </div>
-            <div
-              className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
-            >
-              <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
-                Settings
-              </span>
-            </div>
+            {!isCollapsed ? (
+              <div
+                className={`min-w-0 overflow-hidden whitespace-nowrap pr-2 transition-all duration-200 ${expandedNavLabelClassName}`}
+              >
+                <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
+                  Settings
+                </span>
+              </div>
+            ) : null}
           </button>
         </div>
       </aside>
