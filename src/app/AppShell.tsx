@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 
 import { AppView } from '@/types';
 import { ApiKeyModal } from '@/components/ui/ApiKeyModal';
@@ -8,6 +8,73 @@ import { ToastContainer } from '@/components/ui/Toast';
 import { AppShellRoutes } from '@/app/AppShellRoutes';
 import { RouteErrorBoundary } from '@/app/RouteErrorBoundary';
 import { useAppShellController } from '@/app/useAppShellController';
+import { AppWorkbenchHost } from '@/app/workbench/AppWorkbenchHost';
+import { AppWorkbenchHostProvider } from '@/app/workbench/AppWorkbenchHostProvider';
+import { useAppWorkbenchHost } from '@/app/workbench/useAppWorkbenchHost';
+
+const AppShellWorkspaceChrome: React.FC<{
+  controller: ReturnType<typeof useAppShellController>;
+}> = ({ controller }) => {
+  const { hasPanel, isOpen, placement, toggleWorkbench } = useAppWorkbenchHost();
+
+  return (
+    <div
+      className="osint-app-shell flex min-h-screen overflow-hidden bg-osint-dark font-sans text-osint-text selection:bg-osint-primary selection:text-black"
+      data-header-hidden={controller.shouldHideRouteHeader ? 'true' : 'false'}
+    >
+      {controller.showApiKeyPrompt && (
+        <ApiKeyModal
+          onKeySet={controller.handleApiKeySet}
+          onBypass={controller.handleApiKeyPromptBypass}
+        />
+      )}
+
+      <Sidebar
+        currentView={controller.routeCurrentView}
+        onChangeView={controller.handleNavigateToView}
+        isCollapsed={controller.isSidebarCollapsed}
+        toggleCollapse={() => controller.setIsSidebarCollapsed(!controller.isSidebarCollapsed)}
+        workspaceRuns={controller.workspaceRuns}
+        activeRunId={controller.activeRunId}
+        onSelectRun={controller.handleSelectRun}
+        onClearCompleted={controller.handleClearCompleted}
+        themeMode={controller.themeMode}
+        onToggleTheme={() =>
+          controller.setThemeMode(controller.themeMode === 'dark' ? 'light' : 'dark')
+        }
+        isWorkbenchAvailable={hasPanel}
+        isWorkbenchOpen={hasPanel && isOpen}
+        onToggleWorkbench={toggleWorkbench}
+      />
+
+      <main
+        className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${controller.isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}
+      >
+        <div className="flex flex-1 overflow-hidden relative w-full">
+          {placement === 'left' ? <AppWorkbenchHost /> : null}
+          <div className="flex-1 overflow-hidden relative w-full">
+            <RouteErrorBoundary resetKey={controller.locationPathname}>
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-full bg-black">
+                    <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
+                      LOADING_PROTOCOL...
+                    </div>
+                  </div>
+                }
+              >
+                <AppShellRoutes controller={controller} />
+              </Suspense>
+            </RouteErrorBoundary>
+          </div>
+          {placement === 'right' ? <AppWorkbenchHost /> : null}
+        </div>
+      </main>
+      {controller.showHelpModal && <HelpModal onClose={() => controller.setShowHelpModal(false)} />}
+      <ToastContainer />
+    </div>
+  );
+};
 
 export function AppShell() {
   const controller = useAppShellController();
@@ -57,53 +124,8 @@ export function AppShell() {
   }
 
   return (
-    <div
-      className="osint-app-shell flex min-h-screen overflow-hidden bg-osint-dark font-sans text-osint-text selection:bg-osint-primary selection:text-black"
-      data-header-hidden={controller.shouldHideRouteHeader ? 'true' : 'false'}
-    >
-      {controller.showApiKeyPrompt && (
-        <ApiKeyModal
-          onKeySet={controller.handleApiKeySet}
-          onBypass={controller.handleApiKeyPromptBypass}
-        />
-      )}
-
-      <Sidebar
-        currentView={controller.routeCurrentView}
-        onChangeView={controller.handleNavigateToView}
-        isCollapsed={controller.isSidebarCollapsed}
-        toggleCollapse={() => controller.setIsSidebarCollapsed(!controller.isSidebarCollapsed)}
-        workspaceRuns={controller.workspaceRuns}
-        activeRunId={controller.activeRunId}
-        onSelectRun={controller.handleSelectRun}
-        onClearCompleted={controller.handleClearCompleted}
-        themeMode={controller.themeMode}
-        onToggleTheme={() =>
-          controller.setThemeMode(controller.themeMode === 'dark' ? 'light' : 'dark')
-        }
-      />
-
-      <main
-        className={`flex-1 flex flex-col h-screen bg-osint-dark relative transition-all duration-300 overflow-hidden ${controller.isSidebarCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'}`}
-      >
-        <div className="flex-1 overflow-hidden relative w-full">
-          <RouteErrorBoundary resetKey={controller.locationPathname}>
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center h-full bg-black">
-                  <div className="text-osint-primary font-mono text-sm animate-pulse tracking-widest">
-                    LOADING_PROTOCOL...
-                  </div>
-                </div>
-              }
-            >
-              <AppShellRoutes controller={controller} />
-            </Suspense>
-          </RouteErrorBoundary>
-        </div>
-      </main>
-      {controller.showHelpModal && <HelpModal onClose={() => controller.setShowHelpModal(false)} />}
-      <ToastContainer />
-    </div>
+    <AppWorkbenchHostProvider>
+      <AppShellWorkspaceChrome controller={controller} />
+    </AppWorkbenchHostProvider>
   );
 }

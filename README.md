@@ -40,7 +40,7 @@ This repository also contains a separate standalone canon studio in [`canon-desi
 - `Live Monitor`: live signal scans, shared slider/date controls for monitor settings, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
 - `Files`: workspace browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
 - `Finder`: discovery scanning and analysis launch with shared toolbar date-range filtering
-- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and a docked theme workspace with editable theme templates, dark/light preview separation, save/revert/reset flows, JSON/CSS export, and shared range-field controls
+- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and theme controls that now register into the shared app workbench host for draft/export utility actions alongside the routed settings shell
 
 ## Tech Stack
 
@@ -149,13 +149,14 @@ npm run check:full
 
 ## Current Validation Snapshot (April 17, 2026)
 
-The current targeted validation for the Stage 4 routed-shell closeout and remaining shared-shell adoption pass succeeded on this checkout:
+The current targeted validation for the Stage 5 app-shell workbench host cutover succeeded on this checkout:
 
-- `npm run test -- src/app/routeViews.test.tsx src/app/AppShellRoutes.test.tsx src/components/features/Chat/ChatPage.test.tsx src/components/features/WorkspaceHome/index.test.tsx src/components/features/Files.launch.test.tsx src/components/features/LiveMonitor/launchPropagation.test.tsx src/components/features/WorkspaceBoard/BoardAgentRail.test.tsx src/components/features/OperationView/ArtifactViewer.test.tsx`: passes
+- `npx vitest run src/app/workbench/AppWorkbenchHost.test.tsx src/app/AppShell.test.tsx src/app/AppShellRoutes.test.tsx src/app/routeViews.test.tsx src/components/system/layout/DockPanel.test.tsx src/components/ui/Sidebar.test.tsx src/components/features/Chat/ChatPage.test.tsx src/components/features/WorkspaceHome/index.test.tsx --reporter verbose`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes
-- all routed in-app pages mounted by `AppShellRoutes` now compose through the shared shell contract; the public `/welcome` landing page remains intentionally outside `PageShell`
+- the app shell now owns one shared workbench host with a sidebar trigger, app-level left/right docking, and route-pluggable utility-panel registration; the current live consumer is the Settings theme workspace
+- all routed in-app pages mounted by `AppShellRoutes` still compose through the shared shell contract; the public `/welcome` landing page remains intentionally outside `PageShell`
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits chunk-size warnings for `vendor-tldraw-app` and `vendor`; these remain documented review checkpoints
 

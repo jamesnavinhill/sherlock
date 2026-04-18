@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, RefreshCw, Save, X } from 'lucide-react';
 
+import { useRegisterAppWorkbenchPanel } from '@/app/workbench/useAppWorkbenchHost';
 import { DockPanel } from '@/components/system/layout/DockPanel';
 import { PageShell } from '@/components/system/layout/PageShell';
 import {
@@ -13,18 +14,12 @@ import {
 } from '@/components/ui/chrome';
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
 import type { InvestigationLaunchRequest } from '@/types';
-import { buildAccentColor } from '@/utils/accent';
-import {
-  SHERLOCK_THEME_LIBRARY_TEMPLATES,
-  type SherlockThemeWorkspaceState,
-} from '@/system/theme/schema';
-import {
-  SETTINGS_TAB_DESCRIPTIONS,
-  TABS,
-} from './settingsUtils';
+import { type SherlockThemeWorkspaceState } from '@/system/theme/schema';
+import { SETTINGS_TAB_DESCRIPTIONS, TABS } from './settingsUtils';
 import { SettingsDataTab } from './SettingsDataTab';
 import { SettingsDialogs } from './SettingsDialogs';
 import { SettingsRuntimeTab } from './SettingsRuntimeTab';
+import { SettingsThemeWorkbenchPanel } from './SettingsThemeWorkbenchPanel';
 import { SettingsScopesTab } from './SettingsScopesTab';
 import { SettingsTemplatesTab } from './SettingsTemplatesTab';
 import { SettingsThemeTab } from './SettingsThemeTab';
@@ -61,6 +56,43 @@ export const Settings: React.FC<SettingsProps> = ({
   });
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab) ?? TABS[0];
   const activeTabDescription = SETTINGS_TAB_DESCRIPTIONS[activeTab];
+  const themeWorkbenchPanel = React.useMemo(
+    () =>
+      activeTab === 'THEME'
+        ? {
+            id: 'settings-theme-workbench',
+            title: 'Theme Workspace',
+            description:
+              'Theme draft state, template context, and export actions now live in the shared app workbench host.',
+            defaultOpen: true,
+            content: (
+              <SettingsThemeWorkbenchPanel
+                activeTheme={theme.activeTheme}
+                activeThemeId={theme.activeThemeId}
+                exportResolvedCss={theme.exportResolvedCss}
+                exportThemeJson={theme.exportThemeJson}
+                previewMode={theme.previewMode}
+                revertActiveTheme={theme.revertActiveTheme}
+                saveActiveTheme={theme.saveActiveTheme}
+                themeDirty={theme.themeDirty}
+              />
+            ),
+          }
+        : null,
+    [
+      activeTab,
+      theme.activeTheme,
+      theme.activeThemeId,
+      theme.exportResolvedCss,
+      theme.exportThemeJson,
+      theme.previewMode,
+      theme.revertActiveTheme,
+      theme.saveActiveTheme,
+      theme.themeDirty,
+    ]
+  );
+
+  useRegisterAppWorkbenchPanel(themeWorkbenchPanel);
 
   const renderActiveTab = () => {
     if (activeTab === 'DATA') {
@@ -111,89 +143,6 @@ export const Settings: React.FC<SettingsProps> = ({
       />
     );
   };
-
-  const themeSummaryDock =
-      activeTab === 'THEME' ? (
-      <div className="hidden h-full xl:block">
-        <DockPanel placement="right" isOpen widthValue="min(var(--osint-shell-utility-width),24vw)">
-          <div className={`${CHROME_PANEL_HEADER_CLASS} ${CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS}`}>
-            <div className="osint-eyebrow">Workbench</div>
-            <div className="mt-1 osint-panel-title">Theme Workspace</div>
-            <div className="mt-2 osint-body-quiet">
-              Template selection, draft state, and export actions now live in the docked utility rail.
-            </div>
-          </div>
-          <div className={CHROME_RAIL_BODY_CLASS}>
-            <section className="osint-card-section rounded p-4">
-              <div className="osint-meta-label">Preview Mode</div>
-              <div className="mt-2 osint-title-inline capitalize">{theme.previewMode}</div>
-              <div className="mt-3 flex items-center gap-3">
-                <div
-                  className="h-4 w-4 rounded-sm border border-zinc-700"
-                  style={{ background: buildAccentColor(theme.activeTheme.accent) }}
-                />
-                <div className="min-w-0">
-                  <div className="osint-meta-label">Draft Accent</div>
-                  <div className="truncate osint-body-small">{buildAccentColor(theme.activeTheme.accent)}</div>
-                </div>
-              </div>
-            </section>
-
-            <section className="osint-card-section rounded p-4">
-              <div className="osint-meta-label">Active Template</div>
-              <div className="mt-2 osint-title-inline">
-                {SHERLOCK_THEME_LIBRARY_TEMPLATES.find(
-                  (template) => template.id === theme.activeThemeId
-                )?.label ?? 'Theme'}
-              </div>
-              <div className="mt-3 grid gap-2">
-                <div className="osint-card-section-subtle rounded px-3 py-2">
-                  <div className="osint-meta-label">Draft Status</div>
-                  <div className="mt-1 osint-body-quiet">
-                    {theme.themeDirty ? 'Unsaved changes are active in this draft.' : 'Draft matches the saved theme.'}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={theme.saveActiveTheme}
-                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-                >
-                  Save Active Theme
-                </button>
-                <button
-                  type="button"
-                  onClick={theme.revertActiveTheme}
-                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-                >
-                  Revert Draft
-                </button>
-              </div>
-            </section>
-
-            <section className="osint-card-section rounded p-4">
-              <div className="osint-meta-label">Export</div>
-              <div className="mt-2 osint-title-inline">Theme Snapshot</div>
-              <div className="mt-3 grid gap-2">
-                <button
-                  type="button"
-                  onClick={() => void navigator.clipboard.writeText(theme.exportThemeJson)}
-                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-                >
-                  Copy Theme JSON
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void navigator.clipboard.writeText(theme.exportResolvedCss)}
-                  className="osint-settings-surface-button px-3 py-2 text-left osint-meta-label"
-                >
-                  Copy Resolved CSS
-                </button>
-              </div>
-            </section>
-          </div>
-        </DockPanel>
-      </div>
-    ) : null;
 
   return (
     <PageShell
@@ -288,7 +237,6 @@ export const Settings: React.FC<SettingsProps> = ({
           </DockPanel>
         </div>
       }
-      rightDock={themeSummaryDock}
     >
       <main className="relative flex-1 overflow-y-auto custom-scrollbar" data-app-scroll-region>
         <div className="relative min-h-full w-full">

@@ -47,6 +47,10 @@ Supporting shell files now include:
 - `src/app/routeViews.tsx`
 - `src/app/routeViewHelpers.ts`
 - `src/app/AppShell.tsx`
+- `src/app/workbench/AppWorkbenchContext.ts`
+- `src/app/workbench/AppWorkbenchHostProvider.tsx`
+- `src/app/workbench/AppWorkbenchHost.tsx`
+- `src/app/workbench/useAppWorkbenchHost.ts`
 - `src/app/useAppShellController.ts`
 - `src/app/useAppShellEffects.ts`
 - `src/app/useAppShellLaunch.ts`
@@ -147,6 +151,14 @@ Stage 4's routed-shell closeout is now active in runtime code:
 - route-local reader and dialog seams, including the artifact reader, board-agent rail, network graph overlays, and modal shell, now render through shared token-driven shell surfaces instead of route-specific dark wrappers
 - timeline relationship chips now consume the Sherlock graph palette tokens so graph-color tuning reaches visible routed surfaces outside the settings workbench
 - public landing, route fallback, and error-boundary surfaces remain intentionally outside the routed `PageShell` contract because they are app-shell entry/error states rather than workspace pages
+
+Stage 5's app-shell workbench host is also now active in runtime code:
+
+- `AppShell.tsx` now mounts one shared workbench host around the routed app surface instead of leaving utility docking trapped inside `Settings`
+- `Sidebar.tsx` now exposes the global workbench trigger while the shared host owns app-level open/close and left/right dock placement
+- routed consumers register utility content through `useRegisterAppWorkbenchPanel()` rather than rendering route-local right docks
+- `Settings/index.tsx` is the first live consumer of that contract, registering theme draft/export utility content into the shared host instead of hard-wiring its own right-side dock
+- the host/provider split (`AppWorkbenchHostProvider.tsx`, `AppWorkbenchHost.tsx`, `useAppWorkbenchHost.ts`) leaves one explicit route-pluggable contract for future utility panels without introducing a second docking system
 
 The shared input/control layer now also has Sherlock-owned primitives instead of route-local slider/date markup:
 
@@ -730,6 +742,7 @@ Run-setup and template flows now expose:
 - `SettingsDialogs.tsx` owns backup restore, purge confirmation, and import feedback boundaries instead of leaving those workflows inline in the page root
 - the Runtime tab now reuses the same shared runtime-config modules used by run setup, guided chat, template authoring, and launch mapping
 - the Theme tab now edits one docked Sherlock theme workspace rather than separate accent/background/surface/font cards
+- the theme workspace's draft/export utility rail now registers into the shared app-level workbench host instead of rendering as a settings-only right dock
 - the Theme tab's background, graph, typography, shell, and radius sliders now render through the shared `RangeField` contract instead of one-off range markup
 - theme templates are full editable themes with saved/draft separation, preview-mode switching, factory reset, fork-to-custom-slot, and JSON/CSS export
 

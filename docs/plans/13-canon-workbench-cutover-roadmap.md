@@ -258,6 +258,7 @@ Completed stages so far:
 - Stage 2. Unified Theme Platform And Settings Workbench Cutover
 - Stage 3. Shared Controls And Input-Surface Parity Cutover
 - Stage 4. Routed Theme Adoption And Shell Cleanup Closeout
+- Stage 5. App-Shell Workbench Host And Routed Utility-Panel Adoption
 
 Delivered from those completed stages:
 
@@ -275,7 +276,16 @@ Delivered from those completed stages:
 - Files, Feed, Live Monitor, Workspace Home, and Chat now share that same routed page-shell contract, closing the leftover Stage 4 page-shell gaps.
 - Route-local readers and dialogs now reuse token-driven shell surfaces instead of route-specific dark wrappers, so the Sherlock theme now reaches artifact reading, board-agent flows, and network graph overlays.
 - Timeline relation chips now consume the Sherlock graph palette tokens so graph-theme changes affect the real routed shell rather than only the settings preview.
+- The app shell now owns one shared workbench host with a sidebar trigger, app-level left/right dock placement, and route-pluggable utility-panel registration through `useRegisterAppWorkbenchPanel()`.
+- Settings is now the first live consumer of that shared host, moving its theme draft/export utility rail out of a settings-only right-dock assumption.
 - README and architecture docs have been updated to reflect the landed shell, theme-platform, and shared-control behavior.
+
+Stage 5 closeout progress on April 17, 2026:
+
+- `AppShell.tsx` now mounts a shared workbench host around the routed shell while `Sidebar.tsx` exposes the global workbench trigger.
+- The shared host now owns app-level open/close state plus left/right dock placement instead of leaving those behaviors inside one route.
+- `src/app/workbench/AppWorkbenchContext.ts`, `AppWorkbenchHostProvider.tsx`, `AppWorkbenchHost.tsx`, and `useAppWorkbenchHost.ts` define the routed utility-panel registration contract for future consumers.
+- `Settings/index.tsx` now registers theme draft/export utility content into that shared host, and `SettingsThemeWorkbenchPanel.tsx` isolates the migrated utility content from the routed settings page shell.
 
 ## Stage 3. Shared Controls And Input-Surface Parity Cutover
 

@@ -4,6 +4,7 @@ import {
   Radio,
   FileText,
   Settings,
+  SlidersHorizontal,
   FolderClosed,
   Network,
   Sun,
@@ -27,6 +28,9 @@ interface SidebarProps {
   onClearCompleted: () => void;
   themeMode: 'dark' | 'light';
   onToggleTheme: () => void;
+  isWorkbenchAvailable: boolean;
+  isWorkbenchOpen: boolean;
+  onToggleWorkbench: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -40,6 +44,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClearCompleted,
   themeMode,
   onToggleTheme,
+  isWorkbenchAvailable,
+  isWorkbenchOpen,
+  onToggleWorkbench,
 }) => {
   const expandedLabelClassName = isCollapsed
     ? 'opacity-0 translate-x-1'
@@ -135,6 +142,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
 
         <div className="border-t border-zinc-800 flex-shrink-0">
+          <button
+            onClick={onToggleWorkbench}
+            disabled={!isWorkbenchAvailable}
+            className={`${btnClass(isWorkbenchOpen)} py-4 disabled:cursor-not-allowed disabled:opacity-40`}
+            data-active={isWorkbenchOpen ? 'true' : 'false'}
+            title={
+              isCollapsed
+                ? isWorkbenchAvailable
+                  ? 'Workbench'
+                  : 'Workbench unavailable on this view'
+                : undefined
+            }
+            aria-label="Workbench"
+          >
+            <div className="flex items-center justify-center">
+              <SlidersHorizontal className="osint-sidebar-nav-icon h-5 w-5 flex-shrink-0" />
+            </div>
+            <div
+              className={`min-w-0 overflow-hidden whitespace-nowrap pr-4 transition-all duration-200 ${expandedLabelClassName}`}
+            >
+              <span className="osint-sidebar-nav-label font-osint-label font-medium text-sm uppercase tracking-wide">
+                Workbench
+              </span>
+            </div>
+          </button>
           <button
             onClick={onToggleTheme}
             className="osint-sidebar-nav-item grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center border-l py-4 text-left text-zinc-500 outline-none"

@@ -23,6 +23,9 @@ describe('Sidebar', () => {
         onClearCompleted={vi.fn()}
         themeMode="dark"
         onToggleTheme={vi.fn()}
+        isWorkbenchAvailable={false}
+        isWorkbenchOpen={false}
+        onToggleWorkbench={vi.fn()}
       />
     );
 
@@ -47,6 +50,9 @@ describe('Sidebar', () => {
         onClearCompleted={vi.fn()}
         themeMode="dark"
         onToggleTheme={vi.fn()}
+        isWorkbenchAvailable={false}
+        isWorkbenchOpen={false}
+        onToggleWorkbench={vi.fn()}
       />
     );
 
@@ -64,6 +70,9 @@ describe('Sidebar', () => {
         onClearCompleted={vi.fn()}
         themeMode="light"
         onToggleTheme={vi.fn()}
+        isWorkbenchAvailable={false}
+        isWorkbenchOpen={false}
+        onToggleWorkbench={vi.fn()}
       />
     );
 
