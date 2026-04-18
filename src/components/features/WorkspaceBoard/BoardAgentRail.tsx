@@ -136,15 +136,15 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
     ? boardAgentReviewState.actionIds.filter((actionId) => boardAgentReviewSelections[actionId])
         .length
     : 0;
-  const headerToneSurfaceClassName = 'border border-zinc-800 bg-zinc-900/30';
-  const headerToneChipClassName = 'rounded-none border border-zinc-800 bg-zinc-900/30';
+  const headerToneSurfaceClassName = 'osint-shell-stage-surface';
+  const headerToneChipClassName = 'osint-shell-chip';
   const hoverToolbarIconClassName =
     'h-4 w-4 text-current transition-colors group-hover:[color:var(--osint-primary)] group-focus-visible:[color:var(--osint-primary)]';
   const activeToolbarIconClassName = 'h-4 w-4 [color:var(--osint-primary)]';
   const composerToolButtonClassName =
-    'group inline-flex h-9 w-9 items-center justify-center text-zinc-500 transition hover:text-osint-primary focus-visible:text-osint-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
+    'osint-ghost-button group inline-flex h-9 w-9 items-center justify-center text-[color:var(--osint-text-muted)] transition hover:text-osint-primary focus-visible:text-osint-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
   const boardTranscriptBodyClassName =
-    'prose prose-invert max-w-none text-sm leading-7 text-zinc-200 prose-p:my-2 prose-ul:my-2 prose-headings:my-3 [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_p]:text-inherit [&_li]:text-inherit [&_ol]:text-inherit [&_ul]:text-inherit [&_strong]:text-inherit [&_em]:text-inherit [&_code]:text-inherit [&_blockquote]:text-inherit';
+    'prose prose-invert max-w-none text-sm leading-7 text-[color:var(--osint-text-strong)] prose-p:my-2 prose-ul:my-2 prose-headings:my-3 [&_h1]:text-inherit [&_h2]:text-inherit [&_h3]:text-inherit [&_h4]:text-inherit [&_h5]:text-inherit [&_h6]:text-inherit [&_p]:text-inherit [&_li]:text-inherit [&_ol]:text-inherit [&_ul]:text-inherit [&_strong]:text-inherit [&_em]:text-inherit [&_code]:text-inherit [&_blockquote]:text-inherit';
   const latestPersistedMessage =
     typeof visibleBoardAgentSession?.metadata?.latestMessage === 'string'
       ? visibleBoardAgentSession.metadata.latestMessage
@@ -191,8 +191,8 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
     session.title.trim() && session.title.trim() !== session.request.trim()
       ? session.title
       : 'Board agent';
-  const sharedSectionSurfaceClassName = `border border-zinc-800 bg-zinc-900/30`;
-  const transcriptSurfaceClassName = 'border-x border-zinc-800 bg-zinc-900/30';
+  const sharedSectionSurfaceClassName = 'osint-shell-stage-surface';
+  const transcriptSurfaceClassName = 'osint-shell-stage-surface';
   const composerShellClassName = `${sharedSectionSurfaceClassName} -mt-px overflow-visible`;
   const composerInputClassName = 'overflow-hidden';
 
@@ -318,19 +318,19 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                 </div>
 
                 {boardAgentReviewState.phase === 'REVIEW' ? (
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 px-4 py-4">
-                    <div className="osint-body-quiet">
-                      {selectedReviewCount} of {boardAgentReviewActions.length} action
-                      {boardAgentReviewActions.length === 1 ? '' : 's'} selected
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={onSkipPlan}
-                        className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-3 py-2 osint-meta-label-strong text-zinc-400 transition hover:border-zinc-500 hover:text-white"
-                      >
-                        Skip All
-                      </button>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 px-4 py-4">
+                      <div className="osint-body-quiet">
+                        {selectedReviewCount} of {boardAgentReviewActions.length} action
+                        {boardAgentReviewActions.length === 1 ? '' : 's'} selected
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={onSkipPlan}
+                          className="osint-button-chrome inline-flex items-center gap-2 px-3 py-2 osint-meta-label-strong"
+                        >
+                          Skip All
+                        </button>
                       <button
                         type="button"
                         onClick={onApprovePlan}
@@ -361,7 +361,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                       </div>
                     </div>
 
-                    <div className="whitespace-pre-wrap text-right osint-body-small leading-6 text-zinc-100">
+                    <div className="whitespace-pre-wrap text-right osint-body-small leading-6 text-[color:var(--osint-text-heading)]">
                       {userTranscriptMessage}
                     </div>
 
@@ -558,7 +558,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     />
                   </button>
                   {starterMenuOpen ? (
-                    <div className="absolute bottom-11 left-0 z-30 w-72 border border-zinc-800 bg-black shadow-2xl">
+                    <div className="osint-menu-panel absolute bottom-11 left-0 z-30 w-72 shadow-2xl">
                       {BOARD_AGENT_STARTER_INTENTS.map((intent) => (
                         <button
                           key={intent.id}
@@ -567,9 +567,9 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                             onSelectStarterIntent(intent.prompt);
                             setStarterMenuOpen(false);
                           }}
-                          className="block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 hover:bg-zinc-900/80"
+                          className="osint-menu-item block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0"
                         >
-                          <div className="osint-meta-label-strong text-zinc-200">{intent.label}</div>
+                          <div className="osint-meta-label-strong">{intent.label}</div>
                           <div className="mt-1 osint-body-quiet">{intent.description}</div>
                         </button>
                       ))}
@@ -596,7 +596,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                     />
                   </button>
                   {sessionMenuOpen ? (
-                    <div className="absolute bottom-11 left-0 z-30 w-80 border border-zinc-800 bg-black shadow-2xl">
+                    <div className="osint-menu-panel absolute bottom-11 left-0 z-30 w-80 shadow-2xl">
                       <div className="border-b border-zinc-800 px-3 py-2 osint-menu-section-label">
                         Session History
                       </div>
@@ -643,7 +643,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                               {boardAgentTodoItems.slice(0, 4).map((item) => (
                                 <div
                                   key={item.id}
-                                  className="flex items-start justify-between gap-3 border border-zinc-800 bg-zinc-950/80 px-3 py-2"
+                                  className="osint-shell-stage-surface-subtle flex items-start justify-between gap-3 px-3 py-2"
                                 >
                                   <div className="osint-body-small">{item.text}</div>
                                   <div className="shrink-0 osint-meta-label">{item.status}</div>
@@ -671,12 +671,12 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                                   onSelectSession(session.id);
                                   setSessionMenuOpen(false);
                                 }}
-                                className={`block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 ${
-                                  isActive ? 'bg-zinc-950/80' : 'hover:bg-zinc-900/80'
+                                className={`osint-menu-item block w-full border-b border-zinc-800 px-3 py-3 text-left transition last:border-b-0 ${
+                                  isActive ? 'bg-[var(--osint-menu-selection-bg)]' : ''
                                 } disabled:cursor-not-allowed disabled:opacity-60`}
                               >
                                 <div className="flex items-center justify-between gap-3">
-                                  <div className="osint-meta-value text-zinc-200">
+                                  <div className="osint-meta-value">
                                     {getSessionDisplayTitle(session)}
                                   </div>
                                   <div

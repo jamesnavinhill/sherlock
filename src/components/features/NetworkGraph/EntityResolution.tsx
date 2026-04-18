@@ -146,19 +146,19 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-300 md:p-6"
+      className="osint-shell-backdrop fixed inset-0 z-[1200] flex items-center justify-center p-4 animate-in fade-in duration-300 md:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
         }
       }}
     >
-      <div className="bg-osint-panel flex h-[90vh] w-[95vw] flex-col overflow-hidden rounded-sm border border-zinc-700 shadow-2xl">
+      <div className="osint-shell-dialog-panel flex h-[90vh] w-[95vw] flex-col overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-black flex-shrink-0">
+        <div className="osint-panel-header flex shrink-0 items-center justify-between p-6">
           <div className="flex items-center space-x-4">
-            <div className="bg-zinc-900 p-2 border border-zinc-800">
-              <Layers className="w-6 h-6 text-white" />
+            <div className="osint-shell-chip p-2">
+              <Layers className="h-6 w-6" />
             </div>
             <div>
               <h2 className="osint-title-section">Entity Clustering</h2>
@@ -178,7 +178,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
             )}
             <button
               onClick={onClose}
-              className="text-zinc-500 hover:text-white transition-colors bg-zinc-900 hover:bg-zinc-800 p-2"
+              className="osint-button-chrome p-2"
             >
               <X className="w-6 h-6" />
             </button>
@@ -186,23 +186,23 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-zinc-800 bg-zinc-900/50 flex-shrink-0">
+        <div className="osint-shell-dialog-footer flex shrink-0">
           <button
             onClick={() => setActiveTab('CLUSTERS')}
-            className={`osint-meta-label-strong flex-1 border-r border-zinc-800 px-8 py-4 transition-all md:flex-none ${activeTab === 'CLUSTERS' ? 'osint-button-soft' : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200'}`}
+            className={`osint-meta-label-strong flex-1 border-r border-zinc-800 px-8 py-4 transition-all md:flex-none ${activeTab === 'CLUSTERS' ? 'osint-button-soft' : 'osint-button-chrome border-0 bg-transparent text-[color:var(--osint-text-muted)] shadow-none hover:text-[color:var(--osint-text-heading)]'}`}
           >
             Detected Clusters ({clusters.length})
           </button>
           <button
             onClick={() => setActiveTab('MANAGE')}
-            className={`osint-meta-label-strong flex-1 border-r border-zinc-800 px-8 py-4 transition-all md:flex-none ${activeTab === 'MANAGE' ? 'osint-button-soft' : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200'}`}
+            className={`osint-meta-label-strong flex-1 border-r border-zinc-800 px-8 py-4 transition-all md:flex-none ${activeTab === 'MANAGE' ? 'osint-button-soft' : 'osint-button-chrome border-0 bg-transparent text-[color:var(--osint-text-muted)] shadow-none hover:text-[color:var(--osint-text-heading)]'}`}
           >
             Active Mappings ({Object.keys(currentAliases).length})
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-black/50">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {activeTab === 'CLUSTERS' && (
             <div className="space-y-6">
               {clusters.length === 0 ? (
@@ -217,7 +217,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                 clusters.map((cluster, idx) => (
                   <div
                     key={idx}
-                    className="bg-osint-panel border border-zinc-800 p-6 flex flex-col md:flex-row gap-6 relative group hover:border-osint-primary/50 transition-colors"
+                    className="osint-shell-stage-surface p-6 flex flex-col md:flex-row gap-6 relative group hover:border-osint-primary/50 transition-colors"
                   >
                     {/* Left: Cluster List */}
                     <div className="flex-1 min-w-0">
@@ -227,7 +227,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                         <span className="osint-body-quiet">({cluster.length} variations)</span>
                       </div>
 
-                      <div className="space-y-1 bg-zinc-900/50 p-4 border border-zinc-800">
+                      <div className="osint-shell-stage-surface-subtle space-y-1 p-4">
                         <div className="mb-2 flex items-center justify-between px-2">
                           <span className="osint-meta-label">Target Node</span>
                           <span className="osint-meta-label">Include in Merge</span>
@@ -315,7 +315,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
 
                       <button
                         onClick={() => handleIgnoreCluster(idx)}
-                        className="osint-meta-label-strong flex w-full items-center justify-center border border-zinc-800 bg-black px-4 py-2 text-zinc-500 transition-colors hover:bg-zinc-900"
+                        className="osint-button-chrome osint-meta-label-strong flex w-full items-center justify-center px-4 py-2"
                       >
                         <X className="w-4 h-4 mr-2" />
                         Ignore Cluster
@@ -345,7 +345,7 @@ export const EntityResolution: React.FC<EntityResolutionProps> = ({
                 Object.entries(currentAliases).map(([alias, canonical]) => (
                   <div
                     key={alias}
-                    className="bg-zinc-900/30 border border-zinc-800 p-4 flex flex-col md:flex-row items-center justify-between group hover:border-zinc-600 transition-colors"
+                    className="osint-shell-stage-surface-subtle p-4 flex flex-col md:flex-row items-center justify-between group transition-colors"
                   >
                     <div className="flex flex-1 items-center justify-center md:justify-start w-full md:w-auto mb-4 md:mb-0 space-x-4">
                       <div className="flex-1 text-right md:text-left">

@@ -90,9 +90,9 @@ const matchesReference = (reference?: string | null, candidate?: string | null) 
 const dedupeById = <T extends { id: string }>(items: T[]) =>
   Array.from(new Map(items.map((item) => [item.id, item])).values());
 
-const ARTIFACT_VIEWER_SECTION_CLASS = `${CHROME_CARD_SURFACE_CLASS} p-6 transition-colors`;
+const ARTIFACT_VIEWER_SECTION_CLASS = `${CHROME_CARD_SURFACE_CLASS} osint-shell-stage-surface p-6 transition-colors`;
 
-const ARTIFACT_VIEWER_SUBSECTION_CLASS = `${CHROME_CARD_SECTION_SUBTLE_CLASS} p-4 transition-colors`;
+const ARTIFACT_VIEWER_SUBSECTION_CLASS = `${CHROME_CARD_SECTION_SUBTLE_CLASS} osint-shell-stage-surface-subtle p-4 transition-colors`;
 
 const SECTION_HEADER_CLASS =
   'flex items-center justify-between gap-4 border-b border-zinc-800 pb-4';
@@ -181,7 +181,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         {...props}
         target="_blank"
         rel="noopener noreferrer"
-        className="osint-inline-text-link osint-body-small text-zinc-300 no-underline"
+        className="osint-inline-text-link osint-body-small text-[color:var(--osint-text-strong)] no-underline"
       >
         {children}
       </a>
@@ -412,10 +412,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             type="button"
             onClick={() => jumpToEvidence(evidence.id)}
             className={cx(
-              'inline-flex items-center gap-1 border px-2 py-1 osint-meta-label transition',
+              'osint-shell-chip inline-flex items-center gap-1 px-2 py-1 osint-meta-label transition',
               highlightedEvidenceId === evidence.id
                 ? 'border-osint-primary bg-osint-primary/15 text-white'
-                : 'border-zinc-700 bg-zinc-950 text-zinc-300 hover:border-osint-primary hover:text-white'
+                : ''
             )}
           >
             <Globe className="h-3 w-3" />
@@ -434,10 +434,10 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         <div className="space-y-4">
           {timelineItems.map((item, index) => (
             <div key={`${section.id}-${index}`} className="flex gap-4">
-              <div className="flex flex-col items-center">
-                <div className="mt-1 h-2 w-2 rounded-full bg-osint-primary" />
-                {index < timelineItems.length - 1 ? (
-                  <div className="mt-2 h-full w-px bg-zinc-700" />
+                <div className="flex flex-col items-center">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-osint-primary" />
+                  {index < timelineItems.length - 1 ? (
+                  <div className="osint-shell-rule mt-2 h-full w-px" />
                 ) : null}
               </div>
               <div className="flex-1 pb-1">
@@ -502,7 +502,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
         className={cx(
           ARTIFACT_VIEWER_SECTION_CLASS,
           highlightedSectionId === displayedSectionId
-            ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+            ? 'osint-shell-highlight-surface'
             : undefined
         )}
       >
@@ -575,7 +575,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
             <textarea
               value={editingSectionDraft}
               onChange={(event) => setEditingSectionDraft(event.target.value)}
-              className="min-h-[16rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 osint-prose text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+              className="osint-input-field min-h-[16rem] w-full resize-y p-4 osint-prose"
               spellCheck={false}
             />
           ) : (
@@ -588,7 +588,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
   if (showPlaceholder || !report) {
     return (
-      <div className="relative flex flex-1 items-center justify-center bg-black">
+      <div className="osint-shell-content-surface relative flex flex-1 items-center justify-center">
         <EmptyState
           icon={FileText}
           title="No Workspace Selected"
@@ -604,7 +604,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
   }
 
   return (
-    <div className="relative flex flex-1 overflow-hidden bg-black animate-in fade-in duration-500">
+    <div className="osint-shell-content-surface relative flex flex-1 overflow-hidden animate-in fade-in duration-500">
       <div className={mainColumnClassName} data-app-scroll-region>
         <div className="relative">
           <MainContentDotGrid testId="artifact-viewer-dot-grid-background" />
@@ -640,7 +640,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 className={cx(
                   ARTIFACT_VIEWER_SECTION_CLASS,
                   highlightedSectionId === summaryAnchorId
-                    ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                    ? 'osint-shell-highlight-surface'
                     : undefined
                 )}
               >
@@ -731,19 +731,19 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     <textarea
                       value={editingSectionDraft}
                       onChange={(event) => setEditingSectionDraft(event.target.value)}
-                      className="min-h-[18rem] w-full resize-y border border-zinc-700 bg-black/70 p-4 osint-prose text-zinc-200 outline-none transition-colors focus:border-osint-primary"
+                      className="osint-input-field min-h-[18rem] w-full resize-y p-4 osint-prose"
                       spellCheck={false}
                     />
                   ) : isCompositeReportBody ? (
-                    <div className="space-y-5 text-zinc-200">
+                    <div className="space-y-5 text-[color:var(--osint-text-strong)]">
                       {visibleReportBodyBlocks.map((block, index) => (
                         <div key={`${block.title || 'body'}-${index}`} className="space-y-2">
                           {block.title ? (
-                            <div className="osint-body-small font-semibold tracking-[0.02em] text-white">
+                            <div className="osint-body-small font-semibold tracking-[0.02em] text-[color:var(--osint-text-heading)]">
                               {block.title}
                             </div>
                           ) : null}
-                          <div className="osint-prose max-w-none whitespace-pre-wrap text-zinc-200">
+                          <div className="osint-prose max-w-none whitespace-pre-wrap text-[color:var(--osint-text-strong)]">
                             {block.body}
                           </div>
                         </div>
@@ -768,7 +768,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 className={cx(
                   ARTIFACT_VIEWER_SECTION_CLASS,
                   highlightedSectionId === keyFindingsAnchorId
-                    ? 'border-osint-primary bg-black/10 shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
+                    ? 'osint-shell-highlight-surface'
                     : undefined
                 )}
               >
@@ -776,7 +776,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   <div>
                     <h2 className="font-osint-display osint-title-section">Key Findings</h2>
                   </div>
-                  <div className="osint-meta-label text-zinc-300">
+                  <div className="osint-meta-label">
                     {`${canonicalFindings.length} records`}
                   </div>
                 </div>
@@ -790,7 +790,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       <article key={finding.id} className="py-6 first:pt-0 last:pb-0">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
-                            <h3 className="mt-1 osint-panel-title text-white">{finding.title}</h3>
+                            <h3 className="mt-1 osint-panel-title">{finding.title}</h3>
                           </div>
                           {finding.originSectionId ? (
                             <button
@@ -836,7 +836,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   <div>
                     <h2 className="font-osint-display osint-title-section">Next Steps</h2>
                   </div>
-                  <div className="osint-meta-label text-zinc-300">
+                  <div className="osint-meta-label">
                     {`${visibleFollowUps.length} records`}
                   </div>
                 </div>
@@ -850,7 +850,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
 
                     return (
                       <article key={followUp.id} className="py-6 first:pt-0 last:pb-0">
-                        <p className="max-w-none osint-body-small leading-relaxed text-zinc-300">
+                        <p className="max-w-none osint-body-small leading-relaxed text-[color:var(--osint-text-strong)]">
                           {followUpText}
                         </p>
                         {matchingEntities.length > 0 ? (
@@ -862,7 +862,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                                   key={`${followUp.id}-${entity.name}`}
                                   type="button"
                                   onClick={() => onEntityClick(entity)}
-                                  className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                                  className="osint-shell-chip inline-flex items-center gap-2 px-2 py-1 osint-meta-label transition"
                                 >
                                   <span
                                     className={cx(
@@ -949,7 +949,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     <div className="osint-eyebrow">Evidence Index</div>
                     <h2 className="mt-2 font-osint-display osint-title-section">Evidence Log</h2>
                   </div>
-                  <div className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300">
+                  <div className="osint-shell-chip inline-flex items-center px-2 py-1 osint-meta-label">
                     {`${visibleEvidence.length} items`}
                   </div>
                 </div>
@@ -963,14 +963,14 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                       className={cx(
                         ARTIFACT_VIEWER_SUBSECTION_CLASS,
                         highlightedEvidenceId === evidence.id
-                          ? 'border-osint-primary shadow-[0_0_0_1px_rgba(231,255,77,0.35)]'
-                          : 'border-zinc-800'
+                          ? 'osint-shell-highlight-surface'
+                          : undefined
                       )}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="osint-meta-label">{evidence.kind}</div>
-                          <div className="mt-1 osint-meta-label-strong text-white">
+                          <div className="mt-1 osint-meta-label-strong text-[color:var(--osint-text-heading)]">
                             {evidence.title}
                           </div>
                         </div>
@@ -988,7 +988,7 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           </button>
                         ) : null}
                       </div>
-                      <p className="mt-3 osint-body-small leading-relaxed text-zinc-300">
+                      <p className="mt-3 osint-body-small leading-relaxed text-[color:var(--osint-text-strong)]">
                         {evidence.summary}
                       </p>
                       {evidence.quote ? (

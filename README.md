@@ -149,14 +149,14 @@ npm run check:full
 
 ## Current Validation Snapshot (April 17, 2026)
 
-The current targeted validation for the Stage 4 routed shell first pass passed on this checkout:
+The current targeted validation for the Stage 4 routed shell closeout passed on this checkout:
 
-- `npm run test -- src/components/system/layout/DockPanel.test.tsx`: passes
+- `npm run test -- src/components/features/WorkspaceBoard/BoardAgentRail.test.tsx src/components/features/OperationView/ArtifactViewer.test.tsx`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
-- Vite still emits one large-chunk warning for `vendor-tldraw-app`; this remains a documented exception and review checkpoint
+- Vite still emits chunk-size warnings for `vendor-tldraw-app` and `vendor`; these remain documented review checkpoints
 
 ## Documentation Index
 

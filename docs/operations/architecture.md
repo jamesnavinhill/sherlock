@@ -138,12 +138,13 @@ The Sherlock-owned route shell and dock layout primitives now live in:
 
 Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
 
-Stage 4's first routed-shell pass is now active in runtime code:
+Stage 4's routed-shell closeout is now active in runtime code:
 
-- `WorkspaceBoard/index.tsx`, `TimelineView.tsx`, `NetworkGraph/index.tsx`, and `OperationView/index.tsx` now compose their route wrappers through `PageShell`
+- `WorkspaceBoard/index.tsx`, `TimelineView.tsx`, `NetworkGraph/index.tsx`, and `OperationView/index.tsx` all compose their routed layout through `PageShell`
 - shared mobile panel backdrops now use one shell backdrop treatment rather than per-route `bg-black/80` overlays
 - `DockPanel` now carries a theme-backed `--osint-dock-width` contract, and shared rail/inspector shells default to the Sherlock theme's rail, utility, and sidebar width variables
-- the routed-shell cleanup is still in progress; deeper feature-local content surfaces and modal/dialog seams still contain older dark-palette utility classes
+- route-local reader and dialog seams, including the artifact reader, board-agent rail, network graph overlays, and modal shell, now render through shared token-driven shell surfaces instead of route-specific dark wrappers
+- timeline relationship chips now consume the Sherlock graph palette tokens so graph-color tuning reaches visible routed surfaces outside the settings workbench
 
 The shared input/control layer now also has Sherlock-owned primitives instead of route-local slider/date markup:
 

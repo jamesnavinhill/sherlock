@@ -65,7 +65,7 @@ export const BoardDialogs: React.FC<BoardDialogsProps> = ({
           <div className="flex justify-end gap-3">
             <button
               onClick={onCloseCreateModal}
-              className="border border-zinc-700 px-4 py-2 text-xs font-mono uppercase text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+              className="osint-button-chrome px-4 py-2 text-xs font-mono uppercase"
             >
               Cancel
             </button>
@@ -87,7 +87,7 @@ export const BoardDialogs: React.FC<BoardDialogsProps> = ({
               )
             }
             placeholder="Title"
-            className="w-full border border-zinc-700 bg-black px-3 py-3 text-sm text-white outline-none focus:border-osint-primary"
+            className="osint-input-field w-full px-3 py-3 text-sm"
           />
           {createModal.type === 'NOTE' ? (
             <textarea
@@ -100,7 +100,7 @@ export const BoardDialogs: React.FC<BoardDialogsProps> = ({
                 )
               }
               placeholder="Write the note..."
-              className="h-40 w-full resize-none border border-zinc-700 bg-black px-3 py-3 text-sm text-white outline-none focus:border-osint-primary"
+              className="osint-input-field h-40 w-full resize-none px-3 py-3 text-sm"
             />
           ) : (
             <>
@@ -109,24 +109,24 @@ export const BoardDialogs: React.FC<BoardDialogsProps> = ({
                 onChange={(event) =>
                   onCreateModalChange((current) =>
                     current && current.type === 'LINK'
-                      ? { ...current, url: event.target.value }
-                      : current
+                        ? { ...current, url: event.target.value }
+                        : current
                   )
                 }
                 placeholder="https://..."
-                className="w-full border border-zinc-700 bg-black px-3 py-3 text-sm text-white outline-none focus:border-osint-primary"
+                className="osint-input-field w-full px-3 py-3 text-sm"
               />
               <textarea
                 value={createModal.description}
                 onChange={(event) =>
                   onCreateModalChange((current) =>
                     current && current.type === 'LINK'
-                      ? { ...current, description: event.target.value }
-                      : current
+                        ? { ...current, description: event.target.value }
+                        : current
                   )
                 }
                 placeholder="Why this link matters..."
-                className="h-28 w-full resize-none border border-zinc-700 bg-black px-3 py-3 text-sm text-white outline-none focus:border-osint-primary"
+                className="osint-input-field h-28 w-full resize-none px-3 py-3 text-sm"
               />
             </>
           )}

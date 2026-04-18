@@ -239,12 +239,13 @@ Docs to update when this lands:
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
 
-First pass progress on April 17, 2026:
+Stage 4 closeout progress on April 17, 2026:
 
 - `WorkspaceBoard`, `TimelineView`, `NetworkGraph`, and `OperationView` now compose through `PageShell` instead of keeping separate full-screen route wrappers.
 - Shared rail and inspector shells now default to theme-bound dock widths via `--osint-shell-rail-width`, `--osint-shell-utility-width`, and `--osint-shell-sidebar-width` instead of route-local width classes.
 - Shared shell backdrops and several high-traffic menu/header seams now use shell tokens rather than route-local `bg-black` and `border-zinc-*` treatments.
-- The stage is still in progress: deeper content-surface cleanup remains for route-local readers, dialogs, and feature-specific panels.
+- Route-local readers, dialogs, and feature-specific panels now use shared token-driven shell surfaces, including the artifact reader, board-agent rail, network graph overlays, and modal shell.
+- Timeline relationship chips now use the Sherlock graph palette so routed shell cleanup includes visible graph-token adoption outside the settings preview.
 - `docs/operations/OPERATIONS_RUNBOOK.md`
 
 ## What's Completed
@@ -254,6 +255,7 @@ Completed stages so far:
 - Stage 1. Sherlock Shell Foundation Cutover
 - Stage 2. Unified Theme Platform And Settings Workbench Cutover
 - Stage 3. Shared Controls And Input-Surface Parity Cutover
+- Stage 4. Routed Theme Adoption And Shell Cleanup Closeout
 
 Delivered from those completed stages:
 
@@ -267,6 +269,9 @@ Delivered from those completed stages:
 - The settings theme workbench sliders now use the shared range-field contract instead of custom slider markup.
 - Run Setup, Guided Run Builder, Feed, and Live Monitor now share one date-range control model, including toolbar-trigger and inline field variants.
 - Shared runtime-behavior sliders, including thinking budget and live-monitor counts, now route through the same range-control family instead of per-surface implementations.
+- WorkspaceBoard, Timeline, NetworkGraph, Operation View, and Settings now share one obvious routed page-shell contract with theme-bound shell widths and toolbar sizing.
+- Route-local readers and dialogs now reuse token-driven shell surfaces instead of route-specific dark wrappers, so the Sherlock theme now reaches artifact reading, board-agent flows, and network graph overlays.
+- Timeline relation chips now consume the Sherlock graph palette tokens so graph-theme changes affect the real routed shell rather than only the settings preview.
 - README and architecture docs have been updated to reflect the landed shell, theme-platform, and shared-control behavior.
 
 ## Stage 3. Shared Controls And Input-Surface Parity Cutover

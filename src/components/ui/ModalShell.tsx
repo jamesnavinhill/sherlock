@@ -42,7 +42,7 @@ export const ModalShell: React.FC<ModalShellProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="osint-shell-backdrop fixed inset-0 z-[1200] flex items-center justify-center p-4"
       onMouseDown={(event) => {
         if (closeOnOverlayClick && event.target === event.currentTarget) {
           onClose();
@@ -50,18 +50,18 @@ export const ModalShell: React.FC<ModalShellProps> = ({
       }}
     >
       <div
-        className={`w-full ${widthClassName} ${allowOverflow ? 'overflow-visible' : 'overflow-hidden'} border border-zinc-700 bg-zinc-950 shadow-2xl ${
+        className={`osint-shell-dialog-panel w-full ${widthClassName} ${allowOverflow ? 'overflow-visible' : 'overflow-hidden'} ${
           scrollContent ? 'flex max-h-[calc(100vh-2rem)] flex-col' : ''
         } ${panelClassName}`.trim()}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-zinc-800 bg-black px-6 py-4">
+        <div className="osint-panel-header flex items-start justify-between gap-4 px-6 py-4">
           <div className="min-w-0">
-            <h3 className="osint-panel-title text-white">{title}</h3>
+            <h3 className="osint-panel-title">{title}</h3>
             {description ? <p className="mt-2 osint-body-muted">{description}</p> : null}
           </div>
           <button
             onClick={onClose}
-            className="border border-zinc-800 p-2 text-zinc-500 transition hover:border-zinc-600 hover:text-white"
+            className="osint-button-chrome inline-flex h-9 w-9 items-center justify-center p-0"
             aria-label={`Close ${title}`}
           >
             <X className="h-4 w-4" />
@@ -80,7 +80,7 @@ export const ModalShell: React.FC<ModalShellProps> = ({
           {children}
         </div>
 
-        {footer ? <div className="border-t border-zinc-800 px-6 py-4">{footer}</div> : null}
+        {footer ? <div className="osint-shell-dialog-footer px-6 py-4">{footer}</div> : null}
       </div>
     </div>
   );

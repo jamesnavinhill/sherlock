@@ -53,14 +53,14 @@ export const NetworkGraphAddNodeOverlay: React.FC<NetworkGraphAddNodeOverlayProp
 
   return (
     <>
-      <div className="absolute right-4 top-4 z-50 w-72 border border-zinc-700 bg-black/90 p-4 shadow-xl">
-        <h3 className="mb-3 text-xs font-bold text-white">ADD MANUAL NODE</h3>
+      <div className="osint-shell-dialog-panel absolute right-4 top-4 z-50 w-72 p-4 shadow-xl">
+        <h3 className="mb-3 osint-meta-label-strong">ADD MANUAL NODE</h3>
         <input
           autoFocus
           value={newNodeLabel}
           onChange={(event) => onNodeLabelChange(event.target.value)}
           placeholder="Node Label..."
-          className="mb-2 w-full border border-zinc-700 bg-black px-3 py-2 text-xs font-mono text-zinc-300 outline-none transition hover:border-osint-primary focus:border-osint-primary placeholder:text-zinc-600"
+          className="osint-input-field mb-2 w-full px-3 py-2 text-xs font-mono"
         />
         <div className="mb-3 flex gap-2">
           <button
@@ -101,10 +101,10 @@ export const NetworkGraphAddNodeOverlay: React.FC<NetworkGraphAddNodeOverlayProp
         <button
           type="button"
           onClick={() => setShowIconPicker(true)}
-          className="mb-4 flex w-full items-center justify-between border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-left text-zinc-300 transition hover:border-zinc-600 hover:text-white"
+          className="osint-shell-stage-surface-subtle mb-4 flex w-full items-center justify-between px-3 py-2 text-left"
         >
           <span className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center border border-zinc-800 bg-zinc-950 text-zinc-200">
+            <span className="osint-shell-chip flex h-10 w-10 items-center justify-center">
               <AppIcon iconId={resolvedIconId} size={18} strokeWidth={1.9} />
             </span>
             <span className="min-w-0">
@@ -117,7 +117,7 @@ export const NetworkGraphAddNodeOverlay: React.FC<NetworkGraphAddNodeOverlayProp
           <span className="osint-meta-label">Choose</span>
         </button>
         <div className="flex justify-between">
-          <button onClick={onClose} className="text-xs text-zinc-500 hover:text-white">
+          <button onClick={onClose} className="osint-button-chrome px-3 py-1 text-xs">
             Cancel
           </button>
           <button onClick={onCreateNode} className="osint-button-primary px-3 py-1 text-xs font-bold">

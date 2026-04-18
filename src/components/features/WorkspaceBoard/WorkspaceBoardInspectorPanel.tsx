@@ -144,7 +144,7 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
             selectedEntries.map((entry) => (
               <div key={boardRefKey(entry)} className={CHROME_THIN_NESTED_ITEM_CLASS}>
                 <div className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-950/60 text-zinc-300">
+                  <span className="osint-shell-chip mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
                     <AppIcon iconId={entry.iconId} size={11} strokeWidth={1.9} />
                   </span>
                   <div className="min-w-0">
@@ -243,7 +243,7 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
       sections={sections}
       footer={
         activeBoard ? (
-          <div className="border-t border-zinc-800 bg-black/20 p-3">
+          <div className="osint-shell-dialog-footer p-3">
             <button
               type="button"
               onClick={onDeleteBoard}

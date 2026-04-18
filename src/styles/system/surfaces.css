@@ -77,6 +77,81 @@
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 12%, transparent);
 }
 
+.osint-shell-stage-surface,
+.osint-shell-stage-surface-subtle {
+  color: var(--osint-text-strong);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-shell-stage-surface {
+  background-color: color-mix(in oklab, var(--osint-panel) 74%, var(--osint-dark) 26%);
+  border: 1px solid var(--osint-shell-border);
+  border-radius: var(--osint-panel-radius);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 18%, transparent);
+}
+
+.osint-shell-stage-surface-subtle {
+  background-color: color-mix(in oklab, var(--osint-panel) 54%, transparent);
+  border: 1px solid color-mix(in oklab, var(--osint-shell-border) 72%, transparent);
+  border-radius: var(--osint-panel-radius);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 14%, transparent);
+}
+
+.osint-shell-stage-surface:hover,
+.osint-shell-stage-surface:focus-visible,
+.osint-shell-stage-surface-subtle:hover,
+.osint-shell-stage-surface-subtle:focus-visible {
+  border-color: var(--osint-raised-outline-strong);
+  outline: none;
+}
+
+.osint-shell-highlight-surface {
+  border-color: var(--osint-primary-soft-border) !important;
+  background-color: color-mix(in oklab, var(--osint-primary) 8%, var(--osint-card-surface-bg));
+  box-shadow: var(--osint-accent-outline-glow);
+}
+
+.osint-shell-chip,
+.osint-shell-chip-muted {
+  border-radius: var(--osint-control-radius);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.osint-shell-chip {
+  background-color: color-mix(in oklab, var(--osint-shell-panel-action-bg) 92%, transparent);
+  border: 1px solid var(--osint-shell-border);
+  color: var(--osint-text-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 14%, transparent);
+}
+
+.osint-shell-chip-muted {
+  background-color: color-mix(in oklab, var(--osint-panel) 44%, transparent);
+  border: 1px solid color-mix(in oklab, var(--osint-shell-border) 78%, transparent);
+  color: var(--osint-text-muted);
+}
+
+.osint-shell-chip:hover,
+.osint-shell-chip:focus-visible,
+.osint-shell-chip-muted:hover,
+.osint-shell-chip-muted:focus-visible {
+  border-color: var(--osint-raised-outline-strong);
+  color: var(--osint-text-heading);
+  outline: none;
+}
+
+.osint-shell-rule {
+  background-color: var(--osint-shell-divider-color);
+  box-shadow: var(--osint-shell-divider-shadow-bottom);
+}
+
 .osint-raised-surface-section,
 .osint-panel-item {
   background-color: transparent;
@@ -119,6 +194,22 @@
   box-shadow:
     0 0 0 1px color-mix(in oklab, var(--osint-border) 18%, transparent),
     0 18px 40px -28px rgba(0, 0, 0, 0.72);
+}
+
+.osint-shell-dialog-panel {
+  background-color: color-mix(in oklab, var(--osint-shell-panel-bg) 96%, transparent);
+  border: 1px solid var(--osint-shell-border);
+  border-radius: var(--osint-panel-radius);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 26px 52px -30px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 color-mix(in oklab, var(--osint-ink) 6%, transparent);
+}
+
+.osint-shell-dialog-footer {
+  background-color: var(--osint-shell-panel-action-bg);
+  border-top: var(--osint-shell-divider-width, 1px) solid var(--osint-shell-border);
+  box-shadow: var(--osint-shell-divider-shadow-bottom);
 }
 
 .osint-menu-item {

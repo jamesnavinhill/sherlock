@@ -13,6 +13,12 @@ import {
   getPrimaryRefId,
 } from './timelineViewUtils';
 
+const buildTimelineRelationToneStyle = (slot: 1 | 2 | 3 | 4) => ({
+  borderColor: `color-mix(in oklab, var(--osint-graph-${slot}) 36%, var(--osint-shell-border))`,
+  backgroundColor: `color-mix(in oklab, var(--osint-graph-${slot}) 12%, transparent)`,
+  color: `color-mix(in oklab, var(--osint-graph-${slot}) 74%, var(--osint-text-heading))`,
+});
+
 interface TimelineEventGroup {
   label: string;
   events: TimelineEvent[];
@@ -80,9 +86,9 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
           {groupedEvents.map((group) => (
             <section key={group.label}>
               <div className="mb-3 flex items-center gap-3">
-                <div className="h-px flex-1 bg-zinc-800" />
+                <div className="osint-shell-rule h-px flex-1" />
                 <div className="osint-eyebrow">{group.label}</div>
-                <div className="h-px flex-1 bg-zinc-800" />
+                <div className="osint-shell-rule h-px flex-1" />
               </div>
 
               <div className="space-y-3">
@@ -134,7 +140,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                             {event.badges?.map((badge) => (
                               <span
                                 key={`${event.id}-${badge}`}
-                                className="border border-zinc-700 bg-black px-2 py-1 osint-meta-label text-zinc-500"
+                                className="osint-shell-chip-muted px-2 py-1 osint-meta-label"
                               >
                                 {badge}
                               </span>
@@ -152,7 +158,8 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('ARTIFACT', relatedArtifactId);
                                   }}
-                                  className="border border-violet-500/30 bg-violet-500/5 px-2 py-1 osint-meta-label-strong text-violet-200 transition hover:border-violet-400 hover:text-white"
+                                  className="osint-shell-chip px-2 py-1 osint-meta-label-strong"
+                                  style={buildTimelineRelationToneStyle(1)}
                                 >
                                   In {artifactTitleById.get(relatedArtifactId) || labelProfile.artifactLabel}
                                 </button>
@@ -163,7 +170,8 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('SIGNAL', sourceSignalId);
                                   }}
-                                  className="border border-cyan-500/30 bg-cyan-500/5 px-2 py-1 osint-meta-label-strong text-cyan-200 transition hover:border-cyan-400 hover:text-white"
+                                  className="osint-shell-chip px-2 py-1 osint-meta-label-strong"
+                                  style={buildTimelineRelationToneStyle(2)}
                                 >
                                   From {signalTitleById.get(sourceSignalId) || 'Signal'}
                                 </button>
@@ -174,7 +182,8 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('ARTIFACT', previousArtifactId);
                                   }}
-                                  className="border border-indigo-500/30 bg-indigo-500/5 px-2 py-1 osint-meta-label-strong text-indigo-200 transition hover:border-indigo-400 hover:text-white"
+                                  className="osint-shell-chip px-2 py-1 osint-meta-label-strong"
+                                  style={buildTimelineRelationToneStyle(3)}
                                 >
                                   Previous {artifactTitleById.get(previousArtifactId) || labelProfile.artifactLabel}
                                 </button>
@@ -185,7 +194,8 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                                     clickEvent.stopPropagation();
                                     onFocusReference('CHAT', sessionId);
                                   }}
-                                  className="border border-emerald-500/30 bg-emerald-500/5 px-2 py-1 osint-meta-label-strong text-emerald-200 transition hover:border-emerald-400 hover:text-white"
+                                  className="osint-shell-chip px-2 py-1 osint-meta-label-strong"
+                                  style={buildTimelineRelationToneStyle(4)}
                                 >
                                   Chat {chatTitleById.get(sessionId) || 'Session'}
                                 </button>

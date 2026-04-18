@@ -106,8 +106,8 @@ const FollowUpDetailRow: React.FC<FollowUpDetailRowProps> = ({
   const questionText = normalizeText(body) || normalizeText(title);
 
   return (
-    <article className={cx('border border-zinc-800/50 bg-zinc-950/70 px-3 py-2', className)}>
-      <p className="osint-body-quiet leading-5 text-zinc-300">{questionText}</p>
+    <article className={cx('osint-shell-stage-surface-subtle px-3 py-2', className)}>
+      <p className="osint-body-quiet leading-5 text-[color:var(--osint-text-strong)]">{questionText}</p>
       {children}
     </article>
   );
@@ -167,7 +167,7 @@ const FindingDetailList: React.FC<FindingDetailListProps> = ({
             key={evidence.id}
             type="button"
             onClick={() => jumpToEvidence(evidence.id)}
-            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+            className="osint-shell-chip inline-flex items-center gap-1 px-2 py-1 osint-meta-label transition"
           >
             <Globe className="h-3 w-3" />
             <span>{evidence.sourceTitle || evidence.title}</span>
@@ -190,8 +190,8 @@ const FindingDetailList: React.FC<FindingDetailListProps> = ({
             key={finding.id}
             title={
               <div className="flex min-w-0 items-center gap-2">
-                <span className="shrink-0 osint-meta-label text-zinc-500">{index + 1}</span>
-                <span className="min-w-0 truncate osint-body-quiet leading-5 text-zinc-200">
+                <span className="shrink-0 osint-meta-label">{index + 1}</span>
+                <span className="min-w-0 truncate osint-body-quiet leading-5 text-[color:var(--osint-text-strong)]">
                   {headerTitle}
                 </span>
               </div>
@@ -203,7 +203,7 @@ const FindingDetailList: React.FC<FindingDetailListProps> = ({
             headerClassName="px-2.5 py-1.5"
             contentClassName="space-y-3 px-2.5 py-2"
           >
-            <div className="max-w-none osint-body-small text-zinc-300 prose prose-invert prose-p:my-0">
+            <div className="max-w-none osint-body-small text-[color:var(--osint-text-strong)] prose prose-invert prose-p:my-0">
               <ReactMarkdown>{finding.summary}</ReactMarkdown>
             </div>
 
@@ -267,7 +267,7 @@ export const buildArtifactViewerDetailRailSections = ({
             href={source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-body-quiet text-zinc-400 transition hover:border-osint-primary hover:text-white"
+            className="osint-shell-chip inline-flex items-center gap-1 px-2 py-1 osint-body-quiet transition hover:border-osint-primary hover:text-white"
             style={{ color: 'var(--osint-primary)' }}
           >
             <Link2 className="h-3 w-3" />
@@ -292,7 +292,7 @@ export const buildArtifactViewerDetailRailSections = ({
                   key={`${kind}-${reference}`}
                   type="button"
                   onClick={() => onEntityClick(entity)}
-                  className="inline-flex items-center gap-2 border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                  className="osint-shell-chip inline-flex items-center gap-2 px-2 py-1 osint-meta-label transition hover:border-osint-primary hover:text-white"
                 >
                   <span
                     className={cx(
@@ -309,7 +309,7 @@ export const buildArtifactViewerDetailRailSections = ({
           return (
             <span
               key={`${kind}-${reference}`}
-              className="inline-flex items-center border border-zinc-700 bg-zinc-950 px-2 py-1 osint-meta-label text-zinc-400"
+              className="osint-shell-chip-muted inline-flex items-center px-2 py-1 osint-meta-label"
             >
               {reference}
             </span>
@@ -406,7 +406,7 @@ export const buildArtifactViewerDetailRailSections = ({
               return (
                 <FollowUpDetailRow
                   key={followUp.id}
-                  className={`${CHROME_THIN_NESTED_ITEM_CLASS} border-zinc-800/50 bg-zinc-950/70`}
+                  className={`${CHROME_THIN_NESTED_ITEM_CLASS}`}
                   title={questionText}
                   body={getFollowUpText(followUp)}
                 >
@@ -472,11 +472,11 @@ export const buildArtifactViewerDetailRailSections = ({
           ) : null}
 
           {visibleEvidence.map((evidence) => (
-            <div key={evidence.id} className="border border-zinc-800/50 bg-zinc-900/20 p-3">
+            <div key={evidence.id} className="osint-shell-stage-surface-subtle p-3">
               <div className="osint-meta-label">{evidence.kind}</div>
-              <div className="mt-1 osint-meta-value text-zinc-300">{evidence.title}</div>
+              <div className="mt-1 osint-meta-value">{evidence.title}</div>
               {evidence.sourceTitle || evidence.sourceUrl ? (
-                <div className="mt-1 osint-body-quiet text-zinc-400">
+                <div className="mt-1 osint-body-quiet">
                   {evidence.sourceTitle || evidence.sourceUrl}
                 </div>
               ) : null}
