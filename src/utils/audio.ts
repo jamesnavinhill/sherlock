@@ -1,5 +1,5 @@
 /**
- * Audio utilities for Sherlock AI voice briefings
+ * Audio utilities for Sherlock voice briefings
  */
 
 /**

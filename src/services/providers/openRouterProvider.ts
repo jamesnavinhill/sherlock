@@ -112,7 +112,7 @@ const buildOpenRouterHeaders = (key: string) => ({
   Authorization: `Bearer ${key}`,
   'Content-Type': 'application/json',
   'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-  'X-OpenRouter-Title': 'Sherlock AI',
+  'X-OpenRouter-Title': 'Sherlock',
 });
 
 const normalizeOpenRouterMessages = (messages: ProviderMessage[]): ProviderMessage[] => {

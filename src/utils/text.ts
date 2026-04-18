@@ -1,5 +1,5 @@
 /**
- * Text manipulation utilities for Sherlock AI
+ * Text manipulation utilities for Sherlock
  */
 
 /**

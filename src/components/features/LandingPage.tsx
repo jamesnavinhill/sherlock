@@ -291,7 +291,7 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
             className="mx-auto mt-6 max-w-xl text-base leading-relaxed md:text-lg"
             style={{ color: 'var(--osint-text-muted)' }}
           >
-            Sherlock AI is a local-first knowledge workspace for structured investigations,
+            Sherlock is a local-first knowledge workspace for structured investigations,
             real-time monitoring, and AI-assisted reporting — all running in your browser.
           </p>
 
@@ -668,7 +668,7 @@ export function LandingPage({ themeMode, onToggleTheme, onGetStarted }: LandingP
           color: 'var(--osint-text-quiet)',
         }}
       >
-        <span className="text-xs font-mono tracking-wide">Sherlock AI · MIT License</span>
+        <span className="text-xs font-mono tracking-wide">Sherlock · MIT License</span>
         <a
           href="https://github.com/jamesnavinhill/sherlock"
           target="_blank"

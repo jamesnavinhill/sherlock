@@ -56,7 +56,7 @@ describe('Sidebar', () => {
       />
     );
 
-    expect(screen.getByAltText('Sherlock AI logo')).toHaveAttribute('src', '/logo-dark.jpg');
+    expect(screen.getByAltText('Sherlock logo')).toHaveAttribute('src', '/logo-dark.jpg');
 
     rerender(
       <Sidebar
@@ -76,7 +76,7 @@ describe('Sidebar', () => {
       />
     );
 
-    expect(screen.getByAltText('Sherlock AI logo')).toHaveAttribute('src', '/logo-dark.jpg');
+    expect(screen.getByAltText('Sherlock logo')).toHaveAttribute('src', '/logo-dark.jpg');
   });
 
   it('uses the theme sidebar width token when expanded', () => {

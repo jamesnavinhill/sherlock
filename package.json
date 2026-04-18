@@ -1,11 +1,12 @@
 {
-  "name": "sherlock-ai",
+  "name": "sherlock",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "preinstall": "node ./scripts/ensure-local-windows-install.mjs",
     "dev": "vite",
+    "prebuild": "npm run check",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",

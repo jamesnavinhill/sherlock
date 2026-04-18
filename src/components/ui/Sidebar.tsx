@@ -101,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-center">
             <img
               src={brandLogoSrc}
-              alt="Sherlock AI logo"
+              alt="Sherlock logo"
               className={`h-16 w-16 rounded-md object-cover transition-transform duration-300 ${isCollapsed ? 'group-hover:scale-110' : ''}`}
             />
           </div>

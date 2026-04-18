@@ -1,6 +1,6 @@
-# Sherlock AI
+# Sherlock
 
-Sherlock AI is a React + TypeScript knowledge workspace for AI-assisted investigations, research, monitoring, and structured reporting across multiple domains.
+Sherlock is a React + TypeScript knowledge workspace for AI-assisted investigations, research, monitoring, and structured reporting across multiple domains.
 
 The active application in this checkout lives under `src/`. Current plans and reports live under `docs/plans/` and `docs/reports/`, while historical planning and report artifacts live under `docs/_legacy/`.
 
@@ -153,7 +153,7 @@ npm run check
 npm run check:full
 ```
 
-`npm run check` now covers the fast static gate (`lint` + `typecheck`). Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
+`npm run check` now covers the fast static gate (`lint` + `typecheck`). `npm run build` now runs that gate automatically through `prebuild` before invoking Vite. Use `npm run check:full` when you also want the repo-wide Prettier verification pass across app code, docs, and config files.
 
 ## Current Validation Snapshot (April 18, 2026)
 

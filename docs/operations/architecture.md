@@ -1,4 +1,4 @@
-# Sherlock AI Architecture
+# Sherlock Architecture
 
 This document describes the current runtime architecture as implemented in `src/`.
 

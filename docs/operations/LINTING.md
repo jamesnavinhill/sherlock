@@ -11,6 +11,7 @@
 npm run lint
 npm run lint:fix
 npm run typecheck
+npm run build
 npm run format
 npm run format:check
 npm run check
@@ -23,6 +24,8 @@ Current scripts are repo-wide:
 
 - `lint`: `eslint src/`
 - `typecheck`: `tsc --noEmit`
+- `prebuild`: `npm run check`
+- `build`: `vite build` (with `npm` automatically running `prebuild` first)
 - `format`: `prettier --write .`
 - `check`: static validation (`lint` + `typecheck`)
 - `check:full`: static validation plus `format:check`
@@ -54,11 +57,12 @@ Slice-7 closeout sweep on this checkout:
 
 Use this checklist whenever `npm run build` is part of the validation gate:
 
-1. Confirm the build completes successfully.
-2. Scan the build log for Vite chunk warnings.
-3. Treat any new warning as a regression until it is explained or reduced.
-4. The one currently known warning is `vendor-tldraw-app` crossing the configured `500 kB` warning threshold in `vite.config.ts`.
-5. If that warning changes materially or a second chunk starts warning, call it out explicitly in the handoff or PR notes.
+1. Confirm the `prebuild` gate (`lint` + `typecheck`) passes.
+2. Confirm the build completes successfully.
+3. Scan the build log for Vite chunk warnings.
+4. Treat any new warning as a regression until it is explained or reduced.
+5. The one currently known warning is `vendor-tldraw-app` crossing the configured `500 kB` warning threshold in `vite.config.ts`.
+6. If that warning changes materially or a second chunk starts warning, call it out explicitly in the handoff or PR notes.
 
 ## Suggested Lint Workflow
 
@@ -68,8 +72,9 @@ Use this checklist whenever `npm run build` is part of the validation gate:
 4. Resolve remaining errors manually.
 5. Re-run `npm run lint` and `npm run typecheck` until clean.
 6. Run `npm run test` and `npm run build` before merging.
-7. Review the build log against the bundle checkpoint above.
-8. Run `npm run check:full` when you specifically want repo-wide Prettier verification too.
+7. Treat `npm run build` as the bundled validation gate, since it now executes `prebuild` first.
+8. Review the build log against the bundle checkpoint above.
+9. Run `npm run check:full` when you specifically want repo-wide Prettier verification too.
 
 ## Install Troubleshooting
 
