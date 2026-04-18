@@ -86,7 +86,7 @@ By the end of this roadmap, Sherlock should have:
 
 ### 5. Page-shell cleanup is part of the roadmap, not a "maybe later"
 
-- The settings workbench is the first adopter.
+- The settings workbench is the first adopter, not the final destination for docked utility behavior.
 - The broader `PageShell` cleanup across major routes is a required later stage, not an optional nice-to-have.
 
 ### 6. Canon conversation remains out of scope
@@ -283,11 +283,13 @@ Purpose:
 
 - finish the shell cleanup by moving major routed surfaces onto the new page-shell contract
 - make the theme system real across the most visible app surfaces
+- introduce the app-level workbench host behavior so routed surfaces can plug into one shared utility-panel system rather than each page inventing its own dock rules
 
 Comes over from canon in this stage:
 
 - routed page-shell organization
 - utility-panel slot behavior for major workspace surfaces
+- shared workbench-host behavior with shell-level open/close and left/right dock control patterns
 - final shell-width and divider/radius tuning patterns where they strengthen consistency
 
 Stays Sherlock-owned in this stage:
@@ -298,6 +300,7 @@ Stays Sherlock-owned in this stage:
 
 Primary targets:
 
+- app-shell chrome and shared workbench host wiring
 - `src/components/features/Settings/index.tsx`
 - `src/components/features/WorkspaceBoard/index.tsx`
 - `src/components/features/TimelineView.tsx`
@@ -309,14 +312,18 @@ Primary targets:
 Execution checklist:
 
 1. Adopt the new `PageShell` contract across the major panel-heavy routed surfaces, starting from the completed Settings cutover and carrying it through WorkspaceBoard, Timeline, NetworkGraph, and Operation View.
-2. Bind route shell widths, utility widths, toolbar sizing, divider treatment, and radii to `SherlockTheme` rather than route-local constants.
-3. Sweep remaining high-visibility hard-coded `bg-black`, `border-zinc-*`, and `text-zinc-*` shell classes out of the routed page wrappers and shared chrome seams.
-4. Remove obsolete compatibility helpers, dead CSS, and shell code paths left over from the old layout system.
-5. Confirm that the new theme parameters materially affect the real app shell rather than only the settings preview surfaces.
+2. Introduce a shared app-shell workbench host so sidebar or shell chrome can open one routed utility panel area without hard-wiring the theme workbench to `/settings`.
+3. Add a global shell trigger for the workbench and make left/right docking an app-level behavior rather than a settings-only affordance.
+4. Define the route-level contract for workbench consumers so theme panels and future utility panels can register into the shared system without forking shell logic.
+5. Bind route shell widths, utility widths, toolbar sizing, divider treatment, and radii to `SherlockTheme` rather than route-local constants.
+6. Sweep remaining high-visibility hard-coded `bg-black`, `border-zinc-*`, and `text-zinc-*` shell classes out of the routed page wrappers and shared chrome seams.
+7. Remove obsolete compatibility helpers, dead CSS, and shell code paths left over from the old layout system.
+8. Confirm that the new theme parameters materially affect the real app shell rather than only the settings preview surfaces.
 
 Exit criteria:
 
 - the primary routed surfaces share one obvious page-shell contract
+- the app shell owns a reusable workbench host with a global trigger and route-pluggable utility panel behavior
 - the theme system reaches the real application shell, not just settings previews
 - old compatibility-era shell code is removed rather than lingering beside the new system
 - Sherlock feels like one cleaned-up shell family rather than a mix of old route wrappers and new workbench ideas
