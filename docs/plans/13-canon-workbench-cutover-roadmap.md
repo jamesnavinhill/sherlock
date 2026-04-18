@@ -238,6 +238,13 @@ Docs to update when this lands:
 
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
+
+First pass progress on April 17, 2026:
+
+- `WorkspaceBoard`, `TimelineView`, `NetworkGraph`, and `OperationView` now compose through `PageShell` instead of keeping separate full-screen route wrappers.
+- Shared rail and inspector shells now default to theme-bound dock widths via `--osint-shell-rail-width`, `--osint-shell-utility-width`, and `--osint-shell-sidebar-width` instead of route-local width classes.
+- Shared shell backdrops and several high-traffic menu/header seams now use shell tokens rather than route-local `bg-black` and `border-zinc-*` treatments.
+- The stage is still in progress: deeper content-surface cleanup remains for route-local readers, dialogs, and feature-specific panels.
 - `docs/operations/OPERATIONS_RUNBOOK.md`
 
 ## What's Completed

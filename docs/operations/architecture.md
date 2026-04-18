@@ -138,6 +138,13 @@ The Sherlock-owned route shell and dock layout primitives now live in:
 
 Files, Feed, Live Monitor, Network Graph, Settings, the Chat composer toolbar, Workspace Home, and the shared omnibox header now consume those shared tokens rather than keeping separate one-off header and toolbar contracts.
 
+Stage 4's first routed-shell pass is now active in runtime code:
+
+- `WorkspaceBoard/index.tsx`, `TimelineView.tsx`, `NetworkGraph/index.tsx`, and `OperationView/index.tsx` now compose their route wrappers through `PageShell`
+- shared mobile panel backdrops now use one shell backdrop treatment rather than per-route `bg-black/80` overlays
+- `DockPanel` now carries a theme-backed `--osint-dock-width` contract, and shared rail/inspector shells default to the Sherlock theme's rail, utility, and sidebar width variables
+- the routed-shell cleanup is still in progress; deeper feature-local content surfaces and modal/dialog seams still contain older dark-palette utility classes
+
 The shared input/control layer now also has Sherlock-owned primitives instead of route-local slider/date markup:
 
 - `RangeField` is the shared range-slider contract for theme tuning and runtime-behavior controls
@@ -529,6 +536,7 @@ Routed workflow surfaces now share a baseline chrome/panel contract rather than 
 - `OperationViewDialogs.tsx` now holds the lead follow-through modal, new-workspace modal, and protocol-template save dialog so workflow copy and launch boundaries live outside the page shell
 - saved artifact routes can now carry `focusSectionId`, `focusEvidenceId`, and `inspector=REPORT`, which lets omnibox/search hits reopen the reader on a precise section/evidence target while defaulting the right rail to a current-artifact inspector
 - `operationWorkspacePanelData.ts` now keeps the dossier-side workspace aggregation model on canonical workspace naming instead of the older case-labelled helper shape
+- the route wrapper now composes through `PageShell`, and its workspace rail inherits the theme rail-width token through the shared dock contract
 
 Supports deep dives, follow-up execution, signal follow-through, launch-into-chat handoff for the active artifact plus inspected entities/signals, workspace/artifact editing, entity rename flows, and workspace/artifact exports.
 
@@ -555,6 +563,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system
 - `BoardTopBar.tsx`, `BoardCanvasPane.tsx`, `WorkspaceBoardLibraryRail.tsx`, `WorkspaceBoardInspectorPanel.tsx`, `BoardAgentRail.tsx`, and `BoardDialogs.tsx` now isolate the major board sections from the route shell
 - controller responsibilities are split further across `useBoardCanvasPersistence.ts`, `workspaceBoardItemActions.ts`, `boardInspectorActions.ts`, and `workspaceBoardAgent.ts` so the public controller stays focused on orchestration
+- the route wrapper now composes through `PageShell`, and the board library rail now inherits the theme rail-width token through the shared dock contract
 
 `ArtifactViewer` and `WorkspaceLibraryRail` now also surface:
 
@@ -615,6 +624,7 @@ Operation View now also includes board handoff for the active artifact plus insp
 - `useNetworkGraphUiState.ts`, `useNetworkGraphInspectorState.ts`, `useNetworkGraphNodeActions.ts`, and `networkGraphWorkspaceHandoffs.ts` now split controller concerns across UI state, inspector selection, mutation flows, and board/chat handoff helpers
 - the feature layer now uses canonical workspace-filter naming, while `networkGraphNodeIds.ts` keeps legacy persisted graph identifiers stable behind the helper boundary for existing graph references
 - `NetworkGraphDialogs.tsx` and `NetworkGraphAddNodeOverlay.tsx` now isolate add-node, resolution, delete-confirm, and lead-investigation workflow UI from the main route shell
+- the route wrapper now composes through `PageShell`, with shared shell backdrops and theme-bound dock widths for the dossier/inspector rails
 
 ### Live Monitor
 
@@ -671,6 +681,7 @@ Live monitor requests now resolve through the active scope's derived pack and de
 - timeline snapshot export in JSON/Markdown plus save-as-artifact support for `artifactType: TIMELINE`
 - `TimelineToolbar.tsx`, `TimelineFiltersPanel.tsx`, `TimelineExportMenu.tsx`, `TimelineLibraryRail.tsx`, `TimelineEventList.tsx`, and `TimelineInspectorPanel.tsx` now own the major timeline sections so the route shell mainly coordinates route state and layout
 - query updates and detail action shaping now live in `timelineQueryHelpers.ts` and `timelineDetailActions.ts`, keeping the view controller focused on orchestration
+- the route wrapper now composes through `PageShell`, and the main event column plus filter/export surfaces now use shell-token-backed stage/menu treatments instead of route-local dark wrappers
 
 ### Omnibox
 
