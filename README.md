@@ -149,12 +149,13 @@ npm run check:full
 
 ## Current Validation Snapshot (April 17, 2026)
 
-The current targeted validation for the Stage 4 routed shell closeout passed on this checkout:
+The current targeted validation for the Stage 4 routed-shell closeout and remaining shared-shell adoption pass succeeded on this checkout:
 
-- `npm run test -- src/components/features/WorkspaceBoard/BoardAgentRail.test.tsx src/components/features/OperationView/ArtifactViewer.test.tsx`: passes
+- `npm run test -- src/app/routeViews.test.tsx src/app/AppShellRoutes.test.tsx src/components/features/Chat/ChatPage.test.tsx src/components/features/WorkspaceHome/index.test.tsx src/components/features/Files.launch.test.tsx src/components/features/LiveMonitor/launchPropagation.test.tsx src/components/features/WorkspaceBoard/BoardAgentRail.test.tsx src/components/features/OperationView/ArtifactViewer.test.tsx`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes
+- all routed in-app pages mounted by `AppShellRoutes` now compose through the shared shell contract; the public `/welcome` landing page remains intentionally outside `PageShell`
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits chunk-size warnings for `vendor-tldraw-app` and `vendor`; these remain documented review checkpoints
 

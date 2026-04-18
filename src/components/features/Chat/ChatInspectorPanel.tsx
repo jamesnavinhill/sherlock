@@ -260,7 +260,6 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
       eyebrow="Context"
       title={workspaceTitle || 'Workspace Chat'}
       subtitle="Workspace chat context"
-      widthClassName="w-96"
       sections={sections}
       emptyState={{
         icon: MessageSquare,

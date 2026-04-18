@@ -17,6 +17,7 @@ import { OsintSelect } from '../../ui/OsintSelect';
 import { GlobalSearch } from '../../ui/GlobalSearch';
 import { SkeletonPulse } from '../../ui/SkeletonLoaders';
 import { SystemStatusBeacon } from '../../ui/SystemStatusBeacon';
+import { PageShell } from '@/components/system/layout/PageShell';
 import {
   CHROME_CARD_SURFACE_CLASS,
   CHROME_CARD_SECTION_SUBTLE_CLASS,
@@ -338,91 +339,84 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
   // --- RENDER ---
 
   return (
-    <div className="h-screen w-full flex flex-col bg-black text-zinc-200 overflow-hidden relative">
-      {/* Unified Top Toolbar */}
-      <div className={`${CHROME_HEADER_CLASS} relative px-6`}>
-        <div className="flex h-full min-w-0 items-center gap-3">
-          {/* Left: Selectors */}
-          <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
-            {/* Workspace Selector */}
-            <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
-              <OsintSelect
-                ariaLabel={`${labelProfile.workspaceLabel} selector`}
-                value={selectedCaseId || ''}
-                onChange={setSelectedCaseId}
-                disabled={isMonitoring}
-                chrome="toolbar"
-                triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
-                options={[
-                  { value: '', label: 'None Selected' },
-                  ...workspaces.map((workspace) => ({
-                    value: workspace.id,
-                    label: getWorkspaceDisplayTitle(workspace),
-                  })),
-                ]}
-              />
+    <PageShell
+      className="osint-shell-stage h-screen w-full overflow-hidden relative"
+      toolbar={
+        <div className={`${CHROME_HEADER_CLASS} relative px-6`}>
+          <div className="flex h-full min-w-0 items-center gap-3">
+            <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
+              <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
+                <OsintSelect
+                  ariaLabel={`${labelProfile.workspaceLabel} selector`}
+                  value={selectedCaseId || ''}
+                  onChange={setSelectedCaseId}
+                  disabled={isMonitoring}
+                  chrome="toolbar"
+                  triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
+                  options={[
+                    { value: '', label: 'None Selected' },
+                    ...workspaces.map((workspace) => ({
+                      value: workspace.id,
+                      label: getWorkspaceDisplayTitle(workspace),
+                    })),
+                  ]}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
-            <GlobalSearch compact className="mx-auto w-full" />
-          </div>
+            <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
+              <GlobalSearch compact className="mx-auto w-full" />
+            </div>
 
-          {/* Right: Controls & Status */}
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
-            {/* Settings Toggle */}
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className={getChromeMenuButtonClass(showSettings)}
-              title="Configure Feed Parameters"
-            >
-              <Settings2 className="w-4 h-4" />
-              <span className="hidden lg:inline ml-1">Config</span>
-            </button>
-
-            {selectedCaseId && (
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
               <button
-                onClick={isMonitoring ? stopMonitoring : runBatchScan}
-                className={`flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center px-4 text-xs font-bold font-mono transition-all border uppercase ${
-                  isMonitoring ? 'osint-button-danger' : 'osint-button-primary'
-                }`}
+                onClick={() => setShowSettings(!showSettings)}
+                className={getChromeMenuButtonClass(showSettings)}
+                title="Configure Feed Parameters"
               >
-                {isMonitoring ? (
-                  <Pause className="w-3 h-3 mr-2" />
-                ) : (
-                  <Play className="w-3 h-3 mr-2" />
-                )}
-                {isMonitoring ? 'STOP SCAN' : 'SCAN'}
+                <Settings2 className="w-4 h-4" />
+                <span className="hidden lg:inline ml-1">Config</span>
               </button>
-            )}
+
+              {selectedCaseId && (
+                <button
+                  onClick={isMonitoring ? stopMonitoring : runBatchScan}
+                  className={`flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center px-4 text-xs font-bold font-mono transition-all border uppercase ${
+                    isMonitoring ? 'osint-button-danger' : 'osint-button-primary'
+                  }`}
+                >
+                  {isMonitoring ? (
+                    <Pause className="w-3 h-3 mr-2" />
+                  ) : (
+                    <Play className="w-3 h-3 mr-2" />
+                  )}
+                  {isMonitoring ? 'STOP SCAN' : 'SCAN'}
+                </button>
+              )}
+            </div>
+
+            <SettingsPanel
+              isOpen={showSettings}
+              onClose={() => setShowSettings(false)}
+              config={feedConfig}
+              onConfigChange={setFeedConfig}
+              selectedLevels={selectedLevels}
+              onLevelsChange={setSelectedLevels}
+              onClearFeed={handleClearFeed}
+              autoSave={autoSave}
+              onAutoSaveChange={handleAutoSaveChange}
+            />
           </div>
-
-          {/* Settings Panel */}
-          <SettingsPanel
-            isOpen={showSettings}
-            onClose={() => setShowSettings(false)}
-            config={feedConfig}
-            onConfigChange={setFeedConfig}
-            selectedLevels={selectedLevels}
-            onLevelsChange={setSelectedLevels}
-            onClearFeed={handleClearFeed}
-            autoSave={autoSave}
-            onAutoSaveChange={handleAutoSaveChange}
-          />
         </div>
-      </div>
-
-      {/* Main Monitor Area */}
+      }
+    >
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Background Layer */}
-        <div className="absolute inset-0 z-0 bg-black">
+        <div className="osint-shell-content-surface absolute inset-0 z-0">
           <MainContentDotGrid testId="monitor-dot-grid-background" />
           {isMonitoring || streamStatus !== 'IDLE' ? <BackgroundMatrixRain /> : null}
         </div>
 
-        {/* Center: The Stream */}
         <div className="flex-1 relative z-10 flex flex-col overflow-hidden">
-          {/* Scanning State */}
           {streamStatus === 'SCANNING' && (
             <div className="flex items-center justify-center mb-6 pt-6 animate-in fade-in zoom-in duration-300">
               <div className="px-4 py-2 bg-black/60 border border-osint-primary/50 text-osint-primary font-mono text-xs uppercase flex items-center rounded-full backdrop-blur-sm">
@@ -432,7 +426,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
             </div>
           )}
 
-          {/* Receiving State */}
           {streamStatus === 'RECEIVING' && (
             <div className="flex items-center justify-center mb-6 pt-6 animate-in fade-in zoom-in duration-300">
               <div className="px-4 py-2 bg-black/60 border border-green-500/50 text-green-400 font-mono text-xs uppercase flex items-center rounded-full backdrop-blur-sm">
@@ -442,7 +435,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
             </div>
           )}
 
-          {/* Feed Content Grid */}
           <div className="flex-1 overflow-y-auto p-8" data-app-scroll-region>
             <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
               {showSkeletonGrid
@@ -464,7 +456,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
         </div>
       </div>
 
-      {/* Task Setup Modal */}
       {selectedEventForAnalysis && (
         <RunSetupModal
           initialTopic={selectedEventForAnalysis.content}
@@ -478,6 +469,6 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
           onStart={executeAnalysis}
         />
       )}
-    </div>
+    </PageShell>
   );
 };

@@ -29,6 +29,7 @@ import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { WorkspaceDocumentUploadDialog } from '@/components/ui/WorkspaceDocumentUploadDialog';
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
+import { PageShell } from '@/components/system/layout/PageShell';
 import { RunSetupModal } from '@/components/features/Runs/RunSetupModal';
 import { FilesFiltersPanel } from '@/components/features/Files/FilesFiltersPanel';
 import { FilesOverview } from '@/components/features/Files/FilesOverview';
@@ -99,181 +100,184 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
   } = controller;
 
   return (
-    <div className="relative min-h-screen h-full w-full bg-black">
-      <div className={`${CHROME_HEADER_CLASS} px-6`}>
-        <div className="flex h-full min-w-0 items-center gap-3">
-          <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
-            <button
-              onClick={() => setIsNewCaseModalOpen(true)}
-              className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
-              aria-label={`New ${workspaceLabel}`}
-            >
-              <Plus className="h-4 w-4" />
-              <span>New</span>
-            </button>
-            <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
-              <OsintSelect
-                ariaLabel={`View ${workspaceLabel}`}
-                value={effectiveSelectedCaseId || 'ALL'}
-                onChange={handleWorkspaceSelect}
-                chrome="toolbar"
-                triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
-                options={[
-                  { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
-                  ...workspaces.map((workspace) => ({
-                    value: workspace.id,
-                    label: workspace.displayTitle || workspace.title,
-                  })),
-                  ...(overviewViewModel.unassignedArtifactCount > 0
-                    ? [
-                        {
-                          value: 'unassigned',
-                          label: `Unassigned ${artifactLabelPlural}`,
-                        },
-                      ]
-                    : []),
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
-            <GlobalSearch compact className="mx-auto w-full" />
-          </div>
-
-          <div className="flex flex-1 items-center justify-end">
-            <div className="flex shrink-0 items-center gap-3">
-              <div className="relative shrink-0" ref={filterMenuRef}>
-                <button
-                  onClick={() => {
-                    setShowFilters(!showFilters);
-                    setShowExportMenu(false);
-                  }}
-                  className={getChromeMenuButtonClass(showFilters)}
-                  aria-label="Files filters"
-                  title="Filter visible records"
-                >
-                  <Filter className="h-4 w-4" />
-                </button>
-
-                {showFilters ? (
-                  <FilesFiltersPanel
-                    recordFilter={recordFilter}
-                    showRecordTypeFilters={
-                      !!effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
-                    }
-                    viewMode={viewMode}
-                    onClearFilters={() => {
-                      setRecordFilter('ALL');
-                      setViewMode('GRID');
-                      setCurrentPage(1);
-                    }}
-                    onClose={() => setShowFilters(false)}
-                    onRecordFilterChange={(value) => {
-                      setRecordFilter(value);
-                      setCurrentPage(1);
-                    }}
-                    onViewModeChange={setViewMode}
-                  />
-                ) : null}
-              </div>
-
+    <PageShell
+      className="osint-shell-stage min-h-screen h-full w-full"
+      toolbar={
+        <div className={`${CHROME_HEADER_CLASS} px-6`}>
+          <div className="flex h-full min-w-0 items-center gap-3">
+            <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
               <button
-                onClick={openUploadDialog}
-                disabled={workspaces.length === 0}
-                className={`${getChromeMenuButtonClass(false)} gap-2`}
-                title={
-                  workspaces.length === 0
-                    ? `Create a ${workspaceLabelLower} before uploading documents`
-                    : 'Upload documents into a workspace'
-                }
+                onClick={() => setIsNewCaseModalOpen(true)}
+                className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
+                aria-label={`New ${workspaceLabel}`}
               >
-                <Upload className="h-4 w-4" />
-                <span className="hidden lg:inline">Upload</span>
+                <Plus className="h-4 w-4" />
+                <span>New</span>
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={handleFileUpload}
-              />
+              <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
+                <OsintSelect
+                  ariaLabel={`View ${workspaceLabel}`}
+                  value={effectiveSelectedCaseId || 'ALL'}
+                  onChange={handleWorkspaceSelect}
+                  chrome="toolbar"
+                  triggerClassName={CHROME_HEADER_SELECT_TRIGGER_CLASS}
+                  options={[
+                    { value: 'ALL', label: `All ${CANONICAL_NOUNS.workspacePlural}` },
+                    ...workspaces.map((workspace) => ({
+                      value: workspace.id,
+                      label: workspace.displayTitle || workspace.title,
+                    })),
+                    ...(overviewViewModel.unassignedArtifactCount > 0
+                      ? [
+                          {
+                            value: 'unassigned',
+                            label: `Unassigned ${artifactLabelPlural}`,
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
+              </div>
+            </div>
 
-              {currentWorkspace ? (
-                <div className="relative" ref={exportMenuRef}>
+            <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
+              <GlobalSearch compact className="mx-auto w-full" />
+            </div>
+
+            <div className="flex flex-1 items-center justify-end">
+              <div className="flex shrink-0 items-center gap-3">
+                <div className="relative shrink-0" ref={filterMenuRef}>
                   <button
                     onClick={() => {
-                      setShowExportMenu(!showExportMenu);
-                      setShowFilters(false);
+                      setShowFilters(!showFilters);
+                      setShowExportMenu(false);
                     }}
-                    className={getChromeMenuButtonClass(showExportMenu)}
+                    className={getChromeMenuButtonClass(showFilters)}
+                    aria-label="Files filters"
+                    title="Filter visible records"
                   >
-                    <Download className="mr-1 h-4 w-4" />
-                    <span className="hidden lg:inline">Export</span>
-                    <ChevronDown className="ml-1 h-3 w-3" />
+                    <Filter className="h-4 w-4" />
                   </button>
-                  {showExportMenu ? (
-                    <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
-                      <button
-                        onClick={() => {
-                          if (!currentWorkspace) return;
-                          exportWorkspaceAsHtml(currentWorkspace, currentWorkspaceArtifacts);
-                          setShowExportMenu(false);
-                        }}
-                        className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
-                        title={`Exports a formatted printable ${workspaceLabelLower}`}
-                      >
-                        <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                        <div>
-                          <div className="osint-menu-item-title">{`${workspaceLabel} HTML`}</div>
-                          <div className="osint-menu-item-description">
-                            {`Formatted printable ${workspaceLabelLower}`}
-                          </div>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!currentWorkspace) return;
-                          exportWorkspaceAsJson(currentWorkspace, currentWorkspaceArtifacts);
-                          setShowExportMenu(false);
-                        }}
-                        className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
-                        title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
-                      >
-                        <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                        <div>
-                          <div className="osint-menu-item-title">{`${workspaceLabel} JSON`}</div>
-                          <div className="osint-menu-item-description">
-                            {`Raw ${workspaceLabelLower} data for backup`}
-                          </div>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!currentWorkspace) return;
-                          exportWorkspaceAsMarkdown(currentWorkspace, currentWorkspaceArtifacts);
-                          setShowExportMenu(false);
-                        }}
-                        className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-zinc-300"
-                        title={`Exports ${workspaceLabelLower} as Markdown`}
-                      >
-                        <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
-                        <div>
-                          <div className="osint-menu-item-title">{`${workspaceLabel} Markdown`}</div>
-                          <div className="osint-menu-item-description">
-                            {`${workspaceLabel} narrative package`}
-                          </div>
-                        </div>
-                      </button>
-                    </div>
+
+                  {showFilters ? (
+                    <FilesFiltersPanel
+                      recordFilter={recordFilter}
+                      showRecordTypeFilters={
+                        !!effectiveSelectedCaseId && effectiveSelectedCaseId !== 'unassigned'
+                      }
+                      viewMode={viewMode}
+                      onClearFilters={() => {
+                        setRecordFilter('ALL');
+                        setViewMode('GRID');
+                        setCurrentPage(1);
+                      }}
+                      onClose={() => setShowFilters(false)}
+                      onRecordFilterChange={(value) => {
+                        setRecordFilter(value);
+                        setCurrentPage(1);
+                      }}
+                      onViewModeChange={setViewMode}
+                    />
                   ) : null}
                 </div>
-              ) : null}
+
+                <button
+                  onClick={openUploadDialog}
+                  disabled={workspaces.length === 0}
+                  className={`${getChromeMenuButtonClass(false)} gap-2`}
+                  title={
+                    workspaces.length === 0
+                      ? `Create a ${workspaceLabelLower} before uploading documents`
+                      : 'Upload documents into a workspace'
+                  }
+                >
+                  <Upload className="h-4 w-4" />
+                  <span className="hidden lg:inline">Upload</span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+
+                {currentWorkspace ? (
+                  <div className="relative" ref={exportMenuRef}>
+                    <button
+                      onClick={() => {
+                        setShowExportMenu(!showExportMenu);
+                        setShowFilters(false);
+                      }}
+                      className={getChromeMenuButtonClass(showExportMenu)}
+                    >
+                      <Download className="mr-1 h-4 w-4" />
+                      <span className="hidden lg:inline">Export</span>
+                      <ChevronDown className="ml-1 h-3 w-3" />
+                    </button>
+                    {showExportMenu ? (
+                      <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
+                        <button
+                          onClick={() => {
+                            if (!currentWorkspace) return;
+                            exportWorkspaceAsHtml(currentWorkspace, currentWorkspaceArtifacts);
+                            setShowExportMenu(false);
+                          }}
+                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
+                          title={`Exports a formatted printable ${workspaceLabelLower}`}
+                        >
+                          <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <div>
+                            <div className="osint-menu-item-title">{`${workspaceLabel} HTML`}</div>
+                            <div className="osint-menu-item-description">
+                              {`Formatted printable ${workspaceLabelLower}`}
+                            </div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (!currentWorkspace) return;
+                            exportWorkspaceAsJson(currentWorkspace, currentWorkspaceArtifacts);
+                            setShowExportMenu(false);
+                          }}
+                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
+                          title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
+                        >
+                          <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <div>
+                            <div className="osint-menu-item-title">{`${workspaceLabel} JSON`}</div>
+                            <div className="osint-menu-item-description">
+                              {`Raw ${workspaceLabelLower} data for backup`}
+                            </div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (!currentWorkspace) return;
+                            exportWorkspaceAsMarkdown(currentWorkspace, currentWorkspaceArtifacts);
+                            setShowExportMenu(false);
+                          }}
+                          className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-zinc-300"
+                          title={`Exports ${workspaceLabelLower} as Markdown`}
+                        >
+                          <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <div>
+                            <div className="osint-menu-item-title">{`${workspaceLabel} Markdown`}</div>
+                            <div className="osint-menu-item-description">
+                              {`${workspaceLabel} narrative package`}
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
+      }
+    >
       {isNewCaseModalOpen ? (
         <RunSetupModal
           initialTopic=""
@@ -318,7 +322,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
       ) : null}
 
       <div
-        className="relative z-10 h-full w-full overflow-y-auto p-6"
+        className="osint-shell-content-surface relative z-10 h-full w-full overflow-y-auto p-6"
         data-app-scroll-region
       >
         <MainContentDotGrid testId="files-dot-grid-background" />
@@ -386,6 +390,6 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
           setWorkspaceIconTarget(null);
         }}
       />
-    </div>
+    </PageShell>
   );
 };

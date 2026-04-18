@@ -20,6 +20,7 @@ import { OsintSelect } from '../ui/OsintSelect';
 import { GlobalSearch } from '../ui/GlobalSearch';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
+import { PageShell } from '@/components/system/layout/PageShell';
 import {
   CHROME_CARD_SURFACE_CLASS,
   CHROME_CARD_SECTION_CLASS,
@@ -271,8 +272,158 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
   );
 
   return (
-    <div className="flex flex-col h-screen w-full bg-black relative overflow-hidden">
-      {/* Investigation Wizard Modal */}
+    <PageShell
+      className="osint-shell-stage h-screen w-full relative overflow-hidden"
+      toolbar={
+        <div className={`${CHROME_HEADER_CLASS} relative z-10 px-6`}>
+          <div className="flex h-full min-w-0 items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <div className="relative hidden w-36 md:block">
+                <Tag className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
+                <OsintSelect
+                  ariaLabel="Feed category"
+                  value={filterCategory}
+                  onChange={setFilterCategory}
+                  chrome="toolbar"
+                  triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} flex items-center truncate rounded-none pl-7 pr-8 text-xs font-mono`}
+                  options={categories.map((category) => ({
+                    value: category,
+                    label: category,
+                  }))}
+                />
+              </div>
+
+              <div className="relative hidden w-28 md:block">
+                <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
+                <input
+                  type="text"
+                  value={filterRegion}
+                  onChange={(e) => setFilterRegion(e.target.value)}
+                  placeholder="Region"
+                  className={`${CHROME_TOOLBAR_FIELD_CLASS} w-full rounded-none pl-7 pr-3 text-xs font-mono placeholder:text-zinc-600`}
+                />
+              </div>
+
+              <div className="relative hidden w-36 md:block">
+                <DateRangePicker
+                  value={{ start: filterStartDate, end: filterEndDate }}
+                  onChange={(nextValue) => {
+                    setFilterStartDate(nextValue.start || '');
+                    setFilterEndDate(nextValue.end || '');
+                  }}
+                  label="Feed date range"
+                  description="Filter discovery scanning to a specific reporting window."
+                  isOpen={showDatePicker}
+                  onOpenChange={setShowDatePicker}
+                  onApply={loadFeed}
+                  toolbarTrigger
+                  placeholder="Time Range"
+                  triggerClassName={`${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-full`}
+                  popupClassName="animate-in fade-in zoom-in duration-200"
+                  inputClassName="bg-zinc-900 p-1.5 text-zinc-300"
+                />
+              </div>
+            </div>
+
+            <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
+              <GlobalSearch compact className="mx-auto w-full" />
+            </div>
+
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+              <button
+                onClick={() => setShowFilters((current) => !current)}
+                className={`md:hidden ${getChromeMenuButtonClass(showFilters)}`}
+                title="Open discovery filters"
+              >
+                <Filter className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={getChromeMenuButtonClass(showSettings)}
+                title="Configure Scanner"
+              >
+                <Settings2 className="w-4 h-4" />
+                <span className="hidden lg:inline ml-1">Config</span>
+              </button>
+
+              <button
+                onClick={loadFeed}
+                disabled={loading}
+                className={`osint-button-chrome ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} flex items-center px-4 osint-meta-label-strong`}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+            </div>
+
+            {showSettings && renderSettingsPanel()}
+
+            {showFilters && (
+              <div className="osint-menu-panel absolute top-20 left-0 right-0 z-40 border-b border-zinc-700 bg-zinc-900 p-4 md:hidden animate-in slide-in-from-top-2 fade-in duration-200">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="flex items-center text-white osint-meta-label-strong">
+                    <Filter className="w-4 h-4 mr-2 text-osint-primary" />
+                    Active Filters
+                  </h3>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="text-zinc-500 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block osint-meta-label mb-1">Category</label>
+                    <OsintSelect
+                      ariaLabel="Feed category mobile"
+                      value={filterCategory}
+                      onChange={setFilterCategory}
+                      triggerClassName="px-2 py-2 pr-8 osint-meta-value"
+                      options={categories.map((category) => ({
+                        value: category,
+                        label: category,
+                      }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block osint-meta-label mb-1">Region</label>
+                    <input
+                      type="text"
+                      value={filterRegion}
+                      onChange={(e) => setFilterRegion(e.target.value)}
+                      placeholder="e.g. Asia-Pacific"
+                      className="w-full bg-black border border-zinc-700 px-2 py-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
+                    />
+                  </div>
+
+                  <DateRangePicker
+                    value={{ start: filterStartDate, end: filterEndDate }}
+                    onChange={(nextValue) => {
+                      setFilterStartDate(nextValue.start || '');
+                      setFilterEndDate(nextValue.end || '');
+                    }}
+                    label="Date Range"
+                    inputClassName="bg-black text-zinc-300"
+                  />
+
+                  <div className="pt-2">
+                    <button
+                      onClick={handleApplyFilters}
+                      className="osint-button-primary w-full py-2 osint-meta-label-strong"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      }
+    >
       {selectedItem && (
         <RunSetupModal
           initialTopic={selectedItem.title}
@@ -292,176 +443,13 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
         />
       )}
 
-      {/* Sticky Header */}
-      <div className={`${CHROME_HEADER_CLASS} relative z-10 px-6`}>
-        <div className="flex h-full min-w-0 items-center gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            {/* Category Filter */}
-            <div className="relative hidden w-36 md:block">
-              <Tag className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
-              <OsintSelect
-                ariaLabel="Feed category"
-                value={filterCategory}
-                onChange={setFilterCategory}
-                chrome="toolbar"
-                triggerClassName={`${CHROME_TOOLBAR_FIELD_CLASS} flex items-center truncate rounded-none pl-7 pr-8 text-xs font-mono`}
-                options={categories.map((category) => ({
-                  value: category,
-                  label: category,
-                }))}
-              />
-            </div>
-
-            {/* Region Filter */}
-            <div className="relative hidden w-28 md:block">
-              <MapPin className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
-              <input
-                type="text"
-                value={filterRegion}
-                onChange={(e) => setFilterRegion(e.target.value)}
-                placeholder="Region"
-                className={`${CHROME_TOOLBAR_FIELD_CLASS} w-full rounded-none pl-7 pr-3 text-xs font-mono placeholder:text-zinc-600`}
-              />
-            </div>
-
-            {/* Date Filter */}
-            <div className="relative hidden w-36 md:block">
-              <DateRangePicker
-                value={{ start: filterStartDate, end: filterEndDate }}
-                onChange={(nextValue) => {
-                  setFilterStartDate(nextValue.start || '');
-                  setFilterEndDate(nextValue.end || '');
-                }}
-                label="Feed date range"
-                description="Filter discovery scanning to a specific reporting window."
-                isOpen={showDatePicker}
-                onOpenChange={setShowDatePicker}
-                onApply={loadFeed}
-                toolbarTrigger
-                placeholder="Time Range"
-                triggerClassName={`${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-full`}
-                popupClassName="animate-in fade-in zoom-in duration-200"
-                inputClassName="bg-zinc-900 p-1.5 text-zinc-300"
-              />
-            </div>
-          </div>
-
-          <div className="flex min-w-[12rem] flex-[0.95_1_24rem] items-center justify-center">
-            <GlobalSearch compact className="mx-auto w-full" />
-          </div>
-
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-            <button
-              onClick={() => setShowFilters((current) => !current)}
-              className={`md:hidden ${getChromeMenuButtonClass(showFilters)}`}
-              title="Open discovery filters"
-            >
-              <Filter className="w-4 h-4" />
-            </button>
-            {/* Settings Toggle */}
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className={getChromeMenuButtonClass(showSettings)}
-              title="Configure Scanner"
-            >
-              <Settings2 className="w-4 h-4" />
-              <span className="hidden lg:inline ml-1">Config</span>
-            </button>
-
-            <button
-              onClick={loadFeed}
-              disabled={loading}
-              className={`osint-button-chrome ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} flex items-center px-4 osint-meta-label-strong`}
-            >
-              <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-          </div>
-
-          {showSettings && renderSettingsPanel()}
-
-          {/* Mobile Filter Panel Overlay */}
-          {showFilters && (
-            <div className="osint-menu-panel absolute top-20 left-0 right-0 z-40 border-b border-zinc-700 bg-zinc-900 p-4 md:hidden animate-in slide-in-from-top-2 fade-in duration-200">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="osint-meta-label-strong text-white flex items-center">
-                  <Filter className="w-4 h-4 mr-2 text-osint-primary" />
-                  Active Filters
-                </h3>
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="text-zinc-500 hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {/* Mobile Category */}
-                <div>
-                  <label className="block osint-meta-label mb-1">
-                    Category
-                  </label>
-                  <OsintSelect
-                    ariaLabel="Feed category mobile"
-                    value={filterCategory}
-                    onChange={setFilterCategory}
-                    triggerClassName="px-2 py-2 pr-8 osint-meta-value"
-                    options={categories.map((category) => ({
-                      value: category,
-                      label: category,
-                    }))}
-                  />
-                </div>
-
-                {/* Mobile Region */}
-                <div>
-                  <label className="block osint-meta-label mb-1">
-                    Region
-                  </label>
-                  <input
-                    type="text"
-                    value={filterRegion}
-                    onChange={(e) => setFilterRegion(e.target.value)}
-                    placeholder="e.g. Asia-Pacific"
-                    className="w-full bg-black border border-zinc-700 px-2 py-2 osint-meta-value text-zinc-300 focus:border-osint-primary outline-none"
-                  />
-                </div>
-
-                {/* Mobile Date Range */}
-                <DateRangePicker
-                  value={{ start: filterStartDate, end: filterEndDate }}
-                  onChange={(nextValue) => {
-                    setFilterStartDate(nextValue.start || '');
-                    setFilterEndDate(nextValue.end || '');
-                  }}
-                  label="Date Range"
-                  inputClassName="bg-black text-zinc-300"
-                />
-
-                <div className="pt-2">
-                  <button
-                    onClick={handleApplyFilters}
-                    className="osint-button-primary w-full py-2 osint-meta-label-strong"
-                  >
-                    Apply Filters
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content Area */}
       <div
-        className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden p-6 custom-scrollbar"
+        className="osint-shell-content-surface relative z-10 flex-1 overflow-y-auto overflow-x-hidden p-6 custom-scrollbar"
         data-app-scroll-region
       >
         <MainContentDotGrid testId="feed-dot-grid-background" />
         {loading ? <BackgroundMatrixRain /> : null}
 
-        {/* Results Grid */}
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-20">
           {feedItems.length === 0
             ? // Placeholder / Empty State or Loading State
@@ -498,9 +486,9 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                     </span>
                   </div>
                 </div>
-              ))}
+          ))}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 };

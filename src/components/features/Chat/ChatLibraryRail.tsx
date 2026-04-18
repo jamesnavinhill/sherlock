@@ -114,7 +114,6 @@ export const ChatLibraryRail: React.FC<ChatLibraryRailProps> = ({
     <LibraryRailShell
       isOpen={leftPanelOpen}
       title={workspaceTitle || 'Workspace Chat'}
-      widthClassName="w-80"
     >
       <LibraryRailSections sections={sections} />
     </LibraryRailShell>

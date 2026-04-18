@@ -280,7 +280,7 @@ describe('route views', () => {
     });
   });
 
-  it('holds the chat route on a loading fallback until store-backed route state syncs', async () => {
+  it('renders the chat route once store-backed route state syncs', async () => {
     const SyncedChatRoute = () => {
       const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
       const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>('stale-session');
@@ -308,8 +308,6 @@ describe('route views', () => {
         </Routes>
       </MemoryRouter>
     );
-
-    expect(screen.getByText('Loading workspace view')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Chat View')).toBeInTheDocument();

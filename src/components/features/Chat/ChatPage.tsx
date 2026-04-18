@@ -10,6 +10,7 @@ import { ChatInspectorPanel } from './ChatInspectorPanel';
 import { ChatDialogs } from './ChatDialogs';
 import { ChatHeader } from './ChatHeader';
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
+import { PageShell } from '@/components/system/layout/PageShell';
 
 interface ChatProps {
   onLaunchInvestigation: (request: InvestigationLaunchRequest) => void;
@@ -120,52 +121,44 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
   } = useChatController({ onLaunchInvestigation });
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-black text-zinc-100">
-      <ChatHeader
-        activeSessionId={activeSession?.id || null}
-        activeWorkspaceId={activeWorkspace?.id || null}
-        exportMenuRef={exportMenuRef}
-        leftPanelOpen={leftPanelOpen}
-        newMenuRef={newMenuRef}
-        rightPanelOpen={rightPanelOpen}
-        setShowExportMenu={setShowExportMenu}
-        setShowNewMenu={setShowNewMenu}
-        showExportMenu={showExportMenu}
-        showNewMenu={showNewMenu}
-        workspaceDisabled={!activeWorkspace}
-        workspaces={workspaces.map((workspace) => ({
-          ...workspace,
-          title: getWorkspaceDisplayTitle(workspace),
-        }))}
-        onCreateGuidedSession={handleCreateGuidedSession}
-        onCreateSession={handleCreateSession}
-        onExportJson={handleExportSessionJson}
-        onExportMarkdown={handleExportSessionMarkdown}
-        onSelectWorkspace={setActiveWorkspaceId}
-        onStartNewWorkspace={handleStartNewProject}
-        onToggleExportMenu={() => {
-          setShowExportMenu((current) => !current);
-          setShowNewMenu(false);
-        }}
-        onToggleLeftPanel={() => setLeftPanelOpen((current) => !current)}
-        onToggleNewMenu={() => {
-          setShowNewMenu((current) => !current);
-          setShowExportMenu(false);
-        }}
-        onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
-      />
-
-      <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        {leftPanelOpen || rightPanelOpen ? (
-          <div
-            className="fixed inset-0 z-20 bg-black/80 backdrop-blur-sm lg:hidden"
-            onClick={() => {
-              setLeftPanelOpen(false);
-              setRightPanelOpen(false);
-            }}
-          />
-        ) : null}
-
+    <PageShell
+      className="osint-shell-stage h-full w-full"
+      toolbar={
+        <ChatHeader
+          activeSessionId={activeSession?.id || null}
+          activeWorkspaceId={activeWorkspace?.id || null}
+          exportMenuRef={exportMenuRef}
+          leftPanelOpen={leftPanelOpen}
+          newMenuRef={newMenuRef}
+          rightPanelOpen={rightPanelOpen}
+          setShowExportMenu={setShowExportMenu}
+          setShowNewMenu={setShowNewMenu}
+          showExportMenu={showExportMenu}
+          showNewMenu={showNewMenu}
+          workspaceDisabled={!activeWorkspace}
+          workspaces={workspaces.map((workspace) => ({
+            ...workspace,
+            title: getWorkspaceDisplayTitle(workspace),
+          }))}
+          onCreateGuidedSession={handleCreateGuidedSession}
+          onCreateSession={handleCreateSession}
+          onExportJson={handleExportSessionJson}
+          onExportMarkdown={handleExportSessionMarkdown}
+          onSelectWorkspace={setActiveWorkspaceId}
+          onStartNewWorkspace={handleStartNewProject}
+          onToggleExportMenu={() => {
+            setShowExportMenu((current) => !current);
+            setShowNewMenu(false);
+          }}
+          onToggleLeftPanel={() => setLeftPanelOpen((current) => !current)}
+          onToggleNewMenu={() => {
+            setShowNewMenu((current) => !current);
+            setShowExportMenu(false);
+          }}
+          onToggleRightPanel={() => setRightPanelOpen((current) => !current)}
+        />
+      }
+      leftRail={
         <ChatLibraryRail
           activeSessionId={activeSession?.id || null}
           leftPanelOpen={leftPanelOpen}
@@ -190,54 +183,8 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
           onRenameSession={handleRenameSession}
           onDeleteSession={handleDeleteSession}
         />
-
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-black">
-          <MainContentDotGrid testId="chat-dot-grid-background" />
-          <ChatTranscript
-            activeWorkspace={activeWorkspace}
-            messages={messages}
-            workspaces={workspaces}
-            workingAssistantMessageId={workingAssistantMessageId}
-            workingSessionId={workingSessionId}
-            partialAssistantOutput={partialAssistantOutput}
-            messageBodyClassName={messageBodyClassName}
-            sectionLabelClassName={sectionLabelClassName}
-            transcriptEndRef={transcriptEndRef}
-            splitCollapsedFollowUpBlock={splitCollapsedFollowUpBlock}
-            formatTimestamp={formatTimestamp}
-            copyToClipboard={copyToClipboard}
-            formatMessageWithCitations={formatMessageWithCitations}
-            handleOpenMention={handleOpenMention}
-            handlePromoteAttachment={handlePromoteAttachment}
-            handleSaveMessageAsArtifact={handleSaveMessageAsArtifact}
-            handleAppendMessageToArtifact={handleAppendMessageToArtifact}
-            handleLaunchFollowUp={handleLaunchFollowUp}
-            handleStartNewWorkspace={handleStartNewProject}
-          />
-
-          <ChatComposer
-            key={`${activeSession?.id || 'guided'}:${guidedState?.step || 'chat'}`}
-            activeWorkspace={activeWorkspace}
-            customScopes={customScopes}
-            draft={draft}
-            guidedState={guidedState}
-            isBusy={chatGenerationStatus === 'GENERATING' || chatGenerationStatus === 'CANCELLING'}
-            chatGenerationStatus={chatGenerationStatus}
-            fileInputRef={fileInputRef}
-            mentionCandidates={mentionCandidates}
-            onSubmit={handleSend}
-            onDraftChange={setDraft}
-            onFileUpload={handleFileUpload}
-            onKeyDown={handleComposerKeyDown}
-            onStopGeneration={handleStopGeneration}
-            onAdvanceGuided={handleAdvanceGuided}
-            onGuidedBack={handleGuidedBack}
-            onGuidedLaunch={handleGuidedLaunch}
-            onGuidedSaveDraft={handleGuidedSaveDraft}
-            onOpenManualSetup={handleOpenManualSetup}
-          />
-        </div>
-
+      }
+      rightRail={
         <ChatInspectorPanel
           rightPanelOpen={rightPanelOpen}
           workspaceTitle={activeWorkspace ? getWorkspaceDisplayTitle(activeWorkspace) : undefined}
@@ -262,7 +209,64 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
             void handleFetchRecentSignals();
           }}
         />
-      </div>
+      }
+    >
+      {leftPanelOpen || rightPanelOpen ? (
+        <div
+          className="osint-shell-backdrop absolute inset-0 z-20 lg:hidden"
+          onClick={() => {
+            setLeftPanelOpen(false);
+            setRightPanelOpen(false);
+          }}
+        />
+      ) : null}
+
+      <main className="osint-shell-content-surface relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <MainContentDotGrid testId="chat-dot-grid-background" />
+        <ChatTranscript
+          activeWorkspace={activeWorkspace}
+          messages={messages}
+          workspaces={workspaces}
+          workingAssistantMessageId={workingAssistantMessageId}
+          workingSessionId={workingSessionId}
+          partialAssistantOutput={partialAssistantOutput}
+          messageBodyClassName={messageBodyClassName}
+          sectionLabelClassName={sectionLabelClassName}
+          transcriptEndRef={transcriptEndRef}
+          splitCollapsedFollowUpBlock={splitCollapsedFollowUpBlock}
+          formatTimestamp={formatTimestamp}
+          copyToClipboard={copyToClipboard}
+          formatMessageWithCitations={formatMessageWithCitations}
+          handleOpenMention={handleOpenMention}
+          handlePromoteAttachment={handlePromoteAttachment}
+          handleSaveMessageAsArtifact={handleSaveMessageAsArtifact}
+          handleAppendMessageToArtifact={handleAppendMessageToArtifact}
+          handleLaunchFollowUp={handleLaunchFollowUp}
+          handleStartNewWorkspace={handleStartNewProject}
+        />
+
+        <ChatComposer
+          key={`${activeSession?.id || 'guided'}:${guidedState?.step || 'chat'}`}
+          activeWorkspace={activeWorkspace}
+          customScopes={customScopes}
+          draft={draft}
+          guidedState={guidedState}
+          isBusy={chatGenerationStatus === 'GENERATING' || chatGenerationStatus === 'CANCELLING'}
+          chatGenerationStatus={chatGenerationStatus}
+          fileInputRef={fileInputRef}
+          mentionCandidates={mentionCandidates}
+          onSubmit={handleSend}
+          onDraftChange={setDraft}
+          onFileUpload={handleFileUpload}
+          onKeyDown={handleComposerKeyDown}
+          onStopGeneration={handleStopGeneration}
+          onAdvanceGuided={handleAdvanceGuided}
+          onGuidedBack={handleGuidedBack}
+          onGuidedLaunch={handleGuidedLaunch}
+          onGuidedSaveDraft={handleGuidedSaveDraft}
+          onOpenManualSetup={handleOpenManualSetup}
+        />
+      </main>
 
       <ChatDialogs
         activeWorkspace={activeWorkspace}
@@ -304,6 +308,6 @@ export const Chat: React.FC<ChatProps> = ({ onLaunchInvestigation }) => {
         uploadDialogState={uploadDialogState}
         uploadInFlight={uploadInFlight}
       />
-    </div>
+    </PageShell>
   );
 };

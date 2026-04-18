@@ -40,6 +40,7 @@ import {
   getChromeMenuButtonClass,
 } from '@/components/ui/chrome';
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
+import { PageShell } from '@/components/system/layout/PageShell';
 
 interface WorkspaceHomeProps {
   workspaceId: string;
@@ -254,51 +255,53 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
   const countCards = buildCountCards(snapshot.summary.counts);
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-black text-zinc-200">
-      <header className={`${CHROME_HEADER_CLASS} px-6`}>
-        <div className="flex h-full min-w-0 items-center justify-between gap-4">
-          <div className="min-w-0">
-            <div className="mb-1 osint-meta-label">
-              Workspace Overview
+    <PageShell
+      className="osint-shell-stage h-screen w-full"
+      toolbar={
+        <header className={`${CHROME_HEADER_CLASS} px-6`}>
+          <div className="flex h-full min-w-0 items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="mb-1 osint-meta-label">Workspace Overview</div>
+              <h1 className="truncate osint-title-page">{snapshot.summary.title}</h1>
+              <p className="mt-2 max-w-3xl osint-body-muted">
+                {workspace.description ||
+                  snapshot.summary.launchAngle ||
+                  snapshot.summary.launchTopic ||
+                  'Summary counts, saved views, and recent activity for this workspace.'}
+              </p>
             </div>
-            <h1 className="truncate osint-title-page">
-              {snapshot.summary.title}
-            </h1>
-            <p className="mt-2 max-w-3xl osint-body-muted">
-              {workspace.description ||
-                snapshot.summary.launchAngle ||
-                snapshot.summary.launchTopic ||
-                'Summary counts, saved views, and recent activity for this workspace.'}
-            </p>
+            <div className="hidden shrink-0 items-center gap-2 lg:flex">
+              <Link
+                to={buildWorkspaceChatPath(workspaceId)}
+                className={getChromeMenuButtonClass(false)}
+              >
+                Chat
+              </Link>
+              <Link
+                to={
+                  primaryBoard?.id
+                    ? buildWorkspaceBoardDocumentPath(workspaceId, primaryBoard.id)
+                    : buildWorkspaceBoardPath(workspaceId)
+                }
+                className={getChromeMenuButtonClass(false)}
+              >
+                Board
+              </Link>
+              <Link
+                to={buildWorkspaceTimelinePath(workspaceId)}
+                className={getChromeMenuButtonClass(false)}
+              >
+                Timeline
+              </Link>
+            </div>
           </div>
-          <div className="hidden shrink-0 items-center gap-2 lg:flex">
-            <Link
-              to={buildWorkspaceChatPath(workspaceId)}
-              className={getChromeMenuButtonClass(false)}
-            >
-              Chat
-            </Link>
-            <Link
-              to={
-                primaryBoard?.id
-                  ? buildWorkspaceBoardDocumentPath(workspaceId, primaryBoard.id)
-                  : buildWorkspaceBoardPath(workspaceId)
-              }
-              className={getChromeMenuButtonClass(false)}
-            >
-              Board
-            </Link>
-            <Link
-              to={buildWorkspaceTimelinePath(workspaceId)}
-              className={getChromeMenuButtonClass(false)}
-            >
-              Timeline
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative flex-1 overflow-y-auto p-6" data-app-scroll-region>
+        </header>
+      }
+    >
+      <main
+        className="osint-shell-content-surface relative flex-1 overflow-y-auto p-6"
+        data-app-scroll-region
+      >
         <MainContentDotGrid testId="workspace-home-dot-grid-background" />
         <div className="relative z-10 mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1.55fr)_360px]">
           <div className="space-y-6">
@@ -511,7 +514,7 @@ export const WorkspaceHome: React.FC<WorkspaceHomeProps> = ({ workspaceId }) => 
             </section>
           </div>
         </div>
-      </div>
-    </div>
+      </main>
+    </PageShell>
   );
 };
