@@ -76,9 +76,9 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
     showWorkspaceEmptyState || showAssistantPrimer ? 'min-h-full justify-start' : 'min-h-full justify-end';
 
   return (
-    <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 pt-2 sm:px-6">
+    <section className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 sm:px-6">
       <div
-        className={`relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border ${CHROME_CARD_SURFACE_CLASS}`}
+        className={`osint-chat-transcript-surface relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 overflow-hidden border ${CHROME_CARD_SURFACE_CLASS}`}
         data-testid="chat-transcript-shell"
       >
         <div
@@ -115,13 +115,13 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                     : undefined
                 }
                 className="px-0 py-6"
-                panelClassName="max-w-3xl px-6 py-8"
+                panelClassName="osint-chat-transcript-surface max-w-3xl px-6 py-8"
               />
             ) : null}
 
             {showAssistantPrimer ? (
               <article className="w-full px-5 py-4 sm:px-6">
-                <div className="px-4 py-4">
+                <div className="osint-chat-transcript-surface px-4 py-4">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div className={`flex items-center gap-2 ${sectionLabelClassName}`}>
                       <TranscriptRoleIcon role="assistant" />

@@ -2,7 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { CircleStop, Paperclip, Send, SlidersHorizontal } from 'lucide-react';
 
-import type { ChatGenerationStatus, ChatMentionReference, InvestigationScope, Workspace } from '@/types';
+import type {
+  ChatGenerationStatus,
+  ChatMentionReference,
+  InvestigationScope,
+  Workspace,
+} from '@/types';
 import type { GuidedRunDraft, GuidedSessionState } from '@/services/chat/guidedMode';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import {
@@ -152,10 +157,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
   };
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="relative z-10 shrink-0 px-4 pb-4 pt-2 sm:px-6"
-    >
+    <form onSubmit={onSubmit} className="relative z-10 shrink-0 px-4 pb-0.5 sm:px-6">
       <div className="osint-chat-composer-shell relative z-10 mx-auto w-full max-w-4xl bg-black/20">
         <div className="pointer-events-none absolute inset-0 bg-black" aria-hidden="true" />
         <div className="relative z-10 border-b border-zinc-800">
@@ -180,7 +182,8 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
                 if (event.key === 'ArrowUp') {
                   event.preventDefault();
                   setActiveMentionIndex(
-                    (current) => (current - 1 + mentionState.results.length) % mentionState.results.length
+                    (current) =>
+                      (current - 1 + mentionState.results.length) % mentionState.results.length
                   );
                   return;
                 }
@@ -216,13 +219,13 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
                       commitMention(index);
                     }}
                     className={`flex w-full items-center justify-between px-3 py-2 text-left transition-colors ${
-                      index === activeMentionIndex ? 'bg-zinc-900 text-white' : 'text-zinc-300 hover:bg-zinc-900'
+                      index === activeMentionIndex
+                        ? 'bg-zinc-900 text-white'
+                        : 'text-zinc-300 hover:bg-zinc-900'
                     }`}
                   >
                     <span className="truncate osint-body-small">{candidate.title}</span>
-                    <span className="ml-3 shrink-0 osint-meta-label">
-                      {candidate.subtitle}
-                    </span>
+                    <span className="ml-3 shrink-0 osint-meta-label">{candidate.subtitle}</span>
                   </button>
                 ))}
               </div>

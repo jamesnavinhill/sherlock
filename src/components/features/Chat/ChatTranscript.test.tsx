@@ -49,8 +49,11 @@ describe('ChatTranscript', () => {
     );
 
     expect(screen.getByText('Latest workspace update.')).toBeInTheDocument();
-    expect(container.firstChild).toHaveClass('pt-2');
-    expect(screen.getByTestId('chat-transcript-shell')).toHaveClass('border');
+    expect(container.firstChild).not.toHaveClass('pt-2');
+    expect(screen.getByTestId('chat-transcript-shell')).toHaveClass(
+      'border',
+      'osint-chat-transcript-surface'
+    );
     const scrollRegion = container.querySelector('[data-app-scroll-region]');
     expect(scrollRegion).not.toBeNull();
     expect(scrollRegion).toHaveClass('custom-scrollbar');
@@ -88,6 +91,9 @@ describe('ChatTranscript', () => {
     );
 
     expect(screen.getByTestId('chat-assistant-primer')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-assistant-primer').parentElement).toHaveClass(
+      'osint-chat-transcript-surface'
+    );
     expect(screen.getByTestId('chat-transcript-stack')).toHaveClass('justify-start');
   });
 

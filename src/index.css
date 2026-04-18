@@ -426,6 +426,14 @@ body,
     0 0 22px color-mix(in oklab, var(--osint-primary) 14%, transparent);
 }
 
+.osint-chat-transcript-surface {
+  background-color: rgb(0 0 0 / 0.2) !important;
+}
+
+:root[data-theme='light'] .osint-chat-transcript-surface {
+  background-color: color-mix(in oklab, var(--osint-panel) 72%, transparent) !important;
+}
+
 :root:not([data-theme='light']) .text-zinc-700 {
   color: color-mix(in oklab, var(--osint-text) 34%, var(--osint-dark)) !important;
 }
