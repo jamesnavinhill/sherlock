@@ -219,9 +219,9 @@ Doc requirements:
 
 ## Checklist
 
-- [ ] Upgrade `tldraw` to `^4.5.8`
-- [ ] Refresh lockfile
-- [ ] Replace remaining arrow `text` usage with `richText` where required
+- [x] Upgrade `tldraw` to `^4.5.8`
+- [x] Refresh lockfile
+- [x] Replace remaining arrow `text` usage with `richText` where required
 - [ ] Search for any other 4.x-sensitive board API assumptions
 - [ ] Add `licenseKey` config seam
 - [ ] Add `.env.example` guidance for the chosen tldraw license env var

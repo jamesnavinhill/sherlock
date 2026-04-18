@@ -1,6 +1,6 @@
 # 2026-04-18 Foundation Cleanup Plan
 
-Status: In Progress (`Phase 1` and `Phase 2` completed on April 18, 2026)
+Status: In Progress (`Phase 1`, `Phase 2`, `Phase 4`, and `Phase 5` completed on April 18, 2026)
 
 Related inputs:
 
@@ -389,6 +389,31 @@ For this phase:
 - `npm run typecheck`
 - targeted board / board-agent tests
 - `npm run build`
+
+### Progress
+
+Completed on April 18, 2026.
+
+Landed in this phase:
+
+- extracted board placement and queued-placement coordination into `src/components/features/WorkspaceBoard/useWorkspaceBoardPlacement.ts`
+- extracted board-agent local session/review state into `src/components/features/WorkspaceBoard/useWorkspaceBoardAgentState.ts`
+- reduced `useWorkspaceBoardController.ts` to page-level orchestration over the placement, board-agent, library, inspector, upload, and canvas-persistence seams
+- split board-agent structured action execution into focused family modules:
+  - `src/services/workspace/agent/actions/metaActions.ts`
+  - `src/services/workspace/agent/actions/boardMutationActions.ts`
+  - `src/services/workspace/agent/actions/workspaceWriteActions.ts`
+  - shared helpers bounded in `src/services/workspace/agent/actions/shared.ts`
+- added focused coverage in `src/components/features/WorkspaceBoard/useWorkspaceBoardAgentState.test.ts` and `src/services/workspace/agent/actions/metaActions.test.ts`
+- kept the current board-agent rail behavior and approval-first review flow intact without redesigning the temporary rail UI
+
+Validation note:
+
+- `npm run typecheck` passed
+- `npm run test -- src/components/features/WorkspaceBoard/useWorkspaceBoardController.test.ts src/components/features/WorkspaceBoard/useWorkspaceBoardAgentState.test.ts src/services/workspace/agent/actions/registry.test.ts src/services/workspace/agent/actions/metaActions.test.ts src/services/workspace/agent/session.test.ts` passed
+- `npm run lint` passed
+- `npm run build` passed
+- build still reports the pre-existing Vite chunk-size warning for `vendor-tldraw-app`; no new chunk warning was introduced in this phase
 
 ## Phase 6. Shared Contract Extraction And Hotspot Reduction
 

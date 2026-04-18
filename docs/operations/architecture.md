@@ -579,7 +579,8 @@ Operation View now also includes board handoff for the active artifact plus insp
 - inspector actions back into artifacts, workspace chat, timeline, network graph, source links, and promoted-item provenance
 - Sherlock-themed board chrome that reuses the existing panel/header/button vocabulary instead of introducing a parallel UI system
 - `BoardTopBar.tsx`, `BoardCanvasPane.tsx`, `WorkspaceBoardLibraryRail.tsx`, `WorkspaceBoardInspectorPanel.tsx`, `BoardAgentRail.tsx`, and `BoardDialogs.tsx` now isolate the major board sections from the route shell
-- controller responsibilities are split further across `useBoardCanvasPersistence.ts`, `workspaceBoardItemActions.ts`, `boardInspectorActions.ts`, and `workspaceBoardAgent.ts` so the public controller stays focused on orchestration
+- controller responsibilities are split further across `useBoardCanvasPersistence.ts`, `useWorkspaceBoardPlacement.ts`, `useWorkspaceBoardAgentState.ts`, `useWorkspaceBoardLibraryState.ts`, `useWorkspaceBoardInspectorState.ts`, `workspaceBoardItemActions.ts`, and `workspaceBoardAgent.ts` so the public controller stays focused on route orchestration instead of carrying placement, board-agent review/session state, upload/dialog state, and inspector/library logic inline
+- board-agent action execution now dispatches from the thin `actions/registry.ts` orchestrator into focused family modules in `actions/metaActions.ts`, `actions/boardMutationActions.ts`, and `actions/workspaceWriteActions.ts`, with shared normalization and shape/canonical-write helpers bounded in `actions/shared.ts`
 - the route wrapper now composes through `PageShell`, and the board library rail now inherits the theme rail-width token through the shared dock contract
 
 `ArtifactViewer` and `WorkspaceLibraryRail` now also surface:
