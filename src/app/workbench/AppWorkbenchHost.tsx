@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { PanelLeftOpen, PanelRightOpen, X } from 'lucide-react';
 
 import { DockPanel } from '@/components/system/layout/DockPanel';
 import {
@@ -7,7 +7,6 @@ import {
   CHROME_PANEL_HEADER_CLASS,
   CHROME_RAIL_BODY_CLASS,
   CHROME_TOP_PANEL_HEADER_MIN_HEIGHT_CLASS,
-  getChromeMenuButtonClass,
 } from '@/components/ui/chrome';
 import { useAppWorkbenchHost } from './useAppWorkbenchHost';
 
@@ -28,6 +27,9 @@ export const AppWorkbenchHost: React.FC = () => {
   if (!activePanel) {
     return null;
   }
+
+  const workbenchHeaderButtonClass =
+    'osint-workbench-header-control inline-flex items-center justify-center';
 
   return (
     <>
@@ -70,25 +72,27 @@ export const AppWorkbenchHost: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setPlacement('left')}
-                className={getChromeMenuButtonClass(placement === 'left')}
+                data-active={placement === 'left' ? 'true' : undefined}
+                className={`${workbenchHeaderButtonClass} ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS}`}
                 title="Dock workbench left"
                 aria-label="Dock workbench left"
               >
-                Left
+                <PanelLeftOpen className="h-4 w-4 shrink-0" />
               </button>
               <button
                 type="button"
                 onClick={() => setPlacement('right')}
-                className={getChromeMenuButtonClass(placement === 'right')}
+                data-active={placement === 'right' ? 'true' : undefined}
+                className={`${workbenchHeaderButtonClass} ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS}`}
                 title="Dock workbench right"
                 aria-label="Dock workbench right"
               >
-                Right
+                <PanelRightOpen className="h-4 w-4 shrink-0" />
               </button>
               <button
                 type="button"
                 onClick={closeWorkbench}
-                className={`osint-button-chrome ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} flex items-center justify-center`}
+                className={`${workbenchHeaderButtonClass} ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS}`}
                 title="Close workbench"
                 aria-label="Close workbench"
               >

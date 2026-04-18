@@ -73,6 +73,9 @@ describe('AppWorkbenchHost', () => {
     expect(screen.getByText('left')).toBeInTheDocument();
     expect(screen.getByText('1 panels')).toBeInTheDocument();
     expect(screen.getByText('Theme Workspace')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dock workbench left' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dock workbench right' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close workbench' })).toBeInTheDocument();
 
     const panel = screen.getByText('Theme Summary Body').closest('aside');
     expect(panel).toHaveAttribute('data-placement', 'left');
