@@ -122,7 +122,8 @@ Recommended phase order:
 4. Persistence and repository seam extraction
 5. Board and board-agent logic decomposition, with UI freeze
 6. Shared contract extraction and hotspot reduction
-7. Final docs reconciliation and cleanup closeout
+7. Large-file hotspot refactor tranche
+8. Final docs reconciliation and cleanup closeout
 
 ## Phase 1. Active Docs Canon And Repo-Truth Reset
 
@@ -501,6 +502,105 @@ Validation note:
 - `npm run build` passed
 - build still reports the pre-existing Vite chunk-size warning for `vendor-tldraw-app`; no new chunk warning was introduced in this phase
 
+## Phase 6B. Large-File Hotspot Refactor Tranche
+
+Purpose:
+
+- turn the audit's remaining "fat file" concern into one explicit execution phase instead of leaving it as opportunistic cleanup
+- prioritize active code hotspots that are genuinely impeding safe iteration after Phases 1-6
+
+### Scope
+
+Primary targets, ranked by current LOC on April 18, 2026:
+
+- `src/components/features/Settings/themeWorkbench/SettingsThemeWorkbenchPanel.tsx` - 1218
+- `src/components/features/OperationView/ArtifactViewer.tsx` - 965
+- `src/system/theme/schema.ts` - 848
+- `src/components/features/NetworkGraph/GraphCanvas.tsx` - 710
+- `src/components/ui/GlobalSearch.tsx` - 700
+- `src/services/chat/runtime.ts` - 676
+- `src/services/providers/openRouterProvider.ts` - 643
+- `src/components/features/Chat/useChatController.ts` - 638
+- `src/components/features/Timeline/timelineEventBuilders.ts` - 623
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx` - 614
+- `src/components/ui/omniboxActions.ts` - 612
+- `src/services/providers/geminiProvider.ts` - 604
+- `src/components/features/Settings/TemplateGallery.tsx` - 598
+- `src/components/features/OperationView/artifactViewerDetailRail.tsx` - 596
+- `src/components/features/Settings/themeWorkbench/SettingsThemeTab.tsx` - 550
+- `src/services/db/repositories/WorkspaceRepository.ts` - 522
+
+Explicit deferments for this phase:
+
+- `src/components/features/WorkspaceBoard/BoardAgentRail.tsx` - 725
+  - defer because the board-agent surface is already expected to move into the future dockable panel stream, so a large extraction pass here would likely harden a temporary UI seam
+
+Large files noted but not first-line refactor targets for this phase:
+
+- `src/lib/tablerIconSvgMap.ts` - 2784
+  - generated/static registry, not an immediate architecture refactor target
+- `src/index.css` - 1445
+  - large stylesheet, but this cleanup tranche is focused on code-module responsibility seams first
+- `src/lib/appIcons.tsx` - 936
+  - icon catalog / registry surface, likely better handled only if icon-system work is already underway
+- `src/data/presets.ts` - 685
+  - large data/config payload rather than a logic hotspot
+- `src/utils/themeFonts.ts` - 562
+  - large token/config surface; only extract if theme-workbench work naturally forces it
+
+### Tasks
+
+1. Start with `SettingsThemeWorkbenchPanel.tsx` as the anchor extraction target and split it by clear responsibility seams such as:
+   - theme draft state mutation helpers
+   - import/export/template actions
+   - mode/background/accent/surface/typography subsection composition
+   - shared workbench action wiring
+2. Follow immediately with the Operation View reader pair:
+   - `ArtifactViewer.tsx`
+   - `artifactViewerDetailRail.tsx`
+   Keep the reader contract stable while extracting rendering blocks, edit controls, and evidence/finding/follow-up detail helpers into smaller feature-owned modules.
+3. Evaluate whether `SettingsThemeTab.tsx` and `TemplateGallery.tsx` should be reduced in the same pass so the whole workbench surface ends with cleaner boundaries instead of one smaller file calling several still-bloated neighbors.
+4. Treat `schema.ts`, `GraphCanvas.tsx`, `GlobalSearch.tsx`, `runtime.ts`, provider adapters, timeline event builders, inspector panels, and omnibox actions as the next candidate queue, but only pull them into the tranche if the earlier extractions land cleanly and time remains.
+5. Keep `BoardAgentRail.tsx` explicitly deferred unless a correctness bug forces a targeted change.
+6. Record any files that remain above roughly 550-600 LOC after the tranche so Phase 7 closeout can describe what was intentionally left for later.
+
+### Exit Criteria
+
+- the theme workbench no longer depends on one dominant panel file for most editing behavior
+- the Operation View reader no longer concentrates most document rendering and reading interactions in one oversized component pair
+- the phase leaves a ranked, reality-based carry-over list rather than vague "more refactoring later" language
+
+### Validation
+
+- `npm run lint`
+- `npm run typecheck`
+- targeted tests for the extracted feature surfaces
+- `npm run build`
+
+### Planning Note
+
+This phase was added on April 18, 2026 after a code-first LOC sweep so the final docs closeout would not swallow the remaining large-file refactor work.
+
+Current largest non-test TypeScript/TSX implementation files informing this phase:
+
+- `src/components/features/Settings/themeWorkbench/SettingsThemeWorkbenchPanel.tsx` - 1218
+- `src/components/features/OperationView/ArtifactViewer.tsx` - 965
+- `src/system/theme/schema.ts` - 848
+- `src/components/features/WorkspaceBoard/BoardAgentRail.tsx` - 725, intentionally deferred
+- `src/components/features/NetworkGraph/GraphCanvas.tsx` - 710
+- `src/components/ui/GlobalSearch.tsx` - 700
+- `src/services/chat/runtime.ts` - 676
+- `src/services/providers/openRouterProvider.ts` - 643
+- `src/components/features/Chat/useChatController.ts` - 638
+- `src/components/features/Timeline/timelineEventBuilders.ts` - 623
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx` - 614
+- `src/components/ui/omniboxActions.ts` - 612
+- `src/services/providers/geminiProvider.ts` - 604
+- `src/components/features/Settings/TemplateGallery.tsx` - 598
+- `src/components/features/OperationView/artifactViewerDetailRail.tsx` - 596
+- `src/components/features/Settings/themeWorkbench/SettingsThemeTab.tsx` - 550
+- `src/services/db/repositories/WorkspaceRepository.ts` - 522
+
 ## Phase 7. Final Docs Reconciliation And Cleanup Closeout
 
 Purpose:
@@ -520,7 +620,7 @@ Primary targets:
 
 ### Tasks
 
-1. Reconcile active docs to the final landed structure after Phases 2-6.
+1. Reconcile active docs to the final landed structure after Phases 2-6B.
 2. Add a closeout report summarizing what actually landed, what was deferred, and what remains.
 3. Explicitly record the deferred future stream for the second dockable agent panel.
 4. Note any remaining hotspots that were intentionally left for later rather than discovered too late.
@@ -540,13 +640,12 @@ Primary targets:
 
 ## Carry-Over After Phase 6 Execution
 
-The remaining work is now concentrated in the planned closeout phase plus a few explicitly deferred follow-ups:
+The remaining work is now concentrated in the planned `Phase 6B` hotspot tranche, the final closeout phase, and a few explicitly deferred follow-ups:
 
+- execute `Phase 6B` against the ranked large-file targets, starting with the theme workbench and Operation View reader surfaces
 - complete `Phase 7` final docs reconciliation and add the cleanup closeout report in `docs/reports`
 - decide whether broader non-Operation-View `report` naming in domain/presentation, chat artifact-building, and network-graph-local helper code should be normalized in a later cleanup tranche or left as bounded internal vocabulary where it still maps cleanly to artifact generation behavior
-- continue opportunistic hotspot reduction in files that remain large but were not blocking this cleanup phase, especially:
-  - `src/components/features/Settings/themeWorkbench/SettingsThemeWorkbenchPanel.tsx`
-  - `src/components/features/WorkspaceBoard/BoardAgentRail.tsx`
+- keep `src/components/features/WorkspaceBoard/BoardAgentRail.tsx` deferred to the future dockable-panel stream unless a targeted bug fix requires touching it first
 
 ## Recommended Working Sequence Inside The Cleanup
 
@@ -558,7 +657,8 @@ The best execution order inside implementation sessions is:
 4. persistence extraction, because it is high-value and high-risk if left too late
 5. board and board-agent logic cleanup, while keeping the UI freeze in place
 6. shared contract extraction only after the most important feature seams are already clearer
-7. final docs and closeout report last
+7. large-file hotspot refactors, starting with theme workbench and Operation View reader surfaces
+8. final docs and closeout report last
 
 ## Out-Of-Scope For This Plan
 
