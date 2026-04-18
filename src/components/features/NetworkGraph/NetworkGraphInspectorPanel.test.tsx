@@ -207,4 +207,62 @@ describe('NetworkGraphInspectorPanel', () => {
     expect(screen.getByText('Letta')).toBeInTheDocument();
     expect(screen.queryByText(/Links/i)).not.toBeInTheDocument();
   });
+
+  it('pins report deletion to the footer instead of the action row', () => {
+    const report: Artifact = {
+      id: 'report-1',
+      workspaceId: 'workspace-1',
+      topic: 'Artifact Topic',
+      summary: 'Artifact summary',
+      agendas: [],
+      leads: [],
+      entities: [],
+      sources: [],
+      rawText: 'raw text',
+      labelProfileId: 'research',
+    };
+    const selectedNode: GraphNode = {
+      id: 'report-node-1',
+      type: 'REPORT',
+      label: 'Artifact Topic',
+      connections: 1,
+      data: report,
+    };
+    const onDeleteNode = vi.fn();
+
+    render(
+      <NetworkGraphInspectorPanel
+        isOpen
+        onClose={vi.fn()}
+        mode="REPORT"
+        selectedNode={selectedNode}
+        selectedEntity={null}
+        selectedHeadline={null}
+        selectedReport={report}
+        reports={[report]}
+        hiddenNodeIds={new Set()}
+        flaggedNodeIds={new Set()}
+        onEntitySave={vi.fn()}
+        onReportSave={vi.fn()}
+        onToggleFlag={vi.fn()}
+        onToggleHide={vi.fn()}
+        onDeleteNode={onDeleteNode}
+        onSetManualNodeIcon={vi.fn()}
+        onInvestigate={vi.fn()}
+        onOpenReport={vi.fn()}
+        onOpenEntityChat={vi.fn()}
+        onOpenReportChat={vi.fn()}
+        onOpenHeadlineChat={vi.fn()}
+        onPlaceEntityOnBoard={vi.fn()}
+        onPlaceReportOnBoard={vi.fn()}
+        onPlaceHeadlineOnBoard={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: /close inspector/i })).not.toBeInTheDocument();
+    const deleteButton = screen.getByRole('button', { name: 'Remove from network' });
+    expect(deleteButton).toHaveClass('w-full');
+    fireEvent.click(deleteButton);
+    expect(onDeleteNode).toHaveBeenCalledTimes(1);
+  });
 });

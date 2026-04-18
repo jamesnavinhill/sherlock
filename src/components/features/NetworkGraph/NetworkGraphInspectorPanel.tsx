@@ -272,15 +272,6 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
             ? 'border-zinc-500 bg-zinc-900/50 text-white hover:border-white hover:text-white'
             : undefined,
         },
-        {
-          id: 'report-delete',
-          label: selectedNodeDeleteLabel,
-          icon: Trash2,
-          iconOnly: true,
-          onClick: onDeleteNode,
-          className:
-            'osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]',
-        },
       ]
     : [];
 
@@ -365,17 +356,22 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
             ? 'border-zinc-500 bg-zinc-900/50 text-white hover:border-white hover:text-white'
             : undefined,
         },
-        {
-          id: 'entity-delete',
-          label: selectedNodeDeleteLabel,
-          icon: Trash2,
-          iconOnly: true,
-          onClick: onDeleteNode,
-          className:
-            'osint-danger-inline hover:border-[color:var(--osint-danger-soft-border)] hover:bg-[color:var(--osint-danger-soft-bg)]',
-        },
       ]
     : [];
+
+  const inspectorDeleteFooter =
+    selectedNode && (mode === 'ENTITY' || mode === 'REPORT') ? (
+      <div className="osint-shell-dialog-footer p-3">
+        <button
+          type="button"
+          onClick={onDeleteNode}
+          className="osint-button-danger osint-meta-label-strong inline-flex w-full items-center justify-center gap-2 px-3 py-2"
+        >
+          <Trash2 className="h-4 w-4" />
+          {selectedNodeDeleteLabel}
+        </button>
+      </div>
+    ) : null;
 
   const manualIconButton =
     selectedNode?.isManual && (mode === 'ENTITY' || mode === 'REPORT') ? (
@@ -542,7 +538,6 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
         <GlobalInspectorPanel
           isOpen={isOpen}
           widthValue={RAIL_WIDTH_VALUE}
-          onClose={onClose}
           title={
             <EditableTitle
               value={selectedEntity}
@@ -568,12 +563,12 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
           actionRowLayout="grid"
           actionRowGridColumns={3}
           sections={entitySections}
+          footer={inspectorDeleteFooter}
         />
       ) : mode === 'HEADLINE' && selectedHeadline ? (
         <GlobalInspectorPanel
           isOpen={isOpen}
           widthValue={RAIL_WIDTH_VALUE}
-          onClose={onClose}
           title={<span title={selectedHeadline.source}>{selectedHeadline.source}</span>}
           subtitle={
             <span className="flex items-center gap-2">
@@ -597,7 +592,6 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
         <GlobalInspectorPanel
           isOpen={isOpen}
           widthValue={RAIL_WIDTH_VALUE}
-          onClose={onClose}
           title={
             <EditableTitle
               value={selectedReport.topic}
@@ -617,12 +611,12 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
           actionRowLayout="grid"
           actionRowGridColumns={3}
           sections={reportSections}
+          footer={inspectorDeleteFooter}
         />
       ) : (
         <GlobalInspectorPanel
           isOpen={isOpen}
           widthValue={RAIL_WIDTH_VALUE}
-          onClose={onClose}
           title="No Item Selected"
           emptyState={{
             title: 'No Item Selected',

@@ -646,7 +646,9 @@ body,
   background-color: var(--osint-danger-soft-bg);
   color: var(--color-osint-danger);
   border: 1px solid var(--osint-danger-soft-border);
+  border-radius: var(--osint-control-radius);
   font-weight: var(--font-weight-bold);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--osint-ink) 4%, transparent);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -660,6 +662,7 @@ body,
   color: var(--osint-ink);
   border-color: color-mix(in oklab, var(--color-osint-danger) 58%, transparent);
   box-shadow: 0 0 10px -8px color-mix(in oklab, var(--color-osint-danger) 24%, transparent);
+  outline: none;
 }
 
 .osint-empty-state-shell {

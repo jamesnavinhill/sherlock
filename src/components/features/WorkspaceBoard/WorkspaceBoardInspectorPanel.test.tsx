@@ -179,4 +179,45 @@ describe('WorkspaceBoardInspectorPanel', () => {
     expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('w-full');
     expect(screen.getByRole('button', { name: 'Chat' })).toHaveClass('w-full');
   });
+
+  it('does not render a close button in the inspector header', () => {
+    render(
+      <WorkspaceBoardInspectorPanel
+        isOpen
+        tabs={[
+          { id: 'AGENT', label: 'Agent' },
+          { id: 'INSPECTOR', label: 'Inspector' },
+        ]}
+        activeTabId="INSPECTOR"
+        onTabChange={vi.fn()}
+        inspectorActions={[]}
+        inspectorSections={{
+          quickActions: false,
+          selection: false,
+          provenance: false,
+        }}
+        selectedEntries={[]}
+        selectedWorkspaceItem={null}
+        activeBoard={{
+          id: 'board-1',
+          workspaceId: 'ws-1',
+          name: 'Primary Board',
+          sortOrder: 0,
+          createdAt: 1,
+          updatedAt: 1,
+        }}
+        availableBoardsLength={2}
+        aiBusy={false}
+        onToggleQuickActions={vi.fn()}
+        onToggleSelection={vi.fn()}
+        onToggleProvenance={vi.fn()}
+        onShowAgentAndGenerateSummary={vi.fn()}
+        onShowAgentAndGenerateNote={vi.fn()}
+        onOpenAgentStarterIntent={vi.fn()}
+        onDeleteBoard={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: /close inspector/i })).not.toBeInTheDocument();
+  });
 });
