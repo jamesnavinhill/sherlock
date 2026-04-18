@@ -13,7 +13,6 @@ import {
   revertActiveThemeDraft,
   saveActiveThemeDraft,
   selectActiveTheme,
-  setThemePreviewMode,
   updateActiveDraftTheme,
 } from '@/system/theme/storage';
 
@@ -70,11 +69,6 @@ export const useSettingsThemeState = ({
     (themeId: string) => applyWorkspace(selectActiveTheme(themeWorkspace, themeId)),
     [applyWorkspace, themeWorkspace]
   );
-  const setPreviewMode = useCallback(
-    (mode: SherlockThemeWorkspaceState['previewMode']) =>
-      applyWorkspace(setThemePreviewMode(themeWorkspace, mode)),
-    [applyWorkspace, themeWorkspace]
-  );
 
   return useMemo(
     () => ({
@@ -83,14 +77,12 @@ export const useSettingsThemeState = ({
       exportResolvedCss,
       exportThemeJson,
       forkActiveTheme,
-      previewMode: themeWorkspace.previewMode,
       resetActiveThemeFactory: resetActiveThemeFactoryDraft,
       resetAllThemeFactories: resetAllThemeFactoryDrafts,
       revertActiveTheme,
       saveActiveTheme,
       savedTheme,
       selectTheme: selectThemeById,
-      setPreviewMode,
       themeDirty,
       themeWorkspace,
       updateTheme,
@@ -106,7 +98,6 @@ export const useSettingsThemeState = ({
       saveActiveTheme,
       savedTheme,
       selectThemeById,
-      setPreviewMode,
       themeDirty,
       themeWorkspace,
       updateTheme,

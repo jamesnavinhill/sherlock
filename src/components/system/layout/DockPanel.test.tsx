@@ -15,8 +15,10 @@ describe('DockPanel', () => {
     expect(panel).toHaveAttribute('aria-hidden', 'true');
     expect(panel).toHaveAttribute('data-placement', 'right');
     expect(panel).toHaveAttribute('data-state', 'closed');
+    expect(panel).toHaveAttribute('data-tone', 'panel');
     expect(panel?.className).toContain('pointer-events-none');
     expect(panel?.className).toContain('translate-x-full');
+    expect(panel?.className).toContain('osint-shell-divider-left');
   });
 
   it('applies theme-backed dock width variables', () => {
@@ -31,5 +33,16 @@ describe('DockPanel', () => {
       '--osint-dock-width': 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))',
     });
     expect(panel?.className).toContain('w-[var(--osint-dock-width)]');
+  });
+
+  it('can opt into rail tone metadata for rail-owned docks', () => {
+    render(
+      <DockPanel placement="left" isOpen tone="rail">
+        <div>Rail</div>
+      </DockPanel>
+    );
+
+    const panel = screen.getByText('Rail').closest('aside');
+    expect(panel).toHaveAttribute('data-tone', 'rail');
   });
 });

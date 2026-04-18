@@ -87,13 +87,11 @@ export const Settings: React.FC<SettingsProps> = ({
         exportResolvedCss={theme.exportResolvedCss}
         exportThemeJson={theme.exportThemeJson}
         forkActiveTheme={theme.forkActiveTheme}
-        previewMode={theme.previewMode}
         resetActiveThemeFactory={theme.resetActiveThemeFactory}
         resetAllThemeFactories={theme.resetAllThemeFactories}
         revertActiveTheme={theme.revertActiveTheme}
         saveActiveTheme={theme.saveActiveTheme}
         selectTheme={theme.selectTheme}
-        setPreviewMode={theme.setPreviewMode}
         themeDirty={theme.themeDirty}
         updateTheme={theme.updateTheme}
       />

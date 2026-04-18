@@ -16,7 +16,6 @@ import {
   revertActiveThemeDraft,
   saveActiveThemeDraft,
   selectActiveTheme,
-  setThemePreviewMode,
   updateActiveDraftTheme,
 } from './storage';
 
@@ -46,7 +45,6 @@ describe('theme workspace storage helpers', () => {
 
     const displayTheme = getDisplayTheme(workspace);
 
-    expect(workspace.previewMode).toBe('dark');
     expect(displayTheme.accent).toEqual({ hue: 20, lightness: 0.62, chroma: 0.18 });
     expect(displayTheme.surfaces.dark.panel).toEqual({
       hue: 220,
@@ -140,7 +138,10 @@ describe('theme workspace storage helpers', () => {
   });
 
   it('builds css vars from the active workspace theme', () => {
-    const workspace = setThemePreviewMode(createInitialThemeWorkspace(), 'dark');
+    const workspace = updateActiveDraftTheme(createInitialThemeWorkspace(), (theme) => ({
+      ...theme,
+      mode: 'dark',
+    }));
     const cssVars = buildSherlockThemeCssVars(getDisplayTheme(workspace));
 
     expect(cssVars['--osint-primary']).toBeDefined();
@@ -151,11 +152,13 @@ describe('theme workspace storage helpers', () => {
     expect(cssVars['--font-display-scale']).toBeDefined();
   });
 
-  it('keeps the current preview mode when selecting a different theme template', () => {
-    const initialWorkspace = setThemePreviewMode(createInitialThemeWorkspace(), 'dark');
+  it('keeps the active draft mode when selecting the current theme template', () => {
+    const initialWorkspace = updateActiveDraftTheme(createInitialThemeWorkspace(), (theme) => ({
+      ...theme,
+      mode: 'dark',
+    }));
     const nextWorkspace = selectActiveTheme(initialWorkspace, 'default');
 
-    expect(nextWorkspace.previewMode).toBe('dark');
     expect(getDisplayTheme(nextWorkspace).mode).toBe('dark');
   });
 });

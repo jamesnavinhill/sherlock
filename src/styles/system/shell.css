@@ -1,6 +1,6 @@
 :root {
   --osint-shell-border: var(--osint-raised-outline);
-  --osint-shell-header-bg: color-mix(in oklab, var(--osint-panel) 94%, var(--osint-dark) 6%);
+  --osint-shell-header-bg: color-mix(in oklab, var(--osint-shell) 92%, var(--osint-panel) 8%);
   --osint-shell-panel-bg: color-mix(in oklab, var(--osint-panel) 95%, var(--osint-dark) 5%);
   --osint-shell-panel-header-bg: color-mix(
     in oklab,
@@ -15,7 +15,7 @@
 }
 
 :root[data-theme='light'] {
-  --osint-shell-header-bg: color-mix(in oklab, var(--osint-panel) 90%, white 10%);
+  --osint-shell-header-bg: color-mix(in oklab, var(--osint-shell) 92%, white 8%);
   --osint-shell-panel-bg: color-mix(in oklab, var(--osint-panel) 88%, white 12%);
   --osint-shell-panel-header-bg: color-mix(
     in oklab,
@@ -45,10 +45,20 @@
 }
 
 .osint-dock-panel {
+  --osint-dock-bg: var(--osint-shell-panel-bg);
+  --osint-dock-header-bg: var(--osint-shell-panel-header-bg);
+  --osint-dock-action-bg: var(--osint-shell-panel-action-bg);
   width: var(--osint-dock-width);
   min-width: 0;
   max-width: var(--osint-dock-width);
   flex: 0 0 var(--osint-dock-width);
+  background-color: var(--osint-dock-bg);
+}
+
+.osint-dock-panel[data-tone='rail'] {
+  --osint-dock-bg: color-mix(in oklab, var(--osint-rail, var(--osint-dark)) 95%, transparent);
+  --osint-dock-header-bg: var(--osint-dock-bg);
+  --osint-dock-action-bg: var(--osint-dock-bg);
 }
 
 .osint-dock-panel[data-state='closed'] {
@@ -69,8 +79,36 @@
   box-shadow: var(--osint-shell-divider-shadow-bottom, none);
 }
 
+.osint-dock-panel .osint-panel-header {
+  background-color: var(--osint-dock-header-bg, var(--osint-shell-panel-header-bg));
+}
+
 .osint-panel-action-row {
   background-color: var(--osint-shell-panel-action-bg);
+  border-bottom: var(--osint-shell-divider-width, 1px) solid var(--osint-shell-border);
+  box-shadow: var(--osint-shell-divider-shadow-bottom, none);
+}
+
+.osint-dock-panel .osint-panel-action-row {
+  background-color: var(--osint-dock-action-bg, var(--osint-shell-panel-action-bg));
+}
+
+.osint-shell-divider-top {
+  border-top: var(--osint-shell-divider-width, 1px) solid var(--osint-shell-border);
+  box-shadow: none;
+}
+
+.osint-shell-divider-left {
+  border-left: var(--osint-shell-divider-width, 1px) solid var(--osint-shell-border);
+  box-shadow: var(--osint-shell-divider-shadow-left, none);
+}
+
+.osint-shell-divider-right {
+  border-right: var(--osint-shell-divider-width, 1px) solid var(--osint-shell-border);
+  box-shadow: var(--osint-shell-divider-shadow-right, none);
+}
+
+.osint-shell-divider-bottom {
   border-bottom: var(--osint-shell-divider-width, 1px) solid var(--osint-shell-border);
   box-shadow: var(--osint-shell-divider-shadow-bottom, none);
 }

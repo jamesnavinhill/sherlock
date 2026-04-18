@@ -284,7 +284,11 @@ describe('WorkspaceLibraryRail', () => {
 
     const panel = screen.getByText('Atlas Workspace').closest('aside');
     expect(panel).toHaveAttribute('aria-hidden', 'true');
-    expect(panel?.className).toContain('lg:w-0');
+    expect(panel).toHaveStyle({
+      width: '0px',
+      'max-width': '0px',
+      flex: '0 0 0px',
+    });
     expect(panel?.className).not.toContain('lg:w-80 lg:-translate-x-full');
   });
 

@@ -40,7 +40,7 @@ export const RunQueue: React.FC<RunQueueProps> = ({
 
   // Expanded View: Blended List Item
   return (
-    <div className="relative border-t border-zinc-800 bg-osint-dark flex-shrink-0">
+    <div className="relative osint-shell-divider-top bg-[color:var(--osint-shell)] flex-shrink-0">
       {/* Popup List - Anchored to the bottom of the previous element, growing upwards */}
       {!isCollapsed && isExpanded && workspaceRuns.length > 0 && (
         <div className="absolute bottom-full left-0 z-50 mb-1 w-[var(--osint-shell-sidebar-width)] max-w-[calc(100vw-1rem)] px-2 pb-2">

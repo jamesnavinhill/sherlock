@@ -6,7 +6,7 @@ import { ManualDataRepository } from '@/services/db/repositories/ManualDataRepos
 import { ScopeRepository } from '@/services/db/repositories/ScopeRepository';
 import {
   SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
-  setThemePreviewMode,
+  updateActiveDraftTheme,
 } from '@/system/theme/storage';
 import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 
@@ -93,7 +93,10 @@ export const createSimpleActions = ({
     void SettingsRepository.setSetting(SHERLOCK_THEME_WORKSPACE_SETTING_KEY, themeWorkspace);
   },
   setThemeMode: (themeMode) => {
-    const nextWorkspace = setThemePreviewMode(get().themeWorkspace, themeMode);
+    const nextWorkspace = updateActiveDraftTheme(get().themeWorkspace, (theme) => ({
+      ...theme,
+      mode: themeMode,
+    }));
     get().setThemeWorkspace(nextWorkspace);
   },
   setShowGlobalSearch: (showGlobalSearch) => set({ showGlobalSearch }),

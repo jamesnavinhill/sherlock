@@ -40,6 +40,7 @@ export const LibraryRailShell: React.FC<LibraryRailShellProps> = ({
   <DockPanel
     isOpen={isOpen}
     placement={placement}
+    tone="rail"
     widthClassName={widthClassName}
     widthValue={widthValue}
     overlayOnDesktop={overlayOnDesktop}

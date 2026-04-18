@@ -19,7 +19,6 @@ import {
   SHERLOCK_THEME_CONTROL_CHROME_OPTIONS,
   SHERLOCK_THEME_LIBRARY_TEMPLATES,
   type SherlockTheme,
-  type SherlockThemeMode,
   type SherlockThemeSurfaceScale,
 } from '@/system/theme/schema';
 import {
@@ -48,15 +47,12 @@ interface SettingsThemeWorkbenchPanelProps {
   exportResolvedCss: string;
   exportThemeJson: string;
   forkActiveTheme: () => void;
-  previewMode: SherlockThemeMode;
   resetActiveThemeFactory: () => void;
   resetAllThemeFactories: () => void;
   revertActiveTheme: () => void;
   saveActiveTheme: () => void;
   savedTheme: SherlockTheme;
   selectTheme: (themeId: string) => void;
-  setPreviewMode: (mode: SherlockThemeMode) => void;
-  themeDirty: boolean;
   updateTheme: (updater: (theme: SherlockTheme) => SherlockTheme) => void;
 }
 
@@ -71,7 +67,6 @@ const copyText = async (value: string) => {
 const SECTION_ACTION_BUTTON_CLASS = 'osint-workbench-header-action px-2 py-1 osint-meta-label';
 const SURFACE_BUTTON_CLASS = `${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-2`;
 const SECTION_WRAPPER_CLASS = 'space-y-2';
-const MODE_OPTIONS: SherlockThemeMode[] = ['dark', 'light'];
 
 const toggleSection = (
   current: string[],
@@ -101,19 +96,15 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
   exportResolvedCss,
   exportThemeJson,
   forkActiveTheme,
-  previewMode,
   resetActiveThemeFactory,
   resetAllThemeFactories,
   revertActiveTheme,
   saveActiveTheme,
   savedTheme,
   selectTheme,
-  setPreviewMode,
-  themeDirty,
   updateTheme,
 }) => {
   const [activeTab, setActiveTab] = useState<ThemeWorkbenchTab>('theme');
-  const [editingMode, setEditingMode] = useState<SherlockThemeMode>(previewMode);
   const [selectedStructureKey, setSelectedStructureKey] = useState<ThemeStructureKey>('panel');
   const [activeFontRole, setActiveFontRole] = useState<ThemeFontRole>('ui');
   const [activeGraphIndex, setActiveGraphIndex] = useState(0);
@@ -122,14 +113,12 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
   const [openShellSections, setOpenShellSections] = useState<string[]>(['geometry']);
   const [openExportSections, setOpenExportSections] = useState<string[]>(['tokens']);
 
-  const activeThemeLabel =
-    SHERLOCK_THEME_LIBRARY_TEMPLATES.find((template) => template.id === activeThemeId)?.label ??
-    'Theme';
-  const selectedSurface = activeTheme.surfaces[editingMode][selectedStructureKey];
-  const selectedBackground = activeTheme.background[editingMode];
+  const activeMode = activeTheme.mode;
+  const activeSurfaces = activeTheme.surfaces[activeMode];
+  const selectedSurface = activeSurfaces[selectedStructureKey];
+  const selectedBackground = activeTheme.background[activeMode];
   const selectedGraph = activeTheme.graphs[activeGraphIndex];
-  const previewSurfaces = activeTheme.surfaces[previewMode];
-  const surfaceBounds = getSurfaceBounds(editingMode, selectedStructureKey);
+  const surfaceBounds = getSurfaceBounds(activeMode, selectedStructureKey);
   const selectedFontProfile = activeTheme.typography.profiles[activeFontRole];
   const activeSizeProfile = describeThemeFontSize(activeTheme.typography.size);
   const activeWeightProfile = describeThemeFontWeight(activeTheme.typography.weight);
@@ -149,10 +138,10 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
       ...theme,
       surfaces: {
         ...theme.surfaces,
-        [editingMode]: {
-          ...theme.surfaces[editingMode],
+        [activeMode]: {
+          ...theme.surfaces[activeMode],
           [selectedStructureKey]: {
-            ...theme.surfaces[editingMode][selectedStructureKey],
+            ...theme.surfaces[activeMode][selectedStructureKey],
             [field]:
               field === 'hue'
                 ? ((Math.round(rawValue) % 360) + 360) % 360
@@ -202,8 +191,8 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
             : {}),
         ...(field === 'hue' || field === 'lightness' || field === 'chroma' || field === 'opacity'
           ? {
-              [editingMode]: {
-                ...theme.background[editingMode],
+              [activeMode]: {
+                ...theme.background[activeMode],
                 [field]:
                   field === 'hue'
                     ? ((Math.round(rawValue) % 360) + 360) % 360
@@ -238,11 +227,11 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
 
   const paletteSwatches = [
     { label: 'Accent', value: buildAccentColor(activeTheme.accent) },
-    { label: 'Background', value: buildAccentColor(activeTheme.background[previewMode]) },
-    { label: 'Shell', value: buildAccentColor(previewSurfaces.shell) },
-    { label: 'Rail', value: buildAccentColor(previewSurfaces.rail) },
-    { label: 'Panel', value: buildAccentColor(previewSurfaces.panel) },
-    { label: 'Surface', value: buildAccentColor(previewSurfaces.surface) },
+    { label: 'Background', value: buildAccentColor(activeTheme.background[activeMode]) },
+    { label: 'Shell', value: buildAccentColor(activeSurfaces.shell) },
+    { label: 'Rail', value: buildAccentColor(activeSurfaces.rail) },
+    { label: 'Panel', value: buildAccentColor(activeSurfaces.panel) },
+    { label: 'Surface', value: buildAccentColor(activeSurfaces.surface) },
     ...activeTheme.graphs.map((graph, index) => ({
       label: `Graph ${index + 1}`,
       value: buildAccentColor(graph),
@@ -251,86 +240,36 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
 
   return (
     <div className="space-y-3 pb-6">
-      <section className="osint-card-section-subtle rounded p-3">
-        <div className="flex flex-wrap gap-2">
+      <nav aria-label="Theme workbench sections" className="grid grid-cols-4 gap-2">
           {WORKBENCH_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               data-active={activeTab === tab.id ? 'true' : undefined}
-              className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
+              className={`${SURFACE_BUTTON_CLASS} flex min-w-0 items-center justify-center py-2 text-center osint-meta-label`}
             >
               {tab.label}
             </button>
           ))}
-        </div>
+      </nav>
 
-        <div className="mt-3 grid gap-3">
-          <div className="grid gap-3 lg:grid-cols-2">
-            <div className="rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
-              <div className="osint-meta-label">Preview Mode</div>
-              <div className="mt-2 inline-flex gap-2">
-                {MODE_OPTIONS.map((mode) => (
-                  <button
-                    key={`preview-${mode}`}
-                    type="button"
-                    onClick={() => setPreviewMode(mode)}
-                    data-active={previewMode === mode ? 'true' : undefined}
-                    className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
-              <div className="osint-meta-label">Edit Mode</div>
-              <div className="mt-2 inline-flex gap-2">
-                {MODE_OPTIONS.map((mode) => (
-                  <button
-                    key={`edit-${mode}`}
-                    type="button"
-                    onClick={() => setEditingMode(mode)}
-                    data-active={editingMode === mode ? 'true' : undefined}
-                    className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-[color:var(--osint-border)] bg-[var(--osint-card-section-bg)] p-3">
-            <div className="min-w-0">
-              <div className="osint-meta-label">Active Theme</div>
-              <div className="mt-1 truncate osint-title-inline">{activeThemeLabel}</div>
-              <div className="mt-1 osint-body-quiet">
-                {themeDirty ? 'Unsaved draft changes are active.' : 'Draft matches the saved theme.'}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={saveActiveTheme}
-                className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
-              >
-                Save Theme
-              </button>
-              <button
-                type="button"
-                onClick={revertActiveTheme}
-                className={`${SURFACE_BUTTON_CLASS} osint-meta-label`}
-              >
-                Revert
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={saveActiveTheme}
+          className={`${SURFACE_BUTTON_CLASS} flex w-full items-center justify-center py-2 osint-meta-label`}
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={revertActiveTheme}
+          className={`${SURFACE_BUTTON_CLASS} flex w-full items-center justify-center py-2 osint-meta-label`}
+        >
+          Revert
+        </button>
+      </div>
 
       {activeTab === 'theme' ? (
         <div className={SECTION_WRAPPER_CLASS}>
@@ -620,7 +559,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
           >
             <div className="grid gap-4">
               <div className="rounded border border-[color:var(--osint-raised-outline)] p-3">
-                <div className="osint-meta-label">Editing {editingMode}</div>
+                <div className="osint-meta-label">Background</div>
                 <div
                   className="mt-3 h-14 rounded border border-[color:var(--osint-raised-outline)]"
                   style={{ background: buildAccentColor(selectedBackground) }}
@@ -736,7 +675,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                     <span className="osint-title-inline">{STRUCTURE_LABELS[surfaceKey]}</span>
                     <span
                       className="h-5 w-5 rounded-sm border border-[color:var(--osint-raised-outline)]"
-                      style={{ background: buildAccentColor(activeTheme.surfaces[editingMode][surfaceKey]) }}
+                      style={{ background: buildAccentColor(activeSurfaces[surfaceKey]) }}
                     />
                   </button>
                 ))}
@@ -749,8 +688,8 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                     ...theme,
                     surfaces: {
                       ...theme.surfaces,
-                      [editingMode]: Object.fromEntries(
-                        Object.entries(theme.surfaces[editingMode]).map(([key, surface]) => [
+                      [activeMode]: Object.fromEntries(
+                        Object.entries(theme.surfaces[activeMode]).map(([key, surface]) => [
                           key,
                           { ...surface, hue: theme.accent.hue },
                         ])
@@ -766,30 +705,29 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
               <div
                 className="grid min-h-[13rem] gap-3 rounded border p-4"
                 style={{
-                  background: buildAccentColor(activeTheme.surfaces[editingMode].shell),
-                  borderColor: getTone(activeTheme.surfaces[editingMode].shell.lightness).borderColor,
+                  background: buildAccentColor(activeSurfaces.shell),
+                  borderColor: getTone(activeSurfaces.shell.lightness).borderColor,
                 }}
               >
                 <div
                   className="grid min-h-[9rem] gap-3 rounded border p-3"
                   style={{
-                    background: buildAccentColor(activeTheme.surfaces[editingMode].rail),
-                    borderColor: getTone(activeTheme.surfaces[editingMode].rail.lightness).borderColor,
+                    background: buildAccentColor(activeSurfaces.rail),
+                    borderColor: getTone(activeSurfaces.rail.lightness).borderColor,
                   }}
                 >
                   <div
                     className="rounded border p-3"
                     style={{
-                      background: buildAccentColor(activeTheme.surfaces[editingMode].panel),
-                      borderColor: getTone(activeTheme.surfaces[editingMode].panel.lightness).borderColor,
+                      background: buildAccentColor(activeSurfaces.panel),
+                      borderColor: getTone(activeSurfaces.panel.lightness).borderColor,
                     }}
                   >
                     <div
                       className="rounded border p-5"
                       style={{
-                        background: buildAccentColor(activeTheme.surfaces[editingMode].surface),
-                        borderColor: getTone(activeTheme.surfaces[editingMode].surface.lightness)
-                          .borderColor,
+                        background: buildAccentColor(activeSurfaces.surface),
+                        borderColor: getTone(activeSurfaces.surface.lightness).borderColor,
                       }}
                     />
                   </div>
@@ -1001,7 +939,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                     color: 'var(--osint-text-strong)',
                   }}
                 >
-                  mode={previewMode} base={resolvedSizes.base} label={resolvedWeights.label}
+                  base={resolvedSizes.base} label={resolvedWeights.label}
                 </p>
               </div>
             </div>

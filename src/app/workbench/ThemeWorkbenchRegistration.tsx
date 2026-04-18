@@ -33,15 +33,12 @@ export const ThemeWorkbenchRegistration: React.FC<ThemeWorkbenchRegistrationProp
           exportResolvedCss={theme.exportResolvedCss}
           exportThemeJson={theme.exportThemeJson}
           forkActiveTheme={theme.forkActiveTheme}
-          previewMode={theme.previewMode}
           resetActiveThemeFactory={theme.resetActiveThemeFactory}
           resetAllThemeFactories={theme.resetAllThemeFactories}
           revertActiveTheme={theme.revertActiveTheme}
           saveActiveTheme={theme.saveActiveTheme}
           savedTheme={theme.savedTheme}
           selectTheme={theme.selectTheme}
-          setPreviewMode={theme.setPreviewMode}
-          themeDirty={theme.themeDirty}
           updateTheme={theme.updateTheme}
         />
       ),
@@ -52,15 +49,12 @@ export const ThemeWorkbenchRegistration: React.FC<ThemeWorkbenchRegistrationProp
       theme.exportResolvedCss,
       theme.exportThemeJson,
       theme.forkActiveTheme,
-      theme.previewMode,
       theme.resetActiveThemeFactory,
       theme.resetAllThemeFactories,
       theme.revertActiveTheme,
       theme.saveActiveTheme,
       theme.savedTheme,
       theme.selectTheme,
-      theme.setPreviewMode,
-      theme.themeDirty,
       theme.updateTheme,
     ]
   );

@@ -97,7 +97,6 @@ export interface SherlockThemeTemplate {
 export interface SherlockThemeWorkspaceState {
   version: 1;
   activeThemeId: string;
-  previewMode: SherlockThemeMode;
   savedThemes: Record<string, SherlockTheme>;
   draftThemes: Record<string, SherlockTheme>;
 }
@@ -451,7 +450,6 @@ export const createInitialThemeWorkspace = (): SherlockThemeWorkspaceState => {
   return {
     version: SHERLOCK_THEME_WORKSPACE_VERSION,
     activeThemeId: DEFAULT_SHERLOCK_THEME_TEMPLATE.id,
-    previewMode: DEFAULT_SHERLOCK_THEME.mode,
     savedThemes,
     draftThemes: Object.fromEntries(
       Object.entries(savedThemes).map(([id, theme]) => [id, cloneSherlockTheme(theme)])

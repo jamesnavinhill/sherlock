@@ -85,11 +85,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           isCollapsed
             ? 'w-0 md:w-20 -translate-x-full md:translate-x-0'
             : 'w-[min(var(--osint-shell-sidebar-width),calc(100vw-1.5rem))] md:w-[var(--osint-shell-sidebar-width)] translate-x-0'
-        } bg-osint-dark border-r border-zinc-800 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}
+        } osint-shell-divider-right bg-[color:var(--osint-shell)] flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 shadow-2xl md:shadow-none`}
       >
         <div
           onClick={toggleCollapse}
-          className="grid h-20 grid-cols-[5rem_minmax(0,1fr)] items-center border-b border-zinc-800 bg-osint-dark transition-colors group flex-shrink-0 cursor-pointer hover:bg-zinc-900"
+          className="osint-shell-divider-bottom grid h-[var(--osint-shell-toolbar-height)] grid-cols-[5rem_minmax(0,1fr)] items-center bg-[color:var(--osint-shell-header-bg)] transition-colors group flex-shrink-0 cursor-pointer"
           title="Toggle Sidebar"
         >
           <div className="flex items-center justify-center">
@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onExpand={() => isCollapsed && toggleCollapse()}
         />
 
-        <div className="border-t border-zinc-800 flex-shrink-0">
+        <div className="osint-shell-divider-top flex-shrink-0">
           <button
             onClick={onToggleWorkbench}
             disabled={!isWorkbenchAvailable}

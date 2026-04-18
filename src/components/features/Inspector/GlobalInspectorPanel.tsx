@@ -108,6 +108,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
     <DockPanel
       isOpen={isOpen}
       placement={placement}
+      tone="rail"
       widthClassName={widthClassName}
       widthValue={widthValue}
       overlayOnDesktop={overlayOnDesktop}
@@ -123,7 +124,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
       />
 
       {tabsPlacement === 'section' && tabControls ? (
-        <div className="border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-4 py-2">
+        <div className="osint-panel-action-row px-4 py-2">
           {tabControls}
         </div>
       ) : null}

@@ -148,6 +148,7 @@ Stage 4's routed-shell closeout is now active in runtime code:
 - `Files.tsx`, `Feed.tsx`, `LiveMonitor/index.tsx`, `WorkspaceHome/index.tsx`, `Chat/ChatPage.tsx`, `WorkspaceBoard/index.tsx`, `TimelineView.tsx`, `NetworkGraph/index.tsx`, `OperationView/index.tsx`, and `Settings/index.tsx` are now on the shared routed-shell contract
 - shared mobile panel backdrops now use one shell backdrop treatment rather than per-route `bg-black/80` overlays
 - `DockPanel` now carries a theme-backed `--osint-dock-width` contract, and shared rail/inspector shells default to the Sherlock theme's rail, utility, and sidebar width variables
+- docked sidebar seams now consume the shared shell divider tokens, and sidebar/workbench header minimum heights follow the same toolbar-height token that drives the main page header
 - route-local reader and dialog seams, including the artifact reader, board-agent rail, network graph overlays, and modal shell, now render through shared token-driven shell surfaces instead of route-specific dark wrappers
 - timeline relationship chips now consume the Sherlock graph palette tokens so graph-color tuning reaches visible routed surfaces outside the settings workbench
 - public landing, route fallback, and error-boundary surfaces remain intentionally outside the routed `PageShell` contract because they are app-shell entry/error states rather than workspace pages

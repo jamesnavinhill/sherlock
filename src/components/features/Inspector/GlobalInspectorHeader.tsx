@@ -52,7 +52,7 @@ export const GlobalInspectorHeader: React.FC<GlobalInspectorHeaderProps> = ({
             <div
               className={
                 hasHeaderContent
-                  ? 'mb-2 border-b border-[color:var(--osint-shell-border)] pb-2'
+                  ? 'osint-shell-divider-bottom mb-2 pb-2'
                   : ''
               }
             >

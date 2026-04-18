@@ -5,7 +5,6 @@ import { buildAccentColor } from '@/utils/accent';
 import {
   SHERLOCK_THEME_LIBRARY_TEMPLATES,
   type SherlockTheme,
-  type SherlockThemeMode,
 } from '@/system/theme/schema';
 import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS, SETTINGS_SURFACE_BUTTON_CLASS } from '../settingsUtils';
 import { getTone } from './shared';
@@ -16,13 +15,11 @@ export interface SettingsThemeTabProps {
   exportResolvedCss: string;
   exportThemeJson: string;
   forkActiveTheme: () => void;
-  previewMode: SherlockThemeMode;
   resetActiveThemeFactory: () => void;
   resetAllThemeFactories: () => void;
   revertActiveTheme: () => void;
   saveActiveTheme: () => void;
   selectTheme: (themeId: string) => void;
-  setPreviewMode: (mode: SherlockThemeMode) => void;
   themeDirty: boolean;
   updateTheme: (updater: (theme: SherlockTheme) => SherlockTheme) => void;
 }
@@ -30,17 +27,17 @@ export interface SettingsThemeTabProps {
 export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
   activeTheme,
   activeThemeId,
-  previewMode,
   themeDirty,
 }) => {
   const { openWorkbench } = useAppWorkbenchHost();
   const activeThemeLabel =
     SHERLOCK_THEME_LIBRARY_TEMPLATES.find((template) => template.id === activeThemeId)?.label ??
     'Theme';
-  const previewShell = activeTheme.surfaces[previewMode].shell;
-  const previewRail = activeTheme.surfaces[previewMode].rail;
-  const previewPanel = activeTheme.surfaces[previewMode].panel;
-  const previewSurface = activeTheme.surfaces[previewMode].surface;
+  const liveSurfaces = activeTheme.surfaces[activeTheme.mode];
+  const previewShell = liveSurfaces.shell;
+  const previewRail = liveSurfaces.rail;
+  const previewPanel = liveSurfaces.panel;
+  const previewSurface = liveSurfaces.surface;
 
   return (
     <div className={`${SETTINGS_SECTION_BODY_CLASS} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -63,11 +60,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             </button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="osint-card-section-subtle rounded p-3">
-              <div className="osint-meta-label">Preview Mode</div>
-              <div className="mt-1 capitalize osint-title-inline">{previewMode}</div>
-            </div>
+          <div className="grid gap-3">
             <div className="osint-card-section-subtle rounded p-3">
               <div className="osint-meta-label">Draft Status</div>
               <div className="mt-1 osint-title-inline">

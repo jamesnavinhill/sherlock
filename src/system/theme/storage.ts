@@ -11,7 +11,6 @@ import {
   SHERLOCK_THEME_TEMPLATE_IDS,
   type LegacySherlockThemeState,
   type SherlockTheme,
-  type SherlockThemeMode,
   type SherlockThemeWorkspaceState,
 } from './schema';
 import { buildSherlockThemeCssText } from './cssVars';
@@ -42,15 +41,10 @@ export const hydrateSherlockThemeWorkspace = (
     value?.activeThemeId && SHERLOCK_THEME_TEMPLATE_IDS.includes(value.activeThemeId)
       ? value.activeThemeId
       : DEFAULT_SHERLOCK_THEME_TEMPLATE.id;
-  const previewMode =
-    value?.previewMode === 'dark' || value?.previewMode === 'light'
-      ? value.previewMode
-      : draftThemes[activeThemeId]?.mode ?? savedThemes[activeThemeId]?.mode ?? DEFAULT_SHERLOCK_THEME.mode;
 
   return {
     version: 1,
     activeThemeId,
-    previewMode,
     savedThemes,
     draftThemes,
   };
@@ -82,8 +76,8 @@ export const migrateLegacySherlockThemeWorkspace = (
         surface: createThemeTone(legacy.themeSurfaceSettings.light.surface),
       },
     };
-    activeTheme.background.dark = { ...activeTheme.surfaces.dark.shell };
-    activeTheme.background.light = { ...activeTheme.surfaces.light.shell };
+    activeTheme.background.dark = createThemeTone(legacy.themeSurfaceSettings.dark.background);
+    activeTheme.background.light = createThemeTone(legacy.themeSurfaceSettings.light.background);
   }
 
   if (legacy?.themeBackgroundSettings) {
@@ -102,7 +96,6 @@ export const migrateLegacySherlockThemeWorkspace = (
     activeTheme.mode = legacy.themeMode;
   }
 
-  workspace.previewMode = activeTheme.mode;
   workspace.savedThemes[workspace.activeThemeId] = cloneSherlockTheme(activeTheme);
   workspace.draftThemes[workspace.activeThemeId] = cloneSherlockTheme(activeTheme);
   return workspace;
@@ -118,10 +111,8 @@ export const getActiveSavedTheme = (workspace: SherlockThemeWorkspaceState): She
     workspace.savedThemes[workspace.activeThemeId] ?? workspace.draftThemes[workspace.activeThemeId]
   );
 
-export const getDisplayTheme = (workspace: SherlockThemeWorkspaceState): SherlockTheme => ({
-  ...getActiveDraftTheme(workspace),
-  mode: workspace.previewMode,
-});
+export const getDisplayTheme = (workspace: SherlockThemeWorkspaceState): SherlockTheme =>
+  getActiveDraftTheme(workspace);
 
 export const isActiveThemeDirty = (workspace: SherlockThemeWorkspaceState): boolean =>
   serializeTheme(getActiveDraftTheme(workspace)) !== serializeTheme(getActiveSavedTheme(workspace));
@@ -131,7 +122,6 @@ export const cloneSherlockThemeWorkspace = (
 ): SherlockThemeWorkspaceState => ({
   version: workspace.version,
   activeThemeId: workspace.activeThemeId,
-  previewMode: workspace.previewMode,
   savedThemes: Object.fromEntries(
     Object.entries(workspace.savedThemes).map(([id, theme]) => [id, cloneSherlockTheme(theme)])
   ) as Record<string, SherlockTheme>,
@@ -167,15 +157,6 @@ export const selectActiveTheme = (
   return nextWorkspace;
 };
 
-export const setThemePreviewMode = (
-  workspace: SherlockThemeWorkspaceState,
-  previewMode: SherlockThemeMode
-): SherlockThemeWorkspaceState => {
-  const nextWorkspace = updateActiveDraftTheme(workspace, (theme) => ({ ...theme, mode: previewMode }));
-  nextWorkspace.previewMode = previewMode;
-  return nextWorkspace;
-};
-
 export const saveActiveThemeDraft = (
   workspace: SherlockThemeWorkspaceState
 ): SherlockThemeWorkspaceState => {
@@ -183,7 +164,6 @@ export const saveActiveThemeDraft = (
   const activeDraft = getActiveDraftTheme(nextWorkspace);
   nextWorkspace.savedThemes[nextWorkspace.activeThemeId] = cloneSherlockTheme(activeDraft);
   nextWorkspace.draftThemes[nextWorkspace.activeThemeId] = cloneSherlockTheme(activeDraft);
-  nextWorkspace.previewMode = activeDraft.mode;
   return nextWorkspace;
 };
 
@@ -193,7 +173,6 @@ export const revertActiveThemeDraft = (
   const nextWorkspace = cloneSherlockThemeWorkspace(workspace);
   const savedTheme = getActiveSavedTheme(nextWorkspace);
   nextWorkspace.draftThemes[nextWorkspace.activeThemeId] = cloneSherlockTheme(savedTheme);
-  nextWorkspace.previewMode = savedTheme.mode;
   return nextWorkspace;
 };
 
@@ -206,7 +185,6 @@ export const factoryResetActiveTheme = (
   const nextWorkspace = cloneSherlockThemeWorkspace(workspace);
   nextWorkspace.savedThemes[nextWorkspace.activeThemeId] = cloneSherlockTheme(factoryTheme);
   nextWorkspace.draftThemes[nextWorkspace.activeThemeId] = cloneSherlockTheme(factoryTheme);
-  nextWorkspace.previewMode = factoryTheme.mode;
   return nextWorkspace;
 };
 
@@ -222,7 +200,6 @@ export const factoryResetAllThemes = (
     Object.entries(factoryThemes).map(([id, theme]) => [id, cloneSherlockTheme(theme)])
   ) as Record<string, SherlockTheme>;
   nextWorkspace.activeThemeId = DEFAULT_SHERLOCK_THEME_TEMPLATE.id;
-  nextWorkspace.previewMode = factoryThemes[DEFAULT_SHERLOCK_THEME_TEMPLATE.id].mode;
   return nextWorkspace;
 };
 
@@ -238,7 +215,6 @@ export const forkActiveThemeToNextCustomSlot = (
   nextWorkspace.savedThemes[destinationThemeId] = cloneSherlockTheme(activeDraft);
   nextWorkspace.draftThemes[destinationThemeId] = cloneSherlockTheme(activeDraft);
   nextWorkspace.activeThemeId = destinationThemeId;
-  nextWorkspace.previewMode = activeDraft.mode;
   return nextWorkspace;
 };
 
