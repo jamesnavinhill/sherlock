@@ -4,6 +4,7 @@ import {
   CHROME_CARD_SECTION_CLASS,
   CHROME_CARD_SECTION_SUBTLE_CLASS,
   CHROME_CARD_SURFACE_CLASS,
+  CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_PANEL_ACTION_ROW_CLASS,
   CHROME_PANEL_CLASS,
   CHROME_PANEL_HEADER_CLASS,
@@ -49,6 +50,18 @@ export const SETTINGS_CARD_SECTION_SUBTLE_CLASS =
   `${CHROME_CARD_SECTION_SUBTLE_CLASS} rounded p-4`;
 
 export const SETTINGS_SURFACE_BUTTON_CLASS = 'osint-settings-surface-button';
+
+export const SETTINGS_BUTTON_MD_CLASS =
+  'inline-flex h-9 items-center justify-center gap-2 px-3 text-[color:var(--osint-text-strong)]';
+
+export const SETTINGS_BUTTON_SM_CLASS =
+  `inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center justify-center gap-2 px-3 text-[color:var(--osint-text-strong)]`;
+
+export const SETTINGS_BUTTON_ROW_CLASS =
+  `${SETTINGS_BUTTON_MD_CLASS} w-full justify-between gap-4 px-5 text-left`;
+
+export const SETTINGS_BUTTON_ICON_SM_CLASS =
+  `${SETTINGS_BUTTON_SM_CLASS} w-[30px] shrink-0 px-0`;
 
 export const SETTINGS_ACCORDION_CLASS = 'osint-settings-accordion mb-0';
 

@@ -34,9 +34,10 @@ import { useRuntimeConfigForm } from '../Runs/useRuntimeConfigForm';
 import { Accordion } from '@/components/ui/Accordion';
 import {
   SETTINGS_ACCORDION_CLASS,
+  SETTINGS_BUTTON_ICON_SM_CLASS,
+  SETTINGS_BUTTON_MD_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_CARD_INTERACTIVE_CLASS,
-  SETTINGS_CARD_SECTION_CLASS,
   SETTINGS_CARD_SECTION_ACTIVE_CLASS,
   SETTINGS_CARD_SECTION_INTERACTIVE_CLASS,
   SETTINGS_CARD_SECTION_SUBTLE_CLASS,
@@ -280,7 +281,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
         </div>
         <button
           onClick={openCreateModal}
-          className={`${SETTINGS_SURFACE_BUTTON_CLASS} flex items-center px-4 py-2 osint-meta-label-strong`}
+          className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Template
@@ -336,13 +337,15 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                     </p>
                   </div>
 
-                  <button
-                    onClick={() => onApply(template)}
-                    className={`${SETTINGS_CARD_SECTION_CLASS} mt-auto flex items-center justify-center rounded-none border-x-0 border-b-0 p-3 osint-meta-label-strong`}
-                  >
-                    <Play className="mr-2 h-3 w-3" />
-                    {isStarter ? 'Launch Starter' : 'Launch Template'}
-                  </button>
+                  <div className="mt-auto px-4 pb-4 pt-0">
+                    <button
+                      onClick={() => onApply(template)}
+                      className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} w-full osint-meta-label-strong`}
+                    >
+                      <Play className="mr-2 h-3 w-3" />
+                      {isStarter ? 'Launch Starter' : 'Launch Template'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -368,7 +371,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               </div>
               <button
                 onClick={closeCreateModal}
-                className={`${SETTINGS_SURFACE_BUTTON_CLASS} p-2`}
+                className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_ICON_SM_CLASS}`}
                 aria-label="Close create template modal"
               >
                 <X className="w-4 h-4" />
@@ -527,9 +530,9 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 <div className="space-y-5">
                   <ProviderModelSelector
                     form={runtimeConfigForm}
-                    browseButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} px-3 py-2 osint-meta-label-strong`}
-                    modelBrowserActionButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} inline-flex items-center justify-center gap-2 px-3 py-2 osint-meta-label-strong`}
-                    modelBrowserCloseButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} p-2`}
+                    browseButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
+                    modelBrowserActionButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
+                    modelBrowserCloseButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_ICON_SM_CLASS}`}
                   />
                   <div>
                     <label className="block osint-meta-label mb-2">
@@ -560,7 +563,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                   />
                   <RuntimeConfigBehaviorControls
                     form={runtimeConfigForm}
-                    optionButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} py-2 osint-meta-label-strong`}
+                    optionButtonClassName={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
                   />
                 </div>
               )}
@@ -575,14 +578,14 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
               <div className="flex items-center gap-2">
                 <button
                   onClick={closeCreateModal}
-                  className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-4 py-2 osint-meta-label`}
+                  className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label`}
                 >
                   Cancel
                 </button>
                 {createStep > 0 && (
                   <button
                     onClick={() => setCreateStep((current) => Math.max(0, current - 1))}
-                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} flex items-center px-4 py-2 osint-meta-label`}
+                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label`}
                   >
                     <ChevronLeft className="w-3 h-3 mr-1" />
                     Back
@@ -596,7 +599,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       }
                     }}
                     disabled={!canProceed()}
-                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong disabled:cursor-not-allowed disabled:opacity-50`}
                   >
                     Next
                     <ChevronRight className="w-3 h-3 ml-1" />
@@ -607,7 +610,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                       void handleCreateTemplate();
                     }}
                     disabled={!canProceed() || isCreating}
-                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-4 py-2 osint-meta-label-strong disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong disabled:cursor-not-allowed disabled:opacity-50`}
                   >
                     {isCreating ? 'Creating...' : 'Create Template'}
                   </button>

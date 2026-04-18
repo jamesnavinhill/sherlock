@@ -14,12 +14,12 @@ import {
   COMPACT_MENU_ICON_CLASS,
   COMPACT_MENU_ITEM_CLASS,
 } from '@/components/ui/CompactMenu';
-import { CHROME_HEADER_CONTROL_HEIGHT_CLASS } from '@/components/ui/chrome';
 import {
   SETTINGS_ACCORDION_CLASS,
+  SETTINGS_BUTTON_ROW_CLASS,
   SETTINGS_CARD_CLASS,
-  SETTINGS_SURFACE_BUTTON_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_SURFACE_BUTTON_CLASS,
 } from './settingsUtils';
 
 interface SettingsDataTabProps {
@@ -37,9 +37,6 @@ interface SettingsDataTabProps {
   quietMode: boolean;
   toggleDataSection: (section: 'preferences' | 'workspaceData') => void;
 }
-
-const SETTINGS_ACTION_BUTTON_CLASS =
-  `inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-full items-center justify-between gap-4 px-5 text-left osint-meta-label-strong`;
 
 const PreferenceCard: React.FC<{
   checked: boolean;
@@ -142,7 +139,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowExportMenu((current) => !current)}
-                      className={`${SETTINGS_ACTION_BUTTON_CLASS} ${SETTINGS_SURFACE_BUTTON_CLASS}`}
+                      className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_ROW_CLASS} osint-meta-label-strong`}
                       aria-expanded={showExportMenu}
                       aria-haspopup="menu"
                     >
@@ -171,7 +168,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className={`${SETTINGS_ACTION_BUTTON_CLASS} ${SETTINGS_SURFACE_BUTTON_CLASS}`}
+                    className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_ROW_CLASS} osint-meta-label-strong`}
                   >
                     <span className="truncate">Restore Backup</span>
                     <Upload className="h-4 w-4 flex-shrink-0 text-zinc-500" />
@@ -198,7 +195,7 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                   <button
                     type="button"
                     onClick={onRequestClearData}
-                    className={`${SETTINGS_ACTION_BUTTON_CLASS} osint-button-danger sm:max-w-[18rem]`}
+                    className={`${SETTINGS_BUTTON_ROW_CLASS} osint-button-danger osint-meta-label-strong sm:max-w-[18rem]`}
                   >
                     <span className="truncate">Delete Data</span>
                     <Trash2 className="h-4 w-4 flex-shrink-0" />

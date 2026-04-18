@@ -7,7 +7,12 @@ import {
   type SherlockTheme,
   type SherlockThemeMode,
 } from '@/system/theme/schema';
-import { SETTINGS_CARD_CLASS, SETTINGS_SECTION_BODY_CLASS, SETTINGS_SURFACE_BUTTON_CLASS } from '../settingsUtils';
+import {
+  SETTINGS_BUTTON_MD_CLASS,
+  SETTINGS_CARD_CLASS,
+  SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_SURFACE_BUTTON_CLASS,
+} from '../settingsUtils';
 import { getTone } from './shared';
 
 export interface SettingsThemeTabProps {
@@ -58,7 +63,7 @@ export const SettingsThemeTab: React.FC<SettingsThemeTabProps> = ({
             <button
               type="button"
               onClick={openWorkbench}
-              className={`${SETTINGS_SURFACE_BUTTON_CLASS} px-4 py-2 osint-meta-label`}
+              className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label`}
             >
               Open Workbench
             </button>

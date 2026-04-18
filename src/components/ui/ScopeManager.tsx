@@ -18,12 +18,14 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { Accordion } from './Accordion';
 import {
   SETTINGS_ACCORDION_CLASS,
+  SETTINGS_BUTTON_MD_CLASS,
   SETTINGS_CARD_ACTIVE_CLASS,
   SETTINGS_CARD_CLASS,
   SETTINGS_CARD_INTERACTIVE_CLASS,
   SETTINGS_INPUT_CLASS,
   SETTINGS_SEARCH_INPUT_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
+  SETTINGS_SURFACE_BUTTON_CLASS,
   SETTINGS_TOOLBAR_CLASS,
   SETTINGS_TEXTAREA_CLASS,
 } from '@/components/features/Settings/settingsUtils';
@@ -164,7 +166,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="osint-surface-button flex items-center px-4 py-2 osint-meta-label-strong"
+          className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
         >
           <Plus className="w-3 h-3 mr-1" />
           New Scope
@@ -238,14 +240,14 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
               <div className="flex justify-end space-x-2 pt-2">
                 <button
                   onClick={resetForm}
-                  className="osint-surface-button px-4 py-2 osint-meta-label text-zinc-400"
+                  className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={!formName.trim()}
-                  className="osint-surface-button flex items-center px-4 py-2 osint-meta-label-strong disabled:opacity-50"
+                  className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong disabled:opacity-50`}
                 >
                   <Save className="w-3 h-3 mr-1" />
                   {editingScope ? 'Save Changes' : 'Create Scope'}
@@ -332,7 +334,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                           {activeScopeId !== scope.id && (
                             <button
                               onClick={() => setActiveScope(scope.id)}
-                              className="osint-surface-button flex items-center px-2 py-1 osint-meta-label text-zinc-400"
+                              className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
                             >
                               <Check className="mr-1 h-3 w-3" />
                               Set Active
@@ -341,7 +343,7 @@ export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose })
                           {defaultScopeId !== scope.id && (
                             <button
                               onClick={() => setDefaultScope(scope.id)}
-                              className="osint-surface-button flex items-center px-2 py-1 osint-meta-label text-zinc-400"
+                              className={`${SETTINGS_SURFACE_BUTTON_CLASS} ${SETTINGS_BUTTON_MD_CLASS} osint-meta-label-strong`}
                             >
                               <Star className="mr-1 h-3 w-3" />
                               Set Default
