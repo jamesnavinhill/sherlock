@@ -560,7 +560,8 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                   const dividerStyle = {
                     borderColor: 'color-mix(in oklab, var(--osint-border) 46%, transparent)',
                   } as const;
-                  const rowToneClass = index % 2 === 1 ? 'bg-zinc-950/50' : 'bg-transparent';
+                  const rowToneClass =
+                    index % 2 === 1 ? 'bg-[var(--osint-menu-row-alt-bg)]' : 'bg-transparent';
 
                   return (
                     <div

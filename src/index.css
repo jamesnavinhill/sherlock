@@ -563,6 +563,7 @@ body,
   --osint-primary-soft-bg: color-mix(in oklab, var(--osint-primary) 12%, transparent);
   --osint-primary-soft-bg-strong: color-mix(in oklab, var(--osint-primary) 18%, transparent);
   --osint-primary-soft-border: color-mix(in oklab, var(--osint-primary) 48%, transparent);
+  --osint-menu-row-alt-bg: color-mix(in oklab, var(--osint-shell-panel-action-bg) 42%, transparent);
   --osint-menu-selection-bg: color-mix(in oklab, var(--osint-primary) 10%, transparent);
   --osint-menu-selection-bg-strong: color-mix(in oklab, var(--osint-primary) 14%, transparent);
   --osint-menu-selection-color: color-mix(

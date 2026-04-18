@@ -858,8 +858,8 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                   }))
                 }
                 triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
-                portalledMenu
                 menuStyle="legacy"
+                menuClassName="z-[80] max-h-56 overflow-x-hidden overflow-y-auto overscroll-contain custom-scrollbar [scrollbar-gutter:stable]"
                 options={fontRoleOptions}
               />
 

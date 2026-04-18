@@ -253,6 +253,12 @@
     color 180ms ease;
 }
 
+.osint-menu-panel > .osint-menu-item:nth-of-type(even):not(:hover):not(:focus-visible):not(
+    :active
+  ):not([data-active='true']):not([aria-selected='true']):not(:disabled) {
+  background-color: var(--osint-menu-row-alt-bg);
+}
+
 .osint-menu-item:hover,
 .osint-menu-item:focus-visible,
 .osint-menu-item[data-active='true'],

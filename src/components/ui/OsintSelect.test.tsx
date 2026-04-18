@@ -147,4 +147,5 @@ describe('OsintSelect', () => {
       value: originalInnerHeight,
     });
   });
+
 });
