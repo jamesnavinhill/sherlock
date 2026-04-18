@@ -1,8 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import { FileSearch, Globe, Link2, Microscope, PanelTopOpen, ShieldAlert } from 'lucide-react';
+import { FileSearch, Link2, Microscope, PanelTopOpen, ShieldAlert } from 'lucide-react';
 
 import type {
   Artifact,
@@ -15,11 +14,9 @@ import type {
   Source,
 } from '@/types';
 import {
-  getArtifactFollowUps,
   getArtifactKeyFindings,
   getFollowUpText,
   getSectionByKinds,
-  getSectionItemsByKinds,
 } from '@/domain';
 import {
   CHROME_THIN_ACTION_BUTTON_CLASS,
@@ -27,11 +24,18 @@ import {
   CHROME_THIN_NESTED_ITEM_CLASS,
   getChromeThinActionRowClassName,
 } from '@/components/ui/chrome';
-import { Accordion } from '@/components/ui/Accordion';
 import { PANEL_SECTION_ICONS } from '@/components/ui/panelSectionIcons';
 import { getEntityToneClass } from '@/utils/entityPalette';
 import type { LibraryRailSection } from '../LibraryRail/libraryRailTypes';
 import { buildArtifactViewerPresentation } from './artifactViewerPresentation';
+import { FindingDetailList } from './artifactViewerDetailFindingList';
+import {
+  buildVisibleArtifactFollowUps,
+  cx,
+  dedupeById,
+  matchesReference,
+  normalizeText,
+} from './artifactViewerShared';
 
 type ArtifactDetailRailSectionId = 'findings' | 'entities' | 'followUps' | 'resources';
 
@@ -56,27 +60,6 @@ interface BuildArtifactViewerDetailRailSectionsArgs {
   getMatchingSources: (references?: string[]) => Source[];
   getMatchingEntity: (reference: string) => Entity | null;
 }
-
-const cx = (...classes: Array<string | false | null | undefined>) =>
-  classes.filter(Boolean).join(' ');
-
-const normalizeText = (value?: string | null) => value?.replace(/\s+/g, ' ').trim() || '';
-
-const matchesReference = (reference?: string | null, candidate?: string | null) => {
-  const normalizedReference = normalizeText(reference).toLowerCase();
-  const normalizedCandidate = normalizeText(candidate).toLowerCase();
-
-  return (
-    normalizedReference.length > 0 &&
-    normalizedCandidate.length > 0 &&
-    (normalizedReference === normalizedCandidate ||
-      normalizedCandidate.includes(normalizedReference) ||
-      normalizedReference.includes(normalizedCandidate))
-  );
-};
-
-const dedupeById = <T extends { id: string }>(items: T[]) =>
-  Array.from(new Map(items.map((item) => [item.id, item])).values());
 
 interface BuildArtifactViewerArtifactDetailRailSectionsArgs {
   artifact: Artifact | null;
@@ -110,133 +93,6 @@ const FollowUpDetailRow: React.FC<FollowUpDetailRowProps> = ({
       <p className="osint-body-quiet leading-5 text-[color:var(--osint-text-strong)]">{questionText}</p>
       {children}
     </article>
-  );
-};
-
-interface FindingDetailListProps {
-  canonicalFindings: KeyFinding[];
-  keyFindingsAnchorId: string;
-  jumpToSection: (sectionId: string) => void;
-  jumpToEvidence: (evidenceId: string) => void;
-  getFindingRelatedEvidence: (finding: KeyFinding) => ArtifactEvidence[];
-  getMatchingSources: (references?: string[]) => Source[];
-}
-
-const FindingDetailList: React.FC<FindingDetailListProps> = ({
-  canonicalFindings,
-  keyFindingsAnchorId,
-  jumpToSection,
-  jumpToEvidence,
-  getFindingRelatedEvidence,
-  getMatchingSources,
-}) => {
-  const [openFindingId, setOpenFindingId] = React.useState<string | null>(
-    null
-  );
-
-  const renderSourceLinks = (sources: Source[]) => {
-    if (sources.length === 0) return null;
-
-    return (
-      <div className="mt-2 space-y-1.5">
-        {sources.map((source) => (
-          <a
-            key={`${source.url}-${source.title}`}
-            href={source.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex min-w-0 items-center gap-1.5 font-sans text-[11px] leading-5 text-[color:var(--osint-text-quiet)] transition-colors hover:text-osint-primary"
-            style={{ color: 'var(--osint-primary)' }}
-            title={source.title || source.url}
-          >
-            <Link2 className="h-3 w-3 shrink-0" />
-            <span className="truncate whitespace-nowrap">{source.title || source.url}</span>
-          </a>
-        ))}
-      </div>
-    );
-  };
-
-  const renderEvidenceButtons = (evidenceRows: ArtifactEvidence[]) => {
-    if (evidenceRows.length === 0) return null;
-
-    return (
-      <div className="mt-3 flex flex-wrap gap-2">
-        {evidenceRows.map((evidence) => (
-          <button
-            key={evidence.id}
-            type="button"
-            onClick={() => jumpToEvidence(evidence.id)}
-            className="osint-shell-chip inline-flex items-center gap-1 px-2 py-1 osint-meta-label transition"
-          >
-            <Globe className="h-3 w-3" />
-            <span>{evidence.sourceTitle || evidence.title}</span>
-          </button>
-        ))}
-      </div>
-    );
-  };
-
-  return (
-    <div className="space-y-1.5">
-      {canonicalFindings.map((finding, index) => {
-        const relatedEvidence = getFindingRelatedEvidence(finding);
-        const matchingSources = getMatchingSources(finding.supportRefs);
-        const headerTitle = normalizeText(finding.title) || normalizeText(finding.summary);
-        const isOpen = openFindingId === finding.id;
-
-        return (
-          <Accordion
-            key={finding.id}
-            title={
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="shrink-0 osint-meta-label">{index + 1}</span>
-                <span className="min-w-0 truncate osint-body-quiet leading-5 text-[color:var(--osint-text-strong)]">
-                  {headerTitle}
-                </span>
-              </div>
-            }
-            isOpen={isOpen}
-            onToggle={() => setOpenFindingId((current) => (current === finding.id ? null : finding.id))}
-            variant="nested"
-            className="mb-0"
-            headerClassName="px-2.5 py-1.5"
-            contentClassName="space-y-3 px-2.5 py-2"
-          >
-            <div className="max-w-none osint-body-small text-[color:var(--osint-text-strong)] prose prose-invert prose-p:my-0">
-              <ReactMarkdown>{finding.summary}</ReactMarkdown>
-            </div>
-
-            {matchingSources.length > 0 ? (
-              <div>
-                <div className="osint-meta-label">Sources</div>
-                {renderSourceLinks(matchingSources)}
-              </div>
-            ) : null}
-
-            {relatedEvidence.length > 0 ? (
-              <div>
-                <div className="osint-meta-label">Evidence</div>
-                {renderEvidenceButtons(relatedEvidence)}
-              </div>
-            ) : null}
-
-            <div className={getChromeThinActionRowClassName(1)}>
-              <button
-                type="button"
-                onClick={() => jumpToSection(finding.originSectionId || keyFindingsAnchorId)}
-                className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
-                title="Open finding context"
-                aria-label="Open finding context"
-              >
-                <PanelTopOpen className="h-3.5 w-3.5" />
-                <span className="sr-only">Open</span>
-              </button>
-            </div>
-          </Accordion>
-        );
-      })}
-    </div>
   );
 };
 
@@ -564,20 +420,7 @@ export const buildArtifactViewerArtifactDetailRailSections = ({
   const canonicalFindings = artifact ? getArtifactKeyFindings(artifact) : [];
   const keyFindingsSection = getSectionByKinds(orderedSections, ['KEY_FINDINGS']);
   const keyFindingsAnchorId = keyFindingsSection?.id || `${artifact?.id || 'artifact'}-key-findings`;
-  const visibleFollowUps: FollowUp[] = (() => {
-    if (!artifact) return [];
-
-    const canonical = getArtifactFollowUps(artifact);
-    if (canonical.length > 0) return canonical;
-
-    return getSectionItemsByKinds(orderedSections, ['LEADS', 'NEXT_STEPS']).map((item, index) => ({
-      id: `artifact-follow-up-${index}`,
-      kind: 'NEXT_STEP' as const,
-      title: item.slice(0, 96),
-      actionText: item,
-      status: 'OPEN' as const,
-    }));
-  })();
+  const visibleFollowUps = buildVisibleArtifactFollowUps(artifact, orderedSections);
 
   const getFindingRelatedEvidence = (finding: KeyFinding) =>
     dedupeById(

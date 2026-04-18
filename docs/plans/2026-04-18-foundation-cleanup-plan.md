@@ -1,6 +1,6 @@
 # 2026-04-18 Foundation Cleanup Plan
 
-Status: In Progress (`Phase 1`, `Phase 2`, `Phase 3`, `Phase 4`, `Phase 5`, and `Phase 6` completed on April 18, 2026)
+Status: In Progress (`Phase 1`, `Phase 2`, `Phase 3`, `Phase 4`, `Phase 5`, `Phase 6`, and `Phase 6B` completed on April 18, 2026)
 
 Related inputs:
 
@@ -558,8 +558,8 @@ Large files noted but not first-line refactor targets for this phase:
 2. Follow immediately with the Operation View reader pair:
    - `ArtifactViewer.tsx`
    - `artifactViewerDetailRail.tsx`
-   Keep the reader contract stable while extracting rendering blocks, edit controls, and evidence/finding/follow-up detail helpers into smaller feature-owned modules.
-3. Evaluate whether `SettingsThemeTab.tsx` and `TemplateGallery.tsx` should be reduced in the same pass so the whole workbench surface ends with cleaner boundaries instead of one smaller file calling several still-bloated neighbors.
+     Keep the reader contract stable while extracting rendering blocks, edit controls, and evidence/finding/follow-up detail helpers into smaller feature-owned modules.
+3. Evaluate whether `SettingsThemeTab.tsx` and `TemplateGallery.tsx` should be reduced in the same pass so the whole workbench surface ends with cleaner boundaries instead of one smaller file calling several still-bloated neighbors. \*do the right thing. clean fully implemented.
 4. Treat `schema.ts`, `GraphCanvas.tsx`, `GlobalSearch.tsx`, `runtime.ts`, provider adapters, timeline event builders, inspector panels, and omnibox actions as the next candidate queue, but only pull them into the tranche if the earlier extractions land cleanly and time remains.
 5. Keep `BoardAgentRail.tsx` explicitly deferred unless a correctness bug forces a targeted change.
 6. Record any files that remain above roughly 550-600 LOC after the tranche so Phase 7 closeout can describe what was intentionally left for later.
@@ -601,6 +601,53 @@ Current largest non-test TypeScript/TSX implementation files informing this phas
 - `src/components/features/Settings/themeWorkbench/SettingsThemeTab.tsx` - 550
 - `src/services/db/repositories/WorkspaceRepository.ts` - 522
 
+### Progress
+
+Completed on April 18, 2026.
+
+Landed in this phase:
+
+- split `src/components/features/Settings/themeWorkbench/SettingsThemeWorkbenchPanel.tsx` into a small orchestration panel plus feature-owned workbench tab modules for theme editing, type editing, shell controls, background controls, exports, and shared panel helpers
+- reduced `src/components/features/Settings/TemplateGallery.tsx` by extracting the protocol creation wizard and runtime-config save flow into `src/components/features/Settings/TemplateCreateModal.tsx`
+- split `src/components/features/OperationView/ArtifactViewer.tsx` into focused reader modules for summary/key-finding/follow-up rendering, document-section editing, evidence log rendering, and shared reference/follow-up helpers
+- extracted the Operation View detail rail finding list into `src/components/features/OperationView/artifactViewerDetailFindingList.tsx` and reused the shared reference/follow-up helpers from the main viewer
+- kept `src/components/features/WorkspaceBoard/BoardAgentRail.tsx` deferred for the future dockable-panel stream
+
+Post-tranche LOC snapshot for the main touched files:
+
+- `src/components/features/Settings/themeWorkbench/SettingsThemeWorkbenchPanel.tsx` - 142
+- `src/components/features/OperationView/ArtifactViewer.tsx` - 468
+- `src/components/features/OperationView/artifactViewerDetailRail.tsx` - 481
+- `src/components/features/Settings/TemplateGallery.tsx` - 199
+- largest new extracted modules remain bounded: `ThemeWorkbenchThemeTab.tsx` - 560, `ArtifactViewerSections.tsx` - 454, `TemplateCreateModal.tsx` - 414
+
+Reality-based carry-over list for Phase 7 closeout:
+
+- `src/system/theme/schema.ts` - 936
+- `src/components/features/NetworkGraph/GraphCanvas.tsx` - 783
+- `src/components/ui/GlobalSearch.tsx` - 747
+- `src/components/features/WorkspaceBoard/BoardAgentRail.tsx` - 745, intentionally deferred
+- `src/services/chat/runtime.ts` - 719
+- `src/services/providers/openRouterProvider.ts` - 698
+- `src/components/features/Chat/useChatController.ts` - 689
+- `src/components/features/Timeline/timelineEventBuilders.ts` - 654
+- `src/components/features/NetworkGraph/NetworkGraphInspectorPanel.tsx` - 643
+- `src/services/providers/geminiProvider.ts` - 649
+- `src/utils/themeFonts.ts` - 620
+- `src/domain/artifacts.ts` - 605
+- `src/components/features/Runs/RunSetupModal.tsx` - 592
+- `src/components/features/Settings/themeWorkbench/SettingsThemeTab.tsx` - 579
+- `src/services/workspace/agent/session.ts` - 567
+- `src/services/db/repositories/WorkspaceRepository.ts` - 561
+
+Validation note:
+
+- `npm run lint` passed
+- `npm run typecheck` passed
+- `npm run test -- src/components/features/Settings/themeWorkbench/backgroundState.test.ts src/components/features/Settings/useSettingsController.test.ts src/components/features/OperationView/ArtifactViewer.test.tsx src/components/features/OperationView/artifactViewerText.test.ts src/components/features/OperationView/OperationInspectorPanel.test.tsx` passed
+- `npm run build` passed
+- build still reports the pre-existing Vite chunk-size warning for `vendor-tldraw-app`; no new chunk warning was introduced in this phase
+
 ## Phase 7. Final Docs Reconciliation And Cleanup Closeout
 
 Purpose:
@@ -638,11 +685,10 @@ Primary targets:
 - `npm run typecheck`
 - targeted tests or `npm run build` if the closeout includes final code adjustments
 
-## Carry-Over After Phase 6 Execution
+## Carry-Over After Phase 6B Execution
 
-The remaining work is now concentrated in the planned `Phase 6B` hotspot tranche, the final closeout phase, and a few explicitly deferred follow-ups:
+The remaining work is now concentrated in the final closeout phase and a few explicitly deferred follow-ups:
 
-- execute `Phase 6B` against the ranked large-file targets, starting with the theme workbench and Operation View reader surfaces
 - complete `Phase 7` final docs reconciliation and add the cleanup closeout report in `docs/reports`
 - decide whether broader non-Operation-View `report` naming in domain/presentation, chat artifact-building, and network-graph-local helper code should be normalized in a later cleanup tranche or left as bounded internal vocabulary where it still maps cleanly to artifact generation behavior
 - keep `src/components/features/WorkspaceBoard/BoardAgentRail.tsx` deferred to the future dockable-panel stream unless a targeted bug fix requires touching it first
