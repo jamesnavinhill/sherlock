@@ -2,7 +2,7 @@
 
 Date audited: April 17, 2026
 
-Status: Active roadmap derived from `docs/reports/2026-04-17-canon-workbench-upgrade-report.md`
+Status: Audit-updated roadmap derived from `docs/reports/2026-04-17-canon-workbench-upgrade-report.md`; original Stages 1-5 are landed, but follow-on parity and cleanup work remains
 
 Related inputs:
 
@@ -252,6 +252,13 @@ Stage 4 closeout progress on April 17, 2026:
 
 ## What's Completed
 
+Audit note on April 17, 2026:
+
+- The Stage 1-5 cutovers are substantially landed, but the canon workbench cutover is not fully closed.
+- Sherlock's new workbench does not yet contain every canon-shipped theme template or every canon slider family.
+- The shared app workbench host exists, but Settings is still its only live route consumer.
+- Theme-platform cleanup is incomplete because legacy split-theme helpers and bootstrap compatibility reads still remain in active code paths.
+
 Completed stages so far:
 
 - Stage 1. Sherlock Shell Foundation Cutover
@@ -286,6 +293,37 @@ Stage 5 closeout progress on April 17, 2026:
 - The shared host now owns app-level open/close state plus left/right dock placement instead of leaving those behaviors inside one route.
 - `src/app/workbench/AppWorkbenchContext.ts`, `AppWorkbenchHostProvider.tsx`, `AppWorkbenchHost.tsx`, and `useAppWorkbenchHost.ts` define the routed utility-panel registration contract for future consumers.
 - `Settings/index.tsx` now registers theme draft/export utility content into that shared host, and `SettingsThemeWorkbenchPanel.tsx` isolates the migrated utility content from the routed settings page shell.
+
+## Audit Findings On Remaining Cutover Work
+
+The April 17 implementation audit found these remaining gaps:
+
+- Missing canon theme templates in Sherlock's shipped theme library:
+  - `blueberry`
+  - `midnight`
+  - `crimson`
+- Missing canon slider families in Sherlock's current `SherlockTheme` schema and workbench:
+  - graph opacity
+  - background opacity for dark/light background tuning
+  - per-surface opacity for shell/panel/rail/surface tuning
+  - selected-font-family role-profile tuning, where canon keeps the global size/weight sliders but also shows one slider set for the currently selected role/family:
+    - `sizeAdjust`
+    - `weightAdjust`
+    - `trackingAdjust`
+    - `leadingAdjust`
+- Missing canon font options in Sherlock's current theme font catalog:
+  - `instrument-sans`
+  - `archivo`
+  - `azeret-mono`
+- `SettingsThemeTab.tsx` currently renders `Background Glow` and `Scanline Strength` sliders, but their change handler does not write those fields back into theme state, so those controls are currently no-op UI.
+- The active workbench host contract is still effectively Settings-only because no other routed surface registers into `useRegisterAppWorkbenchPanel()`.
+- Legacy split-theme helpers still leak into the active theme platform through defaults, parsing, and bootstrap migration wiring in:
+  - `src/utils/themeSurfaces.ts`
+  - `src/utils/themeBackground.ts`
+  - `src/utils/themeFonts.ts`
+  - `src/store/actions/bootstrapActions.ts`
+
+Those gaps are small enough to close decisively, but they mean the roadmap should no longer treat the cutover as fully complete.
 
 ## Stage 3. Shared Controls And Input-Surface Parity Cutover
 
@@ -429,6 +467,119 @@ Docs to update when this lands:
 - `README.md`
 - `docs/operations/ARCHITECTURE.md`
 
+## Stage 6. Canon Theme Parity Repair And Workbench Fidelity
+
+Purpose:
+
+- close the remaining canon-theme parity gaps uncovered by the April 17 audit
+- finish the slider families that were simplified or dropped during the first Sherlock cutover
+- repair theme-workbench controls that currently render but do not actually mutate theme state
+
+Comes over from canon in this stage:
+
+- the remaining shipped theme templates that Sherlock intends to keep
+- the remaining canon opacity axes for graphs, backgrounds, and surfaces
+- role-profile typography tuning for per-font family adjustment
+- the missing canon font options that are part of the workbench's selectable catalog
+
+Stays Sherlock-owned in this stage:
+
+- the `SherlockTheme` name and persistence model
+- Sherlock-specific defaults and template descriptions
+- Sherlock's choice to keep any additional shell/radius controls that go beyond canon
+
+Primary targets:
+
+- `src/system/theme/schema.ts`
+- `src/system/theme/cssVars.ts`
+- `src/system/theme/storage.ts`
+- `src/components/features/Settings/SettingsThemeTab.tsx`
+- `src/components/features/Settings/useSettingsThemeState.ts`
+- `src/utils/themeFonts.ts`
+- targeted theme/workbench tests under `src/system/theme/` and `src/components/features/Settings/`
+
+Execution checklist:
+
+1. Add the missing canon-shipped theme templates to Sherlock's library or explicitly document any intentional non-adoption inside the roadmap and architecture docs.
+2. Extend `SherlockTheme` to represent the canon opacity axes that are still missing:
+   - graph opacity
+   - background dark/light opacity
+   - surface opacity per shell/panel/rail/surface slot
+3. Surface those schema-backed opacity controls in the Sherlock workbench so the new workbench truly contains the canon slider families it claims to cover.
+4. Restore canon-style typography role-profile tuning for `ui`, `display`, `label`, and `mono`, keeping the current global size/weight controls but also surfacing the selected-role slider set in the type tab:
+   - `sizeAdjust`
+   - `weightAdjust`
+   - `trackingAdjust`
+   - `leadingAdjust`
+5. Add the missing canon font options still absent from Sherlock's font catalog.
+6. Fix the current `Background Glow` and `Scanline Strength` controls so they mutate theme state and persist correctly.
+7. Add or update focused tests that prove the new sliders round-trip through schema, storage, CSS-var generation, and settings UI behavior.
+
+Exit criteria:
+
+- Sherlock's theme library includes the canon theme templates that are still in scope for adoption
+- the workbench contains the remaining canon slider families rather than approximations or silent omissions
+- the type workbench keeps the global typography controls and also exposes the selected-family slider set canon uses for per-role tuning
+- no visible theme slider in Settings is a no-op
+- graph, background, surface, and typography profile tuning all round-trip through the unified theme workspace cleanly
+
+Docs to update when this lands:
+
+- `README.md`
+- `docs/operations/ARCHITECTURE.md`
+
+## Stage 7. Theme Platform Consolidation, Workbench Adoption, And File Discipline
+
+Purpose:
+
+- finish the cleanup work that Stage 2 and Stage 5 left behind
+- keep the unified theme platform from carrying forward long-lived legacy helper paths
+- make the shared workbench host a real app-shell capability instead of a Settings-only abstraction
+- tighten Sherlock's file and documentation discipline around system-layer ownership
+
+Comes over from canon in this stage:
+
+- the expectation that shell/workbench/theme infrastructure lives in a clearly owned system layer
+- the discipline that shared host infrastructure should serve more than one route before being treated as complete
+
+Stays Sherlock-owned in this stage:
+
+- exact route consumers for the shared workbench host
+- the final folder layout and naming conventions
+- Sherlock's migration and documentation strategy
+
+Primary targets:
+
+- `src/system/theme/*`
+- `src/store/actions/bootstrapActions.ts`
+- `src/app/workbench/*`
+- `src/components/features/Settings/*`
+- candidate routed consumers such as `Timeline`, `WorkspaceBoard`, `NetworkGraph`, or `OperationView`
+- `README.md`
+- `docs/operations/ARCHITECTURE.md`
+
+Execution checklist:
+
+1. Move split-theme compatibility parsing/default helpers out of general-purpose `src/utils/` ownership and into an explicitly legacy or migration-scoped theme location, or remove them entirely where they are no longer needed.
+2. Ensure old settings keys such as `theme_mode`, `theme_surface_settings`, `theme_font_settings`, and `theme_background_settings` are treated as migration inputs rather than ongoing platform dependencies.
+3. Break the large Settings theme workbench implementation into a dedicated theme-workbench subfolder so library, tab sections, shell controls, export surfaces, and shared helpers are easier to audit and evolve.
+4. Adopt the shared app workbench host in at least one additional routed surface, or explicitly re-scope the host documentation if the team intends it to remain Settings-only for now.
+5. Update repository-facing operational anchors and docs so they point at current files and ownership boundaries; for example, store/system references should reflect `workspaceStore` rather than stale `caseStore` naming.
+6. Sweep the docs for any remaining claims that the canon cutover is complete before the parity and cleanup stages above have actually landed.
+
+Exit criteria:
+
+- the active theme platform no longer depends on legacy split-theme helpers living as ordinary shared utilities
+- the app-shell workbench host is either genuinely multi-consumer or explicitly documented as intentionally scoped
+- Settings theme-workbench code is organized as a maintained feature area rather than one oversized leaf file
+- repository instructions and architecture docs point to current system anchors and ownership boundaries
+
+Docs to update when this lands:
+
+- `README.md`
+- `docs/operations/ARCHITECTURE.md`
+- `docs/operations/OPERATIONS_RUNBOOK.md`
+
 ## What Explicitly Does Not Come Over
 
 - canon conversation/chat primitives
@@ -444,11 +595,14 @@ This roadmap is complete only when:
 2. Shared shell chrome is token-driven rather than dark-class-driven.
 3. `SherlockTheme` replaces the split theme objects as the active visual source of truth, including graph colors.
 4. The settings workbench is docked, theme-template-aware, and dark/light separated.
-5. Theme controls reach canon parity for the shared shell and control parameters that matter to Sherlock's cleanup, including the remaining missing sliders and graph colors.
+5. Theme controls reach canon parity for the shared shell and control parameters that matter to Sherlock's cleanup, including graph colors, the remaining missing opacity sliders, and the selected-family typography role-profile sliders in addition to the global typography controls.
 6. Shared range/date controls replace the major duplicated raw implementations.
 7. Major routed surfaces adopt the new shell contract and visibly respond to theme shell settings.
 8. The app shell owns one shared workbench host for routed utility panels instead of leaving docking behavior trapped inside Settings.
-9. Canon conversation remains out of scope and Sherlock does not end up running two design systems in parallel.
+9. The shipped Sherlock theme library contains every canon theme template Sherlock has decided to keep, with any intentional omissions documented.
+10. Visible theme sliders in Settings all mutate real schema-backed theme fields and persist correctly.
+11. Legacy split-theme helpers are retired or isolated as migration-only code rather than continuing as active platform structure.
+12. Canon conversation remains out of scope and Sherlock does not end up running two design systems in parallel.
 
 ## Validation Standard
 
