@@ -79,31 +79,21 @@ export const getEventTone = (event: TimelineEvent) => {
     case 'RUN_FAILED':
       return 'border-osint-danger/40 bg-osint-danger/10 text-osint-danger';
     case 'RUN_COMPLETED':
-      return 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary';
-    case 'CHAT_ARTIFACT_SAVED':
-      return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300';
-    case 'ITEM_CREATED':
-      return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200';
-    case 'ITEM_PROMOTED':
-      return 'border-sky-500/40 bg-sky-500/10 text-sky-200';
-    case 'ITEM_UPDATED':
-      return 'border-amber-500/40 bg-amber-500/10 text-amber-200';
-    case 'ITEM_REUSED':
-      return 'border-cyan-500/40 bg-cyan-500/10 text-cyan-200';
-    case 'CHAT_FOLLOW_UP_LAUNCHED':
-      return 'border-amber-500/40 bg-amber-500/10 text-amber-300';
-    case 'ENTITY_FIRST_SEEN':
-      return 'border-violet-500/40 bg-violet-500/10 text-violet-200';
-    case 'ENTITY_MENTION_THRESHOLD':
-      return 'border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200';
-    case 'ENTITY_REAPPEARED':
-      return 'border-indigo-500/40 bg-indigo-500/10 text-indigo-200';
-    case 'CHAT_SESSION_STARTED':
-    case 'CHAT_SEARCHED_WORKSPACE':
-    case 'CHAT_ARTIFACT_NOTED':
-      return 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300';
+      return 'osint-pill-graph osint-pill-graph-2 osint-pill-graph-emphasis';
     default:
-      return 'border-zinc-700 bg-zinc-900 text-zinc-300';
+      switch (event.track) {
+        case 'ARTIFACT':
+          return 'osint-pill-graph osint-pill-graph-1';
+        case 'RUN':
+          return 'osint-pill-graph osint-pill-graph-2';
+        case 'CHAT':
+        case 'ENTITY':
+          return 'osint-pill-graph osint-pill-graph-3';
+        case 'SIGNAL':
+        case 'ITEM':
+        default:
+          return 'osint-pill-graph osint-pill-graph-4';
+      }
   }
 };
 

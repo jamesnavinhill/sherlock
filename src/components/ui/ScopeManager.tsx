@@ -14,7 +14,6 @@ import {
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { BUILTIN_SCOPES, getAllScopes } from '../../data/presets';
 import type { InvestigationScope } from '../../types';
-import { getEntityToneClass } from '../../utils/entityPalette';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Accordion } from './Accordion';
 import {
@@ -33,19 +32,15 @@ interface ScopeManagerProps {
   onClose?: () => void;
 }
 
-const PERSONA_NODE_TONES = ['PERSON', 'ORGANIZATION', 'CONCEPT', 'SOURCE'] as const;
+const PERSONA_GRAPH_TONES = ['1', '2', '3', '4'] as const;
 
 const getPersonaChipClassName = (
   personaId: string,
   defaultPersonaId: string | undefined,
   index: number
 ) => {
-  if (personaId === defaultPersonaId) {
-    return 'border border-osint-primary/40 bg-osint-primary/10 text-osint-primary';
-  }
-
-  const toneClass = getEntityToneClass(PERSONA_NODE_TONES[index % PERSONA_NODE_TONES.length]);
-  return `${toneClass} entity-tone-chip border`;
+  const tone = PERSONA_GRAPH_TONES[index % PERSONA_GRAPH_TONES.length];
+  return `osint-pill-shape osint-pill-graph osint-pill-graph-${tone}${personaId === defaultPersonaId ? ' osint-pill-graph-emphasis' : ''}`;
 };
 
 export const ScopeManager: React.FC<ScopeManagerProps> = ({ onClose: _onClose }) => {

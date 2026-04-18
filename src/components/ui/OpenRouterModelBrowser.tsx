@@ -253,27 +253,27 @@ export const OpenRouterModelBrowser: React.FC<OpenRouterModelBrowserProps> = ({
                       <p className="mt-3 osint-body-small text-zinc-400">{model.description}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {capabilities.supportsThinkingBudget ? (
-                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
+                          <span className="osint-pill-shape osint-pill-graph osint-pill-graph-1 px-2 py-1 osint-meta-label-strong">
                             Reasoning
                           </span>
                         ) : null}
                         {capabilities.supportsStructuredOutput ? (
-                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
+                          <span className="osint-pill-shape osint-pill-graph osint-pill-graph-2 px-2 py-1 osint-meta-label-strong">
                             Structured
                           </span>
                         ) : null}
                         {capabilities.supportsWebSearch ? (
-                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
+                          <span className="osint-pill-shape osint-pill-graph osint-pill-graph-3 px-2 py-1 osint-meta-label-strong">
                             Web Search
                           </span>
                         ) : null}
                         {capabilities.supportsToolUse ? (
-                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label-strong text-zinc-300">
+                          <span className="osint-pill-shape osint-pill-graph osint-pill-graph-4 px-2 py-1 osint-meta-label-strong">
                             Tools
                           </span>
                         ) : null}
                         {model.contextLength ? (
-                          <span className="border border-zinc-700 px-2 py-1 osint-meta-label text-zinc-500">
+                          <span className="osint-shell-chip-muted px-2 py-1 osint-meta-label">
                             {Intl.NumberFormat().format(model.contextLength)} ctx
                           </span>
                         ) : null}

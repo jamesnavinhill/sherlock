@@ -108,13 +108,13 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
         <div className="flex items-center space-x-2">
           <span
-            className={`osint-meta-label flex items-center border px-2 py-0.5 ${threat.color}`}
+            className={`osint-pill-shape osint-meta-label flex items-center border px-2 py-0.5 ${threat.color}`}
           >
             <ThreatIcon className="w-3 h-3 mr-1" />
             {event.threatLevel || 'INFO'}
           </span>
           <span
-            className={`osint-meta-label border px-2 py-0.5 ${getSentimentColor(event.sentiment)}`}
+            className={`osint-pill-shape osint-meta-label border px-2 py-0.5 ${getSentimentColor(event.sentiment)}`}
           >
             {event.sentiment}
           </span>

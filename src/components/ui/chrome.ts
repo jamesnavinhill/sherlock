@@ -76,7 +76,7 @@ export const CHROME_NESTED_ITEM_ACTION_ROW_CLASS = 'mt-3 flex flex-wrap items-ce
 export const CHROME_THIN_ACTION_STACK_CLASS = 'flex flex-col gap-2';
 
 export const CHROME_NESTED_ITEM_BADGE_CLASS =
-  'rounded-none border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-2 py-1 osint-meta-label text-[color:var(--osint-text-meta)]';
+  'rounded-[var(--osint-pill-radius)] border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-2 py-1 osint-meta-label text-[color:var(--osint-text-meta)]';
 
 export const CHROME_NESTED_ITEM_DOT_CLASS = 'mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-600';
 

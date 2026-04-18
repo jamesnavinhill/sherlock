@@ -51,7 +51,7 @@ const renderSentimentBadge = (sentiment: Entity['sentiment']) => {
 
   return (
     <span
-      className={`inline-flex items-center border px-2 py-1 osint-meta-label ${
+      className={`osint-pill-shape inline-flex items-center border px-2 py-1 osint-meta-label ${
         sentiment === 'NEGATIVE'
           ? 'border-osint-danger/40 bg-osint-danger/10 osint-danger-text'
             : sentiment === 'POSITIVE'

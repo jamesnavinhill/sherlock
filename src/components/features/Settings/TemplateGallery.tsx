@@ -305,7 +305,11 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ onApply }) => 
                 >
                   <div className="flex-1 p-4">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                      <span className="osint-meta-label-strong border border-osint-primary/30 bg-osint-primary/10 px-2 py-0.5 text-osint-primary">
+                      <span
+                        className={`osint-pill-shape osint-pill-graph px-2 py-0.5 osint-meta-label-strong ${
+                          isStarter ? 'osint-pill-graph-2 osint-pill-graph-emphasis' : 'osint-pill-graph-4'
+                        }`}
+                      >
                         {isStarter ? 'Starter' : 'Protocol'}
                       </span>
                       <div className="flex items-center gap-2">

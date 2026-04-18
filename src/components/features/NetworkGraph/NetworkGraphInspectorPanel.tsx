@@ -382,7 +382,7 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
       <button
         type="button"
         onClick={() => setShowIconPicker(true)}
-        className="inline-flex items-center gap-2 border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-400 transition hover:border-zinc-600 hover:text-white"
+        className="osint-pill-shape osint-pill-graph osint-pill-graph-4 inline-flex items-center gap-2 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.14em] transition"
       >
         <Shapes className="h-3.5 w-3.5" />
         Icon

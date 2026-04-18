@@ -238,7 +238,7 @@ const ChatComposerInput: React.FC<ChatComposerInputProps> = ({
             {linkedMentions.map((mention) => (
               <span
                 key={mention.id}
-                className="inline-flex max-w-full items-center gap-2 border border-zinc-700/80 bg-black/60 px-2 py-1 osint-meta-label-strong text-zinc-300"
+                className="osint-pill-shape osint-pill-graph osint-pill-graph-3 inline-flex max-w-full items-center gap-2 px-2 py-1 osint-meta-label-strong"
               >
                 <span className="truncate">{mention.title}</span>
                 <span className="shrink-0 text-zinc-500">{mention.subtitle}</span>

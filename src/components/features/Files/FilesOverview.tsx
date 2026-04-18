@@ -205,7 +205,11 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                   </button>
                 </div>
                 <span
-                  className={`osint-meta-label border px-2 py-1 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/50 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
+                  className={`osint-pill-shape osint-pill-graph osint-meta-label px-2 py-1 ${
+                    workspace.status === 'ACTIVE'
+                      ? 'osint-pill-graph-2 osint-pill-graph-emphasis'
+                      : 'osint-pill-graph-4'
+                  }`}
                 >
                   {workspace.status}
                 </span>
@@ -290,7 +294,11 @@ export const FilesOverview: React.FC<FilesOverviewProps> = ({
                       </div>
                       <div className="osint-title-inline transition-colors group-hover:text-osint-primary">{displayTitle}</div>
                       <span
-                        className={`osint-meta-label border px-2 py-0.5 ${workspace.status === 'ACTIVE' ? 'border-osint-primary/40 bg-osint-primary/10 text-osint-primary' : 'border-zinc-700 text-zinc-500'}`}
+                        className={`osint-pill-shape osint-pill-graph osint-meta-label px-2 py-0.5 ${
+                          workspace.status === 'ACTIVE'
+                            ? 'osint-pill-graph-2 osint-pill-graph-emphasis'
+                            : 'osint-pill-graph-4'
+                        }`}
                       >
                         {workspace.status}
                       </span>

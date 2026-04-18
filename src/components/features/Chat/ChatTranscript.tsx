@@ -206,7 +206,7 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
                                         key={`${match.mention.id}:${match.start}`}
                                         type="button"
                                         onClick={() => handleOpenMention(match.mention)}
-                                        className="mx-0.5 inline-flex items-center gap-2 border border-osint-primary/40 bg-osint-primary/10 px-2 py-0.5 osint-meta-label-strong text-zinc-100 transition hover:border-osint-primary hover:text-white"
+                                        className="osint-pill-shape osint-pill-graph osint-pill-graph-3 mx-0.5 inline-flex items-center gap-2 px-2 py-0.5 osint-meta-label-strong transition"
                                       >
                                         <span className="normal-case">{match.mention.title}</span>
                                         <span className="text-zinc-400">

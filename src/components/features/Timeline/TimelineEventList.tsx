@@ -132,7 +132,7 @@ export const TimelineEventList: React.FC<TimelineEventListProps> = ({
                               {formatEventTime(event.occurredAt)}
                             </span>
                             <span
-                              className={`inline-flex items-center gap-2 border px-2 py-1 osint-meta-label-strong ${getEventTone(event)}`}
+                              className={`osint-pill-shape inline-flex items-center gap-2 border px-2 py-1 osint-meta-label-strong ${getEventTone(event)}`}
                             >
                               <EventIcon className="h-3.5 w-3.5" />
                               {event.track}

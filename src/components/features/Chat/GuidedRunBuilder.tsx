@@ -357,7 +357,7 @@ export const GuidedRunBuilder: React.FC<GuidedRunBuilderProps> = ({
                       .join(current.prioritySources ? ', ' : ''),
                   }))
                 }
-                className="border border-zinc-800 bg-zinc-900/60 px-2 py-1 osint-meta-label text-zinc-300 transition hover:border-osint-primary hover:text-white"
+                className="osint-pill-shape osint-pill-graph osint-pill-graph-3 px-2 py-1 osint-meta-label transition"
               >
                 {source.label}
               </button>

@@ -15,7 +15,11 @@ export const RuntimeConfigSummary: React.FC<RuntimeConfigSummaryProps> = ({
   packName,
   purposeName,
 }) => {
-  const badges = [packName, purposeName, artifactType].filter(Boolean);
+  const badges = [
+    packName ? { label: packName, toneClassName: 'osint-pill-graph-2' } : null,
+    purposeName ? { label: purposeName, toneClassName: 'osint-pill-graph-3' } : null,
+    artifactType ? { label: artifactType, toneClassName: 'osint-pill-graph-1' } : null,
+  ].filter((badge): badge is { label: string; toneClassName: string } => !!badge);
   if (badges.length === 0 && !hint) {
     return null;
   }
@@ -26,10 +30,10 @@ export const RuntimeConfigSummary: React.FC<RuntimeConfigSummaryProps> = ({
         <div className="flex flex-wrap gap-2">
           {badges.map((badge) => (
             <span
-              key={badge}
-              className="px-2 py-1 border border-zinc-700 osint-meta-label-strong text-zinc-300"
+              key={badge.label}
+              className={`osint-pill-shape osint-pill-graph px-2 py-1 osint-meta-label-strong ${badge.toneClassName}`}
             >
-              {badge}
+              {badge.label}
             </span>
           ))}
         </div>

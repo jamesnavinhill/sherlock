@@ -245,14 +245,14 @@
 
 .osint-range-field::-webkit-slider-runnable-track {
   height: 0.375rem;
-  border-radius: 999px;
+  border-radius: var(--osint-pill-radius);
   border: 1px solid var(--osint-raised-outline);
   background: color-mix(in oklab, var(--osint-slider-track-bg) 88%, var(--osint-panel));
 }
 
 .osint-range-field::-moz-range-track {
   height: 0.375rem;
-  border-radius: 999px;
+  border-radius: var(--osint-pill-radius);
   border: 1px solid var(--osint-raised-outline);
   background: color-mix(in oklab, var(--osint-slider-track-bg) 88%, var(--osint-panel));
 }
@@ -263,7 +263,7 @@
   height: 0.95rem;
   margin-top: calc((0.375rem - 0.95rem) / 2);
   border: 1px solid color-mix(in oklab, var(--osint-primary) 56%, var(--osint-ink));
-  border-radius: 999px;
+  border-radius: var(--osint-pill-radius);
   background: color-mix(in oklab, var(--osint-primary) 78%, var(--osint-ink) 22%);
   box-shadow:
     0 0 0 3px color-mix(in oklab, var(--osint-primary) 12%, transparent),
@@ -274,7 +274,7 @@
   width: 0.95rem;
   height: 0.95rem;
   border: 1px solid color-mix(in oklab, var(--osint-primary) 56%, var(--osint-ink));
-  border-radius: 999px;
+  border-radius: var(--osint-pill-radius);
   background: color-mix(in oklab, var(--osint-primary) 78%, var(--osint-ink) 22%);
   box-shadow:
     0 0 0 3px color-mix(in oklab, var(--osint-primary) 12%, transparent),

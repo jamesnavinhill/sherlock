@@ -276,12 +276,12 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                               <div className="flex flex-wrap items-center gap-2">
                                 <div className="osint-title-inline">{presentation.title}</div>
                                 <span
-                                  className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getRiskClassName(presentation.risk)}`}
+                                  className={`osint-pill-shape border px-2 py-0.5 osint-meta-label-strong ${getRiskClassName(presentation.risk)}`}
                                 >
                                   {presentation.risk}
                                 </span>
                                 <span
-                                  className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(action.status)}`}
+                                  className={`osint-pill-shape border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(action.status)}`}
                                 >
                                   {action.status}
                                 </span>
@@ -400,7 +400,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                         </div>
                         {showAssistantStatusChip ? (
                           <span
-                            className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(sessionRequestState || 'PENDING')}`}
+                            className={`osint-pill-shape border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(sessionRequestState || 'PENDING')}`}
                           >
                             {sessionRequestState}
                           </span>
@@ -457,7 +457,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="osint-title-inline">{presentation.title}</div>
                           <div
-                            className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(action.status)}`}
+                            className={`osint-pill-shape border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(action.status)}`}
                           >
                             {action.status}
                           </div>
@@ -605,7 +605,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                           <div className="flex items-center justify-between gap-3">
                             <div className="osint-meta-value">{sessionDisplayTitle}</div>
                             <div
-                              className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
+                              className={`osint-pill-shape border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
                                 visibleBoardAgentSession.requestState ||
                                   visibleBoardAgentSession.status
                               )}`}
@@ -631,7 +631,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                                   onCancelAgent();
                                   setSessionMenuOpen(false);
                                 }}
-                                className="inline-flex items-center gap-1 rounded-none border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 osint-meta-label-strong text-red-200 transition hover:bg-red-500/20 hover:text-white"
+                                className="osint-pill-shape inline-flex items-center gap-1 border border-red-400/40 bg-red-500/10 px-2.5 py-1.5 osint-meta-label-strong text-red-200 transition hover:bg-red-500/20 hover:text-white"
                               >
                                 <X className="h-3.5 w-3.5" />
                                 Cancel
@@ -680,7 +680,7 @@ export const BoardAgentRail: React.FC<BoardAgentRailProps> = ({
                                     {getSessionDisplayTitle(session)}
                                   </div>
                                   <div
-                                    className={`rounded-none border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
+                                    className={`osint-pill-shape border px-2 py-0.5 osint-meta-label-strong ${getStatusClassName(
                                       session.requestState || session.status
                                     )}`}
                                   >

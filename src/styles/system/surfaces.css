@@ -116,8 +116,17 @@
 }
 
 .osint-shell-chip,
-.osint-shell-chip-muted {
-  border-radius: var(--osint-control-radius);
+.osint-shell-chip-muted,
+.osint-pill-graph {
+  border-radius: var(--osint-pill-radius);
+  border: 1px solid
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 36%, var(--osint-shell-border));
+  background-color:
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 12%, var(--osint-card-section-bg) 88%);
+  color:
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 70%, var(--osint-ink) 30%);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 10%, transparent);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -125,26 +134,51 @@
     box-shadow 180ms ease;
 }
 
-.osint-shell-chip {
-  background-color: color-mix(in oklab, var(--osint-shell-panel-action-bg) 92%, transparent);
-  border: 1px solid var(--osint-shell-border);
-  color: var(--osint-text-strong);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--osint-surface) 14%, transparent);
+.osint-shell-chip,
+.osint-pill-graph-1 {
+  --osint-pill-tone: var(--osint-graph-1);
 }
 
-.osint-shell-chip-muted {
-  background-color: color-mix(in oklab, var(--osint-panel) 44%, transparent);
-  border: 1px solid color-mix(in oklab, var(--osint-shell-border) 78%, transparent);
-  color: var(--osint-text-muted);
+.osint-pill-graph-2 {
+  --osint-pill-tone: var(--osint-graph-2);
+}
+
+.osint-pill-graph-3 {
+  --osint-pill-tone: var(--osint-graph-3);
+}
+
+.osint-shell-chip-muted,
+.osint-pill-graph-4 {
+  --osint-pill-tone: var(--osint-graph-4);
+}
+
+.osint-pill-graph-emphasis {
+  background-color:
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 18%, var(--osint-card-section-bg) 82%);
+  border-color:
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 52%, var(--osint-shell-border));
+  color:
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 82%, var(--osint-ink) 18%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 18%, transparent),
+    0 0 14px -12px color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 42%, transparent);
 }
 
 .osint-shell-chip:hover,
 .osint-shell-chip:focus-visible,
 .osint-shell-chip-muted:hover,
-.osint-shell-chip-muted:focus-visible {
-  border-color: var(--osint-raised-outline-strong);
-  color: var(--osint-text-heading);
+.osint-shell-chip-muted:focus-visible,
+.osint-pill-graph:hover,
+.osint-pill-graph:focus-visible {
+  border-color:
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 52%, var(--osint-raised-outline-strong));
+  color:
+    color-mix(in oklab, var(--osint-pill-tone, var(--osint-graph-1)) 82%, var(--osint-ink) 18%);
   outline: none;
+}
+
+.osint-pill-shape {
+  border-radius: var(--osint-pill-radius);
 }
 
 .osint-shell-rule {
