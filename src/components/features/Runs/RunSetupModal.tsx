@@ -123,10 +123,6 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
   const renderStep0 = () => (
     <div className="space-y-5">
       <div>
-        <label className="mb-3 flex items-center osint-meta-label">
-          <Compass className="w-3 h-3 mr-2" />
-          Domain Pack
-        </label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pr-1">
           {allScopes.map((scope) => (
             <button
@@ -152,10 +148,6 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
 
       <div className="pt-3 border-t border-zinc-800">
         <div>
-          <label className="mb-3 flex items-center osint-meta-label">
-            <Sparkles className="w-3 h-3 mr-2" />
-            {setupCopy.purposeLabel}
-          </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             {supportedPurposes.map((purpose) => (
               <button
@@ -181,10 +173,6 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
       </div>
 
       <div className="pt-3 border-t border-zinc-800">
-        <label className="mb-2 flex items-center osint-meta-label">
-          <Calendar className="w-3 h-3 mr-2" />
-          Temporal Scope
-        </label>
         <DateRangePicker
           value={{ start: dateRangeStart, end: dateRangeEnd }}
           onChange={(nextValue) => {
@@ -559,7 +547,7 @@ export const RunSetupModal: React.FC<RunSetupModalProps> = ({
             {currentStep === 5 && renderStep5()}
           </div>
 
-          <div className="p-4 border-t border-zinc-800 bg-zinc-900/30 flex justify-between">
+          <div className="osint-shell-dialog-footer p-4 flex justify-between">
             <button
               onClick={prevStep}
               disabled={currentStep === 0}

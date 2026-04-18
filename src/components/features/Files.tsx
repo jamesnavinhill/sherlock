@@ -25,6 +25,13 @@ import {
   getChromeMenuButtonClass,
 } from '@/components/ui/chrome';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import {
+  CompactMenuHeader,
+  CompactMenuPanel,
+  COMPACT_MENU_ICON_CLASS,
+  COMPACT_MENU_ITEM_CLASS,
+  COMPACT_MENU_ITEM_DIVIDER_CLASS,
+} from '@/components/ui/CompactMenu';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { IconPickerOverlay } from '@/components/ui/IconPickerOverlay';
 import { OsintSelect } from '@/components/ui/OsintSelect';
@@ -118,6 +125,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
               <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
                 <OsintSelect
                   ariaLabel={`View ${workspaceLabel}`}
+                  menuTitle={workspaceLabel}
                   value={effectiveSelectedCaseId || 'ALL'}
                   onChange={handleWorkspaceSelect}
                   chrome="toolbar"
@@ -220,17 +228,18 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                       <ChevronDown className="h-3 w-3" />
                     </button>
                     {showExportMenu ? (
-                      <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">
+                      <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 min-w-[200px]">
+                        <CompactMenuHeader>{workspaceLabel}</CompactMenuHeader>
                         <button
                           onClick={() => {
                             if (!currentWorkspace) return;
                             exportWorkspaceAsHtml(currentWorkspace, currentWorkspaceArtifacts);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
+                          className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS}`}
                           title={`Exports a formatted printable ${workspaceLabelLower}`}
                         >
-                          <Download className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <Download className={COMPACT_MENU_ICON_CLASS} />
                           <div>
                             <div className="osint-menu-item-title">{`${workspaceLabel} HTML`}</div>
                             <div className="osint-menu-item-description">
@@ -244,10 +253,10 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                             exportWorkspaceAsJson(currentWorkspace, currentWorkspaceArtifacts);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left text-zinc-300"
+                          className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS}`}
                           title={`Exports raw ${workspaceLabelLower} data for backup/integration`}
                         >
-                          <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <FileJson className={COMPACT_MENU_ICON_CLASS} />
                           <div>
                             <div className="osint-menu-item-title">{`${workspaceLabel} JSON`}</div>
                             <div className="osint-menu-item-description">
@@ -261,10 +270,10 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                             exportWorkspaceAsMarkdown(currentWorkspace, currentWorkspaceArtifacts);
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-3 text-left text-zinc-300"
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={`Exports ${workspaceLabelLower} as Markdown`}
                         >
-                          <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <FileText className={COMPACT_MENU_ICON_CLASS} />
                           <div>
                             <div className="osint-menu-item-title">{`${workspaceLabel} Markdown`}</div>
                             <div className="osint-menu-item-description">
@@ -272,7 +281,7 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                             </div>
                           </div>
                         </button>
-                      </div>
+                      </CompactMenuPanel>
                     ) : null}
                   </div>
                 ) : null}

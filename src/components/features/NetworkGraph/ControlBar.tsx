@@ -58,6 +58,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
             <OsintSelect
               ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
+              menuTitle={CANONICAL_NOUNS.workspace}
               value={filterWorkspaceId || ''}
               onChange={onWorkspaceChange}
               chrome="toolbar"

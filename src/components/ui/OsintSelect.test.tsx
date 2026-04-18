@@ -20,10 +20,31 @@ describe('OsintSelect', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Workspace' }));
+    expect(screen.getByText('Workspace')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('option', { name: 'Beta Workspace' }));
 
     expect(onChange).toHaveBeenCalledWith('beta');
     expect(screen.queryByRole('option', { name: 'Beta Workspace' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the legacy menu chrome available for workbench selectors', () => {
+    render(
+      <OsintSelect
+        ariaLabel="Theme background pattern"
+        value="alpha"
+        onChange={vi.fn()}
+        menuStyle="legacy"
+        triggerClassName="px-3 py-2 font-mono text-xs"
+        options={[
+          { value: 'alpha', label: 'Alpha Workspace' },
+          { value: 'beta', label: 'Beta Workspace' },
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Theme background pattern' }));
+
+    expect(screen.queryByText('Theme background pattern')).not.toBeInTheDocument();
   });
 
   it('supports keyboard navigation and skips disabled options', () => {

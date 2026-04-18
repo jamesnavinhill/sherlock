@@ -91,6 +91,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
         <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
           <OsintSelect
             ariaLabel="Timeline workspace"
+            menuTitle="Workspace"
             value={activeWorkspace?.id || ''}
             onChange={(value) => onWorkspaceChange(value || null)}
             placeholder={`Select ${CANONICAL_NOUNS.workspace.toLowerCase()}`}

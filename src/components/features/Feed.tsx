@@ -18,6 +18,10 @@ import { RunSetupModal } from './Runs/RunSetupModal';
 import { MatrixCardLoader } from '../ui/MatrixCardLoader';
 import { OsintSelect } from '../ui/OsintSelect';
 import { GlobalSearch } from '../ui/GlobalSearch';
+import {
+  CompactMenuFooter,
+  CompactMenuPanel,
+} from '../ui/CompactMenu';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { getScopeById, getAllScopes, BUILTIN_SCOPES } from '../../data/presets';
 import { PageShell } from '@/components/system/layout/PageShell';
@@ -154,13 +158,16 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
   }, [feedConfig.autoRefresh, feedConfig.refreshInterval, loading, loadFeed]);
 
   const renderSettingsPanel = () => (
-    <div className="osint-menu-panel absolute top-20 right-6 z-50 w-96 border border-zinc-700 bg-zinc-900 animate-in slide-in-from-top-2 fade-in duration-200">
-      <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-black">
-        <h3 className="osint-meta-label-strong text-white flex items-center">
-          <Settings2 className="w-4 h-4 mr-2 text-osint-primary" />
+    <CompactMenuPanel className="absolute top-20 right-6 z-50 w-96 animate-in slide-in-from-top-2 fade-in duration-200">
+      <div className="flex items-center justify-between gap-3 border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-4 py-3">
+        <span className="inline-flex items-center gap-2 osint-meta-label-strong text-[color:var(--osint-text-heading)]">
+          <Settings2 className="w-4 h-4 text-osint-primary" />
           Discovery Config
-        </h3>
-        <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white">
+        </span>
+        <button
+          onClick={() => setShowSettings(false)}
+          className="text-zinc-500 transition hover:text-white"
+        >
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -244,7 +251,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
         </div>
 
         {/* Actions */}
-        <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
+        <CompactMenuFooter className="-mx-5 -mb-5 mt-5">
           <button
             onClick={() =>
               setFeedConfig({
@@ -267,9 +274,9 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
           >
             Apply & Scan
           </button>
-        </div>
+        </CompactMenuFooter>
       </div>
-    </div>
+    </CompactMenuPanel>
   );
 
   return (
@@ -283,6 +290,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                 <Tag className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
                 <OsintSelect
                   ariaLabel="Feed category"
+                  menuTitle="Category"
                   value={filterCategory}
                   onChange={setFilterCategory}
                   chrome="toolbar"
@@ -380,6 +388,7 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
                     <label className="block osint-meta-label mb-1">Category</label>
                     <OsintSelect
                       ariaLabel="Feed category mobile"
+                      menuTitle="Category"
                       value={filterCategory}
                       onChange={setFilterCategory}
                       triggerClassName="px-2 py-2 pr-8 osint-meta-value"

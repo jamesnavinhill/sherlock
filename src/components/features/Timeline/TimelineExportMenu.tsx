@@ -1,5 +1,12 @@
 import React from 'react';
 import { FileJson, FileText, Save } from 'lucide-react';
+import {
+  CompactMenuHeader,
+  CompactMenuPanel,
+  COMPACT_MENU_ICON_CLASS,
+  COMPACT_MENU_ITEM_CLASS,
+  COMPACT_MENU_ITEM_DIVIDER_CLASS,
+} from '@/components/ui/CompactMenu';
 
 interface TimelineExportMenuProps {
   onExportJson: () => void;
@@ -12,13 +19,14 @@ export const TimelineExportMenu: React.FC<TimelineExportMenuProps> = ({
   onExportMarkdown,
   onSaveSnapshot,
 }) => (
-  <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[220px] border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-bg)]">
+  <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 min-w-[220px]">
+    <CompactMenuHeader>Timeline Snapshot</CompactMenuHeader>
     <button
       onClick={onExportMarkdown}
-      className="osint-menu-item flex w-full items-center border-b border-[color:var(--osint-shell-border)] px-4 py-3 text-left"
+      className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS}`}
       title="Export the visible timeline snapshot as Markdown"
     >
-      <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-[color:var(--osint-text-meta)]" />
+      <FileText className={COMPACT_MENU_ICON_CLASS} />
       <div>
         <div className="osint-menu-item-title">Timeline Markdown</div>
         <div className="osint-menu-item-description">Readable visible timeline export</div>
@@ -26,10 +34,10 @@ export const TimelineExportMenu: React.FC<TimelineExportMenuProps> = ({
     </button>
     <button
       onClick={onExportJson}
-      className="osint-menu-item flex w-full items-center border-b border-[color:var(--osint-shell-border)] px-4 py-3 text-left"
+      className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS}`}
       title="Export the visible timeline snapshot as JSON"
     >
-      <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-[color:var(--osint-text-meta)]" />
+      <FileJson className={COMPACT_MENU_ICON_CLASS} />
       <div>
         <div className="osint-menu-item-title">Timeline JSON</div>
         <div className="osint-menu-item-description">Raw visible timeline data for backup</div>
@@ -37,14 +45,14 @@ export const TimelineExportMenu: React.FC<TimelineExportMenuProps> = ({
     </button>
     <button
       onClick={onSaveSnapshot}
-      className="osint-menu-item flex w-full items-center px-4 py-3 text-left"
+      className={COMPACT_MENU_ITEM_CLASS}
       title="Save the current timeline snapshot as a TIMELINE artifact"
     >
-      <Save className="osint-menu-item-icon mr-3 h-4 w-4 text-[color:var(--osint-text-meta)]" />
+      <Save className={COMPACT_MENU_ICON_CLASS} />
       <div>
         <div className="osint-menu-item-title">Save Snapshot</div>
         <div className="osint-menu-item-description">Store this view in the dossier</div>
       </div>
     </button>
-  </div>
+  </CompactMenuPanel>
 );

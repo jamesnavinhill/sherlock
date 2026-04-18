@@ -65,6 +65,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         <div className={`relative z-50 ${CHROME_HEADER_SELECT_WRAP_CLASS}`}>
           <OsintSelect
             ariaLabel="Select workspace"
+            menuTitle="Workspace"
             value={activeWorkspaceId}
             onChange={onSelectWorkspace}
             chrome="toolbar"
@@ -86,6 +87,7 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         <div className={`relative z-50 ${CHROME_HEADER_SELECT_WRAP_CLASS}`}>
           <OsintSelect
             ariaLabel="Select board"
+            menuTitle="Board"
             value={activeBoard?.id || ''}
             onChange={onSelectBoard}
             chrome="toolbar"

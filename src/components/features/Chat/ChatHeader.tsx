@@ -15,6 +15,13 @@ import {
 import { OsintSelect } from '@/components/ui/OsintSelect';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import {
+  CompactMenuHeader,
+  CompactMenuPanel,
+  COMPACT_MENU_ICON_CLASS,
+  COMPACT_MENU_ITEM_CLASS,
+  COMPACT_MENU_ITEM_DIVIDER_CLASS,
+} from '@/components/ui/CompactMenu';
+import {
   CHROME_HEADER_CLASS,
   CHROME_HEADER_ROW_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
@@ -96,17 +103,15 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             <ChevronDown className="h-3 w-3 opacity-80" />
           </button>
           {showNewMenu ? (
-            <div className="osint-menu-panel absolute left-0 top-full z-50 mt-1 min-w-[220px] border border-zinc-700 bg-zinc-900">
-              <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
-                Chat
-              </div>
+            <CompactMenuPanel className="absolute left-0 top-full z-50 mt-1 min-w-[220px]">
+              <CompactMenuHeader>Chat</CompactMenuHeader>
               <button
                 onClick={() => void onCreateSession()}
                 disabled={workspaceDisabled}
-                className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left osint-body-small text-zinc-300 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS} disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600`}
                 title="Start a fresh chat session in the selected workspace"
               >
-                <MessageSquare className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                <MessageSquare className={COMPACT_MENU_ICON_CLASS} />
                 <div>
                   <div className="osint-menu-item-title">New Session</div>
                   <div className="osint-menu-item-description">Start a standard workspace chat</div>
@@ -115,10 +120,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               <button
                 onClick={() => void onCreateGuidedSession()}
                 disabled={workspaceDisabled}
-                className="osint-menu-item flex w-full items-center px-4 py-3 text-left osint-body-small text-zinc-300 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600"
+                className={`${COMPACT_MENU_ITEM_CLASS} disabled:cursor-not-allowed disabled:text-zinc-600 disabled:hover:bg-transparent disabled:hover:text-zinc-600`}
                 title="Open a guided run builder in the selected workspace"
               >
-                <PlayCircle className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                <PlayCircle className={COMPACT_MENU_ICON_CLASS} />
                 <div>
                   <div className="osint-menu-item-title">Guided Run</div>
                   <div className="osint-menu-item-description">
@@ -126,15 +131,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                   </div>
                 </div>
               </button>
-              <div className="border-y border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
-                Workspace
-              </div>
+              <CompactMenuHeader separated>Workspace</CompactMenuHeader>
               <button
                 onClick={onStartNewWorkspace}
-                className="osint-menu-item flex w-full items-center px-4 py-3 text-left osint-body-small text-zinc-300"
+                className={COMPACT_MENU_ITEM_CLASS}
                 title="Create a new workspace"
               >
-                <FilePlus2 className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                <FilePlus2 className={COMPACT_MENU_ICON_CLASS} />
                 <div>
                   <div className="osint-menu-item-title">New Workspace</div>
                   <div className="osint-menu-item-description">
@@ -142,12 +145,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                   </div>
                 </div>
               </button>
-            </div>
+            </CompactMenuPanel>
           ) : null}
         </div>
         <div className={`relative z-50 ${CHROME_HEADER_SELECT_WRAP_CLASS}`}>
           <OsintSelect
             ariaLabel="Chat workspace"
+            menuTitle="Workspace"
             value={activeWorkspaceId || ''}
             onChange={(value) => onSelectWorkspace(value || null)}
             placeholder="Select workspace"
@@ -181,16 +185,14 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
               <ChevronDown className="h-3 w-3" />
             </button>
             {showExportMenu ? (
-              <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[220px] border border-zinc-700 bg-zinc-900">
-                <div className="border-b border-zinc-800 bg-zinc-900/50 px-3 py-1.5 osint-menu-section-label">
-                  Current Session
-                </div>
+              <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 min-w-[220px]">
+                <CompactMenuHeader>Current Session</CompactMenuHeader>
                 <button
                   onClick={onExportMarkdown}
-                  className="osint-menu-item flex w-full items-center border-b border-zinc-800 px-4 py-3 text-left osint-body-small text-zinc-300"
+                  className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS}`}
                   title="Export the current chat session as Markdown"
                 >
-                  <FileText className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                  <FileText className={COMPACT_MENU_ICON_CLASS} />
                   <div>
                     <div className="osint-menu-item-title">Session Markdown</div>
                     <div className="osint-menu-item-description">Readable transcript export</div>
@@ -198,10 +200,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 </button>
                 <button
                   onClick={onExportJson}
-                  className="osint-menu-item flex w-full items-center px-4 py-3 text-left osint-body-small text-zinc-300"
+                  className={COMPACT_MENU_ITEM_CLASS}
                   title="Export the current chat session as JSON"
                 >
-                  <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                  <FileJson className={COMPACT_MENU_ICON_CLASS} />
                   <div>
                     <div className="osint-menu-item-title">Session JSON</div>
                     <div className="osint-menu-item-description">
@@ -209,7 +211,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                     </div>
                   </div>
                 </button>
-              </div>
+              </CompactMenuPanel>
             ) : null}
           </div>
         ) : null}

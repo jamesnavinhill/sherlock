@@ -10,6 +10,8 @@ interface ModalShellProps {
   footer?: React.ReactNode;
   widthClassName?: string;
   panelClassName?: string;
+  headerClassName?: string;
+  footerClassName?: string;
   contentClassName?: string;
   closeOnOverlayClick?: boolean;
   scrollContent?: boolean;
@@ -24,6 +26,8 @@ export const ModalShell: React.FC<ModalShellProps> = ({
   footer,
   widthClassName = 'max-w-xl',
   panelClassName = '',
+  headerClassName = '',
+  footerClassName = '',
   contentClassName = '',
   closeOnOverlayClick = true,
   scrollContent = false,
@@ -54,7 +58,9 @@ export const ModalShell: React.FC<ModalShellProps> = ({
           scrollContent ? 'flex max-h-[calc(100vh-2rem)] flex-col' : ''
         } ${panelClassName}`.trim()}
       >
-        <div className="osint-panel-header flex items-start justify-between gap-4 px-6 py-4">
+        <div
+          className={`osint-panel-header flex items-start justify-between gap-4 px-6 py-4 ${headerClassName}`.trim()}
+        >
           <div className="min-w-0">
             <h3 className="osint-panel-title">{title}</h3>
             {description ? <p className="mt-2 osint-body-muted">{description}</p> : null}
@@ -80,7 +86,11 @@ export const ModalShell: React.FC<ModalShellProps> = ({
           {children}
         </div>
 
-        {footer ? <div className="osint-shell-dialog-footer px-6 py-4">{footer}</div> : null}
+        {footer ? (
+          <div className={`osint-shell-dialog-footer px-6 py-4 ${footerClassName}`.trim()}>
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   );

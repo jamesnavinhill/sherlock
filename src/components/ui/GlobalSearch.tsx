@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -10,6 +11,7 @@ import {
   FileText,
   Fingerprint,
   FolderKanban,
+  GripVertical,
   Hash,
   Loader2,
   MessageSquare,
@@ -22,6 +24,13 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
+import {
+  CompactMenuHeader,
+  CompactMenuPanel,
+  COMPACT_MENU_ICON_CLASS,
+  COMPACT_MENU_ITEM_CLASS,
+  COMPACT_MENU_ITEM_DIVIDER_CLASS,
+} from '@/components/ui/CompactMenu';
 import { CANONICAL_NOUNS } from '@/domain';
 import { WorkspaceSearchRepository } from '@/services/db/repositories/WorkspaceSearchRepository';
 import { useWorkspaceStore } from '@/store/workspaceStore';
@@ -108,6 +117,16 @@ interface GlobalSearchInlineProps {
   onOpen: () => void;
 }
 
+interface ActionMenuState {
+  resultId: string;
+  placement: 'left' | 'right';
+  anchorTop: number;
+  anchorLeft: number;
+}
+
+const ACTION_MENU_WIDTH_PX = 220;
+const ACTION_MENU_GAP_PX = 24;
+
 const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   className,
   compact = false,
@@ -142,8 +161,13 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [storedRecents, setStoredRecents] = useState(() => getStoredOmniboxRecents());
   const [savedViews, setSavedViews] = useState<TimelineSavedView[]>([]);
+  const [actionMenuState, setActionMenuState] = useState<ActionMenuState | null>(null);
+  const [actionMenuPosition, setActionMenuPosition] = useState<{ top: number; left: number } | null>(
+    null
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const baseResults = useMemo(
     () =>
@@ -178,6 +202,12 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     inputRef.current?.focus();
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) return;
+    setActionMenuState(null);
+    setActionMenuPosition(null);
   }, [isOpen]);
 
   useEffect(() => {
@@ -261,13 +291,62 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
-      if (!rootRef.current || rootRef.current.contains(event.target as Node)) return;
+      const target = event.target as Node;
+      if (actionMenuRef.current?.contains(target)) return;
+      if (
+        target instanceof Element &&
+        target.closest('[data-action-menu-trigger="true"]')
+      ) {
+        return;
+      }
+      if (rootRef.current?.contains(target)) {
+        setActionMenuState(null);
+        setActionMenuPosition(null);
+        return;
+      }
       onClose();
     };
 
     document.addEventListener('mousedown', handlePointerDown);
     return () => document.removeEventListener('mousedown', handlePointerDown);
   }, [onClose]);
+
+  useEffect(() => {
+    if (!actionMenuState) return;
+
+    const closeActionMenu = () => {
+      setActionMenuState(null);
+      setActionMenuPosition(null);
+    };
+
+    window.addEventListener('resize', closeActionMenu);
+    window.addEventListener('scroll', closeActionMenu, true);
+
+    return () => {
+      window.removeEventListener('resize', closeActionMenu);
+      window.removeEventListener('scroll', closeActionMenu, true);
+    };
+  }, [actionMenuState]);
+
+  useLayoutEffect(() => {
+    if (!actionMenuState || !actionMenuRef.current) return;
+
+    const menuRect = actionMenuRef.current.getBoundingClientRect();
+    const top = Math.min(
+      Math.max(actionMenuState.anchorTop, 8),
+      Math.max(8, window.innerHeight - menuRect.height - 8)
+    );
+    const left =
+      actionMenuState.placement === 'right'
+        ? Math.min(
+            actionMenuState.anchorLeft,
+            Math.max(8, window.innerWidth - menuRect.width - 8)
+          )
+        : Math.max(actionMenuState.anchorLeft - menuRect.width, 8);
+
+    if (actionMenuPosition?.top === top && actionMenuPosition?.left === left) return;
+    setActionMenuPosition({ top, left });
+  }, [actionMenuPosition, actionMenuState]);
 
   useEffect(() => {
     const handleFocusRequest = () => {
@@ -297,6 +376,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
   };
 
   const handleAction = async (result: OmniboxResult, action: OmniboxActionId) => {
+    setActionMenuState(null);
     rememberRecent(result);
     await executeOmniboxAction({
       action,
@@ -322,6 +402,26 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
       workspaceItems,
       workspaceRuns,
       workspaces,
+    });
+  };
+
+  const toggleActionMenu = (resultId: string, index: number, trigger: HTMLButtonElement) => {
+    const rect = trigger.getBoundingClientRect();
+    const canOpenRight = window.innerWidth - rect.right >= ACTION_MENU_WIDTH_PX + ACTION_MENU_GAP_PX;
+
+    setSelectedIndex(index);
+    setActionMenuPosition(null);
+    setActionMenuState((current) => {
+      if (current?.resultId === resultId) {
+        return null;
+      }
+
+      return {
+        resultId,
+        placement: canOpenRight ? 'right' : 'left',
+        anchorTop: rect.top,
+        anchorLeft: canOpenRight ? rect.right + ACTION_MENU_GAP_PX : rect.left - ACTION_MENU_GAP_PX,
+      };
     });
   };
 
@@ -456,8 +556,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                   const secondaryActions = result.actions.filter(
                     (action): action is Exclude<OmniboxActionId, 'OPEN'> => action !== 'OPEN'
                   );
-                  const showExpandedContent = isSelected || secondaryActions.length > 0;
-                  const snippetVisible = Boolean(result.snippet) && isSelected;
+                  const actionMenuOpen = actionMenuState?.resultId === result.id;
                   const dividerStyle = {
                     borderColor: 'color-mix(in oklab, var(--osint-border) 46%, transparent)',
                   } as const;
@@ -467,7 +566,7 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                     <div
                       key={result.id}
                       onMouseEnter={() => setSelectedIndex(index)}
-                      className={`group w-full border-b text-left transition-all ${
+                      className={`group relative w-full border-b text-left transition-all ${
                         isSelected
                           ? 'bg-[var(--osint-menu-selection-bg-strong)]'
                           : `${rowToneClass} hover:bg-[var(--osint-menu-selection-bg)]`
@@ -477,9 +576,9 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                       <button
                         type="button"
                         onClick={() => void handleAction(result, 'OPEN')}
-                        className="block w-full px-5 pt-3 pb-2.5 text-left"
+                        className="block w-full pl-5 pr-10 py-3 text-left"
                       >
-                        <div className={`flex gap-3 ${snippetVisible ? 'items-start' : 'items-center'}`}>
+                        <div className="flex items-center gap-3">
                           <div
                             className={`flex h-7 w-7 shrink-0 items-center justify-center rounded ${
                               isSelected ? 'text-osint-primary' : 'text-zinc-600'
@@ -496,72 +595,102 @@ const GlobalSearchInline: React.FC<GlobalSearchInlineProps> = ({
                                 {result.title}
                               </div>
                             </div>
-                            {result.snippet ? (
-                              <p
-                                className={`mt-1 overflow-hidden osint-body-quiet transition-all duration-200 ${
-                                  isSelected
-                                    ? 'max-h-14 opacity-100'
-                                    : 'max-h-0 opacity-0 group-hover:max-h-14 group-hover:opacity-100 group-focus-within:max-h-14 group-focus-within:opacity-100'
-                                }`}
-                              >
-                                {result.snippet}
-                              </p>
-                            ) : null}
                           </div>
-                          <ArrowRight
-                            className={`h-4 w-4 shrink-0 self-center transition-all ${
-                              isSelected
-                                ? 'translate-x-0 text-osint-primary opacity-100'
-                                : '-translate-x-2 text-zinc-700 opacity-0'
-                            }`}
-                          />
                         </div>
                       </button>
 
-                      {secondaryActions.length > 0 ? (
-                        <div
-                          className={`overflow-hidden px-5 pb-3 transition-all duration-200 ${
-                            isSelected
-                              ? 'max-h-20 opacity-100'
-                              : 'max-h-0 opacity-0 group-hover:max-h-20 group-hover:opacity-100 group-focus-within:max-h-20 group-focus-within:opacity-100'
-                          }`}
-                        >
-                          <div className="flex flex-wrap gap-2 border-t border-white/5 pt-2">
+                      {result.actions.length > 1 ? (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <div className="relative">
                             <button
                               type="button"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                void handleAction(result, 'OPEN');
+                                toggleActionMenu(result.id, index, event.currentTarget);
                               }}
-                              className="osint-meta-label-strong inline-flex items-center justify-center gap-1 whitespace-nowrap rounded border border-zinc-700/70 px-2.5 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                              className={`inline-flex h-4 w-4 items-center justify-center transition-all ${
+                                isSelected || actionMenuOpen
+                                  ? 'translate-x-0 text-osint-primary opacity-100'
+                                  : '-translate-x-2 text-zinc-700 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:translate-x-0 group-focus-within:opacity-100'
+                              }`}
+                              aria-haspopup="menu"
+                              aria-expanded={actionMenuOpen}
+                              aria-label={`More options for ${result.title}`}
+                              title={`More options for ${result.title}`}
+                              data-action-menu-trigger="true"
                             >
-                              <ArrowRight className="h-3 w-3" />
-                              {getOmniboxOpenLabel(result)}
+                              <GripVertical className="h-4 w-4" />
                             </button>
 
-                            {secondaryActions.map((action) => {
-                              const actionMeta = actionMetaById[action];
-                              const ActionIcon = actionMeta.icon;
+                            {actionMenuOpen && typeof document !== 'undefined'
+                              ? createPortal(
+                                  <CompactMenuPanel
+                                    ref={actionMenuRef}
+                                    className="fixed z-[140] min-w-[220px]"
+                                    style={{
+                                      top: actionMenuPosition?.top ?? 0,
+                                      left: actionMenuPosition?.left ?? 0,
+                                      visibility: actionMenuPosition ? 'visible' : 'hidden',
+                                    }}
+                                  >
+                                    <CompactMenuHeader>
+                                      {result.subtitle || resultLabelByKind[result.kind]}
+                                    </CompactMenuHeader>
+                                    <button
+                                      type="button"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        void handleAction(result, 'OPEN');
+                                      }}
+                                      className={`${COMPACT_MENU_ITEM_CLASS} ${
+                                        secondaryActions.length > 0 ? COMPACT_MENU_ITEM_DIVIDER_CLASS : ''
+                                      }`}
+                                      title={getOmniboxOpenLabel(result)}
+                                    >
+                                      <ArrowRight className={COMPACT_MENU_ICON_CLASS} />
+                                      <div>
+                                        <div className="osint-menu-item-title">
+                                          {getOmniboxOpenLabel(result)}
+                                        </div>
+                                      </div>
+                                    </button>
+                                    {secondaryActions.map((action, actionIndex) => {
+                                      const actionMeta = actionMetaById[action];
+                                      const ActionIcon = actionMeta.icon;
+                                      const isLastAction = actionIndex === secondaryActions.length - 1;
 
-                              return (
-                                <button
-                                  key={`${result.id}:${action}`}
-                                  type="button"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    void handleAction(result, action);
-                                  }}
-                                  className="osint-meta-label-strong inline-flex items-center justify-center gap-1 whitespace-nowrap rounded border border-zinc-700/70 px-2.5 py-1 text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                                  title={actionMeta.title}
-                                >
-                                  <ActionIcon className="h-3 w-3" />
-                                  {actionMeta.label}
-                                </button>
-                              );
-                            })}
+                                      return (
+                                        <button
+                                          key={`${result.id}:${action}`}
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            void handleAction(result, action);
+                                          }}
+                                          className={`${COMPACT_MENU_ITEM_CLASS} ${
+                                            !isLastAction ? COMPACT_MENU_ITEM_DIVIDER_CLASS : ''
+                                          }`}
+                                          title={actionMeta.title}
+                                        >
+                                          <ActionIcon className={COMPACT_MENU_ICON_CLASS} />
+                                          <div>
+                                            <div className="osint-menu-item-title">{actionMeta.label}</div>
+                                            <div className="osint-menu-item-description">
+                                              {actionMeta.title}
+                                            </div>
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </CompactMenuPanel>,
+                                  document.body
+                                )
+                              : null}
                           </div>
                         </div>
-                      ) : result.snippet && showExpandedContent ? <div className="pb-1" /> : null}
+                      ) : isSelected ? (
+                        <ArrowRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-osint-primary" />
+                      ) : null}
                     </div>
                   );
                 })}

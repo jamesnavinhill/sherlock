@@ -2,7 +2,12 @@ import React from 'react';
 import { Calendar } from 'lucide-react';
 
 import { FieldRow } from './FieldRow';
-import { PopupSurface } from './PopupSurface';
+import {
+  CompactMenuBody,
+  CompactMenuFooter,
+  CompactMenuHeader,
+  CompactMenuPanel,
+} from '@/components/ui/CompactMenu';
 
 interface DateRangeValue {
   start?: string;
@@ -28,6 +33,7 @@ interface DateRangePickerProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   onApply?: () => void;
+  menuStyle?: 'compact' | 'legacy';
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
@@ -87,6 +93,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   isOpen,
   onOpenChange,
   onApply,
+  menuStyle = 'compact',
 }) => {
   const normalizedValue = normalizeDateRange(value);
   const summary = buildDateRangeSummary(normalizedValue, placeholder);
@@ -146,41 +153,74 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       </button>
 
       {isOpen ? (
-        <PopupSurface
-          role="dialog"
-          aria-label={typeof label === 'string' ? label : 'Date range'}
-          className={cx('absolute left-0 top-full z-50 mt-2 w-72 p-4', popupClassName)}
-        >
-          <FieldRow
-            label={label || 'Date Range'}
-            value={summary}
-            description={description}
-            className="gap-4"
+        menuStyle === 'legacy' ? (
+          <div
+            role="dialog"
+            aria-label={typeof label === 'string' ? label : 'Date range'}
+            className={cx('osint-popup-surface absolute left-0 top-full z-50 mt-2 w-72 p-4', popupClassName)}
           >
-            <div className="grid gap-4">
-              {fields}
-              <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => onChange({})}
-                  className="osint-ghost-button px-2 py-1 osint-meta-label"
-                >
-                  {clearLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onApply?.();
-                    onOpenChange(false);
-                  }}
-                  className="osint-button-primary px-3 py-1.5 osint-meta-label-strong"
-                >
-                  {applyLabel}
-                </button>
+            <FieldRow
+              label={label || 'Date Range'}
+              value={summary}
+              description={description}
+              className="gap-4"
+            >
+              <div className="grid gap-4">
+                {fields}
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => onChange({})}
+                    className="osint-ghost-button px-2 py-1 osint-meta-label"
+                  >
+                    {clearLabel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onApply?.();
+                      onOpenChange(false);
+                    }}
+                    className="osint-button-primary px-3 py-1.5 osint-meta-label-strong"
+                  >
+                    {applyLabel}
+                  </button>
+                </div>
               </div>
-            </div>
-          </FieldRow>
-        </PopupSurface>
+            </FieldRow>
+          </div>
+        ) : (
+          <CompactMenuPanel
+            role="dialog"
+            aria-label={typeof label === 'string' ? label : 'Date range'}
+            className={cx('absolute left-0 top-full z-50 mt-1 w-72', popupClassName)}
+          >
+            <CompactMenuHeader>{label || 'Date Range'}</CompactMenuHeader>
+            <CompactMenuBody className="grid gap-4">
+              {description ? <p className="osint-body-quiet">{description}</p> : null}
+              {fields}
+            </CompactMenuBody>
+            <CompactMenuFooter>
+              <button
+                type="button"
+                onClick={() => onChange({})}
+                className="osint-meta-label text-[color:var(--osint-text-meta)] hover:text-[color:var(--osint-text-heading)]"
+              >
+                {clearLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onApply?.();
+                  onOpenChange(false);
+                }}
+                className="osint-button-primary px-3 py-1.5 osint-meta-label-strong"
+              >
+                {applyLabel}
+              </button>
+            </CompactMenuFooter>
+          </CompactMenuPanel>
+        )
       ) : null}
     </div>
   );

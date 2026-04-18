@@ -8,11 +8,16 @@ import {
 } from 'lucide-react';
 
 import { Accordion } from '@/components/ui/Accordion';
+import {
+  CompactMenuHeader,
+  CompactMenuPanel,
+  COMPACT_MENU_ICON_CLASS,
+  COMPACT_MENU_ITEM_CLASS,
+} from '@/components/ui/CompactMenu';
 import { CHROME_HEADER_CONTROL_HEIGHT_CLASS } from '@/components/ui/chrome';
 import {
   SETTINGS_ACCORDION_CLASS,
   SETTINGS_CARD_CLASS,
-  SETTINGS_CARD_SECTION_SUBTLE_CLASS,
   SETTINGS_SURFACE_BUTTON_CLASS,
   SETTINGS_SECTION_BODY_CLASS,
 } from './settingsUtils';
@@ -145,25 +150,21 @@ export const SettingsDataTab: React.FC<SettingsDataTabProps> = ({
                       <ChevronDown className="h-4 w-4 flex-shrink-0 text-zinc-500" />
                     </button>
                     {showExportMenu ? (
-                      <div className="osint-menu-panel absolute left-0 top-full z-20 mt-1 min-w-full">
-                        <div
-                          className={`${SETTINGS_CARD_SECTION_SUBTLE_CLASS} rounded-none border-x-0 border-t-0 px-3 py-1.5 osint-menu-section-label`}
-                        >
-                          Workspace Backup
-                        </div>
+                      <CompactMenuPanel className="absolute left-0 top-full z-20 mt-1 min-w-full">
+                        <CompactMenuHeader>Workspace Backup</CompactMenuHeader>
                         <button
                           type="button"
                           onClick={() => {
                             onExportData();
                             setShowExportMenu(false);
                           }}
-                          className="osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-zinc-300"
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title="Export full local workspace backup data as JSON"
                         >
-                          <FileJson className="osint-menu-item-icon mr-3 h-4 w-4 text-zinc-500" />
+                          <FileJson className={COMPACT_MENU_ICON_CLASS} />
                           <span>Workspace Data as JSON Backup</span>
                         </button>
-                      </div>
+                      </CompactMenuPanel>
                     ) : null}
                   </div>
 

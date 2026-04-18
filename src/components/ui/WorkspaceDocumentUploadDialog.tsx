@@ -88,19 +88,13 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
   return (
     <ModalShell
       title="Route Uploaded Documents"
-      description="Choose whether these files should become canonical workspace items or draft artifacts."
       onClose={onClose}
       widthClassName="max-w-2xl"
+      headerClassName="!border-b !border-[color:var(--osint-shell-border)] !bg-[color:var(--osint-shell-panel-action-bg)] px-4 py-3"
+      footerClassName="px-4 py-3"
       allowOverflow
       footer={
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="border border-zinc-700 px-4 py-2 osint-meta-label text-zinc-400 transition hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Cancel
-          </button>
+        <div className="flex justify-end">
           <button
             onClick={() => void onConfirm()}
             disabled={isSubmitting || !selectedWorkspace || !hasFiles}
@@ -188,7 +182,7 @@ export const WorkspaceDocumentUploadDialog: React.FC<WorkspaceDocumentUploadDial
             />
           </div>
         ) : selectedWorkspace ? (
-          <div className="border border-zinc-800 bg-zinc-950/80 px-4 py-3">
+          <div>
             <div className="osint-meta-label">Target Workspace</div>
             <div className="mt-1 osint-meta-value">{getWorkspaceDisplayTitle(selectedWorkspace)}</div>
           </div>

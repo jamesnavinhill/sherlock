@@ -348,6 +348,7 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
               <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
                 <OsintSelect
                   ariaLabel={`${labelProfile.workspaceLabel} selector`}
+                  menuTitle={labelProfile.workspaceLabel}
                   value={selectedCaseId || ''}
                   onChange={setSelectedCaseId}
                   disabled={isMonitoring}

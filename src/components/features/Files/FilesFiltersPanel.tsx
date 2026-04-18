@@ -3,6 +3,12 @@ import { LayoutGrid, List } from 'lucide-react';
 
 import type { FilesViewMode, RecordFilter } from './filesViewModel';
 import {
+  CompactMenuBody,
+  CompactMenuFooter,
+  CompactMenuHeader,
+  CompactMenuPanel,
+} from '@/components/ui/CompactMenu';
+import {
   CHROME_TOOLBAR_GROUP_CLASS,
   getChromeSegmentButtonClass,
 } from '@/components/ui/chrome';
@@ -26,11 +32,9 @@ export const FilesFiltersPanel: React.FC<FilesFiltersPanelProps> = ({
   onRecordFilterChange,
   onViewModeChange,
 }) => (
-  <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))] border border-zinc-700 bg-zinc-900">
-    <div className="border-b border-zinc-800 bg-black px-4 py-3">
-      <h3 className="osint-meta-label-strong text-white">Files Filters</h3>
-    </div>
-    <div className="space-y-5 p-4">
+  <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))]">
+    <CompactMenuHeader>Files Filters</CompactMenuHeader>
+    <CompactMenuBody className="space-y-5">
       <div>
         <label className="mb-2 block osint-meta-label">Layout</label>
         <div
@@ -82,15 +86,14 @@ export const FilesFiltersPanel: React.FC<FilesFiltersPanelProps> = ({
           </div>
         </div>
       ) : null}
-
-      <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-        <button onClick={onClearFilters} className="osint-meta-label text-zinc-500 hover:text-white">
-          Reset
-        </button>
-        <button onClick={onClose} className="osint-button-primary px-4 py-1.5 osint-meta-label-strong">
-          Apply
-        </button>
-      </div>
-    </div>
-  </div>
+    </CompactMenuBody>
+    <CompactMenuFooter>
+      <button onClick={onClearFilters} className="osint-meta-label text-zinc-500 hover:text-white">
+        Reset
+      </button>
+      <button onClick={onClose} className="osint-button-primary px-4 py-1.5 osint-meta-label-strong">
+        Apply
+      </button>
+    </CompactMenuFooter>
+  </CompactMenuPanel>
 );

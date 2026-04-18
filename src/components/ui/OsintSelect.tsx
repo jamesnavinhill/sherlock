@@ -1,6 +1,13 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
+import {
+  COMPACT_MENU_HEADER_CLASS,
+  COMPACT_MENU_HEADER_DIVIDER_CLASS,
+  COMPACT_MENU_ITEM_CLASS,
+  COMPACT_MENU_ITEM_DIVIDER_CLASS,
+  COMPACT_MENU_PANEL_CLASS,
+} from './CompactMenu';
 
 export interface OsintSelectOption {
   value: string;
@@ -22,6 +29,8 @@ interface OsintSelectProps {
   ariaLabel?: string;
   menuPlacement?: 'top' | 'bottom' | 'auto';
   portalledMenu?: boolean;
+  menuStyle?: 'compact' | 'legacy';
+  menuTitle?: React.ReactNode;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
@@ -86,6 +95,8 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
   ariaLabel,
   menuPlacement = 'auto',
   portalledMenu = false,
+  menuStyle = 'compact',
+  menuTitle,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -103,6 +114,10 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
 
   const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : null;
   const displayLabel = selectedOption?.label ?? placeholder ?? '';
+  const resolvedMenuTitle =
+    menuStyle === 'compact'
+      ? menuTitle || ariaLabel || placeholder || null
+      : null;
   const [portalMenuStyle, setPortalMenuStyle] = useState<React.CSSProperties | undefined>();
   const triggerBaseClass =
     chrome === 'toolbar'
@@ -295,15 +310,24 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
       aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
       className={cx(
         portalledMenu
-          ? 'osint-menu-panel overflow-hidden'
+          ? cx(menuStyle === 'compact' ? COMPACT_MENU_PANEL_CLASS : 'osint-menu-panel', 'overflow-hidden')
           : cx(
-              'osint-menu-panel absolute left-0 z-[60] min-w-full overflow-hidden',
+              menuStyle === 'compact' ? COMPACT_MENU_PANEL_CLASS : 'osint-menu-panel',
+              'absolute left-0 z-[60] min-w-full overflow-hidden',
               resolvedMenuPlacement === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
             ),
         menuClassName
       )}
       style={portalledMenu ? portalMenuStyle : undefined}
     >
+      {resolvedMenuTitle ? (
+        <div
+          aria-hidden="true"
+          className={cx(COMPACT_MENU_HEADER_CLASS, COMPACT_MENU_HEADER_DIVIDER_CLASS)}
+        >
+          {resolvedMenuTitle}
+        </div>
+      ) : null}
       {options.map((option, index) => {
         const isSelected = option.value === value;
         const isActive = index === activeIndex;
@@ -324,7 +348,13 @@ export const OsintSelect: React.FC<OsintSelectProps> = ({
             onMouseEnter={() => !option.disabled && setActiveIndex(index)}
             onKeyDown={handleOptionKeyDown}
             className={cx(
-              'osint-menu-item osint-meta-value flex w-full items-center justify-between gap-3 border-b border-zinc-800 px-3 py-2 text-left outline-none last:border-b-0',
+              menuStyle === 'compact'
+                ? cx(
+                    COMPACT_MENU_ITEM_CLASS,
+                    COMPACT_MENU_ITEM_DIVIDER_CLASS,
+                    'osint-meta-value justify-between gap-3 outline-none last:border-b-0'
+                  )
+                : 'osint-menu-item osint-meta-value flex w-full items-center justify-between gap-3 border-b border-zinc-800 px-3 py-2 text-left outline-none last:border-b-0',
               option.disabled && 'cursor-not-allowed opacity-40',
               optionClassName
             )}

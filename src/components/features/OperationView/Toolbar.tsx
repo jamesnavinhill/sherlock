@@ -13,6 +13,13 @@ import {
 } from 'lucide-react';
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import {
+  CompactMenuHeader,
+  CompactMenuPanel,
+  COMPACT_MENU_ICON_CLASS,
+  COMPACT_MENU_ITEM_CLASS,
+  COMPACT_MENU_ITEM_DIVIDER_CLASS,
+} from '../../ui/CompactMenu';
+import {
   CHROME_HEADER_CLASS,
   CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
@@ -75,17 +82,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const [showExportMenu, setShowExportMenu] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
-  const menuSurfaceClassName =
-    'osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[220px] border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-bg)]';
-  const menuSectionClassName =
-    'border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-3 py-1.5 osint-menu-section-label';
-  const menuItemClassName =
-    'osint-menu-item flex w-full items-center px-4 py-2.5 text-left osint-body-small text-[color:var(--osint-text-strong)]';
-  const menuItemBorderTopClassName =
-    'osint-menu-item flex w-full items-center border-t border-[color:var(--osint-shell-border)] px-4 py-2.5 text-left osint-body-small text-[color:var(--osint-text-strong)]';
-  const menuItemBorderBottomClassName =
-    'osint-menu-item flex w-full items-center border-b border-[color:var(--osint-shell-border)] px-4 py-2.5 text-left osint-body-small text-[color:var(--osint-text-strong)]';
-  const menuIconClassName = 'osint-menu-item-icon mr-3 h-4 w-4 text-[color:var(--osint-text-meta)]';
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -134,6 +130,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
             <OsintSelect
               ariaLabel={`Select ${CANONICAL_NOUNS.workspace}`}
+              menuTitle={CANONICAL_NOUNS.workspace}
               value={selectedCaseId || 'ALL'}
               onChange={onSelectCase}
               chrome="toolbar"
@@ -174,24 +171,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     <ChevronDown className="w-3 h-3" />
                   </button>
                   {showContextMenu && (
-                    <div className={menuSurfaceClassName}>
-                      <div className={menuSectionClassName}>
-                        Workspace Actions
-                      </div>
+                    <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 min-w-[220px]">
+                      <CompactMenuHeader>Workspace Actions</CompactMenuHeader>
                       {onOpenChat && (
                         <button
                           onClick={() => {
                             onOpenChat();
                             setShowContextMenu(false);
                           }}
-                          className={menuItemClassName}
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={
                             report
                               ? `Open ${labelProfile.artifactLabel.toLowerCase()} context in workspace chat`
                               : `Open ${CANONICAL_NOUNS.workspace.toLowerCase()} in workspace chat`
                           }
                         >
-                          <MessageSquare className={menuIconClassName} />
+                          <MessageSquare className={COMPACT_MENU_ICON_CLASS} />
                           <span>{report ? 'Open Context Chat' : 'Open Workspace Chat'}</span>
                         </button>
                       )}
@@ -201,10 +196,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onOpenBoard();
                             setShowContextMenu(false);
                           }}
-                          className={menuItemClassName}
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={`Open ${CANONICAL_NOUNS.workspace.toLowerCase()} board`}
                         >
-                          <Layout className={menuIconClassName} />
+                          <Layout className={COMPACT_MENU_ICON_CLASS} />
                           <span>Open Board</span>
                         </button>
                       )}
@@ -214,14 +209,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             onPlaceReportOnBoard();
                             setShowContextMenu(false);
                           }}
-                          className={menuItemBorderTopClassName}
+                          className={`${COMPACT_MENU_ITEM_CLASS} border-t border-[color:var(--osint-shell-border)]`}
                           title={`Place this ${CANONICAL_NOUNS.artifact.toLowerCase()} on the board`}
                         >
-                          <Shapes className={menuIconClassName} />
+                          <Shapes className={COMPACT_MENU_ICON_CLASS} />
                           <span>{`Place ${CANONICAL_NOUNS.artifact} on Board`}</span>
                         </button>
                       )}
-                    </div>
+                    </CompactMenuPanel>
                   )}
                 </div>
               )}
@@ -241,19 +236,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {showExportMenu && (
-                  <div className={menuSurfaceClassName}>
+                  <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 min-w-[220px]">
                     {activeCase && (
                       <>
-                        <div className={menuSectionClassName}>{`Full ${CANONICAL_NOUNS.workspace}`}</div>
+                        <CompactMenuHeader>{`Full ${CANONICAL_NOUNS.workspace}`}</CompactMenuHeader>
                         <button
                           onClick={() => {
                             exportWorkspaceAsHtml(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className={menuItemClassName}
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={`Exports a formatted printable view of the entire ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                         >
-                          <Download className={menuIconClassName} />
+                          <Download className={COMPACT_MENU_ICON_CLASS} />
                           <span>{`${CANONICAL_NOUNS.workspace} as HTML`}</span>
                         </button>
                         <button
@@ -261,10 +256,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportWorkspaceAsMarkdown(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className={menuItemClassName}
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={`Exports a full Markdown package of the ${CANONICAL_NOUNS.workspace.toLowerCase()}`}
                         >
-                          <FileText className={menuIconClassName} />
+                          <FileText className={COMPACT_MENU_ICON_CLASS} />
                           <span>{`${CANONICAL_NOUNS.workspace} as Markdown (.md)`}</span>
                         </button>
                         <button
@@ -272,26 +267,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportWorkspaceAsJson(activeCase, allCaseReports);
                             setShowExportMenu(false);
                           }}
-                          className={menuItemBorderBottomClassName}
+                          className={`${COMPACT_MENU_ITEM_CLASS} ${COMPACT_MENU_ITEM_DIVIDER_CLASS}`}
                           title={`Exports raw ${CANONICAL_NOUNS.workspace.toLowerCase()} data for backup/integration`}
                         >
-                          <FileJson className={menuIconClassName} />
+                          <FileJson className={COMPACT_MENU_ICON_CLASS} />
                           <span>{`${CANONICAL_NOUNS.workspace} as JSON Data`}</span>
                         </button>
                       </>
                     )}
                     {report && (
                       <>
-                        <div className={menuSectionClassName}>{`Current ${labelProfile.artifactLabel}`}</div>
+                        <CompactMenuHeader separated>{`Current ${labelProfile.artifactLabel}`}</CompactMenuHeader>
                         <button
                           onClick={() => {
                             exportArtifactAsHtml(report, activeCase || undefined);
                             setShowExportMenu(false);
                           }}
-                          className={menuItemClassName}
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a formatted printable document`}
                         >
-                          <Download className={menuIconClassName} />
+                          <Download className={COMPACT_MENU_ICON_CLASS} />
                           <span>{`${labelProfile.artifactLabel} as HTML`}</span>
                         </button>
                         <button
@@ -299,10 +294,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportArtifactAsMarkdown(report);
                             setShowExportMenu(false);
                           }}
-                          className={menuItemClassName}
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as a Markdown file`}
                         >
-                          <FileText className={menuIconClassName} />
+                          <FileText className={COMPACT_MENU_ICON_CLASS} />
                           <span>{`${labelProfile.artifactLabel} as Markdown`}</span>
                         </button>
                         <button
@@ -310,10 +305,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             exportArtifactAsJson(report);
                             setShowExportMenu(false);
                           }}
-                          className={menuItemClassName}
+                          className={COMPACT_MENU_ITEM_CLASS}
                           title={`Exports this ${labelProfile.artifactLabel.toLowerCase()} as raw JSON data`}
                         >
-                          <FileJson className={menuIconClassName} />
+                          <FileJson className={COMPACT_MENU_ICON_CLASS} />
                           <span>{`${labelProfile.artifactLabel} as JSON`}</span>
                         </button>
                         {onSaveTemplate && (
@@ -322,16 +317,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                               onSaveTemplate();
                               setShowExportMenu(false);
                             }}
-                            className="osint-menu-item flex w-full items-center border-t border-[color:var(--osint-shell-border)] px-4 py-2.5 text-left osint-body-small text-osint-primary"
+                            className={`${COMPACT_MENU_ITEM_CLASS} border-t border-[color:var(--osint-shell-border)] text-osint-primary`}
                             title="Saves this run configuration as a template"
                           >
-                            <Layout className="osint-menu-item-icon w-4 h-4 mr-3 text-osint-primary" />
+                            <Layout className="osint-menu-item-icon mr-3 h-4 w-4 text-osint-primary" />
                             <span>Save as Protocol Template</span>
                           </button>
                         )}
                       </>
                     )}
-                  </div>
+                  </CompactMenuPanel>
                 )}
               </div>
               {onToggleRightPanel && (

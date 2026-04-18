@@ -620,6 +620,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 }
                 triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
                 portalledMenu
+                menuStyle="legacy"
                 options={SHERLOCK_THEME_BACKGROUND_VARIANTS.map((variant) => ({
                   value: variant.id,
                   label: variant.label,
@@ -858,6 +859,7 @@ export const SettingsThemeWorkbenchPanel: React.FC<SettingsThemeWorkbenchPanelPr
                 }
                 triggerClassName={SETTINGS_SELECT_TRIGGER_CLASS}
                 portalledMenu
+                menuStyle="legacy"
                 options={fontRoleOptions}
               />
 

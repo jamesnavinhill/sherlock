@@ -2,6 +2,12 @@ import React from 'react';
 
 import type { TimelineRange } from '@/types';
 import { OsintSelect } from '@/components/ui/OsintSelect';
+import {
+  CompactMenuBody,
+  CompactMenuFooter,
+  CompactMenuHeader,
+  CompactMenuPanel,
+} from '@/components/ui/CompactMenu';
 import { TRACK_OPTIONS } from './timelineViewUtils';
 
 interface TimelineFiltersPanelProps {
@@ -22,17 +28,14 @@ export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
   onRangeChange,
   onToggleTrackFilter,
 }) => (
-  <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))] border border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-bg)]">
-    <div className="border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-header-bg)] px-4 py-3">
-      <h3 className="osint-meta-label-strong text-[color:var(--osint-text-heading)]">
-        Timeline Filters
-      </h3>
-    </div>
-    <div className="space-y-5 p-4">
+  <CompactMenuPanel className="absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))]">
+    <CompactMenuHeader>Timeline Filters</CompactMenuHeader>
+    <CompactMenuBody className="space-y-5">
       <div>
         <label className="mb-2 block osint-meta-label">Date Range</label>
         <OsintSelect
           ariaLabel="Timeline date range"
+          menuTitle="Date Range"
           value={filters.range}
           onChange={(value) => onRangeChange(value as TimelineRange)}
           triggerClassName="px-3 py-2 pr-8 osint-meta-value"
@@ -72,21 +75,20 @@ export const TimelineFiltersPanel: React.FC<TimelineFiltersPanelProps> = ({
           })}
         </div>
       </div>
-
-      <div className="flex items-center justify-between border-t border-[color:var(--osint-shell-border)] pt-4">
-        <button
-          onClick={onClearFilters}
-          className="osint-meta-label text-[color:var(--osint-text-meta)] hover:text-[color:var(--osint-text-heading)]"
-        >
-          Reset
-        </button>
-        <button
-          onClick={onClose}
-          className="osint-button-primary px-4 py-1.5 osint-meta-label-strong"
-        >
-          Apply
-        </button>
-      </div>
-    </div>
-  </div>
+    </CompactMenuBody>
+    <CompactMenuFooter>
+      <button
+        onClick={onClearFilters}
+        className="osint-meta-label text-[color:var(--osint-text-meta)] hover:text-[color:var(--osint-text-heading)]"
+      >
+        Reset
+      </button>
+      <button
+        onClick={onClose}
+        className="osint-button-primary px-4 py-1.5 osint-meta-label-strong"
+      >
+        Apply
+      </button>
+    </CompactMenuFooter>
+  </CompactMenuPanel>
 );

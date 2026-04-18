@@ -12,6 +12,10 @@ import {
   Save,
 } from 'lucide-react';
 import { DateRangePicker, RangeField } from '@/components/system/controls';
+import {
+  CompactMenuFooter,
+  CompactMenuPanel,
+} from '@/components/ui/CompactMenu';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -56,13 +60,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     'w-full bg-black p-2 text-zinc-300';
 
   return (
-    <div className="osint-menu-panel absolute top-20 right-6 z-50 w-96 border border-zinc-700 bg-zinc-900 animate-in slide-in-from-top-2 fade-in duration-200">
-      <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-black">
-        <h3 className="osint-panel-title flex items-center">
-          <Settings2 className="w-4 h-4 mr-2 text-osint-primary" />
+    <CompactMenuPanel className="absolute top-20 right-6 z-50 w-96 animate-in slide-in-from-top-2 fade-in duration-200">
+      <div className="flex items-center justify-between gap-3 border-b border-[color:var(--osint-shell-border)] bg-[color:var(--osint-shell-panel-action-bg)] px-4 py-3">
+        <span className="inline-flex items-center gap-2 osint-meta-label-strong text-[color:var(--osint-text-heading)]">
+          <Settings2 className="h-4 w-4 text-osint-primary" />
           Scanner Config
-        </h3>
-        <button onClick={onClose} className="text-zinc-500 hover:text-white">
+        </span>
+        <button onClick={onClose} className="text-zinc-500 transition hover:text-white">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -196,7 +200,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
+        <CompactMenuFooter className="-mx-5 -mb-5 mt-5">
           <button
             onClick={onClearFeed}
             className="osint-meta-label osint-danger-inline flex items-center"
@@ -209,8 +213,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           >
             Apply
           </button>
-        </div>
+        </CompactMenuFooter>
       </div>
-    </div>
+    </CompactMenuPanel>
   );
 };
