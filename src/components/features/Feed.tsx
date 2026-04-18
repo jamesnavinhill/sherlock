@@ -28,6 +28,7 @@ import {
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_TOOLBAR_FIELD_CLASS,
+  getChromeHeaderIconButtonClass,
   getChromeMenuButtonClass,
 } from '../ui/chrome';
 
@@ -339,20 +340,21 @@ export const Feed: React.FC<FeedProps> = ({ onInvestigate }) => {
               </button>
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={getChromeMenuButtonClass(showSettings)}
+                className={getChromeHeaderIconButtonClass(showSettings)}
                 title="Configure Scanner"
+                aria-label="Configure Scanner"
               >
                 <Settings2 className="w-4 h-4" />
-                <span className="hidden lg:inline ml-1">Config</span>
               </button>
 
               <button
                 onClick={loadFeed}
                 disabled={loading}
-                className={`osint-button-chrome ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} flex items-center px-4 osint-meta-label-strong`}
+                className={`osint-button-chrome ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} flex w-[30px] items-center justify-center p-0 osint-meta-label-strong`}
+                title="Refresh discoveries"
+                aria-label="Refresh discoveries"
               >
-                <RefreshCw className={`w-3.5 h-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Refresh</span>
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
 

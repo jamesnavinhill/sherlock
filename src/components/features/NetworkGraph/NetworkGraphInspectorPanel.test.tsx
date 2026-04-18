@@ -64,7 +64,9 @@ describe('NetworkGraphInspectorPanel', () => {
       .closest('div');
 
     expect(followUpCard).not.toBeNull();
-    expect(within(followUpCard as HTMLElement).getByRole('button', { name: 'Open' })).toBeInTheDocument();
+    expect(
+      within(followUpCard as HTMLElement).getByRole('button', { name: 'Investigate follow-up' })
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Investigate' })).not.toBeInTheDocument();
     expect(container.querySelector('aside')).toHaveStyle({
       '--osint-dock-width': 'min(var(--osint-shell-rail-width),calc(100vw - 1rem))',

@@ -1,5 +1,15 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, FilePlus2, Link2, Radio, Sparkles, Trash2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  FilePlus2,
+  Layers3,
+  Link2,
+  Radio,
+  Shapes,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
 
 import { LibraryRailSearch } from '@/components/features/LibraryRail/LibraryRailSearch';
 import { LibraryRailSections } from '@/components/features/LibraryRail/LibraryRailSections';
@@ -159,25 +169,33 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
                               type="button"
                               onClick={() => onDeleteCreatedItem(entry)}
                               className={`${CHROME_THIN_ACTION_BUTTON_CLASS} osint-danger-inline w-full`}
+                              title="Delete item"
+                              aria-label="Delete item"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
-                              Delete
+                              <span className="sr-only">Delete</span>
                             </button>
                           ) : null}
                           <button
                             type="button"
                             onClick={() => onAddToBoard(entry)}
                             className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+                            title="Add to board"
+                            aria-label="Add to board"
                           >
-                            Add To Board
+                            <Shapes className="h-3.5 w-3.5" />
+                            <span className="sr-only">Add To Board</span>
                           </button>
                           {key === 'artifacts' ? (
                             <button
                               type="button"
                               onClick={() => onAddArtifactPackage(entry)}
                               className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+                              title="Add artifact package to board"
+                              aria-label="Add artifact package to board"
                             >
-                              Add All
+                              <Layers3 className="h-3.5 w-3.5" />
+                              <span className="sr-only">Add All</span>
                             </button>
                           ) : null}
                         </div>
@@ -204,17 +222,21 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
             type="button"
             onClick={onCreateNote}
             className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+            title="Create note"
+            aria-label="Create note"
           >
             <FilePlus2 className="h-3.5 w-3.5" />
-            Note
+            <span className="sr-only">Note</span>
           </button>
           <button
             type="button"
             onClick={onCreateLink}
             className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+            title="Create link"
+            aria-label="Create link"
           >
             <Link2 className="h-3.5 w-3.5" />
-            Link
+            <span className="sr-only">Link</span>
           </button>
           <button
             type="button"
@@ -224,15 +246,17 @@ export const WorkspaceBoardLibraryRail: React.FC<WorkspaceBoardLibraryRailProps>
             aria-label="Add icon to board"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Icon
+            <span className="sr-only">Icon</span>
           </button>
           <button
             type="button"
             onClick={onTriggerFileUpload}
             className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+            title="Upload file"
+            aria-label="Upload file"
           >
             <Radio className="h-3.5 w-3.5" />
-            File
+            <span className="sr-only">File</span>
           </button>
           <input
             ref={fileInputRef}

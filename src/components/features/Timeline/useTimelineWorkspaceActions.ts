@@ -193,7 +193,6 @@ export const useTimelineWorkspaceActions = ({
           }
         },
         onOpenWorkspaceItem: openWorkspaceItem,
-        onOpenWorkspaceBoard: openWorkspaceBoard,
         onOpenWorkspaceChat: openWorkspaceChat,
         onPlaceReferenceOnBoard: placeReferenceOnBoard,
         parentArtifactId,
@@ -211,7 +210,6 @@ export const useTimelineWorkspaceActions = ({
       focusReference,
       labelArtifactLabel,
       onOpenReport,
-      openWorkspaceBoard,
       openWorkspaceChat,
       openWorkspaceItem,
       parentArtifactId,

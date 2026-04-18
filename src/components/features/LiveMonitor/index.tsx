@@ -26,7 +26,7 @@ import {
   CHROME_HEADER_LEADING_GROUP_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
-  getChromeMenuButtonClass,
+  getChromeHeaderIconButtonClass,
 } from '../../ui/chrome';
 import {
   getDomainPackForScope,
@@ -371,26 +371,27 @@ export const LiveMonitor: React.FC<LiveMonitorProps> = ({
             <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={getChromeMenuButtonClass(showSettings)}
+                className={getChromeHeaderIconButtonClass(showSettings)}
                 title="Configure Feed Parameters"
+                aria-label="Configure Feed Parameters"
               >
                 <Settings2 className="w-4 h-4" />
-                <span className="hidden lg:inline ml-1">Config</span>
               </button>
 
               {selectedCaseId && (
                 <button
                   onClick={isMonitoring ? stopMonitoring : runBatchScan}
-                  className={`flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center px-4 text-xs font-bold font-mono transition-all border uppercase ${
+                  className={`flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-[30px] items-center justify-center p-0 text-xs font-bold font-mono transition-all border uppercase ${
                     isMonitoring ? 'osint-button-danger' : 'osint-button-primary'
                   }`}
+                  title={isMonitoring ? 'Stop scan' : 'Scan'}
+                  aria-label={isMonitoring ? 'Stop scan' : 'Scan'}
                 >
                   {isMonitoring ? (
-                    <Pause className="w-3 h-3 mr-2" />
+                    <Pause className="w-3 h-3" />
                   ) : (
-                    <Play className="w-3 h-3 mr-2" />
+                    <Play className="w-3 h-3" />
                   )}
-                  {isMonitoring ? 'STOP SCAN' : 'SCAN'}
                 </button>
               )}
             </div>

@@ -18,11 +18,11 @@ import {
   CHROME_HEADER_CLASS,
   CHROME_HEADER_ROW_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
-  CHROME_HEADER_PRIMARY_ACTION_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
-  getChromeMenuButtonClass,
+  getChromeHeaderIconButtonClass,
   getChromeToggleButtonClass,
 } from '@/components/ui/chrome';
 
@@ -88,11 +88,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         <div className="relative" ref={newMenuRef}>
           <button
             onClick={onToggleNewMenu}
-            className={`${CHROME_HEADER_PRIMARY_ACTION_CLASS} pr-3`}
+            className={`${CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS} w-auto gap-1.5 px-2.5`}
             title="Create a new chat item"
+            aria-label="Create a new chat item"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden lg:inline">New</span>
             <ChevronDown className="h-3 w-3 opacity-80" />
           </button>
           {showNewMenu ? (
@@ -171,12 +171,14 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <div className="relative" ref={exportMenuRef}>
             <button
               onClick={onToggleExportMenu}
-              className={getChromeMenuButtonClass(showExportMenu)}
+              className={getChromeHeaderIconButtonClass(showExportMenu, {
+                hasChevron: true,
+              })}
               title="Export current chat session"
+              aria-label="Export current chat session"
             >
-              <Download className="mr-1 h-4 w-4" />
-              <span className="hidden lg:inline">Export</span>
-              <ChevronDown className="ml-1 h-3 w-3" />
+              <Download className="h-4 w-4" />
+              <ChevronDown className="h-3 w-3" />
             </button>
             {showExportMenu ? (
               <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[220px] border border-zinc-700 bg-zinc-900">

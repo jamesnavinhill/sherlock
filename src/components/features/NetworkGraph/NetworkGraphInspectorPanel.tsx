@@ -488,8 +488,11 @@ export const NetworkGraphInspectorPanel: React.FC<NetworkGraphInspectorPanelProp
                             onClose();
                           }}
                           className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
+                          title="Investigate follow-up"
+                          aria-label="Investigate follow-up"
                         >
-                          Open
+                          <Microscope className="h-3.5 w-3.5" />
+                          <span className="sr-only">Open</span>
                         </button>
                       </div>
                     </div>

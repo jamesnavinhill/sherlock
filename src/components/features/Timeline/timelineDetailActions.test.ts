@@ -44,7 +44,6 @@ describe('buildTimelineDetailActions', () => {
       onOpenArtifact: vi.fn(),
       onOpenItemSource: vi.fn(),
       onOpenWorkspaceItem: vi.fn(),
-      onOpenWorkspaceBoard: vi.fn().mockResolvedValue(undefined),
       onOpenWorkspaceChat: vi.fn(),
       onPlaceReferenceOnBoard: vi.fn().mockResolvedValue(undefined),
       relatedSignalId: 'signal-1',
@@ -57,11 +56,11 @@ describe('buildTimelineDetailActions', () => {
     expect(actions).toHaveLength(6);
     expect(actions.map(({ label, shortLabel }) => ({ label, shortLabel }))).toEqual([
       { label: 'Open Chat Session', shortLabel: 'Chat' },
-      { label: 'Open Board', shortLabel: 'Board' },
       { label: 'Add To Board', shortLabel: 'Add' },
       { label: 'Open Item', shortLabel: 'Item' },
       { label: 'Open Source URL', shortLabel: 'Source' },
       { label: 'Open Report', shortLabel: 'Report' },
+      { label: 'Focus Origin Signal', shortLabel: 'Signal' },
     ]);
   });
 
@@ -72,7 +71,6 @@ describe('buildTimelineDetailActions', () => {
       onOpenArtifact: vi.fn(),
       onOpenItemSource: vi.fn(),
       onOpenWorkspaceItem: vi.fn(),
-      onOpenWorkspaceBoard: vi.fn().mockResolvedValue(undefined),
       onOpenWorkspaceChat: vi.fn(),
       onPlaceReferenceOnBoard: vi.fn().mockResolvedValue(undefined),
       relatedSignalId: 'signal-1',
@@ -84,11 +82,11 @@ describe('buildTimelineDetailActions', () => {
 
     expect(actions.map(({ label, shortLabel }) => ({ label, shortLabel }))).toEqual([
       { label: 'Open Chat Session', shortLabel: 'Chat' },
-      { label: 'Open Board', shortLabel: 'Board' },
       { label: 'Add To Board', shortLabel: 'Add' },
       { label: 'Focus Source Run', shortLabel: 'Run' },
       { label: 'Focus Origin Signal', shortLabel: 'Signal' },
       { label: 'Focus Entity Milestones', shortLabel: 'Entity' },
+      { label: 'Focus Chat Session', shortLabel: 'Session' },
     ]);
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, FileText } from 'lucide-react';
+import { MessageSquare, FilePenLine, FileText, Trash2 } from 'lucide-react';
 
 import type { ChatMessage, ChatSession } from '@/types';
 import { LibraryRailSections } from '@/components/features/LibraryRail/LibraryRailSections';
@@ -76,11 +76,13 @@ export const ChatLibraryRail: React.FC<ChatLibraryRailProps> = ({
             {
               id: `${session.id}-rename`,
               label: 'Rename',
+              icon: FilePenLine,
               onClick: () => onRenameSession(session),
             },
             {
               id: `${session.id}-delete`,
               label: 'Delete',
+              icon: Trash2,
               onClick: () => onDeleteSession(session),
               className: 'osint-danger-inline',
             },

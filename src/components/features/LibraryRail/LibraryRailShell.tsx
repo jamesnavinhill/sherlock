@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CHROME_RAIL_BODY_CLASS } from '@/components/ui/chrome';
+import { CHROME_PANEL_ACTION_ROW_CLASS, CHROME_RAIL_BODY_CLASS } from '@/components/ui/chrome';
 import { DockPanel } from '@/components/system/layout/DockPanel';
 import { LibraryRailHeader } from './LibraryRailHeader';
 
@@ -51,10 +51,13 @@ export const LibraryRailShell: React.FC<LibraryRailShellProps> = ({
       title={title}
       subtitle={subtitle}
       summary={summary}
-      actions={actions}
+      actions={actionsPlacement === 'top' ? actions : undefined}
       actionsPlacement={actionsPlacement}
       search={search}
     />
+    {actions && actionsPlacement !== 'top' ? (
+      <div className={CHROME_PANEL_ACTION_ROW_CLASS}>{actions}</div>
+    ) : null}
     <div className={CHROME_RAIL_BODY_CLASS}>{children}</div>
   </DockPanel>
 );

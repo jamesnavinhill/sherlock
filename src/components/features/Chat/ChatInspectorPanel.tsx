@@ -5,6 +5,7 @@ import {
   FileSearch,
   FileText,
   MessageSquare,
+  Pin,
   Workflow,
 } from 'lucide-react';
 
@@ -139,15 +140,21 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
                         type="button"
                         onClick={() => artifact.id && onFetchArtifactSummary(artifact.id)}
                         className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+                        title="Fetch artifact summary"
+                        aria-label="Fetch artifact summary"
                       >
-                        Summary
+                        <FileText className="h-3.5 w-3.5" />
+                        <span className="sr-only">Summary</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => artifact.id && onFetchFullArtifact(artifact.id)}
                         className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+                        title="Fetch full artifact text"
+                        aria-label="Fetch full artifact text"
                       >
-                        Full Text
+                        <FileSearch className="h-3.5 w-3.5" />
+                        <span className="sr-only">Full Text</span>
                       </button>
                     </div>
                   </div>
@@ -175,8 +182,11 @@ export const ChatInspectorPanel: React.FC<ChatInspectorPanelProps> = ({
             type="button"
             onClick={onFetchRecentSignals}
             className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+            title="Pin recent signals to chat"
+            aria-label="Pin recent signals to chat"
           >
-            Pin To Chat
+            <Pin className="h-3.5 w-3.5" />
+            <span className="sr-only">Pin To Chat</span>
           </button>
         </div>
         {workspaceSignals.slice(0, 4).length === 0 ? (

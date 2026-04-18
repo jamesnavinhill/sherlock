@@ -14,12 +14,12 @@ import {
 import type { Workspace, Artifact, LabelProfile } from '../../../types';
 import {
   CHROME_HEADER_CLASS,
+  CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
-  CHROME_HEADER_PRIMARY_ACTION_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
-  getChromeMenuButtonClass,
+  getChromeHeaderIconButtonClass,
   getChromeToggleButtonClass,
 } from '../../ui/chrome';
 import {
@@ -125,10 +125,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </button>
           <button
             onClick={onStartNewCase}
-            className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
+            className={CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS}
+            title="Start a new workspace"
+            aria-label="Start a new workspace"
           >
             <Plus className="w-4 h-4" />
-            <span>New</span>
           </button>
           <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
             <OsintSelect
@@ -163,11 +164,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                       setShowExportMenu(false);
                       setShowContextMenu((current) => !current);
                     }}
-                    className={getChromeMenuButtonClass(showContextMenu)}
+                    className={getChromeHeaderIconButtonClass(showContextMenu, {
+                      hasChevron: true,
+                    })}
+                    title="Open context actions"
+                    aria-label="Open context actions"
                   >
-                    <MessageSquare className="w-4 h-4 mr-1" />
-                    <span className="hidden lg:inline">Open</span>
-                    <ChevronDown className="w-3 h-3 ml-1" />
+                    <MessageSquare className="w-4 h-4" />
+                    <ChevronDown className="w-3 h-3" />
                   </button>
                   {showContextMenu && (
                     <div className={menuSurfaceClassName}>
@@ -227,11 +231,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     setShowContextMenu(false);
                     setShowExportMenu((current) => !current);
                   }}
-                  className={getChromeMenuButtonClass(showExportMenu)}
+                  className={getChromeHeaderIconButtonClass(showExportMenu, {
+                    hasChevron: true,
+                  })}
+                  title="Export workspace or artifact"
+                  aria-label="Export workspace or artifact"
                 >
-                  <Download className="w-4 h-4 mr-1" />
-                  <span className="hidden lg:inline">Export</span>
-                  <ChevronDown className="w-3 h-3 ml-1" />
+                  <Download className="w-4 h-4" />
+                  <ChevronDown className="w-3 h-3" />
                 </button>
                 {showExportMenu && (
                   <div className={menuSurfaceClassName}>

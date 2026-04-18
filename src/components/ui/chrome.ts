@@ -84,6 +84,12 @@ export const CHROME_HEADER_CONTROL_HEIGHT_CLASS = 'h-[30px]';
 export const CHROME_HEADER_ICON_BUTTON_SIZE_CLASS =
   `${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-[30px] shrink-0 p-0`;
 
+export const CHROME_HEADER_ICON_ACTION_BUTTON_CLASS =
+  `osint-meta-label-strong inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} shrink-0 items-center justify-center`;
+
+export const CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS =
+  `osint-button-primary ${CHROME_HEADER_ICON_BUTTON_SIZE_CLASS} ${CHROME_HEADER_ICON_ACTION_BUTTON_CLASS}`;
+
 export const CHROME_GHOST_ICON_BUTTON_CLASS =
   'osint-ghost-button inline-flex h-9 w-9 items-center justify-center';
 
@@ -110,6 +116,14 @@ export const getChromeMenuButtonClass = (active: boolean) =>
   `osint-meta-label-strong inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center px-3 ${
     active ? 'osint-button-chrome-active' : 'osint-button-chrome'
   }`;
+
+export const getChromeHeaderIconButtonClass = (
+  active: boolean,
+  options: { hasChevron?: boolean } = {}
+) =>
+  `${CHROME_HEADER_ICON_ACTION_BUTTON_CLASS} ${
+    active ? 'osint-button-chrome-active' : 'osint-button-chrome'
+  } ${options.hasChevron ? 'gap-1.5 px-2.5' : CHROME_HEADER_ICON_BUTTON_SIZE_CLASS}`;
 
 export const getChromeToolbarSegmentButtonClass = (active: boolean) =>
   `osint-meta-label inline-flex items-center justify-center px-3 py-1.5 transition ${

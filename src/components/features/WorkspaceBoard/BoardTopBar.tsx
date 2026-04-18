@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, FolderPlus, PanelRight, Presentation } from 'lucide-react';
+import { Briefcase, FolderPlus, PanelRight, Pencil, Presentation } from 'lucide-react';
 
 import type { WorkspaceBoard } from '@/types';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
@@ -8,8 +8,8 @@ import {
   CHROME_HEADER_CONTROL_HEIGHT_CLASS,
   CHROME_HEADER_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
+  CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
-  CHROME_HEADER_PRIMARY_ACTION_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
   getChromeToggleButtonClass,
@@ -56,10 +56,11 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         </button>
         <button
           onClick={onCreateBoard}
-          className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
+          className={CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS}
+          title="Create board"
+          aria-label="Create board"
         >
           <FolderPlus className="h-4 w-4" />
-          New
         </button>
         <div className={`relative z-50 ${CHROME_HEADER_SELECT_WRAP_CLASS}`}>
           <OsintSelect
@@ -99,12 +100,17 @@ export const BoardTopBar: React.FC<BoardTopBarProps> = ({
         {activeBoard ? (
           <button
             onClick={onTogglePresentationMode}
-            className={`inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} items-center gap-2 px-3 ${getChromeToggleButtonClass(
+            className={`inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-[30px] items-center justify-center p-0 ${getChromeToggleButtonClass(
               !!activeBoard.presentationMode
             )}`}
+            title={activeBoard.presentationMode ? 'Presentation mode' : 'Edit board'}
+            aria-label={activeBoard.presentationMode ? 'Presentation mode' : 'Edit board'}
           >
-            <Presentation className="h-4 w-4" />
-            {activeBoard.presentationMode ? 'Presentation' : 'Edit'}
+            {activeBoard.presentationMode ? (
+              <Presentation className="h-4 w-4" />
+            ) : (
+              <Pencil className="h-4 w-4" />
+            )}
           </button>
         ) : null}
         <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Globe, Link2, Users } from 'lucide-react';
+import { FileText, Globe, Link2, Microscope, Users } from 'lucide-react';
 import type { Workspace, Entity, Headline, Artifact, LabelProfile, Source } from '../../../types';
 import { getWorkspaceDisplayTitle, sanitizeDisplayTitle } from '../../../domain';
 import { getEntityToneClass } from '../../../utils/entityPalette';
@@ -152,8 +152,11 @@ export const WorkspaceLibraryRail: React.FC<WorkspaceLibraryRailProps> = ({
                   type="button"
                   onClick={() => onLeadClick(lead)}
                   className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
+                  title="Open follow-up"
+                  aria-label="Open follow-up"
                 >
-                  Open
+                  <Microscope className="h-3.5 w-3.5" />
+                  <span className="sr-only">Open</span>
                 </button>
               </div>
             </div>

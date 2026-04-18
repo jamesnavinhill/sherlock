@@ -9,10 +9,6 @@ import type {
   WorkspaceItem,
 } from '@/types';
 import {
-  buildWorkspaceNetworkPath,
-  buildWorkspaceTimelinePath,
-} from '@/app/routes';
-import {
   buildSingleWorkspaceItemEntry,
   type WorkspaceLibraryEntry,
 } from '@/services/workspace/library';
@@ -36,10 +32,8 @@ interface UseWorkspaceBoardInspectorStateInput {
   addToast: (message: string, tone: 'SUCCESS' | 'ERROR' | 'INFO') => void;
   createWorkspaceItem: (item: WorkspaceItem) => Promise<unknown>;
   handleDropEntry: (entry: WorkspaceLibraryEntry, clientX?: number, clientY?: number) => void;
-  navigate: (path: string) => void;
   onOpenChat: (request: ChatOpenRequest) => void;
   onOpenReport: (report: Artifact) => void;
-  persistCurrentBoardDocument: () => Promise<void>;
   setAiBusy: (value: boolean) => void;
   setAiSummary: (value: string | null) => void;
   selectedArtifact: Artifact | null;
@@ -57,10 +51,8 @@ export const useWorkspaceBoardInspectorState = ({
   addToast,
   createWorkspaceItem,
   handleDropEntry,
-  navigate,
   onOpenChat,
   onOpenReport,
-  persistCurrentBoardDocument,
   setAiBusy,
   setAiSummary,
   selectedArtifact,
@@ -216,17 +208,6 @@ export const useWorkspaceBoardInspectorState = ({
   const inspectorActions = useMemo(
     () =>
       buildBoardInspectorActions({
-        activeWorkspaceId: activeWorkspace?.id,
-        onNavigateNetwork: async () => {
-          if (!activeWorkspace) return;
-          await persistCurrentBoardDocument();
-          navigate(buildWorkspaceNetworkPath(activeWorkspace.id));
-        },
-        onNavigateTimeline: async () => {
-          if (!activeWorkspace) return;
-          await persistCurrentBoardDocument();
-          navigate(buildWorkspaceTimelinePath(activeWorkspace.id));
-        },
         onOpenChat,
         onOpenReport,
         onOpenSelectedChat: handleOpenSelectedChat,
@@ -237,12 +218,9 @@ export const useWorkspaceBoardInspectorState = ({
         workspaceArtifacts,
       }),
     [
-      activeWorkspace,
       handleOpenSelectedChat,
-      navigate,
       onOpenChat,
       onOpenReport,
-      persistCurrentBoardDocument,
       selectedArtifact,
       selectedEntries,
       selectedPrimaryEntry,

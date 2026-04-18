@@ -2,7 +2,7 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Globe, Link2, ShieldAlert } from 'lucide-react';
+import { FileSearch, Globe, Link2, Microscope, PanelTopOpen, ShieldAlert } from 'lucide-react';
 
 import type {
   Artifact,
@@ -226,8 +226,11 @@ const FindingDetailList: React.FC<FindingDetailListProps> = ({
                 type="button"
                 onClick={() => jumpToSection(finding.originSectionId || keyFindingsAnchorId)}
                 className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full`}
+                title="Open finding context"
+                aria-label="Open finding context"
               >
-                Open
+                <PanelTopOpen className="h-3.5 w-3.5" />
+                <span className="sr-only">Open</span>
               </button>
             </div>
           </Accordion>
@@ -429,16 +432,22 @@ export const buildArtifactViewerDetailRailSections = ({
                       type="button"
                       onClick={() => onLeadOpen(followUp)}
                       className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
+                      title="Open follow-up"
+                      aria-label="Open follow-up"
                     >
-                      Open
+                      <Microscope className="h-3.5 w-3.5" />
+                      <span className="sr-only">Open</span>
                     </button>
                     {followUp.originSectionId ? (
                       <button
                         type="button"
                         onClick={() => jumpToSection(followUp.originSectionId as string)}
                         className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
+                        title="Jump to section"
+                        aria-label="Jump to section"
                       >
-                        Jump To Section
+                        <PanelTopOpen className="h-3.5 w-3.5" />
+                        <span className="sr-only">Jump To Section</span>
                       </button>
                     ) : null}
                   </div>
@@ -485,16 +494,22 @@ export const buildArtifactViewerDetailRailSections = ({
                   type="button"
                   onClick={() => jumpToEvidence(evidence.id)}
                   className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
+                  title="Open evidence"
+                  aria-label="Open evidence"
                 >
-                  Open Evidence
+                  <FileSearch className="h-3.5 w-3.5" />
+                  <span className="sr-only">Open Evidence</span>
                 </button>
                 {evidence.sectionId ? (
                   <button
                     type="button"
                     onClick={() => jumpToSection(evidence.sectionId as string)}
                     className={`${CHROME_THIN_ACTION_BUTTON_CLASS} w-full justify-center`}
+                    title="Jump to section"
+                    aria-label="Jump to section"
                   >
-                    Jump To Section
+                    <PanelTopOpen className="h-3.5 w-3.5" />
+                    <span className="sr-only">Jump To Section</span>
                   </button>
                 ) : null}
               </div>

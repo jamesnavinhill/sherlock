@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Radio,
   Save,
-  Workflow,
 } from 'lucide-react';
 
 import type { Artifact, TimelineEvent, TimelineTrack, WorkspaceItem } from '@/types';
@@ -20,7 +19,6 @@ interface BuildTimelineDetailActionsInput {
   onOpenArtifact: (artifactId?: string) => void;
   onOpenItemSource: () => void;
   onOpenWorkspaceItem: () => void;
-  onOpenWorkspaceBoard: () => Promise<void>;
   onOpenWorkspaceChat: (event?: TimelineEvent | null) => void;
   onPlaceReferenceOnBoard: () => Promise<void>;
   parentArtifactId?: string;
@@ -40,7 +38,6 @@ export const buildTimelineDetailActions = ({
   onOpenArtifact,
   onOpenItemSource,
   onOpenWorkspaceItem,
-  onOpenWorkspaceBoard,
   onOpenWorkspaceChat,
   onPlaceReferenceOnBoard,
   parentArtifactId,
@@ -62,13 +59,6 @@ export const buildTimelineDetailActions = ({
       shortLabel: INSPECTOR_ACTION_SHORT_LABELS.chat,
       icon: MessageSquare,
       onClick: () => onOpenWorkspaceChat(selectedEvent),
-    },
-    {
-      id: 'timeline-board-open',
-      label: 'Open Board',
-      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.board,
-      icon: Workflow,
-      onClick: () => void onOpenWorkspaceBoard(),
     },
   ];
 

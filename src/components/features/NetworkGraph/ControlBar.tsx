@@ -6,11 +6,11 @@ import { GlobalSearch } from '../../ui/GlobalSearch';
 import { OsintSelect } from '../../ui/OsintSelect';
 import {
   CHROME_HEADER_CLASS,
+  getChromeHeaderIconButtonClass,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
-  getChromeMenuButtonClass,
   getChromeToggleButtonClass,
 } from '../../ui/chrome';
 
@@ -82,31 +82,31 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={onToggleLinkingMode}
-              className={getChromeMenuButtonClass(isLinkingMode)}
+              className={getChromeHeaderIconButtonClass(isLinkingMode)}
               title="Manual Link Mode"
+              aria-label="Manual Link Mode"
             >
-              <LinkIcon className="w-4 h-4 lg:mr-1" />
-              <span className="hidden lg:inline">Link</span>
+              <LinkIcon className="w-4 h-4" />
             </button>
             <button
               onClick={onShowAddNode}
-              className={getChromeMenuButtonClass(false)}
+              className={getChromeHeaderIconButtonClass(false)}
               title="Add Manual Node"
+              aria-label="Add Manual Node"
             >
-              <PlusCircle className="w-4 h-4 lg:mr-1" />
-              <span className="hidden lg:inline">Add</span>
+              <PlusCircle className="w-4 h-4" />
             </button>
             <button
               onClick={onShowResolution}
-              className={`${getChromeMenuButtonClass(pendingClusterCount > 0)} relative`}
+              className={`${getChromeHeaderIconButtonClass(pendingClusterCount > 0)} relative`}
               title={
                 pendingClusterCount > 0
                   ? `Consolidate Entities (${pendingClusterCount} cluster${pendingClusterCount === 1 ? '' : 's'} detected)`
                   : 'Consolidate Entities'
               }
+              aria-label="Consolidate Entities"
             >
-              <GitMerge className="w-4 h-4 lg:mr-1" />
-              <span className="hidden lg:inline">Resolve</span>
+              <GitMerge className="w-4 h-4" />
               {pendingClusterCount > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-osint-primary text-black text-[9px] leading-4 font-bold font-mono text-center">
                   {pendingClusterCount}

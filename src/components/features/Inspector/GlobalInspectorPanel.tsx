@@ -134,6 +134,7 @@ export const GlobalInspectorPanel: React.FC<GlobalInspectorPanelProps> = ({
           <InspectorActionRow
             actions={actionItems}
             layout={actionRowLayout}
+            showLabels={false}
             density={actionRowDensity}
             gridColumns={actionRowGridColumns}
           />

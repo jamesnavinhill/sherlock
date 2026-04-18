@@ -17,10 +17,11 @@ import {
 } from '@/utils/exportUtils';
 import {
   CHROME_HEADER_CLASS,
+  CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS,
   CHROME_HEADER_LEADING_GROUP_CLASS,
-  CHROME_HEADER_PRIMARY_ACTION_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
+  getChromeHeaderIconButtonClass,
   getChromeMenuButtonClass,
 } from '@/components/ui/chrome';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -108,11 +109,11 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
             <div className={CHROME_HEADER_LEADING_GROUP_CLASS}>
               <button
                 onClick={() => setIsNewCaseModalOpen(true)}
-                className={CHROME_HEADER_PRIMARY_ACTION_CLASS}
+                className={CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS}
                 aria-label={`New ${workspaceLabel}`}
+                title={`New ${workspaceLabel}`}
               >
                 <Plus className="h-4 w-4" />
-                <span>New</span>
               </button>
               <div className={CHROME_HEADER_SELECT_WRAP_CLASS}>
                 <OsintSelect
@@ -184,15 +185,15 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                 <button
                   onClick={openUploadDialog}
                   disabled={workspaces.length === 0}
-                  className={`${getChromeMenuButtonClass(false)} gap-2`}
+                  className={getChromeHeaderIconButtonClass(false)}
                   title={
                     workspaces.length === 0
                       ? `Create a ${workspaceLabelLower} before uploading documents`
                       : 'Upload documents into a workspace'
                   }
+                  aria-label="Upload documents"
                 >
                   <Upload className="h-4 w-4" />
-                  <span className="hidden lg:inline">Upload</span>
                 </button>
                 <input
                   ref={fileInputRef}
@@ -209,11 +210,14 @@ export const Files: React.FC<FilesProps> = ({ onSelectReport, onStartNewCase, on
                         setShowExportMenu(!showExportMenu);
                         setShowFilters(false);
                       }}
-                      className={getChromeMenuButtonClass(showExportMenu)}
+                      className={getChromeHeaderIconButtonClass(showExportMenu, {
+                        hasChevron: true,
+                      })}
+                      aria-label="Export workspace"
+                      title="Export workspace"
                     >
-                      <Download className="mr-1 h-4 w-4" />
-                      <span className="hidden lg:inline">Export</span>
-                      <ChevronDown className="ml-1 h-3 w-3" />
+                      <Download className="h-4 w-4" />
+                      <ChevronDown className="h-3 w-3" />
                     </button>
                     {showExportMenu ? (
                       <div className="osint-menu-panel absolute right-0 top-full z-50 mt-1 min-w-[200px] border border-zinc-700 bg-zinc-900">

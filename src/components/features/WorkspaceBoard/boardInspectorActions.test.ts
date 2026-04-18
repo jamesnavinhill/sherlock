@@ -5,7 +5,7 @@ import type { Artifact, WorkspaceItem } from '@/types';
 import { buildBoardInspectorActions } from './boardInspectorActions';
 
 describe('buildBoardInspectorActions', () => {
-  it('uses concise inspector labels for board actions', () => {
+  it('keeps concise short labels for board inspector actions', () => {
     const artifact: Artifact = {
       id: 'artifact-1',
       workspaceId: 'ws-1',
@@ -33,9 +33,6 @@ describe('buildBoardInspectorActions', () => {
     };
 
     const actions = buildBoardInspectorActions({
-      activeWorkspaceId: 'ws-1',
-      onNavigateNetwork: async () => undefined,
-      onNavigateTimeline: async () => undefined,
       onOpenChat: vi.fn(),
       onOpenReport: vi.fn(),
       onOpenSelectedChat: vi.fn(),
@@ -59,14 +56,12 @@ describe('buildBoardInspectorActions', () => {
       workspaceArtifacts: [artifact],
     });
 
-    expect(actions.map((action) => action.label)).toEqual([
+    expect(actions.map((action) => action.shortLabel ?? action.label)).toEqual([
       'Open',
       'Chat',
-      'Source Chat',
+      'Source',
       'Source',
       'Link',
-      'Timeline',
-      'Network',
     ]);
   });
 });

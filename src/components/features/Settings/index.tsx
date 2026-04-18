@@ -4,7 +4,7 @@ import { Check, RefreshCw, Save, X } from 'lucide-react';
 import { PageShell } from '@/components/system/layout/PageShell';
 import {
   CHROME_HEADER_CLASS,
-  CHROME_HEADER_CONTROL_HEIGHT_CLASS,
+  CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS,
   CHROME_HEADER_ICON_BUTTON_SIZE_CLASS,
 } from '@/components/ui/chrome';
 import { MainContentDotGrid } from '@/components/ui/MainContentDotGrid';
@@ -118,22 +118,29 @@ export const Settings: React.FC<SettingsProps> = ({
             <button
               onClick={handleSaveConfiguration}
               disabled={isSaving || !canSaveActiveTab}
-              className={`osint-button-primary ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} flex items-center px-4 osint-meta-label-strong disabled:cursor-not-allowed disabled:opacity-40`}
+              className={`${CHROME_HEADER_PRIMARY_ICON_BUTTON_CLASS} disabled:cursor-not-allowed disabled:opacity-40`}
+              title={
+                isSaving
+                  ? 'Saving configuration'
+                  : activeTab === 'THEME'
+                    ? 'Save theme and configuration'
+                    : 'Save configuration'
+              }
+              aria-label={
+                isSaving
+                  ? 'Saving configuration'
+                  : activeTab === 'THEME'
+                    ? 'Save theme and configuration'
+                    : 'Save configuration'
+              }
             >
               {isSaving ? (
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                <RefreshCw className="h-4 w-4 animate-spin" />
               ) : saveSuccess ? (
-                <Check className="mr-2 h-4 w-4" />
+                <Check className="h-4 w-4" />
               ) : (
-                <Save className="mr-2 h-4 w-4" />
+                <Save className="h-4 w-4" />
               )}
-              {isSaving
-                ? 'Saving...'
-                : saveSuccess
-                  ? 'Saved'
-                  : activeTab === 'THEME'
-                    ? 'Save Theme + Config'
-                    : 'Save Configuration'}
             </button>
             <button
               onClick={onClose}

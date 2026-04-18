@@ -13,6 +13,7 @@ interface LibraryRailEntryProps {
 
 const renderEntryAction = (action: NonNullable<LibraryRailEntryModel['actions']>[number]) => {
   const ActionIcon = action.icon;
+  const showLabel = !ActionIcon;
   const sharedClassName =
     `${CHROME_THIN_ACTION_BUTTON_CLASS} w-full ${action.className || ''}`.trim();
 
@@ -24,9 +25,11 @@ const renderEntryAction = (action: NonNullable<LibraryRailEntryModel['actions']>
         target={action.target}
         rel={action.rel}
         className={sharedClassName}
+        title={action.label}
+        aria-label={action.label}
       >
         {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-        {action.label}
+        {showLabel ? action.label : <span className="sr-only">{action.label}</span>}
       </a>
     );
   }
@@ -37,9 +40,11 @@ const renderEntryAction = (action: NonNullable<LibraryRailEntryModel['actions']>
       type="button"
       onClick={action.onClick}
       className={sharedClassName}
+      title={action.label}
+      aria-label={action.label}
     >
       {ActionIcon ? <ActionIcon className="h-3.5 w-3.5" /> : null}
-      {action.label}
+      {showLabel ? action.label : <span className="sr-only">{action.label}</span>}
     </button>
   );
 };

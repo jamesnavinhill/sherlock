@@ -162,7 +162,7 @@ describe('WorkspaceLibraryRail', () => {
 
     expect(screen.queryByText('0 Files')).not.toBeInTheDocument();
     expect(screen.queryByText('0 Entities')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('h-6');
+    expect(screen.getByRole('button', { name: 'Open follow-up' })).toHaveClass('h-6');
   });
 
   it('uses normalized source and signal labels in the shared dossier rail', () => {

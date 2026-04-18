@@ -11,6 +11,7 @@ import {
   CHROME_HEADER_LEADING_GROUP_CLASS,
   CHROME_HEADER_SELECT_TRIGGER_CLASS,
   CHROME_HEADER_SELECT_WRAP_CLASS,
+  getChromeHeaderIconButtonClass,
   getChromeMenuButtonClass,
   getChromeToggleButtonClass,
 } from '@/components/ui/chrome';
@@ -132,7 +133,7 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
         <button
           onClick={onSaveView}
           disabled={!canSaveCurrentView}
-          className={`inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} shrink-0 items-center px-3 osint-meta-label-strong transition ${
+          className={`inline-flex ${CHROME_HEADER_CONTROL_HEIGHT_CLASS} w-[30px] shrink-0 items-center justify-center p-0 osint-meta-label-strong transition ${
             canSaveCurrentView
               ? 'osint-button-chrome'
               : 'cursor-not-allowed border border-zinc-800 bg-zinc-950 text-zinc-600'
@@ -142,21 +143,23 @@ export const TimelineToolbar: React.FC<TimelineToolbarProps> = ({
               ? 'Save the current timeline query as a durable omnibox view'
               : 'Change search, range, tracks, or focus before saving a timeline view'
           }
+          aria-label="Save current timeline view"
         >
-          <BookmarkPlus className="mr-1 h-4 w-4" />
-          <span className="hidden lg:inline">Save View</span>
+          <BookmarkPlus className="h-4 w-4" />
         </button>
 
         <div className="relative shrink-0" ref={exportMenuRef}>
           <button
             onClick={onToggleExportMenu}
             disabled={!timelineSnapshotAvailable}
-            className={getChromeMenuButtonClass(showExportMenu)}
+            className={getChromeHeaderIconButtonClass(showExportMenu, {
+              hasChevron: true,
+            })}
             title="Export or save the current timeline snapshot"
+            aria-label="Export or save timeline snapshot"
           >
-            <Download className="mr-1 h-4 w-4" />
-            <span className="hidden lg:inline">Export</span>
-            <ChevronDown className="ml-1 h-3 w-3" />
+            <Download className="h-4 w-4" />
+            <ChevronDown className="h-3 w-3" />
           </button>
           {showExportMenu && timelineSnapshotAvailable ? (
             <TimelineExportMenu

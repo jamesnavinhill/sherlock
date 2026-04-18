@@ -34,7 +34,6 @@ export const LibraryRailHeader: React.FC<LibraryRailHeaderProps> = ({
     </div>
     {subtitle ? <div className="mt-2 osint-body-quiet">{subtitle}</div> : null}
     {summary ? <div className="mt-3">{summary}</div> : null}
-    {actions && actionsPlacement === 'bottom' ? <div className="mt-3">{actions}</div> : null}
     {search ? <div className="mt-4">{search}</div> : null}
   </div>
 );

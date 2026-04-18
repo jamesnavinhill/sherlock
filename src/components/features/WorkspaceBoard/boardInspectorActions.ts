@@ -1,4 +1,4 @@
-import { Clock3, FileText, Link2, MessageSquare, Network } from 'lucide-react';
+import { FileText, Link2, MessageSquare } from 'lucide-react';
 
 import type { Artifact, ChatOpenRequest, WorkspaceItem, WorkspaceBoardItemReference } from '@/types';
 import type { InspectorActionItem } from '@/components/ui/InspectorActionRow';
@@ -13,9 +13,6 @@ interface WorkspaceLibraryEntryLike {
 }
 
 interface BuildBoardInspectorActionsInput {
-  activeWorkspaceId?: string;
-  onNavigateNetwork: () => Promise<void>;
-  onNavigateTimeline: () => Promise<void>;
   onOpenChat: (request: ChatOpenRequest) => void;
   onOpenReport: (report: Artifact) => void;
   onOpenSelectedChat: () => void;
@@ -27,9 +24,6 @@ interface BuildBoardInspectorActionsInput {
 }
 
 export const buildBoardInspectorActions = ({
-  activeWorkspaceId,
-  onNavigateNetwork,
-  onNavigateTimeline,
   onOpenChat,
   onOpenReport,
   onOpenSelectedChat,
@@ -103,23 +97,6 @@ export const buildBoardInspectorActions = ({
           : undefined),
       target: '_blank',
       rel: 'noopener noreferrer',
-    });
-  }
-
-  if (activeWorkspaceId) {
-    inspectorActions.push({
-      id: 'board-open-timeline',
-      label: 'Open Timeline',
-      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.timeline,
-      icon: Clock3,
-      onClick: () => void onNavigateTimeline(),
-    });
-    inspectorActions.push({
-      id: 'board-open-network',
-      label: 'Open Network',
-      shortLabel: INSPECTOR_ACTION_SHORT_LABELS.network,
-      icon: Network,
-      onClick: () => void onNavigateNetwork(),
     });
   }
 

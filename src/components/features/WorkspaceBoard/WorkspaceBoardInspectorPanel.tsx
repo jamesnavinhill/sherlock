@@ -1,5 +1,16 @@
 import React from 'react';
-import { Bot, Clock3, Shapes, Trash2 } from 'lucide-react';
+import {
+  Bot,
+  Braces,
+  Clock3,
+  FileText,
+  FileWarning,
+  type LucideIcon,
+  Network,
+  NotebookPen,
+  Shapes,
+  Trash2,
+} from 'lucide-react';
 
 import type { WorkspaceBoard, WorkspaceItem } from '@/types';
 import { GlobalInspectorPanel } from '@/components/features/Inspector/GlobalInspectorPanel';
@@ -84,22 +95,31 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
     starterIntentById.get('organize-evidence'),
     starterIntentById.get('find-contradictions'),
   ].filter((intent): intent is NonNullable<typeof intent> => !!intent);
+  const starterIntentIcons: Record<string, LucideIcon> = {
+    'prep-briefing': FileText,
+    'cluster-sources': Network,
+    'organize-evidence': Braces,
+    'find-contradictions': FileWarning,
+  };
   const boardAgentQuickActions: InspectorActionItem[] = [
     {
       id: 'board-ai-summary',
       label: 'Generate Summary',
+      icon: FileText,
       onClick: onShowAgentAndGenerateSummary,
       disabled: selectedEntries.length === 0 || aiBusy,
     },
     {
       id: 'board-ai-note',
       label: 'Draft Note',
+      icon: NotebookPen,
       onClick: onShowAgentAndGenerateNote,
       disabled: selectedEntries.length === 0 || aiBusy || !!activeBoard?.presentationMode,
     },
     ...orderedStarterIntents.map<InspectorActionItem>((intent) => ({
       id: `board-ai-${intent.id}`,
       label: intent.label,
+      icon: starterIntentIcons[intent.id] || Bot,
       onClick: () => onOpenAgentStarterIntent(intent.prompt),
       disabled: aiBusy,
       className: 'shrink-0',
@@ -120,6 +140,7 @@ export const WorkspaceBoardInspectorPanel: React.FC<WorkspaceBoardInspectorPanel
           <InspectorActionRow
             actions={boardAgentQuickActions}
             layout="grid"
+            showLabels={false}
             density="thin"
             gridColumns={1}
           />

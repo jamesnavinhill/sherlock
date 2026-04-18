@@ -47,8 +47,8 @@ describe('TimelineToolbar', () => {
 
     expect(rightActionButtons[0]).toHaveAttribute('aria-label', 'Timeline filters');
     expect(rightActionButtons[0]).not.toHaveTextContent(/filters/i);
-    expect(rightActionButtons[1]).toHaveTextContent(/save view/i);
-    expect(rightActionButtons[2]).toHaveTextContent(/export/i);
+    expect(rightActionButtons[1]).toHaveAttribute('aria-label', 'Save current timeline view');
+    expect(rightActionButtons[2]).toHaveAttribute('aria-label', 'Export or save timeline snapshot');
     expect(rightActionButtons[3]).toHaveAttribute('title', 'Toggle event details');
   });
 });

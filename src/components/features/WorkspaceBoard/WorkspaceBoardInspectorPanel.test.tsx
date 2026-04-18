@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { FileText, MessageSquare } from 'lucide-react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { WorkspaceBoardInspectorPanel } from './WorkspaceBoardInspectorPanel';
@@ -62,7 +63,7 @@ describe('WorkspaceBoardInspectorPanel', () => {
     expect(screen.getByRole('button', { name: 'Inspector' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Agent Quick Actions/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Generate Summary' })).toHaveClass('w-full');
-    expect(screen.getByRole('button', { name: 'Generate Summary' }).querySelector('svg')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Generate Summary' }).querySelector('svg')).not.toBeNull();
   });
 
   it('orders board agent quick actions in the requested top-to-bottom sequence', () => {
@@ -145,10 +146,8 @@ describe('WorkspaceBoardInspectorPanel', () => {
         activeTabId="INSPECTOR"
         onTabChange={vi.fn()}
         inspectorActions={[
-          { id: 'open', label: 'Open', onClick: vi.fn() },
-          { id: 'chat', label: 'Chat', onClick: vi.fn() },
-          { id: 'timeline', label: 'Timeline', onClick: vi.fn() },
-          { id: 'network', label: 'Network', onClick: vi.fn() },
+          { id: 'open', label: 'Open', icon: FileText, onClick: vi.fn() },
+          { id: 'chat', label: 'Chat', icon: MessageSquare, onClick: vi.fn() },
         ]}
         inspectorSections={{
           quickActions: false,
@@ -179,7 +178,5 @@ describe('WorkspaceBoardInspectorPanel', () => {
 
     expect(screen.getByRole('button', { name: 'Open' })).toHaveClass('w-full');
     expect(screen.getByRole('button', { name: 'Chat' })).toHaveClass('w-full');
-    expect(screen.getByRole('button', { name: 'Timeline' })).toHaveClass('w-full');
-    expect(screen.getByRole('button', { name: 'Network' })).toHaveClass('w-full');
   });
 });
