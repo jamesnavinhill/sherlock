@@ -4,10 +4,12 @@ import { Clock3 } from 'lucide-react';
 
 import type { Artifact, ChatOpenRequest, TimelineRange } from '@/types';
 import { buildWorkspaceTimelinePath } from '@/app/routes';
+import { useRegisterAppWorkbenchPanel } from '@/app/workbench/useAppWorkbenchHost';
 import { PageShell } from '@/components/system/layout/PageShell';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getWorkspaceDisplayTitle } from '@/domain';
 import { useTimelineViewController } from './Timeline/useTimelineViewController';
+import { TimelineWorkbenchPanel } from './Timeline/TimelineWorkbenchPanel';
 import { TimelineToolbar } from './Timeline/TimelineToolbar';
 import { TimelineLibraryRail } from './Timeline/TimelineLibraryRail';
 import { TimelineEventList } from './Timeline/TimelineEventList';
@@ -85,6 +87,54 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ onOpenReport, onOpen
     onOpenChat,
     onOpenReport,
   });
+  const timelineWorkbenchPanel = React.useMemo(
+    () =>
+      activeWorkspace
+        ? {
+            id: 'timeline-workbench',
+            title: 'Timeline Tools',
+            description:
+              'Saved-view, filter, and snapshot-export actions for the active workspace chronology.',
+            defaultOpen: false,
+            content: (
+              <TimelineWorkbenchPanel
+                workspaceTitle={getWorkspaceDisplayTitle(activeWorkspace)}
+                visibleEventCount={visibleEvents.length}
+                totalEventCount={allTimelineEvents.length}
+                range={filters.range}
+                activeTracks={filters.tracks}
+                canSaveCurrentView={canSaveCurrentView}
+                timelineSnapshotAvailable={!!timelineSnapshot}
+                onClearFilters={clearFilters}
+                onSaveView={() => {
+                  void handleSaveTimelineView();
+                }}
+                onExportTimelineMarkdown={handleExportTimelineMarkdown}
+                onExportTimelineJson={handleExportTimelineJson}
+                onSaveTimelineArtifact={() => {
+                  void handleSaveTimelineArtifact();
+                }}
+              />
+            ),
+          }
+        : null,
+    [
+      activeWorkspace,
+      allTimelineEvents.length,
+      canSaveCurrentView,
+      clearFilters,
+      filters.range,
+      filters.tracks,
+      handleExportTimelineJson,
+      handleExportTimelineMarkdown,
+      handleSaveTimelineArtifact,
+      handleSaveTimelineView,
+      timelineSnapshot,
+      visibleEvents.length,
+    ]
+  );
+
+  useRegisterAppWorkbenchPanel(timelineWorkbenchPanel);
 
   if (isLoading) {
     return (

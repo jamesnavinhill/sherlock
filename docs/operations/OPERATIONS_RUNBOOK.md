@@ -19,7 +19,7 @@ Adapters in scope:
 ## 1. Fast Triage
 
 1. Open `Settings -> Runtime` and capture selected `provider` and `model`.
-2. If the operator also changed `Settings -> Theme`, note that theme templates/drafts now persist separately in the Sherlock theme workspace and do not affect provider routing.
+2. If the operator also changed `Settings -> Theme`, note that theme templates/drafts now persist separately in the Sherlock theme workspace and do not affect provider routing; older split theme keys are migration-only fallback inputs and are not the active runtime path.
 3. Verify a key exists for the selected provider.
 4. Reproduce once.
 5. Inspect browser console for `[provider-router]` entries.

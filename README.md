@@ -33,14 +33,14 @@ This repository also contains a separate standalone canon studio in [`canon-desi
 - `Operation View`: document-first artifact reading with canonical key findings near the top of the body, inline evidence jump cues, section-level editing for substantive document blocks, route-backed section/evidence focus, purpose-ordered typed-section rendering, dossier, and a current-artifact/entity/signal inspector panel
 - `Run Setup + Guided Run Builder`: pack/purpose-aware setup, provider/model selection, shared date-range controls, OpenRouter browser, generation mode override, starter prompts, template save/apply
 - `Board`: multi-board canvas with canonical library placement, note/link/file ingestion, promoted chat excerpts, presentation mode, manual AI helpers, and a board-agent inspector that supports starter intents, approval-first plan review, low-risk auto-approve, todos, action receipts/history, cancellation, and cross-links back into artifacts, timeline, graph, and chat
-- `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update/reuse events, opt-in entity milestones, chat sessions, and high-signal chat actions, with shared library/inspector panel foundations, lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, and durable saved views that reopen through the omnibox
+- `Timeline`: workspace chronology across saved signals, runs, artifacts, canonical item creation/promotion/update/reuse events, opt-in entity milestones, chat sessions, and high-signal chat actions, with shared library/inspector panel foundations, lineage focus chips, exact-session jump-through into workspace chat, item-aware Files/source/board/chat actions, Timeline snapshot export/save actions, durable saved views that reopen through the omnibox, and a shared workbench-host tools panel for saved-view/snapshot actions
 - `Chat`: dedicated chat sessions grounded in the active workspace with transcript copy/export, retrieval pinning, inline `@` mention references for canonical workspace records that reopen focused workspace surfaces, excerpt promotion into the canonical library, board handoff, save/append actions, follow-up launches, guided run mode, and launch-into-chat handoff from Operation View, Files, and Network Graph
 - `Workspace Home`: lightweight workspace overview with summary counts, recent activity, saved timeline views, workspace context, and quick handoff links into artifact/chat/board/timeline/network/files; this is real and routed, but it is not yet the global app homepage/dashboard
 - `Network Graph`: D3 graph with manual nodes/links, concept/source-aware graph nodes, flag/hide, entity resolution, board handoff for artifacts/entities/signals, and an overlaying dossier rail that no longer shifts graph content
 - `Live Monitor`: live signal scans, shared slider/date controls for monitor settings, filtering, save/persist actions, feeder-style CTAs into synthesis, and motion reserved for active monitoring states
 - `Files`: workspace browsing across artifacts and canonical workspace items, with grid-first all-workspaces landing, dense list/grid modes, direct deep-link item focus, direct chat, board, source-link, deletion, export actions, and a controller/section split that keeps the surface aligned to the shared feature extraction pattern
 - `Finder`: discovery scanning and analysis launch with shared toolbar date-range filtering
-- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and theme controls that now register into the shared app workbench host for draft/export utility actions alongside the routed settings shell
+- `Settings`: provider/model keys, generation defaults, OpenRouter search controls, scope/template management, workspace-data import/export, and theme controls that now register into the shared app workbench host for draft/export utility actions alongside the routed settings shell; the theme workbench implementation now lives under `src/components/features/Settings/themeWorkbench/*`
 
 ## Tech Stack
 
@@ -149,13 +149,14 @@ npm run check:full
 
 ## Current Validation Snapshot (April 17, 2026)
 
-The current targeted validation for the Stage 5 app-shell workbench host cutover succeeded on this checkout:
+The current targeted validation for the Stage 6/7 theme-platform consolidation and multi-consumer workbench cutover succeeded on this checkout:
 
-- `npx vitest run src/app/workbench/AppWorkbenchHost.test.tsx src/app/AppShell.test.tsx src/app/AppShellRoutes.test.tsx src/app/routeViews.test.tsx src/components/system/layout/DockPanel.test.tsx src/components/ui/Sidebar.test.tsx src/components/features/Chat/ChatPage.test.tsx src/components/features/WorkspaceHome/index.test.tsx --reporter verbose`: passes
+- `npm run test -- src/system/theme/storage.test.ts src/utils/themeFonts.test.ts src/app/workbench/AppWorkbenchHost.test.tsx src/components/features/TimelineView.test.tsx`: passes
 - `npm run lint`: passes
 - `npm run typecheck`: passes
 - `npm run build`: passes
-- the app shell now owns one shared workbench host with a sidebar trigger, app-level left/right docking, and route-pluggable utility-panel registration; the current live consumer is the Settings theme workspace
+- the app shell now owns one shared workbench host with a sidebar trigger, app-level left/right docking, and route-pluggable utility-panel registration; current live consumers are the Settings theme workspace and the Timeline tools panel
+- legacy split theme keys are now read only as bootstrap migration fallbacks when `theme_workspace` is missing, and the active compatibility helpers live under `src/system/theme/legacy/`
 - all routed in-app pages mounted by `AppShellRoutes` still compose through the shared shell contract; the public `/welcome` landing page remains intentionally outside `PageShell`
 - the full repo-wide `npm run test` suite was not rerun as part of this scoped validation pass
 - Vite still emits chunk-size warnings for `vendor-tldraw-app` and `vendor`; these remain documented review checkpoints

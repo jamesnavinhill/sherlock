@@ -11,13 +11,12 @@ Related inputs:
 - `docs/operations/ARCHITECTURE.md`
 - `docs/operations/DATA_PERSISTENCE.md`
 - `docs/operations/OPERATIONS_RUNBOOK.md`
-- `src/components/features/Settings/SettingsThemeTab.tsx`
+- `src/components/features/Settings/themeWorkbench/*`
 - `src/app/useAppShellEffects.ts`
 - `src/components/features/LibraryRail/LibraryRailShell.tsx`
 - `src/components/features/Inspector/GlobalInspectorPanel.tsx`
 - `src/components/ui/chrome.ts`
-- `src/utils/themeSurfaces.ts`
-- `src/utils/themeBackground.ts`
+- `src/system/theme/legacy/splitTheme.ts`
 - `src/utils/themeFonts.ts`
 - `src/index.css`
 
@@ -254,10 +253,10 @@ Stage 4 closeout progress on April 17, 2026:
 
 Audit note on April 17, 2026:
 
-- The Stage 1-5 cutovers are substantially landed, but the canon workbench cutover is not fully closed.
-- Sherlock's new workbench does not yet contain every canon-shipped theme template or every canon slider family.
-- The shared app workbench host exists, but Settings is still its only live route consumer.
-- Theme-platform cleanup is incomplete because legacy split-theme helpers and bootstrap compatibility reads still remain in active code paths.
+- The Stage 1-7 cutovers are now landed.
+- Stage 6 repaired the remaining canon theme/template, slider-family, and typography-profile parity gaps.
+- Stage 7 consolidated legacy theme migration ownership, moved the Settings theme workbench into a dedicated feature subfolder, and added Timeline as a second live app-workbench consumer.
+- The canon workbench cutover should now be treated as completed against this roadmap's stated scope.
 
 Completed stages so far:
 
@@ -266,6 +265,8 @@ Completed stages so far:
 - Stage 3. Shared Controls And Input-Surface Parity Cutover
 - Stage 4. Routed Theme Adoption And Shell Cleanup Closeout
 - Stage 5. App-Shell Workbench Host And Routed Utility-Panel Adoption
+- Stage 6. Canon Theme Parity Repair And Workbench Fidelity
+- Stage 7. Theme Platform Consolidation, Workbench Adoption, And File Discipline
 
 Delivered from those completed stages:
 
@@ -284,7 +285,9 @@ Delivered from those completed stages:
 - Route-local readers and dialogs now reuse token-driven shell surfaces instead of route-specific dark wrappers, so the Sherlock theme now reaches artifact reading, board-agent flows, and network graph overlays.
 - Timeline relation chips now consume the Sherlock graph palette tokens so graph-theme changes affect the real routed shell rather than only the settings preview.
 - The app shell now owns one shared workbench host with a sidebar trigger, app-level left/right dock placement, and route-pluggable utility-panel registration through `useRegisterAppWorkbenchPanel()`.
-- Settings is now the first live consumer of that shared host, moving its theme draft/export utility rail out of a settings-only right-dock assumption.
+- Settings and Timeline are now live consumers of that shared host, so shared workbench adoption is no longer Settings-only.
+- Legacy split-theme surface/background compatibility helpers now live under `src/system/theme/legacy/`, and bootstrap only reads the old split setting keys when `theme_workspace` is missing.
+- The Settings theme workbench now lives under `src/components/features/Settings/themeWorkbench/*` instead of one oversized leaf file.
 - README and architecture docs have been updated to reflect the landed shell, theme-platform, and shared-control behavior.
 
 Stage 5 closeout progress on April 17, 2026:
@@ -294,36 +297,20 @@ Stage 5 closeout progress on April 17, 2026:
 - `src/app/workbench/AppWorkbenchContext.ts`, `AppWorkbenchHostProvider.tsx`, `AppWorkbenchHost.tsx`, and `useAppWorkbenchHost.ts` define the routed utility-panel registration contract for future consumers.
 - `Settings/index.tsx` now registers theme draft/export utility content into that shared host, and `SettingsThemeWorkbenchPanel.tsx` isolates the migrated utility content from the routed settings page shell.
 
-## Audit Findings On Remaining Cutover Work
+Stage 6 closeout progress on April 17, 2026:
 
-The April 17 implementation audit found these remaining gaps:
+- Sherlock's shipped theme library now includes the canon templates that remained in scope: `blueberry`, `midnight`, and `crimson`.
+- The workbench now owns graph opacity, background opacity, per-surface opacity, and selected-role typography profile sliders (`sizeAdjust`, `weightAdjust`, `trackingAdjust`, `leadingAdjust`).
+- The missing canon font options (`instrument-sans`, `archivo`, and `azeret-mono`) are now present in Sherlock's font catalog.
+- `Background Glow` and `Scanline Strength` now mutate real schema-backed theme fields and persist correctly.
 
-- Missing canon theme templates in Sherlock's shipped theme library:
-  - `blueberry`
-  - `midnight`
-  - `crimson`
-- Missing canon slider families in Sherlock's current `SherlockTheme` schema and workbench:
-  - graph opacity
-  - background opacity for dark/light background tuning
-  - per-surface opacity for shell/panel/rail/surface tuning
-  - selected-font-family role-profile tuning, where canon keeps the global size/weight sliders but also shows one slider set for the currently selected role/family:
-    - `sizeAdjust`
-    - `weightAdjust`
-    - `trackingAdjust`
-    - `leadingAdjust`
-- Missing canon font options in Sherlock's current theme font catalog:
-  - `instrument-sans`
-  - `archivo`
-  - `azeret-mono`
-- `SettingsThemeTab.tsx` currently renders `Background Glow` and `Scanline Strength` sliders, but their change handler does not write those fields back into theme state, so those controls are currently no-op UI.
-- The active workbench host contract is still effectively Settings-only because no other routed surface registers into `useRegisterAppWorkbenchPanel()`.
-- Legacy split-theme helpers still leak into the active theme platform through defaults, parsing, and bootstrap migration wiring in:
-  - `src/utils/themeSurfaces.ts`
-  - `src/utils/themeBackground.ts`
-  - `src/utils/themeFonts.ts`
-  - `src/store/actions/bootstrapActions.ts`
+Stage 7 closeout progress on April 17, 2026:
 
-Those gaps are small enough to close decisively, but they mean the roadmap should no longer treat the cutover as fully complete.
+- The active bootstrap path now treats `theme_mode`, `accent_settings`, `theme_surface_settings`, `theme_font_settings`, and `theme_background_settings` as migration-only inputs rather than normal runtime dependencies.
+- Split-theme compatibility helpers used by the active platform have been moved out of general-purpose `src/utils/` ownership into `src/system/theme/legacy/splitTheme.ts`.
+- The Settings theme workbench implementation has been broken into a dedicated `themeWorkbench/` feature subfolder.
+- Timeline now registers a second routed utility panel into the shared app workbench host, so the host is a real multi-consumer shell capability rather than a Settings-only abstraction.
+- Repository-facing docs now point at current `workspaceStore` and system-layer anchors, and no longer describe the canon workbench cutover as unfinished.
 
 ## Stage 3. Shared Controls And Input-Surface Parity Cutover
 

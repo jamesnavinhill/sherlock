@@ -2,8 +2,11 @@ import type { AccentSettings } from '@/utils/accent';
 import { DEFAULT_ACCENT_SETTINGS } from '@/utils/accent';
 import {
   DEFAULT_THEME_BACKGROUND_SETTINGS,
+  THEME_SURFACE_PRESETS,
   type ThemeBackgroundSettings,
-} from '@/utils/themeBackground';
+  type ThemeSurfacePreset,
+  type ThemeSurfaceSettings,
+} from '@/system/theme/legacy/splitTheme';
 import {
   createDefaultThemeFontProfiles,
   DEFAULT_THEME_FONT_SETTINGS,
@@ -13,12 +16,7 @@ import {
   type ThemeFontRole,
   type ThemeFontSettings,
 } from '@/utils/themeFonts';
-import {
-  DEFAULT_THEME_SURFACE_SETTINGS,
-  THEME_SURFACE_PRESETS,
-  type ThemeSurfacePreset,
-  type ThemeSurfaceSettings,
-} from '@/utils/themeSurfaces';
+import { DEFAULT_THEME_SURFACE_SETTINGS } from '@/system/theme/legacy/splitTheme';
 
 export type SherlockThemeMode = 'dark' | 'light';
 export type SherlockThemeBackgroundVariant = 'plain' | 'dot-grid' | 'cross-grid' | 'scanlines';

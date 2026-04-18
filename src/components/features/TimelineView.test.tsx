@@ -2,11 +2,17 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
+import { AppWorkbenchHost } from '@/app/workbench/AppWorkbenchHost';
+import { AppWorkbenchHostProvider } from '@/app/workbench/AppWorkbenchHostProvider';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { TimelineView } from './TimelineView';
 
 vi.mock('../ui/BackgroundMatrixRain', () => ({
   BackgroundMatrixRain: () => null,
+}));
+
+vi.mock('@/components/ui/GlobalSearch', () => ({
+  GlobalSearch: () => <div data-testid="global-search" />,
 }));
 
 const LocationProbe = () => {
@@ -65,22 +71,24 @@ describe('TimelineView route state', () => {
 
   it('does not render a search field inside the timeline filters menu', async () => {
     render(
-      <MemoryRouter
-        future={routerFuture}
-        initialEntries={['/workspaces/case-1/timeline?search=alpha+signal']}
-      >
-        <Routes>
-          <Route
-            path="/workspaces/:workspaceId/timeline"
-            element={
-              <>
-                <TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />
-                <LocationProbe />
-              </>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+      <AppWorkbenchHostProvider>
+        <MemoryRouter
+          future={routerFuture}
+          initialEntries={['/workspaces/case-1/timeline?search=alpha+signal']}
+        >
+          <Routes>
+            <Route
+              path="/workspaces/:workspaceId/timeline"
+              element={
+                <>
+                  <TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />
+                  <LocationProbe />
+                </>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </AppWorkbenchHostProvider>
     );
 
     fireEvent.click(screen.getByLabelText('Timeline filters'));
@@ -92,19 +100,21 @@ describe('TimelineView route state', () => {
 
   it('navigates to the selected workspace timeline route from the workspace selector', async () => {
     render(
-      <MemoryRouter future={routerFuture} initialEntries={['/workspaces/case-1/timeline']}>
-        <Routes>
-          <Route
-            path="/workspaces/:workspaceId/timeline"
-            element={
-              <>
-                <TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />
-                <LocationProbe />
-              </>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
+      <AppWorkbenchHostProvider>
+        <MemoryRouter future={routerFuture} initialEntries={['/workspaces/case-1/timeline']}>
+          <Routes>
+            <Route
+              path="/workspaces/:workspaceId/timeline"
+              element={
+                <>
+                  <TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />
+                  <LocationProbe />
+                </>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </AppWorkbenchHostProvider>
     );
 
     fireEvent.click(screen.getByRole('button', { name: /timeline workspace/i }));
@@ -113,5 +123,26 @@ describe('TimelineView route state', () => {
     await waitFor(() => {
       expect(screen.getByTestId('location')).toHaveTextContent('/workspaces/case-2/timeline');
     });
+  });
+
+  it('registers timeline tools into the shared app workbench host', async () => {
+    render(
+      <AppWorkbenchHostProvider>
+        <MemoryRouter future={routerFuture} initialEntries={['/workspaces/case-1/timeline']}>
+          <Routes>
+            <Route
+              path="/workspaces/:workspaceId/timeline"
+              element={<TimelineView onOpenReport={vi.fn()} onOpenChat={vi.fn()} />}
+            />
+          </Routes>
+        </MemoryRouter>
+        <AppWorkbenchHost />
+      </AppWorkbenchHostProvider>
+    );
+
+    expect(screen.getByText('Timeline Tools')).toBeInTheDocument();
+    expect(screen.getByText('Timeline Workspace')).toBeInTheDocument();
+    expect(screen.getAllByText('Workspace Alpha').length).toBeGreaterThan(0);
+    expect(screen.getByText('Save Current View')).toBeInTheDocument();
   });
 });

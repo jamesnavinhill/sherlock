@@ -1,12 +1,4 @@
 import { parseOklch, DEFAULT_ACCENT_SETTINGS } from '@/utils/accent';
-import {
-  DEFAULT_THEME_BACKGROUND_SETTINGS,
-  parseThemeBackgroundSettings,
-} from '@/utils/themeBackground';
-import {
-  DEFAULT_THEME_SURFACE_SETTINGS,
-  parseThemeSurfaceSettings,
-} from '@/utils/themeSurfaces';
 import { DEFAULT_THEME_FONT_SETTINGS, parseThemeFontSettings } from '@/utils/themeFonts';
 import {
   clearStoredActiveWorkspaceId,
@@ -33,6 +25,12 @@ import {
   migrateLegacySherlockThemeWorkspace,
   SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
 } from '@/system/theme/storage';
+import {
+  DEFAULT_THEME_BACKGROUND_SETTINGS,
+  DEFAULT_THEME_SURFACE_SETTINGS,
+  parseThemeBackgroundSettings,
+  parseThemeSurfaceSettings,
+} from '@/system/theme/legacy/splitTheme';
 import type { SherlockThemeWorkspaceState } from '@/system/theme/schema';
 import {
   getWorkspaceDataSignals,
@@ -102,11 +100,6 @@ export const createBootstrapActions = (
           flaggedNodeIdsResult,
           entityAliasesResult,
           storedThemeWorkspace,
-          storedThemeMode,
-          storedAccent,
-          storedThemeSurfaceSettings,
-          storedThemeFontSettings,
-          storedThemeBackgroundSettings,
         ] = await Promise.all([
           loadBootstrapResource('workspaces', () => WorkspaceRepository.getAllWorkspaces(), []),
           loadBootstrapResource('artifacts', () => WorkspaceRepository.getAllArtifacts(), []),
@@ -150,37 +143,10 @@ export const createBootstrapActions = (
           ),
           loadBootstrapResource(
             'theme workspace',
-            () => SettingsRepository.getSetting<SherlockThemeWorkspaceState>(SHERLOCK_THEME_WORKSPACE_SETTING_KEY),
-            null
-          ),
-          loadBootstrapResource(
-            'theme mode',
-            () => SettingsRepository.getSetting<ThemeMode>('theme_mode'),
-            null
-          ),
-          loadBootstrapResource(
-            'accent settings',
             () =>
-              SettingsRepository.getSetting<{
-                hue: number;
-                lightness: number;
-                chroma: number;
-              }>('accent_settings'),
-            null
-          ),
-          loadBootstrapResource(
-            'theme surface settings',
-            () => SettingsRepository.getSetting('theme_surface_settings'),
-            null
-          ),
-          loadBootstrapResource(
-            'theme font settings',
-            () => SettingsRepository.getSetting('theme_font_settings'),
-            null
-          ),
-          loadBootstrapResource(
-            'theme background settings',
-            () => SettingsRepository.getSetting('theme_background_settings'),
+              SettingsRepository.getSetting<SherlockThemeWorkspaceState>(
+                SHERLOCK_THEME_WORKSPACE_SETTING_KEY
+              ),
             null
           ),
         ]);
@@ -230,50 +196,97 @@ export const createBootstrapActions = (
         let flaggedNodeIds = flaggedNodeIdsResult || [];
         const entityAliases = entityAliasesResult || {};
 
-        const legacyTheme = getStringItem(STORAGE_KEYS.THEME);
-        const legacyConfigRaw = getStringItem(STORAGE_KEYS.SYSTEM_CONFIG);
-        const legacyConfig = legacyConfigRaw
-          ? parseStoredJson<Record<string, unknown>>(legacyConfigRaw, {}, 'legacy system config')
-          : {};
-        const legacyConfigTheme =
-          typeof legacyConfig['theme'] === 'string' ? legacyConfig['theme'] : null;
-        const legacyThemeMode =
-          legacyConfig['themeMode'] === 'light' || legacyConfig['themeMode'] === 'dark'
-            ? (legacyConfig['themeMode'] as ThemeMode)
-            : null;
-        const legacyThemeSurfaceSettings = parseThemeSurfaceSettings(
-          legacyConfig['themeSurfaceSettings']
-        );
-        const legacyThemeBackgroundSettings = parseThemeBackgroundSettings(
-          legacyConfig['themeBackgroundSettings']
-        );
-        const legacyThemeFontSettings = parseThemeFontSettings(legacyConfig['themeFontSettings']);
-
         const resolvedThemeWorkspace = storedThemeWorkspace
           ? hydrateSherlockThemeWorkspace(storedThemeWorkspace)
-          : migrateLegacySherlockThemeWorkspace({
-              accentSettings:
-                storedAccent ||
-                (legacyTheme ? parseOklch(legacyTheme) : null) ||
-                (legacyConfigTheme ? parseOklch(legacyConfigTheme) : null) ||
-                DEFAULT_ACCENT_SETTINGS,
-              themeMode:
-                storedThemeMode === 'light' || storedThemeMode === 'dark'
-                  ? storedThemeMode
-                  : legacyThemeMode,
-              themeSurfaceSettings:
-                parseThemeSurfaceSettings(storedThemeSurfaceSettings) ||
-                legacyThemeSurfaceSettings ||
-                DEFAULT_THEME_SURFACE_SETTINGS,
-              themeFontSettings:
-                parseThemeFontSettings(storedThemeFontSettings) ||
-                legacyThemeFontSettings ||
-                DEFAULT_THEME_FONT_SETTINGS,
-              themeBackgroundSettings:
-                parseThemeBackgroundSettings(storedThemeBackgroundSettings) ||
-                legacyThemeBackgroundSettings ||
-                DEFAULT_THEME_BACKGROUND_SETTINGS,
-            });
+          : await (async () => {
+              const [
+                storedThemeMode,
+                storedAccent,
+                storedThemeSurfaceSettings,
+                storedThemeFontSettings,
+                storedThemeBackgroundSettings,
+              ] = await Promise.all([
+                loadBootstrapResource(
+                  'legacy theme mode',
+                  () => SettingsRepository.getSetting<ThemeMode>('theme_mode'),
+                  null
+                ),
+                loadBootstrapResource(
+                  'legacy accent settings',
+                  () =>
+                    SettingsRepository.getSetting<{
+                      hue: number;
+                      lightness: number;
+                      chroma: number;
+                    }>('accent_settings'),
+                  null
+                ),
+                loadBootstrapResource(
+                  'legacy theme surface settings',
+                  () => SettingsRepository.getSetting('theme_surface_settings'),
+                  null
+                ),
+                loadBootstrapResource(
+                  'legacy theme font settings',
+                  () => SettingsRepository.getSetting('theme_font_settings'),
+                  null
+                ),
+                loadBootstrapResource(
+                  'legacy theme background settings',
+                  () => SettingsRepository.getSetting('theme_background_settings'),
+                  null
+                ),
+              ]);
+
+              const legacyTheme = getStringItem(STORAGE_KEYS.THEME);
+              const legacyConfigRaw = getStringItem(STORAGE_KEYS.SYSTEM_CONFIG);
+              const legacyConfig = legacyConfigRaw
+                ? parseStoredJson<Record<string, unknown>>(
+                    legacyConfigRaw,
+                    {},
+                    'legacy system config'
+                  )
+                : {};
+              const legacyConfigTheme =
+                typeof legacyConfig['theme'] === 'string' ? legacyConfig['theme'] : null;
+              const legacyThemeMode =
+                legacyConfig['themeMode'] === 'light' || legacyConfig['themeMode'] === 'dark'
+                  ? (legacyConfig['themeMode'] as ThemeMode)
+                  : null;
+              const legacyThemeSurfaceSettings = parseThemeSurfaceSettings(
+                legacyConfig['themeSurfaceSettings']
+              );
+              const legacyThemeBackgroundSettings = parseThemeBackgroundSettings(
+                legacyConfig['themeBackgroundSettings']
+              );
+              const legacyThemeFontSettings = parseThemeFontSettings(
+                legacyConfig['themeFontSettings']
+              );
+
+              return migrateLegacySherlockThemeWorkspace({
+                accentSettings:
+                  storedAccent ||
+                  (legacyTheme ? parseOklch(legacyTheme) : null) ||
+                  (legacyConfigTheme ? parseOklch(legacyConfigTheme) : null) ||
+                  DEFAULT_ACCENT_SETTINGS,
+                themeMode:
+                  storedThemeMode === 'light' || storedThemeMode === 'dark'
+                    ? storedThemeMode
+                    : legacyThemeMode,
+                themeSurfaceSettings:
+                  parseThemeSurfaceSettings(storedThemeSurfaceSettings) ||
+                  legacyThemeSurfaceSettings ||
+                  DEFAULT_THEME_SURFACE_SETTINGS,
+                themeFontSettings:
+                  parseThemeFontSettings(storedThemeFontSettings) ||
+                  legacyThemeFontSettings ||
+                  DEFAULT_THEME_FONT_SETTINGS,
+                themeBackgroundSettings:
+                  parseThemeBackgroundSettings(storedThemeBackgroundSettings) ||
+                  legacyThemeBackgroundSettings ||
+                  DEFAULT_THEME_BACKGROUND_SETTINGS,
+              });
+            })();
         await SettingsRepository.setSetting(
           SHERLOCK_THEME_WORKSPACE_SETTING_KEY,
           resolvedThemeWorkspace

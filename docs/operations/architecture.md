@@ -157,7 +157,7 @@ Stage 5's app-shell workbench host is also now active in runtime code:
 - `AppShell.tsx` now mounts one shared workbench host around the routed app surface instead of leaving utility docking trapped inside `Settings`
 - `Sidebar.tsx` now exposes the global workbench trigger while the shared host owns app-level open/close and left/right dock placement
 - routed consumers register utility content through `useRegisterAppWorkbenchPanel()` rather than rendering route-local right docks
-- `Settings/index.tsx` is the first live consumer of that contract, registering theme draft/export utility content into the shared host instead of hard-wiring its own right-side dock
+- `Settings/index.tsx` and `TimelineView.tsx` are now live consumers of that contract, registering theme draft/export utility content and timeline saved-view/export tooling into the shared host instead of hard-wiring route-local right-side docks
 - the host/provider split (`AppWorkbenchHostProvider.tsx`, `AppWorkbenchHost.tsx`, `useAppWorkbenchHost.ts`) leaves one explicit route-pluggable contract for future utility panels without introducing a second docking system
 
 The shared input/control layer now also has Sherlock-owned primitives instead of route-local slider/date markup:
@@ -172,7 +172,7 @@ The active visual-theme runtime now uses one Sherlock-owned theme workspace:
 - `theme_workspace` is the only active persisted visual-theme setting key
 - each workspace entry contains `savedThemes`, `draftThemes`, an `activeThemeId`, and a separate `previewMode`
 - `src/app/useAppShellEffects.ts` now applies one `buildSherlockThemeCssVars()` result to the document instead of stitching together split accent/background/surface/font builders
-- legacy split theme fragments (`theme_mode`, `accent_settings`, `theme_surface_settings`, `theme_font_settings`, `theme_background_settings`) are now migration inputs and derived compatibility state, not the active runtime source of truth
+- legacy split theme fragments (`theme_mode`, `accent_settings`, `theme_surface_settings`, `theme_font_settings`, `theme_background_settings`) are now migration inputs only; bootstrap reads them only when `theme_workspace` is missing, and the active compatibility helpers now live under `src/system/theme/legacy/splitTheme.ts`
 
 ### Shared panel foundations
 
@@ -742,6 +742,7 @@ Run-setup and template flows now expose:
 - `SettingsDialogs.tsx` owns backup restore, purge confirmation, and import feedback boundaries instead of leaving those workflows inline in the page root
 - the Runtime tab now reuses the same shared runtime-config modules used by run setup, guided chat, template authoring, and launch mapping
 - the Theme tab now edits one docked Sherlock theme workspace rather than separate accent/background/surface/font cards
+- the Theme tab implementation is now split under `src/components/features/Settings/themeWorkbench/*`, separating tab sections, helper ownership, and workbench-host panel content from the routed settings shell
 - the theme workspace's draft/export utility rail now registers into the shared app-level workbench host instead of rendering as a settings-only right dock
 - the Theme tab's background, graph, typography, shell, and radius sliders now render through the shared `RangeField` contract instead of one-off range markup
 - theme templates are full editable themes with saved/draft separation, preview-mode switching, factory reset, fork-to-custom-slot, and JSON/CSS export

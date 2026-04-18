@@ -12,10 +12,11 @@ Repository-specific operating notes for coding/documentation agents.
 When unsure, start from:
 
 - `src/App.tsx` (app shell + launch pipeline)
-- `src/store/caseStore.ts` (state + persistence orchestration)
+- `src/store/workspaceStore.ts` (state contract + persistence orchestration)
 - `src/services/runtime.ts` (app-facing runtime facade over the provider router)
 - `src/services/providers/index.ts` (provider router)
 - `src/components/features/Timeline/*` (chronology derivation, snapshot export, and Timeline UI)
+- `src/system/theme/*` (unified theme schema, CSS vars, storage, and legacy migration helpers)
 - `src/services/db/*` (SQLite + repositories)
 
 ## 3. Data and Persistence
